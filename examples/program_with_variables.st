@@ -1,0 +1,6 @@
+PROGRAM hello
+VAR
+   x : INT;
+   y : BOOL;
+END_VAR
+END_PROGRAM

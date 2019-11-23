@@ -1,0 +1,5 @@
+PROGRAM hello
+VAR
+
+END_VAR
+END_PROGRAM
