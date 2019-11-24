@@ -13,7 +13,7 @@ fn main() {
 
     //Start lexing
     let lexer = lexer::lex(&contents);
-    print_tokens(&contents);
+    //print_tokens(&contents);
 
     //Parse
     parser::parse(lexer);

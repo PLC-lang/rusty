@@ -27,10 +27,20 @@ pub enum Token {
     KeywordColon,
 
     #[token = ";"]
-    KeywordSemiColon,
+    KeywordSemicolon,
 
     #[token = ":="]
     KeywordAssignment,
+
+    //Operators
+    #[token = "+"]
+    OperatorPlus,
+
+    #[token = "-"]
+    OperatorMinus,
+
+    #[regex = r"[0-9]+(\.(0-9)+)?"]
+    LiteralNumber,
 }
 
 pub fn lex(source: &str) -> Lexer<Token, &str> {
@@ -71,21 +81,21 @@ mod tests {
     }
 
     #[test]
-    fn an_identifer_is_alphanumeric() {
+    fn an_identifier_is_alphanumeric() {
         let lexer = super::lex("a12");
         assert_eq!(lexer.token, super::Token::Identifier);
     }
 
     #[test]
-    fn an_identifer_can_start_with_underscore() {
+    fn an_identifier_can_start_with_underscore() {
         let lexer = super::lex("_a12");
         assert_eq!(lexer.token, super::Token::Identifier);
     }
 
     #[test]
-    fn an_identifer_cannot_start_with_a_number() {
-        let lexer = super::lex("2a12");
-        assert_eq!(lexer.token, super::Token::Error);
+    fn an_identifier_cannot_start_with_a_number() {
+        let lexer = super::lex("2g12");
+        assert_ne!(lexer.token, super::Token::Identifier);
     }
 
     #[test]
@@ -103,7 +113,26 @@ mod tests {
     #[test]
     fn a_semicolon_is_KeywordSemiColon() {
         let lexer = super::lex(";");
-        assert_eq!(lexer.token, super::Token::KeywordSemiColon);
+        assert_eq!(lexer.token, super::Token::KeywordSemicolon);
+    }
+
+    #[test]
+    fn operator_test() {
+        let mut lexer = super::lex("+ -");
+        assert_eq!(lexer.token, super::Token::OperatorPlus);
+        lexer.advance();
+        assert_eq!(lexer.token, super::Token::OperatorMinus);
+    }
+
+    #[test]
+    fn literals_test() {
+        let mut lexer = super::lex("1 2.2 0123.0123 321");
+
+        for x in 0..5 {
+            print!("{}", x);
+            assert_eq!(lexer.token, super::Token::LiteralNumber);
+            lexer.advance();
+        }
     }
 
     #[test]
@@ -130,11 +159,10 @@ mod tests {
         lexer.advance();
         assert_eq!(lexer.token, super::Token::Identifier);
         lexer.advance();
-        assert_eq!(lexer.token, super::Token::KeywordSemiColon);
+        assert_eq!(lexer.token, super::Token::KeywordSemicolon);
         lexer.advance();
         assert_eq!(lexer.token, super::Token::KeywordEndVar);
         lexer.advance();
         assert_eq!(lexer.token, super::Token::KeywordEndProgram);
     }
-
 }

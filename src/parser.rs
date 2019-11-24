@@ -11,10 +11,13 @@ macro_rules! expect {
     };
 }
 
+type RustyLexer<'a> = Lexer<lexer::Token, &'a str>;
+
 #[derive(Debug, PartialEq)]
 pub struct Program {
     name: String,
     variable_blocks: Vec<VariableBlock>,
+    statements: Vec<Statement>,
 }
 
 #[derive(Debug, PartialEq)]
@@ -33,10 +36,39 @@ pub struct Variable {
     data_type: String,
 }
 
+#[derive(Debug, PartialEq)]
+pub enum Statement {
+    LiteralNumber {
+        value: String,
+    },
+    Reference {
+        name: String,
+    },
+    BinaryExpression {
+        operator: Operator,
+        left: Box<Statement>,
+        right: Box<Statement>,
+    },
+}
+
+#[derive(Debug, PartialEq)]
+pub enum Operator {
+    Plus,
+    Minus,
+}
+
+fn create_program() -> Program {
+    Program {
+        name: "".to_string(),
+        variable_blocks: Vec::new(),
+        statements: Vec::new(),
+    }
+}
+
 ///
 /// returns an error for an uidientified token
 ///  
-fn unidentified_token(lexer: &Lexer<lexer::Token, &str>) -> String {
+fn unidentified_token(lexer: &RustyLexer) -> String {
     format!(
         "unidentified token: {t:?} at {location:?}",
         t = lexer.slice(),
@@ -47,7 +79,7 @@ fn unidentified_token(lexer: &Lexer<lexer::Token, &str>) -> String {
 ///
 /// returns an error for an unexpected token
 ///  
-fn unexpected_token(lexer: &Lexer<lexer::Token, &str>) -> String {
+fn unexpected_token(lexer: &RustyLexer) -> String {
     format!(
         "unexpected token: {t:?} at {location:?}",
         t = lexer.token,
@@ -55,13 +87,13 @@ fn unexpected_token(lexer: &Lexer<lexer::Token, &str>) -> String {
     )
 }
 
-fn slice_and_advance(lexer: &mut Lexer<lexer::Token, &str>) -> String {
+fn slice_and_advance(lexer: &mut RustyLexer) -> String {
     let slice = lexer.slice().to_string();
     lexer.advance();
     slice
 }
 
-pub fn parse(mut lexer: Lexer<lexer::Token, &str>) -> Result<CompilationUnit, String> {
+pub fn parse(mut lexer: RustyLexer) -> Result<CompilationUnit, String> {
     let mut unit = CompilationUnit { units: Vec::new() };
 
     loop {
@@ -85,11 +117,8 @@ pub fn parse(mut lexer: Lexer<lexer::Token, &str>) -> Result<CompilationUnit, St
     Ok(unit)
 }
 
-fn parse_program(lexer: &mut Lexer<lexer::Token, &str>) -> Result<Program, String> {
-    let mut result = Program {
-        name: "".to_string(),
-        variable_blocks: Vec::new(),
-    };
+fn parse_program(lexer: &mut RustyLexer) -> Result<Program, String> {
+    let mut result = create_program();
 
     expect!(Identifier, lexer);
 
@@ -106,12 +135,60 @@ fn parse_program(lexer: &mut Lexer<lexer::Token, &str>) -> Result<Program, Strin
         };
     }
 
+    //Parse the statemetns
+    while lexer.token != KeywordEndProgram && lexer.token != End && lexer.token != Error {
+        let statement = (parse_statement(lexer))?;
+        result.statements.push(statement);
+    }
     expect!(KeywordEndProgram, lexer);
 
     Ok(result)
 }
 
-fn parse_variable_block(lexer: &mut Lexer<lexer::Token, &str>) -> Result<VariableBlock, String> {
+fn parse_statement(lexer: &mut RustyLexer) -> Result<Statement, String> {
+    let result = parse_binary_expression(lexer);
+    expect!(KeywordSemicolon, lexer);
+    lexer.advance();
+    result
+}
+
+fn parse_binary_expression(lexer: &mut RustyLexer) -> Result<Statement, String> {
+    let left = parse_unary_expression(lexer)?;
+    let operator = match lexer.token {
+        OperatorPlus => Operator::Plus,
+        OperatorMinus => Operator::Minus,
+        _ => return Ok(left),
+    };
+    lexer.advance();
+    let right = parse_binary_expression(lexer)?;
+    Ok(Statement::BinaryExpression {
+        operator,
+        left: Box::new(left),
+        right: Box::new(right),
+    })
+}
+
+fn parse_unary_expression(lexer: &mut RustyLexer) -> Result<Statement, String> {
+    match lexer.token {
+        Identifier => parse_reference(lexer),
+        LiteralNumber => parse_literal_number(lexer),
+        _ => Err(unexpected_token(lexer)),
+    }
+}
+
+fn parse_reference(lexer: &mut RustyLexer) -> Result<Statement, String> {
+    Ok(Statement::Reference {
+        name: slice_and_advance(lexer).to_string(),
+    })
+}
+
+fn parse_literal_number(lexer: &mut RustyLexer) -> Result<Statement, String> {
+    Ok(Statement::LiteralNumber {
+        value: slice_and_advance(lexer),
+    })
+}
+
+fn parse_variable_block(lexer: &mut RustyLexer) -> Result<VariableBlock, String> {
     let mut result = VariableBlock {
         variables: Vec::new(),
     };
@@ -127,7 +204,7 @@ fn parse_variable_block(lexer: &mut Lexer<lexer::Token, &str>) -> Result<Variabl
 }
 
 fn parse_variable(
-    lexer: &mut Lexer<lexer::Token, &str>,
+    lexer: &mut RustyLexer,
     mut owner: VariableBlock,
 ) -> Result<VariableBlock, String> {
     let name = slice_and_advance(lexer);
@@ -138,7 +215,7 @@ fn parse_variable(
     expect!(Identifier, lexer);
     let data_type = slice_and_advance(lexer);
 
-    expect!(KeywordSemiColon, lexer);
+    expect!(KeywordSemicolon, lexer);
     lexer.advance();
 
     owner.variables.push(Variable { name, data_type });
@@ -149,6 +226,7 @@ fn parse_variable(
 #[cfg(test)]
 mod tests {
     use super::super::lexer;
+    use super::Statement;
 
     #[test]
     fn empty_returns_empty_compilation_unit() {
@@ -228,4 +306,97 @@ mod tests {
         assert_eq!(variable.data_type, "INT");
     }
 
+    #[test]
+    fn single_statement_parsed() {
+        let lexer = lexer::lex("PROGRAM exp x; END_PROGRAM");
+        let result = super::parse(lexer).unwrap();
+
+        let prg = &result.units[0];
+        let statement = &prg.statements[0];
+
+        if let Statement::Reference { name } = statement {
+            assert_eq!(name, "x");
+        } else {
+            panic!("Expected Reference but found {:?}", statement);
+        }
+    }
+
+    #[test]
+    fn literal_can_be_parsed() {
+        let lexer = lexer::lex("PROGRAM exp 7; END_PROGRAM");
+        let result = super::parse(lexer).unwrap();
+
+        let prg = &result.units[0];
+        let statement = &prg.statements[0];
+
+        if let Statement::LiteralNumber { value } = statement {
+            assert_eq!(value, "7");
+        } else {
+            panic!("Expected LiteralNumber but found {:?}", statement);
+        }
+    }
+
+    #[test]
+    fn additon_of_two_variables_parsed() {
+        let lexer = lexer::lex("PROGRAM exp x+y; END_PROGRAM");
+        let result = super::parse(lexer).unwrap();
+
+        let prg = &result.units[0];
+        let statement = &prg.statements[0];
+
+        if let Statement::BinaryExpression {
+            operator,
+            left,  //Box<Reference> {name : left}),
+            right, //Box<Reference> {name : right}),
+        } = statement
+        {
+            if let Statement::Reference { name } = &**left {
+                assert_eq!(name, "x");
+            }
+            if let Statement::Reference { name } = &**right {
+                assert_eq!(name, "y");
+            }
+            assert_eq!(operator, &super::Operator::Plus);
+        } else {
+            panic!("Expected Reference but found {:?}", statement);
+        }
+    }
+
+    #[test]
+    fn additon_of_three_variables_parsed() {
+        let lexer = lexer::lex("PROGRAM exp x+y-z; END_PROGRAM");
+        let result = super::parse(lexer).unwrap();
+
+        let prg = &result.units[0];
+        let statement = &prg.statements[0];
+
+        if let Statement::BinaryExpression {
+            operator,
+            left,  //Box<Reference> {name : left}),
+            right, //Box<Reference> {name : right}),
+        } = statement
+        {
+            if let Statement::Reference { name } = &**left {
+                assert_eq!(name, "x");
+            }
+            if let Statement::BinaryExpression {
+                operator,
+                left,
+                right,
+            } = &**right
+            {
+                if let Statement::Reference { name } = &**left {
+                    assert_eq!(name, "y");
+                }
+                if let Statement::Reference { name } = &**right {
+                    assert_eq!(name, "z");
+                }
+                assert_eq!(operator, &super::Operator::Minus);
+            } else {
+                panic!("Expected Reference but found {:?}", statement);
+            }
+        } else {
+            panic!("Expected Reference but found {:?}", statement);
+        }
+    }
 }
