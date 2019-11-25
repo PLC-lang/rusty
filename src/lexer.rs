@@ -99,19 +99,19 @@ mod tests {
     }
 
     #[test]
-    fn a_colon_is_KeywordColon() {
+    fn a_colon_is_keyword_colon() {
         let lexer = super::lex(":");
         assert_eq!(lexer.token, super::Token::KeywordColon);
     }
 
     #[test]
-    fn a_assignment_is_KewordAssignment() {
+    fn a_assignment_is_keword_assignment() {
         let lexer = super::lex(":=");
         assert_eq!(lexer.token, super::Token::KeywordAssignment);
     }
 
     #[test]
-    fn a_semicolon_is_KeywordSemiColon() {
+    fn a_semicolon_is_keyword_semicolon() {
         let lexer = super::lex(";");
         assert_eq!(lexer.token, super::Token::KeywordSemicolon);
     }

@@ -5,7 +5,7 @@ use super::lexer::Token::*;
 
 macro_rules! expect {
     ( $token:expr, $lexer:expr) => {
-        if ($lexer.token != $token) {
+        if $lexer.token != $token {
             return Err(format!("expected {:?}, but found {:?}", $token, $lexer.token).to_string());
         }
     };
@@ -114,12 +114,11 @@ pub fn parse(mut lexer: RustyLexer) -> Result<CompilationUnit, String> {
 
         lexer.advance();
     }
-    Ok(unit)
+    //the match in the loop will always return
 }
 
 fn parse_program(lexer: &mut RustyLexer) -> Result<Program, String> {
     let mut result = create_program();
-
     expect!(Identifier, lexer);
 
     //Parse Identifier
@@ -219,7 +218,6 @@ fn parse_variable(
     lexer.advance();
 
     owner.variables.push(Variable { name, data_type });
-
     Ok(owner)
 }
 
@@ -275,7 +273,7 @@ mod tests {
     }
 
     #[test]
-    fn a_program_needs_to_end_with_endProgram() {
+    fn a_program_needs_to_end_with_end_program() {
         let lexer = lexer::lex("PROGRAM buz ");
         let result = super::parse(lexer);
         assert_eq!(
@@ -285,7 +283,7 @@ mod tests {
     }
 
     #[test]
-    fn a_variable_declaration_block_needs_to_end_with_endVar() {
+    fn a_variable_declaration_block_needs_to_end_with_endvar() {
         let lexer = lexer::lex("PROGRAM buz VAR END_PROGRAM ");
         let result = super::parse(lexer);
         assert_eq!(
@@ -376,6 +374,7 @@ mod tests {
             right, //Box<Reference> {name : right}),
         } = statement
         {
+            assert_eq!(operator, &super::Operator::Plus);
             if let Statement::Reference { name } = &**left {
                 assert_eq!(name, "x");
             }
