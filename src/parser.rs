@@ -1,6 +1,12 @@
 use super::lexer;
 use logos::Lexer;
 
+use super::ast::CompilationUnit;
+use super::ast::Operator;
+use super::ast::Program;
+use super::ast::Statement;
+use super::ast::Variable;
+use super::ast::VariableBlock;
 use super::lexer::Token::*;
 
 macro_rules! expect {
@@ -12,50 +18,6 @@ macro_rules! expect {
 }
 
 type RustyLexer<'a> = Lexer<lexer::Token, &'a str>;
-
-#[derive(Debug, PartialEq)]
-pub struct Program {
-    name: String,
-    variable_blocks: Vec<VariableBlock>,
-    statements: Vec<Statement>,
-}
-
-#[derive(Debug, PartialEq)]
-pub struct CompilationUnit {
-    units: Vec<Program>,
-}
-
-#[derive(Debug, PartialEq)]
-pub struct VariableBlock {
-    variables: Vec<Variable>,
-}
-
-#[derive(Debug, PartialEq)]
-pub struct Variable {
-    name: String,
-    data_type: String,
-}
-
-#[derive(Debug, PartialEq)]
-pub enum Statement {
-    LiteralNumber {
-        value: String,
-    },
-    Reference {
-        name: String,
-    },
-    BinaryExpression {
-        operator: Operator,
-        left: Box<Statement>,
-        right: Box<Statement>,
-    },
-}
-
-#[derive(Debug, PartialEq)]
-pub enum Operator {
-    Plus,
-    Minus,
-}
 
 fn create_program() -> Program {
     Program {
