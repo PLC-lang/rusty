@@ -107,10 +107,38 @@ fn parse_program(lexer: &mut RustyLexer) -> Result<Program, String> {
 }
 
 fn parse_statement(lexer: &mut RustyLexer) -> Result<Statement, String> {
-    let result = parse_binary_expression(lexer);
+    let result = parse_parenthesized_expression(lexer);
     expect!(KeywordSemicolon, lexer);
     lexer.advance();
     result
+}
+
+fn parse_parenthesized_expression(lexer: &mut RustyLexer) -> Result<Statement, String> {
+    if lexer.token == KeywordParensOpen {
+        lexer.advance();
+        let result = parse_binary_multiplication_expression(lexer);
+        expect!(KeywordParensClose, lexer);
+        lexer.advance();
+        result
+    } else {
+        parse_binary_multiplication_expression(lexer)
+    }
+}
+
+fn parse_binary_multiplication_expression(lexer: &mut RustyLexer) -> Result<Statement, String> {
+    let left = parse_binary_expression(lexer)?;
+    let operator = match lexer.token {
+        OperatorMultiplication => Operator::Multiplication,
+        OperatorDivision => Operator::Division,
+        _ => return Ok(left),
+    };
+    lexer.advance();
+    let right = parse_binary_multiplication_expression(lexer)?;
+    Ok(Statement::BinaryExpression {
+        operator,
+        left: Box::new(left),
+        right: Box::new(right),
+    })
 }
 
 fn parse_binary_expression(lexer: &mut RustyLexer) -> Result<Statement, String> {
@@ -353,6 +381,71 @@ mod tests {
                     assert_eq!(name, "z");
                 }
                 assert_eq!(operator, &super::Operator::Minus);
+            } else {
+                panic!("Expected Reference but found {:?}", statement);
+            }
+        } else {
+            panic!("Expected Reference but found {:?}", statement);
+        }
+    }
+
+    #[test]
+    fn parenthesis_expressions_should_not_change_the_ast() {
+        let lexer = lexer::lex("PROGRAM exp (x+y); END_PROGRAM");
+        let result = super::parse(lexer).unwrap();
+
+        let prg = &result.units[0];
+        let statement = &prg.statements[0];
+
+        if let Statement::BinaryExpression {
+            operator,
+            left,
+            right,
+        } = statement
+        {
+            if let Statement::Reference { name } = &**left {
+                assert_eq!(name, "x");
+            }
+            if let Statement::Reference { name } = &**right {
+                assert_eq!(name, "y");
+            }
+            assert_eq!(operator, &super::Operator::Plus);
+        } else {
+            panic!("Expected Reference but found {:?}", statement);
+        }
+    }
+
+    #[test]
+    fn multiplication_expressions_parse() {
+        let lexer = lexer::lex("PROGRAM exp x*y/z; END_PROGRAM");
+        let result = super::parse(lexer).unwrap();
+
+        let prg = &result.units[0];
+        let statement = &prg.statements[0];
+
+        if let Statement::BinaryExpression {
+            operator,
+            left,
+            right,
+        } = statement
+        {
+            assert_eq!(operator, &super::Operator::Multiplication);
+            if let Statement::Reference { name } = &**left {
+                assert_eq!(name, "x");
+            }
+            if let Statement::BinaryExpression {
+                operator,
+                left,
+                right,
+            } = &**right
+            {
+                if let Statement::Reference { name } = &**left {
+                    assert_eq!(name, "y");
+                }
+                if let Statement::Reference { name } = &**right {
+                    assert_eq!(name, "z");
+                }
+                assert_eq!(operator, &super::Operator::Division);
             } else {
                 panic!("Expected Reference but found {:?}", statement);
             }

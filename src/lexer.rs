@@ -32,12 +32,24 @@ pub enum Token {
     #[token = ":="]
     KeywordAssignment,
 
+    #[token = "("]
+    KeywordParensOpen,
+
+    #[token = ")"]
+    KeywordParensClose,
+
     //Operators
     #[token = "+"]
     OperatorPlus,
 
     #[token = "-"]
     OperatorMinus,
+
+    #[token = "*"]
+    OperatorMultiplication,
+
+    #[token = "/"]
+    OperatorDivision,
 
     #[regex = r"[0-9]+(\.(0-9)+)?"]
     LiteralNumber,
@@ -97,6 +109,14 @@ mod tests {
     }
 
     #[test]
+    fn parens() {
+        let mut lexer = super::lex("( )");
+        assert_eq!(lexer.token, super::Token::KeywordParensOpen);
+        lexer.advance();
+        assert_eq!(lexer.token, super::Token::KeywordParensClose);
+    }
+
+    #[test]
     fn a_assignment_is_keword_assignment() {
         let lexer = super::lex(":=");
         assert_eq!(lexer.token, super::Token::KeywordAssignment);
@@ -104,10 +124,14 @@ mod tests {
 
     #[test]
     fn operator_test() {
-        let mut lexer = super::lex("+ -");
+        let mut lexer = super::lex("+ - * /");
         assert_eq!(lexer.token, super::Token::OperatorPlus);
         lexer.advance();
         assert_eq!(lexer.token, super::Token::OperatorMinus);
+        lexer.advance();
+        assert_eq!(lexer.token, super::Token::OperatorMultiplication);
+        lexer.advance();
+        assert_eq!(lexer.token, super::Token::OperatorDivision);
     }
 
     #[test]

@@ -40,4 +40,6 @@ pub enum Statement {
 pub enum Operator {
     Plus,
     Minus,
+    Multiplication,
+    Division,
 }
