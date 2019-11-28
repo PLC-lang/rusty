@@ -51,45 +51,30 @@ pub fn lex(source: &str) -> Lexer<Token, &str> {
 mod tests {
 
     #[test]
-    fn program_is_a_keyword() {
-        let lexer = super::lex("PROGRAM");
+    fn pou_tokens() {
+        let mut lexer = super::lex("PROGRAM END_PROGRAM");
         assert_eq!(lexer.token, super::Token::KeywordProgram);
-    }
-
-    #[test]
-    fn var_is_a_keyword() {
-        let lexer = super::lex("VAR");
-        assert_eq!(lexer.token, super::Token::KeywordVar);
-    }
-
-    #[test]
-    fn endvar_is_a_keyword() {
-        let lexer = super::lex("END_VAR");
-        assert_eq!(lexer.token, super::Token::KeywordEndVar);
-    }
-
-    #[test]
-    fn endprorgram_is_a_keyword() {
-        let lexer = super::lex("END_PROGRAM");
+        lexer.advance();
         assert_eq!(lexer.token, super::Token::KeywordEndProgram);
     }
 
     #[test]
+    fn var_tokens() {
+        let mut lexer = super::lex("VAR END_VAR");
+        assert_eq!(lexer.token, super::Token::KeywordVar);
+        lexer.advance();
+        assert_eq!(lexer.token, super::Token::KeywordEndVar);
+    }
+
+    #[test]
     fn hello_is_an_identifier() {
-        let lexer = super::lex("hello");
-        assert_eq!(lexer.token, super::Token::Identifier);
-    }
-
-    #[test]
-    fn an_identifier_is_alphanumeric() {
-        let lexer = super::lex("a12");
-        assert_eq!(lexer.token, super::Token::Identifier);
-    }
-
-    #[test]
-    fn an_identifier_can_start_with_underscore() {
-        let lexer = super::lex("_a12");
-        assert_eq!(lexer.token, super::Token::Identifier);
+        let mut lexer = super::lex("hello a12 _a12");
+        assert_eq!(lexer.token, super::Token::Identifier, "{}", lexer.slice());
+        lexer.advance();
+        assert_eq!(lexer.token, super::Token::Identifier, "{}", lexer.slice());
+        lexer.advance();
+        assert_eq!(lexer.token, super::Token::Identifier, "{}", lexer.slice());
+        lexer.advance();
     }
 
     #[test]
@@ -99,21 +84,22 @@ mod tests {
     }
 
     #[test]
-    fn a_colon_is_keyword_colon() {
+    fn punctuations() {
         let lexer = super::lex(":");
-        assert_eq!(lexer.token, super::Token::KeywordColon);
+        assert_eq!(lexer.token, super::Token::KeywordColon, "{}", lexer.slice());
+        let lexer = super::lex(";");
+        assert_eq!(
+            lexer.token,
+            super::Token::KeywordSemicolon,
+            "{}",
+            lexer.slice()
+        );
     }
 
     #[test]
     fn a_assignment_is_keword_assignment() {
         let lexer = super::lex(":=");
         assert_eq!(lexer.token, super::Token::KeywordAssignment);
-    }
-
-    #[test]
-    fn a_semicolon_is_keyword_semicolon() {
-        let lexer = super::lex(";");
-        assert_eq!(lexer.token, super::Token::KeywordSemicolon);
     }
 
     #[test]
