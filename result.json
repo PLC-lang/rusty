@@ -1,0 +1,23 @@
+[
+    BinaryExpression {
+        operator: Plus,
+        left: LiteralNumber {
+            value: "1",
+        },
+        right: BinaryExpression {
+            operator: Plus,
+            left: LiteralNumber {
+                value: "2",
+            },
+            right: BinaryExpression {
+                operator: Plus,
+                left: LiteralNumber {
+                    value: "3",
+                },
+                right: LiteralNumber {
+                    value: "4",
+                },
+            },
+        },
+    },
+]

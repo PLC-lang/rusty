@@ -14,10 +14,11 @@ fn main() {
 
     //Start lexing
     let lexer = lexer::lex(&contents);
-    print_tokens(&contents);
+    //print_tokens(&contents);
 
     //Parse
-    let _parse_result = parser::parse(lexer);
+    let parse_result = parser::parse(lexer);
+    println!("{:#?}", parse_result.unwrap().units[0].statements);
 }
 
 fn print_tokens(content: &str) {

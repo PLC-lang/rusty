@@ -107,54 +107,58 @@ fn parse_program(lexer: &mut RustyLexer) -> Result<Program, String> {
 }
 
 fn parse_statement(lexer: &mut RustyLexer) -> Result<Statement, String> {
-    let result = parse_parenthesized_expression(lexer);
+    let result = parse_primary_expression(lexer);
     expect!(KeywordSemicolon, lexer);
     lexer.advance();
     result
 }
 
-fn parse_parenthesized_expression(lexer: &mut RustyLexer) -> Result<Statement, String> {
-    if lexer.token == KeywordParensOpen {
-        lexer.advance();
-        let result = parse_binary_multiplication_expression(lexer);
-        expect!(KeywordParensClose, lexer);
-        lexer.advance();
-        result
-    } else {
-        parse_binary_multiplication_expression(lexer)
-    }
+fn parse_primary_expression(lexer: &mut RustyLexer) -> Result<Statement, String> {
+    parse_additive_expression(lexer)
 }
 
-fn parse_binary_multiplication_expression(lexer: &mut RustyLexer) -> Result<Statement, String> {
-    let left = parse_binary_expression(lexer)?;
-    let operator = match lexer.token {
-        OperatorMultiplication => Operator::Multiplication,
-        OperatorDivision => Operator::Division,
-        _ => return Ok(left),
-    };
-    lexer.advance();
-    let right = parse_binary_multiplication_expression(lexer)?;
-    Ok(Statement::BinaryExpression {
-        operator,
-        left: Box::new(left),
-        right: Box::new(right),
-    })
-}
-
-fn parse_binary_expression(lexer: &mut RustyLexer) -> Result<Statement, String> {
-    let left = parse_unary_expression(lexer)?;
+fn parse_additive_expression(lexer: &mut RustyLexer) -> Result<Statement, String> {
+    let left = parse_multiplication_expression(lexer)?;
     let operator = match lexer.token {
         OperatorPlus => Operator::Plus,
         OperatorMinus => Operator::Minus,
         _ => return Ok(left),
     };
     lexer.advance();
-    let right = parse_binary_expression(lexer)?;
+    let right = parse_primary_expression(lexer)?;
     Ok(Statement::BinaryExpression {
         operator,
         left: Box::new(left),
         right: Box::new(right),
     })
+}
+
+fn parse_multiplication_expression(lexer: &mut RustyLexer) -> Result<Statement, String> {
+    let left = parse_parenthesized_expression(lexer)?;
+    let operator = match lexer.token {
+        OperatorMultiplication => Operator::Multiplication,
+        OperatorDivision => Operator::Division,
+        _ => return Ok(left),
+    };
+    lexer.advance();
+    let right = parse_multiplication_expression(lexer)?;
+    Ok(Statement::BinaryExpression {
+        operator,
+        left: Box::new(left),
+        right: Box::new(right),
+    })
+}
+
+fn parse_parenthesized_expression(lexer: &mut RustyLexer) -> Result<Statement, String> {
+    if lexer.token == KeywordParensOpen {
+        lexer.advance();
+        let result = parse_primary_expression(lexer);
+        expect!(KeywordParensClose, lexer);
+        lexer.advance();
+        result
+    } else {
+        parse_unary_expression(lexer)
+    }
 }
 
 fn parse_unary_expression(lexer: &mut RustyLexer) -> Result<Statement, String> {
@@ -417,40 +421,142 @@ mod tests {
 
     #[test]
     fn multiplication_expressions_parse() {
-        let lexer = lexer::lex("PROGRAM exp x*y/z; END_PROGRAM");
+        let lexer = lexer::lex("PROGRAM exp 1*2/7; END_PROGRAM");
         let result = super::parse(lexer).unwrap();
 
         let prg = &result.units[0];
         let statement = &prg.statements[0];
 
-        if let Statement::BinaryExpression {
-            operator,
-            left,
-            right,
-        } = statement
-        {
-            assert_eq!(operator, &super::Operator::Multiplication);
-            if let Statement::Reference { name } = &**left {
-                assert_eq!(name, "x");
-            }
-            if let Statement::BinaryExpression {
-                operator,
-                left,
-                right,
-            } = &**right
-            {
-                if let Statement::Reference { name } = &**left {
-                    assert_eq!(name, "y");
-                }
-                if let Statement::Reference { name } = &**right {
-                    assert_eq!(name, "z");
-                }
-                assert_eq!(operator, &super::Operator::Division);
-            } else {
-                panic!("Expected Reference but found {:?}", statement);
-            }
-        } else {
-            panic!("Expected Reference but found {:?}", statement);
-        }
+        let ast_string = format!("{:#?}", statement);
+        let expected_ast = r#"BinaryExpression {
+    operator: Multiplication,
+    left: LiteralNumber {
+        value: "1",
+    },
+    right: BinaryExpression {
+        operator: Division,
+        left: LiteralNumber {
+            value: "2",
+        },
+        right: LiteralNumber {
+            value: "7",
+        },
+    },
+}"#;
+        assert_eq!(ast_string, expected_ast);
+    }
+
+    #[test]
+    fn addition_ast_test() {
+        let lexer = lexer::lex("PROGRAM exp 1+2; END_PROGRAM");
+        let result = super::parse(lexer).unwrap();
+
+        let prg = &result.units[0];
+        let statement = &prg.statements[0];
+
+        let ast_string = format!("{:#?}", statement);
+        let expected_ast = r#"BinaryExpression {
+    operator: Plus,
+    left: LiteralNumber {
+        value: "1",
+    },
+    right: LiteralNumber {
+        value: "2",
+    },
+}"#;
+        assert_eq!(ast_string, expected_ast);
+    }
+
+    #[test]
+    fn multiplication_ast_test() {
+        let lexer = lexer::lex("PROGRAM exp 1+2*3; END_PROGRAM");
+        let result = super::parse(lexer).unwrap();
+
+        let prg = &result.units[0];
+        let statement = &prg.statements[0];
+
+        let ast_string = format!("{:#?}", statement);
+        let expected_ast = r#"BinaryExpression {
+    operator: Plus,
+    left: LiteralNumber {
+        value: "1",
+    },
+    right: BinaryExpression {
+        operator: Multiplication,
+        left: LiteralNumber {
+            value: "2",
+        },
+        right: LiteralNumber {
+            value: "3",
+        },
+    },
+}"#;
+        assert_eq!(ast_string, expected_ast);
+    }
+
+    #[test]
+    fn term_ast_test() {
+        let lexer = lexer::lex("PROGRAM exp 1+2*3+4; END_PROGRAM");
+        let result = super::parse(lexer).unwrap();
+
+        let prg = &result.units[0];
+        let statement = &prg.statements[0];
+
+        let ast_string = format!("{:#?}", statement);
+        let expected_ast = r#"BinaryExpression {
+    operator: Plus,
+    left: LiteralNumber {
+        value: "1",
+    },
+    right: BinaryExpression {
+        operator: Plus,
+        left: BinaryExpression {
+            operator: Multiplication,
+            left: LiteralNumber {
+                value: "2",
+            },
+            right: LiteralNumber {
+                value: "3",
+            },
+        },
+        right: LiteralNumber {
+            value: "4",
+        },
+    },
+}"#;
+        assert_eq!(ast_string, expected_ast);
+    }
+
+    #[test]
+    fn parenthesized_term_ast_test() {
+        let lexer = lexer::lex("PROGRAM exp (1+2)*(3+4); END_PROGRAM");
+        let result = super::parse(lexer).unwrap();
+
+        let prg = &result.units[0];
+        let statement = &prg.statements[0];
+
+        let ast_string = format!("{:#?}", statement);
+        let expected_ast = r#"BinaryExpression {
+    operator: Multiplication,
+    left: BinaryExpression {
+        operator: Plus,
+        left: LiteralNumber {
+            value: "1",
+        },
+        right: LiteralNumber {
+            value: "2",
+        },
+    },
+    right: BinaryExpression {
+        operator: Plus,
+        left: LiteralNumber {
+            value: "3",
+        },
+        right: LiteralNumber {
+            value: "4",
+        },
+    },
+}"#;
+        assert_eq!(ast_string, expected_ast);
     }
 }
