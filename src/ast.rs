@@ -1,3 +1,5 @@
+pub type Return<T> = Option<T>;
+
 #[derive(Debug, PartialEq)]
 pub struct Program {
     pub name: String,
