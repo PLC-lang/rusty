@@ -1,6 +1,6 @@
+use inkwell::context::Context;
 use std::env;
 use std::fs;
-
 mod ast;
 mod codegen;
 mod lexer;
@@ -18,13 +18,13 @@ fn main() {
     //print_tokens(&contents);
 
     //Parse
-    let parse_result = parser::parse(lexer);
+    let parse_result = parser::parse(lexer).unwrap();
     //println!("{:#?}", parse_result.unwrap().units[0].statements);
 
     //generate code
-    //let code_generator = codegen::create_generator();
-    //code_generator.accept(parse_result);
-    //code_generator.to_string();
+    let context = Context::create();
+    let code_generator = codegen::CodeGen::new(&context);
+    println!("{}", code_generator.generate(&parse_result));
 }
 
 fn _print_tokens(content: &str) {
