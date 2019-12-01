@@ -3,8 +3,11 @@ use inkwell::builder::Builder;
 use inkwell::context::Context;
 use inkwell::module::Module;
 
+use inkwell::types::BasicTypeEnum;
 use inkwell::types::StringRadix;
+use inkwell::types::StructType;
 use inkwell::values::BasicValueEnum;
+use inkwell::values::GlobalValue;
 
 pub struct CodeGen<'ctx> {
     pub context: &'ctx Context,
@@ -36,16 +39,42 @@ impl<'ctx> CodeGen<'ctx> {
     }
 
     fn generate_program(&self, p: &Program) {
-        let void_type = self.context.i32_type(); //void_type();
+        let void_type = self.context.void_type();
         let f_type = void_type.fn_type(&[], false);
         let function = self.module.add_function(p.name.as_str(), f_type, None);
         let block = self.context.append_basic_block(function, "entry");
 
+        let mut program_members: Vec<(String, BasicTypeEnum)> = Vec::new();
+        for var_block in &p.variable_blocks {
+            let mut members = self.get_variables_information(var_block);
+            program_members.append(&mut members);
+        }
+        let member_type = self.generate_instance_struct(&program_members);
+        let instance_variable = self.generate_instance_variable(member_type, p.name.as_str());
+
         for stmt in &p.statements {
             self.builder.position_at_end(&block);
-            let res = self.generate_statement(stmt);
-            self.builder.build_return(Some(&res.unwrap()));
+            self.generate_statement(stmt);
         }
+        self.builder.build_return(None);
+    }
+
+    fn get_variables_information(&self, v: &VariableBlock) -> Vec<(String, BasicTypeEnum)> {
+        let mut types: Vec<(String, BasicTypeEnum)> = Vec::new();
+        for variable in &v.variables {
+            let var_type = self.context.i32_type();
+            types.push((variable.name.clone(), BasicTypeEnum::IntType(var_type)));
+        }
+        types
+    }
+
+    fn generate_instance_struct(&self, members: &Vec<(String, BasicTypeEnum)>) -> StructType {
+        let member_types = members.into_iter().map(|(_, it)| *it).collect::<Vec<_>>();
+        self.context.struct_type(member_types.as_slice(), false)
+    }
+
+    fn generate_instance_variable(&self, variable_type: StructType, name: &str) -> GlobalValue {
+        unimplemented!()
     }
 
     fn generate_statement(&self, s: &Statement) -> Option<BasicValueEnum> {
