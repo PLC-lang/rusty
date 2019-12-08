@@ -4,6 +4,6 @@ VAR
     y : INT;
 END_VAR
 
-x + 1;
+x + 1337;
 
 END_PROGRAM

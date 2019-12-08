@@ -4,6 +4,7 @@ use super::ast::*;
 use inkwell::builder::Builder;
 use inkwell::context::Context;
 use inkwell::module::Module;
+use inkwell::module::Linkage;
 
 use inkwell::types::BasicTypeEnum;
 use inkwell::types::StringRadix;
@@ -59,9 +60,9 @@ impl<'ctx> CodeGen<'ctx> {
         
         self.current_pou = p.name.clone();
         
-        let void_type = self.context.void_type();
-        let f_type = void_type.fn_type(&[], false);
-        let function = self.module.add_function(p.name.as_str(), f_type, None);
+        let return_type = self.context.i32_type();
+        let f_type = return_type.fn_type(&[], false);
+        let function = self.module.add_function("main", f_type, None);
         let block = self.context.append_basic_block(function, "entry");
 
         let mut program_members: Vec<(String, BasicTypeEnum<'ctx>)> = Vec::new();
@@ -106,12 +107,12 @@ impl<'ctx> CodeGen<'ctx> {
         name: &str,
     ) -> StructType<'ctx> {
         let struct_type = context.opaque_struct_type(name);
-        let member_types: Vec<BasicTypeEnum<'ctx>> = Vec::new();
+        let mut member_types: Vec<BasicTypeEnum<'ctx>> = Vec::new();
 
         //let member_types = members.into_iter().map(|(_, it)| it).collect::<Vec<_>>();
 
-        for (index, (type_name, _)) in members.iter().enumerate() {
-            //member_types.push(t);
+        for (index, (type_name, t)) in members.iter().enumerate() {
+            member_types.push(*t);
             variables.insert(type_name.to_string(), index as u32);
         }
 
@@ -124,8 +125,12 @@ impl<'ctx> CodeGen<'ctx> {
         variable_type: StructType<'ctx>,
         name: &str,
     ) -> GlobalValue {
-        self.module
-            .add_global(variable_type, Some(AddressSpace::Generic), name)
+        let result = self.module
+            .add_global(variable_type, Some(AddressSpace::Generic), name);
+
+        result.set_initializer(&variable_type.const_zero());
+        result.set_linkage(Linkage::Common);
+        result
     }
 
     fn generate_statement(&self, s: &Statement) -> Option<BasicValueEnum> {
@@ -143,13 +148,26 @@ impl<'ctx> CodeGen<'ctx> {
 
     fn generate_variable_reference(&self, name: &str) -> Option<BasicValueEnum> {
         // for now we only support locals
-        let struct_value = self
+        let struct_type = self.module.get_type(CodeGen::get_struct_name(self.current_pou.as_str()).as_str()).unwrap().into_struct_type();
+        println!("{:?} ->{}",struct_type.get_name().unwrap(), struct_type.count_fields());
+        
+        let ptr_struct_ype = struct_type.ptr_type(AddressSpace::Generic);
+        let void_ptr_value = self
             .module
-            .get_global(CodeGen::get_struct_instance_name(self.current_pou.as_str()).as_str()).unwrap().as_basic_value_enum();
+            .get_global(CodeGen::get_struct_instance_name(self.current_pou.as_str()).as_str()).unwrap().as_basic_value_enum().into_pointer_value();
+        
+        let ptr_value = self.builder.build_pointer_cast(void_ptr_value, ptr_struct_ype, "temp_struct");
         let index = self.variables.get(name);
 
         if let Some(index) = index {
-            self.builder.build_extract_value(struct_value.into_struct_value(), *index, name)
+            // let struct_value = self.builder.build_load(ptr_value, "temp_struct");
+            // let tt = struct_value.get_type().into_struct_type();
+            //println!("{:?} -> {:?}", tt, tt.get_field_types());
+             let ptr_result = 
+             unsafe {self.builder.build_struct_gep(ptr_value, *index, "temp_struct")};
+             let result = self.builder.build_load(ptr_result, "deref"); 
+             Some(result)
+            //self.builder.build_extract_value(struct_value.into_struct_value(), *index, name)
         } else {
             None
         }
@@ -169,11 +187,14 @@ impl<'ctx> CodeGen<'ctx> {
         left: &Box<Statement>,
         right: &Box<Statement>,
     ) -> Option<BasicValueEnum> {
-        let lvalue = self.generate_statement(left).unwrap().into_int_value();
-        let rvalue = self.generate_statement(right).unwrap().into_int_value();
+        let lval_opt = self.generate_statement(left);
+        let lvalue = lval_opt.unwrap().into_int_value();
+
+        let rval_opt = self.generate_statement(right);
+        let rvalue = rval_opt.unwrap().into_int_value();
 
         let result = match operator {
-            Operator::Plus => self.builder.build_int_add(lvalue, rvalue, "tmpVar"),
+            Operator::Plus => self.builder.build_int_add(lvalue, rvalue,"tmpVar"),
             Operator::Minus => unimplemented!(),
             Operator::Multiplication => unimplemented!(),
             Operator::Division => unimplemented!(),
