@@ -5,6 +5,8 @@ mod ast;
 mod codegen;
 mod lexer;
 mod parser;
+#[macro_use]
+extern crate pretty_assertions;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
@@ -12,18 +14,16 @@ fn main() {
     let filename = &args[1];
 
     let contents = fs::read_to_string(filename).expect("Cannot read file");
-
     //Start lexing
     let lexer = lexer::lex(&contents);
     //print_tokens(&contents);
 
     //Parse
     let parse_result = parser::parse(lexer).unwrap();
-    //println!("{:#?}", parse_result.unwrap().units[0].statements);
-
+    println!("{:#?}", parse_result.units[0]);
     //generate code
     let context = Context::create();
-    let code_generator = codegen::CodeGen::new(&context);
+    let mut code_generator = codegen::CodeGen::new(&context);
     println!("{}", code_generator.generate(&parse_result));
 }
 
