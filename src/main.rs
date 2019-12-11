@@ -21,7 +21,7 @@ fn main() {
     println!("{:#?}", parse_result.unwrap().units[0].statements);
 }
 
-fn print_tokens(content: &str) {
+fn _print_tokens(content: &str) {
     let mut lexer = lexer::lex(content);
 
     while lexer.token != lexer::Token::End && lexer.token != lexer::Token::Error {
