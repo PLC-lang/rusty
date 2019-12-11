@@ -31,9 +31,13 @@ pub enum Statement {
     },
     BinaryExpression {
         operator: Operator,
+    left: Box<Statement>,
+    right: Box<Statement>,
+    },
+    Assignment {
         left: Box<Statement>,
         right: Box<Statement>,
-    },
+    }
 }
 
 #[derive(Debug, PartialEq)]

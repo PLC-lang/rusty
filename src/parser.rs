@@ -162,11 +162,21 @@ fn parse_parenthesized_expression(lexer: &mut RustyLexer) -> Result<Statement, S
 }
 
 fn parse_unary_expression(lexer: &mut RustyLexer) -> Result<Statement, String> {
-    match lexer.token {
-        Identifier => parse_reference(lexer),
-        LiteralNumber => parse_literal_number(lexer),
-        _ => Err(unexpected_token(lexer)),
+    let current = 
+        match lexer.token {
+            Identifier => parse_reference(lexer),
+            LiteralNumber => parse_literal_number(lexer),
+            _ => Err(unexpected_token(lexer)),
+        };
+    
+    if current.is_ok() && lexer.token == KeywordAssignment {
+        lexer.advance();
+        return Ok(Statement::Assignment{
+            left: Box::new(current?),
+            right: Box::new(parse_primary_expression(lexer)?),
+        });
     }
+    current
 }
 
 fn parse_reference(lexer: &mut RustyLexer) -> Result<Statement, String> {
@@ -559,4 +569,46 @@ mod tests {
 }"#;
         assert_eq!(ast_string, expected_ast);
     }
+
+    #[test]
+    fn assignment_test() {
+        let lexer = lexer::lex("PROGRAM exp x := 3; x := 1 + 2; END_PROGRAM");
+        let result = super::parse(lexer).unwrap();
+
+        let prg = &result.units[0];
+        {
+            let statement = &prg.statements[0];
+            let ast_string = format!("{:#?}", statement);
+            let expected_ast = r#"Assignment {
+    left: Reference {
+        name: "x",
+    },
+    right: LiteralNumber {
+        value: "3",
+    },
+}"#;
+            assert_eq!(ast_string, expected_ast);
+        }
+
+        {
+            let statement = &prg.statements[1];
+            let ast_string = format!("{:#?}", statement);
+            let expected_ast = r#"Assignment {
+    left: Reference {
+        name: "x",
+    },
+    right: BinaryExpression {
+        operator: Plus,
+        left: LiteralNumber {
+            value: "1",
+        },
+        right: LiteralNumber {
+            value: "2",
+        },
+    },
+}"#;
+            assert_eq!(ast_string, expected_ast);
+        }
+    }
+
 }
