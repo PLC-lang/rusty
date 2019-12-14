@@ -42,4 +42,5 @@ pub enum Operator {
     Minus,
     Multiplication,
     Division,
+    Modulo,
 }

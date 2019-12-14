@@ -51,6 +51,9 @@ pub enum Token {
     #[token = "/"]
     OperatorDivision,
 
+    #[token = "MOD"]
+    OperatorModulo,
+
     #[regex = r"[0-9]+(\.(0-9)+)?"]
     LiteralNumber,
 }
@@ -124,7 +127,7 @@ mod tests {
 
     #[test]
     fn operator_test() {
-        let mut lexer = super::lex("+ - * /");
+        let mut lexer = super::lex("+ - * / MOD");
         assert_eq!(lexer.token, super::Token::OperatorPlus);
         lexer.advance();
         assert_eq!(lexer.token, super::Token::OperatorMinus);
@@ -132,6 +135,8 @@ mod tests {
         assert_eq!(lexer.token, super::Token::OperatorMultiplication);
         lexer.advance();
         assert_eq!(lexer.token, super::Token::OperatorDivision);
+        lexer.advance();
+        assert_eq!(lexer.token, super::Token::OperatorModulo);
     }
 
     #[test]

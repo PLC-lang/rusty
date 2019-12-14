@@ -138,6 +138,7 @@ fn parse_multiplication_expression(lexer: &mut RustyLexer) -> Result<Statement, 
     let operator = match lexer.token {
         OperatorMultiplication => Operator::Multiplication,
         OperatorDivision => Operator::Division,
+        OperatorModulo => Operator::Modulo,
         _ => return Ok(left),
     };
     lexer.advance();
@@ -524,6 +525,29 @@ mod tests {
         },
     },
 }"#;
+        assert_eq!(ast_string, expected_ast);
+    }
+
+    #[test]
+    fn module_expression_test() {
+        let lexer = lexer::lex("PROGRAM exp 5 MOD 2; END_PROGRAM");
+
+        let result = super::parse(lexer).unwrap();
+
+        let prg = &result.units[0];
+        let statement = &prg.statements[0];
+
+        let ast_string = format!("{:#?}", statement);
+        let expected_ast = r#"BinaryExpression {
+    operator: Modulo,
+    left: LiteralNumber {
+        value: "5",
+    },
+    right: LiteralNumber {
+        value: "2",
+    },
+}"#;
+
         assert_eq!(ast_string, expected_ast);
     }
 
