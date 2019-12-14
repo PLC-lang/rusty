@@ -51,6 +51,12 @@ pub enum Token {
     #[token = "/"]
     OperatorDivision,
 
+    #[token = "="]
+    OperatorEqual,
+
+    #[token = "<>"]
+    OperatorNotEqual,
+
     #[regex = r"[0-9]+(\.(0-9)+)?"]
     LiteralNumber,
 }

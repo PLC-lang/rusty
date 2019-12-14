@@ -117,6 +117,26 @@ fn parse_primary_expression(lexer: &mut RustyLexer) -> Result<Statement, String>
     parse_additive_expression(lexer)
 }
 
+fn parse_equality_expression(lexer: &mut RustyLexer) -> Result<Statement, String> {
+    let left = parse_compare_expression(lexer);
+    let operator = match lexer.token {
+        OperatorEqual => Operator::Equal,
+        OperatorNotEqual => Operator::NotEqual,
+        _ => return Ok(left),
+    };
+    lexer.advance();
+    let right = parse_primary_expression(lexer)?;
+    Ok(Statement::BinaryExpression {
+        operator,
+        left: Box::new(left),
+        right: Box::new(right),
+    })
+}
+
+fn parse_compare_expression(lexer: &mut RustyLexer) -> Result<Statement, String> {
+
+}
+
 fn parse_additive_expression(lexer: &mut RustyLexer) -> Result<Statement, String> {
     let left = parse_multiplication_expression(lexer)?;
     let operator = match lexer.token {
