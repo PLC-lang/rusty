@@ -57,6 +57,18 @@ pub enum Token {
     #[token = "<>"]
     OperatorNotEqual,
 
+    #[token = "<"]
+    OperatorLess,
+
+    #[token = ">"]
+    OperatorGreater,
+
+    #[token = "<="]
+    OperatorLessOrEqual,
+
+    #[token = ">="]
+    OperatorGreaterOrEqual,
+
     #[token = "MOD"]
     OperatorModulo,
 
@@ -133,7 +145,7 @@ mod tests {
 
     #[test]
     fn operator_test() {
-        let mut lexer = super::lex("+ - * / MOD");
+        let mut lexer = super::lex("+ - * / MOD = <> < > <= >=");
         assert_eq!(lexer.token, super::Token::OperatorPlus);
         lexer.advance();
         assert_eq!(lexer.token, super::Token::OperatorMinus);
@@ -143,6 +155,18 @@ mod tests {
         assert_eq!(lexer.token, super::Token::OperatorDivision);
         lexer.advance();
         assert_eq!(lexer.token, super::Token::OperatorModulo);
+        lexer.advance();
+        assert_eq!(lexer.token, super::Token::OperatorEqual);
+        lexer.advance();
+        assert_eq!(lexer.token, super::Token::OperatorNotEqual);
+        lexer.advance();
+        assert_eq!(lexer.token, super::Token::OperatorLess);
+        lexer.advance();
+        assert_eq!(lexer.token, super::Token::OperatorGreater);
+        lexer.advance();
+        assert_eq!(lexer.token, super::Token::OperatorLessOrEqual);
+        lexer.advance();
+        assert_eq!(lexer.token, super::Token::OperatorGreaterOrEqual);
     }
 
     #[test]
