@@ -6,3 +6,6 @@ edition = "2018"
 
 [dependencies]
 logos = "0.9.7"
+
+[dev-dependencies]
+pretty_assertions = "0.6.1"

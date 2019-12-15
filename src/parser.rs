@@ -114,7 +114,41 @@ fn parse_statement(lexer: &mut RustyLexer) -> Result<Statement, String> {
 }
 
 fn parse_primary_expression(lexer: &mut RustyLexer) -> Result<Statement, String> {
-    parse_additive_expression(lexer)
+    parse_equality_expression(lexer)
+}
+
+fn parse_equality_expression(lexer: &mut RustyLexer) -> Result<Statement, String> {
+    let left = parse_compare_expression(lexer)?;
+    let operator = match lexer.token {
+        OperatorEqual => Operator::Equal,
+        OperatorNotEqual => Operator::NotEqual,
+        _ => return Ok(left),
+    };
+    lexer.advance();
+    let right = parse_equality_expression(lexer)?;
+    Ok(Statement::BinaryExpression {
+        operator,
+        left: Box::new(left),
+        right: Box::new(right),
+    })
+}
+
+fn parse_compare_expression(lexer: &mut RustyLexer) -> Result<Statement, String> {
+    let left = parse_additive_expression(lexer)?;
+    let operator = match lexer.token {
+        OperatorLess => Operator::Less,
+        OperatorGreater => Operator::Greater,
+        OperatorLessOrEqual => Operator::LessOrEqual,
+        OperatorGreaterOrEqual => Operator::GreaterOrEqual,
+        _ => return Ok(left),
+    };
+    lexer.advance();
+    let right = parse_compare_expression(lexer)?;
+    Ok(Statement::BinaryExpression {
+        operator,
+        left: Box::new(left),
+        right: Box::new(right),
+    })
 }
 
 fn parse_additive_expression(lexer: &mut RustyLexer) -> Result<Statement, String> {
@@ -125,7 +159,7 @@ fn parse_additive_expression(lexer: &mut RustyLexer) -> Result<Statement, String
         _ => return Ok(left),
     };
     lexer.advance();
-    let right = parse_primary_expression(lexer)?;
+    let right = parse_additive_expression(lexer)?;
     Ok(Statement::BinaryExpression {
         operator,
         left: Box::new(left),
@@ -163,16 +197,14 @@ fn parse_parenthesized_expression(lexer: &mut RustyLexer) -> Result<Statement, S
 }
 
 fn parse_unary_expression(lexer: &mut RustyLexer) -> Result<Statement, String> {
-    let current = 
-        match lexer.token {
-            Identifier => parse_reference(lexer),
-            LiteralNumber => parse_literal_number(lexer),
-            _ => Err(unexpected_token(lexer)),
-        };
-    
+    let current = match lexer.token {
+        Identifier => parse_reference(lexer),
+        LiteralNumber => parse_literal_number(lexer),
+        _ => Err(unexpected_token(lexer)),
+    };
     if current.is_ok() && lexer.token == KeywordAssignment {
         lexer.advance();
-        return Ok(Statement::Assignment{
+        return Ok(Statement::Assignment {
             left: Box::new(current?),
             right: Box::new(parse_primary_expression(lexer)?),
         });
@@ -230,6 +262,7 @@ fn parse_variable(
 mod tests {
     use super::super::lexer;
     use super::Statement;
+    use pretty_assertions::assert_eq;
 
     #[test]
     fn empty_returns_empty_compilation_unit() {
@@ -635,4 +668,150 @@ mod tests {
         }
     }
 
+    #[test]
+    fn equality_expression_test() {
+        let lexer = lexer::lex("PROGRAM exp x = 3; x - 0 <> 1 + 2; END_PROGRAM");
+        let result = super::parse(lexer).unwrap();
+
+        let prg = &result.units[0];
+        {
+            let statement = &prg.statements[0];
+            let ast_string = format!("{:#?}", statement);
+            let expected_ast = r#"BinaryExpression {
+    operator: Equal,
+    left: Reference {
+        name: "x",
+    },
+    right: LiteralNumber {
+        value: "3",
+    },
+}"#;
+            assert_eq!(ast_string, expected_ast);
+        }
+
+        {
+            let statement = &prg.statements[1];
+            let ast_string = format!("{:#?}", statement);
+            let expected_ast = r#"BinaryExpression {
+    operator: NotEqual,
+    left: BinaryExpression {
+        operator: Minus,
+        left: Reference {
+            name: "x",
+        },
+        right: LiteralNumber {
+            value: "0",
+        },
+    },
+    right: BinaryExpression {
+        operator: Plus,
+        left: LiteralNumber {
+            value: "1",
+        },
+        right: LiteralNumber {
+            value: "2",
+        },
+    },
+}"#;
+            assert_eq!(ast_string, expected_ast);
+        }
+    }
+    #[test]
+    fn comparison_expression_test() {
+        let lexer = lexer::lex(
+            "PROGRAM exp 
+                                    a < 3; 
+                                    b > 0;
+                                    c <= 7;
+                                    d >= 4;
+                                    e := 2 + 1 > 3 + 1;
+                                    END_PROGRAM",
+        );
+        let result = super::parse(lexer).unwrap();
+
+        let prg = &result.units[0];
+        {
+            let statement = &prg.statements[0];
+            let expected_ast = r#"BinaryExpression {
+    operator: Less,
+    left: Reference {
+        name: "a",
+    },
+    right: LiteralNumber {
+        value: "3",
+    },
+}"#;
+            assert_eq!(format!("{:#?}", statement), expected_ast);
+        }
+        {
+            let statement = &prg.statements[1]; // b > 0
+            let expected_ast = r#"BinaryExpression {
+    operator: Greater,
+    left: Reference {
+        name: "b",
+    },
+    right: LiteralNumber {
+        value: "0",
+    },
+}"#;
+            assert_eq!(format!("{:#?}", statement), expected_ast);
+        }
+        {
+            let statement = &prg.statements[2]; // c <= 7
+            let expected_ast = r#"BinaryExpression {
+    operator: LessOrEqual,
+    left: Reference {
+        name: "c",
+    },
+    right: LiteralNumber {
+        value: "7",
+    },
+}"#;
+            assert_eq!(format!("{:#?}", statement), expected_ast);
+        }
+        {
+            let statement = &prg.statements[3]; // d >= 4
+            let expected_ast = r#"BinaryExpression {
+    operator: GreaterOrEqual,
+    left: Reference {
+        name: "d",
+    },
+    right: LiteralNumber {
+        value: "4",
+    },
+}"#;
+            assert_eq!(format!("{:#?}", statement), expected_ast);
+        }
+        {
+            //e := 2 + 1 > 3 + 1;
+            let statement = &prg.statements[4];
+            let expected_ast = r#"Assignment {
+    left: Reference {
+        name: "e",
+    },
+    right: BinaryExpression {
+        operator: Greater,
+        left: BinaryExpression {
+            operator: Plus,
+            left: LiteralNumber {
+                value: "2",
+            },
+            right: LiteralNumber {
+                value: "1",
+            },
+        },
+        right: BinaryExpression {
+            operator: Plus,
+            left: LiteralNumber {
+                value: "3",
+            },
+            right: LiteralNumber {
+                value: "1",
+            },
+        },
+    },
+}"#;
+            assert_eq!(format!("{:#?}", statement), expected_ast);
+        }
+    }
 }

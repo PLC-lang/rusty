@@ -46,5 +46,12 @@ pub enum Operator {
     Minus,
     Multiplication,
     Division,
+    Equal,
+    NotEqual,
     Modulo,
+    Less,
+    Greater,
+    LessOrEqual,
+    GreaterOrEqual,
+
 }
