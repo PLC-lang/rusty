@@ -1,0 +1,6 @@
+language: rust
+rust: 
+  - stable
+
+jobs:
+  fast_finish: true
