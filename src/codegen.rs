@@ -60,9 +60,10 @@ impl<'ctx> CodeGen<'ctx> {
         
         self.current_pou = p.name.clone();
         
-        let return_type = self.context.i32_type();
+        let return_type = self.context.void_type(); 
+        //let return_type = self.context.i32_type();
         let f_type = return_type.fn_type(&[], false);
-        let function = self.module.add_function("main", f_type, None);
+        let function = self.module.add_function(self.current_pou.as_str(), f_type, None);
         let block = self.context.append_basic_block(function, "entry");
 
         let mut program_members: Vec<(String, BasicTypeEnum<'ctx>)> = Vec::new();
@@ -81,14 +82,15 @@ impl<'ctx> CodeGen<'ctx> {
 
         //Create An instance variable for that struct
         //Place in global data
-        let instance_variable = self.generate_instance_variable(member_type, CodeGen::get_struct_instance_name(p.name.as_str()).as_str());
-        let mut result = None;
+        self.generate_instance_variable(member_type, CodeGen::get_struct_instance_name(p.name.as_str()).as_str());
+        //let mut result = None;
         for stmt in &p.statements {
             self.builder.position_at_end(&block);
-            result = self.generate_statement(stmt);
+            // result = 
+            self.generate_statement(stmt);
         }
-        self.builder.build_return(Some(&result.unwrap()));
-        //self.builder.build_return(None);
+        //self.builder.build_return(Some(&result.unwrap()));
+        self.builder.build_return(None);
     }
 
     fn get_variables_information(&self, v: &VariableBlock) -> Vec<(String, BasicTypeEnum<'ctx>)> {
@@ -142,7 +144,8 @@ impl<'ctx> CodeGen<'ctx> {
             } => self.generate_binary_expression(operator, left, right),
             Statement::LiteralNumber { value } => self.generate_literal_number(value.as_str()),
             Statement::Reference { name } => self.generate_variable_reference(name),
-            _ => None,
+            Statement::Assignment {left,right} => unimplemented!(),
+            //_ => None,
         }
     }
 
@@ -183,7 +186,7 @@ impl<'ctx> CodeGen<'ctx> {
 
     fn generate_binary_expression(
         &self,
-        
+
         operator: &Operator,
         left: &Box<Statement>,
         right: &Box<Statement>,
@@ -210,3 +213,51 @@ impl<'ctx> CodeGen<'ctx> {
         Some(BasicValueEnum::IntValue(result))
     }
 }
+    
+#[cfg(test)]
+mod tests {
+    use pretty_assertions::{assert_eq};
+    use super::super::lexer;
+    use super::super::parser;
+    use inkwell::context::Context;
+
+    macro_rules! codegen {
+        ($code:tt) => ({
+            let lexer = lexer::lex($code);
+            let ast = parser::parse(lexer).unwrap();
+
+            let context = Context::create();
+            let mut code_generator = super::CodeGen::new(&context);
+            code_generator.generate(&ast)
+        })
+    }
+
+    macro_rules! generate_boiler_plate {
+        ($pou_name:tt, $type:tt, $body:tt)  => (
+            format!(
+r#"; ModuleID = 'main'
+source_filename = "main"
+
+%prg_interface = type {{{type}}}
+
+@prg_instance = common global %prg_interface zeroinitializer
+
+define void @{pou_name}() {{
+entry:
+{body}}}
+"#,
+            pou_name = $pou_name, type = $type, body = $body)
+        )
+    }
+
+
+    #[test]
+    fn empty_program_with_name_generates_void_function() {
+        let result = codegen!("PROGRAM prg END_PROGRAM");
+        let expected = generate_boiler_plate!("prg","","");
+
+        assert_eq!(result,expected);
+    }
+}
+
+
