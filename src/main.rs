@@ -1,11 +1,16 @@
+use inkwell::context::Context;
+use inkwell::OptimizationLevel;
 use std::env;
 use std::fs;
 
+use std::error::Error;
+
 mod ast;
+mod codegen;
 mod lexer;
 mod parser;
 
-fn main() {
+/*fn main() {
     let args: Vec<String> = env::args().collect();
 
     let filename = &args[1];
@@ -32,4 +37,8 @@ fn _print_tokens(content: &str) {
         );
         lexer.advance();
     }
+}*/
+
+fn main() {
+    codegen::generate();
 }
