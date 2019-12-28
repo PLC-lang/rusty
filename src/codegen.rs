@@ -142,7 +142,7 @@ impl<'ctx> CodeGen<'ctx> {
             } => self.generate_binary_expression(operator, left, right),
             Statement::LiteralNumber { value } => self.generate_literal_number(value.as_str()),
             Statement::Reference { name } => self.generate_variable_reference(name),
-            //_ => None,
+            _ => None,
         }
     }
 
@@ -183,6 +183,7 @@ impl<'ctx> CodeGen<'ctx> {
 
     fn generate_binary_expression(
         &self,
+        
         operator: &Operator,
         left: &Box<Statement>,
         right: &Box<Statement>,
@@ -198,6 +199,13 @@ impl<'ctx> CodeGen<'ctx> {
             Operator::Minus => unimplemented!(),
             Operator::Multiplication => unimplemented!(),
             Operator::Division => unimplemented!(),
+            Operator::Equal => unimplemented!(),
+            Operator::NotEqual => unimplemented!(),
+            Operator::Modulo => unimplemented!(),
+            Operator::Less => unimplemented!(),
+            Operator::Greater => unimplemented!(),
+            Operator::LessOrEqual => unimplemented!(),
+            Operator::GreaterOrEqual => unimplemented!(),
         };
         Some(BasicValueEnum::IntValue(result))
     }
