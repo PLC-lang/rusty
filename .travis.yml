@@ -2,15 +2,22 @@ language: rust
 rust: 
   - stable
 
+
+# Use Ubuntu 18.04 LTS (Bionic) as the Linux testing environment.
+dist: bionic
+
 jobs:
   fast_finish: true
 
 addons:
   apt:
     sources:
-    - sourceline: 'deb http://apt.llvm.org/xenial/ llvm-toolchain-xenial main'
+    - sourceline: 'deb http://apt.llvm.org/bionic/ llvm-toolchain-bionic main'
       key_url: 'https://apt.llvm.org/llvm-snapshot.gpg.key'
     packages:
     - llvm-10-tools
     - llvm-10-dev
-    update: true
+
+env:
+  global:
+    - LLVM_SYS_80_PREFIX=/usr
