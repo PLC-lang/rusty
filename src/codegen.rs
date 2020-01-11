@@ -11,6 +11,7 @@ use inkwell::types::StringRadix;
 use inkwell::types::StructType;
 use inkwell::values::BasicValueEnum;
 use inkwell::values::BasicValue;
+use inkwell::values::PointerValue;
 use inkwell::values::GlobalValue;
 use inkwell::AddressSpace;
 
@@ -96,10 +97,21 @@ impl<'ctx> CodeGen<'ctx> {
     fn get_variables_information(&self, v: &VariableBlock) -> Vec<(String, BasicTypeEnum<'ctx>)> {
         let mut types: Vec<(String, BasicTypeEnum<'ctx>)> = Vec::new();
         for variable in &v.variables {
-            let var_type = self.context.i32_type();
+            let var_type = self.get_type(&variable.data_type);
             types.push((variable.name.clone(), var_type.into()));
         }
         types
+    }
+
+    fn get_type(&self, t: &Type) -> BasicTypeEnum<'ctx> {
+        if let Type::Primitive(name) = t {
+            match name {
+                PrimitiveType::Int => self.context.i32_type().into(),
+                PrimitiveType::Bool => self.context.bool_type().into(),
+            }
+        } else {
+            panic!("Unkown type {:?}", t)
+        }
     }
 
     fn generate_instance_struct(
@@ -144,12 +156,12 @@ impl<'ctx> CodeGen<'ctx> {
             } => self.generate_binary_expression(operator, left, right),
             Statement::LiteralNumber { value } => self.generate_literal_number(value.as_str()),
             Statement::Reference { name } => self.generate_variable_reference(name),
-            Statement::Assignment {left,right} => unimplemented!(),
+            Statement::Assignment {left,right} => self.generate_assignment(&left, &right),
             //_ => None,
         }
     }
 
-    fn generate_variable_reference(&self, name: &str) -> Option<BasicValueEnum> {
+    fn generate_variable_lreference(&self, name: &str) -> Option<PointerValue> {
         // for now we only support locals
         let struct_type = self.module.get_type(CodeGen::get_struct_name(self.current_pou.as_str()).as_str()).unwrap().into_struct_type();
         println!("{:?} ->{}",struct_type.get_name().unwrap(), struct_type.count_fields());
@@ -168,12 +180,48 @@ impl<'ctx> CodeGen<'ctx> {
             //println!("{:?} -> {:?}", tt, tt.get_field_types());
              let ptr_result = 
              unsafe {self.builder.build_struct_gep(ptr_value, *index, "temp_struct")};
-             let result = self.builder.build_load(ptr_result, "deref"); 
-             Some(result)
+             Some(ptr_result)
             //self.builder.build_extract_value(struct_value.into_struct_value(), *index, name)
         } else {
             None
         }
+    }
+
+    fn generate_variable_reference(&self, name: &str) -> Option<BasicValueEnum> {
+        if let Some(ptr) =  self.generate_variable_lreference(name) {
+            let result = self.builder.build_load(ptr, format!("load_{var_name}", var_name = name).as_str()); 
+            Some(result)
+        } else {
+            None
+        }
+    }
+
+    /**
+     *  int x = 7;
+        x = 7 + x;
+     *  return x;
+     * 
+            %1 = alloca i32, align 4
+            %2 = alloca i32, align 4
+            store i32 0, i32* %1, align 4
+            store i32 7, i32* %2, align 4
+            %3 = load i32, i32* %2, align 4
+            %4 = add nsw i32 7, %3
+            store i32 %4, i32* %2, align 4
+
+            https://github.com/sinato/inkwell-playground/tree/master/examples
+
+     */
+
+    fn generate_assignment(&self, left: &Box<Statement>, right : &Box<Statement>) -> Option<BasicValueEnum> {
+        
+        if let Statement::Reference { name } = &**left {
+            let left_expr = self.generate_variable_lreference(&name);
+            let right_res = self.generate_statement(right);
+            self.builder.build_store(left_expr?, right_res?);
+        }
+        None
+
 
     }
 
@@ -198,13 +246,13 @@ impl<'ctx> CodeGen<'ctx> {
         let rvalue = rval_opt.unwrap().into_int_value();
 
         let result = match operator {
-            Operator::Plus => self.builder.build_int_add(lvalue, rvalue,"tmpVar"),
-            Operator::Minus => unimplemented!(),
-            Operator::Multiplication => unimplemented!(),
-            Operator::Division => unimplemented!(),
+            Operator::Plus => self.builder.build_int_add(lvalue, rvalue, "tmpVar"),
+            Operator::Minus => self.builder.build_int_sub(lvalue, rvalue, "tmpVar") ,
+            Operator::Multiplication => self.builder.build_int_mul(lvalue, rvalue, "tmpVar"),
+            Operator::Division => self.builder.build_int_signed_div(lvalue, rvalue, "tmpVar"),
             Operator::Equal => unimplemented!(),
             Operator::NotEqual => unimplemented!(),
-            Operator::Modulo => unimplemented!(),
+            Operator::Modulo => self.builder.build_int_signed_rem(lvalue, rvalue, "tmpVar"),
             Operator::Less => unimplemented!(),
             Operator::Greater => unimplemented!(),
             Operator::LessOrEqual => unimplemented!(),
@@ -290,14 +338,38 @@ END_PROGRAM
 "#
         );
         let expected = generate_boiler_plate!("prg"," i32, i32 ",
-r#"  %deref = load i32, i32* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 0)
-  %deref1 = load i32, i32* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 1)
+r#"  %load_x = load i32, i32* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 0)
+  %load_y = load i32, i32* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 1)
   ret void
 "#
         );
 
         assert_eq!(result,expected);
     }
+
+    #[test]
+    fn program_with_bool_variables_and_references_generates_void_function_and_struct_and_body() {
+        let result = codegen!(
+r#"PROGRAM prg
+VAR
+x : BOOL;
+y : BOOL;
+END_VAR
+x;
+y;
+END_PROGRAM
+"#
+        );
+        let expected = generate_boiler_plate!("prg"," i1, i1 ",
+r#"  %load_x = load i1, i1* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 0)
+  %load_y = load i1, i1* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 1)
+  ret void
+"#
+        );
+
+        assert_eq!(result,expected);
+    }
+
 
     #[test]
     fn program_with_variables_and_additions_generates_void_function_and_struct_and_body() {
@@ -312,9 +384,9 @@ END_PROGRAM
 "#
         );
         let expected = generate_boiler_plate!("prg"," i32, i32 ",
-r#"  %deref = load i32, i32* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 0)
-  %deref1 = load i32, i32* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 1)
-  %tmpVar = add i32 %deref, %deref1
+r#"  %load_x = load i32, i32* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 0)
+  %load_y = load i32, i32* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 1)
+  %tmpVar = add i32 %load_x, %load_y
   ret void
 "#
         );
@@ -334,8 +406,69 @@ END_PROGRAM
 "#
         );
         let expected = generate_boiler_plate!("prg"," i32 ",
-r#"  %deref = load i32, i32* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 0)
-  %tmpVar = add i32 %deref, 7
+r#"  %load_x = load i32, i32* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 0)
+  %tmpVar = add i32 %load_x, 7
+  ret void
+"#
+        );
+
+        assert_eq!(result,expected);
+    }
+
+    #[test]
+    fn program_with_variable_assignment_generates_void_function_and_struct_and_body() {
+        let result = codegen!(
+r#"PROGRAM prg
+VAR
+y : INT;
+END_VAR
+y := 7;
+END_PROGRAM
+"#
+        );
+        let expected = generate_boiler_plate!("prg"," i32 ",
+r#"  store i32 7, i32* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 0)
+  ret void
+"#
+        );
+
+        assert_eq!(result,expected);
+    }
+
+
+
+    #[test]
+    fn program_with_variable_and_arithmatic_assignment_generates_void_function_and_struct_and_body() {
+        let result = codegen!(
+r#"PROGRAM prg
+VAR
+x : INT;
+y : INT;
+END_VAR
+y := x + 1;
+y := x - 2;
+y := x * 3;
+y := x / 4;
+y := x MOD 5;
+END_PROGRAM
+"#
+        );
+        let expected = generate_boiler_plate!("prg"," i32, i32 ",
+r#"  %load_x = load i32, i32* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 0)
+  %tmpVar = add i32 %load_x, 1
+  store i32 %tmpVar, i32* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 1)
+  %load_x1 = load i32, i32* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 0)
+  %tmpVar2 = sub i32 %load_x1, 2
+  store i32 %tmpVar2, i32* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 1)
+  %load_x3 = load i32, i32* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 0)
+  %tmpVar4 = mul i32 %load_x3, 3
+  store i32 %tmpVar4, i32* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 1)
+  %load_x5 = load i32, i32* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 0)
+  %tmpVar6 = sdiv i32 %load_x5, 4
+  store i32 %tmpVar6, i32* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 1)
+  %load_x7 = load i32, i32* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 0)
+  %tmpVar8 = srem i32 %load_x7, 5
+  store i32 %tmpVar8, i32* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 1)
   ret void
 "#
         );

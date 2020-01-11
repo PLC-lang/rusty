@@ -6,6 +6,8 @@ use super::ast::Operator;
 use super::ast::Program;
 use super::ast::Statement;
 use super::ast::Variable;
+use super::ast::Type;
+use super::ast::PrimitiveType;
 use super::ast::VariableBlock;
 use super::lexer::Token::*;
 
@@ -250,12 +252,28 @@ fn parse_variable(
 
     expect!(Identifier, lexer);
     let data_type = slice_and_advance(lexer);
+    //Convert to real datatype
 
     expect!(KeywordSemicolon, lexer);
     lexer.advance();
 
-    owner.variables.push(Variable { name, data_type });
+    owner.variables.push(Variable { name, data_type : get_data_type(data_type) });
     Ok(owner)
+}
+
+fn get_data_type(name : String) -> Type {
+    let prim_type = match name.to_lowercase().as_str() {
+        "int" => Some(PrimitiveType::Int),
+        "bool" => Some(PrimitiveType::Bool),
+        _ => None
+    };
+    
+    if let Some(prim_type) =  prim_type {
+        Type::Primitive(prim_type)
+    } else {
+        Type::Custom
+    }
+
 }
 
 #[cfg(test)]
@@ -264,6 +282,8 @@ mod tests {
     use super::super::lexer;
     use super::Statement;
     use pretty_assertions::assert_eq;
+    use super::super::ast::Type;
+    use super::super::ast::PrimitiveType;
 
     #[test]
     fn empty_returns_empty_compilation_unit() {
@@ -340,7 +360,7 @@ mod tests {
         let variable = &prg.variable_blocks[0].variables[0];
 
         assert_eq!(variable.name, "x");
-        assert_eq!(variable.data_type, "INT");
+        assert_eq!(variable.data_type, Type::Primitive(PrimitiveType::Int));
     }
 
     #[test]

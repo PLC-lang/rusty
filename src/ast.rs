@@ -20,7 +20,19 @@ pub struct VariableBlock {
 #[derive(Debug, PartialEq)]
 pub struct Variable {
     pub name: String,
-    pub data_type: String,
+    pub data_type: Type,
+}
+
+#[derive(Debug, PartialEq)]
+pub enum Type {
+    Primitive (PrimitiveType),
+    Custom,
+}
+
+#[derive(Debug, PartialEq)]
+pub enum PrimitiveType {
+    Int,
+    Bool,
 }
 
 #[derive(Debug, PartialEq)]
