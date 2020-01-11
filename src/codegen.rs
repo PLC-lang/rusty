@@ -258,6 +258,90 @@ entry:
 
         assert_eq!(result,expected);
     }
+
+    #[test]
+    fn program_with_variables_generates_void_function_and_struct() {
+        let result = codegen!(
+r#"PROGRAM prg
+VAR
+x : INT;
+y : INT;
+END_VAR
+END_PROGRAM
+"#
+        );
+        let expected = generate_boiler_plate!("prg"," i32, i32 ","");
+
+        assert_eq!(result,expected);
+    }
+
+
+    #[test]
+    fn program_with_variables_and_references_generates_void_function_and_struct_and_body() {
+        let result = codegen!(
+r#"PROGRAM prg
+VAR
+x : INT;
+y : INT;
+END_VAR
+x;
+y;
+END_PROGRAM
+"#
+        );
+        let expected = generate_boiler_plate!("prg"," i32, i32 ",
+r#"  %deref = load i32, i32* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 0)
+  %deref1 = load i32, i32* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 1)
+  ret void
+"#
+        );
+
+        assert_eq!(result,expected);
+    }
+
+    #[test]
+    fn program_with_variables_and_additions_generates_void_function_and_struct_and_body() {
+        let result = codegen!(
+r#"PROGRAM prg
+VAR
+x : INT;
+y : INT;
+END_VAR
+x + y;
+END_PROGRAM
+"#
+        );
+        let expected = generate_boiler_plate!("prg"," i32, i32 ",
+r#"  %deref = load i32, i32* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 0)
+  %deref1 = load i32, i32* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 1)
+  %tmpVar = add i32 %deref, %deref1
+  ret void
+"#
+        );
+
+        assert_eq!(result,expected);
+    }
+
+    #[test]
+    fn program_with_variable_and_addition_literal_generates_void_function_and_struct_and_body() {
+        let result = codegen!(
+r#"PROGRAM prg
+VAR
+x : INT;
+END_VAR
+x + 7;
+END_PROGRAM
+"#
+        );
+        let expected = generate_boiler_plate!("prg"," i32 ",
+r#"  %deref = load i32, i32* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 0)
+  %tmpVar = add i32 %deref, 7
+  ret void
+"#
+        );
+
+        assert_eq!(result,expected);
+    }
 }
 
 
