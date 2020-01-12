@@ -14,6 +14,7 @@ use inkwell::values::BasicValue;
 use inkwell::values::PointerValue;
 use inkwell::values::GlobalValue;
 use inkwell::AddressSpace;
+use inkwell::IntPredicate;
 
 pub struct CodeGen<'ctx> {
     pub context: &'ctx Context,
@@ -250,13 +251,13 @@ impl<'ctx> CodeGen<'ctx> {
             Operator::Minus => self.builder.build_int_sub(lvalue, rvalue, "tmpVar") ,
             Operator::Multiplication => self.builder.build_int_mul(lvalue, rvalue, "tmpVar"),
             Operator::Division => self.builder.build_int_signed_div(lvalue, rvalue, "tmpVar"),
-            Operator::Equal => unimplemented!(),
-            Operator::NotEqual => unimplemented!(),
             Operator::Modulo => self.builder.build_int_signed_rem(lvalue, rvalue, "tmpVar"),
-            Operator::Less => unimplemented!(),
-            Operator::Greater => unimplemented!(),
-            Operator::LessOrEqual => unimplemented!(),
-            Operator::GreaterOrEqual => unimplemented!(),
+            Operator::Equal => self.builder.build_int_compare(IntPredicate::EQ, lvalue, rvalue, "tmpVar"),
+            Operator::NotEqual => self.builder.build_int_compare(IntPredicate::NE, lvalue, rvalue, "tmpVar"),
+            Operator::Less => self.builder.build_int_compare(IntPredicate::SLT, lvalue, rvalue, "tmpVar"),
+            Operator::Greater => self.builder.build_int_compare(IntPredicate::SGT, lvalue, rvalue, "tmpVar"),
+            Operator::LessOrEqual => self.builder.build_int_compare(IntPredicate::SLE, lvalue, rvalue, "tmpVar"),
+            Operator::GreaterOrEqual => self.builder.build_int_compare(IntPredicate::SGE, lvalue, rvalue, "tmpVar"),
         };
         Some(BasicValueEnum::IntValue(result))
     }
@@ -469,6 +470,50 @@ r#"  %load_x = load i32, i32* getelementptr inbounds (%prg_interface, %prg_inter
   %load_x7 = load i32, i32* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 0)
   %tmpVar8 = srem i32 %load_x7, 5
   store i32 %tmpVar8, i32* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 1)
+  ret void
+"#
+        );
+
+        assert_eq!(result,expected);
+    }
+
+
+    #[test]
+    fn program_with_variable_and_comparison_assignment_generates_void_function_and_struct_and_body() {
+        let result = codegen!(
+r#"PROGRAM prg
+VAR
+x : INT;
+y : BOOL;
+END_VAR
+y := x = 1;
+y := x > 2;
+y := x < 3;
+y := x <> 4;
+y := x >= 5;
+y := x <= 6;
+END_PROGRAM
+"#
+        );
+        let expected = generate_boiler_plate!("prg"," i32, i1 ",
+r#"  %load_x = load i32, i32* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 0)
+  %tmpVar = icmp eq i32 %load_x, 1
+  store i1 %tmpVar, i1* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 1)
+  %load_x1 = load i32, i32* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 0)
+  %tmpVar2 = icmp sgt i32 %load_x1, 2
+  store i1 %tmpVar2, i1* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 1)
+  %load_x3 = load i32, i32* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 0)
+  %tmpVar4 = icmp slt i32 %load_x3, 3
+  store i1 %tmpVar4, i1* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 1)
+  %load_x5 = load i32, i32* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 0)
+  %tmpVar6 = icmp ne i32 %load_x5, 4
+  store i1 %tmpVar6, i1* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 1)
+  %load_x7 = load i32, i32* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 0)
+  %tmpVar8 = icmp sge i32 %load_x7, 5
+  store i1 %tmpVar8, i1* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 1)
+  %load_x9 = load i32, i32* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 0)
+  %tmpVar10 = icmp sle i32 %load_x9, 6
+  store i1 %tmpVar10, i1* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 1)
   ret void
 "#
         );
