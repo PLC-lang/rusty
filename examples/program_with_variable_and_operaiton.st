@@ -4,5 +4,5 @@ VAR
    y : INT;
    z : INT;
 END_VAR
-   z := x + y;
+1 + 2 + 3 + 4;
 END_PROGRAM

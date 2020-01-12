@@ -81,6 +81,7 @@ pub fn lex(source: &str) -> Lexer<Token, &str> {
 }
 
 #[cfg(test)]
+use pretty_assertions::{assert_eq, assert_ne};
 mod tests {
 
     #[test]

@@ -1,0 +1,46 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'rusty'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=rusty",
+                    "--package=rusty"
+                ],
+                "filter": {
+                    "name": "rusty",
+                    "kind": "bin"
+                }
+            },
+            "args": ["${workspaceFolder}/examples/program_with_references.st"],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'rusty'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=rusty",
+                    "--package=rusty"
+                ],
+                "filter": {
+                    "name": "rusty",
+                    "kind": "bin"
+                }
+            },
+            "args": ["${workspaceFolder}/examples/program_with_references.st"],
+            "cwd": "${workspaceFolder}"
+        }
+    ]
+}

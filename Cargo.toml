@@ -6,6 +6,5 @@ edition = "2018"
 
 [dependencies]
 logos = "0.9.7"
-
-[dev-dependencies]
+inkwell = { git = "https://github.com/TheDan64/inkwell", branch = "llvm8-0" }
 pretty_assertions = "0.6.1"

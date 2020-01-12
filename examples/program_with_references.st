@@ -1,0 +1,7 @@
+PROGRAM refs
+VAR
+    y : INT;
+END_VAR
+y := 7;
+
+END_PROGRAM
