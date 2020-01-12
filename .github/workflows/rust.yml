@@ -10,12 +10,11 @@ jobs:
     steps:
     - uses: actions/checkout@v1
     - name: Install Dependencies
-    run: |
-      sudo add-apt-repository "deb http://apt.llvm.org/bionic/ llvm-toolchain-bionic main"
-      curl https://apt.llvm.org/llvm-snapshot.gpg.key | sudo apt-key add -
-      sudo apt-get update
-      sudo apt-get install llvm-8 llvm-8-tools llvm-8-dev
-    
+      run: |
+        sudo add-apt-repository "deb http://apt.llvm.org/bionic/ llvm-toolchain-bionic main"
+        curl https://apt.llvm.org/llvm-snapshot.gpg.key | sudo apt-key add -
+        sudo apt-get update
+        sudo apt-get install llvm-8 llvm-8-tools llvm-8-dev
     - name: Build
       run: cargo build --verbose
     - name: Run tests
