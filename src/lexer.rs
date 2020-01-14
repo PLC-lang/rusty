@@ -72,6 +72,18 @@ pub enum Token {
     #[token = "MOD"]
     OperatorModulo,
 
+    #[token = "AND"]
+    KeywordAnd,
+
+    #[token = "OR"]
+    KeywordOr,
+
+    #[token = "XOR"]
+    KeywordXor,
+
+    #[token = "NOT"]
+    KeywordNot,
+
     #[regex = r"[0-9]+(\.(0-9)+)?"]
     LiteralNumber,
 }
@@ -168,6 +180,18 @@ mod tests {
         assert_eq!(lexer.token, super::Token::OperatorLessOrEqual);
         lexer.advance();
         assert_eq!(lexer.token, super::Token::OperatorGreaterOrEqual);
+    }
+
+    #[test]
+    fn boolean_expression_test() {
+        let mut lexer = super::lex("AND XOR OR NOT");
+        assert_eq!(lexer.token, super::Token::KeywordAnd);
+        lexer.advance();
+        assert_eq!(lexer.token, super::Token::KeywordXor);
+        lexer.advance();
+        assert_eq!(lexer.token, super::Token::KeywordOr);
+        lexer.advance();
+        assert_eq!(lexer.token, super::Token::KeywordNot);
     }
 
     #[test]

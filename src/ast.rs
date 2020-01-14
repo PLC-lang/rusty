@@ -48,6 +48,10 @@ pub enum Statement {
     left: Box<Statement>,
     right: Box<Statement>,
     },
+    UnaryExpression {
+        operator: Operator,
+        value: Box<Statement>,
+    },
     Assignment {
         left: Box<Statement>,
         right: Box<Statement>,
@@ -67,5 +71,8 @@ pub enum Operator {
     Greater,
     LessOrEqual,
     GreaterOrEqual,
-
+    Not,
+    And,
+    Or,
+    Xor,
 }
