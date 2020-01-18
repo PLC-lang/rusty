@@ -195,7 +195,7 @@ fn parse_parenthesized_expression(lexer: &mut RustyLexer) -> Result<Statement, S
             lexer.advance();
             result
         },
-        KeywordNot => parse_not(lexer),
+        OperatorNot => parse_not(lexer),
         _ => parse_unary_expression(lexer)
         
     }
@@ -204,9 +204,9 @@ fn parse_parenthesized_expression(lexer: &mut RustyLexer) -> Result<Statement, S
 fn parse_boolean_expression(lexer: &mut RustyLexer) -> Result<Statement, String>  {
     let current = parse_parenthesized_expression(lexer);
     let operator = match lexer.token {
-        KeywordAnd => Some(Operator::And),
-        KeywordOr => Some(Operator::Or),
-        KeywordXor => Some(Operator::Xor),
+        OperatorAnd => Some(Operator::And),
+        OperatorOr => Some(Operator::Or),
+        OperatorXor => Some(Operator::Xor),
         _ => None
     };
     if let Some(operator) = operator {
