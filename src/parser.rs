@@ -170,7 +170,7 @@ fn parse_additive_expression(lexer: &mut RustyLexer) -> Result<Statement, String
 }
 
 fn parse_multiplication_expression(lexer: &mut RustyLexer) -> Result<Statement, String> {
-    let left = parse_parenthesized_expression(lexer)?;
+    let left = parse_boolean_expression(lexer)?;
     let operator = match lexer.token {
         OperatorMultiplication => Operator::Multiplication,
         OperatorDivision => Operator::Division,
@@ -187,15 +187,37 @@ fn parse_multiplication_expression(lexer: &mut RustyLexer) -> Result<Statement, 
 }
 
 fn parse_parenthesized_expression(lexer: &mut RustyLexer) -> Result<Statement, String> {
-    if lexer.token == KeywordParensOpen {
-        lexer.advance();
-        let result = parse_primary_expression(lexer);
-        expect!(KeywordParensClose, lexer);
-        lexer.advance();
-        result
-    } else {
-        parse_unary_expression(lexer)
+    match lexer.token {
+        KeywordParensOpen => {
+            lexer.advance();
+            let result = parse_primary_expression(lexer);
+            expect!(KeywordParensClose, lexer);
+            lexer.advance();
+            result
+        },
+        OperatorNot => parse_not(lexer),
+        _ => parse_unary_expression(lexer)
+        
     }
+}
+
+fn parse_boolean_expression(lexer: &mut RustyLexer) -> Result<Statement, String>  {
+    let current = parse_parenthesized_expression(lexer);
+    let operator = match lexer.token {
+        OperatorAnd => Some(Operator::And),
+        OperatorOr => Some(Operator::Or),
+        OperatorXor => Some(Operator::Xor),
+        _ => None
+    };
+    if let Some(operator) = operator {
+        lexer.advance();
+        return Ok(Statement::BinaryExpression {
+            operator,
+            left : Box::new(current?),
+            right : Box::new(parse_primary_expression(lexer)?),
+        });
+    }
+    current
 }
 
 fn parse_unary_expression(lexer: &mut RustyLexer) -> Result<Statement, String> {
@@ -204,14 +226,24 @@ fn parse_unary_expression(lexer: &mut RustyLexer) -> Result<Statement, String> {
         LiteralNumber => parse_literal_number(lexer),
         _ => Err(unexpected_token(lexer)),
     };
+
     if current.is_ok() && lexer.token == KeywordAssignment {
         lexer.advance();
         return Ok(Statement::Assignment {
             left: Box::new(current?),
             right: Box::new(parse_primary_expression(lexer)?),
-        });
-    }
+        })
+    };
     current
+
+}
+
+fn parse_not(lexer: &mut RustyLexer) -> Result<Statement, String> {
+    lexer.advance();
+    Ok(Statement::UnaryExpression {
+        operator: Operator::Not,
+        value : Box::new(parse_parenthesized_expression(lexer)?)
+    })
 }
 
 fn parse_reference(lexer: &mut RustyLexer) -> Result<Statement, String> {
@@ -834,5 +866,78 @@ mod tests {
 }"#;
             assert_eq!(format!("{:#?}", statement), expected_ast);
         }
+    }
+
+    #[test]
+    fn boolean_expression_ast_test() {
+        let lexer = lexer::lex("PROGRAM exp a AND NOT b OR c XOR d; END_PROGRAM");
+        let result = super::parse(lexer).unwrap();
+
+        let prg = &result.units[0];
+        let statement = &prg.statements[0];
+
+        let ast_string = format!("{:#?}", statement);
+        let expected_ast = r#"BinaryExpression {
+    operator: And,
+    left: Reference {
+        name: "a",
+    },
+    right: BinaryExpression {
+        operator: Or,
+        left: UnaryExpression {
+            operator: Not,
+            value: Reference {
+                name: "b",
+            },
+        },
+        right: BinaryExpression {
+            operator: Xor,
+            left: Reference {
+                name: "c",
+            },
+            right: Reference {
+                name: "d",
+            },
+        },
+    },
+}"#;
+        assert_eq!(ast_string, expected_ast);
+    }
+
+
+    #[test]
+    fn boolean_expression_paran_ast_test() {
+        let lexer = lexer::lex("PROGRAM exp a AND (NOT (b OR c) XOR d); END_PROGRAM");
+        let result = super::parse(lexer).unwrap();
+
+        let prg = &result.units[0];
+        let statement = &prg.statements[0];
+
+        let ast_string = format!("{:#?}", statement);
+        let expected_ast = r#"BinaryExpression {
+    operator: And,
+    left: Reference {
+        name: "a",
+    },
+    right: BinaryExpression {
+        operator: Xor,
+        left: UnaryExpression {
+            operator: Not,
+            value: BinaryExpression {
+                operator: Or,
+                left: Reference {
+                    name: "b",
+                },
+                right: Reference {
+                    name: "c",
+                },
+            },
+        },
+        right: Reference {
+            name: "d",
+        },
+    },
+}"#;
+        assert_eq!(ast_string, expected_ast);
     }
 }

@@ -158,7 +158,7 @@ impl<'ctx> CodeGen<'ctx> {
             Statement::LiteralNumber { value } => self.generate_literal_number(value.as_str()),
             Statement::Reference { name } => self.generate_variable_reference(name),
             Statement::Assignment {left,right} => self.generate_assignment(&left, &right),
-            //_ => None,
+            _ => unimplemented!(),
         }
     }
 
@@ -258,6 +258,7 @@ impl<'ctx> CodeGen<'ctx> {
             Operator::Greater => self.builder.build_int_compare(IntPredicate::SGT, lvalue, rvalue, "tmpVar"),
             Operator::LessOrEqual => self.builder.build_int_compare(IntPredicate::SLE, lvalue, rvalue, "tmpVar"),
             Operator::GreaterOrEqual => self.builder.build_int_compare(IntPredicate::SGE, lvalue, rvalue, "tmpVar"),
+            _ => unimplemented!(),
         };
         Some(BasicValueEnum::IntValue(result))
     }
