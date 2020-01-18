@@ -36,9 +36,18 @@ pub enum PrimitiveType {
 }
 
 #[derive(Debug, PartialEq)]
+pub struct ConditionalBlock {
+    pub condition: Box<Statement>,
+    pub body: Vec<Statement>
+}
+
+#[derive(Debug, PartialEq)]
 pub enum Statement {
     LiteralNumber {
         value: String,
+    },
+    LiteralBool {
+        value: bool,
     },
     Reference {
         name: String,
@@ -55,7 +64,12 @@ pub enum Statement {
     Assignment {
         left: Box<Statement>,
         right: Box<Statement>,
-    }
+    },
+    IfStatement {
+        blocks : Vec<ConditionalBlock>,
+        else_block: Vec<Statement>,
+    },
+    
 }
 
 #[derive(Debug, PartialEq)]

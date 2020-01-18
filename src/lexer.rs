@@ -19,10 +19,7 @@ pub enum Token {
 
     #[token = "END_PROGRAM"]
     KeywordEndProgram,
-
-    #[regex = r"[a-zA-Z_][a-zA-Z_0-9]*"]
-    Identifier,
-
+    
     #[token = ":"]
     KeywordColon,
 
@@ -37,6 +34,22 @@ pub enum Token {
 
     #[token = ")"]
     KeywordParensClose,
+
+    //Control Structures
+    #[token = "IF"]
+    KeywordIf,
+
+    #[token = "THEN"]
+    KeywordThen,
+
+    #[token = "ELSIF"]
+    KeywordElseIf,
+
+    #[token = "ELSE"]
+    KeywordElse,
+
+    #[token = "END_IF"]
+    KeywordEndIf,
 
     //Operators
     #[token = "+"]
@@ -84,8 +97,21 @@ pub enum Token {
     #[token = "NOT"]
     OperatorNot,
 
+    //Identifiers
+
+    #[regex = r"[a-zA-Z_][a-zA-Z_0-9]*"]
+    Identifier,
+
+    //Literals
+
     #[regex = r"[0-9]+(\.(0-9)+)?"]
     LiteralNumber,
+
+    #[token = "TRUE"]
+    LiteralTrue,
+
+    #[token = "FALSE"]
+    LiteralFalse,
 }
 
 pub fn lex(source: &str) -> Lexer<Token, &str> {
@@ -234,5 +260,33 @@ mod tests {
         assert_eq!(lexer.token, super::Token::KeywordEndVar);
         lexer.advance();
         assert_eq!(lexer.token, super::Token::KeywordEndProgram);
+    }
+
+    #[test]
+    fn boolean_literals() {
+        let mut lexer = super::lex(r" TRUE FALSE",);
+        assert_eq!(lexer.token, super::Token::LiteralTrue);
+        lexer.advance();
+        assert_eq!(lexer.token, super::Token::LiteralFalse);
+        
+    }
+
+    #[test]
+    fn if_expression() {
+        let mut lexer = super::lex(
+        r"
+        IF THEN ELSIF ELSE END_IF
+        ",
+        );
+
+        assert_eq!(lexer.token, super::Token::KeywordIf);
+        lexer.advance();
+        assert_eq!(lexer.token, super::Token::KeywordThen);
+        lexer.advance();
+        assert_eq!(lexer.token, super::Token::KeywordElseIf);
+        lexer.advance();
+        assert_eq!(lexer.token, super::Token::KeywordElse);
+        lexer.advance();
+        assert_eq!(lexer.token, super::Token::KeywordEndIf);
     }
 }

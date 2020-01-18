@@ -3,12 +3,13 @@ use logos::Lexer;
 
 use super::ast::CompilationUnit;
 use super::ast::Operator;
+use super::ast::PrimitiveType;
 use super::ast::Program;
 use super::ast::Statement;
-use super::ast::Variable;
 use super::ast::Type;
-use super::ast::PrimitiveType;
+use super::ast::Variable;
 use super::ast::VariableBlock;
+use super::ast::ConditionalBlock;
 use super::lexer::Token::*;
 
 macro_rules! expect {
@@ -63,7 +64,6 @@ pub fn parse(mut lexer: RustyLexer) -> Result<CompilationUnit, String> {
     loop {
         match lexer.token {
             KeywordProgram => {
-                lexer.advance();
                 let program = parse_program(&mut lexer);
                 match program {
                     Ok(p) => unit.units.push(p),
@@ -82,6 +82,7 @@ pub fn parse(mut lexer: RustyLexer) -> Result<CompilationUnit, String> {
 }
 
 fn parse_program(lexer: &mut RustyLexer) -> Result<Program, String> {
+    lexer.advance(); //Consume ProgramKeyword
     let mut result = create_program();
     expect!(Identifier, lexer);
 
@@ -90,7 +91,6 @@ fn parse_program(lexer: &mut RustyLexer) -> Result<Program, String> {
 
     //Parse variable declarations
     while lexer.token == KeywordVar {
-        lexer.advance();
         let block = parse_variable_block(lexer);
         match block {
             Ok(b) => result.variable_blocks.push(b),
@@ -99,13 +99,29 @@ fn parse_program(lexer: &mut RustyLexer) -> Result<Program, String> {
     }
 
     //Parse the statemetns
-    while lexer.token != KeywordEndProgram && lexer.token != End && lexer.token != Error {
-        let statement = (parse_statement(lexer))?;
-        result.statements.push(statement);
-    }
-    expect!(KeywordEndProgram, lexer);
+    let mut body = parse_body(lexer, &|it| *it == KeywordEndProgram)?;
+    result.statements.append(&mut body);
 
     Ok(result)
+}
+
+fn parse_body(lexer: &mut RustyLexer, until: &dyn Fn(&lexer::Token) -> bool) -> Result<Vec<Statement>, String> {
+    let mut statements = Vec::new();
+    while !until(&lexer.token) && lexer.token != End && lexer.token != Error {
+        let statement = parse_control_statement(lexer)?;
+        statements.push(statement);
+    }
+    if !until(&lexer.token) {
+        return Err(format!("unexpected end of body {:?}", lexer.token).to_string());
+    }
+    Ok(statements)
+}
+
+fn parse_control_statement(lexer: &mut RustyLexer) -> Result<Statement, String> {
+    if lexer.token == KeywordIf {
+        return parse_if_statement(lexer);
+    }
+    parse_statement(lexer)
 }
 
 fn parse_statement(lexer: &mut RustyLexer) -> Result<Statement, String> {
@@ -186,6 +202,26 @@ fn parse_multiplication_expression(lexer: &mut RustyLexer) -> Result<Statement, 
     })
 }
 
+fn parse_boolean_expression(lexer: &mut RustyLexer) -> Result<Statement, String> {
+    let current = parse_parenthesized_expression(lexer);
+    let operator = match lexer.token {
+        OperatorAnd => Some(Operator::And),
+        OperatorOr => Some(Operator::Or),
+        OperatorXor => Some(Operator::Xor),
+        _ => None,
+    };
+
+    if let Some(operator) = operator {
+        lexer.advance();
+        return Ok(Statement::BinaryExpression {
+            operator,
+            left: Box::new(current?),
+            right: Box::new(parse_primary_expression(lexer)?),
+        });
+    }
+    current
+}
+
 fn parse_parenthesized_expression(lexer: &mut RustyLexer) -> Result<Statement, String> {
     match lexer.token {
         KeywordParensOpen => {
@@ -194,36 +230,34 @@ fn parse_parenthesized_expression(lexer: &mut RustyLexer) -> Result<Statement, S
             expect!(KeywordParensClose, lexer);
             lexer.advance();
             result
-        },
-        OperatorNot => parse_not(lexer),
-        _ => parse_unary_expression(lexer)
-        
+        }
+        _ => parse_unary_expression(lexer),
     }
-}
-
-fn parse_boolean_expression(lexer: &mut RustyLexer) -> Result<Statement, String>  {
-    let current = parse_parenthesized_expression(lexer);
-    let operator = match lexer.token {
-        OperatorAnd => Some(Operator::And),
-        OperatorOr => Some(Operator::Or),
-        OperatorXor => Some(Operator::Xor),
-        _ => None
-    };
-    if let Some(operator) = operator {
-        lexer.advance();
-        return Ok(Statement::BinaryExpression {
-            operator,
-            left : Box::new(current?),
-            right : Box::new(parse_primary_expression(lexer)?),
-        });
-    }
-    current
 }
 
 fn parse_unary_expression(lexer: &mut RustyLexer) -> Result<Statement, String> {
+    let operator = match lexer.token {
+        OperatorNot => Some(Operator::Not),
+        OperatorMinus => Some(Operator::Minus),
+        _ => None,
+    };
+    if let Some(operator) = operator {
+        lexer.advance();
+        Ok(Statement::UnaryExpression {
+            operator: operator,
+            value: Box::new(parse_parenthesized_expression(lexer)?),
+        })
+    } else {
+        parse_leaf_expression(lexer)
+    }
+}
+
+fn parse_leaf_expression(lexer: &mut RustyLexer) -> Result<Statement, String> {
     let current = match lexer.token {
         Identifier => parse_reference(lexer),
         LiteralNumber => parse_literal_number(lexer),
+        LiteralTrue => parse_bool_literal(lexer, true),
+        LiteralFalse => parse_bool_literal(lexer, false),
         _ => Err(unexpected_token(lexer)),
     };
 
@@ -232,18 +266,71 @@ fn parse_unary_expression(lexer: &mut RustyLexer) -> Result<Statement, String> {
         return Ok(Statement::Assignment {
             left: Box::new(current?),
             right: Box::new(parse_primary_expression(lexer)?),
-        })
+        });
     };
     current
+}
+
+fn parse_if_statement(lexer: &mut RustyLexer) -> Result<Statement, String> {
+    
+    let end_of_body = | it : &lexer::Token | 
+                                *it == KeywordElseIf
+                            || *it == KeywordElse
+                            || *it == KeywordEndIf;
+
+    
+    let mut conditional_blocks = vec![];
+
+    while lexer.token == KeywordElseIf || lexer.token == KeywordIf{
+        lexer.advance();//If//ElseIf
+        let condition = parse_primary_expression(lexer);
+        expect!(KeywordThen, lexer);
+        lexer.advance();
+        let body = parse_body(lexer, &end_of_body);
+
+        let condition_block = ConditionalBlock {
+            condition: Box::new(condition?),
+            body: body?,
+        };
+
+        conditional_blocks.push(condition_block);
+    }
+    
+    let mut else_block = Vec::new();
+
+    if lexer.token == KeywordElse {
+        lexer.advance(); // else
+        else_block.append(&mut parse_body(lexer, &|it| *it == KeywordEndIf)?)
+    }
+    lexer.advance();
+    
+    
+
+    Ok(Statement::IfStatement{blocks: conditional_blocks, else_block: else_block})
+    
+    // while lexer.token == KeywordElseIf {
+    //     let condition = parse_primary_expression(lexer);
+    //     expect!(KeywordThen, lexer);
+    //     let body = parse_body(lexer, &end_of_body);
+    //     else_bodies.push()
+    // }
+
+    // while until(&lexer.token) && lexer.token != End && lexer.token != Error {
+    //     let statement = parse_control_statement(lexer)?;
+    //     statements.push(statement);
+    // }
+    // let body = parse_body(lexer, &| it |    
+    //                                        *it == KeywordElseIf
+    //                                     || *it == KeywordElse
+    //                                     || *it == KeywordEndIf);
+
+    
 
 }
 
-fn parse_not(lexer: &mut RustyLexer) -> Result<Statement, String> {
+fn parse_bool_literal(lexer: &mut RustyLexer, value: bool) -> Result<Statement, String> {
     lexer.advance();
-    Ok(Statement::UnaryExpression {
-        operator: Operator::Not,
-        value : Box::new(parse_parenthesized_expression(lexer)?)
-    })
+    Ok(Statement::LiteralBool { value })
 }
 
 fn parse_reference(lexer: &mut RustyLexer) -> Result<Statement, String> {
@@ -259,6 +346,7 @@ fn parse_literal_number(lexer: &mut RustyLexer) -> Result<Statement, String> {
 }
 
 fn parse_variable_block(lexer: &mut RustyLexer) -> Result<VariableBlock, String> {
+    lexer.advance(); //Consume VarBlock
     let mut result = VariableBlock {
         variables: Vec::new(),
     };
@@ -289,33 +377,35 @@ fn parse_variable(
     expect!(KeywordSemicolon, lexer);
     lexer.advance();
 
-    owner.variables.push(Variable { name, data_type : get_data_type(data_type) });
+    owner.variables.push(Variable {
+        name,
+        data_type: get_data_type(data_type),
+    });
     Ok(owner)
 }
 
-fn get_data_type(name : String) -> Type {
+fn get_data_type(name: String) -> Type {
     let prim_type = match name.to_lowercase().as_str() {
         "int" => Some(PrimitiveType::Int),
         "bool" => Some(PrimitiveType::Bool),
-        _ => None
+        _ => None,
     };
-    
-    if let Some(prim_type) =  prim_type {
+
+    if let Some(prim_type) = prim_type {
         Type::Primitive(prim_type)
     } else {
         Type::Custom
     }
-
 }
 
 #[cfg(test)]
 use pretty_assertions::{assert_eq, assert_ne};
 mod tests {
+    use super::super::ast::PrimitiveType;
+    use super::super::ast::Type;
     use super::super::lexer;
     use super::Statement;
     use pretty_assertions::assert_eq;
-    use super::super::ast::Type;
-    use super::super::ast::PrimitiveType;
 
     #[test]
     fn empty_returns_empty_compilation_unit() {
@@ -369,7 +459,7 @@ mod tests {
         let result = super::parse(lexer);
         assert_eq!(
             result,
-            Err("expected KeywordEndProgram, but found End".to_string())
+            Err("unexpected end of body End".to_string())
         );
     }
 
@@ -423,6 +513,27 @@ mod tests {
         } else {
             panic!("Expected LiteralNumber but found {:?}", statement);
         }
+    }
+
+    #[test]
+    fn boolean_literals_can_be_parsed() {
+        let lexer = lexer::lex("PROGRAM exp TRUE OR FALSE; END_PROGRAM");
+        let result = super::parse(lexer).unwrap();
+
+        let prg = &result.units[0];
+        let statement = &prg.statements[0];
+
+        let ast_string = format!("{:#?}", statement);
+        let expected_ast = r#"BinaryExpression {
+    operator: Or,
+    left: LiteralBool {
+        value: true,
+    },
+    right: LiteralBool {
+        value: false,
+    },
+}"#;
+        assert_eq!(ast_string, expected_ast);
     }
 
     #[test]
@@ -904,7 +1015,6 @@ mod tests {
         assert_eq!(ast_string, expected_ast);
     }
 
-
     #[test]
     fn boolean_expression_paran_ast_test() {
         let lexer = lexer::lex("PROGRAM exp a AND (NOT (b OR c) XOR d); END_PROGRAM");
@@ -940,4 +1050,229 @@ mod tests {
 }"#;
         assert_eq!(ast_string, expected_ast);
     }
+
+    #[test]
+    fn signed_literal_minus_test() {
+        let lexer = lexer::lex(
+            "
+        PROGRAM exp 
+        -1;
+        END_PROGRAM
+        ",
+        );
+        let result = super::parse(lexer).unwrap();
+
+        let prg = &result.units[0];
+        let statement = &prg.statements[0];
+
+        let ast_string = format!("{:#?}", statement);
+        let expected_ast = r#"UnaryExpression {
+    operator: Minus,
+    value: LiteralNumber {
+        value: "1",
+    },
+}"#;
+        assert_eq!(ast_string, expected_ast);
+    }
+
+    #[test]
+    fn signed_literal_expression_test() {
+        let lexer = lexer::lex(
+            "
+        PROGRAM exp 
+        2 +-x;
+        END_PROGRAM
+        ",
+        );
+        let result = super::parse(lexer).unwrap();
+
+        let prg = &result.units[0];
+        let statement = &prg.statements[0];
+
+        let ast_string = format!("{:#?}", statement);
+        let expected_ast = r#"BinaryExpression {
+    operator: Plus,
+    left: LiteralNumber {
+        value: "2",
+    },
+    right: UnaryExpression {
+        operator: Minus,
+        value: Reference {
+            name: "x",
+        },
+    },
+}"#;
+        assert_eq!(ast_string, expected_ast);
+    }
+
+    #[test]
+    fn signed_literal_expression_reversed_test() {
+        let lexer = lexer::lex(
+            "
+        PROGRAM exp 
+        -4 + 5;
+        END_PROGRAM
+        ",
+        );
+        let result = super::parse(lexer).unwrap();
+
+        let prg = &result.units[0];
+        let statement = &prg.statements[0];
+
+        let ast_string = format!("{:#?}", statement);
+        let expected_ast = r#"BinaryExpression {
+    operator: Plus,
+    left: UnaryExpression {
+        operator: Minus,
+        value: LiteralNumber {
+            value: "4",
+        },
+    },
+    right: LiteralNumber {
+        value: "5",
+    },
+}"#;
+        assert_eq!(ast_string, expected_ast);
+    }
+
+    #[test]
+    fn if_statement() {
+        let lexer = lexer::lex(
+        "
+        PROGRAM exp 
+        IF TRUE THEN
+        END_IF
+        END_PROGRAM
+        ",
+        );
+        let result = super::parse(lexer).unwrap();
+
+        let prg = &result.units[0];
+        let statement = &prg.statements[0];
+
+        let ast_string = format!("{:#?}", statement);
+        let expected_ast = 
+r#"IfStatement {
+    blocks: [
+        ConditionalBlock {
+            condition: LiteralBool {
+                value: true,
+            },
+            body: [],
+        },
+    ],
+    else_block: [],
+}"#;
+        assert_eq!(ast_string, expected_ast);
+    }
+
+    #[test]
+    fn if_else_statement_with_expressions() {
+        let lexer = lexer::lex(
+        "
+        PROGRAM exp 
+        IF TRUE THEN
+            x;
+        ELSE
+            y;
+        END_IF
+        END_PROGRAM
+        ",
+        );
+        let result = super::parse(lexer).unwrap();
+
+        let prg = &result.units[0];
+        let statement = &prg.statements[0];
+
+        let ast_string = format!("{:#?}", statement);
+        let expected_ast = 
+r#"IfStatement {
+    blocks: [
+        ConditionalBlock {
+            condition: LiteralBool {
+                value: true,
+            },
+            body: [
+                Reference {
+                    name: "x",
+                },
+            ],
+        },
+    ],
+    else_block: [
+        Reference {
+            name: "y",
+        },
+    ],
+}"#;
+        assert_eq!(ast_string, expected_ast);
+    }
+
+
+    #[test]
+    fn if_elsif_elsif_else_statement_with_expressions() {
+        let lexer = lexer::lex(
+        "
+        PROGRAM exp 
+        IF TRUE THEN
+            x;
+        ELSIF y THEN
+            z;
+        ELSIF w THEN
+            v;
+        ELSE
+            u;
+        END_IF
+        END_PROGRAM
+        ",
+        );
+        let result = super::parse(lexer).unwrap();
+
+        let prg = &result.units[0];
+        let statement = &prg.statements[0];
+
+        let ast_string = format!("{:#?}", statement);
+        let expected_ast = 
+r#"IfStatement {
+    blocks: [
+        ConditionalBlock {
+            condition: LiteralBool {
+                value: true,
+            },
+            body: [
+                Reference {
+                    name: "x",
+                },
+            ],
+        },
+        ConditionalBlock {
+            condition: Reference {
+                name: "y",
+            },
+            body: [
+                Reference {
+                    name: "z",
+                },
+            ],
+        },
+        ConditionalBlock {
+            condition: Reference {
+                name: "w",
+            },
+            body: [
+                Reference {
+                    name: "v",
+                },
+            ],
+        },
+    ],
+    else_block: [
+        Reference {
+            name: "u",
+        },
+    ],
+}"#;
+        assert_eq!(ast_string, expected_ast);
+    }
+
 }

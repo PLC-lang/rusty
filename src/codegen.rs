@@ -11,6 +11,7 @@ use inkwell::types::StringRadix;
 use inkwell::types::StructType;
 use inkwell::values::BasicValueEnum;
 use inkwell::values::BasicValue;
+
 use inkwell::values::PointerValue;
 use inkwell::values::GlobalValue;
 use inkwell::AddressSpace;
@@ -157,9 +158,20 @@ impl<'ctx> CodeGen<'ctx> {
             } => self.generate_binary_expression(operator, left, right),
             Statement::LiteralNumber { value } => self.generate_literal_number(value.as_str()),
             Statement::Reference { name } => self.generate_variable_reference(name),
-            Statement::Assignment {left,right} => self.generate_assignment(&left, &right),
+            Statement::Assignment { left, right } => self.generate_assignment(&left, &right),
+            Statement::UnaryExpression { operator, value } => self.generate_unary_expression(&operator, &value),
             _ => unimplemented!(),
         }
+    }
+
+    fn generate_unary_expression(&self, operator: &Operator, value: &Box<Statement>) -> Option<BasicValueEnum> {
+        let loaded_value = self.generate_statement(value).unwrap().into_int_value();    
+        let value = match operator {
+            Operator::Not => self.builder.build_not(loaded_value, "tmpVar"),
+            Operator::Minus => self.builder.build_int_neg(loaded_value, "tmpVar"),
+            _ => unimplemented!()
+        };
+        Some(BasicValueEnum::IntValue(value))
     }
 
     fn generate_variable_lreference(&self, name: &str) -> Option<PointerValue> {
@@ -258,6 +270,9 @@ impl<'ctx> CodeGen<'ctx> {
             Operator::Greater => self.builder.build_int_compare(IntPredicate::SGT, lvalue, rvalue, "tmpVar"),
             Operator::LessOrEqual => self.builder.build_int_compare(IntPredicate::SLE, lvalue, rvalue, "tmpVar"),
             Operator::GreaterOrEqual => self.builder.build_int_compare(IntPredicate::SGE, lvalue, rvalue, "tmpVar"),
+            Operator::And => self.builder.build_and(lvalue, rvalue, "tmpVar"),
+            Operator::Or => self.builder.build_or(lvalue, rvalue, "tmpVar"),
+            Operator::Xor => self.builder.build_xor(lvalue, rvalue, "tmpVar"),
             _ => unimplemented!(),
         };
         Some(BasicValueEnum::IntValue(result))
@@ -521,6 +536,128 @@ r#"  %load_x = load i32, i32* getelementptr inbounds (%prg_interface, %prg_inter
 
         assert_eq!(result,expected);
     }
+
+
+    #[test]
+    fn program_with_variable_and_boolean_expressions_generates_void_function_and_struct_and_body() {
+        let result = codegen!(
+r#"PROGRAM prg
+VAR
+x : BOOL;
+y : BOOL;
+z : INT;
+END_VAR
+x AND y;
+x OR y;
+x XOR y;
+END_PROGRAM
+"#
+        );
+        let expected = generate_boiler_plate!("prg"," i1, i1, i32 ",
+r#"  %load_x = load i1, i1* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 0)
+  %load_y = load i1, i1* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 1)
+  %tmpVar = and i1 %load_x, %load_y
+  %load_x1 = load i1, i1* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 0)
+  %load_y2 = load i1, i1* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 1)
+  %tmpVar3 = or i1 %load_x1, %load_y2
+  %load_x4 = load i1, i1* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 0)
+  %load_y5 = load i1, i1* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 1)
+  %tmpVar6 = xor i1 %load_x4, %load_y5
+  ret void
+"#
+        );
+
+        assert_eq!(result,expected);
+    }
+
+
+    #[test]
+    fn program_with_negated_expressions_generates_void_function_and_struct_and_body() {
+        let result = codegen!(
+r#"PROGRAM prg
+VAR
+x : BOOL;
+y : BOOL;
+END_VAR
+NOT x;
+x AND NOT y;
+END_PROGRAM
+"#
+        );
+        let expected = generate_boiler_plate!("prg"," i1, i1 ",
+r#"  %load_x = load i1, i1* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 0)
+  %tmpVar = xor i1 %load_x, true
+  %load_x1 = load i1, i1* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 0)
+  %load_y = load i1, i1* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 1)
+  %tmpVar2 = xor i1 %load_y, true
+  %tmpVar3 = and i1 %load_x1, %tmpVar2
+  ret void
+"#
+        );
+
+        assert_eq!(result,expected);
+    }
+
+    #[test]
+    fn program_with_negated_combined_expressions_generates_void_function_and_struct_and_body() {
+        let result = codegen!(
+r#"PROGRAM prg
+VAR
+z : INT;
+y : BOOL;
+END_VAR
+y AND z >= 5;
+NOT (z <= 6) OR y;
+END_PROGRAM
+"#
+        );
+        let expected = generate_boiler_plate!("prg"," i32, i1 ",
+r#"  %load_y = load i1, i1* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 1)
+  %load_z = load i32, i32* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 0)
+  %tmpVar = icmp sge i32 %load_z, 5
+  %tmpVar1 = and i1 %load_y, %tmpVar
+  %load_z2 = load i32, i32* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 0)
+  %tmpVar3 = icmp sle i32 %load_z2, 6
+  %tmpVar4 = xor i1 %tmpVar3, true
+  %load_y5 = load i1, i1* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 1)
+  %tmpVar6 = or i1 %tmpVar4, %load_y5
+  ret void
+"#
+        );
+
+        assert_eq!(result,expected);
+    }
+
+    #[test]
+    fn program_with_signed_combined_expressions() {
+        let result = codegen!(
+            r#"PROGRAM prg
+            VAR
+            z : INT;
+            y : INT;
+            END_VAR
+            -1 + z;
+            2 +-z;
+            -y + 3;
+            END_PROGRAM
+            "#
+        );
+        let expected = generate_boiler_plate!("prg"," i32, i32 ",
+r#"  %load_z = load i32, i32* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 0)
+  %tmpVar = add i32 -1, %load_z
+  %load_z1 = load i32, i32* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 0)
+  %tmpVar2 = sub i32 0, %load_z1
+  %tmpVar3 = add i32 2, %tmpVar2
+  %load_y = load i32, i32* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 1)
+  %tmpVar4 = sub i32 0, %load_y
+  %tmpVar5 = add i32 %tmpVar4, 3
+  ret void
+"#
+        );
+
+        assert_eq!(result,expected);
+    }
+
 }
 
 
