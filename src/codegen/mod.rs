@@ -72,7 +72,7 @@ impl<'ctx> CodeGen<'ctx> {
         let function = self.module.add_function(self.current_pou.as_str(), f_type, None);
         let block = self.context.append_basic_block(function, "entry");
 
-        let mut program_members: Vec<(String, BasicTypeEnum<'ctx>)> = Vec::new();
+        let mut program_members: Vec<(String, BasicTypeEnum)> = Vec::new();
 
         for var_block in &p.variable_blocks {
             let mut members = self.get_variables_information(var_block);
@@ -100,7 +100,7 @@ impl<'ctx> CodeGen<'ctx> {
     }
 
     fn get_variables_information(&self, v: &VariableBlock) -> Vec<(String, BasicTypeEnum<'ctx>)> {
-        let mut types: Vec<(String, BasicTypeEnum<'ctx>)> = Vec::new();
+        let mut types: Vec<(String, BasicTypeEnum)> = Vec::new();
         for variable in &v.variables {
             let var_type = self.get_type(&variable.data_type);
             types.push((variable.name.clone(), var_type.into()));
@@ -122,11 +122,11 @@ impl<'ctx> CodeGen<'ctx> {
     fn generate_instance_struct(
         context: &'ctx Context,
         variables: &mut HashMap<String, u32>,
-        members: Vec<(String, BasicTypeEnum<'ctx>)>,
+        members: Vec<(String, BasicTypeEnum)>,
         name: &str,
     ) -> StructType<'ctx> {
         let struct_type = context.opaque_struct_type(name);
-        let mut member_types: Vec<BasicTypeEnum<'ctx>> = Vec::new();
+        let mut member_types: Vec<BasicTypeEnum> = Vec::new();
 
         //let member_types = members.into_iter().map(|(_, it)| it).collect::<Vec<_>>();
 
