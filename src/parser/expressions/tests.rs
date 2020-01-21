@@ -653,68 +653,156 @@ fn signed_literal_expression_reversed_test() {
     assert_eq!(ast_string, expected_ast);
 }
 
-// #[test]
-// fn or_compare_expressions_priority_test() {
-//     let lexer = lexer::lex(
-//         "
-//         PROGRAM exp 
-//         (x > 1) OR b1;
-//         END_PROGRAM
-//         ",
-//     );
-//     let result = parse(lexer).unwrap();
+#[test]
+fn or_compare_expressions_priority_test() {
+    let lexer = lexer::lex(
+        "
+        PROGRAM exp 
+        x > 1 OR b1;
+        END_PROGRAM
+        ",
+    );
+    let result = parse(lexer).unwrap();
 
-//     let prg = &result.units[0];
-//     let statement = &prg.statements[0];
+    let prg = &result.units[0];
+    let statement = &prg.statements[0];
 
-//     let ast_string = format!("{:#?}", statement);
-//     let expected_ast = r#"BinaryExpression {
-//     operator: Or,
-//     left: BinaryExpression {
-//         operator: Greater,
-//         left: Reference {
-//             name: "x",
-//         },
-//         right: LiteralNumber {
-//             value: "1",
-//         },
-//     },
-//     right: Reference {
-//         name: "b1",
-//     },
-// }"#;
-//     assert_eq!(ast_string, expected_ast);
-// }
+    let ast_string = format!("{:#?}", statement);
+    let expected_ast = r#"BinaryExpression {
+    operator: Or,
+    left: BinaryExpression {
+        operator: Greater,
+        left: Reference {
+            name: "x",
+        },
+        right: LiteralNumber {
+            value: "1",
+        },
+    },
+    right: Reference {
+        name: "b1",
+    },
+}"#;
+    assert_eq!(ast_string, expected_ast);
+}
 
-// #[test]
-// fn or_compare_expressions_priority_test() {
-//     let lexer = lexer::lex(
-//         "
-//         PROGRAM exp 
-//         x + 1 > 2 OR b1;
-//         END_PROGRAM
-//         ",
-//     );
-//     let result = parse(lexer).unwrap();
 
-//     let prg = &result.units[0];
-//     let statement = &prg.statements[0];
 
-//     let ast_string = format!("{:#?}", statement);
-//     let expected_ast = r#"BinaryExpression {
-//     operator: Or,
-//     left: BinaryExpression {
-//         operator: Greater,
-//         left: Reference {
-//             name: "x",
-//         },
-//         right: LiteralNumber {
-//             value: "1",
-//         },
-//     },
-//     right: Reference {
-//         name: "b1",
-//     },
-// }"#;
-//     assert_eq!(ast_string, expected_ast);
-// }
+#[test]
+fn addition_compare_or_priority_test() {
+    let lexer = lexer::lex(
+        "
+        PROGRAM exp 
+        x + 1 > 2 OR b1;
+        END_PROGRAM
+        ",
+    );
+    let result = parse(lexer).unwrap();
+
+    let prg = &result.units[0];
+    let statement = &prg.statements[0];
+
+    let ast_string = format!("{:#?}", statement);
+    let expected_ast = r#"BinaryExpression {
+    operator: Or,
+    left: BinaryExpression {
+        operator: Greater,
+        left: BinaryExpression {
+            operator: Plus
+            left: Reference {
+                name: "x",
+            },
+            right: LiteralNumber {
+                value: "1",
+            },
+        },
+        right: LiteralNumber {
+            value: "2",
+        },
+    },
+    right: Reference {
+        name: "b1",
+    },
+}"#;
+    assert_eq!(ast_string, expected_ast);
+}
+
+
+#[test]
+fn boolean_priority_test() {
+    let lexer = lexer::lex(
+        "
+        PROGRAM exp 
+        a AND b XOR c OR d;
+        END_PROGRAM
+        ",
+    );
+    let result = parse(lexer).unwrap();
+
+    let prg = &result.units[0];
+    let statement = &prg.statements[0];
+
+    let ast_string = format!("{:#?}", statement);
+    let expected_ast = r#"BinaryExpression {
+    operator: Or,
+    left: BinaryExpression {
+        operator: Xor,
+        left: BinaryExpression {
+            operator: And
+            left: Reference {
+                name: "a",
+            },
+            right: Reference {
+                name: "b",
+            },
+        },
+        right: Reference {
+            value: "c",
+        },
+    },
+    right: Reference {
+        name: "d",
+    },
+}"#;
+    assert_eq!(ast_string, expected_ast);
+}
+
+#[test]
+fn comparison_priority_test() {
+    let lexer = lexer::lex(
+        "
+        PROGRAM exp 
+        x < 7 = y > 6;
+        END_PROGRAM
+        ",
+    );
+    let result = parse(lexer).unwrap();
+
+    let prg = &result.units[0];
+    let statement = &prg.statements[0];
+
+    let ast_string = format!("{:#?}", statement);
+    let expected_ast = 
+r#"BinaryExpression {
+    operator: Equal,
+    left: BinaryExpression {
+        operator: Less,
+        left: Reference {
+            name: "x",
+        },
+        right: LiteralNumber {
+            value: "7",
+        },
+    },
+    right: BinaryExpression {
+        operator: Greater,
+        left: Reference {
+            name: "y",
+        },
+        right: LiteralNumber {
+            value: "6",
+        },
+    },
+}"#;
+    assert_eq!(ast_string, expected_ast);
+}
