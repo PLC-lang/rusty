@@ -35,7 +35,9 @@ entry:
 #[test]
 fn empty_program_with_name_generates_void_function() {
     let result = codegen!("PROGRAM prg END_PROGRAM");
-    let expected = generate_boiler_plate!("prg", "", "");
+    let expected = generate_boiler_plate!("prg", "", 
+    r#"  ret void
+"#);
 
     assert_eq!(result, expected);
 }
@@ -51,7 +53,9 @@ END_VAR
 END_PROGRAM
 "#
     );
-    let expected = generate_boiler_plate!("prg", " i32, i32 ", "");
+    let expected = generate_boiler_plate!("prg", " i32, i32 ",
+    r#"  ret void
+"#);
 
     assert_eq!(result, expected);
 }
@@ -385,6 +389,131 @@ fn program_with_signed_combined_expressions() {
   ret void
 "#
     );
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn if_elsif_else_generator_test() {
+    let result = codegen!(
+        "
+        PROGRAM prg 
+        VAR
+            x : INT;
+            y : INT;
+            z : INT;
+            u : INT;
+            b1 : BOOL;
+            b2 : BOOL;
+            b3 : BOOL;
+        END_VAR
+        IF b1 THEN
+            x;
+        ELSIF b2 THEN
+            y;
+        ELSIF b3 THEN
+            z;
+        ELSE
+            u;
+        END_IF
+        END_PROGRAM
+        "
+    );
+    let expected = generate_boiler_plate!("prg"," i32, i32, i32, i32, i1, i1, i1 ", 
+r#"  %load_b1 = load i1, i1* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 4)
+  br i1 %load_b1, label %0, label %1
+
+0:                                                ; preds = %entry
+  %load_x = load i32, i32* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 0)
+  br label %6
+
+1:                                                ; preds = %entry
+  %load_b2 = load i1, i1* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 5)
+  br i1 %load_b2, label %2, label %3
+
+2:                                                ; preds = %1
+  %load_y = load i32, i32* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 1)
+  br label %6
+
+3:                                                ; preds = %1
+  %load_b3 = load i1, i1* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 6)
+  br i1 %load_b3, label %4, label %5
+
+4:                                                ; preds = %3
+  %load_z = load i32, i32* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 2)
+  br label %6
+
+5:                                                ; preds = %3
+  %load_u = load i32, i32* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 3)
+  br label %6
+
+6:                                                ; preds = %5, %4, %2, %0
+  ret void
+"#
+    );
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn if_generator_test() {
+    let result = codegen!(
+        "
+        PROGRAM prg 
+        VAR
+            x : INT;
+            b1 : BOOL;
+        END_VAR
+        IF b1 THEN
+            x;
+        END_IF
+        END_PROGRAM
+        "
+    );
+    let expected = generate_boiler_plate!("prg"," i32, i1 ", 
+r#"  %load_b1 = load i1, i1* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 1)
+  br i1 %load_b1, label %0, label %1
+
+0:                                                ; preds = %entry
+  %load_x = load i32, i32* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 0)
+  br label %1
+
+1:                                                ; preds = %0, %entry
+  ret void
+"#);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn if_with_expression_generator_test() {
+    let result = codegen!(
+        "
+        PROGRAM prg 
+        VAR
+            x : INT;
+            b1 : BOOL;
+        END_VAR
+        IF (x > 1) OR b1 THEN
+            x;
+        END_IF
+        END_PROGRAM
+        "
+    );
+    let expected = generate_boiler_plate!("prg"," i32, i1 ", 
+r#"  %load_x = load i32, i32* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 0)
+  %tmpVar = icmp sgt i32 %load_x, 1
+  %load_b1 = load i1, i1* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 1)
+  %tmpVar1 = or i1 %tmpVar, %load_b1
+  br i1 %tmpVar1, label %0, label %1
+
+0:                                                ; preds = %entry
+  %load_x2 = load i32, i32* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 0)
+  br label %1
+
+1:                                                ; preds = %0, %entry
+  ret void
+"#);
 
     assert_eq!(result, expected);
 }

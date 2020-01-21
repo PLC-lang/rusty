@@ -652,3 +652,69 @@ fn signed_literal_expression_reversed_test() {
 }"#;
     assert_eq!(ast_string, expected_ast);
 }
+
+// #[test]
+// fn or_compare_expressions_priority_test() {
+//     let lexer = lexer::lex(
+//         "
+//         PROGRAM exp 
+//         (x > 1) OR b1;
+//         END_PROGRAM
+//         ",
+//     );
+//     let result = parse(lexer).unwrap();
+
+//     let prg = &result.units[0];
+//     let statement = &prg.statements[0];
+
+//     let ast_string = format!("{:#?}", statement);
+//     let expected_ast = r#"BinaryExpression {
+//     operator: Or,
+//     left: BinaryExpression {
+//         operator: Greater,
+//         left: Reference {
+//             name: "x",
+//         },
+//         right: LiteralNumber {
+//             value: "1",
+//         },
+//     },
+//     right: Reference {
+//         name: "b1",
+//     },
+// }"#;
+//     assert_eq!(ast_string, expected_ast);
+// }
+
+// #[test]
+// fn or_compare_expressions_priority_test() {
+//     let lexer = lexer::lex(
+//         "
+//         PROGRAM exp 
+//         x + 1 > 2 OR b1;
+//         END_PROGRAM
+//         ",
+//     );
+//     let result = parse(lexer).unwrap();
+
+//     let prg = &result.units[0];
+//     let statement = &prg.statements[0];
+
+//     let ast_string = format!("{:#?}", statement);
+//     let expected_ast = r#"BinaryExpression {
+//     operator: Or,
+//     left: BinaryExpression {
+//         operator: Greater,
+//         left: Reference {
+//             name: "x",
+//         },
+//         right: LiteralNumber {
+//             value: "1",
+//         },
+//     },
+//     right: Reference {
+//         name: "b1",
+//     },
+// }"#;
+//     assert_eq!(ast_string, expected_ast);
+// }

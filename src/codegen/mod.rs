@@ -9,13 +9,17 @@ use inkwell::module::Linkage;
 use inkwell::types::BasicTypeEnum;
 use inkwell::types::StringRadix;
 use inkwell::types::StructType;
+
 use inkwell::values::BasicValueEnum;
 use inkwell::values::BasicValue;
-
+use inkwell::values::FunctionValue;
 use inkwell::values::PointerValue;
 use inkwell::values::GlobalValue;
+
 use inkwell::AddressSpace;
 use inkwell::IntPredicate;
+
+use inkwell::basic_block::BasicBlock;
 
 #[cfg(test)]
 mod tests;
@@ -27,6 +31,8 @@ pub struct CodeGen<'ctx> {
 
     variables: HashMap<String, u32>,
     current_pou: String,
+    current_function : Option<FunctionValue<'ctx>>,
+
 }
 
 impl<'ctx> CodeGen<'ctx> {
@@ -39,6 +45,7 @@ impl<'ctx> CodeGen<'ctx> {
             builder,
             variables: HashMap::new(),
             current_pou: "".to_string(),
+            current_function : None,
         };
         codegen
     }
@@ -69,8 +76,8 @@ impl<'ctx> CodeGen<'ctx> {
         let return_type = self.context.void_type(); 
         //let return_type = self.context.i32_type();
         let f_type = return_type.fn_type(&[], false);
-        let function = self.module.add_function(self.current_pou.as_str(), f_type, None);
-        let block = self.context.append_basic_block(function, "entry");
+        self.current_function = Some(self.module.add_function(self.current_pou.as_str(), f_type, None));
+        let block = self.context.append_basic_block(self.current_function.unwrap(), "entry");
 
         let mut program_members: Vec<(String, BasicTypeEnum)> = Vec::new();
 
@@ -90,11 +97,7 @@ impl<'ctx> CodeGen<'ctx> {
         //Place in global data
         self.generate_instance_variable(member_type, CodeGen::get_struct_instance_name(p.name.as_str()).as_str());
         //let mut result = None;
-        for stmt in &p.statements {
-            self.builder.position_at_end(&block);
-            // result = 
-            self.generate_statement(stmt);
-        }
+        self.generate_statement_list(&block,&p.statements);
         //self.builder.build_return(Some(&result.unwrap()));
         self.builder.build_return(None);
     }
@@ -154,6 +157,10 @@ impl<'ctx> CodeGen<'ctx> {
 
     fn generate_statement(&self, s: &Statement) -> Option<BasicValueEnum> {
         match s {
+            Statement::IfStatement {
+                blocks,
+                else_block,
+            } => self.generate_if_statement(blocks,else_block),
             Statement::BinaryExpression {
                 operator,
                 left,
@@ -164,6 +171,60 @@ impl<'ctx> CodeGen<'ctx> {
             Statement::Assignment { left, right } => self.generate_assignment(&left, &right),
             Statement::UnaryExpression { operator, value } => self.generate_unary_expression(&operator, &value),
             _ => unimplemented!(),
+        }
+    }
+
+    fn generate_if_statement(&self, conditional_blocks : &Vec<ConditionalBlock>, else_body : &Vec<Statement>) -> Option<BasicValueEnum> {
+        let mut blocks = Vec::new();
+        blocks.push(self.builder.get_insert_block().unwrap());
+        for _ in 1..conditional_blocks.len() {
+            blocks.push(self.context.append_basic_block(self.current_function?, ""));
+        }
+
+        let else_block = if else_body.len() > 0 {
+            let result = self.context.append_basic_block(self.current_function?, "");
+            blocks.push(result);
+            Some(result)
+        } else {
+            None
+        };
+        //Continue
+        let continue_block = self.context.append_basic_block(self.current_function?, "");
+        blocks.push(continue_block);
+
+        for (i, block) in conditional_blocks.iter().enumerate() {
+
+            let then_block = blocks[i];
+            let else_block = blocks[i+1];
+            
+            self.builder.position_at_end(&then_block);
+
+            let condition = self.generate_statement(&block.condition).unwrap().into_int_value();
+            let conditional_block = self.context.prepend_basic_block(&else_block, "");
+            
+            //Generate if statement condition
+            self.builder.build_conditional_branch(condition, &conditional_block, &else_block);
+            
+
+            //Generate if statement content
+            self.generate_statement_list(&conditional_block, &block.body);
+            self.builder.build_unconditional_branch(&continue_block);
+        }
+        //Else
+        if let Some(else_block) = else_block {
+            self.generate_statement_list(&else_block, else_body);
+            self.builder.build_unconditional_branch(&continue_block);
+        }
+        //Continue
+        self.builder.position_at_end(&continue_block);
+
+        None
+    }
+
+    fn generate_statement_list(&self, block : &BasicBlock, statements:&Vec<Statement>) {
+        self.builder.position_at_end(&block);
+        for statement in statements {
+            self.generate_statement(statement);
         }
     }
 
