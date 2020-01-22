@@ -1,3 +1,4 @@
+
 use crate::lexer::Token::*;
 use crate::expect;
 use crate::ast::*;
@@ -9,9 +10,67 @@ use super::{unexpected_token,slice_and_advance};
 mod tests;
 
 pub fn parse_primary_expression(lexer: &mut RustyLexer) -> Result<Statement, String> {
-    parse_equality_expression(lexer)
+    parse_or_expression(lexer)
 }
 
+// OR
+fn parse_or_expression(lexer: &mut RustyLexer) -> Result<Statement, String> {
+    let left = parse_xor_expression(lexer)?;
+
+    let operator = match lexer.token {
+        OperatorOr => Operator::Or,
+        _ => return Ok(left),
+    };
+
+    lexer.advance();
+
+    let right = parse_or_expression(lexer)?;
+    Ok(Statement::BinaryExpression {
+        operator,
+        left: Box::new(left),
+        right: Box::new(right),
+    })
+}
+
+// XOR
+fn parse_xor_expression(lexer: &mut RustyLexer) -> Result<Statement, String> {
+    let left = parse_and_expression(lexer)?;
+
+    let operator = match lexer.token {
+        OperatorXor => Operator::Xor,
+        _ => return Ok(left),
+    };
+
+    lexer.advance();
+
+    let right = parse_xor_expression(lexer)?;
+    Ok(Statement::BinaryExpression {
+        operator,
+        left: Box::new(left),
+        right: Box::new(right),
+    })
+}
+
+// AND
+fn parse_and_expression(lexer: &mut RustyLexer) -> Result<Statement, String> {
+    let left = parse_equality_expression(lexer)?;
+
+    let operator = match lexer.token {
+        OperatorAnd => Operator::And,
+        _ => return Ok(left),
+    };
+
+    lexer.advance();
+
+    let right = parse_and_expression(lexer)?;
+    Ok(Statement::BinaryExpression {
+        operator,
+        left: Box::new(left),
+        right: Box::new(right),
+    })
+}
+
+//EQUALITY  =, <>
 fn parse_equality_expression(lexer: &mut RustyLexer) -> Result<Statement, String> {
     let left = parse_compare_expression(lexer)?;
     let operator = match lexer.token {
@@ -28,6 +87,7 @@ fn parse_equality_expression(lexer: &mut RustyLexer) -> Result<Statement, String
     })
 }
 
+//COMPARE <, >, <=, >=
 fn parse_compare_expression(lexer: &mut RustyLexer) -> Result<Statement, String> {
     let left = parse_additive_expression(lexer)?;
     let operator = match lexer.token {
@@ -46,6 +106,7 @@ fn parse_compare_expression(lexer: &mut RustyLexer) -> Result<Statement, String>
     })
 }
 
+// Addition +, -
 fn parse_additive_expression(lexer: &mut RustyLexer) -> Result<Statement, String> {
     let left = parse_multiplication_expression(lexer)?;
     let operator = match lexer.token {
@@ -62,8 +123,9 @@ fn parse_additive_expression(lexer: &mut RustyLexer) -> Result<Statement, String
     })
 }
 
+// Multiplication *, /, MOD
 fn parse_multiplication_expression(lexer: &mut RustyLexer) -> Result<Statement, String> {
-    let left = parse_boolean_expression(lexer)?;
+    let left = parse_unary_expression(lexer)?;
     let operator = match lexer.token {
         OperatorMultiplication => Operator::Multiplication,
         OperatorDivision => Operator::Division,
@@ -78,27 +140,26 @@ fn parse_multiplication_expression(lexer: &mut RustyLexer) -> Result<Statement, 
         right: Box::new(right),
     })
 }
-
-fn parse_boolean_expression(lexer: &mut RustyLexer) -> Result<Statement, String> {
-    let current = parse_parenthesized_expression(lexer);
+// UNARY -x, NOT x
+fn parse_unary_expression(lexer: &mut RustyLexer) -> Result<Statement, String> {
     let operator = match lexer.token {
-        OperatorAnd => Some(Operator::And),
-        OperatorOr => Some(Operator::Or),
-        OperatorXor => Some(Operator::Xor),
+        OperatorNot => Some(Operator::Not),
+        OperatorMinus => Some(Operator::Minus),
         _ => None,
     };
 
     if let Some(operator) = operator {
         lexer.advance();
-        return Ok(Statement::BinaryExpression {
-            operator,
-            left: Box::new(current?),
-            right: Box::new(parse_primary_expression(lexer)?),
-        });
+        Ok(Statement::UnaryExpression {
+            operator: operator,
+            value: Box::new(parse_parenthesized_expression(lexer)?),
+        })
+    } else {
+        parse_parenthesized_expression(lexer)
     }
-    current
 }
 
+// PARENTHESIZED (...)
 fn parse_parenthesized_expression(lexer: &mut RustyLexer) -> Result<Statement, String> {
     match lexer.token {
         KeywordParensOpen => {
@@ -108,27 +169,12 @@ fn parse_parenthesized_expression(lexer: &mut RustyLexer) -> Result<Statement, S
             lexer.advance();
             result
         }
-        _ => parse_unary_expression(lexer),
+        _ => parse_leaf_expression(lexer),
     }
 }
 
-fn parse_unary_expression(lexer: &mut RustyLexer) -> Result<Statement, String> {
-    let operator = match lexer.token {
-        OperatorNot => Some(Operator::Not),
-        OperatorMinus => Some(Operator::Minus),
-        _ => None,
-    };
-    if let Some(operator) = operator {
-        lexer.advance();
-        Ok(Statement::UnaryExpression {
-            operator: operator,
-            value: Box::new(parse_parenthesized_expression(lexer)?),
-        })
-    } else {
-        parse_leaf_expression(lexer)
-    }
-}
 
+// Literals, Identifiers, etc.
 fn parse_leaf_expression(lexer: &mut RustyLexer) -> Result<Statement, String> {
     let current = match lexer.token {
         Identifier => parse_reference(lexer),

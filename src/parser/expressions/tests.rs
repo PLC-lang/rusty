@@ -507,26 +507,26 @@ fn boolean_expression_ast_test() {
 
     let ast_string = format!("{:#?}", statement);
     let expected_ast = r#"BinaryExpression {
-    operator: And,
-    left: Reference {
-        name: "a",
-    },
-    right: BinaryExpression {
-        operator: Or,
-        left: UnaryExpression {
+    operator: Or,
+    left: BinaryExpression {
+        operator: And,
+        left: Reference {
+            name: "a",
+        },
+        right: UnaryExpression {
             operator: Not,
             value: Reference {
                 name: "b",
             },
         },
-        right: BinaryExpression {
-            operator: Xor,
-            left: Reference {
-                name: "c",
-            },
-            right: Reference {
-                name: "d",
-            },
+    },
+    right: BinaryExpression {
+        operator: Xor,
+        left: Reference {
+            name: "c",
+        },
+        right: Reference {
+            name: "d",
         },
     },
 }"#;
@@ -708,7 +708,7 @@ fn addition_compare_or_priority_test() {
     left: BinaryExpression {
         operator: Greater,
         left: BinaryExpression {
-            operator: Plus
+            operator: Plus,
             left: Reference {
                 name: "x",
             },
@@ -748,7 +748,7 @@ fn boolean_priority_test() {
     left: BinaryExpression {
         operator: Xor,
         left: BinaryExpression {
-            operator: And
+            operator: And,
             left: Reference {
                 name: "a",
             },
@@ -757,7 +757,7 @@ fn boolean_priority_test() {
             },
         },
         right: Reference {
-            value: "c",
+            name: "c",
         },
     },
     right: Reference {
