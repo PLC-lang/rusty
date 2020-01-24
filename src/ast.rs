@@ -74,7 +74,8 @@ pub enum Statement {
     ForLoopStatement {
         start: Box<Statement>,
         end: Box<Statement>,
-        by_step: Option<Box<Statement>>
+        by_step: Option<Box<Statement>>,
+        body: Vec<Statement>,
     }    
 }
 
