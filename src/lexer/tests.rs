@@ -184,3 +184,18 @@ fn for_statement() {
     lexer.advance();
     assert_eq!(lexer.token, super::Token::KeywordEndFor);
 }
+
+#[test]
+fn while_statement() {
+    let mut lexer = super::lex(
+        r"
+        WHILE DO END_WHILE
+        ",
+    );
+
+    assert_eq!(lexer.token, super::Token::KeywordWhile);
+    lexer.advance();
+    assert_eq!(lexer.token, super::Token::KeywordDo);
+    lexer.advance();
+    assert_eq!(lexer.token, super::Token::KeywordEndWhile);
+}

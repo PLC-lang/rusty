@@ -76,7 +76,11 @@ pub enum Statement {
         end: Box<Statement>,
         by_step: Option<Box<Statement>>,
         body: Vec<Statement>,
-    }    
+    },
+    WhileLoopStatement {
+        condition: Box<Statement>,
+        body: Vec<Statement>,
+    }
 }
 
 #[derive(Debug, PartialEq)]

@@ -267,3 +267,94 @@ fn for_with_body_statement() {
 }"#;
     assert_eq!(ast_string, expected_ast);
 }
+
+#[test]
+fn while_with_literal() {
+    let lexer = lexer::lex(
+        "
+        PROGRAM exp 
+        WHILE TRUE DO
+        END_WHILE
+        END_PROGRAM
+        ",
+    );
+    let result = parse(lexer).unwrap();
+
+    let prg = &result.units[0];
+    let statement = &prg.statements[0];
+
+    let ast_string = format!("{:#?}", statement);
+    let expected_ast = r#"WhileLoopStatement {
+    condition: LiteralBool {
+        value: true,
+    },
+    body: [],
+}"#;
+    assert_eq!(ast_string, expected_ast);
+}
+
+#[test]
+fn while_with_expression() {
+    let lexer = lexer::lex(
+        "
+        PROGRAM exp 
+        WHILE x < 7 DO 
+        END_WHILE
+        END_PROGRAM
+        ",
+    );
+    let result = parse(lexer).unwrap();
+
+    let prg = &result.units[0];
+    let statement = &prg.statements[0];
+
+    let ast_string = format!("{:#?}", statement);
+    let expected_ast = r#"WhileLoopStatement {
+    condition: BinaryExpression {
+        operator: Less,
+        left: Reference {
+            name: "x",
+        },
+        right: LiteralNumber {
+            value: "7",
+        },
+    },
+    body: [],
+}"#;
+    assert_eq!(ast_string, expected_ast);
+}
+
+#[test]
+fn while_with_body_statement() {
+    let lexer = lexer::lex(
+        "
+        PROGRAM exp 
+        WHILE TRUE DO
+            x;
+            y;
+        END_WHILE
+        END_PROGRAM
+        ",
+    );
+    let result = parse(lexer).unwrap();
+
+    let prg = &result.units[0];
+    let statement = &prg.statements[0];
+
+    let ast_string = format!("{:#?}", statement);
+    let expected_ast = r#"WhileLoopStatement {
+    condition: LiteralBool {
+        value: true,
+    },
+    body: [
+        Reference {
+            name: "x",
+        },
+        Reference {
+            name: "y",
+        },
+    ],
+}"#;
+
+    assert_eq!(ast_string, expected_ast);
+}

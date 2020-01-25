@@ -69,6 +69,12 @@ pub enum Token {
     #[token = "END_FOR"]
     KeywordEndFor,
 
+    #[token = "WHILE"]
+    KeywordWhile,
+
+    #[token = "END_WHILE"]
+    KeywordEndWhile,
+
     //Operators
     #[token = "+"]
     OperatorPlus,

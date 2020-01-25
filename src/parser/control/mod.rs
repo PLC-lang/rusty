@@ -13,6 +13,7 @@ pub fn parse_control_statement(lexer: &mut RustyLexer) -> Result<Statement, Stri
     return match lexer.token {
         KeywordIf => parse_if_statement(lexer),
         KeywordFor => parse_for_statement(lexer),
+        KeywordWhile => parse_while_statement(lexer),
         _ => parse_statement(lexer),
     }
 }
@@ -77,4 +78,20 @@ fn parse_for_statement(lexer: &mut RustyLexer) -> Result<Statement, String> {
     lexer.advance();
 
     Ok(Statement::ForLoopStatement{ start: Box::new(start_expression), end: Box::new(end_expression), by_step: step, body: body?})
+}
+
+fn parse_while_statement(lexer: & mut RustyLexer) -> Result<Statement, String> {
+    lexer.advance(); //WHILE
+
+    let condition = Box::new(parse_expression(lexer)?);
+
+    expect!(KeywordDo, lexer); // DO
+    lexer.advance();
+    
+    let body = parse_body(
+                    lexer,
+                    &|t: &lexer::Token| *t == KeywordEndWhile)?;
+    lexer.advance();
+
+    Ok(Statement::WhileLoopStatement{ condition, body })
 }
