@@ -4,7 +4,7 @@ use crate::expect;
 use crate::ast::*;
 
 use super::RustyLexer;
-use super::{parse_statement, parse_body, parse_expression };
+use super::{parse_statement, parse_body, parse_expression, parse_reference };
 
 #[cfg(test)]
 mod tests;
@@ -57,6 +57,11 @@ fn parse_if_statement(lexer: &mut RustyLexer) -> Result<Statement, String> {
 
 fn parse_for_statement(lexer: &mut RustyLexer) -> Result<Statement, String> {
     lexer.advance(); // FOR
+
+    let counter_expression = parse_reference(lexer).unwrap();
+    expect!(KeywordAssignment, lexer); // := 
+    lexer.advance();
+
     let start_expression = parse_expression(lexer).unwrap();
     
     expect!(KeywordTo, lexer); // TO
@@ -78,7 +83,7 @@ fn parse_for_statement(lexer: &mut RustyLexer) -> Result<Statement, String> {
                     &|t: &lexer::Token| *t == KeywordEndFor);
     lexer.advance();
 
-    Ok(Statement::ForLoopStatement{ start: Box::new(start_expression), end: Box::new(end_expression), by_step: step, body: body?})
+    Ok(Statement::ForLoopStatement{counter: Box::new(counter_expression), start: Box::new(start_expression), end: Box::new(end_expression), by_step: step, body: body?})
 }
 
 fn parse_while_statement(lexer: &mut RustyLexer) -> Result<Statement, String> {

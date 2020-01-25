@@ -72,6 +72,7 @@ pub enum Statement {
         else_block: Vec<Statement>,
     },
     ForLoopStatement {
+        counter : Box<Statement>,
         start: Box<Statement>,
         end: Box<Statement>,
         by_step: Option<Box<Statement>>,

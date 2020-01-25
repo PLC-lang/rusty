@@ -144,7 +144,7 @@ fn for_with_literals_statement() {
     let lexer = lexer::lex(
         "
         PROGRAM exp 
-        FOR x TO 10 DO
+        FOR y := x TO 10 DO
         END_FOR
         END_PROGRAM
         ",
@@ -156,6 +156,9 @@ fn for_with_literals_statement() {
 
     let ast_string = format!("{:#?}", statement);
     let expected_ast = r#"ForLoopStatement {
+    counter: Reference {
+        name: "y",
+    },
     start: Reference {
         name: "x",
     },
@@ -173,7 +176,7 @@ fn for_with_step_statement() {
     let lexer = lexer::lex(
         "
         PROGRAM exp 
-        FOR x TO 10 BY 7 DO 
+        FOR x := 1 TO 10 BY 7 DO 
         END_FOR
         END_PROGRAM
         ",
@@ -185,8 +188,11 @@ fn for_with_step_statement() {
 
     let ast_string = format!("{:#?}", statement);
     let expected_ast = r#"ForLoopStatement {
-    start: Reference {
+    counter: Reference {
         name: "x",
+    },
+    start: LiteralNumber {
+        value: "1",
     },
     end: LiteralNumber {
         value: "10",
@@ -206,7 +212,7 @@ fn for_with_reference_statement() {
     let lexer = lexer::lex(
         "
         PROGRAM exp 
-        FOR x TO y DO
+        FOR z := x TO y DO
         END_FOR
         END_PROGRAM
         ",
@@ -218,6 +224,9 @@ fn for_with_reference_statement() {
 
     let ast_string = format!("{:#?}", statement);
     let expected_ast = r#"ForLoopStatement {
+    counter: Reference {
+        name: "z",
+    },
     start: Reference {
         name: "x",
     },
@@ -235,7 +244,7 @@ fn for_with_body_statement() {
     let lexer = lexer::lex(
         "
         PROGRAM exp 
-        FOR x TO y DO
+        FOR z := x TO y DO
             x;
             y;
         END_FOR
@@ -249,6 +258,9 @@ fn for_with_body_statement() {
 
     let ast_string = format!("{:#?}", statement);
     let expected_ast = r#"ForLoopStatement {
+    counter: Reference {
+        name: "z",
+    },
     start: Reference {
         name: "x",
     },

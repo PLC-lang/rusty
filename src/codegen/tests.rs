@@ -517,3 +517,252 @@ continue:                                         ; preds = %condition_body, %en
 
     assert_eq!(result, expected);
 }
+
+#[test]
+fn for_statement_with_steps_test() {
+    let result = codegen!(
+        "
+        PROGRAM prg 
+        VAR
+            x : INT;
+        END_VAR
+        FOR x := 3 TO 10 BY 7 DO 
+            x;
+        END_FOR
+        END_PROGRAM
+        "
+    );
+
+    let expected = generate_boiler_plate!("prg"," i32 ", 
+r#"  store i32 3, i32* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 0)
+
+condition_check:                                  ; preds = %for_body
+  %load_x = load i32, i32* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 0)
+  %tmpVar = icmp sle i32 %load_x, 10
+  br i1 %tmpVar, label %for_body, label %continue
+
+for_body:                                         ; preds = %condition_check
+  %load_x1 = load i32, i32* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 0)
+  %tmpVar2 = add i32 %load_x, 7
+  store i32 %tmpVar2, i32* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 0)
+  br label %condition_check
+
+continue:                                         ; preds = %condition_check
+  ret void
+"#);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn for_statement_without_steps_test() {
+    let result = codegen!(
+        "
+        PROGRAM prg 
+        VAR
+            x : INT;
+        END_VAR
+        FOR x := 3 TO 10 DO 
+            x;
+        END_FOR
+        END_PROGRAM
+        "
+    );
+
+    let expected = generate_boiler_plate!("prg"," i32 ", 
+r#"  store i32 3, i32* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 0)
+
+condition_check:                                  ; preds = %for_body
+  %load_x = load i32, i32* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 0)
+  %tmpVar = icmp sle i32 %load_x, 10
+  br i1 %tmpVar, label %for_body, label %continue
+
+for_body:                                         ; preds = %condition_check
+  %load_x1 = load i32, i32* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 0)
+  %tmpVar2 = add i32 %load_x, 1
+  store i32 %tmpVar2, i32* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 0)
+  br label %condition_check
+
+continue:                                         ; preds = %condition_check
+  ret void
+"#);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn for_statement_continue() {
+    let result = codegen!(
+        "
+        PROGRAM prg 
+        VAR
+            x : INT;
+        END_VAR
+        FOR x := 3 TO 10 DO 
+        END_FOR
+        x;
+        END_PROGRAM
+        "
+    );
+
+    let expected = generate_boiler_plate!("prg"," i32 ", 
+r#"  store i32 3, i32* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 0)
+
+condition_check:                                  ; preds = %for_body
+  %load_x = load i32, i32* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 0)
+  %tmpVar = icmp sle i32 %load_x, 10
+  br i1 %tmpVar, label %for_body, label %continue
+
+for_body:                                         ; preds = %condition_check
+  %tmpVar1 = add i32 %load_x, 1
+  store i32 %tmpVar1, i32* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 0)
+  br label %condition_check
+
+continue:                                         ; preds = %condition_check
+  %load_x2 = load i32, i32* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 0)
+  ret void
+"#);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn for_statement_with_references_steps_test() {
+    let result = codegen!(
+        "
+        PROGRAM prg 
+        VAR
+            step: INT;
+            x : INT;
+            y : INT;
+            z : INT;
+        END_VAR
+        FOR x := y TO z BY step DO 
+            x;
+        END_FOR
+        END_PROGRAM
+        "
+    );
+
+    let expected = generate_boiler_plate!("prg"," i32, i32, i32, i32 ", 
+r#"  %load_y = load i32, i32* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 2)
+  store i32 %load_y, i32* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 1)
+
+condition_check:                                  ; preds = %for_body
+  %load_x = load i32, i32* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 1)
+  %load_z = load i32, i32* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 3)
+  %tmpVar = icmp sle i32 %load_x, %load_z
+  br i1 %tmpVar, label %for_body, label %continue
+
+for_body:                                         ; preds = %condition_check
+  %load_x1 = load i32, i32* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 1)
+  %load_step = load i32, i32* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 0)
+  %tmpVar2 = add i32 %load_x, %load_step
+  store i32 %tmpVar2, i32* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 1)
+  br label %condition_check
+
+continue:                                         ; preds = %condition_check
+  ret void
+"#);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn while_statement() {
+    let result = codegen!(
+        "
+        PROGRAM prg 
+        VAR
+            x : BOOL;
+        END_VAR
+        WHILE x DO
+            x;
+        END_WHILE
+        END_PROGRAM
+        "
+    );
+
+    let expected = generate_boiler_plate!("prg"," i1 ", 
+r#"
+condition_check:                                  ; preds = %while_body
+  %load_x = load i1, i1* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 0)
+  br i1 %load_x, label %while_body, label %continue
+
+while_body:                                       ; preds = %condition_check
+  %load_x1 = load i1, i1* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 0)
+  br label %condition_check
+
+continue:                                         ; preds = %condition_check
+  ret void
+"#);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn while_with_expression_statement() {
+    let result = codegen!(
+        "
+        PROGRAM prg 
+        VAR
+            x : BOOL;
+        END_VAR
+        WHILE x = 0 DO
+            x;
+        END_WHILE
+        END_PROGRAM
+        "
+    );
+
+    let expected = generate_boiler_plate!("prg"," i1 ", 
+r#"
+condition_check:                                  ; preds = %while_body
+  %load_x = load i1, i1* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 0)
+  %tmpVar = icmp eq i1 %load_x, i32 0
+  br i1 %tmpVar, label %while_body, label %continue
+
+while_body:                                       ; preds = %condition_check
+  %load_x1 = load i1, i1* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 0)
+  br label %condition_check
+
+continue:                                         ; preds = %condition_check
+  ret void
+"#);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn repeat_statement() {
+    let result = codegen!(
+        "
+        PROGRAM prg 
+        VAR
+            x : BOOL;
+        END_VAR
+        REPEAT
+            x;
+        UNTIL x 
+        END_REPEAT
+        END_PROGRAM
+        "
+    );
+
+    let expected = generate_boiler_plate!("prg"," i1 ", 
+r#"  br label %while_body
+
+condition_check:                                  ; preds = %while_body
+  %load_x = load i1, i1* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 0)
+  br i1 %load_x, label %while_body, label %continue
+
+while_body:                                       ; preds = %entry, %condition_check
+  %load_x1 = load i1, i1* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 0)
+  br label %condition_check
+
+continue:                                         ; preds = %condition_check
+  ret void
+"#);
+
+    assert_eq!(result, expected);
+}

@@ -199,7 +199,7 @@ fn parse_bool_literal(lexer: &mut RustyLexer, value: bool) -> Result<Statement, 
     Ok(Statement::LiteralBool { value })
 }
 
-fn parse_reference(lexer: &mut RustyLexer) -> Result<Statement, String> {
+pub fn parse_reference(lexer: &mut RustyLexer) -> Result<Statement, String> {
     Ok(Statement::Reference {
         name: slice_and_advance(lexer).to_string(),
     })

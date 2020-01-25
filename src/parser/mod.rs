@@ -136,6 +136,10 @@ fn parse_expression(lexer: &mut RustyLexer) -> Result<Statement, String> {
     parse_primary_expression(lexer)
 }
 
+fn parse_reference(lexer: &mut RustyLexer) -> Result<Statement, String> {
+    expressions::parse_reference(lexer)
+}
+
 fn parse_control(lexer : &mut RustyLexer) -> Result<Statement, String> {
     parse_control_statement(lexer)
 }

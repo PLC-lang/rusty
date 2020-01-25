@@ -161,6 +161,23 @@ impl<'ctx> CodeGen<'ctx> {
                 blocks,
                 else_block,
             } => self.generate_if_statement(blocks,else_block),
+            //Loops
+            Statement::ForLoopStatement {
+                counter,
+                start,
+                end,
+                by_step,
+                body,
+            } => self.generate_for_statement(counter, start, end,by_step,body),
+            Statement::WhileLoopStatement {
+                condition,
+                body,
+            } => self.generate_while_statement(condition, body),
+            Statement::RepeatLoopStatement {
+                condition,
+                body,
+            } => self.generate_repeat_statement(condition, body),
+            //Expressions
             Statement::BinaryExpression {
                 operator,
                 left,
@@ -220,6 +237,73 @@ impl<'ctx> CodeGen<'ctx> {
         None
     }
 
+    fn generate_for_statement(&self, counter: &Box<Statement>, start : &Box<Statement>, end : &Box<Statement>, by_step : &Option<Box<Statement>>, body : &Vec<Statement> ) -> Option<BasicValueEnum> {
+        self.generate_assignment(counter, start);        
+        let condition_check = self.context.append_basic_block(self.current_function?, "condition_check");
+        let for_body = self.context.append_basic_block(self.current_function?, "for_body");
+        let continue_block = self.context.append_basic_block(self.current_function?, "continue");
+        
+        //Check loop condition
+        self.builder.position_at_end(&condition_check);
+        let counter_statement = self.generate_statement(counter).unwrap().into_int_value();
+        let end_statement = self.generate_statement(end).unwrap().into_int_value();
+        let compare = self.builder.build_int_compare(IntPredicate::SLE, counter_statement, end_statement, "tmpVar");
+        self.builder.build_conditional_branch(compare, &for_body, &continue_block);
+
+        //Enter the for loop
+        self.generate_statement_list(&for_body, &body);
+        
+        //Increment
+        let step_by_value = by_step.as_ref()
+            .map(|step|self.generate_statement(&step).unwrap())
+            .or(self.generate_literal_number("1")).unwrap().into_int_value();
+
+        let next = self.builder.build_int_add(counter_statement,step_by_value, "tmpVar");
+        let ptr = self.generate_lvalue_for(counter).unwrap();
+        self.builder.build_store(ptr, next);
+
+        //Loop back
+        self.builder.build_unconditional_branch(&condition_check); 
+        
+        //Continue
+        self.builder.position_at_end(&continue_block);
+        None
+    }
+
+    fn generate_while_statement(&self, condition: &Box<Statement>, body: &Vec<Statement>) -> Option<BasicValueEnum> {
+        let condition_check = self.context.append_basic_block(self.current_function?, "condition_check");
+        let while_body = self.context.append_basic_block(self.current_function?, "while_body");
+        let continue_block = self.context.append_basic_block(self.current_function?, "continue");
+        
+        //Check loop condition
+        self.builder.position_at_end(&condition_check);
+        let condition_value = self.generate_statement(condition)?.into_int_value();
+        self.builder.build_conditional_branch(condition_value, &while_body, &continue_block);
+
+        //Enter the for loop
+        self.generate_statement_list(&while_body, &body);
+        //Loop back
+        self.builder.build_unconditional_branch(&condition_check); 
+        
+        //Continue
+        self.builder.position_at_end(&continue_block);
+        None
+    }
+
+    fn generate_repeat_statement(&self, condition: &Box<Statement>, body: &Vec<Statement>) -> Option<BasicValueEnum> {
+        let basic_block = self.builder.get_insert_block()?;
+        self.generate_while_statement(condition, body);
+
+        let continue_block = self.builder.get_insert_block()?;
+        
+        let while_block = continue_block.get_previous_basic_block()?;
+        self.builder.position_at_end(&basic_block);
+        self.builder.build_unconditional_branch(&while_block);
+
+        self.builder.position_at_end(&continue_block);
+        None
+    }
+
     fn generate_statement_list(&self, block : &BasicBlock, statements:&Vec<Statement>) {
         self.builder.position_at_end(&block);
         for statement in statements {
@@ -237,10 +321,16 @@ impl<'ctx> CodeGen<'ctx> {
         Some(BasicValueEnum::IntValue(value))
     }
 
-    fn generate_variable_lreference(&self, name: &str) -> Option<PointerValue> {
+    fn generate_lvalue_for(&self, statement: &Box<Statement>) -> Option<PointerValue> {
+        match &**statement {
+            Statement::Reference {name} => self.generate_lvalue_for_reference(name.as_str()),
+            _ => None
+        }
+    }
+
+    fn generate_lvalue_for_reference(&self, name: &str) -> Option<PointerValue> {
         // for now we only support locals
         let struct_type = self.module.get_type(CodeGen::get_struct_name(self.current_pou.as_str()).as_str()).unwrap().into_struct_type();
-        println!("{:?} ->{}",struct_type.get_name().unwrap(), struct_type.count_fields());
         
         let ptr_struct_ype = struct_type.ptr_type(AddressSpace::Generic);
         let void_ptr_value = self
@@ -264,7 +354,7 @@ impl<'ctx> CodeGen<'ctx> {
     }
 
     fn generate_variable_reference(&self, name: &str) -> Option<BasicValueEnum> {
-        if let Some(ptr) =  self.generate_variable_lreference(name) {
+        if let Some(ptr) =  self.generate_lvalue_for_reference(name) {
             let result = self.builder.build_load(ptr, format!("load_{var_name}", var_name = name).as_str()); 
             Some(result)
         } else {
@@ -292,7 +382,7 @@ impl<'ctx> CodeGen<'ctx> {
     fn generate_assignment(&self, left: &Box<Statement>, right : &Box<Statement>) -> Option<BasicValueEnum> {
         
         if let Statement::Reference { name } = &**left {
-            let left_expr = self.generate_variable_lreference(&name);
+            let left_expr = self.generate_lvalue_for_reference(&name);
             let right_res = self.generate_statement(right);
             self.builder.build_store(left_expr?, right_res?);
         }
@@ -303,7 +393,6 @@ impl<'ctx> CodeGen<'ctx> {
 
     fn generate_literal_number(&self, value: &str) -> Option<BasicValueEnum> {
         let itype = self.context.i32_type();
-        println!("Generating Literal {}", value);
         let value = itype.const_int_from_string(value, StringRadix::Decimal);
         Some(BasicValueEnum::IntValue(value?))
     }
