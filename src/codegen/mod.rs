@@ -178,18 +178,18 @@ impl<'ctx> CodeGen<'ctx> {
         let mut blocks = Vec::new();
         blocks.push(self.builder.get_insert_block().unwrap());
         for _ in 1..conditional_blocks.len() {
-            blocks.push(self.context.append_basic_block(self.current_function?, ""));
+            blocks.push(self.context.append_basic_block(self.current_function?, "branch"));
         }
 
         let else_block = if else_body.len() > 0 {
-            let result = self.context.append_basic_block(self.current_function?, "");
+            let result = self.context.append_basic_block(self.current_function?, "else");
             blocks.push(result);
             Some(result)
         } else {
             None
         };
         //Continue
-        let continue_block = self.context.append_basic_block(self.current_function?, "");
+        let continue_block = self.context.append_basic_block(self.current_function?, "continue");
         blocks.push(continue_block);
 
         for (i, block) in conditional_blocks.iter().enumerate() {
@@ -200,7 +200,7 @@ impl<'ctx> CodeGen<'ctx> {
             self.builder.position_at_end(&then_block);
 
             let condition = self.generate_statement(&block.condition).unwrap().into_int_value();
-            let conditional_block = self.context.prepend_basic_block(&else_block, "");
+            let conditional_block = self.context.prepend_basic_block(&else_block, "condition_body");
             
             //Generate if statement condition
             self.builder.build_conditional_branch(condition, &conditional_block, &else_block);
@@ -217,7 +217,6 @@ impl<'ctx> CodeGen<'ctx> {
         }
         //Continue
         self.builder.position_at_end(&continue_block);
-
         None
     }
 

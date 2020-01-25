@@ -421,33 +421,33 @@ fn if_elsif_else_generator_test() {
     );
     let expected = generate_boiler_plate!("prg"," i32, i32, i32, i32, i1, i1, i1 ", 
 r#"  %load_b1 = load i1, i1* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 4)
-  br i1 %load_b1, label %0, label %1
+  br i1 %load_b1, label %condition_body, label %branch
 
-0:                                                ; preds = %entry
+condition_body:                                   ; preds = %entry
   %load_x = load i32, i32* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 0)
-  br label %6
+  br label %continue
 
-1:                                                ; preds = %entry
+branch:                                           ; preds = %entry
   %load_b2 = load i1, i1* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 5)
-  br i1 %load_b2, label %2, label %3
+  br i1 %load_b2, label %condition_body2, label %branch1
 
-2:                                                ; preds = %1
+condition_body2:                                  ; preds = %branch
   %load_y = load i32, i32* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 1)
-  br label %6
+  br label %continue
 
-3:                                                ; preds = %1
+branch1:                                          ; preds = %branch
   %load_b3 = load i1, i1* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 6)
-  br i1 %load_b3, label %4, label %5
+  br i1 %load_b3, label %condition_body3, label %else
 
-4:                                                ; preds = %3
+condition_body3:                                  ; preds = %branch1
   %load_z = load i32, i32* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 2)
-  br label %6
+  br label %continue
 
-5:                                                ; preds = %3
+else:                                             ; preds = %branch1
   %load_u = load i32, i32* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 3)
-  br label %6
+  br label %continue
 
-6:                                                ; preds = %5, %4, %2, %0
+continue:                                         ; preds = %else, %condition_body3, %condition_body2, %condition_body
   ret void
 "#
     );
@@ -472,13 +472,13 @@ fn if_generator_test() {
     );
     let expected = generate_boiler_plate!("prg"," i32, i1 ", 
 r#"  %load_b1 = load i1, i1* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 1)
-  br i1 %load_b1, label %0, label %1
+  br i1 %load_b1, label %condition_body, label %continue
 
-0:                                                ; preds = %entry
+condition_body:                                   ; preds = %entry
   %load_x = load i32, i32* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 0)
-  br label %1
+  br label %continue
 
-1:                                                ; preds = %0, %entry
+continue:                                         ; preds = %condition_body, %entry
   ret void
 "#);
 
@@ -505,13 +505,13 @@ r#"  %load_x = load i32, i32* getelementptr inbounds (%prg_interface, %prg_inter
   %tmpVar = icmp sgt i32 %load_x, 1
   %load_b1 = load i1, i1* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 1)
   %tmpVar1 = or i1 %tmpVar, %load_b1
-  br i1 %tmpVar1, label %0, label %1
+  br i1 %tmpVar1, label %condition_body, label %continue
 
-0:                                                ; preds = %entry
+condition_body:                                   ; preds = %entry
   %load_x2 = load i32, i32* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 0)
-  br label %1
+  br label %continue
 
-1:                                                ; preds = %0, %entry
+continue:                                         ; preds = %condition_body, %entry
   ret void
 "#);
 
