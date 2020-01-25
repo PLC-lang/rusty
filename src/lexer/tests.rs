@@ -165,3 +165,53 @@ fn if_expression() {
     lexer.advance();
     assert_eq!(lexer.token, super::Token::KeywordEndIf);
 }
+
+#[test]
+fn for_statement() {
+    let mut lexer = super::lex(
+        r"
+        FOR TO BY DO END_FOR
+        ",
+    );
+
+    assert_eq!(lexer.token, super::Token::KeywordFor);
+    lexer.advance();
+    assert_eq!(lexer.token, super::Token::KeywordTo);
+    lexer.advance();
+    assert_eq!(lexer.token, super::Token::KeywordBy);
+    lexer.advance();
+    assert_eq!(lexer.token, super::Token::KeywordDo);
+    lexer.advance();
+    assert_eq!(lexer.token, super::Token::KeywordEndFor);
+}
+
+#[test]
+fn while_statement() {
+    let mut lexer = super::lex(
+        r"
+        WHILE DO END_WHILE
+        ",
+    );
+
+    assert_eq!(lexer.token, super::Token::KeywordWhile);
+    lexer.advance();
+    assert_eq!(lexer.token, super::Token::KeywordDo);
+    lexer.advance();
+    assert_eq!(lexer.token, super::Token::KeywordEndWhile);
+}
+
+#[test]
+fn repeat_statement() {
+    let mut lexer = super::lex(
+        r"
+        REPEAT UNTIL END_REPEAT
+        ",
+    );
+
+    assert_eq!(lexer.token, super::Token::KeywordRepeat);
+    lexer.advance();
+    assert_eq!(lexer.token, super::Token::KeywordUntil);
+    lexer.advance();
+    assert_eq!(lexer.token, super::Token::KeywordEndRepeat);
+}
+

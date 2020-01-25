@@ -41,12 +41,14 @@ pub struct ConditionalBlock {
 
 #[derive(Debug, PartialEq)]
 pub enum Statement {
+    // Literals
     LiteralNumber {
         value: String,
     },
     LiteralBool {
         value: bool,
     },
+    // Expressions
     Reference {
         name: String,
     },
@@ -59,15 +61,31 @@ pub enum Statement {
         operator: Operator,
         value: Box<Statement>,
     },
+    // Assignment
     Assignment {
         left: Box<Statement>,
         right: Box<Statement>,
     },
+    // Control Statements
     IfStatement {
         blocks : Vec<ConditionalBlock>,
         else_block: Vec<Statement>,
     },
-    
+    ForLoopStatement {
+        start: Box<Statement>,
+        end: Box<Statement>,
+        by_step: Option<Box<Statement>>,
+        body: Vec<Statement>,
+    },
+    WhileLoopStatement {
+        condition: Box<Statement>,
+        body: Vec<Statement>,
+    },
+    RepeatLoopStatement {
+        condition: Box<Statement>,
+        body: Vec<Statement>,
+    }
+
 }
 
 #[derive(Debug, PartialEq)]

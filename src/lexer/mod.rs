@@ -54,6 +54,36 @@ pub enum Token {
     #[token = "END_IF"]
     KeywordEndIf,
 
+    #[token = "FOR"]
+    KeywordFor,
+    
+    #[token = "TO"]
+    KeywordTo,
+
+    #[token = "BY"]
+    KeywordBy,
+ 
+    #[token = "DO"]
+    KeywordDo,
+ 
+    #[token = "END_FOR"]
+    KeywordEndFor,
+
+    #[token = "WHILE"]
+    KeywordWhile,
+
+    #[token = "END_WHILE"]
+    KeywordEndWhile,
+
+    #[token = "REPEAT"]
+    KeywordRepeat,
+
+    #[token = "UNTIL"]
+    KeywordUntil,
+
+    #[token = "END_REPEAT"]
+    KeywordEndRepeat,
+
     //Operators
     #[token = "+"]
     OperatorPlus,

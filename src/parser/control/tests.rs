@@ -138,3 +138,318 @@ fn if_elsif_elsif_else_statement_with_expressions() {
 }"#;
     assert_eq!(ast_string, expected_ast);
 }
+
+#[test]
+fn for_with_literals_statement() {
+    let lexer = lexer::lex(
+        "
+        PROGRAM exp 
+        FOR x TO 10 DO
+        END_FOR
+        END_PROGRAM
+        ",
+    );
+    let result = parse(lexer).unwrap();
+
+    let prg = &result.units[0];
+    let statement = &prg.statements[0];
+
+    let ast_string = format!("{:#?}", statement);
+    let expected_ast = r#"ForLoopStatement {
+    start: Reference {
+        name: "x",
+    },
+    end: LiteralNumber {
+        value: "10",
+    },
+    by_step: None,
+    body: [],
+}"#;
+    assert_eq!(ast_string, expected_ast);
+}
+
+#[test]
+fn for_with_step_statement() {
+    let lexer = lexer::lex(
+        "
+        PROGRAM exp 
+        FOR x TO 10 BY 7 DO 
+        END_FOR
+        END_PROGRAM
+        ",
+    );
+    let result = parse(lexer).unwrap();
+
+    let prg = &result.units[0];
+    let statement = &prg.statements[0];
+
+    let ast_string = format!("{:#?}", statement);
+    let expected_ast = r#"ForLoopStatement {
+    start: Reference {
+        name: "x",
+    },
+    end: LiteralNumber {
+        value: "10",
+    },
+    by_step: Some(
+        LiteralNumber {
+            value: "7",
+        },
+    ),
+    body: [],
+}"#;
+    assert_eq!(ast_string, expected_ast);
+}
+
+#[test]
+fn for_with_reference_statement() {
+    let lexer = lexer::lex(
+        "
+        PROGRAM exp 
+        FOR x TO y DO
+        END_FOR
+        END_PROGRAM
+        ",
+    );
+    let result = parse(lexer).unwrap();
+
+    let prg = &result.units[0];
+    let statement = &prg.statements[0];
+
+    let ast_string = format!("{:#?}", statement);
+    let expected_ast = r#"ForLoopStatement {
+    start: Reference {
+        name: "x",
+    },
+    end: Reference {
+        name: "y",
+    },
+    by_step: None,
+    body: [],
+}"#;
+    assert_eq!(ast_string, expected_ast);
+}
+
+#[test]
+fn for_with_body_statement() {
+    let lexer = lexer::lex(
+        "
+        PROGRAM exp 
+        FOR x TO y DO
+            x;
+            y;
+        END_FOR
+        END_PROGRAM
+        ",
+    );
+    let result = parse(lexer).unwrap();
+
+    let prg = &result.units[0];
+    let statement = &prg.statements[0];
+
+    let ast_string = format!("{:#?}", statement);
+    let expected_ast = r#"ForLoopStatement {
+    start: Reference {
+        name: "x",
+    },
+    end: Reference {
+        name: "y",
+    },
+    by_step: None,
+    body: [
+        Reference {
+            name: "x",
+        },
+        Reference {
+            name: "y",
+        },
+    ],
+}"#;
+    assert_eq!(ast_string, expected_ast);
+}
+
+#[test]
+fn while_with_literal() {
+    let lexer = lexer::lex(
+        "
+        PROGRAM exp 
+        WHILE TRUE DO
+        END_WHILE
+        END_PROGRAM
+        ",
+    );
+    let result = parse(lexer).unwrap();
+
+    let prg = &result.units[0];
+    let statement = &prg.statements[0];
+
+    let ast_string = format!("{:#?}", statement);
+    let expected_ast = r#"WhileLoopStatement {
+    condition: LiteralBool {
+        value: true,
+    },
+    body: [],
+}"#;
+    assert_eq!(ast_string, expected_ast);
+}
+
+#[test]
+fn while_with_expression() {
+    let lexer = lexer::lex(
+        "
+        PROGRAM exp 
+        WHILE x < 7 DO 
+        END_WHILE
+        END_PROGRAM
+        ",
+    );
+    let result = parse(lexer).unwrap();
+
+    let prg = &result.units[0];
+    let statement = &prg.statements[0];
+
+    let ast_string = format!("{:#?}", statement);
+    let expected_ast = r#"WhileLoopStatement {
+    condition: BinaryExpression {
+        operator: Less,
+        left: Reference {
+            name: "x",
+        },
+        right: LiteralNumber {
+            value: "7",
+        },
+    },
+    body: [],
+}"#;
+    assert_eq!(ast_string, expected_ast);
+}
+
+#[test]
+fn while_with_body_statement() {
+    let lexer = lexer::lex(
+        "
+        PROGRAM exp 
+        WHILE TRUE DO
+            x;
+            y;
+        END_WHILE
+        END_PROGRAM
+        ",
+    );
+    let result = parse(lexer).unwrap();
+
+    let prg = &result.units[0];
+    let statement = &prg.statements[0];
+
+    let ast_string = format!("{:#?}", statement);
+    let expected_ast = r#"WhileLoopStatement {
+    condition: LiteralBool {
+        value: true,
+    },
+    body: [
+        Reference {
+            name: "x",
+        },
+        Reference {
+            name: "y",
+        },
+    ],
+}"#;
+
+    assert_eq!(ast_string, expected_ast);
+}
+
+
+#[test]
+fn repeat_with_literal() {
+    let lexer = lexer::lex(
+        "
+        PROGRAM exp 
+        REPEAT
+        UNTIL TRUE
+        END_REPEAT
+        END_PROGRAM
+        ",
+    );
+    let result = parse(lexer).unwrap();
+
+    let prg = &result.units[0];
+    let statement = &prg.statements[0];
+
+    let ast_string = format!("{:#?}", statement);
+    let expected_ast = r#"RepeatLoopStatement {
+    condition: LiteralBool {
+        value: true,
+    },
+    body: [],
+}"#;
+    assert_eq!(ast_string, expected_ast);
+}
+
+#[test]
+fn repeat_with_expression() {
+    let lexer = lexer::lex(
+        "
+        PROGRAM exp 
+        REPEAT
+        UNTIL x > 7
+        END_REPEAT
+        END_PROGRAM
+        ",
+    );
+    let result = parse(lexer).unwrap();
+
+    let prg = &result.units[0];
+    let statement = &prg.statements[0];
+
+    let ast_string = format!("{:#?}", statement);
+    let expected_ast = r#"RepeatLoopStatement {
+    condition: BinaryExpression {
+        operator: Greater,
+        left: Reference {
+            name: "x",
+        },
+        right: LiteralNumber {
+            value: "7",
+        },
+    },
+    body: [],
+}"#;
+    assert_eq!(ast_string, expected_ast);
+}
+
+#[test]
+fn repeat_with_body_statement() {
+    let lexer = lexer::lex(
+        "
+        PROGRAM exp 
+        REPEAT
+            x;
+            y;
+        UNTIL TRUE
+        END_REPEAT
+        END_PROGRAM
+        ",
+    );
+    let result = parse(lexer).unwrap();
+
+    let prg = &result.units[0];
+    let statement = &prg.statements[0];
+
+    let ast_string = format!("{:#?}", statement);
+    let expected_ast = r#"RepeatLoopStatement {
+    condition: LiteralBool {
+        value: true,
+    },
+    body: [
+        Reference {
+            name: "x",
+        },
+        Reference {
+            name: "y",
+        },
+    ],
+}"#;
+
+    assert_eq!(ast_string, expected_ast);
+}
