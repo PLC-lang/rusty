@@ -199,3 +199,19 @@ fn while_statement() {
     lexer.advance();
     assert_eq!(lexer.token, super::Token::KeywordEndWhile);
 }
+
+#[test]
+fn repeat_statement() {
+    let mut lexer = super::lex(
+        r"
+        REPEAT UNTIL END_REPEAT
+        ",
+    );
+
+    assert_eq!(lexer.token, super::Token::KeywordRepeat);
+    lexer.advance();
+    assert_eq!(lexer.token, super::Token::KeywordUntil);
+    lexer.advance();
+    assert_eq!(lexer.token, super::Token::KeywordEndRepeat);
+}
+

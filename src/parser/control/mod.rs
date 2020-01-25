@@ -14,6 +14,7 @@ pub fn parse_control_statement(lexer: &mut RustyLexer) -> Result<Statement, Stri
         KeywordIf => parse_if_statement(lexer),
         KeywordFor => parse_for_statement(lexer),
         KeywordWhile => parse_while_statement(lexer),
+        KeywordRepeat => parse_repeat_statement(lexer),
         _ => parse_statement(lexer),
     }
 }
@@ -80,7 +81,7 @@ fn parse_for_statement(lexer: &mut RustyLexer) -> Result<Statement, String> {
     Ok(Statement::ForLoopStatement{ start: Box::new(start_expression), end: Box::new(end_expression), by_step: step, body: body?})
 }
 
-fn parse_while_statement(lexer: & mut RustyLexer) -> Result<Statement, String> {
+fn parse_while_statement(lexer: &mut RustyLexer) -> Result<Statement, String> {
     lexer.advance(); //WHILE
 
     let condition = Box::new(parse_expression(lexer)?);
@@ -94,4 +95,20 @@ fn parse_while_statement(lexer: & mut RustyLexer) -> Result<Statement, String> {
     lexer.advance();
 
     Ok(Statement::WhileLoopStatement{ condition, body })
+}
+
+fn parse_repeat_statement(lexer: &mut RustyLexer) -> Result<Statement, String> {
+    lexer.advance(); //REPEAT
+    
+    let body = parse_body(
+        lexer,
+        &|t: &lexer::Token| *t == KeywordUntil)?; //UNTIL
+    lexer.advance();
+
+    let condition = Box::new(parse_expression(lexer)?);
+
+    expect!(KeywordEndRepeat, lexer); // END_REPEAT
+    lexer.advance();
+    
+    Ok(Statement::RepeatLoopStatement{ condition, body })
 }

@@ -80,7 +80,12 @@ pub enum Statement {
     WhileLoopStatement {
         condition: Box<Statement>,
         body: Vec<Statement>,
+    },
+    RepeatLoopStatement {
+        condition: Box<Statement>,
+        body: Vec<Statement>,
     }
+
 }
 
 #[derive(Debug, PartialEq)]
