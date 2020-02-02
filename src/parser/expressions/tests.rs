@@ -806,3 +806,36 @@ r#"BinaryExpression {
 }"#;
     assert_eq!(ast_string, expected_ast);
 }
+
+#[test]
+fn expression_list(){
+    //technically this is an illegal state, the parser will accept it though
+    let lexer = lexer::lex(
+        "
+        PROGRAM exp 
+        1,2,3;
+        END_PROGRAM
+        ",
+    );
+    let result = parse(lexer).unwrap();
+
+    let prg = &result.units[0];
+    let statement = &prg.statements[0];
+
+    let ast_string = format!("{:#?}", statement);
+    let expected_ast = 
+r#"ExpressionList {
+    expressions: [
+        LiteralNumber {
+            value: "1",
+        },
+        LiteralNumber {
+            value: "2",
+        },
+        LiteralNumber {
+            value: "3",
+        },
+    ],
+}"#;
+    assert_eq!(ast_string, expected_ast);
+}

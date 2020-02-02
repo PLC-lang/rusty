@@ -465,3 +465,177 @@ fn repeat_with_body_statement() {
 
     assert_eq!(ast_string, expected_ast);
 }
+
+
+#[test]
+fn case_statement_with_one_label() {
+     let lexer = lexer::lex(
+        "
+        PROGRAM exp 
+        CASE StateMachine OF
+        1: x;
+        END_CASE
+        END_PROGRAM
+        ",
+    );
+    let result = parse(lexer).unwrap();
+
+    let prg = &result.units[0];
+    let statement = &prg.statements[0];
+
+    let ast_string = format!("{:#?}", statement);
+    let expected_ast = r#"CaseStatement {
+    selector: Reference {
+        name: "StateMachine",
+    },
+    case_blocks: [
+        ConditionalBlock {
+            condition: LiteralNumber {
+                value: "1",
+            },
+            body: [
+                Reference {
+                    name: "x",
+                },
+            ],
+        },
+    ],
+    else_block: [],
+}"#;
+
+    assert_eq!(ast_string, expected_ast);   
+}
+
+#[test]
+fn case_statement_with_multiple_labels() {
+     let lexer = lexer::lex(
+        "
+        PROGRAM exp 
+        CASE StateMachine OF
+            1: x;
+            2: y; yy; yyy;
+            3: z;
+        END_CASE
+        END_PROGRAM
+        ",
+    );
+    let result = parse(lexer).unwrap();
+
+    let prg = &result.units[0];
+    let statement = &prg.statements[0];
+
+    let ast_string = format!("{:#?}", statement);
+    let expected_ast = r#"CaseStatement {
+    selector: Reference {
+        name: "StateMachine",
+    },
+    case_blocks: [
+        ConditionalBlock {
+            condition: LiteralNumber {
+                value: "1",
+            },
+            body: [
+                Reference {
+                    name: "x",
+                },
+            ],
+        },
+        ConditionalBlock {
+            condition: LiteralNumber {
+                value: "2",
+            },
+            body: [
+                Reference {
+                    name: "y",
+                },
+                Reference {
+                    name: "yy",
+                },
+                Reference {
+                    name: "yyy",
+                },
+            ],
+        },
+        ConditionalBlock {
+            condition: LiteralNumber {
+                value: "3",
+            },
+            body: [
+                Reference {
+                    name: "z",
+                },
+            ],
+        },
+    ],
+    else_block: [],
+}"#;
+
+    assert_eq!(ast_string, expected_ast);   
+}
+
+#[test]
+fn case_statement_with_multiple_expressions_per_label() {
+     let lexer = lexer::lex(
+        "
+        PROGRAM exp 
+        CASE StateMachine OF
+            1,2,3: x;
+            4,5: y;
+        END_CASE
+        END_PROGRAM
+        ",
+    );
+    let result = parse(lexer).unwrap();
+
+    let prg = &result.units[0];
+    let statement = &prg.statements[0];
+
+    let ast_string = format!("{:#?}", statement);
+    let expected_ast = r#"CaseStatement {
+    selector: Reference {
+        name: "StateMachine",
+    },
+    case_blocks: [
+        ConditionalBlock {
+            condition: ExpressionList {
+                expressions: [
+                    LiteralNumber {
+                        value: "1",
+                    },
+                    LiteralNumber {
+                        value: "2",
+                    },
+                    LiteralNumber {
+                        value: "3",
+                    },
+                ],
+            },
+            body: [
+                Reference {
+                    name: "x",
+                },
+            ],
+        },
+        ConditionalBlock {
+            condition: ExpressionList {
+                expressions: [
+                    LiteralNumber {
+                        value: "4",
+                    },
+                    LiteralNumber {
+                        value: "5",
+                    },
+                ],
+            },
+            body: [
+                Reference {
+                    name: "y",
+                },
+            ],
+        },
+    ],
+    else_block: [],
+}"#;
+
+    assert_eq!(ast_string, expected_ast);   
+}
