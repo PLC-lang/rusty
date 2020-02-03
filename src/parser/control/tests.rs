@@ -468,7 +468,7 @@ fn repeat_with_body_statement() {
 
 
 #[test]
-fn case_statement_with_one_label() {
+fn case_statement_with_one_condition() {
      let lexer = lexer::lex(
         "
         PROGRAM exp 
@@ -507,7 +507,149 @@ fn case_statement_with_one_label() {
 }
 
 #[test]
-fn case_statement_with_multiple_labels() {
+fn case_statement_with_else_and_no_condition() {
+     let lexer = lexer::lex(
+        "
+        PROGRAM exp 
+        CASE StateMachine OF
+        ELSE
+        END_CASE
+        END_PROGRAM
+        ",
+    );
+    let result = parse(lexer).unwrap();
+
+    let prg = &result.units[0];
+    let statement = &prg.statements[0];
+
+    let ast_string = format!("{:#?}", statement);
+    let expected_ast = r#"CaseStatement {
+    selector: Reference {
+        name: "StateMachine",
+    },
+    case_blocks: [],
+    else_block: [],
+}"#;
+
+    assert_eq!(ast_string, expected_ast);   
+}
+
+
+#[test]
+fn case_statement_with_no_conditions() {
+     let lexer = lexer::lex(
+        "
+        PROGRAM exp 
+        CASE StateMachine OF
+        END_CASE
+        END_PROGRAM
+        ",
+    );
+    let result = parse(lexer).unwrap();
+
+    let prg = &result.units[0];
+    let statement = &prg.statements[0];
+
+    let ast_string = format!("{:#?}", statement);
+    let expected_ast = r#"CaseStatement {
+    selector: Reference {
+        name: "StateMachine",
+    },
+    case_blocks: [],
+    else_block: [],
+}"#;
+
+    assert_eq!(ast_string, expected_ast);   
+}
+
+#[test]
+fn case_statement_with_one_condition_and_an_else() {
+     let lexer = lexer::lex(
+        "
+        PROGRAM exp 
+        CASE StateMachine OF
+        1: x;
+        ELSE
+            y;
+        END_CASE
+        END_PROGRAM
+        ",
+    );
+    let result = parse(lexer).unwrap();
+
+    let prg = &result.units[0];
+    let statement = &prg.statements[0];
+
+    let ast_string = format!("{:#?}", statement);
+    let expected_ast = r#"CaseStatement {
+    selector: Reference {
+        name: "StateMachine",
+    },
+    case_blocks: [
+        ConditionalBlock {
+            condition: LiteralNumber {
+                value: "1",
+            },
+            body: [
+                Reference {
+                    name: "x",
+                },
+            ],
+        },
+    ],
+    else_block: [
+        Reference {
+            name: "y",
+        },
+    ],
+}"#;
+
+    assert_eq!(ast_string, expected_ast);   
+}
+
+#[test]
+fn case_statement_with_one_empty_condition_and_an_else() {
+     let lexer = lexer::lex(
+        "
+        PROGRAM exp 
+        CASE StateMachine OF
+        1:
+        ELSE
+            y;
+        END_CASE
+        END_PROGRAM
+        ",
+    );
+    let result = parse(lexer).unwrap();
+
+    let prg = &result.units[0];
+    let statement = &prg.statements[0];
+
+    let ast_string = format!("{:#?}", statement);
+    let expected_ast = r#"CaseStatement {
+    selector: Reference {
+        name: "StateMachine",
+    },
+    case_blocks: [
+        ConditionalBlock {
+            condition: LiteralNumber {
+                value: "1",
+            },
+            body: [],
+        },
+    ],
+    else_block: [
+        Reference {
+            name: "y",
+        },
+    ],
+}"#;
+
+    assert_eq!(ast_string, expected_ast);   
+}
+
+#[test]
+fn case_statement_with_multiple_conditions() {
      let lexer = lexer::lex(
         "
         PROGRAM exp 
@@ -574,7 +716,7 @@ fn case_statement_with_multiple_labels() {
 }
 
 #[test]
-fn case_statement_with_multiple_expressions_per_label() {
+fn case_statement_with_multiple_expressions_per_condition() {
      let lexer = lexer::lex(
         "
         PROGRAM exp 
