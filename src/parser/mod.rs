@@ -113,10 +113,16 @@ fn parse_program(lexer: &mut RustyLexer) -> Result<Program, String> {
     Ok(result)
 }
 
+fn is_end_of_stream(token: &lexer::Token) -> bool {
+    *token == End || *token == Error 
+}
+
 fn parse_body(lexer: &mut RustyLexer, until: &dyn Fn(&lexer::Token) -> bool) -> Result<Vec<Statement>, String> {
     let mut statements = Vec::new();
-    while !until(&lexer.token) && lexer.token != End && lexer.token != Error {
-        let statement = parse_control(lexer)?;
+    consume_all(lexer, KeywordSemicolon);
+    while !until(&lexer.token) && !is_end_of_stream(&lexer.token) {
+        let statement = parse_control(lexer)?; 
+        consume_all(lexer, KeywordSemicolon);
         statements.push(statement);
     }
     if !until(&lexer.token) {
@@ -125,10 +131,22 @@ fn parse_body(lexer: &mut RustyLexer, until: &dyn Fn(&lexer::Token) -> bool) -> 
     Ok(statements)
 }
 
+fn consume_all(lexer: &mut RustyLexer, token: lexer::Token) {
+    while lexer.token == token {
+        lexer.advance();
+    }
+}
+
+/**
+ * parses either an expression (ended with ';' or a case-condition ended with ':')
+ * does not consume the terminating token
+ */
 fn parse_statement(lexer: &mut RustyLexer) -> Result<Statement, String> {
     let result = parse_expression(lexer);
-    expect!(KeywordSemicolon, lexer);
-    lexer.advance();
+ 
+    if !(lexer.token == KeywordColon || lexer.token == KeywordSemicolon) {
+        return Err(format!("expected End Statement, but found {:?}", lexer.token).to_string());
+    }
     result
 }
 

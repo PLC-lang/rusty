@@ -60,6 +60,12 @@ fn a_assignment_is_keword_assignment() {
 }
 
 #[test]
+fn comma(){
+    let lexer = super::lex(",");
+    assert_eq!(lexer.token, super::Token::KeywordComma);
+}
+
+#[test]
 fn operator_test() {
     let mut lexer = super::lex("+ - * / MOD = <> < > <= >=");
     assert_eq!(lexer.token, super::Token::OperatorPlus);
@@ -213,5 +219,22 @@ fn repeat_statement() {
     assert_eq!(lexer.token, super::Token::KeywordUntil);
     lexer.advance();
     assert_eq!(lexer.token, super::Token::KeywordEndRepeat);
+}
+
+#[test]
+fn case_statement() {
+    let mut lexer = super::lex(
+        r"
+        CASE OF ELSE END_CASE
+        ",
+    );
+
+    assert_eq!(lexer.token, super::Token::KeywordCase);
+    lexer.advance();
+    assert_eq!(lexer.token, super::Token::KeywordOf);
+    lexer.advance();
+    assert_eq!(lexer.token, super::Token::KeywordElse);
+    lexer.advance();
+    assert_eq!(lexer.token, super::Token::KeywordEndCase);
 }
 

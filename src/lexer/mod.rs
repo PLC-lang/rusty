@@ -38,6 +38,9 @@ pub enum Token {
     #[token = ")"]
     KeywordParensClose,
 
+    #[token = ","] 
+    KeywordComma,
+
     //Control Structures
     #[token = "IF"]
     KeywordIf,
@@ -83,6 +86,15 @@ pub enum Token {
 
     #[token = "END_REPEAT"]
     KeywordEndRepeat,
+
+    #[token = "CASE"]
+    KeywordCase,
+    
+    #[token = "OF"]
+    KeywordOf,
+    
+    #[token = "END_CASE"]
+    KeywordEndCase,
 
     //Operators
     #[token = "+"]

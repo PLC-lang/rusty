@@ -61,6 +61,9 @@ pub enum Statement {
         operator: Operator,
         value: Box<Statement>,
     },
+    ExpressionList {
+        expressions: Vec<Statement>,
+    },
     // Assignment
     Assignment {
         left: Box<Statement>,
@@ -85,8 +88,12 @@ pub enum Statement {
     RepeatLoopStatement {
         condition: Box<Statement>,
         body: Vec<Statement>,
+    },
+    CaseStatement {
+        selector: Box<Statement>,
+        case_blocks: Vec<ConditionalBlock>,
+        else_block: Vec<Statement>,
     }
-
 }
 
 #[derive(Debug, PartialEq)]

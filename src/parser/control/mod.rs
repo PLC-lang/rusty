@@ -15,6 +15,7 @@ pub fn parse_control_statement(lexer: &mut RustyLexer) -> Result<Statement, Stri
         KeywordFor => parse_for_statement(lexer),
         KeywordWhile => parse_while_statement(lexer),
         KeywordRepeat => parse_repeat_statement(lexer),
+        KeywordCase => parse_case_statement(lexer),
         _ => parse_statement(lexer),
     }
 }
@@ -116,4 +117,70 @@ fn parse_repeat_statement(lexer: &mut RustyLexer) -> Result<Statement, String> {
     lexer.advance();
     
     Ok(Statement::RepeatLoopStatement{ condition, body })
+}
+
+fn parse_case_statement(lexer: &mut RustyLexer) -> Result<Statement, String> {
+    lexer.advance(); // CASE
+
+    let selector = Box::new(parse_expression(lexer)?);
+
+    expect!(KeywordOf, lexer); // OF
+    lexer.advance();
+
+    let mut case_blocks = Vec::new();
+    if lexer.token != KeywordEndCase && lexer.token != KeywordElse {
+        let mut condition = Some(parse_expression(lexer)?);
+        expect!(KeywordColon, lexer); // :
+        lexer.advance();
+        
+        
+        loop {
+            
+            let (body, next_condition) = parse_case_body_with_condition( condition.unwrap(), lexer)?;
+            condition = next_condition;
+            case_blocks.push(body);
+            
+            if !(lexer.token != KeywordEndCase && lexer.token != KeywordElse && condition.is_some()) {
+                break;
+            }
+        }
+    }
+
+    let mut else_block = Vec::new();
+
+    if lexer.token == KeywordElse {
+        lexer.advance(); // else
+        else_block.append(&mut parse_body(lexer, &|it| *it == KeywordEndCase)?)
+    }
+    lexer.advance();
+
+    Ok(Statement::CaseStatement{ selector, case_blocks, else_block })
+}
+
+/**
+ * returns a case-body (limited by either END_CASE, ELSE or another case-condition <xxx> : ) combined in a tuple 
+ * with an optional following case-condition (the condition of the next case-body)
+ */
+fn parse_case_body_with_condition(condition: Statement, lexer: &mut RustyLexer) -> Result<(ConditionalBlock, Option<Statement>), String> {
+    let mut body = parse_body(lexer, &|t: &lexer::Token| *t == KeywordEndCase || *t == KeywordColon || *t == KeywordElse )?;
+    if lexer.token == KeywordColon {
+        lexer.advance();
+        // the block was ended with a new case-condition (e.g. '2:')
+        // so we add the block and return the next block's condition
+        // because we already parsed it 
+        if body.is_empty() {
+            return Err("Unexpected ':' - no case-condition could be found.".to_string());
+        }
+
+        //
+        let next_condition = body.remove(body.len() - 1);
+        let block = ConditionalBlock { condition: Box::new(condition), body };
+        let block_and_next_condition = (block, Some(next_condition));
+        return Ok(block_and_next_condition);
+    } 
+
+    //this is either END_CASE or ELSE
+    let block = ConditionalBlock { condition: Box::new(condition), body };
+    let block_without_next_condition = (block, None);
+    return Ok( block_without_next_condition );
 }

@@ -10,7 +10,23 @@ use super::{unexpected_token,slice_and_advance};
 mod tests;
 
 pub fn parse_primary_expression(lexer: &mut RustyLexer) -> Result<Statement, String> {
-    parse_or_expression(lexer)
+    parse_expression_list(lexer)
+}
+
+fn parse_expression_list(lexer: &mut RustyLexer) -> Result<Statement, String> {
+    let left = parse_or_expression(lexer);
+
+    if lexer.token == KeywordComma {
+        let mut expressions = Vec::new();
+        expressions.push(left?);
+        // this starts an expression list
+        while lexer.token == KeywordComma {
+            lexer.advance();
+            expressions.push(parse_or_expression(lexer)?);
+        }
+        return Ok(Statement::ExpressionList{ expressions });
+    }
+    Ok(left?)
 }
 
 // OR
