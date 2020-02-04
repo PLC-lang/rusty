@@ -53,6 +53,12 @@ pub enum Token {
     #[token = ","] 
     KeywordComma,
 
+    #[token = ".."]
+    KeywordDotDot,
+
+    #[token ="."]
+    KeywordDot,
+
     //Control Structures
     #[token = "IF"]
     KeywordIf,
@@ -161,8 +167,8 @@ pub enum Token {
 
     //Literals
 
-    #[regex = r"[0-9]+(\.(0-9)+)?"]
-    LiteralNumber,
+    #[regex = r"[0-9]+"]
+    LiteralInteger,
 
     #[token = "TRUE"]
     LiteralTrue,

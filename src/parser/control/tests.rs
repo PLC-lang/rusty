@@ -162,7 +162,7 @@ fn for_with_literals_statement() {
     start: Reference {
         name: "x",
     },
-    end: LiteralNumber {
+    end: LiteralInteger {
         value: "10",
     },
     by_step: None,
@@ -191,14 +191,14 @@ fn for_with_step_statement() {
     counter: Reference {
         name: "x",
     },
-    start: LiteralNumber {
+    start: LiteralInteger {
         value: "1",
     },
-    end: LiteralNumber {
+    end: LiteralInteger {
         value: "10",
     },
     by_step: Some(
-        LiteralNumber {
+        LiteralInteger {
             value: "7",
         },
     ),
@@ -327,7 +327,7 @@ fn while_with_expression() {
         left: Reference {
             name: "x",
         },
-        right: LiteralNumber {
+        right: LiteralInteger {
             value: "7",
         },
     },
@@ -421,7 +421,7 @@ fn repeat_with_expression() {
         left: Reference {
             name: "x",
         },
-        right: LiteralNumber {
+        right: LiteralInteger {
             value: "7",
         },
     },
@@ -490,7 +490,7 @@ fn case_statement_with_one_condition() {
     },
     case_blocks: [
         ConditionalBlock {
-            condition: LiteralNumber {
+            condition: LiteralInteger {
                 value: "1",
             },
             body: [
@@ -587,7 +587,7 @@ fn case_statement_with_one_condition_and_an_else() {
     },
     case_blocks: [
         ConditionalBlock {
-            condition: LiteralNumber {
+            condition: LiteralInteger {
                 value: "1",
             },
             body: [
@@ -632,7 +632,7 @@ fn case_statement_with_one_empty_condition_and_an_else() {
     },
     case_blocks: [
         ConditionalBlock {
-            condition: LiteralNumber {
+            condition: LiteralInteger {
                 value: "1",
             },
             body: [],
@@ -673,7 +673,7 @@ fn case_statement_with_multiple_conditions() {
     },
     case_blocks: [
         ConditionalBlock {
-            condition: LiteralNumber {
+            condition: LiteralInteger {
                 value: "1",
             },
             body: [
@@ -683,7 +683,7 @@ fn case_statement_with_multiple_conditions() {
             ],
         },
         ConditionalBlock {
-            condition: LiteralNumber {
+            condition: LiteralInteger {
                 value: "2",
             },
             body: [
@@ -699,7 +699,7 @@ fn case_statement_with_multiple_conditions() {
             ],
         },
         ConditionalBlock {
-            condition: LiteralNumber {
+            condition: LiteralInteger {
                 value: "3",
             },
             body: [
@@ -722,7 +722,7 @@ fn case_statement_with_multiple_expressions_per_condition() {
         PROGRAM exp 
         CASE StateMachine OF
             1,2,3: x;
-            4,5: y;
+            4..5: y;
         END_CASE
         END_PROGRAM
         ",
@@ -741,13 +741,13 @@ fn case_statement_with_multiple_expressions_per_condition() {
         ConditionalBlock {
             condition: ExpressionList {
                 expressions: [
-                    LiteralNumber {
+                    LiteralInteger {
                         value: "1",
                     },
-                    LiteralNumber {
+                    LiteralInteger {
                         value: "2",
                     },
-                    LiteralNumber {
+                    LiteralInteger {
                         value: "3",
                     },
                 ],
@@ -759,15 +759,13 @@ fn case_statement_with_multiple_expressions_per_condition() {
             ],
         },
         ConditionalBlock {
-            condition: ExpressionList {
-                expressions: [
-                    LiteralNumber {
-                        value: "4",
-                    },
-                    LiteralNumber {
-                        value: "5",
-                    },
-                ],
+            condition: RangeStatement {
+                start: LiteralInteger {
+                    value: "4",
+                },
+                end: LiteralInteger {
+                    value: "5",
+                },
             },
             body: [
                 Reference {
@@ -779,5 +777,5 @@ fn case_statement_with_multiple_expressions_per_condition() {
     else_block: [],
 }"#;
 
-    assert_eq!(ast_string, expected_ast);   
+    assert_eq!(ast_string, expected_ast);
 }
