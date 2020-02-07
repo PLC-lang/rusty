@@ -124,6 +124,17 @@ fn int_literals_test() {
 }
 
 #[test]
+fn real_literals_test() {
+    let mut lexer = super::lex("1.234 200.00 99.99 1.5 0.9E10");
+
+    for x in 0..5 {
+        print!("{}", x);
+        assert_eq!(lexer.token, super::Token::LiteralRational);
+        lexer.advance();
+    }
+}
+
+#[test]
 fn a_full_program_generates_correct_token_sequence() {
     let mut lexer = super::lex(
         r"
@@ -256,6 +267,20 @@ fn dot_statements() {
     assert_eq!(lexer.token, super::Token::KeywordDotDot);
     lexer.advance();
     assert_eq!(lexer.token, super::Token::KeywordDot);
+    lexer.advance();
+}
+
+#[test]
+fn range_statements() {
+    let mut lexer = super::lex(
+        r"123..ABC",
+    );
+
+    println!("{:?}", lexer.token);
+    lexer.advance();
+    println!("{:?}", lexer.token);
+    lexer.advance();
+    println!("{:?}", lexer.token);
     lexer.advance();
 }
 

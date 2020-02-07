@@ -170,6 +170,12 @@ pub enum Token {
     #[regex = r"[0-9]+"]
     LiteralInteger,
 
+    #[regex = "[0-9]+\\.\\."]
+    RangeStart,
+
+    #[regex = "[0-9]+\\.[0-9]+([eE][+-]?[0-9]+)?|[0-9]+[eE][+-]?[0-9]+"]
+    LiteralRational,
+
     #[token = "TRUE"]
     LiteralTrue,
 

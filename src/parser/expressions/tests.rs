@@ -846,6 +846,10 @@ fn range_expression() {
         "
         PROGRAM exp 
         a..b;
+        1..2;
+        a..2;
+        2..a;
+        -2..-1;
         END_PROGRAM
         ",
     );
@@ -866,7 +870,86 @@ r#"RangeStatement {
 }"#;
     assert_eq!(ast_string, expected_ast);
 
+
+    let statement = &prg.statements[1];
+
+    let ast_string = format!("{:#?}", statement);
+    let expected_ast = 
+r#"RangeStatement {
+    start: LiteralInteger {
+        value: "1",
+    },
+    end: LiteralInteger {
+        value: "2",
+    },
+}"#;
+    assert_eq!(ast_string, expected_ast);
+
+
+    let statement = &prg.statements[2];
+
+    let ast_string = format!("{:#?}", statement);
+    let expected_ast = 
+r#"RangeStatement {
+    start: Reference {
+        name: "a",
+    },
+    end: LiteralInteger {
+        value: "2",
+    },
+}"#;
+    assert_eq!(ast_string, expected_ast);
+
+    let statement = &prg.statements[3];
+
+    let ast_string = format!("{:#?}", statement);
+    let expected_ast = 
+r#"RangeStatement {
+    start: LiteralInteger {
+        value: "2",
+    },
+    end: Reference {
+        name: "a",
+    },
+}"#;
+    assert_eq!(ast_string, expected_ast);
+
 }
+
+#[test]
+fn negative_range_expression() {
+    let lexer = lexer::lex(
+        "
+        PROGRAM exp 
+        -2..-1;
+        END_PROGRAM
+        ",
+    );
+    let result = parse(lexer).unwrap();
+
+    let prg = &result.units[0];
+    let statement = &prg.statements[0];
+
+    let ast_string = format!("{:#?}", statement);
+    let expected_ast = 
+r#"RangeStatement {
+    start: UnaryExpression {
+        operator: Minus,
+        value: LiteralInteger {
+            value: "2",
+        }
+    },
+    end: UnaryExpression {
+        operator: Minus,
+        value: LiteralInteger {
+            value: "1",
+        },
+    },
+}"#;
+
+    assert_eq!(ast_string, expected_ast);
+}
+
 
 #[test]
 fn range_expression2() {

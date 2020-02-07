@@ -208,6 +208,7 @@ fn parse_leaf_expression(lexer: &mut RustyLexer) -> Result<Statement, String> {
         LiteralInteger => parse_literal_number(lexer),
         LiteralTrue => parse_bool_literal(lexer, true),
         LiteralFalse => parse_bool_literal(lexer, false),
+        RangeStart => parse_range_statement_from_range_start(lexer),
         _ => Err(unexpected_token(lexer)),
     };
 
@@ -219,6 +220,20 @@ fn parse_leaf_expression(lexer: &mut RustyLexer) -> Result<Statement, String> {
         });
     };
     current
+}
+
+fn parse_range_statement_from_range_start(lexer: &mut RustyLexer) -> Result<Statement, String> {
+    // the range-start token is the starting-number with the following '..'
+    // (e.g. '123..')
+    // this is pretty ugly but the lexer confuses the real numbers and the range
+    // statement. At least the once we created the AST, its no longer a problem.
+    let start = Statement::LiteralInteger {
+         value: lexer.slice().to_string().trim_end_matches("..").to_string(),
+    };
+    lexer.advance();
+    let end = parse_primary_expression(lexer);
+
+    Ok(Statement::RangeStatement{ start: Box::new(start), end: Box::new(end?) })
 }
 
 fn parse_bool_literal(lexer: &mut RustyLexer, value: bool) -> Result<Statement, String> {
