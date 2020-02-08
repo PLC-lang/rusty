@@ -65,11 +65,11 @@ impl<'ctx> CodeGen<'ctx> {
 
     fn generate_compilation_unit(&mut self, root: &CompilationUnit) {
         for unit in &root.units {
-            self.generate_program(unit);
+            self.generate_pou(unit);
         }
     }
 
-    fn generate_program(&mut self, p: &Program) {
+    fn generate_pou(&mut self, p: &POU) {
         
         self.current_pou = p.name.clone();
         
@@ -79,17 +79,17 @@ impl<'ctx> CodeGen<'ctx> {
         self.current_function = Some(self.module.add_function(self.current_pou.as_str(), f_type, None));
         let block = self.context.append_basic_block(self.current_function.unwrap(), "entry");
 
-        let mut program_members: Vec<(String, BasicTypeEnum)> = Vec::new();
+        let mut pou_members: Vec<(String, BasicTypeEnum)> = Vec::new();
 
         for var_block in &p.variable_blocks {
             let mut members = self.get_variables_information(var_block);
-            program_members.append(&mut members);
+            pou_members.append(&mut members);
         }
         //Create a struct with the value from the program
         let member_type = CodeGen::generate_instance_struct(
             self.context,
             &mut self.variables,
-            program_members,
+            pou_members,
             &CodeGen::get_struct_name(p.name.as_str()),
         );
 

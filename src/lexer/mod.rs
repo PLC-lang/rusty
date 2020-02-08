@@ -22,7 +22,19 @@ pub enum Token {
 
     #[token = "END_PROGRAM"]
     KeywordEndProgram,
-    
+
+    #[token = "FUNCTION"]
+    KeywordFunction,
+
+    #[token = "END_FUNCTION"]
+    KeywordEndFunction,
+ 
+    #[token = "FUNCTION_BLOCK"]
+    KeywordFunctionBlock,
+
+    #[token = "END_FUNCTION_BLOCK"]
+    KeywordEndFunctionBlock,
+
     #[token = ":"]
     KeywordColon,
 

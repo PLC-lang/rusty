@@ -1,5 +1,6 @@
 use crate::ast::PrimitiveType;
 use crate::ast::Type;
+use crate::ast::PouType;
 use crate::lexer;
 use pretty_assertions::*;
 
@@ -15,7 +16,31 @@ fn simple_foo_program_can_be_parsed() {
     let result = super::parse(lexer).unwrap();
 
     let prg = &result.units[0];
+    assert_eq!(prg.pou_type, PouType::Program);
     assert_eq!(prg.name, "foo");
+    assert!(prg.return_type.is_none());
+}
+
+#[test]
+fn simple_foo_function_can_be_parsed() {
+    let lexer = lexer::lex("FUNCTION foo : INT END_FUNCTION");
+    let result = super::parse(lexer).unwrap();
+
+    let prg = &result.units[0];
+    assert_eq!(prg.pou_type, PouType::Function);
+    assert_eq!(prg.name, "foo");
+    assert_eq!(prg.return_type.as_ref().unwrap(), &Type::Primitive(PrimitiveType::Int));
+}
+
+#[test]
+fn simple_foo_function_block_can_be_parsed() {
+    let lexer = lexer::lex("FUNCTION_BLOCK foo END_FUNCTION_BLOCK");
+    let result = super::parse(lexer).unwrap();
+
+    let prg = &result.units[0];
+    assert_eq!(prg.pou_type, PouType::FunctionBlock);
+    assert_eq!(prg.name, "foo");
+    assert!(prg.return_type.is_none());
 }
 
 #[test]

@@ -1,10 +1,19 @@
 use pretty_assertions::{assert_eq, assert_ne};
 #[test]
 fn pou_tokens() {
-    let mut lexer = super::lex("PROGRAM END_PROGRAM");
+    let mut lexer = super::lex("PROGRAM END_PROGRAM FUNCTION END_FUNCTION FUNCTION_BLOCK END_FUNCTION_BLOCK");
     assert_eq!(lexer.token, super::Token::KeywordProgram);
     lexer.advance();
     assert_eq!(lexer.token, super::Token::KeywordEndProgram);
+    lexer.advance();
+    assert_eq!(lexer.token, super::Token::KeywordFunction);
+    lexer.advance();
+    assert_eq!(lexer.token, super::Token::KeywordEndFunction);
+    lexer.advance();
+    assert_eq!(lexer.token, super::Token::KeywordFunctionBlock);
+    lexer.advance();
+    assert_eq!(lexer.token, super::Token::KeywordEndFunctionBlock);
+    lexer.advance();
 }
 
 #[test]
