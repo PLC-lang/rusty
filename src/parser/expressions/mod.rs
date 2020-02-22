@@ -5,6 +5,7 @@ use crate::ast::*;
 
 use super::RustyLexer;
 use super::{unexpected_token,slice_and_advance};
+use super::allow;
 
 #[cfg(test)]
 mod tests;
@@ -15,7 +16,8 @@ pub fn parse_primary_expression(lexer: &mut RustyLexer) -> Result<Statement, Str
 
 fn parse_expression_list(lexer: &mut RustyLexer) -> Result<Statement, String> {
     let left = parse_range_statement(lexer);
-
+    let print = format!("{:#?}",left);
+    println!("{}",print);
     if lexer.token == KeywordComma {
         let mut expressions = Vec::new();
         expressions.push(left?);
@@ -30,14 +32,14 @@ fn parse_expression_list(lexer: &mut RustyLexer) -> Result<Statement, String> {
 }
 
 fn parse_range_statement(lexer: &mut RustyLexer) -> Result<Statement, String> {
-    let start = parse_or_expression(lexer);
+    let start = parse_or_expression(lexer)?;
 
     if lexer.token == KeywordDotDot {
         lexer.advance();
-        let end = parse_or_expression(lexer);
-        return Ok(Statement::RangeStatement{ start: Box::new(start?), end: Box::new(end?) });
+        let end = parse_or_expression(lexer)?;
+        return Ok(Statement::RangeStatement{ start: Box::new(start), end: Box::new(end) });
     }
-    start
+    Ok(start)
 }
 
 // OR
@@ -208,7 +210,6 @@ fn parse_leaf_expression(lexer: &mut RustyLexer) -> Result<Statement, String> {
         LiteralInteger => parse_literal_number(lexer),
         LiteralTrue => parse_bool_literal(lexer, true),
         LiteralFalse => parse_bool_literal(lexer, false),
-        RangeStart => parse_range_statement_from_range_start(lexer),
         _ => Err(unexpected_token(lexer)),
     };
 
@@ -220,20 +221,6 @@ fn parse_leaf_expression(lexer: &mut RustyLexer) -> Result<Statement, String> {
         });
     };
     current
-}
-
-fn parse_range_statement_from_range_start(lexer: &mut RustyLexer) -> Result<Statement, String> {
-    // the range-start token is the starting-number with the following '..'
-    // (e.g. '123..')
-    // this is pretty ugly but the lexer confuses the real numbers and the range
-    // statement. At least the once we created the AST, its no longer a problem.
-    let start = Statement::LiteralInteger {
-         value: lexer.slice().to_string().trim_end_matches("..").to_string(),
-    };
-    lexer.advance();
-    let end = parse_primary_expression(lexer);
-
-    Ok(Statement::RangeStatement{ start: Box::new(start), end: Box::new(end?) })
 }
 
 fn parse_bool_literal(lexer: &mut RustyLexer, value: bool) -> Result<Statement, String> {
@@ -248,8 +235,28 @@ pub fn parse_reference(lexer: &mut RustyLexer) -> Result<Statement, String> {
 }
 
 fn parse_literal_number(lexer: &mut RustyLexer) -> Result<Statement, String> {
+    let result = slice_and_advance(lexer);
+    if allow(KeywordDot,lexer) {
+        return parse_literal_real(lexer,result);
+    }
+
     Ok(Statement::LiteralInteger {
-        value: slice_and_advance(lexer),
+        value : result
+    })
+}
+
+fn parse_literal_real(lexer: &mut RustyLexer, integer: String) -> Result<Statement, String> {
+    expect!(LiteralInteger,lexer);
+    let fractional = slice_and_advance(lexer);
+    let exponent = if lexer.token == LiteralExponent {
+        slice_and_advance(lexer)
+    } else {
+        "".to_string()
+    };
+    let result = format!("{}.{}{}",integer,fractional,exponent);
+
+    Ok(Statement::LiteralReal{
+        value : result
     })
 }
 

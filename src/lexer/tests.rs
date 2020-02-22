@@ -125,13 +125,22 @@ fn int_literals_test() {
 
 #[test]
 fn real_literals_test() {
-    let mut lexer = super::lex("1.234 200.00 99.99 1.5 0.9E10");
+    let mut lexer = super::lex("1.234 0.9E10");
 
-    for x in 0..5 {
-        print!("{}", x);
-        assert_eq!(lexer.token, super::Token::LiteralRational);
+        assert_eq!(lexer.token, super::Token::LiteralInteger);
         lexer.advance();
-    }
+        assert_eq!(lexer.token, super::Token::KeywordDot);
+        lexer.advance();
+        assert_eq!(lexer.token, super::Token::LiteralInteger);
+        lexer.advance();
+        assert_eq!(lexer.token, super::Token::LiteralInteger);
+        lexer.advance();
+        assert_eq!(lexer.token, super::Token::KeywordDot);
+        lexer.advance();
+        assert_eq!(lexer.token, super::Token::LiteralInteger);
+        lexer.advance();
+        assert_eq!(lexer.token, super::Token::LiteralExponent);
+        lexer.advance();
 }
 
 #[test]

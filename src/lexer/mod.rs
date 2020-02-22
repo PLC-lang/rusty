@@ -170,17 +170,15 @@ pub enum Token {
     #[regex = r"[0-9]+"]
     LiteralInteger,
 
-    #[regex = "[0-9]+\\.\\."]
-    RangeStart,
-
-    #[regex = "[0-9]+\\.[0-9]+([eE][+-]?[0-9]+)?|[0-9]+[eE][+-]?[0-9]+"]
-    LiteralRational,
+    #[regex = "[eE][+-]?[0-9]+"]
+    LiteralExponent,
 
     #[token = "TRUE"]
     LiteralTrue,
 
     #[token = "FALSE"]
     LiteralFalse,
+
 }
 
 pub fn lex(source: &str) -> Lexer<Token, &str> {

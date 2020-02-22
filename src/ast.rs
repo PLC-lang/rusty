@@ -54,6 +54,9 @@ pub enum Statement {
     LiteralInteger {
         value: String,
     },
+    LiteralReal {
+        value : String,
+    },
     LiteralBool {
         value: bool,
     },
