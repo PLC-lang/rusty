@@ -766,3 +766,47 @@ continue:                                         ; preds = %condition_check
 
     assert_eq!(result, expected);
 }
+
+
+#[test]
+fn simple_case_statement() {
+    let result = codegen!(
+        "
+        PROGRAM prg 
+        VAR
+            x : INT;
+            y : INT;
+        END_VAR
+        CASE x OF
+        1: y := 1;
+        2: y := 2;
+        3: y := 3;
+        ELSE
+            y := -1;
+        END_CASE
+        END_PROGRAM
+        "
+    );
+
+    let expected = generate_boiler_plate!("prg"," i32, i32 ", 
+r#" %load_x = load i1, i1* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 0)
+    switch i32 %load_x, label %else [   i32 1, label %case_0
+                                        i32 2, label %case_1
+                                        i32 3, label %case_2 ] 
+case_0:
+    store i32 1, i32* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 1)
+    br label %continue
+case_1:
+    store i32 1, i32* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 1)
+    br label %continue
+case_2:
+    store i32 1, i32* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 1)
+    br label %continue
+else:
+    store i32 1, i32* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 1)
+continue:
+    ret void
+"#);
+
+    assert_eq!(result, expected);
+}
