@@ -16,8 +16,6 @@ pub fn parse_primary_expression(lexer: &mut RustyLexer) -> Result<Statement, Str
 
 fn parse_expression_list(lexer: &mut RustyLexer) -> Result<Statement, String> {
     let left = parse_range_statement(lexer);
-    let print = format!("{:#?}",left);
-    println!("{}",print);
     if lexer.token == KeywordComma {
         let mut expressions = Vec::new();
         expressions.push(left?);
