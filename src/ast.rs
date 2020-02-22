@@ -1,13 +1,22 @@
 #[derive(Debug, PartialEq)]
-pub struct Program {
+pub struct POU {
     pub name: String,
     pub variable_blocks: Vec<VariableBlock>,
     pub statements: Vec<Statement>,
+    pub pou_type: PouType,
+    pub return_type: Option<Type>,
+}
+
+#[derive(Debug, PartialEq)]
+pub enum PouType {
+    Program,
+    Function,
+    FunctionBlock,
 }
 
 #[derive(Debug, PartialEq)]
 pub struct CompilationUnit {
-    pub units: Vec<Program>,
+    pub units: Vec<POU>,
 }
 
 #[derive(Debug, PartialEq)]

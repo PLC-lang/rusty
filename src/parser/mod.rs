@@ -3,7 +3,8 @@ use logos::Lexer;
 
 use crate::ast::CompilationUnit;
 use crate::ast::PrimitiveType;
-use crate::ast::Program;
+use crate::ast::POU;
+use crate::ast::PouType;
 use crate::ast::Statement;
 use crate::ast::Type;
 use crate::ast::Variable;
@@ -30,11 +31,24 @@ macro_rules! expect {
 
 type RustyLexer<'a> = Lexer<lexer::Token, &'a str>;
 
-fn create_program() -> Program {
-    Program {
+/// consumes an optional token and returns true if it was consumed.
+pub fn allow(token: lexer::Token, lexer: &mut RustyLexer) -> bool {
+    if lexer.token == token {
+        lexer.advance();
+        true
+    } else {
+        false
+    }
+}
+
+
+fn create_pou(pou_type: PouType) -> POU {
+    POU {
+        pou_type: pou_type,
         name: "".to_string(),
         variable_blocks: Vec::new(),
         statements: Vec::new(),
+        return_type: None,
     }
 }
 
@@ -71,14 +85,12 @@ pub fn parse(mut lexer: RustyLexer) -> Result<CompilationUnit, String> {
 
     loop {
         match lexer.token {
-            KeywordProgram => {
-                let program = parse_program(&mut lexer);
-                match program {
-                    Ok(p) => unit.units.push(p),
-
-                    Err(msg) => return Err(msg),
-                };
-            }
+            KeywordProgram => 
+                unit.units.push(parse_pou(&mut lexer, PouType::Program, KeywordEndProgram)?),
+            KeywordFunction => 
+                unit.units.push(parse_pou(&mut lexer, PouType::Function, KeywordEndFunction)?),
+            KeywordFunctionBlock =>
+                unit.units.push(parse_pou(&mut lexer, PouType::FunctionBlock, KeywordEndFunctionBlock)?),
             End => return Ok(unit),
             Error => return Err(unidentified_token(&lexer)),
             _ => return Err(unexpected_token(&lexer)),
@@ -89,13 +101,27 @@ pub fn parse(mut lexer: RustyLexer) -> Result<CompilationUnit, String> {
     //the match in the loop will always return
 }
 
-fn parse_program(lexer: &mut RustyLexer) -> Result<Program, String> {
+///
+/// parse a pou
+/// # Arguments
+/// 
+/// * `lexer`       - the lexer
+/// * `pou_type`    - the type of the pou currently parsed
+/// * `expected_end_token` - the token that ends this pou
+/// 
+fn parse_pou(lexer: &mut RustyLexer, pou_type: PouType, expected_end_token: lexer::Token) -> Result<POU, String> {
     lexer.advance(); //Consume ProgramKeyword
-    let mut result = create_program();
-    expect!(Identifier, lexer);
-
+    let mut result = create_pou(pou_type);
+ 
     //Parse Identifier
+    expect!(Identifier, lexer);
     result.name = slice_and_advance(lexer);
+
+    //optional return type
+    if allow(KeywordColon, lexer) {
+        result.return_type = Some(parse_data_type(lexer)?);
+    }
+
 
     //Parse variable declarations
     while lexer.token == KeywordVar {
@@ -107,9 +133,10 @@ fn parse_program(lexer: &mut RustyLexer) -> Result<Program, String> {
     }
 
     //Parse the statemetns
-    let mut body = parse_body(lexer, &|it| *it == KeywordEndProgram)?;
+    let mut body = parse_body(lexer, &|it| *it == expected_end_token)?;
     result.statements.append(&mut body);
 
+    expect!(expected_end_token, lexer);
     Ok(result)
 }
 
@@ -187,21 +214,20 @@ fn parse_variable(
     expect!(KeywordColon, lexer);
     lexer.advance();
 
-    expect!(Identifier, lexer);
-    let data_type = slice_and_advance(lexer);
+    let data_type = parse_data_type(lexer)?;
     //Convert to real datatype
 
     expect!(KeywordSemicolon, lexer);
     lexer.advance();
 
-    owner.variables.push(Variable {
-        name,
-        data_type: get_data_type(data_type),
-    });
+    owner.variables.push(Variable {name, data_type });
     Ok(owner)
 }
 
-fn get_data_type(name: String) -> Type {
+fn parse_data_type(lexer: &mut RustyLexer) -> Result<Type, String> {
+    expect!(Identifier, lexer);
+    let name = slice_and_advance(lexer);
+ 
     let prim_type = match name.to_lowercase().as_str() {
         "int" => Some(PrimitiveType::Int),
         "bool" => Some(PrimitiveType::Bool),
@@ -209,9 +235,9 @@ fn get_data_type(name: String) -> Type {
     };
 
     if let Some(prim_type) = prim_type {
-        Type::Primitive(prim_type)
+        Ok(Type::Primitive(prim_type))
     } else {
-        Type::Custom
+        Ok(Type::Custom)
     }
 }
 
