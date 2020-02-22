@@ -789,23 +789,31 @@ fn simple_case_statement() {
     );
 
     let expected = generate_boiler_plate!("prg"," i32, i32 ", 
-r#" %load_x = load i1, i1* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 0)
-    switch i32 %load_x, label %else [   i32 1, label %case_0
-                                        i32 2, label %case_1
-                                        i32 3, label %case_2 ] 
-case_0:
-    store i32 1, i32* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 1)
-    br label %continue
-case_1:
-    store i32 1, i32* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 1)
-    br label %continue
-case_2:
-    store i32 1, i32* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 1)
-    br label %continue
-else:
-    store i32 1, i32* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 1)
-continue:
-    ret void
+r#"  %load_x = load i32, i32* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 0)
+  switch i32 %load_x, label %else [
+    i32 1, label %case
+    i32 2, label %case1
+    i32 3, label %case2
+  ]
+
+case:                                             ; preds = %entry
+  store i32 1, i32* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 1)
+  br label %continue
+
+case1:                                            ; preds = %entry
+  store i32 2, i32* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 1)
+  br label %continue
+
+case2:                                            ; preds = %entry
+  store i32 3, i32* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 1)
+  br label %continue
+
+else:                                             ; preds = %entry
+  store i32 -1, i32* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 1)
+  br label %continue
+
+continue:                                         ; preds = %else, %case2, %case1, %case
+  ret void
 "#);
 
     assert_eq!(result, expected);
