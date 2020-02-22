@@ -39,7 +39,7 @@
                     "kind": "bin"
                 }
             },
-            "args": ["${workspaceFolder}/examples/program_with_references.st"],
+            //"args": ["${workspaceFolder}/examples/program_with_references.st"],
             "cwd": "${workspaceFolder}"
         }
     ]

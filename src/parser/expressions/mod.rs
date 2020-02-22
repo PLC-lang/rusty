@@ -5,6 +5,7 @@ use crate::ast::*;
 
 use super::RustyLexer;
 use super::{unexpected_token,slice_and_advance};
+use super::allow;
 
 #[cfg(test)]
 mod tests;
@@ -14,19 +15,31 @@ pub fn parse_primary_expression(lexer: &mut RustyLexer) -> Result<Statement, Str
 }
 
 fn parse_expression_list(lexer: &mut RustyLexer) -> Result<Statement, String> {
-    let left = parse_or_expression(lexer);
-
+    let left = parse_range_statement(lexer);
+    let print = format!("{:#?}",left);
+    println!("{}",print);
     if lexer.token == KeywordComma {
         let mut expressions = Vec::new();
         expressions.push(left?);
         // this starts an expression list
         while lexer.token == KeywordComma {
             lexer.advance();
-            expressions.push(parse_or_expression(lexer)?);
+            expressions.push(parse_range_statement(lexer)?);
         }
         return Ok(Statement::ExpressionList{ expressions });
     }
     Ok(left?)
+}
+
+fn parse_range_statement(lexer: &mut RustyLexer) -> Result<Statement, String> {
+    let start = parse_or_expression(lexer)?;
+
+    if lexer.token == KeywordDotDot {
+        lexer.advance();
+        let end = parse_or_expression(lexer)?;
+        return Ok(Statement::RangeStatement{ start: Box::new(start), end: Box::new(end) });
+    }
+    Ok(start)
 }
 
 // OR
@@ -194,7 +207,7 @@ fn parse_parenthesized_expression(lexer: &mut RustyLexer) -> Result<Statement, S
 fn parse_leaf_expression(lexer: &mut RustyLexer) -> Result<Statement, String> {
     let current = match lexer.token {
         Identifier => parse_reference(lexer),
-        LiteralNumber => parse_literal_number(lexer),
+        LiteralInteger => parse_literal_number(lexer),
         LiteralTrue => parse_bool_literal(lexer, true),
         LiteralFalse => parse_bool_literal(lexer, false),
         _ => Err(unexpected_token(lexer)),
@@ -222,8 +235,28 @@ pub fn parse_reference(lexer: &mut RustyLexer) -> Result<Statement, String> {
 }
 
 fn parse_literal_number(lexer: &mut RustyLexer) -> Result<Statement, String> {
-    Ok(Statement::LiteralNumber {
-        value: slice_and_advance(lexer),
+    let result = slice_and_advance(lexer);
+    if allow(KeywordDot,lexer) {
+        return parse_literal_real(lexer,result);
+    }
+
+    Ok(Statement::LiteralInteger {
+        value : result
+    })
+}
+
+fn parse_literal_real(lexer: &mut RustyLexer, integer: String) -> Result<Statement, String> {
+    expect!(LiteralInteger,lexer);
+    let fractional = slice_and_advance(lexer);
+    let exponent = if lexer.token == LiteralExponent {
+        slice_and_advance(lexer)
+    } else {
+        "".to_string()
+    };
+    let result = format!("{}.{}{}",integer,fractional,exponent);
+
+    Ok(Statement::LiteralReal{
+        value : result
     })
 }
 

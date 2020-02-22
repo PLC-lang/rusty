@@ -26,10 +26,10 @@ fn literal_can_be_parsed() {
     let prg = &result.units[0];
     let statement = &prg.statements[0];
 
-    if let Statement::LiteralNumber { value } = statement {
+    if let Statement::LiteralInteger { value } = statement {
         assert_eq!(value, "7");
     } else {
-        panic!("Expected LiteralNumber but found {:?}", statement);
+        panic!("Expected LiteralInteger but found {:?}", statement);
     }
 }
 
@@ -135,15 +135,15 @@ fn multiplication_expressions_parse() {
     let ast_string = format!("{:#?}", statement);
     let expected_ast = r#"BinaryExpression {
     operator: Multiplication,
-    left: LiteralNumber {
+    left: LiteralInteger {
         value: "1",
     },
     right: BinaryExpression {
         operator: Division,
-        left: LiteralNumber {
+        left: LiteralInteger {
             value: "2",
         },
-        right: LiteralNumber {
+        right: LiteralInteger {
             value: "7",
         },
     },
@@ -162,10 +162,10 @@ fn addition_ast_test() {
     let ast_string = format!("{:#?}", statement);
     let expected_ast = r#"BinaryExpression {
     operator: Plus,
-    left: LiteralNumber {
+    left: LiteralInteger {
         value: "1",
     },
-    right: LiteralNumber {
+    right: LiteralInteger {
         value: "2",
     },
 }"#;
@@ -183,15 +183,15 @@ fn multiplication_ast_test() {
     let ast_string = format!("{:#?}", statement);
     let expected_ast = r#"BinaryExpression {
     operator: Plus,
-    left: LiteralNumber {
+    left: LiteralInteger {
         value: "1",
     },
     right: BinaryExpression {
         operator: Multiplication,
-        left: LiteralNumber {
+        left: LiteralInteger {
             value: "2",
         },
-        right: LiteralNumber {
+        right: LiteralInteger {
             value: "3",
         },
     },
@@ -210,21 +210,21 @@ fn term_ast_test() {
     let ast_string = format!("{:#?}", statement);
     let expected_ast = r#"BinaryExpression {
     operator: Plus,
-    left: LiteralNumber {
+    left: LiteralInteger {
         value: "1",
     },
     right: BinaryExpression {
         operator: Plus,
         left: BinaryExpression {
             operator: Multiplication,
-            left: LiteralNumber {
+            left: LiteralInteger {
                 value: "2",
             },
-            right: LiteralNumber {
+            right: LiteralInteger {
                 value: "3",
             },
         },
-        right: LiteralNumber {
+        right: LiteralInteger {
             value: "4",
         },
     },
@@ -244,10 +244,10 @@ fn module_expression_test() {
     let ast_string = format!("{:#?}", statement);
     let expected_ast = r#"BinaryExpression {
     operator: Modulo,
-    left: LiteralNumber {
+    left: LiteralInteger {
         value: "5",
     },
-    right: LiteralNumber {
+    right: LiteralInteger {
         value: "2",
     },
 }"#;
@@ -268,19 +268,19 @@ fn parenthesized_term_ast_test() {
     operator: Multiplication,
     left: BinaryExpression {
         operator: Plus,
-        left: LiteralNumber {
+        left: LiteralInteger {
             value: "1",
         },
-        right: LiteralNumber {
+        right: LiteralInteger {
             value: "2",
         },
     },
     right: BinaryExpression {
         operator: Plus,
-        left: LiteralNumber {
+        left: LiteralInteger {
             value: "3",
         },
-        right: LiteralNumber {
+        right: LiteralInteger {
             value: "4",
         },
     },
@@ -322,7 +322,7 @@ fn assignment_test() {
     left: Reference {
         name: "x",
     },
-    right: LiteralNumber {
+    right: LiteralInteger {
         value: "3",
     },
 }"#;
@@ -338,10 +338,10 @@ fn assignment_test() {
     },
     right: BinaryExpression {
         operator: Plus,
-        left: LiteralNumber {
+        left: LiteralInteger {
             value: "1",
         },
-        right: LiteralNumber {
+        right: LiteralInteger {
             value: "2",
         },
     },
@@ -364,7 +364,7 @@ fn equality_expression_test() {
     left: Reference {
         name: "x",
     },
-    right: LiteralNumber {
+    right: LiteralInteger {
         value: "3",
     },
 }"#;
@@ -381,16 +381,16 @@ fn equality_expression_test() {
         left: Reference {
             name: "x",
         },
-        right: LiteralNumber {
+        right: LiteralInteger {
             value: "0",
         },
     },
     right: BinaryExpression {
         operator: Plus,
-        left: LiteralNumber {
+        left: LiteralInteger {
             value: "1",
         },
-        right: LiteralNumber {
+        right: LiteralInteger {
             value: "2",
         },
     },
@@ -419,7 +419,7 @@ fn comparison_expression_test() {
     left: Reference {
         name: "a",
     },
-    right: LiteralNumber {
+    right: LiteralInteger {
         value: "3",
     },
 }"#;
@@ -432,7 +432,7 @@ fn comparison_expression_test() {
     left: Reference {
         name: "b",
     },
-    right: LiteralNumber {
+    right: LiteralInteger {
         value: "0",
     },
 }"#;
@@ -445,7 +445,7 @@ fn comparison_expression_test() {
     left: Reference {
         name: "c",
     },
-    right: LiteralNumber {
+    right: LiteralInteger {
         value: "7",
     },
 }"#;
@@ -458,7 +458,7 @@ fn comparison_expression_test() {
     left: Reference {
         name: "d",
     },
-    right: LiteralNumber {
+    right: LiteralInteger {
         value: "4",
     },
 }"#;
@@ -475,19 +475,19 @@ fn comparison_expression_test() {
         operator: Greater,
         left: BinaryExpression {
             operator: Plus,
-            left: LiteralNumber {
+            left: LiteralInteger {
                 value: "2",
             },
-            right: LiteralNumber {
+            right: LiteralInteger {
                 value: "1",
             },
         },
         right: BinaryExpression {
             operator: Plus,
-            left: LiteralNumber {
+            left: LiteralInteger {
                 value: "3",
             },
-            right: LiteralNumber {
+            right: LiteralInteger {
                 value: "1",
             },
         },
@@ -586,10 +586,48 @@ fn signed_literal_minus_test() {
     let ast_string = format!("{:#?}", statement);
     let expected_ast = r#"UnaryExpression {
     operator: Minus,
-    value: LiteralNumber {
+    value: LiteralInteger {
         value: "1",
     },
 }"#;
+    assert_eq!(ast_string, expected_ast);
+}
+
+#[test]
+fn literal_real_test() {
+    let lexer = lexer::lex(
+        "
+        PROGRAM exp 
+        1.1;
+        1.2e3;
+        1.2e-4;
+        -1.5;
+        END_PROGRAM
+        ",
+    );
+    let result = parse(lexer).unwrap();
+
+    let prg = &result.units[0];
+    let statement = &prg.statements;
+
+    let ast_string = format!("{:#?}", statement);
+    let expected_ast = r#"[
+    LiteralReal {
+        value: "1.1",
+    },
+    LiteralReal {
+        value: "1.2e3",
+    },
+    LiteralReal {
+        value: "1.2e-4",
+    },
+    UnaryExpression {
+        operator: Minus,
+        value: LiteralReal {
+            value: "1.5",
+        },
+    },
+]"#;
     assert_eq!(ast_string, expected_ast);
 }
 
@@ -610,7 +648,7 @@ fn signed_literal_expression_test() {
     let ast_string = format!("{:#?}", statement);
     let expected_ast = r#"BinaryExpression {
     operator: Plus,
-    left: LiteralNumber {
+    left: LiteralInteger {
         value: "2",
     },
     right: UnaryExpression {
@@ -642,11 +680,11 @@ fn signed_literal_expression_reversed_test() {
     operator: Plus,
     left: UnaryExpression {
         operator: Minus,
-        value: LiteralNumber {
+        value: LiteralInteger {
             value: "4",
         },
     },
-    right: LiteralNumber {
+    right: LiteralInteger {
         value: "5",
     },
 }"#;
@@ -675,7 +713,7 @@ fn or_compare_expressions_priority_test() {
         left: Reference {
             name: "x",
         },
-        right: LiteralNumber {
+        right: LiteralInteger {
             value: "1",
         },
     },
@@ -712,11 +750,11 @@ fn addition_compare_or_priority_test() {
             left: Reference {
                 name: "x",
             },
-            right: LiteralNumber {
+            right: LiteralInteger {
                 value: "1",
             },
         },
-        right: LiteralNumber {
+        right: LiteralInteger {
             value: "2",
         },
     },
@@ -790,7 +828,7 @@ r#"BinaryExpression {
         left: Reference {
             name: "x",
         },
-        right: LiteralNumber {
+        right: LiteralInteger {
             value: "7",
         },
     },
@@ -799,7 +837,7 @@ r#"BinaryExpression {
         left: Reference {
             name: "y",
         },
-        right: LiteralNumber {
+        right: LiteralInteger {
             value: "6",
         },
     },
@@ -826,16 +864,189 @@ fn expression_list(){
     let expected_ast = 
 r#"ExpressionList {
     expressions: [
-        LiteralNumber {
+        LiteralInteger {
             value: "1",
         },
-        LiteralNumber {
+        LiteralInteger {
             value: "2",
         },
-        LiteralNumber {
+        LiteralInteger {
             value: "3",
         },
     ],
 }"#;
     assert_eq!(ast_string, expected_ast);
+}
+
+#[test]
+fn range_expression() {
+    let lexer = lexer::lex(
+        "
+        PROGRAM exp 
+        a..b;
+        1..2;
+        a..2;
+        2..a;
+        -2..-1;
+        END_PROGRAM
+        ",
+    );
+    let result = parse(lexer).unwrap();
+
+    let prg = &result.units[0];
+    let statement = &prg.statements[0];
+
+    let ast_string = format!("{:#?}", statement);
+    let expected_ast = 
+r#"RangeStatement {
+    start: Reference {
+        name: "a",
+    },
+    end: Reference {
+        name: "b",
+    },
+}"#;
+    assert_eq!(ast_string, expected_ast);
+
+
+    let statement = &prg.statements[1];
+
+    let ast_string = format!("{:#?}", statement);
+    let expected_ast = 
+r#"RangeStatement {
+    start: LiteralInteger {
+        value: "1",
+    },
+    end: LiteralInteger {
+        value: "2",
+    },
+}"#;
+    assert_eq!(ast_string, expected_ast);
+
+
+    let statement = &prg.statements[2];
+
+    let ast_string = format!("{:#?}", statement);
+    let expected_ast = 
+r#"RangeStatement {
+    start: Reference {
+        name: "a",
+    },
+    end: LiteralInteger {
+        value: "2",
+    },
+}"#;
+    assert_eq!(ast_string, expected_ast);
+
+    let statement = &prg.statements[3];
+
+    let ast_string = format!("{:#?}", statement);
+    let expected_ast = 
+r#"RangeStatement {
+    start: LiteralInteger {
+        value: "2",
+    },
+    end: Reference {
+        name: "a",
+    },
+}"#;
+    assert_eq!(ast_string, expected_ast);
+
+}
+
+#[test]
+fn negative_range_expression() {
+    let lexer = lexer::lex(
+        "
+        PROGRAM exp 
+        -2..-1;
+        END_PROGRAM
+        ",
+    );
+    let result = parse(lexer).unwrap();
+
+    let prg = &result.units[0];
+    let statement = &prg.statements[0];
+
+    let ast_string = format!("{:#?}", statement);
+    let expected_ast = 
+r#"RangeStatement {
+    start: UnaryExpression {
+        operator: Minus,
+        value: LiteralInteger {
+            value: "2",
+        },
+    },
+    end: UnaryExpression {
+        operator: Minus,
+        value: LiteralInteger {
+            value: "1",
+        },
+    },
+}"#;
+
+    assert_eq!(ast_string, expected_ast);
+}
+
+#[test]
+fn negative_range_expression_space() {
+    let lexer = lexer::lex(
+        "
+        PROGRAM exp 
+        -2 ..-1;
+        END_PROGRAM
+        ",
+    );
+    let result = parse(lexer).unwrap();
+
+    let prg = &result.units[0];
+    let statement = &prg.statements[0];
+
+    let ast_string = format!("{:#?}", statement);
+    let expected_ast = 
+r#"RangeStatement {
+    start: UnaryExpression {
+        operator: Minus,
+        value: LiteralInteger {
+            value: "2",
+        },
+    },
+    end: UnaryExpression {
+        operator: Minus,
+        value: LiteralInteger {
+            value: "1",
+        },
+    },
+}"#;
+
+    assert_eq!(ast_string, expected_ast);
+}
+
+
+#[test]
+fn range_expression2() {
+    let lexer = lexer::lex(
+        "
+        PROGRAM exp 
+        1 .. 2;
+        END_PROGRAM
+        ",
+    );
+    let result = parse(lexer).unwrap();
+
+    let prg = &result.units[0];
+    let statement = &prg.statements[0];
+
+    let ast_string = format!("{:#?}", statement);
+    let expected_ast = 
+r#"RangeStatement {
+    start: LiteralInteger {
+        value: "1",
+    },
+    end: LiteralInteger {
+        value: "2",
+    },
+}"#;
+    assert_eq!(ast_string, expected_ast);
+
 }

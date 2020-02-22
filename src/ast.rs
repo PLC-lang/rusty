@@ -51,8 +51,11 @@ pub struct ConditionalBlock {
 #[derive(Debug, PartialEq)]
 pub enum Statement {
     // Literals
-    LiteralNumber {
+    LiteralInteger {
         value: String,
+    },
+    LiteralReal {
+        value : String,
     },
     LiteralBool {
         value: bool,
@@ -72,6 +75,10 @@ pub enum Statement {
     },
     ExpressionList {
         expressions: Vec<Statement>,
+    },
+    RangeStatement {
+        start: Box<Statement>,
+        end: Box<Statement>,
     },
     // Assignment
     Assignment {

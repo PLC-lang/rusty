@@ -183,7 +183,7 @@ impl<'ctx> CodeGen<'ctx> {
                 left,
                 right,
             } => self.generate_binary_expression(operator, left, right),
-            Statement::LiteralNumber { value } => self.generate_literal_number(value.as_str()),
+            Statement::LiteralInteger { value } => self.generate_literal_number(value.as_str()),
             Statement::Reference { name } => self.generate_variable_reference(name),
             Statement::Assignment { left, right } => self.generate_assignment(&left, &right),
             Statement::UnaryExpression { operator, value } => self.generate_unary_expression(&operator, &value),

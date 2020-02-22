@@ -113,14 +113,34 @@ fn boolean_expression_test() {
 }
 
 #[test]
-fn literals_test() {
-    let mut lexer = super::lex("1 2.2 0123.0123 321");
+fn int_literals_test() {
+    let mut lexer = super::lex("1 2 3 0123 321");
 
     for x in 0..5 {
         print!("{}", x);
-        assert_eq!(lexer.token, super::Token::LiteralNumber);
+        assert_eq!(lexer.token, super::Token::LiteralInteger);
         lexer.advance();
     }
+}
+
+#[test]
+fn real_literals_test() {
+    let mut lexer = super::lex("1.234 0.9E10");
+
+        assert_eq!(lexer.token, super::Token::LiteralInteger);
+        lexer.advance();
+        assert_eq!(lexer.token, super::Token::KeywordDot);
+        lexer.advance();
+        assert_eq!(lexer.token, super::Token::LiteralInteger);
+        lexer.advance();
+        assert_eq!(lexer.token, super::Token::LiteralInteger);
+        lexer.advance();
+        assert_eq!(lexer.token, super::Token::KeywordDot);
+        lexer.advance();
+        assert_eq!(lexer.token, super::Token::LiteralInteger);
+        lexer.advance();
+        assert_eq!(lexer.token, super::Token::LiteralExponent);
+        lexer.advance();
 }
 
 #[test]
@@ -245,5 +265,31 @@ fn case_statement() {
     assert_eq!(lexer.token, super::Token::KeywordElse);
     lexer.advance();
     assert_eq!(lexer.token, super::Token::KeywordEndCase);
+}
+
+#[test]
+fn dot_statements() {
+    let mut lexer = super::lex(
+        r".. .",
+    );
+
+    assert_eq!(lexer.token, super::Token::KeywordDotDot);
+    lexer.advance();
+    assert_eq!(lexer.token, super::Token::KeywordDot);
+    lexer.advance();
+}
+
+#[test]
+fn range_statements() {
+    let mut lexer = super::lex(
+        r"123..ABC",
+    );
+
+    println!("{:?}", lexer.token);
+    lexer.advance();
+    println!("{:?}", lexer.token);
+    lexer.advance();
+    println!("{:?}", lexer.token);
+    lexer.advance();
 }
 
