@@ -5,17 +5,16 @@ use inkwell::execution_engine::JitFunction;
 type MainFunction = unsafe extern "C" fn() -> i32;
 
 #[test]
-#[ignore]
-fn does_nothing() {
+fn adds_in_result() {
     let prog = 
     "
     FUNCTION main : INT
-        main := 50;
+        main := 10 + 50;
     END_FUNCTION
     ";
 
     let (res, _) = compile_and_run(prog.to_string());
-    assert_eq!(res,50)  
+    assert_eq!(res,60)  
 }
 
 

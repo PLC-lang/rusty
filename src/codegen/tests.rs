@@ -15,21 +15,30 @@ macro_rules! codegen {
 }
 
 macro_rules! generate_boiler_plate {
-        ($pou_name:tt, $type:tt, $body:tt)  => (
+        ($pou_name:tt, $type:tt, $return_type: tt, $thread_mode: tt, $body:tt)  => (
             format!(
 r#"; ModuleID = 'main'
 source_filename = "main"
 
-%prg_interface = type {{{type}}}
+%{pou_name}_interface = type {{{type}}}
 
-@prg_instance = common global %prg_interface zeroinitializer
+@{pou_name}_instance = common {thread_mode}global %{pou_name}_interface zeroinitializer
 
-define void @{pou_name}() {{
+define {return_type} @{pou_name}() {{
 entry:
 {body}}}
 "#,
-            pou_name = $pou_name, type = $type, body = $body)
-        )
+            pou_name = $pou_name, 
+            type = $type, 
+            return_type = $return_type, 
+            thread_mode = $thread_mode,  
+            body = $body
+            );
+        );
+
+        ($pou_name:tt, $type:tt, $body:tt) => (
+            generate_boiler_plate!($pou_name, $type, "void","", $body);
+        );
     }
 
 #[test]
@@ -42,6 +51,16 @@ fn empty_program_with_name_generates_void_function() {
     assert_eq!(result, expected);
 }
 
+#[test]
+fn empty_function_with_name_generates_int_function() {
+    let result = codegen!("FUNCTION foo : INT END_FUNCTION");
+    let expected = generate_boiler_plate!("foo", " i32 ","i32","thread_local(localexec) ",
+    r#"  %foo_ret = load i32, i32* getelementptr inbounds (%foo_interface, %foo_interface* @foo_instance, i32 0, i32 0)
+  ret i32 %foo_ret
+"#);
+
+    assert_eq!(result, expected);
+}
 #[test]
 fn program_with_variables_generates_void_function_and_struct() {
     let result = codegen!(

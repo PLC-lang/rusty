@@ -6,17 +6,11 @@ use inkwell::context::Context;
 use inkwell::module::Module;
 use inkwell::module::Linkage;
 
-use inkwell::types::BasicTypeEnum;
-use inkwell::types::StringRadix;
-use inkwell::types::StructType;
+use inkwell::types::{BasicTypeEnum, StringRadix, StructType, BasicType, FunctionType};
 
-use inkwell::values::BasicValueEnum;
-use inkwell::values::BasicValue;
-use inkwell::values::FunctionValue;
-use inkwell::values::PointerValue;
-use inkwell::values::GlobalValue;
+use inkwell::values::{BasicValueEnum, FunctionValue, PointerValue, BasicValue, GlobalValue};
 
-use inkwell::AddressSpace;
+use inkwell::{AddressSpace, ThreadLocalMode};
 use inkwell::IntPredicate;
 
 use inkwell::basic_block::BasicBlock;
@@ -69,13 +63,40 @@ impl<'ctx> CodeGen<'ctx> {
         }
     }
 
+    fn get_type(&self, type_name: &Option<Type>) -> Option<BasicTypeEnum<'ctx>> {
+        if let Some(type_name) = type_name {
+            match type_name {
+                Type::Primitive(primitive_type) => self.get_primitive_type(primitive_type),
+                _ => None
+            }
+        } else {
+            None
+        }
+    }
+
+    fn get_primitive_type(&self, type_name: &PrimitiveType) -> Option<BasicTypeEnum<'ctx>> {
+        match type_name {
+            PrimitiveType::Int => Some(self.context.i32_type().as_basic_type_enum()),
+            PrimitiveType::Bool => Some(self.context.bool_type().as_basic_type_enum()),
+        }
+    }
+
+    fn get_function_type(&self, parameters: &'ctx [BasicTypeEnum], enum_type : Option<BasicTypeEnum<'ctx>>) -> FunctionType<'ctx> {
+        if let Some(enum_type) = enum_type {
+            if enum_type.is_int_type() {
+                return enum_type.into_int_type().fn_type(parameters,false);
+            }
+        }
+        self.context.void_type().fn_type(parameters,false)
+    } 
+
     fn generate_pou(&mut self, p: &POU) {
         
         self.current_pou = p.name.clone();
         
-        let return_type = self.context.void_type(); 
+        let return_type = self.get_type(&p.return_type); // self.context.void_type(); 
         //let return_type = self.context.i32_type();
-        let f_type = return_type.fn_type(&[], false);
+        let f_type = self.get_function_type(&[],return_type);
         self.current_function = Some(self.module.add_function(self.current_pou.as_str(), f_type, None));
         let block = self.context.append_basic_block(self.current_function.unwrap(), "entry");
 
@@ -84,6 +105,11 @@ impl<'ctx> CodeGen<'ctx> {
         for var_block in &p.variable_blocks {
             let mut members = self.get_variables_information(var_block);
             pou_members.append(&mut members);
+        }
+
+        //Insert return variable
+        if p.pou_type == PouType::Function {
+            pou_members.push((p.name.clone(), return_type.unwrap()));
         }
         //Create a struct with the value from the program
         let member_type = CodeGen::generate_instance_struct(
@@ -95,31 +121,36 @@ impl<'ctx> CodeGen<'ctx> {
 
         //Create An instance variable for that struct
         //Place in global data
-        self.generate_instance_variable(member_type, CodeGen::get_struct_instance_name(p.name.as_str()).as_str());
+        let thread_local_mode = if p.pou_type == PouType::Function {Some(ThreadLocalMode::LocalExecTLSModel)} else {None};
+        self.generate_instance_variable(member_type, thread_local_mode, CodeGen::get_struct_instance_name(p.name.as_str()).as_str());
         //let mut result = None;
         self.generate_statement_list(block,&p.statements);
-        //self.builder.build_return(Some(&result.unwrap()));
-        self.builder.build_return(None);
+        //self.builder.build_return(Some(&result.unwrap()));i
+        let ret_value =self.get_return_value(p.pou_type);
+        if let Some(ret_value) = ret_value {
+            self.builder.build_return(Some(&ret_value));
+        } else {
+            self.builder.build_return(None);
+        };
+    }
+
+    fn get_return_value(&self, pou_type : PouType) -> Option<BasicValueEnum> {
+        match pou_type {
+            PouType::Function => {
+                let value = self.generate_lvalue_for_reference(self.current_pou.as_str()).unwrap(); 
+                Some(self.builder.build_load(value,format!("{}_ret",self.current_pou.as_str()).as_str()))
+            },
+            _ => None
+        }
     }
 
     fn get_variables_information(&self, v: &VariableBlock) -> Vec<(String, BasicTypeEnum<'ctx>)> {
-        let mut types: Vec<(String, BasicTypeEnum)> = Vec::new();
+        let mut types: Vec<(String, BasicTypeEnum<'ctx>)> = Vec::new();
         for variable in &v.variables {
-            let var_type = self.get_type(&variable.data_type);
-            types.push((variable.name.clone(), var_type.into()));
+            let var_type = self.get_type(&Some(variable.data_type)).unwrap();
+            types.push((variable.name.clone(), var_type));
         }
         types
-    }
-
-    fn get_type(&self, t: &Type) -> BasicTypeEnum<'ctx> {
-        if let Type::Primitive(name) = t {
-            match name {
-                PrimitiveType::Int => self.context.i32_type().into(),
-                PrimitiveType::Bool => self.context.bool_type().into(),
-            }
-        } else {
-            panic!("Unkown type {:?}", t)
-        }
     }
 
     fn generate_instance_struct(
@@ -145,12 +176,14 @@ impl<'ctx> CodeGen<'ctx> {
     fn generate_instance_variable(
         &self,
         variable_type: StructType<'ctx>,
+        thread_local_mode: Option<ThreadLocalMode>,
         name: &str,
     ) -> GlobalValue {
         let result = self.module
             .add_global(variable_type, Some(AddressSpace::Generic), name);
 
         result.set_initializer(&variable_type.const_zero());
+        result.set_thread_local_mode(thread_local_mode);
         result.set_linkage(Linkage::Common);
         result
     }

@@ -7,7 +7,7 @@ pub struct POU {
     pub return_type: Option<Type>,
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, Copy, PartialEq, Clone)]
 pub enum PouType {
     Program,
     Function,
@@ -30,13 +30,13 @@ pub struct Variable {
     pub data_type: Type,
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, Copy, PartialEq, Clone)]
 pub enum Type {
     Primitive (PrimitiveType),
     Custom,
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, Copy, PartialEq, Clone)]
 pub enum PrimitiveType {
     Int,
     Bool,
