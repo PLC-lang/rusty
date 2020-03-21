@@ -10,7 +10,7 @@ macro_rules! codegen {
 
         let context = Context::create();
         let mut code_generator = super::CodeGen::new(&context);
-        code_generator.generate(&ast)
+        code_generator.generate(ast)
     }};
 }
 
@@ -761,6 +761,58 @@ while_body:                                       ; preds = %entry, %condition_c
   br label %condition_check
 
 continue:                                         ; preds = %condition_check
+  ret void
+"#);
+
+    assert_eq!(result, expected);
+}
+
+
+#[test]
+fn simple_case_statement() {
+    let result = codegen!(
+        "
+        PROGRAM prg 
+        VAR
+            x : INT;
+            y : INT;
+        END_VAR
+        CASE x OF
+        1: y := 1;
+        2: y := 2;
+        3: y := 3;
+        ELSE
+            y := -1;
+        END_CASE
+        END_PROGRAM
+        "
+    );
+
+    let expected = generate_boiler_plate!("prg"," i32, i32 ", 
+r#"  %load_x = load i32, i32* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 0)
+  switch i32 %load_x, label %else [
+    i32 1, label %case
+    i32 2, label %case1
+    i32 3, label %case2
+  ]
+
+case:                                             ; preds = %entry
+  store i32 1, i32* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 1)
+  br label %continue
+
+case1:                                            ; preds = %entry
+  store i32 2, i32* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 1)
+  br label %continue
+
+case2:                                            ; preds = %entry
+  store i32 3, i32* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 1)
+  br label %continue
+
+else:                                             ; preds = %entry
+  store i32 -1, i32* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 1)
+  br label %continue
+
+continue:                                         ; preds = %else, %case2, %case1, %case
   ret void
 "#);
 

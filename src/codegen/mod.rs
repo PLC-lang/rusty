@@ -58,12 +58,12 @@ impl<'ctx> CodeGen<'ctx> {
         format!("{}_instance", pou_name)
     }
 
-    pub fn generate(&mut self, root: &CompilationUnit) -> String {
+    pub fn generate(&mut self, root: CompilationUnit) -> String {
         self.generate_compilation_unit(root);
         self.module.print_to_string().to_string()
     }
 
-    fn generate_compilation_unit(&mut self, root: &CompilationUnit) {
+    pub fn generate_compilation_unit(&mut self, root: CompilationUnit) {
         for unit in &root.units {
             self.generate_pou(unit);
         }
@@ -161,6 +161,11 @@ impl<'ctx> CodeGen<'ctx> {
                 blocks,
                 else_block,
             } => self.generate_if_statement(blocks,else_block),
+            Statement::CaseStatement {
+                selector,
+                case_blocks,
+                else_block
+            } => self.generate_case_statement(selector, case_blocks, else_block),
             //Loops
             Statement::ForLoopStatement {
                 counter,
@@ -189,6 +194,44 @@ impl<'ctx> CodeGen<'ctx> {
             Statement::UnaryExpression { operator, value } => self.generate_unary_expression(&operator, &value),
             _ => unimplemented!(),
         }
+    }
+
+    fn generate_case_statement(&self, selector : &Box<Statement>, conditional_blocks : &Vec<ConditionalBlock>, else_body : &Vec<Statement>) -> Option<BasicValueEnum> {
+        
+        //Continue
+        let continue_block = self.context.append_basic_block(self.current_function?, "continue");
+        
+        let basic_block = self.builder.get_insert_block()?;
+        let selector_statement = self.generate_statement(&*selector)?;
+        let mut cases = Vec::new();
+        
+        
+        //generate a int_value and a BasicBlock for every case-body
+        for i in 0..conditional_blocks.len() {
+            let conditional_block = &conditional_blocks[i];
+            let basic_block = self.context.append_basic_block(self.current_function?, "case");
+            let condition = self.generate_statement(&*conditional_block.condition)?;
+            self.generate_statement_list(basic_block, &conditional_block.body);
+            self.builder.build_unconditional_branch(continue_block);
+            
+            cases.push((condition.into_int_value(), basic_block));
+        }
+
+        let else_block = self.context.append_basic_block(self.current_function?, "else");
+        self.generate_statement_list(else_block, else_body);
+        self.builder.build_unconditional_branch(continue_block);
+        
+
+        //Move the continue block to after the else block
+        continue_block.move_after(else_block).unwrap();
+        //Position in initial block
+        self.builder.position_at_end(basic_block);
+        self.builder.build_switch(
+            selector_statement.into_int_value(),
+            else_block, 
+            &cases);
+        self.builder.position_at_end(continue_block);
+        None
     }
 
     fn generate_if_statement(&self, conditional_blocks : &Vec<ConditionalBlock>, else_body : &Vec<Statement>) -> Option<BasicValueEnum> {
@@ -236,6 +279,8 @@ impl<'ctx> CodeGen<'ctx> {
         self.builder.position_at_end(continue_block);
         None
     }
+
+
 
     fn generate_for_statement(&self, counter: &Box<Statement>, start : &Box<Statement>, end : &Box<Statement>, by_step : &Option<Box<Statement>>, body : &Vec<Statement> ) -> Option<BasicValueEnum> {
         self.generate_assignment(counter, start);        
@@ -366,7 +411,7 @@ impl<'ctx> CodeGen<'ctx> {
      *  int x = 7;
         x = 7 + x;
      *  return x;
-     * 
+     * ```norun
             %1 = alloca i32, align 4
             %2 = alloca i32, align 4
             store i32 0, i32* %1, align 4
@@ -376,7 +421,7 @@ impl<'ctx> CodeGen<'ctx> {
             store i32 %4, i32* %2, align 4
 
             https://github.com/sinato/inkwell-playground/tree/master/examples
-
+        ```
      */
 
     fn generate_assignment(&self, left: &Box<Statement>, right : &Box<Statement>) -> Option<BasicValueEnum> {
