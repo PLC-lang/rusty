@@ -97,7 +97,7 @@ impl<'ctx> CodeGen<'ctx> {
         //Place in global data
         self.generate_instance_variable(member_type, CodeGen::get_struct_instance_name(p.name.as_str()).as_str());
         //let mut result = None;
-        self.generate_statement_list(&block,&p.statements);
+        self.generate_statement_list(block,&p.statements);
         //self.builder.build_return(Some(&result.unwrap()));
         self.builder.build_return(None);
     }
@@ -214,26 +214,26 @@ impl<'ctx> CodeGen<'ctx> {
             let then_block = blocks[i];
             let else_block = blocks[i+1];
             
-            self.builder.position_at_end(&then_block);
+            self.builder.position_at_end(then_block);
 
             let condition = self.generate_statement(&block.condition).unwrap().into_int_value();
-            let conditional_block = self.context.prepend_basic_block(&else_block, "condition_body");
+            let conditional_block = self.context.prepend_basic_block(else_block, "condition_body");
             
             //Generate if statement condition
-            self.builder.build_conditional_branch(condition, &conditional_block, &else_block);
+            self.builder.build_conditional_branch(condition, conditional_block, else_block);
             
 
             //Generate if statement content
-            self.generate_statement_list(&conditional_block, &block.body);
-            self.builder.build_unconditional_branch(&continue_block);
+            self.generate_statement_list(conditional_block, &block.body);
+            self.builder.build_unconditional_branch(continue_block);
         }
         //Else
         if let Some(else_block) = else_block {
-            self.generate_statement_list(&else_block, else_body);
-            self.builder.build_unconditional_branch(&continue_block);
+            self.generate_statement_list(else_block, else_body);
+            self.builder.build_unconditional_branch(continue_block);
         }
         //Continue
-        self.builder.position_at_end(&continue_block);
+        self.builder.position_at_end(continue_block);
         None
     }
 
@@ -244,14 +244,14 @@ impl<'ctx> CodeGen<'ctx> {
         let continue_block = self.context.append_basic_block(self.current_function?, "continue");
         
         //Check loop condition
-        self.builder.position_at_end(&condition_check);
+        self.builder.position_at_end(condition_check);
         let counter_statement = self.generate_statement(counter).unwrap().into_int_value();
         let end_statement = self.generate_statement(end).unwrap().into_int_value();
         let compare = self.builder.build_int_compare(IntPredicate::SLE, counter_statement, end_statement, "tmpVar");
-        self.builder.build_conditional_branch(compare, &for_body, &continue_block);
+        self.builder.build_conditional_branch(compare, for_body, continue_block);
 
         //Enter the for loop
-        self.generate_statement_list(&for_body, &body);
+        self.generate_statement_list(for_body, &body);
         
         //Increment
         let step_by_value = by_step.as_ref()
@@ -263,10 +263,10 @@ impl<'ctx> CodeGen<'ctx> {
         self.builder.build_store(ptr, next);
 
         //Loop back
-        self.builder.build_unconditional_branch(&condition_check); 
+        self.builder.build_unconditional_branch(condition_check); 
         
         //Continue
-        self.builder.position_at_end(&continue_block);
+        self.builder.position_at_end(continue_block);
         None
     }
 
@@ -276,17 +276,17 @@ impl<'ctx> CodeGen<'ctx> {
         let continue_block = self.context.append_basic_block(self.current_function?, "continue");
         
         //Check loop condition
-        self.builder.position_at_end(&condition_check);
+        self.builder.position_at_end(condition_check);
         let condition_value = self.generate_statement(condition)?.into_int_value();
-        self.builder.build_conditional_branch(condition_value, &while_body, &continue_block);
+        self.builder.build_conditional_branch(condition_value, while_body, continue_block);
 
         //Enter the for loop
-        self.generate_statement_list(&while_body, &body);
+        self.generate_statement_list(while_body, &body);
         //Loop back
-        self.builder.build_unconditional_branch(&condition_check); 
+        self.builder.build_unconditional_branch(condition_check); 
         
         //Continue
-        self.builder.position_at_end(&continue_block);
+        self.builder.position_at_end(continue_block);
         None
     }
 
@@ -297,15 +297,15 @@ impl<'ctx> CodeGen<'ctx> {
         let continue_block = self.builder.get_insert_block()?;
         
         let while_block = continue_block.get_previous_basic_block()?;
-        self.builder.position_at_end(&basic_block);
-        self.builder.build_unconditional_branch(&while_block);
+        self.builder.position_at_end(basic_block);
+        self.builder.build_unconditional_branch(while_block);
 
-        self.builder.position_at_end(&continue_block);
+        self.builder.position_at_end(continue_block);
         None
     }
 
-    fn generate_statement_list(&self, block : &BasicBlock, statements:&Vec<Statement>) {
-        self.builder.position_at_end(&block);
+    fn generate_statement_list(&self, block : BasicBlock, statements:&Vec<Statement>) {
+        self.builder.position_at_end(block);
         for statement in statements {
             self.generate_statement(statement);
         }
