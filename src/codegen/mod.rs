@@ -12,7 +12,6 @@ use inkwell::types::StructType;
 
 use inkwell::values::BasicValueEnum;
 use inkwell::values::BasicValue;
-use inkwell::values::IntValue;
 use inkwell::values::FunctionValue;
 use inkwell::values::PointerValue;
 use inkwell::values::GlobalValue;
@@ -212,27 +211,26 @@ impl<'ctx> CodeGen<'ctx> {
             let conditional_block = &conditional_blocks[i];
             let basic_block = self.context.append_basic_block(self.current_function?, "case");
             let condition = self.generate_statement(&*conditional_block.condition)?;
-            self.generate_statement_list(&basic_block, &conditional_block.body);
-            self.builder.build_unconditional_branch(&continue_block);
+            self.generate_statement_list(basic_block, &conditional_block.body);
+            self.builder.build_unconditional_branch(continue_block);
             
             cases.push((condition.into_int_value(), basic_block));
         }
 
         let else_block = self.context.append_basic_block(self.current_function?, "else");
-        self.generate_statement_list(&else_block, else_body);
-        self.builder.build_unconditional_branch(&continue_block);
+        self.generate_statement_list(else_block, else_body);
+        self.builder.build_unconditional_branch(continue_block);
         
-        let cases_values : Vec<_> = cases.iter().map(|(value,block)| (value.clone(), block )).collect();
 
         //Move the continue block to after the else block
-        continue_block.move_after(&else_block).unwrap();
+        continue_block.move_after(else_block).unwrap();
         //Position in initial block
-        self.builder.position_at_end(&basic_block);
+        self.builder.position_at_end(basic_block);
         self.builder.build_switch(
             selector_statement.into_int_value(),
-            &else_block, 
-            cases_values.as_slice());
-        self.builder.position_at_end(&continue_block);
+            else_block, 
+            &cases);
+        self.builder.position_at_end(continue_block);
         None
     }
 
