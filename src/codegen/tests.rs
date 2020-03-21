@@ -10,7 +10,7 @@ macro_rules! codegen {
 
         let context = Context::create();
         let mut code_generator = super::CodeGen::new(&context);
-        code_generator.generate(&ast)
+        code_generator.generate(ast)
     }};
 }
 

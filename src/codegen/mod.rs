@@ -58,12 +58,12 @@ impl<'ctx> CodeGen<'ctx> {
         format!("{}_instance", pou_name)
     }
 
-    pub fn generate(&mut self, root: &CompilationUnit) -> String {
+    pub fn generate(&mut self, root: CompilationUnit) -> String {
         self.generate_compilation_unit(root);
         self.module.print_to_string().to_string()
     }
 
-    fn generate_compilation_unit(&mut self, root: &CompilationUnit) {
+    pub fn generate_compilation_unit(&mut self, root: CompilationUnit) {
         for unit in &root.units {
             self.generate_pou(unit);
         }
@@ -411,7 +411,7 @@ impl<'ctx> CodeGen<'ctx> {
      *  int x = 7;
         x = 7 + x;
      *  return x;
-     * 
+     * ```norun
             %1 = alloca i32, align 4
             %2 = alloca i32, align 4
             store i32 0, i32* %1, align 4
@@ -421,7 +421,7 @@ impl<'ctx> CodeGen<'ctx> {
             store i32 %4, i32* %2, align 4
 
             https://github.com/sinato/inkwell-playground/tree/master/examples
-
+        ```
      */
 
     fn generate_assignment(&self, left: &Box<Statement>, right : &Box<Statement>) -> Option<BasicValueEnum> {
