@@ -14,14 +14,24 @@ macro_rules! codegen {
     }};
 }
 
+macro_rules! generate_with_empty_program {
+  ($code:tt) => (
+    {
+      let source = format!("{} {}", "PROGRAM main END_PROGRAM", $code);
+      let str_source = source.as_str();
+      codegen!(str_source)
+    }
+  )
+}
+
 macro_rules! generate_boiler_plate {
-        ($pou_name:tt, $type:tt, $return_type: tt, $thread_mode: tt, $body:tt)  => (
+        ($pou_name:tt, $type:tt, $return_type: tt, $thread_mode: tt, $body:tt, $global_variables:tt)  => (
             format!(
 r#"; ModuleID = 'main'
 source_filename = "main"
 
 %{pou_name}_interface = type {{{type}}}
-
+{global_variables}
 @{pou_name}_instance = common {thread_mode}global %{pou_name}_interface zeroinitializer
 
 define {return_type} @{pou_name}() {{
@@ -32,14 +42,83 @@ entry:
             type = $type, 
             return_type = $return_type, 
             thread_mode = $thread_mode,  
-            body = $body
-            );
+            body = $body,
+            global_variables = $global_variables
+            )
+        );
+
+        ($pou_name:tt, $type:tt, $return_type: tt, $thread_mode: tt, $body:tt )  => (
+          generate_boiler_plate!($pou_name, $type, $return_type,$thread_mode, $body, "");
+        );
+
+        ($global_variables:tt)  => (
+          generate_boiler_plate!("main", "", "void", "", "  ret void\n", $global_variables);
         );
 
         ($pou_name:tt, $type:tt, $body:tt) => (
-            generate_boiler_plate!($pou_name, $type, "void","", $body);
+            generate_boiler_plate!($pou_name, $type, "void", "", $body, "");
         );
     }
+
+#[test]
+fn empty_global_variable_list_generates_nothing() {
+    let result = generate_with_empty_program!("VAR_GLOBAL END_VAR");
+    let expected = generate_boiler_plate!("");
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn a_global_variables_generates_in_separate_global_variables() {
+    let result = generate_with_empty_program!("VAR_GLOBAL gX : INT; gY : BOOL; END_VAR");
+    let expected = generate_boiler_plate!(
+r#"
+@gX = common global i32 0
+@gY = common global i1 false"#);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn two_global_variables_generates_in_separate_global_variables() {
+    let result = generate_with_empty_program!("VAR_GLOBAL gX : INT; gY : BOOL; END_VAR VAR_GLOBAL gA : INT; END_VAR");
+    let expected = generate_boiler_plate!(
+r#"
+@gX = common global i32 0
+@gY = common global i1 false
+@gA = common global i32 0"#);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn global_variable_reference_is_generated() {
+    let function = codegen!(r"
+    VAR_GLOBAL
+        gX : INT;
+    END_VAR
+    PROGRAM prg
+    VAR
+      x : INT;
+    END_VAR
+    gX := 20;
+    x := gX;
+    END_PROGRAM
+    ");
+
+    let expected = generate_boiler_plate!("prg", " i32 ", "void", "", 
+r"  store i32 20, i32* @gX
+  %load_gX = load i32, i32* @gX
+  store i32 %load_gX, i32* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 0)
+  ret void
+", //body
+r"
+@gX = common global i32 0" //global vars
+    );
+
+    assert_eq!(function,expected)
+
+}
 
 #[test]
 fn empty_program_with_name_generates_void_function() {

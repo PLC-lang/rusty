@@ -16,6 +16,7 @@ pub enum PouType {
 
 #[derive(Debug, PartialEq)]
 pub struct CompilationUnit {
+    pub global_vars : Vec<VariableBlock>,
     pub units: Vec<POU>,
 }
 

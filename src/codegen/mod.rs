@@ -58,6 +58,10 @@ impl<'ctx> CodeGen<'ctx> {
     }
 
     pub fn generate_compilation_unit(&mut self, root: CompilationUnit) {
+        for global_variables in &root.global_vars {
+            self.generate_global_vars(global_variables);
+        }
+    
         for unit in &root.units {
             self.generate_pou(unit);
         }
@@ -90,11 +94,18 @@ impl<'ctx> CodeGen<'ctx> {
         self.context.void_type().fn_type(parameters,false)
     } 
 
+    fn generate_global_vars(&mut self, global_vars: &VariableBlock) {
+        let members = self.get_variables_information(global_vars);
+        for (name, var_type) in members {
+            self.generate_global_variable(var_type, None, &name);
+        }
+    }
+    
     fn generate_pou(&mut self, p: &POU) {
         
         self.current_pou = p.name.clone();
         
-        let return_type = self.get_type(&p.return_type); // self.context.void_type(); 
+        let return_type = self.get_type(&p.return_type); 
         //let return_type = self.context.i32_type();
         let f_type = self.get_function_type(&[],return_type);
         self.current_function = Some(self.module.add_function(self.current_pou.as_str(), f_type, None));
@@ -122,7 +133,7 @@ impl<'ctx> CodeGen<'ctx> {
         //Create An instance variable for that struct
         //Place in global data
         let thread_local_mode = if p.pou_type == PouType::Function {Some(ThreadLocalMode::LocalExecTLSModel)} else {None};
-        self.generate_instance_variable(member_type, thread_local_mode, CodeGen::get_struct_instance_name(p.name.as_str()).as_str());
+        self.generate_global_variable(member_type.into(), thread_local_mode, CodeGen::get_struct_instance_name(p.name.as_str()).as_str());
         //let mut result = None;
         self.generate_statement_list(block,&p.statements);
         //self.builder.build_return(Some(&result.unwrap()));i
@@ -172,17 +183,24 @@ impl<'ctx> CodeGen<'ctx> {
         struct_type.set_body(member_types.as_slice(), false);
         struct_type
     }
+    fn set_initializer_for_type(&self, global_value : &GlobalValue<'ctx>, variable_type : BasicTypeEnum<'ctx>) {
+        if variable_type.is_int_type() {
+            global_value.set_initializer(&variable_type.into_int_type().const_zero());
+        } else if variable_type.is_struct_type() {
+            global_value.set_initializer(&variable_type.into_struct_type().const_zero());
+        }
 
-    fn generate_instance_variable(
+    }
+
+    fn generate_global_variable(
         &self,
-        variable_type: StructType<'ctx>,
+        variable_type: BasicTypeEnum<'ctx>,
         thread_local_mode: Option<ThreadLocalMode>,
         name: &str,
     ) -> GlobalValue {
         let result = self.module
             .add_global(variable_type, Some(AddressSpace::Generic), name);
-
-        result.set_initializer(&variable_type.const_zero());
+        self.set_initializer_for_type(&result, variable_type);
         result.set_thread_local_mode(thread_local_mode);
         result.set_linkage(Linkage::Common);
         result
@@ -422,30 +440,36 @@ impl<'ctx> CodeGen<'ctx> {
             _ => None
         }
     }
+    fn get_variable(&self, name: &str) -> Option<PointerValue> {
+        if let Some(index) = self.variables.get(name) {
+            //Get from local scope
+            self.get_local_variable(*index)
+        } else {
+            //Get from global scope
+            self.get_global_variable(name)
+        }
+    }
 
-    fn generate_lvalue_for_reference(&self, name: &str) -> Option<PointerValue> {
-        // for now we only support locals
+    fn get_local_variable(&self, index : u32) -> Option<PointerValue> {
+
         let struct_type = self.module.get_type(CodeGen::get_struct_name(self.current_pou.as_str()).as_str()).unwrap().into_struct_type();
-        
         let ptr_struct_ype = struct_type.ptr_type(AddressSpace::Generic);
         let void_ptr_value = self
             .module
             .get_global(CodeGen::get_struct_instance_name(self.current_pou.as_str()).as_str()).unwrap().as_basic_value_enum().into_pointer_value();
         
         let ptr_value = self.builder.build_pointer_cast(void_ptr_value, ptr_struct_ype, "temp_struct");
-        let index = self.variables.get(name);
+        let ptr_result = 
+        unsafe {self.builder.build_struct_gep(ptr_value, index, "temp_struct")};
+        Some(ptr_result)
+    }
 
-        if let Some(index) = index {
-            // let struct_value = self.builder.build_load(ptr_value, "temp_struct");
-            // let tt = struct_value.get_type().into_struct_type();
-            //println!("{:?} -> {:?}", tt, tt.get_field_types());
-             let ptr_result = 
-             unsafe {self.builder.build_struct_gep(ptr_value, *index, "temp_struct")};
-             Some(ptr_result)
-            //self.builder.build_extract_value(struct_value.into_struct_value(), *index, name)
-        } else {
-            None
-        }
+    fn get_global_variable(&self, name : &str) -> Option<PointerValue> {
+       self.module.get_global(name).map(|var| var.as_basic_value_enum().into_pointer_value()) 
+    }
+
+    fn generate_lvalue_for_reference(&self, name: &str) -> Option<PointerValue> {
+        self.get_variable(name)
     }
 
     fn generate_variable_reference(&self, name: &str) -> Option<BasicValueEnum> {

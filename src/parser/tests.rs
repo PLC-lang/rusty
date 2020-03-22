@@ -11,6 +11,89 @@ fn empty_returns_empty_compilation_unit() {
 }
 
 #[test]
+fn empty_global_vars_can_be_parsed() {
+    let lexer = lexer::lex("VAR_GLOBAL END_VAR");
+    let result = super::parse(lexer).unwrap();
+
+    let vars = &result.global_vars[0]; //globar_vars
+    let ast_string = format!("{:#?}", vars);
+    let expected_ast = 
+r#"VariableBlock {
+    variables: [],
+}"#;
+    assert_eq!(ast_string,expected_ast)
+
+}
+
+#[test]
+fn global_vars_can_be_parsed() {
+    let lexer = lexer::lex("VAR_GLOBAL x : INT; y : BOOL; END_VAR");
+    let result = super::parse(lexer).unwrap();
+
+    let vars = &result.global_vars[0]; //globar_vars
+    let ast_string = format!("{:#?}", vars);
+    let expected_ast = 
+r#"VariableBlock {
+    variables: [
+        Variable {
+            name: "x",
+            data_type: Primitive(
+                Int,
+            ),
+        },
+        Variable {
+            name: "y",
+            data_type: Primitive(
+                Bool,
+            ),
+        },
+    ],
+}"#;
+    assert_eq!(ast_string,expected_ast)
+
+}
+
+#[test]
+fn two_global_vars_can_be_parsed() {
+    let lexer = lexer::lex("VAR_GLOBAL a: INT; END_VAR VAR_GLOBAL x : INT; y : BOOL; END_VAR");
+    let result = super::parse(lexer).unwrap();
+
+    let vars = &result.global_vars; //globar_vars
+    let ast_string = format!("{:#?}", vars);
+    let expected_ast = 
+r#"[
+    VariableBlock {
+        variables: [
+            Variable {
+                name: "a",
+                data_type: Primitive(
+                    Int,
+                ),
+            },
+        ],
+    },
+    VariableBlock {
+        variables: [
+            Variable {
+                name: "x",
+                data_type: Primitive(
+                    Int,
+                ),
+            },
+            Variable {
+                name: "y",
+                data_type: Primitive(
+                    Bool,
+                ),
+            },
+        ],
+    },
+]"#;
+    assert_eq!(ast_string,expected_ast)
+
+}
+
+#[test]
 fn simple_foo_program_can_be_parsed() {
     let lexer = lexer::lex("PROGRAM foo END_PROGRAM");
     let result = super::parse(lexer).unwrap();

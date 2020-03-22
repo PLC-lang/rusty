@@ -1,14 +1,7 @@
 use crate::lexer;
 use logos::Lexer;
 
-use crate::ast::CompilationUnit;
-use crate::ast::PrimitiveType;
-use crate::ast::POU;
-use crate::ast::PouType;
-use crate::ast::Statement;
-use crate::ast::Type;
-use crate::ast::Variable;
-use crate::ast::VariableBlock;
+use crate::ast::*;
 use crate::lexer::Token::*;
 
 use expressions::parse_primary_expression;
@@ -81,10 +74,12 @@ fn slice_and_advance(lexer: &mut RustyLexer) -> String {
 }
 
 pub fn parse(mut lexer: RustyLexer) -> Result<CompilationUnit, String> {
-    let mut unit = CompilationUnit { units: Vec::new() };
+    let mut unit = CompilationUnit { global_vars : Vec::new(), units: Vec::new() };
 
     loop {
         match lexer.token {
+            KeywordVarGlobal => 
+                unit.global_vars.push(parse_variable_block(&mut lexer)?),
             KeywordProgram => 
                 unit.units.push(parse_pou(&mut lexer, PouType::Program, KeywordEndProgram)?),
             KeywordFunction => 
@@ -96,7 +91,6 @@ pub fn parse(mut lexer: RustyLexer) -> Result<CompilationUnit, String> {
             _ => return Err(unexpected_token(&lexer)),
         };
 
-        lexer.advance();
     }
     //the match in the loop will always return
 }
@@ -137,6 +131,7 @@ fn parse_pou(lexer: &mut RustyLexer, pou_type: PouType, expected_end_token: lexe
     result.statements.append(&mut body);
 
     expect!(expected_end_token, lexer);
+    lexer.advance();
     Ok(result)
 }
 
