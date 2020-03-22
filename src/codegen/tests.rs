@@ -200,6 +200,30 @@ END_PROGRAM
 }
 
 #[test]
+fn program_with_boolean_assignment_generates_void_function_and_struct_and_body() {
+    let result = codegen!(
+        r#"PROGRAM prg
+VAR
+y : BOOL;
+END_VAR
+y := TRUE;
+y := FALSE;
+END_PROGRAM
+"#
+    );
+    let expected = generate_boiler_plate!(
+        "prg",
+        " i1 ",
+        r#"  store i1 true, i1* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 0)
+  store i1 false, i1* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 0)
+  ret void
+"#
+    );
+
+    assert_eq!(result, expected);
+}
+
+#[test]
 fn program_with_variable_and_arithmatic_assignment_generates_void_function_and_struct_and_body() {
     let result = codegen!(
         r#"PROGRAM prg

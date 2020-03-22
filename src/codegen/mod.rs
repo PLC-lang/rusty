@@ -222,10 +222,11 @@ impl<'ctx> CodeGen<'ctx> {
                 right,
             } => self.generate_binary_expression(operator, left, right),
             Statement::LiteralInteger { value } => self.generate_literal_number(value.as_str()),
+            Statement::LiteralBool { value } => self.generate_literal_boolean(*value),
             Statement::Reference { name } => self.generate_variable_reference(name),
             Statement::Assignment { left, right } => self.generate_assignment(&left, &right),
             Statement::UnaryExpression { operator, value } => self.generate_unary_expression(&operator, &value),
-            _ => unimplemented!(),
+            _ => panic!("{:?} not yet supported",s ),
         }
     }
 
@@ -473,6 +474,12 @@ impl<'ctx> CodeGen<'ctx> {
         let itype = self.context.i32_type();
         let value = itype.const_int_from_string(value, StringRadix::Decimal);
         Some(BasicValueEnum::IntValue(value?))
+    }
+    
+    fn generate_literal_boolean(&self, value: bool) -> Option<BasicValueEnum> {
+        let itype = self.context.bool_type();
+        let value = itype.const_int(value as u64,false);
+        Some(BasicValueEnum::IntValue(value))
     }
 
     fn generate_binary_expression(
