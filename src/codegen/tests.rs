@@ -578,8 +578,9 @@ fn for_statement_with_steps_test() {
 
     let expected = generate_boiler_plate!("prg"," i32 ", 
 r#"  store i32 3, i32* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 0)
+  br label %condition_check
 
-condition_check:                                  ; preds = %for_body
+condition_check:                                  ; preds = %for_body, %entry
   %load_x = load i32, i32* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 0)
   %tmpVar = icmp sle i32 %load_x, 10
   br i1 %tmpVar, label %for_body, label %continue
@@ -614,8 +615,9 @@ fn for_statement_without_steps_test() {
 
     let expected = generate_boiler_plate!("prg"," i32 ", 
 r#"  store i32 3, i32* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 0)
+  br label %condition_check
 
-condition_check:                                  ; preds = %for_body
+condition_check:                                  ; preds = %for_body, %entry
   %load_x = load i32, i32* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 0)
   %tmpVar = icmp sle i32 %load_x, 10
   br i1 %tmpVar, label %for_body, label %continue
@@ -650,8 +652,9 @@ fn for_statement_continue() {
 
     let expected = generate_boiler_plate!("prg"," i32 ", 
 r#"  store i32 3, i32* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 0)
+  br label %condition_check
 
-condition_check:                                  ; preds = %for_body
+condition_check:                                  ; preds = %for_body, %entry
   %load_x = load i32, i32* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 0)
   %tmpVar = icmp sle i32 %load_x, 10
   br i1 %tmpVar, label %for_body, label %continue
@@ -690,8 +693,9 @@ fn for_statement_with_references_steps_test() {
     let expected = generate_boiler_plate!("prg"," i32, i32, i32, i32 ", 
 r#"  %load_y = load i32, i32* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 2)
   store i32 %load_y, i32* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 1)
+  br label %condition_check
 
-condition_check:                                  ; preds = %for_body
+condition_check:                                  ; preds = %for_body, %entry
   %load_x = load i32, i32* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 1)
   %load_z = load i32, i32* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 3)
   %tmpVar = icmp sle i32 %load_x, %load_z
@@ -727,8 +731,9 @@ fn while_statement() {
     );
 
     let expected = generate_boiler_plate!("prg"," i1 ", 
-r#"
-condition_check:                                  ; preds = %while_body
+r#"  br label %condition_check
+
+condition_check:                                  ; preds = %entry, %while_body
   %load_x = load i1, i1* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 0)
   br i1 %load_x, label %while_body, label %continue
 
@@ -759,8 +764,9 @@ fn while_with_expression_statement() {
     );
 
     let expected = generate_boiler_plate!("prg"," i1 ", 
-r#"
-condition_check:                                  ; preds = %while_body
+r#"  br label %condition_check
+
+condition_check:                                  ; preds = %entry, %while_body
   %load_x = load i1, i1* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 0)
   %tmpVar = icmp eq i1 %load_x, i32 0
   br i1 %tmpVar, label %while_body, label %continue

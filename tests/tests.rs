@@ -20,10 +20,10 @@ mod correctness {
 pub fn compile_and_run(source : String) -> (i32, &'static str) {
     let context = Context::create();
     let code_gen = compile_module(&context, source);
+    println!("{}", get_ir(&code_gen));
     let exec_engine = code_gen.module.create_jit_execution_engine(inkwell::OptimizationLevel::None).unwrap();
     let result = unsafe {
         let main : JitFunction<MainFunction> = exec_engine.get_function("main").unwrap();
-        println!("{:?}", main);
         let int_res = main.call();
         (int_res, "")
     };

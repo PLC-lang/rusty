@@ -38,7 +38,11 @@ pub fn compile(source : String, output : &str) {
 pub fn compile_to_ir(source : String) -> String {
     let context = Context::create();
     let code_gen = compile_module(&context, source);
-    code_gen.module.print_to_string().to_string()
+    get_ir(&code_gen)
+}
+
+pub fn get_ir(codegen : &codegen::CodeGen) -> String {
+    codegen.module.print_to_string().to_string()
 }
 
 pub fn compile_module<'ctx>(context : &'ctx Context, source : String) -> codegen::CodeGen<'ctx> {

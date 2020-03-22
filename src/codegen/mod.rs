@@ -321,6 +321,8 @@ impl<'ctx> CodeGen<'ctx> {
         let condition_check = self.context.append_basic_block(self.current_function?, "condition_check");
         let for_body = self.context.append_basic_block(self.current_function?, "for_body");
         let continue_block = self.context.append_basic_block(self.current_function?, "continue");
+        //Generate an initial jump to the for condition
+        self.builder.build_unconditional_branch(condition_check);
         
         //Check loop condition
         self.builder.position_at_end(condition_check);
@@ -349,7 +351,7 @@ impl<'ctx> CodeGen<'ctx> {
         None
     }
 
-    fn generate_while_statement(&self, condition: &Box<Statement>, body: &Vec<Statement>) -> Option<BasicValueEnum> {
+    fn generate_base_while_statement(&self, condition: &Box<Statement>, body: &Vec<Statement>) -> Option<BasicValueEnum> {
         let condition_check = self.context.append_basic_block(self.current_function?, "condition_check");
         let while_body = self.context.append_basic_block(self.current_function?, "while_body");
         let continue_block = self.context.append_basic_block(self.current_function?, "continue");
@@ -368,10 +370,24 @@ impl<'ctx> CodeGen<'ctx> {
         self.builder.position_at_end(continue_block);
         None
     }
+        
+    fn generate_while_statement(&self, condition: &Box<Statement>, body: &Vec<Statement>) -> Option<BasicValueEnum> {
+        let basic_block = self.builder.get_insert_block()?;
+        self.generate_base_while_statement(condition, body);
+
+        let continue_block = self.builder.get_insert_block()?;
+
+        let condition_block = basic_block.get_next_basic_block()?;
+        self.builder.position_at_end(basic_block);
+        self.builder.build_unconditional_branch(condition_block);
+
+        self.builder.position_at_end(continue_block);
+        None
+    }
 
     fn generate_repeat_statement(&self, condition: &Box<Statement>, body: &Vec<Statement>) -> Option<BasicValueEnum> {
         let basic_block = self.builder.get_insert_block()?;
-        self.generate_while_statement(condition, body);
+        self.generate_base_while_statement(condition, body);
 
         let continue_block = self.builder.get_insert_block()?;
         
@@ -466,8 +482,6 @@ impl<'ctx> CodeGen<'ctx> {
             self.builder.build_store(left_expr?, right_res?);
         }
         None
-
-
     }
 
     fn generate_literal_number(&self, value: &str) -> Option<BasicValueEnum> {
