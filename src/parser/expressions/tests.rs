@@ -1,6 +1,6 @@
 use super::Statement;
-use crate::parser::parse;
 use crate::lexer;
+use crate::parser::parse;
 use pretty_assertions::*;
 
 #[test]
@@ -724,8 +724,6 @@ fn or_compare_expressions_priority_test() {
     assert_eq!(ast_string, expected_ast);
 }
 
-
-
 #[test]
 fn addition_compare_or_priority_test() {
     let lexer = lexer::lex(
@@ -764,7 +762,6 @@ fn addition_compare_or_priority_test() {
 }"#;
     assert_eq!(ast_string, expected_ast);
 }
-
 
 #[test]
 fn boolean_priority_test() {
@@ -820,8 +817,7 @@ fn comparison_priority_test() {
     let statement = &prg.statements[0];
 
     let ast_string = format!("{:#?}", statement);
-    let expected_ast = 
-r#"BinaryExpression {
+    let expected_ast = r#"BinaryExpression {
     operator: Equal,
     left: BinaryExpression {
         operator: Less,
@@ -846,7 +842,7 @@ r#"BinaryExpression {
 }
 
 #[test]
-fn expression_list(){
+fn expression_list() {
     //technically this is an illegal state, the parser will accept it though
     let lexer = lexer::lex(
         "
@@ -861,8 +857,7 @@ fn expression_list(){
     let statement = &prg.statements[0];
 
     let ast_string = format!("{:#?}", statement);
-    let expected_ast = 
-r#"ExpressionList {
+    let expected_ast = r#"ExpressionList {
     expressions: [
         LiteralInteger {
             value: "1",
@@ -872,6 +867,53 @@ r#"ExpressionList {
         },
         LiteralInteger {
             value: "3",
+        },
+    ],
+}"#;
+    assert_eq!(ast_string, expected_ast);
+}
+
+#[test]
+fn expression_list_assignments() {
+    //technically this is an illegal state, the parser will accept it though
+    let lexer = lexer::lex(
+        "
+        PROGRAM exp 
+        x := 1, y := 2, z:= 3;
+        END_PROGRAM
+        ",
+    );
+    let result = parse(lexer).unwrap();
+
+    let prg = &result.units[0];
+    let statement = &prg.statements[0];
+
+    let ast_string = format!("{:#?}", statement);
+    let expected_ast = r#"ExpressionList {
+    expressions: [
+        Assignment {
+            left: Reference {
+                name: "x",
+            },
+            right: LiteralInteger {
+                value: "1",
+            },
+        },
+        Assignment {
+            left: Reference {
+                name: "y",
+            },
+            right: LiteralInteger {
+                value: "2",
+            },
+        },
+        Assignment {
+            left: Reference {
+                name: "z",
+            },
+            right: LiteralInteger {
+                value: "3",
+            },
         },
     ],
 }"#;
@@ -897,8 +939,7 @@ fn range_expression() {
     let statement = &prg.statements[0];
 
     let ast_string = format!("{:#?}", statement);
-    let expected_ast = 
-r#"RangeStatement {
+    let expected_ast = r#"RangeStatement {
     start: Reference {
         name: "a",
     },
@@ -908,12 +949,10 @@ r#"RangeStatement {
 }"#;
     assert_eq!(ast_string, expected_ast);
 
-
     let statement = &prg.statements[1];
 
     let ast_string = format!("{:#?}", statement);
-    let expected_ast = 
-r#"RangeStatement {
+    let expected_ast = r#"RangeStatement {
     start: LiteralInteger {
         value: "1",
     },
@@ -923,12 +962,10 @@ r#"RangeStatement {
 }"#;
     assert_eq!(ast_string, expected_ast);
 
-
     let statement = &prg.statements[2];
 
     let ast_string = format!("{:#?}", statement);
-    let expected_ast = 
-r#"RangeStatement {
+    let expected_ast = r#"RangeStatement {
     start: Reference {
         name: "a",
     },
@@ -941,8 +978,7 @@ r#"RangeStatement {
     let statement = &prg.statements[3];
 
     let ast_string = format!("{:#?}", statement);
-    let expected_ast = 
-r#"RangeStatement {
+    let expected_ast = r#"RangeStatement {
     start: LiteralInteger {
         value: "2",
     },
@@ -951,7 +987,6 @@ r#"RangeStatement {
     },
 }"#;
     assert_eq!(ast_string, expected_ast);
-
 }
 
 #[test]
@@ -969,8 +1004,7 @@ fn negative_range_expression() {
     let statement = &prg.statements[0];
 
     let ast_string = format!("{:#?}", statement);
-    let expected_ast = 
-r#"RangeStatement {
+    let expected_ast = r#"RangeStatement {
     start: UnaryExpression {
         operator: Minus,
         value: LiteralInteger {
@@ -1003,8 +1037,7 @@ fn negative_range_expression_space() {
     let statement = &prg.statements[0];
 
     let ast_string = format!("{:#?}", statement);
-    let expected_ast = 
-r#"RangeStatement {
+    let expected_ast = r#"RangeStatement {
     start: UnaryExpression {
         operator: Minus,
         value: LiteralInteger {
@@ -1022,7 +1055,6 @@ r#"RangeStatement {
     assert_eq!(ast_string, expected_ast);
 }
 
-
 #[test]
 fn range_expression2() {
     let lexer = lexer::lex(
@@ -1038,8 +1070,7 @@ fn range_expression2() {
     let statement = &prg.statements[0];
 
     let ast_string = format!("{:#?}", statement);
-    let expected_ast = 
-r#"RangeStatement {
+    let expected_ast = r#"RangeStatement {
     start: LiteralInteger {
         value: "1",
     },
@@ -1048,5 +1079,166 @@ r#"RangeStatement {
     },
 }"#;
     assert_eq!(ast_string, expected_ast);
+}
 
+#[test]
+fn function_call_no_params() {
+    let lexer = lexer::lex(
+        "
+    PROGRAM prg
+    fn();
+    END_PROGRAM
+    ",
+    );
+    let parse_result = parse(lexer).unwrap();
+
+    let statement = &parse_result.units[0].statements[0];
+
+    let ast_string = format!("{:#?}", statement);
+
+    let expected_ast = r#"CallStatement {
+    operator: Reference {
+        name: "fn",
+    },
+    parameters: None,
+}"#;
+
+    assert_eq!(ast_string, expected_ast);
+}
+
+#[test]
+fn function_call_params() {
+    let lexer = lexer::lex(
+        "
+    PROGRAM prg
+    fn(1,2,3);
+    END_PROGRAM
+    ",
+    );
+    let parse_result = parse(lexer).unwrap();
+
+    let statement = &parse_result.units[0].statements[0];
+
+    let ast_string = format!("{:#?}", statement);
+
+    let expected_ast = r#"CallStatement {
+    operator: Reference {
+        name: "fn",
+    },
+    parameters: Some(
+        ExpressionList {
+            expressions: [
+                LiteralInteger {
+                    value: "1",
+                },
+                LiteralInteger {
+                    value: "2",
+                },
+                LiteralInteger {
+                    value: "3",
+                },
+            ],
+        },
+    ),
+}"#;
+
+    assert_eq!(ast_string, expected_ast);
+}
+
+#[test]
+fn function_call_formal_params() {
+    let lexer = lexer::lex(
+        "
+    PROGRAM prg
+    fn(x := 1,y := 2,z := 3);
+    END_PROGRAM
+    ",
+    );
+    let parse_result = parse(lexer).unwrap();
+
+    let statement = &parse_result.units[0].statements[0];
+
+    let ast_string = format!("{:#?}", statement);
+
+    let expected_ast = r#"CallStatement {
+    operator: Reference {
+        name: "fn",
+    },
+    parameters: Some(
+        ExpressionList {
+            expressions: [
+                Assignment {
+                    left: Reference {
+                        name: "x",
+                    },
+                    right: LiteralInteger {
+                        value: "1",
+                    },
+                },
+                Assignment {
+                    left: Reference {
+                        name: "y",
+                    },
+                    right: LiteralInteger {
+                        value: "2",
+                    },
+                },
+                Assignment {
+                    left: Reference {
+                        name: "z",
+                    },
+                    right: LiteralInteger {
+                        value: "3",
+                    },
+                },
+            ],
+        },
+    ),
+}"#;
+
+    assert_eq!(ast_string, expected_ast);
+}
+
+#[test]
+fn function_call_return_params() {
+    let lexer = lexer::lex(
+        "
+    PROGRAM prg
+    x := fn(1,2,3);
+    END_PROGRAM
+    ",
+    );
+    let parse_result = parse(lexer).unwrap();
+
+    let statement = &parse_result.units[0].statements[0];
+
+    let ast_string = format!("{:#?}", statement);
+
+    let expected_ast = r#"Assignment {
+    left: Reference {
+        name: "x",
+    },
+    right: CallStatement {
+        operator: Reference {
+            name: "fn",
+        },
+        parameters: Some(
+            ExpressionList {
+                expressions: [
+                    LiteralInteger {
+                        value: "1",
+                    },
+                    LiteralInteger {
+                        value: "2",
+                    },
+                    LiteralInteger {
+                        value: "3",
+                    },
+                ],
+            },
+        ),
+    },
+}"#;
+
+    assert_eq!(ast_string, expected_ast);
 }

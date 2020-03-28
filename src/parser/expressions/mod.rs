@@ -1,11 +1,10 @@
-
-use crate::lexer::Token::*;
-use crate::expect;
 use crate::ast::*;
+use crate::expect;
+use crate::lexer::Token::*;
 
-use super::RustyLexer;
-use super::{unexpected_token,slice_and_advance};
 use super::allow;
+use super::RustyLexer;
+use super::{slice_and_advance, unexpected_token};
 
 #[cfg(test)]
 mod tests;
@@ -24,7 +23,7 @@ fn parse_expression_list(lexer: &mut RustyLexer) -> Result<Statement, String> {
             lexer.advance();
             expressions.push(parse_range_statement(lexer)?);
         }
-        return Ok(Statement::ExpressionList{ expressions });
+        return Ok(Statement::ExpressionList { expressions });
     }
     Ok(left?)
 }
@@ -35,7 +34,10 @@ fn parse_range_statement(lexer: &mut RustyLexer) -> Result<Statement, String> {
     if lexer.token == KeywordDotDot {
         lexer.advance();
         let end = parse_or_expression(lexer)?;
-        return Ok(Statement::RangeStatement{ start: Box::new(start), end: Box::new(end) });
+        return Ok(Statement::RangeStatement {
+            start: Box::new(start),
+            end: Box::new(end),
+        });
     }
     Ok(start)
 }
@@ -200,7 +202,6 @@ fn parse_parenthesized_expression(lexer: &mut RustyLexer) -> Result<Statement, S
     }
 }
 
-
 // Literals, Identifiers, etc.
 fn parse_leaf_expression(lexer: &mut RustyLexer) -> Result<Statement, String> {
     let current = match lexer.token {
@@ -215,7 +216,7 @@ fn parse_leaf_expression(lexer: &mut RustyLexer) -> Result<Statement, String> {
         lexer.advance();
         return Ok(Statement::Assignment {
             left: Box::new(current?),
-            right: Box::new(parse_primary_expression(lexer)?),
+            right: Box::new(parse_range_statement(lexer)?),
         });
     };
     current
@@ -227,34 +228,46 @@ fn parse_bool_literal(lexer: &mut RustyLexer, value: bool) -> Result<Statement, 
 }
 
 pub fn parse_reference(lexer: &mut RustyLexer) -> Result<Statement, String> {
-    Ok(Statement::Reference {
+    let reference = Statement::Reference {
         name: slice_and_advance(lexer).to_string(),
-    })
+    };
+
+    if allow(KeywordParensOpen, lexer) {
+        let statement_list = if allow(KeywordParensClose, lexer) {
+            None
+        } else {
+            let list = parse_expression_list(lexer).unwrap();
+            expect!(KeywordParensClose, lexer);
+            lexer.advance();
+            Some(list)
+        };
+        Ok(Statement::CallStatement {
+            operator: Box::new(reference),
+            parameters: Box::new(statement_list),
+        })
+    } else {
+        Ok(reference)
+    }
 }
 
 fn parse_literal_number(lexer: &mut RustyLexer) -> Result<Statement, String> {
     let result = slice_and_advance(lexer);
-    if allow(KeywordDot,lexer) {
-        return parse_literal_real(lexer,result);
+    if allow(KeywordDot, lexer) {
+        return parse_literal_real(lexer, result);
     }
 
-    Ok(Statement::LiteralInteger {
-        value : result
-    })
+    Ok(Statement::LiteralInteger { value: result })
 }
 
 fn parse_literal_real(lexer: &mut RustyLexer, integer: String) -> Result<Statement, String> {
-    expect!(LiteralInteger,lexer);
+    expect!(LiteralInteger, lexer);
     let fractional = slice_and_advance(lexer);
     let exponent = if lexer.token == LiteralExponent {
         slice_and_advance(lexer)
     } else {
         "".to_string()
     };
-    let result = format!("{}.{}{}",integer,fractional,exponent);
+    let result = format!("{}.{}{}", integer, fractional, exponent);
 
-    Ok(Statement::LiteralReal{
-        value : result
-    })
+    Ok(Statement::LiteralReal { value: result })
 }
-

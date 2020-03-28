@@ -16,7 +16,7 @@ pub enum PouType {
 
 #[derive(Debug, PartialEq)]
 pub struct CompilationUnit {
-    pub global_vars : Vec<VariableBlock>,
+    pub global_vars: Vec<VariableBlock>,
     pub units: Vec<POU>,
 }
 
@@ -33,7 +33,7 @@ pub struct Variable {
 
 #[derive(Debug, Copy, PartialEq, Clone)]
 pub enum Type {
-    Primitive (PrimitiveType),
+    Primitive(PrimitiveType),
     Custom,
 }
 
@@ -46,7 +46,7 @@ pub enum PrimitiveType {
 #[derive(Debug, PartialEq)]
 pub struct ConditionalBlock {
     pub condition: Box<Statement>,
-    pub body: Vec<Statement>
+    pub body: Vec<Statement>,
 }
 
 #[derive(Debug, PartialEq)]
@@ -56,7 +56,7 @@ pub enum Statement {
         value: String,
     },
     LiteralReal {
-        value : String,
+        value: String,
     },
     LiteralBool {
         value: bool,
@@ -67,8 +67,8 @@ pub enum Statement {
     },
     BinaryExpression {
         operator: Operator,
-    left: Box<Statement>,
-    right: Box<Statement>,
+        left: Box<Statement>,
+        right: Box<Statement>,
     },
     UnaryExpression {
         operator: Operator,
@@ -86,13 +86,18 @@ pub enum Statement {
         left: Box<Statement>,
         right: Box<Statement>,
     },
+    //Call Statement
+    CallStatement {
+        operator: Box<Statement>,
+        parameters: Box<Option<Statement>>,
+    },
     // Control Statements
     IfStatement {
-        blocks : Vec<ConditionalBlock>,
+        blocks: Vec<ConditionalBlock>,
         else_block: Vec<Statement>,
     },
     ForLoopStatement {
-        counter : Box<Statement>,
+        counter: Box<Statement>,
         start: Box<Statement>,
         end: Box<Statement>,
         by_step: Option<Box<Statement>>,
@@ -110,7 +115,7 @@ pub enum Statement {
         selector: Box<Statement>,
         case_blocks: Vec<ConditionalBlock>,
         else_block: Vec<Statement>,
-    }
+    },
 }
 
 #[derive(Debug, PartialEq)]
