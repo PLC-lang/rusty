@@ -946,3 +946,48 @@ continue:                                         ; preds = %else, %case2, %case
 
     assert_eq!(result, expected);
 }
+
+#[test]
+fn function_called_in_program() {
+    let result = codegen!(
+        "
+        FUNCTION foo : INT
+        foo := 1;
+        END_FUNCTION
+
+        PROGRAM prg 
+        VAR
+            x : INT;
+        END_VAR
+        x := foo();
+        END_PROGRAM
+        "
+    );
+
+    let expected = r#"; ModuleID = 'main'
+source_filename = "main"
+
+%foo_interface = type { i32 }
+%prg_interface = type { i32 }
+
+@foo_instance = common thread_local(localexec) global %foo_interface zeroinitializer
+@prg_instance = common global %prg_interface zeroinitializer
+
+define i32 @foo() {
+entry:
+  store i32 1, i32* getelementptr inbounds (%foo_interface, %foo_interface* @foo_instance, i32 0, i32 0)
+  %foo_ret = load i32, i32* getelementptr inbounds (%foo_interface, %foo_interface* @foo_instance, i32 0, i32 0)
+  ret i32 %foo_ret
+}
+
+define void @prg() {
+entry:
+  %call = call i32 @foo()
+  store i32 %call, i32* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 0)
+  ret void
+}
+"#;
+
+  assert_eq!(result, expected);
+}
+

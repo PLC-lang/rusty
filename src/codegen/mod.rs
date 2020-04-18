@@ -244,6 +244,7 @@ impl<'ctx> CodeGen<'ctx> {
             Statement::Reference { name } => self.generate_variable_reference(name),
             Statement::Assignment { left, right } => self.generate_assignment(&left, &right),
             Statement::UnaryExpression { operator, value } => self.generate_unary_expression(&operator, &value),
+            Statement::CallStatement {operator, parameters} => self.generate_call_statement(&operator, &parameters),
             _ => panic!("{:?} not yet supported",s ),
         }
     }
@@ -432,6 +433,16 @@ impl<'ctx> CodeGen<'ctx> {
             _ => unimplemented!()
         };
         Some(BasicValueEnum::IntValue(value))
+    }
+
+    fn generate_call_statement(&self, operator : &Box<Statement>, parameter : &Box<Option<Statement>>) -> Option<BasicValueEnum> {
+        //Get the function name
+        let function = match &**operator {
+            Statement::Reference {name} => self.module.get_function(&name),
+            _ => None,
+        };
+        let call_result = self.builder.build_call(function.unwrap(), &[] , "call").try_as_basic_value();
+        return call_result.left();
     }
 
     fn generate_lvalue_for(&self, statement: &Box<Statement>) -> Option<PointerValue> {
