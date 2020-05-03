@@ -161,7 +161,7 @@ fn simple_program_with_two_varblocks_can_be_parsed() {
 fn a_program_needs_to_end_with_end_program() {
     let lexer = lexer::lex("PROGRAM buz ");
     let result = super::parse(lexer);
-    assert_eq!(result, Err("unexpected end of body End".to_string()));
+    assert_eq!(result, Err("unexpected end of body End, statements : []".to_string()));
 }
 
 #[test]
@@ -234,4 +234,16 @@ fn simple_program_with_variable_can_be_parsed() {
 
     assert_eq!(variable.name, "x");
     assert_eq!(variable.data_type, Type::Primitive(PrimitiveType::Int));
+}
+
+#[test]
+fn simple_program_with_var_input_can_be_parsed() {
+    
+    let lexer = lexer::lex("PROGRAM buz VAR_INPUT x : INT; END_VAR END_PROGRAM");
+    let result = super::parse(lexer).unwrap();
+
+    let prg = &result.units[0];
+    let variable = &prg.variable_blocks[0].variables[0];
+
+    assert_eq!(variable.name, "x");
 }

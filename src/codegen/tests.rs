@@ -24,9 +24,35 @@ macro_rules! generate_with_empty_program {
   )
 }
 
-macro_rules! generate_boiler_plate {
-        ($pou_name:tt, $type:tt, $return_type: tt, $thread_mode: tt, $body:tt, $global_variables:tt)  => (
-            format!(
+
+fn generate_boiler_plate(pou_name : &str, type_list : &[(&str,&str)], return_type : &str, thread_mode : &str, global_variables : &str, body : &str) -> String{
+
+  let mut interface : String = type_list.iter().map(|(t,_)| *t).collect::<Vec<&str>>().join(", ");
+  if !interface.is_empty() { 
+    interface = format!(" {} ",interface);
+  }
+
+
+  let mut type_references : Vec<String>= vec![];
+
+  for (i,t)  in type_list.iter().enumerate() {
+    let type_def = format!("  %{var_name} = getelementptr inbounds %{pou_name}_interface, %{pou_name}_interface* %0, i32 0, i32 {index}",
+    var_name = t.1,
+    index = i,
+    pou_name = pou_name,
+  );
+    type_references.push(type_def);
+  }
+
+  if return_type != "void" {
+    type_references.push(format!("  %{pou_name} = alloca {return_type}",pou_name = pou_name,return_type = return_type))
+  }
+
+  if !type_references.is_empty() {
+    type_references.push("  ".to_string());
+  }
+
+format!(
 r#"; ModuleID = 'main'
 source_filename = "main"
 
@@ -34,36 +60,56 @@ source_filename = "main"
 {global_variables}
 @{pou_name}_instance = common {thread_mode}global %{pou_name}_interface zeroinitializer
 
-define {return_type} @{pou_name}() {{
+define {return_type} @{pou_name}(%{pou_name}_interface* %0) {{
 entry:
-{body}}}
+{type_references}{body}}}
 "#,
-            pou_name = $pou_name, 
-            type = $type, 
-            return_type = $return_type, 
-            thread_mode = $thread_mode,  
-            body = $body,
-            global_variables = $global_variables
-            )
-        );
+                pou_name = pou_name, 
+                type = interface, 
+                return_type = return_type, 
+                thread_mode = thread_mode,  
+                type_references = type_references.join("\n"),
+                body = body,
+                global_variables = global_variables
+                )
+}
 
-        ($pou_name:tt, $type:tt, $return_type: tt, $thread_mode: tt, $body:tt )  => (
-          generate_boiler_plate!($pou_name, $type, $return_type,$thread_mode, $body, "");
-        );
+fn generate_boiler_plate_globals(global_variables : &str) -> String {
+  generate_boiler_plate("main", &[], "void", "", global_variables, "  ret void\n", )
+}
 
-        ($global_variables:tt)  => (
-          generate_boiler_plate!("main", "", "void", "", "  ret void\n", $global_variables);
-        );
+#[test]
+fn program_with_variables_and_references_generates_void_function_and_struct_and_body() {
+    let result = codegen!(
+        r#"PROGRAM prg
+VAR
+x : INT;
+y : INT;
+END_VAR
+x;
+y;
+END_PROGRAM
+"#
+    );
+    let expected = generate_boiler_plate(
+        "prg",
+        &[("i32","x"),("i32","y")],
+        "void",
+        "",
+        "",
+        r#"%load_x = load i32, i32* %x
+  %load_y = load i32, i32* %y
+  ret void
+"#
+    );
 
-        ($pou_name:tt, $type:tt, $body:tt) => (
-            generate_boiler_plate!($pou_name, $type, "void", "", $body, "");
-        );
-    }
+    assert_eq!(result, expected);
+}
 
 #[test]
 fn empty_global_variable_list_generates_nothing() {
     let result = generate_with_empty_program!("VAR_GLOBAL END_VAR");
-    let expected = generate_boiler_plate!("");
+    let expected = generate_boiler_plate_globals("");
 
     assert_eq!(result, expected);
 }
@@ -71,7 +117,7 @@ fn empty_global_variable_list_generates_nothing() {
 #[test]
 fn a_global_variables_generates_in_separate_global_variables() {
     let result = generate_with_empty_program!("VAR_GLOBAL gX : INT; gY : BOOL; END_VAR");
-    let expected = generate_boiler_plate!(
+    let expected = generate_boiler_plate_globals(
 r#"
 @gX = common global i32 0
 @gY = common global i1 false"#);
@@ -82,7 +128,7 @@ r#"
 #[test]
 fn two_global_variables_generates_in_separate_global_variables() {
     let result = generate_with_empty_program!("VAR_GLOBAL gX : INT; gY : BOOL; END_VAR VAR_GLOBAL gA : INT; END_VAR");
-    let expected = generate_boiler_plate!(
+    let expected = generate_boiler_plate_globals(
 r#"
 @gX = common global i32 0
 @gY = common global i1 false
@@ -106,14 +152,14 @@ fn global_variable_reference_is_generated() {
     END_PROGRAM
     ");
 
-    let expected = generate_boiler_plate!("prg", " i32 ", "void", "", 
-r"  store i32 20, i32* @gX
+    let expected = generate_boiler_plate("prg", &[("i32","x")], "void", "", 
+r"
+@gX = common global i32 0", //global vars
+r"store i32 20, i32* @gX
   %load_gX = load i32, i32* @gX
-  store i32 %load_gX, i32* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 0)
+  store i32 %load_gX, i32* %x
   ret void
 ", //body
-r"
-@gX = common global i32 0" //global vars
     );
 
     assert_eq!(function,expected)
@@ -123,7 +169,7 @@ r"
 #[test]
 fn empty_program_with_name_generates_void_function() {
     let result = codegen!("PROGRAM prg END_PROGRAM");
-    let expected = generate_boiler_plate!("prg", "", 
+    let expected = generate_boiler_plate("prg", &[], "void", "", "",
     r#"  ret void
 "#);
 
@@ -133,8 +179,8 @@ fn empty_program_with_name_generates_void_function() {
 #[test]
 fn empty_function_with_name_generates_int_function() {
     let result = codegen!("FUNCTION foo : INT END_FUNCTION");
-    let expected = generate_boiler_plate!("foo", " i32 ","i32","thread_local(localexec) ",
-    r#"  %foo_ret = load i32, i32* getelementptr inbounds (%foo_interface, %foo_interface* @foo_instance, i32 0, i32 0)
+    let expected = generate_boiler_plate("foo", &[],"i32","thread_local(localexec) ","",
+    r#"%foo_ret = load i32, i32* %foo
   ret i32 %foo_ret
 "#);
 
@@ -151,37 +197,14 @@ END_VAR
 END_PROGRAM
 "#
     );
-    let expected = generate_boiler_plate!("prg", " i32, i32 ",
-    r#"  ret void
+    let expected = generate_boiler_plate("prg", &[("i32","x"),("i32","y")],"void","","",
+    r#"ret void
 "#);
 
     assert_eq!(result, expected);
 }
 
-#[test]
-fn program_with_variables_and_references_generates_void_function_and_struct_and_body() {
-    let result = codegen!(
-        r#"PROGRAM prg
-VAR
-x : INT;
-y : INT;
-END_VAR
-x;
-y;
-END_PROGRAM
-"#
-    );
-    let expected = generate_boiler_plate!(
-        "prg",
-        " i32, i32 ",
-        r#"  %load_x = load i32, i32* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 0)
-  %load_y = load i32, i32* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 1)
-  ret void
-"#
-    );
 
-    assert_eq!(result, expected);
-}
 
 #[test]
 fn program_with_bool_variables_and_references_generates_void_function_and_struct_and_body() {
@@ -196,11 +219,14 @@ y;
 END_PROGRAM
 "#
     );
-    let expected = generate_boiler_plate!(
+    let expected = generate_boiler_plate(
         "prg",
-        " i1, i1 ",
-        r#"  %load_x = load i1, i1* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 0)
-  %load_y = load i1, i1* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 1)
+        &[("i1","x"),("i1","y")],
+        "void",
+        "",
+        "",
+        r#"%load_x = load i1, i1* %x
+  %load_y = load i1, i1* %y
   ret void
 "#
     );
@@ -220,11 +246,14 @@ x + y;
 END_PROGRAM
 "#
     );
-    let expected = generate_boiler_plate!(
+    let expected = generate_boiler_plate(
         "prg",
-        " i32, i32 ",
-        r#"  %load_x = load i32, i32* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 0)
-  %load_y = load i32, i32* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 1)
+        &[("i32","x"),("i32","y")],
+        "void",
+        "",
+        "",
+        r#"%load_x = load i32, i32* %x
+  %load_y = load i32, i32* %y
   %tmpVar = add i32 %load_x, %load_y
   ret void
 "#
@@ -244,10 +273,13 @@ x + 7;
 END_PROGRAM
 "#
     );
-    let expected = generate_boiler_plate!(
+    let expected = generate_boiler_plate(
         "prg",
-        " i32 ",
-        r#"  %load_x = load i32, i32* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 0)
+        &[("i32","x")],
+        "void",
+        "",
+        "",
+        r#"%load_x = load i32, i32* %x
   %tmpVar = add i32 %load_x, 7
   ret void
 "#
@@ -267,10 +299,13 @@ y := 7;
 END_PROGRAM
 "#
     );
-    let expected = generate_boiler_plate!(
+    let expected = generate_boiler_plate(
         "prg",
-        " i32 ",
-        r#"  store i32 7, i32* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 0)
+        &[("i32","y")],
+        "void",
+        "",
+        "",
+        r#"store i32 7, i32* %y
   ret void
 "#
     );
@@ -290,11 +325,14 @@ y := FALSE;
 END_PROGRAM
 "#
     );
-    let expected = generate_boiler_plate!(
+    let expected = generate_boiler_plate(
         "prg",
-        " i1 ",
-        r#"  store i1 true, i1* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 0)
-  store i1 false, i1* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 0)
+        &[("i1","y")],
+        "void",
+        "",
+        "",
+        r#"store i1 true, i1* %y
+  store i1 false, i1* %y
   ret void
 "#
     );
@@ -318,24 +356,27 @@ y := x MOD 5;
 END_PROGRAM
 "#
     );
-    let expected = generate_boiler_plate!(
+    let expected = generate_boiler_plate(
         "prg",
-        " i32, i32 ",
-        r#"  %load_x = load i32, i32* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 0)
+        &[("i32","x"),("i32","y")],
+        "void",
+        "",
+        "",
+        r#"%load_x = load i32, i32* %x
   %tmpVar = add i32 %load_x, 1
-  store i32 %tmpVar, i32* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 1)
-  %load_x1 = load i32, i32* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 0)
+  store i32 %tmpVar, i32* %y
+  %load_x1 = load i32, i32* %x
   %tmpVar2 = sub i32 %load_x1, 2
-  store i32 %tmpVar2, i32* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 1)
-  %load_x3 = load i32, i32* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 0)
+  store i32 %tmpVar2, i32* %y
+  %load_x3 = load i32, i32* %x
   %tmpVar4 = mul i32 %load_x3, 3
-  store i32 %tmpVar4, i32* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 1)
-  %load_x5 = load i32, i32* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 0)
+  store i32 %tmpVar4, i32* %y
+  %load_x5 = load i32, i32* %x
   %tmpVar6 = sdiv i32 %load_x5, 4
-  store i32 %tmpVar6, i32* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 1)
-  %load_x7 = load i32, i32* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 0)
+  store i32 %tmpVar6, i32* %y
+  %load_x7 = load i32, i32* %x
   %tmpVar8 = srem i32 %load_x7, 5
-  store i32 %tmpVar8, i32* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 1)
+  store i32 %tmpVar8, i32* %y
   ret void
 "#
     );
@@ -360,27 +401,30 @@ y := x <= 6;
 END_PROGRAM
 "#
     );
-    let expected = generate_boiler_plate!(
+    let expected = generate_boiler_plate(
         "prg",
-        " i32, i1 ",
-        r#"  %load_x = load i32, i32* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 0)
+        &[("i32","x"),("i1","y")],
+        "void",
+        "",
+        "",
+        r#"%load_x = load i32, i32* %x
   %tmpVar = icmp eq i32 %load_x, 1
-  store i1 %tmpVar, i1* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 1)
-  %load_x1 = load i32, i32* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 0)
+  store i1 %tmpVar, i1* %y
+  %load_x1 = load i32, i32* %x
   %tmpVar2 = icmp sgt i32 %load_x1, 2
-  store i1 %tmpVar2, i1* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 1)
-  %load_x3 = load i32, i32* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 0)
+  store i1 %tmpVar2, i1* %y
+  %load_x3 = load i32, i32* %x
   %tmpVar4 = icmp slt i32 %load_x3, 3
-  store i1 %tmpVar4, i1* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 1)
-  %load_x5 = load i32, i32* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 0)
+  store i1 %tmpVar4, i1* %y
+  %load_x5 = load i32, i32* %x
   %tmpVar6 = icmp ne i32 %load_x5, 4
-  store i1 %tmpVar6, i1* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 1)
-  %load_x7 = load i32, i32* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 0)
+  store i1 %tmpVar6, i1* %y
+  %load_x7 = load i32, i32* %x
   %tmpVar8 = icmp sge i32 %load_x7, 5
-  store i1 %tmpVar8, i1* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 1)
-  %load_x9 = load i32, i32* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 0)
+  store i1 %tmpVar8, i1* %y
+  %load_x9 = load i32, i32* %x
   %tmpVar10 = icmp sle i32 %load_x9, 6
-  store i1 %tmpVar10, i1* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 1)
+  store i1 %tmpVar10, i1* %y
   ret void
 "#
     );
@@ -403,17 +447,20 @@ x XOR y;
 END_PROGRAM
 "#
     );
-    let expected = generate_boiler_plate!(
+    let expected = generate_boiler_plate(
         "prg",
-        " i1, i1, i32 ",
-        r#"  %load_x = load i1, i1* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 0)
-  %load_y = load i1, i1* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 1)
+        &[("i1","x"),("i1","y"), ("i32","z")],
+        "void",
+        "",
+        "",
+        r#"%load_x = load i1, i1* %x
+  %load_y = load i1, i1* %y
   %tmpVar = and i1 %load_x, %load_y
-  %load_x1 = load i1, i1* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 0)
-  %load_y2 = load i1, i1* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 1)
+  %load_x1 = load i1, i1* %x
+  %load_y2 = load i1, i1* %y
   %tmpVar3 = or i1 %load_x1, %load_y2
-  %load_x4 = load i1, i1* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 0)
-  %load_y5 = load i1, i1* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 1)
+  %load_x4 = load i1, i1* %x
+  %load_y5 = load i1, i1* %y
   %tmpVar6 = xor i1 %load_x4, %load_y5
   ret void
 "#
@@ -435,13 +482,16 @@ x AND NOT y;
 END_PROGRAM
 "#
     );
-    let expected = generate_boiler_plate!(
+    let expected = generate_boiler_plate(
         "prg",
-        " i1, i1 ",
-        r#"  %load_x = load i1, i1* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 0)
+        &[("i1","x"),("i1","y")],
+        "void",
+        "",
+        "",
+        r#"%load_x = load i1, i1* %x
   %tmpVar = xor i1 %load_x, true
-  %load_x1 = load i1, i1* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 0)
-  %load_y = load i1, i1* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 1)
+  %load_x1 = load i1, i1* %x
+  %load_y = load i1, i1* %y
   %tmpVar2 = xor i1 %load_y, true
   %tmpVar3 = and i1 %load_x1, %tmpVar2
   ret void
@@ -464,17 +514,20 @@ NOT (z <= 6) OR y;
 END_PROGRAM
 "#
     );
-    let expected = generate_boiler_plate!(
+    let expected = generate_boiler_plate(
         "prg",
-        " i32, i1 ",
-        r#"  %load_y = load i1, i1* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 1)
-  %load_z = load i32, i32* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 0)
+        &[("i32","z"),("i1","y")],
+        "void",
+        "",
+        "",
+        r#"%load_y = load i1, i1* %y
+  %load_z = load i32, i32* %z
   %tmpVar = icmp sge i32 %load_z, 5
   %tmpVar1 = and i1 %load_y, %tmpVar
-  %load_z2 = load i32, i32* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 0)
+  %load_z2 = load i32, i32* %z
   %tmpVar3 = icmp sle i32 %load_z2, 6
   %tmpVar4 = xor i1 %tmpVar3, true
-  %load_y5 = load i1, i1* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 1)
+  %load_y5 = load i1, i1* %y
   %tmpVar6 = or i1 %tmpVar4, %load_y5
   ret void
 "#
@@ -497,15 +550,18 @@ fn program_with_signed_combined_expressions() {
             END_PROGRAM
             "#
     );
-    let expected = generate_boiler_plate!(
+    let expected = generate_boiler_plate(
         "prg",
-        " i32, i32 ",
-        r#"  %load_z = load i32, i32* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 0)
+        &[("i32","z"),("i32","y")],
+        "void",
+        "",
+        "",
+        r#"%load_z = load i32, i32* %z
   %tmpVar = add i32 -1, %load_z
-  %load_z1 = load i32, i32* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 0)
+  %load_z1 = load i32, i32* %z
   %tmpVar2 = sub i32 0, %load_z1
   %tmpVar3 = add i32 2, %tmpVar2
-  %load_y = load i32, i32* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 1)
+  %load_y = load i32, i32* %y
   %tmpVar4 = sub i32 0, %load_y
   %tmpVar5 = add i32 %tmpVar4, 3
   ret void
@@ -541,32 +597,36 @@ fn if_elsif_else_generator_test() {
         END_PROGRAM
         "
     );
-    let expected = generate_boiler_plate!("prg"," i32, i32, i32, i32, i1, i1, i1 ", 
-r#"  %load_b1 = load i1, i1* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 4)
+    let expected = generate_boiler_plate("prg",
+    &[("i32","x"),("i32","y"),("i32", "z"), ("i32", "u"), ("i1", "b1"), ("i1", "b2"), ("i1", "b3")],
+    "void",
+    "",
+    "",
+r#"%load_b1 = load i1, i1* %b1
   br i1 %load_b1, label %condition_body, label %branch
 
 condition_body:                                   ; preds = %entry
-  %load_x = load i32, i32* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 0)
+  %load_x = load i32, i32* %x
   br label %continue
 
 branch:                                           ; preds = %entry
-  %load_b2 = load i1, i1* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 5)
+  %load_b2 = load i1, i1* %b2
   br i1 %load_b2, label %condition_body2, label %branch1
 
 condition_body2:                                  ; preds = %branch
-  %load_y = load i32, i32* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 1)
+  %load_y = load i32, i32* %y
   br label %continue
 
 branch1:                                          ; preds = %branch
-  %load_b3 = load i1, i1* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 6)
+  %load_b3 = load i1, i1* %b3
   br i1 %load_b3, label %condition_body3, label %else
 
 condition_body3:                                  ; preds = %branch1
-  %load_z = load i32, i32* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 2)
+  %load_z = load i32, i32* %z
   br label %continue
 
 else:                                             ; preds = %branch1
-  %load_u = load i32, i32* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 3)
+  %load_u = load i32, i32* %u
   br label %continue
 
 continue:                                         ; preds = %else, %condition_body3, %condition_body2, %condition_body
@@ -592,12 +652,16 @@ fn if_generator_test() {
         END_PROGRAM
         "
     );
-    let expected = generate_boiler_plate!("prg"," i32, i1 ", 
-r#"  %load_b1 = load i1, i1* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 1)
+    let expected = generate_boiler_plate("prg",
+    &[("i32","x"),("i1","b1")],
+    "void",
+    "",
+    "",
+r#"%load_b1 = load i1, i1* %b1
   br i1 %load_b1, label %condition_body, label %continue
 
 condition_body:                                   ; preds = %entry
-  %load_x = load i32, i32* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 0)
+  %load_x = load i32, i32* %x
   br label %continue
 
 continue:                                         ; preds = %condition_body, %entry
@@ -622,15 +686,19 @@ fn if_with_expression_generator_test() {
         END_PROGRAM
         "
     );
-    let expected = generate_boiler_plate!("prg"," i32, i1 ", 
-r#"  %load_x = load i32, i32* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 0)
+    let expected = generate_boiler_plate("prg",
+    &[("i32","x"),("i1","b1")],
+    "void",
+    "",
+    "",
+r#"%load_x = load i32, i32* %x
   %tmpVar = icmp sgt i32 %load_x, 1
-  %load_b1 = load i1, i1* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 1)
+  %load_b1 = load i1, i1* %b1
   %tmpVar1 = or i1 %tmpVar, %load_b1
   br i1 %tmpVar1, label %condition_body, label %continue
 
 condition_body:                                   ; preds = %entry
-  %load_x2 = load i32, i32* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 0)
+  %load_x2 = load i32, i32* %x
   br label %continue
 
 continue:                                         ; preds = %condition_body, %entry
@@ -655,19 +723,23 @@ fn for_statement_with_steps_test() {
         "
     );
 
-    let expected = generate_boiler_plate!("prg"," i32 ", 
-r#"  store i32 3, i32* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 0)
+    let expected = generate_boiler_plate("prg",
+    &[("i32","x")],
+    "void",
+    "",
+    "",
+r#"store i32 3, i32* %x
   br label %condition_check
 
 condition_check:                                  ; preds = %for_body, %entry
-  %load_x = load i32, i32* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 0)
+  %load_x = load i32, i32* %x
   %tmpVar = icmp sle i32 %load_x, 10
   br i1 %tmpVar, label %for_body, label %continue
 
 for_body:                                         ; preds = %condition_check
-  %load_x1 = load i32, i32* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 0)
+  %load_x1 = load i32, i32* %x
   %tmpVar2 = add i32 %load_x, 7
-  store i32 %tmpVar2, i32* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 0)
+  store i32 %tmpVar2, i32* %x
   br label %condition_check
 
 continue:                                         ; preds = %condition_check
@@ -692,19 +764,22 @@ fn for_statement_without_steps_test() {
         "
     );
 
-    let expected = generate_boiler_plate!("prg"," i32 ", 
-r#"  store i32 3, i32* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 0)
+    let expected = generate_boiler_plate("prg",&[("i32","x")],
+    "void",
+    "",
+    "",
+r#"store i32 3, i32* %x
   br label %condition_check
 
 condition_check:                                  ; preds = %for_body, %entry
-  %load_x = load i32, i32* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 0)
+  %load_x = load i32, i32* %x
   %tmpVar = icmp sle i32 %load_x, 10
   br i1 %tmpVar, label %for_body, label %continue
 
 for_body:                                         ; preds = %condition_check
-  %load_x1 = load i32, i32* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 0)
+  %load_x1 = load i32, i32* %x
   %tmpVar2 = add i32 %load_x, 1
-  store i32 %tmpVar2, i32* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 0)
+  store i32 %tmpVar2, i32* %x
   br label %condition_check
 
 continue:                                         ; preds = %condition_check
@@ -729,22 +804,25 @@ fn for_statement_continue() {
         "
     );
 
-    let expected = generate_boiler_plate!("prg"," i32 ", 
-r#"  store i32 3, i32* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 0)
+    let expected = generate_boiler_plate("prg",&[("i32","x")],
+    "void",
+    "",
+    "",
+r#"store i32 3, i32* %x
   br label %condition_check
 
 condition_check:                                  ; preds = %for_body, %entry
-  %load_x = load i32, i32* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 0)
+  %load_x = load i32, i32* %x
   %tmpVar = icmp sle i32 %load_x, 10
   br i1 %tmpVar, label %for_body, label %continue
 
 for_body:                                         ; preds = %condition_check
   %tmpVar1 = add i32 %load_x, 1
-  store i32 %tmpVar1, i32* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 0)
+  store i32 %tmpVar1, i32* %x
   br label %condition_check
 
 continue:                                         ; preds = %condition_check
-  %load_x2 = load i32, i32* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 0)
+  %load_x2 = load i32, i32* %x
   ret void
 "#);
 
@@ -769,22 +847,26 @@ fn for_statement_with_references_steps_test() {
         "
     );
 
-    let expected = generate_boiler_plate!("prg"," i32, i32, i32, i32 ", 
-r#"  %load_y = load i32, i32* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 2)
-  store i32 %load_y, i32* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 1)
+    let expected = generate_boiler_plate("prg",
+    &[("i32","step"),("i32","x"),("i32","y"),("i32","z")],
+    "void",
+    "",
+    "",
+r#"%load_y = load i32, i32* %y
+  store i32 %load_y, i32* %x
   br label %condition_check
 
 condition_check:                                  ; preds = %for_body, %entry
-  %load_x = load i32, i32* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 1)
-  %load_z = load i32, i32* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 3)
+  %load_x = load i32, i32* %x
+  %load_z = load i32, i32* %z
   %tmpVar = icmp sle i32 %load_x, %load_z
   br i1 %tmpVar, label %for_body, label %continue
 
 for_body:                                         ; preds = %condition_check
-  %load_x1 = load i32, i32* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 1)
-  %load_step = load i32, i32* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 0)
+  %load_x1 = load i32, i32* %x
+  %load_step = load i32, i32* %step
   %tmpVar2 = add i32 %load_x, %load_step
-  store i32 %tmpVar2, i32* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 1)
+  store i32 %tmpVar2, i32* %x
   br label %condition_check
 
 continue:                                         ; preds = %condition_check
@@ -809,15 +891,18 @@ fn while_statement() {
         "
     );
 
-    let expected = generate_boiler_plate!("prg"," i1 ", 
-r#"  br label %condition_check
+    let expected = generate_boiler_plate("prg",&[("i1","x")], 
+    "void",
+    "",
+    "",
+r#"br label %condition_check
 
 condition_check:                                  ; preds = %entry, %while_body
-  %load_x = load i1, i1* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 0)
+  %load_x = load i1, i1* %x
   br i1 %load_x, label %while_body, label %continue
 
 while_body:                                       ; preds = %condition_check
-  %load_x1 = load i1, i1* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 0)
+  %load_x1 = load i1, i1* %x
   br label %condition_check
 
 continue:                                         ; preds = %condition_check
@@ -842,16 +927,19 @@ fn while_with_expression_statement() {
         "
     );
 
-    let expected = generate_boiler_plate!("prg"," i1 ", 
-r#"  br label %condition_check
+    let expected = generate_boiler_plate("prg",&[("i1","x")], 
+    "void",
+    "",
+    "",
+r#"br label %condition_check
 
 condition_check:                                  ; preds = %entry, %while_body
-  %load_x = load i1, i1* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 0)
+  %load_x = load i1, i1* %x
   %tmpVar = icmp eq i1 %load_x, i32 0
   br i1 %tmpVar, label %while_body, label %continue
 
 while_body:                                       ; preds = %condition_check
-  %load_x1 = load i1, i1* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 0)
+  %load_x1 = load i1, i1* %x
   br label %condition_check
 
 continue:                                         ; preds = %condition_check
@@ -877,15 +965,18 @@ fn repeat_statement() {
         "
     );
 
-    let expected = generate_boiler_plate!("prg"," i1 ", 
-r#"  br label %while_body
+    let expected = generate_boiler_plate("prg",&[("i1","x")], 
+    "void",
+    "",
+    "",
+r#"br label %while_body
 
 condition_check:                                  ; preds = %while_body
-  %load_x = load i1, i1* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 0)
+  %load_x = load i1, i1* %x
   br i1 %load_x, label %while_body, label %continue
 
 while_body:                                       ; preds = %entry, %condition_check
-  %load_x1 = load i1, i1* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 0)
+  %load_x1 = load i1, i1* %x
   br label %condition_check
 
 continue:                                         ; preds = %condition_check
@@ -916,8 +1007,11 @@ fn simple_case_statement() {
         "
     );
 
-    let expected = generate_boiler_plate!("prg"," i32, i32 ", 
-r#"  %load_x = load i32, i32* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 0)
+    let expected = generate_boiler_plate("prg",&[("i32","x"),("i32","y")], 
+    "void",
+    "",
+    "",
+r#"%load_x = load i32, i32* %x
   switch i32 %load_x, label %else [
     i32 1, label %case
     i32 2, label %case1
@@ -925,19 +1019,19 @@ r#"  %load_x = load i32, i32* getelementptr inbounds (%prg_interface, %prg_inter
   ]
 
 case:                                             ; preds = %entry
-  store i32 1, i32* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 1)
+  store i32 1, i32* %y
   br label %continue
 
 case1:                                            ; preds = %entry
-  store i32 2, i32* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 1)
+  store i32 2, i32* %y
   br label %continue
 
 case2:                                            ; preds = %entry
-  store i32 3, i32* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 1)
+  store i32 3, i32* %y
   br label %continue
 
 else:                                             ; preds = %entry
-  store i32 -1, i32* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 1)
+  store i32 -1, i32* %y
   br label %continue
 
 continue:                                         ; preds = %else, %case2, %case1, %case
@@ -967,23 +1061,130 @@ fn function_called_in_program() {
     let expected = r#"; ModuleID = 'main'
 source_filename = "main"
 
+%foo_interface = type {}
+%prg_interface = type { i32 }
+
+@foo_instance = common thread_local(localexec) global %foo_interface zeroinitializer
+@prg_instance = common global %prg_interface zeroinitializer
+
+define i32 @foo(%foo_interface* %0) {
+entry:
+  %foo = alloca i32
+  store i32 1, i32* %foo
+  %foo_ret = load i32, i32* %foo
+  ret i32 %foo_ret
+}
+
+define void @prg(%prg_interface* %0) {
+entry:
+  %x = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 0
+  %call = call i32 @foo(%foo_interface* @foo_instance)
+  store i32 %call, i32* %x
+  ret void
+}
+"#;
+
+  assert_eq!(result, expected);
+}
+
+#[test]
+fn function_with_parameters_called_in_program() {
+    let result = codegen!(
+        "
+        FUNCTION foo : INT
+        VAR_INPUT
+          bar : INT;
+        END_VAR
+        foo := 1;
+        END_FUNCTION
+
+        PROGRAM prg 
+        VAR
+        x : INT;
+        END_VAR
+        x := foo(2);
+        END_PROGRAM
+        "
+    );
+
+    let expected = r#"; ModuleID = 'main'
+source_filename = "main"
+
 %foo_interface = type { i32 }
 %prg_interface = type { i32 }
 
 @foo_instance = common thread_local(localexec) global %foo_interface zeroinitializer
 @prg_instance = common global %prg_interface zeroinitializer
 
-define i32 @foo() {
+define i32 @foo(%foo_interface* %0) {
 entry:
-  store i32 1, i32* getelementptr inbounds (%foo_interface, %foo_interface* @foo_instance, i32 0, i32 0)
-  %foo_ret = load i32, i32* getelementptr inbounds (%foo_interface, %foo_interface* @foo_instance, i32 0, i32 0)
+  %bar = getelementptr inbounds %foo_interface, %foo_interface* %0, i32 0, i32 0
+  %foo = alloca i32
+  store i32 1, i32* %foo
+  %foo_ret = load i32, i32* %foo
   ret i32 %foo_ret
 }
 
-define void @prg() {
+define void @prg(%prg_interface* %0) {
 entry:
-  %call = call i32 @foo()
-  store i32 %call, i32* getelementptr inbounds (%prg_interface, %prg_interface* @prg_instance, i32 0, i32 0)
+  %x = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 0
+  store i32 2, i32* getelementptr inbounds (%foo_interface, %foo_interface* @foo_instance, i32 0, i32 0)
+  %call = call i32 @foo(%foo_interface* @foo_instance)
+  store i32 %call, i32* %x
+  ret void
+}
+"#;
+
+  assert_eq!(result, expected);
+}
+
+#[test]
+fn function_with_two_parameters_called_in_program() {
+    let result = codegen!(
+        "
+        FUNCTION foo : INT
+        VAR_INPUT
+          bar : INT;
+          buz : BOOL;
+        END_VAR
+        foo := 1;
+        END_FUNCTION
+
+        PROGRAM prg 
+        VAR
+        x : INT;
+        END_VAR
+        x := foo(2, TRUE);
+        END_PROGRAM
+        "
+    );
+
+    let expected = r#"; ModuleID = 'main'
+source_filename = "main"
+
+%foo_interface = type { i32, i1 }
+%prg_interface = type { i32 }
+
+@foo_instance = common thread_local(localexec) global %foo_interface zeroinitializer
+@prg_instance = common global %prg_interface zeroinitializer
+
+define i32 @foo(%foo_interface* %0) {
+entry:
+  %bar = getelementptr inbounds %foo_interface, %foo_interface* %0, i32 0, i32 0
+  %buz = getelementptr inbounds %foo_interface, %foo_interface* %0, i32 0, i32 1
+  %foo = alloca i32
+  store i32 1, i32* %foo
+  %foo_ret = load i32, i32* %foo
+  ret i32 %foo_ret
+}
+
+define void @prg(%prg_interface* %0) {
+entry:
+  %x = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 0
+  store i32 2, i32* getelementptr inbounds (%foo_interface, %foo_interface* @foo_instance, i32 0, i32 0)
+  store i1 true, i1* getelementptr inbounds (%foo_interface, %foo_interface* @foo_instance, i32 0, i32 1)
+  %call = call i32 @foo(%foo_interface* @foo_instance)
+  store i32 %call, i32* %x
   ret void
 }
 "#;

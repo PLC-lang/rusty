@@ -14,6 +14,9 @@ pub enum Token {
     #[token = "PROGRAM"]
     KeywordProgram,
 
+    #[token = "VAR_INPUT"]
+    KeywordVarInput,
+    
     #[token = "VAR"]
     KeywordVar,
 

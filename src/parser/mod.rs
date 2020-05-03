@@ -118,7 +118,7 @@ fn parse_pou(lexer: &mut RustyLexer, pou_type: PouType, expected_end_token: lexe
 
 
     //Parse variable declarations
-    while lexer.token == KeywordVar {
+    while lexer.token == KeywordVar || lexer.token == KeywordVarInput {
         let block = parse_variable_block(lexer);
         match block {
             Ok(b) => result.variable_blocks.push(b),
@@ -148,7 +148,7 @@ fn parse_body(lexer: &mut RustyLexer, until: &dyn Fn(&lexer::Token) -> bool) -> 
         statements.push(statement);
     }
     if !until(&lexer.token) {
-        return Err(format!("unexpected end of body {:?}", lexer.token).to_string());
+        return Err(format!("unexpected end of body {:?}, statements : {:?}", lexer.token, statements).to_string());
     }
     Ok(statements)
 }
@@ -185,7 +185,8 @@ fn parse_control(lexer : &mut RustyLexer) -> Result<Statement, String> {
 }
 
 fn parse_variable_block(lexer: &mut RustyLexer) -> Result<VariableBlock, String> {
-    lexer.advance(); //Consume VarBlock
+    //Consume the var block
+    lexer.advance();
     let mut result = VariableBlock {
         variables: Vec::new(),
     };

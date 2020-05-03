@@ -18,8 +18,10 @@ fn pou_tokens() {
 
 #[test]
 fn var_tokens() {
-    let mut lexer = super::lex("VAR VAR_GLOBAL END_VAR");
+    let mut lexer = super::lex("VAR VAR_INPUT VAR_GLOBAL END_VAR");
     assert_eq!(lexer.token, super::Token::KeywordVar);
+    lexer.advance();
+    assert_eq!(lexer.token, super::Token::KeywordVarInput);
     lexer.advance();
     assert_eq!(lexer.token, super::Token::KeywordVarGlobal);
     lexer.advance();
