@@ -7,6 +7,7 @@ mod ast;
 mod codegen;
 mod lexer;
 mod parser;
+mod index;
 #[macro_use]
 extern crate pretty_assertions;
 
