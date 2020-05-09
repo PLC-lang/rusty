@@ -48,6 +48,7 @@ fn max_function() {
 }
 
 #[test]
+#[ignore]
 fn test_or_sideeffects() {
      #[allow(dead_code)]
     #[repr(C)]

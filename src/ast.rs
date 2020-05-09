@@ -20,9 +20,18 @@ pub struct CompilationUnit {
     pub units: Vec<POU>,
 }
 
+
+#[derive(Debug, Copy, PartialEq, Clone)]
+pub enum VariableBlockType {
+    Local,
+    Input,
+    Global,
+}
+
 #[derive(Debug, PartialEq)]
 pub struct VariableBlock {
     pub variables: Vec<Variable>,
+    pub variable_block_type: VariableBlockType,
 }
 
 #[derive(Debug, PartialEq)]

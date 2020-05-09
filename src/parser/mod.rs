@@ -184,11 +184,24 @@ fn parse_control(lexer : &mut RustyLexer) -> Result<Statement, String> {
     parse_control_statement(lexer)
 }
 
+fn parse_variable_block_type(lexer: &mut RustyLexer) -> Result<VariableBlockType, String> {
+    let block_type = &lexer.token;
+    let result = match block_type {
+        KeywordVar =>  Ok(VariableBlockType::Local),
+        KeywordVarInput => Ok(VariableBlockType::Input),
+        KeywordVarGlobal => Ok(VariableBlockType::Global),
+        _ => Err(unexpected_token(lexer)),
+    };
+    lexer.advance();
+    result
+}
+
 fn parse_variable_block(lexer: &mut RustyLexer) -> Result<VariableBlock, String> {
     //Consume the var block
-    lexer.advance();
+
     let mut result = VariableBlock {
         variables: Vec::new(),
+        variable_block_type: parse_variable_block_type(lexer).unwrap(),
     };
 
     while lexer.token == Identifier {
