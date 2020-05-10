@@ -34,6 +34,10 @@ fn visit_pou(index: &mut Index, pou: &POU){
         }
     }
 
+    if let Some(return_type) = pou.return_type {
+        index.register_local_variable(pou.name.clone(), pou.name.clone(), VariableType::Return, get_type_name(&return_type))
+    }
+
 }
 
 

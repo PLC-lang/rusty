@@ -1,5 +1,6 @@
 use crate::lexer;
 use crate::parser;
+use crate::index::Index;
 use inkwell::context::Context;
 use pretty_assertions::assert_eq;
 
@@ -9,7 +10,9 @@ macro_rules! codegen {
         let ast = parser::parse(lexer).unwrap();
 
         let context = Context::create();
-        let mut code_generator = super::CodeGen::new(&context);
+        let mut index = Index::new();
+        index.visit(&ast);
+        let mut code_generator = super::CodeGen::new(&context, &mut index);
         code_generator.generate(ast)
     }};
 }

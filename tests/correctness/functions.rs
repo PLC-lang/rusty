@@ -36,8 +36,9 @@ fn max_function() {
 
     "#.to_string();
 
-    let context : Context = Context::create(); 
-    let engine = compile(&context, function);
+    let context : Context = Context::create();
+    let mut index = rusty::create_index(); 
+    let engine = compile(&context, &mut index, function);
     let case1 = MainType{theA : 4, theB: 7};
     let case2 = MainType{theA : 9, theB: -2};
 
@@ -84,7 +85,8 @@ fn test_or_sideeffects() {
     "#.to_string();
 
     let context : Context = Context::create(); 
-    let engine = compile(&context, function);
+    let mut index = rusty::create_index(); 
+    let engine = compile(&context, &mut index, function);
     let case1 = MainType{x : false,};
     let (res, _) = run(&engine, "main", case1);
     assert_eq!(res,1);
