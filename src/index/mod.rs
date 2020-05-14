@@ -56,7 +56,7 @@ pub struct DataTypeInformation {
     kind        : DataTypeType,
 }
 
-#[derive(Debug,PartialEq)]
+#[derive(Copy, Clone, Debug,PartialEq)]
 pub enum PouKind {
     Program,
     Function,
@@ -71,6 +71,12 @@ pub struct PouInformation {
 pub type VariableIndexEntry<'ctx> = IndexEntry<VariableInformation, PointerValue<'ctx>>;
 pub type TypeIndexEntry<'ctx>     = IndexEntry<DataTypeInformation, BasicTypeEnum<'ctx>>;
 pub type PouIndexEntry<'ctx>      = IndexEntry<PouInformation, BasicTypeEnum<'ctx>>;
+
+impl <'ctx> PouIndexEntry<'ctx> {
+    pub fn get_pou_kind(&self) -> PouKind {
+        self.information.pou_kind
+    }
+}
 
 /// The global index of the rusty-compiler
 /// 
@@ -171,7 +177,6 @@ impl<'ctx> Index<'ctx> {
 
     pub fn register_global_variable(&mut self,
                                 name: String, 
-                                variable_type : VariableType, 
                                 type_name: String){
         
         let entry = VariableIndexEntry{

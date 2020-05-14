@@ -45,7 +45,11 @@ fn program_is_indexed() {
     "#);
 
     let program = index.find_pou("myProgram").unwrap();
-    assert_eq!(PouKind::Program, program.information.pou_kind)
+    assert_eq!(PouKind::Program, program.information.pou_kind);
+    let program_variable = index.find_global_variable("myProgram").unwrap();
+
+    //TODO: type name should refer to my
+    assert_eq!("myProgram",program_variable.information.data_type_name);
 }
 
 #[test]

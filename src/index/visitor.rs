@@ -22,6 +22,8 @@ fn visit_pou(index: &mut Index, pou: &POU){
     };
 
     index.register_pou(pou.name.as_str().to_string(), pou_type);
+    //Associate a global variable for the pou we just creatd
+    index.register_global_variable(pou.name.clone(), pou.name.clone()); 
 
     for block in &pou.variable_blocks {
         let block_type = get_variable_type_from_block(block);
@@ -43,10 +45,8 @@ fn visit_pou(index: &mut Index, pou: &POU){
 
 fn visit_global_var_block(index :&mut Index, block: &VariableBlock) {
     for var in &block.variables {
-        let block_type = get_variable_type_from_block(block);
         index.register_global_variable(
                             var.name.clone(), 
-                            block_type,
                             get_type_name(&var.data_type)
                         );
     }

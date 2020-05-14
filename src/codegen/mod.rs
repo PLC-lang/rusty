@@ -133,8 +133,11 @@ impl<'ctx> CodeGen<'ctx> {
 
         //Create An instance variable for that struct
         //Place in global data
-        let thread_local_mode = if p.pou_type == PouType::Function {Some(ThreadLocalMode::LocalExecTLSModel)} else {None};
-        let global_value = self.generate_global_variable(member_type.into(), thread_local_mode, CodeGen::get_struct_instance_name(p.name.as_str()).as_str());
+        if p.pou_type == PouType::Program {
+            let instance_name = CodeGen::get_struct_instance_name(p.name.as_str());
+            let global_value = self.generate_global_variable(member_type.into(), None, instance_name.as_str());
+            self.index.associate_global_variable(p.name.as_str(), global_value.as_pointer_value());            
+        }
 
         //let mut result = None;
         //Generate reference to parameter
@@ -445,31 +448,45 @@ impl<'ctx> CodeGen<'ctx> {
     fn generate_call_statement(&self, operator : &Box<Statement>, parameter : &Box<Option<Statement>>) -> Option<BasicValueEnum> {
         //Figure out what the target is
         //Get the function name
-        let (param,function) = match &**operator {
-            Statement::Reference {name} => (self.get_function_parameter(&name, parameter),self.module.get_function(&name)),
+        let (variable,function) = match &**operator {
+            Statement::Reference {name} => {
+                let function = self.module.get_function(&name);
+                let pou = self.index.find_pou(name);
+                let variable = if pou.unwrap().get_pou_kind() == PouKind::Function {
+                    let instance_name = CodeGen::get_struct_instance_name(name);
+                    let interface_name =CodeGen::get_struct_name(name);
+                    let function_type = self.module.get_struct_type(interface_name.as_str()); //TODO Store as datatype in the index and fetch it?
+                    Some(self.builder.build_alloca(function_type.unwrap(), instance_name.as_str()))
+                } else {
+                    self.get_global_variable(name) //TODO: Variable because of function block?
+                };
+
+                (variable,function)
+            }
             _ => (None,None),
         };
+        let param = variable.unwrap();
+        self.generate_function_parameters(param, parameter);
+        let function = function.unwrap();
         //If the target is a function, declare the struct locally
         //Assign all parameters into the struct values
-        let call_result = self.builder.build_call(function.unwrap(), &[param.unwrap().as_basic_value_enum()] , "call").try_as_basic_value();
+        let call_result = self.builder.build_call(function, &[param.as_basic_value_enum()] , "call").try_as_basic_value();
         return call_result.left();
     }
     //Some(LiteralInteger { value: "2" })
 
-    fn get_function_parameter(&self, name : &str, parameters: &Box<Option<Statement>>) -> Option<PointerValue<'ctx>> {
-        let variable = self.get_variable(format!("{}_instance",name).as_str());
+    fn generate_function_parameters(&self, variable : PointerValue<'ctx>, parameters: &Box<Option<Statement>>) {
         match &**parameters {
             Some(Statement::ExpressionList{expressions}) => {
                 for (index,exp) in expressions.iter().enumerate() {
-                    self.generate_single_parameter(exp, index as u32, variable.unwrap());
+                    self.generate_single_parameter(exp, index as u32, variable);
                 }
             },
             Some(statement) => 
-                self.generate_single_parameter(statement, 0, variable.unwrap()),
+                self.generate_single_parameter(statement, 0, variable),
             None =>{},
             
         }
-        variable//None
     }
 
     fn generate_single_parameter(&self, statement : &Statement, index : u32, pointer_value : PointerValue<'ctx>) {
@@ -492,7 +509,7 @@ impl<'ctx> CodeGen<'ctx> {
     }
 
     fn get_global_variable(&self, name : &str) -> Option<PointerValue<'ctx>> {
-       self.module.get_global(name).map(|var| var.as_basic_value_enum().into_pointer_value()) 
+       self.index.find_global_variable(name).map(|it| it.get_generated_reference()).flatten()
     }
 
     fn generate_lvalue_for_reference(&self, name: &str) -> Option<PointerValue<'ctx>> {

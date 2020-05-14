@@ -28,7 +28,7 @@ macro_rules! generate_with_empty_program {
 }
 
 
-fn generate_boiler_plate(pou_name : &str, type_list : &[(&str,&str)], return_type : &str, thread_mode : &str, global_variables : &str, body : &str) -> String{
+fn generate_program_boiler_plate(pou_name : &str, type_list : &[(&str,&str)], return_type : &str, thread_mode : &str, global_variables : &str, body : &str) -> String{
 
   let mut interface : String = type_list.iter().map(|(t,_)| *t).collect::<Vec<&str>>().join(", ");
   if !interface.is_empty() { 
@@ -77,8 +77,8 @@ entry:
                 )
 }
 
-fn generate_boiler_plate_globals(global_variables : &str) -> String {
-  generate_boiler_plate("main", &[], "void", "", global_variables, "  ret void\n", )
+fn generate_program_boiler_plate_globals(global_variables : &str) -> String {
+  generate_program_boiler_plate("main", &[], "void", "", global_variables, "  ret void\n", )
 }
 
 #[test]
@@ -94,7 +94,7 @@ y;
 END_PROGRAM
 "#
     );
-    let expected = generate_boiler_plate(
+    let expected = generate_program_boiler_plate(
         "prg",
         &[("i32","x"),("i32","y")],
         "void",
@@ -112,7 +112,7 @@ END_PROGRAM
 #[test]
 fn empty_global_variable_list_generates_nothing() {
     let result = generate_with_empty_program!("VAR_GLOBAL END_VAR");
-    let expected = generate_boiler_plate_globals("");
+    let expected = generate_program_boiler_plate_globals("");
 
     assert_eq!(result, expected);
 }
@@ -120,7 +120,7 @@ fn empty_global_variable_list_generates_nothing() {
 #[test]
 fn a_global_variables_generates_in_separate_global_variables() {
     let result = generate_with_empty_program!("VAR_GLOBAL gX : INT; gY : BOOL; END_VAR");
-    let expected = generate_boiler_plate_globals(
+    let expected = generate_program_boiler_plate_globals(
 r#"
 @gX = common global i32 0
 @gY = common global i1 false"#);
@@ -131,7 +131,7 @@ r#"
 #[test]
 fn two_global_variables_generates_in_separate_global_variables() {
     let result = generate_with_empty_program!("VAR_GLOBAL gX : INT; gY : BOOL; END_VAR VAR_GLOBAL gA : INT; END_VAR");
-    let expected = generate_boiler_plate_globals(
+    let expected = generate_program_boiler_plate_globals(
 r#"
 @gX = common global i32 0
 @gY = common global i1 false
@@ -155,7 +155,7 @@ fn global_variable_reference_is_generated() {
     END_PROGRAM
     ");
 
-    let expected = generate_boiler_plate("prg", &[("i32","x")], "void", "", 
+    let expected = generate_program_boiler_plate("prg", &[("i32","x")], "void", "", 
 r"
 @gX = common global i32 0", //global vars
 r"store i32 20, i32* @gX
@@ -172,7 +172,7 @@ r"store i32 20, i32* @gX
 #[test]
 fn empty_program_with_name_generates_void_function() {
     let result = codegen!("PROGRAM prg END_PROGRAM");
-    let expected = generate_boiler_plate("prg", &[], "void", "", "",
+    let expected = generate_program_boiler_plate("prg", &[], "void", "", "",
     r#"  ret void
 "#);
 
@@ -182,11 +182,20 @@ fn empty_program_with_name_generates_void_function() {
 #[test]
 fn empty_function_with_name_generates_int_function() {
     let result = codegen!("FUNCTION foo : INT END_FUNCTION");
-    let expected = generate_boiler_plate("foo", &[],"i32","thread_local(localexec) ","",
-    r#"%foo_ret = load i32, i32* %foo
-  ret i32 %foo_ret
-"#);
+    let expected = 
+    r#"; ModuleID = 'main'
+source_filename = "main"
 
+%foo_interface = type {}
+
+define i32 @foo(%foo_interface* %0) {
+entry:
+  %foo = alloca i32
+  %foo_ret = load i32, i32* %foo
+  ret i32 %foo_ret
+}
+"#;
+ 
     assert_eq!(result, expected);
 }
 #[test]
@@ -200,7 +209,7 @@ END_VAR
 END_PROGRAM
 "#
     );
-    let expected = generate_boiler_plate("prg", &[("i32","x"),("i32","y")],"void","","",
+    let expected = generate_program_boiler_plate("prg", &[("i32","x"),("i32","y")],"void","","",
     r#"ret void
 "#);
 
@@ -222,7 +231,7 @@ y;
 END_PROGRAM
 "#
     );
-    let expected = generate_boiler_plate(
+    let expected = generate_program_boiler_plate(
         "prg",
         &[("i1","x"),("i1","y")],
         "void",
@@ -249,7 +258,7 @@ x + y;
 END_PROGRAM
 "#
     );
-    let expected = generate_boiler_plate(
+    let expected = generate_program_boiler_plate(
         "prg",
         &[("i32","x"),("i32","y")],
         "void",
@@ -276,7 +285,7 @@ x + 7;
 END_PROGRAM
 "#
     );
-    let expected = generate_boiler_plate(
+    let expected = generate_program_boiler_plate(
         "prg",
         &[("i32","x")],
         "void",
@@ -302,7 +311,7 @@ y := 7;
 END_PROGRAM
 "#
     );
-    let expected = generate_boiler_plate(
+    let expected = generate_program_boiler_plate(
         "prg",
         &[("i32","y")],
         "void",
@@ -328,7 +337,7 @@ y := FALSE;
 END_PROGRAM
 "#
     );
-    let expected = generate_boiler_plate(
+    let expected = generate_program_boiler_plate(
         "prg",
         &[("i1","y")],
         "void",
@@ -359,7 +368,7 @@ y := x MOD 5;
 END_PROGRAM
 "#
     );
-    let expected = generate_boiler_plate(
+    let expected = generate_program_boiler_plate(
         "prg",
         &[("i32","x"),("i32","y")],
         "void",
@@ -404,7 +413,7 @@ y := x <= 6;
 END_PROGRAM
 "#
     );
-    let expected = generate_boiler_plate(
+    let expected = generate_program_boiler_plate(
         "prg",
         &[("i32","x"),("i1","y")],
         "void",
@@ -450,7 +459,7 @@ x XOR y;
 END_PROGRAM
 "#
     );
-    let expected = generate_boiler_plate(
+    let expected = generate_program_boiler_plate(
         "prg",
         &[("i1","x"),("i1","y"), ("i32","z")],
         "void",
@@ -485,7 +494,7 @@ x AND NOT y;
 END_PROGRAM
 "#
     );
-    let expected = generate_boiler_plate(
+    let expected = generate_program_boiler_plate(
         "prg",
         &[("i1","x"),("i1","y")],
         "void",
@@ -517,7 +526,7 @@ NOT (z <= 6) OR y;
 END_PROGRAM
 "#
     );
-    let expected = generate_boiler_plate(
+    let expected = generate_program_boiler_plate(
         "prg",
         &[("i32","z"),("i1","y")],
         "void",
@@ -553,7 +562,7 @@ fn program_with_signed_combined_expressions() {
             END_PROGRAM
             "#
     );
-    let expected = generate_boiler_plate(
+    let expected = generate_program_boiler_plate(
         "prg",
         &[("i32","z"),("i32","y")],
         "void",
@@ -600,7 +609,7 @@ fn if_elsif_else_generator_test() {
         END_PROGRAM
         "
     );
-    let expected = generate_boiler_plate("prg",
+    let expected = generate_program_boiler_plate("prg",
     &[("i32","x"),("i32","y"),("i32", "z"), ("i32", "u"), ("i1", "b1"), ("i1", "b2"), ("i1", "b3")],
     "void",
     "",
@@ -655,7 +664,7 @@ fn if_generator_test() {
         END_PROGRAM
         "
     );
-    let expected = generate_boiler_plate("prg",
+    let expected = generate_program_boiler_plate("prg",
     &[("i32","x"),("i1","b1")],
     "void",
     "",
@@ -689,7 +698,7 @@ fn if_with_expression_generator_test() {
         END_PROGRAM
         "
     );
-    let expected = generate_boiler_plate("prg",
+    let expected = generate_program_boiler_plate("prg",
     &[("i32","x"),("i1","b1")],
     "void",
     "",
@@ -726,7 +735,7 @@ fn for_statement_with_steps_test() {
         "
     );
 
-    let expected = generate_boiler_plate("prg",
+    let expected = generate_program_boiler_plate("prg",
     &[("i32","x")],
     "void",
     "",
@@ -767,7 +776,7 @@ fn for_statement_without_steps_test() {
         "
     );
 
-    let expected = generate_boiler_plate("prg",&[("i32","x")],
+    let expected = generate_program_boiler_plate("prg",&[("i32","x")],
     "void",
     "",
     "",
@@ -807,7 +816,7 @@ fn for_statement_continue() {
         "
     );
 
-    let expected = generate_boiler_plate("prg",&[("i32","x")],
+    let expected = generate_program_boiler_plate("prg",&[("i32","x")],
     "void",
     "",
     "",
@@ -850,7 +859,7 @@ fn for_statement_with_references_steps_test() {
         "
     );
 
-    let expected = generate_boiler_plate("prg",
+    let expected = generate_program_boiler_plate("prg",
     &[("i32","step"),("i32","x"),("i32","y"),("i32","z")],
     "void",
     "",
@@ -894,7 +903,7 @@ fn while_statement() {
         "
     );
 
-    let expected = generate_boiler_plate("prg",&[("i1","x")], 
+    let expected = generate_program_boiler_plate("prg",&[("i1","x")], 
     "void",
     "",
     "",
@@ -930,7 +939,7 @@ fn while_with_expression_statement() {
         "
     );
 
-    let expected = generate_boiler_plate("prg",&[("i1","x")], 
+    let expected = generate_program_boiler_plate("prg",&[("i1","x")], 
     "void",
     "",
     "",
@@ -968,7 +977,7 @@ fn repeat_statement() {
         "
     );
 
-    let expected = generate_boiler_plate("prg",&[("i1","x")], 
+    let expected = generate_program_boiler_plate("prg",&[("i1","x")], 
     "void",
     "",
     "",
@@ -1010,7 +1019,7 @@ fn simple_case_statement() {
         "
     );
 
-    let expected = generate_boiler_plate("prg",&[("i32","x"),("i32","y")], 
+    let expected = generate_program_boiler_plate("prg",&[("i32","x"),("i32","y")], 
     "void",
     "",
     "",
@@ -1064,10 +1073,9 @@ fn function_called_in_program() {
     let expected = r#"; ModuleID = 'main'
 source_filename = "main"
 
-%foo_interface = type {}
 %prg_interface = type { i32 }
+%foo_interface = type {}
 
-@foo_instance = common thread_local(localexec) global %foo_interface zeroinitializer
 @prg_instance = common global %prg_interface zeroinitializer
 
 define i32 @foo(%foo_interface* %0) {
@@ -1081,7 +1089,8 @@ entry:
 define void @prg(%prg_interface* %0) {
 entry:
   %x = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 0
-  %call = call i32 @foo(%foo_interface* @foo_instance)
+  %foo_instance = alloca %foo_interface
+  %call = call i32 @foo(%foo_interface* %foo_instance)
   store i32 %call, i32* %x
   ret void
 }
@@ -1113,10 +1122,9 @@ fn function_with_parameters_called_in_program() {
     let expected = r#"; ModuleID = 'main'
 source_filename = "main"
 
-%foo_interface = type { i32 }
 %prg_interface = type { i32 }
+%foo_interface = type { i32 }
 
-@foo_instance = common thread_local(localexec) global %foo_interface zeroinitializer
 @prg_instance = common global %prg_interface zeroinitializer
 
 define i32 @foo(%foo_interface* %0) {
@@ -1131,8 +1139,10 @@ entry:
 define void @prg(%prg_interface* %0) {
 entry:
   %x = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 0
-  store i32 2, i32* getelementptr inbounds (%foo_interface, %foo_interface* @foo_instance, i32 0, i32 0)
-  %call = call i32 @foo(%foo_interface* @foo_instance)
+  %foo_instance = alloca %foo_interface
+  %1 = getelementptr inbounds %foo_interface, %foo_interface* %foo_instance, i32 0, i32 0
+  store i32 2, i32* %1
+  %call = call i32 @foo(%foo_interface* %foo_instance)
   store i32 %call, i32* %x
   ret void
 }
@@ -1165,10 +1175,9 @@ fn function_with_two_parameters_called_in_program() {
     let expected = r#"; ModuleID = 'main'
 source_filename = "main"
 
-%foo_interface = type { i32, i1 }
 %prg_interface = type { i32 }
+%foo_interface = type { i32, i1 }
 
-@foo_instance = common thread_local(localexec) global %foo_interface zeroinitializer
 @prg_instance = common global %prg_interface zeroinitializer
 
 define i32 @foo(%foo_interface* %0) {
@@ -1184,9 +1193,12 @@ entry:
 define void @prg(%prg_interface* %0) {
 entry:
   %x = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 0
-  store i32 2, i32* getelementptr inbounds (%foo_interface, %foo_interface* @foo_instance, i32 0, i32 0)
-  store i1 true, i1* getelementptr inbounds (%foo_interface, %foo_interface* @foo_instance, i32 0, i32 1)
-  %call = call i32 @foo(%foo_interface* @foo_instance)
+  %foo_instance = alloca %foo_interface
+  %1 = getelementptr inbounds %foo_interface, %foo_interface* %foo_instance, i32 0, i32 0
+  store i32 2, i32* %1
+  %2 = getelementptr inbounds %foo_interface, %foo_interface* %foo_instance, i32 0, i32 1
+  store i1 true, i1* %2
+  %call = call i32 @foo(%foo_interface* %foo_instance)
   store i32 %call, i32* %x
   ret void
 }
@@ -1195,3 +1207,86 @@ entry:
   assert_eq!(result, expected);
 }
 
+
+#[test]
+fn program_called_in_program() {
+    let result = codegen!(
+        "
+        PROGRAM foo
+        END_PROGRAM
+
+        PROGRAM prg 
+        foo();
+        END_PROGRAM
+        "
+    );
+
+    let expected = r#"; ModuleID = 'main'
+source_filename = "main"
+
+%foo_interface = type {}
+%prg_interface = type {}
+
+@foo_instance = common global %foo_interface zeroinitializer
+@prg_instance = common global %prg_interface zeroinitializer
+
+define void @foo(%foo_interface* %0) {
+entry:
+  ret void
+}
+
+define void @prg(%prg_interface* %0) {
+entry:
+  call void @foo(%foo_interface* @foo_instance)
+  ret void
+}
+"#;
+
+  assert_eq!(result, expected);
+}
+
+
+#[test]
+fn program_with_two_parameters_called_in_program() {
+    let result = codegen!(
+        "
+        PROGRAM foo 
+        VAR_INPUT
+          bar : INT;
+          buz : BOOL;
+        END_VAR
+        END_PROGRAM
+
+        PROGRAM prg 
+          foo(2, TRUE);
+        END_PROGRAM
+        "
+    );
+
+    let expected = r#"; ModuleID = 'main'
+source_filename = "main"
+
+%foo_interface = type { i32, i1 }
+%prg_interface = type {}
+
+@foo_instance = common global %foo_interface zeroinitializer
+@prg_instance = common global %prg_interface zeroinitializer
+
+define void @foo(%foo_interface* %0) {
+entry:
+  %bar = getelementptr inbounds %foo_interface, %foo_interface* %0, i32 0, i32 0
+  %buz = getelementptr inbounds %foo_interface, %foo_interface* %0, i32 0, i32 1
+  ret void
+}
+
+define void @prg(%prg_interface* %0) {
+entry:
+  store i32 2, i32* getelementptr inbounds (%foo_interface, %foo_interface* @foo_instance, i32 0, i32 0)
+  store i1 true, i1* getelementptr inbounds (%foo_interface, %foo_interface* @foo_instance, i32 0, i32 1)
+  call void @foo(%foo_interface* @foo_instance)
+  ret void
+}
+"#;
+
+  assert_eq!(result, expected);
+}
