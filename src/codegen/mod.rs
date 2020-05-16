@@ -14,31 +14,33 @@ use inkwell::{AddressSpace, ThreadLocalMode};
 use inkwell::IntPredicate;
 
 use inkwell::basic_block::BasicBlock;
+use super::index::*;
 
 #[cfg(test)]
 mod tests;
 
 pub struct CodeGen<'ctx> {
+
     pub context: &'ctx Context,
     pub module: Module<'ctx>,
     pub builder: Builder<'ctx>,
+    pub index : &'ctx mut Index<'ctx>,
 
-    current_pou: String,
+    scope: Option<String>,
     current_function : Option<FunctionValue<'ctx>>,
-    current_parameters : HashMap<String, PointerValue<'ctx>>,
 }
 
 impl<'ctx> CodeGen<'ctx> {
-    pub fn new(context: &'ctx Context) -> CodeGen<'ctx> {
+    pub fn new(context: &'ctx Context, index: &'ctx mut Index<'ctx>) -> CodeGen<'ctx> {
         let module = context.create_module("main");
         let builder = context.create_builder();
         let codegen = CodeGen {
             context: context,
             module,
             builder,
-            current_pou: "".to_string(),
+            index: index,
+            scope: None,
             current_function : None,
-            current_parameters : HashMap::new(),    
         };
         codegen
     }
@@ -96,13 +98,14 @@ impl<'ctx> CodeGen<'ctx> {
     fn generate_global_vars(&mut self, global_vars: &VariableBlock) {
         let members = self.get_variables_information(global_vars);
         for (name, var_type) in members {
-            self.generate_global_variable(var_type, None, &name);
+            let global_value = self.generate_global_variable(var_type, None, &name);
+            self.index.associate_global_variable(name.as_str(), global_value.as_pointer_value());
         }
     }
     
     fn generate_pou(&mut self, p: &POU) {
         
-        self.current_pou = p.name.clone();
+        self.scope = Some(p.name.clone());
         
         let mut pou_members: Vec<(String, BasicTypeEnum)> = Vec::new();
         let return_type = self.get_type(&p.return_type);
@@ -122,7 +125,7 @@ impl<'ctx> CodeGen<'ctx> {
         let member_type_ptr = member_type.ptr_type(AddressSpace::Generic);
         //let return_type = self.context.i32_type();
         let f_type = self.get_function_type(&[member_type_ptr.as_basic_type_enum()],return_type);
-        self.current_function = Some(self.module.add_function(self.current_pou.as_str(), f_type, None));
+        self.current_function = Some(self.module.add_function(self.scope.as_ref().unwrap().as_str(), f_type, None));
         let block = self.context.append_basic_block(self.current_function.unwrap(), "entry");
 
 
@@ -130,22 +133,24 @@ impl<'ctx> CodeGen<'ctx> {
 
         //Create An instance variable for that struct
         //Place in global data
-        let thread_local_mode = if p.pou_type == PouType::Function {Some(ThreadLocalMode::LocalExecTLSModel)} else {None};
-        self.generate_global_variable(member_type.into(), thread_local_mode, CodeGen::get_struct_instance_name(p.name.as_str()).as_str());
+        if p.pou_type == PouType::Program {
+            let instance_name = CodeGen::get_struct_instance_name(p.name.as_str());
+            let global_value = self.generate_global_variable(member_type.into(), None, instance_name.as_str());
+            self.index.associate_global_variable(p.name.as_str(), global_value.as_pointer_value());            
+        }
+
         //let mut result = None;
         //Generate reference to parameter
         self.builder.position_at_end(block);
-        self.current_parameters = pou_members.iter().enumerate().map(|(i,m)| 
-            {
+        for (i,m) in pou_members.iter().enumerate() {
+                let parameter_name = &m.0;
                 let ptr_value = self.current_function.unwrap().get_first_param().unwrap().into_pointer_value();
-                (m.0.clone(),self.builder.build_struct_gep(ptr_value, i as u32, &m.0).unwrap())
-            } 
-        ).collect();
-
+                self.index.associate_local_variable(p.name.as_str(),parameter_name, self.builder.build_struct_gep(ptr_value, i as u32, &parameter_name).unwrap())
+        }
         //Insert return variable
         if let Some(ret_type) = return_type {
             let ret_alloc = self.builder.build_alloca(ret_type, p.name.as_str());
-            self.current_parameters.insert(p.name.clone(),ret_alloc);
+            self.index.associate_local_variable(p.name.as_str(), p.name.as_str(), ret_alloc);
         }
 
         self.generate_statement_list(block,&p.statements);
@@ -161,8 +166,9 @@ impl<'ctx> CodeGen<'ctx> {
     fn get_return_value(&self, pou_type : PouType) -> Option<BasicValueEnum> {
         match pou_type {
             PouType::Function => {
-                let value = self.generate_lvalue_for_reference(self.current_pou.as_str()).unwrap(); 
-                Some(self.builder.build_load(value,format!("{}_ret",self.current_pou.as_str()).as_str()))
+                let pou_name = self.scope.as_ref().unwrap().as_str();
+                let value = self.generate_lvalue_for_reference(pou_name).unwrap(); 
+                Some(self.builder.build_load(value,format!("{}_ret",pou_name).as_str()))
             },
             _ => None
         }
@@ -201,7 +207,7 @@ impl<'ctx> CodeGen<'ctx> {
         variable_type: BasicTypeEnum<'ctx>,
         thread_local_mode: Option<ThreadLocalMode>,
         name: &str,
-    ) -> GlobalValue {
+    ) -> GlobalValue<'ctx> {
         let result = self.module
             .add_global(variable_type, Some(AddressSpace::Generic), name);
         self.set_initializer_for_type(&result, variable_type);
@@ -442,32 +448,45 @@ impl<'ctx> CodeGen<'ctx> {
     fn generate_call_statement(&self, operator : &Box<Statement>, parameter : &Box<Option<Statement>>) -> Option<BasicValueEnum> {
         //Figure out what the target is
         //Get the function name
-        let (param,function) = match &**operator {
-            Statement::Reference {name} => (self.get_function_parameter(&name, parameter),self.module.get_function(&name)),
+        let (variable,function) = match &**operator {
+            Statement::Reference {name} => {
+                let function = self.module.get_function(&name);
+                let pou = self.index.find_pou(name);
+                let variable = if pou.unwrap().get_pou_kind() == PouKind::Function {
+                    let instance_name = CodeGen::get_struct_instance_name(name);
+                    let interface_name =CodeGen::get_struct_name(name);
+                    let function_type = self.module.get_struct_type(interface_name.as_str()); //TODO Store as datatype in the index and fetch it?
+                    Some(self.builder.build_alloca(function_type.unwrap(), instance_name.as_str()))
+                } else {
+                    self.get_global_variable(name) //TODO: Variable because of function block?
+                };
+
+                (variable,function)
+            }
             _ => (None,None),
         };
+        let param = variable.unwrap();
+        self.generate_function_parameters(param, parameter);
+        let function = function.unwrap();
         //If the target is a function, declare the struct locally
         //Assign all parameters into the struct values
-        let call_result = self.builder.build_call(function.unwrap(), &[param.unwrap().as_basic_value_enum()] , "call").try_as_basic_value();
+        let call_result = self.builder.build_call(function, &[param.as_basic_value_enum()] , "call").try_as_basic_value();
         return call_result.left();
     }
     //Some(LiteralInteger { value: "2" })
 
-    fn get_function_parameter(&self, name : &str, parameters: &Box<Option<Statement>>) -> Option<PointerValue<'ctx>> {
-        let variable = self.get_variable(format!("{}_instance",name).as_str());
-        println!("{:?}", parameters);
+    fn generate_function_parameters(&self, variable : PointerValue<'ctx>, parameters: &Box<Option<Statement>>) {
         match &**parameters {
             Some(Statement::ExpressionList{expressions}) => {
                 for (index,exp) in expressions.iter().enumerate() {
-                    self.generate_single_parameter(exp, index as u32, variable.unwrap());
+                    self.generate_single_parameter(exp, index as u32, variable);
                 }
             },
             Some(statement) => 
-                self.generate_single_parameter(statement, 0, variable.unwrap()),
+                self.generate_single_parameter(statement, 0, variable),
             None =>{},
             
         }
-        variable//None
     }
 
     fn generate_single_parameter(&self, statement : &Statement, index : u32, pointer_value : PointerValue<'ctx>) {
@@ -484,17 +503,13 @@ impl<'ctx> CodeGen<'ctx> {
         }
     }
     fn get_variable(&self, name: &str) -> Option<PointerValue<'ctx>> {
-        if let Some(value) = self.current_parameters.get(name) {
-            //Get from local scope
-            Some(*value)
-        } else {
-            //Get from global scope
-            self.get_global_variable(name)
-        }
+
+        self.index.find_variable(self.scope.as_ref().map(|s| s.as_str()), name)
+                    .map(|e| e.get_generated_reference()).flatten()
     }
 
     fn get_global_variable(&self, name : &str) -> Option<PointerValue<'ctx>> {
-       self.module.get_global(name).map(|var| var.as_basic_value_enum().into_pointer_value()) 
+       self.index.find_global_variable(name).map(|it| it.get_generated_reference()).flatten()
     }
 
     fn generate_lvalue_for_reference(&self, name: &str) -> Option<PointerValue<'ctx>> {

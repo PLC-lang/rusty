@@ -1,6 +1,7 @@
 use crate::ast::PrimitiveType;
 use crate::ast::Type;
 use crate::ast::PouType;
+use crate::ast::VariableBlockType;
 use crate::lexer;
 use pretty_assertions::*;
 
@@ -20,6 +21,7 @@ fn empty_global_vars_can_be_parsed() {
     let expected_ast = 
 r#"VariableBlock {
     variables: [],
+    variable_block_type: Global,
 }"#;
     assert_eq!(ast_string,expected_ast)
 
@@ -48,6 +50,7 @@ r#"VariableBlock {
             ),
         },
     ],
+    variable_block_type: Global,
 }"#;
     assert_eq!(ast_string,expected_ast)
 
@@ -71,6 +74,7 @@ r#"[
                 ),
             },
         ],
+        variable_block_type: Global,
     },
     VariableBlock {
         variables: [
@@ -87,6 +91,7 @@ r#"[
                 ),
             },
         ],
+        variable_block_type: Global,
     },
 ]"#;
     assert_eq!(ast_string,expected_ast)
@@ -230,10 +235,22 @@ fn simple_program_with_variable_can_be_parsed() {
     let result = super::parse(lexer).unwrap();
 
     let prg = &result.units[0];
-    let variable = &prg.variable_blocks[0].variables[0];
+    let variable_block = &prg.variable_blocks[0];
+    let ast_string = format!("{:#?}", variable_block);
+    let expected_ast = 
+r#"VariableBlock {
+    variables: [
+        Variable {
+            name: "x",
+            data_type: Primitive(
+                Int,
+            ),
+        },
+    ],
+    variable_block_type: Local,
+}"#;
+    assert_eq!(ast_string,expected_ast);
 
-    assert_eq!(variable.name, "x");
-    assert_eq!(variable.data_type, Type::Primitive(PrimitiveType::Int));
 }
 
 #[test]
@@ -243,7 +260,19 @@ fn simple_program_with_var_input_can_be_parsed() {
     let result = super::parse(lexer).unwrap();
 
     let prg = &result.units[0];
-    let variable = &prg.variable_blocks[0].variables[0];
-
-    assert_eq!(variable.name, "x");
+    let variable_block = &prg.variable_blocks[0];
+    let ast_string = format!("{:#?}", variable_block);
+    let expected_ast = 
+r#"VariableBlock {
+    variables: [
+        Variable {
+            name: "x",
+            data_type: Primitive(
+                Int,
+            ),
+        },
+    ],
+    variable_block_type: Input,
+}"#;
+    assert_eq!(ast_string,expected_ast);
 }
