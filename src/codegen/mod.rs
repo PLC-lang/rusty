@@ -1,5 +1,3 @@
-use std::collections::HashMap;
-
 use super::ast::*;
 use inkwell::builder::Builder;
 use inkwell::context::Context;
@@ -34,7 +32,7 @@ impl<'ctx> CodeGen<'ctx> {
     pub fn new(context: &'ctx Context, index: &'ctx mut Index<'ctx>) -> CodeGen<'ctx> {
         let module = context.create_module("main");
         let builder = context.create_builder();
-        let codegen = CodeGen {
+        let mut codegen = CodeGen {
             context: context,
             module,
             builder,
@@ -42,7 +40,12 @@ impl<'ctx> CodeGen<'ctx> {
             scope: None,
             current_function : None,
         };
+        codegen.initialize_type_system();
         codegen
+    }
+
+    fn getScope(&self) -> Option<&str>  {
+        self.scope.as_ref().map(|it| it.as_str())
     }
 
     fn get_struct_name(pou_name: &str) -> String {
@@ -51,6 +54,13 @@ impl<'ctx> CodeGen<'ctx> {
 
     fn get_struct_instance_name(pou_name: &str) -> String {
         format!("{}_instance", pou_name)
+    }
+
+    fn initialize_type_system(&mut self) {
+        self.index.register_type("INT".to_string());
+        self.index.associate_type("INT", self.context.i32_type().as_basic_type_enum());
+        self.index.register_type("BOOL".to_string());
+        self.index.associate_type("BOOL", self.context.bool_type().as_basic_type_enum());
     }
 
     pub fn generate(&mut self, root: CompilationUnit) -> String {
@@ -68,23 +78,10 @@ impl<'ctx> CodeGen<'ctx> {
         }
     }
 
-    fn get_type(&self, type_name: &Option<Type>) -> Option<BasicTypeEnum<'ctx>> {
-        if let Some(type_name) = type_name {
-            match type_name {
-                Type::Primitive(primitive_type) => self.get_primitive_type(primitive_type),
-                _ => None
-            }
-        } else {
-            None
-        }
+    fn get_type(&self, data_type: &Type) -> Option<BasicTypeEnum<'ctx>> {
+        self.index.find_type(data_type.name.as_str()).map(|it| it.get_type()).flatten()
     }
 
-    fn get_primitive_type(&self, type_name: &PrimitiveType) -> Option<BasicTypeEnum<'ctx>> {
-        match type_name {
-            PrimitiveType::Int => Some(self.context.i32_type().as_basic_type_enum()),
-            PrimitiveType::Bool => Some(self.context.bool_type().as_basic_type_enum()),
-        }
-    }
 
     fn get_function_type(&self, parameters: &[BasicTypeEnum<'ctx>], enum_type : Option<BasicTypeEnum<'ctx>>) -> FunctionType<'ctx> {
         if let Some(enum_type) = enum_type {
@@ -108,7 +105,7 @@ impl<'ctx> CodeGen<'ctx> {
         self.scope = Some(p.name.clone());
         
         let mut pou_members: Vec<(String, BasicTypeEnum)> = Vec::new();
-        let return_type = self.get_type(&p.return_type);
+        let return_type = p.return_type.as_ref().map( | return_type | self.get_type(return_type)).flatten();
 
         for var_block in &p.variable_blocks {
             let mut members = self.get_variables_information(var_block);
@@ -121,14 +118,15 @@ impl<'ctx> CodeGen<'ctx> {
             &pou_members,
             &CodeGen::get_struct_name(p.name.as_str()),
         );
+
+        self.index.associate_type(p.name.as_str(),member_type.into());
        
         let member_type_ptr = member_type.ptr_type(AddressSpace::Generic);
         //let return_type = self.context.i32_type();
         let f_type = self.get_function_type(&[member_type_ptr.as_basic_type_enum()],return_type);
-        self.current_function = Some(self.module.add_function(self.scope.as_ref().unwrap().as_str(), f_type, None));
+        self.current_function = Some(self.module.add_function(self.getScope().unwrap(), f_type, None));
+        self.index.associate_callable_implementation(p.name.as_str(), self.current_function.unwrap());
         let block = self.context.append_basic_block(self.current_function.unwrap(), "entry");
-
-
 
 
         //Create An instance variable for that struct
@@ -166,7 +164,7 @@ impl<'ctx> CodeGen<'ctx> {
     fn get_return_value(&self, pou_type : PouType) -> Option<BasicValueEnum> {
         match pou_type {
             PouType::Function => {
-                let pou_name = self.scope.as_ref().unwrap().as_str();
+                let pou_name = self.getScope().unwrap();
                 let value = self.generate_lvalue_for_reference(pou_name).unwrap(); 
                 Some(self.builder.build_load(value,format!("{}_ret",pou_name).as_str()))
             },
@@ -177,7 +175,7 @@ impl<'ctx> CodeGen<'ctx> {
     fn get_variables_information(&self, v: &VariableBlock) -> Vec<(String, BasicTypeEnum<'ctx>)> {
         let mut types: Vec<(String, BasicTypeEnum<'ctx>)> = Vec::new();
         for variable in &v.variables {
-            let var_type = self.get_type(&Some(variable.data_type)).unwrap();
+            let var_type = self.get_type(&variable.data_type).unwrap();
             types.push((variable.name.clone(), var_type));
         }
         types
@@ -251,7 +249,7 @@ impl<'ctx> CodeGen<'ctx> {
             } => self.generate_binary_expression(operator, left, right),
             Statement::LiteralInteger { value } => self.generate_literal_number(value.as_str()),
             Statement::LiteralBool { value } => self.generate_literal_boolean(*value),
-            Statement::Reference { name } => self.generate_variable_reference(name),
+            Statement::Reference { elements } => self.generate_variable_reference(&elements[0]),
             Statement::Assignment { left, right } => self.generate_assignment(&left, &right),
             Statement::UnaryExpression { operator, value } => self.generate_unary_expression(&operator, &value),
             Statement::CallStatement {operator, parameters} => self.generate_call_statement(&operator, &parameters),
@@ -445,23 +443,43 @@ impl<'ctx> CodeGen<'ctx> {
         Some(BasicValueEnum::IntValue(value))
     }
 
+
+    /**
+     * 
+     * FUNCTION foo : INT;
+     * END_FUNCTION
+     * PROGRAM a 
+     * VAR
+     * foo : INT
+     * END_VAR
+     * foo();
+     * END_PROGRAM
+     * 
+     */
+
+    fn get_callable_type_instance(&self, expressions : &Vec<String>) -> Option<&VariableIndexEntry<'ctx>> {
+        self.index.find_callable_instance_variable(self.getScope(), &expressions[0])
+    }
+
+    fn allocate_variable(&self, name :&str) -> Option<PointerValue<'ctx>>{
+        let instance_name = CodeGen::get_struct_instance_name(name);
+        let function_type = self.index.find_type(name).unwrap().get_type(); //TODO Store as datatype in the index and fetch it?
+        Some(self.builder.build_alloca(function_type.unwrap(), instance_name.as_str()))
+    }
+
     fn generate_call_statement(&self, operator : &Box<Statement>, parameter : &Box<Option<Statement>>) -> Option<BasicValueEnum> {
         //Figure out what the target is
         //Get the function name
         let (variable,function) = match &**operator {
-            Statement::Reference {name} => {
-                let function = self.module.get_function(&name);
-                let pou = self.index.find_pou(name);
-                let variable = if pou.unwrap().get_pou_kind() == PouKind::Function {
-                    let instance_name = CodeGen::get_struct_instance_name(name);
-                    let interface_name =CodeGen::get_struct_name(name);
-                    let function_type = self.module.get_struct_type(interface_name.as_str()); //TODO Store as datatype in the index and fetch it?
-                    Some(self.builder.build_alloca(function_type.unwrap(), instance_name.as_str()))
-                } else {
-                    self.get_global_variable(name) //TODO: Variable because of function block?
-                };
+            Statement::Reference {elements} => {
 
-                (variable,function)
+                //Get associated Variable or generate a variable for the type with the same name
+                let ast_variable = self.get_callable_type_instance(&elements);
+                let variable_instance = ast_variable.map(|it| it.get_generated_reference()).flatten().or_else(|| self.allocate_variable(&elements[0]));
+                //Get Function from Datatype
+                let call_name = ast_variable.map(|it| it.get_type_name()).or(Some(&elements[0]));
+                let function = self.index.find_type(call_name.unwrap()).map(|it| it.get_implementation()).flatten();
+                (variable_instance,function)
             }
             _ => (None,None),
         };
@@ -498,18 +516,14 @@ impl<'ctx> CodeGen<'ctx> {
 
     fn generate_lvalue_for(&self, statement: &Box<Statement>) -> Option<PointerValue> {
         match &**statement {
-            Statement::Reference {name} => self.generate_lvalue_for_reference(name.as_str()),
+            Statement::Reference {elements} => self.generate_lvalue_for_reference(elements[0].as_str()),
             _ => None
         }
     }
     fn get_variable(&self, name: &str) -> Option<PointerValue<'ctx>> {
 
-        self.index.find_variable(self.scope.as_ref().map(|s| s.as_str()), name)
+        self.index.find_variable(self.getScope(), name)
                     .map(|e| e.get_generated_reference()).flatten()
-    }
-
-    fn get_global_variable(&self, name : &str) -> Option<PointerValue<'ctx>> {
-       self.index.find_global_variable(name).map(|it| it.get_generated_reference()).flatten()
     }
 
     fn generate_lvalue_for_reference(&self, name: &str) -> Option<PointerValue<'ctx>> {
@@ -544,8 +558,8 @@ impl<'ctx> CodeGen<'ctx> {
 
     fn generate_assignment(&self, left: &Box<Statement>, right : &Box<Statement>) -> Option<BasicValueEnum> {
         
-        if let Statement::Reference { name } = &**left {
-            let left_expr = self.generate_lvalue_for_reference(&name);
+        if let Statement::Reference { elements } = &**left {
+            let left_expr = self.generate_lvalue_for_reference(&elements[0]);
             let right_res = self.generate_statement(right);
             self.builder.build_store(left_expr?, right_res?);
         }

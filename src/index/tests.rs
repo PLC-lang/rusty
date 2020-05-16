@@ -1,7 +1,7 @@
 
 use pretty_assertions::{assert_eq};
 use super::visitor::visit;
-use super::{Index,PouKind, VariableType};
+use super::{Index, VariableType};
 
 use crate::lexer;
 use crate::parser;
@@ -30,11 +30,11 @@ fn global_variables_are_indexed() {
 
     let entry_a = index.find_global_variable("a").unwrap();
     assert_eq!("a", entry_a.name);
-    assert_eq!("Int", entry_a.information.data_type_name);
+    assert_eq!("INT", entry_a.information.data_type_name);
 
     let entry_b = index.find_global_variable("b").unwrap();
     assert_eq!("b", entry_b.name);
-    assert_eq!("Bool", entry_b.information.data_type_name);
+    assert_eq!("BOOL", entry_b.information.data_type_name);
 }
 
 #[test]
@@ -44,8 +44,7 @@ fn program_is_indexed() {
         END_PROGRAM
     "#);
 
-    let program = index.find_pou("myProgram").unwrap();
-    assert_eq!(PouKind::Program, program.information.pou_kind);
+    index.find_type("myProgram").unwrap();
     let program_variable = index.find_global_variable("myProgram").unwrap();
 
     //TODO: type name should refer to my
@@ -59,13 +58,12 @@ fn function_is_indexed() {
         END_FUNCTION
     "#);
 
-    let function = index.find_pou("myFunction").unwrap();
-    assert_eq!(PouKind::Function, function.information.pou_kind);
+    index.find_type("myFunction").unwrap();
 
     let return_variable = index.find_member("myFunction", "myFunction").unwrap();
     assert_eq!("myFunction", return_variable.name);
     assert_eq!(Some("myFunction".to_string()), return_variable.information.qualifier);
-    assert_eq!("Int", return_variable.information.data_type_name);
+    assert_eq!("INT", return_variable.information.data_type_name);
     assert_eq!(VariableType::Return, return_variable.information.variable_type);
 }
 
@@ -78,10 +76,8 @@ fn pous_are_indexed() {
         END_FUNCTION
     "#);
 
-    let function = index.find_pou("myFunction").unwrap();
-    assert_eq!(PouKind::Function, function.information.pou_kind);
-    let program = index.find_pou("myProgram").unwrap();
-    assert_eq!(PouKind::Program, program.information.pou_kind);
+    index.find_type("myFunction").unwrap();
+    index.find_type("myProgram").unwrap();
 
 }
 
@@ -104,22 +100,22 @@ fn program_members_are_indexed() {
 
     let variable = index.find_member("myProgram", "a").unwrap();
     assert_eq!("a", variable.name);
-    assert_eq!("Int", variable.information.data_type_name);
+    assert_eq!("INT", variable.information.data_type_name);
     assert_eq!(VariableType::Local, variable.information.variable_type);
 
     let variable = index.find_member("myProgram", "b").unwrap();
     assert_eq!("b", variable.name);
-    assert_eq!("Int", variable.information.data_type_name);
+    assert_eq!("INT", variable.information.data_type_name);
     assert_eq!(VariableType::Local, variable.information.variable_type);
 
     let variable = index.find_member("myProgram", "c").unwrap();
     assert_eq!("c", variable.name);
-    assert_eq!("Bool", variable.information.data_type_name);
+    assert_eq!("BOOL", variable.information.data_type_name);
     assert_eq!(VariableType::Input, variable.information.variable_type);
 
     let variable = index.find_member("myProgram", "d").unwrap();
     assert_eq!("d", variable.name);
-    assert_eq!("Bool", variable.information.data_type_name);
+    assert_eq!("BOOL", variable.information.data_type_name);
     assert_eq!(VariableType::Input, variable.information.variable_type);
 }
 
@@ -177,5 +173,5 @@ fn given_set_of_local_global_and_functions_the_index_can_be_retrieved() {
     assert_eq!(VariableType::Global,result.information.variable_type);
     assert_eq!("x",result.name);
     assert_eq!(None,result.information.qualifier);
-
 }
+

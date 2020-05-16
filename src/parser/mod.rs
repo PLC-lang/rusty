@@ -236,18 +236,7 @@ fn parse_variable(
 fn parse_data_type(lexer: &mut RustyLexer) -> Result<Type, String> {
     expect!(Identifier, lexer);
     let name = slice_and_advance(lexer);
- 
-    let prim_type = match name.to_lowercase().as_str() {
-        "int" => Some(PrimitiveType::Int),
-        "bool" => Some(PrimitiveType::Bool),
-        _ => None,
-    };
-
-    if let Some(prim_type) = prim_type {
-        Ok(Type::Primitive(prim_type))
-    } else {
-        Ok(Type::Custom)
-    }
+    Ok(Type{
+        name: name,  
+    })
 }
-
-

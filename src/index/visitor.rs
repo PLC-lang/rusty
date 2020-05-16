@@ -1,8 +1,7 @@
 
 use super::Index;
 use super::VariableType;
-use super::PouKind;
-use super::super::ast::{ POU, CompilationUnit, VariableBlock, Type , PouType, VariableBlockType };
+use super::super::ast::{ POU, PouType, CompilationUnit, VariableBlock, VariableBlockType };
 
 pub fn visit(index: &mut Index, unit: &CompilationUnit) {
     for global_vars in &unit.global_vars {
@@ -15,15 +14,13 @@ pub fn visit(index: &mut Index, unit: &CompilationUnit) {
 }
 
 fn visit_pou(index: &mut Index, pou: &POU){
-    let pou_type = match pou.pou_type {
-        PouType::Program => PouKind::Program,
-        PouType::Function => PouKind::Function,
-        PouType::FunctionBlock => PouKind::FunctionBlock,
-    };
 
-    index.register_pou(pou.name.as_str().to_string(), pou_type);
-    //Associate a global variable for the pou we just creatd
-    index.register_global_variable(pou.name.clone(), pou.name.clone()); 
+    index.register_type(pou.name.as_str().to_string());
+
+    if pou.pou_type == PouType::Program {
+        //Associate a global variable for the program 
+        index.register_global_variable(pou.name.clone(), pou.name.clone()); 
+    }
 
     for block in &pou.variable_blocks {
         let block_type = get_variable_type_from_block(block);
@@ -32,12 +29,12 @@ fn visit_pou(index: &mut Index, pou: &POU){
                 pou.name.clone(), 
                 var.name.clone(), 
                 block_type, 
-                get_type_name(&var.data_type));
+                var.data_type.name.clone());
         }
     }
 
-    if let Some(return_type) = pou.return_type {
-        index.register_local_variable(pou.name.clone(), pou.name.clone(), VariableType::Return, get_type_name(&return_type))
+    if let Some(return_type) = &pou.return_type {
+        index.register_local_variable(pou.name.clone(), pou.name.clone(), VariableType::Return, return_type.name.clone())
     }
 
 }
@@ -47,7 +44,7 @@ fn visit_global_var_block(index :&mut Index, block: &VariableBlock) {
     for var in &block.variables {
         index.register_global_variable(
                             var.name.clone(), 
-                            get_type_name(&var.data_type)
+                            var.data_type.name.clone()
                         );
     }
 }
@@ -58,16 +55,4 @@ fn get_variable_type_from_block(block: &VariableBlock) -> VariableType {
         VariableBlockType::Input => VariableType::Input,
         VariableBlockType::Global => VariableType::Global,
     }
-}
-
-fn get_type_name(data_type: &Type) -> String {
-    let type_name = match data_type {
-        Type::Primitive( prim_type ) => {
-            format!("{:?}", prim_type)
-        },
-        Type::Custom =>
-            unimplemented!("Custom datatypes cannot be indexed yet")
-    };
-
-    type_name
 }

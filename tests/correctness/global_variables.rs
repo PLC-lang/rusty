@@ -26,8 +26,7 @@ fn global_variable_can_be_referenced_in_fn() {
     main := gX;
     END_FUNCTION
     ";
-
-    let (res, _) = compile_and_run(function.to_string(), MainType {x : 0, ret: 0});
+    let (res, _) = compile_and_run(function.to_string(), &mut MainType {x : 0, ret: 0});
     assert_eq!(res,30);
 }
 
@@ -59,8 +58,8 @@ fn global_variable_can_be_referenced_in_two_functions()  {
     let mut index = rusty::create_index(); 
     let exec_engine =compile(&context, &mut index, function.to_string());
 
-    let (res, _) = run(&exec_engine, "main", MainType {x : 0, ret: 0});
+    let (res, _) = run(&exec_engine, "main", &mut MainType {x : 0, ret: 0});
     assert_eq!(res,30);
-    let (res2, _) = run(&exec_engine, "two", MainType {x: 0, ret : 0});
+    let (res2, _) = run(&exec_engine, "two", &mut MainType {x: 0, ret : 0});
     assert_eq!(res2, 30)
 }

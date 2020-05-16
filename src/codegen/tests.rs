@@ -1290,3 +1290,89 @@ entry:
 
   assert_eq!(result, expected);
 }
+
+#[test]
+fn function_called_when_shadowed() {
+  let result = codegen!(
+        "
+        FUNCTION foo : INT
+        foo := 1;
+        END_FUNCTION
+
+        PROGRAM prg 
+        VAR
+            foo : INT;
+        END_VAR
+        foo := foo();
+        END_PROGRAM
+        "
+    );
+
+    let expected = r#"; ModuleID = 'main'
+source_filename = "main"
+
+%prg_interface = type { i32 }
+%foo_interface = type {}
+
+@prg_instance = common global %prg_interface zeroinitializer
+
+define i32 @foo(%foo_interface* %0) {
+entry:
+  %foo = alloca i32
+  store i32 1, i32* %foo
+  %foo_ret = load i32, i32* %foo
+  ret i32 %foo_ret
+}
+
+define void @prg(%prg_interface* %0) {
+entry:
+  %foo = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 0
+  %foo_instance = alloca %foo_interface
+  %call = call i32 @foo(%foo_interface* %foo_instance)
+  store i32 %call, i32* %foo
+  ret void
+}
+"#;
+
+  assert_eq!(result, expected);
+}
+
+#[test]
+fn function_block_instance_call() {
+  let result = codegen!(
+        "
+        FUNCTION_BLOCK foo
+        END_FUNCTION_BLOCK
+
+        PROGRAM prg 
+        VAR
+            fb_inst : foo;
+        END_VAR
+        fb_inst();
+        END_PROGRAM
+        "
+    );
+
+    let expected = r#"; ModuleID = 'main'
+source_filename = "main"
+
+%prg_interface = type { %foo_interface }
+%foo_interface = type {}
+
+@prg_instance = common global %prg_interface zeroinitializer
+
+define void @foo(%foo_interface* %0) {
+entry:
+  ret void
+}
+
+define void @prg(%prg_interface* %0) {
+entry:
+  %fb_inst = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 0
+  call void @foo(%foo_interface* %fb_inst)
+  ret void
+}
+"#;
+
+  assert_eq!(result, expected);
+}

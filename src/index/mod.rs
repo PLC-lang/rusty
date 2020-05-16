@@ -1,29 +1,56 @@
 use std::collections::HashMap;
 
 use inkwell::types::{BasicTypeEnum};
-use inkwell::values::{BasicValueEnum, PointerValue};
+use inkwell::values::{FunctionValue, PointerValue};
 use crate::ast::CompilationUnit;
 
 #[cfg(test)]
 mod tests;
 mod visitor;
 
-/// a base index entry
-#[derive(Debug)]
-pub struct IndexEntry<T, K:Copy> {
-    name                    : String,
-    information             : T,
-    generated_reference     : Option<K>,
 
+#[derive(Debug)]
+pub struct VariableIndexEntry<'ctx>{
+    name                    : String,
+    information             : VariableInformation,
+    generated_reference     : Option<PointerValue<'ctx>>,
 }
 
-impl <T,K:Copy> IndexEntry<T, K> {
-    pub fn associate(&mut self, generated_reference: K) {
+#[derive(Debug)]
+pub struct DataTypeIndexEntry<'ctx> {
+    name                    : String,
+    implementation    : Option<FunctionValue<'ctx>>,    // the generated function to all if this type is callable
+    generated_type          : Option<BasicTypeEnum<'ctx>>,    //the datatype (struct, enum, etc.)
+}
+
+impl <'ctx> VariableIndexEntry<'ctx> {
+    pub fn associate(&mut self, generated_reference: PointerValue<'ctx>) {
         self.generated_reference = Some(generated_reference);
     }
 
-    pub fn get_generated_reference<'ctx>(&self) -> Option<K> {
+    pub fn get_type_name(&self) -> &str {
+        self.information.data_type_name.as_str()
+    }
+
+    pub fn get_generated_reference(&self) -> Option<PointerValue<'ctx>> {
         self.generated_reference
+    }
+}
+impl <'ctx> DataTypeIndexEntry<'ctx> {
+    pub fn associate_type(&mut self, generated_type: BasicTypeEnum<'ctx>) {
+        self.generated_type = Some(generated_type);
+    }
+
+    pub fn associate_implementation(&mut self, implementation: FunctionValue<'ctx>) {
+        self.implementation = Some(implementation);
+    }
+
+    pub fn get_type(&self) -> Option<BasicTypeEnum<'ctx>> {
+        self.generated_type
+    }
+
+    pub fn get_implementation(&self) -> Option<FunctionValue<'ctx>> {
+        self.implementation
     }
 }
 
@@ -56,27 +83,6 @@ pub struct DataTypeInformation {
     kind        : DataTypeType,
 }
 
-#[derive(Copy, Clone, Debug,PartialEq)]
-pub enum PouKind {
-    Program,
-    Function,
-    FunctionBlock,
-}
-
-#[derive(Debug)]
-pub struct PouInformation {
-    pou_kind: PouKind,
-}
-
-pub type VariableIndexEntry<'ctx> = IndexEntry<VariableInformation, PointerValue<'ctx>>;
-pub type TypeIndexEntry<'ctx>     = IndexEntry<DataTypeInformation, BasicTypeEnum<'ctx>>;
-pub type PouIndexEntry<'ctx>      = IndexEntry<PouInformation, BasicTypeEnum<'ctx>>;
-
-impl <'ctx> PouIndexEntry<'ctx> {
-    pub fn get_pou_kind(&self) -> PouKind {
-        self.information.pou_kind
-    }
-}
 
 /// The global index of the rusty-compiler
 /// 
@@ -92,11 +98,8 @@ pub struct Index<'ctx> {
     /// all local variables, grouped by the POU's name
     local_variables     : HashMap<String, HashMap<String, VariableIndexEntry<'ctx>>>,
 
-    /// all POUs
-    pous                : HashMap<String, PouIndexEntry<'ctx>>,
-
-    /// all types (structs, enums, type, etc.)
-    types               : HashMap<String, TypeIndexEntry<'ctx>>,
+    /// all types (structs, enums, type, POUs, etc.)
+    types               : HashMap<String, DataTypeIndexEntry<'ctx>>,
 }
 
 impl<'ctx> Index<'ctx> {
@@ -104,33 +107,24 @@ impl<'ctx> Index<'ctx> {
         let mut index = Index {
             global_variables : HashMap::new(),
             local_variables : HashMap::new(),
-            pous : HashMap::new(),
             types : HashMap::new(),   
         };
 
-        index.types.insert("INT".to_string(), TypeIndexEntry{
-            name: "INT".to_string(),
-            information: DataTypeInformation {
-                kind: DataTypeType::Scalar,
-            },
-            generated_reference: None,
+        index.types.insert("Int".to_string(), DataTypeIndexEntry{
+            name: "Int".to_string(),
+            generated_type: None,
+            implementation: None,
         });
-        index.types.insert("BOOL".to_string(), TypeIndexEntry{
-            name: "BOOL".to_string(),
-            information: DataTypeInformation {
-                kind: DataTypeType::Scalar,
-            },
-            generated_reference: None,
+        index.types.insert("Bool".to_string(), DataTypeIndexEntry{
+            name: "Bool".to_string(),
+            generated_type: None,
+            implementation: None,
         });
         index
     }
 
     pub fn find_global_variable(&self, name: &str) -> Option<&VariableIndexEntry<'ctx>> {
         self.global_variables.get(name)
-    }
-
-    pub fn find_pou(&self, name: &str) -> Option<&PouIndexEntry> {
-        self.pous.get(name)
     }
 
     pub fn find_member(&self, pou_name: &str, variable_name: &str) -> Option<&VariableIndexEntry<'ctx>>{
@@ -143,7 +137,21 @@ impl<'ctx> Index<'ctx> {
             Some(context) => self.find_member(context, variable_name).or_else(||self.find_global_variable(variable_name)),
             None => self.find_global_variable(variable_name)
         }
-    } 
+    }
+
+    pub fn find_type(&self, type_name : &str) -> Option<&DataTypeIndexEntry<'ctx>> {
+        self.types.get(type_name)
+    }
+
+    pub fn find_callable_instance_variable(&self, context: Option<&str>, reference : &str) -> Option<&VariableIndexEntry<'ctx>> {
+        //look for a *callable* variable with that name
+        self.find_variable(context, reference).filter(|v|
+            {
+                //callable means, there is an implementation associated with the variable's datatype
+                self.find_type(v.information.data_type_name.as_str()).map(|it| it.implementation).flatten().is_some()
+            }
+        )
+    }
 
     pub fn register_local_variable(&mut self, 
                                         pou_name: String, 
@@ -198,22 +206,31 @@ impl<'ctx> Index<'ctx> {
         }
     }
 
+    pub fn associate_callable_implementation(&mut self, name : &str, value : FunctionValue<'ctx> ) {
+        if let Some(entry) = self.types.get_mut(name) {
+            entry.implementation = Some(value);
+        };
+    }
+
+    pub fn associate_type(&mut self, name : &str, value : BasicTypeEnum<'ctx>) {
+        if let Some(entry) = self.types.get_mut(name) {
+            entry.generated_type = Some(value);
+        };
+    }
+
     pub fn print_global_variables(&self) {
         println!("{:?}", self.global_variables);
     }
 
-    pub fn register_pou(&mut self,
-                        pou_name: String,
-                        pou_kind: PouKind) {
+    pub fn register_type(&mut self,
+                        type_name: String) {
 
-        let index_entry = PouIndexEntry{
-            name: pou_name.clone(),
-            generated_reference: None,
-            information: PouInformation {
-                pou_kind: pou_kind,
-            }
+        let index_entry = DataTypeIndexEntry{
+            name: type_name.clone(),
+            generated_type: None,
+            implementation : None,
         };
-        self.pous.insert(pou_name, index_entry);
+        self.types.insert(type_name, index_entry);
     }
 
     pub fn visit(&mut self, unit: &CompilationUnit) {

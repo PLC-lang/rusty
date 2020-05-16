@@ -1,7 +1,4 @@
-use crate::ast::PrimitiveType;
-use crate::ast::Type;
 use crate::ast::PouType;
-use crate::ast::VariableBlockType;
 use crate::lexer;
 use pretty_assertions::*;
 
@@ -39,15 +36,15 @@ r#"VariableBlock {
     variables: [
         Variable {
             name: "x",
-            data_type: Primitive(
-                Int,
-            ),
+            data_type: Type {
+                name: "INT",
+            },
         },
         Variable {
             name: "y",
-            data_type: Primitive(
-                Bool,
-            ),
+            data_type: Type {
+                name: "BOOL",
+            },
         },
     ],
     variable_block_type: Global,
@@ -69,9 +66,9 @@ r#"[
         variables: [
             Variable {
                 name: "a",
-                data_type: Primitive(
-                    Int,
-                ),
+                data_type: Type {
+                    name: "INT",
+                },
             },
         ],
         variable_block_type: Global,
@@ -80,15 +77,15 @@ r#"[
         variables: [
             Variable {
                 name: "x",
-                data_type: Primitive(
-                    Int,
-                ),
+                data_type: Type {
+                    name: "INT",
+                },
             },
             Variable {
                 name: "y",
-                data_type: Primitive(
-                    Bool,
-                ),
+                data_type: Type {
+                    name: "BOOL",
+                },
             },
         ],
         variable_block_type: Global,
@@ -117,7 +114,7 @@ fn simple_foo_function_can_be_parsed() {
     let prg = &result.units[0];
     assert_eq!(prg.pou_type, PouType::Function);
     assert_eq!(prg.name, "foo");
-    assert_eq!(prg.return_type.as_ref().unwrap(), &Type::Primitive(PrimitiveType::Int));
+    assert_eq!(prg.return_type.as_ref().unwrap().name, "INT" );
 }
 
 #[test]
@@ -209,7 +206,9 @@ fn empty_statements_are_ignored_before_a_statement() {
 
     let ast_string = format!("{:#?}", statement);
     let expected_ast = r#"Reference {
-    name: "x",
+    elements: [
+        "x",
+    ],
 }"#;
     assert_eq!(ast_string, expected_ast);
 }
@@ -224,7 +223,9 @@ fn empty_statements_are_ignored_after_a_statement() {
 
     let ast_string = format!("{:#?}", statement);
     let expected_ast = r#"Reference {
-    name: "x",
+    elements: [
+        "x",
+    ],
 }"#;
     assert_eq!(ast_string, expected_ast);
 }
@@ -242,9 +243,9 @@ r#"VariableBlock {
     variables: [
         Variable {
             name: "x",
-            data_type: Primitive(
-                Int,
-            ),
+            data_type: Type {
+                name: "INT",
+            },
         },
     ],
     variable_block_type: Local,
@@ -267,9 +268,9 @@ r#"VariableBlock {
     variables: [
         Variable {
             name: "x",
-            data_type: Primitive(
-                Int,
-            ),
+            data_type: Type {
+                name: "INT",
+            },
         },
     ],
     variable_block_type: Input,

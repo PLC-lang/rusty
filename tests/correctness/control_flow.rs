@@ -45,9 +45,9 @@ fn adding_through_conditions() {
 
     let (func_true, func_false) = function;
 
-    let (res, _) = compile_and_run(func_true.to_string(),  MainType{inc : 0, cond: false, ret: 0});
+    let (res, _) = compile_and_run(func_true.to_string(),  &mut MainType{inc : 0, cond: false, ret: 0});
     assert_eq!(res,10);
-    let (res, _) = compile_and_run(func_false.to_string(),  MainType{inc : 0, cond: false, ret: 0});
+    let (res, _) = compile_and_run(func_false.to_string(),  &mut MainType{inc : 0, cond: false, ret: 0});
     assert_eq!(res,100);
 }
 
@@ -77,9 +77,9 @@ fn adding_through_conditions_to_function_return() {
 
     let (func_true, func_false) = function;
 
-    let (res, _) = compile_and_run(func_true.to_string(), MainType{ret : 0});
+    let (res, _) = compile_and_run(func_true.to_string(), &mut MainType{ret : 0});
     assert_eq!(res,10);
-    let (res, _) = compile_and_run(func_false.to_string(), MainType{ret : 0});
+    let (res, _) = compile_and_run(func_false.to_string(), &mut MainType{ret : 0});
     assert_eq!(res,100);
 }
 
@@ -105,7 +105,7 @@ fn for_loop_and_increment_10_times() {
     END_FUNCTION
     "#;
     
-    let (res, _) = compile_and_run(function.to_string(), MainType{i : 0, ret : 0});
+    let (res, _) = compile_and_run(function.to_string(), &mut MainType{i : 0, ret : 0});
     assert_eq!(res,110);
 }
 
@@ -129,7 +129,7 @@ fn for_loop_and_increment_10_times_skipping_1() {
     END_FUNCTION
     "#;
     
-    let (res, _) = compile_and_run(function.to_string(), MainType{i : 0, ret: 0});
+    let (res, _) = compile_and_run(function.to_string(), &mut MainType{i : 0, ret: 0});
     assert_eq!(res,1005);
 }
 
@@ -157,7 +157,7 @@ fn while_loop_no_entry() {
     END_FUNCTION
     "#;
     
-    let (res, _) = compile_and_run(function.to_string(), MainType{i : 0, ret :0});
+    let (res, _) = compile_and_run(function.to_string(), &mut MainType{i : 0, ret :0});
     assert_eq!(res,5);
 }
 
@@ -186,7 +186,7 @@ fn repeat_loop_no_entry() {
     END_FUNCTION
     "#;
     
-    let (res, _) = compile_and_run(function.to_string(), MainType {i: 0, ret: 0});
+    let (res, _) = compile_and_run(function.to_string(), &mut MainType {i: 0, ret: 0});
     assert_eq!(res,1017);
 }
 #[test]
@@ -212,9 +212,11 @@ fn while_loop_10_times() {
     END_FUNCTION
     "#;
     
-    let (res, _) = compile_and_run(function.to_string(), MainType{i : 0, ret : 0});
+    let (res, _) = compile_and_run(function.to_string(), &mut MainType{i : 0, ret : 0});
     assert_eq!(res,10101);
 }
+
+
 
 #[test]
 fn repeat_loop_10_times() {
@@ -240,6 +242,6 @@ fn repeat_loop_10_times() {
     END_FUNCTION
     "#;
     
-    let (res, _) = compile_and_run(function.to_string(), MainType{i: 0, ret: 0});
+    let (res, _) = compile_and_run(function.to_string(), &mut MainType{i: 0, ret: 0});
     assert_eq!(res,10101);
 }

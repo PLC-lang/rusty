@@ -15,6 +15,6 @@ fn adds_in_result() {
     END_FUNCTION
     ";
 
-    let (res, _) = compile_and_run(prog.to_string(), MainType {ret : 0});
+    let (res, _) = compile_and_run(prog.to_string(), &mut MainType {ret : 0});
     assert_eq!(res,60)  
 }

@@ -228,8 +228,13 @@ fn parse_bool_literal(lexer: &mut RustyLexer, value: bool) -> Result<Statement, 
 }
 
 pub fn parse_reference(lexer: &mut RustyLexer) -> Result<Statement, String> {
+    let mut reference_elements = vec![slice_and_advance(lexer)];
+    while allow(KeywordDot, lexer) {
+        reference_elements.push(slice_and_advance(lexer));
+    }
+
     let reference = Statement::Reference {
-        name: slice_and_advance(lexer).to_string(),
+        elements : reference_elements,
     };
 
     if allow(KeywordParensOpen, lexer) {
