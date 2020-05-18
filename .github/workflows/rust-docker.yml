@@ -13,7 +13,7 @@ jobs:
       uses: ./docker-build/
       with:
         build-step: 'build'
-    -name: Cargo Test
-     uses: ./docker-build/
-     with:
-       build-step: 'test'
+    - name: Cargo Test
+      uses: ./docker-build/
+      with:
+        build-step: 'test'
