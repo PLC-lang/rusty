@@ -5,8 +5,8 @@ fn max_function() {
     #[allow(dead_code)]
     #[repr(C)]
     struct MainType {
-        theA : i32, 
-        theB : i32,
+        the_a: i32, 
+        the_b: i32,
     }
     
     let function = r#"
@@ -39,8 +39,8 @@ fn max_function() {
     let context : Context = Context::create();
     let mut index = rusty::create_index(); 
     let engine = compile(&context, &mut index, function);
-    let mut case1 = MainType{theA : 4, theB: 7};
-    let mut case2 = MainType{theA : 9, theB: -2};
+    let mut case1 = MainType{the_a : 4, the_b: 7};
+    let mut case2 = MainType{the_a : 9, the_b: -2};
 
     let (res, _) = run(&engine, "main", &mut case1);
     assert_eq!(res,7);
@@ -128,7 +128,7 @@ fn function_block_instances_save_state_per_instance() {
     "#;
     
         let mut interface = MainType{ f: FooType{ i: 0}, j : FooType{ i: 0}};
-        let (res, _) = compile_and_run(function.to_string(), &mut interface);
+        let (_, _) = compile_and_run(function.to_string(), &mut interface);
         assert_eq!(interface.f.i,2);
         assert_eq!(interface.j.i,7);
 }
@@ -215,7 +215,7 @@ fn function_block_instances_save_state_per_instance_2() {
     "#;
     
         let mut interface = MainType{ f: FooType{ i: 0, baz: BazType{ i: 0}}, j : FooType{ i: 0, baz: BazType{i:0}}};
-        let (res, _) = compile_and_run(function.to_string(), &mut interface);
+        let (_, _) = compile_and_run(function.to_string(), &mut interface);
 
         assert_eq!(2, interface.f.baz.i);
         assert_eq!(4, interface.j.baz.i);

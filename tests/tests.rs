@@ -32,7 +32,7 @@ pub fn compile_and_run<T>(source : String, params : &mut T) ->  (i32, &'static s
     run::<T>(&exec_engine, "main", params)
 }
 
-pub fn run<T>(exec_engine : &ExecutionEngine, name : &str, mut params : &mut T) -> (i32, &'static str) {
+pub fn run<T>(exec_engine : &ExecutionEngine, name : &str, params : &mut T) -> (i32, &'static str) {
     unsafe {
         let main : JitFunction<MainFunction<T>> = exec_engine.get_function(name).unwrap();
         let main_t_ptr = &mut *params as *mut _; 
