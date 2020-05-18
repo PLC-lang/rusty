@@ -9,11 +9,7 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v2
-    - name: Cargo Build
-      uses: ./docker-build/
-      with:
-        build-step: 'build'
-    - name: Cargo Test
+    - name: Cargo Build and Test
       uses: ./docker-build/
       with:
         build-step: 'test'
