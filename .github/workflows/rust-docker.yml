@@ -1,0 +1,19 @@
+name: Rust on Docker
+
+on: [push]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    name : Cargo Docker build  with LLVM-10
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+    - name: Cargo Build
+      uses: ./docker-build/
+      with:
+        build-step: 'build'
+    -name: Cargo Test
+     uses: ./docker-build/
+     with:
+       build-step: 'test'

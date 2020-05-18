@@ -1,0 +1,18 @@
+name: 'Rust LLVM build'
+description: 'Action to build a rust project with an LLVM dependency'
+inputs:
+  llvm-sys-version:
+    description: "Version of the LLVM to emulate (Required by llvm-sys)"
+    required: false
+    default: 8
+  build-step:
+    descritpion: "The build step to pass to cargo, (build, test..)"
+    required: true
+runs:
+  using: 'docker'
+  image: 'Dockerfile'
+  env: 
+    'LLVM_SYS_${{inputs.llvm-sys-version}}_PREFIX': '/usr/lib/llvm-10'
+
+    
+
