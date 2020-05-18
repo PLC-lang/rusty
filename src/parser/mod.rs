@@ -74,7 +74,7 @@ fn slice_and_advance(lexer: &mut RustyLexer) -> String {
 }
 
 pub fn parse(mut lexer: RustyLexer) -> Result<CompilationUnit, String> {
-    let mut unit = CompilationUnit { global_vars : Vec::new(), units: Vec::new() };
+    let mut unit = CompilationUnit { global_vars : Vec::new(), units: Vec::new(), types: Vec::new() };
 
     loop {
         match lexer.token {
@@ -86,6 +86,8 @@ pub fn parse(mut lexer: RustyLexer) -> Result<CompilationUnit, String> {
                 unit.units.push(parse_pou(&mut lexer, PouType::Function, KeywordEndFunction)?),
             KeywordFunctionBlock =>
                 unit.units.push(parse_pou(&mut lexer, PouType::FunctionBlock, KeywordEndFunctionBlock)?),
+            KeywordType =>
+                unit.types.push(parse_type(&mut lexer)?),
             End => return Ok(unit),
             Error => return Err(unidentified_token(&lexer)),
             _ => return Err(unexpected_token(&lexer)),
@@ -133,6 +135,45 @@ fn parse_pou(lexer: &mut RustyLexer, pou_type: PouType, expected_end_token: lexe
     expect!(expected_end_token, lexer);
     lexer.advance();
     Ok(result)
+}
+
+fn parse_type(lexer: &mut RustyLexer) -> Result<DataType, String> {
+    lexer.advance(); // consume the TYPE
+    let name = slice_and_advance(lexer);
+    expect!(KeywordColon, lexer);
+    lexer.advance();
+
+    let result = if allow(KeywordStruct, lexer) { //STRUCT
+        let mut variables = Vec::new(); 
+        while lexer.token == Identifier {
+            variables.push(parse_variable(lexer)?);
+        }
+        expect!(KeywordEndStruct, lexer);
+        lexer.advance();
+        Ok(DataType::StructType{ name, variables })
+    } else if allow(KeywordParensOpen, lexer) { //ENUM
+        let mut elements = Vec::new();
+
+        //we expect at least one element
+        expect!(Identifier, lexer);
+        elements.push(slice_and_advance(lexer));
+        //parse additional elements separated by ,
+        while allow(KeywordComma, lexer) {
+            expect!(Identifier, lexer);
+            elements.push(slice_and_advance(lexer));
+        }
+        expect!(KeywordParensClose, lexer);
+        lexer.advance();
+
+        Ok(DataType::EnumType{ name, elements })
+    } else {
+        return Err(format!("expected struct or enum, found {:?}", lexer.token));
+    };
+
+    expect!(KeywordEndType, lexer);
+    lexer.advance();
+
+    result
 }
 
 fn is_end_of_stream(token: &lexer::Token) -> bool {
@@ -205,7 +246,8 @@ fn parse_variable_block(lexer: &mut RustyLexer) -> Result<VariableBlock, String>
     };
 
     while lexer.token == Identifier {
-        result = parse_variable(lexer, result)?;
+        result.variables.push(parse_variable(lexer)?);
+ //       result = parse_variable(lexer, result)?;
     }
 
     expect!(KeywordEndVar, lexer);
@@ -215,9 +257,7 @@ fn parse_variable_block(lexer: &mut RustyLexer) -> Result<VariableBlock, String>
 }
 
 fn parse_variable(
-    lexer: &mut RustyLexer,
-    mut owner: VariableBlock,
-) -> Result<VariableBlock, String> {
+    lexer: &mut RustyLexer) -> Result<Variable, String> {
     let name = slice_and_advance(lexer);
 
     expect!(KeywordColon, lexer);
@@ -228,9 +268,7 @@ fn parse_variable(
 
     expect!(KeywordSemicolon, lexer);
     lexer.advance();
-
-    owner.variables.push(Variable {name, data_type });
-    Ok(owner)
+    Ok(Variable{name, data_type})
 }
 
 fn parse_data_type(lexer: &mut RustyLexer) -> Result<Type, String> {

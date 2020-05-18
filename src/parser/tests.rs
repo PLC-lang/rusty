@@ -277,3 +277,70 @@ r#"VariableBlock {
 }"#;
     assert_eq!(ast_string,expected_ast);
 }
+
+#[test]
+fn simple_struct_type_can_be_parsed() {
+    let result = super::parse(lexer::lex(
+        r#"
+        TYPE SampleStruct :
+            STRUCT
+                One:INT;
+                Two:INT;
+                Three:INT;
+            END_STRUCT
+        END_TYPE 
+        "#
+    )).unwrap();
+
+    let ast_string = format!("{:#?}", &result.types[0]);
+
+    let expected_ast = 
+r#"StructType {
+    name: "SampleStruct",
+    variables: [
+        Variable {
+            name: "One",
+            data_type: Type {
+                name: "INT",
+            },
+        },
+        Variable {
+            name: "Two",
+            data_type: Type {
+                name: "INT",
+            },
+        },
+        Variable {
+            name: "Three",
+            data_type: Type {
+                name: "INT",
+            },
+        },
+    ],
+}"#;
+    assert_eq!(ast_string, expected_ast);
+}
+
+
+#[test]
+fn simple_enum_type_can_be_parsed() {
+    let result = super::parse(lexer::lex(
+        r#"
+        TYPE SampleEnum : (red, yellow, green)
+        END_TYPE 
+        "#
+    )).unwrap();
+
+    let ast_string = format!("{:#?}", &result.types[0]);
+
+    let expected_ast = 
+r#"EnumType {
+    name: "SampleEnum",
+    elements: [
+        "red",
+        "yellow",
+        "green",
+    ],
+}"#;
+    assert_eq!(ast_string, expected_ast);
+}

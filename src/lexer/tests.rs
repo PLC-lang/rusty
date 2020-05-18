@@ -297,3 +297,18 @@ fn range_statements() {
     lexer.advance();
 }
 
+#[test]
+fn struct_enum_datatype() {
+    let mut lexer = super::lex(
+        r"TYPE STRUCT END_STRUCT END_TYPE",
+    );
+
+    assert_eq!(lexer.token, super::Token::KeywordType);
+    lexer.advance();
+    assert_eq!(lexer.token, super::Token::KeywordStruct);
+    lexer.advance();
+    assert_eq!(lexer.token, super::Token::KeywordEndStruct);
+    lexer.advance();
+    assert_eq!(lexer.token, super::Token::KeywordEndType);
+}
+    
