@@ -107,7 +107,7 @@ fn function_block_instances_save_state_per_instance() {
         j : FooType,
     }
     let function = r#"
-    FUNCTION_BLOCK foo : INT
+    FUNCTION_BLOCK foo
     VAR_INPUT
         i : INT;
     END_VAR
@@ -159,4 +159,66 @@ fn program_instances_save_state_per() {
         run(&exec_engine,"main", &mut interface);
         run(&exec_engine,"main", &mut interface);
         assert_eq!(interface.f.i,6);
+}
+
+
+#[test]
+fn function_block_instances_save_state_per_instance_2() {
+    
+    #[allow(dead_code)]
+    #[repr(C)]
+    struct BazType {
+        i : i32,
+    }
+    
+    #[allow(dead_code)]
+    #[repr(C)]
+    struct FooType {
+        i : i32,
+        baz : BazType,
+    }
+
+    struct MainType {
+        f : FooType,
+        j : FooType,
+    }
+    let function = r#"
+    FUNCTION_BLOCK Baz 
+    VAR_INPUT
+        i : INT;
+    END_VAR
+    i := i+1;
+    END_FUNCTION_BLOCK
+
+    FUNCTION_BLOCK foo
+    VAR_INPUT
+        i : INT;
+        baz: Baz; 
+    END_VAR
+    
+    END_FUNCTION_BLOCK
+
+    PROGRAM main
+    VAR 
+        f : foo;
+        j : foo;
+    END_VAR 
+    f.baz.i := f.baz.i + 1;
+    f.baz.i := f.baz.i + 1;
+
+
+    j.baz.i := j.baz.i + 1;
+    j.baz.i := j.baz.i + 1;
+    j.baz.i := j.baz.i + 1;
+    j.baz.i := j.baz.i + 1;
+    END_PROGRAM
+    "#;
+    
+        let mut interface = MainType{ f: FooType{ i: 0, baz: BazType{ i: 0}}, j : FooType{ i: 0, baz: BazType{i:0}}};
+        let (res, _) = compile_and_run(function.to_string(), &mut interface);
+
+        assert_eq!(2, interface.f.baz.i);
+        assert_eq!(4, interface.j.baz.i);
+
+
 }

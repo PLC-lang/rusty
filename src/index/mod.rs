@@ -9,7 +9,7 @@ mod tests;
 mod visitor;
 
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct VariableIndexEntry<'ctx>{
     name                    : String,
     information             : VariableInformation,
@@ -35,6 +35,10 @@ impl <'ctx> VariableIndexEntry<'ctx> {
     pub fn get_generated_reference(&self) -> Option<PointerValue<'ctx>> {
         self.generated_reference
     }
+
+    pub fn get_location_in_parent(&self) ->  Option<u32> {
+        self.information.location
+    }
 }
 impl <'ctx> DataTypeIndexEntry<'ctx> {
     pub fn associate_type(&mut self, generated_type: BasicTypeEnum<'ctx>) {
@@ -58,7 +62,7 @@ impl <'ctx> DataTypeIndexEntry<'ctx> {
 pub enum VariableType { Local, Input, Output, InOut, Global, Return }
 
 /// information regarding a variable
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct VariableInformation {
     /// the type of variable
     variable_type   : VariableType, 
@@ -66,6 +70,8 @@ pub struct VariableInformation {
     data_type_name  : String,
     /// the variable's qualifier
     qualifier       : Option<String>, 
+    /// Location in the qualifier
+    location           : Option<u32>,
 }
 
 #[derive(Debug)]
@@ -90,7 +96,8 @@ pub struct DataTypeInformation {
 /// contains information about the type-system of the compiled program.
 /// 
 /// TODO: consider String-references
-/// 
+///
+#[derive(Debug)] 
 pub struct Index<'ctx> {
     /// all global variables
     global_variables    : HashMap<String, VariableIndexEntry<'ctx>>,
@@ -132,18 +139,34 @@ impl<'ctx> Index<'ctx> {
             .and_then(|map| map.get(variable_name))
     }
 
-    pub fn find_variable(&self, context : Option<&str>, variable_name  : &str)  -> Option<&VariableIndexEntry<'ctx>> {
-        match context {
-            Some(context) => self.find_member(context, variable_name).or_else(||self.find_global_variable(variable_name)),
-            None => self.find_global_variable(variable_name)
+    //                                     none                 ["myGlobal", "a", "b"]
+    pub fn find_variable(&self, context : Option<&str>, segments  : &[String])  -> Option<&VariableIndexEntry<'ctx>> {
+        
+        if segments.is_empty() {
+            return None;
         }
+
+
+        let first_var = &segments[0];
+
+        let mut result = match context {
+            Some(context) => self.find_member(context, first_var).or_else(|| self.find_global_variable(first_var)),
+            None => self.find_global_variable(first_var),
+        };
+        for segment in segments.iter().skip(1) {
+            result = match result {
+                Some(context) => self.find_member(&context.information.data_type_name, &segment),
+                None => None,
+            };
+        }
+        result
     }
 
     pub fn find_type(&self, type_name : &str) -> Option<&DataTypeIndexEntry<'ctx>> {
         self.types.get(type_name)
     }
 
-    pub fn find_callable_instance_variable(&self, context: Option<&str>, reference : &str) -> Option<&VariableIndexEntry<'ctx>> {
+    pub fn find_callable_instance_variable(&self, context: Option<&str>, reference : &[String]) -> Option<&VariableIndexEntry<'ctx>> {
         //look for a *callable* variable with that name
         self.find_variable(context, reference).filter(|v|
             {
@@ -157,7 +180,9 @@ impl<'ctx> Index<'ctx> {
                                         pou_name: String, 
                                         variable_name: String, 
                                         variable_type: VariableType, 
-                                        type_name: String) {
+                                        type_name: String,
+                                        location: u32,
+                                    ) {
         
         let locals = self.local_variables.entry(pou_name.clone()).or_insert_with(|| HashMap::new());
 
@@ -167,6 +192,7 @@ impl<'ctx> Index<'ctx> {
                 variable_type: variable_type,
                 data_type_name: type_name,
                 qualifier: Some(pou_name.clone()),
+                location: Some(location),
             },
             generated_reference: None,
         };                         
@@ -193,6 +219,7 @@ impl<'ctx> Index<'ctx> {
                 variable_type: VariableType::Global,
                 data_type_name: type_name, 
                 qualifier: None,
+                location: None,
             },
             generated_reference: None,
         };                         

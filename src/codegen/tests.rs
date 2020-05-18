@@ -71,14 +71,16 @@ entry:
                 type = interface, 
                 return_type = return_type, 
                 thread_mode = thread_mode,  
-                type_references = type_references.join("\n"),
+                type_references = type_references.join("
+"),
                 body = body,
                 global_variables = global_variables
                 )
 }
 
 fn generate_program_boiler_plate_globals(global_variables : &str) -> String {
-  generate_program_boiler_plate("main", &[], "void", "", global_variables, "  ret void\n", )
+  generate_program_boiler_plate("main", &[], "void", "", global_variables, "  ret void
+", )
 }
 
 #[test]
@@ -1370,6 +1372,73 @@ define void @prg(%prg_interface* %0) {
 entry:
   %fb_inst = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 0
   call void @foo(%foo_interface* %fb_inst)
+  ret void
+}
+"#;
+
+  assert_eq!(result, expected);
+}
+
+#[test]
+fn reference_qualified_name() {
+  let result = codegen!(
+        "
+        FUNCTION_BLOCK fb
+        VAR_INPUT
+          x :INT;
+        END_VAR
+        END_FUNCTION_BLOCK
+        PROGRAM foo
+        VAR_INPUT
+            x : INT;
+            y : INT;
+            baz : fb;
+        END_VAR
+        END_PROGRAM
+        PROGRAM prg 
+        VAR
+            x : INT;
+        END_VAR
+            x := foo.x;
+            x := foo.y;
+            x := foo.baz.x;    
+        END_PROGRAM
+        "
+    );
+
+    let expected = r#"; ModuleID = 'main'
+source_filename = "main"
+
+%foo_interface = type { i32, i32, %fb_interface }
+%fb_interface = type { i32 }
+%prg_interface = type { i32 }
+
+@foo_instance = common global %foo_interface zeroinitializer
+@prg_instance = common global %prg_interface zeroinitializer
+
+define void @fb(%fb_interface* %0) {
+entry:
+  %x = getelementptr inbounds %fb_interface, %fb_interface* %0, i32 0, i32 0
+  ret void
+}
+
+define void @foo(%foo_interface* %0) {
+entry:
+  %x = getelementptr inbounds %foo_interface, %foo_interface* %0, i32 0, i32 0
+  %y = getelementptr inbounds %foo_interface, %foo_interface* %0, i32 0, i32 1
+  %baz = getelementptr inbounds %foo_interface, %foo_interface* %0, i32 0, i32 2
+  ret void
+}
+
+define void @prg(%prg_interface* %0) {
+entry:
+  %x = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 0
+  %load_foo.x = load i32, i32* getelementptr inbounds (%foo_interface, %foo_interface* @foo_instance, i32 0, i32 0)
+  store i32 %load_foo.x, i32* %x
+  %load_foo.y = load i32, i32* getelementptr inbounds (%foo_interface, %foo_interface* @foo_instance, i32 0, i32 1)
+  store i32 %load_foo.y, i32* %x
+  %load_foo.baz.x = load i32, i32* getelementptr inbounds (%foo_interface, %foo_interface* @foo_instance, i32 0, i32 2, i32 0)
+  store i32 %load_foo.baz.x, i32* %x
   ret void
 }
 "#;

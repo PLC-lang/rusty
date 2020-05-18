@@ -22,6 +22,7 @@ fn visit_pou(index: &mut Index, pou: &POU){
         index.register_global_variable(pou.name.clone(), pou.name.clone()); 
     }
 
+    let mut count = 0;
     for block in &pou.variable_blocks {
         let block_type = get_variable_type_from_block(block);
         for var in &block.variables {
@@ -29,12 +30,15 @@ fn visit_pou(index: &mut Index, pou: &POU){
                 pou.name.clone(), 
                 var.name.clone(), 
                 block_type, 
-                var.data_type.name.clone());
+                var.data_type.name.clone(),
+                count,
+            );
+            count = count + 1;
         }
     }
 
     if let Some(return_type) = &pou.return_type {
-        index.register_local_variable(pou.name.clone(), pou.name.clone(), VariableType::Return, return_type.name.clone())
+        index.register_local_variable(pou.name.clone(), pou.name.clone(), VariableType::Return, return_type.name.clone(),count)
     }
 
 }

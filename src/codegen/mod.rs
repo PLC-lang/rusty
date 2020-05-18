@@ -44,12 +44,8 @@ impl<'ctx> CodeGen<'ctx> {
         codegen
     }
 
-    fn getScope(&self) -> Option<&str>  {
+    fn get_scope(&self) -> Option<&str>  {
         self.scope.as_ref().map(|it| it.as_str())
-    }
-
-    fn get_struct_name(pou_name: &str) -> String {
-        format!("{}_interface", pou_name)
     }
 
     fn get_struct_instance_name(pou_name: &str) -> String {
@@ -71,6 +67,11 @@ impl<'ctx> CodeGen<'ctx> {
     pub fn generate_compilation_unit(&mut self, root: CompilationUnit) {
         for global_variables in &root.global_vars {
             self.generate_global_vars(global_variables);
+        }
+
+        for unit in &root.units {
+            let struct_type = self.context.opaque_struct_type(format!("{}_interface", &unit.name).as_str());
+            self.index.associate_type(&unit.name, struct_type.into());
         }
     
         for unit in &root.units {
@@ -113,18 +114,15 @@ impl<'ctx> CodeGen<'ctx> {
         }
 
         //Create a struct with the value from the program
-        let member_type = CodeGen::generate_instance_struct(
-            self.context,
+        let member_type = self.generate_instance_struct(
             &pou_members,
-            &CodeGen::get_struct_name(p.name.as_str()),
+            &p.name,
         );
 
-        self.index.associate_type(p.name.as_str(),member_type.into());
-       
         let member_type_ptr = member_type.ptr_type(AddressSpace::Generic);
         //let return_type = self.context.i32_type();
         let f_type = self.get_function_type(&[member_type_ptr.as_basic_type_enum()],return_type);
-        self.current_function = Some(self.module.add_function(self.getScope().unwrap(), f_type, None));
+        self.current_function = Some(self.module.add_function(self.get_scope().unwrap(), f_type, None));
         self.index.associate_callable_implementation(p.name.as_str(), self.current_function.unwrap());
         let block = self.context.append_basic_block(self.current_function.unwrap(), "entry");
 
@@ -164,8 +162,8 @@ impl<'ctx> CodeGen<'ctx> {
     fn get_return_value(&self, pou_type : PouType) -> Option<BasicValueEnum> {
         match pou_type {
             PouType::Function => {
-                let pou_name = self.getScope().unwrap();
-                let value = self.generate_lvalue_for_reference(pou_name).unwrap(); 
+                let pou_name = self.get_scope().unwrap();
+                let value = self.generate_lvalue_for_reference(&[pou_name.to_string()]).unwrap(); 
                 Some(self.builder.build_load(value,format!("{}_ret",pou_name).as_str()))
             },
             _ => None
@@ -182,11 +180,11 @@ impl<'ctx> CodeGen<'ctx> {
     }
 
     fn generate_instance_struct(
-        context: &'ctx Context,
+        &self,
         members: &Vec<(String, BasicTypeEnum)>,
         name: &str,
     ) -> StructType<'ctx> {
-        let struct_type = context.opaque_struct_type(name);
+        let struct_type = self.index.find_type(name).unwrap().get_type().unwrap().into_struct_type();
         let member_types : Vec<BasicTypeEnum> = members.iter().map(|(_,t)| *t).collect();
         struct_type.set_body(member_types.as_slice(), false);
         struct_type
@@ -249,7 +247,7 @@ impl<'ctx> CodeGen<'ctx> {
             } => self.generate_binary_expression(operator, left, right),
             Statement::LiteralInteger { value } => self.generate_literal_number(value.as_str()),
             Statement::LiteralBool { value } => self.generate_literal_boolean(*value),
-            Statement::Reference { elements } => self.generate_variable_reference(&elements[0]),
+            Statement::Reference { elements } => self.generate_variable_reference(&elements),
             Statement::Assignment { left, right } => self.generate_assignment(&left, &right),
             Statement::UnaryExpression { operator, value } => self.generate_unary_expression(&operator, &value),
             Statement::CallStatement {operator, parameters} => self.generate_call_statement(&operator, &parameters),
@@ -458,12 +456,12 @@ impl<'ctx> CodeGen<'ctx> {
      */
 
     fn get_callable_type_instance(&self, expressions : &Vec<String>) -> Option<&VariableIndexEntry<'ctx>> {
-        self.index.find_callable_instance_variable(self.getScope(), &expressions[0])
+        self.index.find_callable_instance_variable(self.get_scope(), &expressions)
     }
 
-    fn allocate_variable(&self, name :&str) -> Option<PointerValue<'ctx>>{
-        let instance_name = CodeGen::get_struct_instance_name(name);
-        let function_type = self.index.find_type(name).unwrap().get_type(); //TODO Store as datatype in the index and fetch it?
+    fn allocate_variable(&self, data_type :&str) -> Option<PointerValue<'ctx>>{
+        let instance_name = CodeGen::get_struct_instance_name(data_type);
+        let function_type = self.index.find_type(data_type).unwrap().get_type(); //TODO Store as datatype in the index and fetch it?
         Some(self.builder.build_alloca(function_type.unwrap(), instance_name.as_str()))
     }
 
@@ -474,10 +472,14 @@ impl<'ctx> CodeGen<'ctx> {
             Statement::Reference {elements} => {
 
                 //Get associated Variable or generate a variable for the type with the same name
-                let ast_variable = self.get_callable_type_instance(&elements);
-                let variable_instance = ast_variable.map(|it| it.get_generated_reference()).flatten().or_else(|| self.allocate_variable(&elements[0]));
+                let ast_variable = self.get_callable_type_instance(&elements); //Look for the instance variable
+                let variable_instance = ast_variable
+                                            .map(|it| it.get_generated_reference()).flatten()  //look for the generated parameters-struct
+                                            .or_else(|| self.allocate_variable(&elements[0])); //there is no generated parameters-struct --> function call!
                 //Get Function from Datatype
-                let call_name = ast_variable.map(|it| it.get_type_name()).or(Some(&elements[0]));
+                let call_name = ast_variable
+                                    .map(|it| it.get_type_name()) // we called f() --> look for f's datatype
+                                    .or(Some(&elements[0]));      // we didnt call a variable ([0so we treat the string as the function's name
                 let function = self.index.find_type(call_name.unwrap()).map(|it| it.get_implementation()).flatten();
                 (variable_instance,function)
             }
@@ -516,50 +518,51 @@ impl<'ctx> CodeGen<'ctx> {
 
     fn generate_lvalue_for(&self, statement: &Box<Statement>) -> Option<PointerValue> {
         match &**statement {
-            Statement::Reference {elements} => self.generate_lvalue_for_reference(elements[0].as_str()),
+            Statement::Reference {elements} => self.generate_lvalue_for_reference(elements),
             _ => None
         }
     }
-    fn get_variable(&self, name: &str) -> Option<PointerValue<'ctx>> {
+    fn get_variable(&self, name: &[String]) -> Option<PointerValue<'ctx>> {
 
-        self.index.find_variable(self.getScope(), name)
+        self.index.find_variable(self.get_scope(), name)
                     .map(|e| e.get_generated_reference()).flatten()
     }
 
-    fn generate_lvalue_for_reference(&self, name: &str) -> Option<PointerValue<'ctx>> {
-        self.get_variable(name)
+    fn generate_lvalue_for_reference(&self, segments: &[String]) -> Option<PointerValue<'ctx>> {
+        let mut name = segments.iter();
+        let first_name = name.next().unwrap();
+        let type_name = self.index.find_variable(self.get_scope(), &[first_name.clone()]).unwrap().get_type_name();
+
+        let first_ptr = (type_name, self.get_variable(&[first_name.to_string()]));
+
+        let (_,ptr) = name.fold(first_ptr, |qualifier, operator|  {
+            if let (qualifier_name,Some(qualifier)) = qualifier {
+                let member = self.index.find_member(qualifier_name, operator);
+                let member_location = member.map(|it|it.get_location_in_parent()).flatten().unwrap();
+                let member_data_type = member.map(|it|it.get_type_name()).unwrap();
+                let gep = self.builder.build_struct_gep(qualifier, member_location , operator);
+                (member_data_type, gep.ok())
+            } else {
+                ("",None)
+            }
+        });
+        ptr
     }
 
-    fn generate_variable_reference(&self, name: &str) -> Option<BasicValueEnum> {
-        if let Some(ptr) =  self.generate_lvalue_for_reference(name) {
-            let result = self.builder.build_load(ptr, format!("load_{var_name}", var_name = name).as_str()); 
-            Some(result)
+    fn generate_variable_reference(&self, segments: &[String]) -> Option<BasicValueEnum> {
+        let ptr = self.generate_lvalue_for_reference(segments);
+       //Load
+        if let Some(ptr) =  ptr {
+            Some(self.builder.build_load(ptr, format!("load_{var_name}", var_name = segments.join(".")).as_str()))
         } else {
             None
         }
     }
 
-    /**
-     *  int x = 7;
-        x = 7 + x;
-     *  return x;
-     * ```norun
-            %1 = alloca i32, align 4
-            %2 = alloca i32, align 4
-            store i32 0, i32* %1, align 4
-            store i32 7, i32* %2, align 4
-            %3 = load i32, i32* %2, align 4
-            %4 = add nsw i32 7, %3
-            store i32 %4, i32* %2, align 4
-
-            https://github.com/sinato/inkwell-playground/tree/master/examples
-        ```
-     */
-
     fn generate_assignment(&self, left: &Box<Statement>, right : &Box<Statement>) -> Option<BasicValueEnum> {
         
         if let Statement::Reference { elements } = &**left {
-            let left_expr = self.generate_lvalue_for_reference(&elements[0]);
+            let left_expr = self.generate_lvalue_for_reference(elements);
             let right_res = self.generate_statement(right);
             self.builder.build_store(left_expr?, right_res?);
         }
