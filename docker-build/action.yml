@@ -13,6 +13,7 @@ runs:
   image: 'Dockerfile'
   env: 
     'LLVM_SYS_${{inputs.llvm-sys-version}}_PREFIX': '/usr/lib/llvm-10'
-
+  args:
+  - '${{ inputs.build-step }}'
     
 
