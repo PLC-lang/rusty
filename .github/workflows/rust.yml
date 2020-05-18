@@ -1,4 +1,4 @@
-name: Rust on Docker
+name: Build
 
 on: [push]
 
