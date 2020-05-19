@@ -18,6 +18,7 @@ pub enum PouType {
 pub struct CompilationUnit {
     pub global_vars: Vec<VariableBlock>,
     pub units: Vec<POU>,
+    pub types: Vec<DataType>,
 }
 
 
@@ -43,6 +44,18 @@ pub struct Variable {
 #[derive(Debug, PartialEq, Clone)]
 pub struct Type {
     pub name : String,
+}
+
+#[derive(Debug, PartialEq)]
+pub enum DataType {
+    StructType {
+        name: String,
+        variables: Vec<Variable>,
+    },
+    EnumType {
+        name: String,
+        elements: Vec<String>,
+    }
 }
 
 #[derive(Debug, PartialEq)]

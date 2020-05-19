@@ -41,6 +41,18 @@ pub enum Token {
     #[token = "END_FUNCTION_BLOCK"]
     KeywordEndFunctionBlock,
 
+    #[token = "TYPE"]
+    KeywordType,
+
+    #[token = "STRUCT"]
+    KeywordStruct,
+
+    #[token = "END_TYPE"]
+    KeywordEndType,
+
+    #[token = "END_STRUCT"]
+    KeywordEndStruct,
+
     #[token = ":"]
     KeywordColon,
 
