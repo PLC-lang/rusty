@@ -4,6 +4,26 @@ Structured text compiler written in Rust
 
 [![Rust Build](https://github.com/ghaith/ruSTy/workflows/Rust%20on%20Docker/badge.svg)](https://github.com/ghaith/ruSTy/actions)
 
+
+```
+                    IR-CodeGen
+     Project        Programs             Global
+     start          Expressions          Variables
+       |              |                    |
+       |              |                    |
+----I-------------I-------------I-------------I-------------I-------------I-------------I----
+ nov-'19       jan-'20       mar-'20       may-'20      june-'20       sep-'20       nev-'20  
+----I-------------I-------------I-------------I-------------I-------------I-------------I----
+                  |                   |          |
+                  |                   |          |
+                Parsing            Control       Call Stmts
+                POUs               Structures    for all
+                Statements                       POUs
+                Expressions
+```
+
+
+
 # Supported Language Concepts
 ## POUs
 - :heavy_check_mark: Program
