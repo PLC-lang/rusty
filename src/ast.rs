@@ -4,7 +4,7 @@ pub struct POU {
     pub variable_blocks: Vec<VariableBlock>,
     pub statements: Vec<Statement>,
     pub pou_type: PouType,
-    pub return_type: Option<Type>,
+    pub return_type: Option<DataType>,
 }
 
 #[derive(Debug, Copy, PartialEq, Clone)]
@@ -35,25 +35,23 @@ pub struct VariableBlock {
     pub variable_block_type: VariableBlockType,
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct Variable {
     pub name: String,
-    pub data_type: Type,
+    pub data_type: DataType,
 }
 
 #[derive(Debug, PartialEq, Clone)]
-pub struct Type {
-    pub name : String,
-}
-
-#[derive(Debug, PartialEq)]
 pub enum DataType {
+    DataTypeReference {
+        type_name: String,
+    },
     StructType {
-        name: String,
+        name: Option<String>, //maybe None for inline structs
         variables: Vec<Variable>,
     },
     EnumType {
-        name: String,
+        name: Option<String>, //maybe empty for inline enums
         elements: Vec<String>,
     }
 }

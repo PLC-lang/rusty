@@ -1,7 +1,7 @@
 
 use super::Index;
 use super::VariableType;
-use super::super::ast::{ POU, PouType, CompilationUnit, VariableBlock, VariableBlockType };
+use super::super::ast::{ POU, PouType, CompilationUnit, VariableBlock, VariableBlockType, DataType, DataType::DataTypeReference};
 
 pub fn visit(index: &mut Index, unit: &CompilationUnit) {
     for global_vars in &unit.global_vars {
@@ -29,8 +29,8 @@ fn visit_pou(index: &mut Index, pou: &POU){
             index.register_local_variable(
                 pou.name.clone(), 
                 var.name.clone(), 
-                block_type, 
-                var.data_type.name.clone(),
+                block_type,
+                get_type_name(&var.data_type).to_string(), 
                 count,
             );
             count = count + 1;
@@ -38,7 +38,12 @@ fn visit_pou(index: &mut Index, pou: &POU){
     }
 
     if let Some(return_type) = &pou.return_type {
-        index.register_local_variable(pou.name.clone(), pou.name.clone(), VariableType::Return, return_type.name.clone(),count)
+        index.register_local_variable(
+            pou.name.clone(), 
+            pou.name.clone(), 
+            VariableType::Return, 
+            get_type_name(return_type).to_string(),
+            count)
     }
 
 }
@@ -48,8 +53,15 @@ fn visit_global_var_block(index :&mut Index, block: &VariableBlock) {
     for var in &block.variables {
         index.register_global_variable(
                             var.name.clone(), 
-                            var.data_type.name.clone()
+                            get_type_name(&var.data_type).to_string()
                         );
+    }
+}
+
+fn get_type_name(data_type: &DataType) -> &str {
+    match data_type{
+        DataTypeReference { type_name } => type_name,
+        _ => &""
     }
 }
 
