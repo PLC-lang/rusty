@@ -115,8 +115,7 @@ fn parse_pou(lexer: &mut RustyLexer, pou_type: PouType, expected_end_token: lexe
 
     //optional return type
     if allow(KeywordColon, lexer) {
-        let return_type_name = Some(format!("{:}_return_type", &result.name));
-        result.return_type = Some(parse_data_type_definition(lexer, return_type_name)?);
+        result.return_type = Some(parse_type_reference(lexer, None)?);
     }
 
     //Parse variable declarations
@@ -145,20 +144,19 @@ fn parse_type(lexer: &mut RustyLexer) -> Result<DataType, String> {
     lexer.advance();
 
     let result = parse_data_type_definition(lexer, Some(name));
-    if let Ok(DataType::DataTypeReference{ name: _, referenced_type: _ }) = result {
-        //there is a semicolon in the case of a type-alias
-        //this one is not there if its an enum or a struct :-/
-        expect!(KeywordSemicolon, lexer);
-        lexer.advance();
-    }
 
     expect!(KeywordEndType, lexer);
     lexer.advance();
 
-    result
+    if let Ok(DataTypeDeclaration::DataTypeDefinition {data_type}) = result {
+        Ok(data_type)
+    } else {
+        Err(format!("expected struct, enum, or subrange found {:?}", lexer.token))
+    }
 }
 
-fn parse_data_type_definition(lexer: &mut RustyLexer, name: Option<String>) -> Result<DataType, String> {
+// TYPE xxx : 'STRUCT' | '(' | IDENTIFIER
+fn parse_data_type_definition(lexer: &mut RustyLexer, name: Option<String>) -> Result<DataTypeDeclaration, String> {
     if allow(KeywordStruct, lexer) { //STRUCT
         let mut variables = Vec::new(); 
         while lexer.token == Identifier {
@@ -166,7 +164,8 @@ fn parse_data_type_definition(lexer: &mut RustyLexer, name: Option<String>) -> R
         }
         expect!(KeywordEndStruct, lexer);
         lexer.advance();
-        Ok(DataType::StructType{ name, variables })
+        Ok(DataTypeDeclaration::DataTypeDefinition { data_type : DataType::StructType{ name, variables }})
+    
     } else if allow(KeywordParensOpen, lexer) { //ENUM
         let mut elements = Vec::new();
 
@@ -180,14 +179,28 @@ fn parse_data_type_definition(lexer: &mut RustyLexer, name: Option<String>) -> R
         }
         expect!(KeywordParensClose, lexer);
         lexer.advance();
+        expect!(KeywordSemicolon, lexer);
+        lexer.advance();
 
-        Ok(DataType::EnumType{ name, elements })
-    } else if lexer.token == Identifier {
-        let referenced_type = slice_and_advance(lexer);
-        Ok(DataType::DataTypeReference{ name, referenced_type })
+        Ok(DataTypeDeclaration::DataTypeDefinition { data_type : DataType::EnumType{ name, elements }})
+
+    } else if lexer.token == Identifier {   //Subrange
+        let type_reference = parse_type_reference(lexer, name);
+        expect!(KeywordSemicolon, lexer);
+        lexer.advance();
+        type_reference
+
     } else {
         return Err(format!("expected datatype, struct or enum, found {:?}", lexer.token));
     }
+}
+
+fn parse_type_reference(lexer: &mut RustyLexer, name : Option<String>) -> Result<DataTypeDeclaration, String> {
+    let referenced_type = slice_and_advance(lexer);
+        match name {
+            Some(name) => Ok(DataTypeDeclaration::DataTypeDefinition { data_type : DataType::SubRangeType { name: Some(name), referenced_type }}),
+            None => Ok(DataTypeDeclaration::DataTypeReference {referenced_type}),
+        }
 }
 
 fn is_end_of_stream(token: &lexer::Token) -> bool {
@@ -279,7 +292,5 @@ fn parse_variable(
     let data_type = parse_data_type_definition(lexer, None)?;
     //Convert to real datatype
 
-    expect!(KeywordSemicolon, lexer);
-    lexer.advance();
     Ok(Variable{name, data_type})
 }
