@@ -1,4 +1,5 @@
 use crate::ast::PouType;
+use crate::ast::DataType;
 use crate::lexer;
 use pretty_assertions::*;
 
@@ -36,14 +37,14 @@ r#"VariableBlock {
     variables: [
         Variable {
             name: "x",
-            data_type: Type {
-                name: "INT",
+            data_type: DataTypeReference {
+                type_name: "INT",
             },
         },
         Variable {
             name: "y",
-            data_type: Type {
-                name: "BOOL",
+            data_type: DataTypeReference {
+                type_name: "BOOL",
             },
         },
     ],
@@ -66,8 +67,8 @@ r#"[
         variables: [
             Variable {
                 name: "a",
-                data_type: Type {
-                    name: "INT",
+                data_type: DataTypeReference {
+                    type_name: "INT",
                 },
             },
         ],
@@ -77,14 +78,14 @@ r#"[
         variables: [
             Variable {
                 name: "x",
-                data_type: Type {
-                    name: "INT",
+                data_type: DataTypeReference {
+                    type_name: "INT",
                 },
             },
             Variable {
                 name: "y",
-                data_type: Type {
-                    name: "BOOL",
+                data_type: DataTypeReference {
+                    type_name: "BOOL",
                 },
             },
         ],
@@ -114,7 +115,7 @@ fn simple_foo_function_can_be_parsed() {
     let prg = &result.units[0];
     assert_eq!(prg.pou_type, PouType::Function);
     assert_eq!(prg.name, "foo");
-    assert_eq!(prg.return_type.as_ref().unwrap().name, "INT" );
+    assert_eq!(prg.return_type.as_ref().unwrap(), &DataType::DataTypeReference { type_name: "INT".to_string() } );
 }
 
 #[test]
@@ -243,8 +244,8 @@ r#"VariableBlock {
     variables: [
         Variable {
             name: "x",
-            data_type: Type {
-                name: "INT",
+            data_type: DataTypeReference {
+                type_name: "INT",
             },
         },
     ],
@@ -268,8 +269,8 @@ r#"VariableBlock {
     variables: [
         Variable {
             name: "x",
-            data_type: Type {
-                name: "INT",
+            data_type: DataTypeReference {
+                type_name: "INT",
             },
         },
     ],
@@ -296,24 +297,26 @@ fn simple_struct_type_can_be_parsed() {
 
     let expected_ast = 
 r#"StructType {
-    name: "SampleStruct",
+    name: Some(
+        "SampleStruct",
+    ),
     variables: [
         Variable {
             name: "One",
-            data_type: Type {
-                name: "INT",
+            data_type: DataTypeReference {
+                type_name: "INT",
             },
         },
         Variable {
             name: "Two",
-            data_type: Type {
-                name: "INT",
+            data_type: DataTypeReference {
+                type_name: "INT",
             },
         },
         Variable {
             name: "Three",
-            data_type: Type {
-                name: "INT",
+            data_type: DataTypeReference {
+                type_name: "INT",
             },
         },
     ],
@@ -335,12 +338,162 @@ fn simple_enum_type_can_be_parsed() {
 
     let expected_ast = 
 r#"EnumType {
-    name: "SampleEnum",
+    name: Some(
+        "SampleEnum",
+    ),
     elements: [
         "red",
         "yellow",
         "green",
     ],
 }"#;
+    assert_eq!(ast_string, expected_ast);
+}
+
+#[test]
+fn type_alias_can_be_parsed() {
+    let result = super::parse(lexer::lex(
+        r#"
+        TYPE 
+            MyInt : INT;
+        END_TYPE
+        "#
+    )).unwrap();
+
+    let ast_string = format!("{:#?}", &result.types[0]);
+
+    let exptected_ast = 
+r#"DataTypeReference {
+    type_name: "INT",
+}"#;
+
+assert_eq!(ast_string, exptected_ast);
+
+}
+
+#[test]
+fn inline_struct_declaration_can_be_parsed() {
+    let result = super::parse(lexer::lex(
+        r#"
+        VAR_GLOBAL
+            my_struct : STRUCT
+                One:INT;
+                Two:INT;
+                Three:INT;
+            END_STRUCT;
+        END_VAR
+        "#
+    )).unwrap();
+
+    let ast_string = format!("{:#?}", &result.global_vars[0].variables[0]);
+    let expected_ast = 
+r#"Variable {
+    name: "my_struct",
+    data_type: StructType {
+        name: None,
+        variables: [
+            Variable {
+                name: "One",
+                data_type: DataTypeReference {
+                    type_name: "INT",
+                },
+            },
+            Variable {
+                name: "Two",
+                data_type: DataTypeReference {
+                    type_name: "INT",
+                },
+            },
+            Variable {
+                name: "Three",
+                data_type: DataTypeReference {
+                    type_name: "INT",
+                },
+            },
+        ],
+    },
+}"#;
+
+    assert_eq!(ast_string, expected_ast);
+}
+
+#[test]
+fn inline_enum_declaration_can_be_parsed() {
+    let result = super::parse(lexer::lex(
+        r#"
+        VAR_GLOBAL
+            my_enum : (red, yellow, green);
+        END_VAR
+        "#
+    )).unwrap();
+
+    let ast_string = format!("{:#?}", &result.global_vars[0].variables[0]);
+    let expected_ast = 
+r#"Variable {
+    name: "my_enum",
+    data_type: EnumType {
+        name: None,
+        elements: [
+            "red",
+            "yellow",
+            "green",
+        ],
+    },
+}"#;
+
+    assert_eq!(ast_string, expected_ast);
+}
+
+#[test]
+fn multilevel_inline_struct_and_enum_declaration_can_be_parsed() {
+    let result = super::parse(lexer::lex(
+        r#"
+        VAR_GLOBAL
+            my_struct : STRUCT
+                    inner_enum: (red, yellow, green);
+                    inner_struct: STRUCT
+                        field: INT;
+                    END_STRUCT;
+                END_STRUCT;
+        END_VAR
+        "#
+    )).unwrap();
+
+    let ast_string = format!("{:#?}", &result.global_vars[0].variables[0]);
+    let expected_ast = 
+r#"Variable {
+    name: "my_struct",
+    data_type: StructType {
+        name: None,
+        variables: [
+            Variable {
+                name: "inner_enum",
+                data_type: EnumType {
+                    name: None,
+                    elements: [
+                        "red",
+                        "yellow",
+                        "green",
+                    ],
+                },
+            },
+            Variable {
+                name: "inner_struct",
+                data_type: StructType {
+                    name: None,
+                    variables: [
+                        Variable {
+                            name: "field",
+                            data_type: DataTypeReference {
+                                type_name: "INT",
+                            },
+                        },
+                    ],
+                },
+            },
+        ],
+    },
+}"#;
+
     assert_eq!(ast_string, expected_ast);
 }
