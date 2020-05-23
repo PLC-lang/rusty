@@ -7,11 +7,11 @@ use pretty_assertions::assert_eq;
 macro_rules! codegen {
     ($code:tt) => {{
         let lexer = lexer::lex($code);
-        let ast = parser::parse(lexer).unwrap();
+        let mut ast = parser::parse(lexer).unwrap();
 
         let context = Context::create();
         let mut index = Index::new();
-        index.visit(&ast);
+        index.visit(&mut ast);
         let mut code_generator = super::CodeGen::new(&context, &mut index);
         code_generator.generate(ast)
     }};

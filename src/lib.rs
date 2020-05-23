@@ -56,9 +56,9 @@ pub fn get_ir(codegen : &codegen::CodeGen) -> String {
 
 pub fn compile_module<'ctx>(context : &'ctx Context, index: &'ctx mut Index<'ctx>, source : String) -> codegen::CodeGen<'ctx> {
 
-    let parse_result = parse(source);
+    let mut parse_result = parse(source);
 
-    index.visit(&parse_result);
+    index.visit(&mut parse_result);
 
     let mut code_generator = codegen::CodeGen::new(context, index);
     code_generator.generate_compilation_unit(parse_result);

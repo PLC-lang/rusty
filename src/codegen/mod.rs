@@ -81,8 +81,8 @@ impl<'ctx> CodeGen<'ctx> {
 
     fn get_type(&self, data_type: &DataType) -> Option<BasicTypeEnum<'ctx>> {
         match data_type {
-            DataType::DataTypeReference { type_name: name } => 
-                self.index.find_type(&name).map(|it| it.get_type()).flatten(),
+            DataType::DataTypeReference { name: _, referenced_type } => 
+                self.index.find_type(&referenced_type).map(|it| it.get_type()).flatten(),
             _ => None 
         }
     }

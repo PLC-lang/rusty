@@ -44,7 +44,8 @@ pub struct Variable {
 #[derive(Debug, PartialEq, Clone)]
 pub enum DataType {
     DataTypeReference {
-        type_name: String,
+        name: Option<String>,
+        referenced_type: String,
     },
     StructType {
         name: Option<String>, //maybe None for inline structs

@@ -115,10 +115,9 @@ fn parse_pou(lexer: &mut RustyLexer, pou_type: PouType, expected_end_token: lexe
 
     //optional return type
     if allow(KeywordColon, lexer) {
-        let return_type_name = Some(format!("{:?}_return_type", &result.name));
+        let return_type_name = Some(format!("{:}_return_type", &result.name));
         result.return_type = Some(parse_data_type_definition(lexer, return_type_name)?);
     }
-
 
     //Parse variable declarations
     while lexer.token == KeywordVar || lexer.token == KeywordVarInput {
@@ -146,7 +145,7 @@ fn parse_type(lexer: &mut RustyLexer) -> Result<DataType, String> {
     lexer.advance();
 
     let result = parse_data_type_definition(lexer, Some(name));
-    if let Ok(DataType::DataTypeReference{ type_name: _ }) = result {
+    if let Ok(DataType::DataTypeReference{ name: _, referenced_type: _ }) = result {
         //there is a semicolon in the case of a type-alias
         //this one is not there if its an enum or a struct :-/
         expect!(KeywordSemicolon, lexer);
@@ -184,10 +183,8 @@ fn parse_data_type_definition(lexer: &mut RustyLexer, name: Option<String>) -> R
 
         Ok(DataType::EnumType{ name, elements })
     } else if lexer.token == Identifier {
-        let name = slice_and_advance(lexer);
-        Ok(DataType::DataTypeReference{
-            type_name: name,  
-        })
+        let referenced_type = slice_and_advance(lexer);
+        Ok(DataType::DataTypeReference{ name, referenced_type })
     } else {
         return Err(format!("expected datatype, struct or enum, found {:?}", lexer.token));
     }

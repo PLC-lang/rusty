@@ -38,13 +38,15 @@ r#"VariableBlock {
         Variable {
             name: "x",
             data_type: DataTypeReference {
-                type_name: "INT",
+                name: None,
+                referenced_type: "INT",
             },
         },
         Variable {
             name: "y",
             data_type: DataTypeReference {
-                type_name: "BOOL",
+                name: None,
+                referenced_type: "BOOL",
             },
         },
     ],
@@ -68,7 +70,8 @@ r#"[
             Variable {
                 name: "a",
                 data_type: DataTypeReference {
-                    type_name: "INT",
+                    name: None,
+                    referenced_type: "INT",
                 },
             },
         ],
@@ -79,13 +82,15 @@ r#"[
             Variable {
                 name: "x",
                 data_type: DataTypeReference {
-                    type_name: "INT",
+                    name: None,
+                    referenced_type: "INT",
                 },
             },
             Variable {
                 name: "y",
                 data_type: DataTypeReference {
-                    type_name: "BOOL",
+                    name: None,
+                    referenced_type: "BOOL",
                 },
             },
         ],
@@ -115,7 +120,11 @@ fn simple_foo_function_can_be_parsed() {
     let prg = &result.units[0];
     assert_eq!(prg.pou_type, PouType::Function);
     assert_eq!(prg.name, "foo");
-    assert_eq!(prg.return_type.as_ref().unwrap(), &DataType::DataTypeReference { type_name: "INT".to_string() } );
+    assert_eq!(prg.return_type.as_ref().unwrap(), 
+                &DataType::DataTypeReference { 
+                    name: Some("foo_return_type".to_string()), 
+                    referenced_type: "INT".to_string() } 
+                );
 }
 
 #[test]
@@ -245,7 +254,8 @@ r#"VariableBlock {
         Variable {
             name: "x",
             data_type: DataTypeReference {
-                type_name: "INT",
+                name: None,
+                referenced_type: "INT",
             },
         },
     ],
@@ -270,7 +280,8 @@ r#"VariableBlock {
         Variable {
             name: "x",
             data_type: DataTypeReference {
-                type_name: "INT",
+                name: None,
+                referenced_type: "INT",
             },
         },
     ],
@@ -304,19 +315,22 @@ r#"StructType {
         Variable {
             name: "One",
             data_type: DataTypeReference {
-                type_name: "INT",
+                name: None,
+                referenced_type: "INT",
             },
         },
         Variable {
             name: "Two",
             data_type: DataTypeReference {
-                type_name: "INT",
+                name: None,
+                referenced_type: "INT",
             },
         },
         Variable {
             name: "Three",
             data_type: DataTypeReference {
-                type_name: "INT",
+                name: None,
+                referenced_type: "INT",
             },
         },
     ],
@@ -364,7 +378,10 @@ fn type_alias_can_be_parsed() {
 
     let exptected_ast = 
 r#"DataTypeReference {
-    type_name: "INT",
+    name: Some(
+        "MyInt",
+    ),
+    referenced_type: "INT",
 }"#;
 
 assert_eq!(ast_string, exptected_ast);
@@ -395,19 +412,22 @@ r#"Variable {
             Variable {
                 name: "One",
                 data_type: DataTypeReference {
-                    type_name: "INT",
+                    name: None,
+                    referenced_type: "INT",
                 },
             },
             Variable {
                 name: "Two",
                 data_type: DataTypeReference {
-                    type_name: "INT",
+                    name: None,
+                    referenced_type: "INT",
                 },
             },
             Variable {
                 name: "Three",
                 data_type: DataTypeReference {
-                    type_name: "INT",
+                    name: None,
+                    referenced_type: "INT",
                 },
             },
         ],
@@ -485,7 +505,8 @@ r#"Variable {
                         Variable {
                             name: "field",
                             data_type: DataTypeReference {
-                                type_name: "INT",
+                                name: None,
+                                referenced_type: "INT",
                             },
                         },
                     ],

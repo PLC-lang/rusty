@@ -3,7 +3,11 @@ use super::Index;
 use super::VariableType;
 use super::super::ast::{ POU, PouType, CompilationUnit, VariableBlock, VariableBlockType, DataType, DataType::DataTypeReference};
 
-pub fn visit(index: &mut Index, unit: &CompilationUnit) {
+pub fn visit(index: &mut Index, unit: &mut CompilationUnit) {
+    for data_type in &unit.types {
+        visit_data_type(index, data_type);
+    }
+
     for global_vars in &unit.global_vars {
         visit_global_var_block(index, global_vars);
     }
@@ -11,6 +15,7 @@ pub fn visit(index: &mut Index, unit: &CompilationUnit) {
     for pou in &unit.units {
         visit_pou(index, pou);
     }
+
 }
 
 fn visit_pou(index: &mut Index, pou: &POU){
@@ -60,7 +65,7 @@ fn visit_global_var_block(index :&mut Index, block: &VariableBlock) {
 
 fn get_type_name(data_type: &DataType) -> &str {
     match data_type{
-        DataTypeReference { type_name } => type_name,
+        DataTypeReference { name: _, referenced_type } => referenced_type,
         _ => &""
     }
 }
@@ -70,5 +75,20 @@ fn get_variable_type_from_block(block: &VariableBlock) -> VariableType {
         VariableBlockType::Local => VariableType::Local,
         VariableBlockType::Input => VariableType::Input,
         VariableBlockType::Global => VariableType::Global,
+    }
+}
+
+
+fn visit_data_type(index: &mut Index, data_type: &DataType) {
+    //names should not be empty
+    match data_type {
+        DataType::StructType { name, variables: _ } => 
+            index.register_type(name.as_ref().map(|it| it.to_string()).unwrap()),
+
+        DataType::EnumType { name, elements: _ } => 
+            index.register_type( name.as_ref().map(|it| it.to_string()).unwrap()),
+
+        DataType::DataTypeReference { name, referenced_type: _ } => 
+            index.register_type (name.as_ref().map(|it| it.to_string()).unwrap()),
     }
 }

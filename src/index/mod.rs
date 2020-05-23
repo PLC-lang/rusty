@@ -7,6 +7,7 @@ use crate::ast::CompilationUnit;
 #[cfg(test)]
 mod tests;
 mod visitor;
+mod pre_processor;
 
 
 #[derive(Debug, PartialEq)]
@@ -260,7 +261,7 @@ impl<'ctx> Index<'ctx> {
         self.types.insert(type_name, index_entry);
     }
 
-    pub fn visit(&mut self, unit: &CompilationUnit) {
+    pub fn visit(&mut self, unit: &mut CompilationUnit) {
         visitor::visit(self, unit);
     }
 

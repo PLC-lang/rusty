@@ -10,11 +10,11 @@ use crate::parser;
 macro_rules! index {
     ($code:tt) => {{
         let lexer = lexer::lex($code);
-        let ast = parser::parse(lexer).unwrap();
+        let mut ast = parser::parse(lexer).unwrap();
 
 
         let mut index = Index::new();
-        visit(&mut index, &ast);
+        visit(&mut index, &mut ast);
         index
     }};
 }
