@@ -4,7 +4,7 @@ pub struct POU {
     pub variable_blocks: Vec<VariableBlock>,
     pub statements: Vec<Statement>,
     pub pou_type: PouType,
-    pub return_type: Option<DataType>,
+    pub return_type: Option<DataTypeDeclaration>,
 }
 
 #[derive(Debug, Copy, PartialEq, Clone)]
@@ -38,14 +38,38 @@ pub struct VariableBlock {
 #[derive(Debug, PartialEq, Clone)]
 pub struct Variable {
     pub name: String,
-    pub data_type: DataType,
+    pub data_type: DataTypeDeclaration,
+}
+
+impl Variable {
+    pub fn replace_data_type_with_reference_to(&mut self, type_name : String) -> DataTypeDeclaration{
+        let new_data_type = DataTypeDeclaration::DataTypeReference {referenced_type : type_name};
+        let old_data_type = std::mem::replace(&mut self.data_type, new_data_type);
+        old_data_type
+    }
+}
+
+#[derive(Debug, PartialEq, Clone)]
+pub enum DataTypeDeclaration {
+    DataTypeReference {
+        referenced_type: String,
+    },
+    DataTypeDefinition {
+        data_type: DataType,    
+    }
+}
+
+impl DataTypeDeclaration {
+    pub fn get_name<'ctx> (&'ctx self) -> Option<&'ctx str> {
+        match self {
+            DataTypeDeclaration::DataTypeReference { referenced_type } => Some(referenced_type.as_str()),
+            DataTypeDeclaration::DataTypeDefinition { data_type } => data_type.get_name(),
+        }
+    }
 }
 
 #[derive(Debug, PartialEq, Clone)]
 pub enum DataType {
-    DataTypeReference {
-        type_name: String,
-    },
     StructType {
         name: Option<String>, //maybe None for inline structs
         variables: Vec<Variable>,
@@ -53,6 +77,28 @@ pub enum DataType {
     EnumType {
         name: Option<String>, //maybe empty for inline enums
         elements: Vec<String>,
+    },
+    SubRangeType {
+        name: Option<String>,
+        referenced_type : String,
+    }
+}
+
+impl DataType {
+    pub fn set_name(&mut self, new_name : String) {
+        match self {
+            DataType::StructType {name , variables: _} => *name = Some(new_name),
+            DataType::EnumType {name, elements: _} => *name = Some(new_name),
+            DataType::SubRangeType {name, referenced_type: _} => *name = Some(new_name),
+        }
+    }
+
+    pub fn get_name<'ctx>(&'ctx self) -> Option<&'ctx str> {
+        match self {
+            DataType::StructType {name, variables: _} => name.as_ref().map(|x| x.as_str()),
+            DataType::EnumType {name, elements: _} => name.as_ref().map(|x| x.as_str()),
+            DataType::SubRangeType {name, referenced_type: _} => name.as_ref().map(|x| x.as_str()),
+        }
     }
 }
 

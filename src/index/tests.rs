@@ -1,20 +1,21 @@
 
 use pretty_assertions::{assert_eq};
-use super::visitor::visit;
 use super::{Index, VariableType};
 
 use crate::lexer;
 use crate::parser;
+use crate::ast::*;
 
 
 macro_rules! index {
     ($code:tt) => {{
         let lexer = lexer::lex($code);
-        let ast = parser::parse(lexer).unwrap();
+        let mut ast = parser::parse(lexer).unwrap();
 
 
         let mut index = Index::new();
-        visit(&mut index, &ast);
+        index.pre_process(&mut ast);
+        index.visit(&mut ast);
         index
     }};
 }
@@ -212,3 +213,142 @@ fn index_can_be_retrieved_from_qualified_name() {
     assert_eq!(Some("fb3".to_string()),result.information.qualifier);
 }
 
+#[test]
+fn pre_processing_generates_inline_enums_global() {
+    // GIVEN a global inline enum
+    let lexer = lexer::lex(r#"
+        VAR_GLOBAL
+            inline_enum : (a,b,c);
+        END_VAR
+        "#);
+    let mut ast = parser::parse(lexer).unwrap();
+
+    // WHEN the AST ist pre-processed
+    let mut index = Index::new();
+    index.pre_process(&mut ast);
+
+    //ENUM
+    // THEN an implicit datatype should have been generated for the enum
+    let new_enum_type = &ast.types[0];
+    assert_eq!(&DataType::EnumType {
+                    name: Some("__global_inline_enum".to_string()), 
+                    elements: ["a".to_string(), "b".to_string(), "c".to_string()].to_vec()}, 
+        new_enum_type);
+
+    // AND the original variable should now point to the new DataType
+    let var_data_type = &ast.global_vars[0].variables[0].data_type;
+    assert_eq!(&DataTypeDeclaration::DataTypeReference {
+            referenced_type : "__global_inline_enum".to_string(),},
+        var_data_type);
+
+
+    assert_eq!(&"__global_inline_enum".to_string(), &ast.global_vars[0].variables[0].data_type.get_name().unwrap().to_string())
+
+}
+
+
+#[test]
+fn pre_processing_generates_inline_structs_global() {
+    // GIVEN a global inline enum
+    let lexer = lexer::lex(r#"
+        VAR_GLOBAL
+            inline_struct: STRUCT a: INT; END_STRUCT
+        END_VAR
+        "#);
+    let mut ast = parser::parse(lexer).unwrap();
+
+    // WHEN the AST ist pre-processed
+    let mut index = Index::new();
+    index.pre_process(&mut ast);
+    
+    //STRUCT
+    //THEN an implicit datatype should have been generated for the struct
+    let new_struct_type = &ast.types[0];
+    assert_eq!(&DataType::StructType {
+                    name: Some("__global_inline_struct".to_string()), 
+                    variables: [
+                        Variable { 
+                            name : "a".to_string(),
+                            data_type: DataTypeDeclaration::DataTypeReference {
+                                referenced_type : "INT".to_string()
+                            }
+                    }].to_vec()}, 
+        new_struct_type);
+
+    // AND the original variable should now point to the new DataType
+    let var_data_type = &ast.global_vars[0].variables[0].data_type;
+    assert_eq!(&DataTypeDeclaration::DataTypeReference {
+            referenced_type : "__global_inline_struct".to_string(),},
+        var_data_type);
+
+}
+
+#[test]
+fn pre_processing_generates_inline_enums() {
+    // GIVEN a global inline enum
+    let lexer = lexer::lex(r#"
+        PROGRAM foo
+        VAR
+            inline_enum : (a,b,c);
+        END_VAR
+        END_PROGRAM
+        "#);
+    let mut ast = parser::parse(lexer).unwrap();
+
+    // WHEN the AST ist pre-processed
+    let mut index = Index::new();
+    index.pre_process(&mut ast);
+
+    //ENUM
+    // THEN an implicit datatype should have been generated for the enum
+    let new_enum_type = &ast.types[0];
+    assert_eq!(&DataType::EnumType {
+                    name: Some("__foo_inline_enum".to_string()), 
+                    elements: ["a".to_string(), "b".to_string(), "c".to_string()].to_vec()}, 
+        new_enum_type);
+
+    // AND the original variable should now point to the new DataType
+    let var_data_type = &ast.units[0].variable_blocks[0].variables[0].data_type;
+    assert_eq!(&DataTypeDeclaration::DataTypeReference {
+            referenced_type : "__foo_inline_enum".to_string(),},
+        var_data_type);
+}
+
+
+#[test]
+fn pre_processing_generates_inline_structs() {
+    // GIVEN a global inline enum
+    let lexer = lexer::lex(r#"
+        PROGRAM foo
+        VAR
+            inline_struct: STRUCT a: INT; END_STRUCT
+        END_VAR
+        END_PROGRAM
+        "#);
+    let mut ast = parser::parse(lexer).unwrap();
+
+    // WHEN the AST ist pre-processed
+    let mut index = Index::new();
+    index.pre_process(&mut ast);
+    
+    //STRUCT
+    //THEN an implicit datatype should have been generated for the struct
+    let new_struct_type = &ast.types[0];
+    assert_eq!(&DataType::StructType {
+                    name: Some("__foo_inline_struct".to_string()), 
+                    variables: [
+                        Variable { 
+                            name : "a".to_string(),
+                            data_type: DataTypeDeclaration::DataTypeReference {
+                                referenced_type : "INT".to_string()
+                            }
+                    }].to_vec()}, 
+        new_struct_type);
+
+    // AND the original variable should now point to the new DataType
+    let var_data_type = &ast.units[0].variable_blocks[0].variables[0].data_type;
+    assert_eq!(&DataTypeDeclaration::DataTypeReference {
+            referenced_type : "__foo_inline_struct".to_string(),},
+        var_data_type);
+
+}

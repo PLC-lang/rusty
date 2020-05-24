@@ -1,6 +1,5 @@
-use crate::ast::PouType;
-use crate::ast::DataType;
 use crate::lexer;
+use crate::ast::*;
 use pretty_assertions::*;
 
 #[test]
@@ -38,13 +37,13 @@ r#"VariableBlock {
         Variable {
             name: "x",
             data_type: DataTypeReference {
-                type_name: "INT",
+                referenced_type: "INT",
             },
         },
         Variable {
             name: "y",
             data_type: DataTypeReference {
-                type_name: "BOOL",
+                referenced_type: "BOOL",
             },
         },
     ],
@@ -68,7 +67,7 @@ r#"[
             Variable {
                 name: "a",
                 data_type: DataTypeReference {
-                    type_name: "INT",
+                    referenced_type: "INT",
                 },
             },
         ],
@@ -79,13 +78,13 @@ r#"[
             Variable {
                 name: "x",
                 data_type: DataTypeReference {
-                    type_name: "INT",
+                    referenced_type: "INT",
                 },
             },
             Variable {
                 name: "y",
                 data_type: DataTypeReference {
-                    type_name: "BOOL",
+                    referenced_type: "BOOL",
                 },
             },
         ],
@@ -115,7 +114,10 @@ fn simple_foo_function_can_be_parsed() {
     let prg = &result.units[0];
     assert_eq!(prg.pou_type, PouType::Function);
     assert_eq!(prg.name, "foo");
-    assert_eq!(prg.return_type.as_ref().unwrap(), &DataType::DataTypeReference { type_name: "INT".to_string() } );
+    assert_eq!(prg.return_type.as_ref().unwrap(), 
+                &DataTypeDeclaration::DataTypeReference { 
+                    referenced_type: "INT".to_string() } 
+                );
 }
 
 #[test]
@@ -245,7 +247,7 @@ r#"VariableBlock {
         Variable {
             name: "x",
             data_type: DataTypeReference {
-                type_name: "INT",
+                referenced_type: "INT",
             },
         },
     ],
@@ -270,7 +272,7 @@ r#"VariableBlock {
         Variable {
             name: "x",
             data_type: DataTypeReference {
-                type_name: "INT",
+                referenced_type: "INT",
             },
         },
     ],
@@ -304,19 +306,19 @@ r#"StructType {
         Variable {
             name: "One",
             data_type: DataTypeReference {
-                type_name: "INT",
+                referenced_type: "INT",
             },
         },
         Variable {
             name: "Two",
             data_type: DataTypeReference {
-                type_name: "INT",
+                referenced_type: "INT",
             },
         },
         Variable {
             name: "Three",
             data_type: DataTypeReference {
-                type_name: "INT",
+                referenced_type: "INT",
             },
         },
     ],
@@ -329,7 +331,7 @@ r#"StructType {
 fn simple_enum_type_can_be_parsed() {
     let result = super::parse(lexer::lex(
         r#"
-        TYPE SampleEnum : (red, yellow, green)
+        TYPE SampleEnum : (red, yellow, green);
         END_TYPE 
         "#
     )).unwrap();
@@ -363,8 +365,11 @@ fn type_alias_can_be_parsed() {
     let ast_string = format!("{:#?}", &result.types[0]);
 
     let exptected_ast = 
-r#"DataTypeReference {
-    type_name: "INT",
+r#"SubRangeType {
+    name: Some(
+        "MyInt",
+    ),
+    referenced_type: "INT",
 }"#;
 
 assert_eq!(ast_string, exptected_ast);
@@ -380,7 +385,7 @@ fn inline_struct_declaration_can_be_parsed() {
                 One:INT;
                 Two:INT;
                 Three:INT;
-            END_STRUCT;
+            END_STRUCT
         END_VAR
         "#
     )).unwrap();
@@ -389,28 +394,30 @@ fn inline_struct_declaration_can_be_parsed() {
     let expected_ast = 
 r#"Variable {
     name: "my_struct",
-    data_type: StructType {
-        name: None,
-        variables: [
-            Variable {
-                name: "One",
-                data_type: DataTypeReference {
-                    type_name: "INT",
+    data_type: DataTypeDefinition {
+        data_type: StructType {
+            name: None,
+            variables: [
+                Variable {
+                    name: "One",
+                    data_type: DataTypeReference {
+                        referenced_type: "INT",
+                    },
                 },
-            },
-            Variable {
-                name: "Two",
-                data_type: DataTypeReference {
-                    type_name: "INT",
+                Variable {
+                    name: "Two",
+                    data_type: DataTypeReference {
+                        referenced_type: "INT",
+                    },
                 },
-            },
-            Variable {
-                name: "Three",
-                data_type: DataTypeReference {
-                    type_name: "INT",
+                Variable {
+                    name: "Three",
+                    data_type: DataTypeReference {
+                        referenced_type: "INT",
+                    },
                 },
-            },
-        ],
+            ],
+        },
     },
 }"#;
 
@@ -428,19 +435,17 @@ fn inline_enum_declaration_can_be_parsed() {
     )).unwrap();
 
     let ast_string = format!("{:#?}", &result.global_vars[0].variables[0]);
-    let expected_ast = 
-r#"Variable {
-    name: "my_enum",
-    data_type: EnumType {
-        name: None,
-        elements: [
-            "red",
-            "yellow",
-            "green",
-        ],
-    },
-}"#;
 
+    let v = Variable{
+        name: "my_enum".to_string(),
+        data_type: DataTypeDeclaration::DataTypeDefinition {
+            data_type: DataType::EnumType {
+                name: None,
+                elements: vec!["red".to_string(), "yellow".to_string(), "green".to_string()],
+            }
+        }
+    };
+    let expected_ast = format!("{:#?}", &v);
     assert_eq!(ast_string, expected_ast);
 }
 
@@ -453,8 +458,8 @@ fn multilevel_inline_struct_and_enum_declaration_can_be_parsed() {
                     inner_enum: (red, yellow, green);
                     inner_struct: STRUCT
                         field: INT;
-                    END_STRUCT;
-                END_STRUCT;
+                    END_STRUCT
+                END_STRUCT
         END_VAR
         "#
     )).unwrap();
@@ -463,35 +468,41 @@ fn multilevel_inline_struct_and_enum_declaration_can_be_parsed() {
     let expected_ast = 
 r#"Variable {
     name: "my_struct",
-    data_type: StructType {
-        name: None,
-        variables: [
-            Variable {
-                name: "inner_enum",
-                data_type: EnumType {
-                    name: None,
-                    elements: [
-                        "red",
-                        "yellow",
-                        "green",
-                    ],
-                },
-            },
-            Variable {
-                name: "inner_struct",
-                data_type: StructType {
-                    name: None,
-                    variables: [
-                        Variable {
-                            name: "field",
-                            data_type: DataTypeReference {
-                                type_name: "INT",
-                            },
+    data_type: DataTypeDefinition {
+        data_type: StructType {
+            name: None,
+            variables: [
+                Variable {
+                    name: "inner_enum",
+                    data_type: DataTypeDefinition {
+                        data_type: EnumType {
+                            name: None,
+                            elements: [
+                                "red",
+                                "yellow",
+                                "green",
+                            ],
                         },
-                    ],
+                    },
                 },
-            },
-        ],
+                Variable {
+                    name: "inner_struct",
+                    data_type: DataTypeDefinition {
+                        data_type: StructType {
+                            name: None,
+                            variables: [
+                                Variable {
+                                    name: "field",
+                                    data_type: DataTypeReference {
+                                        referenced_type: "INT",
+                                    },
+                                },
+                            ],
+                        },
+                    },
+                },
+            ],
+        },
     },
 }"#;
 

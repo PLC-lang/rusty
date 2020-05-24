@@ -24,6 +24,7 @@ Structured text compiler written in Rust
 
 
 
+
 # Supported Language Concepts
 ## POUs
 - :heavy_check_mark: Program
@@ -33,11 +34,12 @@ Structured text compiler written in Rust
 
 ## Datatypes
 - :x: IEC 61131-3 types
-- :x: Struct types
-- :x: Enum types
+- :heavy_check_mark: Struct types
+- :heavy_check_mark: Enum types
 - :x: Alias types
 - :x: Sub-ranges types
 - :x: Array data types
+- :x: Initial values
 
 ## Declarations
 - :heavy_check_mark: VAR
@@ -48,8 +50,8 @@ Structured text compiler written in Rust
 ## Statements
 - :heavy_check_mark: Assignments
 - :heavy_check_mark: Call statements
-- :x: Implicit call arguments
-- :x: Explicit call arguments
+- :heavy_check_mark: Implicit call arguments
+- :heavy_check_mark: Explicit call arguments
 
 ## Control Structures
 - :heavy_check_mark: IF Statement

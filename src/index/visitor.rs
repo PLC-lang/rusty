@@ -1,9 +1,13 @@
 
 use super::Index;
 use super::VariableType;
-use super::super::ast::{ POU, PouType, CompilationUnit, VariableBlock, VariableBlockType, DataType, DataType::DataTypeReference};
+use super::super::ast::{ POU, PouType, CompilationUnit, VariableBlock, VariableBlockType, DataType };
 
-pub fn visit(index: &mut Index, unit: &CompilationUnit) {
+pub fn visit(index: &mut Index, unit: &mut CompilationUnit) {
+    for data_type in &unit.types {
+        visit_data_type(index, data_type);
+    }
+
     for global_vars in &unit.global_vars {
         visit_global_var_block(index, global_vars);
     }
@@ -11,6 +15,7 @@ pub fn visit(index: &mut Index, unit: &CompilationUnit) {
     for pou in &unit.units {
         visit_pou(index, pou);
     }
+
 }
 
 fn visit_pou(index: &mut Index, pou: &POU){
@@ -30,7 +35,7 @@ fn visit_pou(index: &mut Index, pou: &POU){
                 pou.name.clone(), 
                 var.name.clone(), 
                 block_type,
-                get_type_name(&var.data_type).to_string(), 
+                var.data_type.get_name().unwrap().to_string(), 
                 count,
             );
             count = count + 1;
@@ -42,7 +47,7 @@ fn visit_pou(index: &mut Index, pou: &POU){
             pou.name.clone(), 
             pou.name.clone(), 
             VariableType::Return, 
-            get_type_name(return_type).to_string(),
+            return_type.get_name().unwrap().to_string(), 
             count)
     }
 
@@ -51,17 +56,11 @@ fn visit_pou(index: &mut Index, pou: &POU){
 
 fn visit_global_var_block(index :&mut Index, block: &VariableBlock) {
     for var in &block.variables {
-        index.register_global_variable(
-                            var.name.clone(), 
-                            get_type_name(&var.data_type).to_string()
-                        );
-    }
-}
 
-fn get_type_name(data_type: &DataType) -> &str {
-    match data_type{
-        DataTypeReference { type_name } => type_name,
-        _ => &""
+        index.register_global_variable(
+                            var.name.clone(),
+                            var.data_type.get_name().unwrap().to_string()
+                        );
     }
 }
 
@@ -70,5 +69,20 @@ fn get_variable_type_from_block(block: &VariableBlock) -> VariableType {
         VariableBlockType::Local => VariableType::Local,
         VariableBlockType::Input => VariableType::Input,
         VariableBlockType::Global => VariableType::Global,
+    }
+}
+
+
+fn visit_data_type(index: &mut Index, data_type: &DataType) {
+    //names should not be empty
+    match data_type {
+        DataType::StructType { name, variables: _ } => 
+            index.register_type(name.as_ref().map(|it| it.to_string()).unwrap()),
+
+        DataType::EnumType { name, elements: _ } => 
+            index.register_type( name.as_ref().map(|it| it.to_string()).unwrap()),
+
+        DataType::SubRangeType { name, referenced_type: _ } => 
+            index.register_type (name.as_ref().map(|it| it.to_string()).unwrap()),
     }
 }

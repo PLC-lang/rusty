@@ -7,6 +7,7 @@ use crate::ast::CompilationUnit;
 #[cfg(test)]
 mod tests;
 mod visitor;
+mod pre_processor;
 
 
 #[derive(Debug, PartialEq)]
@@ -55,6 +56,10 @@ impl <'ctx> DataTypeIndexEntry<'ctx> {
 
     pub fn get_implementation(&self) -> Option<FunctionValue<'ctx>> {
         self.implementation
+    }
+
+    pub fn get_name(&self) -> &str {
+        self.name.as_str()
     }
 }
 
@@ -260,8 +265,13 @@ impl<'ctx> Index<'ctx> {
         self.types.insert(type_name, index_entry);
     }
 
-    pub fn visit(&mut self, unit: &CompilationUnit) {
+    pub fn visit(&mut self, unit: &mut CompilationUnit) {
         visitor::visit(self, unit);
+    }
+
+    //TODO does this belong into the index?
+    pub fn pre_process(&mut self, unit: &mut CompilationUnit) {
+        pre_processor::pre_process(unit);
     }
 
 }
