@@ -8,7 +8,7 @@ use inkwell::types::{BasicTypeEnum, StringRadix, StructType, BasicType, Function
 
 use inkwell::values::{BasicValueEnum, FunctionValue, PointerValue, BasicValue, GlobalValue};
 
-use inkwell::{AddressSpace, ThreadLocalMode};
+use inkwell::{AddressSpace,};
 use inkwell::IntPredicate;
 
 use inkwell::basic_block::BasicBlock;
@@ -65,23 +65,63 @@ impl<'ctx> CodeGen<'ctx> {
     }
 
     pub fn generate_compilation_unit(&mut self, root: CompilationUnit) {
+        for data_type in &root.types {
+            self.generate_data_type_stub(data_type);
+        }
+        
+        self.generate_data_types(&root.types);
+        
         for global_variables in &root.global_vars {
             self.generate_global_vars(global_variables);
         }
-
+        
         for unit in &root.units {
             let struct_type = self.context.opaque_struct_type(format!("{}_interface", &unit.name).as_str());
             self.index.associate_type(&unit.name, struct_type.into());
         }
-    
+        
         for unit in &root.units {
             self.generate_pou(unit);
+        }
+    }
+    
+    fn generate_data_type_stub(&mut self, data_type : &DataType) {
+        
+        let result_type = match data_type {
+            DataType::StructType {name, variables: _}=> (name.as_ref(), Some(self.context.opaque_struct_type(name.as_ref().unwrap()).into())),
+            DataType::EnumType {name, elements: _} => (name.as_ref(),Some(self.context.i32_type().as_basic_type_enum())),
+            DataType::SubRangeType {..} => (None, None),
+        };
+        
+        if let (Some(name), Some(llvm_data_type)) = result_type {
+            self.index.associate_type(name.as_str(), llvm_data_type);
         }
     }
 
     fn get_type(&self, data_type: &DataTypeDeclaration) -> Option<BasicTypeEnum<'ctx>> {
         data_type.get_name().and_then(|name| 
                 self.index.find_type(name).map(|it| it.get_type()).flatten())
+    }
+
+    fn generate_data_types(&self, data_types: &Vec<DataType>) {
+        for data_type in data_types {
+            match data_type {
+                DataType::StructType{ name, variables } => {
+                    let members = self.get_variables_information(&variables);
+                    self.generate_instance_struct(&members, name.as_ref().unwrap().as_str());
+                },
+                DataType::EnumType {name : _, elements} => {
+                  for (i, element) in elements.iter().enumerate() {
+                      let int_type = self.context.i32_type();
+                      let element_variable = self.generate_global_variable(int_type.as_basic_type_enum(),element);
+                      element_variable.set_initializer(&int_type.const_int(i as u64,false));
+                  }  
+                }
+                DataType::SubRangeType {..} => {
+                    //Do nothing
+                }
+            }
+        }
     }
 
 
@@ -95,9 +135,9 @@ impl<'ctx> CodeGen<'ctx> {
     } 
 
     fn generate_global_vars(&mut self, global_vars: &VariableBlock) {
-        let members = self.get_variables_information(global_vars);
+        let members = self.get_variables_information(&global_vars.variables);
         for (name, var_type) in members {
-            let global_value = self.generate_global_variable(var_type, None, &name);
+            let global_value = self.generate_global_variable(var_type, &name);
             self.index.associate_global_variable(name.as_str(), global_value.as_pointer_value());
         }
     }
@@ -110,7 +150,7 @@ impl<'ctx> CodeGen<'ctx> {
         let return_type = p.return_type.as_ref().map( | return_type | self.get_type(return_type)).flatten();
 
         for var_block in &p.variable_blocks {
-            let mut members = self.get_variables_information(var_block);
+            let mut members = self.get_variables_information(&var_block.variables);
             pou_members.append(&mut members);
         }
 
@@ -132,7 +172,7 @@ impl<'ctx> CodeGen<'ctx> {
         //Place in global data
         if p.pou_type == PouType::Program {
             let instance_name = CodeGen::get_struct_instance_name(p.name.as_str());
-            let global_value = self.generate_global_variable(member_type.into(), None, instance_name.as_str());
+            let global_value = self.generate_global_variable(member_type.into(), instance_name.as_str());
             self.index.associate_global_variable(p.name.as_str(), global_value.as_pointer_value());            
         }
 
@@ -171,9 +211,9 @@ impl<'ctx> CodeGen<'ctx> {
         }
     }
 
-    fn get_variables_information(&self, v: &VariableBlock) -> Vec<(String, BasicTypeEnum<'ctx>)> {
+    fn get_variables_information(&self, variables: &Vec<Variable>) -> Vec<(String, BasicTypeEnum<'ctx>)> {
         let mut types: Vec<(String, BasicTypeEnum<'ctx>)> = Vec::new();
-        for variable in &v.variables {
+        for variable in variables {
             let var_type = self.get_type(&variable.data_type).unwrap();
             types.push((variable.name.clone(), var_type));
         }
@@ -202,13 +242,12 @@ impl<'ctx> CodeGen<'ctx> {
     fn generate_global_variable(
         &self,
         variable_type: BasicTypeEnum<'ctx>,
-        thread_local_mode: Option<ThreadLocalMode>,
         name: &str,
     ) -> GlobalValue<'ctx> {
         let result = self.module
             .add_global(variable_type, Some(AddressSpace::Generic), name);
         self.set_initializer_for_type(&result, variable_type);
-        result.set_thread_local_mode(thread_local_mode);
+        result.set_thread_local_mode(None);
         result.set_linkage(Linkage::Common);
         result
     }
@@ -469,7 +508,7 @@ impl<'ctx> CodeGen<'ctx> {
     fn generate_call_statement(&self, operator : &Box<Statement>, parameter : &Box<Option<Statement>>) -> Option<BasicValueEnum> {
         //Figure out what the target is
         //Get the function name
-        let (variable,function) = match &**operator {
+        let (variable,index_entry) = match &**operator {
             Statement::Reference {elements} => {
 
                 //Get associated Variable or generate a variable for the type with the same name
@@ -481,39 +520,52 @@ impl<'ctx> CodeGen<'ctx> {
                 let call_name = ast_variable
                                     .map(|it| it.get_type_name()) // we called f() --> look for f's datatype
                                     .or(Some(&elements[0]));      // we didnt call a variable ([0so we treat the string as the function's name
-                let function = self.index.find_type(call_name.unwrap()).map(|it| it.get_implementation()).flatten();
-                (variable_instance,function)
+                let index_entry = self.index.find_type(call_name.unwrap());
+                (variable_instance,index_entry)
             }
-            _ => (None,None),
+            _ => (None, None),
         };
-        let param = variable.unwrap();
-        self.generate_function_parameters(param, parameter);
-        let function = function.unwrap();
+        let instance = variable.unwrap();
+        let index_entry = index_entry;
+        self.generate_function_parameters(index_entry.unwrap().get_name(),instance, parameter);
+        let function = index_entry.map(|it| it.get_implementation()).flatten().unwrap();
         //If the target is a function, declare the struct locally
         //Assign all parameters into the struct values
-        let call_result = self.builder.build_call(function, &[param.as_basic_value_enum()] , "call").try_as_basic_value();
+        let call_result = self.builder.build_call(function, &[instance.as_basic_value_enum()] , "call").try_as_basic_value();
         return call_result.left();
     }
     //Some(LiteralInteger { value: "2" })
 
-    fn generate_function_parameters(&self, variable : PointerValue<'ctx>, parameters: &Box<Option<Statement>>) {
+    fn generate_function_parameters(&self, function_name : &str, variable : PointerValue<'ctx>, parameters: &Box<Option<Statement>>) {
         match &**parameters {
             Some(Statement::ExpressionList{expressions}) => {
                 for (index,exp) in expressions.iter().enumerate() {
-                    self.generate_single_parameter(exp, index as u32, variable);
+                    self.generate_single_parameter(exp, function_name, index as u32, variable);
                 }
             },
             Some(statement) => 
-                self.generate_single_parameter(statement, 0, variable),
+                self.generate_single_parameter(statement,function_name,  0, variable),
             None =>{},
             
         }
     }
 
-    fn generate_single_parameter(&self, statement : &Statement, index : u32, pointer_value : PointerValue<'ctx>) {
-        let generated_exp = self.generate_statement(statement);
-        let pointer_to_param = self.builder.build_struct_gep(pointer_value, index as u32, "").unwrap();
-        self.builder.build_store(pointer_to_param, generated_exp.unwrap());
+    fn generate_single_parameter(&self, statement : &Statement, function_name : &str, index : u32, pointer_value : PointerValue<'ctx>) {
+        match statement {
+            Statement::Assignment {left, right} => {
+                if let Statement::Reference {elements} = &**left {
+                    let index = self.index.find_member(function_name, &elements.join(".") )
+                        .unwrap().get_location_in_parent().unwrap();
+                    self.generate_single_parameter(right, function_name, index, pointer_value);
+
+                }
+            }
+            _ => {
+                let generated_exp = self.generate_statement(statement);
+                let pointer_to_param = self.builder.build_struct_gep(pointer_value, index as u32, "").unwrap();
+                self.builder.build_store(pointer_to_param, generated_exp.unwrap());
+            }
+        }
     }
 
 

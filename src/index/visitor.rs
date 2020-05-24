@@ -56,6 +56,7 @@ fn visit_pou(index: &mut Index, pou: &POU){
 
 fn visit_global_var_block(index :&mut Index, block: &VariableBlock) {
     for var in &block.variables {
+
         index.register_global_variable(
                             var.name.clone(),
                             var.data_type.get_name().unwrap().to_string()

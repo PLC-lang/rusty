@@ -57,9 +57,11 @@ pub fn get_ir(codegen : &codegen::CodeGen) -> String {
 pub fn compile_module<'ctx>(context : &'ctx Context, index: &'ctx mut Index<'ctx>, source : String) -> codegen::CodeGen<'ctx> {
 
     let mut parse_result = parse(source);
-
+    //first pre-process the AST
+    index.pre_process(&mut parse_result);
+    //then index the AST
     index.visit(&mut parse_result);
-
+    //and finally codegen
     let mut code_generator = codegen::CodeGen::new(context, index);
     code_generator.generate_compilation_unit(parse_result);
     code_generator

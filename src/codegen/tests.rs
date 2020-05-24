@@ -11,6 +11,7 @@ macro_rules! codegen {
 
         let context = Context::create();
         let mut index = Index::new();
+        index.pre_process(&mut ast);
         index.visit(&mut ast);
         let mut code_generator = super::CodeGen::new(&context, &mut index);
         code_generator.generate(ast)
@@ -1294,6 +1295,51 @@ entry:
 }
 
 #[test]
+fn program_with_two_explicit_parameters_called_in_program() {
+    let result = codegen!(
+        "
+        PROGRAM foo 
+        VAR_INPUT
+          bar : INT;
+          buz : BOOL;
+        END_VAR
+        END_PROGRAM
+
+        PROGRAM prg 
+          foo(buz := TRUE, bar := 2);
+        END_PROGRAM
+        "
+    );
+
+    let expected = r#"; ModuleID = 'main'
+source_filename = "main"
+
+%foo_interface = type { i32, i1 }
+%prg_interface = type {}
+
+@foo_instance = common global %foo_interface zeroinitializer
+@prg_instance = common global %prg_interface zeroinitializer
+
+define void @foo(%foo_interface* %0) {
+entry:
+  %bar = getelementptr inbounds %foo_interface, %foo_interface* %0, i32 0, i32 0
+  %buz = getelementptr inbounds %foo_interface, %foo_interface* %0, i32 0, i32 1
+  ret void
+}
+
+define void @prg(%prg_interface* %0) {
+entry:
+  store i1 true, i1* getelementptr inbounds (%foo_interface, %foo_interface* @foo_instance, i32 0, i32 1)
+  store i32 2, i32* getelementptr inbounds (%foo_interface, %foo_interface* @foo_instance, i32 0, i32 0)
+  call void @foo(%foo_interface* @foo_instance)
+  ret void
+}
+"#;
+
+  assert_eq!(result, expected);
+}
+
+#[test]
 fn function_called_when_shadowed() {
   let result = codegen!(
         "
@@ -1441,6 +1487,106 @@ entry:
   store i32 %load_foo.baz.x, i32* %x
   ret void
 }
+"#;
+
+  assert_eq!(result, expected);
+}
+
+#[test]
+fn structs_are_generated() {
+  let result = codegen!(
+        "
+        TYPE MyStruct: STRUCT
+          a: INT;
+          b: INT;
+        END_STRUCT
+        END_TYPE
+
+        VAR_GLOBAL
+          x : MyStruct;
+        END_VAR
+        "
+    );
+
+    let expected = r#"; ModuleID = 'main'
+source_filename = "main"
+
+%MyStruct = type { i32, i32 }
+
+@x = common global %MyStruct zeroinitializer
+"#;
+
+  assert_eq!(result, expected);
+}
+
+
+#[test]
+fn enums_are_generated() {
+  let result = codegen!(
+        "
+        TYPE MyEnum: (red, yellow, green);
+        END_TYPE
+
+        VAR_GLOBAL
+          x : MyEnum;
+        END_VAR
+        "
+    );
+
+    let expected = r#"; ModuleID = 'main'
+source_filename = "main"
+
+@red = common global i32 0
+@yellow = common global i32 1
+@green = common global i32 2
+@x = common global i32 0
+"#;
+
+  assert_eq!(result, expected);
+}
+
+#[test]
+fn inline_structs_are_generated() {
+  let result = codegen!(
+        "
+        
+        VAR_GLOBAL
+         x: STRUCT
+              a: INT;
+              b: INT;
+            END_STRUCT
+        END_VAR
+        "
+    );
+
+    let expected = r#"; ModuleID = 'main'
+source_filename = "main"
+
+%__global_x = type { i32, i32 }
+
+@x = common global %__global_x zeroinitializer
+"#;
+
+  assert_eq!(result, expected);
+}
+
+#[test]
+fn inline_enums_are_generated() {
+  let result = codegen!(
+        "
+        VAR_GLOBAL
+          x : (red, yellow, green);
+        END_VAR
+        "
+    );
+
+    let expected = r#"; ModuleID = 'main'
+source_filename = "main"
+
+@red = common global i32 0
+@yellow = common global i32 1
+@green = common global i32 2
+@x = common global i32 0
 "#;
 
   assert_eq!(result, expected);

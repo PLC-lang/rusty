@@ -57,6 +57,10 @@ impl <'ctx> DataTypeIndexEntry<'ctx> {
     pub fn get_implementation(&self) -> Option<FunctionValue<'ctx>> {
         self.implementation
     }
+
+    pub fn get_name(&self) -> &str {
+        self.name.as_str()
+    }
 }
 
 #[derive(Copy, Clone, Debug, PartialEq)]
