@@ -1,8 +1,8 @@
 use super::super::ast::{ Variable, CompilationUnit,DataType,  DataTypeDeclaration};
 
 
-fn pre_process(unit: &mut CompilationUnit) {
-    let mut all_variables :Vec<&mut Variable> = unit.global_vars.iter_mut()
+pub fn pre_process(unit: &mut CompilationUnit) {
+    let all_variables :Vec<&mut Variable> = unit.global_vars.iter_mut()
                 .flat_map(|gv| gv.variables.iter_mut())
                 .filter(|x| match x.data_type {
                     DataTypeDeclaration::DataTypeReference {..} => false,

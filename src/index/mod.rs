@@ -265,4 +265,9 @@ impl<'ctx> Index<'ctx> {
         visitor::visit(self, unit);
     }
 
+    //TODO does this belong into the index?
+    pub fn pre_process(&mut self, unit: &mut CompilationUnit) {
+        pre_processor::pre_process(unit);
+    }
+
 }

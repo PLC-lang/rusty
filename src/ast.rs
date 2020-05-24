@@ -87,17 +87,17 @@ pub enum DataType {
 impl DataType {
     pub fn set_name(&mut self, new_name : String) {
         match self {
-            DataType::StructType {name, variables} => *name = Some(new_name),
-            DataType::EnumType {name, elements} => *name = Some(new_name),
-            DataType::SubRangeType {name, referenced_type} => *name = Some(new_name),
+            DataType::StructType {name , variables: _} => *name = Some(new_name),
+            DataType::EnumType {name, elements: _} => *name = Some(new_name),
+            DataType::SubRangeType {name, referenced_type: _} => *name = Some(new_name),
         }
     }
 
     pub fn get_name<'ctx>(&'ctx self) -> Option<&'ctx str> {
         match self {
-            DataType::StructType {name, variables} => name.as_ref().map(|x| x.as_str()),
-            DataType::EnumType {name, elements} => name.as_ref().map(|x| x.as_str()),
-            DataType::SubRangeType {name, referenced_type} => name.as_ref().map(|x| x.as_str()),
+            DataType::StructType {name, variables: _} => name.as_ref().map(|x| x.as_str()),
+            DataType::EnumType {name, elements: _} => name.as_ref().map(|x| x.as_str()),
+            DataType::SubRangeType {name, referenced_type: _} => name.as_ref().map(|x| x.as_str()),
         }
     }
 }

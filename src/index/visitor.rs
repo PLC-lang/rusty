@@ -43,7 +43,6 @@ fn visit_pou(index: &mut Index, pou: &POU){
     }
 
     if let Some(return_type) = &pou.return_type {
-        let str1 = return_type.get_name().unwrap();
         index.register_local_variable(
             pou.name.clone(), 
             pou.name.clone(), 
