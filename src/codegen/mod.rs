@@ -53,10 +53,46 @@ impl<'ctx> CodeGen<'ctx> {
     }
 
     fn initialize_type_system(&mut self) {
-        self.index.register_type("INT".to_string());
-        self.index.associate_type("INT", self.context.i32_type().as_basic_type_enum());
         self.index.register_type("BOOL".to_string());
         self.index.associate_type("BOOL", self.context.bool_type().as_basic_type_enum());
+       
+        self.index.register_type("BYTE".to_string());
+        self.index.associate_type("BYTE", self.context.i8_type().as_basic_type_enum());
+
+        self.index.register_type("SINT".to_string());
+        self.index.associate_type("SINT", self.context.i16_type().as_basic_type_enum());
+
+        self.index.register_type("USINT".to_string());
+        self.index.associate_type("USINT", self.context.i16_type().as_basic_type_enum());
+
+        self.index.register_type("WORD".to_string());
+        self.index.associate_type("WORD", self.context.i32_type().as_basic_type_enum());
+
+
+        self.index.register_type("INT".to_string());
+        self.index.associate_type("INT", self.context.i32_type().as_basic_type_enum());
+        
+        self.index.register_type("UINT".to_string());
+        self.index.associate_type("UINT", self.context.i32_type().as_basic_type_enum());
+        
+        self.index.register_type("DWORD".to_string());
+        self.index.associate_type("DWORD", self.context.i64_type().as_basic_type_enum());
+        
+        self.index.register_type("DINT".to_string());
+        self.index.associate_type("DINT", self.context.i64_type().as_basic_type_enum());
+        
+        self.index.register_type("UDINT".to_string());
+        self.index.associate_type("UDINT", self.context.i64_type().as_basic_type_enum());
+        
+        self.index.register_type("LWORD".to_string());
+        self.index.associate_type("LWORD", self.context.i128_type().as_basic_type_enum());
+       
+        self.index.register_type("LINT".to_string());
+        self.index.associate_type("LINT", self.context.i128_type().as_basic_type_enum());
+        
+        self.index.register_type("ULINT".to_string());
+        self.index.associate_type("ULINT", self.context.i128_type().as_basic_type_enum());
+        
     }
 
     pub fn generate(&mut self, root: CompilationUnit) -> String {

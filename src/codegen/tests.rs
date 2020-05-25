@@ -1591,3 +1591,46 @@ source_filename = "main"
 
   assert_eq!(result, expected);
 }
+
+#[test]
+fn basic_datatypes_generated() {
+    let result = codegen!(
+        "
+        VAR_GLOBAL
+            bool_1   : BOOL;
+            byte_2   : BYTE;
+            sint_3   : SINT;
+            usint_4  : USINT;
+            word_5   : WORD;
+            int_6    : INT;
+            uint_7   : UINT;
+            dword_8  : DWORD;
+            dint_9   : DINT;
+            udint_10 : UDINT;
+            lword_11 : LWORD;
+            lint_12  : LINT;
+            ulint_13 : ULINT;
+        END_VAR
+        "
+    );
+    let expected = r#"; ModuleID = 'main'
+source_filename = "main"
+
+@bool_1 = common global i1 false
+@byte_2 = common global i8 0
+@sint_3 = common global i16 0
+@usint_4 = common global i16 0
+@word_5 = common global i32 0
+@int_6 = common global i32 0
+@uint_7 = common global i32 0
+@dword_8 = common global i64 0
+@dint_9 = common global i64 0
+@udint_10 = common global i64 0
+@lword_11 = common global i128 0
+@lint_12 = common global i128 0
+@ulint_13 = common global i128 0
+"#;
+
+    assert_eq!(result, expected);
+}
+
