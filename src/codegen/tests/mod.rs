@@ -4,6 +4,7 @@ use crate::index::Index;
 use inkwell::context::Context;
 use pretty_assertions::assert_eq;
 
+#[macro_export]
 macro_rules! codegen {
     ($code:tt) => {{
         let lexer = lexer::lex($code);
@@ -13,11 +14,12 @@ macro_rules! codegen {
         let mut index = Index::new();
         index.pre_process(&mut ast);
         index.visit(&mut ast);
-        let mut code_generator = super::CodeGen::new(&context, &mut index);
+        let mut code_generator = crate::codegen::CodeGen::new(&context, &mut index);
         code_generator.generate(ast)
     }};
 }
 
+#[macro_export]
 macro_rules! generate_with_empty_program {
   ($code:tt) => (
     {
@@ -28,6 +30,7 @@ macro_rules! generate_with_empty_program {
   )
 }
 
+mod typesystem;
 
 fn generate_program_boiler_plate(pou_name : &str, type_list : &[(&str,&str)], return_type : &str, thread_mode : &str, global_variables : &str, body : &str) -> String{
 
@@ -950,7 +953,8 @@ r#"br label %condition_check
 
 condition_check:                                  ; preds = %entry, %while_body
   %load_x = load i1, i1* %x
-  %tmpVar = icmp eq i1 %load_x, i32 0
+  %1 = sext i1 %load_x to i32
+  %tmpVar = icmp eq i32 %1, 0
   br i1 %tmpVar, label %while_body, label %continue
 
 while_body:                                       ; preds = %condition_check
@@ -1633,4 +1637,3 @@ source_filename = "main"
 
     assert_eq!(result, expected);
 }
-

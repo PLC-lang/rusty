@@ -4,9 +4,9 @@ use inkwell::context::Context;
 use inkwell::module::Module;
 use inkwell::module::Linkage;
 
-use inkwell::types::{BasicTypeEnum, StringRadix, StructType, BasicType, FunctionType};
+use inkwell::types::{BasicTypeEnum, StringRadix, StructType, BasicType, FunctionType, IntType};
 
-use inkwell::values::{BasicValueEnum, FunctionValue, PointerValue, BasicValue, GlobalValue};
+use inkwell::values::{BasicValueEnum, IntValue, FunctionValue, PointerValue, BasicValue, GlobalValue};
 
 use inkwell::{AddressSpace,};
 use inkwell::IntPredicate;
@@ -17,6 +17,7 @@ use super::index::*;
 #[cfg(test)]
 mod tests;
 
+type ExpressionValue<'a> = (Option<DataTypeInformation<'a>>, Option<BasicValueEnum<'a>>);
 pub struct CodeGen<'ctx> {
 
     pub context: &'ctx Context,
@@ -52,47 +53,49 @@ impl<'ctx> CodeGen<'ctx> {
         format!("{}_instance", pou_name)
     }
 
+
     fn initialize_type_system(&mut self) {
+        let c = self.context;
+
         self.index.register_type("BOOL".to_string());
-        self.index.associate_type("BOOL", self.context.bool_type().as_basic_type_enum());
+        self.index.associate_type("BOOL", DataTypeInformation::Integer{signed: true, generated_type: c.bool_type().as_basic_type_enum()});
        
         self.index.register_type("BYTE".to_string());
-        self.index.associate_type("BYTE", self.context.i8_type().as_basic_type_enum());
+        self.index.associate_type("BYTE", DataTypeInformation::Integer{signed:false, generated_type: c.i8_type().as_basic_type_enum()});
 
         self.index.register_type("SINT".to_string());
-        self.index.associate_type("SINT", self.context.i16_type().as_basic_type_enum());
+        self.index.associate_type("SINT", DataTypeInformation::Integer{signed:true, generated_type: c.i16_type().as_basic_type_enum()});
 
         self.index.register_type("USINT".to_string());
-        self.index.associate_type("USINT", self.context.i16_type().as_basic_type_enum());
+        self.index.associate_type("USINT", DataTypeInformation::Integer{signed:false, generated_type: c.i16_type().as_basic_type_enum()});
 
         self.index.register_type("WORD".to_string());
-        self.index.associate_type("WORD", self.context.i32_type().as_basic_type_enum());
+        self.index.associate_type("WORD", DataTypeInformation::Integer{signed:false, generated_type: c.i32_type().as_basic_type_enum()});
 
 
         self.index.register_type("INT".to_string());
-        self.index.associate_type("INT", self.context.i32_type().as_basic_type_enum());
+        self.index.associate_type("INT", DataTypeInformation::Integer{signed:true, generated_type: c.i32_type().as_basic_type_enum()});
         
         self.index.register_type("UINT".to_string());
-        self.index.associate_type("UINT", self.context.i32_type().as_basic_type_enum());
+        self.index.associate_type("UINT", DataTypeInformation::Integer{signed:false, generated_type: c.i32_type().as_basic_type_enum() });
         
         self.index.register_type("DWORD".to_string());
-        self.index.associate_type("DWORD", self.context.i64_type().as_basic_type_enum());
+        self.index.associate_type("DWORD", DataTypeInformation::Integer{signed:false, generated_type: c.i64_type().as_basic_type_enum()});
         
         self.index.register_type("DINT".to_string());
-        self.index.associate_type("DINT", self.context.i64_type().as_basic_type_enum());
+        self.index.associate_type("DINT", DataTypeInformation::Integer{signed:true, generated_type: c.i64_type().as_basic_type_enum()});
         
         self.index.register_type("UDINT".to_string());
-        self.index.associate_type("UDINT", self.context.i64_type().as_basic_type_enum());
+        self.index.associate_type("UDINT", DataTypeInformation::Integer{signed:false, generated_type: c.i64_type().as_basic_type_enum()});
         
         self.index.register_type("LWORD".to_string());
-        self.index.associate_type("LWORD", self.context.i128_type().as_basic_type_enum());
+        self.index.associate_type("LWORD", DataTypeInformation::Integer{signed:false, generated_type: c.i128_type().as_basic_type_enum()});
        
         self.index.register_type("LINT".to_string());
-        self.index.associate_type("LINT", self.context.i128_type().as_basic_type_enum());
+        self.index.associate_type("LINT", DataTypeInformation::Integer{signed:true, generated_type: c.i128_type().as_basic_type_enum()});
         
         self.index.register_type("ULINT".to_string());
-        self.index.associate_type("ULINT", self.context.i128_type().as_basic_type_enum());
-        
+        self.index.associate_type("ULINT", DataTypeInformation::Integer{signed:false, generated_type: c.i128_type().as_basic_type_enum()});
     }
 
     pub fn generate(&mut self, root: CompilationUnit) -> String {
@@ -112,8 +115,9 @@ impl<'ctx> CodeGen<'ctx> {
         }
         
         for unit in &root.units {
-            let struct_type = self.context.opaque_struct_type(format!("{}_interface", &unit.name).as_str());
-            self.index.associate_type(&unit.name, struct_type.into());
+            let struct_name = format!("{}_interface", &unit.name);
+            let struct_type = self.context.opaque_struct_type(struct_name.as_str());
+            self.index.associate_type(&unit.name,DataTypeInformation::Struct {name : struct_name, generated_type: struct_type.into(), });
         }
         
         for unit in &root.units {
@@ -123,15 +127,18 @@ impl<'ctx> CodeGen<'ctx> {
     
     fn generate_data_type_stub(&mut self, data_type : &DataType) {
         
-        let result_type = match data_type {
-            DataType::StructType {name, variables: _}=> (name.as_ref(), Some(self.context.opaque_struct_type(name.as_ref().unwrap()).into())),
-            DataType::EnumType {name, elements: _} => (name.as_ref(),Some(self.context.i32_type().as_basic_type_enum())),
-            DataType::SubRangeType {..} => (None, None),
+        match data_type {
+            DataType::StructType {name, variables: _}=> {
+                self.index.associate_type(name.as_ref().unwrap().as_str(), 
+                    DataTypeInformation::Struct{name : name.clone().unwrap(), generated_type : self.context.opaque_struct_type(name.as_ref().unwrap()).into(),});
+            },
+            DataType::EnumType {name, elements: _} => {
+                self.index.associate_type(name.as_ref().unwrap().as_str(),
+                    DataTypeInformation::Integer{signed:true,generated_type: self.context.i32_type().as_basic_type_enum(),})
+            },
+            DataType::SubRangeType {..} => {},
         };
         
-        if let (Some(name), Some(llvm_data_type)) = result_type {
-            self.index.associate_type(name.as_str(), llvm_data_type);
-        }
     }
 
     fn get_type(&self, data_type: &DataTypeDeclaration) -> Option<BasicTypeEnum<'ctx>> {
@@ -240,7 +247,7 @@ impl<'ctx> CodeGen<'ctx> {
         match pou_type {
             PouType::Function => {
                 let pou_name = self.get_scope().unwrap();
-                let value = self.generate_lvalue_for_reference(&[pou_name.to_string()]).unwrap(); 
+                let value = self.generate_lvalue_for_reference(&[pou_name.to_string()]).1.unwrap(); 
                 Some(self.builder.build_load(value,format!("{}_ret",pou_name).as_str()))
             },
             _ => None
@@ -287,18 +294,20 @@ impl<'ctx> CodeGen<'ctx> {
         result.set_linkage(Linkage::Common);
         result
     }
-
-    fn generate_statement(&self, s: &Statement) -> Option<BasicValueEnum> {
+fn generate_statement(&self, s: &Statement) -> ExpressionValue<'ctx> {
+        println!("###########################################");
+        println!("Statement : {:#?}", s);
+        println!("###########################################");
         match s {
             Statement::IfStatement {
                 blocks,
                 else_block,
-            } => self.generate_if_statement(blocks,else_block),
+            } => (None, self.generate_if_statement(blocks,else_block)),
             Statement::CaseStatement {
                 selector,
                 case_blocks,
                 else_block
-            } => self.generate_case_statement(selector, case_blocks, else_block),
+            } => (None, self.generate_case_statement(selector, case_blocks, else_block)),
             //Loops
             Statement::ForLoopStatement {
                 counter,
@@ -306,15 +315,15 @@ impl<'ctx> CodeGen<'ctx> {
                 end,
                 by_step,
                 body,
-            } => self.generate_for_statement(counter, start, end,by_step,body),
+            } => (None,self.generate_for_statement(counter, start, end,by_step,body)),
             Statement::WhileLoopStatement {
                 condition,
                 body,
-            } => self.generate_while_statement(condition, body),
+            } => (None,self.generate_while_statement(condition, body)),
             Statement::RepeatLoopStatement {
                 condition,
                 body,
-            } => self.generate_repeat_statement(condition, body),
+            } => (None,self.generate_repeat_statement(condition, body)),
             //Expressions
             Statement::BinaryExpression {
                 operator,
@@ -324,20 +333,20 @@ impl<'ctx> CodeGen<'ctx> {
             Statement::LiteralInteger { value } => self.generate_literal_number(value.as_str()),
             Statement::LiteralBool { value } => self.generate_literal_boolean(*value),
             Statement::Reference { elements } => self.generate_variable_reference(&elements),
-            Statement::Assignment { left, right } => self.generate_assignment(&left, &right),
+            Statement::Assignment { left, right } => (None,self.generate_assignment(&left, &right)),
             Statement::UnaryExpression { operator, value } => self.generate_unary_expression(&operator, &value),
             Statement::CallStatement {operator, parameters} => self.generate_call_statement(&operator, &parameters),
             _ => panic!("{:?} not yet supported",s ),
         }
     }
 
-    fn generate_case_statement(&self, selector : &Box<Statement>, conditional_blocks : &Vec<ConditionalBlock>, else_body : &Vec<Statement>) -> Option<BasicValueEnum> {
+    fn generate_case_statement(&self, selector : &Box<Statement>, conditional_blocks : &Vec<ConditionalBlock>, else_body : &Vec<Statement>) -> Option<BasicValueEnum<'ctx> > {
         
         //Continue
         let continue_block = self.context.append_basic_block(self.current_function?, "continue");
         
         let basic_block = self.builder.get_insert_block()?;
-        let selector_statement = self.generate_statement(&*selector)?;
+        let selector_statement = self.generate_statement(&*selector).1?;
         let mut cases = Vec::new();
         
         
@@ -345,7 +354,7 @@ impl<'ctx> CodeGen<'ctx> {
         for i in 0..conditional_blocks.len() {
             let conditional_block = &conditional_blocks[i];
             let basic_block = self.context.append_basic_block(self.current_function?, "case");
-            let condition = self.generate_statement(&*conditional_block.condition)?;
+            let condition = self.generate_statement(&*conditional_block.condition).1?; //TODO : Is a type conversion needed here?
             self.generate_statement_list(basic_block, &conditional_block.body);
             self.builder.build_unconditional_branch(continue_block);
             
@@ -369,7 +378,7 @@ impl<'ctx> CodeGen<'ctx> {
         None
     }
 
-    fn generate_if_statement(&self, conditional_blocks : &Vec<ConditionalBlock>, else_body : &Vec<Statement>) -> Option<BasicValueEnum> {
+    fn generate_if_statement(&self, conditional_blocks : &Vec<ConditionalBlock>, else_body : &Vec<Statement>) -> Option<BasicValueEnum<'ctx>> {
         let mut blocks = Vec::new();
         blocks.push(self.builder.get_insert_block().unwrap());
         for _ in 1..conditional_blocks.len() {
@@ -394,7 +403,7 @@ impl<'ctx> CodeGen<'ctx> {
             
             self.builder.position_at_end(then_block);
 
-            let condition = self.generate_statement(&block.condition).unwrap().into_int_value();
+            let condition = self.generate_statement(&block.condition).1?.into_int_value();
             let conditional_block = self.context.prepend_basic_block(else_block, "condition_body");
             
             //Generate if statement condition
@@ -417,7 +426,7 @@ impl<'ctx> CodeGen<'ctx> {
 
 
 
-    fn generate_for_statement(&self, counter: &Box<Statement>, start : &Box<Statement>, end : &Box<Statement>, by_step : &Option<Box<Statement>>, body : &Vec<Statement> ) -> Option<BasicValueEnum> {
+    fn generate_for_statement(&self, counter: &Box<Statement>, start : &Box<Statement>, end : &Box<Statement>, by_step : &Option<Box<Statement>>, body : &Vec<Statement> ) -> Option<BasicValueEnum<'ctx> > {
         self.generate_assignment(counter, start);        
         let condition_check = self.context.append_basic_block(self.current_function?, "condition_check");
         let for_body = self.context.append_basic_block(self.current_function?, "for_body");
@@ -427,8 +436,8 @@ impl<'ctx> CodeGen<'ctx> {
         
         //Check loop condition
         self.builder.position_at_end(condition_check);
-        let counter_statement = self.generate_statement(counter).unwrap().into_int_value();
-        let end_statement = self.generate_statement(end).unwrap().into_int_value();
+        let counter_statement = self.generate_statement(counter).1.unwrap().into_int_value();
+        let end_statement = self.generate_statement(end).1.unwrap().into_int_value();
         let compare = self.builder.build_int_compare(IntPredicate::SLE, counter_statement, end_statement, "tmpVar");
         self.builder.build_conditional_branch(compare, for_body, continue_block);
 
@@ -437,11 +446,11 @@ impl<'ctx> CodeGen<'ctx> {
         
         //Increment
         let step_by_value = by_step.as_ref()
-            .map(|step|self.generate_statement(&step).unwrap())
-            .or(self.generate_literal_number("1")).unwrap().into_int_value();
+            .map(|step|self.generate_statement(&step).1.unwrap())
+            .or(self.generate_literal_number("1").1).unwrap().into_int_value();
 
         let next = self.builder.build_int_add(counter_statement,step_by_value, "tmpVar");
-        let ptr = self.generate_lvalue_for(counter).unwrap();
+        let ptr = self.generate_lvalue_for(counter).1.unwrap();
         self.builder.build_store(ptr, next);
 
         //Loop back
@@ -459,7 +468,7 @@ impl<'ctx> CodeGen<'ctx> {
         
         //Check loop condition
         self.builder.position_at_end(condition_check);
-        let condition_value = self.generate_statement(condition)?.into_int_value();
+        let condition_value = self.generate_statement(condition).1?.into_int_value();
         self.builder.build_conditional_branch(condition_value, while_body, continue_block);
 
         //Enter the for loop
@@ -472,7 +481,7 @@ impl<'ctx> CodeGen<'ctx> {
         None
     }
         
-    fn generate_while_statement(&self, condition: &Box<Statement>, body: &Vec<Statement>) -> Option<BasicValueEnum> {
+    fn generate_while_statement(&self, condition: &Box<Statement>, body: &Vec<Statement>) -> Option<BasicValueEnum<'ctx> > {
         let basic_block = self.builder.get_insert_block()?;
         self.generate_base_while_statement(condition, body);
 
@@ -486,7 +495,7 @@ impl<'ctx> CodeGen<'ctx> {
         None
     }
 
-    fn generate_repeat_statement(&self, condition: &Box<Statement>, body: &Vec<Statement>) -> Option<BasicValueEnum> {
+    fn generate_repeat_statement(&self, condition: &Box<Statement>, body: &Vec<Statement>) -> Option<BasicValueEnum<'ctx> > {
         let basic_block = self.builder.get_insert_block()?;
         self.generate_base_while_statement(condition, body);
 
@@ -507,14 +516,17 @@ impl<'ctx> CodeGen<'ctx> {
         }
     }
 
-    fn generate_unary_expression(&self, operator: &Operator, value: &Box<Statement>) -> Option<BasicValueEnum> {
-        let loaded_value = self.generate_statement(value).unwrap().into_int_value();    
-        let value = match operator {
-            Operator::Not => self.builder.build_not(loaded_value, "tmpVar"),
-            Operator::Minus => self.builder.build_int_neg(loaded_value, "tmpVar"),
-            _ => unimplemented!()
-        };
-        Some(BasicValueEnum::IntValue(value))
+    fn generate_unary_expression(&self, operator: &Operator, value: &Box<Statement>) -> ExpressionValue<'ctx> {
+        if let (Some(data_type), Some(loaded_value))  = self.generate_statement(value) {
+            let (data_type,value) = match operator {
+                Operator::Not => (data_type, self.builder.build_not(loaded_value.into_int_value(), "tmpVar")),
+                Operator::Minus => (data_type,  self.builder.build_int_neg(loaded_value.into_int_value(), "tmpVar")),
+                _ => unimplemented!()
+            };
+            (Some(data_type),Some(BasicValueEnum::IntValue(value)))
+        } else {
+            (None,None)
+        }
     }
 
 
@@ -541,7 +553,7 @@ impl<'ctx> CodeGen<'ctx> {
         Some(self.builder.build_alloca(function_type.unwrap(), instance_name.as_str()))
     }
 
-    fn generate_call_statement(&self, operator : &Box<Statement>, parameter : &Box<Option<Statement>>) -> Option<BasicValueEnum> {
+    fn generate_call_statement(&self, operator : &Box<Statement>, parameter : &Box<Option<Statement>>) -> ExpressionValue<'ctx> {
         //Figure out what the target is
         //Get the function name
         let (variable,index_entry) = match &**operator {
@@ -563,12 +575,14 @@ impl<'ctx> CodeGen<'ctx> {
         };
         let instance = variable.unwrap();
         let index_entry = index_entry;
-        self.generate_function_parameters(index_entry.unwrap().get_name(),instance, parameter);
+        let function_name = index_entry.map(DataTypeIndexEntry::get_name).unwrap();
+        self.generate_function_parameters(function_name,instance, parameter);
+        let return_type = self.index.find_member(function_name,function_name).map(VariableIndexEntry::get_type_name).and_then(|it| self.index.find_type_information(it));
         let function = index_entry.map(|it| it.get_implementation()).flatten().unwrap();
         //If the target is a function, declare the struct locally
         //Assign all parameters into the struct values
         let call_result = self.builder.build_call(function, &[instance.as_basic_value_enum()] , "call").try_as_basic_value();
-        return call_result.left();
+        return (return_type,call_result.left());
     }
     //Some(LiteralInteger { value: "2" })
 
@@ -597,18 +611,19 @@ impl<'ctx> CodeGen<'ctx> {
                 }
             }
             _ => {
-                let generated_exp = self.generate_statement(statement);
+                let (_data_type,generated_exp) = self.generate_statement(statement);
                 let pointer_to_param = self.builder.build_struct_gep(pointer_value, index as u32, "").unwrap();
+                //TODO : Expand /  truncate the variable to fit the parameter
                 self.builder.build_store(pointer_to_param, generated_exp.unwrap());
             }
         }
     }
 
 
-    fn generate_lvalue_for(&self, statement: &Box<Statement>) -> Option<PointerValue> {
+    fn generate_lvalue_for(&self, statement: &Box<Statement>) -> (Option<DataTypeInformation>, Option<PointerValue>) {
         match &**statement {
             Statement::Reference {elements} => self.generate_lvalue_for_reference(elements),
-            _ => None
+            _ => (None,None)
         }
     }
     fn get_variable(&self, name: &[String]) -> Option<PointerValue<'ctx>> {
@@ -617,14 +632,13 @@ impl<'ctx> CodeGen<'ctx> {
                     .map(|e| e.get_generated_reference()).flatten()
     }
 
-    fn generate_lvalue_for_reference(&self, segments: &[String]) -> Option<PointerValue<'ctx>> {
+    fn generate_lvalue_for_reference(&self, segments: &[String]) -> (Option<DataTypeInformation<'ctx>>,Option<PointerValue<'ctx>>) {
         let mut name = segments.iter();
         let first_name = name.next().unwrap();
         let type_name = self.index.find_variable(self.get_scope(), &[first_name.clone()]).unwrap().get_type_name();
-
         let first_ptr = (type_name, self.get_variable(&[first_name.to_string()]));
 
-        let (_,ptr) = name.fold(first_ptr, |qualifier, operator|  {
+        let (data_type,ptr) = name.fold(first_ptr, |qualifier, operator|  {
             if let (qualifier_name,Some(qualifier)) = qualifier {
                 let member = self.index.find_member(qualifier_name, operator);
                 let member_location = member.map(|it|it.get_location_in_parent()).flatten().unwrap();
@@ -635,39 +649,98 @@ impl<'ctx> CodeGen<'ctx> {
                 ("",None)
             }
         });
-        ptr
+        (self.index.find_type_information(data_type), ptr)
     }
 
-    fn generate_variable_reference(&self, segments: &[String]) -> Option<BasicValueEnum> {
-        let ptr = self.generate_lvalue_for_reference(segments);
-       //Load
-        if let Some(ptr) =  ptr {
-            Some(self.builder.build_load(ptr, format!("load_{var_name}", var_name = segments.join(".")).as_str()))
-        } else {
-            None
-        }
+    fn generate_variable_reference(&self, segments: &[String]) -> ExpressionValue<'ctx> {
+        let lvalue = self.generate_lvalue_for_reference(segments);
+
+        let (data_type, ptr) = lvalue;
+        
+        let temp_var_name = format!("load_{var_name}", var_name = segments.join("."));
+        (data_type, ptr.map(|value| (
+            self.builder.build_load(value, &temp_var_name).into())))
     }
 
-    fn generate_assignment(&self, left: &Box<Statement>, right : &Box<Statement>) -> Option<BasicValueEnum> {
+    fn generate_assignment(&self, left: &Box<Statement>, right : &Box<Statement>) -> Option<BasicValueEnum<'ctx> > {
         
         if let Statement::Reference { elements } = &**left {
-            let left_expr = self.generate_lvalue_for_reference(elements);
-            let right_res = self.generate_statement(right);
-            self.builder.build_store(left_expr?, right_res?);
+            if let (Some(left_type), Some(left_expr)) = self.generate_lvalue_for_reference(elements) {
+                if let (Some(right_type), Some(right_res)) = self.generate_statement(right) {
+                    let rvalue = if left_type.is_int() {
+                        
+                        if left_type.get_type().into_int_type().get_bit_width() < right_type.get_type().into_int_type().get_bit_width()
+                        {  
+                            self.builder.build_int_truncate_or_bit_cast(right_res.into_int_value(), left_type.get_type().into_int_type(), "").into()
+                        } 
+                        else{ 
+                            self.promote_value_if_needed(right_res, &right_type, left_type.get_type().into_int_type())
+                        }
+                    
+                    }else {right_res};
+                    self.builder.build_store(left_expr, rvalue);
+                }
+            }
         }
         None
     }
 
-    fn generate_literal_number(&self, value: &str) -> Option<BasicValueEnum> {
+    fn generate_literal_number(&self, value: &str) -> ExpressionValue<'ctx> {
         let itype = self.context.i32_type();
         let value = itype.const_int_from_string(value, StringRadix::Decimal);
-        Some(BasicValueEnum::IntValue(value?))
+        let data_type = self.index.find_type_information("INT");
+        (data_type,Some(BasicValueEnum::IntValue(value.unwrap())))
     }
     
-    fn generate_literal_boolean(&self, value: bool) -> Option<BasicValueEnum> {
+    fn generate_literal_boolean(&self, value: bool) -> ExpressionValue<'ctx> {
         let itype = self.context.bool_type();
         let value = itype.const_int(value as u64,false);
-        Some(BasicValueEnum::IntValue(value))
+        let data_type = self.index.find_type_information("BOOL");
+        (data_type,Some(BasicValueEnum::IntValue(value)))
+    }
+
+    fn promote_value_if_needed(&self, lvalue: BasicValueEnum<'ctx>, ltype: &DataTypeInformation, target_type : IntType<'ctx> ) -> BasicValueEnum<'ctx> {
+        if lvalue.is_int_value() {
+            let int_value = lvalue.into_int_value();
+            if int_value.get_type().get_bit_width() < target_type.get_bit_width() {
+                self.extend_int_value(int_value, ltype, target_type).as_basic_value_enum()
+            } else {
+                lvalue
+            }
+        } else {
+            lvalue
+        }
+    }
+
+    fn extend_int_value(&self, lvalue : IntValue<'ctx>, ltype : &DataTypeInformation, target_type: IntType<'ctx>) -> IntValue<'ctx> {
+        match ltype {
+            DataTypeInformation::Integer{signed: true, generated_type : _} => self.builder.build_int_s_extend_or_bit_cast(lvalue, target_type, ""),
+            DataTypeInformation::Integer{signed: false, generated_type : _} => self.builder.build_int_z_extend_or_bit_cast(lvalue, target_type, ""),
+            _ => unreachable!(),
+        }
+    }
+
+    fn get_bigger_type(&self, ltype : IntType<'ctx>, rtype : IntType<'ctx>) -> IntType<'ctx> {
+        if ltype.get_bit_width() < rtype.get_bit_width() {
+            rtype
+        } else {
+            ltype
+        }
+    }
+
+    fn promote_to_int_if_needed(&self, lvalue : BasicValueEnum<'ctx>, ltype : &DataTypeInformation, rvalue : BasicValueEnum<'ctx>, rtype : &DataTypeInformation) -> (BasicValueEnum<'ctx>,BasicValueEnum<'ctx>){
+        if let DataTypeInformation::Integer{..} = ltype {
+            if lvalue.get_type() != rvalue.get_type() {
+                let target_type = self.get_bigger_type(
+                                        self.get_bigger_type(lvalue.get_type().into_int_type(), rvalue.get_type().into_int_type()),
+                                        self.context.i32_type());
+                return (
+                    self.promote_value_if_needed(lvalue, ltype, target_type),
+                    self.promote_value_if_needed(rvalue, rtype, target_type)
+                );
+            } 
+       } 
+       (lvalue,rvalue)
     }
 
     fn generate_binary_expression(
@@ -676,30 +749,37 @@ impl<'ctx> CodeGen<'ctx> {
         operator: &Operator,
         left: &Box<Statement>,
         right: &Box<Statement>,
-    ) -> Option<BasicValueEnum> {
-        let lval_opt = self.generate_statement(left);
-        let lvalue = lval_opt.unwrap().into_int_value();
+    ) -> ExpressionValue<'ctx> {
+        if let (Some(ltype), Some(lval_opt)) = self.generate_statement(left) {
+            if let (Some(rtype), Some(rval_opt)) = self.generate_statement(right) {
+                //Step 1 convert all to i32
+                let (lvalue,rvalue) = self.promote_to_int_if_needed(
+                    lval_opt,&ltype,
+                    rval_opt,&rtype);
+                let int_lvalue = lvalue.into_int_value();
+                let int_rvalue = rvalue.into_int_value();
 
-        let rval_opt = self.generate_statement(right);
-        let rvalue = rval_opt.unwrap().into_int_value();
-
-        let result = match operator {
-            Operator::Plus => self.builder.build_int_add(lvalue, rvalue, "tmpVar"),
-            Operator::Minus => self.builder.build_int_sub(lvalue, rvalue, "tmpVar") ,
-            Operator::Multiplication => self.builder.build_int_mul(lvalue, rvalue, "tmpVar"),
-            Operator::Division => self.builder.build_int_signed_div(lvalue, rvalue, "tmpVar"),
-            Operator::Modulo => self.builder.build_int_signed_rem(lvalue, rvalue, "tmpVar"),
-            Operator::Equal => self.builder.build_int_compare(IntPredicate::EQ, lvalue, rvalue, "tmpVar"),
-            Operator::NotEqual => self.builder.build_int_compare(IntPredicate::NE, lvalue, rvalue, "tmpVar"),
-            Operator::Less => self.builder.build_int_compare(IntPredicate::SLT, lvalue, rvalue, "tmpVar"),
-            Operator::Greater => self.builder.build_int_compare(IntPredicate::SGT, lvalue, rvalue, "tmpVar"),
-            Operator::LessOrEqual => self.builder.build_int_compare(IntPredicate::SLE, lvalue, rvalue, "tmpVar"),
-            Operator::GreaterOrEqual => self.builder.build_int_compare(IntPredicate::SGE, lvalue, rvalue, "tmpVar"),
-            Operator::And => self.builder.build_and(lvalue, rvalue, "tmpVar"),
-            Operator::Or => self.builder.build_or(lvalue, rvalue, "tmpVar"),
-            Operator::Xor => self.builder.build_xor(lvalue, rvalue, "tmpVar"),
-            _ => unimplemented!(),
-        };
-        Some(BasicValueEnum::IntValue(result))
+                let result = match operator {
+                    Operator::Plus => self.builder.build_int_add(int_lvalue, int_rvalue, "tmpVar"),
+                    Operator::Minus => self.builder.build_int_sub(int_lvalue, int_rvalue, "tmpVar") ,
+                    Operator::Multiplication => self.builder.build_int_mul(int_lvalue, int_rvalue, "tmpVar"),
+                    Operator::Division => self.builder.build_int_signed_div(int_lvalue, int_rvalue, "tmpVar"),
+                    Operator::Modulo => self.builder.build_int_signed_rem(int_lvalue, int_rvalue, "tmpVar"),
+                    Operator::Equal => self.builder.build_int_compare(IntPredicate::EQ, int_lvalue, int_rvalue, "tmpVar"),
+                    Operator::NotEqual => self.builder.build_int_compare(IntPredicate::NE, int_lvalue, int_rvalue, "tmpVar"),
+                    Operator::Less => self.builder.build_int_compare(IntPredicate::SLT, int_lvalue, int_rvalue, "tmpVar"),
+                    Operator::Greater => self.builder.build_int_compare(IntPredicate::SGT, int_lvalue, int_rvalue, "tmpVar"),
+                    Operator::LessOrEqual => self.builder.build_int_compare(IntPredicate::SLE, int_lvalue, int_rvalue, "tmpVar"),
+                    Operator::GreaterOrEqual => self.builder.build_int_compare(IntPredicate::SGE, int_lvalue, int_rvalue, "tmpVar"),
+                    Operator::And => self.builder.build_and(int_lvalue, int_rvalue, "tmpVar"),
+                    Operator::Or => self.builder.build_or(int_lvalue, int_rvalue, "tmpVar"),
+                    Operator::Xor => self.builder.build_xor(int_lvalue, int_rvalue, "tmpVar"),
+                    _ => unimplemented!(),
+            };
+            //TODO: ltype here is wrong, the returned type should be the combinded type we found
+            return (Some(ltype),Some(BasicValueEnum::IntValue(result)));
+            } 
+        }
+        (None,None)
     }
 }

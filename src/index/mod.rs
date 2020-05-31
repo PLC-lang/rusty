@@ -10,6 +10,24 @@ mod visitor;
 mod pre_processor;
 
 
+#[derive(Debug, Clone)]
+pub enum DataTypeInformation<'ctx> {
+    Struct {name : String, generated_type : BasicTypeEnum<'ctx>},
+    Integer{signed : bool, generated_type : BasicTypeEnum<'ctx>},
+}
+
+impl<'ctx> DataTypeInformation<'ctx> {
+    pub fn is_int(&self) -> bool {
+        if let DataTypeInformation::Integer{..} = self {true} else {false}
+    }
+
+    pub fn get_type(&self) -> BasicTypeEnum<'ctx> {
+        match self {
+            DataTypeInformation::Integer{signed: _, generated_type} => *generated_type,
+            DataTypeInformation::Struct{name: _, generated_type} => *generated_type,
+        }
+    }
+}
 #[derive(Debug, PartialEq)]
 pub struct VariableIndexEntry<'ctx>{
     name                    : String,
@@ -20,8 +38,8 @@ pub struct VariableIndexEntry<'ctx>{
 #[derive(Debug)]
 pub struct DataTypeIndexEntry<'ctx> {
     name                    : String,
-    implementation    : Option<FunctionValue<'ctx>>,    // the generated function to all if this type is callable
-    generated_type          : Option<BasicTypeEnum<'ctx>>,    //the datatype (struct, enum, etc.)
+    implementation    : Option<FunctionValue<'ctx>>,    // the generated function to call if this type is callable
+    information       : Option<DataTypeInformation<'ctx>>,
 }
 
 impl <'ctx> VariableIndexEntry<'ctx> {
@@ -42,16 +60,12 @@ impl <'ctx> VariableIndexEntry<'ctx> {
     }
 }
 impl <'ctx> DataTypeIndexEntry<'ctx> {
-    pub fn associate_type(&mut self, generated_type: BasicTypeEnum<'ctx>) {
-        self.generated_type = Some(generated_type);
-    }
-
     pub fn associate_implementation(&mut self, implementation: FunctionValue<'ctx>) {
         self.implementation = Some(implementation);
     }
 
     pub fn get_type(&self) -> Option<BasicTypeEnum<'ctx>> {
-        self.generated_type
+        self.information.as_ref().map(|it |it.get_type())
     }
 
     pub fn get_implementation(&self) -> Option<FunctionValue<'ctx>> {
@@ -61,6 +75,15 @@ impl <'ctx> DataTypeIndexEntry<'ctx> {
     pub fn get_name(&self) -> &str {
         self.name.as_str()
     }
+
+    pub fn get_type_information(&self) -> Option<&DataTypeInformation<'ctx>> {
+        self.information.as_ref()
+    }
+    
+    pub fn clone_type_information(&self) -> Option<DataTypeInformation<'ctx>> {
+        self.information.clone()
+    }
+    
 }
 
 #[derive(Copy, Clone, Debug, PartialEq)]
@@ -87,14 +110,6 @@ pub enum DataTypeType {
     AliasType       // a Custom-Alias-dataType 
 }
 
-/// information regarding a custom datatype
-#[derive(Debug)]
-pub struct DataTypeInformation {
-    /// what kind of datatype is this
-    kind        : DataTypeType,
-}
-
-
 /// The global index of the rusty-compiler
 /// 
 /// The index contains information about all referencable elements. Furthermore it
@@ -112,27 +127,27 @@ pub struct Index<'ctx> {
 
     /// all types (structs, enums, type, POUs, etc.)
     types               : HashMap<String, DataTypeIndexEntry<'ctx>>,
+    
+    void_type           : DataTypeIndexEntry<'ctx>,
 }
 
 impl<'ctx> Index<'ctx> {
     pub fn new() -> Index<'ctx> {
-        let mut index = Index {
+        let index = Index {
             global_variables : HashMap::new(),
             local_variables : HashMap::new(),
-            types : HashMap::new(),   
+            types : HashMap::new(),  
+            void_type : DataTypeIndexEntry {
+                name : "void".to_string(),
+                implementation : None,
+                information : None,
+            } 
         };
-
-        index.types.insert("Int".to_string(), DataTypeIndexEntry{
-            name: "Int".to_string(),
-            generated_type: None,
-            implementation: None,
-        });
-        index.types.insert("Bool".to_string(), DataTypeIndexEntry{
-            name: "Bool".to_string(),
-            generated_type: None,
-            implementation: None,
-        });
         index
+    }
+
+    pub fn get_void_type(&self) -> &DataTypeIndexEntry<'ctx> {
+        &self.void_type
     }
 
     pub fn find_global_variable(&self, name: &str) -> Option<&VariableIndexEntry<'ctx>> {
@@ -169,6 +184,10 @@ impl<'ctx> Index<'ctx> {
 
     pub fn find_type(&self, type_name : &str) -> Option<&DataTypeIndexEntry<'ctx>> {
         self.types.get(type_name)
+    }
+
+    pub fn find_type_information(&self, type_name : &str) -> Option<DataTypeInformation<'ctx>> {
+        self.find_type(type_name).and_then(|entry| entry.clone_type_information())
     }
 
     pub fn find_callable_instance_variable(&self, context: Option<&str>, reference : &[String]) -> Option<&VariableIndexEntry<'ctx>> {
@@ -244,9 +263,9 @@ impl<'ctx> Index<'ctx> {
         };
     }
 
-    pub fn associate_type(&mut self, name : &str, value : BasicTypeEnum<'ctx>) {
+    pub fn associate_type(&mut self, name : &str, data_type_information : DataTypeInformation<'ctx>) {
         if let Some(entry) = self.types.get_mut(name) {
-            entry.generated_type = Some(value);
+            entry.information = Some(data_type_information);
         };
     }
 
@@ -259,8 +278,8 @@ impl<'ctx> Index<'ctx> {
 
         let index_entry = DataTypeIndexEntry{
             name: type_name.clone(),
-            generated_type: None,
             implementation : None,
+            information : None,
         };
         self.types.insert(type_name, index_entry);
     }
