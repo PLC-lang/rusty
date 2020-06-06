@@ -14,6 +14,7 @@ mod pre_processor;
 pub enum DataTypeInformation<'ctx> {
     Struct {name : String, generated_type : BasicTypeEnum<'ctx>},
     Integer{signed : bool, generated_type : BasicTypeEnum<'ctx>},
+    Float{generated_type : BasicTypeEnum<'ctx>},
 }
 
 impl<'ctx> DataTypeInformation<'ctx> {
@@ -21,9 +22,21 @@ impl<'ctx> DataTypeInformation<'ctx> {
         if let DataTypeInformation::Integer{..} = self {true} else {false}
     }
 
+    pub fn is_float(&self) -> bool {
+        if let DataTypeInformation::Float{..} = self {true} else {false}
+    }
+
+    pub fn is_numerical(&self) -> bool {
+        match self {
+            DataTypeInformation::Integer{..} | DataTypeInformation::Float{..} => true,
+            _ => false
+        }
+    }
+
     pub fn get_type(&self) -> BasicTypeEnum<'ctx> {
         match self {
             DataTypeInformation::Integer{signed: _, generated_type} => *generated_type,
+            DataTypeInformation::Float{generated_type} => *generated_type,
             DataTypeInformation::Struct{name: _, generated_type} => *generated_type,
         }
     }

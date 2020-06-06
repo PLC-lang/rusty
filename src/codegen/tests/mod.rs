@@ -331,6 +331,66 @@ END_PROGRAM
     assert_eq!(result, expected);
 }
 
+
+#[test]
+fn program_with_real_assignment() {
+    let result = codegen!(
+        r#"PROGRAM prg
+VAR
+y : REAL;
+END_VAR
+y := 0.15625;
+END_PROGRAM
+"#
+    );
+    let expected = generate_program_boiler_plate(
+        "prg",
+        &[("float","y")],
+        "void",
+        "",
+        "",
+        r#"store float 1.562500e-01, float* %y
+  ret void
+"#
+    );
+
+    assert_eq!(result, expected);
+}
+#[test]
+fn program_with_real_additions() {
+    let result = codegen!(
+        r#"PROGRAM prg
+VAR
+x : REAL;
+y : REAL;
+z : REAL;
+END_VAR
+x := 12.375;
+y := 0.25;
+z := x + y;
+END_PROGRAM
+"#
+    );
+    let expected = generate_program_boiler_plate(
+        "prg",
+        &[("float", "x"),("float","y"), ("float", "z")],
+        "void",
+        "",
+        "",
+        r#"store float 1.237500e+01, float* %x
+  store float 2.500000e-01, float* %y
+  %load_x = load float, float* %x
+  %load_y = load float, float* %y
+  %tmpVar = fadd float %load_x, %load_y
+  store float %tmpVar, float* %z
+  ret void
+"#
+    );
+
+    assert_eq!(result, expected);
+}
+
+
 #[test]
 fn program_with_boolean_assignment_generates_void_function_and_struct_and_body() {
     let result = codegen!(
