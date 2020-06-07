@@ -11,8 +11,8 @@ use inkwell::values::{
 };
 
 use inkwell::AddressSpace;
-use inkwell::IntPredicate;
 use inkwell::FloatPredicate;
+use inkwell::IntPredicate;
 
 use super::index::*;
 use inkwell::basic_block::BasicBlock;
@@ -36,10 +36,10 @@ impl<'ctx> CodeGen<'ctx> {
         let module = context.create_module("main");
         let builder = context.create_builder();
         let mut codegen = CodeGen {
-            context: context,
+            context,
             module,
             builder,
-            index: index,
+            index,
             scope: None,
             current_function: None,
         };
@@ -63,6 +63,7 @@ impl<'ctx> CodeGen<'ctx> {
             "BOOL",
             DataTypeInformation::Integer {
                 signed: true,
+                size: 1,
                 generated_type: c.bool_type().as_basic_type_enum(),
             },
         );
@@ -72,6 +73,7 @@ impl<'ctx> CodeGen<'ctx> {
             "BYTE",
             DataTypeInformation::Integer {
                 signed: false,
+                size: 8,
                 generated_type: c.i8_type().as_basic_type_enum(),
             },
         );
@@ -81,6 +83,7 @@ impl<'ctx> CodeGen<'ctx> {
             "SINT",
             DataTypeInformation::Integer {
                 signed: true,
+                size: 16,
                 generated_type: c.i16_type().as_basic_type_enum(),
             },
         );
@@ -90,6 +93,7 @@ impl<'ctx> CodeGen<'ctx> {
             "USINT",
             DataTypeInformation::Integer {
                 signed: false,
+                size: 16,
                 generated_type: c.i16_type().as_basic_type_enum(),
             },
         );
@@ -99,6 +103,7 @@ impl<'ctx> CodeGen<'ctx> {
             "WORD",
             DataTypeInformation::Integer {
                 signed: false,
+                size: 32,
                 generated_type: c.i32_type().as_basic_type_enum(),
             },
         );
@@ -108,6 +113,7 @@ impl<'ctx> CodeGen<'ctx> {
             "INT",
             DataTypeInformation::Integer {
                 signed: true,
+                size: 32,
                 generated_type: c.i32_type().as_basic_type_enum(),
             },
         );
@@ -117,6 +123,7 @@ impl<'ctx> CodeGen<'ctx> {
             "UINT",
             DataTypeInformation::Integer {
                 signed: false,
+                size: 32,
                 generated_type: c.i32_type().as_basic_type_enum(),
             },
         );
@@ -126,6 +133,7 @@ impl<'ctx> CodeGen<'ctx> {
             "DWORD",
             DataTypeInformation::Integer {
                 signed: false,
+                size: 64,
                 generated_type: c.i64_type().as_basic_type_enum(),
             },
         );
@@ -135,6 +143,7 @@ impl<'ctx> CodeGen<'ctx> {
             "DINT",
             DataTypeInformation::Integer {
                 signed: true,
+                size: 64,
                 generated_type: c.i64_type().as_basic_type_enum(),
             },
         );
@@ -144,6 +153,7 @@ impl<'ctx> CodeGen<'ctx> {
             "UDINT",
             DataTypeInformation::Integer {
                 signed: false,
+                size: 64,
                 generated_type: c.i64_type().as_basic_type_enum(),
             },
         );
@@ -153,6 +163,7 @@ impl<'ctx> CodeGen<'ctx> {
             "LWORD",
             DataTypeInformation::Integer {
                 signed: false,
+                size: 128,
                 generated_type: c.i128_type().as_basic_type_enum(),
             },
         );
@@ -162,6 +173,7 @@ impl<'ctx> CodeGen<'ctx> {
             "LINT",
             DataTypeInformation::Integer {
                 signed: true,
+                size: 128,
                 generated_type: c.i128_type().as_basic_type_enum(),
             },
         );
@@ -171,6 +183,7 @@ impl<'ctx> CodeGen<'ctx> {
             "ULINT",
             DataTypeInformation::Integer {
                 signed: false,
+                size: 128,
                 generated_type: c.i128_type().as_basic_type_enum(),
             },
         );
@@ -179,6 +192,7 @@ impl<'ctx> CodeGen<'ctx> {
         self.index.associate_type(
             "REAL",
             DataTypeInformation::Float {
+                size: 32,
                 generated_type: c.f32_type().as_basic_type_enum(),
             },
         );
@@ -235,6 +249,7 @@ impl<'ctx> CodeGen<'ctx> {
                 name.as_ref().unwrap().as_str(),
                 DataTypeInformation::Integer {
                     signed: true,
+                    size: 32,
                     generated_type: self.context.i32_type().as_basic_type_enum(),
                 },
             ),
@@ -441,9 +456,6 @@ impl<'ctx> CodeGen<'ctx> {
         result
     }
     fn generate_statement(&self, s: &Statement) -> ExpressionValue<'ctx> {
-        println!("###########################################");
-        println!("Statement : {:#?}", s);
-        println!("###########################################");
         match s {
             Statement::IfStatement { blocks, else_block } => {
                 (None, self.generate_if_statement(blocks, else_block))
@@ -960,32 +972,107 @@ impl<'ctx> CodeGen<'ctx> {
             if let (Some(left_type), Some(left_expr)) = self.generate_lvalue_for_reference(elements)
             {
                 if let (Some(right_type), Some(right_res)) = self.generate_statement(right) {
-                    let rvalue = if left_type.is_int() {
-                        if left_type.get_type().into_int_type().get_bit_width()
-                            < right_type.get_type().into_int_type().get_bit_width()
-                        {
-                            self.builder
-                                .build_int_truncate_or_bit_cast(
-                                    right_res.into_int_value(),
-                                    left_type.get_type().into_int_type(),
-                                    "",
-                                )
-                                .into()
-                        } else {
-                            self.promote_value_if_needed(
-                                right_res,
-                                &right_type,
-                                &left_type.get_type(),
-                            )
-                        }
-                    } else {
-                        right_res
-                    };
+                    let rvalue = self
+                        .cast_if_needed(&left_type, right_res, &right_type)
+                        .unwrap();
                     self.builder.build_store(left_expr, rvalue);
                 }
             }
         }
         None
+    }
+
+    fn cast_if_needed(
+        &self,
+        target_type: &DataTypeInformation<'ctx>,
+        value: BasicValueEnum<'ctx>,
+        value_type: &DataTypeInformation,
+    ) -> Option<BasicValueEnum<'ctx>> {
+        match target_type {
+            DataTypeInformation::Integer {
+                signed,
+                size: lsize,
+                generated_type,
+            } => {
+                match value_type {
+                    DataTypeInformation::Integer { size: rsize, .. } => {
+                        if lsize < rsize {
+                            //Truncate
+                            Some(
+                                self.builder
+                                    .build_int_truncate_or_bit_cast(
+                                        value.into_int_value(),
+                                        generated_type.into_int_type(),
+                                        "",
+                                    )
+                                    .into(),
+                            )
+                        } else {
+                            //Expand
+                            Some(
+                                self.promote_value_if_needed(value, value_type, &generated_type)
+                                    .into(),
+                            )
+                        }
+                    }
+                    DataTypeInformation::Float {
+                        size: _rsize,
+                        generated_type: _,
+                    } => {
+                        if *signed {
+                            Some(
+                                self.builder
+                                    .build_float_to_signed_int(
+                                        value.into_float_value(),
+                                        generated_type.into_int_type(),
+                                        "",
+                                    )
+                                    .into(),
+                            )
+                        } else {
+                            Some(
+                                self.builder
+                                    .build_float_to_unsigned_int(
+                                        value.into_float_value(),
+                                        generated_type.into_int_type(),
+                                        "",
+                                    )
+                                    .into(),
+                            )
+                        }
+                    }
+                    _ => None,
+                }
+            }
+            DataTypeInformation::Float { generated_type, .. } => match value_type {
+                DataTypeInformation::Integer { signed, .. } => {
+                    if *signed {
+                        Some(
+                            self.builder
+                                .build_signed_int_to_float(
+                                    value.into_int_value(),
+                                    generated_type.into_float_type(),
+                                    "",
+                                )
+                                .into(),
+                        )
+                    } else {
+                        Some(
+                            self.builder
+                                .build_unsigned_int_to_float(
+                                    value.into_int_value(),
+                                    generated_type.into_float_type(),
+                                    "",
+                                )
+                                .into(),
+                        )
+                    }
+                }
+                DataTypeInformation::Float { .. } => Some(value),
+                _ => None,
+            },
+            _ => Some(value),
+        }
     }
 
     fn generate_literal_integer(&self, value: &str) -> ExpressionValue<'ctx> {
@@ -1036,11 +1123,7 @@ impl<'ctx> CodeGen<'ctx> {
                 }
             }
             BasicTypeEnum::FloatType(..) => {
-                if let DataTypeInformation::Integer {
-                    signed,
-                    generated_type: _,
-                } = ltype
-                {
+                if let DataTypeInformation::Integer { signed, .. } = ltype {
                     // INT --> FLOAT
                     let int_value = lvalue.into_int_value();
                     if *signed {
@@ -1058,7 +1141,7 @@ impl<'ctx> CodeGen<'ctx> {
                     }
                 } else {
                     // FLOAT --> FLOAT
-                    unimplemented!()
+                    lvalue
                 }
             }
             _ => unreachable!(),
@@ -1074,12 +1157,14 @@ impl<'ctx> CodeGen<'ctx> {
         match ltype {
             DataTypeInformation::Integer {
                 signed: true,
+                size: _,
                 generated_type: _,
             } => self
                 .builder
                 .build_int_s_extend_or_bit_cast(lvalue, target_type, ""),
             DataTypeInformation::Integer {
                 signed: false,
+                size: _,
                 generated_type: _,
             } => self
                 .builder
@@ -1099,17 +1184,6 @@ impl<'ctx> CodeGen<'ctx> {
         BasicValueEnum<'ctx>,
         BasicValueEnum<'ctx>,
     ) {
-        // both need to be numerical
-
-        // both are ints
-        // see below
-
-        // both are floats
-        // see below with floats instead of int
-
-        // else mixed
-        //-->  cast int to float
-
         let ltype_llvm = ltype.get_type();
         let rtype_llvm = rtype.get_type();
 
@@ -1117,17 +1191,7 @@ impl<'ctx> CodeGen<'ctx> {
             if ltype_llvm == rtype_llvm {
                 (ltype.clone(), lvalue, rvalue)
             } else {
-                let target_type = if self.get_rank(ltype) < self.get_rank(rtype) {
-                    rtype
-                } else {
-                    ltype
-                };
-                let int_type = self.index.find_type_information("INT").unwrap();
-                let target_type = if self.get_rank(target_type) < self.get_rank(&int_type) {
-                    int_type
-                } else {
-                    target_type.clone()
-                };
+                let target_type = self.get_bigger_type(self.get_bigger_type(ltype.clone(), rtype.clone()), self.index.find_type_information("INT").unwrap());
 
                 let target_type_enum = target_type.get_type();
                 return (
@@ -1141,20 +1205,28 @@ impl<'ctx> CodeGen<'ctx> {
         }
     }
 
+    fn get_bigger_type(
+        &self,
+        ltype: DataTypeInformation<'ctx>,
+        rtype: DataTypeInformation<'ctx>,
+    ) -> DataTypeInformation<'ctx> {
+        if self.get_rank(&ltype) < self.get_rank(&rtype) {
+            rtype
+        } else {
+            ltype
+        }
+    }
+
     fn get_rank(&self, type_information: &DataTypeInformation) -> u32 {
         match type_information {
-            DataTypeInformation::Integer {
-                signed,
-                generated_type,
-            } => {
-                let size = generated_type.into_int_type().get_bit_width();
+            DataTypeInformation::Integer { signed, size, .. } => {
                 if *signed {
-                    size + 1
+                    *size + 1
                 } else {
-                    size
+                    *size
                 }
             }
-            DataTypeInformation::Float { .. } => 1000,
+            DataTypeInformation::Float { size, .. } => size + 1000,
             _ => unreachable!(),
         }
     }
@@ -1170,9 +1242,16 @@ impl<'ctx> CodeGen<'ctx> {
                 //Step 1 convert all to i32
                 let (target_type, lvalue, rvalue) =
                     self.promote_if_needed(lval_opt, &ltype, rval_opt, &rtype);
-                let (value,target_type) = match target_type {
-                    DataTypeInformation::Integer{..} => self.generate_int_binary_expression(operator, lvalue, rvalue, &target_type),
-                    DataTypeInformation::Float{..} => self.generate_float_binary_expression(operator, lvalue, rvalue, &target_type),
+                let (value, target_type) = match target_type {
+                    DataTypeInformation::Integer { .. } => {
+                        self.generate_int_binary_expression(operator, lvalue, rvalue, &target_type)
+                    }
+                    DataTypeInformation::Float { .. } => self.generate_float_binary_expression(
+                        operator,
+                        lvalue,
+                        rvalue,
+                        &target_type,
+                    ),
                     _ => unimplemented!(),
                 };
                 return (Some(target_type), Some(value));
@@ -1197,79 +1276,99 @@ impl<'ctx> CodeGen<'ctx> {
 
         match operator {
             Operator::Plus => (
-                self.builder.build_int_add(int_lvalue, int_rvalue, "tmpVar").into(),
+                self.builder
+                    .build_int_add(int_lvalue, int_rvalue, "tmpVar")
+                    .into(),
                 target_type.clone(),
             ),
             Operator::Minus => (
-                self.builder.build_int_sub(int_lvalue, int_rvalue, "tmpVar").into(),
+                self.builder
+                    .build_int_sub(int_lvalue, int_rvalue, "tmpVar")
+                    .into(),
                 target_type.clone(),
             ),
             Operator::Multiplication => (
-                self.builder.build_int_mul(int_lvalue, int_rvalue, "tmpVar").into(),
+                self.builder
+                    .build_int_mul(int_lvalue, int_rvalue, "tmpVar")
+                    .into(),
                 target_type.clone(),
             ),
             Operator::Division => (
                 self.builder
-                    .build_int_signed_div(int_lvalue, int_rvalue, "tmpVar").into(),
+                    .build_int_signed_div(int_lvalue, int_rvalue, "tmpVar")
+                    .into(),
                 target_type.clone(),
             ),
             Operator::Modulo => (
                 self.builder
-                    .build_int_signed_rem(int_lvalue, int_rvalue, "tmpVar").into(),
+                    .build_int_signed_rem(int_lvalue, int_rvalue, "tmpVar")
+                    .into(),
                 target_type.clone(),
             ),
             Operator::Equal => (
                 self.builder
-                    .build_int_compare(IntPredicate::EQ, int_lvalue, int_rvalue, "tmpVar").into(),
+                    .build_int_compare(IntPredicate::EQ, int_lvalue, int_rvalue, "tmpVar")
+                    .into(),
                 self.get_bool_type_information(),
             ),
 
             Operator::NotEqual => (
                 self.builder
-                    .build_int_compare(IntPredicate::NE, int_lvalue, int_rvalue, "tmpVar").into(),
+                    .build_int_compare(IntPredicate::NE, int_lvalue, int_rvalue, "tmpVar")
+                    .into(),
                 self.get_bool_type_information(),
             ),
 
             Operator::Less => (
                 self.builder
-                    .build_int_compare(IntPredicate::SLT, int_lvalue, int_rvalue, "tmpVar").into(),
+                    .build_int_compare(IntPredicate::SLT, int_lvalue, int_rvalue, "tmpVar")
+                    .into(),
                 self.get_bool_type_information(),
             ),
 
             Operator::Greater => (
                 self.builder
-                    .build_int_compare(IntPredicate::SGT, int_lvalue, int_rvalue, "tmpVar").into(),
+                    .build_int_compare(IntPredicate::SGT, int_lvalue, int_rvalue, "tmpVar")
+                    .into(),
                 self.get_bool_type_information(),
             ),
 
             Operator::LessOrEqual => (
                 self.builder
-                    .build_int_compare(IntPredicate::SLE, int_lvalue, int_rvalue, "tmpVar").into(),
+                    .build_int_compare(IntPredicate::SLE, int_lvalue, int_rvalue, "tmpVar")
+                    .into(),
                 self.get_bool_type_information(),
             ),
 
             Operator::GreaterOrEqual => (
                 self.builder
-                    .build_int_compare(IntPredicate::SGE, int_lvalue, int_rvalue, "tmpVar").into(),
+                    .build_int_compare(IntPredicate::SGE, int_lvalue, int_rvalue, "tmpVar")
+                    .into(),
                 self.get_bool_type_information(),
             ),
 
             Operator::And => (
-                self.builder.build_and(int_lvalue, int_rvalue, "tmpVar").into(),
+                self.builder
+                    .build_and(int_lvalue, int_rvalue, "tmpVar")
+                    .into(),
                 self.get_bool_type_information(),
             ),
             Operator::Or => (
-                self.builder.build_or(int_lvalue, int_rvalue, "tmpVar").into(),
+                self.builder
+                    .build_or(int_lvalue, int_rvalue, "tmpVar")
+                    .into(),
                 self.get_bool_type_information(),
             ),
             Operator::Xor => (
-                self.builder.build_xor(int_lvalue, int_rvalue, "tmpVar").into(),
+                self.builder
+                    .build_xor(int_lvalue, int_rvalue, "tmpVar")
+                    .into(),
                 self.get_bool_type_information(),
             ),
             _ => unimplemented!(),
         }
     }
-    
+
     fn generate_float_binary_expression(
         &self,
         operator: &Operator,
@@ -1282,66 +1381,78 @@ impl<'ctx> CodeGen<'ctx> {
 
         match operator {
             Operator::Plus => (
-                self.builder.build_float_add(int_lvalue, int_rvalue, "tmpVar").into(),
+                self.builder
+                    .build_float_add(int_lvalue, int_rvalue, "tmpVar")
+                    .into(),
                 target_type.clone(),
             ),
             Operator::Minus => (
-                self.builder.build_float_sub(int_lvalue, int_rvalue, "tmpVar").into(),
+                self.builder
+                    .build_float_sub(int_lvalue, int_rvalue, "tmpVar")
+                    .into(),
                 target_type.clone(),
             ),
             Operator::Multiplication => (
-                self.builder.build_float_mul(int_lvalue, int_rvalue, "tmpVar").into(),
+                self.builder
+                    .build_float_mul(int_lvalue, int_rvalue, "tmpVar")
+                    .into(),
                 target_type.clone(),
             ),
             Operator::Division => (
                 self.builder
-                    .build_float_div(int_lvalue, int_rvalue, "tmpVar").into(),
+                    .build_float_div(int_lvalue, int_rvalue, "tmpVar")
+                    .into(),
                 target_type.clone(),
             ),
             Operator::Modulo => (
                 self.builder
-                    .build_float_rem(int_lvalue, int_rvalue, "tmpVar").into(),
+                    .build_float_rem(int_lvalue, int_rvalue, "tmpVar")
+                    .into(),
                 target_type.clone(),
             ),
             Operator::Equal => (
                 self.builder
-                    .build_float_compare(FloatPredicate::OEQ, int_lvalue, int_rvalue, "tmpVar").into(),
+                    .build_float_compare(FloatPredicate::OEQ, int_lvalue, int_rvalue, "tmpVar")
+                    .into(),
                 self.get_bool_type_information(),
             ),
 
             Operator::NotEqual => (
                 self.builder
-                    .build_float_compare(FloatPredicate::ONE, int_lvalue, int_rvalue, "tmpVar").into(),
+                    .build_float_compare(FloatPredicate::ONE, int_lvalue, int_rvalue, "tmpVar")
+                    .into(),
                 self.get_bool_type_information(),
             ),
 
             Operator::Less => (
                 self.builder
-                    .build_float_compare(FloatPredicate::OLT, int_lvalue, int_rvalue, "tmpVar").into(),
+                    .build_float_compare(FloatPredicate::OLT, int_lvalue, int_rvalue, "tmpVar")
+                    .into(),
                 self.get_bool_type_information(),
             ),
 
             Operator::Greater => (
                 self.builder
-                    .build_float_compare(FloatPredicate::OGT, int_lvalue, int_rvalue, "tmpVar").into(),
+                    .build_float_compare(FloatPredicate::OGT, int_lvalue, int_rvalue, "tmpVar")
+                    .into(),
                 self.get_bool_type_information(),
             ),
 
             Operator::LessOrEqual => (
                 self.builder
-                    .build_float_compare(FloatPredicate::OLE, int_lvalue, int_rvalue, "tmpVar").into(),
+                    .build_float_compare(FloatPredicate::OLE, int_lvalue, int_rvalue, "tmpVar")
+                    .into(),
                 self.get_bool_type_information(),
             ),
 
             Operator::GreaterOrEqual => (
                 self.builder
-                    .build_float_compare(FloatPredicate::OGE, int_lvalue, int_rvalue, "tmpVar").into(),
+                    .build_float_compare(FloatPredicate::OGE, int_lvalue, int_rvalue, "tmpVar")
+                    .into(),
                 self.get_bool_type_information(),
             ),
 
             _ => unimplemented!(),
         }
     }
-    
-    
 }
