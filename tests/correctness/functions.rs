@@ -5,13 +5,13 @@ fn max_function() {
     #[allow(dead_code)]
     #[repr(C)]
     struct MainType {
-        the_a: i32, 
-        the_b: i32,
+        the_a: i16, 
+        the_b: i16,
     }
     
     let function = r#"
 
-    FUNCTION MAX : INT 
+    FUNCTION MAX : DINT 
     VAR_INPUT 
         a : INT;
         b : INT;
@@ -24,7 +24,7 @@ fn max_function() {
     END_IF
     END_FUNCTION
 
-    FUNCTION main : INT
+    FUNCTION main : DINT
     VAR
         theA : INT;
         theB : INT;
@@ -72,7 +72,7 @@ fn test_or_sideeffects() {
 
     END_FUNCTION
 
-    FUNCTION main : INT
+    FUNCTION main : DINT
     VAR
         x : BOOL;
     END_VAR
@@ -99,7 +99,7 @@ fn function_block_instances_save_state_per_instance() {
     #[allow(dead_code)]
     #[repr(C)]
     struct FooType {
-        i : i32,
+        i : i16,
     }
 
     struct MainType {
@@ -137,7 +137,7 @@ fn program_instances_save_state_per() {
     #[allow(dead_code)]
     #[repr(C)]
     struct FooType {
-        i : i32,
+        i : i16,
     }
 
     struct MainType {
@@ -168,13 +168,13 @@ fn function_block_instances_save_state_per_instance_2() {
     #[allow(dead_code)]
     #[repr(C)]
     struct BazType {
-        i : i32,
+        i : i16,
     }
     
     #[allow(dead_code)]
     #[repr(C)]
     struct FooType {
-        i : i32,
+        i : i16,
         baz : BazType,
     }
 

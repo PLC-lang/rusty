@@ -57,6 +57,14 @@ impl<'ctx> DataTypeInformation<'ctx> {
             DataTypeInformation::Struct { generated_type, .. } => *generated_type,
         }
     }
+
+    pub fn get_size(&self) -> u32 {
+        match self {
+            DataTypeInformation::Integer { size, .. } => *size,
+            DataTypeInformation::Float { size, .. } => *size,
+            DataTypeInformation::Struct { .. } => 0,
+        }
+    }
 }
 #[derive(Debug, PartialEq)]
 pub struct VariableIndexEntry<'ctx> {

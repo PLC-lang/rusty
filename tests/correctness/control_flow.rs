@@ -22,9 +22,9 @@ fn adding_through_conditions() {
     }
     
     let function = permutate_conditionals!(r#"
-    FUNCTION main : INT
+    FUNCTION main : DINT
     VAR
-        inc : INT;
+        inc : DINT;
         cond : BOOL;
     END_VAR
 
@@ -61,7 +61,7 @@ fn adding_through_conditions_to_function_return() {
     }
 
     let function = permutate_conditionals!(r#"
-    FUNCTION main : INT
+    FUNCTION main : DINT
     VAR
     END_VAR
     main := 0;
@@ -89,12 +89,12 @@ fn for_loop_and_increment_10_times() {
     #[allow(dead_code)]
     #[repr(C)]
     struct MainType {
-        i : i32,
+        i : i16,
         ret : i32,
     }
 
     let function = r#"
-    FUNCTION main : INT
+    FUNCTION main : DINT
     VAR
         i : INT;
     END_VAR
@@ -114,11 +114,11 @@ fn for_loop_and_increment_10_times_skipping_1() {
     #[allow(dead_code)]
     #[repr(C)]
     struct MainType {
-        i : i32,
-        ret : i32,
+        i : i16,
+        ret : i16,
     }
     let function = r#"
-    FUNCTION main : INT
+    FUNCTION main : DINT
     VAR
         i : INT;
     END_VAR
@@ -138,12 +138,12 @@ fn while_loop_no_entry() {
     #[allow(dead_code)]
     #[repr(C)]
     struct MainType {
-        i : i32,
+        i : i16,
         ret : i32,
     }
 
     let function = r#"
-    FUNCTION main : INT
+    FUNCTION main : DINT
     VAR
         i : INT;
     END_VAR
@@ -166,12 +166,12 @@ fn repeat_loop_no_entry() {
     #[allow(dead_code)]
     #[repr(C)]
     struct MainType {
-        i : i32,
+        i : i16,
         ret : i32,
     }
     
     let function = r#"
-    FUNCTION main : INT
+    FUNCTION main : DINT
     VAR
         i : INT;
     END_VAR
@@ -194,13 +194,13 @@ fn while_loop_10_times() {
     #[allow(dead_code)]
     #[repr(C)]
     struct MainType {
-        i : i32,
+        i : i16,
         ret : i32,
     }
     let function = r#"
-    FUNCTION main : INT
+    FUNCTION main : DINT
     VAR
-        i : INT;
+        i : DINT;
     END_VAR
     main := 1;
     i := 0;
@@ -223,13 +223,13 @@ fn repeat_loop_10_times() {
     #[allow(dead_code)]
     #[repr(C)]
     struct MainType {
-        i : i32,
+        i : i16,
         ret : i32,
     }
     let function = r#"
-    FUNCTION main : INT
+    FUNCTION main : DINT
     VAR
-        i : INT;
+        i : DINT;
     END_VAR
     main := 1;
     i := 0;

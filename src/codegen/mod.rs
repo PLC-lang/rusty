@@ -83,8 +83,8 @@ impl<'ctx> CodeGen<'ctx> {
             "SINT",
             DataTypeInformation::Integer {
                 signed: true,
-                size: 16,
-                generated_type: c.i16_type().as_basic_type_enum(),
+                size: 8,
+                generated_type: c.i8_type().as_basic_type_enum(),
             },
         );
 
@@ -93,8 +93,8 @@ impl<'ctx> CodeGen<'ctx> {
             "USINT",
             DataTypeInformation::Integer {
                 signed: false,
-                size: 16,
-                generated_type: c.i16_type().as_basic_type_enum(),
+                size: 8,
+                generated_type: c.i8_type().as_basic_type_enum(),
             },
         );
 
@@ -103,8 +103,8 @@ impl<'ctx> CodeGen<'ctx> {
             "WORD",
             DataTypeInformation::Integer {
                 signed: false,
-                size: 32,
-                generated_type: c.i32_type().as_basic_type_enum(),
+                size: 16,
+                generated_type: c.i16_type().as_basic_type_enum(),
             },
         );
 
@@ -113,8 +113,8 @@ impl<'ctx> CodeGen<'ctx> {
             "INT",
             DataTypeInformation::Integer {
                 signed: true,
-                size: 32,
-                generated_type: c.i32_type().as_basic_type_enum(),
+                size: 16,
+                generated_type: c.i16_type().as_basic_type_enum(),
             },
         );
 
@@ -123,8 +123,8 @@ impl<'ctx> CodeGen<'ctx> {
             "UINT",
             DataTypeInformation::Integer {
                 signed: false,
-                size: 32,
-                generated_type: c.i32_type().as_basic_type_enum(),
+                size: 16,
+                generated_type: c.i16_type().as_basic_type_enum(),
             },
         );
 
@@ -133,8 +133,8 @@ impl<'ctx> CodeGen<'ctx> {
             "DWORD",
             DataTypeInformation::Integer {
                 signed: false,
-                size: 64,
-                generated_type: c.i64_type().as_basic_type_enum(),
+                size: 32,
+                generated_type: c.i32_type().as_basic_type_enum(),
             },
         );
 
@@ -143,8 +143,8 @@ impl<'ctx> CodeGen<'ctx> {
             "DINT",
             DataTypeInformation::Integer {
                 signed: true,
-                size: 64,
-                generated_type: c.i64_type().as_basic_type_enum(),
+                size: 32,
+                generated_type: c.i32_type().as_basic_type_enum(),
             },
         );
 
@@ -153,8 +153,8 @@ impl<'ctx> CodeGen<'ctx> {
             "UDINT",
             DataTypeInformation::Integer {
                 signed: false,
-                size: 64,
-                generated_type: c.i64_type().as_basic_type_enum(),
+                size: 32,
+                generated_type: c.i32_type().as_basic_type_enum(),
             },
         );
 
@@ -163,8 +163,8 @@ impl<'ctx> CodeGen<'ctx> {
             "LWORD",
             DataTypeInformation::Integer {
                 signed: false,
-                size: 128,
-                generated_type: c.i128_type().as_basic_type_enum(),
+                size: 64,
+                generated_type: c.i64_type().as_basic_type_enum(),
             },
         );
 
@@ -173,8 +173,8 @@ impl<'ctx> CodeGen<'ctx> {
             "LINT",
             DataTypeInformation::Integer {
                 signed: true,
-                size: 128,
-                generated_type: c.i128_type().as_basic_type_enum(),
+                size: 64,
+                generated_type: c.i64_type().as_basic_type_enum(),
             },
         );
 
@@ -183,8 +183,8 @@ impl<'ctx> CodeGen<'ctx> {
             "ULINT",
             DataTypeInformation::Integer {
                 signed: false,
-                size: 128,
-                generated_type: c.i128_type().as_basic_type_enum(),
+                size: 64,
+                generated_type: c.i64_type().as_basic_type_enum(),
             },
         );
 
@@ -194,6 +194,15 @@ impl<'ctx> CodeGen<'ctx> {
             DataTypeInformation::Float {
                 size: 32,
                 generated_type: c.f32_type().as_basic_type_enum(),
+            },
+        );
+
+        self.index.register_type("LREAL".to_string());
+        self.index.associate_type(
+            "LREAL",
+            DataTypeInformation::Float {
+                size: 64,
+                generated_type: c.f64_type().as_basic_type_enum(),
             },
         );
     }
@@ -986,7 +995,7 @@ impl<'ctx> CodeGen<'ctx> {
         &self,
         target_type: &DataTypeInformation<'ctx>,
         value: BasicValueEnum<'ctx>,
-        value_type: &DataTypeInformation,
+        value_type: &DataTypeInformation<'ctx>,
     ) -> Option<BasicValueEnum<'ctx>> {
         match target_type {
             DataTypeInformation::Integer {
@@ -1010,7 +1019,7 @@ impl<'ctx> CodeGen<'ctx> {
                         } else {
                             //Expand
                             Some(
-                                self.promote_value_if_needed(value, value_type, &generated_type)
+                                self.promote_value_if_needed(value, value_type, &target_type)
                                     .into(),
                             )
                         }
@@ -1078,7 +1087,7 @@ impl<'ctx> CodeGen<'ctx> {
     fn generate_literal_integer(&self, value: &str) -> ExpressionValue<'ctx> {
         let itype = self.context.i32_type();
         let value = itype.const_int_from_string(value, StringRadix::Decimal);
-        let data_type = self.index.find_type_information("INT");
+        let data_type = self.index.find_type_information("DINT");
         (data_type, Some(BasicValueEnum::IntValue(value.unwrap())))
     }
 
@@ -1099,8 +1108,8 @@ impl<'ctx> CodeGen<'ctx> {
     fn promote_value_if_needed(
         &self,
         lvalue: BasicValueEnum<'ctx>,
-        ltype: &DataTypeInformation,
-        target_type: &BasicTypeEnum<'ctx>,
+        ltype: &DataTypeInformation<'ctx>,
+        target_type: &DataTypeInformation<'ctx>,
     ) -> BasicValueEnum<'ctx> {
         //Is the target type int
         //Expand the current type to the target size
@@ -1110,38 +1119,48 @@ impl<'ctx> CodeGen<'ctx> {
         //Expand current type to target type
 
         match target_type {
-            BasicTypeEnum::IntType(..) => {
+            DataTypeInformation::Integer{size: target_size, generated_type,..} => {
                 // INT --> INT
                 let int_value = lvalue.into_int_value();
                 if int_value.get_type().get_bit_width()
-                    < target_type.into_int_type().get_bit_width()
+                    < *target_size
                 {
-                    self.extend_int_value(int_value, ltype, target_type.into_int_type())
+                    self.extend_int_value(int_value, ltype, generated_type.into_int_type())
                         .as_basic_value_enum()
                 } else {
                     lvalue
                 }
             }
-            BasicTypeEnum::FloatType(..) => {
+            DataTypeInformation::Float{size: target_size, generated_type: target_generated_type} => {
                 if let DataTypeInformation::Integer { signed, .. } = ltype {
                     // INT --> FLOAT
                     let int_value = lvalue.into_int_value();
                     if *signed {
                         self.builder
-                            .build_signed_int_to_float(int_value, target_type.into_float_type(), "")
+                            .build_signed_int_to_float(int_value, target_generated_type.into_float_type(), "")
                             .into()
                     } else {
                         self.builder
                             .build_unsigned_int_to_float(
                                 int_value,
-                                target_type.into_float_type(),
+                                target_generated_type.into_float_type(),
                                 "",
                             )
                             .into()
                     }
                 } else {
                     // FLOAT --> FLOAT
-                    lvalue
+                    if let DataTypeInformation::Float{size, ..} = ltype{
+                       println!("FLOAT -> FLOAT: {:?} -> {:?}", size, target_size);
+                        if target_size <= size {
+                            lvalue
+                        } else {
+                            println!("FLOAT -> FLOAT: {:?} -> {:?}", size, target_size);
+                            self.builder.build_float_ext(lvalue.into_float_value(), target_generated_type.into_float_type(),  "").into()
+                        }
+                    } else {
+                        unreachable!()
+                    }
                 }
             }
             _ => unreachable!(),
@@ -1191,13 +1210,15 @@ impl<'ctx> CodeGen<'ctx> {
             if ltype_llvm == rtype_llvm {
                 (ltype.clone(), lvalue, rvalue)
             } else {
-                let target_type = self.get_bigger_type(self.get_bigger_type(ltype.clone(), rtype.clone()), self.index.find_type_information("INT").unwrap());
+                let target_type = self.get_bigger_type(self.get_bigger_type(ltype.clone(), rtype.clone()), self.index.find_type_information("DINT").unwrap());
 
-                let target_type_enum = target_type.get_type();
+                let promoted_lvalue = self.promote_value_if_needed(lvalue, ltype, &target_type);
+                let promoted_rvalue = self.promote_value_if_needed(rvalue, rtype, &target_type);
+
                 return (
                     target_type,
-                    self.promote_value_if_needed(lvalue, ltype, &target_type_enum),
-                    self.promote_value_if_needed(rvalue, rtype, &target_type_enum),
+                    promoted_lvalue,
+                    promoted_rvalue,
                 );
             }
         } else {
@@ -1205,16 +1226,35 @@ impl<'ctx> CodeGen<'ctx> {
         }
     }
 
+    fn is_same_type_nature(&self,
+        ltype: &DataTypeInformation<'ctx>,
+        rtype: &DataTypeInformation<'ctx>) -> bool {
+            
+            ltype.is_int() == rtype.is_int()
+    }
+
     fn get_bigger_type(
         &self,
         ltype: DataTypeInformation<'ctx>,
         rtype: DataTypeInformation<'ctx>,
     ) -> DataTypeInformation<'ctx> {
-        if self.get_rank(&ltype) < self.get_rank(&rtype) {
-            rtype
+
+        let bigger_type = if self.is_same_type_nature(&ltype, &rtype) {
+            if self.get_rank(&ltype) < self.get_rank(&rtype) {
+                rtype
+            } else {
+                ltype
+            }
         } else {
-            ltype
-        }
+            let real_type = self.index.find_type_information("REAL").unwrap();
+            let real_size = real_type.get_size();
+            if ltype.get_size() > real_size || rtype.get_size() > real_size {
+                self.index.find_type_information("LREAL").unwrap()
+            } else {
+                real_type
+            }
+        };
+        bigger_type
     }
 
     fn get_rank(&self, type_information: &DataTypeInformation) -> u32 {

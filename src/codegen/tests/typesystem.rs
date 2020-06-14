@@ -43,14 +43,14 @@ fn no_type_conversion_if_datatypes_are_the_same() {
     
     let expected = generate_program_boiler_plate(
         "prg",
-        &[("i16", "b"), ("i16","c"),("i16","x")],
+        &[("i8", "b"), ("i8","c"),("i8","x")],
         "void",
         "",
         "",
-        r#"%load_b = load i16, i16* %b
-  %load_c = load i16, i16* %c
-  %tmpVar = add i16 %load_b, %load_c
-  store i16 %tmpVar, i16* %x
+        r#"%load_b = load i8, i8* %b
+  %load_c = load i8, i8* %c
+  %tmpVar = add i8 %load_b, %load_c
+  store i8 %tmpVar, i8* %x
   ret void
 "#
     );
@@ -59,13 +59,13 @@ fn no_type_conversion_if_datatypes_are_the_same() {
 }
 
 #[test]
-fn datatypes_smaller_than_int_promoted_to_int() {
+fn datatypes_smaller_than_dint_promoted_to_dint() {
     let result = codegen!(
         r#"PROGRAM prg
         VAR
         b : SINT;
-        c : INT;
-        x : INT;
+        c : DINT;
+        x : DINT;
         END_VAR
 
         x := b + c;
@@ -76,13 +76,13 @@ fn datatypes_smaller_than_int_promoted_to_int() {
     
     let expected = generate_program_boiler_plate(
         "prg",
-        &[("i16", "b"), ("i32","c"),("i32","x")],
+        &[("i8", "b"), ("i32","c"),("i32","x")],
         "void",
         "",
         "",
-        r#"%load_b = load i16, i16* %b
+        r#"%load_b = load i8, i8* %b
   %load_c = load i32, i32* %c
-  %1 = sext i16 %load_b to i32
+  %1 = sext i8 %load_b to i32
   %tmpVar = add i32 %1, %load_c
   store i32 %tmpVar, i32* %x
   ret void
@@ -94,13 +94,13 @@ fn datatypes_smaller_than_int_promoted_to_int() {
 }
 
 #[test]
-fn unsingned_datatypes_smaller_than_int_promoted_to_int() {
+fn unsingned_datatypes_smaller_than_dint_promoted_to_dint() {
     let result = codegen!(
         r#"PROGRAM prg
         VAR
         b : BYTE;
-        c : INT;
-        x : INT;
+        c : DINT;
+        x : DINT;
         END_VAR
 
         x := b + c;
@@ -133,8 +133,8 @@ fn datatypes_larger_than_int_promote_the_second_operand() {
     let result = codegen!(
         r#"PROGRAM prg
         VAR
-        b : INT;
-        c : DINT;
+        b : DINT;
+        c : LINT;
         x : LINT;
         END_VAR
 
@@ -146,7 +146,7 @@ fn datatypes_larger_than_int_promote_the_second_operand() {
     
     let expected = generate_program_boiler_plate(
         "prg",
-        &[("i32", "b"), ("i64","c"),("i128","x")],
+        &[("i32", "b"), ("i64","c"),("i64","x")],
         "void",
         "",
         "",
@@ -154,8 +154,7 @@ fn datatypes_larger_than_int_promote_the_second_operand() {
   %load_c = load i64, i64* %c
   %1 = sext i32 %load_b to i64
   %tmpVar = add i64 %1, %load_c
-  %2 = sext i64 %tmpVar to i128
-  store i128 %2, i128* %x
+  store i64 %tmpVar, i64* %x
   ret void
 "#
     );
@@ -165,7 +164,6 @@ fn datatypes_larger_than_int_promote_the_second_operand() {
 }
 
 #[test]
-#[ignore]
 fn float_and_double_mix_converted_to_double() {
     let result = codegen!(
         r#"
@@ -176,7 +174,7 @@ fn float_and_double_mix_converted_to_double() {
             c : LREAL;
         END_VAR
 
-        c := b + c;
+        c := b + a;
         END_PROGRAM
         "#
     );
@@ -185,8 +183,13 @@ fn float_and_double_mix_converted_to_double() {
         "prg", &[("float","a"),("double", "b"),("double","c")], 
         "void", 
         "", "",
-        r#"
-        "#
+        r#"%load_b = load double, double* %b
+  %load_a = load float, float* %a
+  %1 = fpext float %load_a to double
+  %tmpVar = fadd double %load_b, %1
+  store double %tmpVar, double* %c
+  ret void
+"#
     );
 
     assert_eq!(result,expected)
@@ -209,14 +212,14 @@ fn int_assigned_to_float_is_cast() {
     );
 
     let expected = generate_program_boiler_plate(
-        "prg", &[("i32","a"), ("i32", "b"),("float","c")], 
+        "prg", &[("i16","a"), ("i16", "b"),("float","c")], 
         "void", 
         "", "",
-        r#"%load_a = load i32, i32* %a
-  %1 = sitofp i32 %load_a to float
+        r#"%load_a = load i16, i16* %a
+  %1 = sitofp i16 %load_a to float
   store float %1, float* %c
-  %load_b = load i32, i32* %b
-  %2 = uitofp i32 %load_b to float
+  %load_b = load i16, i16* %b
+  %2 = uitofp i16 %load_b to float
   store float %2, float* %c
   ret void
 "#
@@ -242,15 +245,15 @@ fn float_assigned_to_int_is_cast() {
     );
 
     let expected = generate_program_boiler_plate(
-        "prg", &[("i32","a"), ("i32", "b"),("float","c")], 
+        "prg", &[("i16","a"), ("i16", "b"),("float","c")], 
         "void", 
         "", "",
         r#"%load_c = load float, float* %c
-  %1 = fptosi float %load_c to i32
-  store i32 %1, i32* %a
+  %1 = fptosi float %load_c to i16
+  store i16 %1, i16* %a
   %load_c1 = load float, float* %c
-  %2 = fptoui float %load_c1 to i32
-  store i32 %2, i32* %b
+  %2 = fptoui float %load_c1 to i16
+  store i16 %2, i16* %b
   ret void
 "#
     );
@@ -275,12 +278,12 @@ fn int_smaller_or_equal_to_float_converted_to_float() {
     );
 
     let expected = generate_program_boiler_plate(
-        "prg", &[("float","a"),("i32", "b"),("float","c")], 
+        "prg", &[("float","a"),("i16", "b"),("float","c")], 
         "void", 
         "", "",
-        r#"%load_b = load i32, i32* %b
+        r#"%load_b = load i16, i16* %b
   %load_a = load float, float* %a
-  %1 = sitofp i32 %load_b to float
+  %1 = sitofp i16 %load_b to float
   %tmpVar = fadd float %1, %load_a
   store float %tmpVar, float* %c
   ret void
@@ -291,14 +294,13 @@ fn int_smaller_or_equal_to_float_converted_to_float() {
 }
 
 #[test]
-#[ignore]
 fn int_bigger_than_float_converted_to_double() {
     let result = codegen!(
         r#"
         PROGRAM prg
         VAR
             a : REAL;
-            b : DINT;
+            b : LINT;
         END_VAR
 
         b + a;
@@ -313,7 +315,8 @@ fn int_bigger_than_float_converted_to_double() {
         r#"%load_b = load i64, i64* %b
   %load_a = load float, float* %a
   %1 = sitofp i64 %load_b to double
-  %tmpVar = fadd double %1, %load_a
+  %2 = fpext float %load_a to double
+  %tmpVar = fadd double %1, %2
   ret void
 "#
     );

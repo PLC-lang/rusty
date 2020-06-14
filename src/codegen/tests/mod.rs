@@ -92,8 +92,8 @@ fn program_with_variables_and_references_generates_void_function_and_struct_and_
     let result = codegen!(
         r#"PROGRAM prg
 VAR
-x : INT;
-y : INT;
+x : DINT;
+y : DINT;
 END_VAR
 x;
 y;
@@ -128,7 +128,7 @@ fn a_global_variables_generates_in_separate_global_variables() {
     let result = generate_with_empty_program!("VAR_GLOBAL gX : INT; gY : BOOL; END_VAR");
     let expected = generate_program_boiler_plate_globals(
 r#"
-@gX = common global i32 0
+@gX = common global i16 0
 @gY = common global i1 false"#);
 
     assert_eq!(result, expected);
@@ -139,9 +139,9 @@ fn two_global_variables_generates_in_separate_global_variables() {
     let result = generate_with_empty_program!("VAR_GLOBAL gX : INT; gY : BOOL; END_VAR VAR_GLOBAL gA : INT; END_VAR");
     let expected = generate_program_boiler_plate_globals(
 r#"
-@gX = common global i32 0
+@gX = common global i16 0
 @gY = common global i1 false
-@gA = common global i32 0"#);
+@gA = common global i16 0"#);
 
     assert_eq!(result, expected);
 }
@@ -161,12 +161,12 @@ fn global_variable_reference_is_generated() {
     END_PROGRAM
     ");
 
-    let expected = generate_program_boiler_plate("prg", &[("i32","x")], "void", "", 
+    let expected = generate_program_boiler_plate("prg", &[("i16","x")], "void", "", 
 r"
-@gX = common global i32 0", //global vars
-r"store i32 20, i32* @gX
-  %load_gX = load i32, i32* @gX
-  store i32 %load_gX, i32* %x
+@gX = common global i16 0", //global vars
+r"store i16 20, i16* @gX
+  %load_gX = load i16, i16* @gX
+  store i16 %load_gX, i16* %x
   ret void
 ", //body
     );
@@ -194,11 +194,11 @@ source_filename = "main"
 
 %foo_interface = type {}
 
-define i32 @foo(%foo_interface* %0) {
+define i16 @foo(%foo_interface* %0) {
 entry:
-  %foo = alloca i32
-  %foo_ret = load i32, i32* %foo
-  ret i32 %foo_ret
+  %foo = alloca i16
+  %foo_ret = load i16, i16* %foo
+  ret i16 %foo_ret
 }
 "#;
  
@@ -209,8 +209,8 @@ fn program_with_variables_generates_void_function_and_struct() {
     let result = codegen!(
         r#"PROGRAM prg
 VAR
-x : INT;
-y : INT;
+x : DINT;
+y : DINT;
 END_VAR
 END_PROGRAM
 "#
@@ -257,8 +257,8 @@ fn program_with_variables_and_additions_generates_void_function_and_struct_and_b
     let result = codegen!(
         r#"PROGRAM prg
 VAR
-x : INT;
-y : INT;
+x : DINT;
+y : DINT;
 END_VAR
 x + y;
 END_PROGRAM
@@ -285,7 +285,7 @@ fn program_with_variable_and_addition_literal_generates_void_function_and_struct
     let result = codegen!(
         r#"PROGRAM prg
 VAR
-x : INT;
+x : DINT;
 END_VAR
 x + 7;
 END_PROGRAM
@@ -311,7 +311,7 @@ fn program_with_variable_assignment_generates_void_function_and_struct_and_body(
     let result = codegen!(
         r#"PROGRAM prg
 VAR
-y : INT;
+y : DINT;
 END_VAR
 y := 7;
 END_PROGRAM
@@ -423,8 +423,8 @@ fn program_with_variable_and_arithmatic_assignment_generates_void_function_and_s
     let result = codegen!(
         r#"PROGRAM prg
 VAR
-x : INT;
-y : INT;
+x : DINT;
+y : DINT;
 END_VAR
 y := x + 1;
 y := x - 2;
@@ -467,7 +467,7 @@ fn program_with_variable_and_comparison_assignment_generates_void_function_and_s
     let result = codegen!(
         r#"PROGRAM prg
 VAR
-x : INT;
+x : DINT;
 y : BOOL;
 END_VAR
 y := x = 1;
@@ -517,7 +517,7 @@ fn program_with_variable_and_boolean_expressions_generates_void_function_and_str
 VAR
 x : BOOL;
 y : BOOL;
-z : INT;
+z : DINT;
 END_VAR
 x AND y;
 x OR y;
@@ -584,7 +584,7 @@ fn program_with_negated_combined_expressions_generates_void_function_and_struct_
     let result = codegen!(
         r#"PROGRAM prg
 VAR
-z : INT;
+z : DINT;
 y : BOOL;
 END_VAR
 y AND z >= 5;
@@ -619,8 +619,8 @@ fn program_with_signed_combined_expressions() {
     let result = codegen!(
         r#"PROGRAM prg
             VAR
-            z : INT;
-            y : INT;
+            z : DINT;
+            y : DINT;
             END_VAR
             -1 + z;
             2 +-z;
@@ -655,10 +655,10 @@ fn if_elsif_else_generator_test() {
         "
         PROGRAM prg 
         VAR
-            x : INT;
-            y : INT;
-            z : INT;
-            u : INT;
+            x : DINT;
+            y : DINT;
+            z : DINT;
+            u : DINT;
             b1 : BOOL;
             b2 : BOOL;
             b3 : BOOL;
@@ -721,7 +721,7 @@ fn if_generator_test() {
         "
         PROGRAM prg 
         VAR
-            x : INT;
+            x : DINT;
             b1 : BOOL;
         END_VAR
         IF b1 THEN
@@ -755,7 +755,7 @@ fn if_with_expression_generator_test() {
         "
         PROGRAM prg 
         VAR
-            x : INT;
+            x : DINT;
             b1 : BOOL;
         END_VAR
         IF (x > 1) OR b1 THEN
@@ -792,7 +792,7 @@ fn for_statement_with_steps_test() {
         "
         PROGRAM prg 
         VAR
-            x : INT;
+            x : DINT;
         END_VAR
         FOR x := 3 TO 10 BY 7 DO 
             x;
@@ -833,7 +833,7 @@ fn for_statement_without_steps_test() {
         "
         PROGRAM prg 
         VAR
-            x : INT;
+            x : DINT;
         END_VAR
         FOR x := 3 TO 10 DO 
             x;
@@ -873,7 +873,7 @@ fn for_statement_continue() {
         "
         PROGRAM prg 
         VAR
-            x : INT;
+            x : DINT;
         END_VAR
         FOR x := 3 TO 10 DO 
         END_FOR
@@ -913,10 +913,10 @@ fn for_statement_with_references_steps_test() {
         "
         PROGRAM prg 
         VAR
-            step: INT;
-            x : INT;
-            y : INT;
-            z : INT;
+            step: DINT;
+            x : DINT;
+            y : DINT;
+            z : DINT;
         END_VAR
         FOR x := y TO z BY step DO 
             x;
@@ -1072,8 +1072,8 @@ fn simple_case_statement() {
         "
         PROGRAM prg 
         VAR
-            x : INT;
-            y : INT;
+            x : DINT;
+            y : DINT;
         END_VAR
         CASE x OF
         1: y := 1;
@@ -1124,13 +1124,13 @@ continue:                                         ; preds = %else, %case2, %case
 fn function_called_in_program() {
     let result = codegen!(
         "
-        FUNCTION foo : INT
+        FUNCTION foo : DINT
         foo := 1;
         END_FUNCTION
 
         PROGRAM prg 
         VAR
-            x : INT;
+            x : DINT;
         END_VAR
         x := foo();
         END_PROGRAM
@@ -1170,16 +1170,16 @@ entry:
 fn function_with_parameters_called_in_program() {
     let result = codegen!(
         "
-        FUNCTION foo : INT
+        FUNCTION foo : DINT
         VAR_INPUT
-          bar : INT;
+          bar : DINT;
         END_VAR
         foo := 1;
         END_FUNCTION
 
         PROGRAM prg 
         VAR
-        x : INT;
+        x : DINT;
         END_VAR
         x := foo(2);
         END_PROGRAM
@@ -1222,9 +1222,9 @@ entry:
 fn function_with_two_parameters_called_in_program() {
     let result = codegen!(
         "
-        FUNCTION foo : INT
+        FUNCTION foo : DINT
         VAR_INPUT
-          bar : INT;
+          bar : DINT;
           buz : BOOL;
         END_VAR
         foo := 1;
@@ -1232,7 +1232,7 @@ fn function_with_two_parameters_called_in_program() {
 
         PROGRAM prg 
         VAR
-        x : INT;
+        x : DINT;
         END_VAR
         x := foo(2, TRUE);
         END_PROGRAM
@@ -1319,7 +1319,7 @@ fn program_with_two_parameters_called_in_program() {
         "
         PROGRAM foo 
         VAR_INPUT
-          bar : INT;
+          bar : DINT;
           buz : BOOL;
         END_VAR
         END_PROGRAM
@@ -1364,7 +1364,7 @@ fn program_with_two_explicit_parameters_called_in_program() {
         "
         PROGRAM foo 
         VAR_INPUT
-          bar : INT;
+          bar : DINT;
           buz : BOOL;
         END_VAR
         END_PROGRAM
@@ -1407,13 +1407,13 @@ entry:
 fn function_called_when_shadowed() {
   let result = codegen!(
         "
-        FUNCTION foo : INT
+        FUNCTION foo : DINT
         foo := 1;
         END_FUNCTION
 
         PROGRAM prg 
         VAR
-            foo : INT;
+            foo : DINT;
         END_VAR
         foo := foo();
         END_PROGRAM
@@ -1495,19 +1495,19 @@ fn reference_qualified_name() {
         "
         FUNCTION_BLOCK fb
         VAR_INPUT
-          x :INT;
+          x :DINT;
         END_VAR
         END_FUNCTION_BLOCK
         PROGRAM foo
         VAR_INPUT
-            x : INT;
-            y : INT;
+            x : DINT;
+            y : DINT;
             baz : fb;
         END_VAR
         END_PROGRAM
         PROGRAM prg 
         VAR
-            x : INT;
+            x : DINT;
         END_VAR
             x := foo.x;
             x := foo.y;
@@ -1561,8 +1561,8 @@ fn structs_are_generated() {
   let result = codegen!(
         "
         TYPE MyStruct: STRUCT
-          a: INT;
-          b: INT;
+          a: DINT;
+          b: DINT;
         END_STRUCT
         END_TYPE
 
@@ -1616,8 +1616,8 @@ fn inline_structs_are_generated() {
         
         VAR_GLOBAL
          x: STRUCT
-              a: INT;
-              b: INT;
+              a: DINT;
+              b: DINT;
             END_STRUCT
         END_VAR
         "
@@ -1682,17 +1682,17 @@ source_filename = "main"
 
 @bool_1 = common global i1 false
 @byte_2 = common global i8 0
-@sint_3 = common global i16 0
-@usint_4 = common global i16 0
-@word_5 = common global i32 0
-@int_6 = common global i32 0
-@uint_7 = common global i32 0
-@dword_8 = common global i64 0
-@dint_9 = common global i64 0
-@udint_10 = common global i64 0
-@lword_11 = common global i128 0
-@lint_12 = common global i128 0
-@ulint_13 = common global i128 0
+@sint_3 = common global i8 0
+@usint_4 = common global i8 0
+@word_5 = common global i16 0
+@int_6 = common global i16 0
+@uint_7 = common global i16 0
+@dword_8 = common global i32 0
+@dint_9 = common global i32 0
+@udint_10 = common global i32 0
+@lword_11 = common global i64 0
+@lint_12 = common global i64 0
+@ulint_13 = common global i64 0
 "#;
 
     assert_eq!(result, expected);
