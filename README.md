@@ -7,10 +7,10 @@ Structured text compiler written in Rust
 
 ```
                     IR-CodeGen
-     Project        Programs             Global
-     start          Expressions          Variables
-       |              |                    |
-       |              |                    |
+     Project        Programs             Global           IEC61131 numeric types
+     start          Expressions          Variables     
+       |              |                    |                   |
+       |              |                    |                   |
 ----I-------------I-------------I-------------I-------------I-------------I-------------I----
  nov-'19       jan-'20       mar-'20       may-'20      june-'20       sep-'20       nov-'20  
 ----I-------------I-------------I-------------I-------------I-------------I-------------I----
@@ -33,7 +33,8 @@ Structured text compiler written in Rust
 - :x: Action
 
 ## Datatypes
-- :x: IEC 61131-3 types
+- :heavy_check_mark: IEC 61131-3 numeric types
+- :x: Strings
 - :heavy_check_mark: Struct types
 - :heavy_check_mark: Enum types
 - :x: Alias types

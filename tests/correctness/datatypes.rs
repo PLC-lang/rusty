@@ -584,115 +584,99 @@ fn udint_addition(){
 //             byte_1  := 1 + 300;
 //             byte_2  := 300 + sint_1;
 //             byte_3  := 255 + bool_2;
+//     assert_eq!(45,maintype.byte_1);
+//     assert_eq!(94,maintype.byte_2);
+//     assert_eq!(254,maintype.byte_3); //overflow
 
 //             int_1 := 10;
 //             sint_1  := byte_1 + 5000;
 //             sint_2  := int_1 + 2;
 //             sint_3  := 65599 - 10;
+//     assert_eq!(5045, maintype.sint_1);
+//     assert_eq!(12, maintype.sint_2);
+//     assert_eq!(53, maintype.sint_3); //Overflow
             
 //             usint_1  := sint_1 + 5000;
 //             usint_2  := int_1 + 2;
 //             usint_3  := 65599 - 10;
-
+//     assert_eq!(10045, maintype.usint_1);
+//     assert_eq!(12, maintype.usint_2);
+//     assert_eq!(53, maintype.usint_3); //Overflow
             
 //             dword_1 := 4294967295; 
 //             word_1  := usint_1 + 1;
 //             word_2  := dword_1 + 10;
+//     assert_eq!(10046,maintype.word_1);
+//     assert_eq!(9,maintype.word_2);
             
 //             int_1   := 0 + 10;
 //             int_2   := 2147483648 - 10;
 //             int_3   := 2147483647 + 10;
+//     assert_eq!(10,maintype.int_1);
+//     assert_eq!(2147483638,maintype.int_2);
+//     assert_eq!(-2147483639,maintype.int_3); //overflow
 
 //             uint_1  := 0 + 1;
 //             uint_2  := 4294967296 - 10;
 //             uint_3  := 4294967296 + 10;
+//     assert_eq!(1,maintype.uint_1);
+//     assert_eq!(4294967286,maintype.uint_2);
+//     assert_eq!(10,maintype.uint_3); //overflow
            
 //             dint_1 := -10;
 //             lword_1 := 5;
 //             dword_1 := uint_1 + 10;
 //             dword_2 := dint_1 + 10;
 //             dword_3 := lword_1 + 10;
+//     assert_eq!(11,maintype.dword_1);
+//     assert_eq!(0,maintype.dword_2);
+//     assert_eq!(15,maintype.dword_3);
            
 //             udint_1 := 5;
 //             dint_1  := int_1 + 10;
 //             dint_2  := udint_1 + 10;
 //             dint_3  := lword_1 + 10;
+//     assert_eq!(20,maintype.dint_1);
+//     assert_eq!(15,maintype.dint_2);
+//     assert_eq!(15,maintype.dint_3);
             
 //             udint_1 := sint_1 + 10;
 //             udint_2 := dint_1 + 10;
 //             udint_3 := lword_1 + 10;
+//     assert_eq!(5055,maintype.udint_1);
+//     assert_eq!(30,maintype.udint_2);
+//     assert_eq!(15,maintype.udint_3);
            
 //             lint_1 := 1234;
 //             lword_1 := udint_1 + 10;
 //             lword_2 := sint_1 + 10;
 //             lword_3 := lint_1 + 10;
+//     assert_eq!(5065,maintype.lword_1);
+//     assert_eq!(5055,maintype.lword_2);
+//     assert_eq!(1244,maintype.lword_3);
 
 //             lint_1  := udint_1 + 10;
 //             lint_2  := int_1 + 10;
 //             lint_3  := lword_1 + 10;
+//     assert_eq!(5065,maintype.lint_1);
+//     assert_eq!(20,maintype.lint_2);
+//     assert_eq!(5075,maintype.lint_3);
             
 //             ulint_1 := udint_1 + 10;
 //             ulint_2 := lint_1 + 10;
 //             ulint_3 := sint_1 + 10;
-
+//     assert_eq!(5065,maintype.ulint_1);
+//     assert_eq!(5075,maintype.ulint_2);
+//     assert_eq!(5055,maintype.ulint_3);
 
 //         END_PROGRAM
 //         ";
 
 //     let mut maintype = new();
-
 //     compile_and_run(function.to_string(), &mut maintype);
 //     assert_eq!(false, maintype.bool_1);
 //     assert_eq!(true, maintype.bool_2);
 //     assert_eq!(false, maintype.bool_3); //Overflow
-    
-//     assert_eq!(45,maintype.byte_1);
-//     assert_eq!(94,maintype.byte_2);
-//     assert_eq!(254,maintype.byte_3); //overflow
-    
-//     assert_eq!(5045, maintype.sint_1);
-//     assert_eq!(12, maintype.sint_2);
-//     assert_eq!(53, maintype.sint_3); //Overflow
-    
-//     assert_eq!(10045, maintype.usint_1);
-//     assert_eq!(12, maintype.usint_2);
-//     assert_eq!(53, maintype.usint_3); //Overflow
-    
-//     assert_eq!(10046,maintype.word_1);
-//     assert_eq!(9,maintype.word_2);
-    
-//     assert_eq!(10,maintype.int_1);
-//     assert_eq!(2147483638,maintype.int_2);
-//     assert_eq!(-2147483639,maintype.int_3); //overflow
-    
-//     assert_eq!(1,maintype.uint_1);
-//     assert_eq!(4294967286,maintype.uint_2);
-//     assert_eq!(10,maintype.uint_3); //overflow
-    
-//     assert_eq!(11,maintype.dword_1);
-//     assert_eq!(0,maintype.dword_2);
-//     assert_eq!(15,maintype.dword_3);
-    
-//     assert_eq!(20,maintype.dint_1);
-//     assert_eq!(15,maintype.dint_2);
-//     assert_eq!(15,maintype.dint_3);
-    
-//     assert_eq!(5055,maintype.udint_1);
-//     assert_eq!(30,maintype.udint_2);
-//     assert_eq!(15,maintype.udint_3);
-
-//     assert_eq!(5065,maintype.lword_1);
-//     assert_eq!(5055,maintype.lword_2);
-//     assert_eq!(1244,maintype.lword_3);
-    
-//     assert_eq!(5065,maintype.lint_1);
-//     assert_eq!(20,maintype.lint_2);
-//     assert_eq!(5075,maintype.lint_3);
-
-//     assert_eq!(5065,maintype.ulint_1);
-//     assert_eq!(5075,maintype.ulint_2);
-//     assert_eq!(5055,maintype.ulint_3);
-    
 // }
 
 #[test]
