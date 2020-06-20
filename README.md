@@ -8,7 +8,7 @@ Structured text compiler written in Rust
 ```
                     IR-CodeGen
      Project        Programs             Global           IEC61131 numeric types
-     start          Expressions          Variables     
+     start          Expressions          Variables					STRINGS 
        |              |                    |                   |
        |              |                    |                   |
 ----I-------------I-------------I-------------I-------------I-------------I-------------I----
@@ -34,11 +34,12 @@ Structured text compiler written in Rust
 
 ## Datatypes
 - :heavy_check_mark: IEC 61131-3 numeric types
-- :x: Strings
+- :heavy_check_mark: Strings
 - :heavy_check_mark: Struct types
 - :heavy_check_mark: Enum types
 - :x: Alias types
 - :x: Sub-ranges types
+- :x: Sized String types
 - :x: Array data types
 - :x: Initial values
 

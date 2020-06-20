@@ -120,6 +120,9 @@ pub enum Statement {
     LiteralBool {
         value: bool,
     },
+    LiteralString {
+        value: String,
+    },
     // Expressions
     Reference {
         elements : Vec<String>,

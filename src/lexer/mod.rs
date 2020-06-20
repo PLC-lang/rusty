@@ -1,205 +1,242 @@
 use logos::Lexer;
 use logos::Logos;
+use core::ops::Range;
 
 #[cfg(test)]
 mod tests;
 
+pub struct RustyLexer<'a> {
+    lexer: Lexer<'a, Token>,
+    pub token: Token,
+}
+
+impl<'a> RustyLexer<'a> {
+
+    pub fn new(l: Lexer<'a, Token>) -> RustyLexer<'a> {
+        let mut lexer = RustyLexer{
+            lexer: l,
+            token: Token::KeywordBy,
+        };
+        lexer.advance();
+        lexer
+    }    
+
+    pub fn advance(&mut self) {
+        self.token = self.lexer.next().unwrap_or(Token::End);
+    }
+
+    pub fn slice(&self) -> &str {
+        self.lexer.slice()
+    }
+
+    pub fn range(&self) -> Range<usize>{
+        self.lexer.span()
+    }
+}
+
+
+
 #[derive(Debug, PartialEq, Logos)]
 pub enum Token {
-    #[end]
-    End,
     #[error]
     Error,
+    
 
-    #[token = "PROGRAM"]
+    #[token("PROGRAM")]
     KeywordProgram,
 
-    #[token = "VAR_INPUT"]
+    #[token("VAR_INPUT")]
     KeywordVarInput,
     
-    #[token = "VAR"]
+    #[token("VAR")]
     KeywordVar,
 
-    #[token = "VAR_GLOBAL"]
+    #[token("VAR_GLOBAL")]
     KeywordVarGlobal, 
 
-    #[token = "END_VAR"]
+    #[token("END_VAR")]
     KeywordEndVar,
 
-    #[token = "END_PROGRAM"]
+    #[token("END_PROGRAM")]
     KeywordEndProgram,
 
-    #[token = "FUNCTION"]
+    #[token("FUNCTION")]
     KeywordFunction,
 
-    #[token = "END_FUNCTION"]
+    #[token("END_FUNCTION")]
     KeywordEndFunction,
  
-    #[token = "FUNCTION_BLOCK"]
+    #[token("FUNCTION_BLOCK")]
     KeywordFunctionBlock,
 
-    #[token = "END_FUNCTION_BLOCK"]
+    #[token("END_FUNCTION_BLOCK")]
     KeywordEndFunctionBlock,
 
-    #[token = "TYPE"]
+    #[token("TYPE")]
     KeywordType,
 
-    #[token = "STRUCT"]
+    #[token("STRUCT")]
     KeywordStruct,
 
-    #[token = "END_TYPE"]
+    #[token("END_TYPE")]
     KeywordEndType,
 
-    #[token = "END_STRUCT"]
+    #[token("END_STRUCT")]
     KeywordEndStruct,
 
-    #[token = ":"]
+    #[token(":")]
     KeywordColon,
 
-    #[token = ";"]
+    #[token(";")]
     KeywordSemicolon,
 
-    #[token = ":="]
+    #[token(":=")]
     KeywordAssignment,
 
-    #[token = "("]
+    #[token("(")]
     KeywordParensOpen,
 
-    #[token = ")"]
+    #[token(")")]
     KeywordParensClose,
 
-    #[token = ","] 
+    #[token(",")] 
     KeywordComma,
 
-    #[token = ".."]
+    #[token("..")]
     KeywordDotDot,
 
-    #[token ="."]
+    #[token(".")]
     KeywordDot,
 
     //Control Structures
-    #[token = "IF"]
+    #[token("IF")]
     KeywordIf,
 
-    #[token = "THEN"]
+    #[token("THEN")]
     KeywordThen,
 
-    #[token = "ELSIF"]
+    #[token("ELSIF")]
     KeywordElseIf,
 
-    #[token = "ELSE"]
+    #[token("ELSE")]
     KeywordElse,
 
-    #[token = "END_IF"]
+    #[token("END_IF")]
     KeywordEndIf,
 
-    #[token = "FOR"]
+    #[token("FOR")]
     KeywordFor,
     
-    #[token = "TO"]
+    #[token("TO")]
     KeywordTo,
 
-    #[token = "BY"]
+    #[token("BY")]
     KeywordBy,
  
-    #[token = "DO"]
+    #[token("DO")]
     KeywordDo,
  
-    #[token = "END_FOR"]
+    #[token("END_FOR")]
     KeywordEndFor,
 
-    #[token = "WHILE"]
+    #[token("WHILE")]
     KeywordWhile,
 
-    #[token = "END_WHILE"]
+    #[token("END_WHILE")]
     KeywordEndWhile,
 
-    #[token = "REPEAT"]
+    #[token("REPEAT")]
     KeywordRepeat,
 
-    #[token = "UNTIL"]
+    #[token("UNTIL")]
     KeywordUntil,
 
-    #[token = "END_REPEAT"]
+    #[token("END_REPEAT")]
     KeywordEndRepeat,
 
-    #[token = "CASE"]
+    #[token("CASE")]
     KeywordCase,
     
-    #[token = "OF"]
+    #[token("OF")]
     KeywordOf,
     
-    #[token = "END_CASE"]
+    #[token("END_CASE")]
     KeywordEndCase,
 
     //Operators
-    #[token = "+"]
+    #[token("+")]
     OperatorPlus,
 
-    #[token = "-"]
+    #[token("-")]
     OperatorMinus,
 
-    #[token = "*"]
+    #[token("*")]
     OperatorMultiplication,
 
-    #[token = "/"]
+    #[token("/")]
     OperatorDivision,
 
-    #[token = "="]
+    #[token("=")]
     OperatorEqual,
 
-    #[token = "<>"]
+    #[token("<>")]
     OperatorNotEqual,
 
-    #[token = "<"]
+    #[token("<")]
     OperatorLess,
 
-    #[token = ">"]
+    #[token(">")]
     OperatorGreater,
 
-    #[token = "<="]
+    #[token("<=")]
     OperatorLessOrEqual,
 
-    #[token = ">="]
+    #[token(">=")]
     OperatorGreaterOrEqual,
 
-    #[token = "MOD"]
+    #[token("MOD")]
     OperatorModulo,
 
-    #[token = "AND"]
+    #[token("AND")]
     OperatorAnd,
 
-    #[token = "OR"]
+    #[token("OR")]
     OperatorOr,
 
-    #[token = "XOR"]
+    #[token("XOR")]
     OperatorXor,
 
-    #[token = "NOT"]
+    #[token("NOT")]
     OperatorNot,
 
     //Identifiers
 
-    #[regex = r"[a-zA-Z_][a-zA-Z_0-9]*"]
+    #[regex (r"[a-zA-Z_][a-zA-Z_0-9]*")]
     Identifier,
 
     //Literals
 
-    #[regex = r"[0-9]+"]
+    #[regex (r"[0-9]+")]
     LiteralInteger,
 
-    #[regex = "[eE][+-]?[0-9]+"]
+    #[regex ("[eE][+-]?[0-9]+")]
     LiteralExponent,
 
-    #[token = "TRUE"]
+    #[token("TRUE")]
     LiteralTrue,
 
-    #[token = "FALSE"]
+    #[token("FALSE")]
     LiteralFalse,
 
+    #[regex ("'((\\$.)|[^$'])*'")]
+    LiteralString,
+
+    #[regex(r"[ \t\n\f]+", logos::skip)]
+    End,
 }
 
-pub fn lex(source: &str) -> Lexer<Token, &str> {
-    Token::lexer(source)
+
+pub fn lex(source: &str) -> RustyLexer {
+    RustyLexer::new(Token::lexer(source))
 }
 

@@ -311,4 +311,21 @@ fn struct_enum_datatype() {
     lexer.advance();
     assert_eq!(lexer.token, super::Token::KeywordEndType);
 }
+
+#[test]
+fn string_parsing() {
+    let mut lexer = super::lex(
+        r"'AB C' 'AB$$' 'AB$''"
+    );
+
+    assert_eq!(lexer.token, super::Token::LiteralString);
+    assert_eq!("'AB C'",lexer.slice());
+    lexer.advance();
+    assert_eq!(lexer.token, super::Token::LiteralString);
+    assert_eq!("'AB$$'",lexer.slice());
+    lexer.advance();
+    assert_eq!(lexer.token, super::Token::LiteralString);
+    assert_eq!("'AB$''",lexer.slice());
+    lexer.advance();
+}
     

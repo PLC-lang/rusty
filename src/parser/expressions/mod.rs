@@ -207,6 +207,7 @@ fn parse_leaf_expression(lexer: &mut RustyLexer) -> Result<Statement, String> {
     let current = match lexer.token {
         Identifier => parse_reference(lexer),
         LiteralInteger => parse_literal_number(lexer),
+        LiteralString => parse_literal_string(lexer), 
         LiteralTrue => parse_bool_literal(lexer, true),
         LiteralFalse => parse_bool_literal(lexer, false),
         _ => Err(unexpected_token(lexer)),
@@ -262,6 +263,17 @@ fn parse_literal_number(lexer: &mut RustyLexer) -> Result<Statement, String> {
     }
 
     Ok(Statement::LiteralInteger { value: result })
+}
+
+fn trim_quotes<'a>(quoted_string : &str) -> String {
+    quoted_string[1..quoted_string.len()-1].to_string()
+}
+
+fn parse_literal_string(lexer: &mut RustyLexer) -> Result<Statement, String> {
+    let result = lexer.slice();
+    let string_literal = Ok(Statement::LiteralString { value: trim_quotes(result)});
+    lexer.advance();
+    string_literal
 }
 
 fn parse_literal_real(lexer: &mut RustyLexer, integer: String) -> Result<Statement, String> {

@@ -118,7 +118,11 @@ impl<'ctx> CodeGen<'ctx> {
     fn get_type(&self, data_type: &DataTypeDeclaration) -> Option<BasicTypeEnum<'ctx>> {
         data_type
             .get_name()
-            .and_then(|name| self.index.find_type(name).map(|it| it.get_type()).flatten())
+            .and_then(|name| 
+                self.index.find_type(name).map(|it| 
+                    it.get_type()
+                ).flatten()
+            )
     }
 
     fn generate_data_types(&self, data_types: &Vec<DataType>) {
@@ -151,6 +155,9 @@ impl<'ctx> CodeGen<'ctx> {
         if let Some(enum_type) = enum_type {
             if enum_type.is_int_type() {
                 return enum_type.into_int_type().fn_type(parameters, false);
+            }
+            if enum_type.is_array_type() {
+                return enum_type.into_array_type().fn_type(parameters,false);
             }
         }
         self.context.void_type().fn_type(parameters, false)
@@ -352,6 +359,7 @@ impl<'ctx> CodeGen<'ctx> {
             Statement::LiteralInteger { value } => self.generate_literal_integer(value.as_str()),
             Statement::LiteralReal { value } => self.generate_literal_real(value.as_str()),
             Statement::LiteralBool { value } => self.generate_literal_boolean(*value),
+            Statement::LiteralString { value } => self.generate_literal_string(value.as_bytes()),
             Statement::Reference { elements } => self.generate_variable_reference(&elements),
             Statement::Assignment { left, right } => {
                 (None, self.generate_assignment(&left, &right))
@@ -716,11 +724,11 @@ impl<'ctx> CodeGen<'ctx> {
         match &**parameters {
             Some(Statement::ExpressionList { expressions }) => {
                 for (index, exp) in expressions.iter().enumerate() {
-                    self.generate_single_parameter(exp, function_name, index as u32, variable);
+                    self.generate_single_parameter(exp, function_name, None, index as u32, variable);
                 }
             }
             Some(statement) => {
-                self.generate_single_parameter(statement, function_name, 0, variable)
+                self.generate_single_parameter(statement, function_name, None, 0, variable)
             }
             None => {}
         }
@@ -730,30 +738,37 @@ impl<'ctx> CodeGen<'ctx> {
         &self,
         statement: &Statement,
         function_name: &str,
+        parameter_type : Option<&DataTypeIndexEntry<'ctx>>,
         index: u32,
         pointer_value: PointerValue<'ctx>,
     ) {
         match statement {
             Statement::Assignment { left, right } => {
                 if let Statement::Reference { elements } = &**left {
-                    let index = self
+                    let parameter = self
                         .index
                         .find_member(function_name, &elements.join("."))
-                        .unwrap()
+                        .unwrap();
+                    let index = parameter
                         .get_location_in_parent()
                         .unwrap();
-                    self.generate_single_parameter(right, function_name, index, pointer_value);
+                    let param_type = self.index.find_type(parameter.get_type_name());
+                    self.generate_single_parameter(right, function_name, param_type, index, pointer_value);
+
                 }
             }
             _ => {
-                let (_data_type, generated_exp) = self.generate_statement(statement);
-                let pointer_to_param = self
-                    .builder
-                    .build_struct_gep(pointer_value, index as u32, "")
-                    .unwrap();
-                //TODO : Expand /  truncate the variable to fit the parameter
-                self.builder
-                    .build_store(pointer_to_param, generated_exp.unwrap());
+                if let (Some(value_type), Some(generated_exp)) = self.generate_statement(statement) {
+                    let pointer_to_param = self
+                        .builder
+                        .build_struct_gep(pointer_value, index as u32, "")
+                        .unwrap();
+                    let parameter = parameter_type.or_else(|| 
+                        self.index.find_input_parameter(function_name, index as u32).and_then(|var| self.index.find_type(var.get_type_name()))).and_then(|var| var.get_type_information()).unwrap();
+                    let value = self.cast_if_needed(parameter, generated_exp, &value_type);
+                    self.builder
+                        .build_store(pointer_to_param, value.unwrap());
+                }
             }
         }
     }
@@ -830,10 +845,9 @@ impl<'ctx> CodeGen<'ctx> {
             if let (Some(left_type), Some(left_expr)) = self.generate_lvalue_for_reference(elements)
             {
                 if let (Some(right_type), Some(right_res)) = self.generate_statement(right) {
-                    let rvalue = self
-                        .cast_if_needed(&left_type, right_res, &right_type)
-                        .unwrap();
-                    self.builder.build_store(left_expr, rvalue);
+                    let value = self
+                        .cast_if_needed(&left_type, right_res, &right_type).unwrap();
+                    self.builder.build_store(left_expr, value);
                 }
             }
         }
@@ -859,6 +873,14 @@ impl<'ctx> CodeGen<'ctx> {
         let value = itype.const_int(value as u64, false);
         let data_type = self.index.find_type_information("BOOL");
         (data_type, Some(BasicValueEnum::IntValue(value)))
+    }
+    
+    fn generate_literal_string(&self, value: &[u8]) -> ExpressionValue<'ctx> {
+        let exp_value = self.context.const_string(value , true);
+        (
+            Some(self.new_string_information(value.len() as u32)), 
+            Some(exp_value.into())
+        )
     }
 
     fn generate_binary_expression(

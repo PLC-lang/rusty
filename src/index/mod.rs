@@ -24,6 +24,10 @@ pub enum DataTypeInformation<'ctx> {
         size: u32,
         generated_type: BasicTypeEnum<'ctx>,
     },
+    String {
+        size: u32,
+        generated_type: BasicTypeEnum<'ctx>,
+    }, 
 }
 
 impl<'ctx> DataTypeInformation<'ctx> {
@@ -54,6 +58,7 @@ impl<'ctx> DataTypeInformation<'ctx> {
         match self {
             DataTypeInformation::Integer { generated_type, .. } => *generated_type,
             DataTypeInformation::Float { generated_type, .. } => *generated_type,
+            DataTypeInformation::String { generated_type, .. } => *generated_type,
             DataTypeInformation::Struct { generated_type, .. } => *generated_type,
         }
     }
@@ -62,6 +67,7 @@ impl<'ctx> DataTypeInformation<'ctx> {
         match self {
             DataTypeInformation::Integer { size, .. } => *size,
             DataTypeInformation::Float { size, .. } => *size,
+            DataTypeInformation::String { size, .. } => *size,
             DataTypeInformation::Struct { .. } => 0,
         }
     }
@@ -206,6 +212,11 @@ impl<'ctx> Index<'ctx> {
         self.local_variables
             .get(pou_name)
             .and_then(|map| map.get(variable_name))
+    }
+
+    pub fn find_input_parameter(&self, pou_name : &str, index : u32) -> Option<&VariableIndexEntry<'ctx>> {
+        self.local_variables.get(pou_name)
+            .and_then(|map| map.values().filter(|item| item.information.variable_type == VariableType::Input).find(|item| item.information.location.unwrap() == index))
     }
 
     //                                     none                 ["myGlobal", "a", "b"]

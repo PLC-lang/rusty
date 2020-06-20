@@ -152,6 +152,24 @@ impl<'ctx> CodeGen<'ctx> {
                 generated_type: c.f64_type().as_basic_type_enum(),
             },
         );
+        self.index.register_type("STRING".to_string());
+        self.index.associate_type(
+            "STRING",
+            DataTypeInformation::String {
+                size: 81,
+                generated_type: c.i8_type().array_type(81).as_basic_type_enum(),
+            },
+        );
+    }
+
+    pub fn new_string_information(
+        &self,
+        len : u32
+    ) -> DataTypeInformation<'ctx> {
+        DataTypeInformation::String {
+            size: len + 1,
+            generated_type: self.context.i8_type().array_type(len+1).as_basic_type_enum(),        
+        }
     }
 
     pub fn cast_if_needed(
@@ -159,8 +177,8 @@ impl<'ctx> CodeGen<'ctx> {
         target_type: &DataTypeInformation<'ctx>,
         value: BasicValueEnum<'ctx>,
         value_type: &DataTypeInformation<'ctx>,
-    ) -> Option<BasicValueEnum<'ctx>> {
-        match target_type {
+    ) -> Option<BasicValueEnum<'ctx>>{
+       match target_type {
             DataTypeInformation::Integer {
                 signed,
                 size: lsize,
@@ -243,6 +261,27 @@ impl<'ctx> CodeGen<'ctx> {
                 DataTypeInformation::Float { .. } => Some(value),
                 _ => None,
             },
+            DataTypeInformation::String {size, ..} => match value_type {
+                DataTypeInformation::String {size: value_size, ..} => {
+                    if size < value_size {
+                        //if we are on a vector replace it
+                        if value.is_vector_value() {
+                            let vec_value = value.into_vector_value();
+                            let string_value = vec_value.get_string_constant().to_bytes();
+                            let new_value= &string_value[0..(*size -1) as usize];
+
+                            let (_,value) = self.generate_literal_string(new_value);
+                            value
+                        }
+                        else {
+                            None
+                        }
+                    } else {
+                        Some(value)
+                    }
+                },
+                _ => None, 
+            } ,
             _ => Some(value),
         }
     }

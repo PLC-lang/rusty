@@ -1,3 +1,4 @@
+use std::str;
 use super::super::*;
 #[allow(dead_code)]
 #[repr(C)]
@@ -531,154 +532,6 @@ fn udint_addition(){
     assert_eq!(9, maintype.byte_3); //Overflow
 }
 
-// #[test]
-// fn mixed_type_addition() {
-//     let function = r"
-//         PROGRAM main
-//         VAR
-//             bool_1   : BOOL;
-//             bool_2   : BOOL;
-//             bool_3   : BOOL;
-//             byte_1   : BYTE;
-//             byte_2   : BYTE;
-//             byte_3   : BYTE;
-//             sint_1   : SINT;
-//             sint_2   : SINT;
-//             sint_3   : SINT;
-//             usint_1  : USINT;
-//             usint_2  : USINT;
-//             usint_3  : USINT;
-//             word_1   : WORD;
-//             word_2   : WORD;
-//             word_3   : WORD;
-//             int_1    : INT;
-//             int_2    : INT;
-//             int_3    : INT;
-//             uint_1   : UINT;
-//             uint_2   : UINT;
-//             uint_3   : UINT;
-//             dword_1  : DWORD;
-//             dword_2  : DWORD;
-//             dword_3  : DWORD;
-//             dint_1   : DINT;
-//             dint_2   : DINT;
-//             dint_3   : DINT;
-//             udint_1 : UDINT;
-//             udint_2 : UDINT;
-//             udint_3 : UDINT;
-//             lword_1 : LWORD;
-//             lword_2 : LWORD;
-//             lword_3 : LWORD;
-//             lint_1  : LINT;
-//             lint_2  : LINT;
-//             lint_3  : LINT;
-//             ulint_1 : ULINT;
-//             ulint_2 : ULINT;
-//             ulint_3 : ULINT;
-//         END_VAR
-//             bool_1  := 0 + 0;
-//             bool_2  := 10 + 1;
-//             bool_3  := 1 + TRUE;
-            
-//             sint_1  := 50;
-//             byte_1  := 1 + 300;
-//             byte_2  := 300 + sint_1;
-//             byte_3  := 255 + bool_2;
-//     assert_eq!(45,maintype.byte_1);
-//     assert_eq!(94,maintype.byte_2);
-//     assert_eq!(254,maintype.byte_3); //overflow
-
-//             int_1 := 10;
-//             sint_1  := byte_1 + 5000;
-//             sint_2  := int_1 + 2;
-//             sint_3  := 65599 - 10;
-//     assert_eq!(5045, maintype.sint_1);
-//     assert_eq!(12, maintype.sint_2);
-//     assert_eq!(53, maintype.sint_3); //Overflow
-            
-//             usint_1  := sint_1 + 5000;
-//             usint_2  := int_1 + 2;
-//             usint_3  := 65599 - 10;
-//     assert_eq!(10045, maintype.usint_1);
-//     assert_eq!(12, maintype.usint_2);
-//     assert_eq!(53, maintype.usint_3); //Overflow
-            
-//             dword_1 := 4294967295; 
-//             word_1  := usint_1 + 1;
-//             word_2  := dword_1 + 10;
-//     assert_eq!(10046,maintype.word_1);
-//     assert_eq!(9,maintype.word_2);
-            
-//             int_1   := 0 + 10;
-//             int_2   := 2147483648 - 10;
-//             int_3   := 2147483647 + 10;
-//     assert_eq!(10,maintype.int_1);
-//     assert_eq!(2147483638,maintype.int_2);
-//     assert_eq!(-2147483639,maintype.int_3); //overflow
-
-//             uint_1  := 0 + 1;
-//             uint_2  := 4294967296 - 10;
-//             uint_3  := 4294967296 + 10;
-//     assert_eq!(1,maintype.uint_1);
-//     assert_eq!(4294967286,maintype.uint_2);
-//     assert_eq!(10,maintype.uint_3); //overflow
-           
-//             dint_1 := -10;
-//             lword_1 := 5;
-//             dword_1 := uint_1 + 10;
-//             dword_2 := dint_1 + 10;
-//             dword_3 := lword_1 + 10;
-//     assert_eq!(11,maintype.dword_1);
-//     assert_eq!(0,maintype.dword_2);
-//     assert_eq!(15,maintype.dword_3);
-           
-//             udint_1 := 5;
-//             dint_1  := int_1 + 10;
-//             dint_2  := udint_1 + 10;
-//             dint_3  := lword_1 + 10;
-//     assert_eq!(20,maintype.dint_1);
-//     assert_eq!(15,maintype.dint_2);
-//     assert_eq!(15,maintype.dint_3);
-            
-//             udint_1 := sint_1 + 10;
-//             udint_2 := dint_1 + 10;
-//             udint_3 := lword_1 + 10;
-//     assert_eq!(5055,maintype.udint_1);
-//     assert_eq!(30,maintype.udint_2);
-//     assert_eq!(15,maintype.udint_3);
-           
-//             lint_1 := 1234;
-//             lword_1 := udint_1 + 10;
-//             lword_2 := sint_1 + 10;
-//             lword_3 := lint_1 + 10;
-//     assert_eq!(5065,maintype.lword_1);
-//     assert_eq!(5055,maintype.lword_2);
-//     assert_eq!(1244,maintype.lword_3);
-
-//             lint_1  := udint_1 + 10;
-//             lint_2  := int_1 + 10;
-//             lint_3  := lword_1 + 10;
-//     assert_eq!(5065,maintype.lint_1);
-//     assert_eq!(20,maintype.lint_2);
-//     assert_eq!(5075,maintype.lint_3);
-            
-//             ulint_1 := udint_1 + 10;
-//             ulint_2 := lint_1 + 10;
-//             ulint_3 := sint_1 + 10;
-//     assert_eq!(5065,maintype.ulint_1);
-//     assert_eq!(5075,maintype.ulint_2);
-//     assert_eq!(5055,maintype.ulint_3);
-
-//         END_PROGRAM
-//         ";
-
-//     let mut maintype = new();
-//     compile_and_run(function.to_string(), &mut maintype);
-//     assert_eq!(false, maintype.bool_1);
-//     assert_eq!(true, maintype.bool_2);
-//     assert_eq!(false, maintype.bool_3); //Overflow
-// }
-
 #[test]
 fn unsinged_byte_expansion() {
     #[repr(C)]
@@ -793,4 +646,195 @@ fn unsinged_byte_expansion3() {
     let expected : u64 = arg1 + (arg2+arg3)+(arg2+arg3);
     assert_eq!(expected,
                 maintype.result);
+}
+
+
+#[test]
+fn assign_short_string_to_long_string_variable(){
+    #[repr(C)]
+    struct Type {
+        text : [u8; 81],
+        text2 : [u8; 81],
+    }
+
+    let program = r#"
+        PROGRAM main
+        VAR
+            text : STRING;
+            text2 : STRING;
+        END_VAR
+        
+        text := 'abc';
+
+        text2 := 'abcdefg';
+        text2 := 'xyz';
+        
+        END_PROGRAM
+        "#;
+    
+    let mut maintype = Type {
+        text : [0;81],
+        text2 : [0;81],
+    };
+    compile_and_run(program.to_string(), &mut maintype);
+
+    let t : [u8; 81] = maintype.text.into();
+    assert_eq!(t[0] as u8, 'a' as u8);
+    assert_eq!(t[1], 'b' as u8);
+    assert_eq!(t[2], 'c' as  u8);
+    for i in 3..81 {
+        assert_eq!(0,t[i]);
+    }
+
+    let t : [u8; 81] = maintype.text2.into();
+    assert_eq!(t[0] as u8, 'x' as u8);
+    assert_eq!(t[1], 'y' as u8);
+    assert_eq!(t[2], 'z' as  u8);
+    assert_eq!(t[3], 0);
+    assert_eq!(t[4], 'e' as u8);
+    assert_eq!(t[5], 'f' as u8);
+    assert_eq!(t[6], 'g' as u8);
+    for i in 7..81 {
+        assert_eq!(0,t[i]);
+    }
+}
+
+#[test]
+fn assign_string_to_string(){
+    #[repr(C)]
+    struct Type {
+        text : [u8; 81],
+        text2 : [u8; 81],
+    }
+
+    let program = r#"
+        PROGRAM main
+        VAR
+            text : STRING;
+            text2 : STRING;
+        END_VAR
+        
+        text := 'abc';
+
+        text2 := text;
+        text := 'def';
+        
+        END_PROGRAM
+        "#;
+    
+    let mut maintype = Type {
+        text : [0;81],
+        text2 : [0;81],
+    };
+    compile_and_run(program.to_string(), &mut maintype);
+
+    let t : [u8; 81] = maintype.text2.into();
+    assert_eq!(t[0] as u8, 'a' as u8);
+    assert_eq!(t[1], 'b' as u8);
+    assert_eq!(t[2], 'c' as  u8);
+    for i in 3..81 {
+        assert_eq!(0,t[i]);
+    }
+
+    let t : [u8; 81] = maintype.text.into();
+    assert_eq!(t[0] as u8, 'd' as u8);
+    assert_eq!(t[1], 'e' as u8);
+    assert_eq!(t[2], 'f' as  u8);
+    for i in 8..81 {
+        assert_eq!(0,t[i]);
+    }
+}
+
+
+#[test]
+fn assign_long_string_to_short_string_variable(){
+    #[repr(C)]
+    struct Type {
+        text : [u8; 81],
+        text2 : [u8; 81],
+    }
+
+    let program = r#"
+        PROGRAM main
+        VAR
+            text : STRING;
+            text2 : STRING;
+        END_VAR
+        text := 'abcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcbc';
+        END_PROGRAM
+        "#;
+    
+    let mut maintype = Type {
+        text : [0;81],
+        text2 : [0;81],
+    };
+    for (i,b) in "hello".bytes().enumerate() {
+        maintype.text2[i] = b;
+    }
+    compile_and_run(program.to_string(), &mut maintype);
+
+    let t : [u8; 81] = maintype.text.into();
+    for i in (0..75).step_by(3) {
+        assert_eq!(t[i],'a' as u8);
+        assert_eq!(t[i+1],'b' as u8);
+        assert_eq!(t[i+2],'c' as u8);
+    }
+    assert_eq!(t[78],'a' as u8);
+    assert_eq!(t[79],'b' as u8);
+    assert_eq!(t[80],0);
+
+    let text2 = str::from_utf8(&maintype.text2).unwrap();
+    assert_eq!(&text2[0..5],"hello")
+}
+
+#[test]
+fn function_parameters_string() {
+    let program = r#"
+        FUNCTION read_string : STRING
+        VAR_INPUT
+            to_read : STRING;
+        END_VAR
+
+        read_string := to_read;
+        END_FUNCTION
+        PROGRAM main
+        VAR
+            text1 : STRING;
+            text2 : STRING;
+            text3 : STRING;
+        END_VAR
+
+            text1 := read_string('abcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabc');
+            text3 := read_string('hello');
+        END_PROGRAM
+        "#;
+
+    struct Type {
+        text : [u8; 81],
+        text2 : [u8; 81],
+        text3 : [u8; 81],
+    }
+    let mut maintype = Type {
+        text : [0;81],
+        text2 : [0;81],
+        text3 : [0;81],
+    };
+    compile_and_run(program.to_string(), &mut maintype);
+    let t : [u8; 81] = maintype.text.into();
+    for i in (0..75).step_by(3) {
+        assert_eq!(t[i],'a' as u8);
+        assert_eq!(t[i+1],'b' as u8);
+        assert_eq!(t[i+2],'c' as u8);
+    }
+    assert_eq!(t[78],'a' as u8);
+    assert_eq!(t[79],'b' as u8);
+    assert_eq!(t[80],0);
+
+    let t : [u8; 81] = maintype.text2.into();
+    for i in 0..81 {
+        assert_eq!(t[i],0);
+    }
+    let text3 = str::from_utf8(&maintype.text3[0..5]).unwrap();
+    assert_eq!(&text3[0..5],"hello");
+    assert_eq!(maintype.text2[5],0);
 }

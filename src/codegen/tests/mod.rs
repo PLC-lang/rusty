@@ -356,6 +356,37 @@ END_PROGRAM
 
     assert_eq!(result, expected);
 }
+
+#[test]
+fn program_with_string_assignment() {
+    let result = codegen!(
+        r#"PROGRAM prg
+VAR
+y : STRING;
+END_VAR
+y := 'im a genius';
+END_PROGRAM
+"#
+    );
+
+    let expected = r#"; ModuleID = 'main'
+source_filename = "main"
+
+%prg_interface = type { [81 x i8] }
+
+@prg_instance = common global %prg_interface zeroinitializer
+
+define void @prg(%prg_interface* %0) {
+entry:
+  %y = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 0
+  store [12 x i8] c"im a genius\00", [81 x i8]* %y
+  ret void
+}
+"#;
+
+    assert_eq!(result, expected);
+}
+
 #[test]
 fn program_with_real_additions() {
     let result = codegen!(

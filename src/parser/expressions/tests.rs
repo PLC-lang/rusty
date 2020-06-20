@@ -1236,6 +1236,58 @@ fn function_call_params() {
 }
 
 #[test]
+    fn string_can_be_parsed() {
+    let lexer = lexer::lex("PROGRAM buz VAR x : STRING; END_VAR x := 'Hello, World!'; x := ''; END_PROGRAM");
+    let result = parse(lexer).unwrap();
+
+    let prg = &result.units[0];
+    let variable_block = &prg.variable_blocks[0];
+    let ast_string = format!("{:#?}", variable_block);
+    let expected_ast = 
+r#"VariableBlock {
+    variables: [
+        Variable {
+            name: "x",
+            data_type: DataTypeReference {
+                referenced_type: "STRING",
+            },
+        },
+    ],
+    variable_block_type: Local,
+}"#;
+    assert_eq!(ast_string,expected_ast);
+
+    let statements = &prg.statements;
+    let ast_string = format!("{:#?}", statements[0]);
+    let expected_ast = 
+r#"Assignment {
+    left: Reference {
+        elements: [
+            "x",
+        ],
+    },
+    right: LiteralString {
+        value: "Hello, World!",
+    },
+}"#;
+    assert_eq!(ast_string,expected_ast);
+
+    let ast_string = format!("{:#?}", statements[1]);
+    let expected_ast = 
+r#"Assignment {
+    left: Reference {
+        elements: [
+            "x",
+        ],
+    },
+    right: LiteralString {
+        value: "",
+    },
+}"#;
+    assert_eq!(ast_string,expected_ast);
+}
+
+#[test]
 fn function_call_formal_params() {
     let lexer = lexer::lex(
         "
