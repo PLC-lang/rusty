@@ -4,42 +4,79 @@
     // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
-
         {
             "type": "lldb",
             "request": "launch",
-            "name": "Debug executable 'rusty'",
+            "name": "Debug unit tests in library 'rusty'",
             "cargo": {
                 "args": [
-                    "build",
-                    "--bin=rusty",
+                    "test",
+                    "--no-run",
+                    "--lib",
                     "--package=rusty"
                 ],
                 "filter": {
                     "name": "rusty",
-                    "kind": "bin"
+                    "kind": "lib"
                 }
             },
-            "args": ["${workspaceFolder}/examples/program_with_references.st"],
+            "args": [],
             "cwd": "${workspaceFolder}"
         },
         {
             "type": "lldb",
             "request": "launch",
-            "name": "Debug unit tests in executable 'rusty'",
+            "name": "Debug executable 'rustyc'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=rustyc",
+                    "--package=rusty"
+                ],
+                "filter": {
+                    "name": "rustyc",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'rustyc'",
             "cargo": {
                 "args": [
                     "test",
                     "--no-run",
-                    "--bin=rusty",
+                    "--bin=rustyc",
                     "--package=rusty"
                 ],
                 "filter": {
-                    "name": "rusty",
+                    "name": "rustyc",
                     "kind": "bin"
                 }
             },
-            //"args": ["${workspaceFolder}/examples/program_with_references.st"],
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug integration test 'tests'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--test=tests",
+                    "--package=rusty"
+                ],
+                "filter": {
+                    "name": "tests",
+                    "kind": "test"
+                }
+            },
+            "args": [],
             "cwd": "${workspaceFolder}"
         }
     ]

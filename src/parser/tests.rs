@@ -257,6 +257,7 @@ r#"VariableBlock {
 
 }
 
+
 #[test]
 fn simple_program_with_var_input_can_be_parsed() {
     

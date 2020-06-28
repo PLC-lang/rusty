@@ -10,7 +10,7 @@ struct MainType {
 fn adds_in_result() {
     let prog = 
     "
-    FUNCTION main : INT
+    FUNCTION main : DINT
         main := 10 + 50;
     END_FUNCTION
     ";

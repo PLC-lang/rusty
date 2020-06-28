@@ -1,8 +1,7 @@
-use crate::lexer;
-use logos::Lexer;
 
 use crate::ast::*;
-use crate::lexer::Token::*;
+use crate::lexer;
+use crate::lexer::{Token::*,RustyLexer};
 
 use expressions::parse_primary_expression;
 use control::parse_control_statement;
@@ -21,8 +20,6 @@ macro_rules! expect {
         }
     };
 }
-
-type RustyLexer<'a> = Lexer<lexer::Token, &'a str>;
 
 /// consumes an optional token and returns true if it was consumed.
 pub fn allow(token: lexer::Token, lexer: &mut RustyLexer) -> bool {

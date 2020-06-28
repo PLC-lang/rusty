@@ -10,6 +10,7 @@ mod correctness {
     mod global_variables;
     mod control_flow;
     mod functions;
+    mod datatypes ;
 }
 
 

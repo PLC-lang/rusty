@@ -13,7 +13,7 @@ fn global_variable_can_be_referenced_in_fn() {
     VAR_GLOBAL
         gX : INT;
     END_VAR
-    FUNCTION main : INT
+    FUNCTION main : DINT
     VAR
         x : INT;
     END_VAR
@@ -37,7 +37,7 @@ fn global_variable_can_be_referenced_in_two_functions()  {
     VAR_GLOBAL
         gX : INT;
     END_VAR
-    FUNCTION main : INT
+    FUNCTION main : DINT
     VAR
         x : INT;
     END_VAR
@@ -50,7 +50,7 @@ fn global_variable_can_be_referenced_in_two_functions()  {
     main := gX;
     END_FUNCTION
 
-    FUNCTION two : INT
+    FUNCTION two : DINT
     two := gX;
     END_FUNCTION
     ";
