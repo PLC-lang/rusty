@@ -7,8 +7,8 @@ Structured text compiler written in Rust
 
 ```
                     IR-CodeGen
-     Project        Programs             Global           IEC61131 numeric types
-     start          Expressions          Variables					STRINGS 
+     Project        Programs             Global           IEC61131 Num and String types
+     start          Expressions          Variables 
        |              |                    |                   |
        |              |                    |                   |
 ----I-------------I-------------I-------------I-------------I-------------I-------------I----
