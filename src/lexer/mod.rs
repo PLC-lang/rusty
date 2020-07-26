@@ -99,6 +99,12 @@ pub enum Token {
     #[token(")")]
     KeywordParensClose,
 
+    #[token("[")]
+    KeywordSquareParanOpen,
+
+    #[token("]")]
+    KeywordSquareParanClose,
+
     #[token(",")] 
     KeywordComma,
 
@@ -157,6 +163,9 @@ pub enum Token {
     #[token("CASE")]
     KeywordCase,
     
+    #[token("ARRAY")]
+    KeywordArray,
+
     #[token("OF")]
     KeywordOf,
     
