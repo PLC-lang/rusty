@@ -3,7 +3,7 @@ use crate::ast::*;
 use crate::lexer;
 use crate::lexer::{Token::*,RustyLexer};
 
-use expressions::parse_primary_expression;
+use expressions::{parse_range_statement,parse_primary_expression};
 use control::parse_control_statement;
 
 mod expressions;
@@ -34,7 +34,7 @@ pub fn allow(token: lexer::Token, lexer: &mut RustyLexer) -> bool {
 
 fn create_pou(pou_type: PouType) -> POU {
     POU {
-        pou_type: pou_type,
+        pou_type,
         name: "".to_string(),
         variable_blocks: Vec::new(),
         statements: Vec::new(),
@@ -163,6 +163,16 @@ fn parse_data_type_definition(lexer: &mut RustyLexer, name: Option<String>) -> R
         lexer.advance();
         Ok(DataTypeDeclaration::DataTypeDefinition { data_type : DataType::StructType{ name, variables }})
     
+    } else if allow(KeywordArray, lexer) { //ARRAY
+        //expect open square
+        expect!(KeywordSquareParanOpen,lexer);
+        //parse range
+        let range = parse_range_statement(lexer);
+        //expect close range
+        expect!(KeywordSquareParanOpen,lexer);
+        //expect type reference
+        let reference = parse_data_type_definition(lexer,None);
+        unimplemented!()
     } else if allow(KeywordParensOpen, lexer) { //ENUM
         let mut elements = Vec::new();
 

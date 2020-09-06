@@ -28,7 +28,7 @@ fn parse_expression_list(lexer: &mut RustyLexer) -> Result<Statement, String> {
     Ok(left?)
 }
 
-fn parse_range_statement(lexer: &mut RustyLexer) -> Result<Statement, String> {
+pub(crate) fn parse_range_statement(lexer: &mut RustyLexer) -> Result<Statement, String> {
     let start = parse_or_expression(lexer)?;
 
     if lexer.token == KeywordDotDot {

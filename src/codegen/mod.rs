@@ -111,7 +111,8 @@ impl<'ctx> CodeGen<'ctx> {
                     generated_type: self.context.i32_type().as_basic_type_enum(),
                 },
             ),
-            DataType::SubRangeType { .. } => {}
+            DataType::SubRangeType { .. } => unimplemented!(),
+            DataType::ArrayType { .. } => unimplemented!(),
         };
     }
 
@@ -140,9 +141,8 @@ impl<'ctx> CodeGen<'ctx> {
                         element_variable.set_initializer(&int_type.const_int(i as u64, false));
                     }
                 }
-                DataType::SubRangeType { .. } => {
-                    //Do nothing
-                }
+                DataType::SubRangeType { .. } => unimplemented!(),
+                DataType::ArrayType { .. } => unimplemented!(),
             }
         }
     }

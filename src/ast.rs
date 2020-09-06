@@ -35,7 +35,7 @@ pub struct VariableBlock {
     pub variable_block_type: VariableBlockType,
 }
 
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq)]
 pub struct Variable {
     pub name: String,
     pub data_type: DataTypeDeclaration,
@@ -49,7 +49,7 @@ impl Variable {
     }
 }
 
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq)]
 pub enum DataTypeDeclaration {
     DataTypeReference {
         referenced_type: String,
@@ -68,7 +68,7 @@ impl DataTypeDeclaration {
     }
 }
 
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq)]
 pub enum DataType {
     StructType {
         name: Option<String>, //maybe None for inline structs
@@ -81,6 +81,11 @@ pub enum DataType {
     SubRangeType {
         name: Option<String>,
         referenced_type : String,
+    },
+    ArrayType {
+        name : Option<String>,
+        bounds : Statement,
+        referenced_type : String,
     }
 }
 
@@ -90,6 +95,7 @@ impl DataType {
             DataType::StructType {name , variables: _} => *name = Some(new_name),
             DataType::EnumType {name, elements: _} => *name = Some(new_name),
             DataType::SubRangeType {name, referenced_type: _} => *name = Some(new_name),
+            DataType::ArrayType {name,..}  => *name = Some(new_name),
         }
     }
 
@@ -98,6 +104,7 @@ impl DataType {
             DataType::StructType {name, variables: _} => name.as_ref().map(|x| x.as_str()),
             DataType::EnumType {name, elements: _} => name.as_ref().map(|x| x.as_str()),
             DataType::SubRangeType {name, referenced_type: _} => name.as_ref().map(|x| x.as_str()),
+            DataType::ArrayType {name,..}  => name.as_ref().map(|x| x.as_str()),
         }
     }
 }
