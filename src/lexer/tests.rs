@@ -324,11 +324,11 @@ fn array_parsing() {
     lexer.advance();
     assert_eq!(lexer.token, super::Token::Identifier);
     lexer.advance();
-    assert_eq!(lexer.token, super::Token::KeywordSquareParanOpen);
+    assert_eq!(lexer.token, super::Token::KeywordSquareParensOpen);
     lexer.advance();
     assert_eq!(lexer.token, super::Token::LiteralInteger);
     lexer.advance();
-    assert_eq!(lexer.token, super::Token::KeywordSquareParanClose);
+    assert_eq!(lexer.token, super::Token::KeywordSquareParensClose);
     lexer.advance();
     
 }

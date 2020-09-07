@@ -100,10 +100,10 @@ pub enum Token {
     KeywordParensClose,
 
     #[token("[")]
-    KeywordSquareParanOpen,
+    KeywordSquareParensOpen,
 
     #[token("]")]
-    KeywordSquareParanClose,
+    KeywordSquareParensClose,
 
     #[token(",")] 
     KeywordComma,

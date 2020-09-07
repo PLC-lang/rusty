@@ -165,11 +165,11 @@ fn parse_data_type_definition(lexer: &mut RustyLexer, name: Option<String>) -> R
     
     } else if allow(KeywordArray, lexer) { //ARRAY
         //expect open square
-        expect!(KeywordSquareParanOpen,lexer);
+        expect!(KeywordSquareParensOpen,lexer);
         //parse range
         let range = parse_range_statement(lexer);
         //expect close range
-        expect!(KeywordSquareParanOpen,lexer);
+        expect!(KeywordSquareParensOpen,lexer);
         //expect type reference
         let reference = parse_data_type_definition(lexer,None);
         unimplemented!()
