@@ -85,7 +85,7 @@ pub enum DataType {
     ArrayType {
         name : Option<String>,
         bounds : Statement,
-        referenced_type : String,
+        referenced_type : Box<DataTypeDeclaration>,
     }
 }
 
@@ -133,6 +133,10 @@ pub enum Statement {
     // Expressions
     Reference {
         elements : Vec<String>,
+    },
+    ArrayAccess {
+        reference : Box<Statement>,
+        access : Box<Statement>,
     },
     BinaryExpression {
         operator: Operator,

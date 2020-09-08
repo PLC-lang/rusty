@@ -166,13 +166,17 @@ fn parse_data_type_definition(lexer: &mut RustyLexer, name: Option<String>) -> R
     } else if allow(KeywordArray, lexer) { //ARRAY
         //expect open square
         expect!(KeywordSquareParensOpen,lexer);
+        lexer.advance();
         //parse range
-        let range = parse_range_statement(lexer);
+        let range = parse_range_statement(lexer).unwrap();
         //expect close range
-        expect!(KeywordSquareParensOpen,lexer);
+        expect!(KeywordSquareParensClose,lexer);
+        lexer.advance();
+        expect!(KeywordOf,lexer);
+        lexer.advance();
         //expect type reference
-        let reference = parse_data_type_definition(lexer,None);
-        unimplemented!()
+        let reference = parse_data_type_definition(lexer,None).unwrap();
+        Ok(DataTypeDeclaration::DataTypeDefinition { data_type :DataType::ArrayType {name : None, bounds: range, referenced_type : Box::new(reference) }}) 
     } else if allow(KeywordParensOpen, lexer) { //ENUM
         let mut elements = Vec::new();
 

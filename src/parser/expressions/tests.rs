@@ -1300,8 +1300,21 @@ fn arrays_can_be_parsed() {
     variables: [
         Variable {
             name: "x",
-            data_type: DataTypeReference {
-                referenced_type: "ARRAY[0..9] OF STRING",
+            data_type: DataTypeDefinition {
+                data_type: ArrayType {
+                    name: None,
+                    bounds: RangeStatement {
+                        start: LiteralInteger {
+                            value: "0",
+                        },
+                        end: LiteralInteger {
+                            value: "9",
+                        },
+                    },
+                    referenced_type: DataTypeReference {
+                        referenced_type: "STRING",
+                    },
+                },
             },
         },
     ],
@@ -1312,7 +1325,7 @@ fn arrays_can_be_parsed() {
     let statements = &prg.statements;
     let ast_string = format!("{:#?}", statements[0]);
     let expected_ast = r#"Assignment {
-    left: ArrayReference {
+    left: ArrayAccess {
         reference: Reference {
             elements: [
                 "x",
@@ -1321,7 +1334,7 @@ fn arrays_can_be_parsed() {
         access: LiteralInteger {
             value: "0",
         },
-    }, 
+    },
     right: LiteralString {
         value: "Hello, World!",
     },
@@ -1330,18 +1343,18 @@ fn arrays_can_be_parsed() {
 
     let ast_string = format!("{:#?}", statements[1]);
     let expected_ast = r#"Assignment {
-    left: ArrayReference {
+    left: ArrayAccess {
         reference: Reference {
             elements: [
                 "x",
             ],
         },
         access: Reference {
-            elements : [
+            elements: [
                 "y",
             ],
         },
-    }, 
+    },
     right: LiteralString {
         value: "",
     },
