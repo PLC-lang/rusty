@@ -176,7 +176,7 @@ fn parse_data_type_definition(lexer: &mut RustyLexer, name: Option<String>) -> R
         lexer.advance();
         //expect type reference
         let reference = parse_data_type_definition(lexer,None).unwrap();
-        Ok(DataTypeDeclaration::DataTypeDefinition { data_type :DataType::ArrayType {name : None, bounds: range, referenced_type : Box::new(reference) }}) 
+        Ok(DataTypeDeclaration::DataTypeDefinition { data_type :DataType::ArrayType {name, bounds: range, referenced_type : Box::new(reference) }}) 
     } else if allow(KeywordParensOpen, lexer) { //ENUM
         let mut elements = Vec::new();
 
@@ -208,10 +208,10 @@ fn parse_data_type_definition(lexer: &mut RustyLexer, name: Option<String>) -> R
 
 fn parse_type_reference(lexer: &mut RustyLexer, name : Option<String>) -> Result<DataTypeDeclaration, String> {
     let referenced_type = slice_and_advance(lexer);
-        match name {
-            Some(name) => Ok(DataTypeDeclaration::DataTypeDefinition { data_type : DataType::SubRangeType { name: Some(name), referenced_type }}),
-            None => Ok(DataTypeDeclaration::DataTypeReference {referenced_type}),
-        }
+    match name {
+        Some(name) => Ok(DataTypeDeclaration::DataTypeDefinition { data_type : DataType::SubRangeType { name: Some(name), referenced_type }}),
+        None => Ok(DataTypeDeclaration::DataTypeReference {referenced_type}),
+    }
 }
 
 fn is_end_of_stream(token: &lexer::Token) -> bool {

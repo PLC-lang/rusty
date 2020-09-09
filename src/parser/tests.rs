@@ -378,6 +378,37 @@ assert_eq!(ast_string, exptected_ast);
 }
 
 #[test]
+fn array_type_can_be_test() {
+    let result = super::parse(lexer::lex(
+            r#"
+            TYPE MyArray : ARRAY[0..8] OF INT; END_TYPE
+            "#
+    )).unwrap();
+
+    let ast_string = format!("{:#?}", &result.types[0]);
+
+    let expected_ast = 
+r#"ArrayType {
+    name: Some(
+        "MyArray",
+    ),
+    bounds: RangeStatement {
+        start: LiteralInteger {
+            value: "0",
+        },
+        end: LiteralInteger {
+            value: "8",
+        },
+    },
+    referenced_type: DataTypeReference {
+        referenced_type: "INT",
+    },
+}"#;
+
+assert_eq!(ast_string, expected_ast);
+}
+
+#[test]
 fn inline_struct_declaration_can_be_parsed() {
     let result = super::parse(lexer::lex(
         r#"
