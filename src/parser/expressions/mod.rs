@@ -229,15 +229,15 @@ fn parse_bool_literal(lexer: &mut RustyLexer, value: bool) -> Result<Statement, 
 }
 
 pub fn parse_reference_access(lexer : &mut RustyLexer) -> Result<Statement, String> {
-    let reference = parse_reference(lexer);
-    if allow(KeywordSquareParensOpen,lexer) {
+    let mut reference = parse_reference(lexer);
+    //If (while) we hit a dereference, parse and append the dereference to the result
+    while allow(KeywordSquareParensOpen,lexer) { 
         let access = parse_primary_expression(lexer);
         expect!(KeywordSquareParensClose,lexer);
         lexer.advance();
-        Ok(Statement::ArrayAccess { reference : Box::new(reference.unwrap()), access : Box::new(access.unwrap()) })
-    } else {
-        reference
+        reference = Ok(Statement::ArrayAccess { reference : Box::new(reference.unwrap()), access : Box::new(access.unwrap()) })
     }
+    reference
 
 }
 
