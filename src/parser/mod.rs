@@ -40,6 +40,7 @@ fn create_pou(pou_type: PouType) -> POU {
         variable_blocks: Vec::new(),
         statements: Vec::new(),
         return_type: None,
+        location: SourceRange::new(0, 0),
     }
 }
 
@@ -304,5 +305,10 @@ fn parse_variable(
     let data_type = parse_data_type_definition(lexer, None)?;
     //Convert to real datatype
 
-    Ok(Variable{name, data_type})
+
+    Ok(Variable {
+        name, 
+        data_type, 
+        location: SourceRange::new(0, 0),
+    })
 }
