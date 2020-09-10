@@ -358,10 +358,10 @@ impl<'ctx> CodeGen<'ctx> {
                 left,
                 right,
             } => self.generate_binary_expression(operator, left, right),
-            Statement::LiteralInteger { value } => self.generate_literal_integer(value.as_str()),
-            Statement::LiteralReal { value } => self.generate_literal_real(value.as_str()),
-            Statement::LiteralBool { value } => self.generate_literal_boolean(*value),
-            Statement::LiteralString { value } => self.generate_literal_string(value.as_bytes()),
+            Statement::LiteralInteger { value, location: _ } => self.generate_literal_integer(value.as_str()),
+            Statement::LiteralReal { value, location: _  } => self.generate_literal_real(value.as_str()),
+            Statement::LiteralBool { value, location: _ } => self.generate_literal_boolean(*value),
+            Statement::LiteralString { value, location: _ } => self.generate_literal_string(value.as_bytes()),
             Statement::Reference { elements } => self.generate_variable_reference(&elements),
             Statement::Assignment { left, right } => {
                 (None, self.generate_assignment(&left, &right))

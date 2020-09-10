@@ -273,7 +273,7 @@ fn pre_processing_generates_inline_structs_global() {
                             data_type: DataTypeDeclaration::DataTypeReference {
                                 referenced_type : "INT".to_string()
                             },
-                            location: SourceRange::new(0, 0),
+                            location: span(0, 0),
                     }].to_vec()}, 
         new_struct_type);
 
@@ -344,7 +344,7 @@ fn pre_processing_generates_inline_structs() {
                             data_type: DataTypeDeclaration::DataTypeReference {
                                 referenced_type : "INT".to_string()
                             },
-                            location: SourceRange{ offset:0, length: 0},
+                            location: span(0,0)
                     }].to_vec()}, 
         new_struct_type);
 

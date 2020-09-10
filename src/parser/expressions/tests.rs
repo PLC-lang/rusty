@@ -44,7 +44,7 @@ fn literal_can_be_parsed() {
     let prg = &result.units[0];
     let statement = &prg.statements[0];
 
-    if let Statement::LiteralInteger { value } = statement {
+    if let Statement::LiteralInteger { value, location: _ } = statement {
         assert_eq!(value, "7");
     } else {
         panic!("Expected LiteralInteger but found {:?}", statement);
@@ -1673,4 +1673,33 @@ fn function_call_return_params() {
 }"#;
 
     assert_eq!(ast_string, expected_ast);
+}
+
+#[test]
+fn literals_location_test() {
+    let source = "PROGRAM prg 7; 'hello'; TRUE; 3.1415; END_PROGRAM";
+    let lexer = lexer::lex(source);
+    let parse_result = parse(lexer).unwrap();
+
+    let unit = &parse_result.units[0];
+    
+    // 1
+    let location = &unit.statements[0].get_location();
+    assert_eq!(location, &(12..13));
+    assert_eq!(source[location.start..location.end].to_string(), "7");
+
+    // 'hello'
+    let location = &unit.statements[1].get_location();
+    assert_eq!(location, &(15..22));
+    assert_eq!(source[location.start..location.end].to_string(), "'hello'");
+
+    // true
+    let location = &unit.statements[2].get_location();
+    assert_eq!(location, &(24..28));
+    assert_eq!(source[location.start..location.end].to_string(), "TRUE");
+
+    //3.1415
+    let location = &unit.statements[3].get_location();
+    assert_eq!(location, &(30..36));
+    assert_eq!(source[location.start..location.end].to_string(), "3.1415")
 }

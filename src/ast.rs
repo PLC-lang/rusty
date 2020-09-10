@@ -89,16 +89,10 @@ impl Variable {
     }
 }
 
-#[derive(Debug, PartialEq, Clone)]
-pub struct SourceRange {
-    pub offset: u32,
-    pub length: u32,
-}
+pub type SourceRange = core::ops::Range<usize>;
 
-impl SourceRange {
-    pub fn new(offset: u32, length: u32) -> SourceRange {
-        SourceRange {offset, length}
-    }
+pub fn span(offset: usize, length: usize) -> SourceRange {
+    offset..(offset+length)
 }
 
 #[derive(Debug, PartialEq )]
@@ -210,15 +204,19 @@ pub enum Statement {
     // Literals
     LiteralInteger {
         value: String,
+        location: SourceRange,
     },
     LiteralReal {
         value: String,
+        location: SourceRange,
     },
     LiteralBool {
         value: bool,
+        location: SourceRange,
     },
     LiteralString {
         value: String,
+        location: SourceRange,
     },
     // Expressions
     Reference {
@@ -284,17 +282,17 @@ pub enum Statement {
 impl Debug for Statement {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
         match self {
-            Statement::LiteralInteger { value } => f
+            Statement::LiteralInteger { value , location: _ } => f
                 .debug_struct("LiteralInteger")
                 .field("value", value)
                 .finish(),
-            Statement::LiteralReal { value } => {
+            Statement::LiteralReal { value, location: _ } => {
                 f.debug_struct("LiteralReal").field("value", value).finish()
             }
-            Statement::LiteralBool { value } => {
+            Statement::LiteralBool { value, location: _ } => {
                 f.debug_struct("LiteralBool").field("value", value).finish()
             }
-            Statement::LiteralString { value } => f
+            Statement::LiteralString { value, location: _ } => f
                 .debug_struct("LiteralString")
                 .field("value", value)
                 .finish(),
@@ -384,6 +382,30 @@ impl Debug for Statement {
                 .field("access", access)
                 .finish(),
         }
+    }
+}
+
+impl Statement {
+    pub fn get_location(&self) -> SourceRange {
+        let location = match self {
+            Statement::LiteralInteger { value: _, location } => location,
+            Statement::LiteralReal { value: _, location } => location,
+            Statement::LiteralBool { value: _, location } => location,
+            Statement::LiteralString { value: _, location } => location,
+            Statement::Reference { elements: _ } => unimplemented!(),
+            Statement::BinaryExpression { operator: _, left: _, right: _ } => unimplemented!(),
+            Statement::UnaryExpression { operator: _, value: _ } => unimplemented!(),
+            Statement::ExpressionList { expressions: _ } => unimplemented!(),
+            Statement::RangeStatement { start: _, end: _ } => unimplemented!(),
+            Statement::Assignment { left: _, right: _ } => unimplemented!(),
+            Statement::CallStatement { operator: _, parameters: _ } => unimplemented!(),
+            Statement::IfStatement { blocks: _, else_block: _ } => unimplemented!(),
+            Statement::ForLoopStatement { counter: _, start: _, end: _, by_step: _, body: _ } => unimplemented!(),
+            Statement::WhileLoopStatement { condition: _, body: _ } => unimplemented!(),
+            Statement::RepeatLoopStatement { condition: _, body: _ } => unimplemented!(),
+            Statement::CaseStatement { selector: _, case_blocks: _, else_block: _ } => unimplemented!(),
+        };
+        return location.clone();
     }
 }
 

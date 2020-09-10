@@ -40,7 +40,7 @@ fn create_pou(pou_type: PouType) -> POU {
         variable_blocks: Vec::new(),
         statements: Vec::new(),
         return_type: None,
-        location: SourceRange::new(0, 0),
+        location: span(0, 0),
     }
 }
 
@@ -309,6 +309,6 @@ fn parse_variable(
     Ok(Variable {
         name, 
         data_type, 
-        location: SourceRange::new(0, 0),
+        location: span(0, 0),
     })
 }

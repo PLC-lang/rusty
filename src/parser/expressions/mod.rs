@@ -226,8 +226,9 @@ fn parse_leaf_expression(lexer: &mut RustyLexer) -> Result<Statement, String> {
 }
 
 fn parse_bool_literal(lexer: &mut RustyLexer, value: bool) -> Result<Statement, String> {
+    let location = lexer.range();
     lexer.advance();
-    Ok(Statement::LiteralBool { value })
+    Ok(Statement::LiteralBool { value, location })
 }
 
 pub fn parse_reference_access(lexer : &mut RustyLexer) -> Result<Statement, String> {
@@ -272,12 +273,13 @@ pub fn parse_reference(lexer: &mut RustyLexer) -> Result<Statement, String> {
 }
 
 fn parse_literal_number(lexer: &mut RustyLexer) -> Result<Statement, String> {
+    let location = lexer.range();
     let result = slice_and_advance(lexer);
     if allow(KeywordDot, lexer) {
-        return parse_literal_real(lexer, result);
+        return parse_literal_real(lexer, result, location);
     }
 
-    Ok(Statement::LiteralInteger { value: result })
+    Ok(Statement::LiteralInteger { value: result, location })
 }
 
 fn trim_quotes<'a>(quoted_string : &str) -> String {
@@ -286,20 +288,26 @@ fn trim_quotes<'a>(quoted_string : &str) -> String {
 
 fn parse_literal_string(lexer: &mut RustyLexer) -> Result<Statement, String> {
     let result = lexer.slice();
-    let string_literal = Ok(Statement::LiteralString { value: trim_quotes(result)});
+    let location = lexer.range();
+    let string_literal = Ok(Statement::LiteralString { value: trim_quotes(result), location});
     lexer.advance();
     string_literal
 }
 
-fn parse_literal_real(lexer: &mut RustyLexer, integer: String) -> Result<Statement, String> {
+fn parse_literal_real(lexer: &mut RustyLexer, integer: String, integer_range: SourceRange) -> Result<Statement, String> {
     expect!(LiteralInteger, lexer);
+    let start = integer_range.start;
+    let fraction_end = lexer.range().end;
     let fractional = slice_and_advance(lexer);
-    let exponent = if lexer.token == LiteralExponent {
-        slice_and_advance(lexer)
-    } else {
-        "".to_string()
-    };
-    let result = format!("{}.{}{}", integer, fractional, exponent);
 
-    Ok(Statement::LiteralReal { value: result })
+    let (exponent, end) = if lexer.token == LiteralExponent {
+        //this spans everything, [integer].[integer]
+        (slice_and_advance(lexer), lexer.range().end)
+    } else {
+        ("".to_string(), fraction_end)
+    };
+
+    let result = format!("{}.{}{}", integer, fractional, exponent);
+    let new_location = start..end;
+    Ok(Statement::LiteralReal { value: result, location: new_location })
 }
