@@ -179,11 +179,15 @@ fn parse_unary_expression(lexer: &mut RustyLexer) -> Result<Statement, String> {
         _ => None,
     };
 
+    let start = lexer.range().start;
     if let Some(operator) = operator {
         lexer.advance();
+        let expression = parse_parenthesized_expression(lexer)?;
+        let location = start..expression.get_location().end;
         Ok(Statement::UnaryExpression {
-            operator,
-            value: Box::new(parse_parenthesized_expression(lexer)?),
+            operator: operator,
+            value: Box::new(expression),
+            location: location,
         })
     } else {
         parse_parenthesized_expression(lexer)
@@ -245,27 +249,33 @@ pub fn parse_reference_access(lexer : &mut RustyLexer) -> Result<Statement, Stri
 }
 
 pub fn parse_reference(lexer: &mut RustyLexer) -> Result<Statement, String> {
+    let start = lexer.range().start;
+    let mut end = lexer.range().end;
     let mut reference_elements = vec![slice_and_advance(lexer)];
     while allow(KeywordDot, lexer) {
+        end = lexer.range().end;
         reference_elements.push(slice_and_advance(lexer));
     }
 
     let reference = Statement::Reference {
         elements : reference_elements,
+        location: start..end,
     };
 
     if allow(KeywordParensOpen, lexer) {
-        let statement_list = if allow(KeywordParensClose, lexer) {
-            None
+        let (statement_list, end) = if allow(KeywordParensClose, lexer) {
+            (None, lexer.range().end)
         } else {
             let list = parse_expression_list(lexer).unwrap();
             expect!(KeywordParensClose, lexer);
+            let end = lexer.range().end;
             lexer.advance();
-            Some(list)
+            (Some(list), end)
         };
         Ok(Statement::CallStatement {
             operator: Box::new(reference),
             parameters: Box::new(statement_list),
+            location: start..end
         })
     } else {
         Ok(reference)

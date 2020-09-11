@@ -13,7 +13,7 @@ fn single_statement_parsed() {
     let prg = &result.units[0];
     let statement = &prg.statements[0];
 
-    if let Statement::Reference { elements } = statement {
+    if let Statement::Reference { elements, ..} = statement {
         assert_eq!(&elements[0], "x");
     } else {
         panic!("Expected Reference but found {:?}", statement);
@@ -28,7 +28,7 @@ fn qualified_reference_statement_parsed() {
     let prg = &result.units[0];
     let statement = &prg.statements[0];
 
-    if let Statement::Reference { elements } = statement {
+    if let Statement::Reference { elements , ..} = statement {
         assert_eq!(&elements[0], "a");
         assert_eq!(&elements[1], "x");
     } else {
@@ -65,10 +65,10 @@ fn additon_of_two_variables_parsed() {
         right, //Box<Reference> {name : right}),
     } = statement
     {
-        if let Statement::Reference { elements } = &**left {
+        if let Statement::Reference { elements, .. } = &**left {
             assert_eq!(elements[0], "x");
         }
-        if let Statement::Reference { elements } = &**right {
+        if let Statement::Reference { elements, .. } = &**right {
             assert_eq!(elements[0], "y");
         }
         assert_eq!(operator, &super::Operator::Plus);
@@ -92,7 +92,7 @@ fn additon_of_three_variables_parsed() {
     } = statement
     {
         assert_eq!(operator, &super::Operator::Plus);
-        if let Statement::Reference { elements } = &**left {
+        if let Statement::Reference { elements, .. } = &**left {
             assert_eq!(elements[0], "x");
         }
         if let Statement::BinaryExpression {
@@ -101,10 +101,10 @@ fn additon_of_three_variables_parsed() {
             right,
         } = &**right
         {
-            if let Statement::Reference { elements } = &**left {
+            if let Statement::Reference { elements ,..} = &**left {
                 assert_eq!(elements[0], "y");
             }
-            if let Statement::Reference { elements } = &**right {
+            if let Statement::Reference { elements, ..} = &**right {
                 assert_eq!(elements[0], "z");
             }
             assert_eq!(operator, &super::Operator::Minus);
@@ -130,10 +130,10 @@ fn parenthesis_expressions_should_not_change_the_ast() {
         right,
     } = statement
     {
-        if let Statement::Reference { elements } = &**left {
+        if let Statement::Reference { elements, ..} = &**left {
             assert_eq!(elements[0], "x");
         }
-        if let Statement::Reference { elements } = &**right {
+        if let Statement::Reference { elements, .. } = &**right {
             assert_eq!(elements[0], "y");
         }
         assert_eq!(operator, &super::Operator::Plus);
@@ -1702,4 +1702,149 @@ fn literals_location_test() {
     let location = &unit.statements[3].get_location();
     assert_eq!(location, &(30..36));
     assert_eq!(source[location.start..location.end].to_string(), "3.1415")
+}
+
+#[test]
+fn reference_location_test() {
+    let source = "PROGRAM prg a;bb;ccc; END_PROGRAM";
+    let lexer = lexer::lex(source);
+    let parse_result = parse(lexer).unwrap();
+
+    let unit = &parse_result.units[0];
+    
+    let location = &unit.statements[0].get_location();
+    assert_eq!(source[location.start..location.end].to_string(), "a");
+
+    let location = &unit.statements[1].get_location();
+    assert_eq!(source[location.start..location.end].to_string(), "bb");
+
+    let location = &unit.statements[2].get_location();
+    assert_eq!(source[location.start..location.end].to_string(), "ccc");
+}
+
+#[test]
+fn expressions_location_test() {
+    let source = "
+    PROGRAM prg 
+        a + b;
+        x + z - y + u - v;
+        -x;
+        1..3;
+        a := a + 4;
+    END_PROGRAM";
+    let lexer = lexer::lex(source);
+    let parse_result = parse(lexer).unwrap();
+
+    let unit = &parse_result.units[0];
+    
+    let location = &unit.statements[0].get_location();
+    assert_eq!(source[location.start..location.end].to_string(), "a + b");
+
+    let location = &unit.statements[1].get_location();
+    assert_eq!(source[location.start..location.end].to_string(), "x + z - y + u - v");
+
+    let location = &unit.statements[2].get_location();
+    assert_eq!(source[location.start..location.end].to_string(), "-x");
+
+    let location = &unit.statements[3].get_location();
+    assert_eq!(source[location.start..location.end].to_string(), "1..3");
+
+    let location = &unit.statements[4].get_location();
+    assert_eq!(source[location.start..location.end].to_string(), "a := a + 4");
+}
+
+
+#[test]
+fn if_stmnt_location_test() {
+    let source = "
+    PROGRAM prg 
+    IF a > 4 THEN
+        a + b;
+    END_IF
+    END_PROGRAM";
+
+
+    let lexer = lexer::lex(source);
+    let parse_result = parse(lexer).unwrap();
+
+    let unit = &parse_result.units[0];
+    
+    let location = &unit.statements[0].get_location();
+    assert_eq!(source[location.start..location.end].to_string(), 
+    "IF a > 4 THEN
+        a + b;
+    END_IF");
+}
+
+
+#[test]
+fn for_stmnt_location_test() {
+    let source = "
+    PROGRAM prg 
+    FOR x := 3 TO 9 BY 2 DO
+        a + b;
+    END_FOR
+    END_PROGRAM";
+
+
+    let lexer = lexer::lex(source);
+    let parse_result = parse(lexer).unwrap();
+
+    let unit = &parse_result.units[0];
+    
+    let location = &unit.statements[0].get_location();
+    assert_eq!(source[location.start..location.end].to_string(), 
+    "FOR x := 3 TO 9 BY 2 DO
+        a + b;
+    END_FOR");
+}
+
+#[test]
+fn while_stmnt_location_test() {
+    let source = "
+    PROGRAM prg 
+    WHILE a < 2 DO
+        a := a - 1;
+    END_WHILE
+    END_PROGRAM";
+
+
+    let lexer = lexer::lex(source);
+    let parse_result = parse(lexer).unwrap();
+
+    let unit = &parse_result.units[0];
+    
+    let location = &unit.statements[0].get_location();
+    assert_eq!(source[location.start..location.end].to_string(), 
+    "WHILE a < 2 DO
+        a := a - 1;
+    END_WHILE"); 
+}
+
+#[test]
+fn case_stmnt_location_test() {
+    let source = "
+    PROGRAM prg 
+    CASE a OF
+    1:
+        a := a - 1;
+    2:
+        a := a - 1;
+    END_CASE
+    END_PROGRAM";
+
+
+    let lexer = lexer::lex(source);
+    let parse_result = parse(lexer).unwrap();
+
+    let unit = &parse_result.units[0];
+    
+    let location = &unit.statements[0].get_location();
+    assert_eq!(source[location.start..location.end].to_string(), 
+    "CASE a OF
+    1:
+        a := a - 1;
+    2:
+        a := a - 1;
+    END_CASE"); 
 }

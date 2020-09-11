@@ -23,7 +23,7 @@ pub fn parse_control_statement(lexer: &mut RustyLexer) -> Result<Statement, Stri
 }
 
 fn parse_if_statement(lexer: &mut RustyLexer) -> Result<Statement, String> {
-    
+    let start = lexer.range().start;
     let end_of_body = | it : &lexer::Token | 
                                 *it == KeywordElseIf
                             || *it == KeywordElse
@@ -53,12 +53,15 @@ fn parse_if_statement(lexer: &mut RustyLexer) -> Result<Statement, String> {
         lexer.advance(); // else
         else_block.append(&mut parse_body(lexer, &|it| *it == KeywordEndIf)?)
     }
+
+    let end = lexer.range().end;
     lexer.advance();
     
-    Ok(Statement::IfStatement{blocks: conditional_blocks, else_block: else_block})   
+    Ok(Statement::IfStatement{blocks: conditional_blocks, else_block: else_block, location: start..end})   
 }
 
 fn parse_for_statement(lexer: &mut RustyLexer) -> Result<Statement, String> {
+    let start = lexer.range().start;
     lexer.advance(); // FOR
 
     let counter_expression = parse_reference(lexer).unwrap();
@@ -84,12 +87,15 @@ fn parse_for_statement(lexer: &mut RustyLexer) -> Result<Statement, String> {
     let body = parse_body(
                     lexer, 
                     &|t: &lexer::Token| *t == KeywordEndFor);
+
+    let end = lexer.range().end;
     lexer.advance();
 
-    Ok(Statement::ForLoopStatement{counter: Box::new(counter_expression), start: Box::new(start_expression), end: Box::new(end_expression), by_step: step, body: body?})
+    Ok(Statement::ForLoopStatement{counter: Box::new(counter_expression), start: Box::new(start_expression), end: Box::new(end_expression), by_step: step, body: body?, location: start..end})
 }
 
 fn parse_while_statement(lexer: &mut RustyLexer) -> Result<Statement, String> {
+    let start = lexer.range().start;
     lexer.advance(); //WHILE
 
     let condition = Box::new(parse_expression(lexer)?);
@@ -100,12 +106,15 @@ fn parse_while_statement(lexer: &mut RustyLexer) -> Result<Statement, String> {
     let body = parse_body(
                     lexer,
                     &|t: &lexer::Token| *t == KeywordEndWhile)?;
+
+    let end = lexer.range().end;
     lexer.advance();
 
-    Ok(Statement::WhileLoopStatement{ condition, body })
+    Ok(Statement::WhileLoopStatement{ condition, body, location: start..end })
 }
 
 fn parse_repeat_statement(lexer: &mut RustyLexer) -> Result<Statement, String> {
+    let start = lexer.range().start;
     lexer.advance(); //REPEAT
     
     let body = parse_body(
@@ -116,12 +125,14 @@ fn parse_repeat_statement(lexer: &mut RustyLexer) -> Result<Statement, String> {
     let condition = Box::new(parse_expression(lexer)?);
 
     expect!(KeywordEndRepeat, lexer); // END_REPEAT
+    let end = lexer.range().end;
     lexer.advance();
     
-    Ok(Statement::RepeatLoopStatement{ condition, body })
+    Ok(Statement::RepeatLoopStatement{ condition, body, location: start..end })
 }
 
 fn parse_case_statement(lexer: &mut RustyLexer) -> Result<Statement, String> {
+    let start = lexer.range().start;
     lexer.advance(); // CASE
 
     let selector = Box::new(parse_expression(lexer)?);
@@ -154,9 +165,10 @@ fn parse_case_statement(lexer: &mut RustyLexer) -> Result<Statement, String> {
         lexer.advance(); // else
         else_block.append(&mut parse_body(lexer, &|it| *it == KeywordEndCase)?)
     }
+    let end = lexer.range().end;
     lexer.advance();
 
-    Ok(Statement::CaseStatement{ selector, case_blocks, else_block })
+    Ok(Statement::CaseStatement{ selector, case_blocks, else_block, location: start..end })
 }
 
 /**

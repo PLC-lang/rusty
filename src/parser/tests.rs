@@ -478,7 +478,7 @@ fn inline_enum_declaration_can_be_parsed() {
                 elements: vec!["red".to_string(), "yellow".to_string(), "green".to_string()],
             }
         },
-        location: span(0,  0)
+        location: 0..0
     };
     let expected_ast = format!("{:#?}", &v);
     assert_eq!(ast_string, expected_ast);
