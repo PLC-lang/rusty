@@ -13,7 +13,7 @@ pub fn parse_primary_expression(lexer: &mut RustyLexer) -> Result<Statement, Str
     parse_expression_list(lexer)
 }
 
-fn parse_expression_list(lexer: &mut RustyLexer) -> Result<Statement, String> {
+pub fn parse_expression_list(lexer: &mut RustyLexer) -> Result<Statement, String> {
     let left = parse_range_statement(lexer);
     if lexer.token == KeywordComma {
         let mut expressions = Vec::new();

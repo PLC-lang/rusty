@@ -3,7 +3,7 @@ use crate::ast::*;
 use crate::lexer;
 use crate::lexer::{Token::*,RustyLexer};
 
-use expressions::{parse_range_statement,parse_primary_expression};
+use expressions::parse_primary_expression;
 use control::parse_control_statement;
 
 mod expressions;
@@ -168,7 +168,7 @@ fn parse_data_type_definition(lexer: &mut RustyLexer, name: Option<String>) -> R
         expect!(KeywordSquareParensOpen,lexer);
         lexer.advance();
         //parse range
-        let range = parse_range_statement(lexer).unwrap();
+        let range = parse_primary_expression(lexer).unwrap();
         //expect close range
         expect!(KeywordSquareParensClose,lexer);
         lexer.advance();

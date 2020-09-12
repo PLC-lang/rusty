@@ -1462,6 +1462,108 @@ fn nested_arrays_can_be_parsed() {
 }
 
 #[test]
+fn multidim_arrays_can_be_parsed() {
+    let lexer = lexer::lex(
+        "PROGRAM buz VAR x : ARRAY[0..9,1..2] OF STRING; END_VAR x[0,1] := 'Hello, World!'; x[y,1] := ''; END_PROGRAM",
+    );
+    let result = parse(lexer).unwrap();
+
+    let prg = &result.units[0];
+    let variable_block = &prg.variable_blocks[0];
+    let ast_string = format!("{:#?}", variable_block);
+    let expected_ast = r#"VariableBlock {
+    variables: [
+        Variable {
+            name: "x",
+            data_type: DataTypeDefinition {
+                data_type: ArrayType {
+                    name: None,
+                    bounds: ExpressionList {
+                        expressions: [
+                            RangeStatement {
+                                start: LiteralInteger {
+                                    value: "0",
+                                },
+                                end: LiteralInteger {
+                                    value: "9",
+                                },
+                            },
+                            RangeStatement {
+                                start: LiteralInteger {
+                                    value: "1",
+                                },
+                                end: LiteralInteger {
+                                    value: "2",
+                                },
+                            },
+                        ],
+                    },
+                    referenced_type: DataTypeReference {
+                        referenced_type: "STRING",
+                    },
+                },
+            },
+        },
+    ],
+    variable_block_type: Local,
+}"#;
+    assert_eq!(ast_string, expected_ast);
+
+    let statements = &prg.statements;
+    let ast_string = format!("{:#?}", statements[0]);
+    let expected_ast = r#"Assignment {
+    left: ArrayAccess {
+        reference: Reference {
+            elements: [
+                "x",
+            ],
+        },
+        access: ExpressionList {
+            expressions: [
+                LiteralInteger {
+                    value: "0",
+                },
+                LiteralInteger {
+                    value: "1",
+                },
+            ],
+        },
+    },
+    right: LiteralString {
+        value: "Hello, World!",
+    },
+}"#;
+    assert_eq!(ast_string, expected_ast);
+
+    let ast_string = format!("{:#?}", statements[1]);
+    let expected_ast = r#"Assignment {
+    left: ArrayAccess {
+        reference: Reference {
+            elements: [
+                "x",
+            ],
+        },
+        access: ExpressionList {
+            expressions: [
+                Reference {
+                    elements: [
+                        "y",
+                    ],
+                },
+                LiteralInteger {
+                    value: "1",
+                },
+            ],
+        },
+    },
+    right: LiteralString {
+        value: "",
+    },
+}"#;
+    assert_eq!(ast_string, expected_ast);
+}
+
+#[test]
 fn function_call_formal_params() {
     let lexer = lexer::lex(
         "
