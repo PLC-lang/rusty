@@ -13,7 +13,7 @@ pub fn parse_primary_expression(lexer: &mut RustyLexer) -> Result<Statement, Str
     parse_expression_list(lexer)
 }
 
-fn parse_expression_list(lexer: &mut RustyLexer) -> Result<Statement, String> {
+pub fn parse_expression_list(lexer: &mut RustyLexer) -> Result<Statement, String> {
     let left = parse_range_statement(lexer);
     if lexer.token == KeywordComma {
         let mut expressions = Vec::new();
@@ -28,7 +28,7 @@ fn parse_expression_list(lexer: &mut RustyLexer) -> Result<Statement, String> {
     Ok(left?)
 }
 
-fn parse_range_statement(lexer: &mut RustyLexer) -> Result<Statement, String> {
+pub(crate) fn parse_range_statement(lexer: &mut RustyLexer) -> Result<Statement, String> {
     let start = parse_or_expression(lexer)?;
 
     if lexer.token == KeywordDotDot {
@@ -180,7 +180,7 @@ fn parse_unary_expression(lexer: &mut RustyLexer) -> Result<Statement, String> {
     if let Some(operator) = operator {
         lexer.advance();
         Ok(Statement::UnaryExpression {
-            operator: operator,
+            operator,
             value: Box::new(parse_parenthesized_expression(lexer)?),
         })
     } else {
@@ -205,7 +205,7 @@ fn parse_parenthesized_expression(lexer: &mut RustyLexer) -> Result<Statement, S
 // Literals, Identifiers, etc.
 fn parse_leaf_expression(lexer: &mut RustyLexer) -> Result<Statement, String> {
     let current = match lexer.token {
-        Identifier => parse_reference(lexer),
+        Identifier => parse_reference_access(lexer),
         LiteralInteger => parse_literal_number(lexer),
         LiteralString => parse_literal_string(lexer), 
         LiteralTrue => parse_bool_literal(lexer, true),
@@ -226,6 +226,19 @@ fn parse_leaf_expression(lexer: &mut RustyLexer) -> Result<Statement, String> {
 fn parse_bool_literal(lexer: &mut RustyLexer, value: bool) -> Result<Statement, String> {
     lexer.advance();
     Ok(Statement::LiteralBool { value })
+}
+
+pub fn parse_reference_access(lexer : &mut RustyLexer) -> Result<Statement, String> {
+    let mut reference = parse_reference(lexer);
+    //If (while) we hit a dereference, parse and append the dereference to the result
+    while allow(KeywordSquareParensOpen,lexer) { 
+        let access = parse_primary_expression(lexer);
+        expect!(KeywordSquareParensClose,lexer);
+        lexer.advance();
+        reference = Ok(Statement::ArrayAccess { reference : Box::new(reference.unwrap()), access : Box::new(access.unwrap()) })
+    }
+    reference
+
 }
 
 pub fn parse_reference(lexer: &mut RustyLexer) -> Result<Statement, String> {

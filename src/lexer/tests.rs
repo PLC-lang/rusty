@@ -313,6 +313,27 @@ fn struct_enum_datatype() {
 }
 
 #[test]
+fn array_parsing() {
+    let mut lexer = super::lex(
+        r"ARRAY OF x[5]",
+    );
+
+    assert_eq!(lexer.token, super::Token::KeywordArray);
+    lexer.advance();
+    assert_eq!(lexer.token, super::Token::KeywordOf);
+    lexer.advance();
+    assert_eq!(lexer.token, super::Token::Identifier);
+    lexer.advance();
+    assert_eq!(lexer.token, super::Token::KeywordSquareParensOpen);
+    lexer.advance();
+    assert_eq!(lexer.token, super::Token::LiteralInteger);
+    lexer.advance();
+    assert_eq!(lexer.token, super::Token::KeywordSquareParensClose);
+    lexer.advance();
+    
+}
+
+#[test]
 fn string_parsing() {
     let mut lexer = super::lex(
         r"'AB C' 'AB$$' 'AB$''"

@@ -266,13 +266,13 @@ fn pre_processing_generates_inline_structs_global() {
     let new_struct_type = &ast.types[0];
     assert_eq!(&DataType::StructType {
                     name: Some("__global_inline_struct".to_string()), 
-                    variables: [
+                    variables: vec![
                         Variable { 
                             name : "a".to_string(),
                             data_type: DataTypeDeclaration::DataTypeReference {
                                 referenced_type : "INT".to_string()
                             }
-                    }].to_vec()}, 
+                    }]}, 
         new_struct_type);
 
     // AND the original variable should now point to the new DataType
@@ -336,13 +336,13 @@ fn pre_processing_generates_inline_structs() {
     let new_struct_type = &ast.types[0];
     assert_eq!(&DataType::StructType {
                     name: Some("__foo_inline_struct".to_string()), 
-                    variables: [
+                    variables: vec![
                         Variable { 
                             name : "a".to_string(),
                             data_type: DataTypeDeclaration::DataTypeReference {
                                 referenced_type : "INT".to_string()
                             }
-                    }].to_vec()}, 
+                    }]}, 
         new_struct_type);
 
     // AND the original variable should now point to the new DataType

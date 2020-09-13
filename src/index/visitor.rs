@@ -84,5 +84,6 @@ fn visit_data_type(index: &mut Index, data_type: &DataType) {
 
         DataType::SubRangeType { name, referenced_type: _ } => 
             index.register_type (name.as_ref().map(|it| it.to_string()).unwrap()),
+        DataType::ArrayType { .. } => unimplemented!(),
     }
 }

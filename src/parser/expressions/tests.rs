@@ -1236,15 +1236,16 @@ fn function_call_params() {
 }
 
 #[test]
-    fn string_can_be_parsed() {
-    let lexer = lexer::lex("PROGRAM buz VAR x : STRING; END_VAR x := 'Hello, World!'; x := ''; END_PROGRAM");
+fn string_can_be_parsed() {
+    let lexer = lexer::lex(
+        "PROGRAM buz VAR x : STRING; END_VAR x := 'Hello, World!'; x := ''; END_PROGRAM",
+    );
     let result = parse(lexer).unwrap();
 
     let prg = &result.units[0];
     let variable_block = &prg.variable_blocks[0];
     let ast_string = format!("{:#?}", variable_block);
-    let expected_ast = 
-r#"VariableBlock {
+    let expected_ast = r#"VariableBlock {
     variables: [
         Variable {
             name: "x",
@@ -1255,12 +1256,11 @@ r#"VariableBlock {
     ],
     variable_block_type: Local,
 }"#;
-    assert_eq!(ast_string,expected_ast);
+    assert_eq!(ast_string, expected_ast);
 
     let statements = &prg.statements;
     let ast_string = format!("{:#?}", statements[0]);
-    let expected_ast = 
-r#"Assignment {
+    let expected_ast = r#"Assignment {
     left: Reference {
         elements: [
             "x",
@@ -1270,11 +1270,10 @@ r#"Assignment {
         value: "Hello, World!",
     },
 }"#;
-    assert_eq!(ast_string,expected_ast);
+    assert_eq!(ast_string, expected_ast);
 
     let ast_string = format!("{:#?}", statements[1]);
-    let expected_ast = 
-r#"Assignment {
+    let expected_ast = r#"Assignment {
     left: Reference {
         elements: [
             "x",
@@ -1284,7 +1283,284 @@ r#"Assignment {
         value: "",
     },
 }"#;
-    assert_eq!(ast_string,expected_ast);
+    assert_eq!(ast_string, expected_ast);
+}
+
+#[test]
+fn arrays_can_be_parsed() {
+    let lexer = lexer::lex(
+        "PROGRAM buz VAR x : ARRAY[0..9] OF STRING; END_VAR x[0] := 'Hello, World!'; x[y] := ''; END_PROGRAM",
+    );
+    let result = parse(lexer).unwrap();
+
+    let prg = &result.units[0];
+    let variable_block = &prg.variable_blocks[0];
+    let ast_string = format!("{:#?}", variable_block);
+    let expected_ast = r#"VariableBlock {
+    variables: [
+        Variable {
+            name: "x",
+            data_type: DataTypeDefinition {
+                data_type: ArrayType {
+                    name: None,
+                    bounds: RangeStatement {
+                        start: LiteralInteger {
+                            value: "0",
+                        },
+                        end: LiteralInteger {
+                            value: "9",
+                        },
+                    },
+                    referenced_type: DataTypeReference {
+                        referenced_type: "STRING",
+                    },
+                },
+            },
+        },
+    ],
+    variable_block_type: Local,
+}"#;
+    assert_eq!(ast_string, expected_ast);
+
+    let statements = &prg.statements;
+    let ast_string = format!("{:#?}", statements[0]);
+    let expected_ast = r#"Assignment {
+    left: ArrayAccess {
+        reference: Reference {
+            elements: [
+                "x",
+            ],
+        },
+        access: LiteralInteger {
+            value: "0",
+        },
+    },
+    right: LiteralString {
+        value: "Hello, World!",
+    },
+}"#;
+    assert_eq!(ast_string, expected_ast);
+
+    let ast_string = format!("{:#?}", statements[1]);
+    let expected_ast = r#"Assignment {
+    left: ArrayAccess {
+        reference: Reference {
+            elements: [
+                "x",
+            ],
+        },
+        access: Reference {
+            elements: [
+                "y",
+            ],
+        },
+    },
+    right: LiteralString {
+        value: "",
+    },
+}"#;
+    assert_eq!(ast_string, expected_ast);
+}
+
+#[test]
+fn nested_arrays_can_be_parsed() {
+    let lexer = lexer::lex(
+        "PROGRAM buz VAR x : ARRAY[0..9] OF ARRAY[0..9] OF STRING; END_VAR x[0][1] := 'Hello, World!'; x[y][1] := ''; END_PROGRAM",
+    );
+    let result = parse(lexer).unwrap();
+
+    let prg = &result.units[0];
+    let variable_block = &prg.variable_blocks[0];
+    let ast_string = format!("{:#?}", variable_block);
+    let expected_ast = r#"VariableBlock {
+    variables: [
+        Variable {
+            name: "x",
+            data_type: DataTypeDefinition {
+                data_type: ArrayType {
+                    name: None,
+                    bounds: RangeStatement {
+                        start: LiteralInteger {
+                            value: "0",
+                        },
+                        end: LiteralInteger {
+                            value: "9",
+                        },
+                    },
+                    referenced_type: DataTypeDefinition {
+                        data_type: ArrayType {
+                            name: None,
+                            bounds: RangeStatement {
+                                start: LiteralInteger {
+                                    value: "0",
+                                },
+                                end: LiteralInteger {
+                                    value: "9",
+                                },
+                            },
+                            referenced_type: DataTypeReference {
+                                referenced_type: "STRING",
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    ],
+    variable_block_type: Local,
+}"#;
+    assert_eq!(ast_string, expected_ast);
+
+    let statements = &prg.statements;
+    let ast_string = format!("{:#?}", statements[0]);
+    let expected_ast = r#"Assignment {
+    left: ArrayAccess {
+        reference: ArrayAccess {
+            reference: Reference {
+                elements: [
+                    "x",
+                ],
+            },
+            access: LiteralInteger {
+                value: "0",
+            },
+        },
+        access: LiteralInteger {
+            value: "1",
+        },
+    },
+    right: LiteralString {
+        value: "Hello, World!",
+    },
+}"#;
+    assert_eq!(ast_string, expected_ast);
+
+    let ast_string = format!("{:#?}", statements[1]);
+    let expected_ast = r#"Assignment {
+    left: ArrayAccess {
+        reference: ArrayAccess {
+            reference: Reference {
+                elements: [
+                    "x",
+                ],
+            },
+            access: Reference {
+                elements: [
+                    "y",
+                ],
+            },
+        },
+        access: LiteralInteger {
+            value: "1",
+        },
+    },
+    right: LiteralString {
+        value: "",
+    },
+}"#;
+    assert_eq!(ast_string, expected_ast);
+}
+
+#[test]
+fn multidim_arrays_can_be_parsed() {
+    let lexer = lexer::lex(
+        "PROGRAM buz VAR x : ARRAY[0..9,1..2] OF STRING; END_VAR x[0,1] := 'Hello, World!'; x[y,1] := ''; END_PROGRAM",
+    );
+    let result = parse(lexer).unwrap();
+
+    let prg = &result.units[0];
+    let variable_block = &prg.variable_blocks[0];
+    let ast_string = format!("{:#?}", variable_block);
+    let expected_ast = r#"VariableBlock {
+    variables: [
+        Variable {
+            name: "x",
+            data_type: DataTypeDefinition {
+                data_type: ArrayType {
+                    name: None,
+                    bounds: ExpressionList {
+                        expressions: [
+                            RangeStatement {
+                                start: LiteralInteger {
+                                    value: "0",
+                                },
+                                end: LiteralInteger {
+                                    value: "9",
+                                },
+                            },
+                            RangeStatement {
+                                start: LiteralInteger {
+                                    value: "1",
+                                },
+                                end: LiteralInteger {
+                                    value: "2",
+                                },
+                            },
+                        ],
+                    },
+                    referenced_type: DataTypeReference {
+                        referenced_type: "STRING",
+                    },
+                },
+            },
+        },
+    ],
+    variable_block_type: Local,
+}"#;
+    assert_eq!(ast_string, expected_ast);
+
+    let statements = &prg.statements;
+    let ast_string = format!("{:#?}", statements[0]);
+    let expected_ast = r#"Assignment {
+    left: ArrayAccess {
+        reference: Reference {
+            elements: [
+                "x",
+            ],
+        },
+        access: ExpressionList {
+            expressions: [
+                LiteralInteger {
+                    value: "0",
+                },
+                LiteralInteger {
+                    value: "1",
+                },
+            ],
+        },
+    },
+    right: LiteralString {
+        value: "Hello, World!",
+    },
+}"#;
+    assert_eq!(ast_string, expected_ast);
+
+    let ast_string = format!("{:#?}", statements[1]);
+    let expected_ast = r#"Assignment {
+    left: ArrayAccess {
+        reference: Reference {
+            elements: [
+                "x",
+            ],
+        },
+        access: ExpressionList {
+            expressions: [
+                Reference {
+                    elements: [
+                        "y",
+                    ],
+                },
+                LiteralInteger {
+                    value: "1",
+                },
+            ],
+        },
+    },
+    right: LiteralString {
+        value: "",
+    },
+}"#;
+    assert_eq!(ast_string, expected_ast);
 }
 
 #[test]
