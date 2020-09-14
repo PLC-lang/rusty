@@ -1,3 +1,5 @@
+/// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
+
 #[derive(Debug, PartialEq)]
 pub struct POU {
     pub name: String,

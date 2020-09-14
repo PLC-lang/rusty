@@ -1,3 +1,5 @@
+/// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
+
 use super::{CodeGen, DataTypeInformation};
 use inkwell::types::{IntType,BasicType};
 use inkwell::values::{BasicValue, BasicValueEnum, IntValue};

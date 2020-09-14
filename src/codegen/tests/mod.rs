@@ -1,3 +1,5 @@
+/// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
+
 use crate::lexer;
 use crate::parser;
 use crate::index::Index;

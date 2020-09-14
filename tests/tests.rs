@@ -1,3 +1,5 @@
+/// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
+
 use rusty::*;
 use rusty::index::Index;
 use inkwell::context::Context;
