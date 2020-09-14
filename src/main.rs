@@ -1,3 +1,5 @@
+/// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
+
 use core::slice::Iter;
 use rusty::*;
 use std::env;

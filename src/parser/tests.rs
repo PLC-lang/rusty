@@ -1,3 +1,5 @@
+/// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
+
 use crate::lexer;
 use crate::ast::*;
 use pretty_assertions::*;
@@ -378,7 +380,7 @@ assert_eq!(ast_string, exptected_ast);
 }
 
 #[test]
-fn array_type_can_be_test() {
+fn array_type_can_be_parsed_test() {
     let result = super::parse(lexer::lex(
             r#"
             TYPE MyArray : ARRAY[0..8] OF INT; END_TYPE

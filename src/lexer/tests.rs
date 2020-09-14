@@ -1,3 +1,5 @@
+/// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
+
 use pretty_assertions::{assert_eq, assert_ne};
 #[test]
 fn pou_tokens() {

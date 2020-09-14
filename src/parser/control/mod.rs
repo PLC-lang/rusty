@@ -1,3 +1,5 @@
+/// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
+
 use crate::lexer;
 use crate::lexer::Token::*;
 use crate::expect;

@@ -1,3 +1,5 @@
+/// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
+
 use logos::Lexer;
 use logos::Logos;
 use core::ops::Range;

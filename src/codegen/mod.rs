@@ -1,3 +1,5 @@
+/// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
+
 use super::ast::*;
 use inkwell::builder::Builder;
 use inkwell::context::Context;

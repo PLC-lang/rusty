@@ -1,3 +1,5 @@
+/// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
+
 use std::collections::HashMap;
 
 use crate::ast::CompilationUnit;

@@ -1,3 +1,5 @@
+/// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
+
 use std::str;
 use super::super::*;
 #[allow(dead_code)]
