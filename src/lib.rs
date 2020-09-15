@@ -20,7 +20,7 @@ extern crate pretty_assertions;
 ///
 /// Compiles the given source into an object file and saves it in output
 ///
-pub fn compile(source: String, output: &str) {
+fn compile_to_obj(source: String, output: &str, reloc: RelocMode) {
     let context = Context::create();
     let mut index = Index::new();
     let path = Path::new(output);
@@ -39,7 +39,7 @@ pub fn compile(source: String, output: &str) {
             TargetMachine::get_host_cpu_features().to_string().as_str(),
             //TODO Optimisation as parameter
             inkwell::OptimizationLevel::Default,
-            RelocMode::Default,
+            reloc,
             CodeModel::Default,
         )
         .unwrap();
@@ -47,6 +47,14 @@ pub fn compile(source: String, output: &str) {
     machine
         .write_to_file(&code_generator.module, FileType::Object, path)
         .unwrap();
+}
+
+pub fn compile(source : String, output: &str) {
+    compile_to_obj(source,output, RelocMode::Default);
+}
+
+pub fn compile_to_shared_object(source : String, output: &str) {
+    compile_to_obj(source,output, RelocMode::PIC);
 }
 
 ///

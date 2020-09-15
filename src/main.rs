@@ -13,6 +13,7 @@ fn main() {
     match parameters.output_type {
         OutputType::IR => generate_ir(contents.to_string(), parameters.output.as_str()),
         OutputType::ObjectCode => compile(contents.to_string(), parameters.output.as_str()),
+        OutputType::SharedObject => compile_to_shared_object(contents.to_string(), parameters.output.as_str()),
         OutputType::Bitcode => compile_to_bitcode(contents.to_string(),parameters.output.as_str()),
     }
 }
@@ -30,6 +31,7 @@ struct CompileParameters {
 
 enum OutputType {
     IR,
+    SharedObject,
     ObjectCode,
     Bitcode,
 }
@@ -38,7 +40,7 @@ fn read_params(args: &[String]) -> CompileParameters {
     let mut result = CompileParameters {
         input: "".to_string(),
         output: "a.out".to_string(),
-        output_type: OutputType::ObjectCode,
+        output_type: OutputType::SharedObject,
     };
 
     let mut args_iter = args.iter();
@@ -73,6 +75,7 @@ fn parse_argument(
         }
         "--bc" => parameters.output_type = OutputType::Bitcode,
         "--ir" => parameters.output_type = OutputType::IR,
+        "--static" => parameters.output_type = OutputType::ObjectCode,
         _ => panic!("Unkown parameter {}", option),
     }
 }
