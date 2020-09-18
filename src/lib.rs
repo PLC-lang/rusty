@@ -4,7 +4,7 @@ use std::path::Path;
 
 use inkwell::context::Context;
 use inkwell::targets::{
-    CodeModel, FileType, InitializationConfig, RelocMode, Target, TargetMachine,
+    CodeModel, FileType, InitializationConfig, RelocMode, Target, TargetMachine,TargetTriple,
 };
 
 use crate::index::Index;
@@ -20,7 +20,7 @@ extern crate pretty_assertions;
 ///
 /// Compiles the given source into an object file and saves it in output
 ///
-fn compile_to_obj(source: String, output: &str, reloc: RelocMode) {
+fn compile_to_obj(source: String, output: &str, reloc: RelocMode,  triple: Option<String>) {
     let context = Context::create();
     let mut index = Index::new();
     let path = Path::new(output);
@@ -30,13 +30,15 @@ fn compile_to_obj(source: String, output: &str, reloc: RelocMode) {
     Target::initialize_all(initialization_config);
 
     //TODO get triple as parameter.
-    let triple = TargetMachine::get_default_triple();
+
+    let triple = triple.map(|it| TargetTriple::create(it.as_str())).or(Some(TargetMachine::get_default_triple())).unwrap();      
     let target = Target::from_triple(&triple).unwrap();
     let machine = target
         .create_target_machine(
             &triple,
-            TargetMachine::get_host_cpu_name().to_string().as_str(),
-            TargetMachine::get_host_cpu_features().to_string().as_str(),
+            //TODO : Add cpu features as optionals
+            "generic",//TargetMachine::get_host_cpu_name().to_string().as_str(),
+            "",//TargetMachine::get_host_cpu_features().to_string().as_str(),
             //TODO Optimisation as parameter
             inkwell::OptimizationLevel::Default,
             reloc,
@@ -49,12 +51,16 @@ fn compile_to_obj(source: String, output: &str, reloc: RelocMode) {
         .unwrap();
 }
 
-pub fn compile(source : String, output: &str) {
-    compile_to_obj(source,output, RelocMode::Default);
+pub fn compile(source : String, output: &str,  target: Option<String>) {
+    compile_to_obj(source,output, RelocMode::Default, target);
 }
 
-pub fn compile_to_shared_object(source : String, output: &str) {
-    compile_to_obj(source,output, RelocMode::PIC);
+pub fn compile_to_shared_pic_object(source : String, output: &str,  target: Option<String>) {
+    compile_to_obj(source,output, RelocMode::PIC, target);
+}
+
+pub fn compile_to_shared_object(source : String, output: &str,  target: Option<String>) {
+    compile_to_obj(source,output, RelocMode::DynamicNoPic, target);
 }
 
 ///
