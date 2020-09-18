@@ -12,7 +12,9 @@ fn main() {
     let contents = fs::read_to_string(parameters.input).expect("Cannot read file");
     match parameters.output_type {
         OutputType::IR => generate_ir(contents.to_string(), parameters.output.as_str()),
-        OutputType::ObjectCode => compile(contents.to_string(), parameters.output.as_str()),
+        OutputType::ObjectCode => compile(contents.to_string(), parameters.output.as_str(), parameters.target),
+        OutputType::PicObject => compile_to_shared_object(contents.to_string(), parameters.output.as_str(), parameters.target),
+        OutputType::SharedObject => compile_to_shared_object(contents.to_string(), parameters.output.as_str(), parameters.target),
         OutputType::Bitcode => compile_to_bitcode(contents.to_string(),parameters.output.as_str()),
     }
 }
@@ -26,10 +28,13 @@ struct CompileParameters {
     input: String,
     output: String,
     output_type: OutputType,
+    target : Option<String>,
 }
 
 enum OutputType {
     IR,
+    SharedObject,
+    PicObject,
     ObjectCode,
     Bitcode,
 }
@@ -38,7 +43,8 @@ fn read_params(args: &[String]) -> CompileParameters {
     let mut result = CompileParameters {
         input: "".to_string(),
         output: "a.out".to_string(),
-        output_type: OutputType::ObjectCode,
+        output_type: OutputType::PicObject,
+        target : None,
     };
 
     let mut args_iter = args.iter();
@@ -73,6 +79,15 @@ fn parse_argument(
         }
         "--bc" => parameters.output_type = OutputType::Bitcode,
         "--ir" => parameters.output_type = OutputType::IR,
+        "--static" => parameters.output_type = OutputType::ObjectCode,
+        "--shared" => parameters.output_type = OutputType::SharedObject,
+        "--pic" => parameters.output_type = OutputType::PicObject,
+        "--target" => {
+            //Resolve the target here since the --target was specified
+            parameters.target = Some(iterator.next()
+                .expect("Target not specified")
+                .to_string())
+        }
         _ => panic!("Unkown parameter {}", option),
     }
 }
