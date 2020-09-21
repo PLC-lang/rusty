@@ -543,3 +543,44 @@ r#"Variable {
 
     assert_eq!(ast_string, expected_ast);
 }
+
+#[test]
+fn test_ast_line_locations() {
+    let lexer = lexer::lex(
+            "PROGRAM prg
+                call1();
+
+                call2();
+                call3();
+            
+            
+                call4();
+            END_PROGRAM
+    ",
+    );
+    let parse_result = super::parse(lexer).unwrap();
+    let statements = &parse_result.units[0].statements;
+
+    {
+        let statement_offset = statements.get(0).unwrap().get_location().start;
+        let line = parse_result.get_line_of(&statement_offset);
+        assert_eq!(1, line);
+    }
+    {
+        let statement_offset = statements.get(1).unwrap().get_location().start;
+        let line = parse_result.get_line_of(&statement_offset);
+        assert_eq!(3, line);
+    }
+    {
+        let statement_offset = statements.get(2).unwrap().get_location().start;
+        let line = parse_result.get_line_of(&statement_offset);
+        assert_eq!(4, line);
+    }
+    {
+        let statement_offset = statements.get(3).unwrap().get_location().start;
+        let line = parse_result.get_line_of(&statement_offset);
+        assert_eq!(7, line);
+    }
+    
+
+}

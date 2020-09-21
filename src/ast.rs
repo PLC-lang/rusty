@@ -36,6 +36,20 @@ pub struct CompilationUnit {
     pub global_vars: Vec<VariableBlock>,
     pub units: Vec<POU>,
     pub types: Vec<DataType>,
+
+    pub new_lines: Vec<usize>,
+}
+
+impl CompilationUnit {
+    pub fn get_line_of(&self, offset: &usize) -> usize {
+        //this can be improved
+        for (line_nr, line_break_offset) in self.new_lines.iter().enumerate() {
+            if line_break_offset > offset {
+                return line_nr;
+            }
+        }
+        self.new_lines.len()
+    }
 }
 
 #[derive(Debug, Copy, PartialEq, Clone)]
@@ -90,10 +104,6 @@ impl Variable {
 }
 
 pub type SourceRange = core::ops::Range<usize>;
-
-pub fn span(offset: usize, length: usize) -> SourceRange {
-    offset..(offset + length)
-}
 
 #[derive(Debug, PartialEq)]
 pub enum DataTypeDeclaration {

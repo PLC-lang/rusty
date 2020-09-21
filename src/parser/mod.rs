@@ -72,8 +72,8 @@ fn slice_and_advance(lexer: &mut RustyLexer) -> String {
     slice
 }
 
-pub fn parse(mut lexer: RustyLexer) -> Result<CompilationUnit, String> {
-    let mut unit = CompilationUnit { global_vars : Vec::new(), units: Vec::new(), types: Vec::new() };
+pub fn parse(mut lexer: RustyLexer ) -> Result<CompilationUnit, String> {
+    let mut unit = CompilationUnit { global_vars : Vec::new(), units: Vec::new(), types: Vec::new(), new_lines: lexer.get_new_lines().clone()};
 
     loop {
         match lexer.token {
