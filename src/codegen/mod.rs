@@ -324,13 +324,14 @@ impl<'ctx> CodeGen<'ctx> {
     }
     fn generate_statement(&self, s: &Statement) -> ExpressionValue<'ctx> {
         match s {
-            Statement::IfStatement { blocks, else_block } => {
+            Statement::IfStatement { blocks, else_block, ..} => {
                 (None, self.generate_if_statement(blocks, else_block))
             }
             Statement::CaseStatement {
                 selector,
                 case_blocks,
                 else_block,
+                ..
             } => (
                 None,
                 self.generate_case_statement(selector, case_blocks, else_block),
@@ -342,36 +343,38 @@ impl<'ctx> CodeGen<'ctx> {
                 end,
                 by_step,
                 body,
+                ..
             } => (
                 None,
                 self.generate_for_statement(counter, start, end, by_step, body),
             ),
-            Statement::WhileLoopStatement { condition, body } => {
+            Statement::WhileLoopStatement { condition, body, .. } => {
                 (None, self.generate_while_statement(condition, body))
             }
-            Statement::RepeatLoopStatement { condition, body } => {
+            Statement::RepeatLoopStatement { condition, body, .. } => {
                 (None, self.generate_repeat_statement(condition, body))
             }
             //Expressions
             Statement::BinaryExpression {
                 operator,
                 left,
-                right,
+                right, ..
             } => self.generate_binary_expression(operator, left, right),
-            Statement::LiteralInteger { value } => self.generate_literal_integer(value.as_str()),
-            Statement::LiteralReal { value } => self.generate_literal_real(value.as_str()),
-            Statement::LiteralBool { value } => self.generate_literal_boolean(*value),
-            Statement::LiteralString { value } => self.generate_literal_string(value.as_bytes()),
-            Statement::Reference { elements } => self.generate_variable_reference(&elements),
+            Statement::LiteralInteger { value, location: _ } => self.generate_literal_integer(value.as_str()),
+            Statement::LiteralReal { value, location: _  } => self.generate_literal_real(value.as_str()),
+            Statement::LiteralBool { value, location: _ } => self.generate_literal_boolean(*value),
+            Statement::LiteralString { value, location: _ } => self.generate_literal_string(value.as_bytes()),
+            Statement::Reference { elements, location: _} => self.generate_variable_reference(&elements),
             Statement::Assignment { left, right } => {
                 (None, self.generate_assignment(&left, &right))
             }
-            Statement::UnaryExpression { operator, value } => {
+            Statement::UnaryExpression { operator, value , ..} => {
                 self.generate_unary_expression(&operator, &value)
             }
             Statement::CallStatement {
                 operator,
                 parameters,
+                ..
             } => self.generate_call_statement(&operator, &parameters),
             _ => panic!("{:?} not yet supported", s),
         }
@@ -678,7 +681,7 @@ impl<'ctx> CodeGen<'ctx> {
         //Figure out what the target is
         //Get the function name
         let (variable, index_entry) = match &**operator {
-            Statement::Reference { elements } => {
+            Statement::Reference { elements, .. } => {
                 //Get associated Variable or generate a variable for the type with the same name
                 let ast_variable = self.get_callable_type_instance(&elements); //Look for the instance variable
                 let variable_instance = ast_variable
@@ -746,7 +749,7 @@ impl<'ctx> CodeGen<'ctx> {
     ) {
         match statement {
             Statement::Assignment { left, right } => {
-                if let Statement::Reference { elements } = &**left {
+                if let Statement::Reference { elements, ..} = &**left {
                     let parameter = self
                         .index
                         .find_member(function_name, &elements.join("."))
@@ -780,7 +783,7 @@ impl<'ctx> CodeGen<'ctx> {
         statement: &Box<Statement>,
     ) -> (Option<DataTypeInformation>, Option<PointerValue>) {
         match &**statement {
-            Statement::Reference { elements } => self.generate_lvalue_for_reference(elements),
+            Statement::Reference { elements , ..} => self.generate_lvalue_for_reference(elements),
             _ => (None, None),
         }
     }
@@ -843,7 +846,7 @@ impl<'ctx> CodeGen<'ctx> {
         left: &Box<Statement>,
         right: &Box<Statement>,
     ) -> Option<BasicValueEnum<'ctx>> {
-        if let Statement::Reference { elements } = &**left {
+        if let Statement::Reference { elements, .. } = &**left {
             if let (Some(left_type), Some(left_expr)) = self.generate_lvalue_for_reference(elements)
             {
                 if let (Some(right_type), Some(right_res)) = self.generate_statement(right) {

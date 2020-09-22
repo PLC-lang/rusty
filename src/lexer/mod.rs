@@ -10,18 +10,24 @@ mod tests;
 pub struct RustyLexer<'a> {
     lexer: Lexer<'a, Token>,
     pub token: Token,
+    pub new_lines: Vec<usize>,
 }
 
 impl<'a> RustyLexer<'a> {
 
-    pub fn new(l: Lexer<'a, Token>) -> RustyLexer<'a> {
+    pub fn new(l: Lexer<'a, Token>, new_lines: Vec<usize>) -> RustyLexer<'a> {
         let mut lexer = RustyLexer{
             lexer: l,
             token: Token::KeywordBy,
+            new_lines
         };
         lexer.advance();
         lexer
-    }    
+    }
+
+    pub fn get_new_lines(&self) -> &Vec<usize> {
+        &self.new_lines
+    }
 
     pub fn advance(&mut self) {
         self.token = self.lexer.next().unwrap_or(Token::End);
@@ -248,6 +254,16 @@ pub enum Token {
 
 
 pub fn lex(source: &str) -> RustyLexer {
-    RustyLexer::new(Token::lexer(source))
+    RustyLexer::new(Token::lexer(source), analyze_new_lines(source))
+}
+
+fn analyze_new_lines(source: &str) -> Vec<usize>{
+    let mut new_lines = Vec::new();
+    for (offset, c) in source.char_indices() {
+        if c == '\n' {
+            new_lines.push(offset);
+        }
+    }
+    new_lines
 }
 

@@ -179,11 +179,15 @@ fn parse_unary_expression(lexer: &mut RustyLexer) -> Result<Statement, String> {
         _ => None,
     };
 
+    let start = lexer.range().start;
     if let Some(operator) = operator {
         lexer.advance();
+        let expression = parse_parenthesized_expression(lexer)?;
+        let location = start..expression.get_location().end;
         Ok(Statement::UnaryExpression {
-            operator,
-            value: Box::new(parse_parenthesized_expression(lexer)?),
+            operator: operator,
+            value: Box::new(expression),
+            location: location,
         })
     } else {
         parse_parenthesized_expression(lexer)
@@ -226,8 +230,9 @@ fn parse_leaf_expression(lexer: &mut RustyLexer) -> Result<Statement, String> {
 }
 
 fn parse_bool_literal(lexer: &mut RustyLexer, value: bool) -> Result<Statement, String> {
+    let location = lexer.range();
     lexer.advance();
-    Ok(Statement::LiteralBool { value })
+    Ok(Statement::LiteralBool { value, location })
 }
 
 pub fn parse_reference_access(lexer : &mut RustyLexer) -> Result<Statement, String> {
@@ -244,27 +249,33 @@ pub fn parse_reference_access(lexer : &mut RustyLexer) -> Result<Statement, Stri
 }
 
 pub fn parse_reference(lexer: &mut RustyLexer) -> Result<Statement, String> {
+    let start = lexer.range().start;
+    let mut end = lexer.range().end;
     let mut reference_elements = vec![slice_and_advance(lexer)];
     while allow(KeywordDot, lexer) {
+        end = lexer.range().end;
         reference_elements.push(slice_and_advance(lexer));
     }
 
     let reference = Statement::Reference {
         elements : reference_elements,
+        location: start..end,
     };
 
     if allow(KeywordParensOpen, lexer) {
-        let statement_list = if allow(KeywordParensClose, lexer) {
-            None
+        let (statement_list, end) = if allow(KeywordParensClose, lexer) {
+            (None, lexer.range().end)
         } else {
             let list = parse_expression_list(lexer).unwrap();
             expect!(KeywordParensClose, lexer);
+            let end = lexer.range().end;
             lexer.advance();
-            Some(list)
+            (Some(list), end)
         };
         Ok(Statement::CallStatement {
             operator: Box::new(reference),
             parameters: Box::new(statement_list),
+            location: start..end
         })
     } else {
         Ok(reference)
@@ -272,12 +283,13 @@ pub fn parse_reference(lexer: &mut RustyLexer) -> Result<Statement, String> {
 }
 
 fn parse_literal_number(lexer: &mut RustyLexer) -> Result<Statement, String> {
+    let location = lexer.range();
     let result = slice_and_advance(lexer);
     if allow(KeywordDot, lexer) {
-        return parse_literal_real(lexer, result);
+        return parse_literal_real(lexer, result, location);
     }
 
-    Ok(Statement::LiteralInteger { value: result })
+    Ok(Statement::LiteralInteger { value: result, location })
 }
 
 fn trim_quotes<'a>(quoted_string : &str) -> String {
@@ -286,20 +298,26 @@ fn trim_quotes<'a>(quoted_string : &str) -> String {
 
 fn parse_literal_string(lexer: &mut RustyLexer) -> Result<Statement, String> {
     let result = lexer.slice();
-    let string_literal = Ok(Statement::LiteralString { value: trim_quotes(result)});
+    let location = lexer.range();
+    let string_literal = Ok(Statement::LiteralString { value: trim_quotes(result), location});
     lexer.advance();
     string_literal
 }
 
-fn parse_literal_real(lexer: &mut RustyLexer, integer: String) -> Result<Statement, String> {
+fn parse_literal_real(lexer: &mut RustyLexer, integer: String, integer_range: SourceRange) -> Result<Statement, String> {
     expect!(LiteralInteger, lexer);
+    let start = integer_range.start;
+    let fraction_end = lexer.range().end;
     let fractional = slice_and_advance(lexer);
-    let exponent = if lexer.token == LiteralExponent {
-        slice_and_advance(lexer)
-    } else {
-        "".to_string()
-    };
-    let result = format!("{}.{}{}", integer, fractional, exponent);
 
-    Ok(Statement::LiteralReal { value: result })
+    let (exponent, end) = if lexer.token == LiteralExponent {
+        //this spans everything, [integer].[integer]
+        (slice_and_advance(lexer), lexer.range().end)
+    } else {
+        ("".to_string(), fraction_end)
+    };
+
+    let result = format!("{}.{}{}", integer, fractional, exponent);
+    let new_location = start..end;
+    Ok(Statement::LiteralReal { value: result, location: new_location })
 }

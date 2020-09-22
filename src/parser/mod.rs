@@ -40,6 +40,7 @@ fn create_pou(pou_type: PouType) -> POU {
         variable_blocks: Vec::new(),
         statements: Vec::new(),
         return_type: None,
+        location: 0..0,
     }
 }
 
@@ -71,8 +72,8 @@ fn slice_and_advance(lexer: &mut RustyLexer) -> String {
     slice
 }
 
-pub fn parse(mut lexer: RustyLexer) -> Result<CompilationUnit, String> {
-    let mut unit = CompilationUnit { global_vars : Vec::new(), units: Vec::new(), types: Vec::new() };
+pub fn parse(mut lexer: RustyLexer ) -> Result<CompilationUnit, String> {
+    let mut unit = CompilationUnit { global_vars : Vec::new(), units: Vec::new(), types: Vec::new(), new_lines: lexer.get_new_lines().clone()};
 
     loop {
         match lexer.token {
@@ -304,5 +305,10 @@ fn parse_variable(
     let data_type = parse_data_type_definition(lexer, None)?;
     //Convert to real datatype
 
-    Ok(Variable{name, data_type})
+
+    Ok(Variable {
+        name, 
+        data_type, 
+        location: 0..0,
+    })
 }
