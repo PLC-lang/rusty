@@ -6,7 +6,7 @@ use inkwell::context::Context;
 use inkwell::module::Linkage;
 use inkwell::module::Module;
 
-use inkwell::types::{BasicType, BasicTypeEnum, FunctionType, StringRadix, StructType};
+use inkwell::types::{BasicType, BasicTypeEnum, FunctionType, StringRadix, ArrayType, StructType};
 
 use inkwell::values::{
     BasicValue, BasicValueEnum, FunctionValue, GlobalValue, PointerValue,
@@ -114,8 +114,30 @@ impl<'ctx> CodeGen<'ctx> {
                 },
             ),
             DataType::SubRangeType { .. } => unimplemented!(),
-            DataType::ArrayType { .. } => unimplemented!(),
+            DataType::ArrayType { name , bounds, referenced_type} => {
+                let (start_offset, end_offset) = if let Statement::RangeStatement{start,end} = bounds {
+                    (CodeGen::evaluate_constant_int(start).unwrap_or(0),CodeGen::evaluate_constant_int(end).unwrap_or(0)) 
+                } else { (0,0) };
+                let length = end_offset - start_offset + 1;
+                let target_type = self.get_type(referenced_type).unwrap();
+                self.index.associate_type(name.as_ref().unwrap().as_str(), 
+                    DataTypeInformation::Array {
+                        name: name.as_ref().unwrap().clone(),
+                        generated_type : CodeGen::get_array_type(target_type, length).as_basic_type_enum(),
+                        length,
+                        start_offset,
+                    }
+                )
+            },
         };
+    }
+
+    fn evaluate_constant_int(s : &Statement) -> Option<u32>{
+        match s {
+            Statement::LiteralInteger { value, location: _ } => value.parse().ok(), 
+            //TODO constatnts
+            _ => None,
+        }
     }
 
     fn get_type(&self, data_type: &DataTypeDeclaration) -> Option<BasicTypeEnum<'ctx>> {
@@ -126,6 +148,18 @@ impl<'ctx> CodeGen<'ctx> {
                     it.get_type()
                 ).flatten()
             )
+    }
+
+    fn get_array_type(basic_type : BasicTypeEnum, size : u32) -> ArrayType {
+        match basic_type {
+            BasicTypeEnum::IntType(..) => basic_type.into_int_type().array_type(size),
+            BasicTypeEnum::FloatType(..)  => basic_type.into_float_type().array_type(size),
+            BasicTypeEnum::StructType(..)  => basic_type.into_struct_type().array_type(size),
+            BasicTypeEnum::ArrayType(..) => basic_type.into_array_type().array_type(size),
+            BasicTypeEnum::PointerType(..) => basic_type.into_pointer_type().array_type(size),
+            BasicTypeEnum::VectorType(..) => basic_type.into_vector_type().array_type(size),
+
+        }
     }
 
     fn generate_data_types(&self, data_types: &Vec<DataType>) {
@@ -144,7 +178,7 @@ impl<'ctx> CodeGen<'ctx> {
                     }
                 }
                 DataType::SubRangeType { .. } => unimplemented!(),
-                DataType::ArrayType { .. } => unimplemented!(),
+                DataType::ArrayType { .. } => {},
             }
         }
     }

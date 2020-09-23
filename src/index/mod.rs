@@ -17,6 +17,12 @@ pub enum DataTypeInformation<'ctx> {
         name: String,
         generated_type: BasicTypeEnum<'ctx>,
     },
+    Array {
+        name: String,
+        generated_type: BasicTypeEnum<'ctx>,
+        length: u32,
+        start_offset: u32,
+    },
     Integer {
         signed: bool,
         size: u32,
@@ -62,6 +68,7 @@ impl<'ctx> DataTypeInformation<'ctx> {
             DataTypeInformation::Float { generated_type, .. } => *generated_type,
             DataTypeInformation::String { generated_type, .. } => *generated_type,
             DataTypeInformation::Struct { generated_type, .. } => *generated_type,
+            DataTypeInformation::Array { generated_type, .. } => *generated_type,
         }
     }
 
@@ -70,7 +77,8 @@ impl<'ctx> DataTypeInformation<'ctx> {
             DataTypeInformation::Integer { size, .. } => *size,
             DataTypeInformation::Float { size, .. } => *size,
             DataTypeInformation::String { size, .. } => *size,
-            DataTypeInformation::Struct { .. } => 0,
+            DataTypeInformation::Struct { .. } => 0, //TODO : Should we fill in the struct members here for size calculation or save the struct size.
+            DataTypeInformation::Array { .. } => unimplemented!(), //Propably length * inner type size
         }
     }
 }

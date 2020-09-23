@@ -1730,3 +1730,25 @@ source_filename = "main"
 
     assert_eq!(result, expected);
 }
+
+#[test]
+fn array_of_int_type_generated() {
+    let result = codegen!(
+        "
+        PROGRAM prg 
+            VAR
+                x : ARRAY[0..10] OF INT;
+            END_VAR
+        END_PROGRAM
+        "
+    );
+
+    let expected = generate_program_boiler_plate("prg",
+    &[("[11 x i16]","x")],
+    "void",
+    "",
+    "",
+r#"ret void
+"#);
+    assert_eq!(result, expected);
+}
