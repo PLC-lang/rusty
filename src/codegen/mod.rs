@@ -22,6 +22,9 @@ use inkwell::basic_block::BasicBlock;
 #[cfg(test)]
 mod tests;
 mod typesystem;
+pub mod debugger;
+
+use debugger::DebugManager;
 
 type ExpressionValue<'a> = (Option<DataTypeInformation<'a>>, Option<BasicValueEnum<'a>>);
 pub struct CodeGen<'ctx> {
@@ -29,21 +32,33 @@ pub struct CodeGen<'ctx> {
     pub module: Module<'ctx>,
     pub builder: Builder<'ctx>,
     pub index: &'ctx mut Index<'ctx>,
-
     scope: Option<String>,
+    new_lines : Option<Vec<usize>>,
+
     current_function: Option<FunctionValue<'ctx>>,
 }
 
 impl<'ctx> CodeGen<'ctx> {
-    pub fn new(context: &'ctx Context, index: &'ctx mut Index<'ctx>) -> CodeGen<'ctx> {
+    pub fn create_debuggable_codegen(context: &'ctx Context, index: &'ctx mut Index<'ctx>) -> CodeGen<'ctx> {
         let module = context.create_module("main");
         let builder = context.create_builder();
+        CodeGen::new(context,index,module,builder)
+    }
+
+    pub fn create_codegen(context: &'ctx Context, index: &'ctx mut Index<'ctx>) -> CodeGen<'ctx>{
+        let module = context.create_module("main");
+        let builder = context.create_builder();
+        CodeGen::new(context,index,module,builder)
+    }
+
+    pub fn new(context: &'ctx Context, index: &'ctx mut Index<'ctx>, module : Module<'ctx>, builder: Builder<'ctx>) -> CodeGen<'ctx> {
         let mut codegen = CodeGen {
             context,
             module,
             builder,
             index,
             scope: None,
+            new_lines: None,
             current_function: None,
         };
         codegen.initialize_type_system();
@@ -58,12 +73,14 @@ impl<'ctx> CodeGen<'ctx> {
         format!("{}_instance", pou_name)
     }
 
-    pub fn generate(&mut self, root: CompilationUnit) -> String {
-        self.generate_compilation_unit(root);
+    pub fn generate(&mut self, debugger : &mut DebugManager<'ctx>, root: CompilationUnit) -> String {
+        self.generate_compilation_unit(debugger, root);
+        debugger.finalize();
         self.module.print_to_string().to_string()
     }
 
-    pub fn generate_compilation_unit(&mut self, root: CompilationUnit) {
+    pub fn generate_compilation_unit(&mut self, debugger : &mut DebugManager<'ctx>,root: CompilationUnit) {
+        self.new_lines = Some(root.new_lines.clone());
         for data_type in &root.types {
             self.generate_data_type_stub(data_type);
         }
@@ -87,7 +104,7 @@ impl<'ctx> CodeGen<'ctx> {
         }
 
         for unit in &root.units {
-            self.generate_pou(unit);
+            self.generate_pou(debugger, unit);
         }
     }
 
@@ -174,10 +191,11 @@ impl<'ctx> CodeGen<'ctx> {
         }
     }
 
-    fn generate_pou(&mut self, p: &POU) {
+    fn generate_pou(&mut self,debugger : &mut DebugManager<'ctx>, p: &POU) {
         self.scope = Some(p.name.clone());
 
         let mut pou_members: Vec<(String, BasicTypeEnum)> = Vec::new();
+        let mut pou_debug_members: Vec<(&str, DataTypeInformation<'ctx>)> = Vec::new();
         let return_type = p
             .return_type
             .as_ref()
@@ -186,6 +204,14 @@ impl<'ctx> CodeGen<'ctx> {
 
         for var_block in &p.variable_blocks {
             let mut members = self.get_variables_information(&var_block.variables);
+            for variable in &var_block.variables {
+                let datatype_information = self
+                .index
+                .find_member(p.name.as_str(), variable.name.as_str())
+                .map(VariableIndexEntry::get_type_name)
+                .and_then(|it| self.index.find_type_information(it));
+                pou_debug_members.push((variable.name.as_str(), datatype_information.unwrap()));
+            }
             pou_members.append(&mut members);
         }
 
@@ -200,6 +226,14 @@ impl<'ctx> CodeGen<'ctx> {
             f_type,
             None,
         ));
+
+        
+        let debug_program = debugger.create_subprogram(pou_debug_members.as_slice(), &p, self.new_lines.as_ref().unwrap().as_slice());
+        if let Some((_, debug_function)) = debug_program { 
+            self.current_function.unwrap().set_subprogram(debug_function);
+        }
+
+
         self.index
             .associate_callable_implementation(p.name.as_str(), self.current_function.unwrap());
         let block = self
@@ -211,7 +245,7 @@ impl<'ctx> CodeGen<'ctx> {
         if p.pou_type == PouType::Program {
             let instance_name = CodeGen::get_struct_instance_name(p.name.as_str());
             let global_value =
-                self.generate_global_variable(member_type.into(), instance_name.as_str());
+            self.generate_global_variable(member_type.into(), instance_name.as_str());
             self.index
                 .associate_global_variable(p.name.as_str(), global_value.as_pointer_value());
         }
@@ -242,7 +276,7 @@ impl<'ctx> CodeGen<'ctx> {
                 .associate_local_variable(p.name.as_str(), p.name.as_str(), ret_alloc);
         }
 
-        self.generate_statement_list(block, &p.statements);
+        self.generate_statement_list(debugger, block, &p.statements);
         //self.builder.build_return(Some(&result.unwrap()));i
         let ret_value = self.get_return_value(p.pou_type);
         if let Some(ret_value) = ret_value {
@@ -250,6 +284,7 @@ impl<'ctx> CodeGen<'ctx> {
         } else {
             self.builder.build_return(None);
         };
+        debugger.remove_scope()
     }
 
     fn get_return_value(&self, pou_type: PouType) -> Option<BasicValueEnum> {
@@ -322,10 +357,11 @@ impl<'ctx> CodeGen<'ctx> {
         result.set_linkage(Linkage::Common);
         result
     }
-    fn generate_statement(&self, s: &Statement) -> ExpressionValue<'ctx> {
-        match s {
+
+    fn generate_statement(&self, debugger : &mut DebugManager, s: &Statement) -> ExpressionValue<'ctx> {
+        let result = match s {
             Statement::IfStatement { blocks, else_block, ..} => {
-                (None, self.generate_if_statement(blocks, else_block))
+                (None, self.generate_if_statement(debugger, blocks, else_block))
             }
             Statement::CaseStatement {
                 selector,
@@ -334,7 +370,7 @@ impl<'ctx> CodeGen<'ctx> {
                 ..
             } => (
                 None,
-                self.generate_case_statement(selector, case_blocks, else_block),
+                self.generate_case_statement(debugger, selector, case_blocks, else_block),
             ),
             //Loops
             Statement::ForLoopStatement {
@@ -346,42 +382,45 @@ impl<'ctx> CodeGen<'ctx> {
                 ..
             } => (
                 None,
-                self.generate_for_statement(counter, start, end, by_step, body),
+                self.generate_for_statement(debugger, counter, start, end, by_step, body),
             ),
             Statement::WhileLoopStatement { condition, body, .. } => {
-                (None, self.generate_while_statement(condition, body))
+                (None, self.generate_while_statement(debugger, condition, body))
             }
             Statement::RepeatLoopStatement { condition, body, .. } => {
-                (None, self.generate_repeat_statement(condition, body))
+                (None, self.generate_repeat_statement(debugger, condition, body))
             }
             //Expressions
             Statement::BinaryExpression {
                 operator,
                 left,
                 right, ..
-            } => self.generate_binary_expression(operator, left, right),
+            } => self.generate_binary_expression(debugger, operator, left, right),
             Statement::LiteralInteger { value, location: _ } => self.generate_literal_integer(value.as_str()),
             Statement::LiteralReal { value, location: _  } => self.generate_literal_real(value.as_str()),
             Statement::LiteralBool { value, location: _ } => self.generate_literal_boolean(*value),
             Statement::LiteralString { value, location: _ } => self.generate_literal_string(value.as_bytes()),
             Statement::Reference { elements, location: _} => self.generate_variable_reference(&elements),
             Statement::Assignment { left, right } => {
-                (None, self.generate_assignment(&left, &right))
+                (None, self.generate_assignment(debugger, &left, &right))
             }
             Statement::UnaryExpression { operator, value , ..} => {
-                self.generate_unary_expression(&operator, &value)
+                self.generate_unary_expression(debugger, &operator, &value)
             }
             Statement::CallStatement {
                 operator,
                 parameters,
                 ..
-            } => self.generate_call_statement(&operator, &parameters),
+            } => self.generate_call_statement(debugger, &operator, &parameters),
             _ => panic!("{:?} not yet supported", s),
-        }
+        };
+        //debugger.append_breakpoint_location(&self.builder, get_line_of(self.new_lines.as_ref().unwrap(), &s.get_location().start) as u32 +1 );
+        result
     }
 
     fn generate_case_statement(
         &self,
+        debugger : &mut DebugManager,
         selector: &Box<Statement>,
         conditional_blocks: &Vec<ConditionalBlock>,
         else_body: &Vec<Statement>,
@@ -392,7 +431,7 @@ impl<'ctx> CodeGen<'ctx> {
             .append_basic_block(self.current_function?, "continue");
 
         let basic_block = self.builder.get_insert_block()?;
-        let selector_statement = self.generate_statement(&*selector).1?;
+        let selector_statement = self.generate_statement(debugger, &*selector).1?;
         let mut cases = Vec::new();
 
         //generate a int_value and a BasicBlock for every case-body
@@ -401,8 +440,8 @@ impl<'ctx> CodeGen<'ctx> {
             let basic_block = self
                 .context
                 .append_basic_block(self.current_function?, "case");
-            let condition = self.generate_statement(&*conditional_block.condition).1?; //TODO : Is a type conversion needed here?
-            self.generate_statement_list(basic_block, &conditional_block.body);
+            let condition = self.generate_statement(debugger, &*conditional_block.condition).1?; //TODO : Is a type conversion needed here?
+            self.generate_statement_list(debugger, basic_block, &conditional_block.body);
             self.builder.build_unconditional_branch(continue_block);
 
             cases.push((condition.into_int_value(), basic_block));
@@ -411,7 +450,7 @@ impl<'ctx> CodeGen<'ctx> {
         let else_block = self
             .context
             .append_basic_block(self.current_function?, "else");
-        self.generate_statement_list(else_block, else_body);
+        self.generate_statement_list(debugger, else_block, else_body);
         self.builder.build_unconditional_branch(continue_block);
 
         //Move the continue block to after the else block
@@ -426,6 +465,7 @@ impl<'ctx> CodeGen<'ctx> {
 
     fn generate_if_statement(
         &self,
+        debugger : &mut DebugManager,
         conditional_blocks: &Vec<ConditionalBlock>,
         else_body: &Vec<Statement>,
     ) -> Option<BasicValueEnum<'ctx>> {
@@ -460,9 +500,11 @@ impl<'ctx> CodeGen<'ctx> {
             self.builder.position_at_end(then_block);
 
             let condition = self
-                .generate_statement(&block.condition)
+                .generate_statement(debugger, &block.condition)
                 .1?
                 .into_int_value();
+            debugger.append_breakpoint_location(&self.builder, get_line_of(self.new_lines.as_ref().unwrap(), &block.condition.get_location().start) as u32 +1 );
+            
             let conditional_block = self
                 .context
                 .prepend_basic_block(else_block, "condition_body");
@@ -472,12 +514,12 @@ impl<'ctx> CodeGen<'ctx> {
                 .build_conditional_branch(condition, conditional_block, else_block);
 
             //Generate if statement content
-            self.generate_statement_list(conditional_block, &block.body);
+            self.generate_statement_list(debugger, conditional_block, &block.body);
             self.builder.build_unconditional_branch(continue_block);
         }
         //Else
         if let Some(else_block) = else_block {
-            self.generate_statement_list(else_block, else_body);
+            self.generate_statement_list(debugger, else_block, else_body);
             self.builder.build_unconditional_branch(continue_block);
         }
         //Continue
@@ -487,13 +529,14 @@ impl<'ctx> CodeGen<'ctx> {
 
     fn generate_for_statement(
         &self,
+        debugger : &mut DebugManager,
         counter: &Box<Statement>,
         start: &Box<Statement>,
         end: &Box<Statement>,
         by_step: &Option<Box<Statement>>,
         body: &Vec<Statement>,
     ) -> Option<BasicValueEnum<'ctx>> {
-        self.generate_assignment(counter, start);
+        self.generate_assignment(debugger, counter, start);
         let condition_check = self
             .context
             .append_basic_block(self.current_function?, "condition_check");
@@ -504,12 +547,13 @@ impl<'ctx> CodeGen<'ctx> {
             .context
             .append_basic_block(self.current_function?, "continue");
         //Generate an initial jump to the for condition
+        debugger.append_breakpoint_location(&self.builder, get_line_of(self.new_lines.as_ref().unwrap(), &counter.get_location().start) as u32 +1 );
         self.builder.build_unconditional_branch(condition_check);
 
         //Check loop condition
         self.builder.position_at_end(condition_check);
-        let counter_statement = self.generate_statement(counter).1.unwrap().into_int_value();
-        let end_statement = self.generate_statement(end).1.unwrap().into_int_value();
+        let counter_statement = self.generate_statement(debugger, counter).1.unwrap().into_int_value();
+        let end_statement = self.generate_statement(debugger, end).1.unwrap().into_int_value();
         let compare = self.builder.build_int_compare(
             IntPredicate::SLE,
             counter_statement,
@@ -520,12 +564,12 @@ impl<'ctx> CodeGen<'ctx> {
             .build_conditional_branch(compare, for_body, continue_block);
 
         //Enter the for loop
-        self.generate_statement_list(for_body, &body);
+        self.generate_statement_list(debugger, for_body, &body);
 
         //Increment
         let step_by_value = by_step
             .as_ref()
-            .map(|step| self.generate_statement(&step).1.unwrap())
+            .map(|step| self.generate_statement(debugger, &step).1.unwrap())
             .or(self.generate_literal_integer("1").1)
             .unwrap()
             .into_int_value();
@@ -537,6 +581,7 @@ impl<'ctx> CodeGen<'ctx> {
         self.builder.build_store(ptr, next);
 
         //Loop back
+        debugger.append_breakpoint_location(&self.builder, get_line_of(self.new_lines.as_ref().unwrap(), &start.get_location().start) as u32 +1 );
         self.builder.build_unconditional_branch(condition_check);
 
         //Continue
@@ -546,6 +591,7 @@ impl<'ctx> CodeGen<'ctx> {
 
     fn generate_base_while_statement(
         &self,
+        debugger : &mut DebugManager,
         condition: &Box<Statement>,
         body: &Vec<Statement>,
     ) -> Option<BasicValueEnum> {
@@ -561,12 +607,13 @@ impl<'ctx> CodeGen<'ctx> {
 
         //Check loop condition
         self.builder.position_at_end(condition_check);
-        let condition_value = self.generate_statement(condition).1?.into_int_value();
+        let condition_value = self.generate_statement(debugger, condition).1?.into_int_value();
+        //debugger.append_breakpoint_location(&self.builder, get_line_of(self.new_lines.as_ref().unwrap(), &condition.get_location().start) as u32 +1 );
         self.builder
             .build_conditional_branch(condition_value, while_body, continue_block);
 
         //Enter the for loop
-        self.generate_statement_list(while_body, &body);
+        self.generate_statement_list(debugger, while_body, &body);
         //Loop back
         self.builder.build_unconditional_branch(condition_check);
 
@@ -577,16 +624,18 @@ impl<'ctx> CodeGen<'ctx> {
 
     fn generate_while_statement(
         &self,
+        debugger : &mut DebugManager,
         condition: &Box<Statement>,
         body: &Vec<Statement>,
     ) -> Option<BasicValueEnum<'ctx>> {
         let basic_block = self.builder.get_insert_block()?;
-        self.generate_base_while_statement(condition, body);
+        self.generate_base_while_statement(debugger, condition, body);
 
         let continue_block = self.builder.get_insert_block()?;
 
         let condition_block = basic_block.get_next_basic_block()?;
         self.builder.position_at_end(basic_block);
+        debugger.append_breakpoint_location(&self.builder, get_line_of(self.new_lines.as_ref().unwrap(), &condition.get_location().start) as u32 +1 );
         self.builder.build_unconditional_branch(condition_block);
 
         self.builder.position_at_end(continue_block);
@@ -595,11 +644,12 @@ impl<'ctx> CodeGen<'ctx> {
 
     fn generate_repeat_statement(
         &self,
+        debugger : &mut DebugManager,
         condition: &Box<Statement>,
         body: &Vec<Statement>,
     ) -> Option<BasicValueEnum<'ctx>> {
         let basic_block = self.builder.get_insert_block()?;
-        self.generate_base_while_statement(condition, body);
+        self.generate_base_while_statement(debugger, condition, body);
 
         let continue_block = self.builder.get_insert_block()?;
 
@@ -611,19 +661,20 @@ impl<'ctx> CodeGen<'ctx> {
         None
     }
 
-    fn generate_statement_list(&self, block: BasicBlock, statements: &Vec<Statement>) {
+    fn generate_statement_list(&self, debugger : &mut DebugManager,  block: BasicBlock, statements: &Vec<Statement>) {
         self.builder.position_at_end(block);
         for statement in statements {
-            self.generate_statement(statement);
+            self.generate_statement(debugger, statement);
         }
     }
 
     fn generate_unary_expression(
         &self,
+        debugger : &mut DebugManager,
         operator: &Operator,
         value: &Box<Statement>,
     ) -> ExpressionValue<'ctx> {
-        if let (Some(data_type), Some(loaded_value)) = self.generate_statement(value) {
+        if let (Some(data_type), Some(loaded_value)) = self.generate_statement(debugger, value) {
             let (data_type, value) = match operator {
                 Operator::Not => (
                     data_type,
@@ -675,6 +726,7 @@ impl<'ctx> CodeGen<'ctx> {
 
     fn generate_call_statement(
         &self,
+        debugger : &mut DebugManager,
         operator: &Box<Statement>,
         parameter: &Box<Option<Statement>>,
     ) -> ExpressionValue<'ctx> {
@@ -700,7 +752,7 @@ impl<'ctx> CodeGen<'ctx> {
         let instance = variable.unwrap();
         let index_entry = index_entry;
         let function_name = index_entry.map(DataTypeIndexEntry::get_name).unwrap();
-        self.generate_function_parameters(function_name, instance, parameter);
+        self.generate_function_parameters(debugger, function_name, instance, parameter);
         let return_type = self
             .index
             .find_member(function_name, function_name)
@@ -722,6 +774,7 @@ impl<'ctx> CodeGen<'ctx> {
 
     fn generate_function_parameters(
         &self,
+        debugger : &mut DebugManager,
         function_name: &str,
         variable: PointerValue<'ctx>,
         parameters: &Box<Option<Statement>>,
@@ -729,11 +782,11 @@ impl<'ctx> CodeGen<'ctx> {
         match &**parameters {
             Some(Statement::ExpressionList { expressions }) => {
                 for (index, exp) in expressions.iter().enumerate() {
-                    self.generate_single_parameter(exp, function_name, None, index as u32, variable);
+                    self.generate_single_parameter(debugger, exp, function_name, None, index as u32, variable);
                 }
             }
             Some(statement) => {
-                self.generate_single_parameter(statement, function_name, None, 0, variable)
+                self.generate_single_parameter(debugger, statement, function_name, None, 0, variable)
             }
             None => {}
         }
@@ -741,6 +794,7 @@ impl<'ctx> CodeGen<'ctx> {
 
     fn generate_single_parameter(
         &self,
+        debugger : &mut DebugManager,
         statement: &Statement,
         function_name: &str,
         parameter_type : Option<&DataTypeIndexEntry<'ctx>>,
@@ -758,12 +812,12 @@ impl<'ctx> CodeGen<'ctx> {
                         .get_location_in_parent()
                         .unwrap();
                     let param_type = self.index.find_type(parameter.get_type_name());
-                    self.generate_single_parameter(right, function_name, param_type, index, pointer_value);
+                    self.generate_single_parameter(debugger, right, function_name, param_type, index, pointer_value);
 
                 }
             }
             _ => {
-                if let (Some(value_type), Some(generated_exp)) = self.generate_statement(statement) {
+                if let (Some(value_type), Some(generated_exp)) = self.generate_statement(debugger, statement) {
                     let pointer_to_param = self
                         .builder
                         .build_struct_gep(pointer_value, index as u32, "")
@@ -843,13 +897,15 @@ impl<'ctx> CodeGen<'ctx> {
 
     fn generate_assignment(
         &self,
+        debugger : &mut DebugManager,
         left: &Box<Statement>,
         right: &Box<Statement>,
     ) -> Option<BasicValueEnum<'ctx>> {
+        debugger.append_breakpoint_location(&self.builder, get_line_of(self.new_lines.as_ref().unwrap(), &left.get_location().start) as u32 +1 );
         if let Statement::Reference { elements, .. } = &**left {
             if let (Some(left_type), Some(left_expr)) = self.generate_lvalue_for_reference(elements)
             {
-                if let (Some(right_type), Some(right_res)) = self.generate_statement(right) {
+                if let (Some(right_type), Some(right_res)) = self.generate_statement(debugger, right) {
                     let value = self
                         .cast_if_needed(&left_type, right_res, &right_type).unwrap();
                     self.builder.build_store(left_expr, value);
@@ -890,12 +946,14 @@ impl<'ctx> CodeGen<'ctx> {
 
     fn generate_binary_expression(
         &self,
+        debugger : &mut DebugManager,
         operator: &Operator,
-        left: &Box<Statement>,
-        right: &Box<Statement>,
+        left: &Statement,
+        right: &Statement,
     ) -> ExpressionValue<'ctx> {
-        if let (Some(ltype), Some(lval_opt)) = self.generate_statement(left) {
-            if let (Some(rtype), Some(rval_opt)) = self.generate_statement(right) {
+        debugger.append_breakpoint_location(&self.builder, get_line_of(self.new_lines.as_ref().unwrap(), &left.get_location().start) as u32 +1 ); 
+        if let (Some(ltype), Some(lval_opt)) = self.generate_statement(debugger, left) {
+            if let (Some(rtype), Some(rval_opt)) = self.generate_statement(debugger, right) {
                 //Step 1 convert all to i32
                 let (target_type, lvalue, rvalue) =
                     self.promote_if_needed(lval_opt, &ltype, rval_opt, &rtype);

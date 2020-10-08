@@ -3,6 +3,7 @@
 use crate::lexer;
 use crate::parser;
 use crate::index::Index;
+use crate::codegen::debugger::DebugManager;
 use inkwell::context::Context;
 use pretty_assertions::assert_eq;
 
@@ -16,8 +17,9 @@ macro_rules! codegen {
         let mut index = Index::new();
         index.pre_process(&mut ast);
         index.visit(&mut ast);
-        let mut code_generator = crate::codegen::CodeGen::new(&context, &mut index);
-        code_generator.generate(ast)
+        let mut code_generator = crate::codegen::CodeGen::create_codegen(&context, &mut index);
+        let mut debugger = DebugManager::create_inactive();
+        code_generator.generate(&mut debugger, ast)
     }};
 }
 

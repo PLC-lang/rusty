@@ -113,7 +113,7 @@ impl<'ctx> DataTypeIndexEntry<'ctx> {
     pub fn get_type(&self) -> Option<BasicTypeEnum<'ctx>> {
         self.information.as_ref().map(|it| it.get_type())
     }
-
+    
     pub fn get_implementation(&self) -> Option<FunctionValue<'ctx>> {
         self.implementation
     }

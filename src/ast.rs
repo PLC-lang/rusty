@@ -8,7 +8,6 @@ pub struct POU {
     pub statements: Vec<Statement>,
     pub pou_type: PouType,
     pub return_type: Option<DataTypeDeclaration>,
-
     pub location: SourceRange,
 }
 
@@ -40,15 +39,21 @@ pub struct CompilationUnit {
     pub new_lines: Vec<usize>,
 }
 
+//TODO This belongs to the parser
+pub fn get_line_of(new_lines: &[usize], offset: &usize) -> usize {
+    //TODO this can be improved
+    for (line_nr, line_break_offset) in new_lines.iter().enumerate() {
+        if line_break_offset > offset {
+            return line_nr;
+        }
+    }
+    new_lines.len()
+
+}
+
 impl CompilationUnit {
     pub fn get_line_of(&self, offset: &usize) -> usize {
-        //this can be improved
-        for (line_nr, line_break_offset) in self.new_lines.iter().enumerate() {
-            if line_break_offset > offset {
-                return line_nr;
-            }
-        }
-        self.new_lines.len()
+        get_line_of(self.new_lines.as_slice(), offset)
     }
 }
 

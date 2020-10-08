@@ -11,16 +11,16 @@ fn main() {
     let parameters = read_params(args.as_slice());
     let contents = fs::read_to_string(parameters.input).expect("Cannot read file");
     match parameters.output_type {
-        OutputType::IR => generate_ir(contents.to_string(), parameters.output.as_str()),
-        OutputType::ObjectCode => compile(contents.to_string(), parameters.output.as_str(), parameters.target),
-        OutputType::PicObject => compile_to_shared_object(contents.to_string(), parameters.output.as_str(), parameters.target),
-        OutputType::SharedObject => compile_to_shared_object(contents.to_string(), parameters.output.as_str(), parameters.target),
-        OutputType::Bitcode => compile_to_bitcode(contents.to_string(),parameters.output.as_str()),
+        OutputType::IR => generate_ir(contents.to_string(), parameters.output.as_str(), parameters.debug),
+        OutputType::ObjectCode => compile(contents.to_string(), parameters.output.as_str(), parameters.target, parameters.debug),
+        OutputType::PicObject => compile_to_shared_object(contents.to_string(), parameters.output.as_str(), parameters.target, parameters.debug),
+        OutputType::SharedObject => compile_to_shared_object(contents.to_string(), parameters.output.as_str(), parameters.target, parameters.debug),
+        OutputType::Bitcode => compile_to_bitcode(contents.to_string(),parameters.output.as_str(), parameters.debug),
     }
 }
 
-fn generate_ir(content : String, output: &str) {
-    let ir = compile_to_ir(content);
+fn generate_ir(content : String, output: &str, enable_debug : bool) {
+    let ir = compile_to_ir(content, enable_debug);
     fs::write(output, ir).unwrap(); 
 }
 
@@ -29,6 +29,7 @@ struct CompileParameters {
     output: String,
     output_type: OutputType,
     target : Option<String>,
+    debug: bool,
 }
 
 enum OutputType {
@@ -45,6 +46,7 @@ fn read_params(args: &[String]) -> CompileParameters {
         output: "a.out".to_string(),
         output_type: OutputType::PicObject,
         target : None,
+        debug : false,
     };
 
     let mut args_iter = args.iter();
@@ -82,6 +84,7 @@ fn parse_argument(
         "--static" => parameters.output_type = OutputType::ObjectCode,
         "--shared" => parameters.output_type = OutputType::SharedObject,
         "--pic" => parameters.output_type = OutputType::PicObject,
+        "-g" | "--debug" => parameters.debug = true,
         "--target" => {
             //Resolve the target here since the --target was specified
             parameters.target = Some(iterator.next()
