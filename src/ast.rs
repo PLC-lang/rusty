@@ -45,7 +45,7 @@ impl CompilationUnit {
         //this can be improved
         for (line_nr, line_break_offset) in self.new_lines.iter().enumerate() {
             if line_break_offset > offset {
-                return line_nr;
+                return line_nr + 1;
             }
         }
         self.new_lines.len()
