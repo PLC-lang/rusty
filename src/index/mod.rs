@@ -349,7 +349,6 @@ impl<'ctx> Index<'ctx> {
     }
 
     pub fn associate_type(&mut self, name: &str, data_type_information: DataTypeInformation<'ctx>) {
-        println!("Type : {:?}", data_type_information);
         if let Some(entry) = self.types.get_mut(name) {
             entry.information = Some(data_type_information);
         };

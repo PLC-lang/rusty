@@ -115,7 +115,6 @@ impl<'ctx> CodeGen<'ctx> {
             ),
             DataType::SubRangeType { .. } => unimplemented!(),
             DataType::ArrayType { name , bounds, referenced_type} => {
-                println!("Parsing Array : Statement {:?}", bounds);
                 let (start_offset, end_offset) = if let Statement::RangeStatement{start,end} = bounds {
                     (CodeGen::evaluate_constant_int(start).unwrap_or(0),CodeGen::evaluate_constant_int(end).unwrap_or(0)) 
                 } else { (0,0) };
@@ -148,7 +147,6 @@ impl<'ctx> CodeGen<'ctx> {
 
     fn evaluate_constant_int(s : &Statement) -> Option<i32>{
         let value = CodeGen::extract_value(s);
-        println!("{:?}", value); 
         value.map(|v| v.parse().unwrap_or(0))
     }
 
@@ -842,8 +840,6 @@ impl<'ctx> CodeGen<'ctx> {
     ) -> (Option<DataTypeInformation<'ctx>>, Option<PointerValue<'ctx>>) {
         //Load the reference
         if let (Some(DataTypeInformation::Array{internal_type_information,start_offset,  ..}), Some(value)) =  self.generate_lvalue_for(reference) {
-            println!("Internal Type : {:?}", internal_type_information);
-            println!("Internal Value : {:?}", value);
             //TODO : Treat as if it were a normal expression for now, and not a list
             if let (_ , Some(access_value)) = self.generate_statement(access) {
                 //If start offset is not 0, adjust the current statement with an add operation
