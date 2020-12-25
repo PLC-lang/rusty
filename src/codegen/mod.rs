@@ -115,14 +115,17 @@ impl<'ctx> CodeGen<'ctx> {
             ),
             DataType::SubRangeType { .. } => unimplemented!(),
             DataType::ArrayType { name , bounds, referenced_type} => {
+                println!("Parsing Array : Statement {:?}", bounds);
                 let (start_offset, end_offset) = if let Statement::RangeStatement{start,end} = bounds {
                     (CodeGen::evaluate_constant_int(start).unwrap_or(0),CodeGen::evaluate_constant_int(end).unwrap_or(0)) 
                 } else { (0,0) };
-                let length = end_offset - start_offset + 1;
+                let length : u32 = (end_offset - start_offset + 1) as u32;
                 let target_type = self.get_type(referenced_type).unwrap();
+                let internal_type = self.index.find_type_information(referenced_type.get_name().unwrap()).unwrap();
                 self.index.associate_type(name.as_ref().unwrap().as_str(), 
                     DataTypeInformation::Array {
                         name: name.as_ref().unwrap().clone(),
+                        internal_type_information : Box::new(internal_type),
                         generated_type : CodeGen::get_array_type(target_type, length).as_basic_type_enum(),
                         length,
                         start_offset,
@@ -132,12 +135,21 @@ impl<'ctx> CodeGen<'ctx> {
         };
     }
 
-    fn evaluate_constant_int(s : &Statement) -> Option<u32>{
+    fn extract_value(s : &Statement) -> Option<String> {
         match s {
-            Statement::LiteralInteger { value, location: _ } => value.parse().ok(), 
+            Statement::UnaryExpression {operator, value , ..} => 
+            CodeGen::extract_value(value).map(|result| format!("{}{}", operator, result)),
+            Statement::LiteralInteger { value, ..} => Some(value.to_string()), 
             //TODO constatnts
             _ => None,
         }
+
+    }
+
+    fn evaluate_constant_int(s : &Statement) -> Option<i32>{
+        let value = CodeGen::extract_value(s);
+        println!("{:?}", value); 
+        value.map(|v| v.parse().unwrap_or(0))
     }
 
     fn get_type(&self, data_type: &DataTypeDeclaration) -> Option<BasicTypeEnum<'ctx>> {
@@ -410,8 +422,19 @@ impl<'ctx> CodeGen<'ctx> {
                 parameters,
                 ..
             } => self.generate_call_statement(&operator, &parameters),
+            Statement::ArrayAccess {reference, access} => self.generate_array_access(&reference, &access),
             _ => panic!("{:?} not yet supported", s),
         }
+    }
+
+    fn generate_array_access(
+        &self,
+        reference: &Box<Statement>,
+        access: &Box<Statement>,
+    ) -> ExpressionValue<'ctx>{
+        //Generate Reference
+        let value = self.generate_lvalue_for_array(reference, access);
+        self.generate_reference_from_value(value,"tmpVar")
     }
 
     fn generate_case_statement(
@@ -812,15 +835,47 @@ impl<'ctx> CodeGen<'ctx> {
         }
     }
 
+    fn generate_lvalue_for_array(
+        &self,
+        reference: &Box<Statement>,
+        access: &Box<Statement>,
+    ) -> (Option<DataTypeInformation<'ctx>>, Option<PointerValue<'ctx>>) {
+        //Load the reference
+        if let (Some(DataTypeInformation::Array{internal_type_information,start_offset,  ..}), Some(value)) =  self.generate_lvalue_for(reference) {
+            println!("Internal Type : {:?}", internal_type_information);
+            println!("Internal Value : {:?}", value);
+            //TODO : Treat as if it were a normal expression for now, and not a list
+            if let (_ , Some(access_value)) = self.generate_statement(access) {
+                //If start offset is not 0, adjust the current statement with an add operation
+                let access_value = if start_offset != 0 {
+                    self.builder.build_int_sub(access_value.into_int_value(), self.context.i32_type().const_int(start_offset as u64, true), "")
+
+                } else {
+                    access_value.into_int_value()
+                };
+                //Load the access from that reference
+                let pointer = unsafe {
+                    //First 0 is to access the pointer, then we access the array
+                    self.builder.build_in_bounds_gep(value, &[self.context.i32_type().const_int(0,false), access_value], "tmpVar")
+                };
+                return (Some(*internal_type_information),Some(pointer));
+            };
+        }
+        (None, None)
+
+    }
+
     fn generate_lvalue_for(
         &self,
         statement: &Box<Statement>,
-    ) -> (Option<DataTypeInformation>, Option<PointerValue>) {
+    ) -> (Option<DataTypeInformation<'ctx>>, Option<PointerValue<'ctx>>) {
         match &**statement {
             Statement::Reference { elements , ..} => self.generate_lvalue_for_reference(elements),
+            Statement::ArrayAccess {reference, access } => self.generate_lvalue_for_array(reference, access),
             _ => (None, None),
         }
     }
+
     fn get_variable(&self, name: &[String]) -> Option<PointerValue<'ctx>> {
         self.index
             .find_variable(self.get_scope(), name)
@@ -863,16 +918,21 @@ impl<'ctx> CodeGen<'ctx> {
         (self.index.find_type_information(data_type), ptr)
     }
 
-    fn generate_variable_reference(&self, segments: &[String]) -> ExpressionValue<'ctx> {
-        let lvalue = self.generate_lvalue_for_reference(segments);
-
+    fn generate_reference_from_value(&self, lvalue: (Option<DataTypeInformation<'ctx>>, Option<PointerValue<'ctx>>), name : &str) -> ExpressionValue<'ctx> {
         let (data_type, ptr) = lvalue;
 
-        let temp_var_name = format!("load_{var_name}", var_name = segments.join("."));
+        let temp_var_name = format!("load_{var_name}", var_name = name);
         (
             data_type,
             ptr.map(|value| (self.builder.build_load(value, &temp_var_name).into())),
         )
+    }
+
+    fn generate_variable_reference(&self, segments: &[String]) -> ExpressionValue<'ctx> {
+        let lvalue = self.generate_lvalue_for_reference(segments);
+
+        self.generate_reference_from_value(lvalue, &segments.join("."))
+
     }
 
     fn generate_assignment(
@@ -880,16 +940,14 @@ impl<'ctx> CodeGen<'ctx> {
         left: &Box<Statement>,
         right: &Box<Statement>,
     ) -> Option<BasicValueEnum<'ctx>> {
-        if let Statement::Reference { elements, .. } = &**left {
-            if let (Some(left_type), Some(left_expr)) = self.generate_lvalue_for_reference(elements)
-            {
-                if let (Some(right_type), Some(right_res)) = self.generate_statement(right) {
-                    let value = self
-                        .cast_if_needed(&left_type, right_res, &right_type).unwrap();
-                    self.builder.build_store(left_expr, value);
-                }
+        if let (Some(left_type), Some(left_expr)) = self.generate_lvalue_for(left)
+        {
+            if let (Some(right_type), Some(right_res)) = self.generate_statement(right) {
+                let value = self
+                    .cast_if_needed(&left_type, right_res, &right_type).unwrap();
+                self.builder.build_store(left_expr, value);
             }
-        }
+        };
         None
     }
 

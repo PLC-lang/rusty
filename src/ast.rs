@@ -1,5 +1,5 @@
 /// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-use std::fmt::{Debug, Formatter, Result};
+use std::{fmt::{Debug, Display, Formatter, Result}, unimplemented};
 
 #[derive(PartialEq)]
 pub struct POU {
@@ -479,4 +479,18 @@ pub enum Operator {
     And,
     Or,
     Xor,
+}
+
+impl Display for Operator {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+        let symbol = match self {
+            Operator::Plus=>  "+",
+            Operator::Minus =>  "-",
+            Operator::Multiplication =>  "*",
+            Operator::Division =>  "/",
+            Operator::Equal =>  "=",
+            _ =>  unimplemented!(),
+        };
+        f.write_str(symbol)
+    }
 }

@@ -1752,3 +1752,140 @@ r#"ret void
 "#);
     assert_eq!(result, expected);
 }
+
+#[test]
+fn array_of_int_type_used() {
+    let result = codegen!(
+        "
+        PROGRAM prg 
+            VAR
+                x : ARRAY[0..3] OF DINT;
+            END_VAR
+            x[1] := 3;
+            x[2] := x[3] + 3;
+        END_PROGRAM
+        "
+    );
+
+    let expected = generate_program_boiler_plate("prg",
+    &[("[4 x i32]","x")],
+    "void",
+    "",
+    "",
+r#"%tmpVar = getelementptr inbounds [4 x i32], [4 x i32]* %x, i32 0, i32 1
+  store i32 3, i32* %tmpVar
+  %tmpVar1 = getelementptr inbounds [4 x i32], [4 x i32]* %x, i32 0, i32 2
+  %tmpVar2 = getelementptr inbounds [4 x i32], [4 x i32]* %x, i32 0, i32 3
+  %load_tmpVar = load i32, i32* %tmpVar2
+  %tmpVar3 = add i32 %load_tmpVar, 3
+  store i32 %tmpVar3, i32* %tmpVar1
+  ret void
+"#);
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn array_of_int_non_zero_type_generated() {
+    let result = codegen!(
+        "
+        PROGRAM prg 
+            VAR
+                x : ARRAY[10..20] OF INT;
+            END_VAR
+        END_PROGRAM
+        "
+    );
+
+    let expected = generate_program_boiler_plate("prg",
+    &[("[11 x i16]","x")],
+    "void",
+    "",
+    "",
+r#"ret void
+"#);
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn array_of_int_type_with_non_zero_start_used() {
+    let result = codegen!(
+        "
+        PROGRAM prg 
+            VAR
+                x : ARRAY[1..3] OF DINT;
+            END_VAR
+            x[1] := 3;
+            x[2] := x[3] + 3;
+        END_PROGRAM
+        "
+    );
+
+    let expected = generate_program_boiler_plate("prg",
+    &[("[3 x i32]","x")],
+    "void",
+    "",
+    "",
+r#"%tmpVar = getelementptr inbounds [3 x i32], [3 x i32]* %x, i32 0, i32 0
+  store i32 3, i32* %tmpVar
+  %tmpVar1 = getelementptr inbounds [3 x i32], [3 x i32]* %x, i32 0, i32 1
+  %tmpVar2 = getelementptr inbounds [3 x i32], [3 x i32]* %x, i32 0, i32 2
+  %load_tmpVar = load i32, i32* %tmpVar2
+  %tmpVar3 = add i32 %load_tmpVar, 3
+  store i32 %tmpVar3, i32* %tmpVar1
+  ret void
+"#);
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn array_of_int_non_zero_negative_type_generated() {
+    let result = codegen!(
+        "
+        PROGRAM prg 
+            VAR
+                x : ARRAY[-10..20] OF INT;
+            END_VAR
+        END_PROGRAM
+        "
+    );
+
+    let expected = generate_program_boiler_plate("prg",
+    &[("[31 x i16]","x")],
+    "void",
+    "",
+    "",
+r#"ret void
+"#);
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn array_of_int_type_with_non_zero_negative_start_used() {
+    let result = codegen!(
+        "
+        PROGRAM prg 
+            VAR
+                x : ARRAY[-2..3] OF DINT;
+            END_VAR
+            x[-1] := 3;
+            x[2] := x[3] + 3;
+        END_PROGRAM
+        "
+    );
+
+    let expected = generate_program_boiler_plate("prg",
+    &[("[6 x i32]","x")],
+    "void",
+    "",
+    "",
+r#"%tmpVar = getelementptr inbounds [6 x i32], [6 x i32]* %x, i32 0, i32 1
+  store i32 3, i32* %tmpVar
+  %tmpVar1 = getelementptr inbounds [6 x i32], [6 x i32]* %x, i32 0, i32 4
+  %tmpVar2 = getelementptr inbounds [6 x i32], [6 x i32]* %x, i32 0, i32 5
+  %load_tmpVar = load i32, i32* %tmpVar2
+  %tmpVar3 = add i32 %load_tmpVar, 3
+  store i32 %tmpVar3, i32* %tmpVar1
+  ret void
+"#);
+    assert_eq!(result, expected);
+}

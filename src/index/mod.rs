@@ -19,9 +19,10 @@ pub enum DataTypeInformation<'ctx> {
     },
     Array {
         name: String,
+        internal_type_information : Box<DataTypeInformation<'ctx>>,
         generated_type: BasicTypeEnum<'ctx>,
         length: u32,
-        start_offset: u32,
+        start_offset: i32,
     },
     Integer {
         signed: bool,
@@ -348,6 +349,7 @@ impl<'ctx> Index<'ctx> {
     }
 
     pub fn associate_type(&mut self, name: &str, data_type_information: DataTypeInformation<'ctx>) {
+        println!("Type : {:?}", data_type_information);
         if let Some(entry) = self.types.get_mut(name) {
             entry.information = Some(data_type_information);
         };
