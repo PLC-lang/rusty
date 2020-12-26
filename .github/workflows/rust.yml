@@ -13,7 +13,7 @@ jobs:
       uses: ./docker-build/
       with:
         build-step: 'test'
-    - name: Codecov
-      uses: codecov/codecov-action@v1.1.1
-      with:
-        token: ${{ secrets.CODECOV_TOKEN }}
+    # - name: Codecov
+    #   uses: codecov/codecov-action@v1.1.1
+    #   with:
+    #     token: ${{ secrets.CODECOV_TOKEN }}
