@@ -12,11 +12,11 @@ Structured text compiler written in Rust
        |              |                    |                   |
        |              |                    |                   |
 ----I-------------I-------------I-------------I-------------I-------------I-------------I----
- nov-'19       jan-'20       mar-'20       may-'20      june-'20       sep-'20       nov-'20  
+ nov-'19       jan-'20       mar-'20       may-'20      june-'20       dec-'20       jan-'21  
 ----I-------------I-------------I-------------I-------------I-------------I-------------I----
-                  |                   |          |
-                  |                   |          |
-                Parsing            Control       Call Stmts
+                  |                   |          |                        |
+                  |                   |          |                        |
+                Parsing            Control       Call Stmts           Array Access
                 POUs               Structures    for all
                 Statements                       POUs
                 Expressions
@@ -37,10 +37,10 @@ Structured text compiler written in Rust
 - :heavy_check_mark: Strings
 - :heavy_check_mark: Struct types
 - :heavy_check_mark: Enum types
+- :heavy_check_mark: Array data types
 - :x: Alias types
 - :x: Sub-ranges types
 - :x: Sized String types
-- :x: Array data types
 - :x: Initial values
 
 ## Declarations
