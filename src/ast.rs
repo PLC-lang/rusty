@@ -212,12 +212,10 @@ impl DataType {
             if let DataTypeDeclaration::DataTypeReference{..} = **referenced_type {
                 return None;
             } 
-            println!("Replacing Datatype : {:?}", referenced_type);
             let new_data_type = DataTypeDeclaration::DataTypeReference {
                 referenced_type: type_name,
             };
             let old_data_type = std::mem::replace(referenced_type, Box::new(new_data_type));
-            println!("Old type : {:?}", old_data_type);
             Some(*old_data_type)
         } else {
             None
