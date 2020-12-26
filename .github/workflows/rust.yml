@@ -13,3 +13,9 @@ jobs:
       uses: ./docker-build/
       with:
         build-step: 'test'
+    # - name: rust-tarpaulin
+    #   uses: actions-rs/tarpaulin@v0.1
+    # - name: Codecov
+    #   uses: codecov/codecov-action@v1.1.1
+    #   with:
+    #     token: ${{ secrets.CODECOV_TOKEN }}

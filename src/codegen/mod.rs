@@ -6,10 +6,10 @@ use inkwell::context::Context;
 use inkwell::module::Linkage;
 use inkwell::module::Module;
 
-use inkwell::types::{BasicType, BasicTypeEnum, FunctionType, StringRadix, StructType};
+use inkwell::types::{BasicType, BasicTypeEnum, FunctionType, StringRadix, ArrayType, StructType};
 
 use inkwell::values::{
-    BasicValue, BasicValueEnum, FunctionValue, GlobalValue, PointerValue,
+    BasicValue, BasicValueEnum, IntValue, FunctionValue, GlobalValue, PointerValue,
 };
 
 use inkwell::AddressSpace;
@@ -114,8 +114,54 @@ impl<'ctx> CodeGen<'ctx> {
                 },
             ),
             DataType::SubRangeType { .. } => unimplemented!(),
-            DataType::ArrayType { .. } => unimplemented!(),
+            DataType::ArrayType { name , bounds, referenced_type} => {
+                let dimensions = CodeGen::get_array_dimensions(bounds);
+                let target_type = self.get_type(referenced_type).unwrap();
+                let internal_type = self.index.find_type_information(referenced_type.get_name().unwrap()).unwrap();
+                self.index.associate_type(name.as_ref().unwrap().as_str(), 
+                    DataTypeInformation::Array {
+                        name: name.as_ref().unwrap().clone(),
+                        internal_type_information : Box::new(internal_type),
+                        generated_type : CodeGen::create_nested_array_type(target_type, dimensions.clone()).as_basic_type_enum(),
+                        dimensions,
+                    }
+                )
+            },
         };
+    }
+
+    fn get_array_dimensions(bounds : &Statement) -> Vec<Dimension> {
+        let mut result = vec!();
+        for statement in bounds.get_as_list() {
+            result.push(CodeGen::get_single_array_dimension(statement).expect("Could not parse array bounds"));
+        }
+        result
+    }
+
+    fn get_single_array_dimension(bounds : &Statement) -> Result<Dimension, String> {
+        if let Statement::RangeStatement{start, end} = bounds {
+            let start_offset = CodeGen::evaluate_constant_int(start).unwrap_or(0);
+            let end_offset = CodeGen::evaluate_constant_int(end).unwrap_or(0);
+            Ok(Dimension{start_offset, end_offset}) 
+        } else {
+            Err(format!("Unexpected Statement {:?}, expected range", bounds))
+        }
+    }
+
+    fn extract_value(s : &Statement) -> Option<String> {
+        match s {
+            Statement::UnaryExpression {operator, value , ..} => 
+            CodeGen::extract_value(value).map(|result| format!("{}{}", operator, result)),
+            Statement::LiteralInteger { value, ..} => Some(value.to_string()), 
+            //TODO constatnts
+            _ => None,
+        }
+
+    }
+
+    fn evaluate_constant_int(s : &Statement) -> Option<i32>{
+        let value = CodeGen::extract_value(s);
+        value.map(|v| v.parse().unwrap_or(0))
     }
 
     fn get_type(&self, data_type: &DataTypeDeclaration) -> Option<BasicTypeEnum<'ctx>> {
@@ -126,6 +172,27 @@ impl<'ctx> CodeGen<'ctx> {
                     it.get_type()
                 ).flatten()
             )
+    }
+
+    fn create_nested_array_type(end_type : BasicTypeEnum, dimensions : Vec<Dimension> ) -> ArrayType {
+        let mut result : Option<ArrayType> = None;
+        let mut current_type = end_type;
+        for dimension in dimensions.iter().rev() {
+            result = Some(CodeGen::create_array_type(current_type, dimension.get_length()));
+            current_type = result.unwrap().into();
+        }
+        result.unwrap()
+    }
+
+    fn create_array_type(basic_type : BasicTypeEnum, size : u32) -> ArrayType {
+        match basic_type {
+            BasicTypeEnum::IntType(..) => basic_type.into_int_type().array_type(size),
+            BasicTypeEnum::FloatType(..)  => basic_type.into_float_type().array_type(size),
+            BasicTypeEnum::StructType(..)  => basic_type.into_struct_type().array_type(size),
+            BasicTypeEnum::ArrayType(..) => basic_type.into_array_type().array_type(size),
+            BasicTypeEnum::PointerType(..) => basic_type.into_pointer_type().array_type(size),
+            BasicTypeEnum::VectorType(..) => basic_type.into_vector_type().array_type(size),
+        }
     }
 
     fn generate_data_types(&self, data_types: &Vec<DataType>) {
@@ -144,7 +211,7 @@ impl<'ctx> CodeGen<'ctx> {
                     }
                 }
                 DataType::SubRangeType { .. } => unimplemented!(),
-                DataType::ArrayType { .. } => unimplemented!(),
+                DataType::ArrayType { .. } => {},
             }
         }
     }
@@ -257,7 +324,7 @@ impl<'ctx> CodeGen<'ctx> {
             PouType::Function => {
                 let pou_name = self.get_scope().unwrap();
                 let value = self
-                    .generate_lvalue_for_reference(&[pou_name.to_string()])
+                    .generate_lvalue_for_reference(&[pou_name.to_string()]).unwrap()
                     .1
                     .unwrap();
                 Some(
@@ -376,8 +443,19 @@ impl<'ctx> CodeGen<'ctx> {
                 parameters,
                 ..
             } => self.generate_call_statement(&operator, &parameters),
+            Statement::ArrayAccess {reference, access} => self.generate_array_access(&reference, &access),
             _ => panic!("{:?} not yet supported", s),
         }
+    }
+
+    fn generate_array_access(
+        &self,
+        reference: &Box<Statement>,
+        access: &Box<Statement>,
+    ) -> ExpressionValue<'ctx>{
+        //Generate Reference
+        let value = self.generate_lvalue_for_array(reference, access).unwrap();
+        self.generate_reference_from_value(value,"tmpVar")
     }
 
     fn generate_case_statement(
@@ -533,7 +611,7 @@ impl<'ctx> CodeGen<'ctx> {
         let next = self
             .builder
             .build_int_add(counter_statement, step_by_value, "tmpVar");
-        let ptr = self.generate_lvalue_for(counter).1.unwrap();
+        let ptr = self.generate_lvalue_for(counter).expect("Cannot generate lvalue").1.unwrap();
         self.builder.build_store(ptr, next);
 
         //Loop back
@@ -778,15 +856,65 @@ impl<'ctx> CodeGen<'ctx> {
         }
     }
 
+    fn generate_access_for_dimension(
+        &self,
+        dimension : &Dimension,
+        access_statement  : &Statement,
+    ) -> Result<IntValue<'ctx>, String> {
+        let start_offset = dimension.start_offset;
+        if let (_ , Some(access_value)) = self.generate_statement(access_statement) {
+                //If start offset is not 0, adjust the current statement with an add operation
+                if start_offset != 0 {
+                    Ok(self.builder.build_int_sub(access_value.into_int_value(), self.context.i32_type().const_int(start_offset as u64, true), ""))
+                } else {
+                    Ok(access_value.into_int_value())
+                }
+        } else {
+            Err(format!("Cannot generate int access for {:?}", access_statement))
+        }
+    }
+    
+    fn generate_lvalue_for_array(
+        &self,
+        reference: &Box<Statement>,
+        access: &Box<Statement>,
+    ) -> Result<(Option<DataTypeInformation<'ctx>>, Option<PointerValue<'ctx>>), String> {
+        //Load the reference
+        self.generate_lvalue_for(reference).and_then(|lvalue| {
+            if let (Some(DataTypeInformation::Array{internal_type_information,dimensions,  ..}), Some(value)) =  lvalue {
+
+                //First 0 is to access the pointer, then we access the array
+                let mut indices = vec![self.context.i32_type().const_int(0,false)];
+                
+                //Make sure dimensions match statement list
+                let statements = access.get_as_list();
+                if statements.len() == 0 || statements.len() != dimensions.len() {
+                    panic!("Mismatched array access : {} -> {} ", statements.len(), dimensions.len())
+                } 
+                for (i, statement) in statements.iter().enumerate() {
+                    indices.push(self.generate_access_for_dimension(&dimensions[i], statement).expect("Cannot read array index"))
+                }
+                //Load the access from that reference
+                let pointer = unsafe {
+                    self.builder.build_in_bounds_gep(value, indices.as_slice(), "tmpVar")
+                };
+                return Ok((Some(*internal_type_information),Some(pointer)));
+            }
+            Err(format!("Could not generate Array Value {:?}[{:?}", reference,access))
+        })
+    }
+
     fn generate_lvalue_for(
         &self,
         statement: &Box<Statement>,
-    ) -> (Option<DataTypeInformation>, Option<PointerValue>) {
+    ) -> Result<(Option<DataTypeInformation<'ctx>>, Option<PointerValue<'ctx>>), String> {
         match &**statement {
             Statement::Reference { elements , ..} => self.generate_lvalue_for_reference(elements),
-            _ => (None, None),
+            Statement::ArrayAccess {reference, access } => self.generate_lvalue_for_array(reference, access),
+            _ => Err(format!("Unsupported Statement {:?}", statement)),
         }
     }
+
     fn get_variable(&self, name: &[String]) -> Option<PointerValue<'ctx>> {
         self.index
             .find_variable(self.get_scope(), name)
@@ -797,10 +925,10 @@ impl<'ctx> CodeGen<'ctx> {
     fn generate_lvalue_for_reference(
         &self,
         segments: &[String],
-    ) -> (
+    ) -> Result<(
         Option<DataTypeInformation<'ctx>>,
         Option<PointerValue<'ctx>>,
-    ) {
+    ), String> {
         let mut name = segments.iter();
         let first_name = name.next().unwrap();
         let type_name = self
@@ -823,22 +951,27 @@ impl<'ctx> CodeGen<'ctx> {
                     .build_struct_gep(qualifier, member_location, operator);
                 (member_data_type, gep.ok())
             } else {
-                ("", None)
+                ("",None)
             }
         });
-        (self.index.find_type_information(data_type), ptr)
+        ptr.map(|it| (self.index.find_type_information(data_type),Some(it))).ok_or(format!("Could not generate reference for {}", segments.join(".")))
     }
 
-    fn generate_variable_reference(&self, segments: &[String]) -> ExpressionValue<'ctx> {
-        let lvalue = self.generate_lvalue_for_reference(segments);
-
+    fn generate_reference_from_value(&self, lvalue: (Option<DataTypeInformation<'ctx>>, Option<PointerValue<'ctx>>), name : &str) -> ExpressionValue<'ctx> {
         let (data_type, ptr) = lvalue;
 
-        let temp_var_name = format!("load_{var_name}", var_name = segments.join("."));
+        let temp_var_name = format!("load_{var_name}", var_name = name);
         (
             data_type,
             ptr.map(|value| (self.builder.build_load(value, &temp_var_name).into())),
         )
+    }
+
+    fn generate_variable_reference(&self, segments: &[String]) -> ExpressionValue<'ctx> {
+        let lvalue = self.generate_lvalue_for_reference(segments).unwrap();
+
+        self.generate_reference_from_value(lvalue, &segments.join("."))
+
     }
 
     fn generate_assignment(
@@ -846,16 +979,14 @@ impl<'ctx> CodeGen<'ctx> {
         left: &Box<Statement>,
         right: &Box<Statement>,
     ) -> Option<BasicValueEnum<'ctx>> {
-        if let Statement::Reference { elements, .. } = &**left {
-            if let (Some(left_type), Some(left_expr)) = self.generate_lvalue_for_reference(elements)
-            {
-                if let (Some(right_type), Some(right_res)) = self.generate_statement(right) {
-                    let value = self
-                        .cast_if_needed(&left_type, right_res, &right_type).unwrap();
-                    self.builder.build_store(left_expr, value);
-                }
+        if let (Some(left_type), Some(left_expr)) = self.generate_lvalue_for(left).unwrap()
+        {
+            if let (Some(right_type), Some(right_res)) = self.generate_statement(right) {
+                let value = self
+                    .cast_if_needed(&left_type, right_res, &right_type).unwrap();
+                self.builder.build_store(left_expr, value);
             }
-        }
+        };
         None
     }
 

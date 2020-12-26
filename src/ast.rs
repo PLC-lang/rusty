@@ -1,5 +1,5 @@
 /// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-use std::fmt::{Debug, Formatter, Result};
+use std::{fmt::{Debug, Display, Formatter, Result}, unimplemented};
 
 #[derive(PartialEq)]
 pub struct POU {
@@ -200,6 +200,25 @@ impl DataType {
                 referenced_type: _,
             } => name.as_ref().map(|x| x.as_str()),
             DataType::ArrayType { name, .. } => name.as_ref().map(|x| x.as_str()),
+        }
+    }
+
+    //Attempts to replace the inner type with a reference. Returns the old type if replaceable
+    pub fn replace_data_type_with_reference_to(
+        &mut self,
+        type_name: String,
+    ) -> Option<DataTypeDeclaration> {
+        if let DataType::ArrayType{referenced_type,..} = self {
+            if let DataTypeDeclaration::DataTypeReference{..} = **referenced_type {
+                return None;
+            } 
+            let new_data_type = DataTypeDeclaration::DataTypeReference {
+                referenced_type: type_name,
+            };
+            let old_data_type = std::mem::replace(referenced_type, Box::new(new_data_type));
+            Some(*old_data_type)
+        } else {
+            None
         }
     }
 }
@@ -428,6 +447,15 @@ impl Debug for Statement {
 }
 
 impl Statement {
+    ///Returns the statement in a singleton list, or the contained statements if the statement is already a list
+    pub fn get_as_list(&self) -> Vec<&Statement> {
+        if let Statement::ExpressionList{expressions} = self {
+            expressions.iter().collect::<Vec<&Statement>>()
+        } else {
+            vec![self]
+        }
+
+    }
     pub fn get_location(&self) -> SourceRange {
         match self {
             Statement::LiteralInteger { location, .. } => location.clone(),
@@ -479,4 +507,18 @@ pub enum Operator {
     And,
     Or,
     Xor,
+}
+
+impl Display for Operator {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+        let symbol = match self {
+            Operator::Plus=>  "+",
+            Operator::Minus =>  "-",
+            Operator::Multiplication =>  "*",
+            Operator::Division =>  "/",
+            Operator::Equal =>  "=",
+            _ =>  unimplemented!(),
+        };
+        f.write_str(symbol)
+    }
 }

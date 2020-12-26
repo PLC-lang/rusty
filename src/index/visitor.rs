@@ -77,14 +77,15 @@ fn get_variable_type_from_block(block: &VariableBlock) -> VariableType {
 fn visit_data_type(index: &mut Index, data_type: &DataType) {
     //names should not be empty
     match data_type {
-        DataType::StructType { name, variables: _ } => 
+        DataType::StructType { name, .. } => 
             index.register_type(name.as_ref().map(|it| it.to_string()).unwrap()),
 
-        DataType::EnumType { name, elements: _ } => 
+        DataType::EnumType { name, .. } => 
             index.register_type( name.as_ref().map(|it| it.to_string()).unwrap()),
 
-        DataType::SubRangeType { name, referenced_type: _ } => 
+        DataType::SubRangeType { name, .. } => 
             index.register_type (name.as_ref().map(|it| it.to_string()).unwrap()),
-        DataType::ArrayType { .. } => unimplemented!(),
+        DataType::ArrayType { name, .. } => 
+            index.register_type (name.as_ref().map(|it| it.to_string()).unwrap()),
     }
 }

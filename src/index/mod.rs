@@ -12,10 +12,28 @@ mod tests;
 mod visitor;
 
 #[derive(Debug, Clone)]
+pub struct Dimension {
+    pub start_offset: i32,
+    pub end_offset : i32,
+}
+
+impl Dimension {
+    pub fn get_length(&self) -> u32 {
+        (self.end_offset - self.start_offset + 1) as u32
+    }
+}
+
+#[derive(Debug, Clone)]
 pub enum DataTypeInformation<'ctx> {
     Struct {
         name: String,
         generated_type: BasicTypeEnum<'ctx>,
+    },
+    Array {
+        name: String,
+        internal_type_information : Box<DataTypeInformation<'ctx>>,
+        generated_type: BasicTypeEnum<'ctx>,
+        dimensions : Vec<Dimension>, 
     },
     Integer {
         signed: bool,
@@ -62,6 +80,7 @@ impl<'ctx> DataTypeInformation<'ctx> {
             DataTypeInformation::Float { generated_type, .. } => *generated_type,
             DataTypeInformation::String { generated_type, .. } => *generated_type,
             DataTypeInformation::Struct { generated_type, .. } => *generated_type,
+            DataTypeInformation::Array { generated_type, .. } => *generated_type,
         }
     }
 
@@ -70,7 +89,8 @@ impl<'ctx> DataTypeInformation<'ctx> {
             DataTypeInformation::Integer { size, .. } => *size,
             DataTypeInformation::Float { size, .. } => *size,
             DataTypeInformation::String { size, .. } => *size,
-            DataTypeInformation::Struct { .. } => 0,
+            DataTypeInformation::Struct { .. } => 0, //TODO : Should we fill in the struct members here for size calculation or save the struct size.
+            DataTypeInformation::Array { .. } => unimplemented!(), //Propably length * inner type size
         }
     }
 }

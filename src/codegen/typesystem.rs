@@ -343,11 +343,9 @@ impl<'ctx> CodeGen<'ctx> {
                 } else {
                     // FLOAT --> FLOAT
                     if let DataTypeInformation::Float { size, .. } = ltype {
-                        println!("FLOAT -> FLOAT: {:?} -> {:?}", size, target_size);
                         if target_size <= size {
                             lvalue
                         } else {
-                            println!("FLOAT -> FLOAT: {:?} -> {:?}", size, target_size);
                             self.builder
                                 .build_float_ext(
                                     lvalue.into_float_value(),
