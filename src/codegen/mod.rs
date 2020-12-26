@@ -9,7 +9,7 @@ use inkwell::module::Module;
 use inkwell::types::{BasicType, BasicTypeEnum, FunctionType, StringRadix, ArrayType, StructType};
 
 use inkwell::values::{
-    BasicValue, BasicValueEnum, FunctionValue, GlobalValue, PointerValue,
+    BasicValue, BasicValueEnum, IntValue, FunctionValue, GlobalValue, PointerValue,
 };
 
 use inkwell::AddressSpace;
@@ -115,23 +115,42 @@ impl<'ctx> CodeGen<'ctx> {
             ),
             DataType::SubRangeType { .. } => unimplemented!(),
             DataType::ArrayType { name , bounds, referenced_type} => {
-                let (start_offset, end_offset) = if let Statement::RangeStatement{start,end} = bounds {
-                    (CodeGen::evaluate_constant_int(start).unwrap_or(0),CodeGen::evaluate_constant_int(end).unwrap_or(0)) 
-                } else { (0,0) };
-                let length : u32 = (end_offset - start_offset + 1) as u32;
+                let dimensions = CodeGen::get_array_dimensions(bounds);
                 let target_type = self.get_type(referenced_type).unwrap();
                 let internal_type = self.index.find_type_information(referenced_type.get_name().unwrap()).unwrap();
                 self.index.associate_type(name.as_ref().unwrap().as_str(), 
                     DataTypeInformation::Array {
                         name: name.as_ref().unwrap().clone(),
                         internal_type_information : Box::new(internal_type),
-                        generated_type : CodeGen::get_array_type(target_type, length).as_basic_type_enum(),
-                        length,
-                        start_offset,
+                        generated_type : CodeGen::get_nested_array_type(target_type, dimensions.clone()).as_basic_type_enum(),
+                        dimensions,
                     }
                 )
             },
         };
+    }
+
+    fn get_array_dimensions(bounds : &Statement) -> Vec<Dimension> {
+        let mut result = vec!();
+        match bounds {
+            Statement::ExpressionList{expressions} => {
+                for statement in expressions {
+                    result.push(CodeGen::get_single_array_dimension(statement).expect("Could not parse array bounds"));
+                }
+            },
+            _ => result.push(CodeGen::get_single_array_dimension(bounds).expect("Could not parse array bounds")),
+        }
+        result
+    }
+
+    fn get_single_array_dimension(bounds : &Statement) -> Result<Dimension, String> {
+        if let Statement::RangeStatement{start, end} = bounds {
+            let start_offset = CodeGen::evaluate_constant_int(start).unwrap_or(0);
+            let end_offset = CodeGen::evaluate_constant_int(end).unwrap_or(0);
+            Ok(Dimension{start_offset, end_offset}) 
+        } else {
+            Err(format!("Unexpected Statement {:?}, expected range", bounds))
+        }
     }
 
     fn extract_value(s : &Statement) -> Option<String> {
@@ -160,6 +179,16 @@ impl<'ctx> CodeGen<'ctx> {
             )
     }
 
+    fn get_nested_array_type(end_type : BasicTypeEnum, dimensions : Vec<Dimension> ) -> ArrayType {
+        let mut result : Option<ArrayType> = None;
+        let mut current_type = end_type;
+        for dimension in dimensions.iter().rev() {
+            result = Some(CodeGen::get_array_type(current_type, dimension.get_length()));
+            current_type = result.unwrap().into();
+        }
+        result.unwrap()
+    }
+
     fn get_array_type(basic_type : BasicTypeEnum, size : u32) -> ArrayType {
         match basic_type {
             BasicTypeEnum::IntType(..) => basic_type.into_int_type().array_type(size),
@@ -168,7 +197,6 @@ impl<'ctx> CodeGen<'ctx> {
             BasicTypeEnum::ArrayType(..) => basic_type.into_array_type().array_type(size),
             BasicTypeEnum::PointerType(..) => basic_type.into_pointer_type().array_type(size),
             BasicTypeEnum::VectorType(..) => basic_type.into_vector_type().array_type(size),
-
         }
     }
 
@@ -833,29 +861,47 @@ impl<'ctx> CodeGen<'ctx> {
         }
     }
 
+    fn generate_access_for_dimension(
+        &self,
+        dimension : &Dimension,
+        access_statement  : &Statement,
+    ) -> Result<IntValue<'ctx>, String> {
+        let start_offset = dimension.start_offset;
+        if let (_ , Some(access_value)) = self.generate_statement(access_statement) {
+                //If start offset is not 0, adjust the current statement with an add operation
+                if start_offset != 0 {
+                    Ok(self.builder.build_int_sub(access_value.into_int_value(), self.context.i32_type().const_int(start_offset as u64, true), ""))
+                } else {
+                    Ok(access_value.into_int_value())
+                }
+        } else {
+            Err(format!("Cannot generate int access for {:?}", access_statement))
+        }
+    }
+    
     fn generate_lvalue_for_array(
         &self,
         reference: &Box<Statement>,
         access: &Box<Statement>,
     ) -> (Option<DataTypeInformation<'ctx>>, Option<PointerValue<'ctx>>) {
         //Load the reference
-        if let (Some(DataTypeInformation::Array{internal_type_information,start_offset,  ..}), Some(value)) =  self.generate_lvalue_for(reference) {
-            //TODO : Treat as if it were a normal expression for now, and not a list
-            if let (_ , Some(access_value)) = self.generate_statement(access) {
-                //If start offset is not 0, adjust the current statement with an add operation
-                let access_value = if start_offset != 0 {
-                    self.builder.build_int_sub(access_value.into_int_value(), self.context.i32_type().const_int(start_offset as u64, true), "")
+        if let (Some(DataTypeInformation::Array{internal_type_information,dimensions,  ..}), Some(value)) =  self.generate_lvalue_for(reference) {
+            let mut indices = vec![self.context.i32_type().const_int(0,false)];
 
-                } else {
-                    access_value.into_int_value()
-                };
-                //Load the access from that reference
-                let pointer = unsafe {
-                    //First 0 is to access the pointer, then we access the array
-                    self.builder.build_in_bounds_gep(value, &[self.context.i32_type().const_int(0,false), access_value], "tmpVar")
-                };
-                return (Some(*internal_type_information),Some(pointer));
+            //Make sure dimensions match statement list
+            let statements = access.get_as_list();
+            if statements.len() == 0 || statements.len() != dimensions.len() {
+                panic!("Mismatched array access : {} -> {} ", statements.len(), dimensions.len())
+            } 
+            for (i, statement) in statements.iter().enumerate() {
+                indices.push(self.generate_access_for_dimension(&dimensions[i], statement).expect("Cannot read array index"))
+            }
+            //Load the access from that reference
+            let pointer = unsafe {
+                //First 0 is to access the pointer, then we access the array
+                self.builder.build_in_bounds_gep(value, indices.as_slice(), "tmpVar")
             };
+            return (Some(*internal_type_information),Some(pointer));
         }
         (None, None)
 

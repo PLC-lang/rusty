@@ -12,6 +12,18 @@ mod tests;
 mod visitor;
 
 #[derive(Debug, Clone)]
+pub struct Dimension {
+    pub start_offset: i32,
+    pub end_offset : i32,
+}
+
+impl Dimension {
+    pub fn get_length(&self) -> u32 {
+        (self.end_offset - self.start_offset + 1) as u32
+    }
+}
+
+#[derive(Debug, Clone)]
 pub enum DataTypeInformation<'ctx> {
     Struct {
         name: String,
@@ -21,8 +33,7 @@ pub enum DataTypeInformation<'ctx> {
         name: String,
         internal_type_information : Box<DataTypeInformation<'ctx>>,
         generated_type: BasicTypeEnum<'ctx>,
-        length: u32,
-        start_offset: i32,
+        dimensions : Vec<Dimension>, 
     },
     Integer {
         signed: bool,

@@ -41,9 +41,19 @@ fn pre_process_variable_data_type(container_name: &str, variable: &mut Variable,
     if let DataTypeDeclaration::DataTypeDefinition {mut data_type}  = 
     variable.replace_data_type_with_reference_to(new_type_name.clone()) {
         // create index entry
+        add_nested_datatypes(new_type_name.as_str(), &mut data_type, types);
         data_type.set_name(new_type_name);
         types.push(data_type);
     }
     //make sure it gets generated
-    
+}
+
+fn add_nested_datatypes(container_name : &str, datatype : &mut DataType, types : &mut Vec<DataType>) {
+   let new_type_name = format!("{}_", container_name);
+   if let Some(DataTypeDeclaration::DataTypeDefinition{mut data_type}) = datatype.replace_data_type_with_reference_to(new_type_name.clone()) {
+       data_type.set_name(new_type_name.clone());
+       add_nested_datatypes(new_type_name.as_str(), datatype, types);
+       types.push(data_type);
+   }   
+
 }

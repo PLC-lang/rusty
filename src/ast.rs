@@ -202,6 +202,27 @@ impl DataType {
             DataType::ArrayType { name, .. } => name.as_ref().map(|x| x.as_str()),
         }
     }
+
+    //Attempts to replace the inner type with a reference. Returns the old type if replaceable
+    pub fn replace_data_type_with_reference_to(
+        &mut self,
+        type_name: String,
+    ) -> Option<DataTypeDeclaration> {
+        if let DataType::ArrayType{referenced_type,..} = self {
+            if let DataTypeDeclaration::DataTypeReference{..} = **referenced_type {
+                return None;
+            } 
+            println!("Replacing Datatype : {:?}", referenced_type);
+            let new_data_type = DataTypeDeclaration::DataTypeReference {
+                referenced_type: type_name,
+            };
+            let old_data_type = std::mem::replace(referenced_type, Box::new(new_data_type));
+            println!("Old type : {:?}", old_data_type);
+            Some(*old_data_type)
+        } else {
+            None
+        }
+    }
 }
 
 #[derive(PartialEq)]
@@ -428,6 +449,15 @@ impl Debug for Statement {
 }
 
 impl Statement {
+    ///Returns the statement in a singleton list, or the contained statements if the statement is already a list
+    pub fn get_as_list(&self) -> Vec<&Statement> {
+        if let Statement::ExpressionList{expressions} = self {
+            expressions.iter().collect::<Vec<&Statement>>()
+        } else {
+            vec![self]
+        }
+
+    }
     pub fn get_location(&self) -> SourceRange {
         match self {
             Statement::LiteralInteger { location, .. } => location.clone(),
