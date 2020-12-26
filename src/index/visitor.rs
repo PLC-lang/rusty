@@ -32,7 +32,7 @@ fn visit_pou(index: &mut Index, pou: &POU){
     for block in &pou.variable_blocks {
         let block_type = get_variable_type_from_block(block);
         for var in &block.variables {
-            index.register_local_variable(
+            index.register_member_variable(
                 pou.name.clone(), 
                 var.name.clone(), 
                 block_type,
@@ -44,7 +44,7 @@ fn visit_pou(index: &mut Index, pou: &POU){
     }
 
     if let Some(return_type) = &pou.return_type {
-        index.register_local_variable(
+        index.register_member_variable(
             pou.name.clone(), 
             pou.name.clone(), 
             VariableType::Return, 
@@ -77,8 +77,23 @@ fn get_variable_type_from_block(block: &VariableBlock) -> VariableType {
 fn visit_data_type(index: &mut Index, data_type: &DataType) {
     //names should not be empty
     match data_type {
-        DataType::StructType { name, .. } => 
-            index.register_type(name.as_ref().map(|it| it.to_string()).unwrap()),
+        DataType::StructType { name, variables } => 
+        {
+            let struct_name = name.as_ref().unwrap();
+            index.register_type(name.as_ref().map(|it| it.to_string()).unwrap());
+            let mut count = 0;
+            for var in variables {
+                index.register_member_variable(
+                    struct_name.clone(), 
+                    var.name.clone(), 
+                    VariableType::Local,
+                    var.data_type.get_name().unwrap().to_string(), 
+                    count,
+                );
+                count = count + 1;
+            }
+
+        },
 
         DataType::EnumType { name, .. } => 
             index.register_type( name.as_ref().map(|it| it.to_string()).unwrap()),

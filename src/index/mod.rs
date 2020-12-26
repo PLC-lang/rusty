@@ -195,7 +195,7 @@ pub struct Index<'ctx> {
     global_variables: HashMap<String, VariableIndexEntry<'ctx>>,
 
     /// all local variables, grouped by the POU's name
-    local_variables: HashMap<String, HashMap<String, VariableIndexEntry<'ctx>>>,
+    member_variables: HashMap<String, HashMap<String, VariableIndexEntry<'ctx>>>,
 
     /// all types (structs, enums, type, POUs, etc.)
     types: HashMap<String, DataTypeIndexEntry<'ctx>>,
@@ -207,7 +207,7 @@ impl<'ctx> Index<'ctx> {
     pub fn new() -> Index<'ctx> {
         let index = Index {
             global_variables: HashMap::new(),
-            local_variables: HashMap::new(),
+            member_variables: HashMap::new(),
             types: HashMap::new(),
             void_type: DataTypeIndexEntry {
                 name: "void".to_string(),
@@ -231,13 +231,13 @@ impl<'ctx> Index<'ctx> {
         pou_name: &str,
         variable_name: &str,
     ) -> Option<&VariableIndexEntry<'ctx>> {
-        self.local_variables
+        self.member_variables
             .get(pou_name)
             .and_then(|map| map.get(variable_name))
     }
 
     pub fn find_input_parameter(&self, pou_name : &str, index : u32) -> Option<&VariableIndexEntry<'ctx>> {
-        self.local_variables.get(pou_name)
+        self.member_variables.get(pou_name)
             .and_then(|map| map.values().filter(|item| item.information.variable_type == VariableType::Input).find(|item| item.information.location.unwrap() == index))
     }
 
@@ -292,30 +292,39 @@ impl<'ctx> Index<'ctx> {
         })
     }
 
-    pub fn register_local_variable(
+    /// registers a member-variable of a container to be accessed in a qualified name.
+    /// e.g. "POU.member", "StructName.member", etc.
+    ///
+    /// #Arguments
+    /// * `container_name`- the name of hosting container (pou or struct)
+    /// * `variable_name` - the name of the member variable
+    /// * `variable_linkage` - the linkage-type of that variable (one of local, global, etc. )
+    /// * `variable_type_name` - the variable's data type as a string
+    /// * `location` - the location (index) inside the container
+    pub fn register_member_variable(
         &mut self,
-        pou_name: String,
+        container_name: String,
         variable_name: String,
-        variable_type: VariableType,
-        type_name: String,
+        variable_linkage: VariableType,
+        variable_type_name: String,
         location: u32,
     ) {
-        let locals = self
-            .local_variables
-            .entry(pou_name.clone())
+        let members = self
+            .member_variables
+            .entry(container_name.clone())
             .or_insert_with(|| HashMap::new());
 
         let entry = VariableIndexEntry {
             name: variable_name.clone(),
             information: VariableInformation {
-                variable_type: variable_type,
-                data_type_name: type_name,
-                qualifier: Some(pou_name.clone()),
+                variable_type: variable_linkage,
+                data_type_name: variable_type_name,
+                qualifier: Some(container_name.clone()),
                 location: Some(location),
             },
             generated_reference: None,
         };
-        locals.insert(variable_name, entry);
+        members.insert(variable_name, entry);
     }
 
     pub fn associate_local_variable(
@@ -325,7 +334,7 @@ impl<'ctx> Index<'ctx> {
         value: PointerValue<'ctx>,
     ) {
         if let Some(entry) = self
-            .local_variables
+            .member_variables
             .get_mut(pou_name)
             .and_then(|map| map.get_mut(variable_name))
         {

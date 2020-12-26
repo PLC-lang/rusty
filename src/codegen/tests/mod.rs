@@ -1616,6 +1616,45 @@ source_filename = "main"
   assert_eq!(result, expected);
 }
 
+#[test]
+fn structs_members_can_be_referenced() {
+  let result = codegen!(
+        "
+        TYPE MyStruct: STRUCT
+          a: DINT;
+          b: DINT;
+        END_STRUCT
+        END_TYPE
+
+        PROGRAM MainProg 
+        VAR
+          Cord: MyStruct; 
+        END_VAR
+          Cord.a := 0;
+        END_PROGRAM
+        "
+    );
+
+    let expected = r#"; ModuleID = 'main'
+source_filename = "main"
+
+%MainProg_interface = type { %MyStruct }
+%MyStruct = type { i32, i32 }
+
+@MainProg_instance = common global %MainProg_interface zeroinitializer
+
+define void @MainProg(%MainProg_interface* %0) {
+entry:
+  %Cord = getelementptr inbounds %MainProg_interface, %MainProg_interface* %0, i32 0, i32 0
+  %a = getelementptr inbounds %MyStruct, %MyStruct* %Cord, i32 0, i32 0
+  store i32 0, i32* %a
+  ret void
+}
+"#;
+
+  assert_eq!(result, expected);
+}
+
 
 #[test]
 fn enums_are_generated() {
