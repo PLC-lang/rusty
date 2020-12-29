@@ -51,7 +51,6 @@ fn max_function() {
 }
 
 #[test]
-#[ignore]
 fn test_or_sideeffects() {
      #[allow(dead_code)]
     #[repr(C)]
@@ -61,8 +60,10 @@ fn test_or_sideeffects() {
     
     let function = r#"
     VAR_GLOBAL
-        res : INT;
+        res_or : INT;
+        res_and : INT;
     END_VAR
+
     FUNCTION OR_BRANCH : BOOL 
     VAR_INPUT 
         a : BOOL;
@@ -70,17 +71,30 @@ fn test_or_sideeffects() {
     END_VAR
 
     OR_BRANCH := a;
-    res := res + b;
+    res_or := res_or + b;
+
+    END_FUNCTION
+
+    FUNCTION AND_BRANCH : BOOL 
+    VAR_INPUT 
+        a : BOOL;
+        b : INT;
+    END_VAR
+
+    AND_BRANCH := a;
+    res_and := res_and + b;
 
     END_FUNCTION
 
     FUNCTION main : DINT
     VAR
         x : BOOL;
+        y : BOOL;
     END_VAR
 
     x := OR_BRANCH(TRUE,1) OR OR_BRANCH(FALSE,2);
-    main := res;
+    y := AND_BRANCH(FALSE,10) AND AND_BRANCH(TRUE,20);
+    main := res_or + res_and;
 
     END_FUNCTION
 
@@ -91,7 +105,7 @@ fn test_or_sideeffects() {
     let engine = compile(&context, &mut index, function);
     let mut case1 = MainType{x : false,};
     let (res, _) = run(&engine, "main", &mut case1);
-    assert_eq!(res,1);
+    assert_eq!(res,11);
 }
 
 
