@@ -61,7 +61,6 @@ fn test_or_sideeffects() {
     let function = r#"
     VAR_GLOBAL
         res_or : INT;
-        res_and : INT;
     END_VAR
 
     FUNCTION OR_BRANCH : BOOL 
@@ -74,6 +73,40 @@ fn test_or_sideeffects() {
     res_or := res_or + b;
 
     END_FUNCTION
+
+    FUNCTION main : DINT
+    VAR
+        x : BOOL;
+    END_VAR
+
+    x := OR_BRANCH(TRUE,1) OR OR_BRANCH(FALSE,2);
+    x := OR_BRANCH(FALSE,10) OR OR_BRANCH(TRUE,20) OR OR_BRANCH(FALSE,50);
+    main := res_or;
+
+    END_FUNCTION
+
+    "#.to_string();
+
+    let context : Context = Context::create(); 
+    let mut index = rusty::create_index(); 
+    let engine = compile(&context, &mut index, function);
+    let mut case1 = MainType{x : false,};
+    let (res, _) = run(&engine, "main", &mut case1);
+    assert_eq!(res,31);
+}
+
+#[test]
+fn test_and_sideeffects() {
+     #[allow(dead_code)]
+    #[repr(C)]
+    struct MainType {
+        x : bool,
+    }
+    
+    let function = r#"
+    VAR_GLOBAL
+        res_and : INT;
+    END_VAR
 
     FUNCTION AND_BRANCH : BOOL 
     VAR_INPUT 
@@ -88,13 +121,12 @@ fn test_or_sideeffects() {
 
     FUNCTION main : DINT
     VAR
-        x : BOOL;
         y : BOOL;
     END_VAR
 
-    x := OR_BRANCH(TRUE,1) OR OR_BRANCH(FALSE,2);
-    y := AND_BRANCH(FALSE,10) AND AND_BRANCH(TRUE,20);
-    main := res_or + res_and;
+    y := AND_BRANCH(FALSE,1) AND AND_BRANCH(TRUE,2);
+    y := AND_BRANCH(TRUE,10) AND AND_BRANCH(FALSE,20) AND AND_BRANCH(TRUE,50);
+    main := res_and;
 
     END_FUNCTION
 
@@ -105,10 +137,9 @@ fn test_or_sideeffects() {
     let engine = compile(&context, &mut index, function);
     let mut case1 = MainType{x : false,};
     let (res, _) = run(&engine, "main", &mut case1);
-    assert_eq!(res,11);
+    assert_eq!(res,31);
+
 }
-
-
 
 #[test]
 fn function_block_instances_save_state_per_instance() {
