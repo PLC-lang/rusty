@@ -225,6 +225,12 @@ fn parse_leaf_expression(lexer: &mut RustyLexer) -> Result<Statement, String> {
             left: Box::new(current?),
             right: Box::new(parse_range_statement(lexer)?),
         });
+    } else if current.is_ok() && lexer.token == KeywordOutputAssignment {
+        lexer.advance();
+        return Ok(Statement::OutputAssignment {
+            left: Box::new(current?),
+            right: Box::new(parse_range_statement(lexer)?), //TODO: Do we force references here or wait until validation?
+        });
     };
     current
 }

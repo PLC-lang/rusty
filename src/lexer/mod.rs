@@ -104,6 +104,9 @@ pub enum Token {
     #[token(":=")]
     KeywordAssignment,
 
+    #[token("=>")]
+    KeywordOutputAssignment,
+
     #[token("(")]
     KeywordParensOpen,
 

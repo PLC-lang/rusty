@@ -1570,7 +1570,7 @@ fn function_call_formal_params() {
     let lexer = lexer::lex(
         "
     PROGRAM prg
-    fn(x := 1,y := 2,z := 3);
+    fn(x := 1,y := 2,z => a);
     END_PROGRAM
     ",
     );
@@ -1609,14 +1609,16 @@ fn function_call_formal_params() {
                         value: "2",
                     },
                 },
-                Assignment {
+                OutputAssignment {
                     left: Reference {
                         elements: [
                             "z",
                         ],
                     },
-                    right: LiteralInteger {
-                        value: "3",
+                    right: Reference {
+                        elements: [
+                            "a",
+                        ],
                     },
                 },
             ],
