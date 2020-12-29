@@ -56,6 +56,7 @@ impl CompilationUnit {
 pub enum VariableBlockType {
     Local,
     Input,
+    Output,
     Global,
 }
 
@@ -288,6 +289,11 @@ pub enum Statement {
         left: Box<Statement>,
         right: Box<Statement>,
     },
+    // OutputAssignment
+    OutputAssignment {
+        left: Box<Statement>,
+        right: Box<Statement>,
+    },
     //Call Statement
     CallStatement {
         operator: Box<Statement>,
@@ -376,6 +382,11 @@ impl Debug for Statement {
                 .finish(),
             Statement::Assignment { left, right } => f
                 .debug_struct("Assignment")
+                .field("left", left)
+                .field("right", right)
+                .finish(),
+            Statement::OutputAssignment { left, right } => f
+                .debug_struct("OutputAssignment")
                 .field("left", left)
                 .field("right", right)
                 .finish(),
@@ -475,6 +486,9 @@ impl Statement {
                 start.get_location().start..end.get_location().end
             }
             Statement::Assignment { left, right } => {
+                left.get_location().start..right.get_location().end
+            }
+            Statement::OutputAssignment { left, right } => {
                 left.get_location().start..right.get_location().end
             }
             Statement::CallStatement { location, .. } => location.clone(),

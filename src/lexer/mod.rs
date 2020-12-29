@@ -55,6 +55,9 @@ pub enum Token {
 
     #[token("VAR_INPUT")]
     KeywordVarInput,
+
+    #[token("VAR_OUTPUT")]
+    KeywordVarOutput,
     
     #[token("VAR")]
     KeywordVar,
@@ -100,6 +103,9 @@ pub enum Token {
 
     #[token(":=")]
     KeywordAssignment,
+
+    #[token("=>")]
+    KeywordOutputAssignment,
 
     #[token("(")]
     KeywordParensOpen,

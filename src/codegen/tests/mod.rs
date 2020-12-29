@@ -1190,8 +1190,20 @@ define void @prg(%prg_interface* %0) {
 entry:
   %x = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 0
   %foo_instance = alloca %foo_interface
-  %call = call i32 @foo(%foo_interface* %foo_instance)
-  store i32 %call, i32* %x
+  br label %input
+
+input:                                            ; preds = %entry
+  br label %call
+
+call:                                             ; preds = %input
+  %call1 = call i32 @foo(%foo_interface* %foo_instance)
+  br label %output
+
+output:                                           ; preds = %call
+  br label %continue
+
+continue:                                         ; preds = %output
+  store i32 %call1, i32* %x
   ret void
 }
 "#;
@@ -1240,10 +1252,22 @@ define void @prg(%prg_interface* %0) {
 entry:
   %x = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 0
   %foo_instance = alloca %foo_interface
+  br label %input
+
+input:                                            ; preds = %entry
   %1 = getelementptr inbounds %foo_interface, %foo_interface* %foo_instance, i32 0, i32 0
   store i32 2, i32* %1
-  %call = call i32 @foo(%foo_interface* %foo_instance)
-  store i32 %call, i32* %x
+  br label %call
+
+call:                                             ; preds = %input
+  %call1 = call i32 @foo(%foo_interface* %foo_instance)
+  br label %output
+
+output:                                           ; preds = %call
+  br label %continue
+
+continue:                                         ; preds = %output
+  store i32 %call1, i32* %x
   ret void
 }
 "#;
@@ -1294,12 +1318,24 @@ define void @prg(%prg_interface* %0) {
 entry:
   %x = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 0
   %foo_instance = alloca %foo_interface
+  br label %input
+
+input:                                            ; preds = %entry
   %1 = getelementptr inbounds %foo_interface, %foo_interface* %foo_instance, i32 0, i32 0
   store i32 2, i32* %1
   %2 = getelementptr inbounds %foo_interface, %foo_interface* %foo_instance, i32 0, i32 1
   store i1 true, i1* %2
-  %call = call i32 @foo(%foo_interface* %foo_instance)
-  store i32 %call, i32* %x
+  br label %call
+
+call:                                             ; preds = %input
+  %call1 = call i32 @foo(%foo_interface* %foo_instance)
+  br label %output
+
+output:                                           ; preds = %call
+  br label %continue
+
+continue:                                         ; preds = %output
+  store i32 %call1, i32* %x
   ret void
 }
 "#;
@@ -1337,7 +1373,19 @@ entry:
 
 define void @prg(%prg_interface* %0) {
 entry:
+  br label %input
+
+input:                                            ; preds = %entry
+  br label %call
+
+call:                                             ; preds = %input
   call void @foo(%foo_interface* @foo_instance)
+  br label %output
+
+output:                                           ; preds = %call
+  br label %continue
+
+continue:                                         ; preds = %output
   ret void
 }
 "#;
@@ -1381,9 +1429,21 @@ entry:
 
 define void @prg(%prg_interface* %0) {
 entry:
+  br label %input
+
+input:                                            ; preds = %entry
   store i32 2, i32* getelementptr inbounds (%foo_interface, %foo_interface* @foo_instance, i32 0, i32 0)
   store i1 true, i1* getelementptr inbounds (%foo_interface, %foo_interface* @foo_instance, i32 0, i32 1)
+  br label %call
+
+call:                                             ; preds = %input
   call void @foo(%foo_interface* @foo_instance)
+  br label %output
+
+output:                                           ; preds = %call
+  br label %continue
+
+continue:                                         ; preds = %output
   ret void
 }
 "#;
@@ -1426,9 +1486,149 @@ entry:
 
 define void @prg(%prg_interface* %0) {
 entry:
+  br label %input
+
+input:                                            ; preds = %entry
   store i1 true, i1* getelementptr inbounds (%foo_interface, %foo_interface* @foo_instance, i32 0, i32 1)
   store i32 2, i32* getelementptr inbounds (%foo_interface, %foo_interface* @foo_instance, i32 0, i32 0)
+  br label %call
+
+call:                                             ; preds = %input
   call void @foo(%foo_interface* @foo_instance)
+  br label %output
+
+output:                                           ; preds = %call
+  br label %continue
+
+continue:                                         ; preds = %output
+  ret void
+}
+"#;
+
+  assert_eq!(result, expected);
+}
+
+#[test]
+fn program_with_var_out_called_in_program() {
+    let result = codegen!(
+        "
+        PROGRAM foo 
+        VAR_INPUT
+          bar : DINT;
+        END_VAR
+        VAR_OUTPUT
+          buz : BOOL;
+        END_VAR
+        END_PROGRAM
+
+        PROGRAM prg 
+        VAR
+            baz : BOOL;
+        END_VAR
+          foo(bar := 2, buz => baz);
+        END_PROGRAM
+        "
+    );
+
+    let expected = r#"; ModuleID = 'main'
+source_filename = "main"
+
+%foo_interface = type { i32, i1 }
+%prg_interface = type { i1 }
+
+@foo_instance = common global %foo_interface zeroinitializer
+@prg_instance = common global %prg_interface zeroinitializer
+
+define void @foo(%foo_interface* %0) {
+entry:
+  %bar = getelementptr inbounds %foo_interface, %foo_interface* %0, i32 0, i32 0
+  %buz = getelementptr inbounds %foo_interface, %foo_interface* %0, i32 0, i32 1
+  ret void
+}
+
+define void @prg(%prg_interface* %0) {
+entry:
+  %baz = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 0
+  br label %input
+
+input:                                            ; preds = %entry
+  store i32 2, i32* getelementptr inbounds (%foo_interface, %foo_interface* @foo_instance, i32 0, i32 0)
+  br label %call
+
+call:                                             ; preds = %input
+  call void @foo(%foo_interface* @foo_instance)
+  br label %output
+
+output:                                           ; preds = %call
+  %buz = load i1, i1* getelementptr inbounds (%foo_interface, %foo_interface* @foo_instance, i32 0, i32 1)
+  store i1 %buz, i1* %baz
+  br label %continue
+
+continue:                                         ; preds = %output
+  ret void
+}
+"#;
+
+  assert_eq!(result, expected);
+}
+
+#[test]
+fn program_with_var_out_called_mixed_in_program() {
+    let result = codegen!(
+        "
+        PROGRAM foo 
+        VAR_INPUT
+          bar : DINT;
+        END_VAR
+        VAR_OUTPUT
+          buz : BOOL;
+        END_VAR
+        END_PROGRAM
+
+        PROGRAM prg 
+        VAR
+            baz : BOOL;
+        END_VAR
+          foo(buz => baz, bar := 2);
+        END_PROGRAM
+        "
+    );
+
+    let expected = r#"; ModuleID = 'main'
+source_filename = "main"
+
+%foo_interface = type { i32, i1 }
+%prg_interface = type { i1 }
+
+@foo_instance = common global %foo_interface zeroinitializer
+@prg_instance = common global %prg_interface zeroinitializer
+
+define void @foo(%foo_interface* %0) {
+entry:
+  %bar = getelementptr inbounds %foo_interface, %foo_interface* %0, i32 0, i32 0
+  %buz = getelementptr inbounds %foo_interface, %foo_interface* %0, i32 0, i32 1
+  ret void
+}
+
+define void @prg(%prg_interface* %0) {
+entry:
+  %baz = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 0
+  br label %input
+
+input:                                            ; preds = %entry
+  store i32 2, i32* getelementptr inbounds (%foo_interface, %foo_interface* @foo_instance, i32 0, i32 0)
+  br label %call
+
+call:                                             ; preds = %input
+  call void @foo(%foo_interface* @foo_instance)
+  br label %output
+
+output:                                           ; preds = %call
+  %buz = load i1, i1* getelementptr inbounds (%foo_interface, %foo_interface* @foo_instance, i32 0, i32 1)
+  store i1 %buz, i1* %baz
+  br label %continue
+
+continue:                                         ; preds = %output
   ret void
 }
 "#;
@@ -1473,8 +1673,20 @@ define void @prg(%prg_interface* %0) {
 entry:
   %foo = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 0
   %foo_instance = alloca %foo_interface
-  %call = call i32 @foo(%foo_interface* %foo_instance)
-  store i32 %call, i32* %foo
+  br label %input
+
+input:                                            ; preds = %entry
+  br label %call
+
+call:                                             ; preds = %input
+  %call1 = call i32 @foo(%foo_interface* %foo_instance)
+  br label %output
+
+output:                                           ; preds = %call
+  br label %continue
+
+continue:                                         ; preds = %output
+  store i32 %call1, i32* %foo
   ret void
 }
 "#;
@@ -1514,7 +1726,19 @@ entry:
 define void @prg(%prg_interface* %0) {
 entry:
   %fb_inst = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 0
+  br label %input
+
+input:                                            ; preds = %entry
+  br label %call
+
+call:                                             ; preds = %input
   call void @foo(%foo_interface* %fb_inst)
+  br label %output
+
+output:                                           ; preds = %call
+  br label %continue
+
+continue:                                         ; preds = %output
   ret void
 }
 "#;

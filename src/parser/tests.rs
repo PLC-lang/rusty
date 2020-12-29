@@ -285,6 +285,30 @@ r#"VariableBlock {
 }
 
 #[test]
+fn simple_program_with_var_output_can_be_parsed() {
+    
+    let lexer = lexer::lex("PROGRAM buz VAR_OUTPUT x : INT; END_VAR END_PROGRAM");
+    let result = super::parse(lexer).unwrap();
+
+    let prg = &result.units[0];
+    let variable_block = &prg.variable_blocks[0];
+    let ast_string = format!("{:#?}", variable_block);
+    let expected_ast = 
+r#"VariableBlock {
+    variables: [
+        Variable {
+            name: "x",
+            data_type: DataTypeReference {
+                referenced_type: "INT",
+            },
+        },
+    ],
+    variable_block_type: Output,
+}"#;
+    assert_eq!(ast_string,expected_ast);
+}
+
+#[test]
 fn simple_struct_type_can_be_parsed() {
     let result = super::parse(lexer::lex(
         r#"

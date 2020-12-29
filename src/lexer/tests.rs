@@ -20,10 +20,12 @@ fn pou_tokens() {
 
 #[test]
 fn var_tokens() {
-    let mut lexer = super::lex("VAR VAR_INPUT VAR_GLOBAL END_VAR");
+    let mut lexer = super::lex("VAR VAR_INPUT VAR_OUTPUT VAR_GLOBAL END_VAR");
     assert_eq!(lexer.token, super::Token::KeywordVar);
     lexer.advance();
     assert_eq!(lexer.token, super::Token::KeywordVarInput);
+    lexer.advance();
+    assert_eq!(lexer.token, super::Token::KeywordVarOutput);
     lexer.advance();
     assert_eq!(lexer.token, super::Token::KeywordVarGlobal);
     lexer.advance();
@@ -69,9 +71,11 @@ fn parens() {
 }
 
 #[test]
-fn a_assignment_is_keword_assignment() {
-    let lexer = super::lex(":=");
+fn a_assignment_is_keyword_assignment() {
+    let mut lexer = super::lex(":= =>");
     assert_eq!(lexer.token, super::Token::KeywordAssignment);
+    lexer.advance();
+    assert_eq!(lexer.token, super::Token::KeywordOutputAssignment);
 }
 
 #[test]

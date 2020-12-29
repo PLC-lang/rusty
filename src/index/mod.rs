@@ -109,6 +109,11 @@ pub struct DataTypeIndexEntry<'ctx> {
 }
 
 impl<'ctx> VariableIndexEntry<'ctx> {
+
+    pub fn get_name(&self) -> &str {
+        self.name.as_str()
+    }
+
     pub fn associate(&mut self, generated_reference: PointerValue<'ctx>) {
         self.generated_reference = Some(generated_reference);
     }
