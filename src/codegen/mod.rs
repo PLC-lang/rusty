@@ -778,7 +778,22 @@ impl<'ctx> CodeGen<'ctx> {
         let instance = variable.unwrap();
         let index_entry = index_entry;
         let function_name = index_entry.map(DataTypeIndexEntry::get_name).unwrap();
-        self.generate_function_parameters(function_name, instance, parameter);
+        //Create parameters for input and output blocks
+        let input_block = self.context.append_basic_block(self.current_function.unwrap(), "input");
+        let call_block = self.context.append_basic_block(self.current_function.unwrap(), "call");
+        let output_block = self.context.append_basic_block(self.current_function.unwrap(), "output");
+        let continue_block = self.context.append_basic_block(self.current_function.unwrap(), "continue");
+        //First go to the input block
+        self.builder.build_unconditional_branch(input_block);
+        self.builder.position_at_end(input_block);
+        //Generate all parameters, this function may jump to the output block
+        self.generate_function_parameters(function_name, instance, parameter,input_block, output_block);
+        //Generate the label jumps from input to call to output 
+        self.builder.position_at_end(input_block);
+        self.builder.build_unconditional_branch(call_block);
+        self.builder.position_at_end(output_block);
+        self.builder.build_unconditional_branch(continue_block);
+        self.builder.position_at_end(call_block);
         let return_type = self
             .index
             .find_member(function_name, function_name)
@@ -788,12 +803,15 @@ impl<'ctx> CodeGen<'ctx> {
             .map(|it| it.get_implementation())
             .flatten()
             .unwrap();
+        let call_result = self
         //If the target is a function, declare the struct locally
         //Assign all parameters into the struct values
-        let call_result = self
             .builder
             .build_call(function, &[instance.as_basic_value_enum()], "call")
             .try_as_basic_value();
+        self.builder.build_unconditional_branch(output_block);
+        //Continue here after function call
+        self.builder.position_at_end(continue_block);
         return (return_type, call_result.left());
     }
     //Some(LiteralInteger { value: "2" })
@@ -803,15 +821,17 @@ impl<'ctx> CodeGen<'ctx> {
         function_name: &str,
         variable: PointerValue<'ctx>,
         parameters: &Box<Option<Statement>>,
+        input_block : BasicBlock,
+        output_block : BasicBlock,
     ) {
         match &**parameters {
             Some(Statement::ExpressionList { expressions }) => {
                 for (index, exp) in expressions.iter().enumerate() {
-                    self.generate_single_parameter(exp, function_name, None, index as u32, variable);
+                    self.generate_single_parameter(exp, function_name, None, index as u32, variable,input_block, output_block);
                 }
             }
             Some(statement) => {
-                self.generate_single_parameter(statement, function_name, None, 0, variable)
+                self.generate_single_parameter(statement, function_name, None, 0, variable,input_block, output_block)
             }
             None => {}
         }
@@ -824,9 +844,12 @@ impl<'ctx> CodeGen<'ctx> {
         parameter_type : Option<&DataTypeIndexEntry<'ctx>>,
         index: u32,
         pointer_value: PointerValue<'ctx>,
+        input_block : BasicBlock,
+        output_block : BasicBlock,
     ) {
         match statement {
             Statement::Assignment { left, right } => {
+                self.builder.position_at_end(input_block);
                 if let Statement::Reference { elements, ..} = &**left {
                     let parameter = self
                         .index
@@ -836,8 +859,31 @@ impl<'ctx> CodeGen<'ctx> {
                         .get_location_in_parent()
                         .unwrap();
                     let param_type = self.index.find_type(parameter.get_type_name());
-                    self.generate_single_parameter(right, function_name, param_type, index, pointer_value);
-
+                    self.generate_single_parameter(right, function_name, param_type, index, pointer_value, input_block, output_block);
+                }
+            }
+            Statement::OutputAssignment { left, right } => {
+                self.builder.position_at_end(output_block);
+                if let Statement::Reference { elements, ..} = &**left {
+                    let parameter = self
+                        .index
+                        .find_member(function_name, &elements.join("."))
+                        .unwrap();
+                    let index = parameter
+                        .get_location_in_parent()
+                        .unwrap();
+                    let param_type = self.index.find_type(parameter.get_type_name()).or_else(|| 
+                        self.index.find_input_parameter(function_name, index as u32).and_then(|var| self.index.find_type(var.get_type_name()))).and_then(|var| var.get_type_information()).unwrap();
+                    //load the function prameter
+                    let pointer_to_param = self
+                        .builder
+                        .build_struct_gep(pointer_value, index as u32, "")
+                        .unwrap();
+                    let (target_type,pointer_to_target) = self.generate_lvalue_for(right).unwrap();
+                    let loaded_value = self.builder.build_load(pointer_to_param,parameter.get_name());
+                    let value = self.cast_if_needed(&target_type.unwrap(),loaded_value,param_type).unwrap();
+                    self.builder
+                        .build_store(pointer_to_target.unwrap(), value);
                 }
             }
             _ => {
