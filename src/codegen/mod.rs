@@ -787,7 +787,7 @@ impl<'ctx> CodeGen<'ctx> {
         self.builder.build_unconditional_branch(input_block);
         self.builder.position_at_end(input_block);
         //Generate all parameters, this function may jump to the output block
-        self.generate_function_parameters(function_name, instance, parameter,input_block, output_block);
+        self.generate_function_parameters(function_name, instance, parameter,&input_block, &output_block);
         //Generate the label jumps from input to call to output 
         self.builder.position_at_end(input_block);
         self.builder.build_unconditional_branch(call_block);
@@ -821,8 +821,8 @@ impl<'ctx> CodeGen<'ctx> {
         function_name: &str,
         variable: PointerValue<'ctx>,
         parameters: &Box<Option<Statement>>,
-        input_block : BasicBlock,
-        output_block : BasicBlock,
+        input_block : &BasicBlock,
+        output_block : &BasicBlock,
     ) {
         match &**parameters {
             Some(Statement::ExpressionList { expressions }) => {
@@ -844,12 +844,12 @@ impl<'ctx> CodeGen<'ctx> {
         parameter_type : Option<&DataTypeIndexEntry<'ctx>>,
         index: u32,
         pointer_value: PointerValue<'ctx>,
-        input_block : BasicBlock,
-        output_block : BasicBlock,
+        input_block : &BasicBlock,
+        output_block : &BasicBlock,
     ) {
         match statement {
             Statement::Assignment { left, right } => {
-                self.builder.position_at_end(input_block);
+                self.builder.position_at_end(*input_block);
                 if let Statement::Reference { elements, ..} = &**left {
                     let parameter = self
                         .index
@@ -863,7 +863,7 @@ impl<'ctx> CodeGen<'ctx> {
                 }
             }
             Statement::OutputAssignment { left, right } => {
-                self.builder.position_at_end(output_block);
+                self.builder.position_at_end(*output_block);
                 if let Statement::Reference { elements, ..} = &**left {
                     let parameter = self
                         .index
