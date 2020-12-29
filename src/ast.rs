@@ -56,6 +56,7 @@ impl CompilationUnit {
 pub enum VariableBlockType {
     Local,
     Input,
+    Output,
     Global,
 }
 
