@@ -46,7 +46,7 @@ Structured text compiler written in Rust
 ## Declarations
 - :heavy_check_mark: VAR
 - :heavy_check_mark: VAR_INPUT
-- :x: VAR_OUTPUT
+- :heavy_check_mark: VAR_OUTPUT
 - :x: VAR_INOUT
 
 ## Statements
