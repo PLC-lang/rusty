@@ -1218,19 +1218,6 @@ impl<'ctx> CodeGen<'ctx> {
                     .into(),
                 self.get_bool_type_information(),
             ),
-
-            Operator::And => (
-                self.builder
-                    .build_and(int_lvalue, int_rvalue, "tmpVar")
-                    .into(),
-                self.get_bool_type_information(),
-            ),
-            Operator::Or => (
-                self.builder
-                    .build_or(int_lvalue, int_rvalue, "tmpVar")
-                    .into(),
-                self.get_bool_type_information(),
-            ),
             Operator::Xor => (
                 self.builder
                     .build_xor(int_lvalue, int_rvalue, "tmpVar")
