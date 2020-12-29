@@ -1065,12 +1065,54 @@ impl<'ctx> CodeGen<'ctx> {
         )
     }
 
+    fn generate_phi_expression(
+        &self, 
+        operator: &Operator, 
+        left: &Box<Statement>, 
+        right: &Box<Statement>
+    ) -> ExpressionValue<'ctx>{
+        let right_branch = self.context.append_basic_block(self.current_function.unwrap(), "");
+        let continue_branch = self.context.append_basic_block(self.current_function.unwrap(),"");
+
+        let (left_type, left_value) = self.generate_statement(left);
+        let final_left_block = self.builder.get_insert_block().unwrap();
+        //Compare left to 0
+        let lhs = self.builder.build_int_compare(IntPredicate::NE, left_value.unwrap().into_int_value(), left_type.as_ref().unwrap().get_type().into_int_type().const_int(0,false), "");
+        match operator {
+            Operator::Or => self.builder.build_conditional_branch(lhs,continue_branch,right_branch),
+            Operator::And => self.builder.build_conditional_branch(lhs,right_branch,continue_branch),
+            _ => unreachable!() 
+        };
+
+        self.builder.position_at_end(right_branch);
+        let (right_type, right_value) = self.generate_statement(right);
+        let final_right_block = self.builder.get_insert_block().unwrap();
+        let rhs = right_value.unwrap();
+        self.builder.build_unconditional_branch(continue_branch);
+
+        self.builder.position_at_end(continue_branch);
+        //Generate phi
+        let target_type = if left_type.as_ref().unwrap().get_size() > right_type.as_ref().unwrap().get_size() { left_type } else { right_type };
+        let phi_value = self.builder.build_phi(target_type.as_ref().unwrap().get_type(),"");
+        phi_value.add_incoming(&[(&left_value.unwrap().into_int_value(),final_left_block), (&rhs,final_right_block)]);
+
+
+        (target_type,Some(phi_value.as_basic_value()))
+    }
+
     fn generate_binary_expression(
         &self,
         operator: &Operator,
         left: &Box<Statement>,
         right: &Box<Statement>,
     ) -> ExpressionValue<'ctx> {
+        //If OR, or AND handle before generating the statements
+        match operator {
+            Operator::And | Operator::Or => 
+                return self.generate_phi_expression(operator, left, right),
+            _ => {}
+        }
+
         if let (Some(ltype), Some(lval_opt)) = self.generate_statement(left) {
             if let (Some(rtype), Some(rval_opt)) = self.generate_statement(right) {
                 //Step 1 convert all to i32
@@ -1173,19 +1215,6 @@ impl<'ctx> CodeGen<'ctx> {
             Operator::GreaterOrEqual => (
                 self.builder
                     .build_int_compare(IntPredicate::SGE, int_lvalue, int_rvalue, "tmpVar")
-                    .into(),
-                self.get_bool_type_information(),
-            ),
-
-            Operator::And => (
-                self.builder
-                    .build_and(int_lvalue, int_rvalue, "tmpVar")
-                    .into(),
-                self.get_bool_type_information(),
-            ),
-            Operator::Or => (
-                self.builder
-                    .build_or(int_lvalue, int_rvalue, "tmpVar")
                     .into(),
                 self.get_bool_type_information(),
             ),

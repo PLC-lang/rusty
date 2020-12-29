@@ -544,35 +544,96 @@ END_PROGRAM
 }
 
 #[test]
-fn program_with_variable_and_boolean_expressions_generates_void_function_and_struct_and_body() {
+fn program_with_and_statement() {
     let result = codegen!(
         r#"PROGRAM prg
 VAR
 x : BOOL;
 y : BOOL;
-z : DINT;
 END_VAR
 x AND y;
+END_PROGRAM
+"#
+    );
+    let expected = generate_program_boiler_plate(
+        "prg",
+        &[("i1","x"),("i1","y")],
+        "void",
+        "",
+        "",
+        r#"%load_x = load i1, i1* %x
+  %1 = icmp ne i1 %load_x, false
+  br i1 %1, label %2, label %3
+
+2:                                                ; preds = %entry
+  %load_y = load i1, i1* %y
+  br label %3
+
+3:                                                ; preds = %2, %entry
+  %4 = phi i1 [ %load_x, %entry ], [ %load_y, %2 ]
+  ret void
+"#
+    );
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn program_with_or_statement() {
+    let result = codegen!(
+        r#"PROGRAM prg
+VAR
+x : BOOL;
+y : BOOL;
+END_VAR
 x OR y;
+END_PROGRAM
+"#
+    );
+    let expected = generate_program_boiler_plate(
+        "prg",
+        &[("i1","x"),("i1","y")],
+        "void",
+        "",
+        "",
+        r#"%load_x = load i1, i1* %x
+  %1 = icmp ne i1 %load_x, false
+  br i1 %1, label %3, label %2
+
+2:                                                ; preds = %entry
+  %load_y = load i1, i1* %y
+  br label %3
+
+3:                                                ; preds = %2, %entry
+  %4 = phi i1 [ %load_x, %entry ], [ %load_y, %2 ]
+  ret void
+"#
+    );
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn program_with_xor_statement() {
+    let result = codegen!(
+        r#"PROGRAM prg
+VAR
+x : BOOL;
+y : BOOL;
+END_VAR
 x XOR y;
 END_PROGRAM
 "#
     );
     let expected = generate_program_boiler_plate(
         "prg",
-        &[("i1","x"),("i1","y"), ("i32","z")],
+        &[("i1","x"),("i1","y")],
         "void",
         "",
         "",
         r#"%load_x = load i1, i1* %x
   %load_y = load i1, i1* %y
-  %tmpVar = and i1 %load_x, %load_y
-  %load_x1 = load i1, i1* %x
-  %load_y2 = load i1, i1* %y
-  %tmpVar3 = or i1 %load_x1, %load_y2
-  %load_x4 = load i1, i1* %x
-  %load_y5 = load i1, i1* %y
-  %tmpVar6 = xor i1 %load_x4, %load_y5
+  %tmpVar = xor i1 %load_x, %load_y
   ret void
 "#
     );
@@ -602,9 +663,16 @@ END_PROGRAM
         r#"%load_x = load i1, i1* %x
   %tmpVar = xor i1 %load_x, true
   %load_x1 = load i1, i1* %x
+  %1 = icmp ne i1 %load_x1, false
+  br i1 %1, label %2, label %3
+
+2:                                                ; preds = %entry
   %load_y = load i1, i1* %y
   %tmpVar2 = xor i1 %load_y, true
-  %tmpVar3 = and i1 %load_x1, %tmpVar2
+  br label %3
+
+3:                                                ; preds = %2, %entry
+  %4 = phi i1 [ %load_x1, %entry ], [ %tmpVar2, %2 ]
   ret void
 "#
     );
@@ -632,14 +700,28 @@ END_PROGRAM
         "",
         "",
         r#"%load_y = load i1, i1* %y
+  %1 = icmp ne i1 %load_y, false
+  br i1 %1, label %2, label %3
+
+2:                                                ; preds = %entry
   %load_z = load i32, i32* %z
   %tmpVar = icmp sge i32 %load_z, 5
-  %tmpVar1 = and i1 %load_y, %tmpVar
-  %load_z2 = load i32, i32* %z
-  %tmpVar3 = icmp sle i32 %load_z2, 6
-  %tmpVar4 = xor i1 %tmpVar3, true
-  %load_y5 = load i1, i1* %y
-  %tmpVar6 = or i1 %tmpVar4, %load_y5
+  br label %3
+
+3:                                                ; preds = %2, %entry
+  %4 = phi i1 [ %load_y, %entry ], [ %tmpVar, %2 ]
+  %load_z1 = load i32, i32* %z
+  %tmpVar2 = icmp sle i32 %load_z1, 6
+  %tmpVar3 = xor i1 %tmpVar2, true
+  %5 = icmp ne i1 %tmpVar3, false
+  br i1 %5, label %7, label %6
+
+6:                                                ; preds = %3
+  %load_y4 = load i1, i1* %y
+  br label %7
+
+7:                                                ; preds = %6, %3
+  %8 = phi i1 [ %tmpVar3, %3 ], [ %load_y4, %6 ]
   ret void
 "#
     );
@@ -804,16 +886,23 @@ fn if_with_expression_generator_test() {
     "",
 r#"%load_x = load i32, i32* %x
   %tmpVar = icmp sgt i32 %load_x, 1
-  %load_b1 = load i1, i1* %b1
-  %tmpVar1 = or i1 %tmpVar, %load_b1
-  br i1 %tmpVar1, label %condition_body, label %continue
+  %1 = icmp ne i1 %tmpVar, false
+  br i1 %1, label %3, label %2
 
-condition_body:                                   ; preds = %entry
-  %load_x2 = load i32, i32* %x
+condition_body:                                   ; preds = %3
+  %load_x1 = load i32, i32* %x
   br label %continue
 
-continue:                                         ; preds = %condition_body, %entry
+continue:                                         ; preds = %condition_body, %3
   ret void
+
+2:                                                ; preds = %entry
+  %load_b1 = load i1, i1* %b1
+  br label %3
+
+3:                                                ; preds = %2, %entry
+  %4 = phi i1 [ %tmpVar, %entry ], [ %load_b1, %2 ]
+  br i1 %4, label %condition_body, label %continue
 "#);
 
     assert_eq!(result, expected);
