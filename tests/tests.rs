@@ -13,8 +13,8 @@ mod correctness {
     mod control_flow;
     mod functions;
     mod datatypes ;
+    mod arrays;
 }
-
 
 ///
 /// Compiles and runs the given source
