@@ -1,8 +1,13 @@
 [package]
 name = "rusty"
 version = "0.1.0"
-authors = ["Ghaith Hachem <ghaith.hachem@gmail.com>"]
+authors = ["Ghaith Hachem <ghaith.hachem@gmail.com>", "Mathias Rieder <mathias.rieder@gmail.com>"]
 edition = "2018"
+readme = "README.md"
+repository = "https://github.com/ghaith/rusty/"
+license = "LGPL-3.0-or-later"
+keywords = ["iec61131", "st", "Structued_Text"]
+categories = ["development-tools::build-utils"]
 
 [dependencies]
 logos = "0.11.4"
