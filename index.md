@@ -1,37 +1,69 @@
-## Welcome to GitHub Pages
+# RuSTy
 
-You can use the [editor on GitHub](https://github.com/ghaith/rusty/edit/gh-pages/index.md) to maintain and preview the content for your website in Markdown files.
+Structured text compiler written in Rust
 
-Whenever you commit to this repository, GitHub Pages will run [Jekyll](https://jekyllrb.com/) to rebuild the pages in your site, from the content in your Markdown files.
+[![Rust Build](https://github.com/ghaith/ruSTy/workflows/Rust%20on%20Docker/badge.svg)](https://github.com/ghaith/ruSTy/actions)
 
-### Markdown
 
-Markdown is a lightweight and easy-to-use syntax for styling your writing. It includes conventions for
-
-```markdown
-Syntax highlighted code block
-
-# Header 1
-## Header 2
-### Header 3
-
-- Bulleted
-- List
-
-1. Numbered
-2. List
-
-**Bold** and _Italic_ and `Code` text
-
-[Link](url) and ![Image](src)
+```
+                    IR-CodeGen
+     Project        Programs             Global           IEC61131 Num and String types
+     start          Expressions          Variables 
+       |              |                    |                   |
+       |              |                    |                   |
+----I-------------I-------------I-------------I-------------I-------------I-------------I----
+ nov-'19       jan-'20       mar-'20       may-'20      june-'20       dec-'20       jan-'21  
+----I-------------I-------------I-------------I-------------I-------------I-------------I----
+                  |                   |          |                        |
+                  |                   |          |                        |
+                Parsing            Control       Call Stmts           Array Access
+                POUs               Structures    for all
+                Statements                       POUs
+                Expressions
 ```
 
-For more details see [GitHub Flavored Markdown](https://guides.github.com/features/mastering-markdown/).
 
-### Jekyll Themes
 
-Your Pages site will use the layout and styles from the Jekyll theme you have selected in your [repository settings](https://github.com/ghaith/rusty/settings). The name of this theme is saved in the Jekyll `_config.yml` configuration file.
 
-### Support or Contact
+# Supported Language Concepts
+## POUs
+- :heavy_check_mark: Program
+- :heavy_check_mark: Function
+- :heavy_check_mark: FunctionBlock
+- :x: Action
 
-Having trouble with Pages? Check out our [documentation](https://docs.github.com/categories/github-pages-basics/) or [contact support](https://github.com/contact) and we’ll help you sort it out.
+## Datatypes
+- :heavy_check_mark: IEC 61131-3 numeric types
+- :heavy_check_mark: Strings
+- :heavy_check_mark: Struct types
+- :heavy_check_mark: Enum types
+- :heavy_check_mark: Array data types
+- :x: Alias types
+- :x: Sub-ranges types
+- :x: Sized String types
+- :x: Initial values
+
+## Declarations
+- :heavy_check_mark: VAR
+- :heavy_check_mark: VAR_INPUT
+- :heavy_check_mark: VAR_OUTPUT
+- :x: VAR_INOUT
+
+## Statements
+- :heavy_check_mark: Assignments
+- :heavy_check_mark: Call statements
+- :heavy_check_mark: Implicit call arguments
+- :heavy_check_mark: Explicit call arguments
+
+## Control Structures
+- :heavy_check_mark: IF Statement
+- :x: CASE Statement
+- :heavy_check_mark: FOR Loops
+- :heavy_check_mark: WHILE Loops
+- :heavy_check_mark: REPEAT Loops
+
+## Expressions
+- :heavy_check_mark: Arithmetic Operators
+- :heavy_check_mark: Relational Operators
+- :heavy_check_mark: Logical Operators
+- :heavy_check_mark: Bitwise Operators
