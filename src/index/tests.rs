@@ -558,7 +558,7 @@ fn pre_processing_generates_inline_array_of_array_of_array() {
     let new_array_type = &ast.types[0];
     let expected = 
         &DataType::ArrayType {
-            name: Some("__foo_inline_array_".to_string()),
+            name: Some("__foo_inline_array__".to_string()),
             bounds: Statement::RangeStatement{
                 start: Box::new(Statement::LiteralInteger { value: "0".to_string(), location:0..0}),
                 end: Box::new(Statement::LiteralInteger {value: "1".to_string(), location: 0..0}),
@@ -576,13 +576,13 @@ fn pre_processing_generates_inline_array_of_array_of_array() {
     let new_array_type = &ast.types[1];
     let expected = 
         &DataType::ArrayType {
-            name: Some("__foo_inline_array".to_string()),
+            name: Some("__foo_inline_array_".to_string()),
             bounds: Statement::RangeStatement{
                 start: Box::new(Statement::LiteralInteger { value: "0".to_string(), location:0..0}),
                 end: Box::new(Statement::LiteralInteger {value: "1".to_string(), location: 0..0}),
             },
             referenced_type: Box::new(DataTypeDeclaration::DataTypeReference{
-                referenced_type: "__foo_inline_array_".to_string(),
+                referenced_type: "__foo_inline_array__".to_string(),
             }),
         };
     assert_eq!(

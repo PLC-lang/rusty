@@ -118,7 +118,7 @@ fn cube_array_assignments_array_of_array_of_array() {
             z: INT;
             int_array   : ARRAY[0..4] OF INT;
             matrix      : ARRAY[0..4] OF ARRAY[0..4] OF INT;
-            cube        : ARRAY[0..4] OF ARRAY[0..4] OF ARRAY[0..4] OF INT;
+            cube        : ARRAY[0..4] OF ARRAY[0..4] OF ARRAY[0..4] OF DINT;
             END_VAR
 
             FOR x := 0 TO 4 DO

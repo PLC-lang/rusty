@@ -52,7 +52,7 @@ fn add_nested_datatypes(container_name : &str, datatype : &mut DataType, types :
    let new_type_name = format!("{}_", container_name);
    if let Some(DataTypeDeclaration::DataTypeDefinition{mut data_type}) = datatype.replace_data_type_with_reference_to(new_type_name.clone()) {
        data_type.set_name(new_type_name.clone());
-       add_nested_datatypes(new_type_name.as_str(), datatype, types);
+       add_nested_datatypes(new_type_name.as_str(), &mut data_type, types);
        types.push(data_type);
    }   
 
