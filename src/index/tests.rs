@@ -415,3 +415,208 @@ fn pre_processing_generates_inline_structs() {
         var_data_type
     );
 }
+
+
+#[test]
+fn pre_processing_generates_inline_arrays() {
+    // GIVEN an inline array is declared
+    let lexer = lexer::lex(
+        r#"
+        PROGRAM foo
+        VAR
+            inline_array: ARRAY[0..1] OF INT;
+        END_VAR
+        END_PROGRAM
+        "#,
+    );
+    let mut ast = parser::parse(lexer).unwrap();
+
+    // WHEN the AST ist pre-processed
+    let mut index = Index::new();
+    index.pre_process(&mut ast);
+
+    //ARRAY
+    //THEN an implicit datatype should have been generated for the array
+    let new_array_type = &ast.types[0];
+    
+    let expected = 
+        &DataType::ArrayType {
+            name: Some("__foo_inline_array".to_string()),
+            bounds: Statement::RangeStatement{
+                start: Box::new(Statement::LiteralInteger { value: "0".to_string(), location:0..0}),
+                end: Box::new(Statement::LiteralInteger {value: "1".to_string(), location: 0..0}),
+            },
+            referenced_type: Box::new(DataTypeDeclaration::DataTypeReference{
+                referenced_type: "INT".to_string(),
+            }),
+        };
+    assert_eq!(
+        format!("{:?}", expected),
+        format!("{:?}", new_array_type)
+    );
+
+    // AND the original variable should now point to the new DataType
+    let var_data_type = &ast.units[0].variable_blocks[0].variables[0].data_type;
+    assert_eq!(
+        &DataTypeDeclaration::DataTypeReference {
+            referenced_type: "__foo_inline_array".to_string(),
+        },
+        var_data_type
+    );
+}
+
+
+#[test]
+fn pre_processing_generates_inline_array_of_array() {
+    // GIVEN an inline array is declared
+    let lexer = lexer::lex(
+        r#"
+        PROGRAM foo
+        VAR
+            inline_array: ARRAY[0..1] OF ARRAY[0..1] OF INT;
+        END_VAR
+        END_PROGRAM
+        "#,
+    );
+    let mut ast = parser::parse(lexer).unwrap();
+
+    // WHEN the AST ist pre-processed
+    let mut index = Index::new();
+    index.pre_process(&mut ast);
+
+    //ARRAY
+    //THEN an implicit datatype should have been generated for the array
+
+    // ARRAY OF INT
+    let new_array_type = &ast.types[0];
+    let expected = 
+        &DataType::ArrayType {
+            name: Some("__foo_inline_array_".to_string()),
+            bounds: Statement::RangeStatement{
+                start: Box::new(Statement::LiteralInteger { value: "0".to_string(), location:0..0}),
+                end: Box::new(Statement::LiteralInteger {value: "1".to_string(), location: 0..0}),
+            },
+            referenced_type: Box::new(DataTypeDeclaration::DataTypeReference{
+                referenced_type: "INT".to_string(),
+            }),
+        };
+    assert_eq!(
+        format!("{:?}", expected),
+        format!("{:?}", new_array_type)
+    );
+
+    // ARRAY OF ARRAY
+    let new_array_type = &ast.types[1];
+    let expected = 
+        &DataType::ArrayType {
+            name: Some("__foo_inline_array".to_string()),
+            bounds: Statement::RangeStatement{
+                start: Box::new(Statement::LiteralInteger { value: "0".to_string(), location:0..0}),
+                end: Box::new(Statement::LiteralInteger {value: "1".to_string(), location: 0..0}),
+            },
+            referenced_type: Box::new(DataTypeDeclaration::DataTypeReference{
+                referenced_type: "__foo_inline_array_".to_string(),
+            }),
+        };
+    assert_eq!(
+        format!("{:?}", expected),
+        format!("{:?}", new_array_type)
+    );
+
+    // AND the original variable should now point to the new DataType
+    let var_data_type = &ast.units[0].variable_blocks[0].variables[0].data_type;
+    assert_eq!(
+        &DataTypeDeclaration::DataTypeReference {
+            referenced_type: "__foo_inline_array".to_string(),
+        },
+        var_data_type
+    );
+}
+
+#[test]
+fn pre_processing_generates_inline_array_of_array_of_array() {
+    // GIVEN an inline array is declared
+    let lexer = lexer::lex(
+        r#"
+        PROGRAM foo
+        VAR
+            inline_array: ARRAY[0..1] OF ARRAY[0..1] OF ARRAY[0..1] OF INT;
+        END_VAR
+        END_PROGRAM
+        "#,
+    );
+    let mut ast = parser::parse(lexer).unwrap();
+
+    // WHEN the AST ist pre-processed
+    let mut index = Index::new();
+    index.pre_process(&mut ast);
+
+    //ARRAY
+    //THEN an implicit datatype should have been generated for the array
+
+    // ARRAY OF INT
+    let new_array_type = &ast.types[0];
+    let expected = 
+        &DataType::ArrayType {
+            name: Some("__foo_inline_array_".to_string()),
+            bounds: Statement::RangeStatement{
+                start: Box::new(Statement::LiteralInteger { value: "0".to_string(), location:0..0}),
+                end: Box::new(Statement::LiteralInteger {value: "1".to_string(), location: 0..0}),
+            },
+            referenced_type: Box::new(DataTypeDeclaration::DataTypeReference{
+                referenced_type: "INT".to_string(),
+            }),
+        };
+    assert_eq!(
+        format!("{:?}", expected),
+        format!("{:?}", new_array_type)
+    );
+
+    // ARRAY OF ARRAY
+    let new_array_type = &ast.types[1];
+    let expected = 
+        &DataType::ArrayType {
+            name: Some("__foo_inline_array".to_string()),
+            bounds: Statement::RangeStatement{
+                start: Box::new(Statement::LiteralInteger { value: "0".to_string(), location:0..0}),
+                end: Box::new(Statement::LiteralInteger {value: "1".to_string(), location: 0..0}),
+            },
+            referenced_type: Box::new(DataTypeDeclaration::DataTypeReference{
+                referenced_type: "__foo_inline_array_".to_string(),
+            }),
+        };
+    assert_eq!(
+        format!("{:?}", expected),
+        format!("{:?}", new_array_type)
+    );
+
+    // ARRAY OF ARRAY
+    let new_array_type = &ast.types[2];
+    let expected = 
+        &DataType::ArrayType {
+            name: Some("__foo_inline_array".to_string()),
+            bounds: Statement::RangeStatement{
+                start: Box::new(Statement::LiteralInteger { value: "0".to_string(), location:0..0}),
+                end: Box::new(Statement::LiteralInteger {value: "1".to_string(), location: 0..0}),
+            },
+            referenced_type: Box::new(DataTypeDeclaration::DataTypeReference{
+                referenced_type: "__foo_inline_array_".to_string(),
+            }),
+        };
+    assert_eq!(
+        format!("{:?}", expected),
+        format!("{:?}", new_array_type)
+    );
+
+
+
+
+    // AND the original variable should now point to the new DataType
+    let var_data_type = &ast.units[0].variable_blocks[0].variables[0].data_type;
+    assert_eq!(
+        &DataTypeDeclaration::DataTypeReference {
+            referenced_type: "__foo_inline_array".to_string(),
+        },
+        var_data_type
+    );
+}
