@@ -1994,6 +1994,51 @@ source_filename = "main"
   assert_eq!(result, expected);
 }
 
+
+#[test]
+fn enum_members_can_be_used_in_asignments() {
+  let result = codegen!(
+      "
+      TYPE MyEnum: (red, yellow, green);
+      END_TYPE
+
+      PROGRAM main
+      VAR
+        color : MyEnum;
+      END_VAR
+      color := red;
+      color := yellow;
+      color := green;
+      END_PROGRAM
+      "
+    );
+
+    let expected = r#"; ModuleID = 'main'
+source_filename = "main"
+
+%main_interface = type { i32 }
+
+@red = common global i32 0
+@yellow = common global i32 1
+@green = common global i32 2
+@main_instance = common global %main_interface zeroinitializer
+
+define void @main(%main_interface* %0) {
+entry:
+  %color = getelementptr inbounds %main_interface, %main_interface* %0, i32 0, i32 0
+  %load_red = load i32, i32* @red
+  store i32 %load_red, i32* %color
+  %load_yellow = load i32, i32* @yellow
+  store i32 %load_yellow, i32* %color
+  %load_green = load i32, i32* @green
+  store i32 %load_green, i32* %color
+  ret void
+}
+"#;
+
+  assert_eq!(result, expected);
+}
+
 #[test]
 fn inline_structs_are_generated() {
   let result = codegen!(

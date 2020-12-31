@@ -96,8 +96,10 @@ fn visit_data_type(index: &mut Index, data_type: &DataType) {
 
         },
 
-        DataType::EnumType { name, .. } => 
-            index.register_type( name.as_ref().map(|it| it.to_string()).unwrap()),
+        DataType::EnumType { name, elements, .. } =>  {
+            index.register_type( name.as_ref().map(|it| it.to_string()).unwrap());
+            elements.iter().for_each(|v| index.register_global_variable(v.to_string(), "INT".to_string()));
+        },
 
         DataType::SubRangeType { name, .. } => 
             index.register_type (name.as_ref().map(|it| it.to_string()).unwrap()),
