@@ -389,7 +389,7 @@ impl<'ctx> CodeGen<'ctx> {
             .add_global(variable_type, Some(AddressSpace::Generic), name);
         self.set_initializer_for_type(&result, variable_type);
         result.set_thread_local_mode(None);
-        result.set_linkage(Linkage::Common);
+        result.set_linkage(Linkage::External);
         result
     }
     fn generate_statement(&self, s: &Statement) -> ExpressionValue<'ctx> {
