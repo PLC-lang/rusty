@@ -2449,3 +2449,50 @@ r#"%tmpVar = getelementptr inbounds [4 x [2 x i32]], [4 x [2 x i32]]* %x, i32 0,
 "#);
     assert_eq!(result, expected);
 }
+
+#[test]
+fn accessing_nested_array_in_struct() {
+  let result = codegen!(
+        "
+        TYPE MyStruct:
+        STRUCT 
+          field1 : ARRAY[0..4] OF INT;
+        END_STRUCT
+        END_TYPE
+        
+        PROGRAM Main
+        VAR
+          m : MyStruct;
+        END_VAR
+
+          m.field1[3] := 7;
+        END_PROGRAM
+        "
+    );
+
+    let expected = r#"; ModuleID = 'main'
+source_filename = "main"
+
+%Main_interface = type { %OuterStruct }
+%OuterStruct = type { %InnerStruct, %InnerStruct }
+%InnerStruct = type { i16, i16 }
+
+@Main_instance = global %Main_interface zeroinitializer
+
+define void @Main(%Main_interface* %0) {
+entry:
+  %m = getelementptr inbounds %Main_interface, %Main_interface* %0, i32 0, i32 0
+  %out1 = getelementptr inbounds %OuterStruct, %OuterStruct* %m, i32 0, i32 0
+  %inner1 = getelementptr inbounds %InnerStruct, %InnerStruct* %out1, i32 0, i32 0
+  store i16 3, i16* %inner1
+  %out2 = getelementptr inbounds %OuterStruct, %OuterStruct* %m, i32 0, i32 1
+  %inner2 = getelementptr inbounds %InnerStruct, %InnerStruct* %out2, i32 0, i32 1
+  store i16 7, i16* %inner2
+  ret void
+}
+"#;
+
+  assert_eq!(result, expected);
+}
+
+

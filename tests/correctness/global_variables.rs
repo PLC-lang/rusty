@@ -65,3 +65,27 @@ fn global_variable_can_be_referenced_in_two_functions()  {
     let (res2, _) = run(&exec_engine, "two", &mut MainType {x: 0, ret : 0});
     assert_eq!(res2, 30)
 }
+
+#[test]
+#[ignore]
+fn global_variables_with_initialization()  {
+
+    let function = r"
+    VAR_GLOBAL
+        gX : INT := 77;
+    END_VAR
+    FUNCTION main : DINT
+        main := gX;
+    END_FUNCTION
+
+    FUNCTION two : DINT
+    two := gX;
+    END_FUNCTION
+    ";
+    let context = inkwell::context::Context::create();
+    let mut index = rusty::create_index(); 
+    let exec_engine =compile(&context, &mut index, function.to_string());
+
+    let (res, _) = run(&exec_engine, "main", &mut MainType {x : 0, ret: 0});
+    assert_eq!(res,77);
+}
