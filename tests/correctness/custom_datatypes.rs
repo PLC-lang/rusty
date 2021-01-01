@@ -298,3 +298,37 @@ fn using_inline_arrays_in_structs() {
     assert_eq!([0,1,2,3,4,5,6,7], data.arr2);
     assert_eq!([0,1,2], data.arr3);
 }
+#[test]
+fn using_arrays() {
+    #[warn(dead_code)]
+    struct Main {
+        arr : [i32; 10],
+        i : i16,
+    };
+    
+    
+    let mut main = Main {
+        arr : [0; 10],
+        i : 0,
+    };
+
+
+    let testcode = r#"
+    TYPE ARR : ARRAY[0..9] OF DINT; END_TYPE
+
+    PROGRAM main
+    VAR
+        arr : ARR;
+        i : INT;
+    END_VAR
+    FOR i := 0 TO 10 DO
+        arr[i] := i;
+    END_FOR
+    END_PROGRAM
+    "#;
+    
+    compile_and_run(testcode.to_string(), &mut main);
+    for (i,j) in main.arr.iter_mut().enumerate() {
+        assert_eq!(i as i32,*j);
+    }
+}
