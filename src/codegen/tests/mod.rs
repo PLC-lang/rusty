@@ -2494,21 +2494,17 @@ fn accessing_nested_array_in_struct() {
     let expected = r#"; ModuleID = 'main'
 source_filename = "main"
 
-%Main_interface = type { %OuterStruct }
-%OuterStruct = type { %InnerStruct, %InnerStruct }
-%InnerStruct = type { i16, i16 }
+%Main_interface = type { %MyStruct }
+%MyStruct = type { [5 x i16] }
 
 @Main_instance = global %Main_interface zeroinitializer
 
 define void @Main(%Main_interface* %0) {
 entry:
   %m = getelementptr inbounds %Main_interface, %Main_interface* %0, i32 0, i32 0
-  %out1 = getelementptr inbounds %OuterStruct, %OuterStruct* %m, i32 0, i32 0
-  %inner1 = getelementptr inbounds %InnerStruct, %InnerStruct* %out1, i32 0, i32 0
-  store i16 3, i16* %inner1
-  %out2 = getelementptr inbounds %OuterStruct, %OuterStruct* %m, i32 0, i32 1
-  %inner2 = getelementptr inbounds %InnerStruct, %InnerStruct* %out2, i32 0, i32 1
-  store i16 7, i16* %inner2
+  %field1 = getelementptr inbounds %MyStruct, %MyStruct* %m, i32 0, i32 0
+  %tmpVar = getelementptr inbounds [5 x i16], [5 x i16]* %field1, i32 0, i32 3
+  store i16 7, i16* %tmpVar
   ret void
 }
 "#;

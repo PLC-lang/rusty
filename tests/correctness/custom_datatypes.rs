@@ -295,23 +295,19 @@ fn using_inline_arrays_in_structs() {
 
     compile_and_run(testcode.to_string(), &mut data);
     assert_eq!([0,1,2,3], data.arr1);
-    assert_eq!([0,1,2,3,4,5,6,7], data.arr2);
-    assert_eq!([0,1,2], data.arr3);
+    assert_eq!([0,10,20,30,0,0,0,77], data.arr2);
+    assert_eq!([77,0,-1], data.arr3);
 }
 #[test]
 fn using_arrays() {
     #[warn(dead_code)]
     struct Main {
         arr : [i32; 10],
-        i : i16,
     };
-    
     
     let mut main = Main {
         arr : [0; 10],
-        i : 0,
     };
-
 
     let testcode = r#"
     TYPE ARR : ARRAY[0..9] OF DINT; END_TYPE

@@ -308,6 +308,7 @@ r#"VariableBlock {
     assert_eq!(ast_string,expected_ast);
 }
 
+#[test]
 fn simple_struct_type_can_be_parsed() {
     let result = super::parse(lexer::lex(
         r#"
