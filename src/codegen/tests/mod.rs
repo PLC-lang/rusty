@@ -1406,6 +1406,98 @@ continue:                                         ; preds = %output
 }
 
 #[test]
+fn nested_function_called_in_program() {
+    let result = codegen!(
+        "
+        FUNCTION bar : DINT
+        bar := 1;
+        END_FUNCTION
+
+        FUNCTION foo : DINT
+        VAR_INPUT
+            in : DINT;
+        END_VAR
+
+        foo := 1;
+        END_FUNCTION
+
+        PROGRAM prg 
+        VAR
+            x : DINT;
+        END_VAR
+        x := foo(bar());
+        END_PROGRAM
+        "
+    );
+
+    let expected = r#"; ModuleID = 'main'
+source_filename = "main"
+
+%prg_interface = type { i32 }
+%bar_interface = type {}
+%foo_interface = type { i32 }
+
+@prg_instance = global %prg_interface zeroinitializer
+
+define i32 @bar(%bar_interface* %0) {
+entry:
+  %bar = alloca i32
+  store i32 1, i32* %bar
+  %bar_ret = load i32, i32* %bar
+  ret i32 %bar_ret
+}
+
+define i32 @foo(%foo_interface* %0) {
+entry:
+  %in = getelementptr inbounds %foo_interface, %foo_interface* %0, i32 0, i32 0
+  %foo = alloca i32
+  store i32 1, i32* %foo
+  %foo_ret = load i32, i32* %foo
+  ret i32 %foo_ret
+}
+
+define void @prg(%prg_interface* %0) {
+entry:
+  %x = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 0
+  %foo_instance = alloca %foo_interface
+  br label %input
+
+input:                                            ; preds = %entry
+  %bar_instance = alloca %bar_interface
+  br label %input1
+
+call:                                             ; preds = %continue4
+  %call6 = call i32 @foo(%foo_interface* %foo_instance)
+  br label %output
+
+output:                                           ; preds = %call
+  br label %continue
+
+continue:                                         ; preds = %output
+  store i32 %call6, i32* %x
+  ret void
+
+input1:                                           ; preds = %input
+  br label %call2
+
+call2:                                            ; preds = %input1
+  %call5 = call i32 @bar(%bar_interface* %bar_instance)
+  br label %output3
+
+output3:                                          ; preds = %call2
+  br label %continue4
+
+continue4:                                        ; preds = %output3
+  %1 = getelementptr inbounds %foo_interface, %foo_interface* %foo_instance, i32 0, i32 0
+  store i32 %call5, i32* %1
+  br label %call
+}
+"#;
+
+  assert_eq!(result, expected);
+}
+
+#[test]
 fn function_with_parameters_called_in_program() {
     let result = codegen!(
         "
