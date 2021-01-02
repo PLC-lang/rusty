@@ -17,7 +17,7 @@ mod tests;
 macro_rules! expect {
     ( $token:expr, $lexer:expr) => {
         if $lexer.token != $token {
-            return Err(format!("expected {:?}, but found {:?}", $token, $lexer.token).to_string());
+            return Err(format!("expected {:?}, but found '{:}' [{:?}] at {:}", $token, $lexer.slice(), $lexer.token, $lexer.get_location_information()).to_string());
         }
     };
 }
@@ -45,13 +45,13 @@ fn create_pou(pou_type: PouType) -> POU {
 }
 
 ///
-/// returns an error for an uidientified token
+/// returns an error for an unidientified token
 ///  
 fn unidentified_token(lexer: &RustyLexer) -> String {
     format!(
         "unidentified token: {t:?} at {location:?}",
         t = lexer.slice(),
-        location = lexer.range()
+        location = lexer.get_location_information()
     )
 }
 
@@ -60,9 +60,10 @@ fn unidentified_token(lexer: &RustyLexer) -> String {
 ///  
 fn unexpected_token(lexer: &RustyLexer) -> String {
     format!(
-        "unexpected token: {t:?} at {location:?}",
+        "unexpected token: '{slice:}' [{t:?}] at {location:}",
         t = lexer.token,
-        location = lexer.range()
+        slice = lexer.slice(),
+        location = lexer.get_location_information(),
     )
 }
 
@@ -105,6 +106,7 @@ pub fn parse(mut lexer: RustyLexer ) -> Result<CompilationUnit, String> {
 /// * `expected_end_token` - the token that ends this pou
 /// 
 fn parse_pou(lexer: &mut RustyLexer, pou_type: PouType, expected_end_token: lexer::Token) -> Result<POU, String> {
+    let line_nr = lexer.get_current_line_nr();
     lexer.advance(); //Consume ProgramKeyword
     let mut result = create_pou(pou_type);
  
@@ -127,7 +129,7 @@ fn parse_pou(lexer: &mut RustyLexer, pou_type: PouType, expected_end_token: lexe
     }
 
     //Parse the statemetns
-    let mut body = parse_body(lexer, &|it| *it == expected_end_token)?;
+    let mut body = parse_body(lexer, line_nr, &|it| *it == expected_end_token)?;
     result.statements.append(&mut body);
 
     expect!(expected_end_token, lexer);
@@ -143,14 +145,13 @@ fn parse_type(lexer: &mut RustyLexer) -> Result<DataType, String> {
     lexer.advance();
 
     let result = parse_data_type_definition(lexer, Some(name));
-
-    expect!(KeywordEndType, lexer);
-    lexer.advance();
-
+    
     if let Ok(DataTypeDeclaration::DataTypeDefinition {data_type}) = result {
+        expect!(KeywordEndType, lexer);
+        lexer.advance();
         Ok(data_type)
     } else {
-        Err(format!("expected struct, enum, or subrange found {:?}", lexer.token))
+        Err(format!("expected struct, enum, or subrange found '{:}' [{:?}] at {:}", lexer.slice(), lexer.token, lexer.get_location_information()))
     }
 }
 
@@ -220,7 +221,7 @@ fn is_end_of_stream(token: &lexer::Token) -> bool {
     *token == End || *token == Error 
 }
 
-fn parse_body(lexer: &mut RustyLexer, until: &dyn Fn(&lexer::Token) -> bool) -> Result<Vec<Statement>, String> {
+fn parse_body(lexer: &mut RustyLexer, open_line_nr: usize, until: &dyn Fn(&lexer::Token) -> bool) -> Result<Vec<Statement>, String> {
     let mut statements = Vec::new();
     consume_all(lexer, KeywordSemicolon);
     while !until(&lexer.token) && !is_end_of_stream(&lexer.token) {
@@ -229,7 +230,7 @@ fn parse_body(lexer: &mut RustyLexer, until: &dyn Fn(&lexer::Token) -> bool) -> 
         statements.push(statement);
     }
     if !until(&lexer.token) {
-        return Err(format!("unexpected end of body {:?}, statements : {:?}", lexer.token, statements).to_string());
+        return Err(format!("unexpected termination of body by '{:}' [{:?}], a block at line {:} was not closed", lexer.slice(), lexer.token, open_line_nr));
     }
     Ok(statements)
 }
@@ -248,7 +249,7 @@ fn parse_statement(lexer: &mut RustyLexer) -> Result<Statement, String> {
     let result = parse_expression(lexer);
  
     if !(lexer.token == KeywordColon || lexer.token == KeywordSemicolon) {
-        return Err(format!("expected End Statement, but found {:?}", lexer.token).to_string());
+        return Err(format!("expected end of statement (e.g. ;), but found {:?} at {:}", lexer.token, lexer.get_location_information()));
     }
     result
 }
