@@ -654,7 +654,6 @@ fn test_ast_line_locations() {
 
 }
 
-
 #[test]
 fn programs_can_be_external() {
     let lexer = lexer::lex(

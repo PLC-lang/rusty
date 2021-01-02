@@ -15,6 +15,7 @@ mod correctness {
     mod datatypes ;
     mod arrays;
     mod custom_datatypes;
+    mod external_functions;
 }
 
 ///

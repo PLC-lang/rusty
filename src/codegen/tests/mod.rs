@@ -1301,6 +1301,52 @@ continue:                                         ; preds = %output
 }
 
 #[test]
+fn external_function_called_in_program() {
+    let result = codegen!(
+        "
+        @EXTERNAL FUNCTION foo : DINT
+        END_FUNCTION
+
+        PROGRAM prg 
+        foo();
+        END_PROGRAM
+        "
+    );
+
+    let expected = r#"; ModuleID = 'main'
+source_filename = "main"
+
+%prg_interface = type {}
+%foo_interface = type {}
+
+@prg_instance = global %prg_interface zeroinitializer
+
+declare i32 @foo(%foo_interface*)
+
+define void @prg(%prg_interface* %0) {
+entry:
+  %foo_instance = alloca %foo_interface
+  br label %input
+
+input:                                            ; preds = %entry
+  br label %call
+
+call:                                             ; preds = %input
+  %call1 = call i32 @foo(%foo_interface* %foo_instance)
+  br label %output
+
+output:                                           ; preds = %call
+  br label %continue
+
+continue:                                         ; preds = %output
+  ret void
+}
+"#;
+
+  assert_eq!(result, expected);
+}
+
+#[test]
 fn function_with_parameters_called_in_program() {
     let result = codegen!(
         "
@@ -2511,5 +2557,3 @@ entry:
 
   assert_eq!(result, expected);
 }
-
-
