@@ -653,3 +653,14 @@ fn test_ast_line_locations() {
     
 
 }
+
+
+#[test]
+fn programs_can_be_external() {
+    let lexer = lexer::lex(
+            "@EXTERNAL PROGRAM foo END_PROGRAM"
+    );
+    let parse_result = super::parse(lexer).unwrap();
+    let pou = &parse_result.units[0];
+    assert_eq!(LinkageType::External, pou.linkage);
+}

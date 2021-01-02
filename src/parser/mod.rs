@@ -33,13 +33,14 @@ pub fn allow(token: lexer::Token, lexer: &mut RustyLexer) -> bool {
 }
 
 
-fn create_pou(pou_type: PouType) -> POU {
+fn create_pou(pou_type: PouType, linkage: LinkageType) -> POU {
     POU {
         pou_type,
         name: "".to_string(),
         variable_blocks: Vec::new(),
         statements: Vec::new(),
         return_type: None,
+        linkage,
         location: 0..0,
     }
 }
@@ -75,22 +76,30 @@ fn slice_and_advance(lexer: &mut RustyLexer) -> String {
 pub fn parse(mut lexer: RustyLexer ) -> Result<CompilationUnit, String> {
     let mut unit = CompilationUnit { global_vars : Vec::new(), units: Vec::new(), types: Vec::new(), new_lines: lexer.get_new_lines().clone()};
 
+    let mut linkage = LinkageType::Internal;
     loop {
         match lexer.token {
+            PropertyExternal => {
+                linkage = LinkageType::External; 
+                lexer.advance();
+                //Don't reset linkage
+                continue
+            }
             KeywordVarGlobal => 
                 unit.global_vars.push(parse_variable_block(&mut lexer)?),
             KeywordProgram => 
-                unit.units.push(parse_pou(&mut lexer, PouType::Program, KeywordEndProgram)?),
+                unit.units.push(parse_pou(&mut lexer, PouType::Program, linkage, KeywordEndProgram)?),
             KeywordFunction => 
-                unit.units.push(parse_pou(&mut lexer, PouType::Function, KeywordEndFunction)?),
+                unit.units.push(parse_pou(&mut lexer, PouType::Function, linkage, KeywordEndFunction)?),
             KeywordFunctionBlock =>
-                unit.units.push(parse_pou(&mut lexer, PouType::FunctionBlock, KeywordEndFunctionBlock)?),
+                unit.units.push(parse_pou(&mut lexer, PouType::FunctionBlock, linkage, KeywordEndFunctionBlock)?),
             KeywordType =>
                 unit.types.push(parse_type(&mut lexer)?),
             End => return Ok(unit),
             Error => return Err(unidentified_token(&lexer)),
             _ => return Err(unexpected_token(&lexer)),
         };
+        linkage = LinkageType::Internal;
 
     }
     //the match in the loop will always return
@@ -104,9 +113,9 @@ pub fn parse(mut lexer: RustyLexer ) -> Result<CompilationUnit, String> {
 /// * `pou_type`    - the type of the pou currently parsed
 /// * `expected_end_token` - the token that ends this pou
 /// 
-fn parse_pou(lexer: &mut RustyLexer, pou_type: PouType, expected_end_token: lexer::Token) -> Result<POU, String> {
+fn parse_pou(lexer: &mut RustyLexer, pou_type: PouType, linkage: LinkageType, expected_end_token: lexer::Token) -> Result<POU, String> {
     lexer.advance(); //Consume ProgramKeyword
-    let mut result = create_pou(pou_type);
+    let mut result = create_pou(pou_type, linkage);
  
     //Parse Identifier
     expect!(Identifier, lexer);

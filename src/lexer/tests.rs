@@ -2,6 +2,12 @@
 
 use pretty_assertions::{assert_eq, assert_ne};
 #[test]
+fn generic_properties() {
+    let lexer = super::lex("@EXTERNAL");
+    assert_eq!(lexer.token, super::Token::PropertyExternal);
+}
+
+#[test]
 fn pou_tokens() {
     let mut lexer = super::lex("PROGRAM END_PROGRAM FUNCTION END_FUNCTION FUNCTION_BLOCK END_FUNCTION_BLOCK");
     assert_eq!(lexer.token, super::Token::KeywordProgram);

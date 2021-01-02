@@ -49,6 +49,8 @@ pub enum Token {
     #[error]
     Error,
     
+    #[token("@EXTERNAL")]
+    PropertyExternal,
 
     #[token("PROGRAM")]
     KeywordProgram,
