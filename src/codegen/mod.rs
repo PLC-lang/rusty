@@ -792,7 +792,6 @@ impl<'ctx> CodeGen<'ctx> {
         //Generate all parameters, this function may jump to the output block
         self.generate_function_parameters(function_name, instance, parameter,&input_block, &output_block);
         //Generate the label jumps from input to call to output 
-        self.builder.position_at_end(input_block);
         self.builder.build_unconditional_branch(call_block);
         self.builder.position_at_end(output_block);
         self.builder.build_unconditional_branch(continue_block);
@@ -866,6 +865,7 @@ impl<'ctx> CodeGen<'ctx> {
                 }
             }
             Statement::OutputAssignment { left, right } => {
+                let current_block = self.builder.get_insert_block().unwrap();
                 self.builder.position_at_end(*output_block);
                 if let Statement::Reference { elements, ..} = &**left {
                     let parameter = self
@@ -888,6 +888,7 @@ impl<'ctx> CodeGen<'ctx> {
                     self.builder
                         .build_store(pointer_to_target.unwrap(), value);
                 }
+                self.builder.position_at_end(current_block);
             }
             _ => {
                 if let (Some(value_type), Some(generated_exp)) = self.generate_statement(statement) {
