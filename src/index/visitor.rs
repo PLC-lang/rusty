@@ -2,7 +2,7 @@
 
 use super::Index;
 use super::VariableType;
-use super::super::ast::{ POU, PouType, CompilationUnit, VariableBlock, VariableBlockType, DataType };
+use super::super::ast::{ POU, PouType, CompilationUnit, VariableBlock, VariableBlockType, DataType, DataTypeDeclaration };
 
 pub fn visit(index: &mut Index, unit: &mut CompilationUnit) {
     for data_type in &unit.types {
@@ -84,6 +84,12 @@ fn visit_data_type(index: &mut Index, data_type: &DataType) {
             index.register_type(name.as_ref().map(|it| it.to_string()).unwrap());
             let mut count = 0;
             for var in variables {
+
+                if let DataTypeDeclaration::DataTypeDefinition{ data_type} = &var.data_type {
+                    //first we need to handle the inner type
+                    visit_data_type(index, &data_type)
+                }
+
                 index.register_member_variable(
                     struct_name.clone(), 
                     var.name.clone(), 
@@ -96,8 +102,10 @@ fn visit_data_type(index: &mut Index, data_type: &DataType) {
 
         },
 
-        DataType::EnumType { name, .. } => 
-            index.register_type( name.as_ref().map(|it| it.to_string()).unwrap()),
+        DataType::EnumType { name, elements, .. } =>  {
+            index.register_type( name.as_ref().map(|it| it.to_string()).unwrap());
+            elements.iter().for_each(|v| index.register_global_variable(v.to_string(), "INT".to_string()));
+        },
 
         DataType::SubRangeType { name, .. } => 
             index.register_type (name.as_ref().map(|it| it.to_string()).unwrap()),

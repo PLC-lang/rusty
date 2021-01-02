@@ -14,6 +14,7 @@ mod correctness {
     mod functions;
     mod datatypes ;
     mod arrays;
+    mod custom_datatypes;
 }
 
 ///

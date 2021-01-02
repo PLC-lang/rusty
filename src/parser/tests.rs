@@ -353,6 +353,50 @@ r#"StructType {
     assert_eq!(ast_string, expected_ast);
 }
 
+#[test]
+fn struct_with_inline_array_can_be_parsed() {
+    let result = super::parse(lexer::lex(
+        r#"
+        TYPE SampleStruct :
+            STRUCT
+                One: ARRAY[0..1] OF INT;
+            END_STRUCT
+        END_TYPE 
+        "#
+    )).unwrap();
+
+    let ast_string = format!("{:#?}", &result.types[0]);
+
+    let expected_ast = 
+r#"StructType {
+    name: Some(
+        "SampleStruct",
+    ),
+    variables: [
+        Variable {
+            name: "One",
+            data_type: DataTypeDefinition {
+                data_type: ArrayType {
+                    name: None,
+                    bounds: RangeStatement {
+                        start: LiteralInteger {
+                            value: "0",
+                        },
+                        end: LiteralInteger {
+                            value: "1",
+                        },
+                    },
+                    referenced_type: DataTypeReference {
+                        referenced_type: "INT",
+                    },
+                },
+            },
+        },
+    ],
+}"#;
+    assert_eq!(ast_string, expected_ast);
+}
+
 
 #[test]
 fn simple_enum_type_can_be_parsed() {
@@ -481,6 +525,7 @@ r#"Variable {
 
     assert_eq!(ast_string, expected_ast);
 }
+
 
 #[test]
 fn inline_enum_declaration_can_be_parsed() {

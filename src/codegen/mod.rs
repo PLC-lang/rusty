@@ -195,7 +195,7 @@ impl<'ctx> CodeGen<'ctx> {
         }
     }
 
-    fn generate_data_types(&self, data_types: &Vec<DataType>) {
+    fn generate_data_types(&mut self, data_types: &Vec<DataType>) {
         for data_type in data_types {
             match data_type {
                 DataType::StructType { name, variables } => {
@@ -208,6 +208,9 @@ impl<'ctx> CodeGen<'ctx> {
                         let element_variable =
                             self.generate_global_variable(int_type.as_basic_type_enum(), element);
                         element_variable.set_initializer(&int_type.const_int(i as u64, false));
+                        
+                        //associate the enum element's global variable
+                        self.index.associate_global_variable(element, element_variable.as_pointer_value());
                     }
                 }
                 DataType::SubRangeType { .. } => unimplemented!(),
@@ -386,7 +389,7 @@ impl<'ctx> CodeGen<'ctx> {
             .add_global(variable_type, Some(AddressSpace::Generic), name);
         self.set_initializer_for_type(&result, variable_type);
         result.set_thread_local_mode(None);
-        result.set_linkage(Linkage::Common);
+        result.set_linkage(Linkage::External);
         result
     }
     fn generate_statement(&self, s: &Statement) -> ExpressionValue<'ctx> {

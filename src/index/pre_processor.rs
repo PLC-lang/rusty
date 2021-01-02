@@ -1,3 +1,5 @@
+use std::vec;
+
 /// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
 use super::super::ast::{ Variable, CompilationUnit,DataType,  DataTypeDeclaration};
@@ -26,7 +28,17 @@ pub fn pre_process(unit: &mut CompilationUnit) {
     for var in all_variables {
         pre_process_variable_data_type("global", var, &mut unit.types)   
     }
-    
+
+    //process all variables in dataTypes
+    let mut new_types = vec![];
+    for dt in unit.types.iter_mut() {
+        if let DataType::StructType { name, variables} = dt {
+            variables.iter_mut()
+                .filter(|it| should_generate_implicit_type(it))
+                .for_each(|var| pre_process_variable_data_type(name.as_ref().unwrap().as_str(), var, &mut new_types));
+        }
+    }
+    unit.types.append(&mut new_types);
 }
 
 fn should_generate_implicit_type(variable: &Variable) -> bool {

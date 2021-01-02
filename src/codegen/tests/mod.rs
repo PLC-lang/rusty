@@ -67,7 +67,7 @@ source_filename = "main"
 
 %{pou_name}_interface = type {{{type}}}
 {global_variables}
-@{pou_name}_instance = common {thread_mode}global %{pou_name}_interface zeroinitializer
+@{pou_name}_instance = {thread_mode}global %{pou_name}_interface zeroinitializer
 
 define {return_type} @{pou_name}(%{pou_name}_interface* %0) {{
 entry:
@@ -130,8 +130,8 @@ fn a_global_variables_generates_in_separate_global_variables() {
     let result = generate_with_empty_program!("VAR_GLOBAL gX : INT; gY : BOOL; END_VAR");
     let expected = generate_program_boiler_plate_globals(
 r#"
-@gX = common global i16 0
-@gY = common global i1 false"#);
+@gX = global i16 0
+@gY = global i1 false"#);
 
     assert_eq!(result, expected);
 }
@@ -141,9 +141,9 @@ fn two_global_variables_generates_in_separate_global_variables() {
     let result = generate_with_empty_program!("VAR_GLOBAL gX : INT; gY : BOOL; END_VAR VAR_GLOBAL gA : INT; END_VAR");
     let expected = generate_program_boiler_plate_globals(
 r#"
-@gX = common global i16 0
-@gY = common global i1 false
-@gA = common global i16 0"#);
+@gX = global i16 0
+@gY = global i1 false
+@gA = global i16 0"#);
 
     assert_eq!(result, expected);
 }
@@ -165,7 +165,7 @@ fn global_variable_reference_is_generated() {
 
     let expected = generate_program_boiler_plate("prg", &[("i16","x")], "void", "", 
 r"
-@gX = common global i16 0", //global vars
+@gX = global i16 0", //global vars
 r"store i16 20, i16* @gX
   %load_gX = load i16, i16* @gX
   store i16 %load_gX, i16* %x
@@ -376,7 +376,7 @@ source_filename = "main"
 
 %prg_interface = type { [81 x i8] }
 
-@prg_instance = common global %prg_interface zeroinitializer
+@prg_instance = global %prg_interface zeroinitializer
 
 define void @prg(%prg_interface* %0) {
 entry:
@@ -1265,7 +1265,7 @@ source_filename = "main"
 %prg_interface = type { i32 }
 %foo_interface = type {}
 
-@prg_instance = common global %prg_interface zeroinitializer
+@prg_instance = global %prg_interface zeroinitializer
 
 define i32 @foo(%foo_interface* %0) {
 entry:
@@ -1326,7 +1326,7 @@ source_filename = "main"
 %prg_interface = type { i32 }
 %foo_interface = type { i32 }
 
-@prg_instance = common global %prg_interface zeroinitializer
+@prg_instance = global %prg_interface zeroinitializer
 
 define i32 @foo(%foo_interface* %0) {
 entry:
@@ -1391,7 +1391,7 @@ source_filename = "main"
 %prg_interface = type { i32 }
 %foo_interface = type { i32, i1 }
 
-@prg_instance = common global %prg_interface zeroinitializer
+@prg_instance = global %prg_interface zeroinitializer
 
 define i32 @foo(%foo_interface* %0) {
 entry:
@@ -1452,8 +1452,8 @@ source_filename = "main"
 %foo_interface = type {}
 %prg_interface = type {}
 
-@foo_instance = common global %foo_interface zeroinitializer
-@prg_instance = common global %prg_interface zeroinitializer
+@foo_instance = global %foo_interface zeroinitializer
+@prg_instance = global %prg_interface zeroinitializer
 
 define void @foo(%foo_interface* %0) {
 entry:
@@ -1506,8 +1506,8 @@ source_filename = "main"
 %foo_interface = type { i32, i1 }
 %prg_interface = type {}
 
-@foo_instance = common global %foo_interface zeroinitializer
-@prg_instance = common global %prg_interface zeroinitializer
+@foo_instance = global %foo_interface zeroinitializer
+@prg_instance = global %prg_interface zeroinitializer
 
 define void @foo(%foo_interface* %0) {
 entry:
@@ -1563,8 +1563,8 @@ source_filename = "main"
 %foo_interface = type { i32, i1 }
 %prg_interface = type {}
 
-@foo_instance = common global %foo_interface zeroinitializer
-@prg_instance = common global %prg_interface zeroinitializer
+@foo_instance = global %foo_interface zeroinitializer
+@prg_instance = global %prg_interface zeroinitializer
 
 define void @foo(%foo_interface* %0) {
 entry:
@@ -1625,8 +1625,8 @@ source_filename = "main"
 %foo_interface = type { i32, i1 }
 %prg_interface = type { i1 }
 
-@foo_instance = common global %foo_interface zeroinitializer
-@prg_instance = common global %prg_interface zeroinitializer
+@foo_instance = global %foo_interface zeroinitializer
+@prg_instance = global %prg_interface zeroinitializer
 
 define void @foo(%foo_interface* %0) {
 entry:
@@ -1689,8 +1689,8 @@ source_filename = "main"
 %foo_interface = type { i32, i1 }
 %prg_interface = type { i1 }
 
-@foo_instance = common global %foo_interface zeroinitializer
-@prg_instance = common global %prg_interface zeroinitializer
+@foo_instance = global %foo_interface zeroinitializer
+@prg_instance = global %prg_interface zeroinitializer
 
 define void @foo(%foo_interface* %0) {
 entry:
@@ -1748,7 +1748,7 @@ source_filename = "main"
 %prg_interface = type { i32 }
 %foo_interface = type {}
 
-@prg_instance = common global %prg_interface zeroinitializer
+@prg_instance = global %prg_interface zeroinitializer
 
 define i32 @foo(%foo_interface* %0) {
 entry:
@@ -1805,7 +1805,7 @@ source_filename = "main"
 %prg_interface = type { %foo_interface }
 %foo_interface = type {}
 
-@prg_instance = common global %prg_interface zeroinitializer
+@prg_instance = global %prg_interface zeroinitializer
 
 define void @foo(%foo_interface* %0) {
 entry:
@@ -1869,8 +1869,8 @@ source_filename = "main"
 %fb_interface = type { i32 }
 %prg_interface = type { i32 }
 
-@foo_instance = common global %foo_interface zeroinitializer
-@prg_instance = common global %prg_interface zeroinitializer
+@foo_instance = global %foo_interface zeroinitializer
+@prg_instance = global %prg_interface zeroinitializer
 
 define void @fb(%fb_interface* %0) {
 entry:
@@ -1923,7 +1923,28 @@ source_filename = "main"
 
 %MyStruct = type { i32, i32 }
 
-@x = common global %MyStruct zeroinitializer
+@x = global %MyStruct zeroinitializer
+"#;
+
+  assert_eq!(result, expected);
+}
+
+#[test]
+fn arrays_are_generated() {
+  let result = codegen!(
+        "
+        TYPE MyArray: ARRAY[0..9] OF INT; END_TYPE
+
+        VAR_GLOBAL
+          x : MyArray;
+        END_VAR
+        "
+    );
+
+    let expected = r#"; ModuleID = 'main'
+source_filename = "main"
+
+@x = external global [10 x i16]
 "#;
 
   assert_eq!(result, expected);
@@ -1954,7 +1975,7 @@ source_filename = "main"
 %MainProg_interface = type { %MyStruct }
 %MyStruct = type { i32, i32 }
 
-@MainProg_instance = common global %MainProg_interface zeroinitializer
+@MainProg_instance = global %MainProg_interface zeroinitializer
 
 define void @MainProg(%MainProg_interface* %0) {
 entry:
@@ -1985,10 +2006,55 @@ fn enums_are_generated() {
     let expected = r#"; ModuleID = 'main'
 source_filename = "main"
 
-@red = common global i32 0
-@yellow = common global i32 1
-@green = common global i32 2
-@x = common global i32 0
+@red = global i32 0
+@yellow = global i32 1
+@green = global i32 2
+@x = global i32 0
+"#;
+
+  assert_eq!(result, expected);
+}
+
+
+#[test]
+fn enum_members_can_be_used_in_asignments() {
+  let result = codegen!(
+      "
+      TYPE MyEnum: (red, yellow, green);
+      END_TYPE
+
+      PROGRAM main
+      VAR
+        color : MyEnum;
+      END_VAR
+      color := red;
+      color := yellow;
+      color := green;
+      END_PROGRAM
+      "
+    );
+
+    let expected = r#"; ModuleID = 'main'
+source_filename = "main"
+
+%main_interface = type { i32 }
+
+@red = global i32 0
+@yellow = global i32 1
+@green = global i32 2
+@main_instance = global %main_interface zeroinitializer
+
+define void @main(%main_interface* %0) {
+entry:
+  %color = getelementptr inbounds %main_interface, %main_interface* %0, i32 0, i32 0
+  %load_red = load i32, i32* @red
+  store i32 %load_red, i32* %color
+  %load_yellow = load i32, i32* @yellow
+  store i32 %load_yellow, i32* %color
+  %load_green = load i32, i32* @green
+  store i32 %load_green, i32* %color
+  ret void
+}
 "#;
 
   assert_eq!(result, expected);
@@ -2013,7 +2079,61 @@ source_filename = "main"
 
 %__global_x = type { i32, i32 }
 
-@x = common global %__global_x zeroinitializer
+@x = global %__global_x zeroinitializer
+"#;
+
+  assert_eq!(result, expected);
+}
+
+#[test]
+fn accessing_nested_structs() {
+  let result = codegen!(
+        "
+        TYPE InnerStruct:
+        STRUCT 
+          inner1 : INT;
+          inner2 : INT;
+        END_STRUCT
+        END_TYPE
+        
+        TYPE OuterStruct:
+        STRUCT 
+          out1 : InnerStruct;
+          out2 : InnerStruct;
+        END_STRUCT
+        END_TYPE
+        
+        PROGRAM Main
+        VAR
+          m : OuterStruct;
+        END_VAR
+
+          m.out1.inner1 := 3;
+          m.out2.inner2 := 7;
+        END_PROGRAM
+        "
+    );
+
+    let expected = r#"; ModuleID = 'main'
+source_filename = "main"
+
+%Main_interface = type { %OuterStruct }
+%OuterStruct = type { %InnerStruct, %InnerStruct }
+%InnerStruct = type { i16, i16 }
+
+@Main_instance = global %Main_interface zeroinitializer
+
+define void @Main(%Main_interface* %0) {
+entry:
+  %m = getelementptr inbounds %Main_interface, %Main_interface* %0, i32 0, i32 0
+  %out1 = getelementptr inbounds %OuterStruct, %OuterStruct* %m, i32 0, i32 0
+  %inner1 = getelementptr inbounds %InnerStruct, %InnerStruct* %out1, i32 0, i32 0
+  store i16 3, i16* %inner1
+  %out2 = getelementptr inbounds %OuterStruct, %OuterStruct* %m, i32 0, i32 1
+  %inner2 = getelementptr inbounds %InnerStruct, %InnerStruct* %out2, i32 0, i32 1
+  store i16 7, i16* %inner2
+  ret void
+}
 "#;
 
   assert_eq!(result, expected);
@@ -2032,10 +2152,10 @@ fn inline_enums_are_generated() {
     let expected = r#"; ModuleID = 'main'
 source_filename = "main"
 
-@red = common global i32 0
-@yellow = common global i32 1
-@green = common global i32 2
-@x = common global i32 0
+@red = global i32 0
+@yellow = global i32 1
+@green = global i32 2
+@x = global i32 0
 "#;
 
   assert_eq!(result, expected);
@@ -2065,19 +2185,19 @@ fn basic_datatypes_generated() {
     let expected = r#"; ModuleID = 'main'
 source_filename = "main"
 
-@bool_1 = common global i1 false
-@byte_2 = common global i8 0
-@sint_3 = common global i8 0
-@usint_4 = common global i8 0
-@word_5 = common global i16 0
-@int_6 = common global i16 0
-@uint_7 = common global i16 0
-@dword_8 = common global i32 0
-@dint_9 = common global i32 0
-@udint_10 = common global i32 0
-@lword_11 = common global i64 0
-@lint_12 = common global i64 0
-@ulint_13 = common global i64 0
+@bool_1 = global i1 false
+@byte_2 = global i8 0
+@sint_3 = global i8 0
+@usint_4 = global i8 0
+@word_5 = global i16 0
+@int_6 = global i16 0
+@uint_7 = global i16 0
+@dword_8 = global i32 0
+@dint_9 = global i32 0
+@udint_10 = global i32 0
+@lword_11 = global i64 0
+@lint_12 = global i64 0
+@ulint_13 = global i64 0
 "#;
 
     assert_eq!(result, expected);
@@ -2350,3 +2470,46 @@ r#"%tmpVar = getelementptr inbounds [4 x [2 x i32]], [4 x [2 x i32]]* %x, i32 0,
 "#);
     assert_eq!(result, expected);
 }
+
+#[test]
+fn accessing_nested_array_in_struct() {
+  let result = codegen!(
+        "
+        TYPE MyStruct:
+        STRUCT 
+          field1 : ARRAY[0..4] OF INT;
+        END_STRUCT
+        END_TYPE
+        
+        PROGRAM Main
+        VAR
+          m : MyStruct;
+        END_VAR
+
+          m.field1[3] := 7;
+        END_PROGRAM
+        "
+    );
+
+    let expected = r#"; ModuleID = 'main'
+source_filename = "main"
+
+%Main_interface = type { %MyStruct }
+%MyStruct = type { [5 x i16] }
+
+@Main_instance = global %Main_interface zeroinitializer
+
+define void @Main(%Main_interface* %0) {
+entry:
+  %m = getelementptr inbounds %Main_interface, %Main_interface* %0, i32 0, i32 0
+  %field1 = getelementptr inbounds %MyStruct, %MyStruct* %m, i32 0, i32 0
+  %tmpVar = getelementptr inbounds [5 x i16], [5 x i16]* %field1, i32 0, i32 3
+  store i16 7, i16* %tmpVar
+  ret void
+}
+"#;
+
+  assert_eq!(result, expected);
+}
+
+
