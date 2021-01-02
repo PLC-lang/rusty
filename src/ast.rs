@@ -8,6 +8,7 @@ pub struct POU {
     pub statements: Vec<Statement>,
     pub pou_type: PouType,
     pub return_type: Option<DataTypeDeclaration>,
+    pub linkage : LinkageType,
 
     pub location: SourceRange,
 }
@@ -23,6 +24,13 @@ impl Debug for POU {
             .finish()
     }
 }
+
+#[derive(Debug, Copy, PartialEq, Clone)]
+pub enum LinkageType {
+    Internal,
+    External,
+}
+
 
 #[derive(Debug, Copy, PartialEq, Clone)]
 pub enum PouType {

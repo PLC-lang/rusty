@@ -668,6 +668,17 @@ fn test_unexpected_token_error_message() {
         panic!("Expected parse error but didn't get one.");
     }
 }
+
+#[test]
+fn programs_can_be_external() {
+    let lexer = lexer::lex(
+            "@EXTERNAL PROGRAM foo END_PROGRAM"
+    );
+    let parse_result = super::parse(lexer).unwrap();
+    let pou = &parse_result.units[0];
+    assert_eq!(LinkageType::External, pou.linkage);
+}
+
 #[test]
 fn test_unexpected_token_error_message2() {
     let lexer = lexer::lex(

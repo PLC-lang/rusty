@@ -272,10 +272,7 @@ impl<'ctx> CodeGen<'ctx> {
         ));
         self.index
             .associate_callable_implementation(p.name.as_str(), self.current_function.unwrap());
-        let block = self
-            .context
-            .append_basic_block(self.current_function.unwrap(), "entry");
-
+        
         //Create An instance variable for that struct
         //Place in global data
         if p.pou_type == PouType::Program {
@@ -285,6 +282,16 @@ impl<'ctx> CodeGen<'ctx> {
             self.index
                 .associate_global_variable(p.name.as_str(), global_value.as_pointer_value());
         }
+
+        //Don't generate external functions
+        if p.linkage == LinkageType::External {
+            return; 
+        }
+
+        let block = self
+            .context
+            .append_basic_block(self.current_function.unwrap(), "entry");
+
 
         //let mut result = None;
         //Generate reference to parameter
