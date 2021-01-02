@@ -534,6 +534,72 @@ fn pre_processing_generates_inline_array_of_array() {
 }
 
 #[test]
+fn pre_processing_nested_array_in_struct() {
+    let lexer = lexer::lex(
+        r#"
+        TYPE MyStruct:
+        STRUCT 
+          field1 : ARRAY[0..4] OF INT;
+        END_STRUCT
+        END_TYPE
+        
+        PROGRAM Main
+        VAR
+          m : MyStruct;
+        END_VAR
+          m.field1[3] := 7;
+        END_PROGRAM
+        "#
+    );
+
+    let mut ast = parser::parse(lexer).unwrap();
+
+     // WHEN the AST ist pre-processed
+    let mut index = Index::new();
+    index.pre_process(&mut ast);
+
+    //THEN an implicit datatype should have been generated for the array
+
+    // Struct Type 
+    let new_array_type = &ast.types[0];
+    let expected = 
+        &DataType::StructType {
+            name: Some("MyStruct".to_string()),
+            variables: vec![
+                Variable {
+                    name: "field1".to_string(),
+                    data_type: DataTypeDeclaration::DataTypeReference { referenced_type: "__MyStruct_field1".to_string() },
+                    location : 0..0,
+                }
+            ],
+        };
+    assert_eq!(
+        format!("{:?}", expected),
+        format!("{:?}", new_array_type)
+    );
+
+// ARRAY OF INT
+    let new_array_type = &ast.types[1];
+    let expected = 
+        &DataType::ArrayType {
+            name: Some("__MyStruct_field1".to_string()),
+            bounds: Statement::RangeStatement{
+                start: Box::new(Statement::LiteralInteger { value: "0".to_string(), location:0..0}),
+                end: Box::new(Statement::LiteralInteger {value: "4".to_string(), location: 0..0}),
+            },
+            referenced_type: Box::new(DataTypeDeclaration::DataTypeReference{
+                referenced_type: "INT".to_string(),
+            }),
+        };
+    assert_eq!(
+        format!("{:?}", expected),
+        format!("{:?}", new_array_type)
+    );
+
+
+}
+
+#[test]
 fn pre_processing_generates_inline_array_of_array_of_array() {
     // GIVEN an inline array is declared
     let lexer = lexer::lex(
