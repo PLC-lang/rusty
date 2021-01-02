@@ -168,7 +168,7 @@ fn simple_program_with_two_varblocks_can_be_parsed() {
 fn a_program_needs_to_end_with_end_program() {
     let lexer = lexer::lex("PROGRAM buz ");
     let result = super::parse(lexer);
-    assert_eq!(result, Err("unexpected end of body End, statements : []".to_string()));
+    assert_eq!(result, Err("unexpected termination of body by '' [End], a block at line 1 was not closed".to_string()));
 }
 
 #[test]
@@ -177,7 +177,7 @@ fn a_variable_declaration_block_needs_to_end_with_endvar() {
     let result = super::parse(lexer);
     assert_eq!(
         result,
-        Err("expected KeywordEndVar, but found KeywordEndProgram".to_string())
+        Err("expected KeywordEndVar, but found 'END_PROGRAM' [KeywordEndProgram] at line: 1 offset: 16..27".to_string())
     );
 }
 
@@ -188,7 +188,7 @@ fn a_statement_without_a_semicolon_fails() {
     let result = super::parse(lexer);
     assert_eq!(
         result,
-        Err("expected End Statement, but found KeywordEndProgram".to_string())
+        Err("expected end of statement (e.g. ;), but found KeywordEndProgram at line: 1 offset: 14..25".to_string())
     );
 }
 
@@ -605,6 +605,90 @@ fn test_ast_line_locations() {
         let line = parse_result.get_line_of(&statement_offset);
         assert_eq!(8, line);
     }
-    
+}
 
+#[test]
+fn test_unexpected_token_error_message() {
+    let lexer = lexer::lex(
+            "PROGRAM prg
+                VAR ;
+                END_VAR
+            END_PROGRAM
+    ");
+    let parse_result = super::parse(lexer);
+
+    if let Err{ 0: msg } = parse_result {
+        assert_eq!("expected KeywordEndVar, but found ';' [KeywordSemicolon] at line: 2 offset: 21..22", msg);
+    }else{
+        panic!("Expected parse error but didn't get one.");
+    }
+}
+#[test]
+fn test_unexpected_token_error_message2() {
+    let lexer = lexer::lex(
+            "SOME PROGRAM prg
+                VAR ;
+                END_VAR
+            END_PROGRAM
+    ");
+    let parse_result = super::parse(lexer);
+
+    if let Err{ 0: msg } = parse_result {
+        assert_eq!("unexpected token: 'SOME' [Identifier] at line: 1 offset: 0..4", msg);
+    }else{
+        panic!("Expected parse error but didn't get one.");
+    }
+}
+#[test]
+fn test_unexpected_type_declaration_error_message() {
+    let lexer = lexer::lex(
+            "TYPE MyType:
+                PROGRAM
+                END_PROGRAM
+            END_TYPE
+    ");
+    let parse_result = super::parse(lexer);
+
+    if let Err{ 0: msg } = parse_result {
+        assert_eq!("expected struct, enum, or subrange found 'PROGRAM' [KeywordProgram] at line: 2 offset: 17..24", msg);
+    }else{
+        panic!("Expected parse error but didn't get one.");
+    }
+}
+
+#[test]
+fn test_unclosed_body_error_message() {
+    let lexer = lexer::lex(
+            "
+            
+            PROGRAM My_PRG
+
+    ");
+    let parse_result = super::parse(lexer);
+
+    if let Err{ 0: msg } = parse_result {
+        assert_eq!("unexpected termination of body by '' [End], a block at line 3 was not closed", msg);
+    }else{
+        panic!("Expected parse error but didn't get one.");
+    }
+}
+
+#[test]
+fn test_case_without_condition() {
+    let lexer = lexer::lex(
+            "PROGRAM My_PRG
+                CASE x OF
+                    1: 
+                    : x := 3;
+                END_CASE
+            END_PROGRAM
+
+    ");
+    let parse_result = super::parse(lexer);
+
+    if let Err{ 0: msg } = parse_result {
+        assert_eq!("unexpected ':' at line 4 - no case-condition could be found", msg);
+    }else{
+        panic!("Expected parse error but didn't get one.");
+    }
 }
