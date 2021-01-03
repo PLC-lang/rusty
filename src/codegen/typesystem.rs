@@ -236,7 +236,7 @@ impl<'ctx> CodeGen<'ctx> {
                     _ => None,
                 }
             }
-            DataTypeInformation::Float { generated_type, .. } => match value_type {
+            DataTypeInformation::Float { generated_type, size : lsize, .. } => match value_type {
                 DataTypeInformation::Integer { signed, .. } => {
                     if *signed {
                         Some(
@@ -260,7 +260,17 @@ impl<'ctx> CodeGen<'ctx> {
                         )
                     }
                 }
-                DataTypeInformation::Float { .. } => Some(value),
+                DataTypeInformation::Float {size : rsize, ..} => {
+                    if lsize < rsize {
+                        Some(self.builder.build_float_trunc(
+                            value.into_float_value(),
+                            generated_type.into_float_type(),
+                            ""
+                        ).into())
+                    } else {
+                        Some(self.promote_value_if_needed(value, value_type, &target_type))
+                    }
+                }
                 _ => None,
             },
             DataTypeInformation::String {size, ..} => match value_type {

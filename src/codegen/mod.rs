@@ -224,15 +224,13 @@ impl<'ctx> CodeGen<'ctx> {
         parameters: &[BasicTypeEnum<'ctx>],
         enum_type: Option<BasicTypeEnum<'ctx>>,
     ) -> FunctionType<'ctx> {
-        if let Some(enum_type) = enum_type {
-            if enum_type.is_int_type() {
-                return enum_type.into_int_type().fn_type(parameters, false);
+            match enum_type {
+                Some(enum_type) if enum_type.is_int_type() =>  enum_type.into_int_type().fn_type(parameters, false),
+                Some(enum_type) if enum_type.is_float_type() =>  enum_type.into_float_type().fn_type(parameters, false),
+                Some(enum_type) if enum_type.is_array_type() => enum_type.into_array_type().fn_type(parameters,false),
+                None => self.context.void_type().fn_type(parameters, false), 
+                _ => panic!(format!("Unsupported return type {:?}", enum_type))
             }
-            if enum_type.is_array_type() {
-                return enum_type.into_array_type().fn_type(parameters,false);
-            }
-        }
-        self.context.void_type().fn_type(parameters, false)
     }
 
     fn generate_global_vars(&mut self, global_vars: &VariableBlock) {
