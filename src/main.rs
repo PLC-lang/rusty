@@ -11,17 +11,18 @@ fn main() {
     let parameters = read_params(args.as_slice());
     let contents = fs::read_to_string(parameters.input).expect("Cannot read file");
     match parameters.output_type {
-        OutputType::IR => generate_ir(contents.to_string(), parameters.output.as_str()),
-        OutputType::ObjectCode => compile(contents.to_string(), parameters.output.as_str(), parameters.target),
-        OutputType::PicObject => compile_to_shared_object(contents.to_string(), parameters.output.as_str(), parameters.target),
-        OutputType::SharedObject => compile_to_shared_object(contents.to_string(), parameters.output.as_str(), parameters.target),
-        OutputType::Bitcode => compile_to_bitcode(contents.to_string(),parameters.output.as_str()),
+        OutputType::IR => generate_ir(contents.to_string(), parameters.output.as_str()).unwrap(),
+        OutputType::ObjectCode => compile(contents.to_string(), parameters.output.as_str(), parameters.target).unwrap(),
+        OutputType::PicObject => compile_to_shared_object(contents.to_string(), parameters.output.as_str(), parameters.target).unwrap(),
+        OutputType::SharedObject => compile_to_shared_object(contents.to_string(), parameters.output.as_str(), parameters.target).unwrap(),
+        OutputType::Bitcode => compile_to_bitcode(contents.to_string(),parameters.output.as_str()).unwrap(),
     }
 }
 
-fn generate_ir(content : String, output: &str) {
-    let ir = compile_to_ir(content);
+fn generate_ir(content : String, output: &str) -> Result<(), String> {
+    let ir = compile_to_ir(content)?;
     fs::write(output, ir).unwrap(); 
+    Ok(())
 }
 
 struct CompileParameters {

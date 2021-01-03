@@ -21,12 +21,12 @@ extern crate pretty_assertions;
 ///
 /// Compiles the given source into an object file and saves it in output
 ///
-fn compile_to_obj(source: String, output: &str, reloc: RelocMode,  triple: Option<String>) {
+fn compile_to_obj(source: String, output: &str, reloc: RelocMode,  triple: Option<String>) -> Result<(), String> {
     let context = Context::create();
     let mut index = Index::new();
     let path = Path::new(output);
 
-    let code_generator = compile_module(&context, &mut index, source);
+    let code_generator = compile_module(&context, &mut index, source)?;
     let initialization_config = &InitializationConfig::default();
     Target::initialize_all(initialization_config);
 
@@ -50,30 +50,33 @@ fn compile_to_obj(source: String, output: &str, reloc: RelocMode,  triple: Optio
     machine
         .write_to_file(&code_generator.module, FileType::Object, path)
         .unwrap();
+
+    Ok(())
 }
 
-pub fn compile(source : String, output: &str,  target: Option<String>) {
-    compile_to_obj(source,output, RelocMode::Default, target);
+pub fn compile(source : String, output: &str,  target: Option<String>) -> Result<(), String> {
+    compile_to_obj(source,output, RelocMode::Default, target)
 }
 
-pub fn compile_to_shared_pic_object(source : String, output: &str,  target: Option<String>) {
-    compile_to_obj(source,output, RelocMode::PIC, target);
+pub fn compile_to_shared_pic_object(source : String, output: &str,  target: Option<String>) -> Result<(), String> {
+    compile_to_obj(source,output, RelocMode::PIC, target)
 }
 
-pub fn compile_to_shared_object(source : String, output: &str,  target: Option<String>) {
-    compile_to_obj(source,output, RelocMode::DynamicNoPic, target);
+pub fn compile_to_shared_object(source : String, output: &str,  target: Option<String>) -> Result<(), String> {
+    compile_to_obj(source,output, RelocMode::DynamicNoPic, target)
 }
 
 ///
 /// Compiles the given source into a bitcode file
 ///
-pub fn compile_to_bitcode(source : String, output: &str) {
+pub fn compile_to_bitcode(source : String, output: &str) -> Result<(), String> {
     let context = Context::create();
     let mut index = Index::new();
     let path = Path::new(output);
 
-    let code_generator = compile_module(&context, &mut index, source);
+    let code_generator = compile_module(&context, &mut index, source)?;
     code_generator.module.write_bitcode_to_path(path);
+    Ok(())
 }
 
 pub fn create_index<'ctx>() -> Index<'ctx> {
@@ -83,18 +86,18 @@ pub fn create_index<'ctx>() -> Index<'ctx> {
 ///
 /// Compiles the given source into LLVM IR and returns it
 ///
-pub fn compile_to_ir(source: String) -> String {
+pub fn compile_to_ir(source: String) -> Result<String, String> {
     let context = Context::create();
     let mut index = Index::new();
-    let code_gen = compile_module(&context, &mut index, source);
-    get_ir(&code_gen)
+    let code_gen = compile_module(&context, &mut index, source)?;
+    Ok(get_ir(&code_gen))
 }
 
 pub fn get_ir(codegen: &codegen::CodeGen) -> String {
     codegen.module.print_to_string().to_string()
 }
 
-pub fn compile_module<'ctx>(context : &'ctx Context, index: &'ctx mut Index<'ctx>, source : String) -> codegen::CodeGen<'ctx> {
+pub fn compile_module<'ctx>(context : &'ctx Context, index: &'ctx mut Index<'ctx>, source : String) -> Result<codegen::CodeGen<'ctx>, String> {
 
     let (mut parse_result, new_lines) = parse(source);
     //first pre-process the AST
@@ -103,8 +106,8 @@ pub fn compile_module<'ctx>(context : &'ctx Context, index: &'ctx mut Index<'ctx
     index.visit(&mut parse_result);
     //and finally codegen
     let mut code_generator = codegen::CodeGen::new(context, index, new_lines);
-    code_generator.generate_compilation_unit(parse_result);
-    code_generator
+    code_generator.generate_compilation_unit(parse_result)?;
+    Ok(code_generator)
 }
 
 fn parse(source: String) -> (ast::CompilationUnit, NewLines) {

@@ -7,18 +7,34 @@ use inkwell::context::Context;
 use pretty_assertions::assert_eq;
 
 #[macro_export]
-macro_rules! codegen {
-    ($code:tt) => {{
-        let lexer = lexer::lex($code);
-        let (mut ast, new_lines) = parser::parse(lexer).unwrap();
+macro_rules! codegen_wihout_unwrap {
+  ($code:tt) => {{
+    let lexer = lexer::lex($code);
+    let (mut ast, new_lines) = parser::parse(lexer).unwrap();
+    
+    let context = Context::create();
+    let mut index = Index::new();
+    index.pre_process(&mut ast);
+    index.visit(&mut ast);
+    let mut code_generator = crate::codegen::CodeGen::new(&context, &mut index, new_lines);
+    code_generator.generate(ast)
+  }};
+}
 
-        let context = Context::create();
-        let mut index = Index::new();
-        index.pre_process(&mut ast);
-        index.visit(&mut ast);
-        let mut code_generator = crate::codegen::CodeGen::new(&context, &mut index, new_lines);
-        code_generator.generate(ast)
-    }};
+
+#[macro_export]
+macro_rules! codegen {
+  ($code:tt) => {{
+    let lexer = lexer::lex($code);
+    let (mut ast, new_lines) = parser::parse(lexer).unwrap();
+    
+    let context = Context::create();
+    let mut index = Index::new();
+    index.pre_process(&mut ast);
+    index.visit(&mut ast);
+    let mut code_generator = crate::codegen::CodeGen::new(&context, &mut index, new_lines);
+    code_generator.generate(ast).unwrap()
+  }};
 }
 
 #[macro_export]
@@ -32,6 +48,7 @@ macro_rules! generate_with_empty_program {
   )
 }
 
+mod codegen_error_messages;
 mod typesystem;
 
 fn generate_program_boiler_plate(pou_name : &str, type_list : &[(&str,&str)], return_type : &str, thread_mode : &str, global_variables : &str, body : &str) -> String{
