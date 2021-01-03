@@ -74,8 +74,8 @@ fn slice_and_advance(lexer: &mut RustyLexer) -> String {
     slice
 }
 
-pub fn parse(mut lexer: RustyLexer ) -> Result<CompilationUnit, String> {
-    let mut unit = CompilationUnit { global_vars : Vec::new(), units: Vec::new(), types: Vec::new(), new_lines: lexer.get_new_lines().clone()};
+pub fn parse(mut lexer: RustyLexer ) -> Result<(CompilationUnit, NewLines), String> {
+    let mut unit = CompilationUnit { global_vars : Vec::new(), units: Vec::new(), types: Vec::new()};
 
     let mut linkage = LinkageType::Internal;
     loop {
@@ -96,7 +96,7 @@ pub fn parse(mut lexer: RustyLexer ) -> Result<CompilationUnit, String> {
                 unit.units.push(parse_pou(&mut lexer, PouType::FunctionBlock, linkage, KeywordEndFunctionBlock)?),
             KeywordType =>
                 unit.types.push(parse_type(&mut lexer)?),
-            End => return Ok(unit),
+            End => return Ok((unit, lexer.get_new_lines().clone())),
             Error => return Err(unidentified_token(&lexer)),
             _ => return Err(unexpected_token(&lexer)),
         };

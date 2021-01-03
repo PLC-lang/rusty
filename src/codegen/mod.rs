@@ -29,13 +29,14 @@ pub struct CodeGen<'ctx> {
     pub module: Module<'ctx>,
     pub builder: Builder<'ctx>,
     pub index: &'ctx mut Index<'ctx>,
+    pub new_lines: NewLines,
 
     scope: Option<String>,
     current_function: Option<FunctionValue<'ctx>>,
 }
 
 impl<'ctx> CodeGen<'ctx> {
-    pub fn new(context: &'ctx Context, index: &'ctx mut Index<'ctx>) -> CodeGen<'ctx> {
+    pub fn new(context: &'ctx Context, index: &'ctx mut Index<'ctx>, new_lines: NewLines) -> CodeGen<'ctx> {
         let module = context.create_module("main");
         let builder = context.create_builder();
         let mut codegen = CodeGen {
@@ -43,6 +44,7 @@ impl<'ctx> CodeGen<'ctx> {
             module,
             builder,
             index,
+            new_lines,
             scope: None,
             current_function: None,
         };

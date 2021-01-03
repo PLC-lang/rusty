@@ -8,7 +8,7 @@ use pretty_assertions::*;
 #[test]
 fn single_statement_parsed() {
     let lexer = lexer::lex("PROGRAM exp x; END_PROGRAM");
-    let result = parse(lexer).unwrap();
+    let result = parse(lexer).unwrap().0;
 
     let prg = &result.units[0];
     let statement = &prg.statements[0];
@@ -23,7 +23,7 @@ fn single_statement_parsed() {
 #[test]
 fn qualified_reference_statement_parsed() {
     let lexer = lexer::lex("PROGRAM exp a.x; END_PROGRAM");
-    let result = parse(lexer).unwrap();
+    let result = parse(lexer).unwrap().0;
 
     let prg = &result.units[0];
     let statement = &prg.statements[0];
@@ -39,7 +39,7 @@ fn qualified_reference_statement_parsed() {
 #[test]
 fn literal_can_be_parsed() {
     let lexer = lexer::lex("PROGRAM exp 7; END_PROGRAM");
-    let result = parse(lexer).unwrap();
+    let result = parse(lexer).unwrap().0;
 
     let prg = &result.units[0];
     let statement = &prg.statements[0];
@@ -54,7 +54,7 @@ fn literal_can_be_parsed() {
 #[test]
 fn additon_of_two_variables_parsed() {
     let lexer = lexer::lex("PROGRAM exp x+y; END_PROGRAM");
-    let result = parse(lexer).unwrap();
+    let result = parse(lexer).unwrap().0;
 
     let prg = &result.units[0];
     let statement = &prg.statements[0];
@@ -80,7 +80,7 @@ fn additon_of_two_variables_parsed() {
 #[test]
 fn additon_of_three_variables_parsed() {
     let lexer = lexer::lex("PROGRAM exp x+y-z; END_PROGRAM");
-    let result = parse(lexer).unwrap();
+    let result = parse(lexer).unwrap().0;
 
     let prg = &result.units[0];
     let statement = &prg.statements[0];
@@ -119,7 +119,7 @@ fn additon_of_three_variables_parsed() {
 #[test]
 fn parenthesis_expressions_should_not_change_the_ast() {
     let lexer = lexer::lex("PROGRAM exp (x+y); END_PROGRAM");
-    let result = parse(lexer).unwrap();
+    let result = parse(lexer).unwrap().0;
 
     let prg = &result.units[0];
     let statement = &prg.statements[0];
@@ -145,7 +145,7 @@ fn parenthesis_expressions_should_not_change_the_ast() {
 #[test]
 fn multiplication_expressions_parse() {
     let lexer = lexer::lex("PROGRAM exp 1*2/7; END_PROGRAM");
-    let result = parse(lexer).unwrap();
+    let result = parse(lexer).unwrap().0;
 
     let prg = &result.units[0];
     let statement = &prg.statements[0];
@@ -172,7 +172,7 @@ fn multiplication_expressions_parse() {
 #[test]
 fn addition_ast_test() {
     let lexer = lexer::lex("PROGRAM exp 1+2; END_PROGRAM");
-    let result = parse(lexer).unwrap();
+    let result = parse(lexer).unwrap().0;
 
     let prg = &result.units[0];
     let statement = &prg.statements[0];
@@ -193,7 +193,7 @@ fn addition_ast_test() {
 #[test]
 fn multiplication_ast_test() {
     let lexer = lexer::lex("PROGRAM exp 1+2*3; END_PROGRAM");
-    let result = parse(lexer).unwrap();
+    let result = parse(lexer).unwrap().0;
 
     let prg = &result.units[0];
     let statement = &prg.statements[0];
@@ -220,7 +220,7 @@ fn multiplication_ast_test() {
 #[test]
 fn term_ast_test() {
     let lexer = lexer::lex("PROGRAM exp 1+2*3+4; END_PROGRAM");
-    let result = parse(lexer).unwrap();
+    let result = parse(lexer).unwrap().0;
 
     let prg = &result.units[0];
     let statement = &prg.statements[0];
@@ -254,7 +254,7 @@ fn term_ast_test() {
 fn module_expression_test() {
     let lexer = lexer::lex("PROGRAM exp 5 MOD 2; END_PROGRAM");
 
-    let result = parse(lexer).unwrap();
+    let result = parse(lexer).unwrap().0;
 
     let prg = &result.units[0];
     let statement = &prg.statements[0];
@@ -276,7 +276,7 @@ fn module_expression_test() {
 #[test]
 fn parenthesized_term_ast_test() {
     let lexer = lexer::lex("PROGRAM exp (1+2)*(3+4); END_PROGRAM");
-    let result = parse(lexer).unwrap();
+    let result = parse(lexer).unwrap().0;
 
     let prg = &result.units[0];
     let statement = &prg.statements[0];
@@ -309,7 +309,7 @@ fn parenthesized_term_ast_test() {
 #[test]
 fn boolean_literals_can_be_parsed() {
     let lexer = lexer::lex("PROGRAM exp TRUE OR FALSE; END_PROGRAM");
-    let result = parse(lexer).unwrap();
+    let result = parse(lexer).unwrap().0;
 
     let prg = &result.units[0];
     let statement = &prg.statements[0];
@@ -330,7 +330,7 @@ fn boolean_literals_can_be_parsed() {
 #[test]
 fn assignment_test() {
     let lexer = lexer::lex("PROGRAM exp x := 3; x := 1 + 2; END_PROGRAM");
-    let result = parse(lexer).unwrap();
+    let result = parse(lexer).unwrap().0;
 
     let prg = &result.units[0];
     {
@@ -375,7 +375,7 @@ fn assignment_test() {
 #[test]
 fn equality_expression_test() {
     let lexer = lexer::lex("PROGRAM exp x = 3; x - 0 <> 1 + 2; END_PROGRAM");
-    let result = parse(lexer).unwrap();
+    let result = parse(lexer).unwrap().0;
 
     let prg = &result.units[0];
     {
@@ -435,7 +435,7 @@ fn comparison_expression_test() {
                                     e := 2 + 1 > 3 + 1;
                                     END_PROGRAM",
     );
-    let result = parse(lexer).unwrap();
+    let result = parse(lexer).unwrap().0;
 
     let prg = &result.units[0];
     {
@@ -536,7 +536,7 @@ fn comparison_expression_test() {
 #[test]
 fn boolean_expression_ast_test() {
     let lexer = lexer::lex("PROGRAM exp a AND NOT b OR c XOR d; END_PROGRAM");
-    let result = parse(lexer).unwrap();
+    let result = parse(lexer).unwrap().0;
 
     let prg = &result.units[0];
     let statement = &prg.statements[0];
@@ -580,7 +580,7 @@ fn boolean_expression_ast_test() {
 #[test]
 fn boolean_expression_paran_ast_test() {
     let lexer = lexer::lex("PROGRAM exp a AND (NOT (b OR c) XOR d); END_PROGRAM");
-    let result = parse(lexer).unwrap();
+    let result = parse(lexer).unwrap().0;
 
     let prg = &result.units[0];
     let statement = &prg.statements[0];
@@ -630,7 +630,7 @@ fn signed_literal_minus_test() {
         END_PROGRAM
         ",
     );
-    let result = parse(lexer).unwrap();
+    let result = parse(lexer).unwrap().0;
 
     let prg = &result.units[0];
     let statement = &prg.statements[0];
@@ -657,7 +657,7 @@ fn literal_real_test() {
         END_PROGRAM
         ",
     );
-    let result = parse(lexer).unwrap();
+    let result = parse(lexer).unwrap().0;
 
     let prg = &result.units[0];
     let statement = &prg.statements;
@@ -692,7 +692,7 @@ fn signed_literal_expression_test() {
         END_PROGRAM
         ",
     );
-    let result = parse(lexer).unwrap();
+    let result = parse(lexer).unwrap().0;
 
     let prg = &result.units[0];
     let statement = &prg.statements[0];
@@ -724,7 +724,7 @@ fn signed_literal_expression_reversed_test() {
         END_PROGRAM
         ",
     );
-    let result = parse(lexer).unwrap();
+    let result = parse(lexer).unwrap().0;
 
     let prg = &result.units[0];
     let statement = &prg.statements[0];
@@ -754,7 +754,7 @@ fn or_compare_expressions_priority_test() {
         END_PROGRAM
         ",
     );
-    let result = parse(lexer).unwrap();
+    let result = parse(lexer).unwrap().0;
 
     let prg = &result.units[0];
     let statement = &prg.statements[0];
@@ -791,7 +791,7 @@ fn addition_compare_or_priority_test() {
         END_PROGRAM
         ",
     );
-    let result = parse(lexer).unwrap();
+    let result = parse(lexer).unwrap().0;
 
     let prg = &result.units[0];
     let statement = &prg.statements[0];
@@ -834,7 +834,7 @@ fn boolean_priority_test() {
         END_PROGRAM
         ",
     );
-    let result = parse(lexer).unwrap();
+    let result = parse(lexer).unwrap().0;
 
     let prg = &result.units[0];
     let statement = &prg.statements[0];
@@ -881,7 +881,7 @@ fn comparison_priority_test() {
         END_PROGRAM
         ",
     );
-    let result = parse(lexer).unwrap();
+    let result = parse(lexer).unwrap().0;
 
     let prg = &result.units[0];
     let statement = &prg.statements[0];
@@ -925,7 +925,7 @@ fn expression_list() {
         END_PROGRAM
         ",
     );
-    let result = parse(lexer).unwrap();
+    let result = parse(lexer).unwrap().0;
 
     let prg = &result.units[0];
     let statement = &prg.statements[0];
@@ -957,7 +957,7 @@ fn expression_list_assignments() {
         END_PROGRAM
         ",
     );
-    let result = parse(lexer).unwrap();
+    let result = parse(lexer).unwrap().0;
 
     let prg = &result.units[0];
     let statement = &prg.statements[0];
@@ -1013,7 +1013,7 @@ fn range_expression() {
         END_PROGRAM
         ",
     );
-    let result = parse(lexer).unwrap();
+    let result = parse(lexer).unwrap().0;
 
     let prg = &result.units[0];
     let statement = &prg.statements[0];
@@ -1086,7 +1086,7 @@ fn negative_range_expression() {
         END_PROGRAM
         ",
     );
-    let result = parse(lexer).unwrap();
+    let result = parse(lexer).unwrap().0;
 
     let prg = &result.units[0];
     let statement = &prg.statements[0];
@@ -1119,7 +1119,7 @@ fn negative_range_expression_space() {
         END_PROGRAM
         ",
     );
-    let result = parse(lexer).unwrap();
+    let result = parse(lexer).unwrap().0;
 
     let prg = &result.units[0];
     let statement = &prg.statements[0];
@@ -1152,7 +1152,7 @@ fn range_expression2() {
         END_PROGRAM
         ",
     );
-    let result = parse(lexer).unwrap();
+    let result = parse(lexer).unwrap().0;
 
     let prg = &result.units[0];
     let statement = &prg.statements[0];
@@ -1178,7 +1178,7 @@ fn function_call_no_params() {
     END_PROGRAM
     ",
     );
-    let parse_result = parse(lexer).unwrap();
+    let parse_result = parse(lexer).unwrap().0;
 
     let statement = &parse_result.units[0].statements[0];
 
@@ -1205,7 +1205,7 @@ fn function_call_params() {
     END_PROGRAM
     ",
     );
-    let parse_result = parse(lexer).unwrap();
+    let parse_result = parse(lexer).unwrap().0;
 
     let statement = &parse_result.units[0].statements[0];
 
@@ -1242,7 +1242,7 @@ fn string_can_be_parsed() {
     let lexer = lexer::lex(
         "PROGRAM buz VAR x : STRING; END_VAR x := 'Hello, World!'; x := ''; END_PROGRAM",
     );
-    let result = parse(lexer).unwrap();
+    let result = parse(lexer).unwrap().0;
 
     let prg = &result.units[0];
     let variable_block = &prg.variable_blocks[0];
@@ -1293,7 +1293,7 @@ fn arrays_can_be_parsed() {
     let lexer = lexer::lex(
         "PROGRAM buz VAR x : ARRAY[0..9] OF STRING; END_VAR x[0] := 'Hello, World!'; x[y] := ''; END_PROGRAM",
     );
-    let result = parse(lexer).unwrap();
+    let result = parse(lexer).unwrap().0;
 
     let prg = &result.units[0];
     let variable_block = &prg.variable_blocks[0];
@@ -1369,7 +1369,7 @@ fn nested_arrays_can_be_parsed() {
     let lexer = lexer::lex(
         "PROGRAM buz VAR x : ARRAY[0..9] OF ARRAY[0..9] OF STRING; END_VAR x[0][1] := 'Hello, World!'; x[y][1] := ''; END_PROGRAM",
     );
-    let result = parse(lexer).unwrap();
+    let result = parse(lexer).unwrap().0;
 
     let prg = &result.units[0];
     let variable_block = &prg.variable_blocks[0];
@@ -1468,7 +1468,7 @@ fn multidim_arrays_can_be_parsed() {
     let lexer = lexer::lex(
         "PROGRAM buz VAR x : ARRAY[0..9,1..2] OF STRING; END_VAR x[0,1] := 'Hello, World!'; x[y,1] := ''; END_PROGRAM",
     );
-    let result = parse(lexer).unwrap();
+    let result = parse(lexer).unwrap().0;
 
     let prg = &result.units[0];
     let variable_block = &prg.variable_blocks[0];
@@ -1574,7 +1574,7 @@ fn function_call_formal_params() {
     END_PROGRAM
     ",
     );
-    let parse_result = parse(lexer).unwrap();
+    let parse_result = parse(lexer).unwrap().0;
 
     let statement = &parse_result.units[0].statements[0];
 
@@ -1638,7 +1638,7 @@ fn function_call_return_params() {
     END_PROGRAM
     ",
     );
-    let parse_result = parse(lexer).unwrap();
+    let parse_result = parse(lexer).unwrap().0;
 
     let statement = &parse_result.units[0].statements[0];
 
@@ -1681,7 +1681,7 @@ fn function_call_return_params() {
 fn literals_location_test() {
     let source = "PROGRAM prg 7; 'hello'; TRUE; 3.1415; END_PROGRAM";
     let lexer = lexer::lex(source);
-    let parse_result = parse(lexer).unwrap();
+    let parse_result = parse(lexer).unwrap().0;
 
     let unit = &parse_result.units[0];
     
@@ -1710,7 +1710,7 @@ fn literals_location_test() {
 fn reference_location_test() {
     let source = "PROGRAM prg a;bb;ccc; END_PROGRAM";
     let lexer = lexer::lex(source);
-    let parse_result = parse(lexer).unwrap();
+    let parse_result = parse(lexer).unwrap().0;
 
     let unit = &parse_result.units[0];
     
@@ -1735,7 +1735,7 @@ fn expressions_location_test() {
         a := a + 4;
     END_PROGRAM";
     let lexer = lexer::lex(source);
-    let parse_result = parse(lexer).unwrap();
+    let parse_result = parse(lexer).unwrap().0;
 
     let unit = &parse_result.units[0];
     

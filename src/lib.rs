@@ -2,6 +2,7 @@
 
 use std::path::Path;
 
+use ast::NewLines;
 use inkwell::context::Context;
 use inkwell::targets::{
     CodeModel, FileType, InitializationConfig, RelocMode, Target, TargetMachine,TargetTriple,
@@ -95,18 +96,18 @@ pub fn get_ir(codegen: &codegen::CodeGen) -> String {
 
 pub fn compile_module<'ctx>(context : &'ctx Context, index: &'ctx mut Index<'ctx>, source : String) -> codegen::CodeGen<'ctx> {
 
-    let mut parse_result = parse(source);
+    let (mut parse_result, new_lines) = parse(source);
     //first pre-process the AST
     index.pre_process(&mut parse_result);
     //then index the AST
     index.visit(&mut parse_result);
     //and finally codegen
-    let mut code_generator = codegen::CodeGen::new(context, index);
+    let mut code_generator = codegen::CodeGen::new(context, index, new_lines);
     code_generator.generate_compilation_unit(parse_result);
     code_generator
 }
 
-fn parse(source: String) -> ast::CompilationUnit {
+fn parse(source: String) -> (ast::CompilationUnit, NewLines) {
     //Start lexing
     let lexer = lexer::lex(&source);
     //Parse

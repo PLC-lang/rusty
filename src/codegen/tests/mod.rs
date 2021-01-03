@@ -10,13 +10,13 @@ use pretty_assertions::assert_eq;
 macro_rules! codegen {
     ($code:tt) => {{
         let lexer = lexer::lex($code);
-        let mut ast = parser::parse(lexer).unwrap();
+        let (mut ast, new_lines) = parser::parse(lexer).unwrap();
 
         let context = Context::create();
         let mut index = Index::new();
         index.pre_process(&mut ast);
         index.visit(&mut ast);
-        let mut code_generator = crate::codegen::CodeGen::new(&context, &mut index);
+        let mut code_generator = crate::codegen::CodeGen::new(&context, &mut index, new_lines);
         code_generator.generate(ast)
     }};
 }

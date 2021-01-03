@@ -44,8 +44,6 @@ pub struct CompilationUnit {
     pub global_vars: Vec<VariableBlock>,
     pub units: Vec<POU>,
     pub types: Vec<DataType>,
-
-    pub new_lines: NewLines,
 }
 
 #[derive(Debug, Copy, PartialEq, Clone)]

@@ -15,7 +15,7 @@ fn if_statement() {
         END_PROGRAM
         ",
     );
-    let result = parse(lexer).unwrap();
+    let result = parse(lexer).unwrap().0;
 
     let prg = &result.units[0];
     let statement = &prg.statements[0];
@@ -48,7 +48,7 @@ fn if_else_statement_with_expressions() {
         END_PROGRAM
         ",
     );
-    let result = parse(lexer).unwrap();
+    let result = parse(lexer).unwrap().0;
 
     let prg = &result.units[0];
     let statement = &prg.statements[0];
@@ -97,7 +97,7 @@ fn if_elsif_elsif_else_statement_with_expressions() {
         END_PROGRAM
         ",
     );
-    let result = parse(lexer).unwrap();
+    let result = parse(lexer).unwrap().0;
 
     let prg = &result.units[0];
     let statement = &prg.statements[0];
@@ -167,7 +167,7 @@ fn for_with_literals_statement() {
         END_PROGRAM
         ",
     );
-    let result = parse(lexer).unwrap();
+    let result = parse(lexer).unwrap().0;
 
     let prg = &result.units[0];
     let statement = &prg.statements[0];
@@ -203,7 +203,7 @@ fn for_with_step_statement() {
         END_PROGRAM
         ",
     );
-    let result = parse(lexer).unwrap();
+    let result = parse(lexer).unwrap().0;
 
     let prg = &result.units[0];
     let statement = &prg.statements[0];
@@ -241,7 +241,7 @@ fn for_with_reference_statement() {
         END_PROGRAM
         ",
     );
-    let result = parse(lexer).unwrap();
+    let result = parse(lexer).unwrap().0;
 
     let prg = &result.units[0];
     let statement = &prg.statements[0];
@@ -281,7 +281,7 @@ fn for_with_body_statement() {
         END_PROGRAM
         ",
     );
-    let result = parse(lexer).unwrap();
+    let result = parse(lexer).unwrap().0;
 
     let prg = &result.units[0];
     let statement = &prg.statements[0];
@@ -330,7 +330,7 @@ fn while_with_literal() {
         END_PROGRAM
         ",
     );
-    let result = parse(lexer).unwrap();
+    let result = parse(lexer).unwrap().0;
 
     let prg = &result.units[0];
     let statement = &prg.statements[0];
@@ -355,7 +355,7 @@ fn while_with_expression() {
         END_PROGRAM
         ",
     );
-    let result = parse(lexer).unwrap();
+    let result = parse(lexer).unwrap().0;
 
     let prg = &result.units[0];
     let statement = &prg.statements[0];
@@ -390,7 +390,7 @@ fn while_with_body_statement() {
         END_PROGRAM
         ",
     );
-    let result = parse(lexer).unwrap();
+    let result = parse(lexer).unwrap().0;
 
     let prg = &result.units[0];
     let statement = &prg.statements[0];
@@ -429,7 +429,7 @@ fn repeat_with_literal() {
         END_PROGRAM
         ",
     );
-    let result = parse(lexer).unwrap();
+    let result = parse(lexer).unwrap().0;
 
     let prg = &result.units[0];
     let statement = &prg.statements[0];
@@ -455,7 +455,7 @@ fn repeat_with_expression() {
         END_PROGRAM
         ",
     );
-    let result = parse(lexer).unwrap();
+    let result = parse(lexer).unwrap().0;
 
     let prg = &result.units[0];
     let statement = &prg.statements[0];
@@ -491,7 +491,7 @@ fn repeat_with_body_statement() {
         END_PROGRAM
         ",
     );
-    let result = parse(lexer).unwrap();
+    let result = parse(lexer).unwrap().0;
 
     let prg = &result.units[0];
     let statement = &prg.statements[0];
@@ -530,7 +530,7 @@ fn case_statement_with_one_condition() {
         END_PROGRAM
         ",
     );
-    let result = parse(lexer).unwrap();
+    let result = parse(lexer).unwrap().0;
 
     let prg = &result.units[0];
     let statement = &prg.statements[0];
@@ -573,7 +573,7 @@ fn case_statement_with_else_and_no_condition() {
         END_PROGRAM
         ",
     );
-    let result = parse(lexer).unwrap();
+    let result = parse(lexer).unwrap().0;
 
     let prg = &result.units[0];
     let statement = &prg.statements[0];
@@ -603,7 +603,7 @@ fn case_statement_with_no_conditions() {
         END_PROGRAM
         ",
     );
-    let result = parse(lexer).unwrap();
+    let result = parse(lexer).unwrap().0;
 
     let prg = &result.units[0];
     let statement = &prg.statements[0];
@@ -635,7 +635,7 @@ fn case_statement_with_one_condition_and_an_else() {
         END_PROGRAM
         ",
     );
-    let result = parse(lexer).unwrap();
+    let result = parse(lexer).unwrap().0;
 
     let prg = &result.units[0];
     let statement = &prg.statements[0];
@@ -686,7 +686,7 @@ fn case_statement_with_one_empty_condition_and_an_else() {
         END_PROGRAM
         ",
     );
-    let result = parse(lexer).unwrap();
+    let result = parse(lexer).unwrap().0;
 
     let prg = &result.units[0];
     let statement = &prg.statements[0];
@@ -731,7 +731,7 @@ fn case_statement_with_multiple_conditions() {
         END_PROGRAM
         ",
     );
-    let result = parse(lexer).unwrap();
+    let result = parse(lexer).unwrap().0;
 
     let prg = &result.units[0];
     let statement = &prg.statements[0];
@@ -809,7 +809,7 @@ fn case_statement_with_multiple_expressions_per_condition() {
         END_PROGRAM
         ",
     );
-    let result = parse(lexer).unwrap();
+    let result = parse(lexer).unwrap().0;
 
     let prg = &result.units[0];
     let statement = &prg.statements[0];
@@ -881,7 +881,7 @@ fn if_stmnt_location_test() {
 
 
     let lexer = lexer::lex(source);
-    let parse_result = parse(lexer).unwrap();
+    let parse_result = parse(lexer).unwrap().0;
 
     let unit = &parse_result.units[0];
     
@@ -914,7 +914,7 @@ fn for_stmnt_location_test() {
 
 
     let lexer = lexer::lex(source);
-    let parse_result = parse(lexer).unwrap();
+    let parse_result = parse(lexer).unwrap().0;
 
     let unit = &parse_result.units[0];
     
@@ -952,7 +952,7 @@ fn while_stmnt_location_test() {
 
 
     let lexer = lexer::lex(source);
-    let parse_result = parse(lexer).unwrap();
+    let parse_result = parse(lexer).unwrap().0;
 
     let unit = &parse_result.units[0];
     
@@ -977,7 +977,7 @@ fn case_stmnt_location_test() {
 
 
     let lexer = lexer::lex(source);
-    let parse_result = parse(lexer).unwrap();
+    let parse_result = parse(lexer).unwrap().0;
 
     let unit = &parse_result.units[0];
     
@@ -1000,7 +1000,7 @@ fn call_stmnt_location_test() {
 
 
     let lexer = lexer::lex(source);
-    let parse_result = parse(lexer).unwrap();
+    let parse_result = parse(lexer).unwrap().0;
 
     let unit = &parse_result.units[0];
     

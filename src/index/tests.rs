@@ -9,7 +9,7 @@ use crate::parser;
 macro_rules! index {
     ($code:tt) => {{
         let lexer = lexer::lex($code);
-        let mut ast = parser::parse(lexer).unwrap();
+        let (mut ast, _) = parser::parse(lexer).unwrap();
 
         let mut index = Index::new();
         index.pre_process(&mut ast);
@@ -253,7 +253,7 @@ fn pre_processing_generates_inline_enums_global() {
         END_VAR
         "#,
     );
-    let mut ast = parser::parse(lexer).unwrap();
+    let (mut ast, _) = parser::parse(lexer).unwrap();
 
     // WHEN the AST ist pre-processed
     let mut index = Index::new();
@@ -299,7 +299,7 @@ fn pre_processing_generates_inline_structs_global() {
         END_VAR
         "#,
     );
-    let mut ast = parser::parse(lexer).unwrap();
+    let (mut ast, _) = parser::parse(lexer).unwrap();
 
     // WHEN the AST ist pre-processed
     let mut index = Index::new();
@@ -344,7 +344,7 @@ fn pre_processing_generates_inline_enums() {
         END_PROGRAM
         "#,
     );
-    let mut ast = parser::parse(lexer).unwrap();
+    let (mut ast, _) = parser::parse(lexer).unwrap();
 
     // WHEN the AST ist pre-processed
     let mut index = Index::new();
@@ -383,7 +383,7 @@ fn pre_processing_generates_inline_structs() {
         END_PROGRAM
         "#,
     );
-    let mut ast = parser::parse(lexer).unwrap();
+    let (mut ast, _) = parser::parse(lexer).unwrap();
 
     // WHEN the AST ist pre-processed
     let mut index = Index::new();
@@ -429,7 +429,7 @@ fn pre_processing_generates_inline_arrays() {
         END_PROGRAM
         "#,
     );
-    let mut ast = parser::parse(lexer).unwrap();
+    let (mut ast, _) = parser::parse(lexer).unwrap();
 
     // WHEN the AST ist pre-processed
     let mut index = Index::new();
@@ -478,7 +478,7 @@ fn pre_processing_generates_inline_array_of_array() {
         END_PROGRAM
         "#,
     );
-    let mut ast = parser::parse(lexer).unwrap();
+    let (mut ast, _) = parser::parse(lexer).unwrap();
 
     // WHEN the AST ist pre-processed
     let mut index = Index::new();
@@ -552,7 +552,7 @@ fn pre_processing_nested_array_in_struct() {
         "#
     );
 
-    let mut ast = parser::parse(lexer).unwrap();
+    let (mut ast, _) = parser::parse(lexer).unwrap();
 
      // WHEN the AST ist pre-processed
     let mut index = Index::new();
@@ -611,7 +611,7 @@ fn pre_processing_generates_inline_array_of_array_of_array() {
         END_PROGRAM
         "#,
     );
-    let mut ast = parser::parse(lexer).unwrap();
+    let (mut ast, _) = parser::parse(lexer).unwrap();
 
     // WHEN the AST ist pre-processed
     let mut index = Index::new();
