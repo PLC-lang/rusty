@@ -840,3 +840,111 @@ fn function_parameters_string() {
     assert_eq!(&text3[0..5],"hello");
     assert_eq!(maintype.text2[5],0);
 }
+
+#[test]
+fn real_to_int_assignment() {
+
+    #[repr(C)]
+    struct Type {
+        real_val : f32,
+        lreal_val : f64,
+        int_val : i16,
+        int_val2 : i16,
+    }
+
+    let function = r"
+        PROGRAM main
+        VAR
+            real_val : REAL;
+            lreal_val : LREAL;
+            int_val : INT;
+            int_val2 : INT;
+        END_VAR
+            real_val := 2.0;
+            lreal_val := 4.0;
+            int_val := real_val;
+            int_val2 := lreal_val;
+        END_PROGRAM
+        ";
+
+    let mut maintype = Type{real_val : 0.0, lreal_val : 0.0, int_val : 0, int_val2 : 0};
+
+    compile_and_run(function.to_string(), &mut maintype);
+    assert_eq!(2.0,maintype.real_val);
+    assert_eq!(2,maintype.int_val);
+    assert_eq!(4.0,maintype.lreal_val);
+    assert_eq!(4,maintype.int_val2);
+   
+}
+
+#[test]
+fn real_float_assingment() {
+
+    #[repr(C)]
+    struct Type {
+        real_val : f32,
+        lreal_val : f64,
+        real_target : f32,
+        lreal_target : f64,
+    }
+
+    let function = r"
+        PROGRAM main
+        VAR
+            real_val : REAL;
+            lreal_val : LREAL;
+            real_target : REAL;
+            lreal_target : LREAL;
+        END_VAR
+            real_val := 2.0;
+            lreal_val := 4.0;
+            real_target := lreal_val;
+            lreal_target := real_val;
+        END_PROGRAM
+        ";
+
+    let mut maintype = Type{real_val : 0.0, lreal_val : 0.0, real_target : 0.0, lreal_target : 0.0};
+
+    compile_and_run(function.to_string(), &mut maintype);
+    assert_eq!(2.0,maintype.real_val);
+    assert_eq!(2.0,maintype.lreal_target);
+    assert_eq!(4.0,maintype.lreal_val);
+    assert_eq!(4.0,maintype.real_target);
+   
+}
+
+#[test]
+fn real_to_int_assignment2() {
+    struct Type {
+    };
+
+    let function = r#"
+        FUNCTION LOG : REAL
+            LOG := 1.0;
+        END_FUNCTION
+
+        FUNCTION main : INT
+                main := LOG();
+        END_FUNCTION
+    "#;
+    let (res, _)  = compile_and_run(function.to_string(), &mut Type{});
+    assert_eq!(1, res);
+}
+
+#[test]
+fn lreal_to_int_assignment() {
+    struct Type {
+    };
+
+    let function = r#"
+        FUNCTION LOG : LREAL
+            LOG := 1.0;
+        END_FUNCTION
+
+        FUNCTION main : INT
+            main := LOG();
+        END_FUNCTION
+    "#;
+    let (res, _)  = compile_and_run(function.to_string(), &mut Type{});
+    assert_eq!(1, res);
+}

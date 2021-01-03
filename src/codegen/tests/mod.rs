@@ -1301,6 +1301,65 @@ continue:                                         ; preds = %output
 }
 
 #[test]
+fn real_function_called_in_program() {
+    let result = codegen!(
+        "
+        FUNCTION foo : REAL
+        foo := 1.0;
+        END_FUNCTION
+
+        PROGRAM prg 
+        VAR
+            x : DINT;
+        END_VAR
+        x := foo();
+        END_PROGRAM
+        "
+    );
+
+    let expected = r#"; ModuleID = 'main'
+source_filename = "main"
+
+%prg_interface = type { i32 }
+%foo_interface = type {}
+
+@prg_instance = global %prg_interface zeroinitializer
+
+define float @foo(%foo_interface* %0) {
+entry:
+  %foo = alloca float
+  store float 1.000000e+00, float* %foo
+  %foo_ret = load float, float* %foo
+  ret float %foo_ret
+}
+
+define void @prg(%prg_interface* %0) {
+entry:
+  %x = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 0
+  %foo_instance = alloca %foo_interface
+  br label %input
+
+input:                                            ; preds = %entry
+  br label %call
+
+call:                                             ; preds = %input
+  %call1 = call float @foo(%foo_interface* %foo_instance)
+  br label %output
+
+output:                                           ; preds = %call
+  br label %continue
+
+continue:                                         ; preds = %output
+  %1 = fptosi float %call1 to i32
+  store i32 %1, i32* %x
+  ret void
+}
+"#;
+
+  assert_eq!(result, expected);
+}
+
+#[test]
 fn external_function_called_in_program() {
     let result = codegen!(
         "

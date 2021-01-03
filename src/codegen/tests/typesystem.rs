@@ -165,6 +165,7 @@ fn datatypes_larger_than_int_promote_the_second_operand() {
 
 }
 
+
 #[test]
 fn float_and_double_mix_converted_to_double() {
     let result = codegen!(
@@ -190,6 +191,35 @@ fn float_and_double_mix_converted_to_double() {
   %1 = fpext float %load_a to double
   %tmpVar = fadd double %load_b, %1
   store double %tmpVar, double* %c
+  ret void
+"#
+    );
+
+    assert_eq!(result,expected)
+}
+
+#[test]
+fn float_assingend_to_double_to_double() {
+    let result = codegen!(
+        r#"
+        PROGRAM prg
+        VAR
+            a : REAL;
+            b : LREAL;
+        END_VAR
+
+        b := a;
+        END_PROGRAM
+        "#
+    );
+
+    let expected = generate_program_boiler_plate(
+        "prg", &[("float","a"),("double", "b")], 
+        "void", 
+        "", "",
+        r#"%load_a = load float, float* %a
+  %1 = fpext float %load_a to double
+  store double %1, double* %b
   ret void
 "#
     );
