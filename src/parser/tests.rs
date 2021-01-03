@@ -632,22 +632,22 @@ fn test_ast_line_locations() {
 
     {
         let statement_offset = statements.get(0).unwrap().get_location().start;
-        let line = parse_result.get_line_of(&statement_offset);
+        let line = parse_result.new_lines.get_line_of(statement_offset).unwrap();
         assert_eq!(2, line);
     }
     {
         let statement_offset = statements.get(1).unwrap().get_location().start;
-        let line = parse_result.get_line_of(&statement_offset);
+        let line = parse_result.new_lines.get_line_of(statement_offset).unwrap();
         assert_eq!(4, line);
     }
     {
         let statement_offset = statements.get(2).unwrap().get_location().start;
-        let line = parse_result.get_line_of(&statement_offset);
+        let line = parse_result.new_lines.get_line_of(statement_offset).unwrap();
         assert_eq!(5, line);
     }
     {
         let statement_offset = statements.get(3).unwrap().get_location().start;
-        let line = parse_result.get_line_of(&statement_offset);
+        let line = parse_result.new_lines.get_line_of(statement_offset).unwrap();
         assert_eq!(8, line);
     }
 }
