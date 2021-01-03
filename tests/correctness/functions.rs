@@ -51,8 +51,42 @@ fn max_function() {
 }
 
 #[test]
+fn nested_function_call() {
+    #[allow(dead_code)]
+    #[repr(C)]
+    struct MainType {
+    }
+    
+    let mut main_data = MainType {};
+    
+    let function = r#"
+            FUNCTION bar : DINT
+            VAR_INPUT
+                x : DINT;
+            END_VAR
+                bar := x;
+            END_FUNCTION
+
+            FUNCTION foo : DINT
+            VAR_INPUT
+                y : DINT;
+            END_VAR
+                foo := y;
+            END_FUNCTION
+
+
+            FUNCTION main : DINT
+                main := foo(bar(1000));
+            END_FUNCTION
+        "#;
+        
+    let (res, _ ) = compile_and_run(function.to_string(), &mut main_data);
+    assert_eq!(1000, res);
+}
+
+#[test]
 fn test_or_sideeffects() {
-     #[allow(dead_code)]
+    #[allow(dead_code)]
     #[repr(C)]
     struct MainType {
         x : bool,
