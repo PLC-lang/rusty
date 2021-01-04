@@ -316,7 +316,7 @@ fn pre_processing_generates_inline_structs_global() {
                 data_type: DataTypeDeclaration::DataTypeReference {
                     referenced_type: "INT".to_string()
                 },
-                location: 0..0,
+                location: 54..55,
             }]
         },
         new_struct_type
@@ -400,7 +400,7 @@ fn pre_processing_generates_inline_structs() {
                 data_type: DataTypeDeclaration::DataTypeReference {
                     referenced_type: "INT".to_string()
                 },
-                location: 0..0
+                location: 67..68
             }]
         },
         new_struct_type

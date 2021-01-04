@@ -308,6 +308,7 @@ fn parse_variable_block(lexer: &mut RustyLexer) -> Result<VariableBlock, String>
 
 fn parse_variable(
     lexer: &mut RustyLexer) -> Result<Variable, String> {
+    let variable_range = lexer.range();
     let name = slice_and_advance(lexer);
 
     expect!(KeywordColon, lexer);
@@ -320,6 +321,6 @@ fn parse_variable(
     Ok(Variable {
         name, 
         data_type, 
-        location: 0..0,
+        location: variable_range,
     })
 }
