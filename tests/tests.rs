@@ -26,7 +26,7 @@ mod correctness {
 /// The string will eventually be the Stdout of the function.
 /// 
 pub fn compile<'ctx>(context : &'ctx Context, index: &'ctx mut Index<'ctx>, source : String) -> ExecutionEngine<'ctx> {
-    let code_gen = compile_module(context, index, source);
+    let code_gen = compile_module(context, index, source).unwrap();
     println!("{}", get_ir(&code_gen));
     code_gen.module.create_jit_execution_engine(inkwell::OptimizationLevel::None).unwrap()
 }

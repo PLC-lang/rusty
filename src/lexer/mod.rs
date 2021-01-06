@@ -4,18 +4,20 @@ use logos::Lexer;
 use logos::Logos;
 use core::ops::Range;
 
+use crate::ast::NewLines;
+
 #[cfg(test)]
 mod tests;
 
 pub struct RustyLexer<'a> {
     lexer: Lexer<'a, Token>,
     pub token: Token,
-    pub new_lines: Vec<usize>,
+    pub new_lines: NewLines,
 }
 
 impl<'a> RustyLexer<'a> {
 
-    pub fn new(l: Lexer<'a, Token>, new_lines: Vec<usize>) -> RustyLexer<'a> {
+    pub fn new(l: Lexer<'a, Token>, new_lines: NewLines) -> RustyLexer<'a> {
         let mut lexer = RustyLexer{
             lexer: l,
             token: Token::KeywordBy,
@@ -25,7 +27,7 @@ impl<'a> RustyLexer<'a> {
         lexer
     }
 
-    pub fn get_new_lines(&self) -> &Vec<usize> {
+    pub fn get_new_lines(&self) -> &NewLines {
         &self.new_lines
     }
 
@@ -41,43 +43,17 @@ impl<'a> RustyLexer<'a> {
         self.lexer.span()
     }
 
-    /// binary search the first element which is bigger than the given index
-    fn index_of_line_offset(&self, offset: usize) -> Option<usize> {
-
-        if offset == 0 { return Some(1); }
-
-        let mut start  = 0;
-        let mut end   = self.new_lines.len() - 1;
-        let mut result: usize = 0;
-        while  start <= end {
-            let mid = (start + end) / 2;
-
-            if self.new_lines[mid] <= offset {
-                start = mid + 1; //move to the right
-            } else {
-                result = mid;
-                end = mid - 1;
-            }
-        }
-
-        return if self.new_lines[result] > offset {
-            Some(result)
-        } else {
-            None
-        }
-    }
-
     pub fn get_current_line_nr(&self) -> usize {
-        self.index_of_line_offset(self.range().start).unwrap_or(0)
+        self.new_lines.get_line_of(self.range().start).unwrap_or(0)
     }
 
     pub fn get_location_information(&self) -> String {
-        let line_index = self.index_of_line_offset(self.range().start);
+        let line_index = self.new_lines.get_line_of(self.range().start);
 
         let location = line_index.map_or_else(
             || self.range(), 
             |it| {
-                let new_line_offset = self.new_lines[it-1];
+                let new_line_offset = self.new_lines.get_offest_of_line(it);
                 let current_range = self.range();
                 (current_range.start - new_line_offset) .. (current_range.end - new_line_offset)
             });
@@ -305,19 +281,7 @@ pub enum Token {
     End,
 }
 
-
 pub fn lex(source: &str) -> RustyLexer {
-    RustyLexer::new(Token::lexer(source), analyze_new_lines(source))
-}
-
-fn analyze_new_lines(source: &str) -> Vec<usize>{
-    let mut new_lines = Vec::new();
-    new_lines.push(0);
-    for (offset, c) in source.char_indices() {
-        if c == '\n' {
-            new_lines.push(offset);
-        }
-    }
-    new_lines
+    RustyLexer::new(Token::lexer(source), NewLines::new(source))
 }
 

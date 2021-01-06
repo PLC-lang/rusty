@@ -44,20 +44,6 @@ pub struct CompilationUnit {
     pub global_vars: Vec<VariableBlock>,
     pub units: Vec<POU>,
     pub types: Vec<DataType>,
-
-    pub new_lines: Vec<usize>,
-}
-
-impl CompilationUnit {
-    pub fn get_line_of(&self, offset: &usize) -> usize {
-        //this can be improved
-        for (line_nr, line_break_offset) in self.new_lines.iter().enumerate() {
-            if line_break_offset > offset {
-                return line_nr;
-            }
-        }
-        self.new_lines.len()
-    }
 }
 
 #[derive(Debug, Copy, PartialEq, Clone)]
@@ -113,6 +99,62 @@ impl Variable {
 }
 
 pub type SourceRange = core::ops::Range<usize>;
+#[derive(Clone, Debug, PartialEq)]
+pub struct NewLines {
+    new_lines : Vec<usize>,
+}
+
+impl NewLines{
+    pub fn new(source: &str) -> NewLines {
+        let mut new_lines = Vec::new();
+        new_lines.push(0);
+        for (offset, c) in source.char_indices() {
+            if c == '\n' {
+                new_lines.push(offset);
+            }
+        }
+        NewLines { new_lines }
+    }
+    
+ /// binary search the first element which is bigger than the given index
+ /// starting with line 1
+    pub fn get_line_of(&self, offset: usize) -> Option<usize> {
+
+        if offset == 0 { return Some(1); }
+
+        let mut start  = 0;
+        let mut end   = self.new_lines.len() - 1;
+        let mut result: usize = 0;
+        while  start <= end {
+            let mid = (start + end) / 2;
+
+            if self.new_lines[mid] <= offset {
+                start = mid + 1; //move to the right
+            } else {
+                result = mid;
+                end = mid - 1;
+            }
+        }
+
+        return if self.new_lines[result] > offset {
+            Some(result)
+        } else {
+            None
+        }
+    }
+
+    /// get the offset of the new_line that starts line l (starting with line 1)
+    pub fn get_offest_of_line(&self, l: usize) -> usize{ 
+        self.new_lines[l-1]
+    }
+
+    pub fn get_location_information(&self, offset: &core::ops::Range<usize>) -> String {
+        let line = self.get_line_of(offset.start).unwrap_or(1);
+        let line_offset = self.get_offest_of_line(line);
+        let offset = offset.start-line_offset .. offset.end-line_offset;
+        format!("line: {:}, offset: {:?}", line, offset)
+    }
+}
 
 #[derive(Debug, PartialEq)]
 pub enum DataTypeDeclaration {
