@@ -62,18 +62,14 @@ fn if_else_statement_with_expressions() {
             },
             body: [
                 Reference {
-                    elements: [
-                        "x",
-                    ],
+                    name: "x",
                 },
             ],
         },
     ],
     else_block: [
         Reference {
-            elements: [
-                "y",
-            ],
+            name: "y",
         },
     ],
 }"#;
@@ -111,46 +107,34 @@ fn if_elsif_elsif_else_statement_with_expressions() {
             },
             body: [
                 Reference {
-                    elements: [
-                        "x",
-                    ],
+                    name: "x",
                 },
             ],
         },
         ConditionalBlock {
             condition: Reference {
-                elements: [
-                    "y",
-                ],
+                name: "y",
             },
             body: [
                 Reference {
-                    elements: [
-                        "z",
-                    ],
+                    name: "z",
                 },
             ],
         },
         ConditionalBlock {
             condition: Reference {
-                elements: [
-                    "w",
-                ],
+                name: "w",
             },
             body: [
                 Reference {
-                    elements: [
-                        "v",
-                    ],
+                    name: "v",
                 },
             ],
         },
     ],
     else_block: [
         Reference {
-            elements: [
-                "u",
-            ],
+            name: "u",
         },
     ],
 }"#;
@@ -175,14 +159,10 @@ fn for_with_literals_statement() {
     let ast_string = format!("{:#?}", statement);
     let expected_ast = r#"ForLoopStatement {
     counter: Reference {
-        elements: [
-            "y",
-        ],
+        name: "y",
     },
     start: Reference {
-        elements: [
-            "x",
-        ],
+        name: "x",
     },
     end: LiteralInteger {
         value: "10",
@@ -211,9 +191,7 @@ fn for_with_step_statement() {
     let ast_string = format!("{:#?}", statement);
     let expected_ast = r#"ForLoopStatement {
     counter: Reference {
-        elements: [
-            "x",
-        ],
+        name: "x",
     },
     start: LiteralInteger {
         value: "1",
@@ -249,19 +227,13 @@ fn for_with_reference_statement() {
     let ast_string = format!("{:#?}", statement);
     let expected_ast = r#"ForLoopStatement {
     counter: Reference {
-        elements: [
-            "z",
-        ],
+        name: "z",
     },
     start: Reference {
-        elements: [
-            "x",
-        ],
+        name: "x",
     },
     end: Reference {
-        elements: [
-            "y",
-        ],
+        name: "y",
     },
     by_step: None,
     body: [],
@@ -289,31 +261,21 @@ fn for_with_body_statement() {
     let ast_string = format!("{:#?}", statement);
     let expected_ast = r#"ForLoopStatement {
     counter: Reference {
-        elements: [
-            "z",
-        ],
+        name: "z",
     },
     start: Reference {
-        elements: [
-            "x",
-        ],
+        name: "x",
     },
     end: Reference {
-        elements: [
-            "y",
-        ],
+        name: "y",
     },
     by_step: None,
     body: [
         Reference {
-            elements: [
-                "x",
-            ],
+            name: "x",
         },
         Reference {
-            elements: [
-                "y",
-            ],
+            name: "y",
         },
     ],
 }"#;
@@ -365,9 +327,7 @@ fn while_with_expression() {
     condition: BinaryExpression {
         operator: Less,
         left: Reference {
-            elements: [
-                "x",
-            ],
+            name: "x",
         },
         right: LiteralInteger {
             value: "7",
@@ -402,14 +362,10 @@ fn while_with_body_statement() {
     },
     body: [
         Reference {
-            elements: [
-                "x",
-            ],
+            name: "x",
         },
         Reference {
-            elements: [
-                "y",
-            ],
+            name: "y",
         },
     ],
 }"#;
@@ -465,9 +421,7 @@ fn repeat_with_expression() {
     condition: BinaryExpression {
         operator: Greater,
         left: Reference {
-            elements: [
-                "x",
-            ],
+            name: "x",
         },
         right: LiteralInteger {
             value: "7",
@@ -503,14 +457,10 @@ fn repeat_with_body_statement() {
     },
     body: [
         Reference {
-            elements: [
-                "x",
-            ],
+            name: "x",
         },
         Reference {
-            elements: [
-                "y",
-            ],
+            name: "y",
         },
     ],
 }"#;
@@ -538,9 +488,7 @@ fn case_statement_with_one_condition() {
     let ast_string = format!("{:#?}", statement);
     let expected_ast = r#"CaseStatement {
     selector: Reference {
-        elements: [
-            "StateMachine",
-        ],
+        name: "StateMachine",
     },
     case_blocks: [
         ConditionalBlock {
@@ -549,9 +497,7 @@ fn case_statement_with_one_condition() {
             },
             body: [
                 Reference {
-                    elements: [
-                        "x",
-                    ],
+                    name: "x",
                 },
             ],
         },
@@ -581,9 +527,7 @@ fn case_statement_with_else_and_no_condition() {
     let ast_string = format!("{:#?}", statement);
     let expected_ast = r#"CaseStatement {
     selector: Reference {
-        elements: [
-            "StateMachine",
-        ],
+        name: "StateMachine",
     },
     case_blocks: [],
     else_block: [],
@@ -611,9 +555,7 @@ fn case_statement_with_no_conditions() {
     let ast_string = format!("{:#?}", statement);
     let expected_ast = r#"CaseStatement {
     selector: Reference {
-        elements: [
-            "StateMachine",
-        ],
+        name: "StateMachine",
     },
     case_blocks: [],
     else_block: [],
@@ -643,9 +585,7 @@ fn case_statement_with_one_condition_and_an_else() {
     let ast_string = format!("{:#?}", statement);
     let expected_ast = r#"CaseStatement {
     selector: Reference {
-        elements: [
-            "StateMachine",
-        ],
+        name: "StateMachine",
     },
     case_blocks: [
         ConditionalBlock {
@@ -654,18 +594,14 @@ fn case_statement_with_one_condition_and_an_else() {
             },
             body: [
                 Reference {
-                    elements: [
-                        "x",
-                    ],
+                    name: "x",
                 },
             ],
         },
     ],
     else_block: [
         Reference {
-            elements: [
-                "y",
-            ],
+            name: "y",
         },
     ],
 }"#;
@@ -694,9 +630,7 @@ fn case_statement_with_one_empty_condition_and_an_else() {
     let ast_string = format!("{:#?}", statement);
     let expected_ast = r#"CaseStatement {
     selector: Reference {
-        elements: [
-            "StateMachine",
-        ],
+        name: "StateMachine",
     },
     case_blocks: [
         ConditionalBlock {
@@ -708,9 +642,7 @@ fn case_statement_with_one_empty_condition_and_an_else() {
     ],
     else_block: [
         Reference {
-            elements: [
-                "y",
-            ],
+            name: "y",
         },
     ],
 }"#;
@@ -739,9 +671,7 @@ fn case_statement_with_multiple_conditions() {
     let ast_string = format!("{:#?}", statement);
     let expected_ast = r#"CaseStatement {
     selector: Reference {
-        elements: [
-            "StateMachine",
-        ],
+        name: "StateMachine",
     },
     case_blocks: [
         ConditionalBlock {
@@ -750,9 +680,7 @@ fn case_statement_with_multiple_conditions() {
             },
             body: [
                 Reference {
-                    elements: [
-                        "x",
-                    ],
+                    name: "x",
                 },
             ],
         },
@@ -762,19 +690,13 @@ fn case_statement_with_multiple_conditions() {
             },
             body: [
                 Reference {
-                    elements: [
-                        "y",
-                    ],
+                    name: "y",
                 },
                 Reference {
-                    elements: [
-                        "yy",
-                    ],
+                    name: "yy",
                 },
                 Reference {
-                    elements: [
-                        "yyy",
-                    ],
+                    name: "yyy",
                 },
             ],
         },
@@ -784,9 +706,7 @@ fn case_statement_with_multiple_conditions() {
             },
             body: [
                 Reference {
-                    elements: [
-                        "z",
-                    ],
+                    name: "z",
                 },
             ],
         },
@@ -817,9 +737,7 @@ fn case_statement_with_multiple_expressions_per_condition() {
     let ast_string = format!("{:#?}", statement);
     let expected_ast = r#"CaseStatement {
     selector: Reference {
-        elements: [
-            "StateMachine",
-        ],
+        name: "StateMachine",
     },
     case_blocks: [
         ConditionalBlock {
@@ -838,9 +756,7 @@ fn case_statement_with_multiple_expressions_per_condition() {
             },
             body: [
                 Reference {
-                    elements: [
-                        "x",
-                    ],
+                    name: "x",
                 },
             ],
         },
@@ -855,9 +771,7 @@ fn case_statement_with_multiple_expressions_per_condition() {
             },
             body: [
                 Reference {
-                    elements: [
-                        "y",
-                    ],
+                    name: "y",
                 },
             ],
         },

@@ -309,8 +309,11 @@ pub enum Statement {
         location: SourceRange,
     },
     // Expressions
+    QualifiedReference {
+        elements: Vec<Statement>
+    },
     Reference {
-        elements: Vec<String>,
+        name: String,
         location: SourceRange,
     },
     ArrayAccess {
@@ -399,8 +402,12 @@ impl Debug for Statement {
                 .debug_struct("LiteralString")
                 .field("value", value)
                 .finish(),
-            Statement::Reference { elements, .. } => f
+            Statement::Reference { name, .. } => f
                 .debug_struct("Reference")
+                .field("name", name)
+                .finish(),
+            Statement::QualifiedReference {elements, ..} => f
+                .debug_struct("QualifiedReference")
                 .field("elements", elements)
                 .finish(),
             Statement::BinaryExpression {
@@ -524,6 +531,10 @@ impl Statement {
             Statement::LiteralBool { location, .. } => location.clone(),
             Statement::LiteralString { location, .. } => location.clone(),
             Statement::Reference { location, .. } => location.clone(),
+            Statement::QualifiedReference { elements, .. } => {
+                elements.first().map_or(0, |it| it.get_location().start)
+                    ..elements.last().map_or(0, |it|it.get_location().end)
+            }
             Statement::BinaryExpression { left, right, .. } => {
                 left.get_location().start..right.get_location().end
             }

@@ -211,9 +211,7 @@ fn empty_statements_are_ignored_before_a_statement() {
 
     let ast_string = format!("{:#?}", statement);
     let expected_ast = r#"Reference {
-    elements: [
-        "x",
-    ],
+    name: "x",
 }"#;
     assert_eq!(ast_string, expected_ast);
 }
@@ -228,9 +226,7 @@ fn empty_statements_are_ignored_after_a_statement() {
 
     let ast_string = format!("{:#?}", statement);
     let expected_ast = r#"Reference {
-    elements: [
-        "x",
-    ],
+    name: "x",
 }"#;
     assert_eq!(ast_string, expected_ast);
 }

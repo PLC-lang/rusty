@@ -211,7 +211,7 @@ fn parse_parenthesized_expression(lexer: &mut RustyLexer) -> Result<Statement, S
 // Literals, Identifiers, etc.
 fn parse_leaf_expression(lexer: &mut RustyLexer) -> Result<Statement, String> {
     let current = match lexer.token {
-        Identifier => parse_reference_access(lexer),
+        Identifier => parse_qualified_reference(lexer),
         LiteralInteger => parse_literal_number(lexer),
         LiteralString => parse_literal_string(lexer), 
         LiteralTrue => parse_bool_literal(lexer, true),
@@ -241,31 +241,19 @@ fn parse_bool_literal(lexer: &mut RustyLexer, value: bool) -> Result<Statement, 
     Ok(Statement::LiteralBool { value, location })
 }
 
-pub fn parse_reference_access(lexer : &mut RustyLexer) -> Result<Statement, String> {
-    let mut reference = parse_reference(lexer);
-    //If (while) we hit a dereference, parse and append the dereference to the result
-    while allow(KeywordSquareParensOpen,lexer) { 
-        let access = parse_primary_expression(lexer);
-        expect!(KeywordSquareParensClose,lexer);
-        lexer.advance();
-        reference = Ok(Statement::ArrayAccess { reference : Box::new(reference.unwrap()), access : Box::new(access.unwrap()) })
-    }
-    reference
-
-}
-
-pub fn parse_reference(lexer: &mut RustyLexer) -> Result<Statement, String> {
+pub fn parse_qualified_reference(lexer: &mut RustyLexer) -> Result<Statement, String> {
     let start = lexer.range().start;
-    let mut end = lexer.range().end;
-    let mut reference_elements = vec![slice_and_advance(lexer)];
+    let mut reference_elements = vec![parse_reference_access(lexer)?];
     while allow(KeywordDot, lexer) {
-        end = lexer.range().end;
-        reference_elements.push(slice_and_advance(lexer));
+        reference_elements.push(parse_reference_access(lexer)?);
     }
 
-    let reference = Statement::Reference {
-        elements : reference_elements,
-        location: start..end,
+    let reference = if reference_elements.len() == 1 {
+        reference_elements.pop().unwrap()
+    } else {
+        Statement::QualifiedReference {
+            elements: reference_elements,
+        }
     };
 
     if allow(KeywordParensOpen, lexer) {
@@ -286,6 +274,23 @@ pub fn parse_reference(lexer: &mut RustyLexer) -> Result<Statement, String> {
     } else {
         Ok(reference)
     }
+
+}
+
+pub fn parse_reference_access(lexer : &mut RustyLexer) -> Result<Statement, String> {
+    let location = lexer.range();
+    let mut reference = Statement::Reference {
+        name : slice_and_advance(lexer),
+        location,
+    };
+    //If (while) we hit a dereference, parse and append the dereference to the result
+    while allow(KeywordSquareParensOpen,lexer) { 
+        let access = parse_primary_expression(lexer)?;
+        expect!(KeywordSquareParensClose,lexer);
+        lexer.advance();
+        reference = Statement::ArrayAccess { reference : Box::new(reference), access : Box::new(access) };
+    }
+    Ok(reference)
 }
 
 fn parse_literal_number(lexer: &mut RustyLexer) -> Result<Statement, String> {

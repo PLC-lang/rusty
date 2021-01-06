@@ -26,6 +26,13 @@ mod tests;
 mod typesystem;
 
 type ExpressionValue<'a> = (Option<DataTypeInformation<'a>>, Option<BasicValueEnum<'a>>);
+
+struct LValue<'ctx> {
+    type_name: String,
+    type_information: DataTypeInformation<'ctx>,
+    ptr_value: PointerValue<'ctx>
+}
+
 pub struct CodeGen<'ctx> {
     pub context: &'ctx Context,
     pub module: Module<'ctx>,
@@ -342,9 +349,8 @@ impl<'ctx> CodeGen<'ctx> {
             PouType::Function => {
                 let pou_name = self.get_scope().unwrap();
                 let value = self
-                    .generate_lvalue_for_reference(&[pou_name.to_string()], &(0..0)).unwrap()
-                    .1
-                    .unwrap();
+                    .generate_lvalue_for_reference(None, &pou_name.to_string(), &(0..0)).unwrap()
+                    .ptr_value;
                 Some(
                     self.builder
                         .build_load(value, format!("{}_ret", pou_name).as_str()),
@@ -425,7 +431,8 @@ impl<'ctx> CodeGen<'ctx> {
                 None,
                 self.generate_case_statement(selector, case_blocks, else_block)?
             )),
-            //Loops
+            //Loops:470
+
             Statement::ForLoopStatement {
                 counter,
                 start,
@@ -453,7 +460,8 @@ impl<'ctx> CodeGen<'ctx> {
             Statement::LiteralReal { value, location: _  } => Ok(self.generate_literal_real(value.as_str())),
             Statement::LiteralBool { value, location: _ } => Ok(self.generate_literal_boolean(*value)),
             Statement::LiteralString { value, location: _ } => Ok(self.generate_literal_string(value.as_bytes())),
-            Statement::Reference { elements, location} => self.generate_variable_reference(&elements, location),
+            //TODO handle qualified references
+            Statement::Reference { name, location} => self.generate_variable_reference(name.to_string(), location),
             Statement::Assignment { left, right } => {
                 Ok((None, self.generate_assignment(&left, &right)?))
             }
@@ -466,8 +474,15 @@ impl<'ctx> CodeGen<'ctx> {
                 ..
             } => self.generate_call_statement(&operator, &parameters),
             Statement::ArrayAccess {reference, access} => self.generate_array_access(&reference, &access),
+            Statement::QualifiedReference { .. }  => self.generate_qualified_reference(s),
             _ => panic!("{:?} not yet supported", s),
         }
+    }
+
+    fn generate_qualified_reference(&self, s: &Statement) -> Result<ExpressionValue<'ctx>, String> { 
+         //Generate Reference
+        let value = self.generate_lvalue_for(s)?;
+        self.generate_reference_from_value(value,"")
     }
 
     fn generate_array_access(
@@ -476,8 +491,8 @@ impl<'ctx> CodeGen<'ctx> {
         access: &Box<Statement>,
     ) -> Result<ExpressionValue<'ctx>, String>{
         //Generate Reference
-        let value = self.generate_lvalue_for_array(reference, access).unwrap();
-        self.generate_reference_from_value(value,"tmpVar")
+        let value = self.generate_lvalue_for_array(None, reference, access)?;
+        self.generate_reference_from_value((Some(value.type_information), Some(value.ptr_value)),"tmpVar")
     }
 
     fn generate_case_statement(
@@ -785,17 +800,17 @@ impl<'ctx> CodeGen<'ctx> {
         //Figure out what the target is
         //Get the function name
         let (variable, index_entry) = match &**operator {
-            Statement::Reference { elements, .. } => {
+            Statement::Reference { name, .. } => {
                 //Get associated Variable or generate a variable for the type with the same name
-                let ast_variable = self.get_callable_type_instance(&elements); //Look for the instance variable
+                let ast_variable = self.get_callable_type_instance(&vec![name.clone()]); //Look for the instance variable
                 let variable_instance = ast_variable
                     .map(|it| it.get_generated_reference())
                     .flatten() //look for the generated parameters-struct
-                    .or_else(|| self.allocate_variable(&elements[0])); //there is no generated parameters-struct --> function call!
+                    .or_else(|| self.allocate_variable(&name)); //there is no generated parameters-struct --> function call!
                                                                        //Get Function from Datatype
                 let call_name = ast_variable
                     .map(|it| it.get_type_name()) // we called f() --> look for f's datatype
-                    .or(Some(&elements[0])); // we didnt call a variable ([0so we treat the string as the function's name
+                    .or(Some(&name)); // we didnt call a variable ([0so we treat the string as the function's name
                 let index_entry = self.index.find_type(call_name.unwrap());
                 (variable_instance, index_entry)
             }
@@ -876,10 +891,10 @@ impl<'ctx> CodeGen<'ctx> {
         match statement {
             Statement::Assignment { left, right } => {
                 self.builder.position_at_end(*input_block);
-                if let Statement::Reference { elements, ..} = &**left {
+                if let Statement::Reference { name, ..} = &**left {
                     let parameter = self
                         .index
-                        .find_member(function_name, &elements.join("."))
+                        .find_member(function_name, &name)
                         .unwrap();
                     let index = parameter
                         .get_location_in_parent()
@@ -891,10 +906,10 @@ impl<'ctx> CodeGen<'ctx> {
             Statement::OutputAssignment { left, right } => {
                 let current_block = self.builder.get_insert_block().unwrap();
                 self.builder.position_at_end(*output_block);
-                if let Statement::Reference { elements, ..} = &**left {
+                if let Statement::Reference { name, ..} = &**left {
                     let parameter = self
                         .index
-                        .find_member(function_name, &elements.join("."))
+                        .find_member(function_name, &name)
                         .unwrap();
                     let index = parameter
                         .get_location_in_parent()
@@ -951,12 +966,14 @@ impl<'ctx> CodeGen<'ctx> {
     
     fn generate_lvalue_for_array(
         &self,
-        reference: &Box<Statement>,
-        access: &Box<Statement>,
-    ) -> Result<(Option<DataTypeInformation<'ctx>>, Option<PointerValue<'ctx>>), String> {
+        type_with_context: Option<(&str, PointerValue<'ctx>)>,
+        reference: &Statement,
+        access: &Statement,
+    ) -> Result<LValue<'ctx>, String> {
         //Load the reference
-        self.generate_lvalue_for(reference).and_then(|lvalue| {
-            if let (Some(DataTypeInformation::Array{internal_type_information,dimensions,  ..}), Some(value)) =  lvalue {
+        self.generate_lvalue_for_rec(type_with_context, reference).and_then(|lvalue| {
+            let type_info_and_ptr = (lvalue.type_information, lvalue.ptr_value);
+            if let (DataTypeInformation::Array{name ,internal_type_information,dimensions,  ..}, value) =  type_info_and_ptr {
 
                 //First 0 is to access the pointer, then we access the array
                 let mut indices = vec![self.context.i32_type().const_int(0,false)];
@@ -973,19 +990,38 @@ impl<'ctx> CodeGen<'ctx> {
                 let pointer = unsafe {
                     self.builder.build_in_bounds_gep(value, indices.as_slice(), "tmpVar")
                 };
-                return Ok((Some(*internal_type_information),Some(pointer)));
+                return Ok(LValue{type_name: name,  type_information: *internal_type_information, ptr_value: pointer});
             }
-            Err(format!("Could not generate Array Value {:?}[{:?}", reference,access))
+            Err(format!("Invalid array access at {:}", self.new_lines.get_location_information(&access.get_location())))
         })
     }
-
     fn generate_lvalue_for(
         &self,
-        statement: &Box<Statement>,
+        statement: &Statement,
     ) -> Result<(Option<DataTypeInformation<'ctx>>, Option<PointerValue<'ctx>>), String> {
-        match &**statement {
-            Statement::Reference { elements , location, ..} => self.generate_lvalue_for_reference(elements, location),
-            Statement::ArrayAccess {reference, access } => self.generate_lvalue_for_array(reference, access),
+        self.generate_lvalue_for_rec(None, statement).map(|LValue{type_name: _, type_information, ptr_value }| (Some(type_information), Some(ptr_value)))
+    }
+ 
+    fn generate_lvalue_for_rec(
+        &self,
+        type_with_context: Option<(&str, PointerValue<'ctx>)>,
+        statement: &Statement,
+    ) -> Result<LValue<'ctx>, String> {
+        match statement {
+            Statement::QualifiedReference { elements} => {
+                let mut element_iter = elements.iter();
+                let current_element = element_iter.next();
+                let mut current_lvalue = self.generate_lvalue_for_rec(type_with_context, &current_element.unwrap());
+
+                for it in element_iter {
+                    let LValue{type_name: context_type_name, type_information: _, ptr_value: context_ptr } = current_lvalue?;
+
+                    current_lvalue = self.generate_lvalue_for_rec(Some((context_type_name.as_str(), context_ptr)), it);
+                }
+                current_lvalue
+            }
+            Statement::Reference { name , location, ..} => self.generate_lvalue_for_reference(type_with_context, name, location),
+            Statement::ArrayAccess {reference, access } => self.generate_lvalue_for_array(type_with_context, reference, access),
             _ => Err(format!("Unsupported Statement {:?}", statement)),
         }
     }
@@ -999,42 +1035,37 @@ impl<'ctx> CodeGen<'ctx> {
 
     fn generate_lvalue_for_reference(
         &self,
-        segments: &[String],
+        type_with_context: Option<(&str, PointerValue<'ctx>)>,
+        name: &String,
         offset: &Range<usize>
-    ) -> Result<(
-        Option<DataTypeInformation<'ctx>>,
-        Option<PointerValue<'ctx>>,
-    ), String> {
-        let mut name = segments.iter();
-        let first_name = name.next().unwrap();
-        let type_name = self
-            .index
-            .find_variable(self.get_scope(), &[first_name.clone()])
-            .map(|it| it.get_type_name())
-            .ok_or(format!("Unknown reference '{:}' at {:}", first_name, self.new_lines.get_location_information(offset)))?;
+    ) -> Result<LValue<'ctx>, String> {
+        let (data_type, ptr) = if let Some((qualifier_name, qualifier)) = type_with_context {
+            let member = self.index.find_member(qualifier_name, name);
+            let member_location = member
+                .map(|it| it.get_location_in_parent())
+                .flatten()
+                .ok_or(format!("Unknown reference '{:}.{:}' at {:}", qualifier_name, name, self.new_lines.get_location_information(offset)))?;
 
-        let first_ptr: Result<(&str, Option<PointerValue>), String> = Ok((type_name, self.get_variable(&[first_name.to_string()])));
+                //.unwrap();
+            let member_data_type = member.map(|it| it.get_type_name()).unwrap();
+            let gep = self
+                .builder
+                .build_struct_gep(qualifier, member_location, name);
+            
+            (member_data_type, gep.ok())
+        } else {
+            //no context
+            let type_name = self
+                .index
+                .find_variable(self.get_scope(), &[name.clone()])
+                .map(|it| it.get_type_name())
+                .ok_or(format!("Unknown reference '{:}' at {:}", name, self.new_lines.get_location_information(offset)))?;
 
-        let (data_type, ptr) = name.fold(first_ptr, |qualifier, operator| {
-            if let (qualifier_name, Some(qualifier)) = qualifier? {
-                let member = self.index.find_member(qualifier_name, operator);
-                let member_location = member
-                    .map(|it| it.get_location_in_parent())
-                    .flatten()
-                    .ok_or(format!("Unknown reference '{:}.{:}' at {:}", qualifier_name, operator, self.new_lines.get_location_information(offset)))?;
-
-                    //.unwrap();
-                let member_data_type = member.map(|it| it.get_type_name()).unwrap();
-                let gep = self
-                    .builder
-                    .build_struct_gep(qualifier, member_location, operator);
-                
-                Ok((member_data_type, gep.ok()))
-            } else {
-                Ok(("",None))
-            }
-        })?;
-        ptr.map(|it| (self.index.find_type_information(data_type),Some(it))).ok_or(format!("Could not generate reference for {}", segments.join(".")))
+            (type_name, self.get_variable(&[name.to_string()]))
+        };
+        ptr
+            .map(|it| LValue{ type_name: data_type.to_string(), type_information: self.index.find_type_information(data_type).unwrap(), ptr_value: it})
+            .ok_or(format!("Could not generate reference for {}", name))
     }
 
     fn generate_reference_from_value(&self, lvalue: (Option<DataTypeInformation<'ctx>>, Option<PointerValue<'ctx>>), name : &str) -> Result<ExpressionValue<'ctx>, String> {
@@ -1047,10 +1078,10 @@ impl<'ctx> CodeGen<'ctx> {
         ))
     }
 
-    fn generate_variable_reference(&self, segments: &[String], location: &Range<usize>) -> Result<ExpressionValue<'ctx>, String> {
-        let lvalue = self.generate_lvalue_for_reference(segments, location)?;
+    fn generate_variable_reference(&self, name: String, location: &Range<usize>) -> Result<ExpressionValue<'ctx>, String> {
+        let lvalue = self.generate_lvalue_for_reference(None, &name, location)?;
 
-        self.generate_reference_from_value(lvalue, &segments.join("."))
+        self.generate_reference_from_value((Some(lvalue.type_information.clone()) , Some(lvalue.ptr_value)), &name)
 
     }
 
