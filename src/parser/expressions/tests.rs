@@ -1566,6 +1566,58 @@ fn multidim_arrays_can_be_parsed() {
 }
 
 #[test]
+fn arrays_in_structs_can_be_parsed() {
+    let lexer = lexer::lex(
+        "
+        PROGRAM buz VAR x : MyStructWithArray; END_VAR x.y[7]; END_PROGRAM",
+    );
+    let result = parse(lexer).unwrap().0;
+
+    let prg = &result.units[0];
+    let statement = &prg.statements[0];
+    let ast_string = format!("{:#?}", statement);
+    let expected_ast = r#"ArrayAccess {
+    reference: Reference {
+        elements: [
+            "x",
+            "y",
+        ],
+    },
+    access: LiteralInteger {
+        value: "7",
+    },
+}"#;
+
+    assert_eq!(ast_string, expected_ast);
+}
+
+#[test]
+fn arrays_of_structs_can_be_parsed() {
+    let lexer = lexer::lex(
+        "
+        PROGRAM buz VAR x : ARRAY[0..1] OF MyStruct; END_VAR x[1].y; END_PROGRAM",
+    );
+    let result = parse(lexer).unwrap().0;
+
+    let prg = &result.units[0];
+    let statement = &prg.statements[0];
+    let ast_string = format!("{:#?}", statement);
+    let expected_ast = r#"ArrayAccess {
+    reference: Reference {
+        elements: [
+            "x",
+            "y",
+        ],
+    },
+    access: LiteralInteger {
+        value: "7",
+    },
+}"#;
+
+    assert_eq!(ast_string, expected_ast);
+}
+
+#[test]
 fn function_call_formal_params() {
     let lexer = lexer::lex(
         "
