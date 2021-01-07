@@ -268,7 +268,7 @@ fn parse_expression(lexer: &mut RustyLexer) -> Result<Statement, String> {
 }
 
 fn parse_reference(lexer: &mut RustyLexer) -> Result<Statement, String> {
-    expressions::parse_reference(lexer)
+    expressions::parse_qualified_reference(lexer)
 }
 
 fn parse_control(lexer : &mut RustyLexer) -> Result<Statement, String> {

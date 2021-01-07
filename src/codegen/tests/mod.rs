@@ -2103,12 +2103,12 @@ entry:
 define void @prg(%prg_interface* %0) {
 entry:
   %x = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 0
-  %load_foo.x = load i32, i32* getelementptr inbounds (%foo_interface, %foo_interface* @foo_instance, i32 0, i32 0)
-  store i32 %load_foo.x, i32* %x
-  %load_foo.y = load i32, i32* getelementptr inbounds (%foo_interface, %foo_interface* @foo_instance, i32 0, i32 1)
-  store i32 %load_foo.y, i32* %x
-  %load_foo.baz.x = load i32, i32* getelementptr inbounds (%foo_interface, %foo_interface* @foo_instance, i32 0, i32 2, i32 0)
-  store i32 %load_foo.baz.x, i32* %x
+  %load_ = load i32, i32* getelementptr inbounds (%foo_interface, %foo_interface* @foo_instance, i32 0, i32 0)
+  store i32 %load_, i32* %x
+  %load_1 = load i32, i32* getelementptr inbounds (%foo_interface, %foo_interface* @foo_instance, i32 0, i32 1)
+  store i32 %load_1, i32* %x
+  %load_2 = load i32, i32* getelementptr inbounds (%foo_interface, %foo_interface* @foo_instance, i32 0, i32 2, i32 0)
+  store i32 %load_2, i32* %x
   ret void
 }
 "#;

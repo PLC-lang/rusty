@@ -13,8 +13,8 @@ fn single_statement_parsed() {
     let prg = &result.units[0];
     let statement = &prg.statements[0];
 
-    if let Statement::Reference { elements, ..} = statement {
-        assert_eq!(&elements[0], "x");
+    if let Statement::Reference { name, ..} = statement {
+        assert_eq!(name, "x");
     } else {
         panic!("Expected Reference but found {:?}", statement);
     }
@@ -28,9 +28,11 @@ fn qualified_reference_statement_parsed() {
     let prg = &result.units[0];
     let statement = &prg.statements[0];
 
-    if let Statement::Reference { elements , ..} = statement {
-        assert_eq!(&elements[0], "a");
-        assert_eq!(&elements[1], "x");
+    if let Statement::QualifiedReference { elements , ..} = statement {
+        assert_eq!(elements, &[
+            Statement::Reference{name: "a".to_string(), location: 12..13},
+            Statement::Reference{name: "x".to_string(), location: 14..15},
+        ]);
     } else {
         panic!("Expected Reference but found {:?}", statement);
     }
@@ -65,11 +67,11 @@ fn additon_of_two_variables_parsed() {
         right, //Box<Reference> {name : right}),
     } = statement
     {
-        if let Statement::Reference { elements, .. } = &**left {
-            assert_eq!(elements[0], "x");
+        if let Statement::Reference { name, .. } = &**left {
+            assert_eq!(name, "x");
         }
-        if let Statement::Reference { elements, .. } = &**right {
-            assert_eq!(elements[0], "y");
+        if let Statement::Reference { name, .. } = &**right {
+            assert_eq!(name, "y");
         }
         assert_eq!(operator, &super::Operator::Plus);
     } else {
@@ -92,8 +94,8 @@ fn additon_of_three_variables_parsed() {
     } = statement
     {
         assert_eq!(operator, &super::Operator::Plus);
-        if let Statement::Reference { elements, .. } = &**left {
-            assert_eq!(elements[0], "x");
+        if let Statement::Reference { name, .. } = &**left {
+            assert_eq!(name, "x");
         }
         if let Statement::BinaryExpression {
             operator,
@@ -101,11 +103,11 @@ fn additon_of_three_variables_parsed() {
             right,
         } = &**right
         {
-            if let Statement::Reference { elements ,..} = &**left {
-                assert_eq!(elements[0], "y");
+            if let Statement::Reference { name ,..} = &**left {
+                assert_eq!(name, "y");
             }
-            if let Statement::Reference { elements, ..} = &**right {
-                assert_eq!(elements[0], "z");
+            if let Statement::Reference { name, ..} = &**right {
+                assert_eq!(name, "z");
             }
             assert_eq!(operator, &super::Operator::Minus);
         } else {
@@ -130,11 +132,11 @@ fn parenthesis_expressions_should_not_change_the_ast() {
         right,
     } = statement
     {
-        if let Statement::Reference { elements, ..} = &**left {
-            assert_eq!(elements[0], "x");
+        if let Statement::Reference { name, ..} = &**left {
+            assert_eq!(name, "x");
         }
-        if let Statement::Reference { elements, .. } = &**right {
-            assert_eq!(elements[0], "y");
+        if let Statement::Reference { name, .. } = &**right {
+            assert_eq!(name, "y");
         }
         assert_eq!(operator, &super::Operator::Plus);
     } else {
@@ -338,9 +340,7 @@ fn assignment_test() {
         let ast_string = format!("{:#?}", statement);
         let expected_ast = r#"Assignment {
     left: Reference {
-        elements: [
-            "x",
-        ],
+        name: "x",
     },
     right: LiteralInteger {
         value: "3",
@@ -354,9 +354,7 @@ fn assignment_test() {
         let ast_string = format!("{:#?}", statement);
         let expected_ast = r#"Assignment {
     left: Reference {
-        elements: [
-            "x",
-        ],
+        name: "x",
     },
     right: BinaryExpression {
         operator: Plus,
@@ -384,9 +382,7 @@ fn equality_expression_test() {
         let expected_ast = r#"BinaryExpression {
     operator: Equal,
     left: Reference {
-        elements: [
-            "x",
-        ],
+        name: "x",
     },
     right: LiteralInteger {
         value: "3",
@@ -403,9 +399,7 @@ fn equality_expression_test() {
     left: BinaryExpression {
         operator: Minus,
         left: Reference {
-            elements: [
-                "x",
-            ],
+            name: "x",
         },
         right: LiteralInteger {
             value: "0",
@@ -443,9 +437,7 @@ fn comparison_expression_test() {
         let expected_ast = r#"BinaryExpression {
     operator: Less,
     left: Reference {
-        elements: [
-            "a",
-        ],
+        name: "a",
     },
     right: LiteralInteger {
         value: "3",
@@ -458,9 +450,7 @@ fn comparison_expression_test() {
         let expected_ast = r#"BinaryExpression {
     operator: Greater,
     left: Reference {
-        elements: [
-            "b",
-        ],
+        name: "b",
     },
     right: LiteralInteger {
         value: "0",
@@ -473,9 +463,7 @@ fn comparison_expression_test() {
         let expected_ast = r#"BinaryExpression {
     operator: LessOrEqual,
     left: Reference {
-        elements: [
-            "c",
-        ],
+        name: "c",
     },
     right: LiteralInteger {
         value: "7",
@@ -488,9 +476,7 @@ fn comparison_expression_test() {
         let expected_ast = r#"BinaryExpression {
     operator: GreaterOrEqual,
     left: Reference {
-        elements: [
-            "d",
-        ],
+        name: "d",
     },
     right: LiteralInteger {
         value: "4",
@@ -503,9 +489,7 @@ fn comparison_expression_test() {
         let statement = &prg.statements[4];
         let expected_ast = r#"Assignment {
     left: Reference {
-        elements: [
-            "e",
-        ],
+        name: "e",
     },
     right: BinaryExpression {
         operator: Greater,
@@ -547,30 +531,22 @@ fn boolean_expression_ast_test() {
     left: BinaryExpression {
         operator: And,
         left: Reference {
-            elements: [
-                "a",
-            ],
+            name: "a",
         },
         right: UnaryExpression {
             operator: Not,
             value: Reference {
-                elements: [
-                    "b",
-                ],
+                name: "b",
             },
         },
     },
     right: BinaryExpression {
         operator: Xor,
         left: Reference {
-            elements: [
-                "c",
-            ],
+            name: "c",
         },
         right: Reference {
-            elements: [
-                "d",
-            ],
+            name: "d",
         },
     },
 }"#;
@@ -578,7 +554,7 @@ fn boolean_expression_ast_test() {
 }
 
 #[test]
-fn boolean_expression_paran_ast_test() {
+fn boolean_expression_param_ast_test() {
     let lexer = lexer::lex("PROGRAM exp a AND (NOT (b OR c) XOR d); END_PROGRAM");
     let result = parse(lexer).unwrap().0;
 
@@ -589,9 +565,7 @@ fn boolean_expression_paran_ast_test() {
     let expected_ast = r#"BinaryExpression {
     operator: And,
     left: Reference {
-        elements: [
-            "a",
-        ],
+        name: "a",
     },
     right: BinaryExpression {
         operator: Xor,
@@ -600,21 +574,15 @@ fn boolean_expression_paran_ast_test() {
             value: BinaryExpression {
                 operator: Or,
                 left: Reference {
-                    elements: [
-                        "b",
-                    ],
+                    name: "b",
                 },
                 right: Reference {
-                    elements: [
-                        "c",
-                    ],
+                    name: "c",
                 },
             },
         },
         right: Reference {
-            elements: [
-                "d",
-            ],
+            name: "d",
         },
     },
 }"#;
@@ -706,9 +674,7 @@ fn signed_literal_expression_test() {
     right: UnaryExpression {
         operator: Minus,
         value: Reference {
-            elements: [
-                "x",
-            ],
+            name: "x",
         },
     },
 }"#;
@@ -765,18 +731,14 @@ fn or_compare_expressions_priority_test() {
     left: BinaryExpression {
         operator: Greater,
         left: Reference {
-            elements: [
-                "x",
-            ],
+            name: "x",
         },
         right: LiteralInteger {
             value: "1",
         },
     },
     right: Reference {
-        elements: [
-            "b1",
-        ],
+        name: "b1",
     },
 }"#;
     assert_eq!(ast_string, expected_ast);
@@ -804,9 +766,7 @@ fn addition_compare_or_priority_test() {
         left: BinaryExpression {
             operator: Plus,
             left: Reference {
-                elements: [
-                    "x",
-                ],
+                name: "x",
             },
             right: LiteralInteger {
                 value: "1",
@@ -817,9 +777,7 @@ fn addition_compare_or_priority_test() {
         },
     },
     right: Reference {
-        elements: [
-            "b1",
-        ],
+        name: "b1",
     },
 }"#;
     assert_eq!(ast_string, expected_ast);
@@ -847,26 +805,18 @@ fn boolean_priority_test() {
         left: BinaryExpression {
             operator: And,
             left: Reference {
-                elements: [
-                    "a",
-                ],
+                name: "a",
             },
             right: Reference {
-                elements: [
-                    "b",
-                ],
+                name: "b",
             },
         },
         right: Reference {
-            elements: [
-                "c",
-            ],
+            name: "c",
         },
     },
     right: Reference {
-        elements: [
-            "d",
-        ],
+        name: "d",
     },
 }"#;
     assert_eq!(ast_string, expected_ast);
@@ -892,9 +842,7 @@ fn comparison_priority_test() {
     left: BinaryExpression {
         operator: Less,
         left: Reference {
-            elements: [
-                "x",
-            ],
+            name: "x",
         },
         right: LiteralInteger {
             value: "7",
@@ -903,9 +851,7 @@ fn comparison_priority_test() {
     right: BinaryExpression {
         operator: Greater,
         left: Reference {
-            elements: [
-                "y",
-            ],
+            name: "y",
         },
         right: LiteralInteger {
             value: "6",
@@ -967,9 +913,7 @@ fn expression_list_assignments() {
     expressions: [
         Assignment {
             left: Reference {
-                elements: [
-                    "x",
-                ],
+                name: "x",
             },
             right: LiteralInteger {
                 value: "1",
@@ -977,9 +921,7 @@ fn expression_list_assignments() {
         },
         Assignment {
             left: Reference {
-                elements: [
-                    "y",
-                ],
+                name: "y",
             },
             right: LiteralInteger {
                 value: "2",
@@ -987,9 +929,7 @@ fn expression_list_assignments() {
         },
         Assignment {
             left: Reference {
-                elements: [
-                    "z",
-                ],
+                name: "z",
             },
             right: LiteralInteger {
                 value: "3",
@@ -1021,14 +961,10 @@ fn range_expression() {
     let ast_string = format!("{:#?}", statement);
     let expected_ast = r#"RangeStatement {
     start: Reference {
-        elements: [
-            "a",
-        ],
+        name: "a",
     },
     end: Reference {
-        elements: [
-            "b",
-        ],
+        name: "b",
     },
 }"#;
     assert_eq!(ast_string, expected_ast);
@@ -1051,9 +987,7 @@ fn range_expression() {
     let ast_string = format!("{:#?}", statement);
     let expected_ast = r#"RangeStatement {
     start: Reference {
-        elements: [
-            "a",
-        ],
+        name: "a",
     },
     end: LiteralInteger {
         value: "2",
@@ -1069,9 +1003,7 @@ fn range_expression() {
         value: "2",
     },
     end: Reference {
-        elements: [
-            "a",
-        ],
+        name: "a",
     },
 }"#;
     assert_eq!(ast_string, expected_ast);
@@ -1186,9 +1118,7 @@ fn function_call_no_params() {
 
     let expected_ast = r#"CallStatement {
     operator: Reference {
-        elements: [
-            "fn",
-        ],
+        name: "fn",
     },
     parameters: None,
 }"#;
@@ -1213,9 +1143,7 @@ fn function_call_params() {
 
     let expected_ast = r#"CallStatement {
     operator: Reference {
-        elements: [
-            "fn",
-        ],
+        name: "fn",
     },
     parameters: Some(
         ExpressionList {
@@ -1264,9 +1192,7 @@ fn string_can_be_parsed() {
     let ast_string = format!("{:#?}", statements[0]);
     let expected_ast = r#"Assignment {
     left: Reference {
-        elements: [
-            "x",
-        ],
+        name: "x",
     },
     right: LiteralString {
         value: "Hello, World!",
@@ -1277,9 +1203,7 @@ fn string_can_be_parsed() {
     let ast_string = format!("{:#?}", statements[1]);
     let expected_ast = r#"Assignment {
     left: Reference {
-        elements: [
-            "x",
-        ],
+        name: "x",
     },
     right: LiteralString {
         value: "",
@@ -1329,9 +1253,7 @@ fn arrays_can_be_parsed() {
     let expected_ast = r#"Assignment {
     left: ArrayAccess {
         reference: Reference {
-            elements: [
-                "x",
-            ],
+            name: "x",
         },
         access: LiteralInteger {
             value: "0",
@@ -1347,14 +1269,10 @@ fn arrays_can_be_parsed() {
     let expected_ast = r#"Assignment {
     left: ArrayAccess {
         reference: Reference {
-            elements: [
-                "x",
-            ],
+            name: "x",
         },
         access: Reference {
-            elements: [
-                "y",
-            ],
+            name: "y",
         },
     },
     right: LiteralString {
@@ -1419,9 +1337,7 @@ fn nested_arrays_can_be_parsed() {
     left: ArrayAccess {
         reference: ArrayAccess {
             reference: Reference {
-                elements: [
-                    "x",
-                ],
+                name: "x",
             },
             access: LiteralInteger {
                 value: "0",
@@ -1442,14 +1358,10 @@ fn nested_arrays_can_be_parsed() {
     left: ArrayAccess {
         reference: ArrayAccess {
             reference: Reference {
-                elements: [
-                    "x",
-                ],
+                name: "x",
             },
             access: Reference {
-                elements: [
-                    "y",
-                ],
+                name: "y",
             },
         },
         access: LiteralInteger {
@@ -1516,9 +1428,7 @@ fn multidim_arrays_can_be_parsed() {
     let expected_ast = r#"Assignment {
     left: ArrayAccess {
         reference: Reference {
-            elements: [
-                "x",
-            ],
+            name: "x",
         },
         access: ExpressionList {
             expressions: [
@@ -1541,16 +1451,12 @@ fn multidim_arrays_can_be_parsed() {
     let expected_ast = r#"Assignment {
     left: ArrayAccess {
         reference: Reference {
-            elements: [
-                "x",
-            ],
+            name: "x",
         },
         access: ExpressionList {
             expressions: [
                 Reference {
-                    elements: [
-                        "y",
-                    ],
+                    name: "y",
                 },
                 LiteralInteger {
                     value: "1",
@@ -1562,6 +1468,66 @@ fn multidim_arrays_can_be_parsed() {
         value: "",
     },
 }"#;
+    assert_eq!(ast_string, expected_ast);
+}
+
+#[test]
+fn arrays_in_structs_can_be_parsed() {
+    let lexer = lexer::lex(
+        "
+        PROGRAM buz VAR x : MyStructWithArray; END_VAR x.y[7]; END_PROGRAM",
+    );
+    let result = parse(lexer).unwrap().0;
+
+    let prg = &result.units[0];
+    let statement = &prg.statements[0];
+    let ast_string = format!("{:#?}", statement);
+    let expected_ast = r#"QualifiedReference {
+    elements: [
+        Reference {
+            name: "x",
+        },
+        ArrayAccess {
+            reference: Reference {
+                name: "y",
+            },
+            access: LiteralInteger {
+                value: "7",
+            },
+        },
+    ],
+}"#;
+
+    assert_eq!(ast_string, expected_ast);
+}
+
+#[test]
+fn arrays_of_structs_can_be_parsed() {
+    let lexer = lexer::lex(
+        "
+        PROGRAM buz VAR x : ARRAY[0..1] OF MyStruct; END_VAR x[1].y; END_PROGRAM",
+    );
+    let result = parse(lexer).unwrap().0;
+
+    let prg = &result.units[0];
+    let statement = &prg.statements[0];
+    let ast_string = format!("{:#?}", statement);
+    let expected_ast = r#"QualifiedReference {
+    elements: [
+        ArrayAccess {
+            reference: Reference {
+                name: "x",
+            },
+            access: LiteralInteger {
+                value: "1",
+            },
+        },
+        Reference {
+            name: "y",
+        },
+    ],
+}"#;
+
     assert_eq!(ast_string, expected_ast);
 }
 
@@ -1582,18 +1548,14 @@ fn function_call_formal_params() {
 
     let expected_ast = r#"CallStatement {
     operator: Reference {
-        elements: [
-            "fn",
-        ],
+        name: "fn",
     },
     parameters: Some(
         ExpressionList {
             expressions: [
                 Assignment {
                     left: Reference {
-                        elements: [
-                            "x",
-                        ],
+                        name: "x",
                     },
                     right: LiteralInteger {
                         value: "1",
@@ -1601,9 +1563,7 @@ fn function_call_formal_params() {
                 },
                 Assignment {
                     left: Reference {
-                        elements: [
-                            "y",
-                        ],
+                        name: "y",
                     },
                     right: LiteralInteger {
                         value: "2",
@@ -1611,14 +1571,10 @@ fn function_call_formal_params() {
                 },
                 OutputAssignment {
                     left: Reference {
-                        elements: [
-                            "z",
-                        ],
+                        name: "z",
                     },
                     right: Reference {
-                        elements: [
-                            "a",
-                        ],
+                        name: "a",
                     },
                 },
             ],
@@ -1646,15 +1602,11 @@ fn function_call_return_params() {
 
     let expected_ast = r#"Assignment {
     left: Reference {
-        elements: [
-            "x",
-        ],
+        name: "x",
     },
     right: CallStatement {
         operator: Reference {
-            elements: [
-                "fn",
-            ],
+            name: "fn",
         },
         parameters: Some(
             ExpressionList {
