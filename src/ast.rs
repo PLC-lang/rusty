@@ -73,15 +73,24 @@ impl Debug for VariableBlock {
 pub struct Variable {
     pub name: String,
     pub data_type: DataTypeDeclaration,
+    pub initializer: Option<Statement>,
     pub location: SourceRange,
 }
 
 impl Debug for Variable {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
-        f.debug_struct("Variable")
+        if self.initializer.is_some() {
+            f.debug_struct("Variable")
+            .field("name", &self.name)
+            .field("data_type", &self.data_type)
+            .field("initializer", &self.initializer)
+            .finish()
+        } else {
+            f.debug_struct("Variable")
             .field("name", &self.name)
             .field("data_type", &self.data_type)
             .finish()
+        }
     }
 }
 

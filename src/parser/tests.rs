@@ -543,6 +543,7 @@ fn inline_enum_declaration_can_be_parsed() {
                 elements: vec!["red".to_string(), "yellow".to_string(), "green".to_string()],
             }
         },
+        initializer: None,
         location: 0..0
     };
     let expected_ast = format!("{:#?}", &v);
@@ -743,4 +744,54 @@ fn test_case_without_condition() {
     }else{
         panic!("Expected parse error but didn't get one.");
     }
+}
+
+#[test]
+fn initial_scalar_values_can_be_parsed(){
+    let lexer = lexer::lex(
+            "
+            VAR_GLOBAL
+                x : INT := 7;
+            END_VAR
+
+            PROGRAM MY_PRG
+                VAR
+                    y : REAL := 11.3;
+                END_VAR
+            END_PROGRAM
+            ");
+    let (parse_result, _) = super::parse(lexer).unwrap();
+
+    let x = &parse_result.global_vars[0].variables[0];
+    let expected = 
+r#"Variable {
+    name: "x",
+    data_type: DataTypeReference {
+        referenced_type: "INT",
+    },
+    initializer: Some(
+        LiteralInteger {
+            value: "7",
+        },
+    ),
+}"#;
+
+    assert_eq!(expected, format!("{:#?}", x).as_str());
+
+    let y = &parse_result.units[0].variable_blocks[0].variables[0];
+    let expected = 
+r#"Variable {
+    name: "y",
+    data_type: DataTypeReference {
+        referenced_type: "REAL",
+    },
+    initializer: Some(
+        LiteralReal {
+            value: "11.3",
+        },
+    ),
+}"#;
+
+    assert_eq!(expected, format!("{:#?}", y).as_str());
+
 }

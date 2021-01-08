@@ -317,6 +317,7 @@ fn pre_processing_generates_inline_structs_global() {
                     referenced_type: "INT".to_string()
                 },
                 location: 54..55,
+                initializer: None,
             }]
         },
         new_struct_type
@@ -400,7 +401,8 @@ fn pre_processing_generates_inline_structs() {
                 data_type: DataTypeDeclaration::DataTypeReference {
                     referenced_type: "INT".to_string()
                 },
-                location: 67..68
+                location: 67..68,
+                initializer: None,
             }]
         },
         new_struct_type
@@ -570,6 +572,7 @@ fn pre_processing_nested_array_in_struct() {
                     name: "field1".to_string(),
                     data_type: DataTypeDeclaration::DataTypeReference { referenced_type: "__MyStruct_field1".to_string() },
                     location : 0..0,
+                    initializer: None,
                 }
             ],
         };
