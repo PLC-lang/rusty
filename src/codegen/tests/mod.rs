@@ -2725,3 +2725,26 @@ entry:
 
   assert_eq!(result, expected);
 }
+
+#[test]
+fn initial_values_in_global_variables() {
+  let result = codegen!(
+        "
+        VAR_GLOBAL
+          x : INT := 7;
+          y : BOOL := TRUE;
+          z : REAL := 3.1415;
+        END_VAR
+        "
+    );
+
+    let expected = r#"; ModuleID = 'main'
+source_filename = "main"
+
+@x = global i16 7
+@y = global i1 true
+@z = global float 0x400921CAC0000000
+"#;
+
+  assert_eq!(result, expected);
+}

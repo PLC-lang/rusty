@@ -218,8 +218,10 @@ impl<'ctx> CodeGen<'ctx> {
                     for (i, element) in elements.iter().enumerate() {
                         let int_type = self.context.i32_type();
                         let element_variable =
-                            self.generate_global_variable(int_type.as_basic_type_enum(), element);
-                        element_variable.set_initializer(&int_type.const_int(i as u64, false));
+                            self.generate_global_variable(
+                                int_type.as_basic_type_enum(), 
+                                element, 
+                                Some(&int_type.const_int(i as u64, false)));
                         
                         //associate the enum element's global variable
                         self.index.associate_global_variable(element, element_variable.as_pointer_value());
@@ -247,11 +249,23 @@ impl<'ctx> CodeGen<'ctx> {
     }
 
     fn generate_global_vars(&mut self, global_vars: &VariableBlock) -> Result<(), String> {
-        let members = self.get_variables_information(&global_vars.variables)?;
-        for (name, var_type) in members {
-            let global_value = self.generate_global_variable(var_type, &name);
+
+        for variable in &global_vars.variables {
+            let initial_value = if let Some(statement) = &variable.initializer {
+                Some(self.generate_statement(statement)?
+                        .1
+                        .ok_or_else(|| "cannot generate TODO".to_string())?)
+            } else { 
+                None
+            };
+
+            let name = variable.name.as_str();
+            let global_value = self.generate_global_variable(
+                self.get_variable_information(variable)?,
+                name, 
+                initial_value.as_ref().map(|it| it as &dyn BasicValue));
             self.index
-                .associate_global_variable(name.as_str(), global_value.as_pointer_value());
+                .associate_global_variable(name, global_value.as_pointer_value());
         }
         Ok(())
     }
@@ -291,7 +305,7 @@ impl<'ctx> CodeGen<'ctx> {
         if p.pou_type == PouType::Program {
             let instance_name = CodeGen::get_struct_instance_name(p.name.as_str());
             let global_value =
-                self.generate_global_variable(member_type.into(), instance_name.as_str());
+                self.generate_global_variable(member_type.into(), instance_name.as_str(), None);
             self.index
                 .associate_global_variable(p.name.as_str(), global_value.as_pointer_value());
         }
@@ -366,14 +380,23 @@ impl<'ctx> CodeGen<'ctx> {
     ) -> Result<Vec<(String, BasicTypeEnum<'ctx>)>, String> {
         let mut types: Vec<(String, BasicTypeEnum<'ctx>)> = Vec::new();
         for variable in variables {
-            let var_type = self
-                                .get_type(&variable.data_type)
-                                .ok_or(format!("Unknown datatype '{:}' at {:}", 
-                                        &variable.data_type.get_name().unwrap_or("unknown"), 
-                                        self.new_lines.get_location_information(&variable.location)))?;
-            types.push((variable.name.clone(), var_type));
+            types.push((variable.name.clone(), self.get_variable_information(variable)?));
         }
         Ok(types)
+    }
+
+    fn get_variable_information(
+        &self,
+        variable: &Variable
+    )->Result<BasicTypeEnum<'ctx>, String> {
+        
+        let variable_type = self
+            .get_type(&variable.data_type)
+            .ok_or(format!("Unknown datatype '{:}' at {:}", 
+                &variable.data_type.get_name().unwrap_or("unknown"), 
+                self.new_lines.get_location_information(&variable.location)))?;
+
+        Ok(variable_type)
     }
 
     fn generate_instance_struct(
@@ -408,11 +431,16 @@ impl<'ctx> CodeGen<'ctx> {
         &self,
         variable_type: BasicTypeEnum<'ctx>,
         name: &str,
+        initial_value: Option<&dyn BasicValue<'ctx>>,
     ) -> GlobalValue<'ctx> {
         let result = self
             .module
             .add_global(variable_type, Some(AddressSpace::Generic), name);
-        self.set_initializer_for_type(&result, variable_type);
+        if let Some(initializer) = initial_value {
+            result.set_initializer(initializer);
+        }else{
+            self.set_initializer_for_type(&result, variable_type);
+        }
         result.set_thread_local_mode(None);
         result.set_linkage(Linkage::External);
         result
