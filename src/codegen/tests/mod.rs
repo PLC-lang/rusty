@@ -2787,3 +2787,33 @@ entry:
 
   assert_eq!(result, expected);
 }
+
+#[test]
+fn initial_values_in_struct_types() {
+  let result = codegen!(
+        "
+        TYPE MyStruct:
+        STRUCT
+          x : INT := 7;
+          xx : INT;
+          y : BOOL := TRUE;
+          yy : BOOL;
+          z : REAL := 3.1415;
+          zz : REAL;
+        END_STRUCT
+        END_TYPE
+
+        VAR_GLOBAL x : MyStruct; END_VAR
+        "
+    );
+
+    let expected = r#"; ModuleID = 'main'
+source_filename = "main"
+
+%MyStruct = type { i16, i16, i1, i1, float, float }
+
+@x = global %MyStruct { i32 7, i16 0, i1 true, i1 false, float 0x400921CAC0000000, float 0.000000e+00 }
+"#;
+
+  assert_eq!(result, expected);
+}

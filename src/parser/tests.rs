@@ -754,6 +754,14 @@ fn initial_scalar_values_can_be_parsed(){
                 x : INT := 7;
             END_VAR
 
+            TYPE MyStruct :
+                STRUCT
+                    a: INT := 69;
+                    b: BOOL := TRUE;
+                    c: REAL := 5.25;
+                END_STRUCT
+            END_TYPE
+
             PROGRAM MY_PRG
                 VAR
                     y : REAL := 11.3;
@@ -775,8 +783,52 @@ r#"Variable {
         },
     ),
 }"#;
-
     assert_eq!(expected, format!("{:#?}", x).as_str());
+
+
+    let struct_type = &parse_result.types[0];
+    let expected =
+ r#"StructType {
+    name: Some(
+        "MyStruct",
+    ),
+    variables: [
+        Variable {
+            name: "a",
+            data_type: DataTypeReference {
+                referenced_type: "INT",
+            },
+            initializer: Some(
+                LiteralInteger {
+                    value: "69",
+                },
+            ),
+        },
+        Variable {
+            name: "b",
+            data_type: DataTypeReference {
+                referenced_type: "BOOL",
+            },
+            initializer: Some(
+                LiteralBool {
+                    value: true,
+                },
+            ),
+        },
+        Variable {
+            name: "c",
+            data_type: DataTypeReference {
+                referenced_type: "REAL",
+            },
+            initializer: Some(
+                LiteralReal {
+                    value: "5.25",
+                },
+            ),
+        },
+    ],
+}"#;
+    assert_eq!(expected, format!("{:#?}", struct_type).as_str());
 
     let y = &parse_result.units[0].variable_blocks[0].variables[0];
     let expected = 

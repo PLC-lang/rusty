@@ -217,7 +217,7 @@ impl<'ctx> CodeGen<'ctx> {
             match data_type {
                 DataType::StructType { name, variables } => {
                     let members = self.get_variables_information(&variables)?;
-                    self.generate_instance_struct(&members, name.as_ref().unwrap().as_str());
+                    self.generate_struct_type(&members, name.as_ref().unwrap().as_str());
                 }
                 DataType::EnumType { name: _, elements } => {
                     for (i, element) in elements.iter().enumerate() {
@@ -281,7 +281,7 @@ impl<'ctx> CodeGen<'ctx> {
         }
 
         //Create a struct with the value from the program
-        let (member_type, initializer) = self.generate_instance_struct(&pou_members, &p.name);
+        let (member_type, initializer) = self.generate_struct_type(&pou_members, &p.name);
 
         let member_type_ptr = member_type.ptr_type(AddressSpace::Generic);
         //let return_type = self.context.i32_type();
@@ -391,7 +391,11 @@ impl<'ctx> CodeGen<'ctx> {
 
         let initializer = match &variable.initializer {
             Some(statement) => self.generate_statement(statement)?.1,
-            None => None
+            None => {
+                variable.data_type.get_name()
+                    .and_then(|type_name| self.index.find_type(type_name))
+                    .map(|it| it.get_initial_value()).flatten()
+            }
         };
 
         Ok((variable.name.to_string(), variable_type, initializer))
@@ -400,7 +404,7 @@ impl<'ctx> CodeGen<'ctx> {
     ///
     /// returns the generated type and it's optional initializer
     ///
-    fn generate_instance_struct(
+    fn generate_struct_type(
         &mut self,
         members: &Vec<(String, BasicTypeEnum<'ctx>, Option<BasicValueEnum<'ctx>>)>,
         name: &str,
@@ -426,6 +430,8 @@ impl<'ctx> CodeGen<'ctx> {
                 .collect::<Vec<BasicValueEnum>>();
 
         let initial_value = struct_type.const_named_struct(struct_fields_values.as_slice());
+        self.index.associate_type_initial_value(name, initial_value.into());
+        
         (struct_type, initial_value.as_basic_value_enum())
     }
 
