@@ -195,6 +195,7 @@ pub enum DataType {
     SubRangeType {
         name: Option<String>,
         referenced_type: String,
+        initializer: Option<Statement>,
     },
     ArrayType {
         name: Option<String>,
@@ -219,10 +220,12 @@ impl Debug for DataType {
             DataType::SubRangeType {
                 name,
                 referenced_type,
+                initializer: initial_value ,
             } => f
                 .debug_struct("SubRangeType")
                 .field("name", name)
                 .field("referenced_type", referenced_type)
+                .field("initializer", initial_value)
                 .finish(),
             DataType::ArrayType {
                 name,
@@ -245,7 +248,7 @@ impl DataType {
             DataType::EnumType { name, elements: _ } => *name = Some(new_name),
             DataType::SubRangeType {
                 name,
-                referenced_type: _,
+                ..
             } => *name = Some(new_name),
             DataType::ArrayType { name, .. } => *name = Some(new_name),
         }
@@ -257,7 +260,7 @@ impl DataType {
             DataType::EnumType { name, elements: _ } => name.as_ref().map(|x| x.as_str()),
             DataType::SubRangeType {
                 name,
-                referenced_type: _,
+                ..
             } => name.as_ref().map(|x| x.as_str()),
             DataType::ArrayType { name, .. } => name.as_ref().map(|x| x.as_str()),
         }

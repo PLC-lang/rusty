@@ -130,7 +130,21 @@ impl<'ctx> CodeGen<'ctx> {
                     generated_type: self.context.i32_type().as_basic_type_enum(),
                 },
             ),
-            DataType::SubRangeType { .. } => unimplemented!(),
+            DataType::SubRangeType { name, referenced_type: type_ref_name, initializer:_} => {
+                let alias_name = name.as_ref().unwrap();
+                self.index.associate_type(alias_name, DataTypeInformation::Alias {
+                    name: alias_name.clone(),
+                    referenced_type: type_ref_name.clone(),
+                });
+                //TODO error handling
+                //let ref_type = self.index.find_type(name.as_str()).unwrap();
+                //self.index.associate_type(name, ref_type.get_type_information().unwrap().clone());
+                /*if let Some(initializer_statement) = initializer {
+                    let (Some(initial_value), _) = self.generate_statement(initializer_statement)?;
+                    //TODO add cast
+                    self.index.associate_type_initial_value(name, initial_value)
+                }*/
+            },
             DataType::ArrayType { name , bounds, referenced_type} => {
                 let dimensions = CodeGen::get_array_dimensions(bounds);
                 let target_type = self.get_type(referenced_type).unwrap();
@@ -232,7 +246,14 @@ impl<'ctx> CodeGen<'ctx> {
                         self.index.associate_global_variable(element, element_variable.as_pointer_value());
                     }
                 }
-                DataType::SubRangeType { .. } => unimplemented!(),
+                DataType::SubRangeType { name, referenced_type, initializer } => {
+                    let alias_name = name.as_ref().map(|it| it.as_str()).unwrap();
+                    self.index.associate_type_alias(alias_name, referenced_type.as_str());
+                    if let Some(initializer_statement) = initializer {
+                        let (_, initial_value) = self.generate_statement(initializer_statement)?;
+                        self.index.associate_type_initial_value(alias_name, initial_value.ok_or_else(|| "could not generate initial value for TODO")?);
+                    } 
+                },
                 DataType::ArrayType { .. } => {},
             }
         }

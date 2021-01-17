@@ -2817,3 +2817,21 @@ source_filename = "main"
 
   assert_eq!(result, expected);
 }
+
+#[test]
+fn initial_values_in_type_alias() {
+  let result = codegen!(
+        "
+        TYPE MyInt: INT := 7; END_TYPE 
+        VAR_GLOBAL x : MyInt; END_VAR
+        "
+    );
+
+    let expected = r#"; ModuleID = 'main'
+source_filename = "main"
+
+@x = global i16 7
+"#;
+
+  assert_eq!(result, expected);
+}

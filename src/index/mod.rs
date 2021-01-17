@@ -48,6 +48,10 @@ pub enum DataTypeInformation<'ctx> {
         size: u32,
         generated_type: BasicTypeEnum<'ctx>,
     }, 
+    Alias {
+        name: String,
+        referenced_type: String,
+    }
 }
 
 impl<'ctx> DataTypeInformation<'ctx> {
@@ -81,6 +85,7 @@ impl<'ctx> DataTypeInformation<'ctx> {
             DataTypeInformation::String { generated_type, .. } => *generated_type,
             DataTypeInformation::Struct { generated_type, .. } => *generated_type,
             DataTypeInformation::Array { generated_type, .. } => *generated_type,
+            DataTypeInformation::Alias { .. } => unimplemented!(),
         }
     }
 
@@ -91,6 +96,7 @@ impl<'ctx> DataTypeInformation<'ctx> {
             DataTypeInformation::String { size, .. } => *size,
             DataTypeInformation::Struct { .. } => 0, //TODO : Should we fill in the struct members here for size calculation or save the struct size.
             DataTypeInformation::Array { .. } => unimplemented!(), //Propably length * inner type size
+            DataTypeInformation::Alias { .. } => unimplemented!(),
         }
     }
 }
@@ -277,7 +283,13 @@ impl<'ctx> Index<'ctx> {
     }
 
     pub fn find_type(&self, type_name: &str) -> Option<&DataTypeIndexEntry<'ctx>> {
-        self.types.get(type_name)
+        let data_type = self.types.get(type_name);
+        data_type.map(|it| {
+            if let Some(DataTypeInformation::Alias { referenced_type, .. }) = &it.information {
+                return self.find_type(referenced_type.as_str());
+            }
+            Some(it)
+        }).flatten()
     }
 
     pub fn find_type_information(&self, type_name: &str) -> Option<DataTypeInformation<'ctx>> {
@@ -380,6 +392,12 @@ impl<'ctx> Index<'ctx> {
         if let Some(entry) = self.types.get_mut(name) {
             entry.information = Some(data_type_information);
         };
+    }
+
+    pub fn associate_type_alias(&mut self, alias_name: &str, referenced_type: &str) {
+        if let Some(entry) = self.find_type_information(referenced_type) {
+            self.associate_type(alias_name, entry);
+        }
     }
 
     pub fn associate_type_initial_value(&mut self, name: &str, initial_value: BasicValueEnum<'ctx>) {

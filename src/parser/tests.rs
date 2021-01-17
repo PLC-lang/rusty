@@ -437,6 +437,7 @@ r#"SubRangeType {
         "MyInt",
     ),
     referenced_type: "INT",
+    initializer: None,
 }"#;
 
 assert_eq!(ast_string, exptected_ast);
@@ -762,6 +763,9 @@ fn initial_scalar_values_can_be_parsed(){
                 END_STRUCT
             END_TYPE
 
+            TYPE MyInt : INT := 789;
+            END_TYPE
+
             PROGRAM MY_PRG
                 VAR
                     y : REAL := 11.3;
@@ -829,6 +833,22 @@ r#"Variable {
     ],
 }"#;
     assert_eq!(expected, format!("{:#?}", struct_type).as_str());
+
+    let my_int_type = &parse_result.types[1];
+    let expected =
+ r#"SubRangeType {
+    name: Some(
+        "MyInt",
+    ),
+    referenced_type: "INT",
+    initializer: Some(
+        LiteralInteger {
+            value: "789",
+        },
+    ),
+}"#;
+    assert_eq!(expected, format!("{:#?}", my_int_type).as_str());
+
 
     let y = &parse_result.units[0].variable_blocks[0].variables[0];
     let expected = 
