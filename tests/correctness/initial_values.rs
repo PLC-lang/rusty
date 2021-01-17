@@ -10,6 +10,12 @@ struct MainType {
     z_: f32,
 }
 
+struct ThreeInts {
+    x: i32,
+    y: i32,
+    z: i32,
+}
+
 fn new() -> MainType {
     MainType {
         x: 0,
@@ -62,6 +68,100 @@ fn initia_values_of_programs_members() {
         assert_eq!(false, maintype.y_);
         assert_eq!(3.1415, maintype.z);
         assert_eq!(0.0, maintype.z_);
+}
+
+#[test]
+fn initia_values_of_functionblock_members() {
+    let function = r"
+        FUNCTION_BLOCK MyFB
+        VAR
+            x   : DINT := 77;
+            x_  : DINT;
+            y   : BOOL := TRUE;
+            y_  : BOOL;
+            z   : REAL := 3.1415;
+            z_  : REAL;
+        END_VAR
+        END_FUNCTION_BLOCK
+
+        PROGRAM other
+            VAR myFB: MyFB; END_VAR
+        END_PROGRAM
+
+        PROGRAM main
+        VAR
+            x : DINT;
+            x_ : DINT;
+            y : BOOL;
+            y_ : BOOL;
+            z : REAL;
+            z_ : REAL;
+        END_VAR
+            x := other.myFB.x;
+            x_ := other.myFB.x_;
+            y := other.myFB.y;
+            y_ := other.myFB.y_;
+            z := other.myFB.z;
+            z_ := other.myFB.z_;
+        END_PROGRAM
+        ";
+
+    let mut maintype = new();
+
+    compile_and_run(function.to_string(), &mut maintype);
+
+        assert_eq!(77, maintype.x);
+        assert_eq!(0, maintype.x_);
+        assert_eq!(true, maintype.y);
+        assert_eq!(false, maintype.y_);
+        assert_eq!(3.1415, maintype.z);
+        assert_eq!(0.0, maintype.z_);
+}
+
+
+
+#[test]
+#[ignore]
+fn initia_values_of_function_members() {
+    let function = r"
+        FUNCTION other : DINT
+        VAR
+            x   : DINT := 77;
+            y   : DINT := 88;
+            z   : DINT := 99;
+        END_VAR
+        VAR_INPUT
+            index : INT;
+        END_VAR
+
+            IF index = 0 THEN
+                other := x;
+            ELSIF index = 1 THEN
+                other := y;
+            ELSE
+                other := z;
+            END_IF
+        END_FUNCTION
+
+        PROGRAM main
+        VAR
+            x : DINT;
+            y : DINT;
+            z : DINT;
+        END_VAR
+            x := other(index := 0);
+            y := other(index := 1);
+            z := other(index := 2);
+        END_PROGRAM
+        ";
+
+    let mut maintype = ThreeInts{ x:0, y:0, z:0 };
+
+    compile_and_run(function.to_string(), &mut maintype);
+
+        assert_eq!(77, maintype.x);
+        assert_eq!(88, maintype.y);
+        assert_eq!(99, maintype.z);
 }
 
 #[test]

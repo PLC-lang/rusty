@@ -2789,6 +2789,58 @@ entry:
 }
 
 #[test]
+fn initial_values_in_function_block_pou() {
+  let result = codegen!(
+        "
+        FUNCTION_BLOCK FB
+        VAR
+          x : INT := 7;
+          xx : INT;
+          y : BOOL := TRUE;
+          yy : BOOL;
+          z : REAL := 3.1415;
+          zz : REAL;
+        END_VAR
+        END_FUNCTION_BLOCK
+
+        PROGRAM main
+        VAR
+          fb : FB;
+        END_VAR
+        END_PROGRAM
+        "
+    );
+
+    let expected = r#"; ModuleID = 'main'
+source_filename = "main"
+
+%main_interface = type { %FB_interface }
+%FB_interface = type { i16, i16, i1, i1, float, float }
+
+@main_instance = global %main_interface { %FB_interface { i32 7, i16 0, i1 true, i1 false, float 0x400921CAC0000000, float 0.000000e+00 } }
+
+define void @FB(%FB_interface* %0) {
+entry:
+  %x = getelementptr inbounds %FB_interface, %FB_interface* %0, i32 0, i32 0
+  %xx = getelementptr inbounds %FB_interface, %FB_interface* %0, i32 0, i32 1
+  %y = getelementptr inbounds %FB_interface, %FB_interface* %0, i32 0, i32 2
+  %yy = getelementptr inbounds %FB_interface, %FB_interface* %0, i32 0, i32 3
+  %z = getelementptr inbounds %FB_interface, %FB_interface* %0, i32 0, i32 4
+  %zz = getelementptr inbounds %FB_interface, %FB_interface* %0, i32 0, i32 5
+  ret void
+}
+
+define void @main(%main_interface* %0) {
+entry:
+  %fb = getelementptr inbounds %main_interface, %main_interface* %0, i32 0, i32 0
+  ret void
+}
+"#;
+
+  assert_eq!(result, expected);
+}
+
+#[test]
 fn initial_values_in_struct_types() {
   let result = codegen!(
         "
