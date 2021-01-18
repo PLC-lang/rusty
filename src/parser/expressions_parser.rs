@@ -8,9 +8,6 @@ use super::allow;
 use super::RustyLexer;
 use super::{slice_and_advance, unexpected_token};
 
-#[cfg(test)]
-mod tests;
-
 pub fn parse_primary_expression(lexer: &mut RustyLexer) -> Result<Statement, String> {
     parse_expression_list(lexer)
 }

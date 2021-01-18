@@ -8,9 +8,6 @@ use crate::ast::*;
 use super::RustyLexer;
 use super::{parse_statement, parse_body, parse_expression, parse_reference };
 
-#[cfg(test)]
-mod tests;
-
 pub fn parse_control_statement(lexer: &mut RustyLexer) -> Result<Statement, String> {
     return match lexer.token {
         KeywordIf => parse_if_statement(lexer),

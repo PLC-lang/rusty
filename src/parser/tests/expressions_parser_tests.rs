@@ -1,7 +1,6 @@
 /// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
-use super::Statement;
-use crate::lexer;
+use crate::{ast::{Operator, Statement}, lexer};
 use crate::parser::parse;
 use pretty_assertions::*;
 
@@ -73,7 +72,7 @@ fn additon_of_two_variables_parsed() {
         if let Statement::Reference { name, .. } = &**right {
             assert_eq!(name, "y");
         }
-        assert_eq!(operator, &super::Operator::Plus);
+        assert_eq!(operator, &Operator::Plus);
     } else {
         panic!("Expected Reference but found {:?}", statement);
     }
@@ -93,7 +92,7 @@ fn additon_of_three_variables_parsed() {
         right, //Box<Reference> {name : right}),
     } = statement
     {
-        assert_eq!(operator, &super::Operator::Plus);
+        assert_eq!(operator, &Operator::Plus);
         if let Statement::Reference { name, .. } = &**left {
             assert_eq!(name, "x");
         }
@@ -109,7 +108,7 @@ fn additon_of_three_variables_parsed() {
             if let Statement::Reference { name, ..} = &**right {
                 assert_eq!(name, "z");
             }
-            assert_eq!(operator, &super::Operator::Minus);
+            assert_eq!(operator, &Operator::Minus);
         } else {
             panic!("Expected Reference but found {:?}", statement);
         }
@@ -138,7 +137,7 @@ fn parenthesis_expressions_should_not_change_the_ast() {
         if let Statement::Reference { name, .. } = &**right {
             assert_eq!(name, "y");
         }
-        assert_eq!(operator, &super::Operator::Plus);
+        assert_eq!(operator, &Operator::Plus);
     } else {
         panic!("Expected Reference but found {:?}", statement);
     }

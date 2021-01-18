@@ -1,6 +1,6 @@
 /// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
-use crate::lexer;
+use crate::{codegen_wihout_unwrap, lexer};
 use crate::parser;
 use crate::index::Index;
 use inkwell::context::Context;

@@ -1,8 +1,8 @@
-use super::{Index, VariableType};
 /// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
+
 use pretty_assertions::assert_eq;
 
-use crate::ast::*;
+use crate::{ast::*, index::{Index, VariableType}};
 use crate::lexer;
 use crate::parser;
 
