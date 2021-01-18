@@ -984,7 +984,7 @@ impl<'ctx> CodeGen<'ctx> {
                     panic!("Mismatched array access : {} -> {} ", statements.len(), dimensions.len())
                 } 
                 for (i, statement) in statements.iter().enumerate() {
-                    indices.push(self.generate_access_for_dimension(&dimensions[i], statement).expect("Cannot read array index"))
+                    indices.push(self.generate_access_for_dimension(&dimensions[i], statement)?)
                 }
                 //Load the access from that reference
                 let pointer = unsafe {

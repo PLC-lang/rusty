@@ -142,3 +142,25 @@ fn invalid_struct_access_in_array_should_be_reported_with_line_number() {
         panic!("expected code-gen error but got none")
     }
 }
+
+#[test]
+fn invalid_struct_access_in_array_access_should_be_reported_with_line_number() {
+    let src = "
+        PROGRAM prg 
+            VAR
+                x : ARRAY[0..1] OF INT;
+                y : INT;
+            END_VAR
+            x[y.index] := 2;
+        END_PROGRAM
+        ";
+
+    let result = codegen_wihout_unwrap!(
+            src);
+    if let Err(msg) = result {
+        // that's not perfect yet, we need display-names for generated datatypes
+        assert_eq!("Unknown reference 'INT.index' at line: 7, offset: 17..22", msg);
+    }else{
+        panic!("expected code-gen error but got none")
+    }
+}
