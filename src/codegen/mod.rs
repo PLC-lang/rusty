@@ -27,6 +27,11 @@ mod typesystem;
 
 type ExpressionValue<'a> = (Option<DataTypeInformation<'a>>, Option<BasicValueEnum<'a>>);
 
+///
+/// a touple (name, data_type, initializer) describing the declaration of a variable.
+///
+type VariableDeclarationInformation<'a> = (String, BasicTypeEnum<'a>, Option<BasicValueEnum<'a>>);
+
 struct LValue<'ctx> {
     type_name: String,
     type_information: DataTypeInformation<'ctx>,
@@ -125,7 +130,21 @@ impl<'ctx> CodeGen<'ctx> {
                     generated_type: self.context.i32_type().as_basic_type_enum(),
                 },
             ),
-            DataType::SubRangeType { .. } => unimplemented!(),
+            DataType::SubRangeType { name, referenced_type: type_ref_name, initializer:_} => {
+                let alias_name = name.as_ref().unwrap();
+                self.index.associate_type(alias_name, DataTypeInformation::Alias {
+                    name: alias_name.clone(),
+                    referenced_type: type_ref_name.clone(),
+                });
+                //TODO error handling
+                //let ref_type = self.index.find_type(name.as_str()).unwrap();
+                //self.index.associate_type(name, ref_type.get_type_information().unwrap().clone());
+                /*if let Some(initializer_statement) = initializer {
+                    let (Some(initial_value), _) = self.generate_statement(initializer_statement)?;
+                    //TODO add cast
+                    self.index.associate_type_initial_value(name, initial_value)
+                }*/
+            },
             DataType::ArrayType { name , bounds, referenced_type} => {
                 let dimensions = CodeGen::get_array_dimensions(bounds);
                 let target_type = self.get_type(referenced_type).unwrap();
@@ -212,20 +231,29 @@ impl<'ctx> CodeGen<'ctx> {
             match data_type {
                 DataType::StructType { name, variables } => {
                     let members = self.get_variables_information(&variables)?;
-                    self.generate_instance_struct(&members, name.as_ref().unwrap().as_str());
+                    self.generate_struct_type(&members, name.as_ref().unwrap().as_str());
                 }
                 DataType::EnumType { name: _, elements } => {
                     for (i, element) in elements.iter().enumerate() {
                         let int_type = self.context.i32_type();
                         let element_variable =
-                            self.generate_global_variable(int_type.as_basic_type_enum(), element);
-                        element_variable.set_initializer(&int_type.const_int(i as u64, false));
+                            self.generate_global_variable(
+                                element, 
+                                int_type.as_basic_type_enum(), 
+                                Some(int_type.const_int(i as u64, false).as_basic_value_enum()));
                         
                         //associate the enum element's global variable
                         self.index.associate_global_variable(element, element_variable.as_pointer_value());
                     }
                 }
-                DataType::SubRangeType { .. } => unimplemented!(),
+                DataType::SubRangeType { name, referenced_type, initializer } => {
+                    let alias_name = name.as_ref().map(|it| it.as_str()).unwrap();
+                    self.index.associate_type_alias(alias_name, referenced_type.as_str());
+                    if let Some(initializer_statement) = initializer {
+                        let (_, initial_value) = self.generate_statement(initializer_statement)?;
+                        self.index.associate_type_initial_value(alias_name, initial_value.ok_or_else(|| "could not generate initial value for TODO")?);
+                    } 
+                },
                 DataType::ArrayType { .. } => {},
             }
         }
@@ -247,9 +275,10 @@ impl<'ctx> CodeGen<'ctx> {
     }
 
     fn generate_global_vars(&mut self, global_vars: &VariableBlock) -> Result<(), String> {
-        let members = self.get_variables_information(&global_vars.variables)?;
-        for (name, var_type) in members {
-            let global_value = self.generate_global_variable(var_type, &name);
+
+        for variable in &global_vars.variables {
+            let (name, data_type, initializer) = self.get_variable_information(variable)?;
+            let global_value = self.generate_global_variable(name.as_str(), data_type, initializer);
             self.index
                 .associate_global_variable(name.as_str(), global_value.as_pointer_value());
         }
@@ -259,7 +288,7 @@ impl<'ctx> CodeGen<'ctx> {
     fn generate_pou(&mut self, p: &POU) -> Result<(), String> {
         self.scope = Some(p.name.clone());
 
-        let mut pou_members: Vec<(String, BasicTypeEnum)> = Vec::new();
+        let mut pou_members = Vec::new();
         let return_type = p
             .return_type
             .as_ref()
@@ -273,7 +302,7 @@ impl<'ctx> CodeGen<'ctx> {
         }
 
         //Create a struct with the value from the program
-        let member_type = self.generate_instance_struct(&pou_members, &p.name);
+        let (member_type, initializer) = self.generate_struct_type(&pou_members, &p.name);
 
         let member_type_ptr = member_type.ptr_type(AddressSpace::Generic);
         //let return_type = self.context.i32_type();
@@ -291,7 +320,7 @@ impl<'ctx> CodeGen<'ctx> {
         if p.pou_type == PouType::Program {
             let instance_name = CodeGen::get_struct_instance_name(p.name.as_str());
             let global_value =
-                self.generate_global_variable(member_type.into(), instance_name.as_str());
+                self.generate_global_variable(instance_name.as_str(), member_type.into(), Some(initializer));
             self.index
                 .associate_global_variable(p.name.as_str(), global_value.as_pointer_value());
         }
@@ -311,18 +340,17 @@ impl<'ctx> CodeGen<'ctx> {
         self.builder.position_at_end(block);
         for (i, m) in pou_members.iter().enumerate() {
             let parameter_name = &m.0;
-            let ptr_value = self
-                .current_function
-                .unwrap()
-                .get_first_param()
-                .unwrap()
-                .into_pointer_value();
+
+            let ptr_value = self.current_function
+                    .map(FunctionValue::get_first_param).flatten()
+                    .map(BasicValueEnum::into_pointer_value)
+                    .ok_or_else(|| "self.current_function must not be empty")?;
+            
             self.index.associate_local_variable(
                 p.name.as_str(),
                 parameter_name,
                 self.builder
-                    .build_struct_gep(ptr_value, i as u32, &parameter_name)
-                    .unwrap(),
+                    .build_struct_gep(ptr_value, i as u32, &parameter_name).unwrap(),
             )
         }
         //Insert return variable
@@ -363,35 +391,82 @@ impl<'ctx> CodeGen<'ctx> {
     fn get_variables_information(
         &self,
         variables: &Vec<Variable>,
-    ) -> Result<Vec<(String, BasicTypeEnum<'ctx>)>, String> {
-        let mut types: Vec<(String, BasicTypeEnum<'ctx>)> = Vec::new();
+    ) -> Result<Vec<VariableDeclarationInformation<'ctx>>, String> {
+        let mut types: Vec<VariableDeclarationInformation<'ctx>> = Vec::new();
         for variable in variables {
-            let var_type = self
-                                .get_type(&variable.data_type)
-                                .ok_or(format!("Unknown datatype '{:}' at {:}", 
-                                        &variable.data_type.get_name().unwrap_or("unknown"), 
-                                        self.new_lines.get_location_information(&variable.location)))?;
-            types.push((variable.name.clone(), var_type));
+            types.push(self.get_variable_information(variable)?);
         }
         Ok(types)
     }
 
-    fn generate_instance_struct(
+    fn get_variable_information(
         &self,
-        members: &Vec<(String, BasicTypeEnum)>,
+        variable: &Variable
+    )->Result<VariableDeclarationInformation<'ctx>, String> {
+        
+        let variable_type = self
+            .get_type(&variable.data_type)
+            .ok_or(format!("Unknown datatype '{:}' at {:}", 
+                &variable.data_type.get_name().unwrap_or("unknown"), 
+                self.new_lines.get_location_information(&variable.location)))?;
+
+        let initializer = match &variable.initializer {
+            Some(statement) => self.generate_statement(statement)?.1,
+            None => {
+                variable.data_type.get_name()
+                    .and_then(|type_name| self.index.find_type(type_name))
+                    .map(|it| it.get_initial_value()).flatten()
+            }
+        };
+
+        Ok((variable.name.to_string(), variable_type, initializer))
+    }
+
+    ///
+    /// returns the generated type and it's optional initializer
+    ///
+    fn generate_struct_type(
+        &mut self,
+        members: &Vec<(String, BasicTypeEnum<'ctx>, Option<BasicValueEnum<'ctx>>)>,
         name: &str,
-    ) -> StructType<'ctx> {
-        let struct_type = self
+    ) -> (StructType<'ctx>, BasicValueEnum<'ctx>) {
+        let struct_type_info = self
             .index
             .find_type(name)
-            .unwrap()
-            .get_type()
+            .unwrap();
+
+        let struct_type = struct_type_info.get_type()
             .unwrap()
             .into_struct_type();
-        let member_types: Vec<BasicTypeEnum> = members.iter().map(|(_, t)| *t).collect();
+        let member_types: Vec<BasicTypeEnum> = members.iter().map(|(_, t, _)| *t).collect();
         struct_type.set_body(member_types.as_slice(), false);
-        struct_type
+        
+        let struct_fields_values = members.iter()
+                .map(|(_,basic_type, initializer)| 
+                    
+                    initializer
+                        .unwrap_or_else(|| self.get_default_for(basic_type.clone())
+                    
+                    ))
+                .collect::<Vec<BasicValueEnum>>();
+
+        let initial_value = struct_type.const_named_struct(struct_fields_values.as_slice());
+        self.index.associate_type_initial_value(name, initial_value.into());
+        
+        (struct_type, initial_value.as_basic_value_enum())
     }
+
+    fn get_default_for(&self, basic_type : BasicTypeEnum<'ctx>) -> BasicValueEnum<'ctx> {
+        match basic_type{
+            BasicTypeEnum::ArrayType(t) => t.const_zero().as_basic_value_enum(),
+            BasicTypeEnum::FloatType(t) => t.const_zero().as_basic_value_enum(),
+            BasicTypeEnum::IntType(t) => t.const_zero().as_basic_value_enum(),
+            BasicTypeEnum::PointerType(t) => t.const_zero().as_basic_value_enum(),
+            BasicTypeEnum::StructType(t) => t.const_zero().as_basic_value_enum(),
+            BasicTypeEnum::VectorType(t) => t.const_zero().as_basic_value_enum(), 
+        }
+    }
+
     fn set_initializer_for_type(
         &self,
         global_value: &GlobalValue<'ctx>,
@@ -406,13 +481,19 @@ impl<'ctx> CodeGen<'ctx> {
 
     fn generate_global_variable(
         &self,
-        variable_type: BasicTypeEnum<'ctx>,
         name: &str,
+        variable_type: BasicTypeEnum<'ctx>,
+        initial_value: Option<BasicValueEnum<'ctx>>,
     ) -> GlobalValue<'ctx> {
         let result = self
             .module
             .add_global(variable_type, Some(AddressSpace::Generic), name);
-        self.set_initializer_for_type(&result, variable_type);
+        if let Some(initializer) = initial_value {
+            let v = &initializer as &dyn BasicValue;
+            result.set_initializer(v);
+        }else{
+            self.set_initializer_for_type(&result, variable_type);
+        }
         result.set_thread_local_mode(None);
         result.set_linkage(Linkage::External);
         result

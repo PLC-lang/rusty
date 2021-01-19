@@ -73,15 +73,24 @@ impl Debug for VariableBlock {
 pub struct Variable {
     pub name: String,
     pub data_type: DataTypeDeclaration,
+    pub initializer: Option<Statement>,
     pub location: SourceRange,
 }
 
 impl Debug for Variable {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
-        f.debug_struct("Variable")
+        if self.initializer.is_some() {
+            f.debug_struct("Variable")
+            .field("name", &self.name)
+            .field("data_type", &self.data_type)
+            .field("initializer", &self.initializer)
+            .finish()
+        } else {
+            f.debug_struct("Variable")
             .field("name", &self.name)
             .field("data_type", &self.data_type)
             .finish()
+        }
     }
 }
 
@@ -186,6 +195,7 @@ pub enum DataType {
     SubRangeType {
         name: Option<String>,
         referenced_type: String,
+        initializer: Option<Statement>,
     },
     ArrayType {
         name: Option<String>,
@@ -210,10 +220,12 @@ impl Debug for DataType {
             DataType::SubRangeType {
                 name,
                 referenced_type,
+                initializer: initial_value ,
             } => f
                 .debug_struct("SubRangeType")
                 .field("name", name)
                 .field("referenced_type", referenced_type)
+                .field("initializer", initial_value)
                 .finish(),
             DataType::ArrayType {
                 name,
@@ -236,7 +248,7 @@ impl DataType {
             DataType::EnumType { name, elements: _ } => *name = Some(new_name),
             DataType::SubRangeType {
                 name,
-                referenced_type: _,
+                ..
             } => *name = Some(new_name),
             DataType::ArrayType { name, .. } => *name = Some(new_name),
         }
@@ -248,7 +260,7 @@ impl DataType {
             DataType::EnumType { name, elements: _ } => name.as_ref().map(|x| x.as_str()),
             DataType::SubRangeType {
                 name,
-                referenced_type: _,
+                ..
             } => name.as_ref().map(|x| x.as_str()),
             DataType::ArrayType { name, .. } => name.as_ref().map(|x| x.as_str()),
         }

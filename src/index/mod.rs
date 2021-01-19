@@ -3,7 +3,7 @@
 use std::collections::HashMap;
 
 use crate::ast::CompilationUnit;
-use inkwell::types::BasicTypeEnum;
+use inkwell::{types::BasicTypeEnum, values::BasicValueEnum};
 use inkwell::values::{FunctionValue, PointerValue};
 
 mod pre_processor;
@@ -48,6 +48,10 @@ pub enum DataTypeInformation<'ctx> {
         size: u32,
         generated_type: BasicTypeEnum<'ctx>,
     }, 
+    Alias {
+        name: String,
+        referenced_type: String,
+    }
 }
 
 impl<'ctx> DataTypeInformation<'ctx> {
@@ -81,6 +85,7 @@ impl<'ctx> DataTypeInformation<'ctx> {
             DataTypeInformation::String { generated_type, .. } => *generated_type,
             DataTypeInformation::Struct { generated_type, .. } => *generated_type,
             DataTypeInformation::Array { generated_type, .. } => *generated_type,
+            DataTypeInformation::Alias { .. } => unimplemented!(),
         }
     }
 
@@ -91,6 +96,7 @@ impl<'ctx> DataTypeInformation<'ctx> {
             DataTypeInformation::String { size, .. } => *size,
             DataTypeInformation::Struct { .. } => 0, //TODO : Should we fill in the struct members here for size calculation or save the struct size.
             DataTypeInformation::Array { .. } => unimplemented!(), //Propably length * inner type size
+            DataTypeInformation::Alias { .. } => unimplemented!(),
         }
     }
 }
@@ -105,6 +111,8 @@ pub struct VariableIndexEntry<'ctx> {
 pub struct DataTypeIndexEntry<'ctx> {
     name: String,
     implementation: Option<FunctionValue<'ctx>>, // the generated function to call if this type is callable
+    /// the initial value defined on the TYPE-declration
+    initial_value: Option<BasicValueEnum<'ctx>>,
     information: Option<DataTypeInformation<'ctx>>,
 }
 
@@ -131,10 +139,6 @@ impl<'ctx> VariableIndexEntry<'ctx> {
     }
 }
 impl<'ctx> DataTypeIndexEntry<'ctx> {
-    pub fn associate_implementation(&mut self, implementation: FunctionValue<'ctx>) {
-        self.implementation = Some(implementation);
-    }
-
     pub fn get_type(&self) -> Option<BasicTypeEnum<'ctx>> {
         self.information.as_ref().map(|it| it.get_type())
     }
@@ -142,6 +146,10 @@ impl<'ctx> DataTypeIndexEntry<'ctx> {
     pub fn get_implementation(&self) -> Option<FunctionValue<'ctx>> {
         self.implementation
     }
+
+    pub fn get_initial_value(&self) -> Option<BasicValueEnum<'ctx>> {
+        self.initial_value
+    } 
 
     pub fn get_name(&self) -> &str {
         self.name.as_str()
@@ -218,6 +226,7 @@ impl<'ctx> Index<'ctx> {
                 name: "void".to_string(),
                 implementation: None,
                 information: None,
+                initial_value: None
             },
         };
         index
@@ -274,7 +283,13 @@ impl<'ctx> Index<'ctx> {
     }
 
     pub fn find_type(&self, type_name: &str) -> Option<&DataTypeIndexEntry<'ctx>> {
-        self.types.get(type_name)
+        let data_type = self.types.get(type_name);
+        data_type.map(|it| {
+            if let Some(DataTypeInformation::Alias { referenced_type, .. }) = &it.information {
+                return self.find_type(referenced_type.as_str());
+            }
+            Some(it)
+        }).flatten()
     }
 
     pub fn find_type_information(&self, type_name: &str) -> Option<DataTypeInformation<'ctx>> {
@@ -379,6 +394,18 @@ impl<'ctx> Index<'ctx> {
         };
     }
 
+    pub fn associate_type_alias(&mut self, alias_name: &str, referenced_type: &str) {
+        if let Some(entry) = self.find_type_information(referenced_type) {
+            self.associate_type(alias_name, entry);
+        }
+    }
+
+    pub fn associate_type_initial_value(&mut self, name: &str, initial_value: BasicValueEnum<'ctx>) {
+        if let Some(entry) = self.types.get_mut(name) {
+            entry.initial_value = Some(initial_value);
+        }
+    }
+
     pub fn print_global_variables(&self) {
         println!("{:?}", self.global_variables);
     }
@@ -388,6 +415,7 @@ impl<'ctx> Index<'ctx> {
             name: type_name.clone(),
             implementation: None,
             information: None,
+            initial_value: None,
         };
         self.types.insert(type_name, index_entry);
     }

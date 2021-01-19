@@ -2725,3 +2725,165 @@ entry:
 
   assert_eq!(result, expected);
 }
+
+#[test]
+fn initial_values_in_global_variables() {
+  let result = codegen!(
+        "
+        VAR_GLOBAL
+          x : INT := 7;
+          y : BOOL := TRUE;
+          z : REAL := 3.1415;
+        END_VAR
+        "
+    );
+
+    let expected = r#"; ModuleID = 'main'
+source_filename = "main"
+
+@x = global i16 7
+@y = global i1 true
+@z = global float 0x400921CAC0000000
+"#;
+
+  assert_eq!(result, expected);
+}
+
+#[test]
+fn initial_values_in_program_pou() {
+  let result = codegen!(
+        "
+        PROGRAM Main
+        VAR
+          x : INT := 7;
+          xx : INT;
+          y : BOOL := TRUE;
+          yy : BOOL;
+          z : REAL := 3.1415;
+          zz : REAL;
+        END_VAR
+        END_PROGRAM
+        "
+    );
+
+    let expected = r#"; ModuleID = 'main'
+source_filename = "main"
+
+%Main_interface = type { i16, i16, i1, i1, float, float }
+
+@Main_instance = global %Main_interface { i32 7, i16 0, i1 true, i1 false, float 0x400921CAC0000000, float 0.000000e+00 }
+
+define void @Main(%Main_interface* %0) {
+entry:
+  %x = getelementptr inbounds %Main_interface, %Main_interface* %0, i32 0, i32 0
+  %xx = getelementptr inbounds %Main_interface, %Main_interface* %0, i32 0, i32 1
+  %y = getelementptr inbounds %Main_interface, %Main_interface* %0, i32 0, i32 2
+  %yy = getelementptr inbounds %Main_interface, %Main_interface* %0, i32 0, i32 3
+  %z = getelementptr inbounds %Main_interface, %Main_interface* %0, i32 0, i32 4
+  %zz = getelementptr inbounds %Main_interface, %Main_interface* %0, i32 0, i32 5
+  ret void
+}
+"#;
+
+  assert_eq!(result, expected);
+}
+
+#[test]
+fn initial_values_in_function_block_pou() {
+  let result = codegen!(
+        "
+        FUNCTION_BLOCK FB
+        VAR
+          x : INT := 7;
+          xx : INT;
+          y : BOOL := TRUE;
+          yy : BOOL;
+          z : REAL := 3.1415;
+          zz : REAL;
+        END_VAR
+        END_FUNCTION_BLOCK
+
+        PROGRAM main
+        VAR
+          fb : FB;
+        END_VAR
+        END_PROGRAM
+        "
+    );
+
+    let expected = r#"; ModuleID = 'main'
+source_filename = "main"
+
+%main_interface = type { %FB_interface }
+%FB_interface = type { i16, i16, i1, i1, float, float }
+
+@main_instance = global %main_interface { %FB_interface { i32 7, i16 0, i1 true, i1 false, float 0x400921CAC0000000, float 0.000000e+00 } }
+
+define void @FB(%FB_interface* %0) {
+entry:
+  %x = getelementptr inbounds %FB_interface, %FB_interface* %0, i32 0, i32 0
+  %xx = getelementptr inbounds %FB_interface, %FB_interface* %0, i32 0, i32 1
+  %y = getelementptr inbounds %FB_interface, %FB_interface* %0, i32 0, i32 2
+  %yy = getelementptr inbounds %FB_interface, %FB_interface* %0, i32 0, i32 3
+  %z = getelementptr inbounds %FB_interface, %FB_interface* %0, i32 0, i32 4
+  %zz = getelementptr inbounds %FB_interface, %FB_interface* %0, i32 0, i32 5
+  ret void
+}
+
+define void @main(%main_interface* %0) {
+entry:
+  %fb = getelementptr inbounds %main_interface, %main_interface* %0, i32 0, i32 0
+  ret void
+}
+"#;
+
+  assert_eq!(result, expected);
+}
+
+#[test]
+fn initial_values_in_struct_types() {
+  let result = codegen!(
+        "
+        TYPE MyStruct:
+        STRUCT
+          x : INT := 7;
+          xx : INT;
+          y : BOOL := TRUE;
+          yy : BOOL;
+          z : REAL := 3.1415;
+          zz : REAL;
+        END_STRUCT
+        END_TYPE
+
+        VAR_GLOBAL x : MyStruct; END_VAR
+        "
+    );
+
+    let expected = r#"; ModuleID = 'main'
+source_filename = "main"
+
+%MyStruct = type { i16, i16, i1, i1, float, float }
+
+@x = global %MyStruct { i32 7, i16 0, i1 true, i1 false, float 0x400921CAC0000000, float 0.000000e+00 }
+"#;
+
+  assert_eq!(result, expected);
+}
+
+#[test]
+fn initial_values_in_type_alias() {
+  let result = codegen!(
+        "
+        TYPE MyInt: INT := 7; END_TYPE 
+        VAR_GLOBAL x : MyInt; END_VAR
+        "
+    );
+
+    let expected = r#"; ModuleID = 'main'
+source_filename = "main"
+
+@x = global i16 7
+"#;
+
+  assert_eq!(result, expected);
+}
