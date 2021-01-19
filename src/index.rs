@@ -7,9 +7,9 @@ use inkwell::{types::BasicTypeEnum, values::BasicValueEnum};
 use inkwell::values::{FunctionValue, PointerValue};
 
 mod pre_processor;
+mod visitor;
 #[cfg(test)]
 mod tests;
-mod visitor;
 
 #[derive(Debug, Clone)]
 pub struct Dimension {

@@ -4,11 +4,11 @@ use crate::ast::*;
 use crate::lexer;
 use crate::lexer::{Token::*,RustyLexer};
 
-use expressions::parse_primary_expression;
-use control::parse_control_statement;
+use self::{control_parser::parse_control_statement, expressions_parser::parse_primary_expression};
 
-mod expressions;
-mod control;
+
+mod expressions_parser;
+mod control_parser;
 
 #[cfg(test)]
 mod tests;
@@ -288,7 +288,7 @@ fn parse_expression(lexer: &mut RustyLexer) -> Result<Statement, String> {
 }
 
 fn parse_reference(lexer: &mut RustyLexer) -> Result<Statement, String> {
-    expressions::parse_qualified_reference(lexer)
+    expressions_parser::parse_qualified_reference(lexer)
 }
 
 fn parse_control(lexer : &mut RustyLexer) -> Result<Statement, String> {

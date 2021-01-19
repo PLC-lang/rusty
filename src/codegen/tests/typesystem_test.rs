@@ -1,6 +1,7 @@
 /// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
 use super::*;
+use crate::codegen;
 
 //Same size operations remain the same
 // Different types smaller than int converted to int (expanded according to sign)

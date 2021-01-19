@@ -1,9 +1,8 @@
 /// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
-use crate::lexer;
+use crate::{ast::Statement, lexer};
 use crate::parser::parse;
 use pretty_assertions::*;
-use super::Statement;
 
 #[test]
 fn if_statement() {

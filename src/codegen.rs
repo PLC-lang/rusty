@@ -1,7 +1,6 @@
-use std::ops::Range;
-
 /// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
+use std::ops::Range;
 use super::ast::*;
 use inkwell::builder::Builder;
 use inkwell::context::Context;
