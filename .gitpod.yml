@@ -1,2 +1,2 @@
 image:
-  file: docker-build/Dockerfile
+  file: .devcontainer/Dockerfile_gitpod
