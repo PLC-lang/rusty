@@ -121,7 +121,6 @@ fn initia_values_of_functionblock_members() {
 
 
 #[test]
-#[ignore]
 fn initia_values_of_function_members() {
     let function = r"
         FUNCTION other : DINT
