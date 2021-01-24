@@ -1,6 +1,8 @@
 /// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
-use std::ops::Range;
+use std::{ops::Range, unimplemented};
+use self::codegen_hints::CodeGenHints;
+
 use super::ast::*;
 use inkwell::builder::Builder;
 use inkwell::context::Context;
@@ -23,6 +25,7 @@ use inkwell::basic_block::BasicBlock;
 #[cfg(test)]
 mod tests;
 mod typesystem;
+mod codegen_hints;
 
 type ExpressionValue<'a> = (Option<DataTypeInformation<'a>>, Option<BasicValueEnum<'a>>);
 
@@ -46,6 +49,7 @@ pub struct CodeGen<'ctx> {
 
     scope: Option<String>,
     current_function: Option<FunctionValue<'ctx>>,
+    hints: CodeGenHints<'ctx>,
 }
 
 impl<'ctx> CodeGen<'ctx> {
@@ -60,6 +64,7 @@ impl<'ctx> CodeGen<'ctx> {
             new_lines,
             scope: None,
             current_function: None,
+            hints: CodeGenHints::new(),
         };
         codegen.initialize_type_system();
         codegen
@@ -388,7 +393,7 @@ impl<'ctx> CodeGen<'ctx> {
     }
 
     fn get_variables_information(
-        &self,
+        &mut self,
         variables: &Vec<Variable>,
     ) -> Result<Vec<VariableDeclarationInformation<'ctx>>, String> {
         let mut types: Vec<VariableDeclarationInformation<'ctx>> = Vec::new();
@@ -399,7 +404,7 @@ impl<'ctx> CodeGen<'ctx> {
     }
 
     fn get_variable_information(
-        &self,
+        &mut self,
         variable: &Variable
     )->Result<VariableDeclarationInformation<'ctx>, String> {
         
@@ -409,6 +414,7 @@ impl<'ctx> CodeGen<'ctx> {
                 &variable.data_type.get_name().unwrap_or("unknown"), 
                 self.new_lines.get_location_information(&variable.location)))?;
 
+        self.hints.push_type_hint(variable_type);
         let initializer = match &variable.initializer {
             Some(statement) => self.generate_statement(statement)?.1,
             None => {
@@ -417,6 +423,7 @@ impl<'ctx> CodeGen<'ctx> {
                     .map(|it| it.get_initial_value()).flatten()
             }
         };
+        self.hints.pop_type_hint();
 
         Ok((variable.name.to_string(), variable_type, initializer))
     }
@@ -1182,17 +1189,29 @@ impl<'ctx> CodeGen<'ctx> {
     }
 
     fn generate_literal_integer(&self, value: &str) -> ExpressionValue<'ctx> {
-        let itype = self.context.i32_type();
-        let value = itype.const_int_from_string(value, StringRadix::Decimal);
-        let data_type = self.index.find_type_information("DINT");
-        (data_type, Some(BasicValueEnum::IntValue(value.unwrap())))
+        let i32_type = self.context.i32_type().as_basic_type_enum();
+        let data_type = self.hints.get_current_type().unwrap_or(&i32_type);
+
+        if let BasicTypeEnum::IntType { 0: int_type} = data_type {
+            let value = int_type.const_int_from_string(value, StringRadix::Decimal);
+            let data_type = self.index.find_type_information("DINT");
+            (data_type, Some(BasicValueEnum::IntValue(value.unwrap())))
+        } else {
+            panic!("error expected inttype");
+        }
     }
 
     fn generate_literal_real(&self, value: &str) -> ExpressionValue<'ctx> {
-        let itype = self.context.f32_type();
-        let value = itype.const_float_from_string(value);
-        let data_type = self.index.find_type_information("REAL");
-        (data_type, Some(BasicValueEnum::FloatValue(value)))
+       let double_type = self.context.f32_type().as_basic_type_enum();
+        let data_type = self.hints.get_current_type().unwrap_or(&double_type);
+
+        if let BasicTypeEnum::FloatType { 0: float_type} = data_type {
+            let value = float_type.const_float_from_string(value);
+            let data_type = self.index.find_type_information("REAL");
+            (data_type, Some(BasicValueEnum::FloatValue(value)))
+        } else {
+            panic!("error expected floattype")
+        }
     }
 
     fn generate_literal_boolean(&self, value: bool) -> ExpressionValue<'ctx> {

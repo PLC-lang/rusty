@@ -2675,7 +2675,7 @@ source_filename = "main"
 
 %Main_interface = type { i16, i16, i1, i1, float, float }
 
-@Main_instance = global %Main_interface { i32 7, i16 0, i1 true, i1 false, float 0x400921CAC0000000, float 0.000000e+00 }
+@Main_instance = global %Main_interface { i16 7, i16 0, i1 true, i1 false, float 0x400921CAC0000000, float 0.000000e+00 }
 
 define void @Main(%Main_interface* %0) {
 entry:
@@ -2721,7 +2721,7 @@ source_filename = "main"
 %main_interface = type { %FB_interface }
 %FB_interface = type { i16, i16, i1, i1, float, float }
 
-@main_instance = global %main_interface { %FB_interface { i32 7, i16 0, i1 true, i1 false, float 0x400921CAC0000000, float 0.000000e+00 } }
+@main_instance = global %main_interface { %FB_interface { i16 7, i16 0, i1 true, i1 false, float 0x400921CAC0000000, float 0.000000e+00 } }
 
 define void @FB(%FB_interface* %0) {
 entry:
@@ -2768,7 +2768,45 @@ source_filename = "main"
 
 %MyStruct = type { i16, i16, i1, i1, float, float }
 
-@x = global %MyStruct { i32 7, i16 0, i1 true, i1 false, float 0x400921CAC0000000, float 0.000000e+00 }
+@x = global %MyStruct { i16 7, i16 0, i1 true, i1 false, float 0x400921CAC0000000, float 0.000000e+00 }
+"#;
+
+  assert_eq!(result, expected);
+}
+
+#[test]
+fn initial_values_different_data_types() {
+  let result = codegen!(
+        "
+        TYPE MyStruct:
+        STRUCT
+          b  : BYTE   := 7;
+          s  : SINT    := 7;
+          us : USINT  := 7;
+          w  : WORD   := 7;
+          i  : INT    := 7;
+          ui : UINT   := 7;
+          dw : DWORD  := 7;
+          di : DINT   := 7;
+          udi: UDINT  := 7;
+          lw : LWORD  := 7;
+          li : LINT   := 7;
+          uli: ULINT  := 7;
+          r  : REAL   := 7.7;
+          lr : LREAL  := 7.7;
+        END_STRUCT
+        END_TYPE
+
+        VAR_GLOBAL x : MyStruct; END_VAR
+        "
+    );
+
+    let expected = r#"; ModuleID = 'main'
+source_filename = "main"
+
+%MyStruct = type { i8, i8, i8, i16, i16, i16, i32, i32, i32, i64, i64, i64, float, double }
+
+@x = global %MyStruct { i8 7, i8 7, i8 7, i16 7, i16 7, i16 7, i32 7, i32 7, i32 7, i64 7, i64 7, i64 7, float 0x401ECCCCC0000000, double 7.700000e+00 }
 "#;
 
   assert_eq!(result, expected);
