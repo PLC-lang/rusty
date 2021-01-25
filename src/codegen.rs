@@ -359,6 +359,10 @@ impl<'ctx> CodeGen<'ctx> {
                 .associate_local_variable(p.name.as_str(), p.name.as_str(), ret_alloc);
         }
 
+        if p.pou_type == PouType::Function {
+            self.generate_initialization_of_local_vars(&p.variable_blocks)?;
+        }
+
         self.generate_statement_list(block, &p.statements)?;
         //self.builder.build_return(Some(&result.unwrap()));i
         let ret_value = self.get_return_value(p.pou_type);
@@ -419,6 +423,27 @@ impl<'ctx> CodeGen<'ctx> {
         };
 
         Ok((variable.name.to_string(), variable_type, initializer))
+    }
+
+    /// generates assignment statements for initialized variables in the VAR-block
+    ///
+    /// # Arguments
+    /// * `blocks` - all declaration blocks of the current pou
+    fn generate_initialization_of_local_vars(
+        &self,
+        blocks : &Vec<VariableBlock>
+    )-> Result<(), String> {
+        let variables_with_initializers = blocks.iter()
+            .filter(|it| it.variable_block_type == VariableBlockType::Local)
+            .flat_map(|it| &it.variables)
+            .filter(|it| it.initializer.is_some());
+
+        for variable in variables_with_initializers {
+            let left = Box::new(Statement::Reference{ name: variable.name.clone(), location: variable.location.clone() });
+            let right = variable.initializer.as_ref().unwrap();
+            self.generate_assignment(&left, right)?;
+        }
+        Ok(())
     }
 
     ///
@@ -1167,8 +1192,8 @@ impl<'ctx> CodeGen<'ctx> {
 
     fn generate_assignment(
         &self,
-        left: &Box<Statement>,
-        right: &Box<Statement>,
+        left: &Statement,
+        right: &Statement,
     ) -> Result<Option<BasicValueEnum<'ctx>>, String> {
         if let (Some(left_type), Some(left_expr)) = self.generate_lvalue_for(left)?
         {

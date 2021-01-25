@@ -1550,6 +1550,47 @@ continue:                                         ; preds = %output
   assert_eq!(result, expected);
 }
 
+#[test]
+fn function_with_local_var_initialization() {
+    let result = codegen!(
+        "
+        FUNCTION foo : DINT
+        VAR_INPUT
+          in1 : DINT;
+        END_VAR
+        VAR
+          x : INT := 7;
+          y : INT;
+          z : INT := 9;
+        END_VAR
+        foo := 1;
+        END_FUNCTION
+        "
+    );
+
+    let expected = r#"; ModuleID = 'main'
+source_filename = "main"
+
+%foo_interface = type { i32, i16, i16, i16 }
+
+define i32 @foo(%foo_interface* %0) {
+entry:
+  %in1 = getelementptr inbounds %foo_interface, %foo_interface* %0, i32 0, i32 0
+  %x = getelementptr inbounds %foo_interface, %foo_interface* %0, i32 0, i32 1
+  %y = getelementptr inbounds %foo_interface, %foo_interface* %0, i32 0, i32 2
+  %z = getelementptr inbounds %foo_interface, %foo_interface* %0, i32 0, i32 3
+  %foo = alloca i32
+  store i16 7, i16* %x
+  store i16 9, i16* %z
+  store i32 1, i32* %foo
+  %foo_ret = load i32, i32* %foo
+  ret i32 %foo_ret
+}
+"#;
+
+  assert_eq!(result, expected);
+}
+
 
 #[test]
 fn program_called_in_program() {
