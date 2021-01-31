@@ -7,7 +7,7 @@ use inkwell::{types::BasicTypeEnum, values::BasicValueEnum};
 use inkwell::values::{FunctionValue, PointerValue};
 
 mod pre_processor;
-mod visitor;
+pub mod visitor;
 #[cfg(test)]
 mod tests;
 
@@ -51,6 +51,8 @@ pub enum DataTypeInformation<'ctx> {
     Alias {
         name: String,
         referenced_type: String,
+    },
+    Void{
     }
 }
 
@@ -86,6 +88,7 @@ impl<'ctx> DataTypeInformation<'ctx> {
             DataTypeInformation::Struct { generated_type, .. } => *generated_type,
             DataTypeInformation::Array { generated_type, .. } => *generated_type,
             DataTypeInformation::Alias { .. } => unimplemented!(),
+            DataTypeInformation::Void { .. } => unimplemented!(),
         }
     }
 
@@ -97,6 +100,7 @@ impl<'ctx> DataTypeInformation<'ctx> {
             DataTypeInformation::Struct { .. } => 0, //TODO : Should we fill in the struct members here for size calculation or save the struct size.
             DataTypeInformation::Array { .. } => unimplemented!(), //Propably length * inner type size
             DataTypeInformation::Alias { .. } => unimplemented!(),
+            DataTypeInformation::Void { .. } => 0,
         }
     }
 }
@@ -292,9 +296,17 @@ impl<'ctx> Index<'ctx> {
         }).flatten()
     }
 
+    pub fn get_type(&self, type_name: &str) -> Result<&DataTypeIndexEntry<'ctx>, String> {
+        self.find_type(type_name).ok_or_else(|| format!("unknown type: {}", type_name))
+    }
+
     pub fn find_type_information(&self, type_name: &str) -> Option<DataTypeInformation<'ctx>> {
         self.find_type(type_name)
             .and_then(|entry| entry.clone_type_information())
+    }
+
+    pub fn get_type_information(&self, type_name: &str) -> Result<DataTypeInformation<'ctx>, String> {
+        self.find_type_information(type_name).ok_or_else(|| format!("unknown type: {}", type_name))
     }
 
     pub fn find_callable_instance_variable(
@@ -427,5 +439,19 @@ impl<'ctx> Index<'ctx> {
     //TODO does this belong into the index?
     pub fn pre_process(&mut self, unit: &mut CompilationUnit) {
         pre_processor::pre_process(unit);
+    }
+
+    pub fn import(&mut self, other_index: &mut Index<'ctx>) {
+        for(k,v) in other_index.global_variables.drain() {
+            self.global_variables.insert(k, v);
+        }
+
+        for (k, v) in other_index.member_variables.drain() {
+            self.member_variables.insert(k, v);
+        }
+
+        for (k,v) in other_index.types.drain() {
+            self.types.insert(k, v);
+        }
     }
 }

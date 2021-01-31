@@ -1370,8 +1370,8 @@ entry:
 
 define i32 @foo(%foo_interface* %0) {
 entry:
-  %in = getelementptr inbounds %foo_interface, %foo_interface* %0, i32 0, i32 0
   %foo = alloca i32
+  %in = getelementptr inbounds %foo_interface, %foo_interface* %0, i32 0, i32 0
   store i32 1, i32* %foo
   %foo_ret = load i32, i32* %foo
   ret i32 %foo_ret
@@ -1448,8 +1448,8 @@ source_filename = "main"
 
 define i32 @foo(%foo_interface* %0) {
 entry:
-  %bar = getelementptr inbounds %foo_interface, %foo_interface* %0, i32 0, i32 0
   %foo = alloca i32
+  %bar = getelementptr inbounds %foo_interface, %foo_interface* %0, i32 0, i32 0
   store i32 1, i32* %foo
   %foo_ret = load i32, i32* %foo
   ret i32 %foo_ret
@@ -1513,9 +1513,9 @@ source_filename = "main"
 
 define i32 @foo(%foo_interface* %0) {
 entry:
+  %foo = alloca i32
   %bar = getelementptr inbounds %foo_interface, %foo_interface* %0, i32 0, i32 0
   %buz = getelementptr inbounds %foo_interface, %foo_interface* %0, i32 0, i32 1
-  %foo = alloca i32
   store i32 1, i32* %foo
   %foo_ret = load i32, i32* %foo
   ret i32 %foo_ret

@@ -1,7 +1,7 @@
 /// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
-use std::{ops::Range, unimplemented};
-use self::codegen_hints::CodeGenHints;
+use std::{io::{self, Write}, ops::Range, unimplemented};
+use self::{codegen_hints::CodeGenHints, pou_generator::PouGenerator};
 
 use super::ast::*;
 use inkwell::builder::Builder;
@@ -22,19 +22,30 @@ use inkwell::IntPredicate;
 use super::index::*;
 use inkwell::basic_block::BasicBlock;
 
+
+
 #[cfg(test)]
 mod tests;
 mod typesystem;
 mod codegen_hints;
+mod literals;
+mod pou_generator;
+mod statement_generator;
+mod instance_struct_generator;
+mod variable_generator;
+mod expression_generator;
+mod codegen_util;
+mod data_type_generator;
 
 type ExpressionValue<'a> = (Option<DataTypeInformation<'a>>, Option<BasicValueEnum<'a>>);
+type TypeAndValue<'a> = (DataTypeInformation<'a>, BasicValueEnum<'a>);
 
 ///
 /// a touple (name, data_type, initializer) describing the declaration of a variable.
 ///
 type VariableDeclarationInformation<'a> = (String, BasicTypeEnum<'a>, Option<BasicValueEnum<'a>>);
 
-struct LValue<'ctx> {
+pub struct LValue<'ctx> {
     type_name: String,
     type_information: DataTypeInformation<'ctx>,
     ptr_value: PointerValue<'ctx>
@@ -79,36 +90,41 @@ impl<'ctx> CodeGen<'ctx> {
     }
 
     pub fn generate(&mut self, root: CompilationUnit) -> Result<String, String> {
+        
         self.generate_compilation_unit(root)?;
         Ok(self.module.print_to_string().to_string())
     }
 
     pub fn generate_compilation_unit(&mut self, root: CompilationUnit) -> Result<(), String> {
-        for data_type in &root.types {
-            self.generate_data_type_stub(data_type);
-        }
+        //for data_type in &root.types {
+            //}
+        data_type_generator::generate_data_type_stubs(&self.context, &mut self.index, &root.types);
+        data_type_generator::generate_data_type(&self.module, &self.context, &mut self.index, &root.types)?;
 
-        self.generate_data_types(&root.types)?;
+        //self.generate_data_types(&root.types)?;
 
         for global_variables in &root.global_vars {
-            self.generate_global_vars(global_variables)?;
+            for v in &global_variables.variables {
+                variable_generator::generate_global_variable(&self.module, self.index, v)?;
+            }
+//            self.generate_global_vars(global_variables)?;
         }
 
+        //index all pou's
         for unit in &root.units {
-            let struct_name = format!("{}_interface", &unit.name);
-            let struct_type = self.context.opaque_struct_type(struct_name.as_str());
-            self.index.associate_type(
-                &unit.name,
-                DataTypeInformation::Struct {
-                    name: struct_name,
-                    generated_type: struct_type.into(),
-                },
-            );
+            pou_generator::index_pou(unit.name.as_str(), self.context, self.index);
         }
+        
+        //generate all pou's
+        for unit in &root.units {
+            let mut pou_generator = PouGenerator::new(
+                &self.context,
+                &mut self.index);
 
-        for unit in &root.units {
-            self.generate_pou(unit)?;
-        }
+                pou_generator.generate_pou(unit, &self.module)?;
+            }
+            
+            //self.generate_pou(unit)?;
         Ok(())
     }
 
@@ -235,7 +251,8 @@ impl<'ctx> CodeGen<'ctx> {
             match data_type {
                 DataType::StructType { name, variables } => {
                     let members = self.get_variables_information(&variables)?;
-                    self.generate_struct_type(&members, name.as_ref().unwrap().as_str());
+                    todo!()
+                    //self.generate_struct_type(&members, name.as_ref().unwrap().as_str());
                 }
                 DataType::EnumType { name: _, elements } => {
                     for (i, element) in elements.iter().enumerate() {
@@ -306,7 +323,7 @@ impl<'ctx> CodeGen<'ctx> {
         }
 
         //Create a struct with the value from the program
-        let (member_type, initializer) = self.generate_struct_type(&pou_members, &p.name);
+        /*let (member_type, initializer) = self.generate_struct_type(&pou_members, &p.name);
 
         let member_type_ptr = member_type.ptr_type(AddressSpace::Generic);
         //let return_type = self.context.i32_type();
@@ -318,22 +335,22 @@ impl<'ctx> CodeGen<'ctx> {
         ));
         self.index
             .associate_callable_implementation(p.name.as_str(), self.current_function.unwrap());
-        
-        //Create An instance variable for that struct
-        //Place in global data
-        if p.pou_type == PouType::Program {
-            let instance_name = CodeGen::get_struct_instance_name(p.name.as_str());
-            let global_value =
+            //Create An instance variable for that struct
+            //Place in global data
+            if p.pou_type == PouType::Program {
+                let instance_name = CodeGen::get_struct_instance_name(p.name.as_str());
+                let global_value =
                 self.generate_global_variable(instance_name.as_str(), member_type.into(), Some(initializer));
-            self.index
+                self.index
                 .associate_global_variable(p.name.as_str(), global_value.as_pointer_value());
-        }
-
-        //Don't generate external functions
-        if p.linkage == LinkageType::External {
-            return Ok(());
-        }
-
+            }
+            
+            //Don't generate external functions
+            if p.linkage == LinkageType::External {
+                return Ok(());
+            }
+            */
+            
         let block = self
             .context
             .append_basic_block(self.current_function.unwrap(), "entry");
@@ -431,7 +448,7 @@ impl<'ctx> CodeGen<'ctx> {
     ///
     /// returns the generated type and it's optional initializer
     ///
-    fn generate_struct_type(
+    /*fn generate_struct_type(
         &mut self,
         members: &Vec<(String, BasicTypeEnum<'ctx>, Option<BasicValueEnum<'ctx>>)>,
         name: &str,
@@ -460,18 +477,9 @@ impl<'ctx> CodeGen<'ctx> {
         self.index.associate_type_initial_value(name, initial_value.into());
         
         (struct_type, initial_value.as_basic_value_enum())
-    }
+    }*/
 
-    fn get_default_for(&self, basic_type : BasicTypeEnum<'ctx>) -> BasicValueEnum<'ctx> {
-        match basic_type{
-            BasicTypeEnum::ArrayType(t) => t.const_zero().as_basic_value_enum(),
-            BasicTypeEnum::FloatType(t) => t.const_zero().as_basic_value_enum(),
-            BasicTypeEnum::IntType(t) => t.const_zero().as_basic_value_enum(),
-            BasicTypeEnum::PointerType(t) => t.const_zero().as_basic_value_enum(),
-            BasicTypeEnum::StructType(t) => t.const_zero().as_basic_value_enum(),
-            BasicTypeEnum::VectorType(t) => t.const_zero().as_basic_value_enum(), 
-        }
-    }
+    
 
     fn set_initializer_for_type(
         &self,
@@ -543,10 +551,10 @@ impl<'ctx> CodeGen<'ctx> {
                 left,
                 right, ..
             } => self.generate_binary_expression(operator, left, right),
-            Statement::LiteralInteger { value, location: _ } => Ok(self.generate_literal_integer(value.as_str())),
-            Statement::LiteralReal { value, location: _  } => Ok(self.generate_literal_real(value.as_str())),
-            Statement::LiteralBool { value, location: _ } => Ok(self.generate_literal_boolean(*value)),
-            Statement::LiteralString { value, location: _ } => Ok(self.generate_literal_string(value.as_bytes())),
+            //Statement::LiteralInteger { value, location: _ } => Ok(self.generate_literal_integer(value.as_str())),
+            //Statement::LiteralReal { value, location: _  } => Ok(self.generate_literal_real(value.as_str())),
+            //Statement::LiteralBool { value, location: _ } => Ok(self.generate_literal_boolean(*value)),
+            //Statement::LiteralString { value, location: _ } => Ok(self.generate_literal_string(value.as_bytes())),
             //TODO handle qualified references
             Statement::Reference { name, location} => self.generate_variable_reference(name.to_string(), location),
             Statement::Assignment { left, right } => {
@@ -727,24 +735,24 @@ impl<'ctx> CodeGen<'ctx> {
         self.generate_statement_list(for_body, &body)?;
 
         //Increment
-        let step_by_value = by_step
-            .as_ref()
-            .map(|step| self.generate_statement(&step).unwrap().1.unwrap())
-            .or(self.generate_literal_integer("1").1)
-            .unwrap()
-            .into_int_value();
+        // let step_by_value = by_step
+        //     .as_ref()
+        //     .map(|step| self.generate_statement(&step).unwrap().1.unwrap())
+        //     .or(self.generate_literal_integer("1").1)
+        //     .unwrap()
+        //     .into_int_value();
 
-        let next = self
-            .builder
-            .build_int_add(counter_statement, step_by_value, "tmpVar");
-        let ptr = self.generate_lvalue_for(counter).expect("Cannot generate lvalue").1.unwrap();
-        self.builder.build_store(ptr, next);
+        // let next = self
+        //     .builder
+        //     .build_int_add(counter_statement, step_by_value, "tmpVar");
+        // let ptr = self.generate_lvalue_for(counter).expect("Cannot generate lvalue").1.unwrap();
+        // self.builder.build_store(ptr, next);
 
-        //Loop back
-        self.builder.build_unconditional_branch(condition_check);
+        // //Loop back
+        // self.builder.build_unconditional_branch(condition_check);
 
-        //Continue
-        self.builder.position_at_end(continue_block);
+        // //Continue
+        // self.builder.position_at_end(continue_block);
         Ok(None)
     }
 
@@ -1010,7 +1018,7 @@ impl<'ctx> CodeGen<'ctx> {
                         .unwrap();
                     let (target_type,pointer_to_target) = self.generate_lvalue_for(right).unwrap();
                     let loaded_value = self.builder.build_load(pointer_to_param,parameter.get_name());
-                    let value = self.cast_if_needed(&target_type.unwrap(),loaded_value,param_type).unwrap();
+                    let value = typesystem::cast_if_needed(&self.builder, &target_type.unwrap(),loaded_value,param_type).unwrap();
                     self.builder
                         .build_store(pointer_to_target.unwrap(), value);
                 }
@@ -1024,7 +1032,7 @@ impl<'ctx> CodeGen<'ctx> {
                         .unwrap();
                     let parameter = parameter_type.or_else(|| 
                         self.index.find_input_parameter(function_name, index as u32).and_then(|var| self.index.find_type(var.get_type_name()))).and_then(|var| var.get_type_information()).unwrap();
-                    let value = self.cast_if_needed(parameter, generated_exp, &value_type);
+                    let value = typesystem::cast_if_needed(&self.builder, parameter, generated_exp, &value_type);
                     self.builder
                         .build_store(pointer_to_param, value.unwrap());
                 }
@@ -1180,14 +1188,14 @@ impl<'ctx> CodeGen<'ctx> {
         if let (Some(left_type), Some(left_expr)) = self.generate_lvalue_for(left)?
         {
             if let (Some(right_type), Some(right_res)) = self.generate_statement(right)? {
-                let value = self
-                    .cast_if_needed(&left_type, right_res, &right_type).unwrap();
+                let value = typesystem::cast_if_needed(&self.builder, &left_type, right_res, &right_type).unwrap();
                 self.builder.build_store(left_expr, value);
             }
         };
         Ok(None)
     }
 
+    /*
     fn generate_literal_integer(&self, value: &str) -> ExpressionValue<'ctx> {
         let i32_type = self.context.i32_type().as_basic_type_enum();
         let data_type = self.hints.get_current_type().unwrap_or(&i32_type);
@@ -1227,7 +1235,7 @@ impl<'ctx> CodeGen<'ctx> {
             Some(self.new_string_information(value.len() as u32)), 
             Some(exp_value.into())
         )
-    }
+    }*/
 
     fn generate_phi_expression(
         &self, 
@@ -1280,8 +1288,8 @@ impl<'ctx> CodeGen<'ctx> {
         if let (Some(ltype), Some(lval_opt)) = self.generate_statement(left)? {
             if let (Some(rtype), Some(rval_opt)) = self.generate_statement(right)? {
                 //Step 1 convert all to i32
-                let (target_type, lvalue, rvalue) =
-                    self.promote_if_needed(lval_opt, &ltype, rval_opt, &rtype);
+                /*let (target_type, lvalue, rvalue) =
+                    typesystem::promote_if_needed(self.builder, lval_opt, &ltype, rval_opt, &rtype);
                 let (value, target_type) = match target_type {
                     DataTypeInformation::Integer { .. } => {
                         self.generate_int_binary_expression(operator, lvalue, rvalue, &target_type)
@@ -1294,7 +1302,8 @@ impl<'ctx> CodeGen<'ctx> {
                     ),
                     _ => unimplemented!(),
                 };
-                return Ok((Some(target_type), Some(value)));
+                return Ok((Some(target_type), Some(value)));*/
+
             }
         }
         Ok((None, None))
