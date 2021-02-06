@@ -1,6 +1,7 @@
-use super::{CodeGen, codegen_util, instance_struct_generator::InstanceStructGenerator, statement_generator::{FunctionContext, StatementCodeGenerator}, variable_generator};
-use crate::{ast::{LinkageType, POU, PouType, Statement, Variable}, index::{DataTypeIndexEntry, DataTypeInformation, Index}};
-use inkwell::{AddressSpace, builder::Builder, context::Context, module::Module, types::{BasicTypeEnum, FunctionType}, values::{BasicValueEnum, FunctionValue, PointerValue}};
+/// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
+use super::{instance_struct_generator::{self, InstanceStructGenerator}, statement_generator::{FunctionContext, StatementCodeGenerator}, variable_generator};
+use crate::{ast::{DataTypeDeclaration, LinkageType, POU, PouType, Statement, Variable}, compile_error::CompileError, index::{DataTypeIndexEntry, DataTypeInformation, Index}};
+use inkwell::{AddressSpace, builder::Builder, context::Context, module::Module, types::{BasicTypeEnum, FunctionType}, values::{BasicValueEnum, FunctionValue}};
 
 pub struct PouGenerator<'a, 'b> {
     context: &'a Context,
@@ -32,12 +33,15 @@ impl<'a, 'b> PouGenerator<'a, 'b> {
         pou_generator
     }
 
-    pub fn generate_pou(&mut self, pou: &POU, module: &Module<'a>) -> Result<(), String> {
+    pub fn generate_pou(&mut self, pou: &POU, module: &Module<'a>) -> Result<(), CompileError> {
 
         let return_type = pou
             .return_type
             .as_ref()
-            .and_then(|data_type| codegen_util::find_type_in_index(&data_type, &self.index));
+            .and_then(DataTypeDeclaration::get_name)
+            .and_then(|it| self.index.find_type(it))
+            .and_then(DataTypeIndexEntry::get_type);
+ 
 
         let pou_name = &pou.name;
 
@@ -50,8 +54,8 @@ impl<'a, 'b> PouGenerator<'a, 'b> {
         let instance_struct_type = {
             let mut struct_generator =
                 InstanceStructGenerator::new(self.context, self.index);
-            let struct_type = struct_generator.generate_struct_type(&pou_members, pou_name, &self.context.create_builder())?;
-            
+            let (struct_type, initial_value) = struct_generator.generate_struct_type(&pou_members, pou_name, &self.context.create_builder())?;
+            self.index.associate_type_initial_value(pou_name, initial_value);
             struct_type
         };
 
@@ -71,14 +75,13 @@ impl<'a, 'b> PouGenerator<'a, 'b> {
 
         //generate a global variable if it's a program
         if pou.pou_type == PouType::Program {
-            let instance_name = CodeGen::get_struct_instance_name(pou_name);
             let instance_initializer = self
                 .index
                 .find_type(pou_name)
                 .and_then(DataTypeIndexEntry::get_initial_value);
             let global_value = variable_generator::create_llvm_global_variable(
                 module,
-                &instance_name,
+                &instance_struct_generator::get_pou_instance_variable_name(pou_name),
                 instance_struct_type.into(),
                 instance_initializer,
             );
@@ -111,7 +114,7 @@ impl<'a, 'b> PouGenerator<'a, 'b> {
         )?;
         let function_context = FunctionContext{linking_context: pou_name.clone(), function: current_function};
         {
-            let mut statement_gen = StatementCodeGenerator::new(self.context, &self.index, Some(&function_context));
+            let statement_gen = StatementCodeGenerator::new(self.context, &self.index, Some(&function_context));
             statement_gen.generate_body(&pou.statements, &builder)?
         }
 
@@ -142,21 +145,13 @@ impl<'a, 'b> PouGenerator<'a, 'b> {
         }
     }
 
-    fn generate_return_variable(
-        builder: &Builder<'a>,
-        pou_name: &str,
-        return_type: &BasicTypeEnum<'a>) -> PointerValue<'a> {
-        let ret_name = format!("{}_ret", pou_name).as_str();
-        builder.build_alloca(*return_type, "")
-    }
-
     fn generate_local_variable_accessors(
         builder: &Builder<'a>,
         current_function: FunctionValue<'a>,
         index: &mut Index<'a>,
         members: &Vec<&Variable>,
         pou_name: &str,
-    ) -> Result<(), String> {
+    ) -> Result<(), CompileError> {
 
         //Generate reference to parameter
         for (i, m) in members.iter().enumerate() {
@@ -165,7 +160,7 @@ impl<'a, 'b> PouGenerator<'a, 'b> {
             let ptr_value = current_function
                 .get_first_param()
                 .map(BasicValueEnum::into_pointer_value)
-                .ok_or_else(|| "self.current_function must not be empty")?;
+                .ok_or_else(|| CompileError::MissingFunctionError{location: m.location.clone()})?;
 
             index.associate_local_variable(
                 pou_name,
@@ -179,7 +174,7 @@ impl<'a, 'b> PouGenerator<'a, 'b> {
         Ok(())
     }
 
-    fn generate_return_statement(&self, function_context: &FunctionContext, pou_type: PouType, builder: &Builder<'a>) -> Result<(), String> {
+    fn generate_return_statement(&self, function_context: &FunctionContext, pou_type: PouType, builder: &Builder<'a>) -> Result<(), CompileError> {
         match pou_type {
             PouType::Function => {
                 let reference = Statement::Reference{
@@ -199,3 +194,5 @@ impl<'a, 'b> PouGenerator<'a, 'b> {
         Ok(())
     }
 }
+
+

@@ -1,8 +1,9 @@
-use std::{ops::Range, thread::current};
+/// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
+use std::{ops::Range};
 
-use super::{LValue, TypeAndValue, expression_generator, instance_struct_generator::{self, InstanceStructGenerator}, literals, typesystem, variable_generator};
-use crate::{ast::{ConditionalBlock, Operator, Statement}, index::{DataTypeIndexEntry, DataTypeInformation, Dimension, Index, VariableIndexEntry}};
-use inkwell::{AddressSpace, IntPredicate, basic_block::BasicBlock, builder::Builder, context::Context, types::{BasicType, BasicTypeEnum}, values::{AnyValue, BasicValue, BasicValueEnum, FunctionValue, IntValue, PointerValue}};
+use super::{LValue, TypeAndValue, expression_generator, instance_struct_generator::{InstanceStructGenerator}, literals, typesystem, variable_generator};
+use crate::{ast::{ConditionalBlock, Operator, Statement}, compile_error::CompileError, index::{DataTypeIndexEntry, DataTypeInformation, Dimension, Index, VariableIndexEntry}};
+use inkwell::{AddressSpace, IntPredicate, basic_block::BasicBlock, builder::Builder, context::Context, types::{BasicType, BasicTypeEnum}, values::{BasicValue, BasicValueEnum, FunctionValue, IntValue, PointerValue}};
 
 pub struct FunctionContext<'a> {
     pub linking_context: String,
@@ -51,15 +52,15 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         }
     }
 
-    fn get_current_function(&self) -> Result<FunctionValue, String> {
-        self.function_context.map(|it|it.function).ok_or_else(|| "Cannog generate code outside of a Function Value".to_string())
+    fn get_current_function(&self, context: &Statement) -> Result<FunctionValue, CompileError> {
+        self.function_context.map(|it|it.function).ok_or_else(|| CompileError::missing_function(context.get_location()) )
     }
 
     pub fn generate_body(
         &self,
         statements: &Vec<Statement>,
         builder: &Builder<'a>,
-    ) -> Result<(), String> {
+    ) -> Result<(), CompileError> {
         for s in statements {
             self.generate_statement(s, builder)?;
         }
@@ -70,7 +71,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         &self,
         statement: &Statement,
         builder: &Builder<'a>,
-    ) -> Result<(), String> {
+    ) -> Result<(), CompileError> {
         match statement {
             Statement::Assignment { left, right } => {
                 self.generate_assignment_statement(left, right, builder)?;
@@ -85,7 +86,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
             } => {
                 let f_context = self
                     .function_context
-                    .ok_or_else(|| "Cannot generate for-statement wihtout a function-context")?;
+                    .ok_or_else(|| CompileError::missing_function(statement.get_location()))?;
                 self.generate_for_statement(
                     builder,
                     f_context.function,
@@ -117,11 +118,11 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
 
     fn generate_assignment_statement(
         &self,
-        left: &Statement,
-        right: &Statement,
+        left_statement: &Statement,
+        right_statement: &Statement,
         builder: &Builder,
-    ) -> Result<(), String> {
-        let left = self.generate_l_value(left, builder)?;
+    ) -> Result<(), CompileError> {
+        let left = self.generate_l_value(left_statement, builder)?;
         let (right_type, right) = {
             //let expected_type = left.type_information.get_type();
             //TODO: this typing produces wrong results!
@@ -130,10 +131,10 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
                 self.index,
                 self.function_context,
             );
-            sub_statement_gen.generate_expression(right, builder)?
+            sub_statement_gen.generate_expression(right_statement, builder)?
         };
         let cast_value =
-            typesystem::cast_if_needed(builder, &left.type_information, right, &right_type)?;
+            typesystem::cast_if_needed(builder, self.context, &left.type_information, right, &right_type, right_statement)?;
         builder.build_store(left.ptr_value, cast_value);
         Ok(())
     }
@@ -142,7 +143,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         &self,
         builder: &Builder<'a>,
         operator: &Statement,
-        parameters: &Option<Statement>) -> Result<TypeAndValue<'a>, String> {
+        parameters: &Option<Statement>) -> Result<TypeAndValue<'a>, CompileError> {
         let instance_and_index_entry = match operator {
             Statement::Reference { name, .. } => {
                 //Get associated Variable or generate a variable for the type with the same name
@@ -151,10 +152,11 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         
                 let callable_reference = if let Some(variable_instance) = variable {
                     variable_instance.get_generated_reference()
-                        .ok_or_else(|| format!("cannot find callable type for {:}", name).to_string())?
+                        .ok_or_else(||
+                            CompileError::CodeGenError{ message: format!("cannot find callable type for {:?}", operator), location: operator.get_location().clone() })?
                 } else {
                     let instance_generator = InstanceStructGenerator::new(self.context, self.index);
-                    let callable = instance_generator.allocate_struct_instance(builder, &name)?;
+                    let callable = instance_generator.allocate_struct_instance(builder, &name, &operator.get_location())?;
                     callable
                 };
                         
@@ -165,13 +167,13 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
                 let index_entry = self.index.get_type(call_name.unwrap())?;
                 Ok((callable_reference, index_entry))
             }
-            _ => Err(format!("cannot generate call statement for {:?}", operator)),
+            _ => Err(CompileError::CodeGenError{ message: format!("cannot generate call statement for {:?}", operator), location: operator.get_location().clone() }),
         };
 
         let (instance, index_entry) = instance_and_index_entry?;
         let function_name = index_entry.get_name();
         //Create parameters for input and output blocks
-        let current_f = self.get_current_function()?;
+        let current_f = self.get_current_function(&operator)?;
         let input_block = self.context.append_basic_block(current_f, "input");
         let call_block = self.context.append_basic_block(current_f, "call");
         let output_block = self.context.append_basic_block(current_f, "output");
@@ -193,7 +195,8 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
             .or(Some("__VOID"))
             .and_then(|it| self.index.find_type_information(it));
         let function = index_entry.get_implementation()
-                .ok_or_else(|| format!("No callable implementation associated to {:?}", function_name))?;
+                .ok_or_else(|| 
+                    CompileError::CodeGenError{ message: format!("No callable implementation associated to {:?}", function_name), location: operator.get_location().clone() })?;
         let call_result = 
         //If the target is a function, declare the struct locally
         //Assign all parameters into the struct values
@@ -221,7 +224,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         parameters: &Option<Statement>,
         input_block : &BasicBlock,
         output_block : &BasicBlock,
-    ) -> Result<(), String> {
+    ) -> Result<(), CompileError> {
         match &parameters {
             Some(Statement::ExpressionList { expressions }) => {
                 for (index, exp) in expressions.iter().enumerate() {
@@ -246,7 +249,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         pointer_value: PointerValue<'a>,
         input_block : &BasicBlock,
         output_block : &BasicBlock,
-    ) -> Result<(), String> {
+    ) -> Result<(), CompileError> {
         match statement {
             Statement::Assignment { left, right } => {
                 builder.position_at_end(*input_block);
@@ -283,23 +286,22 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
                     
                     let (target_type,pointer_to_target) = self.generate_lvalue_for(builder, right).unwrap();
                     let loaded_value = builder.build_load(pointer_to_param,parameter.get_name());
-                    let value = typesystem::cast_if_needed(&builder, &target_type, loaded_value,param_type).unwrap();
+                    let value = typesystem::cast_if_needed(&builder, self.context, &target_type, loaded_value,param_type, right)?;
                     builder
                         .build_store(pointer_to_target, value);
                 }
                 builder.position_at_end(current_block);
             }
             _ => {
-                if let (value_type, generated_exp) = self.generate_expression(statement, builder)? {
-                    let pointer_to_param = builder
-                        .build_struct_gep(pointer_value, index as u32, "")
-                        .unwrap();
-                    let parameter = parameter_type.or_else(|| 
-                        self.index.find_input_parameter(function_name, index as u32).and_then(|var| self.index.find_type(var.get_type_name()))).and_then(|var| var.get_type_information()).unwrap();
-                    let value = typesystem::cast_if_needed(&builder, parameter, generated_exp, &value_type);
-                    builder
-                        .build_store(pointer_to_param, value.unwrap());
-                }
+                let (value_type, generated_exp) = self.generate_expression(statement, builder)?;
+                let pointer_to_param = builder
+                    .build_struct_gep(pointer_value, index as u32, "")
+                    .unwrap();
+                let parameter = parameter_type.or_else(|| 
+                    self.index.find_input_parameter(function_name, index as u32).and_then(|var| self.index.find_type(var.get_type_name()))).and_then(|var| var.get_type_information()).unwrap();
+                let value = typesystem::cast_if_needed(&builder, self.context, parameter, generated_exp, &value_type, statement)?;
+                builder
+                    .build_store(pointer_to_param, value);
             }
         }
         Ok(())
@@ -311,12 +313,12 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         &self,
         builder: &Builder<'a>,
         current_function: FunctionValue,
-        counter: &Box<Statement>,
-        start: &Box<Statement>,
-        end: &Box<Statement>,
+        counter: &Statement,
+        start: &Statement,
+        end: &Statement,
         by_step: &Option<Box<Statement>>,
         body: &Vec<Statement>,
-    ) -> Result<(), String> {
+    ) -> Result<(), CompileError> {
         self.generate_assignment_statement(counter, start, builder)?;
         let condition_check = self
             .context
@@ -352,7 +354,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
              .as_ref()
              .map_or_else(
                  || self.generate_literal(
-                     &Statement::LiteralInteger{ value: "1".to_string(), location: end.get_location() } ),
+                     &Statement::LiteralInteger{ value: "1".to_string(), location: end.get_location().clone() } ),
              |step| self.generate_expression(&step, builder))?;
              
 
@@ -377,9 +379,9 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         selector: &Statement,
         conditional_blocks: &Vec<ConditionalBlock>,
         else_body: &Vec<Statement>,
-    ) -> Result<Option<BasicValueEnum<'a>>, String> {
+    ) -> Result<Option<BasicValueEnum<'a>>, CompileError> {
 
-        let current_function = self.get_current_function()?;
+        let current_function = self.get_current_function(&selector)?;
         //Continue
         let continue_block = self
             .context
@@ -427,7 +429,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         builder: &Builder<'a>,
         condition: &Box<Statement>,
         body: &Vec<Statement>,
-    ) -> Result<Option<BasicValueEnum<'a>>, String> {
+    ) -> Result<Option<BasicValueEnum<'a>>, CompileError> {
         let basic_block = builder.get_insert_block().unwrap();
         self.generate_base_while_statement(builder, condition, body)?;
 
@@ -446,7 +448,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         builder: &Builder<'a>,
         condition: &Box<Statement>,
         body: &Vec<Statement>,
-    ) -> Result<Option<BasicValueEnum<'a>>, String> {
+    ) -> Result<Option<BasicValueEnum<'a>>, CompileError> {
         let basic_block = builder.get_insert_block().unwrap();
         self.generate_base_while_statement(builder, condition, body)?;
 
@@ -463,10 +465,10 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
     fn generate_base_while_statement(
         &self,
         builder: &Builder<'a>,
-        condition: &Box<Statement>,
+        condition: &Statement,
         body: &Vec<Statement>,
-    ) -> Result<Option<BasicValueEnum>, String> {
-        let current_function = self.get_current_function()?;
+    ) -> Result<Option<BasicValueEnum>, CompileError> {
+        let current_function = self.get_current_function(&condition)?;
         let condition_check = self
             .context
             .append_basic_block(current_function, "condition_check");
@@ -499,7 +501,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         builder: &Builder<'a>,
         conditional_blocks: &Vec<ConditionalBlock>,
         else_body: &Vec<Statement>,
-    ) -> Result<(), String> {
+    ) -> Result<(), CompileError> {
         let mut blocks = Vec::new();
         blocks.push(builder.get_insert_block().unwrap());
         let current_function = self.function_context.map(|it|it.function).unwrap();
@@ -561,7 +563,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         &self,
         statement: &Statement,
         builder: &Builder<'a>,
-    ) -> Result<TypeAndValue<'a>, String> {
+    ) -> Result<TypeAndValue<'a>, CompileError> {
         match statement {
             Statement::Reference { name, location } => {
                 let pointer =
@@ -626,10 +628,8 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
                         &common_type,
                     ))
                 } else {
-                    Err(format!(
-                        "invalid types, cannot generate binary expression for {:?}",
-                        common_type
-                    ))
+                    let message = format!("invalid types, cannot generate binary expression for {:?}", common_type);
+                    Err(CompileError::codegen_error(message, left.get_location()))
                 }
             },
             Statement::CallStatement{ operator, parameters, ..} => {
@@ -647,7 +647,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         builder: &Builder<'a>,
         operator: &Operator,
         value: &Box<Statement>,
-    ) -> Result<TypeAndValue<'a>, String> {
+    ) -> Result<TypeAndValue<'a>, CompileError> {
         let (data_type, loaded_value) = self.generate_expression(value, builder)?;
         let (data_type, value) = match operator {
             Operator::Not => (
@@ -671,7 +671,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         operator: &Operator, 
         left: &Box<Statement>, 
         right: &Box<Statement>
-    ) -> Result<TypeAndValue<'a>, String>{
+    ) -> Result<TypeAndValue<'a>, CompileError>{
         let current_function = self.function_context.map(|it| it.function).unwrap();
         let right_branch = self.context.append_basic_block(current_function, "");
         let continue_branch = self.context.append_basic_block(current_function, "");
@@ -707,7 +707,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         &self,
         statement: &Statement,
         builder: &Builder<'a>,
-    ) -> Result<LValue<'a>, String> {
+    ) -> Result<LValue<'a>, CompileError> {
         match statement {
             Statement::Reference { name, location } => {
                 self.create_llvm_pointer_value_for_reference(None, name, builder, location)
@@ -721,12 +721,11 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
                 let (data_type, ptr_value) = self.generate_lvalue_for(builder, statement)?;
                 Ok(LValue{type_name:"".to_string(), ptr_value, type_information: data_type })
             }
-
-            _ => Err(format!("Cannot generate a LValue for {:?}", statement)),
+            _ => Err(CompileError::codegen_error(format!("Cannot generate a LValue for {:?}", statement), statement.get_location())),
         }
     }
 
-    pub fn generate_literal(&self, statement: &Statement) -> Result<TypeAndValue<'a>, String> {
+    pub fn generate_literal(&self, statement: &Statement) -> Result<TypeAndValue<'a>, CompileError> {
         match statement {
             Statement::LiteralBool { value, .. } => {
                 literals::create_llvm_const_bool(self.context, self.index, *value)
@@ -741,7 +740,8 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
                 literals::create_llvm_const_string(self.context, value)
             }
             //Statement::LiteralString{value, ..} => {},
-            _ => Err(format!("Cannot generate a Literal for {:?}", statement)),
+
+            _ => Err(CompileError::codegen_error(format!("Cannot generate Literal for {:?}", statement), statement.get_location())),
         }
     }
 
@@ -751,18 +751,14 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         name: &String,
         builder: &Builder<'a>,
         offset: &Range<usize>,
-    ) -> Result<LValue<'a>, String> {
+    ) -> Result<LValue<'a>, CompileError> {
         let (data_type, ptr) = if let Some((qualifier_name, qualifier)) = type_with_context {
             let member = self.index.find_member(qualifier_name, name);
             let member_location = member
                 .map(|it| it.get_location_in_parent())
                 .flatten()
-                .ok_or(format!(
-                    "Unknown reference '{:}.{:}' at {:?}",
-                    qualifier_name,
-                    name,
-                    offset /*self.new_lines.get_location_information(offset)*/
-                ))?;
+                .ok_or_else(||
+                    CompileError::invalid_reference(&format!("{:}.{:}", qualifier_name, name), offset.clone()))?;
 
             //.unwrap();
             let member_data_type = member.map(|it| it.get_type_name()).unwrap();
@@ -779,7 +775,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
             let variable_index_entry = self
                 .index
                 .find_variable(linking_context, &[name.clone()])
-                .ok_or("cannot find reference TODO")?;
+                .ok_or_else(|| CompileError::InvalidReference{ reference: name.clone(), location: offset.clone() })?;
 
             let accessor_ptr = variable_index_entry.get_generated_reference();
             (variable_index_entry.get_type_name(), accessor_ptr)
@@ -791,7 +787,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
             type_information: self.index.find_type_information(data_type).unwrap(),
             ptr_value: it,
         })
-        .ok_or(format!("Could not generate reference for {}", name))
+        .ok_or_else(|| CompileError::InvalidReference{ reference: name.clone(), location: offset.clone()})
     }
 
     fn generate_access_for_dimension(
@@ -799,7 +795,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         builder: &Builder<'a>,
         dimension: &Dimension,
         access_statement: &Statement,
-    ) -> Result<IntValue<'a>, String> {
+    ) -> Result<IntValue<'a>, CompileError> {
         let start_offset = dimension.start_offset;
         let (_, access_value) = self.generate_expression(access_statement, builder)?;
         //If start offset is not 0, adjust the current statement with an add operation
@@ -820,7 +816,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         type_with_context: Option<(&str, PointerValue<'a>)>,
         reference: &Statement,
         access: &Statement,
-    ) -> Result<LValue<'a>, String> {
+    ) -> Result<LValue<'a>, CompileError> {
         //Load the reference
         self.generate_lvalue_for_rec(builder, type_with_context, reference)
             .and_then(|lvalue| {
@@ -863,14 +859,14 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
                         ptr_value: pointer,
                     });
                 }
-                Err(format!("Invalid array access at {:}", 0)) //TODO
+                Err(CompileError::codegen_error("Invalid array access".to_string(), access.get_location()))
             })
     }
     fn generate_lvalue_for(
         &self,
         builder: &Builder<'a>,
         statement: &Statement,
-    ) -> Result<(DataTypeInformation<'a>, PointerValue<'a>), String> {
+    ) -> Result<(DataTypeInformation<'a>, PointerValue<'a>), CompileError> {
         self.generate_lvalue_for_rec(builder, None, statement).map(
             |LValue {
                  type_name: _,
@@ -885,7 +881,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         builder: &Builder<'a>,
         type_with_context: Option<(&str, PointerValue<'a>)>,
         statement: &Statement,
-    ) -> Result<LValue<'a>, String> {
+    ) -> Result<LValue<'a>, CompileError> {
         match statement {
             Statement::QualifiedReference { elements } => {
                 let mut element_iter = elements.iter();
@@ -921,7 +917,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
             Statement::ArrayAccess { reference, access } => {
                 self.generate_lvalue_for_array(builder, type_with_context, reference, access)
             }
-            _ => Err(format!("Unsupported Statement {:?}", statement)),
+            _ => Err(CompileError::codegen_error(format!("Unsupported Statement {:?}", statement), statement.get_location())),
         }
     }
 }

@@ -2781,7 +2781,7 @@ fn initial_values_different_data_types() {
         TYPE MyStruct:
         STRUCT
           b  : BYTE   := 7;
-          s  : SINT    := 7;
+          s  : SINT   := 7;
           us : USINT  := 7;
           w  : WORD   := 7;
           i  : INT    := 7;

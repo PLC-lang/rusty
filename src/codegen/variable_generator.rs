@@ -1,19 +1,44 @@
-use inkwell::{AddressSpace, builder::Builder, module::{Linkage, Module}, types::BasicTypeEnum, values::{BasicValue, BasicValueEnum, GlobalValue, PointerValue}};
+/// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
+use inkwell::{
+    builder::Builder,
+    context::Context,
+    module::{Linkage, Module},
+    types::BasicTypeEnum,
+    values::{BasicValue, BasicValueEnum, GlobalValue, PointerValue},
+    AddressSpace,
+};
 
-use crate::{ast::Variable, index::{DataTypeIndexEntry, Index}};
+use crate::{
+    ast::Variable,
+    compile_error::CompileError,
+    index::{Index},
+};
 
-use super::{LValue, TypeAndValue};
-
+use super::{statement_generator::StatementCodeGenerator, LValue, TypeAndValue};
 
 pub fn generate_global_variable<'ctx>(
     module: &Module<'ctx>,
+    context: &'ctx Context,
+    builder: &Builder<'ctx>,
     index: &mut Index<'ctx>,
     variable: &Variable,
-) -> Result<GlobalValue<'ctx>, String> {
-   
-    let type_name = variable.data_type.get_name().unwrap(); //TODO 
-    let variable_type = index.find_type(type_name).unwrap().get_type().unwrap();
-    let global_variable = create_llvm_global_variable(module, &variable.name, variable_type, None); //TODO
+) -> Result<GlobalValue<'ctx>, CompileError> {
+    let type_name = variable.data_type.get_name().unwrap(); //TODO
+    let variable_type_description = index.get_type(type_name)?;
+    let variable_type = variable_type_description.get_type().unwrap();
+
+    let initial_value = if let Some(initializer) = &variable.initializer {
+        let statement_generator = StatementCodeGenerator::new(context, index, None);
+        let (_, value) = statement_generator.generate_expression(&initializer, builder)?;
+        //Todo cast if necessary
+        Some(value)
+    } else {
+        None
+    };
+    let inital_value = initial_value.or(variable_type_description.get_initial_value());
+
+    let global_variable =
+        create_llvm_global_variable(module, &variable.name, variable_type, inital_value);
 
     index.associate_global_variable(&variable.name, global_variable.as_pointer_value());
     Ok(global_variable)
@@ -37,7 +62,10 @@ pub fn create_llvm_global_variable<'ctx>(
     result
 }
 
-fn set_initializer_for_type<'ctx>(global_value: &GlobalValue<'ctx>, variable_type: BasicTypeEnum<'ctx>) {
+fn set_initializer_for_type<'ctx>(
+    global_value: &GlobalValue<'ctx>,
+    variable_type: BasicTypeEnum<'ctx>,
+) {
     if variable_type.is_int_type() {
         global_value.set_initializer(&variable_type.into_int_type().const_zero());
     } else if variable_type.is_struct_type() {
@@ -45,20 +73,21 @@ fn set_initializer_for_type<'ctx>(global_value: &GlobalValue<'ctx>, variable_typ
     }
 }
 
-pub fn find_default_initializer_for<'ctx>(type_name: &str, index: &Index<'ctx>) -> Option<BasicValueEnum<'ctx>> {
-        index.find_type(type_name).and_then(DataTypeIndexEntry::get_initial_value)
-    }
-
-pub fn create_llvm_local_variable<'a>(builder: &Builder<'a>, name: &str, variable_type: &BasicTypeEnum<'a>) -> PointerValue<'a> {
+pub fn create_llvm_local_variable<'a>(
+    builder: &Builder<'a>,
+    name: &str,
+    variable_type: &BasicTypeEnum<'a>,
+) -> PointerValue<'a> {
     builder.build_alloca(*variable_type, name)
 }
 
-pub fn create_llvm_load_pointer<'a>(builder: &Builder<'a>, lvalue: &LValue<'a>, name : &str) -> Result<TypeAndValue<'a>, String> {
-        Ok((
-            lvalue.type_information.clone(),
-            builder.build_load(lvalue.ptr_value, name).into(),
-        ))
-    }
-
-//pub fn create_llvm_load_pointer<'a>(builder: &Builder<'a>, type_and_value: &TypeAndValue<'a>, name: &str) -> Result<TypeAndValue
-
+pub fn create_llvm_load_pointer<'a>(
+    builder: &Builder<'a>,
+    lvalue: &LValue<'a>,
+    name: &str,
+) -> Result<TypeAndValue<'a>, CompileError> {
+    Ok((
+        lvalue.type_information.clone(),
+        builder.build_load(lvalue.ptr_value, name).into(),
+    ))
+}

@@ -1,77 +1,88 @@
-
-use std::todo;
-
+/// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use inkwell::{
-    types::{BasicType, BasicTypeEnum, StringRadix},
-    values::{AggregateValue, BasicValueEnum},
     context::Context,
+    types::{BasicType, BasicTypeEnum, StringRadix},
+    values::{BasicValueEnum},
 };
-use logos::Source;
 
-use crate::{index::Index};
+use crate::{compile_error::CompileError, index::Index};
 
-use super::{CodeGen, ExpressionValue, TypeAndValue};
 use super::typesystem;
+use super::{CodeGen, ExpressionValue, TypeAndValue};
 
-pub fn create_llvm_const_bool<'a>(context: &'a Context, index: &Index<'a>, value: bool) -> Result<TypeAndValue<'a>, String>{
+pub fn create_llvm_const_bool<'a>(
+    context: &'a Context,
+    index: &Index<'a>,
+    value: bool,
+) -> Result<TypeAndValue<'a>, CompileError> {
     let itype = context.bool_type();
     let value = itype.const_int(value as u64, false);
-    let data_type = index.find_type_information("BOOL").ok_or("cannot find type: 'BOOL'".to_string())?;
+
+    let data_type = index.get_type_information("BOOL")?;
     Ok((data_type, BasicValueEnum::IntValue(value)))
 }
 pub fn create_llvm_const_int<'a>(
-            context: &'a Context, 
-            index: &Index<'a>,
-            expected_type: &Option<BasicTypeEnum<'a>>, 
-            value: &str) -> Result<TypeAndValue<'a>, String> {
+    context: &'a Context,
+    index: &Index<'a>,
+    expected_type: &Option<BasicTypeEnum<'a>>,
+    value: &str,
+) -> Result<TypeAndValue<'a>, CompileError> {
+    let i32_type = context.i32_type().as_basic_type_enum();
+    let data_type = expected_type.unwrap_or(i32_type);
 
-        let i32_type = context.i32_type().as_basic_type_enum();
-        let data_type = expected_type.unwrap_or(i32_type);
+    if let BasicTypeEnum::IntType { 0: int_type } = data_type {
+        let value = int_type.const_int_from_string(value, StringRadix::Decimal);
+        let data_type = index.get_type_information("DINT")?;
 
-        if let BasicTypeEnum::IntType { 0: int_type } = data_type {
-            let value = int_type.const_int_from_string(value, StringRadix::Decimal);
-            let data_type = index.get_type_information("DINT")?;
-
-            Ok((data_type, BasicValueEnum::IntValue(value.unwrap())))
-        } else {
-            panic!("error expected inttype");
-        }
+        Ok((data_type, BasicValueEnum::IntValue(value.unwrap())))
+    } else {
+        panic!("error expected inttype");
     }
+}
 
-    pub fn create_llvm_const_real<'a>(
-            context: &'a Context, 
-            index: &Index<'a>,
-            expected_type: &Option<BasicTypeEnum<'a>>, 
-            value: &str) -> Result<TypeAndValue<'a>, String> {
-        let double_type = context.f32_type().as_basic_type_enum();
-        let data_type = expected_type.unwrap_or(double_type);
+pub fn create_llvm_const_real<'a>(
+    context: &'a Context,
+    index: &Index<'a>,
+    expected_type: &Option<BasicTypeEnum<'a>>,
+    value: &str,
+) -> Result<TypeAndValue<'a>, CompileError> {
+    let double_type = context.f32_type().as_basic_type_enum();
+    let data_type = expected_type.unwrap_or(double_type);
 
-        if let BasicTypeEnum::FloatType { 0: float_type } = data_type {
-            let value = float_type.const_float_from_string(value);
-            let data_type = index.get_type_information("REAL")?;
-            Ok((data_type, BasicValueEnum::FloatValue(value)))
-        } else {
-            panic!("error expected floattype")
-        }
+    if let BasicTypeEnum::FloatType { 0: float_type } = data_type {
+        let value = float_type.const_float_from_string(value);
+        let data_type = index.get_type_information("REAL")?;
+        Ok((data_type, BasicValueEnum::FloatValue(value)))
+    } else {
+        panic!("error expected floattype")
     }
+}
 
-    pub fn create_llvm_const_string<'a>(
-            context: &'a Context, 
-            value: &str) -> Result<TypeAndValue<'a>, String> {
-        let exp_value = context.const_string(value.as_bytes(), true);
-        Ok((typesystem::new_string_information(context, value.len() as u32), BasicValueEnum::VectorValue(exp_value)))
-    }
+pub fn create_llvm_const_string<'a>(
+    context: &'a Context,
+    value: &str,
+) -> Result<TypeAndValue<'a>, CompileError> {
+    create_llvm_const_vec_string(context, value.as_bytes())
+}
 
+pub fn create_llvm_const_vec_string<'a>(
+    context: &'a Context,
+    value: &[u8],
+) -> Result<TypeAndValue<'a>, CompileError> {
+    let exp_value = context.const_string(value, true);
+    Ok((
+        typesystem::new_string_information(context, value.len() as u32),
+        BasicValueEnum::VectorValue(exp_value),
+    ))
+}
 
-impl <'ctx> CodeGen <'ctx> {
-
-    
+impl<'ctx> CodeGen<'ctx> {
     pub fn generate_literal_integer<'a>(
-            llvm: &'a Context, 
-            index: &'a Index,
-            current_type: &'a Option<BasicTypeEnum>, 
-            value: &str) -> ExpressionValue<'a> {
-
+        llvm: &'a Context,
+        index: &'a Index,
+        current_type: &'a Option<BasicTypeEnum>,
+        value: &str,
+    ) -> ExpressionValue<'a> {
         let i32_type = llvm.i32_type().as_basic_type_enum();
         let data_type = current_type.unwrap_or(i32_type);
 
@@ -85,11 +96,11 @@ impl <'ctx> CodeGen <'ctx> {
     }
 
     pub fn generate_literal_real<'a>(
-            llvm : &'a Context, 
-            index: &'a Index,
-            current_type: &'a Option<BasicTypeEnum>, 
-            value: &str) -> ExpressionValue<'a> {
-
+        llvm: &'a Context,
+        index: &'a Index,
+        current_type: &'a Option<BasicTypeEnum>,
+        value: &str,
+    ) -> ExpressionValue<'a> {
         let double_type = llvm.f32_type().as_basic_type_enum();
         let data_type = current_type.unwrap_or(double_type);
 
@@ -103,21 +114,17 @@ impl <'ctx> CodeGen <'ctx> {
     }
 
     pub fn generate_literal_boolean<'a>(
-            llvm : &'a Context, 
-            index: &'a Index,
-            current_type: &'a Option<BasicTypeEnum>, 
-            value: bool) -> ExpressionValue<'a> {
-        
+        llvm: &'a Context,
+        index: &'a Index,
+        value: bool,
+    ) -> ExpressionValue<'a> {
         let itype = llvm.bool_type();
         let value = itype.const_int(value as u64, false);
         let data_type = index.find_type_information("BOOL");
         (data_type, Some(BasicValueEnum::IntValue(value)))
     }
 
-    pub fn generate_literal_string<'a>(
-            llvm : &'a Context, 
-            value: &[u8]) -> ExpressionValue<'a> {
-
+    pub fn generate_literal_string<'a>(llvm: &'a Context, value: &[u8]) -> ExpressionValue<'a> {
         let exp_value = llvm.const_string(value, true);
         (
             Some(typesystem::new_string_information(llvm, value.len() as u32)),
@@ -158,14 +165,14 @@ impl <'ctx> CodeGen <'ctx> {
                 inner_type
             ))
         }
-    }*/
-}
+    }
 
-fn generate_array_value<'ctx>(
+    fn generate_array_value<'ctx>(
         element_type: BasicTypeEnum<'ctx>,
         len: u32,
         values: &Vec<BasicValueEnum<'ctx>>,
-    ) -> Result<BasicValueEnum<'ctx>, String> {
+        offset: Range<usize>
+    ) -> Result<BasicValueEnum<'ctx>, CompileError> {
         match element_type {
             /*BasicTypeEnum::ArrayType(t) => {
                 let array = t.get_undef();
@@ -189,14 +196,14 @@ fn generate_array_value<'ctx>(
                         //TODO what should I do with the returned value?
                         array.const_insert_value(*iv, &mut [i as u32]);
                     } else {
-                        return Err(format!(
+                        return Err(CompileError::CodeGenError{ message: format!(
                             "expected {:?} but found {:?} when generating values.",
-                            element_type, v
-                        ));
+                            element_type, v), location: offset});
+                        }
                     }
+                    Ok(array.clone().into())
                 }
-                Ok(array.clone().into())
+                _ => panic!("aaaaah"),
             }
-            _ => panic!("aaaaah"),
-        }
-    }
+        }*/
+}

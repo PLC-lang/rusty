@@ -1,3 +1,4 @@
+/// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use inkwell::{FloatPredicate, IntPredicate, builder::Builder, values::{BasicValueEnum}};
 
 use crate::{ast::Operator, index::{DataTypeInformation, Index}};

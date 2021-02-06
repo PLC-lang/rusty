@@ -3,6 +3,7 @@
 use std::path::Path;
 
 use ast::NewLines;
+use compile_error::CompileError;
 use inkwell::context::Context;
 use inkwell::targets::{
     CodeModel, FileType, InitializationConfig, RelocMode, Target, TargetMachine,TargetTriple,
@@ -15,13 +16,14 @@ mod codegen;
 pub mod index;
 mod lexer;
 mod parser;
+pub mod compile_error;
 #[macro_use]
 extern crate pretty_assertions;
 
 ///
 /// Compiles the given source into an object file and saves it in output
 ///
-fn compile_to_obj(source: String, output: &str, reloc: RelocMode,  triple: Option<String>) -> Result<(), String> {
+fn compile_to_obj(source: String, output: &str, reloc: RelocMode,  triple: Option<String>) -> Result<(), CompileError> {
     let context = Context::create();
     let mut index = Index::new();
     let path = Path::new(output);
@@ -54,22 +56,22 @@ fn compile_to_obj(source: String, output: &str, reloc: RelocMode,  triple: Optio
     Ok(())
 }
 
-pub fn compile(source : String, output: &str,  target: Option<String>) -> Result<(), String> {
+pub fn compile(source : String, output: &str,  target: Option<String>) -> Result<(), CompileError> {
     compile_to_obj(source,output, RelocMode::Default, target)
 }
 
-pub fn compile_to_shared_pic_object(source : String, output: &str,  target: Option<String>) -> Result<(), String> {
+pub fn compile_to_shared_pic_object(source : String, output: &str,  target: Option<String>) -> Result<(), CompileError> {
     compile_to_obj(source,output, RelocMode::PIC, target)
 }
 
-pub fn compile_to_shared_object(source : String, output: &str,  target: Option<String>) -> Result<(), String> {
+pub fn compile_to_shared_object(source : String, output: &str,  target: Option<String>) -> Result<(), CompileError> {
     compile_to_obj(source,output, RelocMode::DynamicNoPic, target)
 }
 
 ///
 /// Compiles the given source into a bitcode file
 ///
-pub fn compile_to_bitcode(source : String, output: &str) -> Result<(), String> {
+pub fn compile_to_bitcode(source : String, output: &str) -> Result<(), CompileError> {
     let context = Context::create();
     let mut index = Index::new();
     let path = Path::new(output);
@@ -86,7 +88,7 @@ pub fn create_index<'ctx>() -> Index<'ctx> {
 ///
 /// Compiles the given source into LLVM IR and returns it
 ///
-pub fn compile_to_ir(source: String) -> Result<String, String> {
+pub fn compile_to_ir(source: String) -> Result<String, CompileError> {
     let context = Context::create();
     let mut index = Index::new();
     let code_gen = compile_module(&context, &mut index, source)?;
@@ -97,7 +99,7 @@ pub fn get_ir(codegen: &codegen::CodeGen) -> String {
     codegen.module.print_to_string().to_string()
 }
 
-pub fn compile_module<'ctx>(context : &'ctx Context, index: &'ctx mut Index<'ctx>, source : String) -> Result<codegen::CodeGen<'ctx>, String> {
+pub fn compile_module<'ctx>(context : &'ctx Context, index: &'ctx mut Index<'ctx>, source : String) -> Result<codegen::CodeGen<'ctx>, CompileError> {
 
     let (mut parse_result, new_lines) = parse(source);
     //first pre-process the AST

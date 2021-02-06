@@ -2,7 +2,7 @@
 
 use std::collections::HashMap;
 
-use crate::ast::CompilationUnit;
+use crate::{ast::CompilationUnit, compile_error::{CompileError}};
 use inkwell::{types::BasicTypeEnum, values::BasicValueEnum};
 use inkwell::values::{FunctionValue, PointerValue};
 
@@ -57,6 +57,19 @@ pub enum DataTypeInformation<'ctx> {
 }
 
 impl<'ctx> DataTypeInformation<'ctx> {
+
+    pub fn get_name(&self) -> &str {
+        match self {
+            DataTypeInformation::Struct { name, .. } => name,
+            DataTypeInformation::Array { name, .. } => name,
+            DataTypeInformation::Integer { .. } => "Integer", //TODO
+            DataTypeInformation::Float { .. } => "Float", //TODO
+            DataTypeInformation::String { ..} => "String", //TODO
+            DataTypeInformation::Alias { name, .. } => name,
+            DataTypeInformation::Void {  } => "Void",
+        }
+    }
+
     pub fn is_int(&self) -> bool {
         if let DataTypeInformation::Integer { .. } = self {
             true
@@ -296,8 +309,8 @@ impl<'ctx> Index<'ctx> {
         }).flatten()
     }
 
-    pub fn get_type(&self, type_name: &str) -> Result<&DataTypeIndexEntry<'ctx>, String> {
-        self.find_type(type_name).ok_or_else(|| format!("unknown type: {}", type_name))
+    pub fn get_type(&self, type_name: &str) -> Result<&DataTypeIndexEntry<'ctx>, CompileError> {
+        self.find_type(type_name).ok_or_else(|| CompileError::unknown_type(type_name, 0..0))
     }
 
     pub fn find_type_information(&self, type_name: &str) -> Option<DataTypeInformation<'ctx>> {
@@ -305,8 +318,8 @@ impl<'ctx> Index<'ctx> {
             .and_then(|entry| entry.clone_type_information())
     }
 
-    pub fn get_type_information(&self, type_name: &str) -> Result<DataTypeInformation<'ctx>, String> {
-        self.find_type_information(type_name).ok_or_else(|| format!("unknown type: {}", type_name))
+    pub fn get_type_information(&self, type_name: &str) -> Result<DataTypeInformation<'ctx>, CompileError> {
+        self.find_type_information(type_name).ok_or_else(|| CompileError::unknown_type(type_name, 0..0))
     }
 
     pub fn find_callable_instance_variable(

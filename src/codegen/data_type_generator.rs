@@ -1,21 +1,15 @@
+/// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use inkwell::{
     context::Context,
     module::Module,
     types::{ArrayType, BasicType, BasicTypeEnum},
     values::{BasicValue},
 };
-use crate::{
-    ast::{DataType, DataTypeDeclaration, Statement, Variable},
-    index::{DataTypeInformation, Dimension, Index},
-};
+use crate::{ast::{DataType, DataTypeDeclaration, Statement, Variable}, compile_error::CompileError, index::{DataTypeInformation, Dimension, Index}};
 
-use std::io::{self, Write};
+use super::{instance_struct_generator::InstanceStructGenerator, statement_generator::StatementCodeGenerator, variable_generator};
 
-use super::{
-    instance_struct_generator::InstanceStructGenerator, variable_generator,
-};
-
-pub fn generate_data_type_stubs<'a>(context: &'a Context, index: &mut Index<'a>, data_types: &Vec<DataType>) {
+pub fn generate_data_type_stubs<'a>(context: &'a Context, index: &mut Index<'a>, data_types: &Vec<DataType>) -> Result<(), CompileError>{
     for data_type in data_types {
         match data_type {
             DataType::StructType { name, variables: _ } => {
@@ -50,14 +44,6 @@ pub fn generate_data_type_stubs<'a>(context: &'a Context, index: &mut Index<'a>,
                         referenced_type: type_ref_name.clone(),
                     },
                 );
-                //TODO error handling
-                //let ref_type = self.index.find_type(name.as_str()).unwrap();
-                //self.index.associate_type(name, ref_type.get_type_information().unwrap().clone());
-                /*if let Some(initializer_statement) = initializer {
-                    let (Some(initial_value), _) = self.generate_statement(initializer_statement)?;
-                    //TODO add cast
-                    self.index.associate_type_initial_value(name, initial_value)
-                }*/
             }
             DataType::ArrayType {
                 name,
@@ -85,6 +71,7 @@ pub fn generate_data_type_stubs<'a>(context: &'a Context, index: &mut Index<'a>,
             }
         };
     }
+    Ok(())
 }
 
 pub fn generate_data_type<'a>(
@@ -92,14 +79,15 @@ pub fn generate_data_type<'a>(
     context: &'a Context,
     index: &mut Index<'a>,
     data_types: &Vec<DataType>,
-) -> Result<(), String> {
+) -> Result<(), CompileError> {
     for data_type in data_types {
         match data_type {
             DataType::StructType { name, variables } => {
                 let name = name.as_ref().unwrap();
                 let mut struct_generator = InstanceStructGenerator::new(context, index);
                 let members: Vec<&Variable> = variables.iter().collect();
-                struct_generator.generate_struct_type(&members, name, &context.create_builder())?;
+                let (_, initial_value) = struct_generator.generate_struct_type(&members, name, &context.create_builder())?;
+                index.associate_type_initial_value(name, initial_value);
             }
             DataType::EnumType { name: _, elements } => {
                 for (i, element) in elements.iter().enumerate() {
@@ -122,11 +110,10 @@ pub fn generate_data_type<'a>(
             } => {
                 let alias_name = name.as_ref().map(|it| it.as_str()).unwrap();
                 index.associate_type_alias(alias_name, referenced_type.as_str());
-                if let Some(initializer_statement) = initializer {
-
-                    //TODO
-                    //let (_, initial_value) = self.generate_statement(initializer_statement)?;
-                    //index.associate_type_initial_value(alias_name, initial_value.ok_or_else(|| "could not generate initial value for TODO")?);
+                if let Some(initializer) = initializer {
+                    let generator = StatementCodeGenerator::new(context, index, None );
+                    let (_, initial_value) = generator.generate_expression(initializer, &context.create_builder())?;
+                    index.associate_type_initial_value(alias_name, initial_value);
                 }
             }
             DataType::ArrayType { .. } => {}

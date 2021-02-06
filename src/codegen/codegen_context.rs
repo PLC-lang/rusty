@@ -1,3 +1,4 @@
+/// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use inkwell::{basic_block::BasicBlock, builder::Builder, context::Context, module::Module, types::{BasicTypeEnum, FloatType, IntType, StructType, VoidType}, values::{FunctionValue, VectorValue}};
 
 use crate::ast::NewLines;
