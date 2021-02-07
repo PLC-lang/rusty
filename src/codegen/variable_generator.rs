@@ -14,7 +14,7 @@ use crate::{
     index::{Index},
 };
 
-use super::{statement_generator::StatementCodeGenerator, LValue, TypeAndValue};
+use super::{statement_generator::StatementCodeGenerator, TypeAndPointer, TypeAndValue};
 
 pub fn generate_global_variable<'ctx>(
     module: &Module<'ctx>,
@@ -83,11 +83,11 @@ pub fn create_llvm_local_variable<'a>(
 
 pub fn create_llvm_load_pointer<'a>(
     builder: &Builder<'a>,
-    lvalue: &LValue<'a>,
+    lvalue: &TypeAndPointer<'a, '_>,
     name: &str,
 ) -> Result<TypeAndValue<'a>, CompileError> {
     Ok((
-        lvalue.type_information.clone(),
+        lvalue.get_type_information().clone(),
         builder.build_load(lvalue.ptr_value, name).into(),
     ))
 }

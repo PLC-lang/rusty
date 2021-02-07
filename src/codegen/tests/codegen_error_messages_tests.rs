@@ -138,7 +138,7 @@ fn invalid_struct_access_in_array_should_be_reported_with_line_number() {
             src);
     if let Err(msg) = result {
         // that's not perfect yet, we need display-names for generated datatypes
-        assert_eq!(CompileError::invalid_reference("__prg_x.a", 114..115), msg)
+        assert_eq!(CompileError::invalid_reference("INT.a", 114..115), msg)
     }else{
         panic!("expected code-gen error but got none")
     }

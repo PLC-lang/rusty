@@ -108,6 +108,7 @@ impl Variable {
 }
 
 pub type SourceRange = core::ops::Range<usize>;
+
 #[derive(Clone, Debug, PartialEq)]
 pub struct NewLines {
     new_lines : Vec<usize>,

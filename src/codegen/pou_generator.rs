@@ -1,6 +1,6 @@
 /// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use super::{instance_struct_generator::{self, InstanceStructGenerator}, statement_generator::{FunctionContext, StatementCodeGenerator}, variable_generator};
-use crate::{ast::{DataTypeDeclaration, LinkageType, POU, PouType, Statement, Variable}, compile_error::CompileError, index::{DataTypeIndexEntry, DataTypeInformation, Index}};
+use crate::{ast::{DataTypeDeclaration, LinkageType, POU, PouType, SourceRange, Statement, Variable}, compile_error::CompileError, index::{DataTypeIndexEntry, DataTypeInformation, Index}};
 use inkwell::{AddressSpace, builder::Builder, context::Context, module::Module, types::{BasicTypeEnum, FunctionType}, values::{BasicValueEnum, FunctionValue}};
 
 pub struct PouGenerator<'a, 'b> {
@@ -119,7 +119,7 @@ impl<'a, 'b> PouGenerator<'a, 'b> {
         }
 
         // generate return statement
-        self.generate_return_statement(&function_context, pou.pou_type, &builder)?;
+        self.generate_return_statement(&function_context, pou.pou_type, &builder, Some(0..0))?; //TODO location
 
         Ok(())
     }
@@ -174,12 +174,12 @@ impl<'a, 'b> PouGenerator<'a, 'b> {
         Ok(())
     }
 
-    fn generate_return_statement(&self, function_context: &FunctionContext, pou_type: PouType, builder: &Builder<'a>) -> Result<(), CompileError> {
+    fn generate_return_statement(&self, function_context: &FunctionContext, pou_type: PouType, builder: &Builder<'a>, location: Option<SourceRange>) -> Result<(), CompileError> {
         match pou_type {
             PouType::Function => {
                 let reference = Statement::Reference{
                     name: function_context.linking_context.clone(),
-                    location: 0..0 //TODO
+                    location: location.unwrap_or(0usize..0usize)
                 };
                 let mut statement_gen = StatementCodeGenerator::new(self.context, &self.index, Some(function_context));
                 statement_gen.load_prefix = "".to_string();

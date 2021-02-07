@@ -30,7 +30,7 @@ pub enum DataTypeInformation<'ctx> {
         generated_type: BasicTypeEnum<'ctx>,
     },
     Array {
-        name: String,
+        inner_type_name: String,
         internal_type_information : Box<DataTypeInformation<'ctx>>,
         generated_type: BasicTypeEnum<'ctx>,
         dimensions : Vec<Dimension>, 
@@ -61,7 +61,7 @@ impl<'ctx> DataTypeInformation<'ctx> {
     pub fn get_name(&self) -> &str {
         match self {
             DataTypeInformation::Struct { name, .. } => name,
-            DataTypeInformation::Array { name, .. } => name,
+            DataTypeInformation::Array { inner_type_name: name, .. } => name,
             DataTypeInformation::Integer { .. } => "Integer", //TODO
             DataTypeInformation::Float { .. } => "Float", //TODO
             DataTypeInformation::String { ..} => "String", //TODO

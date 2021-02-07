@@ -52,13 +52,14 @@ pub fn generate_data_type_stubs<'a>(context: &'a Context, index: &mut Index<'a>,
             } => {
                 let dimensions = get_array_dimensions(bounds);
                 let target_type = get_type(index,referenced_type).unwrap();
+                let referenced_type_name = referenced_type.get_name().unwrap();
                 let internal_type = index
-                    .find_type_information(referenced_type.get_name().unwrap())
+                    .find_type_information(referenced_type_name)
                     .unwrap();
                 index.associate_type(
                     name.as_ref().unwrap().as_str(),
                     DataTypeInformation::Array {
-                        name: name.as_ref().unwrap().clone(),
+                        inner_type_name: referenced_type_name.to_string(),
                         internal_type_information: Box::new(internal_type),
                         generated_type: create_nested_array_type(
                             target_type,

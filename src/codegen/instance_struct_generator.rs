@@ -63,7 +63,8 @@ impl<'a, 'b> InstanceStructGenerator<'a, 'b> {
                             self.context, 
                             self.global_index, 
                             None, 
-                            type_index_entry.get_type().ok_or_else(|| CompileError::no_type_associated(type_name, variable.location.clone()))?); //TODO
+                            type_index_entry.get_type()
+                                .ok_or_else(|| CompileError::no_type_associated(type_name, variable.location.clone()))?);
 
                     statement_gen.generate_expression(statement, builder)
                         .map(|(_, value)| Some(value))?
@@ -79,8 +80,9 @@ impl<'a, 'b> InstanceStructGenerator<'a, 'b> {
     pub fn allocate_struct_instance(&self, builder: &Builder<'a>, callable_name: &str, location: &SourceRange) -> Result<PointerValue<'a>, CompileError> {
         let instance_name = get_pou_instance_variable_name(callable_name);
         let function_type = self.global_index.get_type(callable_name)?
-                                .get_type() //TODO Store as datatype in the index and fetch it?
+                                .get_type()
                                 .ok_or_else(|| CompileError::no_type_associated(callable_name, location.clone()))?;
+
         Ok(variable_generator::create_llvm_local_variable(builder, &instance_name, &function_type))
     }
 }

@@ -31,10 +31,19 @@ type TypeAndValue<'a> = (DataTypeInformation<'a>, BasicValueEnum<'a>);
 ///
 type VariableDeclarationInformation<'a> = (String, BasicTypeEnum<'a>, Option<BasicValueEnum<'a>>);
 
-pub struct LValue<'ctx> {
-    type_name: String,
-    type_information: DataTypeInformation<'ctx>,
-    ptr_value: PointerValue<'ctx>
+pub struct TypeAndPointer<'a, 'b> {
+    type_entry: &'b DataTypeIndexEntry<'a>,
+    ptr_value: PointerValue<'a>
+}
+
+impl <'a, 'b> TypeAndPointer<'a, 'b>  {
+    pub fn new(entry: &'b DataTypeIndexEntry<'a>, value: PointerValue<'a>) -> TypeAndPointer<'a, 'b> {
+        TypeAndPointer { type_entry: entry, ptr_value: value}
+    }
+
+    pub fn get_type_information(&self) -> &DataTypeInformation<'a> {
+        self.type_entry.get_type_information().unwrap() //TODO
+    }
 }
 
 pub struct CodeGen<'ctx> {

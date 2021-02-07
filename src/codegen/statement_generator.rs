@@ -1,7 +1,7 @@
 /// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use std::{ops::Range};
 
-use super::{LValue, TypeAndValue, expression_generator, instance_struct_generator::{InstanceStructGenerator}, literals, typesystem, variable_generator};
+use super::{TypeAndPointer, TypeAndValue, expression_generator, instance_struct_generator::{InstanceStructGenerator}, literals, typesystem, variable_generator};
 use crate::{ast::{ConditionalBlock, Operator, Statement}, compile_error::CompileError, index::{DataTypeIndexEntry, DataTypeInformation, Dimension, Index, VariableIndexEntry}};
 use inkwell::{AddressSpace, IntPredicate, basic_block::BasicBlock, builder::Builder, context::Context, types::{BasicType, BasicTypeEnum}, values::{BasicValue, BasicValueEnum, FunctionValue, IntValue, PointerValue}};
 
@@ -134,7 +134,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
             sub_statement_gen.generate_expression(right_statement, builder)?
         };
         let cast_value =
-            typesystem::cast_if_needed(builder, self.context, &left.type_information, right, &right_type, right_statement)?;
+            typesystem::cast_if_needed(builder, self.context, &left.get_type_information(), right, &right_type, right_statement)?;
         builder.build_store(left.ptr_value, cast_value);
         Ok(())
     }
@@ -284,11 +284,11 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
                         .unwrap();
 
                     
-                    let (target_type,pointer_to_target) = self.generate_lvalue_for(builder, right).unwrap();
+                    let l_value = self.generate_lvalue_for(builder, right).unwrap();
                     let loaded_value = builder.build_load(pointer_to_param,parameter.get_name());
-                    let value = typesystem::cast_if_needed(&builder, self.context, &target_type, loaded_value,param_type, right)?;
+                    let value = typesystem::cast_if_needed(&builder, self.context, l_value.get_type_information(), loaded_value,param_type, right)?;
                     builder
-                        .build_store(pointer_to_target, value);
+                        .build_store(l_value.ptr_value, value);
                 }
                 builder.position_at_end(current_block);
             }
@@ -361,7 +361,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         let next = builder
             .build_int_add(counter_statement.into_int_value(), step_by_value.into_int_value(), "tmpVar");
                     
-        let (_, ptr) = self.generate_lvalue_for(builder, counter)?;
+        let ptr = self.generate_lvalue_for(builder, counter)?.ptr_value;
         builder.build_store(ptr, next);
 
         //Loop back
@@ -572,18 +572,12 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
                 variable_generator::create_llvm_load_pointer(builder, &pointer, &load_name)
             },
             Statement::QualifiedReference { .. } => {
-                let (data_type, ptr_value) = self.generate_lvalue_for(builder, statement)?;
-                let lvalue = LValue{ ptr_value, type_information: data_type, type_name: "".to_string()};
-                variable_generator::create_llvm_load_pointer(builder, &lvalue, &self.load_prefix)
+                let l_value = self.generate_lvalue_for(builder, statement)?;
+                variable_generator::create_llvm_load_pointer(builder, &l_value, &self.load_prefix)
             },
             Statement::ArrayAccess { .. } => {
-                let (a, b) = self.generate_lvalue_for(builder, statement)?;
-                let lvalue = LValue {
-                    type_name: "".to_string(),
-                    type_information: a,
-                    ptr_value: b,
-                };
-                variable_generator::create_llvm_load_pointer(builder, &lvalue, "load_tmpVar")
+                let l_value = self.generate_lvalue_for(builder, statement)?;
+                variable_generator::create_llvm_load_pointer(builder, &l_value, "load_tmpVar")
                 //TODO get find better name
             }
             Statement::BinaryExpression {
@@ -702,12 +696,11 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
     }
 
     /// generates an L-value (something with an adress), returns a pointer
-    //TODO change this to TypeAndPointer
     fn generate_l_value(
         &self,
         statement: &Statement,
         builder: &Builder<'a>,
-    ) -> Result<LValue<'a>, CompileError> {
+    ) -> Result<TypeAndPointer<'a, '_>, CompileError> {
         match statement {
             Statement::Reference { name, location } => {
                 self.create_llvm_pointer_value_for_reference(None, name, builder, location)
@@ -718,8 +711,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
                 //self.generate_reference_from_value((Some(value.type_information), Some(value.ptr_value)),"tmpVar")
             }
             Statement::QualifiedReference { .. } => {
-                let (data_type, ptr_value) = self.generate_lvalue_for(builder, statement)?;
-                Ok(LValue{type_name:"".to_string(), ptr_value, type_information: data_type })
+                self.generate_lvalue_for(builder, statement)
             }
             _ => Err(CompileError::codegen_error(format!("Cannot generate a LValue for {:?}", statement), statement.get_location())),
         }
@@ -732,28 +724,30 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
             },
             Statement::LiteralInteger { value, .. } => {
                 literals::create_llvm_const_int(self.context, self.index, &self.type_hint, value)
-            }, //TODO
+            }, 
             Statement::LiteralReal { value, .. } => {
                 literals::create_llvm_const_real(self.context, self.index, &self.type_hint, value)
             },
             Statement::LiteralString { value, .. } => {
                 literals::create_llvm_const_string(self.context, value)
-            }
-            //Statement::LiteralString{value, ..} => {},
-
+            },
             _ => Err(CompileError::codegen_error(format!("Cannot generate Literal for {:?}", statement), statement.get_location())),
         }
     }
 
     fn create_llvm_pointer_value_for_reference(
         &self,
-        type_with_context: Option<(&str, PointerValue<'a>)>,
+        qualifier_l_value: Option<&TypeAndPointer<'a,'_>>,
+        //type_with_context: Option<(&str, PointerValue<'a>)>,
         name: &String,
         builder: &Builder<'a>,
         offset: &Range<usize>,
-    ) -> Result<LValue<'a>, CompileError> {
-        let (data_type, ptr) = if let Some((qualifier_name, qualifier)) = type_with_context {
-            let member = self.index.find_member(qualifier_name, name);
+    ) -> Result<TypeAndPointer<'a,'_>, CompileError> {
+        //let (data_type, ptr) = if let Some((qualifier_name, qualifier)) = type_with_context {
+
+        let l_value = if let Some(l_value) = qualifier_l_value {
+            let qualifier_name = l_value.type_entry.get_name();
+            let member = self.index.find_member(l_value.type_entry.get_name(), name);
             let member_location = member
                 .map(|it| it.get_location_in_parent())
                 .flatten()
@@ -762,9 +756,11 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
 
             //.unwrap();
             let member_data_type = member.map(|it| it.get_type_name()).unwrap();
-            let gep = builder.build_struct_gep(qualifier, member_location, name);
+            let member_type_entry = self.index.get_type(member_data_type)?;
+            let gep = builder.build_struct_gep(l_value.ptr_value, member_location, name)
+                            .map_err(|_|CompileError::codegen_error(format!("Cannot generate qualified reference for {:}", name), offset.clone()))?;
 
-            (member_data_type, gep.ok())
+            TypeAndPointer::new(member_type_entry, gep)
         } else {
             //no context
             let linking_context = self
@@ -777,17 +773,14 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
                 .find_variable(linking_context, &[name.clone()])
                 .ok_or_else(|| CompileError::InvalidReference{ reference: name.clone(), location: offset.clone() })?;
 
-            let accessor_ptr = variable_index_entry.get_generated_reference();
-            (variable_index_entry.get_type_name(), accessor_ptr)
+            let accessor_ptr = variable_index_entry.get_generated_reference()
+                    .ok_or_else(||CompileError::codegen_error(format!("Cannot generate reference for {:}",name),offset.clone()))?;
+            let variable_type = self.index.get_type(variable_index_entry.get_type_name())?;
+
+            TypeAndPointer::new(variable_type, accessor_ptr)
         };
 
-        //return a LValue for the new pointer (type_name, type_info, pointer_value)
-        ptr.map(|it| LValue {
-            type_name: data_type.to_string(),
-            type_information: self.index.find_type_information(data_type).unwrap(),
-            ptr_value: it,
-        })
-        .ok_or_else(|| CompileError::InvalidReference{ reference: name.clone(), location: offset.clone()})
+        Ok(l_value)
     }
 
     fn generate_access_for_dimension(
@@ -813,23 +806,22 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
     fn generate_lvalue_for_array(
         &self,
         builder: &Builder<'a>,
-        type_with_context: Option<(&str, PointerValue<'a>)>,
+        qualifier_l_value: Option<&TypeAndPointer<'a, '_>>,
+        //type_with_context: Option<(&str, PointerValue<'a>)>,
         reference: &Statement,
         access: &Statement,
-    ) -> Result<LValue<'a>, CompileError> {
+    ) -> Result<TypeAndPointer<'a, '_>, CompileError> {
         //Load the reference
-        self.generate_lvalue_for_rec(builder, type_with_context, reference)
+        self.generate_lvalue_for_rec(builder, qualifier_l_value, reference)
             .and_then(|lvalue| {
-                let type_info_and_ptr = (lvalue.type_information, lvalue.ptr_value);
-                if let (
+                if let 
                     DataTypeInformation::Array {
-                        name,
+                        inner_type_name,
                         internal_type_information,
                         dimensions,
                         ..
-                    },
-                    value,
-                ) = type_info_and_ptr
+                    }
+                 = lvalue.get_type_information()
                 {
                     //First 0 is to access the pointer, then we access the array
                     let mut indices = vec![self.context.i32_type().const_int(0, false)];
@@ -852,13 +844,11 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
                     }
                     //Load the access from that reference
                     let pointer =
-                        unsafe { builder.build_in_bounds_gep(value, indices.as_slice(), "tmpVar") };
-                    return Ok(LValue {
-                        type_name: name,
-                        type_information: *internal_type_information,
-                        ptr_value: pointer,
-                    });
-                }
+                        unsafe { builder.build_in_bounds_gep(lvalue.ptr_value, indices.as_slice(), "tmpVar") };
+
+                    let internal_type = self.index.get_type(inner_type_name)?; //TODO this is WRONG!!! typename is not correct
+                    return Ok(TypeAndPointer::new(internal_type, pointer))
+               }
                 Err(CompileError::codegen_error("Invalid array access".to_string(), access.get_location()))
             })
     }
@@ -866,42 +856,35 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         &self,
         builder: &Builder<'a>,
         statement: &Statement,
-    ) -> Result<(DataTypeInformation<'a>, PointerValue<'a>), CompileError> {
-        self.generate_lvalue_for_rec(builder, None, statement).map(
-            |LValue {
-                 type_name: _,
-                 type_information,
-                 ptr_value,
-             }| (type_information, ptr_value),
-        )
+    ) -> Result<TypeAndPointer<'a, '_>, CompileError> {
+        self.generate_lvalue_for_rec(builder, None, statement)
     }
 
     fn generate_lvalue_for_rec(
         &self,
         builder: &Builder<'a>,
-        type_with_context: Option<(&str, PointerValue<'a>)>,
+        //type_with_context: Option<(&str, PointerValue<'a>)>,//
+        type_and_pointer: Option<&TypeAndPointer<'a, '_>>, 
         statement: &Statement,
-    ) -> Result<LValue<'a>, CompileError> {
+    ) -> Result<TypeAndPointer<'a, '_>, CompileError> {
         match statement {
             Statement::QualifiedReference { elements } => {
                 let mut element_iter = elements.iter();
                 let current_element = element_iter.next();
                 let mut current_lvalue = self.generate_lvalue_for_rec(
                     builder,
-                    type_with_context,
+                    type_and_pointer,
                     &current_element.unwrap(),
                 );
 
                 for it in element_iter {
-                    let LValue {
-                        type_name: context_type_name,
-                        type_information: _,
-                        ptr_value: context_ptr,
-                    } = current_lvalue?;
+                    let ctx = current_lvalue?;
+                    let context_ptr = ctx.ptr_value;
+                    let type_information= ctx.type_entry;
 
                     current_lvalue = self.generate_lvalue_for_rec(
                         builder,
-                        Some((context_type_name.as_str(), context_ptr)),
+                        Some(&TypeAndPointer::new(type_information, context_ptr)),
                         it,
                     );
                 }
@@ -909,13 +892,13 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
             }
             Statement::Reference { name, location, .. } => self
                 .create_llvm_pointer_value_for_reference(
-                    type_with_context,
+                    type_and_pointer,
                     name,
                     builder,
                     location,
                 ),
             Statement::ArrayAccess { reference, access } => {
-                self.generate_lvalue_for_array(builder, type_with_context, reference, access)
+                self.generate_lvalue_for_array(builder, type_and_pointer, reference, access)
             }
             _ => Err(CompileError::codegen_error(format!("Unsupported Statement {:?}", statement), statement.get_location())),
         }
