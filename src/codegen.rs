@@ -1,35 +1,28 @@
 /// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
 use crate::compile_error::CompileError;
-use self::{pou_generator::PouGenerator};
+use self::{llvm::LLVM, pou_generator::PouGenerator};
 use super::ast::*;
 use inkwell::builder::Builder;
 use inkwell::context::Context;
 use inkwell::module::Module;
-use inkwell::types::{BasicTypeEnum};
 use inkwell::values::{
     BasicValueEnum, PointerValue,
 };
 use super::index::*;
 
-#[cfg(test)]
-mod tests;
 mod typesystem;
-mod literals;
 mod pou_generator;
 mod statement_generator;
 mod instance_struct_generator;
 mod variable_generator;
 mod expression_generator;
 mod data_type_generator;
+mod llvm;
+#[cfg(test)]
+mod tests;
 
-type ExpressionValue<'a> = (Option<DataTypeInformation<'a>>, Option<BasicValueEnum<'a>>);
 type TypeAndValue<'a> = (DataTypeInformation<'a>, BasicValueEnum<'a>);
-
-///
-/// a touple (name, data_type, initializer) describing the declaration of a variable.
-///
-type VariableDeclarationInformation<'a> = (String, BasicTypeEnum<'a>, Option<BasicValueEnum<'a>>);
 
 pub struct TypeAndPointer<'a, 'b> {
     type_entry: &'b DataTypeIndexEntry<'a>,
@@ -76,12 +69,13 @@ impl<'ctx> CodeGen<'ctx> {
     }
 
     pub fn generate_compilation_unit(&mut self, root: CompilationUnit) -> Result<(), CompileError> {
-        data_type_generator::generate_data_type_stubs(&self.context, &mut self.index, &root.types)?;
-        data_type_generator::generate_data_type(&self.module, &self.context, &mut self.index, &root.types)?;
+        let llvm = LLVM::new(self.context, self.context.create_builder());
+        data_type_generator::generate_data_type_stubs(&llvm, &mut self.index, &root.types)?;
+        data_type_generator::generate_data_type(&self.module, &llvm, &mut self.index, &root.types)?;
 
         for global_variables in &root.global_vars {
             for v in &global_variables.variables {
-                variable_generator::generate_global_variable(&self.module, self.context, &self.builder, self.index, v)?;
+                variable_generator::generate_global_variable(&self.module, &llvm, self.index, v)?;
             }
         }
 
@@ -93,7 +87,7 @@ impl<'ctx> CodeGen<'ctx> {
         //generate all pou's
         for unit in &root.units {
             let mut pou_generator = PouGenerator::new(
-                &self.context,
+                &llvm,
                 &mut self.index);
                 pou_generator.generate_pou(unit, &self.module)?;
             }

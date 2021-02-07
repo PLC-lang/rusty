@@ -1,15 +1,10 @@
 /// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-use inkwell::{
-    context::Context,
-    module::Module,
-    types::{ArrayType, BasicType, BasicTypeEnum},
-    values::{BasicValue},
-};
+use inkwell::{module::Module, types::{ArrayType, BasicType, BasicTypeEnum}, values::{BasicValue}};
 use crate::{ast::{DataType, DataTypeDeclaration, Statement, Variable}, compile_error::CompileError, index::{DataTypeInformation, Dimension, Index}};
 
-use super::{instance_struct_generator::InstanceStructGenerator, statement_generator::StatementCodeGenerator, variable_generator};
+use super::{instance_struct_generator::InstanceStructGenerator, llvm::LLVM, statement_generator::StatementCodeGenerator };
 
-pub fn generate_data_type_stubs<'a>(context: &'a Context, index: &mut Index<'a>, data_types: &Vec<DataType>) -> Result<(), CompileError>{
+pub fn generate_data_type_stubs<'a>(llvm: &LLVM<'a>, index: &mut Index<'a>, data_types: &Vec<DataType>) -> Result<(), CompileError>{
     for data_type in data_types {
         match data_type {
             DataType::StructType { name, variables: _ } => {
@@ -17,8 +12,8 @@ pub fn generate_data_type_stubs<'a>(context: &'a Context, index: &mut Index<'a>,
                     name.as_ref().unwrap().as_str(),
                     DataTypeInformation::Struct {
                         name: name.clone().unwrap(),
-                        generated_type: context
-                            .opaque_struct_type(name.as_ref().unwrap())
+                        generated_type: llvm
+                            .create_struct_stub(name.as_ref().unwrap())
                             .into(),
                     },
                 );
@@ -28,7 +23,7 @@ pub fn generate_data_type_stubs<'a>(context: &'a Context, index: &mut Index<'a>,
                 DataTypeInformation::Integer {
                     signed: true,
                     size: 32,
-                    generated_type: context.i32_type().as_basic_type_enum(),
+                    generated_type: llvm.i32_type().as_basic_type_enum(),
                 },
             ),
             DataType::SubRangeType {
@@ -77,7 +72,7 @@ pub fn generate_data_type_stubs<'a>(context: &'a Context, index: &mut Index<'a>,
 
 pub fn generate_data_type<'a>(
     module: &Module<'a>,
-    context: &'a Context,
+    llvm: &LLVM<'a>,
     index: &mut Index<'a>,
     data_types: &Vec<DataType>,
 ) -> Result<(), CompileError> {
@@ -85,16 +80,16 @@ pub fn generate_data_type<'a>(
         match data_type {
             DataType::StructType { name, variables } => {
                 let name = name.as_ref().unwrap();
-                let mut struct_generator = InstanceStructGenerator::new(context, index);
+                let mut struct_generator = InstanceStructGenerator::new(llvm, index);
                 let members: Vec<&Variable> = variables.iter().collect();
-                let (_, initial_value) = struct_generator.generate_struct_type(&members, name, &context.create_builder())?;
+                let (_, initial_value) = struct_generator.generate_struct_type(&members, name)?;
                 index.associate_type_initial_value(name, initial_value);
             }
             DataType::EnumType { name: _, elements } => {
                 for (i, element) in elements.iter().enumerate() {
-                    let int_type = context.i32_type();
-                    let element_variable = variable_generator::create_llvm_global_variable(
-                        module,
+                    let int_type = llvm.i32_type();
+                    let element_variable = llvm.create_global_variable(
+                        module, 
                         element,
                         int_type.as_basic_type_enum(),
                         Some(int_type.const_int(i as u64, false).as_basic_value_enum()),
@@ -112,8 +107,8 @@ pub fn generate_data_type<'a>(
                 let alias_name = name.as_ref().map(|it| it.as_str()).unwrap();
                 index.associate_type_alias(alias_name, referenced_type.as_str());
                 if let Some(initializer) = initializer {
-                    let generator = StatementCodeGenerator::new(context, index, None );
-                    let (_, initial_value) = generator.generate_expression(initializer, &context.create_builder())?;
+                    let generator = StatementCodeGenerator::new(llvm, index, None );
+                    let (_, initial_value) = generator.generate_expression(initializer)?;
                     index.associate_type_initial_value(alias_name, initial_value);
                 }
             }

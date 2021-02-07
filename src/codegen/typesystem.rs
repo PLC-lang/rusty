@@ -1,7 +1,7 @@
 /// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use crate::{ast::Statement, compile_error::CompileError, index::Index};
 
-use super::{CodeGen, DataTypeInformation, TypeAndValue, literals};
+use super::{CodeGen, DataTypeInformation, TypeAndValue, llvm::LLVM};
 use inkwell::values::{BasicValue, BasicValueEnum, IntValue};
 use inkwell::{
     builder::Builder,
@@ -377,13 +377,13 @@ fn create_llvm_extend_int_value<'a>(
 }
 
 pub fn cast_if_needed<'ctx>(
-    builder: &Builder<'ctx>,
-    context: &'ctx Context,
+    llvm: &LLVM<'ctx>,
     target_type: &DataTypeInformation<'ctx>,
     value: BasicValueEnum<'ctx>,
     value_type: &DataTypeInformation<'ctx>,
     location_context: &Statement,
 ) -> Result<BasicValueEnum<'ctx>, CompileError> {
+    let builder = &llvm.builder;
     match target_type {
         DataTypeInformation::Integer {
             signed,
@@ -394,7 +394,7 @@ pub fn cast_if_needed<'ctx>(
                 DataTypeInformation::Integer { size: rsize, .. } => {
                     if lsize < rsize {
                         //Truncate
-                        Ok(builder
+                        Ok(llvm.builder
                             .build_int_truncate_or_bit_cast(
                                 value.into_int_value(),
                                 generated_type.into_int_type(),
@@ -404,7 +404,7 @@ pub fn cast_if_needed<'ctx>(
                     } else {
                         //Expand
                         Ok(
-                            promote_value_if_needed(builder, value, value_type, &target_type)
+                            promote_value_if_needed(&llvm.builder, value, value_type, &target_type)
                                 .into(),
                         )
                     }
@@ -414,7 +414,7 @@ pub fn cast_if_needed<'ctx>(
                     generated_type: _,
                 } => {
                     if *signed {
-                        Ok(builder
+                        Ok(llvm.builder
                             .build_float_to_signed_int(
                                 value.into_float_value(),
                                 generated_type.into_int_type(),
@@ -473,7 +473,7 @@ pub fn cast_if_needed<'ctx>(
                         .into())
                 } else {
                     Ok(promote_value_if_needed(
-                        builder,
+                        &llvm.builder,
                         value,
                         value_type,
                         &target_type,
@@ -496,7 +496,7 @@ pub fn cast_if_needed<'ctx>(
                         let vec_value = value.into_vector_value();
                         let string_value = vec_value.get_string_constant().to_bytes();
                         let new_value= &string_value[0..(*size -1) as usize];
-                        let (_,value) = literals::create_llvm_const_vec_string(context, new_value)?;
+                        let (_,value) = llvm.create_llvm_const_vec_string(new_value)?;
                         Ok(value)
                     }
                     else {

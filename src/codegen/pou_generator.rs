@@ -1,10 +1,10 @@
 /// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-use super::{instance_struct_generator::{self, InstanceStructGenerator}, statement_generator::{FunctionContext, StatementCodeGenerator}, variable_generator};
+use super::{instance_struct_generator::{self, InstanceStructGenerator}, llvm::LLVM, statement_generator::{FunctionContext, StatementCodeGenerator}};
 use crate::{ast::{DataTypeDeclaration, LinkageType, POU, PouType, SourceRange, Statement, Variable}, compile_error::CompileError, index::{DataTypeIndexEntry, DataTypeInformation, Index}};
 use inkwell::{AddressSpace, builder::Builder, context::Context, module::Module, types::{BasicTypeEnum, FunctionType}, values::{BasicValueEnum, FunctionValue}};
 
 pub struct PouGenerator<'a, 'b> {
-    context: &'a Context,
+    llvm: &'b LLVM<'a>,
     index: &'b mut Index<'a>,
 }
 
@@ -22,11 +22,11 @@ pub fn index_pou<'a>(pou_name: &str, context: &'a Context, index: &mut Index<'a>
 
 impl<'a, 'b> PouGenerator<'a, 'b> {
     pub fn new(
-        context: &'a Context,
+        llvm: &'b LLVM<'a>,
         global_index: &'b mut Index<'a>,
     ) -> PouGenerator<'a, 'b> {
         let pou_generator = PouGenerator {
-            context,
+            llvm,
             index: global_index,
         };
 
@@ -34,6 +34,8 @@ impl<'a, 'b> PouGenerator<'a, 'b> {
     }
 
     pub fn generate_pou(&mut self, pou: &POU, module: &Module<'a>) -> Result<(), CompileError> {
+
+        let context = self.llvm.context;
 
         let return_type = pou
             .return_type
@@ -53,8 +55,8 @@ impl<'a, 'b> PouGenerator<'a, 'b> {
             .collect();
         let instance_struct_type = {
             let mut struct_generator =
-                InstanceStructGenerator::new(self.context, self.index);
-            let (struct_type, initial_value) = struct_generator.generate_struct_type(&pou_members, pou_name, &self.context.create_builder())?;
+                InstanceStructGenerator::new(self.llvm, self.index);
+            let (struct_type, initial_value) = struct_generator.generate_struct_type(&pou_members, pou_name)?;
             self.index.associate_type_initial_value(pou_name, initial_value);
             struct_type
         };
@@ -62,7 +64,7 @@ impl<'a, 'b> PouGenerator<'a, 'b> {
         //generate a function that takes a instance-struct parameter
         let current_function = {
             let function_declaration = Self::create_llvm_function_declaration(
-                self.context,
+                context,
                 vec![instance_struct_type.ptr_type(AddressSpace::Generic).into()],
                 return_type,
             );
@@ -79,12 +81,11 @@ impl<'a, 'b> PouGenerator<'a, 'b> {
                 .index
                 .find_type(pou_name)
                 .and_then(DataTypeIndexEntry::get_initial_value);
-            let global_value = variable_generator::create_llvm_global_variable(
-                module,
-                &instance_struct_generator::get_pou_instance_variable_name(pou_name),
-                instance_struct_type.into(),
-                instance_initializer,
-            );
+            let global_value = self.llvm.create_global_variable(
+                    module, 
+                    &instance_struct_generator::get_pou_instance_variable_name(pou_name),
+                    instance_struct_type.into(),
+                    instance_initializer);
             self.index
                 .associate_global_variable(pou_name, global_value.as_pointer_value());
         }
@@ -95,18 +96,17 @@ impl<'a, 'b> PouGenerator<'a, 'b> {
         }
         
         //generate the body
-        let block = self.context.append_basic_block(current_function, "entry");
-        let builder = self.context.create_builder();
-        builder.position_at_end(block);
+        let block = context.append_basic_block(current_function, "entry");
+        self.llvm.builder.position_at_end(block);
         
         //generate the return-variable
         if let Some(return_type) = return_type {
-            let return_variable = variable_generator::create_llvm_local_variable(&builder, pou_name, &return_type);
+            let return_variable = self.llvm.allocate_local_variable(pou_name, &return_type);
             self.index.associate_local_variable(pou_name, pou_name, return_variable);
         }
 
         Self::generate_local_variable_accessors(
-            &builder,
+            &self.llvm.builder,
             current_function,
             &mut self.index,
             &pou_members,
@@ -114,12 +114,12 @@ impl<'a, 'b> PouGenerator<'a, 'b> {
         )?;
         let function_context = FunctionContext{linking_context: pou_name.clone(), function: current_function};
         {
-            let statement_gen = StatementCodeGenerator::new(self.context, &self.index, Some(&function_context));
-            statement_gen.generate_body(&pou.statements, &builder)?
+            let statement_gen = StatementCodeGenerator::new(self.llvm, &self.index, Some(&function_context));
+            statement_gen.generate_body(&pou.statements, &self.llvm.builder)?
         }
 
         // generate return statement
-        self.generate_return_statement(&function_context, pou.pou_type, &builder, Some(0..0))?; //TODO location
+        self.generate_return_statement(&function_context, pou.pou_type, Some(0..0))?; //TODO location
 
         Ok(())
     }
@@ -174,21 +174,21 @@ impl<'a, 'b> PouGenerator<'a, 'b> {
         Ok(())
     }
 
-    fn generate_return_statement(&self, function_context: &FunctionContext, pou_type: PouType, builder: &Builder<'a>, location: Option<SourceRange>) -> Result<(), CompileError> {
+    fn generate_return_statement(&self, function_context: &FunctionContext<'a>, pou_type: PouType, location: Option<SourceRange>) -> Result<(), CompileError> {
         match pou_type {
             PouType::Function => {
                 let reference = Statement::Reference{
                     name: function_context.linking_context.clone(),
                     location: location.unwrap_or(0usize..0usize)
                 };
-                let mut statement_gen = StatementCodeGenerator::new(self.context, &self.index, Some(function_context));
+                let mut statement_gen = StatementCodeGenerator::new(self.llvm, &self.index, Some(function_context));
                 statement_gen.load_prefix = "".to_string();
                 statement_gen.load_suffix = "_ret".to_string();
-                let (_, value) = statement_gen.generate_expression(&reference, builder)?;
-                builder.build_return(Some(&value));
+                let (_, value) = statement_gen.generate_expression(&reference)?;
+                self.llvm.builder.build_return(Some(&value));
             }
             _ => {
-                builder.build_return(None);
+                self.llvm.builder.build_return(None);
             }
         }
         Ok(())

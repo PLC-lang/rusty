@@ -1,20 +1,24 @@
 /// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-use inkwell::{builder::Builder, context::Context, types::{BasicTypeEnum, StructType}, values::{BasicValueEnum, PointerValue}};
+use inkwell::{types::{BasicTypeEnum, StructType}, values::{BasicValueEnum, PointerValue}};
 use crate::{ast::{SourceRange, Variable}, compile_error::CompileError, index::{Index}};
-use super::{VariableDeclarationInformation, statement_generator::StatementCodeGenerator, typesystem, variable_generator};
+use super::{llvm::LLVM, statement_generator::StatementCodeGenerator, typesystem};
 
 pub struct InstanceStructGenerator<'a, 'b> {
-    context: &'a Context,
+    llvm: &'b LLVM<'a>,
     global_index: &'b Index<'a>,
 }
 
-pub type StructTypeAndValue<'a> = (StructType<'a>, BasicValueEnum<'a>);
+///
+/// a touple (name, data_type, initializer) describing the declaration of a variable.
+///
+type VariableDeclarationInformation<'a> = (String, BasicTypeEnum<'a>, Option<BasicValueEnum<'a>>);
+type StructTypeAndValue<'a> = (StructType<'a>, BasicValueEnum<'a>);
 
 impl<'a, 'b> InstanceStructGenerator<'a, 'b> {
 
-    pub fn new(context: &'a Context, global_index: &'b Index<'a>) -> InstanceStructGenerator<'a, 'b> {
+    pub fn new(llvm: &'b LLVM<'a>, global_index: &'b Index<'a>) -> InstanceStructGenerator<'a, 'b> {
         InstanceStructGenerator{
-            context,
+            llvm,
             global_index,
         }       
     }
@@ -22,8 +26,7 @@ impl<'a, 'b> InstanceStructGenerator<'a, 'b> {
     pub fn generate_struct_type(
         &mut self,
         member_variables: &Vec<&Variable>,
-        name: &str,
-        builder: &Builder<'a>) -> Result<StructTypeAndValue<'a>, CompileError> {
+        name: &str) -> Result<StructTypeAndValue<'a>, CompileError> {
 
         let struct_type_info = self.global_index.get_type(name)?;
         let struct_type = struct_type_info.get_type()
@@ -32,7 +35,7 @@ impl<'a, 'b> InstanceStructGenerator<'a, 'b> {
 
         let mut members = Vec::new();
         for member in member_variables {
-            members.push(self.create_llvm_variable_declaration_elements(member, builder)?);
+            members.push(self.create_llvm_variable_declaration_elements(member)?);
         }
 
         let member_types: Vec<BasicTypeEnum> = members.iter().map(|(_, t, _)| *t).collect();
@@ -48,8 +51,7 @@ impl<'a, 'b> InstanceStructGenerator<'a, 'b> {
     }
 
     fn create_llvm_variable_declaration_elements(&self,
-            variable: &Variable,
-            builder: &Builder<'a>,
+            variable: &Variable
         )->Result<VariableDeclarationInformation<'a>, CompileError> {
             
             let type_name = variable.data_type.get_name().unwrap(); //TODO
@@ -60,13 +62,13 @@ impl<'a, 'b> InstanceStructGenerator<'a, 'b> {
             let initializer = match &variable.initializer {
                 Some(statement) => {
                     let statement_gen = StatementCodeGenerator::new_typed(
-                            self.context, 
+                            self.llvm, 
                             self.global_index, 
                             None, 
                             type_index_entry.get_type()
                                 .ok_or_else(|| CompileError::no_type_associated(type_name, variable.location.clone()))?);
 
-                    statement_gen.generate_expression(statement, builder)
+                    statement_gen.generate_expression(statement)
                         .map(|(_, value)| Some(value))?
                 }
                 None => 
@@ -77,13 +79,13 @@ impl<'a, 'b> InstanceStructGenerator<'a, 'b> {
         }
 
 
-    pub fn allocate_struct_instance(&self, builder: &Builder<'a>, callable_name: &str, location: &SourceRange) -> Result<PointerValue<'a>, CompileError> {
+    pub fn allocate_struct_instance(&self, callable_name: &str, location: &SourceRange) -> Result<PointerValue<'a>, CompileError> {
         let instance_name = get_pou_instance_variable_name(callable_name);
         let function_type = self.global_index.get_type(callable_name)?
                                 .get_type()
                                 .ok_or_else(|| CompileError::no_type_associated(callable_name, location.clone()))?;
 
-        Ok(variable_generator::create_llvm_local_variable(builder, &instance_name, &function_type))
+    Ok(self.llvm.allocate_local_variable(&instance_name, &function_type))
     }
 }
 
