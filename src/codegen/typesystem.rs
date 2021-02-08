@@ -1,7 +1,7 @@
 /// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use crate::{ast::Statement, compile_error::CompileError, index::Index};
 
-use super::{CodeGen, DataTypeInformation, TypeAndValue, llvm::LLVM};
+use super::{CodeGen, DataTypeInformation, TypeAndValue, generators::llvm::LLVM};
 use inkwell::values::{BasicValue, BasicValueEnum, IntValue};
 use inkwell::{
     builder::Builder,

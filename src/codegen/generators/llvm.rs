@@ -1,8 +1,7 @@
 use inkwell::{AddressSpace, builder::Builder, context::Context, module::{Linkage, Module}, types::{BasicType, BasicTypeEnum, StringRadix}, values::{BasicValue, BasicValueEnum, GlobalValue, IntValue, PointerValue}};
 
-use crate::{ast::SourceRange, compile_error::CompileError, index::Index};
+use crate::{ast::SourceRange, codegen::{TypeAndPointer, TypeAndValue, typesystem}, compile_error::CompileError, index::Index};
 
-use super::{TypeAndPointer, TypeAndValue, typesystem};
 
 pub struct LLVM<'a> {
     pub context: &'a Context,
@@ -15,10 +14,6 @@ impl<'a> LLVM<'a> {
             context,
             builder,
         }
-    }
-
-    pub fn create_builder(&self) -> Builder {
-        self.context.create_builder()
     }
 
     pub fn create_global_variable(
@@ -67,7 +62,7 @@ impl<'a> LLVM<'a> {
         name: &str
     ) -> Result<PointerValue<'a>, CompileError> {
         unsafe { 
-            Ok(self.builder.build_in_bounds_gep(pointer_to_array_instance, accessor_sequence, "tmpVar")) 
+            Ok(self.builder.build_in_bounds_gep(pointer_to_array_instance, accessor_sequence, name)) 
         }
     }
 

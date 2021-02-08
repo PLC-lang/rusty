@@ -1,8 +1,8 @@
 /// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use std::{ops::Range};
 
-use super::{TypeAndPointer, TypeAndValue, expression_generator, instance_struct_generator::{InstanceStructGenerator}, llvm::LLVM, typesystem};
-use crate::{ast::{ConditionalBlock, Operator, Statement}, compile_error::CompileError, index::{DataTypeIndexEntry, DataTypeInformation, Dimension, Index, VariableIndexEntry}};
+use super::{expression_generator, instance_struct_generator::{InstanceStructGenerator}, llvm::LLVM};
+use crate::{ast::{ConditionalBlock, Operator, Statement}, codegen::{TypeAndPointer, TypeAndValue, typesystem}, compile_error::CompileError, index::{DataTypeIndexEntry, DataTypeInformation, Dimension, Index, VariableIndexEntry}};
 use inkwell::{AddressSpace, IntPredicate, basic_block::BasicBlock, builder::Builder, types::{BasicType, BasicTypeEnum}, values::{BasicValue, BasicValueEnum, FunctionValue, IntValue, PointerValue}};
 
 pub struct FunctionContext<'a> {

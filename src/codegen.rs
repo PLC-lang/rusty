@@ -1,7 +1,8 @@
 /// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
 use crate::compile_error::CompileError;
-use self::{llvm::LLVM, pou_generator::PouGenerator};
+use self::generators::{data_type_generator, llvm::LLVM, pou_generator::{self, PouGenerator}, variable_generator};
+
 use super::ast::*;
 use inkwell::builder::Builder;
 use inkwell::context::Context;
@@ -11,14 +12,8 @@ use inkwell::values::{
 };
 use super::index::*;
 
+mod generators;
 mod typesystem;
-mod pou_generator;
-mod statement_generator;
-mod instance_struct_generator;
-mod variable_generator;
-mod expression_generator;
-mod data_type_generator;
-mod llvm;
 #[cfg(test)]
 mod tests;
 

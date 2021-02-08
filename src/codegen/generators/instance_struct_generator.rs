@@ -1,7 +1,7 @@
 /// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use inkwell::{types::{BasicTypeEnum, StructType}, values::{BasicValueEnum, PointerValue}};
-use crate::{ast::{SourceRange, Variable}, compile_error::CompileError, index::{Index}};
-use super::{llvm::LLVM, statement_generator::StatementCodeGenerator, typesystem};
+use crate::{ast::{SourceRange, Variable}, codegen::typesystem, compile_error::CompileError, index::{Index}};
+use super::{llvm::LLVM, statement_generator::StatementCodeGenerator };
 
 pub struct InstanceStructGenerator<'a, 'b> {
     llvm: &'b LLVM<'a>,
