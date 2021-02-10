@@ -1,5 +1,5 @@
 /// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-use super::{instance_struct_generator::{self, InstanceStructGenerator}, llvm::LLVM, statement_generator::{FunctionContext, StatementCodeGenerator}};
+use super::{expression_generator::ExpressionCodeGenerator, instance_struct_generator::{self, InstanceStructGenerator}, llvm::LLVM, statement_generator::{FunctionContext, StatementCodeGenerator}};
 use crate::{ast::{DataTypeDeclaration, LinkageType, POU, PouType, SourceRange, Statement, Variable}, compile_error::CompileError, index::{DataTypeIndexEntry, DataTypeInformation, Index}};
 use inkwell::{AddressSpace, builder::Builder, context::Context, module::Module, types::{BasicTypeEnum, FunctionType}, values::{BasicValueEnum, FunctionValue}};
 
@@ -114,7 +114,7 @@ impl<'a, 'b> PouGenerator<'a, 'b> {
         )?;
         let function_context = FunctionContext{linking_context: pou_name.clone(), function: current_function};
         {
-            let statement_gen = StatementCodeGenerator::new(self.llvm, &self.index, Some(&function_context));
+            let statement_gen = StatementCodeGenerator::new(self.llvm, &self.index, &function_context);
             statement_gen.generate_body(&pou.statements, &self.llvm.builder)?
         }
 
@@ -181,10 +181,10 @@ impl<'a, 'b> PouGenerator<'a, 'b> {
                     name: function_context.linking_context.clone(),
                     location: location.unwrap_or(0usize..0usize)
                 };
-                let mut statement_gen = StatementCodeGenerator::new(self.llvm, &self.index, Some(function_context));
-                statement_gen.load_prefix = "".to_string();
-                statement_gen.load_suffix = "_ret".to_string();
-                let (_, value) = statement_gen.generate_expression(&reference)?;
+                let mut exp_gen = ExpressionCodeGenerator::new(self.llvm, self.index, None, &function_context);
+                exp_gen.load_prefix = "".to_string();
+                exp_gen.load_suffix = "_ret".to_string();
+                let (_, value) = exp_gen.generate_expression(&reference)?;
                 self.llvm.builder.build_return(Some(&value));
             }
             _ => {

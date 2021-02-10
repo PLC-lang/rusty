@@ -1,7 +1,7 @@
 /// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-use inkwell::{types::{BasicTypeEnum, StructType}, values::{BasicValueEnum, PointerValue}};
-use crate::{ast::{SourceRange, Variable}, codegen::typesystem, compile_error::CompileError, index::{Index}};
-use super::{llvm::LLVM, statement_generator::StatementCodeGenerator };
+use inkwell::{types::{BasicTypeEnum, StructType}, values::{BasicValueEnum}};
+use crate::{ast::{Variable}, codegen::typesystem, compile_error::CompileError, index::{Index}};
+use super::{expression_generator::{ExpressionCodeGenerator}, llvm::LLVM};
 
 pub struct InstanceStructGenerator<'a, 'b> {
     llvm: &'b LLVM<'a>,
@@ -16,7 +16,7 @@ type StructTypeAndValue<'a> = (StructType<'a>, BasicValueEnum<'a>);
 
 impl<'a, 'b> InstanceStructGenerator<'a, 'b> {
 
-    pub fn new(llvm: &'b LLVM<'a>, global_index: &'b Index<'a>) -> InstanceStructGenerator<'a, 'b> {
+    pub fn new(llvm: &'b LLVM<'a>, global_index: &'b Index<'a> ) -> InstanceStructGenerator<'a, 'b> {
         InstanceStructGenerator{
             llvm,
             global_index,
@@ -51,7 +51,7 @@ impl<'a, 'b> InstanceStructGenerator<'a, 'b> {
     }
 
     fn create_llvm_variable_declaration_elements(&self,
-            variable: &Variable
+            variable: &Variable,
         )->Result<VariableDeclarationInformation<'a>, CompileError> {
             
             let type_name = variable.data_type.get_name().unwrap(); //TODO
@@ -61,14 +61,10 @@ impl<'a, 'b> InstanceStructGenerator<'a, 'b> {
             let variable_type = type_index_entry.get_type_information().unwrap();
             let initializer = match &variable.initializer {
                 Some(statement) => {
-                    let statement_gen = StatementCodeGenerator::new_typed(
-                            self.llvm, 
-                            self.global_index, 
-                            None, 
-                            type_index_entry.get_type()
-                                .ok_or_else(|| CompileError::no_type_associated(type_name, variable.location.clone()))?);
-
-                    statement_gen.generate_expression(statement)
+                    let type_hint = type_index_entry.get_type()
+                                .ok_or_else(|| CompileError::no_type_associated(type_name, variable.location.clone()))?;
+                    let exp_gen = ExpressionCodeGenerator::new_context_free(self.llvm, self.global_index, Some(type_hint));
+                    exp_gen.generate_expression(statement)
                         .map(|(_, value)| Some(value))?
                 }
                 None => 
@@ -79,15 +75,7 @@ impl<'a, 'b> InstanceStructGenerator<'a, 'b> {
         }
 
 
-    pub fn allocate_struct_instance(&self, callable_name: &str, location: &SourceRange) -> Result<PointerValue<'a>, CompileError> {
-        let instance_name = get_pou_instance_variable_name(callable_name);
-        let function_type = self.global_index.get_type(callable_name)?
-                                .get_type()
-                                .ok_or_else(|| CompileError::no_type_associated(callable_name, location.clone()))?;
-
-    Ok(self.llvm.allocate_local_variable(&instance_name, &function_type))
     }
-}
 
 pub fn get_pou_instance_variable_name(pou_name: &str) -> String {
     format!("{}_instance", pou_name)

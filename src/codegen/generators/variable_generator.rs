@@ -8,7 +8,7 @@ use crate::{
     index::{Index},
 };
 
-use super::{llvm::LLVM, statement_generator::StatementCodeGenerator};
+use super::{expression_generator::ExpressionCodeGenerator, llvm::LLVM};
 
 pub fn generate_global_variable<'ctx, 'b>(
     module: &Module<'ctx>,
@@ -21,8 +21,8 @@ pub fn generate_global_variable<'ctx, 'b>(
     let variable_type = variable_type_description.get_type().unwrap();
 
     let initial_value = if let Some(initializer) = &variable.initializer {
-        let statement_generator = StatementCodeGenerator::new(llvm, index, None);
-        let (_, value) = statement_generator.generate_expression(&initializer)?;
+        let expr_generator = ExpressionCodeGenerator::new_context_free(llvm, index, None);
+        let (_, value) = expr_generator.generate_expression(&initializer)?;
         //Todo cast if necessary
         Some(value)
     } else {

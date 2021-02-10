@@ -2,7 +2,7 @@
 use inkwell::{module::Module, types::{ArrayType, BasicType, BasicTypeEnum}, values::{BasicValue}};
 use crate::{ast::{DataType, DataTypeDeclaration, Statement, Variable}, compile_error::CompileError, index::{DataTypeInformation, Dimension, Index}};
 
-use super::{instance_struct_generator::InstanceStructGenerator, llvm::LLVM, statement_generator::StatementCodeGenerator };
+use super::{expression_generator::ExpressionCodeGenerator, instance_struct_generator::InstanceStructGenerator, llvm::LLVM};
 
 pub fn generate_data_type_stubs<'a>(llvm: &LLVM<'a>, index: &mut Index<'a>, data_types: &Vec<DataType>) -> Result<(), CompileError>{
     for data_type in data_types {
@@ -107,7 +107,7 @@ pub fn generate_data_type<'a>(
                 let alias_name = name.as_ref().map(|it| it.as_str()).unwrap();
                 index.associate_type_alias(alias_name, referenced_type.as_str());
                 if let Some(initializer) = initializer {
-                    let generator = StatementCodeGenerator::new(llvm, index, None );
+                    let generator = ExpressionCodeGenerator::new_context_free(llvm, index, None);
                     let (_, initial_value) = generator.generate_expression(initializer)?;
                     index.associate_type_initial_value(alias_name, initial_value);
                 }
