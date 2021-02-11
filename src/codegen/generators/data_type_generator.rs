@@ -2,7 +2,7 @@
 use inkwell::{module::Module, types::{ArrayType, BasicType, BasicTypeEnum}, values::{BasicValue}};
 use crate::{ast::{DataType, DataTypeDeclaration, Statement, Variable}, compile_error::CompileError, index::{DataTypeInformation, Dimension, Index}};
 
-use super::{expression_generator::ExpressionCodeGenerator, instance_struct_generator::InstanceStructGenerator, llvm::LLVM};
+use super::{expression_generator::ExpressionCodeGenerator, llvm::LLVM, struct_generator::StructGenerator};
 
 pub fn generate_data_type_stubs<'a>(llvm: &LLVM<'a>, index: &mut Index<'a>, data_types: &Vec<DataType>) -> Result<(), CompileError>{
     for data_type in data_types {
@@ -80,7 +80,7 @@ pub fn generate_data_type<'a>(
         match data_type {
             DataType::StructType { name, variables } => {
                 let name = name.as_ref().unwrap();
-                let mut struct_generator = InstanceStructGenerator::new(llvm, index);
+                let mut struct_generator = StructGenerator::new(llvm, index);
                 let members: Vec<&Variable> = variables.iter().collect();
                 let (_, initial_value) = struct_generator.generate_struct_type(&members, name)?;
                 index.associate_type_initial_value(name, initial_value);

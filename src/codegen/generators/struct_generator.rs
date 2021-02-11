@@ -3,7 +3,7 @@ use inkwell::{types::{BasicTypeEnum, StructType}, values::{BasicValueEnum}};
 use crate::{ast::{Variable}, codegen::typesystem, compile_error::CompileError, index::{Index}};
 use super::{expression_generator::{ExpressionCodeGenerator}, llvm::LLVM};
 
-pub struct InstanceStructGenerator<'a, 'b> {
+pub struct StructGenerator<'a, 'b> {
     llvm: &'b LLVM<'a>,
     global_index: &'b Index<'a>,
 }
@@ -14,10 +14,10 @@ pub struct InstanceStructGenerator<'a, 'b> {
 type VariableDeclarationInformation<'a> = (String, BasicTypeEnum<'a>, Option<BasicValueEnum<'a>>);
 type StructTypeAndValue<'a> = (StructType<'a>, BasicValueEnum<'a>);
 
-impl<'a, 'b> InstanceStructGenerator<'a, 'b> {
+impl<'a, 'b> StructGenerator<'a, 'b> {
 
-    pub fn new(llvm: &'b LLVM<'a>, global_index: &'b Index<'a> ) -> InstanceStructGenerator<'a, 'b> {
-        InstanceStructGenerator{
+    pub fn new(llvm: &'b LLVM<'a>, global_index: &'b Index<'a> ) -> StructGenerator<'a, 'b> {
+        StructGenerator{
             llvm,
             global_index,
         }       

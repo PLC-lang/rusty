@@ -1,5 +1,5 @@
 /// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-use super::{expression_generator::ExpressionCodeGenerator, instance_struct_generator::{self, InstanceStructGenerator}, llvm::LLVM, statement_generator::{FunctionContext, StatementCodeGenerator}};
+use super::{expression_generator::ExpressionCodeGenerator, llvm::LLVM, statement_generator::{FunctionContext, StatementCodeGenerator}, struct_generator::{self, StructGenerator}};
 use crate::{ast::{DataTypeDeclaration, LinkageType, POU, PouType, SourceRange, Statement, Variable}, compile_error::CompileError, index::{DataTypeIndexEntry, DataTypeInformation, Index}};
 use inkwell::{AddressSpace, builder::Builder, context::Context, module::Module, types::{BasicTypeEnum, FunctionType}, values::{BasicValueEnum, FunctionValue}};
 
@@ -43,7 +43,6 @@ impl<'a, 'b> PouGenerator<'a, 'b> {
             .and_then(DataTypeDeclaration::get_name)
             .and_then(|it| self.index.find_type(it))
             .and_then(DataTypeIndexEntry::get_type);
- 
 
         let pou_name = &pou.name;
 
@@ -55,7 +54,7 @@ impl<'a, 'b> PouGenerator<'a, 'b> {
             .collect();
         let instance_struct_type = {
             let mut struct_generator =
-                InstanceStructGenerator::new(self.llvm, self.index);
+                StructGenerator::new(self.llvm, self.index);
             let (struct_type, initial_value) = struct_generator.generate_struct_type(&pou_members, pou_name)?;
             self.index.associate_type_initial_value(pou_name, initial_value);
             struct_type
@@ -83,7 +82,7 @@ impl<'a, 'b> PouGenerator<'a, 'b> {
                 .and_then(DataTypeIndexEntry::get_initial_value);
             let global_value = self.llvm.create_global_variable(
                     module, 
-                    &instance_struct_generator::get_pou_instance_variable_name(pou_name),
+                    &struct_generator::get_pou_instance_variable_name(pou_name),
                     instance_struct_type.into(),
                     instance_initializer);
             self.index

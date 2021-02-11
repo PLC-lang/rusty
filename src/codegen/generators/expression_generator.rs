@@ -3,7 +3,7 @@ use inkwell::{AddressSpace, FloatPredicate, IntPredicate, basic_block::BasicBloc
 
 use crate::{ast::{Operator, Statement}, codegen::{TypeAndPointer, TypeAndValue, typesystem}, compile_error::CompileError, index::{DataTypeIndexEntry, DataTypeInformation, Dimension, Index, VariableIndexEntry}};
 
-use super::{instance_struct_generator, llvm::LLVM, statement_generator::FunctionContext};
+use super::{llvm::LLVM, statement_generator::FunctionContext, struct_generator};
 
 
 pub struct ExpressionCodeGenerator<'a, 'b> {
@@ -227,7 +227,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
     }
 
     fn allocate_struct_instance(&self, callable_name: &str, context: &Statement) -> Result<PointerValue<'a>, CompileError> {
-        let instance_name = instance_struct_generator::get_pou_instance_variable_name(callable_name);
+        let instance_name = struct_generator::get_pou_instance_variable_name(callable_name);
         let function_type = self.index.get_type(callable_name)?
                                 .get_type()
                                 .ok_or_else(|| CompileError::no_type_associated(callable_name, context.get_location().clone()))?;
