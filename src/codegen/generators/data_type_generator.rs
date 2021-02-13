@@ -1,9 +1,20 @@
 /// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
+
+/// the data_type_generator generates user defined data-types
+/// - Structures
+/// - Enum types
+/// - SubRange types
+/// - Alias types
 use inkwell::{module::Module, types::{ArrayType, BasicType, BasicTypeEnum}, values::{BasicValue}};
-use crate::{ast::{DataType, DataTypeDeclaration, Statement, Variable}, compile_error::CompileError, index::{DataTypeInformation, Dimension, Index}};
+use crate::{ast::{DataType, Statement, Variable}, compile_error::CompileError, index::{DataTypeInformation, Dimension, Index}};
 
 use super::{expression_generator::ExpressionCodeGenerator, llvm::LLVM, struct_generator::StructGenerator};
 
+/// generates a stub type (e.g. an opaque struct type) for the given type. We generate stubs for all types
+/// before we generate the type-details so we avoid ordering-problems or problems with circular dependencies
+///
+/// generated type-stubs are registerd in the index
+/// array types are generated right away
 pub fn generate_data_type_stubs<'a>(llvm: &LLVM<'a>, index: &mut Index<'a>, data_types: &Vec<DataType>) -> Result<(), CompileError>{
     for data_type in data_types {
         match data_type {
@@ -45,9 +56,10 @@ pub fn generate_data_type_stubs<'a>(llvm: &LLVM<'a>, index: &mut Index<'a>, data
                 bounds,
                 referenced_type,
             } => {
-                let dimensions = get_array_dimensions(bounds);
-                let target_type = get_type(index,referenced_type).unwrap();
+                let dimensions = get_array_dimensions(bounds)?;
+
                 let referenced_type_name = referenced_type.get_name().unwrap();
+                let target_type = index.get_type_information(referenced_type_name)?.get_type();
                 let internal_type = index
                     .find_type_information(referenced_type_name)
                     .unwrap();
@@ -70,6 +82,12 @@ pub fn generate_data_type_stubs<'a>(llvm: &LLVM<'a>, index: &mut Index<'a>, data
     Ok(())
 }
 
+/// generates the llvm-type for the given data-type and registers it at the index
+/// this function may create and register a ... 
+/// - Struct type for a STRUCT
+/// - global variables for enum-elements
+/// - an alias index entry for sub-range types
+/// - TODO array
 pub fn generate_data_type<'a>(
     module: &Module<'a>,
     llvm: &LLVM<'a>,
@@ -118,15 +136,19 @@ pub fn generate_data_type<'a>(
     Ok(())
 }
 
-fn get_array_dimensions(bounds: &Statement) -> Vec<Dimension> {
+/// constructs a vector with all dimensions for the given bounds-statement
+/// e.g. [0..10, 0..5]
+fn get_array_dimensions(bounds: &Statement) -> Result<Vec<Dimension>, CompileError> {
     let mut result = vec![];
     for statement in bounds.get_as_list() {
-        result.push(get_single_array_dimension(statement).expect("Could not parse array bounds"));
+        result.push(get_single_array_dimension(statement)?);
     }
-    result
+    Ok(result)
 }
 
-fn get_single_array_dimension(bounds: &Statement) -> Result<Dimension, String> {
+/// constructs a Dimension for the given RangeStatement
+/// throws an error if the given statement is no RangeStatement
+fn get_single_array_dimension(bounds: &Statement) -> Result<Dimension, CompileError> {
     if let Statement::RangeStatement { start, end } = bounds {
         let start_offset = evaluate_constant_int(start).unwrap_or(0);
         let end_offset = evaluate_constant_int(end).unwrap_or(0);
@@ -135,32 +157,30 @@ fn get_single_array_dimension(bounds: &Statement) -> Result<Dimension, String> {
             end_offset,
         })
     } else {
-        Err(format!("Unexpected Statement {:?}, expected range", bounds))
+        Err(CompileError::codegen_error(format!("Unexpected Statement {:?}, expected range", bounds), bounds.get_location()))
     }
 }
 
-fn extract_value(s: &Statement) -> Option<String> {
+/// extracts the compile-time value of the given statement.
+/// returns an error if no value can be derived at compile-time
+fn extract_value(s: &Statement) -> Result<String, CompileError> {
     match s {
         Statement::UnaryExpression {
             operator, value, ..
         } => extract_value(value).map(|result| format!("{}{}", operator, result)),
-        Statement::LiteralInteger { value, .. } => Some(value.to_string()),
+        Statement::LiteralInteger { value, .. } => Ok(value.to_string()),
         //TODO constatnts
-        _ => None,
+        _ => Err(CompileError::codegen_error("Unsupported Statement. Cannot evaluate expression.".to_string() , s.get_location())),
     }
 }
 
-fn evaluate_constant_int(s: &Statement) -> Option<i32> {
+/// evaluate the given statemetn as i32
+fn evaluate_constant_int(s: &Statement) -> Result<i32, CompileError> {
     let value = extract_value(s);
     value.map(|v| v.parse().unwrap_or(0))
 }
 
-fn get_type<'a>(index: &Index<'a>, data_type: &DataTypeDeclaration) -> Option<BasicTypeEnum<'a>> {
-    data_type
-        .get_name()
-        .and_then(|name| index.find_type(name).map(|it| it.get_type()).flatten())
-}
-
+/// creates the llvm types for a multi-dimensional array
 fn create_nested_array_type(end_type: BasicTypeEnum, dimensions: Vec<Dimension>) -> ArrayType {
     let mut result: Option<ArrayType> = None;
     let mut current_type = end_type;

@@ -1,13 +1,21 @@
 /// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
+
+/// The pou_generator contains functions to generate the code for POUs (PROGRAM, FUNCTION, FUNCTION_BLOCK)
+/// # responsibilities
+/// - generates a struct-datatype for the POU's members
+/// - generates a function for the pou
+/// - declares a global instance if the POU is a PROGRAM
 use super::{expression_generator::ExpressionCodeGenerator, llvm::LLVM, statement_generator::{FunctionContext, StatementCodeGenerator}, struct_generator::{self, StructGenerator}};
 use crate::{ast::{DataTypeDeclaration, LinkageType, POU, PouType, SourceRange, Statement, Variable}, compile_error::CompileError, index::{DataTypeIndexEntry, DataTypeInformation, Index}};
-use inkwell::{AddressSpace, builder::Builder, context::Context, module::Module, types::{BasicTypeEnum, FunctionType}, values::{BasicValueEnum, FunctionValue}};
+use inkwell::{AddressSpace, context::Context, module::Module, types::{BasicTypeEnum, FunctionType}, values::{BasicValueEnum, FunctionValue}};
+
 
 pub struct PouGenerator<'a, 'b> {
     llvm: &'b LLVM<'a>,
     index: &'b mut Index<'a>,
 }
 
+/// creates an opaque-struct type for the pou and registers at the given index
 pub fn index_pou<'a>(pou_name: &str, context: &'a Context, index: &mut Index<'a>) {
     let struct_name = format!("{}_interface", pou_name);
     let struct_type = context.opaque_struct_type(struct_name.as_str());
@@ -21,18 +29,21 @@ pub fn index_pou<'a>(pou_name: &str, context: &'a Context, index: &mut Index<'a>
 }
 
 impl<'a, 'b> PouGenerator<'a, 'b> {
+
+    /// creates a new PouGenerator
+    ///
+    /// the PouGenerator needs a mutable index to register the generated pou
     pub fn new(
         llvm: &'b LLVM<'a>,
-        global_index: &'b mut Index<'a>,
+        index: &'b mut Index<'a>,
     ) -> PouGenerator<'a, 'b> {
-        let pou_generator = PouGenerator {
+        PouGenerator {
             llvm,
-            index: global_index,
-        };
-
-        pou_generator
+            index,
+        }
     }
 
+    /// generates a function for the given pou
     pub fn generate_pou(&mut self, pou: &POU, module: &Module<'a>) -> Result<(), CompileError> {
 
         let context = self.llvm.context;
@@ -62,8 +73,7 @@ impl<'a, 'b> PouGenerator<'a, 'b> {
 
         //generate a function that takes a instance-struct parameter
         let current_function = {
-            let function_declaration = Self::create_llvm_function_declaration(
-                context,
+            let function_declaration = self.create_llvm_function_type(
                 vec![instance_struct_type.ptr_type(AddressSpace::Generic).into()],
                 return_type,
             );
@@ -104,12 +114,10 @@ impl<'a, 'b> PouGenerator<'a, 'b> {
             self.index.associate_local_variable(pou_name, pou_name, return_variable);
         }
 
-        Self::generate_local_variable_accessors(
-            &self.llvm.builder,
-            current_function,
-            &mut self.index,
-            &pou_members,
+        self.generate_local_variable_accessors(
             pou_name,
+            current_function,
+            &pou_members,
         )?;
         let function_context = FunctionContext{linking_context: pou_name.clone(), function: current_function};
         {
@@ -123,8 +131,10 @@ impl<'a, 'b> PouGenerator<'a, 'b> {
         Ok(())
     }
 
-    fn create_llvm_function_declaration(
-        context: &'a Context,
+    /// generates a llvm `FunctionType` that takes the given list of `parameters` and
+    /// returns the given `return_type`
+    fn create_llvm_function_type(
+        &self,
         parameters: Vec<BasicTypeEnum<'a>>,
         return_type: Option<BasicTypeEnum<'a>>,
     ) -> FunctionType<'a> {
@@ -139,17 +149,17 @@ impl<'a, 'b> PouGenerator<'a, 'b> {
             Some(enum_type) if enum_type.is_array_type() => {
                 enum_type.into_array_type().fn_type(params, false)
             }
-            None => context.void_type().fn_type(params, false),
+            None => self.llvm.context.void_type().fn_type(params, false),
             _ => panic!(format!("Unsupported return type {:?}", return_type)),
         }
     }
 
+    /// generates a load-statement for the given member
     fn generate_local_variable_accessors(
-        builder: &Builder<'a>,
-        current_function: FunctionValue<'a>,
-        index: &mut Index<'a>,
-        members: &Vec<&Variable>,
+        &mut self,
         pou_name: &str,
+        current_function: FunctionValue<'a>,
+        members: &Vec<&Variable>,
     ) -> Result<(), CompileError> {
 
         //Generate reference to parameter
@@ -161,10 +171,10 @@ impl<'a, 'b> PouGenerator<'a, 'b> {
                 .map(BasicValueEnum::into_pointer_value)
                 .ok_or_else(|| CompileError::MissingFunctionError{location: m.location.clone()})?;
 
-            index.associate_local_variable(
+            self.index.associate_local_variable(
                 pou_name,
                 parameter_name,
-                builder
+                self.llvm.builder
                     .build_struct_gep(ptr_value, i as u32, &parameter_name)
                     .unwrap(),
             )
@@ -173,6 +183,9 @@ impl<'a, 'b> PouGenerator<'a, 'b> {
         Ok(())
     }
 
+    /// generates the function's return statement only if the given pou_type is a `PouType::Function`
+    ///
+    /// a function returns the value of the local variable that has the function's name
     fn generate_return_statement(&self, function_context: &FunctionContext<'a>, pou_type: PouType, location: Option<SourceRange>) -> Result<(), CompileError> {
         match pou_type {
             PouType::Function => {

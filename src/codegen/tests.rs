@@ -20,7 +20,7 @@ macro_rules! codegen_wihout_unwrap {
     let mut index = Index::new();
     index.pre_process(&mut ast);
     index.visit(&mut ast);
-    let mut code_generator = crate::codegen::CodeGen::new(&context, &mut index, new_lines);
+    let mut code_generator = crate::codegen::CodeGen::new(&context, &mut index, "main", new_lines);
     code_generator.generate(ast)
   }};
 }
@@ -36,7 +36,7 @@ macro_rules! codegen {
     let mut index = Index::new();
     index.pre_process(&mut ast);
     index.visit(&mut ast);
-    let mut code_generator = crate::codegen::CodeGen::new(&context, &mut index, new_lines);
+    let mut code_generator = crate::codegen::CodeGen::new(&context, &mut index, "main", new_lines);
     code_generator.generate(ast).unwrap()
   }};
 }

@@ -1,6 +1,9 @@
+/// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
+
+/// offers operations to generate global variables
+
 use inkwell::{module::Module, values::GlobalValue};
 
-/// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
 use crate::{
     ast::Variable,
@@ -33,34 +36,3 @@ pub fn generate_global_variable<'ctx, 'b>(
     index.associate_global_variable(&variable.name, global_variable.as_pointer_value());
     Ok(global_variable)
 }
-
-// pub fn create_llvm_global_variable<'ctx>(
-//     module: &Module<'ctx>,
-//     name: &str,
-//     variable_type: BasicTypeEnum<'ctx>,
-//     initial_value: Option<BasicValueEnum<'ctx>>,
-// ) -> GlobalValue<'ctx> {
-//     let result = module.add_global(variable_type, Some(AddressSpace::Generic), name);
-//     if let Some(initializer) = initial_value {
-//         let v = &initializer as &dyn BasicValue;
-//         result.set_initializer(v);
-//     } else {
-//         set_initializer_for_type(&result, variable_type);
-//     }
-//     result.set_thread_local_mode(None);
-//     result.set_linkage(Linkage::External);
-//     result
-// }
-
-// fn set_initializer_for_type<'ctx>(
-//     global_value: &GlobalValue<'ctx>,
-//     variable_type: BasicTypeEnum<'ctx>,
-// ) {
-//     if variable_type.is_int_type() {
-//         global_value.set_initializer(&variable_type.into_int_type().const_zero());
-//     } else if variable_type.is_struct_type() {
-//         global_value.set_initializer(&variable_type.into_struct_type().const_zero());
-//     }
-// }
-
-

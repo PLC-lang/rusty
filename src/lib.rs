@@ -107,8 +107,8 @@ pub fn compile_module<'ctx>(context : &'ctx Context, index: &'ctx mut Index<'ctx
     //then index the AST
     index.visit(&mut parse_result);
     //and finally codegen
-    let mut code_generator = codegen::CodeGen::new(context, index, new_lines);
-    code_generator.generate_compilation_unit(parse_result)?;
+    let mut code_generator = codegen::CodeGen::new(context, index, "main", new_lines);
+    code_generator.generate(parse_result)?;
     Ok(code_generator)
 }
 

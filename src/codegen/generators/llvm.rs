@@ -1,6 +1,7 @@
+/// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use inkwell::{AddressSpace, builder::Builder, context::Context, module::{Linkage, Module}, types::{BasicType, BasicTypeEnum, StringRadix}, values::{BasicValue, BasicValueEnum, GlobalValue, IntValue, PointerValue}};
-
 use crate::{ast::SourceRange, codegen::{TypeAndPointer, TypeAndValue, typesystem}, compile_error::CompileError, index::Index};
+
 
 
 pub struct LLVM<'a> {
