@@ -2,7 +2,7 @@
 
 use super::{expression_generator::{ExpressionCodeGenerator}, llvm::LLVM};
 use crate::{ast::{ConditionalBlock, Statement}, codegen::{typesystem}, compile_error::CompileError, index::Index };
-use inkwell::{IntPredicate, builder::Builder, values::{BasicValueEnum, FunctionValue}};
+use inkwell::{IntPredicate, values::{BasicValueEnum, FunctionValue}};
 
 /// the full context when generating statements inside a POU
 pub struct FunctionContext<'a> {
@@ -196,6 +196,16 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         Ok(())
     }
 
+    /// genertes a case statement
+    /// 
+    /// CASE selector OF  
+    /// conditional_block#1:  
+    /// conditional_block#2:  
+    /// END_CASE;  
+    /// 
+    /// - `selector` the case's selector expression
+    /// - `conditional_blocks` all case-blocks including the condition and the body
+    /// - `else_body` the statements in the else-block
     fn generate_case_statement(
         &self,
         selector: &Statement,
@@ -248,6 +258,14 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
     }
 
 
+    /// generates a while statement
+    ///
+    /// WHILE condition DO  
+    ///     body  
+    /// END_WHILE  
+    ///
+    /// - `condition` the while's condition
+    /// - `body` the while's body statements
     fn generate_while_statement(
         &self,
         condition: &Box<Statement>,
@@ -267,6 +285,15 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         Ok(None)
     }
 
+    /// generates a repeat statement
+    ///
+    ///
+    /// REPEAT  
+    ///     body  
+    /// UNTIL condition END_REPEAT;  
+    ///
+    /// - `condition` the repeat's condition
+    /// - `body` the repeat's body statements
     fn generate_repeat_statement(
         &self,
         condition: &Box<Statement>,
@@ -286,6 +313,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         Ok(None)
     }
 
+    /// utility method for while and repeat loops
     fn generate_base_while_statement(
         &self,
         condition: &Statement,
@@ -320,6 +348,10 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         Ok(None)
     }
 
+    /// generates an IF-Statement
+    /// 
+    /// - `conditional_blocks` a list of conditions + bodies for every if  (respectivle else-if)
+    /// - `else_body` the list of statements in the else-block
     fn generate_if_statement(
         &self,
         conditional_blocks: &Vec<ConditionalBlock>,
