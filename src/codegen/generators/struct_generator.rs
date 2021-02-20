@@ -3,6 +3,7 @@ use inkwell::{types::{BasicTypeEnum, StructType}, values::{BasicValueEnum}};
 use crate::{ast::{Variable}, codegen::typesystem, compile_error::CompileError, index::{Index}};
 use super::{expression_generator::{ExpressionCodeGenerator}, llvm::LLVM};
 
+/// object that offers convinient operations to create struct types and instances
 pub struct StructGenerator<'a, 'b> {
     llvm: &'b LLVM<'a>,
     global_index: &'b Index<'a>,
@@ -16,6 +17,7 @@ type StructTypeAndValue<'a> = (StructType<'a>, BasicValueEnum<'a>);
 
 impl<'a, 'b> StructGenerator<'a, 'b> {
 
+    /// creates a new StructGenerator
     pub fn new(llvm: &'b LLVM<'a>, global_index: &'b Index<'a> ) -> StructGenerator<'a, 'b> {
         StructGenerator{
             llvm,
@@ -23,6 +25,10 @@ impl<'a, 'b> StructGenerator<'a, 'b> {
         }       
     }
 
+    /// generates a new StructType with the given members
+    ///
+    /// - `member_variables` the member variables in the order of their declaration
+    /// - `name` the name of the StructType
     pub fn generate_struct_type(
         &mut self,
         member_variables: &Vec<&Variable>,
@@ -50,6 +56,9 @@ impl<'a, 'b> StructGenerator<'a, 'b> {
         Ok((struct_type, initial_value.into()))
     }
 
+    /// creates all declaration information for the given variable
+    ///
+    /// returns a tuple of the variable's name, its DataType and it's optional initial Value
     fn create_llvm_variable_declaration_elements(&self,
             variable: &Variable,
         )->Result<VariableDeclarationInformation<'a>, CompileError> {
@@ -77,6 +86,7 @@ impl<'a, 'b> StructGenerator<'a, 'b> {
 
     }
 
+/// returns the instance-name of a pou-struct
 pub fn get_pou_instance_variable_name(pou_name: &str) -> String {
     format!("{}_instance", pou_name)
 }

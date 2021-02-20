@@ -1,23 +1,33 @@
 /// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use inkwell::{AddressSpace, FloatPredicate, IntPredicate, basic_block::BasicBlock, types::{BasicType, BasicTypeEnum}, values::{BasicValue, BasicValueEnum, IntValue, PointerValue}};
 
-use crate::{ast::{Operator, Statement}, codegen::{TypeAndPointer, TypeAndValue, typesystem}, compile_error::CompileError, index::{DataTypeIndexEntry, DataTypeInformation, Dimension, Index, VariableIndexEntry}};
+use crate::{ast::{Operator, Statement}, codegen::{TypeAndPointer, TypeAndValue, typesystem}, compile_error::{CompileError}, index::{DataTypeIndexEntry, DataTypeInformation, Dimension, Index, VariableIndexEntry}};
 
 use super::{llvm::LLVM, statement_generator::FunctionContext, struct_generator};
 
-
+/// the generator for expressions
 pub struct ExpressionCodeGenerator<'a, 'b> {
     llvm: &'b LLVM<'a>,
     index: &'b Index<'a>,
+    /// an optional type hint for generating literals
     type_hint: Option<BasicTypeEnum<'a>>,
+    /// the current function to create blocks in
     function_context: Option<&'b FunctionContext<'a>>,
 
-    pub load_prefix: String,
-    pub load_suffix: String,
+    /// the string-prefix to use for temporary variables
+    pub temp_variable_prefix: String,
+    /// the string-suffix to use for temporary variables
+    pub temp_variable_suffix: String,
 
 }
 
 impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
+    /// creates a new expression generator
+    ///
+    /// - `llvm` dependencies used to generate llvm IR
+    /// - `index` the index / global symbol table
+    /// - `type_hint` an optional type hint for generating literals
+    /// - `function_context` the current function to create blocks
     pub fn new(
         llvm: &'b LLVM<'a>,
         index: &'b Index<'a>,
@@ -29,11 +39,18 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
             index,
             type_hint,
             function_context: Some(function_context),
-            load_prefix: "load_".to_string(),
-            load_suffix: "".to_string(),
+            temp_variable_prefix: "load_".to_string(),
+            temp_variable_suffix: "".to_string(),
         }
     }
-
+    
+    /// creates a new expression generator without a function context
+    /// this expression generator cannot generate all expressions. It can only generate
+    /// expressions that need no blocks (e.g. literals, references, etc.)
+    ///
+    /// - `llvm` dependencies used to generate llvm IR
+    /// - `index` the index / global symbol table
+    /// - `type_hint` an optional type hint for generating literals
     pub fn new_context_free(
         llvm: &'b LLVM<'a>,
         index: &'b Index<'a>,
@@ -44,23 +61,25 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
             index,
             type_hint,
             function_context: None,
-            load_prefix: "load_".to_string(),
-            load_suffix: "".to_string(),
+            temp_variable_prefix: "load_".to_string(),
+            temp_variable_suffix: "".to_string(),
         }
     }
 
+    /// returns the function context or returns a Compile-Error
     fn get_function_context(&self, statement: &Statement) -> Result<&FunctionContext, CompileError> {
         self.function_context.ok_or_else(||
             CompileError::missing_function(statement.get_location()))
     }
 
+    /// generates a Unary-Expression e.g. -<expr> or !<expr>
     fn generate_unary_expression(
         &self,
-        operator: &Operator,
-        value: &Box<Statement>,
+        unary_operator: &Operator,
+        expression: &Statement,
     ) -> Result<TypeAndValue<'a>, CompileError> {
-        let (data_type, loaded_value) = self.generate_expression(value)?;
-        let (data_type, value) = match operator {
+        let (data_type, loaded_value) = self.generate_expression(expression)?;
+        let (data_type, value) = match unary_operator {
             Operator::Not => (
                 data_type,
                 self.llvm.builder
@@ -76,6 +95,8 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
         Ok((data_type, BasicValueEnum::IntValue(value)))
     }
 
+    /// generates the given expression and returns a TypeAndValue as a result of the
+    /// given epxression
     pub fn generate_expression(
         &self,
         statement: &Statement
@@ -85,15 +106,15 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
             Statement::Reference { name, .. } => {
                 let pointer =
                     self.create_llvm_pointer_value_for_reference(None, name, statement)?;
-                let load_name = format!("{}{}{}", self.load_prefix, name, self.load_suffix);
+                let load_name = format!("{}{}{}", self.temp_variable_prefix, name, self.temp_variable_suffix);
                 Ok(self.llvm.load_pointer(&pointer, &load_name))
             },
             Statement::QualifiedReference { .. } => {
-                let l_value = self.generate_lvalue_for(statement)?;
-                Ok(self.llvm.load_pointer(&l_value, &self.load_prefix))
+                let l_value = self.generate_load_for(statement)?;
+                Ok(self.llvm.load_pointer(&l_value, &self.temp_variable_prefix))
             },
             Statement::ArrayAccess { .. } => {
-                let l_value = self.generate_lvalue_for(statement)?;
+                let l_value = self.generate_load_for(statement)?;
                 Ok(self.llvm.load_pointer(&l_value, "load_tmpVar"))
             }
             Statement::BinaryExpression {
@@ -147,6 +168,11 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
         }
     }
 
+    /// generates the given call-statement <operator>(<parameters>)
+    /// returns the result of the call as a TypeAndValue (may be an invalid pointer and void-type for PROGRAMs)
+    ///
+    /// - `operator` - the expression that points to the callable instance (e.g. a PROGRAM, FUNCTION or FUNCTION_BLOCK instance)
+    /// - `parameters` - an optional StatementList of parameters
     fn generate_call_statement(
         &self,
         operator: &Statement,
@@ -164,7 +190,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                         .ok_or_else(||
                             CompileError::CodeGenError{ message: format!("cannot find callable type for {:?}", operator), location: operator.get_location().clone() })?
                 } else {
-                    self.allocate_struct_instance(&name, operator)?
+                    self.allocate_function_struct_instance(&name, operator)?
                 };
                         
                 let call_name = variable
@@ -226,20 +252,30 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
         return Ok(( return_type.unwrap(), value ));
     }
 
-    fn allocate_struct_instance(&self, callable_name: &str, context: &Statement) -> Result<PointerValue<'a>, CompileError> {
-        let instance_name = struct_generator::get_pou_instance_variable_name(callable_name);
-        let function_type = self.index.get_type(callable_name)?
+    /// generates a new instance of a function called `function_name` and returns a PointerValue to it
+    ///
+    /// - `aunction_name` the name of the function as registered in the index
+    /// - `context` the statement used to report a possible CompileError on
+    fn allocate_function_struct_instance(&self, function_name: &str, context: &Statement) -> Result<PointerValue<'a>, CompileError> {
+        let instance_name = struct_generator::get_pou_instance_variable_name(function_name);
+        let function_type = self.index.get_type(function_name)?
                                 .get_type()
-                                .ok_or_else(|| CompileError::no_type_associated(callable_name, context.get_location().clone()))?;
+                                .ok_or_else(|| CompileError::no_type_associated(function_name, context.get_location().clone()))?;
 
-        Ok(self.llvm.allocate_local_variable(&instance_name, &function_type))
+        Ok(self.llvm.create_local_variable(&instance_name, &function_type))
     }
 
-
+    /// generates the assignments of a function-call's parameters
+    /// the call parameters are passed to the function using a struct-instance with all the parameters
+    ///
+    /// - `function_name` the name of the function we're calling
+    /// - `parameter_struct' a pointer to a struct-instance that holds all function-parameters
+    /// - `input_block` the block to generate the input-assignments into
+    /// - `output_block` the block to generate the output-assignments into
     fn generate_function_parameters(
         &self,
         function_name: &str,
-        variable: PointerValue<'a>,
+        parameter_struct: PointerValue<'a>,
         parameters: &Option<Statement>,
         input_block : &BasicBlock,
         output_block : &BasicBlock,
@@ -247,29 +283,38 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
         match &parameters {
             Some(Statement::ExpressionList { expressions }) => {
                 for (index, exp) in expressions.iter().enumerate() {
-                    self.generate_single_parameter(exp, function_name, None, index as u32, variable,input_block, output_block)?;
+                    self.generate_single_parameter(exp, function_name, None, index as u32, parameter_struct,input_block, output_block)?;
                 }
             }
             Some(statement) => {
-                self.generate_single_parameter(statement, function_name, None, 0, variable,input_block, output_block)?;
+                self.generate_single_parameter(statement, function_name, None, 0, parameter_struct, input_block, output_block)?;
             }
             None => {}
         }
         Ok(())
     }
 
+    /// generates an assignemnt of a single call's parameter
+    ///
+    /// - `assignment_statement' the parameter-assignment, either an AssignmentStatement, an OutputAssignmentStatement or an expression
+    /// - `function_name` the name of the callable
+    /// - `parameter_type` the datatype of the parameter
+    /// - `index` the index of the parameter (0 for first parameter, 1 for the next one, etc.)
+    /// - `parameter_struct' a pointer to a struct-instance that holds all function-parameters
+    /// - `input_block` the block to generate the input-assignments into
+    /// - `output_block` the block to generate the output-assignments into
     fn generate_single_parameter(
         &self,
-        statement: &Statement,
+        assignment_statement: &Statement,
         function_name: &str,
         parameter_type : Option<&DataTypeIndexEntry<'a>>,
         index: u32,
-        pointer_value: PointerValue<'a>,
+        parameter_struct: PointerValue<'a>,
         input_block : &BasicBlock,
         output_block : &BasicBlock,
     ) -> Result<(), CompileError> {
         let builder = &self.llvm.builder;
-        match statement {
+        match assignment_statement {
             Statement::Assignment { left, right } => {
                 builder.position_at_end(*input_block);
                 if let Statement::Reference { name, ..} = &**left {
@@ -281,7 +326,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                         .get_location_in_parent()
                         .unwrap();
                     let param_type = self.index.find_type(parameter.get_type_name());
-                    self.generate_single_parameter(right, function_name, param_type, index, pointer_value, input_block, output_block)?;
+                    self.generate_single_parameter(right, function_name, param_type, index, parameter_struct, input_block, output_block)?;
                 }
             }
             Statement::OutputAssignment { left, right } => {
@@ -299,11 +344,11 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                         self.index.find_input_parameter(function_name, index as u32).and_then(|var| self.index.find_type(var.get_type_name()))).and_then(|var| var.get_type_information()).unwrap();
                     //load the function prameter
                     let pointer_to_param = builder
-                        .build_struct_gep(pointer_value, index as u32, "")
+                        .build_struct_gep(parameter_struct, index as u32, "")
                         .unwrap();
 
                     
-                    let l_value = self.generate_lvalue_for( right).unwrap();
+                    let l_value = self.generate_load_for( right).unwrap();
                     let loaded_value = builder.build_load(pointer_to_param,parameter.get_name());
                     let value = typesystem::cast_if_needed(self.llvm, l_value.get_type_information(), loaded_value,param_type, right)?;
                     builder
@@ -312,13 +357,13 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                 builder.position_at_end(current_block);
             }
             _ => {
-                let (value_type, generated_exp) = self.generate_expression(statement)?;
+                let (value_type, generated_exp) = self.generate_expression(assignment_statement)?;
                 let pointer_to_param = builder
-                    .build_struct_gep(pointer_value, index as u32, "")
+                    .build_struct_gep(parameter_struct, index as u32, "")
                     .unwrap();
                 let parameter = parameter_type.or_else(|| 
                     self.index.find_input_parameter(function_name, index as u32).and_then(|var| self.index.find_type(var.get_type_name()))).and_then(|var| var.get_type_information()).unwrap();
-                let value = typesystem::cast_if_needed(self.llvm, parameter, generated_exp, &value_type, statement)?;
+                let value = typesystem::cast_if_needed(self.llvm, parameter, generated_exp, &value_type, assignment_statement)?;
                 builder
                     .build_store(pointer_to_param, value);
             }
@@ -328,37 +373,43 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
 
 
 
-    /// generates an L-value (something with an adress), returns a pointer
-    pub fn generate_l_value(
+    /// generates an load-statement and returns the resulting pointer and DataTypeInfo
+    ///
+    /// - `reference_statement` - the statement to load (either a reference, an arrayAccess or a qualifiedReference)
+    pub fn generate_load(
         &self,
-        statement: &Statement,
+        reference_statement: &Statement,
     ) -> Result<TypeAndPointer<'a, '_>, CompileError> {
-        match statement {
+        match reference_statement {
             Statement::Reference { name, .. } => {
-                self.create_llvm_pointer_value_for_reference(None, name, statement)
+                self.create_llvm_pointer_value_for_reference(None, name, reference_statement)
             }
 
             Statement::ArrayAccess { reference, access } => {
-                self.generate_lvalue_for_array(None, reference, access)
+                self.generate_load_for_array(None, reference, access)
                 //self.generate_reference_from_value((Some(value.type_information), Some(value.ptr_value)),"tmpVar")
             }
             Statement::QualifiedReference { .. } => {
-                self.generate_lvalue_for(statement)
+                self.generate_load_for(reference_statement)
             }
-            _ => Err(CompileError::codegen_error(format!("Cannot generate a LValue for {:?}", statement), statement.get_location())),
+            _ => Err(CompileError::codegen_error(format!("Cannot generate a LValue for {:?}", reference_statement), reference_statement.get_location())),
         }
     }
 
-   
+    /// loads the given reference with an optional qualifier
+    ///
+    /// - `qualifier` an optional qualifier for a reference (e.g. myStruct.x where myStruct is the qualifier for x)
+    /// - `name` the name of the reference-name (e.g. myStruct.x where 'x' is the reference-name)
+    /// - `context` the statement to obtain the location from when returning an error
     fn create_llvm_pointer_value_for_reference(
         &self,
-        qualifier_l_value: Option<&TypeAndPointer<'a,'_>>,
+        qualifier: Option<&TypeAndPointer<'a,'_>>,
         name: &String,
         context: &Statement,
     ) -> Result<TypeAndPointer<'a,'_>, CompileError> {
         //let (data_type, ptr) = if let Some((qualifier_name, qualifier)) = type_with_context {
         let offset = &context.get_location();
-        let l_value = if let Some(l_value) = qualifier_l_value {
+        let l_value = if let Some(l_value) = qualifier {
             let qualifier_name = l_value.type_entry.get_name();
             let member = self.index.find_member(l_value.type_entry.get_name(), name);
             let member_location = member
@@ -370,7 +421,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
             //.unwrap();
             let member_data_type = member.map(|it| it.get_type_name()).unwrap();
             let member_type_entry = self.index.get_type(member_data_type)?;
-            let gep = self.llvm.load_member_from_struct(l_value.ptr_value, member_location, name, offset)?;
+            let gep = self.llvm.get_member_pointer_from_struct(l_value.ptr_value, member_location, name, offset)?;
 
             TypeAndPointer::new(member_type_entry, gep)
         } else {
@@ -393,13 +444,18 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
         Ok(l_value)
     }
 
+    /// generates the access-expression for an array-reference
+    /// myArray[array_expression] where array_expression is the access-expression
+    ///
+    /// - `dimension` the array's dimension
+    /// - `access_expression` the expression inside the array-statement
     fn generate_access_for_dimension(
         &self,
         dimension: &Dimension,
-        access_statement: &Statement,
+        access_expression: &Statement,
     ) -> Result<IntValue<'a>, CompileError> {
         let start_offset = dimension.start_offset;
-        let (_, access_value) = self.generate_expression(access_statement)?;
+        let (_, access_value) = self.generate_expression(access_expression)?;
         //If start offset is not 0, adjust the current statement with an add operation
         if start_offset != 0 {
             Ok(self.llvm.builder.build_int_sub(
@@ -412,15 +468,19 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
         }
     }
 
-    fn generate_lvalue_for_array(
+    /// generates a load statement for a array-reference with an optional qualifier
+    /// 
+    /// - `qualifier` an optional qualifier for a reference (e.g. myStruct.x[2] where myStruct is the qualifier for x)
+    /// - `reference` the reference-statement pointing to the array
+    /// - `access` the accessor expression (the expression between the brackets: reference[access])
+    fn generate_load_for_array(
         &self,
-        qualifier_l_value: Option<&TypeAndPointer<'a, '_>>,
-        //type_with_context: Option<(&str, PointerValue<'a>)>,
+        qualifier: Option<&TypeAndPointer<'a, '_>>,
         reference: &Statement,
         access: &Statement,
     ) -> Result<TypeAndPointer<'a, '_>, CompileError> {
         //Load the reference
-        self.generate_lvalue_for_rec(qualifier_l_value, reference)
+        self.generate_load_for_rec(qualifier, reference)
             .and_then(|lvalue| {
                 if let 
                     DataTypeInformation::Array {
@@ -458,24 +518,31 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
             })
     }
     
-    pub fn generate_lvalue_for(
+    /// generate a load statement for the given referenc-statement
+    /// 
+    /// - `reference` the reference-statement (either Reference, AccessRefeference or QualifiedReference)
+    pub fn generate_load_for(
         &self,
-        statement: &Statement,
+        reference: &Statement,
     ) -> Result<TypeAndPointer<'a, '_>, CompileError> {
-        self.generate_lvalue_for_rec(None, statement)
+        self.generate_load_for_rec(None, reference)
     }
 
-    fn generate_lvalue_for_rec(
+    /// the entry function for recursive reference-generation (for qualified references)
+    ///
+    /// - `qualifier` the qualifier (TypeAndPointer) for the given reference-statement
+    /// - `reference` the reference to load
+    fn generate_load_for_rec(
         &self,
-        type_and_pointer: Option<&TypeAndPointer<'a, '_>>, 
+        qualifier: Option<&TypeAndPointer<'a, '_>>, 
         reference: &Statement,
     ) -> Result<TypeAndPointer<'a, '_>, CompileError> {
         match reference {
             Statement::QualifiedReference { elements } => {
                 let mut element_iter = elements.iter();
                 let current_element = element_iter.next();
-                let mut current_lvalue = self.generate_lvalue_for_rec(
-                    type_and_pointer,
+                let mut current_lvalue = self.generate_load_for_rec(
+                    qualifier,
                     &current_element.unwrap(),
                 );
 
@@ -484,7 +551,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                     let context_ptr = ctx.ptr_value;
                     let type_information= ctx.type_entry;
 
-                    current_lvalue = self.generate_lvalue_for_rec(
+                    current_lvalue = self.generate_load_for_rec(
                         Some(&TypeAndPointer::new(type_information, context_ptr)),
                         it,
                     );
@@ -493,18 +560,24 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
             }
             Statement::Reference { name, .. } => self
                 .create_llvm_pointer_value_for_reference(
-                    type_and_pointer,
+                    qualifier,
                     name,
                     reference,
                 ),
             Statement::ArrayAccess { reference, access } => {
-                self.generate_lvalue_for_array(type_and_pointer, reference, access)
+                self.generate_load_for_array(qualifier, reference, access)
             }
             _ => Err(CompileError::codegen_error(format!("Unsupported Statement {:?}", reference), reference.get_location())),
         }
     }
 
-    pub fn create_llvm_int_binary_expression(
+    /// generates the result of an int/bool binary-expression (+, -, *, /, %, ==)
+    /// 
+    /// - `operator` the binary operator
+    /// - `left_value` the left side of the binary expression, needs to be an int-value
+    /// - `right_value` the right side of the binary expression, needs to be an int-value
+    /// - `target_type` the resulting type
+    fn create_llvm_int_binary_expression(
         &self,
         operator: &Operator,
         left_value: BasicValueEnum<'a>,
@@ -593,85 +666,91 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
         (data_type, value.into())
     }
 
-    pub fn create_llvm_float_binary_expression(
+    /// generates the result of a float binary-expression (+, -, *, /, %, ==)
+    /// 
+    /// - `operator` the binary operator
+    /// - `left_value` the left side of the binary expression, needs to be a float-value
+    /// - `right_value` the right side of the binary expression, needs to be a float-value
+    /// - `target_type` the resulting type
+    fn create_llvm_float_binary_expression(
         &self,
         operator: &Operator,
         lvalue: BasicValueEnum<'a>,
         rvalue: BasicValueEnum<'a>,
         target_type: &DataTypeInformation<'a>,
     ) -> TypeAndValue<'a> {
-        let int_lvalue = lvalue.into_float_value();
-        let int_rvalue = rvalue.into_float_value();
+        let float_lvalue = lvalue.into_float_value();
+        let float_rvalue = rvalue.into_float_value();
 
         let (value, data_type) = match operator {
             Operator::Plus => (
                 self.llvm.builder
-                    .build_float_add(int_lvalue, int_rvalue, "tmpVar")
+                    .build_float_add(float_lvalue, float_rvalue, "tmpVar")
                     .into(),
                 target_type.clone(),
             ),
             Operator::Minus => (
                 self.llvm.builder
-                    .build_float_sub(int_lvalue, int_rvalue, "tmpVar")
+                    .build_float_sub(float_lvalue, float_rvalue, "tmpVar")
                     .into(),
                 target_type.clone(),
             ),
             Operator::Multiplication => (
                 self.llvm.builder
-                    .build_float_mul(int_lvalue, int_rvalue, "tmpVar")
+                    .build_float_mul(float_lvalue, float_rvalue, "tmpVar")
                     .into(),
                 target_type.clone(),
             ),
             Operator::Division => (
                 self.llvm.builder
-                    .build_float_div(int_lvalue, int_rvalue, "tmpVar")
+                    .build_float_div(float_lvalue, float_rvalue, "tmpVar")
                     .into(),
                 target_type.clone(),
             ),
             Operator::Modulo => (
                 self.llvm.builder
-                    .build_float_rem(int_lvalue, int_rvalue, "tmpVar")
+                    .build_float_rem(float_lvalue, float_rvalue, "tmpVar")
                     .into(),
                 target_type.clone(),
             ),
             Operator::Equal => (
                 self.llvm.builder
-                    .build_float_compare(FloatPredicate::OEQ, int_lvalue, int_rvalue, "tmpVar")
+                    .build_float_compare(FloatPredicate::OEQ, float_lvalue, float_rvalue, "tmpVar")
                     .into(),
                 self.index.find_type_information("BOOL").unwrap(),
             ),
 
             Operator::NotEqual => (
                 self.llvm.builder
-                    .build_float_compare(FloatPredicate::ONE, int_lvalue, int_rvalue, "tmpVar")
+                    .build_float_compare(FloatPredicate::ONE, float_lvalue, float_rvalue, "tmpVar")
                     .into(),
                 self.index.find_type_information("BOOL").unwrap(),
             ),
 
             Operator::Less => (
                 self.llvm.builder
-                    .build_float_compare(FloatPredicate::OLT, int_lvalue, int_rvalue, "tmpVar")
+                    .build_float_compare(FloatPredicate::OLT, float_lvalue, float_rvalue, "tmpVar")
                     .into(),
                 self.index.find_type_information("BOOL").unwrap(),
             ),
 
             Operator::Greater => (
                 self.llvm.builder
-                    .build_float_compare(FloatPredicate::OGT, int_lvalue, int_rvalue, "tmpVar")
+                    .build_float_compare(FloatPredicate::OGT, float_lvalue, float_rvalue, "tmpVar")
                     .into(),
                 self.index.find_type_information("BOOL").unwrap(),
             ),
 
             Operator::LessOrEqual => (
                 self.llvm.builder
-                    .build_float_compare(FloatPredicate::OLE, int_lvalue, int_rvalue, "tmpVar")
+                    .build_float_compare(FloatPredicate::OLE, float_lvalue, float_rvalue, "tmpVar")
                     .into(),
                 self.index.find_type_information("BOOL").unwrap(),
             ),
 
             Operator::GreaterOrEqual => (
                 self.llvm.builder
-                    .build_float_compare(FloatPredicate::OGE, int_lvalue, int_rvalue, "tmpVar")
+                    .build_float_compare(FloatPredicate::OGE, float_lvalue, float_rvalue, "tmpVar")
                     .into(),
                 self.index.find_type_information("BOOL").unwrap(),
             ),
@@ -681,11 +760,14 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
         (data_type, value)
     }
 
+    /// generates the literal statement and returns the resulting value
+    ///
+    /// - `literal_statement` one of LiteralBool, LiteralInteger, LiteralReal, LiteralString
     pub fn generate_literal(
         &self,
-        statement: &Statement,
+        literal_statement: &Statement,
     ) -> Result<TypeAndValue<'a>, CompileError> {
-        match statement {
+        match literal_statement {
             Statement::LiteralBool { value, .. } => self.llvm.create_const_bool(self.index, *value),
             Statement::LiteralInteger { value, .. } => {
                 self.llvm.create_const_int(self.index, &self.type_hint, value)
@@ -693,17 +775,22 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
             Statement::LiteralReal { value, .. } => self.llvm.create_const_real(self.index, &self.type_hint, value),
             Statement::LiteralString { value, .. } => self.llvm.create_const_string(value.as_str()),
             _ => Err(CompileError::codegen_error(
-                format!("Cannot generate Literal for {:?}", statement),
-                statement.get_location(),
+                format!("Cannot generate Literal for {:?}", literal_statement),
+                literal_statement.get_location(),
             )),
         }
     }
 
+    /// generates a phi-expression (&& or || expression) with respect to short-circuit evaluation
+    ///
+    /// - `operator` AND or OR 
+    /// - `left` the left side of the expression
+    /// - `right` the right side of the expression
     pub fn generate_phi_expression(
         &self, 
         operator: &Operator, 
-        left: &Box<Statement>, 
-        right: &Box<Statement>,
+        left: &Statement, 
+        right: &Statement,
     ) -> Result<TypeAndValue<'a>, CompileError>{
         let builder = &self.llvm.builder;
         let function = self.get_function_context(left)?.function;
@@ -718,7 +805,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
         match operator {
             Operator::Or => builder.build_conditional_branch(lhs,continue_branch,right_branch),
             Operator::And => builder.build_conditional_branch(lhs,right_branch,continue_branch),
-            _ => unreachable!() 
+            _ => return Err(CompileError::codegen_error(format!("Cannot generate phi-expression for operator {:}", operator), left.get_location()))
         };
 
         builder.position_at_end(right_branch);

@@ -104,6 +104,7 @@ pub fn generate_data_type<'a>(
                 index.associate_type_initial_value(name, initial_value);
             }
             DataType::EnumType { name: _, elements } => {
+                // generate a global variable for every enum element
                 for (i, element) in elements.iter().enumerate() {
                     let int_type = llvm.i32_type();
                     let element_variable = llvm.create_global_variable(
@@ -113,7 +114,7 @@ pub fn generate_data_type<'a>(
                         Some(int_type.const_int(i as u64, false).as_basic_value_enum()),
                     );
 
-                    //associate the enum element's global variable
+                    //associate the enum element's global variable with the enume-element's name
                     index.associate_global_variable(element, element_variable.as_pointer_value());
                 }
             }

@@ -110,7 +110,7 @@ impl<'a, 'b> PouGenerator<'a, 'b> {
         
         //generate the return-variable
         if let Some(return_type) = return_type {
-            let return_variable = self.llvm.allocate_local_variable(pou_name, &return_type);
+            let return_variable = self.llvm.create_local_variable(pou_name, &return_type);
             self.index.associate_local_variable(pou_name, pou_name, return_variable);
         }
 
@@ -194,8 +194,8 @@ impl<'a, 'b> PouGenerator<'a, 'b> {
                     location: location.unwrap_or(0usize..0usize)
                 };
                 let mut exp_gen = ExpressionCodeGenerator::new(self.llvm, self.index, None, &function_context);
-                exp_gen.load_prefix = "".to_string();
-                exp_gen.load_suffix = "_ret".to_string();
+                exp_gen.temp_variable_prefix = "".to_string();
+                exp_gen.temp_variable_suffix = "_ret".to_string();
                 let (_, value) = exp_gen.generate_expression(&reference)?;
                 self.llvm.builder.build_return(Some(&value));
             }

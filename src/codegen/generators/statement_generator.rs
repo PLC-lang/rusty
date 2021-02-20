@@ -102,7 +102,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         right_statement: &Statement,
     ) -> Result<(), CompileError> {
         let exp_gen = self.create_expr_generator(self.type_hint);
-        let left = exp_gen.generate_l_value(left_statement)?;
+        let left = exp_gen.generate_load(left_statement)?;
         let (right_type, right) = exp_gen.generate_expression(right_statement)?;
         let cast_value =
             typesystem::cast_if_needed(self.llvm, &left.get_type_information(), right, &right_type, right_statement)?;
@@ -168,7 +168,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         let next = builder
             .build_int_add(counter_statement.into_int_value(), step_by_value.into_int_value(), "tmpVar");
                     
-        let ptr = expression_generator.generate_lvalue_for(counter)?.ptr_value;
+        let ptr = expression_generator.generate_load_for(counter)?.ptr_value;
         builder.build_store(ptr, next);
 
         //Loop back
