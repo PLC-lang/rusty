@@ -122,7 +122,7 @@ impl<'a, 'b> PouGenerator<'a, 'b> {
         let function_context = FunctionContext{linking_context: pou_name.clone(), function: current_function};
         {
             let statement_gen = StatementCodeGenerator::new(self.llvm, &self.index, &function_context);
-            statement_gen.generate_body(&pou.statements, &self.llvm.builder)?
+            statement_gen.generate_body(&pou.statements)?
         }
 
         // generate return statement

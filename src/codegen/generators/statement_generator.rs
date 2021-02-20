@@ -2,17 +2,20 @@
 
 use super::{expression_generator::{ExpressionCodeGenerator}, llvm::LLVM};
 use crate::{ast::{ConditionalBlock, Statement}, codegen::{typesystem}, compile_error::CompileError, index::Index };
-use inkwell::{IntPredicate, builder::Builder, types::{BasicTypeEnum}, values::{BasicValueEnum, FunctionValue}};
+use inkwell::{IntPredicate, builder::Builder, values::{BasicValueEnum, FunctionValue}};
 
+/// the full context when generating statements inside a POU
 pub struct FunctionContext<'a> {
+    /// the current pou's name. This means that a variable x may refer to "`linking_context`.x"
     pub linking_context: String,
+    /// the llvm function to generate statements into
     pub function: FunctionValue<'a>,
 }
 
+/// the StatementCodeGenerator is used to generate statements (For, If, etc.) or expressions (references, literals, etc.)
 pub struct StatementCodeGenerator<'a, 'b> {
     llvm: &'b LLVM<'a>,
     index: &'b Index<'a>,
-    type_hint: Option<BasicTypeEnum<'a>>,
     function_context: &'b FunctionContext<'a>,
 
     pub load_prefix: String,
@@ -20,6 +23,7 @@ pub struct StatementCodeGenerator<'a, 'b> {
 }
 
 impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
+    /// constructs a new StatementCodeGenerator
     pub fn new(
         llvm: &'b LLVM<'a>,
         global_index: &'b Index<'a>,
@@ -28,32 +32,34 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         StatementCodeGenerator {
             llvm,
             index: global_index,
-            type_hint: None,
             function_context: linking_context,
             load_prefix: "load_".to_string(),
             load_suffix: "".to_string(),
         }
     }
 
-    fn create_expr_generator(&self, type_hint: Option<BasicTypeEnum<'a>>) -> ExpressionCodeGenerator<'a, 'b> {
-        ExpressionCodeGenerator::new(self.llvm, self.index, type_hint, self.function_context)
+    /// convinience method to create an expression-generator
+    fn create_expr_generator(&self) -> ExpressionCodeGenerator<'a, 'b> {
+        ExpressionCodeGenerator::new(self.llvm, self.index, None, self.function_context)
     }
  
+    /// generates a list of statements
     pub fn generate_body(
         &self,
         statements: &Vec<Statement>,
-        builder: &Builder<'a>,
     ) -> Result<(), CompileError> {
         for s in statements {
-            self.generate_statement(s, builder)?;
+            self.generate_statement(s)?;
         }
         Ok(())
     }
 
+    /// genertes a single statement
+    ///
+    /// - `statement` the statement to be generated
     pub fn generate_statement(
         &self,
         statement: &Statement,
-        builder: &Builder<'a>,
     ) -> Result<(), CompileError> {
         match statement {
             Statement::Assignment { left, right } => {
@@ -68,8 +74,6 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
                 ..
             } => {
                 self.generate_for_statement(
-                    builder,
-                    self.function_context.function,
                     counter,
                     start,
                     end,
@@ -78,30 +82,34 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
                 )?;
             },
             Statement::RepeatLoopStatement{ condition, body, ..} =>  {
-                self.generate_repeat_statement(builder, condition, body)?;
+                self.generate_repeat_statement(condition, body)?;
             },
             Statement::WhileLoopStatement{condition, body, ..} => {
-                self.generate_while_statement(builder, condition, body)?;
+                self.generate_while_statement(condition, body)?;
             },
             Statement::IfStatement{ blocks, else_block, ..} => {
-                self.generate_if_statement(builder, blocks, else_block)?;
+                self.generate_if_statement(blocks, else_block)?;
             },
             Statement::CaseStatement{ selector, case_blocks, else_block, ..} => {
-                self.generate_case_statement(builder, selector, case_blocks, else_block)?;
+                self.generate_case_statement(selector, case_blocks, else_block)?;
             }
             _ => {
-                self.create_expr_generator(self.type_hint).generate_expression(statement)?;
+                self.create_expr_generator().generate_expression(statement)?;
             }
         }
         Ok(())
     }
 
+    /// generates an assignment statement _left_ := _right_
+    ///
+    /// `left_statement` the left side of the assignment
+    /// `right_statement` the right side of the assignment 
     fn generate_assignment_statement(
         &self,
         left_statement: &Statement,
         right_statement: &Statement,
     ) -> Result<(), CompileError> {
-        let exp_gen = self.create_expr_generator(self.type_hint);
+        let exp_gen = self.create_expr_generator();
         let left = exp_gen.generate_load(left_statement)?;
         let (right_type, right) = exp_gen.generate_expression(right_statement)?;
         let cast_value =
@@ -111,17 +119,25 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
     }
 
 
-
+    /// generates a for-loop statement
+    /// 
+    /// FOR `counter` := `start` TO `end` BY `by_step` DO
+    ///
+    /// - `counter` the counter variable
+    /// - `start` the value indicating the start of the for loop
+    /// - `end` the value indicating the end of the for loop
+    /// - `by_step` the step of the loop
+    /// - `body` the statements inside the for-loop
     fn generate_for_statement(
         &self,
-        builder: &Builder<'a>,
-        current_function: FunctionValue,
         counter: &Statement,
         start: &Statement,
         end: &Statement,
         by_step: &Option<Box<Statement>>,
         body: &Vec<Statement>,
     ) -> Result<(), CompileError> {
+        let builder = &self.llvm.builder;
+        let current_function = self.function_context.function;
         self.generate_assignment_statement(counter, start)?;
         let condition_check = self.llvm
             .context
@@ -137,7 +153,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
 
         //Check loop condition
         builder.position_at_end(condition_check);
-        let exp_gen = self.create_expr_generator(self.type_hint);
+        let exp_gen = self.create_expr_generator();
         let (_, counter_statement) = exp_gen.generate_expression(counter)?;
         let (_, end_statement) = exp_gen.generate_expression(end)?;
 
@@ -151,10 +167,10 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
 
         //Enter the for loop
         builder.position_at_end(for_body);
-        self.generate_body(body, builder)?;
+        self.generate_body(body)?;
 
         //Increment
-        let expression_generator = self.create_expr_generator(self.type_hint);
+        let expression_generator = self.create_expr_generator();
         let (_, step_by_value) = by_step
              .as_ref()
              .map_or_else(
@@ -182,12 +198,12 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
 
     fn generate_case_statement(
         &self,
-        builder: &Builder<'a>,
         selector: &Statement,
         conditional_blocks: &Vec<ConditionalBlock>,
         else_body: &Vec<Statement>,
     ) -> Result<Option<BasicValueEnum<'a>>, CompileError> {
 
+        let builder = &self.llvm.builder;
         let current_function = self.function_context.function;
         //Continue
         let continue_block = self.llvm
@@ -195,7 +211,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
             .append_basic_block(current_function, "continue");
 
         let basic_block = builder.get_insert_block().unwrap();
-        let exp_gen = self.create_expr_generator(self.type_hint);
+        let exp_gen = self.create_expr_generator();
 
         let (_, selector_statement) = exp_gen.generate_expression(&*selector)?;
         let mut cases = Vec::new();
@@ -208,7 +224,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
                 .append_basic_block(current_function, "case");
             let (_, condition) = exp_gen.generate_expression(&*conditional_block.condition)?; //TODO : Is a type conversion needed here?
             builder.position_at_end(basic_block);
-            self.generate_body(&conditional_block.body, builder)?;
+            self.generate_body(&conditional_block.body)?;
             builder.build_unconditional_branch(continue_block);
 
             cases.push((condition.into_int_value(), basic_block));
@@ -218,7 +234,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
             .context
             .append_basic_block(current_function, "else");
         builder.position_at_end(else_block);
-        self.generate_body(else_body, builder)?;
+        self.generate_body(else_body)?;
         builder.build_unconditional_branch(continue_block);
 
         //Move the continue block to after the else block
@@ -234,12 +250,12 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
 
     fn generate_while_statement(
         &self,
-        builder: &Builder<'a>,
         condition: &Box<Statement>,
         body: &Vec<Statement>,
     ) -> Result<Option<BasicValueEnum<'a>>, CompileError> {
+        let builder = &self.llvm.builder;
         let basic_block = builder.get_insert_block().unwrap();
-        self.generate_base_while_statement(builder, condition, body)?;
+        self.generate_base_while_statement(condition, body)?;
 
         let continue_block = builder.get_insert_block().unwrap();
 
@@ -253,12 +269,12 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
 
     fn generate_repeat_statement(
         &self,
-        builder: &Builder<'a>,
         condition: &Box<Statement>,
         body: &Vec<Statement>,
     ) -> Result<Option<BasicValueEnum<'a>>, CompileError> {
+        let builder = &self.llvm.builder;
         let basic_block = builder.get_insert_block().unwrap();
-        self.generate_base_while_statement(builder, condition, body)?;
+        self.generate_base_while_statement(condition, body)?;
 
         let continue_block = builder.get_insert_block().unwrap();
 
@@ -272,10 +288,10 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
 
     fn generate_base_while_statement(
         &self,
-        builder: &Builder<'a>,
         condition: &Statement,
         body: &Vec<Statement>,
     ) -> Result<Option<BasicValueEnum>, CompileError> {
+        let builder = &self.llvm.builder;
         let current_function = self.function_context.function;
         let condition_check = self.llvm
             .context
@@ -289,13 +305,13 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
 
         //Check loop condition
         builder.position_at_end(condition_check);
-        let (_, condition_value) = self.create_expr_generator(self.type_hint).generate_expression(condition)?;
+        let (_, condition_value) = self.create_expr_generator().generate_expression(condition)?;
         builder
             .build_conditional_branch(condition_value.into_int_value(), while_body, continue_block);
 
         //Enter the for loop
         builder.position_at_end(while_body);
-        self.generate_body(&body, builder)?;
+        self.generate_body(&body)?;
         //Loop back
         builder.build_unconditional_branch(condition_check);
 
@@ -306,10 +322,10 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
 
     fn generate_if_statement(
         &self,
-        builder: &Builder<'a>,
         conditional_blocks: &Vec<ConditionalBlock>,
         else_body: &Vec<Statement>,
     ) -> Result<(), CompileError> {
+        let builder = &self.llvm.builder;
         let mut blocks = Vec::new();
         blocks.push(builder.get_insert_block().unwrap());
         let current_function = self.function_context.function;
@@ -341,7 +357,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
 
             builder.position_at_end(then_block);
 
-            let (_,condition) = self.create_expr_generator(self.type_hint).generate_expression(&block.condition)?;
+            let (_,condition) = self.create_expr_generator().generate_expression(&block.condition)?;
             let conditional_block = self
                 .llvm.context
                 .prepend_basic_block(else_block, "condition_body");
@@ -352,14 +368,14 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
             //Generate if statement content
 
             builder.position_at_end(conditional_block);
-            self.generate_body(&block.body, builder)?;
+            self.generate_body(&block.body)?;
             builder.build_unconditional_branch(continue_block);
         }
         //Else
 
        if let Some(else_block) = else_block {
             builder.position_at_end(else_block);
-            self.generate_body(&else_body, builder)?;
+            self.generate_body(&else_body)?;
             builder.build_unconditional_branch(continue_block);
         }
         //Continue
