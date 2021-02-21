@@ -104,7 +104,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
     ///
     /// `left_statement` the left side of the assignment
     /// `right_statement` the right side of the assignment 
-    fn generate_assignment_statement(
+    pub fn generate_assignment_statement(
         &self,
         left_statement: &Statement,
         right_statement: &Statement,

@@ -6,7 +6,7 @@
 /// - generates a function for the pou
 /// - declares a global instance if the POU is a PROGRAM
 use super::{expression_generator::ExpressionCodeGenerator, llvm::LLVM, statement_generator::{FunctionContext, StatementCodeGenerator}, struct_generator::{self, StructGenerator}};
-use crate::{ast::{DataTypeDeclaration, LinkageType, POU, PouType, SourceRange, Statement, Variable}, compile_error::CompileError, index::{DataTypeIndexEntry, DataTypeInformation, Index}};
+use crate::{ast::{DataTypeDeclaration, LinkageType, POU, PouType, SourceRange, Statement, Variable, VariableBlock, VariableBlockType}, compile_error::CompileError, index::{DataTypeIndexEntry, DataTypeInformation, Index}};
 use inkwell::{AddressSpace, context::Context, module::Module, types::{BasicTypeEnum, FunctionType}, values::{BasicValueEnum, FunctionValue}};
 
 
@@ -119,9 +119,14 @@ impl<'a, 'b> PouGenerator<'a, 'b> {
             current_function,
             &pou_members,
         )?;
+
         let function_context = FunctionContext{linking_context: pou_name.clone(), function: current_function};
         {
             let statement_gen = StatementCodeGenerator::new(self.llvm, &self.index, &function_context);
+            //if this is a function, we need to initilialize the VAR-variables
+            if pou.pou_type == PouType::Function {
+                self.generate_initialization_of_local_vars(&pou.variable_blocks, &statement_gen)?;
+            }
             statement_gen.generate_body(&pou.statements)?
         }
 
@@ -180,6 +185,27 @@ impl<'a, 'b> PouGenerator<'a, 'b> {
             )
         }
 
+        Ok(())
+    }
+
+    /// generates assignment statements for initialized variables in the VAR-block
+    ///
+    /// - `blocks` - all declaration blocks of the current pou
+    fn generate_initialization_of_local_vars(
+        &self,
+        blocks : &Vec<VariableBlock>,
+        statement_generator: &StatementCodeGenerator<'a, '_>,
+    )-> Result<(), CompileError> {
+        let variables_with_initializers = blocks.iter()
+            .filter(|it| it.variable_block_type == VariableBlockType::Local)
+            .flat_map(|it| &it.variables)
+            .filter(|it| it.initializer.is_some());
+
+        for variable in variables_with_initializers {
+            let left = Statement::Reference{ name: variable.name.clone(), location: variable.location.clone() };
+            let right = variable.initializer.as_ref().unwrap();
+            statement_generator.generate_assignment_statement(&left, right)?;
+        }
         Ok(())
     }
 
