@@ -101,13 +101,13 @@ pub fn get_ir(codegen: &codegen::CodeGen) -> String {
 
 pub fn compile_module<'ctx>(context : &'ctx Context, index: &'ctx mut Index<'ctx>, source : String) -> Result<codegen::CodeGen<'ctx>, CompileError> {
 
-    let (mut parse_result, new_lines) = parse(source);
+    let (mut parse_result, _) = parse(source);
     //first pre-process the AST
     index.pre_process(&mut parse_result);
     //then index the AST
     index.visit(&mut parse_result);
     //and finally codegen
-    let mut code_generator = codegen::CodeGen::new(context, index, "main", new_lines);
+    let mut code_generator = codegen::CodeGen::new(context, index, "main");
     code_generator.generate(parse_result)?;
     Ok(code_generator)
 }

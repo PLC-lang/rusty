@@ -114,6 +114,7 @@ impl<'a, 'b> PouGenerator<'a, 'b> {
             self.index.associate_local_variable(pou_name, pou_name, return_variable);
         }
 
+        // generate loads for all the parameters
         self.generate_local_variable_accessors(
             pou_name,
             current_function,
@@ -136,6 +137,7 @@ impl<'a, 'b> PouGenerator<'a, 'b> {
         Ok(())
     }
 
+    /// TODO llvm.rs
     /// generates a llvm `FunctionType` that takes the given list of `parameters` and
     /// returns the given `return_type`
     fn create_llvm_function_type(

@@ -72,49 +72,25 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
             CompileError::missing_function(statement.get_location()))
     }
 
-    /// generates a Unary-Expression e.g. -<expr> or !<expr>
-    fn generate_unary_expression(
-        &self,
-        unary_operator: &Operator,
-        expression: &Statement,
-    ) -> Result<TypeAndValue<'a>, CompileError> {
-        let (data_type, loaded_value) = self.generate_expression(expression)?;
-        let (data_type, value) = match unary_operator {
-            Operator::Not => (
-                data_type,
-                self.llvm.builder
-                    .build_not(loaded_value.into_int_value(), "tmpVar"),
-            ),
-            Operator::Minus => (
-                data_type,
-                self.llvm.builder
-                    .build_int_neg(loaded_value.into_int_value(), "tmpVar"),
-            ),
-            _ => unimplemented!(),
-        };
-        Ok((data_type, BasicValueEnum::IntValue(value)))
-    }
-
     /// generates the given expression and returns a TypeAndValue as a result of the
     /// given epxression
     pub fn generate_expression(
         &self,
-        statement: &Statement
+        expression: &Statement
     ) -> Result<TypeAndValue<'a>, CompileError> {
         let builder = &self.llvm.builder;
-        match statement {
+        match expression {
             Statement::Reference { name, .. } => {
-                let pointer =
-                    self.create_llvm_pointer_value_for_reference(None, name, statement)?;
                 let load_name = format!("{}{}{}", self.temp_variable_prefix, name, self.temp_variable_suffix);
-                Ok(self.llvm.load_pointer(&pointer, &load_name))
+                let l_value = self.generate_load_for(expression)?;
+                Ok(self.llvm.load_pointer(&l_value, load_name.as_str()))
             },
             Statement::QualifiedReference { .. } => {
-                let l_value = self.generate_load_for(statement)?;
+                let l_value = self.generate_load_for(expression)?;
                 Ok(self.llvm.load_pointer(&l_value, &self.temp_variable_prefix))
             },
             Statement::ArrayAccess { .. } => {
-                let l_value = self.generate_load_for(statement)?;
+                let l_value = self.generate_load_for(expression)?;
                 Ok(self.llvm.load_pointer(&l_value, "load_tmpVar"))
             }
             Statement::BinaryExpression {
@@ -164,8 +140,31 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                 self.generate_unary_expression(operator, value)
             },
             //fallback
-            _ => self.generate_literal(statement),
+            _ => self.generate_literal(expression),
         }
+    }
+
+    /// generates a Unary-Expression e.g. -<expr> or !<expr>
+    fn generate_unary_expression(
+        &self,
+        unary_operator: &Operator,
+        expression: &Statement,
+    ) -> Result<TypeAndValue<'a>, CompileError> {
+        let (data_type, loaded_value) = self.generate_expression(expression)?;
+        let (data_type, value) = match unary_operator {
+            Operator::Not => (
+                data_type,
+                self.llvm.builder
+                    .build_not(loaded_value.into_int_value(), "tmpVar"),
+            ),
+            Operator::Minus => (
+                data_type,
+                self.llvm.builder
+                    .build_int_neg(loaded_value.into_int_value(), "tmpVar"),
+            ),
+            _ => unimplemented!(),
+        };
+        Ok((data_type, BasicValueEnum::IntValue(value)))
     }
 
     /// generates the given call-statement <operator>(<parameters>)
@@ -246,15 +245,15 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
         let value = call_result.either(
             |value| Ok(value), 
             |_| self.index.get_type_information("INT")
-                        .and_then(|it| Ok(it.get_type()))
-                        .and_then(|it| Ok(it.ptr_type(AddressSpace::Const).const_null().as_basic_value_enum())))?;
+                    .map(|it| it.get_type())
+                    .map(|it| it.ptr_type(AddressSpace::Const).const_null().as_basic_value_enum()))?;
 
         return Ok(( return_type.unwrap(), value ));
     }
 
     /// generates a new instance of a function called `function_name` and returns a PointerValue to it
     ///
-    /// - `aunction_name` the name of the function as registered in the index
+    /// - `function_name` the name of the function as registered in the index
     /// - `context` the statement used to report a possible CompileError on
     fn allocate_function_struct_instance(&self, function_name: &str, context: &Statement) -> Result<PointerValue<'a>, CompileError> {
         let instance_name = struct_generator::get_pou_instance_variable_name(function_name);
@@ -315,6 +314,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
     ) -> Result<(), CompileError> {
         let builder = &self.llvm.builder;
         match assignment_statement {
+            // explicit call parameter: foo(param := value)
             Statement::Assignment { left, right } => {
                 builder.position_at_end(*input_block);
                 if let Statement::Reference { name, ..} = &**left {
@@ -329,6 +329,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                     self.generate_single_parameter(right, function_name, param_type, index, parameter_struct, input_block, output_block)?;
                 }
             }
+            // foo (param => value)
             Statement::OutputAssignment { left, right } => {
                 let current_block = builder.get_insert_block().unwrap();
                 builder.position_at_end(*output_block);
@@ -356,6 +357,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                 }
                 builder.position_at_end(current_block);
             }
+            // foo(x)
             _ => {
                 let (value_type, generated_exp) = self.generate_expression(assignment_statement)?;
                 let pointer_to_param = builder

@@ -210,36 +210,3 @@ fn create_nested_array_type(end_type: BasicTypeEnum, dimensions: Vec<Dimension>)
     }
     result.unwrap()
 }
-
-/*///
-/// returns the generated type and it's optional initializer
-///
-fn generate_struct_type<'a>(
-    index: &Index<'a>,
-    members: &Vec<(String, BasicTypeEnum<'a>, Option<BasicValueEnum<'a>>)>,
-    name: &str,
-) -> (StructType<'a>, BasicValueEnum<'a>) {
-    let struct_type_info = index
-        .find_type(name)
-        .unwrap();
-
-    let struct_type = struct_type_info.get_type()
-        .unwrap()
-        .into_struct_type();
-    let member_types: Vec<BasicTypeEnum> = members.iter().map(|(_, t, _)| *t).collect();
-    struct_type.set_body(member_types.as_slice(), false);
-
-    let struct_fields_values = members.iter()
-            .map(|(_,basic_type, initializer)|
-
-                initializer
-                    .unwrap_or_else(|| typesystem::get_default_for(basic_type.clone())
-
-                ))
-            .collect::<Vec<BasicValueEnum>>();
-
-    let initial_value = struct_type.const_named_struct(struct_fields_values.as_slice());
-    index.associate_type_initial_value(name, initial_value.into());
-
-    (struct_type, initial_value.as_basic_value_enum())
-}*/
