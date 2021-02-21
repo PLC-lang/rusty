@@ -1,11 +1,21 @@
 /// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
+use crate::{ast::Statement, compile_error::CompileError, index::Index};
 
-use super::{CodeGen, DataTypeInformation};
-use inkwell::types::{IntType,BasicType};
+use super::{CodeGen, DataTypeInformation, TypeAndValue, generators::llvm::LLVM};
 use inkwell::values::{BasicValue, BasicValueEnum, IntValue};
+use inkwell::{
+    builder::Builder,
+    context::Context,
+    types::{BasicType, BasicTypeEnum, IntType},
+};
+
 impl<'ctx> CodeGen<'ctx> {
     pub fn initialize_type_system(&mut self) {
         let c = self.context;
+
+        self.index.register_type("__VOID".to_string());
+        self.index
+            .associate_type("__VOID", DataTypeInformation::Void {});
 
         self.index.register_type("BOOL".to_string());
         self.index.associate_type(
@@ -164,319 +174,347 @@ impl<'ctx> CodeGen<'ctx> {
         );
     }
 
-    pub fn new_string_information(
-        &self,
-        len : u32
-    ) -> DataTypeInformation<'ctx> {
-        DataTypeInformation::String {
-            size: len + 1,
-            generated_type: self.context.i8_type().array_type(len+1).as_basic_type_enum(),        
-        }
-    }
-
-    pub fn cast_if_needed(
-        &self,
-        target_type: &DataTypeInformation<'ctx>,
-        value: BasicValueEnum<'ctx>,
-        value_type: &DataTypeInformation<'ctx>,
-    ) -> Option<BasicValueEnum<'ctx>>{
-       match target_type {
-            DataTypeInformation::Integer {
-                signed,
-                size: lsize,
-                generated_type,
-            } => {
-                match value_type {
-                    DataTypeInformation::Integer { size: rsize, .. } => {
-                        if lsize < rsize {
-                            //Truncate
-                            Some(
-                                self.builder
-                                    .build_int_truncate_or_bit_cast(
-                                        value.into_int_value(),
-                                        generated_type.into_int_type(),
-                                        "",
-                                    )
-                                    .into(),
-                            )
-                        } else {
-                            //Expand
-                            Some(
-                                self.promote_value_if_needed(value, value_type, &target_type)
-                                    .into(),
-                            )
-                        }
-                    }
-                    DataTypeInformation::Float {
-                        size: _rsize,
-                        generated_type: _,
-                    } => {
-                        if *signed {
-                            Some(
-                                self.builder
-                                    .build_float_to_signed_int(
-                                        value.into_float_value(),
-                                        generated_type.into_int_type(),
-                                        "",
-                                    )
-                                    .into(),
-                            )
-                        } else {
-                            Some(
-                                self.builder
-                                    .build_float_to_unsigned_int(
-                                        value.into_float_value(),
-                                        generated_type.into_int_type(),
-                                        "",
-                                    )
-                                    .into(),
-                            )
-                        }
-                    }
-                    _ => None,
-                }
-            }
-            DataTypeInformation::Float { generated_type, size : lsize, .. } => match value_type {
-                DataTypeInformation::Integer { signed, .. } => {
-                    if *signed {
-                        Some(
-                            self.builder
-                                .build_signed_int_to_float(
-                                    value.into_int_value(),
-                                    generated_type.into_float_type(),
-                                    "",
-                                )
-                                .into(),
-                        )
-                    } else {
-                        Some(
-                            self.builder
-                                .build_unsigned_int_to_float(
-                                    value.into_int_value(),
-                                    generated_type.into_float_type(),
-                                    "",
-                                )
-                                .into(),
-                        )
-                    }
-                }
-                DataTypeInformation::Float {size : rsize, ..} => {
-                    if lsize < rsize {
-                        Some(self.builder.build_float_trunc(
-                            value.into_float_value(),
-                            generated_type.into_float_type(),
-                            ""
-                        ).into())
-                    } else {
-                        Some(self.promote_value_if_needed(value, value_type, &target_type))
-                    }
-                }
-                _ => None,
-            },
-            DataTypeInformation::String {size, ..} => match value_type {
-                DataTypeInformation::String {size: value_size, ..} => {
-                    if size < value_size {
-                        //if we are on a vector replace it
-                        if value.is_vector_value() {
-                            let vec_value = value.into_vector_value();
-                            let string_value = vec_value.get_string_constant().to_bytes();
-                            let new_value= &string_value[0..(*size -1) as usize];
-
-                            let (_,value) = self.generate_literal_string(new_value);
-                            value
-                        }
-                        else {
-                            None
-                        }
-                    } else {
-                        Some(value)
-                    }
-                },
-                _ => None, 
-            } ,
-            _ => Some(value),
-        }
-    }
-
-    fn promote_value_if_needed(
-        &self,
-        lvalue: BasicValueEnum<'ctx>,
-        ltype: &DataTypeInformation<'ctx>,
-        target_type: &DataTypeInformation<'ctx>,
-    ) -> BasicValueEnum<'ctx> {
-        //Is the target type int
-        //Expand the current type to the target size
-        //Is the target type float
-        //Is the current type int
-        //Cast to float
-        //Expand current type to target type
-
-        match target_type {
-            DataTypeInformation::Integer {
-                size: target_size,
-                generated_type,
-                ..
-            } => {
-                // INT --> INT
-                let int_value = lvalue.into_int_value();
-                if int_value.get_type().get_bit_width() < *target_size {
-                    self.extend_int_value(int_value, ltype, generated_type.into_int_type())
-                        .as_basic_value_enum()
-                } else {
-                    lvalue
-                }
-            }
-            DataTypeInformation::Float {
-                size: target_size,
-                generated_type: target_generated_type,
-            } => {
-                if let DataTypeInformation::Integer { signed, .. } = ltype {
-                    // INT --> FLOAT
-                    let int_value = lvalue.into_int_value();
-                    if *signed {
-                        self.builder
-                            .build_signed_int_to_float(
-                                int_value,
-                                target_generated_type.into_float_type(),
-                                "",
-                            )
-                            .into()
-                    } else {
-                        self.builder
-                            .build_unsigned_int_to_float(
-                                int_value,
-                                target_generated_type.into_float_type(),
-                                "",
-                            )
-                            .into()
-                    }
-                } else {
-                    // FLOAT --> FLOAT
-                    if let DataTypeInformation::Float { size, .. } = ltype {
-                        if target_size <= size {
-                            lvalue
-                        } else {
-                            self.builder
-                                .build_float_ext(
-                                    lvalue.into_float_value(),
-                                    target_generated_type.into_float_type(),
-                                    "",
-                                )
-                                .into()
-                        }
-                    } else {
-                        unreachable!()
-                    }
-                }
-            }
-            _ => unreachable!(),
-        }
-    }
-
-    fn extend_int_value(
-        &self,
-        lvalue: IntValue<'ctx>,
-        ltype: &DataTypeInformation,
-        target_type: IntType<'ctx>,
-    ) -> IntValue<'ctx> {
-        match ltype {
-            DataTypeInformation::Integer {
-                signed: true,
-                size: _,
-                generated_type: _,
-            } => self
-                .builder
-                .build_int_s_extend_or_bit_cast(lvalue, target_type, ""),
-            DataTypeInformation::Integer {
-                signed: false,
-                size: _,
-                generated_type: _,
-            } => self
-                .builder
-                .build_int_z_extend_or_bit_cast(lvalue, target_type, ""),
-            _ => unreachable!(),
-        }
-    }
-
-    pub fn promote_if_needed(
-        &self,
-        lvalue: BasicValueEnum<'ctx>,
-        ltype: &DataTypeInformation<'ctx>,
-        rvalue: BasicValueEnum<'ctx>,
-        rtype: &DataTypeInformation<'ctx>,
-    ) -> (
-        DataTypeInformation<'ctx>,
-        BasicValueEnum<'ctx>,
-        BasicValueEnum<'ctx>,
-    ) {
-        let ltype_llvm = ltype.get_type();
-        let rtype_llvm = rtype.get_type();
-
-        if ltype.is_numerical() && rtype.is_numerical() {
-            if ltype_llvm == rtype_llvm {
-                (ltype.clone(), lvalue, rvalue)
-            } else {
-                let target_type = self.get_bigger_type(
-                    self.get_bigger_type(ltype.clone(), rtype.clone()),
-                    self.index.find_type_information("DINT").unwrap(),
-                );
-
-                let promoted_lvalue = self.promote_value_if_needed(lvalue, ltype, &target_type);
-                let promoted_rvalue = self.promote_value_if_needed(rvalue, rtype, &target_type);
-
-                return (target_type, promoted_lvalue, promoted_rvalue);
-            }
-        } else {
-            panic!("Binary operations need numerical types")
-        }
-    }
-
-    fn is_same_type_nature(
-        &self,
-        ltype: &DataTypeInformation<'ctx>,
-        rtype: &DataTypeInformation<'ctx>,
-    ) -> bool {
-        ltype.is_int() == rtype.is_int()
-    }
-
-    fn get_bigger_type(
-        &self,
-        ltype: DataTypeInformation<'ctx>,
-        rtype: DataTypeInformation<'ctx>,
-    ) -> DataTypeInformation<'ctx> {
-        let bigger_type = if self.is_same_type_nature(&ltype, &rtype) {
-            if self.get_rank(&ltype) < self.get_rank(&rtype) {
-                rtype
-            } else {
-                ltype
-            }
-        } else {
-            let real_type = self.index.find_type_information("REAL").unwrap();
-            let real_size = real_type.get_size();
-            if ltype.get_size() > real_size || rtype.get_size() > real_size {
-                self.index.find_type_information("LREAL").unwrap()
-            } else {
-                real_type
-            }
-        };
-        bigger_type
-    }
-
-    fn get_rank(&self, type_information: &DataTypeInformation) -> u32 {
-        match type_information {
-            DataTypeInformation::Integer { signed, size, .. } => {
-                if *signed {
-                    *size + 1
-                } else {
-                    *size
-                }
-            }
-            DataTypeInformation::Float { size, .. } => size + 1000,
-            _ => unreachable!(),
-        }
-    }
-
     pub fn get_bool_type_information(&self) -> DataTypeInformation<'ctx> {
         self.index.find_type_information("BOOL").unwrap()
+    }
+}
+
+pub fn new_string_information<'ctx>(context: &'ctx Context, len: u32) -> DataTypeInformation<'ctx> {
+    DataTypeInformation::String {
+        size: len + 1,
+        generated_type: context.i8_type().array_type(len + 1).as_basic_type_enum(),
+    }
+}
+
+pub fn get_default_for<'ctx>(basic_type: BasicTypeEnum<'ctx>) -> BasicValueEnum<'ctx> {
+    match basic_type {
+        BasicTypeEnum::ArrayType(t) => t.const_zero().as_basic_value_enum(),
+        BasicTypeEnum::FloatType(t) => t.const_zero().as_basic_value_enum(),
+        BasicTypeEnum::IntType(t) => t.const_zero().as_basic_value_enum(),
+        BasicTypeEnum::PointerType(t) => t.const_zero().as_basic_value_enum(),
+        BasicTypeEnum::StructType(t) => t.const_zero().as_basic_value_enum(),
+        BasicTypeEnum::VectorType(t) => t.const_zero().as_basic_value_enum(),
+    }
+}
+
+pub fn promote_if_needed<'a>(
+    builder: &Builder<'a>,
+    lvalue: &TypeAndValue<'a>,
+    rvalue: &TypeAndValue<'a>,
+    index: &Index<'a>,
+) -> (
+    DataTypeInformation<'a>,
+    BasicValueEnum<'a>,
+    BasicValueEnum<'a>,
+) {
+    let (ltype, lvalue) = lvalue;
+    let (rtype, rvalue) = rvalue;
+
+    let ltype_llvm = ltype.get_type();
+    let rtype_llvm = rtype.get_type();
+
+    if ltype.is_numerical() && rtype.is_numerical() {
+        if ltype_llvm == rtype_llvm {
+            (ltype.clone(), *lvalue, *rvalue)
+        } else {
+            let target_type = get_bigger_type(
+                &get_bigger_type(ltype, rtype, index),
+                &index.find_type_information("DINT").unwrap(),
+                index,
+            );
+
+            let promoted_lvalue = promote_value_if_needed(builder, *lvalue, ltype, &target_type);
+            let promoted_rvalue = promote_value_if_needed(builder, *rvalue, rtype, &target_type);
+
+            return (target_type, promoted_lvalue, promoted_rvalue);
+        }
+    } else {
+        panic!("Binary operations need numerical types")
+    }
+}
+
+pub fn get_bigger_type<'a>(
+    ltype: &DataTypeInformation<'a>,
+    rtype: &DataTypeInformation<'a>,
+    index: &Index<'a>,
+) -> DataTypeInformation<'a> {
+    let bigger_type = if is_same_type_nature(&ltype, &rtype) {
+        if get_rank(&ltype) < get_rank(&rtype) {
+            rtype.clone()
+        } else {
+            ltype.clone()
+        }
+    } else {
+        let real_type = index.find_type_information("REAL").unwrap();
+        let real_size = real_type.get_size();
+        if ltype.get_size() > real_size || rtype.get_size() > real_size {
+            index.find_type_information("LREAL").unwrap()
+        } else {
+            real_type
+        }
+    };
+    bigger_type
+}
+
+fn get_rank(type_information: &DataTypeInformation) -> u32 {
+    match type_information {
+        DataTypeInformation::Integer { signed, size, .. } => {
+            if *signed {
+                *size + 1
+            } else {
+                *size
+            }
+        }
+        DataTypeInformation::Float { size, .. } => size + 1000,
+        _ => unreachable!(),
+    }
+}
+
+fn is_same_type_nature(ltype: &DataTypeInformation, rtype: &DataTypeInformation) -> bool {
+    (ltype.is_int() && ltype.is_int() == rtype.is_int())
+        || (ltype.is_float() && ltype.is_float() == rtype.is_float())
+}
+
+fn promote_value_if_needed<'ctx>(
+    builder: &Builder<'ctx>,
+    lvalue: BasicValueEnum<'ctx>,
+    ltype: &DataTypeInformation<'ctx>,
+    target_type: &DataTypeInformation<'ctx>,
+) -> BasicValueEnum<'ctx> {
+    //Is the target type int
+    //Expand the current type to the target size
+    //Is the target type float
+    //Is the current type int
+    //Cast to float
+    //Expand current type to target type
+
+    match target_type {
+        DataTypeInformation::Integer {
+            size: target_size,
+            generated_type,
+            ..
+        } => {
+            // INT --> INT
+            let int_value = lvalue.into_int_value();
+            if int_value.get_type().get_bit_width() < *target_size {
+                create_llvm_extend_int_value(
+                    builder,
+                    int_value,
+                    ltype,
+                    generated_type.into_int_type(),
+                )
+                .as_basic_value_enum()
+            } else {
+                lvalue
+            }
+        }
+        DataTypeInformation::Float {
+            size: target_size,
+            generated_type: target_generated_type,
+        } => {
+            if let DataTypeInformation::Integer { signed, .. } = ltype {
+                // INT --> FLOAT
+                let int_value = lvalue.into_int_value();
+                if *signed {
+                    builder
+                        .build_signed_int_to_float(
+                            int_value,
+                            target_generated_type.into_float_type(),
+                            "",
+                        )
+                        .into()
+                } else {
+                    builder
+                        .build_unsigned_int_to_float(
+                            int_value,
+                            target_generated_type.into_float_type(),
+                            "",
+                        )
+                        .into()
+                }
+            } else {
+                // FLOAT --> FLOAT
+                if let DataTypeInformation::Float { size, .. } = ltype {
+                    if target_size <= size {
+                        lvalue
+                    } else {
+                        builder
+                            .build_float_ext(
+                                lvalue.into_float_value(),
+                                target_generated_type.into_float_type(),
+                                "",
+                            )
+                            .into()
+                    }
+                } else {
+                    unreachable!()
+                }
+            }
+        }
+        _ => unreachable!(),
+    }
+}
+
+fn create_llvm_extend_int_value<'a>(
+    builder: &Builder<'a>,
+    lvalue: IntValue<'a>,
+    ltype: &DataTypeInformation,
+    target_type: IntType<'a>,
+) -> IntValue<'a> {
+    match ltype {
+        DataTypeInformation::Integer {
+            signed: true,
+            size: _,
+            generated_type: _,
+        } => builder.build_int_s_extend_or_bit_cast(lvalue, target_type, ""),
+        DataTypeInformation::Integer {
+            signed: false,
+            size: _,
+            generated_type: _,
+        } => builder.build_int_z_extend_or_bit_cast(lvalue, target_type, ""),
+        _ => unreachable!(),
+    }
+}
+
+pub fn cast_if_needed<'ctx>(
+    llvm: &LLVM<'ctx>,
+    target_type: &DataTypeInformation<'ctx>,
+    value: BasicValueEnum<'ctx>,
+    value_type: &DataTypeInformation<'ctx>,
+    location_context: &Statement,
+) -> Result<BasicValueEnum<'ctx>, CompileError> {
+    let builder = &llvm.builder;
+    match target_type {
+        DataTypeInformation::Integer {
+            signed,
+            size: lsize,
+            generated_type,
+        } => {
+            match value_type {
+                DataTypeInformation::Integer { size: rsize, .. } => {
+                    if lsize < rsize {
+                        //Truncate
+                        Ok(llvm.builder
+                            .build_int_truncate_or_bit_cast(
+                                value.into_int_value(),
+                                generated_type.into_int_type(),
+                                "",
+                            )
+                            .into())
+                    } else {
+                        //Expand
+                        Ok(
+                            promote_value_if_needed(&llvm.builder, value, value_type, &target_type)
+                                .into(),
+                        )
+                    }
+                }
+                DataTypeInformation::Float {
+                    size: _rsize,
+                    generated_type: _,
+                } => {
+                    if *signed {
+                        Ok(llvm.builder
+                            .build_float_to_signed_int(
+                                value.into_float_value(),
+                                generated_type.into_int_type(),
+                                "",
+                            )
+                            .into())
+                    } else {
+                        Ok(builder
+                            .build_float_to_unsigned_int(
+                                value.into_float_value(),
+                                generated_type.into_int_type(),
+                                "",
+                            )
+                            .into())
+                    }
+                }
+                _ => Err(CompileError::casting_error(
+                        &value_type.get_name(),
+                        &target_type.get_name(),
+                        location_context.get_location(),
+                    )),
+                }
+        }
+        DataTypeInformation::Float {
+            generated_type,
+            size: lsize,
+            ..
+        } => match value_type {
+            DataTypeInformation::Integer { signed, .. } => {
+                if *signed {
+                    Ok(builder
+                        .build_signed_int_to_float(
+                            value.into_int_value(),
+                            generated_type.into_float_type(),
+                            "",
+                        )
+                        .into())
+                } else {
+                    Ok(builder
+                        .build_unsigned_int_to_float(
+                            value.into_int_value(),
+                            generated_type.into_float_type(),
+                            "",
+                        )
+                        .into())
+                }
+            }
+            DataTypeInformation::Float { size: rsize, .. } => {
+                if lsize < rsize {
+                    Ok(builder
+                        .build_float_trunc(
+                            value.into_float_value(),
+                            generated_type.into_float_type(),
+                            "",
+                        )
+                        .into())
+                } else {
+                    Ok(promote_value_if_needed(
+                        &llvm.builder,
+                        value,
+                        value_type,
+                        &target_type,
+                    ))
+                }
+            }
+            _ => Err(CompileError::casting_error(
+                &value_type.get_name(),
+                &target_type.get_name(),
+                location_context.get_location(),
+            )),
+        },
+        DataTypeInformation::String { size, .. } => match value_type {
+            DataTypeInformation::String {
+                size: value_size, ..
+            } => {
+                if size < value_size {
+                    //if we are on a vector replace it
+                    if value.is_vector_value() {
+                        let vec_value = value.into_vector_value();
+                        let string_value = vec_value.get_string_constant().to_bytes();
+                        let new_value= &string_value[0..(*size -1) as usize];
+                        let (_,value) = llvm.create_llvm_const_vec_string(new_value)?;
+                        Ok(value)
+                    }
+                    else {
+                        Err(CompileError::casting_error(
+                                        &value_type.get_name(),
+                                        &target_type.get_name(),
+                                        location_context.get_location()))
+                    }
+                } else {
+                    Ok(value)
+                }
+            }
+            _ => Err(CompileError::casting_error(
+                &value_type.get_name(),
+                &target_type.get_name(),
+                location_context.get_location(),
+            )),
+        },
+        _ => Ok(value),
     }
 }

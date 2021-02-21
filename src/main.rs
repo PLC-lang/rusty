@@ -1,6 +1,7 @@
 /// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
 use core::slice::Iter;
+use compile_error::CompileError;
 use rusty::*;
 use std::env;
 use std::fs;
@@ -19,7 +20,7 @@ fn main() {
     }
 }
 
-fn generate_ir(content : String, output: &str) -> Result<(), String> {
+fn generate_ir(content : String, output: &str) -> Result<(), CompileError> {
     let ir = compile_to_ir(content)?;
     fs::write(output, ir).unwrap(); 
     Ok(())

@@ -1,11 +1,6 @@
-use std::vec;
-
 /// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-
+use std::vec;
 use super::super::ast::{ Variable, CompilationUnit,DataType,  DataTypeDeclaration};
-
-
-
 
 pub fn pre_process(unit: &mut CompilationUnit) {
     

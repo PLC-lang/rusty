@@ -14,13 +14,13 @@ mod typesystem_test;
 macro_rules! codegen_wihout_unwrap {
   ($code:tt) => {{
     let lexer = lexer::lex($code);
-    let (mut ast, new_lines) = parser::parse(lexer).unwrap();
+    let (mut ast, _) = parser::parse(lexer).unwrap();
     
     let context = Context::create();
     let mut index = Index::new();
     index.pre_process(&mut ast);
     index.visit(&mut ast);
-    let mut code_generator = crate::codegen::CodeGen::new(&context, &mut index, new_lines);
+    let mut code_generator = crate::codegen::CodeGen::new(&context, &mut index, "main");
     code_generator.generate(ast)
   }};
 }
@@ -30,13 +30,13 @@ macro_rules! codegen_wihout_unwrap {
 macro_rules! codegen {
   ($code:tt) => {{
     let lexer = lexer::lex($code);
-    let (mut ast, new_lines) = parser::parse(lexer).unwrap();
+    let (mut ast, _) = parser::parse(lexer).unwrap();
     
     let context = Context::create();
     let mut index = Index::new();
     index.pre_process(&mut ast);
     index.visit(&mut ast);
-    let mut code_generator = crate::codegen::CodeGen::new(&context, &mut index, new_lines);
+    let mut code_generator = crate::codegen::CodeGen::new(&context, &mut index, "main");
     code_generator.generate(ast).unwrap()
   }};
 }

@@ -19,7 +19,7 @@ pub fn visit(index: &mut Index, unit: &mut CompilationUnit) {
 
 }
 
-fn visit_pou(index: &mut Index, pou: &POU){
+pub fn visit_pou(index: &mut Index, pou: &POU){
 
     index.register_type(pou.name.as_str().to_string());
 

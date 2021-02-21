@@ -108,6 +108,7 @@ impl Variable {
 }
 
 pub type SourceRange = core::ops::Range<usize>;
+
 #[derive(Clone, Debug, PartialEq)]
 pub struct NewLines {
     new_lines : Vec<usize>,
@@ -157,7 +158,7 @@ impl NewLines{
         self.new_lines[l-1]
     }
 
-    pub fn get_location_information(&self, offset: &core::ops::Range<usize>) -> String {
+    pub fn _get_location_information(&self, offset: &core::ops::Range<usize>) -> String {
         let line = self.get_line_of(offset.start).unwrap_or(1);
         let line_offset = self.get_offest_of_line(line);
         let offset = offset.start-line_offset .. offset.end-line_offset;
