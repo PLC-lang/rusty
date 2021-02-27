@@ -57,7 +57,7 @@ Structured text compiler written in Rust
 
 ## Control Structures
 - :heavy_check_mark: IF Statement
-- :x: CASE Statement
+- :heavy_check_mark: CASE Statement
 - :heavy_check_mark: FOR Loops
 - :heavy_check_mark: WHILE Loops
 - :heavy_check_mark: REPEAT Loops

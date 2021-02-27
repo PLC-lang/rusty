@@ -247,3 +247,48 @@ fn repeat_loop_10_times() {
     let (res, _) = compile_and_run(function.to_string(), &mut MainType{i: 0, ret: 0});
     assert_eq!(res,10101);
 }
+
+
+#[test]
+fn case_statement() {
+    #[allow(dead_code)]
+    #[repr(C)]
+    struct MainType {
+        i : i16,
+    }
+    let function = r#"
+    FUNCTION main : DINT
+    VAR
+        i : INT;
+    END_VAR
+    main := 1;
+    
+    CASE i OF
+        1,2,3,4,5,6,7,8,9: main := 101;
+        10,11,12..19: main := 201;
+        20..24, 25..29: main := 301;
+        ELSE main := 7;
+    END_CASE
+    END_FUNCTION
+    "#;
+    
+    (1..9).for_each(|i| {
+        let (res, _) = compile_and_run(function.to_string(), &mut MainType{i});
+        assert_eq!(res,101);
+    });
+
+    (10..19).for_each(|i| {
+        let (res, _) = compile_and_run(function.to_string(), &mut MainType{i});
+        assert_eq!(res,201);
+    });
+
+    (20..29).for_each(|i| {
+        let (res, _) = compile_and_run(function.to_string(), &mut MainType{i});
+        assert_eq!(res,301);
+    });
+
+    let (res, _) = compile_and_run(function.to_string(), &mut MainType{i: 999});
+    assert_eq!(res,7);
+
+}
+

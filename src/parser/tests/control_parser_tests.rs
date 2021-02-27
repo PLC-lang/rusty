@@ -723,7 +723,7 @@ fn case_statement_with_multiple_expressions_per_condition() {
         PROGRAM exp 
         CASE StateMachine OF
             1,2,3: x;
-            4..5: y;
+            4..5, 6: y;
         END_CASE
         END_PROGRAM
         ",
@@ -760,13 +760,20 @@ fn case_statement_with_multiple_expressions_per_condition() {
             ],
         },
         ConditionalBlock {
-            condition: RangeStatement {
-                start: LiteralInteger {
-                    value: "4",
-                },
-                end: LiteralInteger {
-                    value: "5",
-                },
+            condition: ExpressionList {
+                expressions: [
+                    RangeStatement {
+                        start: LiteralInteger {
+                            value: "4",
+                        },
+                        end: LiteralInteger {
+                            value: "5",
+                        },
+                    },
+                    LiteralInteger {
+                        value: "6",
+                    },
+                ],
             },
             body: [
                 Reference {

@@ -1164,6 +1164,159 @@ continue:                                         ; preds = %else, %case2, %case
 }
 
 #[test]
+fn simple_case_i8_statement() {
+    let result = codegen!(
+        "
+        PROGRAM prg 
+        VAR
+            x : BYTE;
+            y : BYTE;
+        END_VAR
+        CASE x OF
+        1: y := 1;
+        2: y := 2;
+        3: y := 3;
+        ELSE
+            y := 0;
+        END_CASE
+        END_PROGRAM
+        "
+    );
+
+    let expected = generate_program_boiler_plate("prg",&[("i8","x"),("i8","y")], 
+    "void",
+    "",
+    "",
+r#"%load_x = load i8, i8* %x
+  switch i8 %load_x, label %else [
+    i8 1, label %case
+    i8 2, label %case1
+    i8 3, label %case2
+  ]
+
+case:                                             ; preds = %entry
+  store i8 1, i8* %y
+  br label %continue
+
+case1:                                            ; preds = %entry
+  store i8 2, i8* %y
+  br label %continue
+
+case2:                                            ; preds = %entry
+  store i8 3, i8* %y
+  br label %continue
+
+else:                                             ; preds = %entry
+  store i8 0, i8* %y
+  br label %continue
+
+continue:                                         ; preds = %else, %case2, %case1, %case
+  ret void
+"#);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn case_with_multiple_labels_statement() {
+    let result = codegen!(
+        "
+        PROGRAM prg 
+        VAR
+            x : DINT;
+            y : DINT;
+        END_VAR
+        CASE x OF
+        1,2: y := 1;
+        3,4: y := 2;
+        ELSE
+            y := -1;
+        END_CASE
+        END_PROGRAM
+        "
+    );
+
+    let expected = generate_program_boiler_plate("prg",&[("i32","x"),("i32","y")], 
+    "void",
+    "",
+    "",
+r#"%load_x = load i32, i32* %x
+  switch i32 %load_x, label %else [
+    i32 1, label %case
+    i32 2, label %case
+    i32 3, label %case1
+    i32 4, label %case1
+  ]
+
+case:                                             ; preds = %entry, %entry
+  store i32 1, i32* %y
+  br label %continue
+
+case1:                                            ; preds = %entry, %entry
+  store i32 2, i32* %y
+  br label %continue
+
+else:                                             ; preds = %entry
+  store i32 -1, i32* %y
+  br label %continue
+
+continue:                                         ; preds = %else, %case1, %case
+  ret void
+"#);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn case_with_ranges_statement() {
+    let result = codegen!(
+        "
+        PROGRAM prg 
+        VAR
+            x : DINT;
+            y : DINT;
+        END_VAR
+        CASE x OF
+        2..3: y := 2;
+        END_CASE
+        END_PROGRAM
+        "
+    );
+
+    let expected = generate_program_boiler_plate("prg",&[("i32","x"),("i32","y")], 
+    "void",
+    "",
+    "",
+r#"%load_x = load i32, i32* %x
+  switch i32 %load_x, label %else [
+  ]
+
+case:                                             ; preds = %range_then
+  store i32 2, i32* %y
+  br label %continue
+
+else:                                             ; preds = %entry
+  %load_x1 = load i32, i32* %x
+  %tmpVar = icmp sge i32 %load_x1, 2
+  br i1 %tmpVar, label %range_then, label %range_else
+
+range_then:                                       ; preds = %else
+  %load_x2 = load i32, i32* %x
+  %tmpVar3 = icmp sle i32 %load_x2, 3
+  br i1 %tmpVar3, label %case, label %range_else
+
+range_else:                                       ; preds = %range_then, %else
+  br label %continue
+
+continue:                                         ; preds = %range_else, %case
+  ret void
+"#);
+
+    assert_eq!(result, expected);
+}
+
+
+#[test]
 fn function_called_in_program() {
     let result = codegen!(
         "

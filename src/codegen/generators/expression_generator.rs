@@ -102,7 +102,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                 //If OR, or AND handle before generating the statements
                 match operator {
                     Operator::And | Operator::Or => 
-                        return self.generate_phi_expression(operator, left, right),
+                        return self.generate_short_circuit_boolean_expression(operator, left, right),
                     _ => {}
                 }
 
@@ -579,7 +579,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
     /// - `left_value` the left side of the binary expression, needs to be an int-value
     /// - `right_value` the right side of the binary expression, needs to be an int-value
     /// - `target_type` the resulting type
-    fn create_llvm_int_binary_expression(
+    pub fn create_llvm_int_binary_expression(
         &self,
         operator: &Operator,
         left_value: BasicValueEnum<'a>,
@@ -788,7 +788,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
     /// - `operator` AND or OR 
     /// - `left` the left side of the expression
     /// - `right` the right side of the expression
-    pub fn generate_phi_expression(
+    pub fn generate_short_circuit_boolean_expression(
         &self, 
         operator: &Operator, 
         left: &Statement, 
