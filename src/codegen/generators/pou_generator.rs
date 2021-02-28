@@ -6,7 +6,7 @@
 /// - generates a function for the pou
 /// - declares a global instance if the POU is a PROGRAM
 use super::{expression_generator::ExpressionCodeGenerator, llvm::LLVM, statement_generator::{FunctionContext, StatementCodeGenerator}, struct_generator::{self, StructGenerator}};
-use crate::{ast::{DataTypeDeclaration, LinkageType, POU, PouType, SourceRange, Statement, Variable, VariableBlock, VariableBlockType}, compile_error::CompileError, index::{DataTypeIndexEntry, DataTypeInformation, Index}};
+use crate::{ast::{DataTypeDeclaration, POU, PouType, SourceRange, Statement, Variable, VariableBlock, VariableBlockType}, compile_error::CompileError, index::{DataTypeIndexEntry, DataTypeInformation, Index}};
 use inkwell::{AddressSpace, context::Context, module::Module, types::{BasicTypeEnum, FunctionType}, values::{BasicValueEnum, FunctionValue}};
 
 
@@ -43,11 +43,9 @@ impl<'a, 'b> PouGenerator<'a, 'b> {
         }
     }
 
-    /// generates a function for the given pou
-    pub fn generate_pou(&mut self, pou: &POU, module: &Module<'a>) -> Result<(), CompileError> {
-
-        let context = self.llvm.context;
-
+    /// generates the stub of a POU (The function call placehoder, as well as the associated
+    /// struct
+    pub fn generate_pou_stub(&mut self, pou: &POU,module: &Module<'a>) -> Result<(), CompileError> {
         let return_type = pou
             .return_type
             .as_ref()
@@ -72,7 +70,7 @@ impl<'a, 'b> PouGenerator<'a, 'b> {
         };
 
         //generate a function that takes a instance-struct parameter
-        let current_function = {
+        {
             let function_declaration = self.create_llvm_function_type(
                 vec![instance_struct_type.ptr_type(AddressSpace::Generic).into()],
                 return_type,
@@ -81,7 +79,6 @@ impl<'a, 'b> PouGenerator<'a, 'b> {
             let curr_f = module.add_function(pou_name, function_declaration, None);
             self.index
                 .associate_callable_implementation(pou_name, curr_f);
-            curr_f
         };
 
         //generate a global variable if it's a program
@@ -98,11 +95,35 @@ impl<'a, 'b> PouGenerator<'a, 'b> {
             self.index
                 .associate_global_variable(pou_name, global_value.as_pointer_value());
         }
+        Ok(())
 
-        //Don't generate external functions
-        if pou.linkage == LinkageType::External {
-            return Ok(());
-        }
+    }
+
+    /// generates a function for the given pou
+    pub fn generate_pou(&mut self, pou: &POU) -> Result<(), CompileError> {
+
+        let context = self.llvm.context;
+
+        let return_type = pou
+            .return_type
+            .as_ref()
+            .and_then(DataTypeDeclaration::get_name)
+            .and_then(|it| self.index.find_type(it))
+            .and_then(DataTypeIndexEntry::get_type);
+
+        let pou_name = &pou.name;
+
+        let pou_members: Vec<&Variable> = pou
+            .variable_blocks
+            .iter()
+            .flat_map(|it| it.variables.iter())
+            .collect();
+
+
+
+        let current_function = self.index.find_type(pou_name)
+            .and_then(|entry| entry.get_implementation())
+            .ok_or_else(|| CompileError::codegen_error(format!("Could not find generated stub for {}",pou_name), pou.location.clone()))?;
         
         //generate the body
         let block = context.append_basic_block(current_function, "entry");
