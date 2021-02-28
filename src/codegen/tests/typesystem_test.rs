@@ -50,10 +50,10 @@ fn no_type_conversion_if_datatypes_are_the_same() {
         "void",
         "",
         "",
-        r#"%load_b = load i8, i8* %b
-  %load_c = load i8, i8* %c
+        r#"%load_b = load i8, i8* %b, align 1
+  %load_c = load i8, i8* %c, align 1
   %tmpVar = add i8 %load_b, %load_c
-  store i8 %tmpVar, i8* %x
+  store i8 %tmpVar, i8* %x, align 1
   ret void
 "#
     );
@@ -83,11 +83,11 @@ fn datatypes_smaller_than_dint_promoted_to_dint() {
         "void",
         "",
         "",
-        r#"%load_b = load i8, i8* %b
-  %load_c = load i32, i32* %c
+        r#"%load_b = load i8, i8* %b, align 1
+  %load_c = load i32, i32* %c, align 4
   %1 = sext i8 %load_b to i32
   %tmpVar = add i32 %1, %load_c
-  store i32 %tmpVar, i32* %x
+  store i32 %tmpVar, i32* %x, align 4
   ret void
 "#
     );
@@ -118,11 +118,11 @@ fn unsingned_datatypes_smaller_than_dint_promoted_to_dint() {
         "void",
         "",
         "",
-        r#"%load_b = load i8, i8* %b
-  %load_c = load i32, i32* %c
+        r#"%load_b = load i8, i8* %b, align 1
+  %load_c = load i32, i32* %c, align 4
   %1 = zext i8 %load_b to i32
   %tmpVar = add i32 %1, %load_c
-  store i32 %tmpVar, i32* %x
+  store i32 %tmpVar, i32* %x, align 4
   ret void
 "#
     );
@@ -153,11 +153,11 @@ fn datatypes_larger_than_int_promote_the_second_operand() {
         "void",
         "",
         "",
-        r#"%load_b = load i32, i32* %b
-  %load_c = load i64, i64* %c
+        r#"%load_b = load i32, i32* %b, align 4
+  %load_c = load i64, i64* %c, align 4
   %1 = sext i32 %load_b to i64
   %tmpVar = add i64 %1, %load_c
-  store i64 %tmpVar, i64* %x
+  store i64 %tmpVar, i64* %x, align 4
   ret void
 "#
     );
@@ -187,11 +187,11 @@ fn float_and_double_mix_converted_to_double() {
         "prg", &[("float","a"),("double", "b"),("double","c")], 
         "void", 
         "", "",
-        r#"%load_b = load double, double* %b
-  %load_a = load float, float* %a
+        r#"%load_b = load double, double* %b, align 8
+  %load_a = load float, float* %a, align 4
   %1 = fpext float %load_a to double
   %tmpVar = fadd double %load_b, %1
-  store double %tmpVar, double* %c
+  store double %tmpVar, double* %c, align 8
   ret void
 "#
     );
@@ -200,7 +200,7 @@ fn float_and_double_mix_converted_to_double() {
 }
 
 #[test]
-fn float_assingend_to_double_to_double() {
+fn float_assinged_to_double_to_double() {
     let result = codegen!(
         r#"
         PROGRAM prg
@@ -218,9 +218,9 @@ fn float_assingend_to_double_to_double() {
         "prg", &[("float","a"),("double", "b")], 
         "void", 
         "", "",
-        r#"%load_a = load float, float* %a
+        r#"%load_a = load float, float* %a, align 4
   %1 = fpext float %load_a to double
-  store double %1, double* %b
+  store double %1, double* %b, align 8
   ret void
 "#
     );
@@ -248,12 +248,12 @@ fn int_assigned_to_float_is_cast() {
         "prg", &[("i16","a"), ("i16", "b"),("float","c")], 
         "void", 
         "", "",
-        r#"%load_a = load i16, i16* %a
+        r#"%load_a = load i16, i16* %a, align 2
   %1 = sitofp i16 %load_a to float
-  store float %1, float* %c
-  %load_b = load i16, i16* %b
+  store float %1, float* %c, align 4
+  %load_b = load i16, i16* %b, align 2
   %2 = uitofp i16 %load_b to float
-  store float %2, float* %c
+  store float %2, float* %c, align 4
   ret void
 "#
     );
@@ -281,12 +281,12 @@ fn float_assigned_to_int_is_cast() {
         "prg", &[("i16","a"), ("i16", "b"),("float","c")], 
         "void", 
         "", "",
-        r#"%load_c = load float, float* %c
+        r#"%load_c = load float, float* %c, align 4
   %1 = fptosi float %load_c to i16
-  store i16 %1, i16* %a
-  %load_c1 = load float, float* %c
+  store i16 %1, i16* %a, align 2
+  %load_c1 = load float, float* %c, align 4
   %2 = fptoui float %load_c1 to i16
-  store i16 %2, i16* %b
+  store i16 %2, i16* %b, align 2
   ret void
 "#
     );
@@ -314,11 +314,11 @@ fn int_smaller_or_equal_to_float_converted_to_float() {
         "prg", &[("float","a"),("i16", "b"),("float","c")], 
         "void", 
         "", "",
-        r#"%load_b = load i16, i16* %b
-  %load_a = load float, float* %a
+        r#"%load_b = load i16, i16* %b, align 2
+  %load_a = load float, float* %a, align 4
   %1 = sitofp i16 %load_b to float
   %tmpVar = fadd float %1, %load_a
-  store float %tmpVar, float* %c
+  store float %tmpVar, float* %c, align 4
   ret void
 "#
     );
@@ -345,8 +345,8 @@ fn int_bigger_than_float_converted_to_double() {
         "prg", &[("float","a"),("i64", "b")], 
         "void", 
         "", "",
-        r#"%load_b = load i64, i64* %b
-  %load_a = load float, float* %a
+        r#"%load_b = load i64, i64* %b, align 4
+  %load_a = load float, float* %a, align 4
   %1 = sitofp i64 %load_b to double
   %2 = fpext float %load_a to double
   %tmpVar = fadd double %1, %2

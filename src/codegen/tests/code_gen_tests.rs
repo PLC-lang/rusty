@@ -29,8 +29,8 @@ END_PROGRAM
         "void",
         "",
         "",
-        r#"%load_x = load i32, i32* %x
-  %load_y = load i32, i32* %y
+        r#"%load_x = load i32, i32* %x, align 4
+  %load_y = load i32, i32* %y, align 4
   ret void
 "#
     );
@@ -87,9 +87,9 @@ fn global_variable_reference_is_generated() {
     let expected = generate_program_boiler_plate("prg", &[("i16","x")], "void", "", 
 r"
 @gX = global i16 0", //global vars
-r"store i16 20, i16* @gX
-  %load_gX = load i16, i16* @gX
-  store i16 %load_gX, i16* %x
+r"store i16 20, i16* @gX, align 2
+  %load_gX = load i16, i16* @gX, align 2
+  store i16 %load_gX, i16* %x, align 2
   ret void
 ", //body
     );
@@ -119,8 +119,8 @@ source_filename = "main"
 
 define i16 @foo(%foo_interface* %0) {
 entry:
-  %foo = alloca i16
-  %foo_ret = load i16, i16* %foo
+  %foo = alloca i16, align 2
+  %foo_ret = load i16, i16* %foo, align 2
   ret i16 %foo_ret
 }
 "#;
@@ -166,8 +166,8 @@ END_PROGRAM
         "void",
         "",
         "",
-        r#"%load_x = load i1, i1* %x
-  %load_y = load i1, i1* %y
+        r#"%load_x = load i1, i1* %x, align 1
+  %load_y = load i1, i1* %y, align 1
   ret void
 "#
     );
@@ -193,8 +193,8 @@ END_PROGRAM
         "void",
         "",
         "",
-        r#"%load_x = load i32, i32* %x
-  %load_y = load i32, i32* %y
+        r#"%load_x = load i32, i32* %x, align 4
+  %load_y = load i32, i32* %y, align 4
   %tmpVar = add i32 %load_x, %load_y
   ret void
 "#
@@ -220,7 +220,7 @@ END_PROGRAM
         "void",
         "",
         "",
-        r#"%load_x = load i32, i32* %x
+        r#"%load_x = load i32, i32* %x, align 4
   %tmpVar = add i32 %load_x, 7
   ret void
 "#
@@ -246,7 +246,7 @@ END_PROGRAM
         "void",
         "",
         "",
-        r#"store i32 7, i32* %y
+        r#"store i32 7, i32* %y, align 4
   ret void
 "#
     );
@@ -272,7 +272,7 @@ END_PROGRAM
         "void",
         "",
         "",
-        r#"store float 1.562500e-01, float* %y
+        r#"store float 1.562500e-01, float* %y, align 4
   ret void
 "#
     );
@@ -302,7 +302,7 @@ source_filename = "main"
 define void @prg(%prg_interface* %0) {
 entry:
   %y = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 0
-  store [12 x i8] c"im a genius\00", [81 x i8]* %y
+  store [12 x i8] c"im a genius\00", [81 x i8]* %y, align 1
   ret void
 }
 "#;
@@ -331,12 +331,12 @@ END_PROGRAM
         "void",
         "",
         "",
-        r#"store float 1.237500e+01, float* %x
-  store float 2.500000e-01, float* %y
-  %load_x = load float, float* %x
-  %load_y = load float, float* %y
+        r#"store float 1.237500e+01, float* %x, align 4
+  store float 2.500000e-01, float* %y, align 4
+  %load_x = load float, float* %x, align 4
+  %load_y = load float, float* %y, align 4
   %tmpVar = fadd float %load_x, %load_y
-  store float %tmpVar, float* %z
+  store float %tmpVar, float* %z, align 4
   ret void
 "#
     );
@@ -363,8 +363,8 @@ END_PROGRAM
         "void",
         "",
         "",
-        r#"store i1 true, i1* %y
-  store i1 false, i1* %y
+        r#"store i1 true, i1* %y, align 1
+  store i1 false, i1* %y, align 1
   ret void
 "#
     );
@@ -394,21 +394,21 @@ END_PROGRAM
         "void",
         "",
         "",
-        r#"%load_x = load i32, i32* %x
+        r#"%load_x = load i32, i32* %x, align 4
   %tmpVar = add i32 %load_x, 1
-  store i32 %tmpVar, i32* %y
-  %load_x1 = load i32, i32* %x
+  store i32 %tmpVar, i32* %y, align 4
+  %load_x1 = load i32, i32* %x, align 4
   %tmpVar2 = sub i32 %load_x1, 2
-  store i32 %tmpVar2, i32* %y
-  %load_x3 = load i32, i32* %x
+  store i32 %tmpVar2, i32* %y, align 4
+  %load_x3 = load i32, i32* %x, align 4
   %tmpVar4 = mul i32 %load_x3, 3
-  store i32 %tmpVar4, i32* %y
-  %load_x5 = load i32, i32* %x
+  store i32 %tmpVar4, i32* %y, align 4
+  %load_x5 = load i32, i32* %x, align 4
   %tmpVar6 = sdiv i32 %load_x5, 4
-  store i32 %tmpVar6, i32* %y
-  %load_x7 = load i32, i32* %x
+  store i32 %tmpVar6, i32* %y, align 4
+  %load_x7 = load i32, i32* %x, align 4
   %tmpVar8 = srem i32 %load_x7, 5
-  store i32 %tmpVar8, i32* %y
+  store i32 %tmpVar8, i32* %y, align 4
   ret void
 "#
     );
@@ -439,24 +439,24 @@ END_PROGRAM
         "void",
         "",
         "",
-        r#"%load_x = load i32, i32* %x
+        r#"%load_x = load i32, i32* %x, align 4
   %tmpVar = icmp eq i32 %load_x, 1
-  store i1 %tmpVar, i1* %y
-  %load_x1 = load i32, i32* %x
+  store i1 %tmpVar, i1* %y, align 1
+  %load_x1 = load i32, i32* %x, align 4
   %tmpVar2 = icmp sgt i32 %load_x1, 2
-  store i1 %tmpVar2, i1* %y
-  %load_x3 = load i32, i32* %x
+  store i1 %tmpVar2, i1* %y, align 1
+  %load_x3 = load i32, i32* %x, align 4
   %tmpVar4 = icmp slt i32 %load_x3, 3
-  store i1 %tmpVar4, i1* %y
-  %load_x5 = load i32, i32* %x
+  store i1 %tmpVar4, i1* %y, align 1
+  %load_x5 = load i32, i32* %x, align 4
   %tmpVar6 = icmp ne i32 %load_x5, 4
-  store i1 %tmpVar6, i1* %y
-  %load_x7 = load i32, i32* %x
+  store i1 %tmpVar6, i1* %y, align 1
+  %load_x7 = load i32, i32* %x, align 4
   %tmpVar8 = icmp sge i32 %load_x7, 5
-  store i1 %tmpVar8, i1* %y
-  %load_x9 = load i32, i32* %x
+  store i1 %tmpVar8, i1* %y, align 1
+  %load_x9 = load i32, i32* %x, align 4
   %tmpVar10 = icmp sle i32 %load_x9, 6
-  store i1 %tmpVar10, i1* %y
+  store i1 %tmpVar10, i1* %y, align 1
   ret void
 "#
     );
@@ -482,12 +482,12 @@ END_PROGRAM
         "void",
         "",
         "",
-        r#"%load_x = load i1, i1* %x
+        r#"%load_x = load i1, i1* %x, align 1
   %1 = icmp ne i1 %load_x, false
   br i1 %1, label %2, label %3
 
 2:                                                ; preds = %entry
-  %load_y = load i1, i1* %y
+  %load_y = load i1, i1* %y, align 1
   br label %3
 
 3:                                                ; preds = %2, %entry
@@ -517,12 +517,12 @@ END_PROGRAM
         "void",
         "",
         "",
-        r#"%load_x = load i1, i1* %x
+        r#"%load_x = load i1, i1* %x, align 1
   %1 = icmp ne i1 %load_x, false
   br i1 %1, label %3, label %2
 
 2:                                                ; preds = %entry
-  %load_y = load i1, i1* %y
+  %load_y = load i1, i1* %y, align 1
   br label %3
 
 3:                                                ; preds = %2, %entry
@@ -552,8 +552,8 @@ END_PROGRAM
         "void",
         "",
         "",
-        r#"%load_x = load i1, i1* %x
-  %load_y = load i1, i1* %y
+        r#"%load_x = load i1, i1* %x, align 1
+  %load_y = load i1, i1* %y, align 1
   %tmpVar = xor i1 %load_x, %load_y
   ret void
 "#
@@ -581,14 +581,14 @@ END_PROGRAM
         "void",
         "",
         "",
-        r#"%load_x = load i1, i1* %x
+        r#"%load_x = load i1, i1* %x, align 1
   %tmpVar = xor i1 %load_x, true
-  %load_x1 = load i1, i1* %x
+  %load_x1 = load i1, i1* %x, align 1
   %1 = icmp ne i1 %load_x1, false
   br i1 %1, label %2, label %3
 
 2:                                                ; preds = %entry
-  %load_y = load i1, i1* %y
+  %load_y = load i1, i1* %y, align 1
   %tmpVar2 = xor i1 %load_y, true
   br label %3
 
@@ -620,25 +620,25 @@ END_PROGRAM
         "void",
         "",
         "",
-        r#"%load_y = load i1, i1* %y
+        r#"%load_y = load i1, i1* %y, align 1
   %1 = icmp ne i1 %load_y, false
   br i1 %1, label %2, label %3
 
 2:                                                ; preds = %entry
-  %load_z = load i32, i32* %z
+  %load_z = load i32, i32* %z, align 4
   %tmpVar = icmp sge i32 %load_z, 5
   br label %3
 
 3:                                                ; preds = %2, %entry
   %4 = phi i1 [ %load_y, %entry ], [ %tmpVar, %2 ]
-  %load_z1 = load i32, i32* %z
+  %load_z1 = load i32, i32* %z, align 4
   %tmpVar2 = icmp sle i32 %load_z1, 6
   %tmpVar3 = xor i1 %tmpVar2, true
   %5 = icmp ne i1 %tmpVar3, false
   br i1 %5, label %7, label %6
 
 6:                                                ; preds = %3
-  %load_y4 = load i1, i1* %y
+  %load_y4 = load i1, i1* %y, align 1
   br label %7
 
 7:                                                ; preds = %6, %3
@@ -670,12 +670,12 @@ fn program_with_signed_combined_expressions() {
         "void",
         "",
         "",
-        r#"%load_z = load i32, i32* %z
+        r#"%load_z = load i32, i32* %z, align 4
   %tmpVar = add i32 -1, %load_z
-  %load_z1 = load i32, i32* %z
+  %load_z1 = load i32, i32* %z, align 4
   %tmpVar2 = sub i32 0, %load_z1
   %tmpVar3 = add i32 2, %tmpVar2
-  %load_y = load i32, i32* %y
+  %load_y = load i32, i32* %y, align 4
   %tmpVar4 = sub i32 0, %load_y
   %tmpVar5 = add i32 %tmpVar4, 3
   ret void
@@ -716,31 +716,31 @@ fn if_elsif_else_generator_test() {
     "void",
     "",
     "",
-r#"%load_b1 = load i1, i1* %b1
+r#"%load_b1 = load i1, i1* %b1, align 1
   br i1 %load_b1, label %condition_body, label %branch
 
 condition_body:                                   ; preds = %entry
-  %load_x = load i32, i32* %x
+  %load_x = load i32, i32* %x, align 4
   br label %continue
 
 branch:                                           ; preds = %entry
-  %load_b2 = load i1, i1* %b2
+  %load_b2 = load i1, i1* %b2, align 1
   br i1 %load_b2, label %condition_body2, label %branch1
 
 condition_body2:                                  ; preds = %branch
-  %load_y = load i32, i32* %y
+  %load_y = load i32, i32* %y, align 4
   br label %continue
 
 branch1:                                          ; preds = %branch
-  %load_b3 = load i1, i1* %b3
+  %load_b3 = load i1, i1* %b3, align 1
   br i1 %load_b3, label %condition_body3, label %else
 
 condition_body3:                                  ; preds = %branch1
-  %load_z = load i32, i32* %z
+  %load_z = load i32, i32* %z, align 4
   br label %continue
 
 else:                                             ; preds = %branch1
-  %load_u = load i32, i32* %u
+  %load_u = load i32, i32* %u, align 4
   br label %continue
 
 continue:                                         ; preds = %else, %condition_body3, %condition_body2, %condition_body
@@ -771,11 +771,11 @@ fn if_generator_test() {
     "void",
     "",
     "",
-r#"%load_b1 = load i1, i1* %b1
+r#"%load_b1 = load i1, i1* %b1, align 1
   br i1 %load_b1, label %condition_body, label %continue
 
 condition_body:                                   ; preds = %entry
-  %load_x = load i32, i32* %x
+  %load_x = load i32, i32* %x, align 4
   br label %continue
 
 continue:                                         ; preds = %condition_body, %entry
@@ -805,20 +805,20 @@ fn if_with_expression_generator_test() {
     "void",
     "",
     "",
-r#"%load_x = load i32, i32* %x
+r#"%load_x = load i32, i32* %x, align 4
   %tmpVar = icmp sgt i32 %load_x, 1
   %1 = icmp ne i1 %tmpVar, false
   br i1 %1, label %3, label %2
 
 condition_body:                                   ; preds = %3
-  %load_x1 = load i32, i32* %x
+  %load_x1 = load i32, i32* %x, align 4
   br label %continue
 
 continue:                                         ; preds = %condition_body, %3
   ret void
 
 2:                                                ; preds = %entry
-  %load_b1 = load i1, i1* %b1
+  %load_b1 = load i1, i1* %b1, align 1
   br label %3
 
 3:                                                ; preds = %2, %entry
@@ -849,18 +849,18 @@ fn for_statement_with_steps_test() {
     "void",
     "",
     "",
-r#"store i32 3, i32* %x
+r#"store i32 3, i32* %x, align 4
   br label %condition_check
 
 condition_check:                                  ; preds = %for_body, %entry
-  %load_x = load i32, i32* %x
+  %load_x = load i32, i32* %x, align 4
   %tmpVar = icmp sle i32 %load_x, 10
   br i1 %tmpVar, label %for_body, label %continue
 
 for_body:                                         ; preds = %condition_check
-  %load_x1 = load i32, i32* %x
+  %load_x1 = load i32, i32* %x, align 4
   %tmpVar2 = add i32 %load_x, 7
-  store i32 %tmpVar2, i32* %x
+  store i32 %tmpVar2, i32* %x, align 4
   br label %condition_check
 
 continue:                                         ; preds = %condition_check
@@ -889,18 +889,18 @@ fn for_statement_without_steps_test() {
     "void",
     "",
     "",
-r#"store i32 3, i32* %x
+r#"store i32 3, i32* %x, align 4
   br label %condition_check
 
 condition_check:                                  ; preds = %for_body, %entry
-  %load_x = load i32, i32* %x
+  %load_x = load i32, i32* %x, align 4
   %tmpVar = icmp sle i32 %load_x, 10
   br i1 %tmpVar, label %for_body, label %continue
 
 for_body:                                         ; preds = %condition_check
-  %load_x1 = load i32, i32* %x
+  %load_x1 = load i32, i32* %x, align 4
   %tmpVar2 = add i32 %load_x, 1
-  store i32 %tmpVar2, i32* %x
+  store i32 %tmpVar2, i32* %x, align 4
   br label %condition_check
 
 continue:                                         ; preds = %condition_check
@@ -929,21 +929,21 @@ fn for_statement_continue() {
     "void",
     "",
     "",
-r#"store i32 3, i32* %x
+r#"store i32 3, i32* %x, align 4
   br label %condition_check
 
 condition_check:                                  ; preds = %for_body, %entry
-  %load_x = load i32, i32* %x
+  %load_x = load i32, i32* %x, align 4
   %tmpVar = icmp sle i32 %load_x, 10
   br i1 %tmpVar, label %for_body, label %continue
 
 for_body:                                         ; preds = %condition_check
   %tmpVar1 = add i32 %load_x, 1
-  store i32 %tmpVar1, i32* %x
+  store i32 %tmpVar1, i32* %x, align 4
   br label %condition_check
 
 continue:                                         ; preds = %condition_check
-  %load_x2 = load i32, i32* %x
+  %load_x2 = load i32, i32* %x, align 4
   ret void
 "#);
 
@@ -973,21 +973,21 @@ fn for_statement_with_references_steps_test() {
     "void",
     "",
     "",
-r#"%load_y = load i32, i32* %y
-  store i32 %load_y, i32* %x
+r#"%load_y = load i32, i32* %y, align 4
+  store i32 %load_y, i32* %x, align 4
   br label %condition_check
 
 condition_check:                                  ; preds = %for_body, %entry
-  %load_x = load i32, i32* %x
-  %load_z = load i32, i32* %z
+  %load_x = load i32, i32* %x, align 4
+  %load_z = load i32, i32* %z, align 4
   %tmpVar = icmp sle i32 %load_x, %load_z
   br i1 %tmpVar, label %for_body, label %continue
 
 for_body:                                         ; preds = %condition_check
-  %load_x1 = load i32, i32* %x
-  %load_step = load i32, i32* %step
+  %load_x1 = load i32, i32* %x, align 4
+  %load_step = load i32, i32* %step, align 4
   %tmpVar2 = add i32 %load_x, %load_step
-  store i32 %tmpVar2, i32* %x
+  store i32 %tmpVar2, i32* %x, align 4
   br label %condition_check
 
 continue:                                         ; preds = %condition_check
@@ -1019,11 +1019,11 @@ fn while_statement() {
 r#"br label %condition_check
 
 condition_check:                                  ; preds = %entry, %while_body
-  %load_x = load i1, i1* %x
+  %load_x = load i1, i1* %x, align 1
   br i1 %load_x, label %while_body, label %continue
 
 while_body:                                       ; preds = %condition_check
-  %load_x1 = load i1, i1* %x
+  %load_x1 = load i1, i1* %x, align 1
   br label %condition_check
 
 continue:                                         ; preds = %condition_check
@@ -1055,13 +1055,13 @@ fn while_with_expression_statement() {
 r#"br label %condition_check
 
 condition_check:                                  ; preds = %entry, %while_body
-  %load_x = load i1, i1* %x
+  %load_x = load i1, i1* %x, align 1
   %1 = sext i1 %load_x to i32
   %tmpVar = icmp eq i32 %1, 0
   br i1 %tmpVar, label %while_body, label %continue
 
 while_body:                                       ; preds = %condition_check
-  %load_x1 = load i1, i1* %x
+  %load_x1 = load i1, i1* %x, align 1
   br label %condition_check
 
 continue:                                         ; preds = %condition_check
@@ -1094,11 +1094,11 @@ fn repeat_statement() {
 r#"br label %while_body
 
 condition_check:                                  ; preds = %while_body
-  %load_x = load i1, i1* %x
+  %load_x = load i1, i1* %x, align 1
   br i1 %load_x, label %while_body, label %continue
 
 while_body:                                       ; preds = %entry, %condition_check
-  %load_x1 = load i1, i1* %x
+  %load_x1 = load i1, i1* %x, align 1
   br label %condition_check
 
 continue:                                         ; preds = %condition_check
@@ -1133,7 +1133,7 @@ fn simple_case_statement() {
     "void",
     "",
     "",
-r#"%load_x = load i32, i32* %x
+r#"%load_x = load i32, i32* %x, align 4
   switch i32 %load_x, label %else [
     i32 1, label %case
     i32 2, label %case1
@@ -1141,19 +1141,19 @@ r#"%load_x = load i32, i32* %x
   ]
 
 case:                                             ; preds = %entry
-  store i32 1, i32* %y
+  store i32 1, i32* %y, align 4
   br label %continue
 
 case1:                                            ; preds = %entry
-  store i32 2, i32* %y
+  store i32 2, i32* %y, align 4
   br label %continue
 
 case2:                                            ; preds = %entry
-  store i32 3, i32* %y
+  store i32 3, i32* %y, align 4
   br label %continue
 
 else:                                             ; preds = %entry
-  store i32 -1, i32* %y
+  store i32 -1, i32* %y, align 4
   br label %continue
 
 continue:                                         ; preds = %else, %case2, %case1, %case
@@ -1187,7 +1187,7 @@ fn simple_case_i8_statement() {
     "void",
     "",
     "",
-r#"%load_x = load i8, i8* %x
+r#"%load_x = load i8, i8* %x, align 1
   switch i8 %load_x, label %else [
     i8 1, label %case
     i8 2, label %case1
@@ -1195,19 +1195,19 @@ r#"%load_x = load i8, i8* %x
   ]
 
 case:                                             ; preds = %entry
-  store i8 1, i8* %y
+  store i8 1, i8* %y, align 1
   br label %continue
 
 case1:                                            ; preds = %entry
-  store i8 2, i8* %y
+  store i8 2, i8* %y, align 1
   br label %continue
 
 case2:                                            ; preds = %entry
-  store i8 3, i8* %y
+  store i8 3, i8* %y, align 1
   br label %continue
 
 else:                                             ; preds = %entry
-  store i8 0, i8* %y
+  store i8 0, i8* %y, align 1
   br label %continue
 
 continue:                                         ; preds = %else, %case2, %case1, %case
@@ -1240,7 +1240,7 @@ fn case_with_multiple_labels_statement() {
     "void",
     "",
     "",
-r#"%load_x = load i32, i32* %x
+r#"%load_x = load i32, i32* %x, align 4
   switch i32 %load_x, label %else [
     i32 1, label %case
     i32 2, label %case
@@ -1249,15 +1249,15 @@ r#"%load_x = load i32, i32* %x
   ]
 
 case:                                             ; preds = %entry, %entry
-  store i32 1, i32* %y
+  store i32 1, i32* %y, align 4
   br label %continue
 
 case1:                                            ; preds = %entry, %entry
-  store i32 2, i32* %y
+  store i32 2, i32* %y, align 4
   br label %continue
 
 else:                                             ; preds = %entry
-  store i32 -1, i32* %y
+  store i32 -1, i32* %y, align 4
   br label %continue
 
 continue:                                         ; preds = %else, %case1, %case
@@ -1287,21 +1287,21 @@ fn case_with_ranges_statement() {
     "void",
     "",
     "",
-r#"%load_x = load i32, i32* %x
+r#"%load_x = load i32, i32* %x, align 4
   switch i32 %load_x, label %else [
   ]
 
 case:                                             ; preds = %range_then
-  store i32 2, i32* %y
+  store i32 2, i32* %y, align 4
   br label %continue
 
 else:                                             ; preds = %entry
-  %load_x1 = load i32, i32* %x
+  %load_x1 = load i32, i32* %x, align 4
   %tmpVar = icmp sge i32 %load_x1, 2
   br i1 %tmpVar, label %range_then, label %range_else
 
 range_then:                                       ; preds = %else
-  %load_x2 = load i32, i32* %x
+  %load_x2 = load i32, i32* %x, align 4
   %tmpVar3 = icmp sle i32 %load_x2, 3
   br i1 %tmpVar3, label %case, label %range_else
 
@@ -1343,16 +1343,16 @@ source_filename = "main"
 
 define i32 @foo(%foo_interface* %0) {
 entry:
-  %foo = alloca i32
-  store i32 1, i32* %foo
-  %foo_ret = load i32, i32* %foo
+  %foo = alloca i32, align 4
+  store i32 1, i32* %foo, align 4
+  %foo_ret = load i32, i32* %foo, align 4
   ret i32 %foo_ret
 }
 
 define void @prg(%prg_interface* %0) {
 entry:
   %x = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 0
-  %foo_instance = alloca %foo_interface
+  %foo_instance = alloca %foo_interface, align 8
   br label %input
 
 input:                                            ; preds = %entry
@@ -1366,7 +1366,7 @@ output:                                           ; preds = %call
   br label %continue
 
 continue:                                         ; preds = %output
-  store i32 %call1, i32* %x
+  store i32 %call1, i32* %x, align 4
   ret void
 }
 "#;
@@ -1401,16 +1401,16 @@ source_filename = "main"
 
 define float @foo(%foo_interface* %0) {
 entry:
-  %foo = alloca float
-  store float 1.000000e+00, float* %foo
-  %foo_ret = load float, float* %foo
+  %foo = alloca float, align 4
+  store float 1.000000e+00, float* %foo, align 4
+  %foo_ret = load float, float* %foo, align 4
   ret float %foo_ret
 }
 
 define void @prg(%prg_interface* %0) {
 entry:
   %x = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 0
-  %foo_instance = alloca %foo_interface
+  %foo_instance = alloca %foo_interface, align 8
   br label %input
 
 input:                                            ; preds = %entry
@@ -1425,7 +1425,7 @@ output:                                           ; preds = %call
 
 continue:                                         ; preds = %output
   %1 = fptosi float %call1 to i32
-  store i32 %1, i32* %x
+  store i32 %1, i32* %x, align 4
   ret void
 }
 "#;
@@ -1458,7 +1458,7 @@ declare i32 @foo(%foo_interface*)
 
 define void @prg(%prg_interface* %0) {
 entry:
-  %foo_instance = alloca %foo_interface
+  %foo_instance = alloca %foo_interface, align 8
   br label %input
 
 input:                                            ; preds = %entry
@@ -1515,29 +1515,29 @@ source_filename = "main"
 
 define i32 @bar(%bar_interface* %0) {
 entry:
-  %bar = alloca i32
-  store i32 1, i32* %bar
-  %bar_ret = load i32, i32* %bar
+  %bar = alloca i32, align 4
+  store i32 1, i32* %bar, align 4
+  %bar_ret = load i32, i32* %bar, align 4
   ret i32 %bar_ret
 }
 
 define i32 @foo(%foo_interface* %0) {
 entry:
-  %foo = alloca i32
+  %foo = alloca i32, align 4
   %in = getelementptr inbounds %foo_interface, %foo_interface* %0, i32 0, i32 0
-  store i32 1, i32* %foo
-  %foo_ret = load i32, i32* %foo
+  store i32 1, i32* %foo, align 4
+  %foo_ret = load i32, i32* %foo, align 4
   ret i32 %foo_ret
 }
 
 define void @prg(%prg_interface* %0) {
 entry:
   %x = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 0
-  %foo_instance = alloca %foo_interface
+  %foo_instance = alloca %foo_interface, align 8
   br label %input
 
 input:                                            ; preds = %entry
-  %bar_instance = alloca %bar_interface
+  %bar_instance = alloca %bar_interface, align 8
   br label %input1
 
 call:                                             ; preds = %continue4
@@ -1548,7 +1548,7 @@ output:                                           ; preds = %call
   br label %continue
 
 continue:                                         ; preds = %output
-  store i32 %call6, i32* %x
+  store i32 %call6, i32* %x, align 4
   ret void
 
 input1:                                           ; preds = %input
@@ -1563,7 +1563,7 @@ output3:                                          ; preds = %call2
 
 continue4:                                        ; preds = %output3
   %1 = getelementptr inbounds %foo_interface, %foo_interface* %foo_instance, i32 0, i32 0
-  store i32 %call5, i32* %1
+  store i32 %call5, i32* %1, align 4
   br label %call
 }
 "#;
@@ -1601,22 +1601,22 @@ source_filename = "main"
 
 define i32 @foo(%foo_interface* %0) {
 entry:
-  %foo = alloca i32
+  %foo = alloca i32, align 4
   %bar = getelementptr inbounds %foo_interface, %foo_interface* %0, i32 0, i32 0
-  store i32 1, i32* %foo
-  %foo_ret = load i32, i32* %foo
+  store i32 1, i32* %foo, align 4
+  %foo_ret = load i32, i32* %foo, align 4
   ret i32 %foo_ret
 }
 
 define void @prg(%prg_interface* %0) {
 entry:
   %x = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 0
-  %foo_instance = alloca %foo_interface
+  %foo_instance = alloca %foo_interface, align 8
   br label %input
 
 input:                                            ; preds = %entry
   %1 = getelementptr inbounds %foo_interface, %foo_interface* %foo_instance, i32 0, i32 0
-  store i32 2, i32* %1
+  store i32 2, i32* %1, align 4
   br label %call
 
 call:                                             ; preds = %input
@@ -1627,7 +1627,7 @@ output:                                           ; preds = %call
   br label %continue
 
 continue:                                         ; preds = %output
-  store i32 %call1, i32* %x
+  store i32 %call1, i32* %x, align 4
   ret void
 }
 "#;
@@ -1666,25 +1666,25 @@ source_filename = "main"
 
 define i32 @foo(%foo_interface* %0) {
 entry:
-  %foo = alloca i32
+  %foo = alloca i32, align 4
   %bar = getelementptr inbounds %foo_interface, %foo_interface* %0, i32 0, i32 0
   %buz = getelementptr inbounds %foo_interface, %foo_interface* %0, i32 0, i32 1
-  store i32 1, i32* %foo
-  %foo_ret = load i32, i32* %foo
+  store i32 1, i32* %foo, align 4
+  %foo_ret = load i32, i32* %foo, align 4
   ret i32 %foo_ret
 }
 
 define void @prg(%prg_interface* %0) {
 entry:
   %x = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 0
-  %foo_instance = alloca %foo_interface
+  %foo_instance = alloca %foo_interface, align 8
   br label %input
 
 input:                                            ; preds = %entry
   %1 = getelementptr inbounds %foo_interface, %foo_interface* %foo_instance, i32 0, i32 0
-  store i32 2, i32* %1
+  store i32 2, i32* %1, align 4
   %2 = getelementptr inbounds %foo_interface, %foo_interface* %foo_instance, i32 0, i32 1
-  store i1 true, i1* %2
+  store i1 true, i1* %2, align 1
   br label %call
 
 call:                                             ; preds = %input
@@ -1695,7 +1695,7 @@ output:                                           ; preds = %call
   br label %continue
 
 continue:                                         ; preds = %output
-  store i32 %call1, i32* %x
+  store i32 %call1, i32* %x, align 4
   ret void
 }
 "#;
@@ -1728,15 +1728,15 @@ source_filename = "main"
 
 define i32 @foo(%foo_interface* %0) {
 entry:
-  %foo = alloca i32
+  %foo = alloca i32, align 4
   %in1 = getelementptr inbounds %foo_interface, %foo_interface* %0, i32 0, i32 0
   %x = getelementptr inbounds %foo_interface, %foo_interface* %0, i32 0, i32 1
   %y = getelementptr inbounds %foo_interface, %foo_interface* %0, i32 0, i32 2
   %z = getelementptr inbounds %foo_interface, %foo_interface* %0, i32 0, i32 3
-  store i16 7, i16* %x
-  store i16 9, i16* %z
-  store i32 1, i32* %foo
-  %foo_ret = load i32, i32* %foo
+  store i16 7, i16* %x, align 2
+  store i16 9, i16* %z, align 2
+  store i32 1, i32* %foo, align 4
+  %foo_ret = load i32, i32* %foo, align 4
   ret i32 %foo_ret
 }
 "#;
@@ -1833,8 +1833,8 @@ entry:
   br label %input
 
 input:                                            ; preds = %entry
-  store i32 2, i32* getelementptr inbounds (%foo_interface, %foo_interface* @foo_instance, i32 0, i32 0)
-  store i1 true, i1* getelementptr inbounds (%foo_interface, %foo_interface* @foo_instance, i32 0, i32 1)
+  store i32 2, i32* getelementptr inbounds (%foo_interface, %foo_interface* @foo_instance, i32 0, i32 0), align 4
+  store i1 true, i1* getelementptr inbounds (%foo_interface, %foo_interface* @foo_instance, i32 0, i32 1), align 1
   br label %call
 
 call:                                             ; preds = %input
@@ -1890,8 +1890,8 @@ entry:
   br label %input
 
 input:                                            ; preds = %entry
-  store i1 true, i1* getelementptr inbounds (%foo_interface, %foo_interface* @foo_instance, i32 0, i32 1)
-  store i32 2, i32* getelementptr inbounds (%foo_interface, %foo_interface* @foo_instance, i32 0, i32 0)
+  store i1 true, i1* getelementptr inbounds (%foo_interface, %foo_interface* @foo_instance, i32 0, i32 1), align 1
+  store i32 2, i32* getelementptr inbounds (%foo_interface, %foo_interface* @foo_instance, i32 0, i32 0), align 4
   br label %call
 
 call:                                             ; preds = %input
@@ -1953,7 +1953,7 @@ entry:
   br label %input
 
 input:                                            ; preds = %entry
-  store i32 2, i32* getelementptr inbounds (%foo_interface, %foo_interface* @foo_instance, i32 0, i32 0)
+  store i32 2, i32* getelementptr inbounds (%foo_interface, %foo_interface* @foo_instance, i32 0, i32 0), align 4
   br label %call
 
 call:                                             ; preds = %input
@@ -1961,8 +1961,8 @@ call:                                             ; preds = %input
   br label %output
 
 output:                                           ; preds = %call
-  %buz = load i1, i1* getelementptr inbounds (%foo_interface, %foo_interface* @foo_instance, i32 0, i32 1)
-  store i1 %buz, i1* %baz
+  %buz = load i1, i1* getelementptr inbounds (%foo_interface, %foo_interface* @foo_instance, i32 0, i32 1), align 1
+  store i1 %buz, i1* %baz, align 1
   br label %continue
 
 continue:                                         ; preds = %output
@@ -2017,7 +2017,7 @@ entry:
   br label %input
 
 input:                                            ; preds = %entry
-  store i32 2, i32* getelementptr inbounds (%foo_interface, %foo_interface* @foo_instance, i32 0, i32 0)
+  store i32 2, i32* getelementptr inbounds (%foo_interface, %foo_interface* @foo_instance, i32 0, i32 0), align 4
   br label %call
 
 call:                                             ; preds = %input
@@ -2025,8 +2025,8 @@ call:                                             ; preds = %input
   br label %output
 
 output:                                           ; preds = %call
-  %buz = load i1, i1* getelementptr inbounds (%foo_interface, %foo_interface* @foo_instance, i32 0, i32 1)
-  store i1 %buz, i1* %baz
+  %buz = load i1, i1* getelementptr inbounds (%foo_interface, %foo_interface* @foo_instance, i32 0, i32 1), align 1
+  store i1 %buz, i1* %baz, align 1
   br label %continue
 
 continue:                                         ; preds = %output
@@ -2064,16 +2064,16 @@ source_filename = "main"
 
 define i32 @foo(%foo_interface* %0) {
 entry:
-  %foo = alloca i32
-  store i32 1, i32* %foo
-  %foo_ret = load i32, i32* %foo
+  %foo = alloca i32, align 4
+  store i32 1, i32* %foo, align 4
+  %foo_ret = load i32, i32* %foo, align 4
   ret i32 %foo_ret
 }
 
 define void @prg(%prg_interface* %0) {
 entry:
   %foo = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 0
-  %foo_instance = alloca %foo_interface
+  %foo_instance = alloca %foo_interface, align 8
   br label %input
 
 input:                                            ; preds = %entry
@@ -2087,7 +2087,7 @@ output:                                           ; preds = %call
   br label %continue
 
 continue:                                         ; preds = %output
-  store i32 %call1, i32* %foo
+  store i32 %call1, i32* %foo, align 4
   ret void
 }
 "#;
@@ -2201,12 +2201,12 @@ entry:
 define void @prg(%prg_interface* %0) {
 entry:
   %x = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 0
-  %load_ = load i32, i32* getelementptr inbounds (%foo_interface, %foo_interface* @foo_instance, i32 0, i32 0)
-  store i32 %load_, i32* %x
-  %load_1 = load i32, i32* getelementptr inbounds (%foo_interface, %foo_interface* @foo_instance, i32 0, i32 1)
-  store i32 %load_1, i32* %x
-  %load_2 = load i32, i32* getelementptr inbounds (%foo_interface, %foo_interface* @foo_instance, i32 0, i32 2, i32 0)
-  store i32 %load_2, i32* %x
+  %load_ = load i32, i32* getelementptr inbounds (%foo_interface, %foo_interface* @foo_instance, i32 0, i32 0), align 4
+  store i32 %load_, i32* %x, align 4
+  %load_1 = load i32, i32* getelementptr inbounds (%foo_interface, %foo_interface* @foo_instance, i32 0, i32 1), align 4
+  store i32 %load_1, i32* %x, align 4
+  %load_2 = load i32, i32* getelementptr inbounds (%foo_interface, %foo_interface* @foo_instance, i32 0, i32 2, i32 0), align 4
+  store i32 %load_2, i32* %x, align 4
   ret void
 }
 "#;
@@ -2293,7 +2293,7 @@ define void @MainProg(%MainProg_interface* %0) {
 entry:
   %Cord = getelementptr inbounds %MainProg_interface, %MainProg_interface* %0, i32 0, i32 0
   %a = getelementptr inbounds %MyStruct, %MyStruct* %Cord, i32 0, i32 0
-  store i32 0, i32* %a
+  store i32 0, i32* %a, align 4
   ret void
 }
 "#;
@@ -2359,12 +2359,12 @@ source_filename = "main"
 define void @main(%main_interface* %0) {
 entry:
   %color = getelementptr inbounds %main_interface, %main_interface* %0, i32 0, i32 0
-  %load_red = load i32, i32* @red
-  store i32 %load_red, i32* %color
-  %load_yellow = load i32, i32* @yellow
-  store i32 %load_yellow, i32* %color
-  %load_green = load i32, i32* @green
-  store i32 %load_green, i32* %color
+  %load_red = load i32, i32* @red, align 4
+  store i32 %load_red, i32* %color, align 4
+  %load_yellow = load i32, i32* @yellow, align 4
+  store i32 %load_yellow, i32* %color, align 4
+  %load_green = load i32, i32* @green, align 4
+  store i32 %load_green, i32* %color, align 4
   ret void
 }
 "#;
@@ -2440,10 +2440,10 @@ entry:
   %m = getelementptr inbounds %Main_interface, %Main_interface* %0, i32 0, i32 0
   %out1 = getelementptr inbounds %OuterStruct, %OuterStruct* %m, i32 0, i32 0
   %inner1 = getelementptr inbounds %InnerStruct, %InnerStruct* %out1, i32 0, i32 0
-  store i16 3, i16* %inner1
+  store i16 3, i16* %inner1, align 2
   %out2 = getelementptr inbounds %OuterStruct, %OuterStruct* %m, i32 0, i32 1
   %inner2 = getelementptr inbounds %InnerStruct, %InnerStruct* %out2, i32 0, i32 1
-  store i16 7, i16* %inner2
+  store i16 7, i16* %inner2, align 2
   ret void
 }
 "#;
@@ -2557,12 +2557,12 @@ fn array_of_int_type_used() {
     "",
     "",
 r#"%tmpVar = getelementptr inbounds [4 x i32], [4 x i32]* %x, i32 0, i32 1
-  store i32 3, i32* %tmpVar
+  store i32 3, i32* %tmpVar, align 4
   %tmpVar1 = getelementptr inbounds [4 x i32], [4 x i32]* %x, i32 0, i32 2
   %tmpVar2 = getelementptr inbounds [4 x i32], [4 x i32]* %x, i32 0, i32 3
-  %load_tmpVar = load i32, i32* %tmpVar2
+  %load_tmpVar = load i32, i32* %tmpVar2, align 4
   %tmpVar3 = add i32 %load_tmpVar, 3
-  store i32 %tmpVar3, i32* %tmpVar1
+  store i32 %tmpVar3, i32* %tmpVar1, align 4
   ret void
 "#);
     assert_eq!(result, expected);
@@ -2610,12 +2610,12 @@ fn array_of_int_type_with_non_zero_start_used() {
     "",
     "",
 r#"%tmpVar = getelementptr inbounds [3 x i32], [3 x i32]* %x, i32 0, i32 0
-  store i32 3, i32* %tmpVar
+  store i32 3, i32* %tmpVar, align 4
   %tmpVar1 = getelementptr inbounds [3 x i32], [3 x i32]* %x, i32 0, i32 1
   %tmpVar2 = getelementptr inbounds [3 x i32], [3 x i32]* %x, i32 0, i32 2
-  %load_tmpVar = load i32, i32* %tmpVar2
+  %load_tmpVar = load i32, i32* %tmpVar2, align 4
   %tmpVar3 = add i32 %load_tmpVar, 3
-  store i32 %tmpVar3, i32* %tmpVar1
+  store i32 %tmpVar3, i32* %tmpVar1, align 4
   ret void
 "#);
     assert_eq!(result, expected);
@@ -2663,12 +2663,12 @@ fn array_of_int_type_with_non_zero_negative_start_used() {
     "",
     "",
 r#"%tmpVar = getelementptr inbounds [6 x i32], [6 x i32]* %x, i32 0, i32 1
-  store i32 3, i32* %tmpVar
+  store i32 3, i32* %tmpVar, align 4
   %tmpVar1 = getelementptr inbounds [6 x i32], [6 x i32]* %x, i32 0, i32 4
   %tmpVar2 = getelementptr inbounds [6 x i32], [6 x i32]* %x, i32 0, i32 5
-  %load_tmpVar = load i32, i32* %tmpVar2
+  %load_tmpVar = load i32, i32* %tmpVar2, align 4
   %tmpVar3 = add i32 %load_tmpVar, 3
-  store i32 %tmpVar3, i32* %tmpVar1
+  store i32 %tmpVar3, i32* %tmpVar1, align 4
   ret void
 "#);
     assert_eq!(result, expected);
@@ -2716,12 +2716,12 @@ fn multidim_array_access() {
     "",
     "",
 r#"%tmpVar = getelementptr inbounds [4 x [2 x i32]], [4 x [2 x i32]]* %x, i32 0, i32 2, i32 0
-  store i32 3, i32* %tmpVar
+  store i32 3, i32* %tmpVar, align 4
   %tmpVar1 = getelementptr inbounds [4 x [2 x i32]], [4 x [2 x i32]]* %x, i32 0, i32 3, i32 1
   %tmpVar2 = getelementptr inbounds [4 x [2 x i32]], [4 x [2 x i32]]* %x, i32 0, i32 1, i32 1
-  %load_tmpVar = load i32, i32* %tmpVar2
+  %load_tmpVar = load i32, i32* %tmpVar2, align 4
   %tmpVar3 = add i32 %load_tmpVar, 3
-  store i32 %tmpVar3, i32* %tmpVar1
+  store i32 %tmpVar3, i32* %tmpVar1, align 4
   ret void
 "#);
     assert_eq!(result, expected);
@@ -2770,14 +2770,14 @@ fn nested_array_access() {
     "",
 r#"%tmpVar = getelementptr inbounds [4 x [2 x i32]], [4 x [2 x i32]]* %x, i32 0, i32 2
   %tmpVar1 = getelementptr inbounds [2 x i32], [2 x i32]* %tmpVar, i32 0, i32 0
-  store i32 3, i32* %tmpVar1
+  store i32 3, i32* %tmpVar1, align 4
   %tmpVar2 = getelementptr inbounds [4 x [2 x i32]], [4 x [2 x i32]]* %x, i32 0, i32 3
   %tmpVar3 = getelementptr inbounds [2 x i32], [2 x i32]* %tmpVar2, i32 0, i32 1
   %tmpVar4 = getelementptr inbounds [4 x [2 x i32]], [4 x [2 x i32]]* %x, i32 0, i32 1
   %tmpVar5 = getelementptr inbounds [2 x i32], [2 x i32]* %tmpVar4, i32 0, i32 1
-  %load_tmpVar = load i32, i32* %tmpVar5
+  %load_tmpVar = load i32, i32* %tmpVar5, align 4
   %tmpVar6 = add i32 %load_tmpVar, 3
-  store i32 %tmpVar6, i32* %tmpVar3
+  store i32 %tmpVar6, i32* %tmpVar3, align 4
   ret void
 "#);
     assert_eq!(result, expected);
@@ -2816,7 +2816,7 @@ entry:
   %m = getelementptr inbounds %Main_interface, %Main_interface* %0, i32 0, i32 0
   %field1 = getelementptr inbounds %MyStruct, %MyStruct* %m, i32 0, i32 0
   %tmpVar = getelementptr inbounds [5 x i16], [5 x i16]* %field1, i32 0, i32 3
-  store i16 7, i16* %tmpVar
+  store i16 7, i16* %tmpVar, align 2
   ret void
 }
 "#;
