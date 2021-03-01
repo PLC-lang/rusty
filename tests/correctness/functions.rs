@@ -242,6 +242,34 @@ fn program_instances_save_state_per() {
         assert_eq!(interface.f.i,6);
 }
 
+#[test]
+fn functions_can_be_called_out_of_order() {
+    struct MainType {
+        f : i16,
+    }
+    let function = r#"
+
+    FUNCTION foo : INT
+      foo := bar();
+    END_FUNCTION
+
+    FUNCTION bar : INT
+        bar := 7;
+    END_FUNCTION
+
+    PROGRAM main
+        VAR 
+            r : INT;
+        END_VAR 
+        r:= foo();
+    END_PROGRAM
+    "#;
+    
+    let mut interface = MainType{ f: 0 };
+    let (_, _) = compile_and_run(function.to_string(), &mut interface);
+
+    assert_eq!(7, interface.f);
+}
 
 #[test]
 fn function_block_instances_save_state_per_instance_2() {

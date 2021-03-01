@@ -104,8 +104,16 @@ impl<'ctx> CodeGen<'ctx> {
 
         //generate all pou's
         let mut pou_generator = PouGenerator::new(&llvm, &mut self.index);
+        //Generate the POU stubs in the first go to make sure they can be referenced.
         for unit in &unit.units {
-            pou_generator.generate_pou(unit, &self.module)?;
+            pou_generator.generate_pou_stub(unit, &self.module)?;
+        }
+
+        for unit in &unit.units {
+            //Don't generate external functions
+            if unit.linkage != LinkageType::External {
+                pou_generator.generate_pou(unit)?;
+            }
         }
 
         // TODO this is not needed

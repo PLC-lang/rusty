@@ -2038,6 +2038,37 @@ continue:                                         ; preds = %output
 }
 
 #[test]
+fn program_called_before_decalaration() {
+    codegen!(
+        "
+        PROGRAM foo 
+          bar();
+        END_PROGRAM
+
+        PROGRAM bar 
+        END_PROGRAM
+        "
+    );
+    //Expecting no errors
+}
+
+#[test]
+fn function_called_before_decalaration() {
+    codegen!(
+        "
+        FUNCTION foo : INT
+          foo := bar();
+        END_FUNCTION
+
+        FUNCTION bar : INT
+            bar := 7;
+        END_FUNCTION
+        "
+    );
+    //Expecting no errors
+}
+
+#[test]
 fn function_called_when_shadowed() {
   let result = codegen!(
         "
