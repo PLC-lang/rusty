@@ -43,7 +43,7 @@ pub enum PouType {
 pub struct CompilationUnit {
     pub global_vars: Vec<VariableBlock>,
     pub units: Vec<POU>,
-    pub types: Vec<DataType>,
+    pub types: Vec<UserTypeDeclaration>,
 }
 
 #[derive(Debug, Copy, PartialEq, Clone)]
@@ -183,6 +183,12 @@ impl DataTypeDeclaration {
     }
 }
 
+#[derive(PartialEq, Debug)]
+pub struct UserTypeDeclaration {
+    pub data_type: DataType,
+    pub initializer: Option<Statement>,
+}
+
 #[derive(PartialEq)]
 pub enum DataType {
     StructType {
@@ -196,7 +202,6 @@ pub enum DataType {
     SubRangeType {
         name: Option<String>,
         referenced_type: String,
-        initializer: Option<Statement>,
     },
     ArrayType {
         name: Option<String>,
@@ -221,12 +226,10 @@ impl Debug for DataType {
             DataType::SubRangeType {
                 name,
                 referenced_type,
-                initializer: initial_value ,
             } => f
                 .debug_struct("SubRangeType")
                 .field("name", name)
                 .field("referenced_type", referenced_type)
-                .field("initializer", initial_value)
                 .finish(),
             DataType::ArrayType {
                 name,
@@ -319,6 +322,10 @@ pub enum Statement {
     },
     LiteralString {
         value: String,
+        location: SourceRange,
+    },
+    LiteralArray {
+        elements: Option<Box<Statement>>,    // expression-list
         location: SourceRange,
     },
     // Expressions
@@ -414,6 +421,10 @@ impl Debug for Statement {
             Statement::LiteralString { value, .. } => f
                 .debug_struct("LiteralString")
                 .field("value", value)
+                .finish(),
+            Statement::LiteralArray { elements, .. } => f
+                .debug_struct("LiteralArray")
+                .field("elements", elements)
                 .finish(),
             Statement::Reference { name, .. } => f
                 .debug_struct("Reference")
@@ -543,6 +554,7 @@ impl Statement {
             Statement::LiteralReal { location, .. } => location.clone(),
             Statement::LiteralBool { location, .. } => location.clone(),
             Statement::LiteralString { location, .. } => location.clone(),
+            Statement::LiteralArray {location, ..} => location.clone(),
             Statement::Reference { location, .. } => location.clone(),
             Statement::QualifiedReference { elements, .. } => {
                 elements.first().map_or(0, |it| it.get_location().start)

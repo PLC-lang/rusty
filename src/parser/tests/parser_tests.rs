@@ -321,32 +321,38 @@ fn simple_struct_type_can_be_parsed() {
 
     let ast_string = format!("{:#?}", &result.types[0]);
 
-    let expected_ast = 
-r#"StructType {
-    name: Some(
-        "SampleStruct",
-    ),
-    variables: [
-        Variable {
-            name: "One",
-            data_type: DataTypeReference {
-                referenced_type: "INT",
-            },
+    let expected_ast = format!("{:#?}", &UserTypeDeclaration{
+        data_type: DataType::StructType {
+            name: Some(
+                "SampleStruct".to_string(),
+            ),
+            variables: vec!(
+                Variable {
+                    name: "One".to_string(),
+                    data_type: DataTypeDeclaration::DataTypeReference {
+                        referenced_type: "INT".to_string(),
+   
+                    },
+                    initializer: None, location: 0..0,
+                },
+                Variable {
+                    name: "Two".to_string(),
+                    data_type: DataTypeDeclaration::DataTypeReference {
+                        referenced_type: "INT".to_string(),
+                    },
+                    initializer: None, location: 0..0,
+                },
+                Variable {
+                    name: "Three".to_string(),
+                    data_type: DataTypeDeclaration::DataTypeReference {
+                        referenced_type: "INT".to_string(),
+                    },
+                    initializer: None, location: 0..0,
+                },
+            ),
         },
-        Variable {
-            name: "Two",
-            data_type: DataTypeReference {
-                referenced_type: "INT",
-            },
-        },
-        Variable {
-            name: "Three",
-            data_type: DataTypeReference {
-                referenced_type: "INT",
-            },
-        },
-    ],
-}"#;
+        initializer: None,
+    });
     assert_eq!(ast_string, expected_ast);
 }
 
@@ -365,31 +371,34 @@ fn struct_with_inline_array_can_be_parsed() {
     let ast_string = format!("{:#?}", &result.types[0]);
 
     let expected_ast = 
-r#"StructType {
-    name: Some(
-        "SampleStruct",
-    ),
-    variables: [
-        Variable {
-            name: "One",
-            data_type: DataTypeDefinition {
-                data_type: ArrayType {
-                    name: None,
-                    bounds: RangeStatement {
-                        start: LiteralInteger {
-                            value: "0",
+r#"UserTypeDeclaration {
+    data_type: StructType {
+        name: Some(
+            "SampleStruct",
+        ),
+        variables: [
+            Variable {
+                name: "One",
+                data_type: DataTypeDefinition {
+                    data_type: ArrayType {
+                        name: None,
+                        bounds: RangeStatement {
+                            start: LiteralInteger {
+                                value: "0",
+                            },
+                            end: LiteralInteger {
+                                value: "1",
+                            },
                         },
-                        end: LiteralInteger {
-                            value: "1",
+                        referenced_type: DataTypeReference {
+                            referenced_type: "INT",
                         },
-                    },
-                    referenced_type: DataTypeReference {
-                        referenced_type: "INT",
                     },
                 },
             },
-        },
-    ],
+        ],
+    },
+    initializer: None,
 }"#;
     assert_eq!(ast_string, expected_ast);
 }
@@ -406,18 +415,17 @@ fn simple_enum_type_can_be_parsed() {
 
     let ast_string = format!("{:#?}", &result.types[0]);
 
-    let expected_ast = 
-r#"EnumType {
-    name: Some(
-        "SampleEnum",
-    ),
-    elements: [
-        "red",
-        "yellow",
-        "green",
-    ],
-}"#;
-    assert_eq!(ast_string, expected_ast);
+    let epxtected_ast = &UserTypeDeclaration {
+        data_type: DataType::EnumType {
+            name: Some("SampleEnum".to_string()),
+            elements: vec!(
+                "red".to_string(), "yellow".to_string(), "green".to_string()
+            ),
+        },
+        initializer: None,
+    };
+    let expected_string = format!("{:#?}", epxtected_ast);
+    assert_eq!(ast_string, expected_string);
 }
 
 #[test]
@@ -431,15 +439,13 @@ fn type_alias_can_be_parsed() {
     )).unwrap();
 
     let ast_string = format!("{:#?}", &result.types[0]);
-
-    let exptected_ast = 
-r#"SubRangeType {
-    name: Some(
-        "MyInt",
-    ),
-    referenced_type: "INT",
-    initializer: None,
-}"#;
+    let exptected_ast = format!("{:#?}", &UserTypeDeclaration{
+        data_type: DataType::SubRangeType{
+            name: Some("MyInt".to_string()),
+            referenced_type: "INT".to_string(),
+        },
+        initializer: None,
+    }); 
 
 assert_eq!(ast_string, exptected_ast);
 
@@ -455,25 +461,101 @@ fn array_type_can_be_parsed_test() {
 
     let ast_string = format!("{:#?}", &result.types[0]);
 
-    let expected_ast = 
-r#"ArrayType {
-    name: Some(
-        "MyArray",
-    ),
-    bounds: RangeStatement {
-        start: LiteralInteger {
-            value: "0",
+    let expected_ast = format!("{:#?}", &UserTypeDeclaration {
+        data_type: DataType::ArrayType {
+            name: Some("MyArray".to_string()),
+            bounds: Statement::RangeStatement {
+                start: Box::new(Statement::LiteralInteger {
+                    value: "0".to_string(), location: 0..0,
+                }),
+                end: Box::new(Statement::LiteralInteger {
+                    value: "8".to_string(), location: 0..0,
+                }),
+            },
+            referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
+                referenced_type: "INT".to_string(), 
+            }),
         },
-        end: LiteralInteger {
-            value: "8",
-        },
-    },
-    referenced_type: DataTypeReference {
-        referenced_type: "INT",
-    },
-}"#;
+        initializer: None,
+    });
 
 assert_eq!(ast_string, expected_ast);
+}
+
+#[test]
+fn array_type_initialization_with_literals_can_be_parsed_test() {
+    let (result, _) = parse(lexer::lex(
+            r#"
+            TYPE MyArray : ARRAY[0..2] OF INT := [1,2,3]; END_TYPE
+            "#
+    )).unwrap();
+
+    let initializer = &result.types[0].initializer;
+    let ast_string = format!("{:#?}", &initializer);
+        
+        let expected_ast = 
+r#"Some(
+    LiteralArray {
+        elements: Some(
+            ExpressionList {
+                expressions: [
+                    LiteralInteger {
+                        value: "1",
+                    },
+                    LiteralInteger {
+                        value: "2",
+                    },
+                    LiteralInteger {
+                        value: "3",
+                    },
+                ],
+            },
+        ),
+    },
+)"#;
+    assert_eq!(ast_string, expected_ast);
+}
+
+#[test]
+fn array_initializer_in_pou_can_be_parsed() {
+    let (result, _) = parse(lexer::lex(
+            r#"
+            PROGRAM main
+            VAR
+                my_array: ARRAY[0..2] OF INT := [5,6,7];
+            END_VAR
+            END_PROGRAM
+            "#
+    )).unwrap();
+
+    let member = &result.units[0].variable_blocks[0].variables[0];
+    if let Some(initializer) = &member.initializer {
+        let ast_string = format!("{:#?}", initializer);
+        let expected_ast = 
+r#"LiteralArray {
+    elements: Some(
+        ExpressionList {
+            expressions: [
+                LiteralInteger {
+                    value: "5",
+                },
+                LiteralInteger {
+                    value: "6",
+                },
+                LiteralInteger {
+                    value: "7",
+                },
+            ],
+        },
+    ),
+}"#;
+    assert_eq!(ast_string, expected_ast);
+
+    }else{
+        panic!("variable was not parsed as an Array");
+    }
+
+
 }
 
 #[test]
@@ -793,55 +875,60 @@ r#"Variable {
 
     let struct_type = &parse_result.types[0];
     let expected =
- r#"StructType {
-    name: Some(
-        "MyStruct",
-    ),
-    variables: [
-        Variable {
-            name: "a",
-            data_type: DataTypeReference {
-                referenced_type: "INT",
-            },
-            initializer: Some(
-                LiteralInteger {
-                    value: "69",
+ r#"UserTypeDeclaration {
+    data_type: StructType {
+        name: Some(
+            "MyStruct",
+        ),
+        variables: [
+            Variable {
+                name: "a",
+                data_type: DataTypeReference {
+                    referenced_type: "INT",
                 },
-            ),
-        },
-        Variable {
-            name: "b",
-            data_type: DataTypeReference {
-                referenced_type: "BOOL",
+                initializer: Some(
+                    LiteralInteger {
+                        value: "69",
+                    },
+                ),
             },
-            initializer: Some(
-                LiteralBool {
-                    value: true,
+            Variable {
+                name: "b",
+                data_type: DataTypeReference {
+                    referenced_type: "BOOL",
                 },
-            ),
-        },
-        Variable {
-            name: "c",
-            data_type: DataTypeReference {
-                referenced_type: "REAL",
+                initializer: Some(
+                    LiteralBool {
+                        value: true,
+                    },
+                ),
             },
-            initializer: Some(
-                LiteralReal {
-                    value: "5.25",
+            Variable {
+                name: "c",
+                data_type: DataTypeReference {
+                    referenced_type: "REAL",
                 },
-            ),
-        },
-    ],
+                initializer: Some(
+                    LiteralReal {
+                        value: "5.25",
+                    },
+                ),
+            },
+        ],
+    },
+    initializer: None,
 }"#;
     assert_eq!(expected, format!("{:#?}", struct_type).as_str());
 
     let my_int_type = &parse_result.types[1];
     let expected =
- r#"SubRangeType {
-    name: Some(
-        "MyInt",
-    ),
-    referenced_type: "INT",
+ r#"UserTypeDeclaration {
+    data_type: SubRangeType {
+        name: Some(
+            "MyInt",
+        ),
+        referenced_type: "INT",
+    },
     initializer: Some(
         LiteralInteger {
             value: "789",

@@ -5,8 +5,8 @@ use super::VariableType;
 use super::super::ast::{ POU, PouType, CompilationUnit, VariableBlock, VariableBlockType, DataType, DataTypeDeclaration };
 
 pub fn visit(index: &mut Index, unit: &mut CompilationUnit) {
-    for data_type in &unit.types {
-        visit_data_type(index, data_type);
+    for user_type in &unit.types {
+        visit_data_type(index, &user_type.data_type);
     }
 
     for global_vars in &unit.global_vars {
