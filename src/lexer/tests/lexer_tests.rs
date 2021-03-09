@@ -110,6 +110,18 @@ fn pou_tokens() {
 }
 
 #[test]
+fn action_tokens() {
+    let mut lexer = lex("ACTIONS ACTION END_ACTION END_ACTIONS");
+    assert_eq!(lexer.token, KeywordActions);
+    lexer.advance();
+    assert_eq!(lexer.token, KeywordAction);
+    lexer.advance();
+    assert_eq!(lexer.token, KeywordEndAction);
+    lexer.advance();
+    assert_eq!(lexer.token, KeywordEndActions);
+}
+
+#[test]
 fn var_tokens() {
     let mut lexer = lex("VAR VAR_INPUT VAR_OUTPUT VAR_GLOBAL END_VAR");
     assert_eq!(lexer.token, KeywordVar);

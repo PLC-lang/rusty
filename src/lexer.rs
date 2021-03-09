@@ -160,6 +160,18 @@ pub enum Token {
     #[token("END_STRUCT")]
     KeywordEndStruct,
 
+    #[token("ACTIONS")]
+    KeywordActions,
+
+    #[token("ACTION")]
+    KeywordAction,
+
+    #[token("END_ACTION")]
+    KeywordEndAction,
+
+    #[token("END_ACTIONS")]
+    KeywordEndActions,
+
     #[token(":")]
     KeywordColon,
 
