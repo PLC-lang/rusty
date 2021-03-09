@@ -11,6 +11,26 @@ fn generic_properties() {
 }
 
 #[test]
+fn comments_are_ignored_by_the_lexer() {
+    let mut lexer = lex(r"
+        PROGRAM (* Some Content *) END_PROGRAM 
+                                   /*
+                                    * FUNCTION */ 
+        (* Nested (*) Comment *) *)
+        /* Nested /* Comment */ */
+        //END_FUNCTION FUNCTION_BLOCK 
+        END_FUNCTION_BLOCK
+        ");
+    assert_eq!(lexer.token, KeywordProgram, "Token : {}", lexer.slice());
+    lexer.advance();
+    assert_eq!(lexer.token, KeywordEndProgram, "Token : {}", lexer.slice());
+    lexer.advance();
+    assert_eq!(lexer.token, KeywordEndFunctionBlock, "Token : {}", lexer.slice());
+    lexer.advance();
+
+}
+
+#[test]
 fn pou_tokens() {
     let mut lexer = lex("PROGRAM END_PROGRAM FUNCTION END_FUNCTION FUNCTION_BLOCK END_FUNCTION_BLOCK");
     assert_eq!(lexer.token, KeywordProgram);

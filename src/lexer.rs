@@ -1,6 +1,7 @@
 /// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
 use logos::Lexer;
+use logos::Filter;
 use logos::Logos;
 use core::ops::Range;
 
@@ -63,12 +64,49 @@ impl<'a> RustyLexer<'a> {
     }
 }
 
+fn parse_comments(lexer : &mut Lexer<Token>) -> Filter<()> {
+    let (open,close) = get_closing_tag(lexer.slice());
+    let  remainder = lexer.remainder();
+    let mut unclosed = 1;
+    let chars = remainder.chars();
+
+    let mut prev = ' ';
+    for (i,c) in chars.enumerate() {
+        if c == '*' && prev == open {
+            unclosed += 1;
+            //Make sure the next action does not consume the star
+            prev = ' ';
+        } else if c == close && prev == '*' {
+            unclosed -= 1;
+            prev = c;
+        } else {
+            prev = c;
+        }
+        if unclosed == 0 {
+            lexer.bump(i+1);
+            return Filter::Skip;
+        }
+    }
+    Filter::Emit(())
+}
+
+fn get_closing_tag(open_tag : &str) -> (char,char) {
+    match open_tag {
+        "(*" => ('(', ')'),
+        "/*" => ('/', '/'),
+        _ => unreachable!()
+    }
+}
 
 
 #[derive(Debug, PartialEq, Logos)]
 pub enum Token {
     #[error]
+    #[regex(r"\(\*", |lex| parse_comments(lex))]
+    #[regex(r"/\*", |lex| parse_comments(lex))]
+    #[regex(r"//.*", logos::skip)]
     Error,
+
     
     #[token("@EXTERNAL")]
     PropertyExternal,
