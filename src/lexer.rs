@@ -71,7 +71,8 @@ fn parse_comments(lexer : &mut Lexer<Token>) -> Filter<()> {
     let chars = remainder.chars();
 
     let mut prev = ' ';
-    for (i,c) in chars.enumerate() {
+    let mut traversed = 0;
+    for c in chars {
         if c == '*' && prev == open {
             unclosed += 1;
             //Make sure the next action does not consume the star
@@ -82,8 +83,10 @@ fn parse_comments(lexer : &mut Lexer<Token>) -> Filter<()> {
         } else {
             prev = c;
         }
+        traversed += c.len_utf8();
         if unclosed == 0 {
-            lexer.bump(i+1);
+            lexer.bump(traversed);
+            //This is a well formed comment, treat it as whitespace
             return Filter::Skip;
         }
     }
