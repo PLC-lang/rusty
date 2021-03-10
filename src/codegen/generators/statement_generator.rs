@@ -1,7 +1,7 @@
 /// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
 use super::{expression_generator::{ExpressionCodeGenerator}, llvm::LLVM};
-use crate::{ast::{ConditionalBlock, Operator, Statement}, codegen::{typesystem}, compile_error::CompileError, index::Index};
+use crate::{ast::{ConditionalBlock, Operator, Statement, flatten_expression_list}, codegen::{typesystem}, compile_error::CompileError, index::Index};
 use inkwell::{IntPredicate, basic_block::BasicBlock, values::{BasicValueEnum, FunctionValue}};
 
 /// the full context when generating statements inside a POU
@@ -224,7 +224,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         let exp_gen = self.create_expr_generator();
         let (selector_type, selector_statement) = exp_gen.generate_expression(&*selector)?;
         //re-brand the expression generator to use the selector's type when generating literals
-        let exp_gen = ExpressionCodeGenerator::new(self.llvm, self.index, Some(selector_type.get_type()), self.function_context);
+        let exp_gen = ExpressionCodeGenerator::new(self.llvm, self.index, Some(selector_type), self.function_context);
         
         let mut cases = Vec::new();
         let else_block = self.llvm
@@ -239,7 +239,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
                 .prepend_basic_block(else_block, "case");
 
             //flatten the expression list into a vector of expressions
-            let expressions = flatten_expression_lists(&*conditional_block.condition);
+            let expressions = flatten_expression_list(&*conditional_block.condition);
             for s in expressions {
                 
                 if let Statement::RangeStatement{ start, end} = s {
@@ -472,9 +472,3 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
     }
 }
 
-fn flatten_expression_lists(condition: &Statement) -> Vec<&Statement> {
-    match condition {
-        Statement::ExpressionList{ expressions} => expressions.iter().by_ref().collect(),
-        _ => vec![condition]
-    }
-}

@@ -622,3 +622,10 @@ impl Display for Operator {
         f.write_str(symbol)
     }
 }
+
+pub fn flatten_expression_list(condition: &Statement) -> Vec<&Statement> {
+    match condition {
+        Statement::ExpressionList{ expressions} => expressions.iter().by_ref().collect(),
+        _ => vec![condition]
+    }
+}

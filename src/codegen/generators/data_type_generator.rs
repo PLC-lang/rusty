@@ -55,7 +55,6 @@ pub fn generate_data_type_stubs<'a>(llvm: &LLVM<'a>, index: &mut Index<'a>, data
                 name,
                 bounds,
                 referenced_type,
-                // initializer: _initializer,
             } => {
                 let dimensions = get_array_dimensions(bounds)?;
 
@@ -68,7 +67,7 @@ pub fn generate_data_type_stubs<'a>(llvm: &LLVM<'a>, index: &mut Index<'a>, data
                     name.as_ref().unwrap().as_str(),
                     DataTypeInformation::Array {
                         inner_type_name: referenced_type_name.to_string(),
-                        internal_type_information: Box::new(internal_type),
+                        inner_type_hint: Box::new(internal_type),
                         generated_type: create_nested_array_type(
                             target_type,
                             dimensions.clone(),
@@ -131,7 +130,20 @@ pub fn generate_data_type<'a>(
                     index.associate_type_initial_value(alias_name, initial_value);
                 }
             }
-            DataType::ArrayType { .. } => {}
+            DataType::ArrayType { name, .. } => {
+                if let Some(initializer) = &data_type.initializer {
+                    if let Statement::LiteralArray{ .. } = initializer {
+                        let name = name.as_ref().ok_or_else(|| CompileError::codegen_error("Expected named datatype but found none".to_string(), initializer.get_location()))?;
+                        let array_type = index.get_type_information(name)?;
+                        let generator = ExpressionCodeGenerator::new_context_free(llvm, index, Some(array_type));
+                        let (_, initial_value) = generator.generate_literal(initializer)?;
+                        index.associate_type_initial_value(name, initial_value)
+                    } else {
+                        return Err(CompileError::codegen_error(
+                            format!("Expected LiteralArray but found {:?}", initializer), initializer.get_location()));
+                    }
+                }
+            }
         }
     }
     Ok(())

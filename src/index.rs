@@ -31,7 +31,7 @@ pub enum DataTypeInformation<'ctx> {
     },
     Array {
         inner_type_name: String,
-        internal_type_information : Box<DataTypeInformation<'ctx>>,
+        inner_type_hint : Box<DataTypeInformation<'ctx>>,
         generated_type: BasicTypeEnum<'ctx>,
         dimensions : Vec<Dimension>, 
     },

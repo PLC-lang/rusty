@@ -25,18 +25,18 @@ pub fn generate_global_variable<'ctx, 'b>(
     global_variable: &Variable,
 ) -> Result<GlobalValue<'ctx>, CompileError> {
     let type_name = global_variable.data_type.get_name().unwrap(); //TODO
-    let variable_type_description = index.get_type(type_name)?;
-    let variable_type = variable_type_description.get_type().unwrap();
+    let variable_type_index_entry = index.get_type(type_name)?;
+    let variable_type = variable_type_index_entry.get_type().unwrap();
 
     let initial_value = if let Some(initializer) = &global_variable.initializer {
-        let expr_generator = ExpressionCodeGenerator::new_context_free(llvm, index, None);
+        let expr_generator = ExpressionCodeGenerator::new_context_free(llvm, index, Some(variable_type_index_entry.get_type_information().unwrap().clone()));
         let (_, value) = expr_generator.generate_expression(&initializer)?;
         //Todo cast if necessary
         Some(value)
     } else {
         None
     };
-    let initial_value = initial_value.or(variable_type_description.get_initial_value());
+    let initial_value = initial_value.or(variable_type_index_entry.get_initial_value());
     let global_ir_variable = llvm.create_global_variable(module, &global_variable.name, variable_type, initial_value);
     index.associate_global_variable(&global_variable.name, global_ir_variable.as_pointer_value());
     Ok(global_ir_variable)
