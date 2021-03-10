@@ -27,6 +27,40 @@ fn comments_are_ignored_by_the_lexer() {
     lexer.advance();
     assert_eq!(lexer.token, KeywordEndFunctionBlock, "Token : {}", lexer.slice());
     lexer.advance();
+}
+
+
+#[test]
+fn comments_are_not_ignored_in_strings() {
+    let mut lexer = lex(r#"
+        'PROGRAM (* Some Content *) END_PROGRAM 
+                                   /*
+                                    * FUNCTION */ 
+        (* Nested (*) Comment *) *)
+        /* Nested /* Comment */ */
+        //END_FUNCTION FUNCTION_BLOCK 
+        END_FUNCTION_BLOCK'
+        "#);
+    assert_eq!(lexer.token, LiteralString, "Token : {}", lexer.slice());
+    lexer.advance();
+    assert_eq!(lexer.token , End, "Token : {}", lexer.slice());
+}
+
+#[test]
+fn string_delimiter_dont_leak_out_of_comments() {
+    let mut lexer = lex(r#"
+        '(* Some Content *)'
+        (* ' *) 'xx' // '
+        ' abc // '
+        "#);
+    assert_eq!(lexer.token, LiteralString, "Token : {}", lexer.slice());
+    assert_eq!(lexer.slice(), "'(* Some Content *)'");
+    lexer.advance();
+    assert_eq!(lexer.token, LiteralString, "Token : {}", lexer.slice());
+    assert_eq!(lexer.slice(), "'xx'");
+    lexer.advance();
+    assert_eq!(lexer.token, LiteralString, "Token : {}", lexer.slice());
+    assert_eq!(lexer.slice(), "' abc // '");
 
 }
 
