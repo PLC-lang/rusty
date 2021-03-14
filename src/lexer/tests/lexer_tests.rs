@@ -11,6 +11,14 @@ fn generic_properties() {
 }
 
 #[test]
+fn windows_and_linux_line_separators_ignored() {
+    let mut lexer = lex("PROGRAM\r\nEND_PROGRAM");
+    assert_eq!(lexer.token, KeywordProgram, "Token : {}", lexer.slice());
+    lexer.advance();
+    assert_eq!(lexer.token, KeywordEndProgram, "Token : {}", lexer.slice());
+}
+
+#[test]
 fn comments_are_ignored_by_the_lexer() {
     let mut lexer = lex(r"
         PROGRAM (* Some Content *) END_PROGRAM 
