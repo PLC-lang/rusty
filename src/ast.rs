@@ -44,6 +44,7 @@ impl Debug for POU {
 pub struct Implementation {
     pub name: String,
     pub type_name: String,
+    pub linkage : LinkageType,
     pub statements: Vec<Statement>,
     pub location : SourceRange,
 }

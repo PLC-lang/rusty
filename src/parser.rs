@@ -1,5 +1,6 @@
 /// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
+use crate::ast::Implementation;
 use crate::ast::*;
 use crate::lexer;
 use crate::lexer::{Token::*,RustyLexer};
@@ -90,9 +91,17 @@ pub fn parse(mut lexer: RustyLexer ) -> Result<(CompilationUnit, NewLines), Stri
                 unit.units.push(pou);
                 unit.implementations.push(implementation);
             }
+            KeywordAction => {
+                let implementation= parse_action(&mut lexer, linkage, None)?;
+                unit.implementations.push(implementation);
+            },
+            KeywordActions => {
+                let mut actions = parse_actions(&mut lexer, linkage)?;
+                unit.implementations.append(&mut actions);
+            }
             KeywordType =>
                 unit.types.push(parse_type(&mut lexer)?),
-            End => return Ok((unit, lexer.get_new_lines().clone())),
+            KeywordEndActions |  End => return Ok((unit, lexer.get_new_lines().clone())),
             Error => return Err(unidentified_token(&lexer)),
             _ => return Err(unexpected_token(&lexer)),
         };
@@ -100,6 +109,27 @@ pub fn parse(mut lexer: RustyLexer ) -> Result<(CompilationUnit, NewLines), Stri
 
     }
     //the match in the loop will always return
+}
+
+fn parse_actions(mut lexer: &mut RustyLexer, linkage : LinkageType) -> Result<Vec<Implementation>, String> {
+    lexer.advance(); //Consume ACTIONS
+    expect!(Identifier, lexer);
+    let container = slice_and_advance(lexer);
+    let mut result = vec![];
+
+    //Go through each action
+    while lexer.token != KeywordEndActions && !is_end_of_stream(&lexer.token) {
+        match lexer.token {
+            KeywordAction =>
+                result.push(parse_action(&mut lexer, linkage, Some(&container))?),
+            Error => return Err(unidentified_token(&lexer)),
+            _ => return Err(unexpected_token(&lexer)),
+        }
+    }
+    lexer.advance(); //Consume end actions
+
+    Ok(result)
+
 }
 
 ///
@@ -113,8 +143,7 @@ pub fn parse(mut lexer: RustyLexer ) -> Result<(CompilationUnit, NewLines), Stri
 fn parse_pou(lexer: &mut RustyLexer, pou_type: PouType, linkage: LinkageType, expected_end_token: lexer::Token) -> Result<(POU, Implementation), String> {
     let line_nr = lexer.get_current_line_nr();
     lexer.advance(); //Consume ProgramKeyword
-    //let mut pou = create_pou(pou_type, linkage);
- 
+
     //Parse Identifier
     expect!(Identifier, lexer);
     let name = slice_and_advance(lexer);
@@ -136,29 +165,56 @@ fn parse_pou(lexer: &mut RustyLexer, pou_type: PouType, linkage: LinkageType, ex
             Err(msg) => return Err(msg),
         };
     }
-
-    let body_start = lexer.get_current_line_nr();
-    //Parse the statements
-    let statements = parse_body(lexer, line_nr, &|it| *it == expected_end_token)?; 
-    expect!(expected_end_token, lexer);
-    
     let pou = POU {
         name : name.clone(), 
         linkage,
         pou_type,
         variable_blocks,
         return_type,
-        location : line_nr .. body_start, 
-    };
-    let implementation = Implementation {
-        name : name.clone(),
-        type_name : name.clone(),
-        statements, 
-        location : body_start .. lexer.get_current_line_nr()
+        location : line_nr .. lexer.get_current_line_nr(), 
     };
 
-    lexer.advance();
+    let implementation = parse_implementation(lexer, linkage, line_nr, expected_end_token, &name, &name)?;
     Ok((pou, implementation))
+}
+
+fn parse_implementation(lexer : &mut RustyLexer, linkage: LinkageType, start : usize, expected_end_token: lexer::Token, call_name : &str, type_name : &str) -> Result<Implementation, String>{
+    //Parse the statements
+    let statements = parse_body(lexer, start, &|it| *it == expected_end_token)?; 
+    expect!(expected_end_token, lexer);
+
+    let implementation = Implementation {
+        name : call_name.into(),
+        type_name : type_name.into(), 
+        linkage,
+        statements, 
+        location : start .. lexer.get_current_line_nr()
+    };
+    lexer.advance();
+
+    Ok(implementation)
+}
+
+fn parse_action(lexer: &mut RustyLexer, linkage: LinkageType, container : Option<&str>) -> Result<Implementation, String> {
+    let start = lexer.get_current_line_nr();
+    lexer.advance(); //Consume the Action keyword
+    let name_or_container = slice_and_advance(lexer);
+    let (container, name) = if let Some(container) = container {
+        (container.into(),name_or_container)
+    } else {
+        expect!(KeywordDot, lexer);
+        lexer.advance();
+        expect!(Identifier, lexer);
+        let name = slice_and_advance(lexer);
+        (name_or_container,name)
+    };
+    let call_name = format!("{}.{}", &container, &name);
+
+    let implementation = parse_implementation(lexer, linkage, start, lexer::Token::KeywordEndAction, &call_name, &container)?;
+    
+    Ok(implementation)
+
+
 }
 
 // TYPE ... END_TYPE

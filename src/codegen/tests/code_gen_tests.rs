@@ -1382,7 +1382,6 @@ continue:                                         ; preds = %range_else, %case
     assert_eq!(result, expected);
 }
 
-
 #[test]
 fn function_called_in_program() {
     let result = codegen!(
@@ -1861,6 +1860,243 @@ continue:                                         ; preds = %output
   assert_eq!(result, expected);
 }
 
+#[test]
+fn action_called_in_program() {
+    let result = codegen!(
+        "
+        PROGRAM prg 
+        VAR
+            x : DINT;
+        END_VAR
+        foo();
+        END_PROGRAM
+        ACTIONS prg
+        ACTION foo
+            x := 2;
+        END_ACTION
+        "
+    );
+
+    let expected = r#"; ModuleID = 'main'
+source_filename = "main"
+
+%prg_interface = type { i32 }
+
+@prg_instance = global %prg_interface zeroinitializer
+
+define void @prg(%prg_interface* %0) {
+entry:
+  %x = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 0
+  br label %input
+
+input:                                            ; preds = %entry
+  br label %call
+
+call:                                             ; preds = %input
+  call void @prg.foo(%prg_interface* %0)
+  br label %output
+
+output:                                           ; preds = %call
+  br label %continue
+
+continue:                                         ; preds = %output
+  ret void
+}
+
+define void @prg.foo(%prg_interface* %0) {
+entry:
+  %x = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 0
+  store i32 2, i32* %x, align 4
+  ret void
+}
+"#;
+
+  assert_eq!(result, expected);
+}
+
+#[test]
+fn qualified_local_action_called_in_program() {
+    let result = codegen!(
+        "
+        PROGRAM prg 
+        VAR
+            x : DINT;
+        END_VAR
+        prg.foo();
+        END_PROGRAM
+        ACTIONS prg
+        ACTION foo
+            x := 2;
+        END_ACTION
+        "
+    );
+
+    let expected = r#"; ModuleID = 'main'
+source_filename = "main"
+
+%prg_interface = type { i32 }
+
+@prg_instance = global %prg_interface zeroinitializer
+
+define void @foo(%prg_interface* %0) {
+entry:
+  %x = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 0
+  store i32 1, i32* %x, align 4
+  ret void
+}
+
+define void @prg(%prg_interface* %0) {
+entry:
+  %x = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 0
+  br label %input
+
+input:                                            ; preds = %entry
+  br label %call
+
+call:                                             ; preds = %input
+  call void @foo(%prg_interface* %0)
+  br label %output
+
+output:                                           ; preds = %call
+  br label %continue
+
+continue:                                         ; preds = %output
+  ret void
+}
+"#;
+
+  assert_eq!(result, expected);
+}
+
+#[test]
+fn qualified_foreign_action_called_in_program() {
+    let result = codegen!(
+        "
+        PROGRAM bar
+            prg.foo();
+        END_PROGRAM
+        PROGRAM prg 
+        VAR
+            x : DINT;
+        END_VAR
+        END_PROGRAM
+        ACTIONS prg
+        ACTION foo
+            x := 2;
+        END_ACTION
+        END_ACTIONS
+        "
+    );
+
+    let expected = r#"; ModuleID = 'main'
+source_filename = "main"
+
+%bar_interface = type {}
+%prg_interface = type { i32 }
+
+@bar_instance = global %bar_interface zeroinitializer
+@prg_instance = global %prg_interface zeroinitializer
+
+define void @foo(%prg_interface* %0) {
+entry:
+  %x = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 0
+  store i32 1, i32* %x, align 4
+  ret void
+}
+
+define void @prg(%prg_interface* %0) {
+entry:
+  ret void
+}
+
+define void @bar(%bar_interface* %0) {
+entry:
+  br label %input
+
+input:                                            ; preds = %entry
+  br label %call
+
+call:                                             ; preds = %input
+  call void @foo(%prg_interface* %prg_instance)
+  br label %output
+
+output:                                           ; preds = %call
+  br label %continue
+
+continue:                                         ; preds = %output
+  ret void
+}
+"#;
+
+  assert_eq!(result, expected);
+}
+
+#[test]
+fn qualified_action_from_fb_called_in_program() {
+    let result = codegen!(
+        "
+        PROGRAM bar
+        VAR
+            myFb : fb;
+        END_VAR
+            prg.foo();
+        END_PROGRAM
+
+        FUNCTION_BLOCK fb 
+        VAR
+            x : DINT;
+        END_VAR
+        END_FUNCTION_BLOCK
+        ACTIONS prg
+        ACTION foo
+            x := 2;
+        END_ACTION
+        END_ACTIONS
+        "
+    );
+
+    let expected = r#"; ModuleID = 'main'
+source_filename = "main"
+
+%bar_interface = type { %fb_interface }
+%fb_interface = type { i32 }
+
+@bar_instance = global %bar_interface zeroinitializer
+
+define void @foo(%fb_interface* %0) {
+entry:
+  %x = getelementptr inbounds %fb_interface, %fb_interface* %0, i32 0, i32 0
+  store i32 1, i32* %x, align 4
+  ret void
+}
+
+define void @fb(%fb_interface* %0) {
+entry:
+  ret void
+}
+
+define void @bar(%bar_interface* %0) {
+entry:
+  %fb_inst = getelementptr inbounds %bar_interface, %bar_interface* %0, i32 0, i32 0
+  br label %input
+
+input:                                            ; preds = %entry
+  br label %call
+
+call:                                             ; preds = %input
+  call void @foo(%fb_interface* %fb_inst)
+  br label %output
+
+output:                                           ; preds = %call
+  br label %continue
+
+continue:                                         ; preds = %output
+  ret void
+}
+"#;
+
+  assert_eq!(result, expected);
+}
 
 #[test]
 fn program_with_two_parameters_called_in_program() {

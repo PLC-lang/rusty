@@ -43,7 +43,6 @@ pub fn visit_pou(index: &mut Index, pou: &POU){
 
     let interface_name = format!("{}_interface", &pou.name);
 
-
     if pou.pou_type == PouType::Program {
         //Associate a global variable for the program 
     let instance_name = format!("{}_instance", &pou.name);
