@@ -213,6 +213,7 @@ fn parse_leaf_expression(lexer: &mut RustyLexer) -> Result<Statement, String> {
         LiteralString => parse_literal_string(lexer), 
         LiteralTrue => parse_bool_literal(lexer, true),
         LiteralFalse => parse_bool_literal(lexer, false),
+        KeywordSquareParensOpen => parse_array_literal(lexer),
         _ => Err(unexpected_token(lexer)),
     };
 
@@ -230,6 +231,17 @@ fn parse_leaf_expression(lexer: &mut RustyLexer) -> Result<Statement, String> {
         });
     };
     current
+}
+
+fn parse_array_literal(lexer: &mut RustyLexer) -> Result<Statement, String> {
+    let start = lexer.range().start;
+    expect!(KeywordSquareParensOpen, lexer);
+    lexer.advance();
+    let elements = Some(Box::new(parse_primary_expression(lexer)?));
+    let end = lexer.range().end;
+    expect!(KeywordSquareParensClose, lexer);
+    lexer.advance();
+    Ok(Statement::LiteralArray{ elements, location: (start..end) })
 }
 
 fn parse_bool_literal(lexer: &mut RustyLexer, value: bool) -> Result<Statement, String> {

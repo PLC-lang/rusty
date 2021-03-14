@@ -218,7 +218,7 @@ fn parse_data_type_definition(lexer: &mut RustyLexer, name: Option<String>) -> R
 
         if name.is_some() {
             let initial_value = if allow(KeywordAssignment, lexer) {
-                Some(parse_initializer_statement(lexer)?)
+                Some(parse_expression(lexer)?)
             } else {
                 None
             };
@@ -231,7 +231,7 @@ fn parse_data_type_definition(lexer: &mut RustyLexer, name: Option<String>) -> R
             Ok((data_type, initial_value))
         } else {
              let initial_value = if allow(KeywordAssignment, lexer) {
-                Some(parse_initializer_statement(lexer)?)
+                Some(parse_expression(lexer)?)
             } else {
                 None
             };
@@ -244,25 +244,6 @@ fn parse_data_type_definition(lexer: &mut RustyLexer, name: Option<String>) -> R
         return Err(format!("expected datatype, struct or enum, found {:?}", lexer.token));
     }
 }
-
-fn parse_initializer_statement(lexer: &mut RustyLexer) -> Result<Statement, String> {
-    let start = lexer.range().start;
-    if allow(KeywordSquareParensOpen, lexer) {
-        // Array-initializer
-        let elements = if lexer.token != KeywordSquareParensClose {
-            Some(Box::new(parse_expression(lexer)?))
-        } else {
-            None
-        };
-        let end = lexer.range().end;
-        expect!(KeywordSquareParensClose, lexer);
-        lexer.advance();
-        Ok(Statement::LiteralArray{ elements, location: (start..end) })
-    } else {
-        Ok(parse_expression(lexer)?)
-    }
-}
-
 
 fn is_end_of_stream(token: &lexer::Token) -> bool {
     *token == End || *token == Error 

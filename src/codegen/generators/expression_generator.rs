@@ -1,5 +1,6 @@
 /// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use inkwell::{AddressSpace, FloatPredicate, IntPredicate, basic_block::BasicBlock, types::{BasicType, BasicTypeEnum}, values::{BasicValue, BasicValueEnum, IntValue, PointerValue}};
+use std::ops::Range;
 
 use crate::{ast::{Operator, Statement, flatten_expression_list}, codegen::{TypeAndPointer, TypeAndValue, typesystem}, compile_error::{CompileError}, index::{DataTypeIndexEntry, DataTypeInformation, Dimension, Index, VariableIndexEntry}};
 
@@ -792,30 +793,32 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
             }
             Statement::LiteralReal { value, .. } => self.llvm.create_const_real(self.index, &self.get_type_context(), value),
             Statement::LiteralString { value, .. } => self.llvm.create_const_string(value.as_str()),
-            Statement::LiteralArray { elements, location} => {
-                if let Some(type_info) = &self.type_hint {
-                    if let DataTypeInformation::Array{inner_type_hint , ..}  = type_info {
-                        if let Some(initializer) = elements {
-                            let inner_type_hint = inner_type_hint;
-                            let element_expression_gen = self.morph_to_typed(inner_type_hint);
-                            let mut v = Vec::new(); 
-                            for e in flatten_expression_list(initializer) {
-                                //generate with correct type hint
-                                let (_, value) = element_expression_gen.generate_literal(e)?;
-                                v.push(value.into_int_value());
-                            }
-                            let array_value = inner_type_hint.get_type().into_int_type().const_array(v.as_slice());
-                            return Ok((type_info.clone(), array_value.as_basic_value_enum())); //TODO
-                        }
-                    }
-                }
-                return Err(CompileError::casting_error("VOID", "ARRAY", location.clone()));
-            }
+            Statement::LiteralArray { elements, location} => self.generate_literal_array(elements, location),
             _ => Err(CompileError::codegen_error(
                 format!("Cannot generate Literal for {:?}", literal_statement),
                 literal_statement.get_location(),
             )),
         }
+    }
+
+    /// generates an array literal with the given optional elements (represented as an ExpressionList)
+    fn generate_literal_array(&self, elements: &Option<Box<Statement>>, location: &Range<usize>) -> Result<TypeAndValue<'a>, CompileError> {
+        if let Some(type_info) = &self.type_hint {
+            if let DataTypeInformation::Array{inner_type_hint , ..}  = type_info {
+                if let Some(initializer) = elements {
+                    let element_expression_gen = self.morph_to_typed(inner_type_hint);
+                    let mut v = Vec::new(); 
+                    for e in flatten_expression_list(initializer) {
+                        //generate with correct type hint
+                        let (_, value) = element_expression_gen.generate_literal(e)?;
+                        v.push(value.into_int_value());
+                    }
+                    let array_value = inner_type_hint.get_type().into_int_type().const_array(v.as_slice());
+                    return Ok((type_info.clone(), array_value.as_basic_value_enum())); //TODO
+                }
+            }
+        }
+        return Err(CompileError::codegen_error("Internal error when generating Array literal: unknown inner array-type.".to_string(), location.clone()));
     }
 
     /// generates a phi-expression (&& or || expression) with respect to short-circuit evaluation

@@ -257,3 +257,152 @@ fn initia_values_of_alias_type() {
         assert_eq!(5.67, maintype.z);
         assert_eq!(1.23, maintype.z_);
 }
+
+#[derive(Debug)]
+#[repr(C)]
+struct ArrayProgram {
+    a0: i8,
+    a2: i8,
+    b0: i16,
+    b2: i16,
+    c0: i32,
+    c2: i32,
+    d0: i64,
+    d2: i64,
+    e0: u8,
+    e2: u8,
+    f0: u16,
+    f2: u16,
+    g0: u64,
+    g2: u64,
+    h0: bool,
+    h2: bool,
+}
+
+#[test]
+fn initial_values_in_single_dimension_array_variable(){
+   let function = r"
+        VAR_GLOBAL 
+          a : ARRAY[0..2] OF SINT  := [1, 2, 3]; 
+          b : ARRAY[0..2] OF INT  := [4, 5, 6]; 
+          c : ARRAY[0..2] OF DINT  := [7, 8, 9]; 
+          d : ARRAY[0..2] OF LINT  := [10, 11, 12]; 
+          _e : ARRAY[0..2] OF USINT  := [13, 14, 15]; 
+          f : ARRAY[0..2] OF UINT  := [16, 17, 18]; 
+          g : ARRAY[0..2] OF ULINT := [19, 20, 21]; 
+          h : ARRAY[0..2] OF BOOL := [TRUE, FALSE, FALSE]; 
+        END_VAR
+
+        PROGRAM main
+            VAR
+                a0 : SINT;
+                a2 : SINT;
+                b0 : INT;
+                b2 : INT;
+                c0 : DINT;
+                c2 : DINT;
+                d0 : LINT;
+                d2 : LINT;
+                _e0 : USINT;
+                _e2 : USINT;
+                f0 : UINT;
+                f2 : UINT;
+                g0 : ULINT;
+                g2 : ULINT;
+                h0 : BOOL;
+                h2 : BOOL;
+            END_VAR
+            a0 := a[0]; a2 := a[2];
+            b0 := b[0]; b2 := b[2];
+            c0 := c[0]; c2 := c[2];
+            d0 := d[0]; d2 := d[2];
+            _e0 := _e[0]; _e2 := _e[2];
+            f0 := f[0]; f2 := f[2];
+            g0 := g[0]; g2 := g[2];
+            h0 := h[0]; h2 := h[2];
+        END_PROGRAM";
+
+
+    let mut maintype : ArrayProgram = ArrayProgram{
+    a0: 0,
+    a2: 0,
+    b0: 0,
+    b2: 0,
+    c0: 0,
+    c2: 0,
+    d0: 0,
+    d2: 0,
+    e0: 0,
+    e2: 0,
+    f0: 0,
+    f2: 0,
+    g0: 0,
+    g2: 0,
+    h0: false,
+    h2: true,
+    };
+
+    compile_and_run(function.to_string(), &mut maintype);
+    assert_eq!(1, maintype.a0);
+    assert_eq!(3, maintype.a2);
+    assert_eq!(4, maintype.b0);
+    assert_eq!(6, maintype.b2);
+    assert_eq!(7, maintype.c0);
+    assert_eq!(9, maintype.c2);
+    assert_eq!(10, maintype.d0);
+    assert_eq!(12, maintype.d2);
+    assert_eq!(13, maintype.e0);
+    assert_eq!(15, maintype.e2);
+    assert_eq!(16, maintype.f0);
+    assert_eq!(18, maintype.f2);
+    assert_eq!(19, maintype.g0);
+    assert_eq!(21, maintype.g2);
+    assert_eq!(true, maintype.h0);
+    assert_eq!(false, maintype.h2);
+}
+
+#[derive(Debug)]
+#[repr(C)]
+struct MultiDimArrayProgram {
+    a0: i8,
+    a1: i8,
+    a2: i8,
+    a3: i8,
+}
+
+#[test]
+fn initial_values_in_multi_dimension_array_variable(){
+   let function = r"
+        VAR_GLOBAL 
+          a : ARRAY[0..1, 3..4] OF SINT  := [1, 2, 3, 4]; 
+        END_VAR
+
+        PROGRAM main
+            VAR
+                a0 : SINT;
+                a1 : SINT;
+                a2 : SINT;
+                a3 : SINT;
+            END_VAR 
+            
+            a0 := a[0,3];
+            a1 := a[0,4];
+            a2 := a[1,3];
+            a3 := a[1,4];
+        END_PROGRAM";
+
+    let mut maintype : MultiDimArrayProgram = MultiDimArrayProgram{
+    a0: 0,
+    a1: 0,
+    a2: 0,
+    a3: 0,
+    };
+
+    compile_and_run(function.to_string(), &mut maintype);
+    assert_eq!(1, maintype.a0);
+    assert_eq!(2, maintype.a1);
+    assert_eq!(3, maintype.a2);
+    assert_eq!(4, maintype.a3);
+}
+
+

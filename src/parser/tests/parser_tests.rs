@@ -1006,9 +1006,76 @@ r#"Variable {
     ),
 }"#;
     assert_eq!(expected, format!("{:#?}", x).as_str());
+}
 
-
-
-
-
+#[test]
+fn multi_dim_array_initializer_can_be_parsed(){
+    let lexer = lexer::lex(
+            "
+            VAR_GLOBAL
+                x : MyMultiArray := [[1,2],[3,4],[5,6]];
+            END_VAR
+           ");
+    let (parse_result, _) = parse(lexer).unwrap();
+    let x = &parse_result.global_vars[0].variables[0];
+    let expected = 
+r#"Variable {
+    name: "x",
+    data_type: DataTypeReference {
+        referenced_type: "MyMultiArray",
+    },
+    initializer: Some(
+        LiteralArray {
+            elements: Some(
+                ExpressionList {
+                    expressions: [
+                        LiteralArray {
+                            elements: Some(
+                                ExpressionList {
+                                    expressions: [
+                                        LiteralInteger {
+                                            value: "1",
+                                        },
+                                        LiteralInteger {
+                                            value: "2",
+                                        },
+                                    ],
+                                },
+                            ),
+                        },
+                        LiteralArray {
+                            elements: Some(
+                                ExpressionList {
+                                    expressions: [
+                                        LiteralInteger {
+                                            value: "3",
+                                        },
+                                        LiteralInteger {
+                                            value: "4",
+                                        },
+                                    ],
+                                },
+                            ),
+                        },
+                        LiteralArray {
+                            elements: Some(
+                                ExpressionList {
+                                    expressions: [
+                                        LiteralInteger {
+                                            value: "5",
+                                        },
+                                        LiteralInteger {
+                                            value: "6",
+                                        },
+                                    ],
+                                },
+                            ),
+                        },
+                    ],
+                },
+            ),
+        },
+    ),
+}"#;
+    assert_eq!(expected, format!("{:#?}", x).as_str());
 }

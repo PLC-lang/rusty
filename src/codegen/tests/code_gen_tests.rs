@@ -3105,3 +3105,22 @@ source_filename = "main"
 
   assert_eq!(result, expected); 
 }
+
+#[test]
+fn initial_values_in_multi_dimension_array_variable(){
+    let result = codegen!(
+         "
+         VAR_GLOBAL 
+           a : ARRAY[0..1, 0..1] OF BYTE  := [1,2,3,4]; 
+         END_VAR
+         "
+     );
+
+  let expected = r#"; ModuleID = 'main'
+source_filename = "main"
+
+@a = global [2 x [2 x i8]] c"\01\02\03\04"
+"#;
+ 
+  assert_eq!(result, expected); 
+}
