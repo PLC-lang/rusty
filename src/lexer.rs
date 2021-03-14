@@ -108,6 +108,7 @@ pub enum Token {
     #[regex(r"\(\*", |lex| parse_comments(lex))]
     #[regex(r"/\*", |lex| parse_comments(lex))]
     #[regex(r"//.*", logos::skip)]
+    #[regex(r"(?m)\r", logos::skip)]
     Error,
 
     
