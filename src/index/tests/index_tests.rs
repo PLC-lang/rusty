@@ -52,6 +52,30 @@ fn program_is_indexed() {
 }
 
 #[test]
+fn actions_are_indexed() {
+    let index = index!(
+        r#"
+        PROGRAM myProgram
+        END_PROGRAM
+        ACTIONS myProgram
+            ACTION foo
+            END_ACTION
+        END_ACTIONS
+        ACTION myProgram.bar
+        END_ACTION
+    "#
+    );
+
+    let foo = index.find_implementation("myProgram.foo").unwrap();
+    assert_eq!("myProgram.foo",foo.call_name);
+    assert_eq!("myProgram",foo.type_name);
+    
+    let bar = index.find_implementation("myProgram.bar").unwrap();
+    assert_eq!("myProgram.bar",bar.call_name);
+    assert_eq!("myProgram",bar.type_name);
+}
+
+#[test]
 fn function_is_indexed() {
     let index = index!(
         r#"
