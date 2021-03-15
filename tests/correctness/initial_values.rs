@@ -406,3 +406,68 @@ fn initial_values_in_multi_dimension_array_variable(){
 }
 
 
+#[derive(Debug)]
+#[repr(C)]
+struct ArrayOfArrayProgram {
+    a1: i8,
+    a2: i8,
+    a3: i8,
+    a4: i8,
+    a5: i8,
+    a6: i8,
+    a7: i8,
+    a8: i8,
+}
+
+
+#[test]
+fn initial_values_in_array_of_array_variable(){
+   let function = r"
+        VAR_GLOBAL 
+          a : ARRAY[0..1] OF ARRAY[0..1] OF ARRAY[0..1] OF SINT  := [[[1, 2], [3, 4]], [[5, 6], [7, 8]]]; 
+        END_VAR
+
+        PROGRAM main
+            VAR
+                a1 : SINT;
+                a2 : SINT;
+                a3 : SINT;
+                a4 : SINT;
+                a5 : SINT;
+                a6 : SINT;
+                a7 : SINT;
+                a8 : SINT;
+            END_VAR 
+            
+            a1 := a[0][0][0];
+            a2 := a[0][0][1];
+            a3 := a[0][1][0];
+            a4 := a[0][1][1];
+            a5 := a[1][0][0];
+            a6 := a[1][0][1];
+            a7 := a[1][1][0];
+            a8 := a[1][1][1];
+        END_PROGRAM";
+
+    let mut maintype :ArrayOfArrayProgram = ArrayOfArrayProgram{
+        a1: 0,
+        a2: 0,
+        a3: 0,
+        a4: 0,
+        a5: 0,
+        a6: 0,
+        a7: 0,
+        a8: 0,
+    };
+
+    compile_and_run(function.to_string(), &mut maintype);
+    assert_eq!(1, maintype.a1);
+    assert_eq!(2, maintype.a2);
+    assert_eq!(3, maintype.a3);
+    assert_eq!(4, maintype.a4);
+    assert_eq!(5, maintype.a5);
+    assert_eq!(6, maintype.a6);
+    assert_eq!(7, maintype.a7);
+    assert_eq!(8, maintype.a8);
+}
+
