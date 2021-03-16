@@ -471,3 +471,49 @@ fn initial_values_in_array_of_array_variable(){
     assert_eq!(8, maintype.a8);
 }
 
+#[derive(Debug)]
+#[repr(C)]
+struct RealsAndFloats {
+    f1: f32,
+    f2: f32,
+    r1: f64,
+    r2: f64,
+}
+
+
+#[test]
+fn real_initial_values_in_array_variable(){
+   let function = r"
+        VAR_GLOBAL 
+            f : ARRAY[0..1] OF REAL := [3.1415, 0.001];
+            r : ARRAY[0..1] OF LREAL := [3.141592653589, 0.000000001];
+        END_VAR
+
+        PROGRAM main
+            VAR
+                f1 : REAL;
+                f2 : REAL;
+                r1 : LREAL;
+                r2 : LREAL;
+            END_VAR 
+            
+            f1 := f[0];
+            f2 := f[1];
+            r1 := r[0];
+            r2 := r[1];
+        END_PROGRAM";
+
+    let mut maintype = RealsAndFloats {
+        f1: 0.0,
+        f2: 0.0,
+        r1: 0.0,
+        r2: 0.0,
+    };
+
+    compile_and_run(function.to_string(), &mut maintype);
+    assert_eq!(3.1415, maintype.f1);
+    assert_eq!(0.001, maintype.f2);
+    assert_eq!(3.141592653589, maintype.r1);
+    assert_eq!(0.000000001, maintype.r2);
+}
+
