@@ -40,7 +40,6 @@ pub fn generate_data_type_stubs<'a>(llvm: &LLVM<'a>, index: &mut Index<'a>, data
             DataType::SubRangeType {
                 name,
                 referenced_type: type_ref_name,
-                // initializer: _,
             } => {
                 let alias_name = name.as_ref().unwrap();
                 index.associate_type(
