@@ -1,5 +1,5 @@
 /// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-use std::{fmt::{Debug, Display, Formatter, Result}, unimplemented};
+use std::{fmt::{Debug, Display, Formatter, Result}, iter, unimplemented};
 
 #[derive(PartialEq)]
 pub struct POU {
@@ -328,6 +328,11 @@ pub enum Statement {
         elements: Option<Box<Statement>>,    // expression-list
         location: SourceRange,
     },
+    MultipliedStatement {
+        multiplier: u32,
+        element: Box<Statement>,
+        location: SourceRange,
+    },
     // Expressions
     QualifiedReference {
         elements: Vec<Statement>
@@ -534,6 +539,14 @@ impl Debug for Statement {
                 .field("reference", reference)
                 .field("access", access)
                 .finish(),
+            Statement::MultipliedStatement { 
+                multiplier, 
+                element, ..
+            } => f
+                .debug_struct("MultipliedStatement")
+                .field("multiplier", multiplier)
+                .field("element", element)
+                .finish(),
         }
     }
 }
@@ -586,6 +599,7 @@ impl Statement {
             Statement::ArrayAccess { reference, access } => {
                 reference.get_location().start..access.get_location().end
             }
+            Statement::MultipliedStatement { location, ..} => location.clone(),
         }
     }
 }
@@ -623,9 +637,19 @@ impl Display for Operator {
     }
 }
 
+/// flattens expression-lists and MultipliedStatements into a vec of statements.
+/// It can also handle nested structures like 2(3(4,5))
 pub fn flatten_expression_list(condition: &Statement) -> Vec<&Statement> {
     match condition {
-        Statement::ExpressionList{ expressions} => expressions.iter().by_ref().collect(),
+        Statement::ExpressionList { expressions} => 
+            expressions.iter().by_ref()
+                .flat_map(|statement| flatten_expression_list(statement))
+                .collect(),
+        Statement::MultipliedStatement { multiplier, element, ..} => 
+            iter::repeat(flatten_expression_list(element))
+                .take(*multiplier as usize)
+                .flatten()
+                .collect(),
         _ => vec![condition]
     }
 }

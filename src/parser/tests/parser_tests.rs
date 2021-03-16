@@ -1079,3 +1079,48 @@ r#"Variable {
 }"#;
     assert_eq!(expected, format!("{:#?}", x).as_str());
 }
+
+#[test]
+fn array_initializer_multiplier_can_be_parsed(){
+    let lexer = lexer::lex(
+            "
+            VAR_GLOBAL
+                x : ARRAY[0..2] OF INT := [3(7)];
+            END_VAR
+           ");
+    let (parse_result, _) = parse(lexer).unwrap();
+    let x = &parse_result.global_vars[0].variables[0];
+    let expected = 
+r#"Variable {
+    name: "x",
+    data_type: DataTypeDefinition {
+        data_type: ArrayType {
+            name: None,
+            bounds: RangeStatement {
+                start: LiteralInteger {
+                    value: "0",
+                },
+                end: LiteralInteger {
+                    value: "2",
+                },
+            },
+            referenced_type: DataTypeReference {
+                referenced_type: "INT",
+            },
+        },
+    },
+    initializer: Some(
+        LiteralArray {
+            elements: Some(
+                MultipliedStatement {
+                    multiplier: 3,
+                    element: LiteralInteger {
+                        value: "7",
+                    },
+                },
+            ),
+        },
+    ),
+}"#;
+    assert_eq!(expected, format!("{:#?}", x).as_str());
+}

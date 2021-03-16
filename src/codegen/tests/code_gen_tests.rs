@@ -3143,3 +3143,28 @@ source_filename = "main"
  
   assert_eq!(result, expected); 
 }
+
+#[test]
+fn initial_values_in_array_variable_using_multiplied_statement(){
+    let result = codegen!(
+         "
+         VAR_GLOBAL 
+           a : ARRAY[0..3] OF BYTE  := [4(7)]; 
+           b : ARRAY[0..3] OF BYTE  := [2, 2(7), 3]; 
+           c : ARRAY[0..9] OF BYTE  := [5(0,1)]; 
+           d : ARRAY[0..9] OF BYTE  := [2(2(0), 2(1), 2)]; 
+         END_VAR
+         "
+     );
+
+  let expected = r#"; ModuleID = 'main'
+source_filename = "main"
+
+@a = global [4 x i8] c"\07\07\07\07"
+@b = global [4 x i8] c"\02\07\07\03"
+@c = global [10 x i8] c"\00\01\00\01\00\01\00\01\00\01"
+@d = global [10 x i8] c"\00\00\01\01\02\00\00\01\01\02"
+"#;
+ 
+  assert_eq!(result, expected); 
+}

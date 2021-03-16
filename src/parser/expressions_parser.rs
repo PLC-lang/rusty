@@ -1,10 +1,10 @@
 /// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
-use crate::ast::*;
+use crate::{ast::*};
 use crate::expect;
 use crate::lexer::Token::*;
 
-use super::allow;
+use super::{allow};
 use super::RustyLexer;
 use super::{slice_and_advance, unexpected_token};
 
@@ -307,6 +307,13 @@ fn parse_literal_number(lexer: &mut RustyLexer) -> Result<Statement, String> {
     let result = slice_and_advance(lexer);
     if allow(KeywordDot, lexer) {
         return parse_literal_real(lexer, result, location);
+    } else if allow(KeywordParensOpen, lexer) {
+        let multiplier = result.parse::<u32>().map_err(|e| format!("{}", e))?;
+        let element = parse_primary_expression(lexer)?;
+        expect!(KeywordParensClose, lexer);
+        let end = lexer.range().end;
+        lexer.advance();
+        return Ok(Statement::MultipliedStatement { multiplier, element: Box::new(element), location: location.start..end});
     }
 
     Ok(Statement::LiteralInteger { value: result, location })
