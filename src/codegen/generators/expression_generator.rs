@@ -218,7 +218,11 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
             },
             Statement::QualifiedReference { .. } => {
                 let loaded_value = self.generate_load_for(operator);
-                loaded_value.map(|TypeAndPointer{type_entry, ptr_value}| Ok((ptr_value, type_entry)))?
+                if let Ok(TypeAndPointer{type_entry, ptr_value}) = loaded_value {
+                    Ok((ptr_value, type_entry))
+                } else {
+                    Err(CompileError::CodeGenError{ message: format!("cannot generate call statement for {:?}", operator), location: operator.get_location().clone() })
+                }
             },
             _ => Err(CompileError::CodeGenError{ message: format!("cannot generate call statement for {:?}", operator), location: operator.get_location().clone() }),
         };
