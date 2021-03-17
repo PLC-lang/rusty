@@ -2179,6 +2179,71 @@ continue:                                         ; preds = %output
 }
 
 #[test]
+fn function_block_qualified_instance_call() {
+  let result = codegen!(
+      "
+        FUNCTION_BLOCK foo
+        VAR
+          bar_inst : bar;
+        END_VAR
+        END_FUNCTION_BLOCK
+
+        FUNCTION_BLOCK bar
+        END_FUNCTION_BLOCK
+
+        PROGRAM prg
+        VAR
+          foo_inst : foo;
+        END_VAR
+          foo_inst.bar_inst();
+        END_PROGRAM
+      ");
+
+    let expected = r#"; ModuleID = 'main'
+source_filename = "main"
+
+%prg_interface = type { %foo_interface }
+%foo_interface = type { %bar_interface }
+%bar_interface = type {}
+
+@prg_instance = global %prg_interface zeroinitializer
+
+define void @foo(%foo_interface* %0) {
+entry:
+  %bar_inst = getelementptr inbounds %foo_interface, %foo_interface* %0, i32 0, i32 0
+  ret void
+}
+
+define void @bar(%bar_interface* %0) {
+entry:
+  ret void
+}
+
+define void @prg(%prg_interface* %0) {
+entry:
+  %foo_inst = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 0
+  %bar_inst = getelementptr inbounds %foo_interface, %foo_interface* %foo_inst, i32 0, i32 0
+  br label %input
+
+input:                                            ; preds = %entry
+  br label %call
+
+call:                                             ; preds = %input
+  call void @bar(%bar_interface* %bar_inst)
+  br label %output
+
+output:                                           ; preds = %call
+  br label %continue
+
+continue:                                         ; preds = %output
+  ret void
+}
+"#;
+
+  assert_eq!(result, expected);
+}
+
+#[test]
 fn reference_qualified_name() {
   let result = codegen!(
         "
