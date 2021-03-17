@@ -1,7 +1,8 @@
 /// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-use inkwell::{AddressSpace, FloatPredicate, IntPredicate, basic_block::BasicBlock, types::{BasicType, BasicTypeEnum}, values::{BasicValue, BasicValueEnum, IntValue, PointerValue}};
+use inkwell::{AddressSpace, FloatPredicate, IntPredicate, basic_block::BasicBlock, types::{BasicType, BasicTypeEnum}, values::{ArrayValue, BasicValue, BasicValueEnum, FloatValue, IntValue, PointerValue, StructValue, VectorValue}};
+use std::ops::Range;
 
-use crate::{ast::{Operator, Statement}, codegen::{TypeAndPointer, TypeAndValue, typesystem}, compile_error::{CompileError}, index::{DataTypeIndexEntry, DataTypeInformation, Dimension, Index, VariableIndexEntry}};
+use crate::{ast::{Operator, Statement, flatten_expression_list}, codegen::{TypeAndPointer, TypeAndValue, typesystem}, compile_error::{CompileError}, index::{DataTypeIndexEntry, DataTypeInformation, Dimension, Index, VariableIndexEntry}};
 
 use super::{llvm::LLVM, statement_generator::FunctionContext, struct_generator};
 
@@ -10,7 +11,7 @@ pub struct ExpressionCodeGenerator<'a, 'b> {
     llvm: &'b LLVM<'a>,
     index: &'b Index<'a>,
     /// an optional type hint for generating literals
-    type_hint: Option<BasicTypeEnum<'a>>,
+    type_hint: Option<DataTypeInformation<'a>>,
     /// the current function to create blocks in
     function_context: Option<&'b FunctionContext<'a>>,
 
@@ -31,7 +32,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
     pub fn new(
         llvm: &'b LLVM<'a>,
         index: &'b Index<'a>,
-        type_hint: Option<BasicTypeEnum<'a>>,
+        type_hint: Option<DataTypeInformation<'a>>,
         function_context: &'b FunctionContext<'a>,
     ) -> ExpressionCodeGenerator<'a, 'b> {
         ExpressionCodeGenerator {
@@ -54,7 +55,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
     pub fn new_context_free(
         llvm: &'b LLVM<'a>,
         index: &'b Index<'a>,
-        type_hint: Option<BasicTypeEnum<'a>>,
+        type_hint: Option<DataTypeInformation<'a>>,
     ) -> ExpressionCodeGenerator<'a, 'b> {
         ExpressionCodeGenerator {
             llvm,
@@ -66,10 +67,26 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
         }
     }
 
+    pub fn morph_to_typed(&self, type_hint: &DataTypeInformation<'a>) -> ExpressionCodeGenerator<'a, 'b> {
+        ExpressionCodeGenerator {
+            llvm: self.llvm,
+            index: self.index,
+            type_hint: Some(type_hint.clone()),
+            function_context: self.function_context ,
+            temp_variable_prefix: self.temp_variable_prefix.clone(),
+            temp_variable_suffix: self.temp_variable_suffix.clone(),
+        }
+    }
+
     /// returns the function context or returns a Compile-Error
     fn get_function_context(&self, statement: &Statement) -> Result<&FunctionContext, CompileError> {
         self.function_context.ok_or_else(||
             CompileError::missing_function(statement.get_location()))
+    }
+
+    /// returns an option with the current type_hint as a BasicTypeEnum
+    fn get_type_context(&self) -> Option<BasicTypeEnum<'a>> {
+        self.type_hint.as_ref().and_then(|it| Some(it.get_type()))
     }
 
     /// generates the given expression and returns a TypeAndValue as a result of the
@@ -772,15 +789,65 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
         match literal_statement {
             Statement::LiteralBool { value, .. } => self.llvm.create_const_bool(self.index, *value),
             Statement::LiteralInteger { value, .. } => {
-                self.llvm.create_const_int(self.index, &self.type_hint, value)
+                self.llvm.create_const_int(self.index, &self.get_type_context(), value)
             }
-            Statement::LiteralReal { value, .. } => self.llvm.create_const_real(self.index, &self.type_hint, value),
+            Statement::LiteralReal { value, .. } => self.llvm.create_const_real(self.index, &self.get_type_context(), value),
             Statement::LiteralString { value, .. } => self.llvm.create_const_string(value.as_str()),
+            Statement::LiteralArray { elements, location} => self.generate_literal_array(elements, location),
             _ => Err(CompileError::codegen_error(
                 format!("Cannot generate Literal for {:?}", literal_statement),
                 literal_statement.get_location(),
             )),
         }
+    }
+
+    /// generates an array literal with the given optional elements (represented as an ExpressionList)
+    fn generate_literal_array(&self, elements: &Option<Box<Statement>>, location: &Range<usize>) -> Result<TypeAndValue<'a>, CompileError> {
+        if let Some(type_info) = &self.type_hint {
+            if let DataTypeInformation::Array{inner_type_hint , ..}  = type_info {
+                if let Some(initializer) = elements {
+                    let array_value = self.generate_literal_array_value(
+                        flatten_expression_list(initializer), 
+                        inner_type_hint)?;
+                    return Ok((type_info.clone(), array_value.as_basic_value_enum()));
+                }
+            }
+        }
+        return Err(CompileError::codegen_error("Internal error when generating Array literal: unknown inner array-type.".to_string(), location.clone()));
+    }
+
+    /// constructs an ArrayValue (returned as a BasicValueEnum) of the given element-literals constructing an array-value of the
+    /// type described by inner_array_type.
+    ///
+    /// passing an epxression-lists with LiteralIntegers and inner_array_type is INT-description will return an
+    /// i16-array-value
+    fn generate_literal_array_value(&self, elements: Vec<&Statement>, inner_array_type: &DataTypeInformation<'a>) -> Result<BasicValueEnum<'a>, CompileError> {
+        let element_expression_gen = self.morph_to_typed(inner_array_type);
+        let llvm_type = inner_array_type.get_type();
+        
+        let mut v = Vec::new();
+        for e in elements {
+            //generate with correct type hint
+            let (_, value) = element_expression_gen.generate_literal(e)?;
+            v.push(value.as_basic_value_enum());
+        }
+
+        //TODO Validation: fail with compile-error if value cannot be converted into... correctly
+        let array_value = match llvm_type {
+            BasicTypeEnum::ArrayType(_) => 
+                llvm_type.into_array_type().const_array(v.iter().map(|it| it.into_array_value()).collect::<Vec<ArrayValue>>().as_slice()),
+            BasicTypeEnum::FloatType(_) => 
+                llvm_type.into_float_type().const_array(v.iter().map(|it| it.into_float_value()).collect::<Vec<FloatValue>>().as_slice()),
+            BasicTypeEnum::IntType(_) => 
+                llvm_type.into_int_type().const_array(v.iter().map(|it| it.into_int_value()).collect::<Vec<IntValue>>().as_slice()),
+            BasicTypeEnum::PointerType(_) =>
+                llvm_type.into_pointer_type().const_array(v.iter().map(|it| it.into_pointer_value()).collect::<Vec<PointerValue>>().as_slice()),
+            BasicTypeEnum::StructType(_) => 
+                llvm_type.into_struct_type().const_array(v.iter().map(|it| it.into_struct_value()).collect::<Vec<StructValue>>().as_slice()),
+            BasicTypeEnum::VectorType(_) => 
+                llvm_type.into_vector_type().const_array(v.iter().map(|it| it.into_vector_value()).collect::<Vec<VectorValue>>().as_slice()),
+        };
+        Ok(array_value.as_basic_value_enum())
     }
 
     /// generates a phi-expression (&& or || expression) with respect to short-circuit evaluation

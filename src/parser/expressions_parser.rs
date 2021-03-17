@@ -1,10 +1,10 @@
 /// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
-use crate::ast::*;
+use crate::{ast::*};
 use crate::expect;
 use crate::lexer::Token::*;
 
-use super::allow;
+use super::{allow};
 use super::RustyLexer;
 use super::{slice_and_advance, unexpected_token};
 
@@ -213,6 +213,7 @@ fn parse_leaf_expression(lexer: &mut RustyLexer) -> Result<Statement, String> {
         LiteralString => parse_literal_string(lexer), 
         LiteralTrue => parse_bool_literal(lexer, true),
         LiteralFalse => parse_bool_literal(lexer, false),
+        KeywordSquareParensOpen => parse_array_literal(lexer),
         _ => Err(unexpected_token(lexer)),
     };
 
@@ -230,6 +231,17 @@ fn parse_leaf_expression(lexer: &mut RustyLexer) -> Result<Statement, String> {
         });
     };
     current
+}
+
+fn parse_array_literal(lexer: &mut RustyLexer) -> Result<Statement, String> {
+    let start = lexer.range().start;
+    expect!(KeywordSquareParensOpen, lexer);
+    lexer.advance();
+    let elements = Some(Box::new(parse_primary_expression(lexer)?));
+    let end = lexer.range().end;
+    expect!(KeywordSquareParensClose, lexer);
+    lexer.advance();
+    Ok(Statement::LiteralArray{ elements, location: (start..end) })
 }
 
 fn parse_bool_literal(lexer: &mut RustyLexer, value: bool) -> Result<Statement, String> {
@@ -295,6 +307,13 @@ fn parse_literal_number(lexer: &mut RustyLexer) -> Result<Statement, String> {
     let result = slice_and_advance(lexer);
     if allow(KeywordDot, lexer) {
         return parse_literal_real(lexer, result, location);
+    } else if allow(KeywordParensOpen, lexer) {
+        let multiplier = result.parse::<u32>().map_err(|e| format!("{}", e))?;
+        let element = parse_primary_expression(lexer)?;
+        expect!(KeywordParensClose, lexer);
+        let end = lexer.range().end;
+        lexer.advance();
+        return Ok(Statement::MultipliedStatement { multiplier, element: Box::new(element), location: location.start..end});
     }
 
     Ok(Statement::LiteralInteger { value: result, location })

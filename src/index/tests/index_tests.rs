@@ -261,7 +261,7 @@ fn pre_processing_generates_inline_enums_global() {
 
     //ENUM
     // THEN an implicit datatype should have been generated for the enum
-    let new_enum_type = &ast.types[0];
+    let new_enum_type = &ast.types[0].data_type;
     assert_eq!(
         &DataType::EnumType {
             name: Some("__global_inline_enum".to_string()),
@@ -307,7 +307,7 @@ fn pre_processing_generates_inline_structs_global() {
 
     //STRUCT
     //THEN an implicit datatype should have been generated for the struct
-    let new_struct_type = &ast.types[0];
+    let new_struct_type = &ast.types[0].data_type;
     assert_eq!(
         &DataType::StructType {
             name: Some("__global_inline_struct".to_string()),
@@ -353,7 +353,7 @@ fn pre_processing_generates_inline_enums() {
 
     //ENUM
     // THEN an implicit datatype should have been generated for the enum
-    let new_enum_type = &ast.types[0];
+    let new_enum_type = &ast.types[0].data_type;
     assert_eq!(
         &DataType::EnumType {
             name: Some("__foo_inline_enum".to_string()),
@@ -392,7 +392,7 @@ fn pre_processing_generates_inline_structs() {
 
     //STRUCT
     //THEN an implicit datatype should have been generated for the struct
-    let new_struct_type = &ast.types[0];
+    let new_struct_type = &ast.types[0].data_type;
     assert_eq!(
         &DataType::StructType {
             name: Some("__foo_inline_struct".to_string()),
@@ -441,8 +441,8 @@ fn pre_processing_generates_inline_arrays() {
     //THEN an implicit datatype should have been generated for the array
     let new_array_type = &ast.types[0];
     
-    let expected = 
-        &DataType::ArrayType {
+    let expected = &UserTypeDeclaration {
+        data_type: DataType::ArrayType {
             name: Some("__foo_inline_array".to_string()),
             bounds: Statement::RangeStatement{
                 start: Box::new(Statement::LiteralInteger { value: "0".to_string(), location:0..0}),
@@ -451,7 +451,9 @@ fn pre_processing_generates_inline_arrays() {
             referenced_type: Box::new(DataTypeDeclaration::DataTypeReference{
                 referenced_type: "INT".to_string(),
             }),
-        };
+        },
+        initializer: None
+    };
     assert_eq!(
         format!("{:?}", expected),
         format!("{:?}", new_array_type)
@@ -491,8 +493,8 @@ fn pre_processing_generates_inline_array_of_array() {
 
     // ARRAY OF INT
     let new_array_type = &ast.types[0];
-    let expected = 
-        &DataType::ArrayType {
+    let expected = &UserTypeDeclaration {
+        data_type: DataType::ArrayType {
             name: Some("__foo_inline_array_".to_string()),
             bounds: Statement::RangeStatement{
                 start: Box::new(Statement::LiteralInteger { value: "0".to_string(), location:0..0}),
@@ -501,6 +503,8 @@ fn pre_processing_generates_inline_array_of_array() {
             referenced_type: Box::new(DataTypeDeclaration::DataTypeReference{
                 referenced_type: "INT".to_string(),
             }),
+        }, 
+        initializer: None,
         };
     assert_eq!(
         format!("{:?}", expected),
@@ -509,8 +513,8 @@ fn pre_processing_generates_inline_array_of_array() {
 
     // ARRAY OF ARRAY
     let new_array_type = &ast.types[1];
-    let expected = 
-        &DataType::ArrayType {
+    let expected = &UserTypeDeclaration{
+        data_type: DataType::ArrayType {
             name: Some("__foo_inline_array".to_string()),
             bounds: Statement::RangeStatement{
                 start: Box::new(Statement::LiteralInteger { value: "0".to_string(), location:0..0}),
@@ -519,7 +523,9 @@ fn pre_processing_generates_inline_array_of_array() {
             referenced_type: Box::new(DataTypeDeclaration::DataTypeReference{
                 referenced_type: "__foo_inline_array_".to_string(),
             }),
-        };
+        },
+        initializer: None,
+    };
     assert_eq!(
         format!("{:?}", expected),
         format!("{:?}", new_array_type)
@@ -564,8 +570,8 @@ fn pre_processing_nested_array_in_struct() {
 
     // Struct Type 
     let new_array_type = &ast.types[0];
-    let expected = 
-        &DataType::StructType {
+    let expected = &UserTypeDeclaration{
+        data_type: DataType::StructType {
             name: Some("MyStruct".to_string()),
             variables: vec![
                 Variable {
@@ -575,7 +581,9 @@ fn pre_processing_nested_array_in_struct() {
                     initializer: None,
                 }
             ],
-        };
+        },
+        initializer: None
+    };
     assert_eq!(
         format!("{:?}", expected),
         format!("{:?}", new_array_type)
@@ -583,8 +591,8 @@ fn pre_processing_nested_array_in_struct() {
 
 // ARRAY OF INT
     let new_array_type = &ast.types[1];
-    let expected = 
-        &DataType::ArrayType {
+    let expected = &UserTypeDeclaration {
+        data_type: DataType::ArrayType {
             name: Some("__MyStruct_field1".to_string()),
             bounds: Statement::RangeStatement{
                 start: Box::new(Statement::LiteralInteger { value: "0".to_string(), location:0..0}),
@@ -593,7 +601,9 @@ fn pre_processing_nested_array_in_struct() {
             referenced_type: Box::new(DataTypeDeclaration::DataTypeReference{
                 referenced_type: "INT".to_string(),
             }),
-        };
+        },
+        initializer: None,
+    };
     assert_eq!(
         format!("{:?}", expected),
         format!("{:?}", new_array_type)
@@ -625,8 +635,8 @@ fn pre_processing_generates_inline_array_of_array_of_array() {
 
     // ARRAY OF INT
     let new_array_type = &ast.types[0];
-    let expected = 
-        &DataType::ArrayType {
+    let expected = &UserTypeDeclaration{
+        data_type: DataType::ArrayType {
             name: Some("__foo_inline_array__".to_string()),
             bounds: Statement::RangeStatement{
                 start: Box::new(Statement::LiteralInteger { value: "0".to_string(), location:0..0}),
@@ -635,7 +645,9 @@ fn pre_processing_generates_inline_array_of_array_of_array() {
             referenced_type: Box::new(DataTypeDeclaration::DataTypeReference{
                 referenced_type: "INT".to_string(),
             }),
-        };
+        },
+        initializer: None,
+    };
     assert_eq!(
         format!("{:?}", expected),
         format!("{:?}", new_array_type)
@@ -643,8 +655,8 @@ fn pre_processing_generates_inline_array_of_array_of_array() {
 
     // ARRAY OF ARRAY
     let new_array_type = &ast.types[1];
-    let expected = 
-        &DataType::ArrayType {
+    let expected = UserTypeDeclaration {
+        data_type: DataType::ArrayType {
             name: Some("__foo_inline_array_".to_string()),
             bounds: Statement::RangeStatement{
                 start: Box::new(Statement::LiteralInteger { value: "0".to_string(), location:0..0}),
@@ -653,7 +665,9 @@ fn pre_processing_generates_inline_array_of_array_of_array() {
             referenced_type: Box::new(DataTypeDeclaration::DataTypeReference{
                 referenced_type: "__foo_inline_array__".to_string(),
             }),
-        };
+        },
+        initializer: None
+    };
     assert_eq!(
         format!("{:?}", expected),
         format!("{:?}", new_array_type)
@@ -661,8 +675,8 @@ fn pre_processing_generates_inline_array_of_array_of_array() {
 
     // ARRAY OF ARRAY
     let new_array_type = &ast.types[2];
-    let expected = 
-        &DataType::ArrayType {
+    let expected = UserTypeDeclaration{
+        data_type: DataType::ArrayType {
             name: Some("__foo_inline_array".to_string()),
             bounds: Statement::RangeStatement{
                 start: Box::new(Statement::LiteralInteger { value: "0".to_string(), location:0..0}),
@@ -671,14 +685,13 @@ fn pre_processing_generates_inline_array_of_array_of_array() {
             referenced_type: Box::new(DataTypeDeclaration::DataTypeReference{
                 referenced_type: "__foo_inline_array_".to_string(),
             }),
-        };
+        },
+        initializer: None,
+    };
     assert_eq!(
         format!("{:?}", expected),
         format!("{:?}", new_array_type)
     );
-
-
-
 
     // AND the original variable should now point to the new DataType
     let var_data_type = &ast.units[0].variable_blocks[0].variables[0].data_type;

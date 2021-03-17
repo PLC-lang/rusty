@@ -6,7 +6,7 @@
 /// - SubRange types
 /// - Alias types
 use inkwell::{module::Module, types::{ArrayType, BasicType, BasicTypeEnum}, values::{BasicValue}};
-use crate::{ast::{DataType, Statement, Variable}, compile_error::CompileError, index::{DataTypeInformation, Dimension, Index}};
+use crate::{ast::{DataType, Statement, UserTypeDeclaration, Variable}, compile_error::CompileError, index::{DataTypeInformation, Dimension, Index}};
 
 use super::{expression_generator::ExpressionCodeGenerator, llvm::LLVM, struct_generator::StructGenerator};
 
@@ -15,9 +15,9 @@ use super::{expression_generator::ExpressionCodeGenerator, llvm::LLVM, struct_ge
 ///
 /// generated type-stubs are registerd in the index
 /// array types are generated right away
-pub fn generate_data_type_stubs<'a>(llvm: &LLVM<'a>, index: &mut Index<'a>, data_types: &Vec<DataType>) -> Result<(), CompileError>{
-    for data_type in data_types {
-        match data_type {
+pub fn generate_data_type_stubs<'a>(llvm: &LLVM<'a>, index: &mut Index<'a>, data_types: &Vec<UserTypeDeclaration>) -> Result<(), CompileError>{
+    for user_type in data_types {
+        match &user_type.data_type {
             DataType::StructType { name, variables: _ } => {
                 index.associate_type(
                     name.as_ref().unwrap().as_str(),
@@ -40,7 +40,6 @@ pub fn generate_data_type_stubs<'a>(llvm: &LLVM<'a>, index: &mut Index<'a>, data
             DataType::SubRangeType {
                 name,
                 referenced_type: type_ref_name,
-                initializer: _,
             } => {
                 let alias_name = name.as_ref().unwrap();
                 index.associate_type(
@@ -67,7 +66,7 @@ pub fn generate_data_type_stubs<'a>(llvm: &LLVM<'a>, index: &mut Index<'a>, data
                     name.as_ref().unwrap().as_str(),
                     DataTypeInformation::Array {
                         inner_type_name: referenced_type_name.to_string(),
-                        internal_type_information: Box::new(internal_type),
+                        inner_type_hint: Box::new(internal_type),
                         generated_type: create_nested_array_type(
                             target_type,
                             dimensions.clone(),
@@ -92,10 +91,10 @@ pub fn generate_data_type<'a>(
     module: &Module<'a>,
     llvm: &LLVM<'a>,
     index: &mut Index<'a>,
-    data_types: &Vec<DataType>,
+    data_types: &Vec<UserTypeDeclaration>,
 ) -> Result<(), CompileError> {
     for data_type in data_types {
-        match data_type {
+        match &data_type.data_type {
             DataType::StructType { name, variables } => {
                 let name = name.as_ref().unwrap();
                 let mut struct_generator = StructGenerator::new(llvm, index);
@@ -121,17 +120,29 @@ pub fn generate_data_type<'a>(
             DataType::SubRangeType {
                 name,
                 referenced_type,
-                initializer,
             } => {
                 let alias_name = name.as_ref().map(|it| it.as_str()).unwrap();
                 index.associate_type_alias(alias_name, referenced_type.as_str());
-                if let Some(initializer) = initializer {
+                if let Some(initializer) = &data_type.initializer {
                     let generator = ExpressionCodeGenerator::new_context_free(llvm, index, None);
                     let (_, initial_value) = generator.generate_expression(initializer)?;
                     index.associate_type_initial_value(alias_name, initial_value);
                 }
             }
-            DataType::ArrayType { .. } => {}
+            DataType::ArrayType { name, .. } => {
+                if let Some(initializer) = &data_type.initializer {
+                    if let Statement::LiteralArray{ .. } = initializer {
+                        let name = name.as_ref().ok_or_else(|| CompileError::codegen_error("Expected named datatype but found none".to_string(), initializer.get_location()))?;
+                        let array_type = index.get_type_information(name)?;
+                        let generator = ExpressionCodeGenerator::new_context_free(llvm, index, Some(array_type));
+                        let (_, initial_value) = generator.generate_literal(initializer)?;
+                        index.associate_type_initial_value(name, initial_value)
+                    } else {
+                        return Err(CompileError::codegen_error(
+                            format!("Expected LiteralArray but found {:?}", initializer), initializer.get_location()));
+                    }
+                }
+            }
         }
     }
     Ok(())

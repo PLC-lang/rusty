@@ -70,9 +70,7 @@ impl<'a, 'b> StructGenerator<'a, 'b> {
             let variable_type = type_index_entry.get_type_information().unwrap();
             let initializer = match &variable.initializer {
                 Some(statement) => {
-                    let type_hint = type_index_entry.get_type()
-                                .ok_or_else(|| CompileError::no_type_associated(type_name, variable.location.clone()))?;
-                    let exp_gen = ExpressionCodeGenerator::new_context_free(self.llvm, self.global_index, Some(type_hint));
+                    let exp_gen = ExpressionCodeGenerator::new_context_free(self.llvm, self.global_index, Some(variable_type.clone()));
                     exp_gen.generate_expression(statement)
                         .map(|(_, value)| Some(value))?
                 }

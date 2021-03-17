@@ -3054,3 +3054,117 @@ source_filename = "main"
 
   assert_eq!(result, expected);
 }
+
+#[test]
+fn initial_values_in_single_dimension_array_variable(){
+   let result = codegen!(
+        "
+        VAR_GLOBAL 
+          a : ARRAY[0..2] OF SINT  := [1, 2, 3]; 
+          b : ARRAY[0..2] OF INT  := [1, 2, 3]; 
+          c : ARRAY[0..2] OF DINT  := [1, 2, 3]; 
+          d : ARRAY[0..2] OF LINT  := [1, 2, 3]; 
+          e : ARRAY[0..2] OF USINT  := [1, 2, 3]; 
+          f : ARRAY[0..2] OF UINT  := [1, 2, 3]; 
+          g : ARRAY[0..2] OF ULINT := [1, 2, 3]; 
+          h : ARRAY[0..2] OF BOOL := [TRUE, FALSE, TRUE]; 
+        END_VAR
+        "
+    );
+
+    let expected = r#"; ModuleID = 'main'
+source_filename = "main"
+
+@a = global [3 x i8] c"\01\02\03"
+@b = global [3 x i16] [i16 1, i16 2, i16 3]
+@c = global [3 x i32] [i32 1, i32 2, i32 3]
+@d = global [3 x i64] [i64 1, i64 2, i64 3]
+@e = global [3 x i8] c"\01\02\03"
+@f = global [3 x i16] [i16 1, i16 2, i16 3]
+@g = global [3 x i64] [i64 1, i64 2, i64 3]
+@h = global [3 x i1] [i1 true, i1 false, i1 true]
+"#;
+
+  assert_eq!(result, expected); 
+}
+
+#[test]
+fn initial_values_in_single_dimension_array_type(){
+   let result = codegen!(
+        "
+        TYPE MyArray : ARRAY[0..2] OF INT := [1, 2, 3]; END_TYPE
+        VAR_GLOBAL x : MyArray; END_VAR
+        "
+    );
+
+    let expected = r#"; ModuleID = 'main'
+source_filename = "main"
+
+@x = global [3 x i16] [i16 1, i16 2, i16 3]
+"#;
+
+  assert_eq!(result, expected); 
+}
+
+#[test]
+fn initial_values_in_multi_dimension_array_variable(){
+    let result = codegen!(
+         "
+         VAR_GLOBAL 
+           a : ARRAY[0..1, 0..1] OF BYTE  := [1,2,3,4]; 
+         END_VAR
+         "
+     );
+
+  let expected = r#"; ModuleID = 'main'
+source_filename = "main"
+
+@a = global [2 x [2 x i8]] c"\01\02\03\04"
+"#;
+ 
+  assert_eq!(result, expected); 
+}
+
+#[test]
+fn initial_values_in_array_of_array_variable(){
+    let result = codegen!(
+         "
+         VAR_GLOBAL 
+           a : ARRAY[0..1] OF ARRAY[0..1] OF BYTE  := [[1,2],[3,4]]; 
+         END_VAR
+         "
+     );
+
+  let expected = r#"; ModuleID = 'main'
+source_filename = "main"
+
+@a = global [2 x [2 x i8]] [[2 x i8] c"\01\02", [2 x i8] c"\03\04"]
+"#;
+ 
+  assert_eq!(result, expected); 
+}
+
+#[test]
+fn initial_values_in_array_variable_using_multiplied_statement(){
+    let result = codegen!(
+         "
+         VAR_GLOBAL 
+           a : ARRAY[0..3] OF BYTE  := [4(7)]; 
+           b : ARRAY[0..3] OF BYTE  := [2, 2(7), 3]; 
+           c : ARRAY[0..9] OF BYTE  := [5(0,1)]; 
+           d : ARRAY[0..9] OF BYTE  := [2(2(0), 2(1), 2)]; 
+         END_VAR
+         "
+     );
+
+  let expected = r#"; ModuleID = 'main'
+source_filename = "main"
+
+@a = global [4 x i8] c"\07\07\07\07"
+@b = global [4 x i8] c"\02\07\07\03"
+@c = global [10 x i8] c"\00\01\00\01\00\01\00\01\00\01"
+@d = global [10 x i8] c"\00\00\01\01\02\00\00\01\01\02"
+"#;
+ 
+  assert_eq!(result, expected); 
+}
