@@ -1,6 +1,6 @@
 /// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
-use crate::{codegen, generate_with_empty_program, lexer };
+use crate::{codegen, codegen_wihout_unwrap, compile_error::CompileError, generate_with_empty_program, lexer};
 use crate::parser;
 use crate::index::Index;
 use inkwell::context::Context;
@@ -3167,4 +3167,135 @@ source_filename = "main"
 "#;
  
   assert_eq!(result, expected); 
+}
+
+#[test]
+fn initial_values_in_struct_variable_using_multiplied_statement(){
+    let result = codegen!(
+         "
+        TYPE MyStruct: STRUCT
+          a: DINT;
+          b: DINT;
+        END_STRUCT
+        END_TYPE
+
+         VAR_GLOBAL 
+           a : MyStruct  := (a:=3, b:=5); 
+         END_VAR
+         "
+     );
+
+  let expected = r#"; ModuleID = 'main'
+source_filename = "main"
+
+%MyStruct = type { i32, i32 }
+
+@a = global %MyStruct { i32 3, i32 5 }
+"#;
+ 
+  assert_eq!(result, expected); 
+}
+
+#[test]
+fn complex_initial_values_in_struct_variable_using_multiplied_statement(){
+    let result = codegen!(
+         "
+        TYPE MyPoint: STRUCT
+          x: DINT;
+          y: DINT;
+        END_STRUCT
+        END_TYPE
+ 
+        TYPE MyStruct: STRUCT
+          point: MyPoint;
+          my_array: ARRAY[0..3] OF INT;
+          f : DINT;
+        END_STRUCT
+        END_TYPE
+
+        VAR_GLOBAL 
+          a : MyStruct  := (
+              point := (x := 1, y:= 2),
+              my_array := [0,1,2,3],
+              f := 7
+            ); 
+        END_VAR
+        "
+     );
+
+  let expected = r#"; ModuleID = 'main'
+source_filename = "main"
+
+%MyStruct = type { %MyPoint, [4 x i16], i32 }
+%MyPoint = type { i32, i32 }
+
+@a = global %MyStruct { %MyPoint { i32 1, i32 2 }, [4 x i16] [i16 0, i16 1, i16 2, i16 3], i32 7 }
+"#;
+ 
+  assert_eq!(result, expected); 
+}
+
+#[test]
+fn struct_with_one_field_can_be_initialized(){
+    let result = codegen!(
+         "
+        TYPE MyPoint: STRUCT
+          x: DINT;
+        END_STRUCT
+        END_TYPE
+ 
+        VAR_GLOBAL 
+          a : MyPoint := ( x := 7);
+        END_VAR
+        "
+     );
+
+  let expected = r#"; ModuleID = 'main'
+source_filename = "main"
+
+%MyPoint = type { i32 }
+
+@a = global %MyPoint { i32 7 }
+"#;
+ 
+  assert_eq!(result, expected); 
+}
+
+#[test]
+fn struct_initializer_needs_assignments(){
+    let source =
+            "
+            TYPE Point: STRUCT
+              x: DINT;
+              y: DINT;
+            END_STRUCT
+            END_TYPE
+ 
+            VAR_GLOBAL
+                x : Point := (x := 1, 2);
+            END_VAR
+           ";
+    let result = codegen_wihout_unwrap!(source);
+    assert_eq!(result, Err(CompileError::codegen_error("struct literal must consist of explicit assignments in the form of member := value".to_string(), 185..186)));
+    assert_eq!(source[185..186].to_string(), "2".to_string());
+}
+
+#[test]
+fn struct_initializer_needs_to_assign_all_fields(){
+    let source =
+            "
+            TYPE Point: STRUCT
+              x: DINT;
+              y: DINT;
+              z: DINT;
+            END_STRUCT
+            END_TYPE
+ 
+            VAR_GLOBAL
+                x : Point := (x := 1, y := 2);
+            END_VAR
+           ";
+    let result = codegen_wihout_unwrap!(source);
+    assert_eq!(result, Err(CompileError::codegen_error("Expected 3 fields for Struct Point, but found 2.".to_string(), 200..214)));
+    assert_eq!(source[200..214].to_string(), "x := 1, y := 2".to_string());
 }

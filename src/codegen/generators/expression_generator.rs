@@ -794,11 +794,55 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
             Statement::LiteralReal { value, .. } => self.llvm.create_const_real(self.index, &self.get_type_context(), value),
             Statement::LiteralString { value, .. } => self.llvm.create_const_string(value.as_str()),
             Statement::LiteralArray { elements, location} => self.generate_literal_array(elements, location),
+            // if there is an expression-list this might be a struct-initialization
+            Statement::ExpressionList { .. } => self.generate_literal_struct(literal_statement, &literal_statement.get_location() ),
+            // if there is just one assignment, this may be an struct-initialization (TODO this is not very elegant :-/ )
+            Statement::Assignment { .. } => self.generate_literal_struct(literal_statement, &literal_statement.get_location() ),
             _ => Err(CompileError::codegen_error(
                 format!("Cannot generate Literal for {:?}", literal_statement),
                 literal_statement.get_location(),
             )),
         }
+    }
+
+    /// generates a struct literal value with the given value assignments (ExpressionList)
+    fn generate_literal_struct(&self, assignments : &Statement, declaration_location: &Range<usize>) -> Result<TypeAndValue<'a>, CompileError> {
+        if let Some(type_info) = &self.type_hint {
+            if let DataTypeInformation::Struct { name: struct_name, generated_type} = type_info {
+                let mut member_values : Vec<(u32, BasicValueEnum<'a>)> = Vec::new();
+                for assignment in flatten_expression_list(assignments) {
+                    if let Statement::Assignment { left, right} = assignment {
+                        if let Statement::Reference { name: variable_name, location} = &**left {
+                            let member = self.index.find_member(struct_name, &variable_name)
+                                .ok_or_else(|| CompileError::invalid_reference(format!("{}.{}", struct_name, variable_name).as_str(), location.clone()))?;
+                            
+                            let index_in_parent = member.get_location_in_parent()
+                                .ok_or_else(|| CompileError::codegen_error(format!("invalid index entry for {}.{} - no location_in_parent.", struct_name, variable_name), location.clone()))?;
+
+                            let typed_generator = self.morph_to_typed(&self.index.get_type_information(member.get_type_name())?);
+                            let (_, value) = typed_generator.generate_expression(right)?;
+
+                            member_values.push((index_in_parent, value));
+                        }else{
+                            return Err(CompileError::codegen_error("struct member lvalue required as left operand of assignment".to_string(), left.get_location().clone()));
+                        }
+                    } else {
+                        return Err(CompileError::codegen_error("struct literal must consist of explicit assignments in the form of member := value".to_string(), assignment.get_location().clone()));
+                    }
+                }
+                
+                let struct_type = generated_type.into_struct_type();
+                if member_values.len() == struct_type.count_fields() as usize {
+                    member_values.sort_by(|(a,_),(b,_)| a.cmp(b));
+                    let ordered_values : Vec<BasicValueEnum<'a>> = member_values.iter().map(|(_, v)| *v).collect();
+
+                    return Ok((type_info.clone(), struct_type.const_named_struct(ordered_values.as_slice()).as_basic_value_enum()))
+                } else {
+                    return Err(CompileError::codegen_error(format!("Expected {} fields for Struct {}, but found {}.", struct_type.count_fields(), struct_name, member_values.len()), assignments.get_location()));
+                }
+            }
+        }
+        return Err(CompileError::codegen_error(format!("Internal error when generating Struct literal: incompatible type: {:?}", self.type_hint).to_string(), declaration_location.clone()));
     }
 
     /// generates an array literal with the given optional elements (represented as an ExpressionList)
