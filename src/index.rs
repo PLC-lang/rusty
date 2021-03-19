@@ -3,7 +3,7 @@
 use std::collections::HashMap;
 
 use crate::{ast::CompilationUnit, compile_error::{CompileError}};
-use inkwell::{types::BasicTypeEnum, values::BasicValueEnum};
+use inkwell::{types::BasicTypeEnum, values::{BasicValueEnum}};
 use inkwell::values::{FunctionValue, PointerValue};
 
 mod pre_processor;
@@ -28,6 +28,7 @@ pub enum DataTypeInformation<'ctx> {
     Struct {
         name: String,
         generated_type: BasicTypeEnum<'ctx>,
+        member_names: Vec<String>,
     },
     Array {
         inner_type_name: String,
@@ -122,6 +123,7 @@ pub struct VariableIndexEntry<'ctx> {
     name: String,
     information: VariableInformation,
     generated_reference: Option<PointerValue<'ctx>>,
+    initial_value : Option<BasicValueEnum<'ctx>>,
 }
 
 #[derive(Debug)]
@@ -368,6 +370,7 @@ impl<'ctx> Index<'ctx> {
                 location: Some(location),
             },
             generated_reference: None,
+            initial_value: None,
         };
         members.insert(variable_name, entry);
     }
@@ -397,6 +400,7 @@ impl<'ctx> Index<'ctx> {
                 location: None,
             },
             generated_reference: None,
+            initial_value: None,
         };
         self.global_variables.insert(name, entry);
     }
@@ -429,6 +433,20 @@ impl<'ctx> Index<'ctx> {
         if let Some(entry) = self.types.get_mut(name) {
             entry.initial_value = Some(initial_value);
         }
+    }
+
+    pub fn associate_member_initial_value(&mut self, container_name: &str, member_name: &str, initial_value: BasicValueEnum<'ctx>) {
+        let member_entry = self.member_variables.get_mut(container_name)
+            .and_then(|it| it.get_mut(member_name));
+        if let Some(entry) = member_entry {
+            entry.initial_value = Some(initial_value);
+        }
+    }
+
+    pub fn find_member_initial_value(&self, container_name: &str, member_name: &str) -> Option<BasicValueEnum<'ctx>> {
+        self.member_variables.get(container_name)
+            .and_then(|it| it.get(member_name))
+            .and_then(|it| it.initial_value)
     }
 
     pub fn print_global_variables(&self) {

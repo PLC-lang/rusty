@@ -3246,6 +3246,7 @@ fn initial_values_in_struct_variable_using_multiplied_statement(){
 
          VAR_GLOBAL 
            a : MyStruct  := (a:=3, b:=5); 
+           b : MyStruct  := (b:=3, a:=5); 
          END_VAR
          "
      );
@@ -3256,6 +3257,7 @@ source_filename = "main"
 %MyStruct = type { i32, i32 }
 
 @a = global %MyStruct { i32 3, i32 5 }
+@b = global %MyStruct { i32 5, i32 3 }
 "#;
  
   assert_eq!(result, expected); 
@@ -3346,13 +3348,18 @@ fn struct_initializer_needs_assignments(){
 }
 
 #[test]
-fn struct_initializer_needs_to_assign_all_fields(){
+fn struct_initialization_uses_types_default_if_not_provided(){
+    // GIVEN a custom dataType MyDINT with initial value of 7
+    // AND a struct point that uses it for member z
+    // AND a global instance that does not initializes z
     let source =
             "
+            TYPE MyDINT : DINT := 7; END_TYPE
+
             TYPE Point: STRUCT
               x: DINT;
               y: DINT;
-              z: DINT;
+              z: MyDINT;
             END_STRUCT
             END_TYPE
  
@@ -3360,7 +3367,44 @@ fn struct_initializer_needs_to_assign_all_fields(){
                 x : Point := (x := 1, y := 2);
             END_VAR
            ";
-    let result = codegen_wihout_unwrap!(source);
-    assert_eq!(result, Err(CompileError::codegen_error("Expected 3 fields for Struct Point, but found 2.".to_string(), 200..214)));
-    assert_eq!(source[200..214].to_string(), "x := 1, y := 2".to_string());
+
+    //WHEN it is generated
+    let result = codegen!(source);
+
+    //THEN we expect z to be 7
+    let expected = r#"; ModuleID = 'main'
+source_filename = "main"
+
+%Point = type { i32, i32, i32 }
+
+@x = global %Point { i32 1, i32 2, i32 7 }
+"#;
+    assert_eq!(expected, result);
+}
+
+#[test]
+fn struct_initializer_uses_fallback_to_field_default(){
+    let source =
+            "
+            TYPE Point: STRUCT
+              x: DINT;
+              y: DINT;
+              z: DINT := 3;
+            END_STRUCT
+            END_TYPE
+ 
+            VAR_GLOBAL
+                x : Point := (x := 1, y := 2);
+            END_VAR
+           ";
+    let result = codegen!(source);
+
+  let expected = r#"; ModuleID = 'main'
+source_filename = "main"
+
+%Point = type { i32, i32, i32 }
+
+@x = global %Point { i32 1, i32 2, i32 3 }
+"#;
+    assert_eq!(expected, result);
 }
