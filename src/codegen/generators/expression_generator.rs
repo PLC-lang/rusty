@@ -1,6 +1,6 @@
 /// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use inkwell::{AddressSpace, FloatPredicate, IntPredicate, basic_block::BasicBlock, types::{BasicType, BasicTypeEnum}, values::{ArrayValue, BasicValue, BasicValueEnum, FloatValue, IntValue, PointerValue, StructValue, VectorValue}};
-use std::ops::Range;
+use std::{collections::HashSet, ops::Range};
 
 use crate::{ast::{Operator, Statement, flatten_expression_list}, codegen::{TypeAndPointer, TypeAndValue, typesystem}, compile_error::{CompileError}, index::{DataTypeIndexEntry, DataTypeInformation, Dimension, Index, VariableIndexEntry}};
 
@@ -812,7 +812,8 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
     /// generates a struct literal value with the given value assignments (ExpressionList)
     fn generate_literal_struct(&self, assignments : &Statement, declaration_location: &Range<usize>) -> Result<TypeAndValue<'a>, CompileError> {
         if let Some(type_info) = &self.type_hint {
-            if let DataTypeInformation::Struct { name: struct_name, generated_type} = type_info {
+            if let DataTypeInformation::Struct { name: struct_name, generated_type, member_names} = type_info {
+                let mut uninitialized_members: HashSet<&str> = member_names.iter().map(|it| it.as_str()).collect();
                 let mut member_values : Vec<(u32, BasicValueEnum<'a>)> = Vec::new();
                 for assignment in flatten_expression_list(assignments) {
                     if let Statement::Assignment { left, right} = assignment {
@@ -826,6 +827,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                             let typed_generator = self.morph_to_typed(&self.index.get_type_information(member.get_type_name())?);
                             let (_, value) = typed_generator.generate_expression(right)?;
 
+                            uninitialized_members.remove(member.get_name());
                             member_values.push((index_in_parent, value));
                         }else{
                             return Err(CompileError::codegen_error("struct member lvalue required as left operand of assignment".to_string(), left.get_location().clone()));
@@ -836,6 +838,21 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                 }
                 
                 let struct_type = generated_type.into_struct_type();
+                //fill the struct with fields we didnt mention yet
+                for variable_name in uninitialized_members {
+                    let member = self.index.find_member(struct_name, variable_name)
+                                .ok_or_else(|| CompileError::invalid_reference(format!("{}.{}", struct_name, variable_name).as_str(), declaration_location.clone()))?;
+                            
+                    let index_in_parent = member.get_location_in_parent()
+                        .ok_or_else(|| CompileError::codegen_error(format!("invalid index entry for {}.{} - no location_in_parent.", struct_name, variable_name), declaration_location.clone()))?;
+                    
+                    let initial_value = self.index.find_member_initial_value(struct_name, variable_name)
+                        .or(self.index.get_type(member.get_type_name())?.get_initial_value())
+                        .ok_or_else(|| CompileError::codegen_error(format!("cannot derive initial value for {}.{}", struct_name, variable_name), declaration_location.clone()))?;
+                    
+                    member_values.push((index_in_parent, initial_value));
+
+                }
                 if member_values.len() == struct_type.count_fields() as usize {
                     member_values.sort_by(|(a,_),(b,_)| a.cmp(b));
                     let ordered_values : Vec<BasicValueEnum<'a>> = member_values.iter().map(|(_, v)| *v).collect();

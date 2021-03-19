@@ -584,3 +584,62 @@ fn initialization_of_complex_struct_instance() {
     assert_eq!(7.89, maintype.f);
     
 }
+
+#[test]
+fn initialization_of_complex_struct_instance_using_defaults() {
+    // a.point.y and a.f are note initialized!
+    let src =
+         "
+        TYPE MyReal : REAL := 3.1415; END_TYPE
+
+        TYPE MyPoint: STRUCT
+          x: DINT;
+          y: DINT := 7;
+        END_STRUCT
+        END_TYPE
+ 
+        TYPE MyStruct: STRUCT
+          point: MyPoint;
+          my_array: ARRAY[0..3] OF INT;
+          f : MyReal;
+        END_STRUCT
+        END_TYPE
+
+        VAR_GLOBAL 
+          a : MyStruct  := (
+              point := (x := 1),
+              my_array := [0,1,2,3]
+            ); 
+        END_VAR
+
+        PROGRAM main
+            VAR
+                x : DINT;
+                y : DINT;
+                arr1 : INT;
+                arr3 : INT;
+                f : REAL;
+            END_VAR 
+
+            x := a.point.x;
+            y := a.point.y;
+            arr1 := a.my_array[1];
+            arr3 := a.my_array[3];
+            f := a.f;
+        END_PROGRAM
+        ";
+
+    let mut maintype = StructProgram {
+        x: 0, y: 0,
+        arr1 : 0, arr3 : 0,
+        f : 0.0
+    };
+
+    compile_and_run(src.to_string(), &mut maintype);
+    assert_eq!(1, maintype.x);
+    assert_eq!(7, maintype.y);
+    assert_eq!(1 , maintype.arr1);
+    assert_eq!(3, maintype.arr3);
+    assert_eq!(3.1415, maintype.f);
+    
+}

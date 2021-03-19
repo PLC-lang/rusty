@@ -6,7 +6,7 @@ use super::{expression_generator::{ExpressionCodeGenerator}, llvm::LLVM};
 /// object that offers convinient operations to create struct types and instances
 pub struct StructGenerator<'a, 'b> {
     llvm: &'b LLVM<'a>,
-    global_index: &'b Index<'a>,
+    global_index: &'b mut Index<'a>,
 }
 
 ///
@@ -18,7 +18,7 @@ type StructTypeAndValue<'a> = (StructType<'a>, BasicValueEnum<'a>);
 impl<'a, 'b> StructGenerator<'a, 'b> {
 
     /// creates a new StructGenerator
-    pub fn new(llvm: &'b LLVM<'a>, global_index: &'b Index<'a> ) -> StructGenerator<'a, 'b> {
+    pub fn new(llvm: &'b LLVM<'a>, global_index: &'b mut Index<'a> ) -> StructGenerator<'a, 'b> {
         StructGenerator{
             llvm,
             global_index,
@@ -47,12 +47,20 @@ impl<'a, 'b> StructGenerator<'a, 'b> {
         let member_types: Vec<BasicTypeEnum> = members.iter().map(|(_, t, _)| *t).collect();
         struct_type.set_body(member_types.as_slice(), false);
         
+        //vec(member_name, initial_value)
         let struct_fields_values = members.iter()
-                .map(|(_,basic_type, initializer)| 
-                    initializer.unwrap_or_else(|| typesystem::get_default_for(basic_type.clone())))
-                .collect::<Vec<BasicValueEnum>>();
+                .map(|(name,basic_type, initializer)| 
+                    initializer.map(|it| (name, it))
+                    .unwrap_or_else(|| (name,typesystem::get_default_for(basic_type.clone()))))
+                .collect::<Vec<(&String, BasicValueEnum)>>();
 
-        let initial_value = struct_type.const_named_struct(struct_fields_values.as_slice());
+        for (member_name, initial_value) in &struct_fields_values {
+            self.global_index.associate_member_initial_value(name, member_name, initial_value.clone());
+        }
+
+        let initial_value = struct_type.const_named_struct(
+            struct_fields_values.iter().map(|(_, it)| *it).collect::<Vec<BasicValueEnum<'a>>>().as_slice());
+        
         Ok((struct_type, initial_value.into()))
     }
 
