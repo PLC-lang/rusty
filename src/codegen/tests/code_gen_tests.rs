@@ -316,6 +316,7 @@ fn variable_length_strings_can_be_created() {
         r#"PROGRAM prg
           VAR
           y : STRING[15];
+          z : STRING[3] := 'xyz';
           END_VAR
           y := 'im a genius';
         END_PROGRAM
@@ -325,14 +326,15 @@ fn variable_length_strings_can_be_created() {
     let expected = r#"; ModuleID = 'main'
 source_filename = "main"
 
-%prg_interface = type { [81 x i8] }
+%prg_interface = type { [16 x i8], [4 x i8] }
 
-@prg_instance = global %prg_interface zeroinitializer
+@prg_instance = global %prg_interface { [16 x i8] zeroinitializer, [4 x i8] c"xyz\00" }
 
 define void @prg(%prg_interface* %0) {
 entry:
   %y = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 0
-  store [12 x i8] c"im a genius\00", [81 x i8]* %y, align 1
+  %z = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 1
+  store [12 x i8] c"im a genius\00", [16 x i8]* %y, align 1
   ret void
 }
 "#;

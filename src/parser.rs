@@ -216,15 +216,19 @@ fn parse_data_type_definition(lexer: &mut RustyLexer, name: Option<String>) -> R
     } else if lexer.token == Identifier && lexer.slice().eq_ignore_ascii_case("STRING") {   //STRING TODO: should STRING be a keyword?
         lexer.advance();
         let size = if allow(KeywordSquareParensOpen, lexer) {
-            lexer.advance();
             let size_statement = parse_expression(lexer)?;
             expect!(KeywordSquareParensClose, lexer);
+            lexer.advance();
             Some(size_statement)
         } else {
             None
         };
 
-        let initializer = None;
+        let initializer = if allow(KeywordAssignment, lexer) {
+            Some(parse_expression(lexer)?)
+        } else {
+            None
+        };
         expect!(KeywordSemicolon, lexer);
         lexer.advance();
 
