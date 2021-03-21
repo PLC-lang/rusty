@@ -9,7 +9,7 @@ fn single_statement_parsed() {
     let lexer = lexer::lex("PROGRAM exp x; END_PROGRAM");
     let result = parse(lexer).unwrap().0;
 
-    let prg = &result.units[0];
+    let prg = &result.implementations[0];
     let statement = &prg.statements[0];
 
     if let Statement::Reference { name, ..} = statement {
@@ -24,7 +24,7 @@ fn qualified_reference_statement_parsed() {
     let lexer = lexer::lex("PROGRAM exp a.x; END_PROGRAM");
     let result = parse(lexer).unwrap().0;
 
-    let prg = &result.units[0];
+    let prg = &result.implementations[0];
     let statement = &prg.statements[0];
 
     if let Statement::QualifiedReference { elements , ..} = statement {
@@ -42,7 +42,7 @@ fn literal_can_be_parsed() {
     let lexer = lexer::lex("PROGRAM exp 7; END_PROGRAM");
     let result = parse(lexer).unwrap().0;
 
-    let prg = &result.units[0];
+    let prg = &result.implementations[0];
     let statement = &prg.statements[0];
 
     if let Statement::LiteralInteger { value, location: _ } = statement {
@@ -57,7 +57,7 @@ fn additon_of_two_variables_parsed() {
     let lexer = lexer::lex("PROGRAM exp x+y; END_PROGRAM");
     let result = parse(lexer).unwrap().0;
 
-    let prg = &result.units[0];
+    let prg = &result.implementations[0];
     let statement = &prg.statements[0];
 
     if let Statement::BinaryExpression {
@@ -83,7 +83,7 @@ fn additon_of_three_variables_parsed() {
     let lexer = lexer::lex("PROGRAM exp x+y-z; END_PROGRAM");
     let result = parse(lexer).unwrap().0;
 
-    let prg = &result.units[0];
+    let prg = &result.implementations[0];
     let statement = &prg.statements[0];
 
     if let Statement::BinaryExpression {
@@ -122,7 +122,7 @@ fn parenthesis_expressions_should_not_change_the_ast() {
     let lexer = lexer::lex("PROGRAM exp (x+y); END_PROGRAM");
     let result = parse(lexer).unwrap().0;
 
-    let prg = &result.units[0];
+    let prg = &result.implementations[0];
     let statement = &prg.statements[0];
 
     if let Statement::BinaryExpression {
@@ -148,7 +148,7 @@ fn multiplication_expressions_parse() {
     let lexer = lexer::lex("PROGRAM exp 1*2/7; END_PROGRAM");
     let result = parse(lexer).unwrap().0;
 
-    let prg = &result.units[0];
+    let prg = &result.implementations[0];
     let statement = &prg.statements[0];
 
     let ast_string = format!("{:#?}", statement);
@@ -175,7 +175,7 @@ fn addition_ast_test() {
     let lexer = lexer::lex("PROGRAM exp 1+2; END_PROGRAM");
     let result = parse(lexer).unwrap().0;
 
-    let prg = &result.units[0];
+    let prg = &result.implementations[0];
     let statement = &prg.statements[0];
 
     let ast_string = format!("{:#?}", statement);
@@ -196,7 +196,7 @@ fn multiplication_ast_test() {
     let lexer = lexer::lex("PROGRAM exp 1+2*3; END_PROGRAM");
     let result = parse(lexer).unwrap().0;
 
-    let prg = &result.units[0];
+    let prg = &result.implementations[0];
     let statement = &prg.statements[0];
 
     let ast_string = format!("{:#?}", statement);
@@ -223,7 +223,7 @@ fn term_ast_test() {
     let lexer = lexer::lex("PROGRAM exp 1+2*3+4; END_PROGRAM");
     let result = parse(lexer).unwrap().0;
 
-    let prg = &result.units[0];
+    let prg = &result.implementations[0];
     let statement = &prg.statements[0];
 
     let ast_string = format!("{:#?}", statement);
@@ -257,7 +257,7 @@ fn module_expression_test() {
 
     let result = parse(lexer).unwrap().0;
 
-    let prg = &result.units[0];
+    let prg = &result.implementations[0];
     let statement = &prg.statements[0];
 
     let ast_string = format!("{:#?}", statement);
@@ -279,7 +279,7 @@ fn parenthesized_term_ast_test() {
     let lexer = lexer::lex("PROGRAM exp (1+2)*(3+4); END_PROGRAM");
     let result = parse(lexer).unwrap().0;
 
-    let prg = &result.units[0];
+    let prg = &result.implementations[0];
     let statement = &prg.statements[0];
 
     let ast_string = format!("{:#?}", statement);
@@ -312,7 +312,7 @@ fn boolean_literals_can_be_parsed() {
     let lexer = lexer::lex("PROGRAM exp TRUE OR FALSE; END_PROGRAM");
     let result = parse(lexer).unwrap().0;
 
-    let prg = &result.units[0];
+    let prg = &result.implementations[0];
     let statement = &prg.statements[0];
 
     let ast_string = format!("{:#?}", statement);
@@ -333,7 +333,7 @@ fn assignment_test() {
     let lexer = lexer::lex("PROGRAM exp x := 3; x := 1 + 2; END_PROGRAM");
     let result = parse(lexer).unwrap().0;
 
-    let prg = &result.units[0];
+    let prg = &result.implementations[0];
     {
         let statement = &prg.statements[0];
         let ast_string = format!("{:#?}", statement);
@@ -374,7 +374,7 @@ fn equality_expression_test() {
     let lexer = lexer::lex("PROGRAM exp x = 3; x - 0 <> 1 + 2; END_PROGRAM");
     let result = parse(lexer).unwrap().0;
 
-    let prg = &result.units[0];
+    let prg = &result.implementations[0];
     {
         let statement = &prg.statements[0];
         let ast_string = format!("{:#?}", statement);
@@ -430,7 +430,7 @@ fn comparison_expression_test() {
     );
     let result = parse(lexer).unwrap().0;
 
-    let prg = &result.units[0];
+    let prg = &result.implementations[0];
     {
         let statement = &prg.statements[0];
         let expected_ast = r#"BinaryExpression {
@@ -521,7 +521,7 @@ fn boolean_expression_ast_test() {
     let lexer = lexer::lex("PROGRAM exp a AND NOT b OR c XOR d; END_PROGRAM");
     let result = parse(lexer).unwrap().0;
 
-    let prg = &result.units[0];
+    let prg = &result.implementations[0];
     let statement = &prg.statements[0];
 
     let ast_string = format!("{:#?}", statement);
@@ -557,7 +557,7 @@ fn boolean_expression_param_ast_test() {
     let lexer = lexer::lex("PROGRAM exp a AND (NOT (b OR c) XOR d); END_PROGRAM");
     let result = parse(lexer).unwrap().0;
 
-    let prg = &result.units[0];
+    let prg = &result.implementations[0];
     let statement = &prg.statements[0];
 
     let ast_string = format!("{:#?}", statement);
@@ -599,7 +599,7 @@ fn signed_literal_minus_test() {
     );
     let result = parse(lexer).unwrap().0;
 
-    let prg = &result.units[0];
+    let prg = &result.implementations[0];
     let statement = &prg.statements[0];
 
     let ast_string = format!("{:#?}", statement);
@@ -626,7 +626,7 @@ fn literal_real_test() {
     );
     let result = parse(lexer).unwrap().0;
 
-    let prg = &result.units[0];
+    let prg = &result.implementations[0];
     let statement = &prg.statements;
 
     let ast_string = format!("{:#?}", statement);
@@ -661,7 +661,7 @@ fn signed_literal_expression_test() {
     );
     let result = parse(lexer).unwrap().0;
 
-    let prg = &result.units[0];
+    let prg = &result.implementations[0];
     let statement = &prg.statements[0];
 
     let ast_string = format!("{:#?}", statement);
@@ -691,7 +691,7 @@ fn signed_literal_expression_reversed_test() {
     );
     let result = parse(lexer).unwrap().0;
 
-    let prg = &result.units[0];
+    let prg = &result.implementations[0];
     let statement = &prg.statements[0];
 
     let ast_string = format!("{:#?}", statement);
@@ -721,7 +721,7 @@ fn or_compare_expressions_priority_test() {
     );
     let result = parse(lexer).unwrap().0;
 
-    let prg = &result.units[0];
+    let prg = &result.implementations[0];
     let statement = &prg.statements[0];
 
     let ast_string = format!("{:#?}", statement);
@@ -754,7 +754,7 @@ fn addition_compare_or_priority_test() {
     );
     let result = parse(lexer).unwrap().0;
 
-    let prg = &result.units[0];
+    let prg = &result.implementations[0];
     let statement = &prg.statements[0];
 
     let ast_string = format!("{:#?}", statement);
@@ -793,7 +793,7 @@ fn boolean_priority_test() {
     );
     let result = parse(lexer).unwrap().0;
 
-    let prg = &result.units[0];
+    let prg = &result.implementations[0];
     let statement = &prg.statements[0];
 
     let ast_string = format!("{:#?}", statement);
@@ -832,7 +832,7 @@ fn comparison_priority_test() {
     );
     let result = parse(lexer).unwrap().0;
 
-    let prg = &result.units[0];
+    let prg = &result.implementations[0];
     let statement = &prg.statements[0];
 
     let ast_string = format!("{:#?}", statement);
@@ -872,7 +872,7 @@ fn expression_list() {
     );
     let result = parse(lexer).unwrap().0;
 
-    let prg = &result.units[0];
+    let prg = &result.implementations[0];
     let statement = &prg.statements[0];
 
     let ast_string = format!("{:#?}", statement);
@@ -904,7 +904,7 @@ fn expression_list_assignments() {
     );
     let result = parse(lexer).unwrap().0;
 
-    let prg = &result.units[0];
+    let prg = &result.implementations[0];
     let statement = &prg.statements[0];
 
     let ast_string = format!("{:#?}", statement);
@@ -954,7 +954,7 @@ fn range_expression() {
     );
     let result = parse(lexer).unwrap().0;
 
-    let prg = &result.units[0];
+    let prg = &result.implementations[0];
     let statement = &prg.statements[0];
 
     let ast_string = format!("{:#?}", statement);
@@ -1019,7 +1019,7 @@ fn negative_range_expression() {
     );
     let result = parse(lexer).unwrap().0;
 
-    let prg = &result.units[0];
+    let prg = &result.implementations[0];
     let statement = &prg.statements[0];
 
     let ast_string = format!("{:#?}", statement);
@@ -1052,7 +1052,7 @@ fn negative_range_expression_space() {
     );
     let result = parse(lexer).unwrap().0;
 
-    let prg = &result.units[0];
+    let prg = &result.implementations[0];
     let statement = &prg.statements[0];
 
     let ast_string = format!("{:#?}", statement);
@@ -1085,7 +1085,7 @@ fn range_expression2() {
     );
     let result = parse(lexer).unwrap().0;
 
-    let prg = &result.units[0];
+    let prg = &result.implementations[0];
     let statement = &prg.statements[0];
 
     let ast_string = format!("{:#?}", statement);
@@ -1111,7 +1111,7 @@ fn function_call_no_params() {
     );
     let parse_result = parse(lexer).unwrap().0;
 
-    let statement = &parse_result.units[0].statements[0];
+    let statement = &parse_result.implementations[0].statements[0];
 
     let ast_string = format!("{:#?}", statement);
 
@@ -1136,7 +1136,7 @@ fn function_call_params() {
     );
     let parse_result = parse(lexer).unwrap().0;
 
-    let statement = &parse_result.units[0].statements[0];
+    let statement = &parse_result.implementations[0].statements[0];
 
     let ast_string = format!("{:#?}", statement);
 
@@ -1171,8 +1171,9 @@ fn string_can_be_parsed() {
     );
     let result = parse(lexer).unwrap().0;
 
-    let prg = &result.units[0];
-    let variable_block = &prg.variable_blocks[0];
+    let unit = &result.units[0];
+    let prg = &result.implementations[0];
+    let variable_block = &unit.variable_blocks[0];
     let ast_string = format!("{:#?}", variable_block);
     let expected_ast = r#"VariableBlock {
     variables: [
@@ -1222,8 +1223,9 @@ fn arrays_can_be_parsed() {
     );
     let result = parse(lexer).unwrap().0;
 
-    let prg = &result.units[0];
-    let variable_block = &prg.variable_blocks[0];
+    let unit = &result.units[0];
+    let prg = &result.implementations[0];
+    let variable_block = &unit.variable_blocks[0];
     let ast_string = format!("{:#?}", variable_block);
     let expected_ast = r#"VariableBlock {
     variables: [
@@ -1296,8 +1298,9 @@ fn nested_arrays_can_be_parsed() {
     );
     let result = parse(lexer).unwrap().0;
 
-    let prg = &result.units[0];
-    let variable_block = &prg.variable_blocks[0];
+    let unit = &result.units[0];
+    let prg = &result.implementations[0];
+    let variable_block = &unit.variable_blocks[0];
     let ast_string = format!("{:#?}", variable_block);
     let expected_ast = r#"VariableBlock {
     variables: [
@@ -1393,8 +1396,9 @@ fn multidim_arrays_can_be_parsed() {
     );
     let result = parse(lexer).unwrap().0;
 
-    let prg = &result.units[0];
-    let variable_block = &prg.variable_blocks[0];
+    let unit = &result.units[0];
+    let prg = &result.implementations[0];
+    let variable_block = &unit.variable_blocks[0];
     let ast_string = format!("{:#?}", variable_block);
     let expected_ast = r#"VariableBlock {
     variables: [
@@ -1494,7 +1498,7 @@ fn arrays_in_structs_can_be_parsed() {
     );
     let result = parse(lexer).unwrap().0;
 
-    let prg = &result.units[0];
+    let prg = &result.implementations[0];
     let statement = &prg.statements[0];
     let ast_string = format!("{:#?}", statement);
     let expected_ast = r#"QualifiedReference {
@@ -1524,7 +1528,7 @@ fn arrays_of_structs_can_be_parsed() {
     );
     let result = parse(lexer).unwrap().0;
 
-    let prg = &result.units[0];
+    let prg = &result.implementations[0];
     let statement = &prg.statements[0];
     let ast_string = format!("{:#?}", statement);
     let expected_ast = r#"QualifiedReference {
@@ -1557,7 +1561,7 @@ fn function_call_formal_params() {
     );
     let parse_result = parse(lexer).unwrap().0;
 
-    let statement = &parse_result.units[0].statements[0];
+    let statement = &parse_result.implementations[0].statements[0];
 
     let ast_string = format!("{:#?}", statement);
 
@@ -1611,7 +1615,7 @@ fn function_call_return_params() {
     );
     let parse_result = parse(lexer).unwrap().0;
 
-    let statement = &parse_result.units[0].statements[0];
+    let statement = &parse_result.implementations[0].statements[0];
 
     let ast_string = format!("{:#?}", statement);
 
@@ -1650,7 +1654,7 @@ fn literals_location_test() {
     let lexer = lexer::lex(source);
     let parse_result = parse(lexer).unwrap().0;
 
-    let unit = &parse_result.units[0];
+    let unit = &parse_result.implementations[0];
     
     // 1
     let location = &unit.statements[0].get_location();
@@ -1679,7 +1683,7 @@ fn reference_location_test() {
     let lexer = lexer::lex(source);
     let parse_result = parse(lexer).unwrap().0;
 
-    let unit = &parse_result.units[0];
+    let unit = &parse_result.implementations[0];
     
     let location = &unit.statements[0].get_location();
     assert_eq!(source[location.start..location.end].to_string(), "a");
@@ -1704,7 +1708,7 @@ fn expressions_location_test() {
     let lexer = lexer::lex(source);
     let parse_result = parse(lexer).unwrap().0;
 
-    let unit = &parse_result.units[0];
+    let unit = &parse_result.implementations[0];
     
     let location = &unit.statements[0].get_location();
     assert_eq!(source[location.start..location.end].to_string(), "a + b");

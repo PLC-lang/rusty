@@ -6,7 +6,7 @@
 /// - generates a function for the pou
 /// - declares a global instance if the POU is a PROGRAM
 use super::{expression_generator::ExpressionCodeGenerator, llvm::LLVM, statement_generator::{FunctionContext, StatementCodeGenerator}, struct_generator::{self, StructGenerator}};
-use crate::{ast::{DataTypeDeclaration, POU, PouType, SourceRange, Statement, Variable, VariableBlock, VariableBlockType}, compile_error::CompileError, index::{DataTypeIndexEntry, DataTypeInformation, Index}};
+use crate::{ast::{DataTypeDeclaration, POU, Implementation, PouType, SourceRange, Statement, Variable, VariableBlock, VariableBlockType}, compile_error::CompileError, index::{DataTypeIndexEntry, DataTypeInformation, Index}};
 use inkwell::{AddressSpace, context::Context, module::Module, types::{BasicTypeEnum, FunctionType}, values::{BasicValueEnum, FunctionValue}};
 
 
@@ -101,7 +101,7 @@ impl<'a, 'b> PouGenerator<'a, 'b> {
     }
 
     /// generates a function for the given pou
-    pub fn generate_pou(&mut self, pou: &POU) -> Result<(), CompileError> {
+    pub fn generate_pou(&mut self, pou: &POU, implementation : &Implementation) -> Result<(), CompileError> {
 
         let context = self.llvm.context;
 
@@ -150,7 +150,7 @@ impl<'a, 'b> PouGenerator<'a, 'b> {
             if pou.pou_type == PouType::Function {
                 self.generate_initialization_of_local_vars(&pou.variable_blocks, &statement_gen)?;
             }
-            statement_gen.generate_body(&pou.statements)?
+            statement_gen.generate_body(&implementation.statements)?
         }
 
         // generate return statement

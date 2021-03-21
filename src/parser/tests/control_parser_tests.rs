@@ -16,7 +16,7 @@ fn if_statement() {
     );
     let result = parse(lexer).unwrap().0;
 
-    let prg = &result.units[0];
+    let prg = &result.implementations[0];
     let statement = &prg.statements[0];
 
     let ast_string = format!("{:#?}", statement);
@@ -49,7 +49,7 @@ fn if_else_statement_with_expressions() {
     );
     let result = parse(lexer).unwrap().0;
 
-    let prg = &result.units[0];
+    let prg = &result.implementations[0];
     let statement = &prg.statements[0];
 
     let ast_string = format!("{:#?}", statement);
@@ -94,7 +94,7 @@ fn if_elsif_elsif_else_statement_with_expressions() {
     );
     let result = parse(lexer).unwrap().0;
 
-    let prg = &result.units[0];
+    let prg = &result.implementations[0];
     let statement = &prg.statements[0];
 
     let ast_string = format!("{:#?}", statement);
@@ -152,7 +152,7 @@ fn for_with_literals_statement() {
     );
     let result = parse(lexer).unwrap().0;
 
-    let prg = &result.units[0];
+    let prg = &result.implementations[0];
     let statement = &prg.statements[0];
 
     let ast_string = format!("{:#?}", statement);
@@ -184,7 +184,7 @@ fn for_with_step_statement() {
     );
     let result = parse(lexer).unwrap().0;
 
-    let prg = &result.units[0];
+    let prg = &result.implementations[0];
     let statement = &prg.statements[0];
 
     let ast_string = format!("{:#?}", statement);
@@ -220,7 +220,7 @@ fn for_with_reference_statement() {
     );
     let result = parse(lexer).unwrap().0;
 
-    let prg = &result.units[0];
+    let prg = &result.implementations[0];
     let statement = &prg.statements[0];
 
     let ast_string = format!("{:#?}", statement);
@@ -254,7 +254,7 @@ fn for_with_body_statement() {
     );
     let result = parse(lexer).unwrap().0;
 
-    let prg = &result.units[0];
+    let prg = &result.implementations[0];
     let statement = &prg.statements[0];
 
     let ast_string = format!("{:#?}", statement);
@@ -293,7 +293,7 @@ fn while_with_literal() {
     );
     let result = parse(lexer).unwrap().0;
 
-    let prg = &result.units[0];
+    let prg = &result.implementations[0];
     let statement = &prg.statements[0];
 
     let ast_string = format!("{:#?}", statement);
@@ -318,7 +318,7 @@ fn while_with_expression() {
     );
     let result = parse(lexer).unwrap().0;
 
-    let prg = &result.units[0];
+    let prg = &result.implementations[0];
     let statement = &prg.statements[0];
 
     let ast_string = format!("{:#?}", statement);
@@ -351,7 +351,7 @@ fn while_with_body_statement() {
     );
     let result = parse(lexer).unwrap().0;
 
-    let prg = &result.units[0];
+    let prg = &result.implementations[0];
     let statement = &prg.statements[0];
 
     let ast_string = format!("{:#?}", statement);
@@ -386,7 +386,7 @@ fn repeat_with_literal() {
     );
     let result = parse(lexer).unwrap().0;
 
-    let prg = &result.units[0];
+    let prg = &result.implementations[0];
     let statement = &prg.statements[0];
 
     let ast_string = format!("{:#?}", statement);
@@ -412,7 +412,7 @@ fn repeat_with_expression() {
     );
     let result = parse(lexer).unwrap().0;
 
-    let prg = &result.units[0];
+    let prg = &result.implementations[0];
     let statement = &prg.statements[0];
 
     let ast_string = format!("{:#?}", statement);
@@ -446,7 +446,7 @@ fn repeat_with_body_statement() {
     );
     let result = parse(lexer).unwrap().0;
 
-    let prg = &result.units[0];
+    let prg = &result.implementations[0];
     let statement = &prg.statements[0];
 
     let ast_string = format!("{:#?}", statement);
@@ -481,7 +481,7 @@ fn case_statement_with_one_condition() {
     );
     let result = parse(lexer).unwrap().0;
 
-    let prg = &result.units[0];
+    let prg = &result.implementations[0];
     let statement = &prg.statements[0];
 
     let ast_string = format!("{:#?}", statement);
@@ -520,7 +520,7 @@ fn case_statement_with_else_and_no_condition() {
     );
     let result = parse(lexer).unwrap().0;
 
-    let prg = &result.units[0];
+    let prg = &result.implementations[0];
     let statement = &prg.statements[0];
 
     let ast_string = format!("{:#?}", statement);
@@ -548,7 +548,7 @@ fn case_statement_with_no_conditions() {
     );
     let result = parse(lexer).unwrap().0;
 
-    let prg = &result.units[0];
+    let prg = &result.implementations[0];
     let statement = &prg.statements[0];
 
     let ast_string = format!("{:#?}", statement);
@@ -578,7 +578,7 @@ fn case_statement_with_one_condition_and_an_else() {
     );
     let result = parse(lexer).unwrap().0;
 
-    let prg = &result.units[0];
+    let prg = &result.implementations[0];
     let statement = &prg.statements[0];
 
     let ast_string = format!("{:#?}", statement);
@@ -623,7 +623,7 @@ fn case_statement_with_one_empty_condition_and_an_else() {
     );
     let result = parse(lexer).unwrap().0;
 
-    let prg = &result.units[0];
+    let prg = &result.implementations[0];
     let statement = &prg.statements[0];
 
     let ast_string = format!("{:#?}", statement);
@@ -664,7 +664,7 @@ fn case_statement_with_multiple_conditions() {
     );
     let result = parse(lexer).unwrap().0;
 
-    let prg = &result.units[0];
+    let prg = &result.implementations[0];
     let statement = &prg.statements[0];
 
     let ast_string = format!("{:#?}", statement);
@@ -730,7 +730,7 @@ fn case_statement_with_multiple_expressions_per_condition() {
     );
     let result = parse(lexer).unwrap().0;
 
-    let prg = &result.units[0];
+    let prg = &result.implementations[0];
     let statement = &prg.statements[0];
 
     let ast_string = format!("{:#?}", statement);
@@ -803,7 +803,7 @@ fn if_stmnt_location_test() {
     let lexer = lexer::lex(source);
     let parse_result = parse(lexer).unwrap().0;
 
-    let unit = &parse_result.units[0];
+    let unit = &parse_result.implementations[0];
     
     let location = &unit.statements[0].get_location();
     assert_eq!(source[location.start..location.end].to_string(), 
@@ -836,7 +836,7 @@ fn for_stmnt_location_test() {
     let lexer = lexer::lex(source);
     let parse_result = parse(lexer).unwrap().0;
 
-    let unit = &parse_result.units[0];
+    let unit = &parse_result.implementations[0];
     
     let location = &unit.statements[0].get_location();
     assert_eq!(source[location.start..location.end].to_string(), 
@@ -874,7 +874,7 @@ fn while_stmnt_location_test() {
     let lexer = lexer::lex(source);
     let parse_result = parse(lexer).unwrap().0;
 
-    let unit = &parse_result.units[0];
+    let unit = &parse_result.implementations[0];
     
     let location = &unit.statements[0].get_location();
     assert_eq!(source[location.start..location.end].to_string(), 
@@ -899,7 +899,7 @@ fn case_stmnt_location_test() {
     let lexer = lexer::lex(source);
     let parse_result = parse(lexer).unwrap().0;
 
-    let unit = &parse_result.units[0];
+    let unit = &parse_result.implementations[0];
     
     let location = &unit.statements[0].get_location();
     assert_eq!(source[location.start..location.end].to_string(), 
@@ -922,7 +922,7 @@ fn call_stmnt_location_test() {
     let lexer = lexer::lex(source);
     let parse_result = parse(lexer).unwrap().0;
 
-    let unit = &parse_result.units[0];
+    let unit = &parse_result.implementations[0];
     
     let location = &unit.statements[0].get_location();
     assert_eq!(source[location.start..location.end].to_string(), "foo(a:=3, b:=4)"); 

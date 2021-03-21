@@ -38,7 +38,6 @@ fn create_pou(pou_type: PouType, linkage: LinkageType) -> POU {
         pou_type,
         name: "".to_string(),
         variable_blocks: Vec::new(),
-        statements: Vec::new(),
         return_type: None,
         linkage,
         location: 0..0,
@@ -75,7 +74,7 @@ fn slice_and_advance(lexer: &mut RustyLexer) -> String {
 }
 
 pub fn parse(mut lexer: RustyLexer ) -> Result<(CompilationUnit, NewLines), String> {
-    let mut unit = CompilationUnit { global_vars : Vec::new(), units: Vec::new(), types: Vec::new()};
+    let mut unit = CompilationUnit { global_vars : Vec::new(), units: Vec::new(), implementations: Vec::new(), types: Vec::new()};
 
     let mut linkage = LinkageType::Internal;
     loop {
@@ -88,12 +87,21 @@ pub fn parse(mut lexer: RustyLexer ) -> Result<(CompilationUnit, NewLines), Stri
             }
             KeywordVarGlobal => 
                 unit.global_vars.push(parse_variable_block(&mut lexer)?),
-            KeywordProgram => 
-                unit.units.push(parse_pou(&mut lexer, PouType::Program, linkage, KeywordEndProgram)?),
-            KeywordFunction => 
-                unit.units.push(parse_pou(&mut lexer, PouType::Function, linkage, KeywordEndFunction)?),
-            KeywordFunctionBlock =>
-                unit.units.push(parse_pou(&mut lexer, PouType::FunctionBlock, linkage, KeywordEndFunctionBlock)?),
+            KeywordProgram => { 
+                let (pou,implementation) = parse_pou(&mut lexer, PouType::Program, linkage, KeywordEndProgram)?;
+                unit.units.push(pou);
+                unit.implementations.push(implementation);
+            }
+            KeywordFunction =>  {
+                let (pou,implementation) = parse_pou(&mut lexer, PouType::Function, linkage, KeywordEndFunction)?;
+                unit.units.push(pou);
+                unit.implementations.push(implementation);
+            }
+            KeywordFunctionBlock => {
+                let (pou,implementation) = parse_pou(&mut lexer, PouType::FunctionBlock, linkage, KeywordEndFunctionBlock)?;
+                unit.units.push(pou);
+                unit.implementations.push(implementation);
+            }
             KeywordType =>
                 unit.types.push(parse_type(&mut lexer)?),
             End => return Ok((unit, lexer.get_new_lines().clone())),
@@ -114,37 +122,55 @@ pub fn parse(mut lexer: RustyLexer ) -> Result<(CompilationUnit, NewLines), Stri
 /// * `pou_type`    - the type of the pou currently parsed
 /// * `expected_end_token` - the token that ends this pou
 /// 
-fn parse_pou(lexer: &mut RustyLexer, pou_type: PouType, linkage: LinkageType, expected_end_token: lexer::Token) -> Result<POU, String> {
+fn parse_pou(lexer: &mut RustyLexer, pou_type: PouType, linkage: LinkageType, expected_end_token: lexer::Token) -> Result<(POU, Implementation), String> {
     let line_nr = lexer.get_current_line_nr();
     lexer.advance(); //Consume ProgramKeyword
-    let mut result = create_pou(pou_type, linkage);
+    //let mut pou = create_pou(pou_type, linkage);
  
     //Parse Identifier
     expect!(Identifier, lexer);
-    result.name = slice_and_advance(lexer);
+    let name = slice_and_advance(lexer);
 
     //optional return type
-    if allow(KeywordColon, lexer) {
+    let return_type = if allow(KeywordColon, lexer) {
         let referenced_type = slice_and_advance(lexer);
-        result.return_type = Some(DataTypeDeclaration::DataTypeReference {referenced_type});
-    }
+        Some(DataTypeDeclaration::DataTypeReference {referenced_type})
+    } else {
+        None
+    };
 
     //Parse variable declarations
+    let mut variable_blocks = vec![];
     while lexer.token == KeywordVar || lexer.token == KeywordVarInput || lexer.token == KeywordVarOutput {
         let block = parse_variable_block(lexer);
         match block {
-            Ok(b) => result.variable_blocks.push(b),
+            Ok(b) => variable_blocks.push(b),
             Err(msg) => return Err(msg),
         };
     }
 
-    //Parse the statemetns
-    let mut body = parse_body(lexer, line_nr, &|it| *it == expected_end_token)?;
-    result.statements.append(&mut body);
-
+    let body_start = lexer.get_current_line_nr();
+    //Parse the statements
+    let statements = parse_body(lexer, line_nr, &|it| *it == expected_end_token)?; 
     expect!(expected_end_token, lexer);
+    
+    let pou = POU {
+        name : name.clone(), 
+        linkage,
+        pou_type,
+        variable_blocks,
+        return_type,
+        location : line_nr .. body_start, 
+    };
+    let implementation = Implementation {
+        name : name.clone(),
+        type_name : name.clone(),
+        statements, 
+        location : body_start .. lexer.get_current_line_nr()
+    };
+
     lexer.advance();
-    Ok(result)
+    Ok((pou, implementation))
 }
 
 // TYPE ... END_TYPE
@@ -259,7 +285,7 @@ fn parse_data_type_definition(lexer: &mut RustyLexer, name: Option<String>) -> R
 
             expect!(KeywordSemicolon, lexer);
             lexer.advance();
-            Ok((DataTypeDeclaration::DataTypeReference { referenced_type: referenced_type }, initial_value))
+            Ok((DataTypeDeclaration::DataTypeReference { referenced_type }, initial_value))
         }
     } else {
         return Err(format!("expected datatype, struct or enum, found {:?}", lexer.token));
@@ -361,6 +387,6 @@ fn parse_variable(
         name, 
         data_type, 
         location: variable_range,
-        initializer: initializer,
+        initializer,
     })
 }
