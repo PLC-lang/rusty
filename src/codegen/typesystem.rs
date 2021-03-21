@@ -9,6 +9,8 @@ use inkwell::{
     types::{BasicType, BasicTypeEnum, IntType},
 };
 
+pub const DEFAULT_STRING_LEN : u32 = 80;
+
 impl<'ctx> CodeGen<'ctx> {
     pub fn initialize_type_system(&mut self) {
         let c = self.context;
@@ -168,8 +170,8 @@ impl<'ctx> CodeGen<'ctx> {
         self.index.associate_type(
             "STRING",
             DataTypeInformation::String {
-                size: 81,
-                generated_type: c.i8_type().array_type(81).as_basic_type_enum(),
+                size: DEFAULT_STRING_LEN + 1,
+                generated_type: c.i8_type().array_type(DEFAULT_STRING_LEN).as_basic_type_enum(),
             },
         );
     }
