@@ -16,7 +16,7 @@ pub struct PouGenerator<'a, 'b> {
 }
 
 /// creates an opaque-struct type for the pou and registers at the given index
-pub fn index_pou<'a>(pou_name: &str, context: &'a Context, index: &mut Index<'a>) {
+pub fn index_pou<'a>(pou_name: &str, context: &'a Context, index: &mut Index<'a>, variable_names: Vec<String>) {
     let struct_name = format!("{}_interface", pou_name);
     let struct_type = context.opaque_struct_type(struct_name.as_str());
     index.associate_type(
@@ -24,6 +24,7 @@ pub fn index_pou<'a>(pou_name: &str, context: &'a Context, index: &mut Index<'a>
         DataTypeInformation::Struct {
             name: struct_name,
             generated_type: struct_type.into(),
+            member_names: variable_names,
         },
     );
 }

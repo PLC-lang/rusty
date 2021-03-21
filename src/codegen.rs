@@ -99,7 +99,11 @@ impl<'ctx> CodeGen<'ctx> {
 
         //index all pou's
         for unit in &unit.units {
-            pou_generator::index_pou(unit.name.as_str(), self.context, self.index);
+            let variable_names : Vec<String> = unit.variable_blocks.iter()
+                    .flat_map(|it| &it.variables)
+                    .map(|it| it.name.to_string())
+                    .collect();
+            pou_generator::index_pou(unit.name.as_str(), self.context, self.index, variable_names);
         }
 
         //generate all pou's
