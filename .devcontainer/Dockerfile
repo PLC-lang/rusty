@@ -1,5 +1,4 @@
-FROM rust:buster
-RUN useradd -ms /bin/bash vscode
+FROM mcr.microsoft.com/vscode/devcontainers/rust:0-1
 
 ARG LLVM_VER=11
 RUN echo "deb http://apt.llvm.org/buster/ llvm-toolchain-buster-$LLVM_VER  main" >> /etc/apt/sources.list

@@ -18,7 +18,8 @@ use super::{expression_generator::ExpressionCodeGenerator, llvm::LLVM, struct_ge
 pub fn generate_data_type_stubs<'a>(llvm: &LLVM<'a>, index: &mut Index<'a>, data_types: &Vec<UserTypeDeclaration>) -> Result<(), CompileError>{
     for user_type in data_types {
         match &user_type.data_type {
-            DataType::StructType { name, variables: _ } => {
+            DataType::StructType { name, variables } => {
+                let member_names :Vec<String> = variables.iter().map(|it| it.name.to_string()).collect();
                 index.associate_type(
                     name.as_ref().unwrap().as_str(),
                     DataTypeInformation::Struct {
@@ -26,6 +27,7 @@ pub fn generate_data_type_stubs<'a>(llvm: &LLVM<'a>, index: &mut Index<'a>, data
                         generated_type: llvm
                             .create_struct_stub(name.as_ref().unwrap())
                             .into(),
+                        member_names
                     },
                 );
             }
@@ -101,6 +103,7 @@ pub fn generate_data_type<'a>(
                 let members: Vec<&Variable> = variables.iter().collect();
                 let (_, initial_value) = struct_generator.generate_struct_type(&members, name)?;
                 index.associate_type_initial_value(name, initial_value);
+                
             }
             DataType::EnumType { name: _, elements } => {
                 // generate a global variable for every enum element
