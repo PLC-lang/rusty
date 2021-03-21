@@ -1168,3 +1168,27 @@ r#"Variable {
     assert_eq!(expected, format!("{:#?}", x).as_str());
 }
 
+#[test]
+fn string_variable_declaration_can_be_parsed(){
+    let lexer = lexer::lex(
+            "
+            VAR_GLOBAL
+                x : STRING;
+            END_VAR
+           ");
+    let (parse_result, _) = parse(lexer).unwrap();
+    let x = &parse_result.global_vars[0].variables[0];
+    let expected = 
+r#"Variable {
+    name: "x",
+    data_type: DataTypeDefinition {
+        data_type: StringType {
+            name: None,
+            is_wide: false,
+            size: None,
+        },
+    },
+}"#;
+    assert_eq!(expected, format!("{:#?}", x).as_str());
+}
+

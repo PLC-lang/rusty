@@ -1178,8 +1178,12 @@ fn string_can_be_parsed() {
     variables: [
         Variable {
             name: "x",
-            data_type: DataTypeReference {
-                referenced_type: "STRING",
+            data_type: DataTypeDefinition {
+                data_type: StringType {
+                    name: None,
+                    is_wide: false,
+                    size: None,
+                },
             },
         },
     ],
@@ -1236,8 +1240,12 @@ fn arrays_can_be_parsed() {
                             value: "9",
                         },
                     },
-                    referenced_type: DataTypeReference {
-                        referenced_type: "STRING",
+                    referenced_type: DataTypeDefinition {
+                        data_type: StringType {
+                            name: None,
+                            is_wide: false,
+                            size: None,
+                        },
                     },
                 },
             },
@@ -1317,8 +1325,12 @@ fn nested_arrays_can_be_parsed() {
                                     value: "9",
                                 },
                             },
-                            referenced_type: DataTypeReference {
-                                referenced_type: "STRING",
+                            referenced_type: DataTypeDefinition {
+                                data_type: StringType {
+                                    name: None,
+                                    is_wide: false,
+                                    size: None,
+                                },
                             },
                         },
                     },
@@ -1411,8 +1423,12 @@ fn multidim_arrays_can_be_parsed() {
                             },
                         ],
                     },
-                    referenced_type: DataTypeReference {
-                        referenced_type: "STRING",
+                    referenced_type: DataTypeDefinition {
+                        data_type: StringType {
+                            name: None,
+                            is_wide: false,
+                            size: None,
+                        },
                     },
                 },
             },

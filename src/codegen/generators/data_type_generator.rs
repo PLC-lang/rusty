@@ -78,6 +78,9 @@ pub fn generate_data_type_stubs<'a>(llvm: &LLVM<'a>, index: &mut Index<'a>, data
                     },
                 )
             }
+            DataType::StringType {..} => {
+                unimplemented!();
+            }
         };
     }
     Ok(())
@@ -146,6 +149,7 @@ pub fn generate_data_type<'a>(
                     }
                 }
             }
+            DataType::StringType { .. } => {unimplemented!()}
         }
     }
     Ok(())
