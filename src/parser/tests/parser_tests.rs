@@ -199,7 +199,7 @@ fn empty_statements_are_ignored() {
     let lexer = lexer::lex("PROGRAM buz ;;;; END_PROGRAM ");
     let result = parse(lexer).unwrap().0;
     
-    let prg = &result.units[0];
+    let prg = &result.implementations[0];
     assert_eq!(0, prg.statements.len());
 }
 
@@ -208,7 +208,7 @@ fn empty_statements_are_ignored_before_a_statement() {
     let lexer = lexer::lex("PROGRAM buz ;;;;x; END_PROGRAM ");
     let result = parse(lexer).unwrap().0;
     
-    let prg = &result.units[0];
+    let prg = &result.implementations[0];
     let statement = &prg.statements[0];
 
     let ast_string = format!("{:#?}", statement);
@@ -223,7 +223,7 @@ fn empty_statements_are_ignored_after_a_statement() {
     let lexer = lexer::lex("PROGRAM buz x;;;; END_PROGRAM ");
     let result = parse(lexer).unwrap().0;
     
-    let prg = &result.units[0];
+    let prg = &result.implementations[0];
     let statement = &prg.statements[0];
 
     let ast_string = format!("{:#?}", statement);
@@ -736,7 +736,7 @@ fn test_ast_line_locations() {
     ",
     );
     let (parse_result, new_lines) = parse(lexer).unwrap();
-    let statements = &parse_result.units[0].statements;
+    let statements = &parse_result.implementations[0].statements;
 
     {
         let statement_offset = statements.get(0).unwrap().get_location().start;

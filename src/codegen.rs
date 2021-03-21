@@ -113,10 +113,10 @@ impl<'ctx> CodeGen<'ctx> {
             pou_generator.generate_pou_stub(unit, &self.module)?;
         }
 
-        for unit in &unit.units {
+        for (i,pou) in unit.units.iter().enumerate() {
             //Don't generate external functions
-            if unit.linkage != LinkageType::External {
-                pou_generator.generate_pou(unit)?;
+            if pou.linkage != LinkageType::External {
+                pou_generator.generate_pou(pou, &unit.implementations[i])?;
             }
         }
 

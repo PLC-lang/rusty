@@ -5,7 +5,6 @@ use std::{fmt::{Debug, Display, Formatter, Result}, iter, unimplemented};
 pub struct POU {
     pub name: String,
     pub variable_blocks: Vec<VariableBlock>,
-    pub statements: Vec<Statement>,
     pub pou_type: PouType,
     pub return_type: Option<DataTypeDeclaration>,
     pub linkage : LinkageType,
@@ -18,11 +17,18 @@ impl Debug for POU {
         f.debug_struct("POU")
             .field("name", &self.name)
             .field("variable_blocks", &self.variable_blocks)
-            .field("statements", &self.statements)
             .field("pou_type", &self.pou_type)
             .field("return_type", &self.return_type)
             .finish()
     }
+}
+
+#[derive(Debug, PartialEq)]
+pub struct Implementation {
+    pub name: String,
+    pub type_name: String,
+    pub statements: Vec<Statement>,
+    pub location : SourceRange,
 }
 
 #[derive(Debug, Copy, PartialEq, Clone)]
@@ -43,6 +49,7 @@ pub enum PouType {
 pub struct CompilationUnit {
     pub global_vars: Vec<VariableBlock>,
     pub units: Vec<POU>,
+    pub implementations: Vec<Implementation>,
     pub types: Vec<UserTypeDeclaration>,
 }
 
