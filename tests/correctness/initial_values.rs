@@ -517,3 +517,129 @@ fn real_initial_values_in_array_variable(){
     assert_eq!(0.000000001, maintype.r2);
 }
 
+
+#[derive(Debug)]
+#[repr(C)]
+struct StructProgram {
+    x: i32,
+    y: i32,
+    arr1: i16,
+    arr3: i16,
+    f: f32,
+}
+
+#[test]
+fn initialization_of_complex_struct_instance() {
+    let src =
+         "
+        TYPE MyPoint: STRUCT
+          x: DINT;
+          y: DINT;
+        END_STRUCT
+        END_TYPE
+ 
+        TYPE MyStruct: STRUCT
+          point: MyPoint;
+          my_array: ARRAY[0..3] OF INT;
+          f : REAL;
+        END_STRUCT
+        END_TYPE
+
+        VAR_GLOBAL 
+          a : MyStruct  := (
+              point := (x := 1, y:= 2),
+              my_array := [0,1,2,3],
+              f := 7.89
+            ); 
+        END_VAR
+
+        PROGRAM main
+            VAR
+                x : DINT;
+                y : DINT;
+                arr1 : INT;
+                arr3 : INT;
+                f : REAL;
+            END_VAR 
+
+            x := a.point.x;
+            y := a.point.y;
+            arr1 := a.my_array[1];
+            arr3 := a.my_array[3];
+            f := a.f;
+        END_PROGRAM
+        ";
+
+    let mut maintype = StructProgram {
+        x: 0, y: 0,
+        arr1 : 0, arr3 : 0,
+        f : 0.0
+    };
+
+    compile_and_run(src.to_string(), &mut maintype);
+    assert_eq!(1, maintype.x);
+    assert_eq!(2, maintype.y);
+    assert_eq!(1 , maintype.arr1);
+    assert_eq!(3, maintype.arr3);
+    assert_eq!(7.89, maintype.f);
+    
+}
+
+#[test]
+fn initialization_of_complex_struct_instance_using_defaults() {
+    // a.point.y and a.f are note initialized!
+    let src =
+         "
+        TYPE MyReal : REAL := 3.1415; END_TYPE
+
+        TYPE MyPoint: STRUCT
+          x: DINT;
+          y: DINT := 7;
+        END_STRUCT
+        END_TYPE
+ 
+        TYPE MyStruct: STRUCT
+          point: MyPoint;
+          my_array: ARRAY[0..3] OF INT;
+          f : MyReal;
+        END_STRUCT
+        END_TYPE
+
+        VAR_GLOBAL 
+          a : MyStruct  := (
+              point := (x := 1),
+              my_array := [0,1,2,3]
+            ); 
+        END_VAR
+
+        PROGRAM main
+            VAR
+                x : DINT;
+                y : DINT;
+                arr1 : INT;
+                arr3 : INT;
+                f : REAL;
+            END_VAR 
+
+            x := a.point.x;
+            y := a.point.y;
+            arr1 := a.my_array[1];
+            arr3 := a.my_array[3];
+            f := a.f;
+        END_PROGRAM
+        ";
+
+    let mut maintype = StructProgram {
+        x: 0, y: 0,
+        arr1 : 0, arr3 : 0,
+        f : 0.0
+    };
+
+    compile_and_run(src.to_string(), &mut maintype);
+    assert_eq!(1, maintype.x);
+    assert_eq!(7, maintype.y);
+    assert_eq!(1 , maintype.arr1);
+    assert_eq!(3, maintype.arr3);
+    assert_eq!(3.1415, maintype.f);
+    
+}
