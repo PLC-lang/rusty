@@ -643,3 +643,77 @@ fn initialization_of_complex_struct_instance_using_defaults() {
     assert_eq!(3.1415, maintype.f);
     
 }
+
+
+#[derive(Debug)]
+#[repr(C)]
+struct StringStruct {
+    mystring1: [i8; 26],
+    mystring2: [i8; 26],
+    string1: [i8; 81],
+    string2: [i8; 81],
+    string3: [i8; 21],
+}
+
+
+
+#[test]
+fn initialization_of_string_variables() {
+    // a.point.y and a.f are note initialized!
+    let src =
+         "
+        TYPE MyString : STRING[25] := 'abcdefg'; END_TYPE
+
+        TYPE StringStruct : STRUCT
+                mystring: MyString;
+                mystring2: MyString := 'ABCDEFG';
+                string1 : STRING;
+                string2 : STRING := 'qwert';
+                string3 : STRING[20] := 'QWERT';
+        END_STRUCT
+        END_TYPE
+
+        VAR_GLOBAL g : StringStruct; END_VAR
+ 
+        PROGRAM main
+            VAR
+                mystring: MyString := 'xxx'; 
+                mystring2: MyString;
+                string1 : STRING := 'xxx';
+                string2 : STRING := 'xxx';
+                string3 : STRING[20];
+            END_VAR 
+
+            mystring := g.mystring;
+            mystring2 := g.mystring2;
+            string1 := g.string1;
+            string2 := g.string2;
+            string3 := g.string3;
+        END_PROGRAM
+        ";
+
+    let mut maintype = StringStruct {
+        mystring1: [1; 26],
+        mystring2: [1; 26],
+        string1: [1; 81],
+        string2: [1; 81],
+        string3: [1; 21],
+
+    };
+
+    compile_and_run(src.to_string(), &mut maintype);
+    assert_eq!(&maintype.mystring1[0..8], [97,98,99,100,101,102,103,0]); // abcdefg
+    assert_eq!(&maintype.mystring1[9..26], [0;17]); //rest is blank
+
+    assert_eq!(&maintype.mystring2[0..8], [65,66,67,68,69,70,71,0]); // ABCDEFG
+    assert_eq!(&maintype.mystring2[9..26], [0;17]); //rest is blank
+    
+    assert_eq!(maintype.string1, [0 as i8; 81]); // blank string
+    
+    assert_eq!(maintype.string2[0..6], [113,119,101,114,116,0]); // qwert
+    assert_eq!(maintype.string2[7..81], [0 as i8; 74]); // rest is blank
+    
+    assert_eq!(maintype.string3[0..6], [113-32,119-32,101-32,114-32,116-32,0]); // QWERT
+    assert_eq!(maintype.string3[7..21], [0 as i8; 14]); // rest is blank
+}
+

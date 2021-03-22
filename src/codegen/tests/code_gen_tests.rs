@@ -311,6 +311,43 @@ entry:
 }
 
 #[test]
+fn program_with_string_type_assignment() {
+    let result = codegen!(
+        r#"
+TYPE MyString: STRING[99] := 'abc'; END_TYPE
+
+PROGRAM prg
+VAR
+y : STRING;
+z : MyString;
+END_VAR
+y := 'im a genius';
+z := 'im also a genius';
+END_PROGRAM
+"#
+    );
+
+    let expected = r#"; ModuleID = 'main'
+source_filename = "main"
+
+%prg_interface = type { [81 x i8], [100 x i8] }
+
+@prg_instance = global %prg_interface { [81 x i8] zeroinitializer, [4 x i8] c"abc\00" }
+
+define void @prg(%prg_interface* %0) {
+entry:
+  %y = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 0
+  %z = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 1
+  store [12 x i8] c"im a genius\00", [81 x i8]* %y, align 1
+  store [17 x i8] c"im also a genius\00", [100 x i8]* %z, align 1
+  ret void
+}
+"#;
+
+    assert_eq!(result, expected);
+}
+
+#[test]
 fn variable_length_strings_can_be_created() {
     let result = codegen!(
         r#"PROGRAM prg

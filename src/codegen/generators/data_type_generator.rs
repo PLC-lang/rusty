@@ -149,10 +149,20 @@ pub fn generate_data_type<'a>(
                 }
             }
             DataType::ArrayType { name, .. } => {
-                generate_array_data_type(data_type, name, index, llvm, "LiteralArray")?;
+                generate_array_data_type(data_type, name, index, llvm, 
+                    |stmt| match stmt {
+                        Statement::LiteralArray{..} => true,
+                        _ => false
+                    },
+                    "LiteralArray")?;
             }
             DataType::StringType { name, .. } => {
-                generate_array_data_type(data_type, name, index, llvm, "LiteralString")?;
+                generate_array_data_type(data_type, name, index, llvm, 
+                    |stmt| match stmt {
+                        Statement::LiteralString{..} => true,
+                        _ => false
+                    }
+                     , "LiteralString")?;
             }
         }
     }
@@ -165,9 +175,10 @@ fn generate_array_data_type<'a>(
         name: &Option<String>, 
         index: &mut Index<'a>, 
         llvm: &LLVM<'a>, 
+        predicate: fn(&Statement) -> bool,
         expected_ast: &str) -> Result<(), CompileError> {
     Ok(if let Some(initializer) = &data_type.initializer {
-        if let Statement::LiteralArray{ .. } = initializer {
+        if predicate(initializer) {
             let name = name.as_ref().ok_or_else(|| CompileError::codegen_error("Expected named datatype but found none".to_string(), initializer.get_location()))?;
             let array_type = index.get_type_information(name)?;
             let generator = ExpressionCodeGenerator::new_context_free(llvm, index, Some(array_type));
