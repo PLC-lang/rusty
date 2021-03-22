@@ -245,6 +245,9 @@ pub enum Token {
     #[token("ARRAY")]
     KeywordArray,
 
+    #[token("STRING")]
+    KeywordString,
+
     #[token("OF")]
     KeywordOf,
     

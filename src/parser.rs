@@ -213,6 +213,27 @@ fn parse_data_type_definition(lexer: &mut RustyLexer, name: Option<String>) -> R
 
         Ok((DataTypeDeclaration::DataTypeDefinition { data_type : DataType::EnumType{ name, elements }}, None))
 
+    } else if lexer.token == KeywordString {
+        lexer.advance();
+        let size = if allow(KeywordSquareParensOpen, lexer) {
+            let size_statement = parse_expression(lexer)?;
+            expect!(KeywordSquareParensClose, lexer);
+            lexer.advance();
+            Some(size_statement)
+        } else {
+            None
+        };
+
+        let initializer = if allow(KeywordAssignment, lexer) {
+            Some(parse_expression(lexer)?)
+        } else {
+            None
+        };
+        expect!(KeywordSemicolon, lexer);
+        lexer.advance();
+
+        Ok((DataTypeDeclaration::DataTypeDefinition { data_type: DataType::StringType {name, is_wide: false, size }}, initializer))
+    
     } else if lexer.token == Identifier {   //Subrange
         let referenced_type = slice_and_advance(lexer);
 

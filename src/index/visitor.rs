@@ -111,5 +111,7 @@ fn visit_data_type(index: &mut Index, data_type: &DataType) {
             index.register_type (name.as_ref().map(|it| it.to_string()).unwrap()),
         DataType::ArrayType { name, .. } => 
             index.register_type (name.as_ref().map(|it| it.to_string()).unwrap()),
+        DataType::StringType { name, ..} => 
+            index.register_type (name.as_ref().map(|it| it.to_string()).unwrap()),
     }
 }
