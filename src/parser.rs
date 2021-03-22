@@ -213,7 +213,7 @@ fn parse_data_type_definition(lexer: &mut RustyLexer, name: Option<String>) -> R
 
         Ok((DataTypeDeclaration::DataTypeDefinition { data_type : DataType::EnumType{ name, elements }}, None))
 
-    } else if lexer.token == Identifier && lexer.slice().eq_ignore_ascii_case("STRING") {   //STRING TODO: should STRING be a keyword?
+    } else if lexer.token == KeywordString {
         lexer.advance();
         let size = if allow(KeywordSquareParensOpen, lexer) {
             let size_statement = parse_expression(lexer)?;
