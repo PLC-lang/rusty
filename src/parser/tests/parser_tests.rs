@@ -1,5 +1,6 @@
 /// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
+use crate::parser::Statement::LiteralInteger;
 use crate::{lexer, parser::parse};
 use crate::ast::*;
 use pretty_assertions::*;
@@ -481,6 +482,32 @@ fn array_type_can_be_parsed_test() {
 
 assert_eq!(ast_string, expected_ast);
 }
+
+#[test]
+fn string_type_can_be_parsed_test() {
+    let (result, _) = parse(lexer::lex(
+            r#"
+            TYPE MyString : STRING[253]; END_TYPE
+            "#
+    )).unwrap();
+
+    let ast_string = format!("{:#?}", &result.types[0]);
+
+    let expected_ast = format!("{:#?}", &UserTypeDeclaration {
+        data_type: DataType::StringType {
+            name: Some("MyString".to_string()),
+            size: Some(LiteralInteger {
+                value: "253".to_string(),
+                location: 10..11,
+            }),
+            is_wide: false,
+        },
+        initializer: None,
+    });
+
+assert_eq!(ast_string, expected_ast);
+}
+
 
 #[test]
 fn array_type_initialization_with_literals_can_be_parsed_test() {
@@ -1166,5 +1193,49 @@ r#"Variable {
     ),
 }"#;
     assert_eq!(expected, format!("{:#?}", x).as_str());
+}
+
+#[test]
+fn string_variable_declaration_can_be_parsed(){
+    let lexer = lexer::lex(
+            "
+            VAR_GLOBAL
+                x : STRING;
+                y : STRING[500];
+            END_VAR
+           ");
+    let (parse_result, _) = parse(lexer).unwrap();
+    let x = &parse_result.global_vars[0].variables[0];
+    let expected = 
+r#"Variable {
+    name: "x",
+    data_type: DataTypeDefinition {
+        data_type: StringType {
+            name: None,
+            is_wide: false,
+            size: None,
+        },
+    },
+}"#;
+    assert_eq!(expected, format!("{:#?}", x).as_str());
+
+ let x = &parse_result.global_vars[0].variables[1];
+    let expected = 
+r#"Variable {
+    name: "y",
+    data_type: DataTypeDefinition {
+        data_type: StringType {
+            name: None,
+            is_wide: false,
+            size: Some(
+                LiteralInteger {
+                    value: "500",
+                },
+            ),
+        },
+    },
+}"#;
+    assert_eq!(expected, format!("{:#?}", x).as_str());
+
 }
 

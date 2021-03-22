@@ -433,9 +433,12 @@ fn array_parsing() {
 #[test]
 fn string_parsing() {
     let mut lexer = lex(
-        r"'AB C' 'AB$$' 'AB$''"
+        r"STRING 'AB C' 'AB$$' 'AB$''"
     );
 
+    assert_eq!(lexer.token, KeywordString);
+    assert_eq!("STRING",lexer.slice());
+    lexer.advance();
     assert_eq!(lexer.token, LiteralString);
     assert_eq!("'AB C'",lexer.slice());
     lexer.advance();
@@ -446,4 +449,3 @@ fn string_parsing() {
     assert_eq!("'AB$''",lexer.slice());
     lexer.advance();
 }
-    

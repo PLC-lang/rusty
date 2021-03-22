@@ -40,7 +40,7 @@ Structured text compiler written in Rust
 - :heavy_check_mark: Array data types
 - :heavy_check_mark: Alias types
 - :x: Sub-ranges types
-- :x: Sized String types
+- :heavy_check_mark: Sized String types
 - :heavy_check_mark: Initial values
 
 ## Declarations

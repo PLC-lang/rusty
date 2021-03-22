@@ -208,6 +208,11 @@ pub enum DataType {
         bounds: Statement,
         referenced_type: Box<DataTypeDeclaration>,
     },
+    StringType {
+        name: Option<String>,
+        is_wide: bool, //WSTRING
+        size: Option<Statement>,
+    }
 }
 
 impl Debug for DataType {
@@ -241,6 +246,16 @@ impl Debug for DataType {
                 .field("bounds", bounds)
                 .field("referenced_type", referenced_type)
                 .finish(),
+            DataType::StringType {
+                name,
+                is_wide, 
+                size 
+            } => f
+                .debug_struct("StringType")
+                .field("name", name)
+                .field("is_wide", is_wide)
+                .field("size", size)
+                .finish()
         }
     }
 }
@@ -255,6 +270,7 @@ impl DataType {
                 ..
             } => *name = Some(new_name),
             DataType::ArrayType { name, .. } => *name = Some(new_name),
+            DataType::StringType { name, ..} => *name = Some(new_name),
         }
     }
 
@@ -267,6 +283,7 @@ impl DataType {
                 ..
             } => name.as_ref().map(|x| x.as_str()),
             DataType::ArrayType { name, .. } => name.as_ref().map(|x| x.as_str()),
+            DataType::StringType { name, .. } => name.as_ref().map(|x| x.as_str()),
         }
     }
 

@@ -5,6 +5,7 @@
 /// - Enum types
 /// - SubRange types
 /// - Alias types
+/// - sized Strings
 use inkwell::{module::Module, types::{ArrayType, BasicType, BasicTypeEnum}, values::{BasicValue}};
 use crate::{ast::{DataType, Statement, UserTypeDeclaration, Variable}, compile_error::CompileError, index::{DataTypeInformation, Dimension, Index}};
 
@@ -78,6 +79,20 @@ pub fn generate_data_type_stubs<'a>(llvm: &LLVM<'a>, index: &mut Index<'a>, data
                     },
                 )
             }
+            DataType::StringType { name, size, .. } => {
+                let len = if let Some(statement) = size {
+                    evaluate_constant_int(statement)? as u32
+                } else {
+                    crate::codegen::typesystem::DEFAULT_STRING_LEN  // DEFAULT STRING LEN
+                } + 1;
+                index.associate_type(
+                    name.as_ref().unwrap().as_str(),
+                    DataTypeInformation::String {
+                        size: len,
+                        generated_type: llvm.context.i8_type().array_type(len).as_basic_type_enum(),
+                    },
+                );
+            }
         };
     }
     Ok(())
@@ -88,7 +103,8 @@ pub fn generate_data_type_stubs<'a>(llvm: &LLVM<'a>, index: &mut Index<'a>, data
 /// - Struct type for a STRUCT
 /// - global variables for enum-elements
 /// - an alias index entry for sub-range types
-/// - TODO array
+/// - Array type for arrays
+/// - array type for sized Strings
 pub fn generate_data_type<'a>(
     module: &Module<'a>,
     llvm: &LLVM<'a>,
@@ -133,22 +149,46 @@ pub fn generate_data_type<'a>(
                 }
             }
             DataType::ArrayType { name, .. } => {
-                if let Some(initializer) = &data_type.initializer {
-                    if let Statement::LiteralArray{ .. } = initializer {
-                        let name = name.as_ref().ok_or_else(|| CompileError::codegen_error("Expected named datatype but found none".to_string(), initializer.get_location()))?;
-                        let array_type = index.get_type_information(name)?;
-                        let generator = ExpressionCodeGenerator::new_context_free(llvm, index, Some(array_type));
-                        let (_, initial_value) = generator.generate_literal(initializer)?;
-                        index.associate_type_initial_value(name, initial_value)
-                    } else {
-                        return Err(CompileError::codegen_error(
-                            format!("Expected LiteralArray but found {:?}", initializer), initializer.get_location()));
+                generate_array_data_type(data_type, name, index, llvm, 
+                    |stmt| match stmt {
+                        Statement::LiteralArray{..} => true,
+                        _ => false
+                    },
+                    "LiteralArray")?;
+            }
+            DataType::StringType { name, .. } => {
+                generate_array_data_type(data_type, name, index, llvm, 
+                    |stmt| match stmt {
+                        Statement::LiteralString{..} => true,
+                        _ => false
                     }
-                }
+                     , "LiteralString")?;
             }
         }
     }
     Ok(())
+}
+
+/// generates and associates the given array-datatype (used for arrays and strings)
+fn generate_array_data_type<'a>(
+        data_type: &UserTypeDeclaration, 
+        name: &Option<String>, 
+        index: &mut Index<'a>, 
+        llvm: &LLVM<'a>, 
+        predicate: fn(&Statement) -> bool,
+        expected_ast: &str) -> Result<(), CompileError> {
+    Ok(if let Some(initializer) = &data_type.initializer {
+        if predicate(initializer) {
+            let name = name.as_ref().ok_or_else(|| CompileError::codegen_error("Expected named datatype but found none".to_string(), initializer.get_location()))?;
+            let array_type = index.get_type_information(name)?;
+            let generator = ExpressionCodeGenerator::new_context_free(llvm, index, Some(array_type));
+            let (_, initial_value) = generator.generate_literal(initializer)?;
+            index.associate_type_initial_value(name, initial_value)
+        } else {
+            return Err(CompileError::codegen_error(
+                format!("Expected {} but found {:?}", expected_ast, initializer), initializer.get_location()));
+        }
+    })
 }
 
 /// constructs a vector with all dimensions for the given bounds-statement
