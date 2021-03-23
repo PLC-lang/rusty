@@ -1,2 +1,6 @@
 image:
   file: .devcontainer/Dockerfile
+vscode:
+  extensions:
+    - vadimcn.vscode-lldb@1.6.0:tbQLAVn9tjDxr5QEpv1W+A==
+    - tamasfe.even-better-toml@0.9.1:0QCvay8L3oAOZQY/5DkpSg==
