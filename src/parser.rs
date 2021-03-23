@@ -32,18 +32,6 @@ pub fn allow(token: lexer::Token, lexer: &mut RustyLexer) -> bool {
     }
 }
 
-
-fn create_pou(pou_type: PouType, linkage: LinkageType) -> POU {
-    POU {
-        pou_type,
-        name: "".to_string(),
-        variable_blocks: Vec::new(),
-        return_type: None,
-        linkage,
-        location: 0..0,
-    }
-}
-
 ///
 /// returns an error for an unidientified token
 ///  

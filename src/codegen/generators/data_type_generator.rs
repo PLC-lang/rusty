@@ -6,97 +6,13 @@
 /// - SubRange types
 /// - Alias types
 /// - sized Strings
-use inkwell::{module::Module, types::{ArrayType, BasicType, BasicTypeEnum}, values::{BasicValue}};
-use crate::{ast::{DataType, Statement, UserTypeDeclaration, Variable}, compile_error::CompileError, index::{DataTypeInformation, Dimension, Index}};
+use crate::index::GlobalIndex;
+use crate::{codegen::{llvm_index::LLVMTypedIndex, llvm_typesystem::{get_llvm_int_type, get_llvm_float_type}}, typesystem::DataType};
+use inkwell::{types::{ArrayType, BasicTypeEnum}, values::BasicValueEnum};
+use crate::{ast::{Dimension, Statement}, compile_error::CompileError, typesystem::DataTypeInformation};
 
 use super::{expression_generator::ExpressionCodeGenerator, llvm::LLVM, struct_generator::StructGenerator};
 
-/// generates a stub type (e.g. an opaque struct type) for the given type. We generate stubs for all types
-/// before we generate the type-details so we avoid ordering-problems or problems with circular dependencies
-///
-/// generated type-stubs are registerd in the index
-/// array types are generated right away
-pub fn generate_data_type_stubs<'a>(llvm: &LLVM<'a>, index: &mut Index<'a>, data_types: &Vec<UserTypeDeclaration>) -> Result<(), CompileError>{
-    for user_type in data_types {
-        match &user_type.data_type {
-            DataType::StructType { name, variables } => {
-                let member_names :Vec<String> = variables.iter().map(|it| it.name.to_string()).collect();
-                index.associate_type(
-                    name.as_ref().unwrap().as_str(),
-                    DataTypeInformation::Struct {
-                        name: name.clone().unwrap(),
-                        generated_type: llvm
-                            .create_struct_stub(name.as_ref().unwrap())
-                            .into(),
-                        member_names
-                    },
-                );
-            }
-            DataType::EnumType { name, elements: _ } => index.associate_type(
-                name.as_ref().unwrap().as_str(),
-                DataTypeInformation::Integer {
-                    signed: true,
-                    size: 32,
-                    generated_type: llvm.i32_type().as_basic_type_enum(),
-                },
-            ),
-            DataType::SubRangeType {
-                name,
-                referenced_type: type_ref_name,
-            } => {
-                let alias_name = name.as_ref().unwrap();
-                index.associate_type(
-                    alias_name,
-                    DataTypeInformation::Alias {
-                        name: alias_name.clone(),
-                        referenced_type: type_ref_name.clone(),
-                    },
-                );
-            }
-            DataType::ArrayType {
-                name,
-                bounds,
-                referenced_type,
-            } => {
-                let dimensions = get_array_dimensions(bounds)?;
-
-                let referenced_type_name = referenced_type.get_name().unwrap();
-                let target_type = index.get_type_information(referenced_type_name)?.get_type();
-                let internal_type = index
-                    .find_type_information(referenced_type_name)
-                    .unwrap();
-                index.associate_type(
-                    name.as_ref().unwrap().as_str(),
-                    DataTypeInformation::Array {
-                        inner_type_name: referenced_type_name.to_string(),
-                        inner_type_hint: Box::new(internal_type),
-                        generated_type: create_nested_array_type(
-                            target_type,
-                            dimensions.clone(),
-                        )
-                        .as_basic_type_enum(),
-                        dimensions,
-                    },
-                )
-            }
-            DataType::StringType { name, size, .. } => {
-                let len = if let Some(statement) = size {
-                    evaluate_constant_int(statement)? as u32
-                } else {
-                    crate::codegen::typesystem::DEFAULT_STRING_LEN  // DEFAULT STRING LEN
-                } + 1;
-                index.associate_type(
-                    name.as_ref().unwrap().as_str(),
-                    DataTypeInformation::String {
-                        size: len,
-                        generated_type: llvm.context.i8_type().array_type(len).as_basic_type_enum(),
-                    },
-                );
-            }
-        };
-    }
-    Ok(())
-}
 
 /// generates the llvm-type for the given data-type and registers it at the index
 /// this function may create and register a ... 
@@ -105,135 +21,175 @@ pub fn generate_data_type_stubs<'a>(llvm: &LLVM<'a>, index: &mut Index<'a>, data
 /// - an alias index entry for sub-range types
 /// - Array type for arrays
 /// - array type for sized Strings
-pub fn generate_data_type<'a>(
-    module: &Module<'a>,
-    llvm: &LLVM<'a>,
-    index: &mut Index<'a>,
-    data_types: &Vec<UserTypeDeclaration>,
-) -> Result<(), CompileError> {
-    for data_type in data_types {
-        match &data_type.data_type {
-            DataType::StructType { name, variables } => {
-                let name = name.as_ref().unwrap();
-                let mut struct_generator = StructGenerator::new(llvm, index);
-                let members: Vec<&Variable> = variables.iter().collect();
-                let (_, initial_value) = struct_generator.generate_struct_type(&members, name)?;
-                index.associate_type_initial_value(name, initial_value);
-                
-            }
-            DataType::EnumType { name: _, elements } => {
-                // generate a global variable for every enum element
-                for (i, element) in elements.iter().enumerate() {
-                    let int_type = llvm.i32_type();
-                    let element_variable = llvm.create_global_variable(
-                        module, 
-                        element,
-                        int_type.as_basic_type_enum(),
-                        Some(int_type.const_int(i as u64, false).as_basic_value_enum()),
-                    );
-
-                    //associate the enum element's global variable with the enume-element's name
-                    index.associate_global_variable(element, element_variable.as_pointer_value());
-                }
-            }
-            DataType::SubRangeType {
-                name,
-                referenced_type,
-            } => {
-                let alias_name = name.as_ref().map(|it| it.as_str()).unwrap();
-                index.associate_type_alias(alias_name, referenced_type.as_str());
-                if let Some(initializer) = &data_type.initializer {
-                    let generator = ExpressionCodeGenerator::new_context_free(llvm, index, None);
-                    let (_, initial_value) = generator.generate_expression(initializer)?;
-                    index.associate_type_initial_value(alias_name, initial_value);
-                }
-            }
-            DataType::ArrayType { name, .. } => {
-                generate_array_data_type(data_type, name, index, llvm, 
-                    |stmt| match stmt {
-                        Statement::LiteralArray{..} => true,
-                        _ => false
-                    },
-                    "LiteralArray")?;
-            }
-            DataType::StringType { name, .. } => {
-                generate_array_data_type(data_type, name, index, llvm, 
-                    |stmt| match stmt {
-                        Statement::LiteralString{..} => true,
-                        _ => false
-                    }
-                     , "LiteralString")?;
-            }
+pub fn generate_data_types<'ink, 'ind>(llvm: &LLVM<'ink>, global_index: &'ind GlobalIndex) -> Result<LLVMTypedIndex<'ink>, CompileError>{
+    let mut index = LLVMTypedIndex::new();
+    let types = global_index.get_types();
+    for (name, user_type) in types {
+        if let Some(gen_type) =  create_opaque_struct(llvm, user_type) {
+            index.associate_type(name, gen_type)?
         }
+    }
+    for (name, user_type) in types {
+        let gen_type =  create_type(llvm, global_index, &index, name, user_type)?;
+        index.associate_type(name, gen_type)?
+    }
+    for (name, user_type) in types {
+        expand_opaque_types(llvm, global_index, &mut index, user_type)?;
+        if let Some(initial_value) = generate_initial_value(global_index, &index, llvm, user_type) {
+            index.associate_initial_value(name, initial_value)?
+        }
+    }
+    Ok(index)
+}
+
+fn create_opaque_struct<'a>(llvm : &LLVM<'a>, data_type : &DataType) -> Option<BasicTypeEnum<'a>> {
+    if let DataTypeInformation::Struct {name, ..} = data_type.get_type_information() {
+        Some(llvm.create_struct_stub(name).into())
+    } else {
+        None
+    }
+}
+
+
+/// generates the members of an opaque struct and associates its initial values 
+fn expand_opaque_types<'ink>(llvm: &LLVM<'ink>, global_index : &GlobalIndex, index : &mut LLVMTypedIndex<'ink>, data_type : &DataType) -> Result<(), CompileError> {
+    let information = data_type.get_type_information();
+    if let DataTypeInformation::Struct {member_names, .. } = information {
+            let mut struct_generator = StructGenerator::new(llvm, global_index, index);
+            let members = member_names.iter().map(|variable_name| global_index.find_member(data_type.get_name(), variable_name)
+            .unwrap())
+            .filter(|var| !var.is_return())
+            .collect();
+            let ((_, initial_value), member_values) = struct_generator.generate_struct_type(&members, data_type.get_name())?;
+            for (member, value) in member_values {
+                let qualified_name = format!("{}.{}", data_type.get_name(), member);
+                index.associate_initial_value(&qualified_name, value)?;
+            }
+            index.associate_initial_value(data_type.get_name(), initial_value)?;
     }
     Ok(())
 }
 
-/// generates and associates the given array-datatype (used for arrays and strings)
-fn generate_array_data_type<'a>(
-        data_type: &UserTypeDeclaration, 
-        name: &Option<String>, 
-        index: &mut Index<'a>, 
-        llvm: &LLVM<'a>, 
-        predicate: fn(&Statement) -> bool,
-        expected_ast: &str) -> Result<(), CompileError> {
-    Ok(if let Some(initializer) = &data_type.initializer {
-        if predicate(initializer) {
-            let name = name.as_ref().ok_or_else(|| CompileError::codegen_error("Expected named datatype but found none".to_string(), initializer.get_location()))?;
-            let array_type = index.get_type_information(name)?;
-            let generator = ExpressionCodeGenerator::new_context_free(llvm, index, Some(array_type));
-            let (_, initial_value) = generator.generate_literal(initializer)?;
-            index.associate_type_initial_value(name, initial_value)
-        } else {
-            return Err(CompileError::codegen_error(
-                format!("Expected {} but found {:?}", expected_ast, initializer), initializer.get_location()));
+//TODO : Recursion here might hurt us later
+/// Creates an llvm type to be associated with the given data type.
+/// Generates only an opaque type for structs.
+/// Eagerly generates but does not associate nested array and referenced aliased types
+fn create_type<'ink>(llvm : &LLVM<'ink>, index: &GlobalIndex, type_index : &LLVMTypedIndex<'ink>, name : &str, data_type : &DataType) -> Result<BasicTypeEnum<'ink>, CompileError> {
+        let information = data_type.get_type_information();
+        match information {
+            DataTypeInformation::Struct { .. } => {
+                // let mut struct_generator = StructGenerator::new(llvm, index);
+                // let members = member_names.iter().map(|variable_name| index.find_member(name, variable_name).unwrap()).collect();
+                // struct_generator.generate_struct_type(&members, name).map(|(a,b)|a.into())
+                type_index.get_associated_type(data_type.get_name())
+            },
+            DataTypeInformation::Array { inner_type_name, dimensions, .. } => {
+                //FIXME : Structs are problematic here
+                let inner_type = create_type(llvm, index, type_index, inner_type_name, index.find_type(inner_type_name).unwrap()).unwrap();
+                let array_type = create_nested_array_type(inner_type, dimensions.clone()).into();
+                // let initial_value = generate_array_initializer(data_type, name, index, llvm, 
+                //     |stmt| match stmt {
+                //         Statement::LiteralArray{..} => true,
+                //         _ => false
+                //     },
+                //     "LiteralArray")?;
+                Ok(array_type)
+            },
+            DataTypeInformation::Integer {size, .. } => get_llvm_int_type(llvm.context, *size, name).map(|it| it.into()),
+            DataTypeInformation::Float {size, .. } => get_llvm_float_type(llvm.context, *size, name).map(|it| it.into()),
+            DataTypeInformation::String { size } => {
+                let gen_type  = llvm.context.i8_type().array_type(*size).into();
+                // let initial_value = generate_array_initializer(data_type, name, index, llvm, |stmt| match stmt {
+                //     Statement::LiteralString{..} => true,
+                //     _ => false
+                // }, "LiteralString")?;
+                Ok(gen_type)
+
+            },
+            DataTypeInformation::Alias { referenced_type, .. } => {
+                let ref_type  = create_type(llvm, index, type_index, name, index.find_type(referenced_type).unwrap())?;
+                // let initial_value = if let Some(initializer) = &data_type.initial_value {
+                //     let generator = ExpressionCodeGenerator::new_context_free(llvm, index, None);
+                //     let (_, initial_value) = generator.generate_expression(initializer)?;
+                //     Some(initial_value)
+                // } else {
+                //     None
+                // };
+                Ok(ref_type)
+            },
+            // REVIEW: Void types are not basic type enums, so we return an int here 
+            DataTypeInformation::Void => get_llvm_int_type(llvm.context, 32, "Void").map(Into::into),
+            //Ok((llvm.context.void_type().into(),None)),
         }
-    })
+
 }
 
-/// constructs a vector with all dimensions for the given bounds-statement
-/// e.g. [0..10, 0..5]
-fn get_array_dimensions(bounds: &Statement) -> Result<Vec<Dimension>, CompileError> {
-    let mut result = vec![];
-    for statement in bounds.get_as_list() {
-        result.push(get_single_array_dimension(statement)?);
-    }
-    Ok(result)
+fn generate_initial_value<'ink>(
+    index : &GlobalIndex, 
+    types_index : &LLVMTypedIndex<'ink>,
+    llvm : &LLVM<'ink>,
+    data_type : &DataType,
+) -> Option<BasicValueEnum<'ink>> {
+    let information = data_type.get_type_information();
+        match information {
+            DataTypeInformation::Struct {.. } => None, //Done elsewhere
+            DataTypeInformation::Array { .. } => {
+                generate_array_initializer(data_type, data_type.get_name(), index, types_index, llvm, 
+                    |stmt| match stmt {
+                        Statement::LiteralArray{..} => true,
+                        _ => false
+                    },
+                    "LiteralArray").unwrap()
+            },
+            DataTypeInformation::Integer {.. } => None,// TODO : Should we return default types here?
+            DataTypeInformation::Float {.. } => None,// TODO : Should we return default types here?
+            DataTypeInformation::String { .. } => {
+                generate_array_initializer(data_type, data_type.get_name(), index, types_index, llvm, |stmt| match stmt {
+                    Statement::LiteralString{..} => true,
+                    _ => false
+                }, "LiteralString").unwrap()
+
+            },
+            DataTypeInformation::Alias { .. } => {
+                if let Some(initializer) = &data_type.initial_value {
+                    let generator = ExpressionCodeGenerator::new_context_free(llvm, index, types_index, None);
+                    let (_, initial_value) = generator.generate_expression(initializer).unwrap();
+                    Some(initial_value)
+                } else {
+                    None
+                }
+            },
+            // REVIEW: Void types are not basic type enums, so we return an int here 
+            DataTypeInformation::Void => None, //get_llvm_int_type(llvm.context, 32, "Void").map(Into::into),
+            //Ok((llvm.context.void_type().into(),None)),
+        }
 }
 
-/// constructs a Dimension for the given RangeStatement
-/// throws an error if the given statement is no RangeStatement
-fn get_single_array_dimension(bounds: &Statement) -> Result<Dimension, CompileError> {
-    if let Statement::RangeStatement { start, end } = bounds {
-        let start_offset = evaluate_constant_int(start).unwrap_or(0);
-        let end_offset = evaluate_constant_int(end).unwrap_or(0);
-        Ok(Dimension {
-            start_offset,
-            end_offset,
-        })
+
+/// generates and associates the given array-datatype (used for arrays and strings)
+fn generate_array_initializer<'ink>(
+        data_type: &DataType, 
+        name: &str, 
+        index: &GlobalIndex, 
+        types_index: &LLVMTypedIndex<'ink>, 
+        llvm: &LLVM<'ink>, 
+        predicate: fn(&Statement) -> bool,
+        expected_ast: &str) -> Result<Option<BasicValueEnum<'ink>>, CompileError> {
+    if let Some(initializer) = &data_type.initial_value {
+        if predicate(initializer) {
+            let array_type = index.get_type_information(name)?;
+            let generator = ExpressionCodeGenerator::new_context_free(llvm, index, types_index, Some(array_type));
+            let (_, initial_value) = generator.generate_literal(initializer)?;
+            Ok(Some(initial_value))
+        } else {
+            Err(CompileError::codegen_error(
+                format!("Expected {} but found {:?}", expected_ast, initializer), initializer.get_location()))
+        }
     } else {
-        Err(CompileError::codegen_error(format!("Unexpected Statement {:?}, expected range", bounds), bounds.get_location()))
+        Ok(None)
     }
 }
 
-/// extracts the compile-time value of the given statement.
-/// returns an error if no value can be derived at compile-time
-fn extract_value(s: &Statement) -> Result<String, CompileError> {
-    match s {
-        Statement::UnaryExpression {
-            operator, value, ..
-        } => extract_value(value).map(|result| format!("{}{}", operator, result)),
-        Statement::LiteralInteger { value, .. } => Ok(value.to_string()),
-        //TODO constatnts
-        _ => Err(CompileError::codegen_error("Unsupported Statement. Cannot evaluate expression.".to_string() , s.get_location())),
-    }
-}
-
-/// evaluate the given statemetn as i32
-fn evaluate_constant_int(s: &Statement) -> Result<i32, CompileError> {
-    let value = extract_value(s);
-    value.map(|v| v.parse().unwrap_or(0))
-}
 
 /// creates the llvm types for a multi-dimensional array
 fn create_nested_array_type(end_type: BasicTypeEnum, dimensions: Vec<Dimension>) -> ArrayType {

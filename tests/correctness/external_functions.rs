@@ -32,8 +32,7 @@ fn test_external_function_called() {
 
     Target::initialize_native(&InitializationConfig::default()).unwrap();
     let context : Context = Context::create();
-    let mut index = rusty::create_index();
-    let code_gen = compile_module(&context, &mut index, prog.to_string()).unwrap();
+    let code_gen = compile_module(&context, prog.to_string()).unwrap();
     let exec_engine = code_gen.module.create_jit_execution_engine(inkwell::OptimizationLevel::None).unwrap();
 
     let fn_value = code_gen.module.get_function("times_two").unwrap();

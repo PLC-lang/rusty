@@ -1,7 +1,10 @@
 /// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
-use super::{expression_generator::{ExpressionCodeGenerator}, llvm::LLVM};
-use crate::{ast::{ConditionalBlock, Operator, Statement, flatten_expression_list}, codegen::{typesystem}, compile_error::CompileError, index::Index};
+use crate::index::GlobalIndex;
+use crate::codegen::LLVMTypedIndex;
+use super::{expression_generator::ExpressionCodeGenerator, llvm::LLVM};
+use crate::codegen::llvm_typesystem::cast_if_needed;
+use crate::{ast::{ConditionalBlock, Operator, Statement, flatten_expression_list}, compile_error::CompileError, };
 use inkwell::{IntPredicate, basic_block::BasicBlock, values::{BasicValueEnum, FunctionValue}};
 
 /// the full context when generating statements inside a POU
@@ -15,7 +18,8 @@ pub struct FunctionContext<'a> {
 /// the StatementCodeGenerator is used to generate statements (For, If, etc.) or expressions (references, literals, etc.)
 pub struct StatementCodeGenerator<'a, 'b> {
     llvm: &'b LLVM<'a>,
-    index: &'b Index<'a>,
+    global_index: &'b GlobalIndex,
+    index: &'b LLVMTypedIndex<'a>,
     function_context: &'b FunctionContext<'a>,
 
     pub load_prefix: String,
@@ -26,12 +30,14 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
     /// constructs a new StatementCodeGenerator
     pub fn new(
         llvm: &'b LLVM<'a>,
-        global_index: &'b Index<'a>,
+        global_index: &'b GlobalIndex,
+        index: &'b LLVMTypedIndex<'a>,
         linking_context: &'b FunctionContext<'a>,
     ) -> StatementCodeGenerator<'a, 'b> {
         StatementCodeGenerator {
             llvm,
-            index: global_index,
+            global_index,
+            index,
             function_context: linking_context,
             load_prefix: "load_".to_string(),
             load_suffix: "".to_string(),
@@ -40,7 +46,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
 
     /// convinience method to create an expression-generator
     fn create_expr_generator(&self) -> ExpressionCodeGenerator<'a, 'b> {
-        ExpressionCodeGenerator::new(self.llvm, self.index, None, self.function_context)
+        ExpressionCodeGenerator::new(self.llvm, self.global_index, self.index, None, self.function_context)
     }
  
     /// generates a list of statements
@@ -113,7 +119,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         let left = exp_gen.generate_load(left_statement)?;
         let (right_type, right) = exp_gen.generate_expression(right_statement)?;
         let cast_value =
-            typesystem::cast_if_needed(self.llvm, &left.get_type_information(), right, &right_type, right_statement)?;
+            cast_if_needed(self.llvm, &left.get_type_information(), right, &right_type, right_statement)?;
         self.llvm.builder.build_store(left.ptr_value, cast_value);
         Ok(())
     }
@@ -224,7 +230,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         let exp_gen = self.create_expr_generator();
         let (selector_type, selector_statement) = exp_gen.generate_expression(&*selector)?;
         //re-brand the expression generator to use the selector's type when generating literals
-        let exp_gen = ExpressionCodeGenerator::new(self.llvm, self.index, Some(selector_type), self.function_context);
+        let exp_gen = ExpressionCodeGenerator::new(self.llvm, self.global_index, self.index, Some(selector_type), self.function_context);
         
         let mut cases = Vec::new();
         let else_block = self.llvm

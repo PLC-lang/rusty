@@ -1,7 +1,6 @@
 /// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
 use rusty::*;
-use rusty::index::Index;
 use inkwell::context::Context;
 use inkwell::execution_engine::{JitFunction, ExecutionEngine};
 
@@ -26,15 +25,14 @@ mod correctness {
 /// The int is the return value which can be verified
 /// The string will eventually be the Stdout of the function.
 /// 
-pub fn compile<'ctx>(context : &'ctx Context, index: &'ctx mut Index<'ctx>, source : String) -> ExecutionEngine<'ctx> {
-    let code_gen = compile_module(context, index, source).unwrap();
+pub fn compile<'ctx>(context : &'ctx Context, source : String) -> ExecutionEngine<'ctx> {
+    let code_gen = compile_module(context, source).unwrap();
     println!("{}", get_ir(&code_gen));
     code_gen.module.create_jit_execution_engine(inkwell::OptimizationLevel::None).unwrap()
 }
 pub fn compile_and_run<T>(source : String, params : &mut T) ->  (i32, &'static str){
     let context : Context = Context::create();
-    let mut index = rusty::create_index();
-    let exec_engine = compile(&context, &mut index, source);
+    let exec_engine = compile(&context, source);
     run::<T>(&exec_engine, "main", params)
 }
 

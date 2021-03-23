@@ -10,6 +10,9 @@ pub enum CompileError {
     #[error("Unknown type '{type_name}' at {location:?}")]
     UnknownType{type_name: String, location: core::ops::Range<usize>},
 
+    #[error("Invalid size for type : '{type_name}' at {size}")]
+    InvalidSize{type_name: String, size : u32},
+
     #[error("{message}")]
     CodeGenError{message: String, location: core::ops::Range<usize>},
 
@@ -27,22 +30,27 @@ impl CompileError {
     }
 
     pub fn casting_error(type_name: &str, target_type: &str, location: Range<usize>) -> CompileError {
-        CompileError::CastError{ type_name: type_name.to_string(), target_type: target_type.to_string(), location: location}
+        CompileError::CastError{ type_name: type_name.to_string(), target_type: target_type.to_string(), location}
     }
 
     pub fn invalid_reference(reference: &str, location: Range<usize>) -> CompileError {
-        CompileError::InvalidReference{ reference: reference.to_string(), location: location}
+        CompileError::InvalidReference{ reference: reference.to_string(), location}
     }
 
     pub fn unknown_type(type_name: &str, location: Range<usize>) -> CompileError {
-        CompileError::UnknownType{ type_name: type_name.to_string(), location: location}
+        CompileError::UnknownType{ type_name: type_name.to_string(), location}
     }
 
+    pub fn invalid_type_size(type_name: &str, size: u32) -> CompileError {
+        CompileError::InvalidSize{ type_name: type_name.to_string(), size}
+    }
+
+
     pub fn codegen_error(message: String, location: Range<usize>) -> CompileError {
-        CompileError::CodeGenError{ message: message, location: location}
+        CompileError::CodeGenError{ message, location}
     }
 
     pub fn no_type_associated(type_name: &str, location: Range<usize>) -> CompileError {
-        CompileError::CodeGenError{message: format!("No type associated to {:}", type_name), location: location}
+        CompileError::CodeGenError{message: format!("No type associated to {:}", type_name), location}
     }
 }

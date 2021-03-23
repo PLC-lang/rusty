@@ -9,13 +9,13 @@ use inkwell::targets::{
     CodeModel, FileType, InitializationConfig, RelocMode, Target, TargetMachine,TargetTriple,
 };
 
-use crate::index::Index;
 
 mod ast;
 mod codegen;
 pub mod index;
 mod lexer;
 mod parser;
+mod typesystem;
 pub mod compile_error;
 pub mod cli;
 
@@ -26,11 +26,10 @@ extern crate pretty_assertions;
 /// Compiles the given source into an object file and saves it in output
 ///
 fn compile_to_obj(source: String, output: &str, reloc: RelocMode,  triple: Option<String>) -> Result<(), CompileError> {
-    let context = Context::create();
-    let mut index = Index::new();
     let path = Path::new(output);
 
-    let code_generator = compile_module(&context, &mut index, source)?;
+    let context = Context::create();
+    let code_generator = compile_module(&context, source)?;
     let initialization_config = &InitializationConfig::default();
     Target::initialize_all(initialization_config);
 
@@ -74,17 +73,12 @@ pub fn compile_to_shared_object(source : String, output: &str,  target: Option<S
 /// Compiles the given source into a bitcode file
 ///
 pub fn compile_to_bitcode(source : String, output: &str) -> Result<(), CompileError> {
-    let context = Context::create();
-    let mut index = Index::new();
     let path = Path::new(output);
 
-    let code_generator = compile_module(&context, &mut index, source)?;
+    let context = Context::create();
+    let code_generator = compile_module(&context, source)?;
     code_generator.module.write_bitcode_to_path(path);
     Ok(())
-}
-
-pub fn create_index<'ctx>() -> Index<'ctx> {
-    Index::new()
 }
 
 ///
@@ -92,8 +86,7 @@ pub fn create_index<'ctx>() -> Index<'ctx> {
 ///
 pub fn compile_to_ir(source: String) -> Result<String, CompileError> {
     let context = Context::create();
-    let mut index = Index::new();
-    let code_gen = compile_module(&context, &mut index, source)?;
+    let code_gen = compile_module(&context, source)?;
     Ok(get_ir(&code_gen))
 }
 
@@ -101,15 +94,15 @@ pub fn get_ir(codegen: &codegen::CodeGen) -> String {
     codegen.module.print_to_string().to_string()
 }
 
-pub fn compile_module<'ctx>(context : &'ctx Context, index: &'ctx mut Index<'ctx>, source : String) -> Result<codegen::CodeGen<'ctx>, CompileError> {
+pub fn compile_module(context : &Context, source : String) -> Result<codegen::CodeGen, CompileError> {
 
     let (mut parse_result, _) = parse(source);
     //first pre-process the AST
-    index.pre_process(&mut parse_result);
+    ast::pre_process(&mut parse_result);
     //then index the AST
-    index.visit(&mut parse_result);
+    let index = index::visitor::visit(&parse_result);
     //and finally codegen
-    let mut code_generator = codegen::CodeGen::new(context, index, "main");
+    let code_generator = codegen::CodeGen::new(context, index, "main");
     code_generator.generate(parse_result)?;
     Ok(code_generator)
 }
