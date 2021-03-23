@@ -1,9 +1,6 @@
 /// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
-use crate::{codegen, codegen_wihout_unwrap, compile_error::CompileError, generate_with_empty_program, lexer};
-use crate::parser;
-use crate::index::Index;
-use inkwell::context::Context;
+use crate::{codegen, codegen_wihout_unwrap, compile_error::CompileError, generate_with_empty_program};
 use pretty_assertions::assert_eq;
 
 use super::{generate_program_boiler_plate, generate_program_boiler_plate_globals};

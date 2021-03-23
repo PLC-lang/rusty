@@ -1,6 +1,6 @@
 /// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use inkwell::{AddressSpace, builder::Builder, context::Context, module::{Linkage, Module}, types::{BasicType, BasicTypeEnum, StringRadix}, values::{BasicValue, BasicValueEnum, GlobalValue, IntValue, PointerValue}};
-use crate::{ast::SourceRange, codegen::{TypeAndPointer, TypeAndValue, typesystem}, compile_error::CompileError, index::Index};
+use crate::{typesystem, ast::SourceRange, codegen::{TypeAndPointer, TypeAndValue}, compile_error::CompileError, index::GlobalIndex};
 
 
 /// Holds dependencies required to generate IR-code
@@ -9,7 +9,7 @@ pub struct LLVM<'a> {
     pub builder: Builder<'a>,
 }
 
-impl<'a> LLVM<'a> {
+impl<'a, 'b> LLVM<'a> {
     /// constructs a new LLVM struct
     pub fn new(context: &'a Context, builder: Builder<'a>) -> LLVM<'a> {
         LLVM {
@@ -27,7 +27,7 @@ impl<'a> LLVM<'a> {
     /// - `initial_value` an optional initial value of the global variable    
     pub fn create_global_variable(
         &self,
-        module: &Module<'a>,
+        module: &'b Module<'a>,
         name: &str,
         data_type: BasicTypeEnum<'a>,
         initial_value: Option<BasicValueEnum<'a>>,
@@ -142,7 +142,7 @@ impl<'a> LLVM<'a> {
     /// - `value` the value of the constant bool value
     pub fn create_const_bool(
         &self,
-        index: &Index<'a>,
+        index: &GlobalIndex,
         value: bool,
     ) -> Result<TypeAndValue<'a>, CompileError> {
         let itype = self.context.bool_type();
@@ -159,7 +159,7 @@ impl<'a> LLVM<'a> {
     /// - `value` the value of the constant int value
     pub fn create_const_int(
         &self,
-        index: &Index<'a>,
+        index: &GlobalIndex,
         target_type: &Option<BasicTypeEnum<'a>>,
         value: &str,
     ) -> Result<TypeAndValue<'a>, CompileError> {
@@ -183,7 +183,7 @@ impl<'a> LLVM<'a> {
     /// - `value` the value of the constant float value
     pub fn create_const_real(
         &self,
-        index: &Index<'a>,
+        index: &GlobalIndex,
         target_type: &Option<BasicTypeEnum<'a>>,
         value: &str,
     ) -> Result<TypeAndValue<'a>, CompileError> {
@@ -218,7 +218,7 @@ impl<'a> LLVM<'a> {
     ) -> Result<TypeAndValue<'a>, CompileError> {
         let exp_value = self.context.const_string(value, true);
         Ok((
-            typesystem::new_string_information(self.context, value.len() as u32),
+            typesystem::new_string_information(value.len() as u32),
             BasicValueEnum::VectorValue(exp_value),
         ))
     }

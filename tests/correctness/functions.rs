@@ -39,8 +39,7 @@ fn max_function() {
     "#.to_string();
 
     let context : Context = Context::create();
-    let mut index = rusty::create_index(); 
-    let engine = compile(&context, &mut index, function);
+    let engine = compile(&context, function);
     let mut case1 = MainType{the_a : 4, the_b: 7};
     let mut case2 = MainType{the_a : 9, the_b: -2};
 
@@ -122,8 +121,7 @@ fn test_or_sideeffects() {
     "#.to_string();
 
     let context : Context = Context::create(); 
-    let mut index = rusty::create_index(); 
-    let engine = compile(&context, &mut index, function);
+    let engine = compile(&context, function);
     let mut case1 = MainType{x : false,};
     let (res, _) = run(&engine, "main", &mut case1);
     assert_eq!(res,31);
@@ -167,8 +165,7 @@ fn test_and_sideeffects() {
     "#.to_string();
 
     let context : Context = Context::create(); 
-    let mut index = rusty::create_index(); 
-    let engine = compile(&context, &mut index, function);
+    let engine = compile(&context, function);
     let mut case1 = MainType{x : false,};
     let (res, _) = run(&engine, "main", &mut case1);
     assert_eq!(res,31);
@@ -235,8 +232,7 @@ fn program_instances_save_state_per() {
     
         let mut interface = MainType{ f: FooType{ i: 4}};
         let context = inkwell::context::Context::create();
-        let mut index = rusty::create_index(); 
-        let exec_engine =compile(&context, &mut index, function.to_string());
+        let exec_engine =compile(&context, function.to_string());
         run(&exec_engine,"main", &mut interface);
         run(&exec_engine,"main", &mut interface);
         assert_eq!(interface.f.i,6);

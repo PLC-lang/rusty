@@ -2,7 +2,7 @@
 
 use pretty_assertions::assert_eq;
 
-use crate::{ast::*, index::{Index, VariableType}};
+use crate::{ast::*, index::VariableType};
 use crate::lexer;
 use crate::parser;
 
@@ -11,10 +11,8 @@ macro_rules! index {
         let lexer = lexer::lex($code);
         let (mut ast, _) = parser::parse(lexer).unwrap();
 
-        let mut index = Index::new();
-        index.pre_process(&mut ast);
-        index.visit(&mut ast);
-        index
+        crate::ast::pre_process(&mut ast);
+        crate::index::visitor::visit(&ast)
     }};
 }
 
@@ -91,6 +89,34 @@ fn pous_are_indexed() {
 
     index.find_type("myFunction").unwrap();
     index.find_type("myProgram").unwrap();
+}
+
+#[test]
+fn implementations_are_indexed() {
+    let index = index!(
+        r#"
+        PROGRAM myProgram
+        END_PROGRAM
+        PROGRAM prog2
+        END_PROGRAM
+        FUNCTION_BLOCK fb1
+        END_FUNCTION_BLOCK
+        FUNCTION foo : INT
+        END_FUNCTION
+        "#);
+
+    let my_program = index.find_implementation("myProgram").unwrap();
+    assert_eq!(my_program.call_name, "myProgram");
+    assert_eq!(my_program.type_name, "myProgram");
+    let prog2 = index.find_implementation("prog2").unwrap();
+    assert_eq!(prog2.call_name, "prog2");
+    assert_eq!(prog2.type_name, "prog2");
+    let fb1 = index.find_implementation("fb1").unwrap();
+    assert_eq!(fb1.call_name, "fb1");
+    assert_eq!(fb1.type_name, "fb1");
+    let foo = index.find_implementation("foo").unwrap();
+    assert_eq!(foo.call_name, "foo");
+    assert_eq!(foo.type_name, "foo");
 }
 
 #[test]
@@ -244,6 +270,64 @@ fn index_can_be_retrieved_from_qualified_name() {
 }
 
 #[test]
+fn callable_instances_can_be_retreived() {
+    let index = index!(
+        r#"
+    FUNCTION_BLOCK fb1
+    VAR_INPUT
+        fb2_inst : fb2;
+    END_VAR
+    END_FUNCTION_BLOCK
+    
+    FUNCTION_BLOCK fb2
+    VAR_INPUT
+        fb3_inst : fb3;
+    END_VAR
+    END_FUNCTION_BLOCK
+
+    FUNCTION_BLOCK fb3
+    VAR_INPUT
+        x : INT;
+    END_VAR
+    END_FUNCTION_BLOCK
+
+    FUNCTION foo : INT
+    END_FUNCTION
+
+    VAR_GLOBAL
+        fb1_inst : fb1;
+        fb2_inst : fb2;
+        fb3_inst : fb3;
+        a : INT;
+        b : INT;
+    END_VAR
+
+    PROGRAM prg
+    VAR
+        fb1_local : fb1;
+        c : INT;
+        d : INT;
+    END_VAR
+        fb1_inst.fb2_inst.fb3_inst.x := 1;
+    END_PROGRAM
+    "#
+    );
+
+    assert_eq!(true, index.find_callable_instance_variable(Some("prg"), &["fb1_inst".into()]).is_some());
+    assert_eq!(true, index.find_callable_instance_variable(Some("prg"), &["fb2_inst".into()]).is_some());
+    assert_eq!(true, index.find_callable_instance_variable(Some("prg"), &["fb3_inst".into()]).is_some());
+    assert_eq!(true, index.find_callable_instance_variable(Some("prg"), &["fb1_local".into()]).is_some());
+    assert_eq!(true, index.find_callable_instance_variable(Some("prg"), &["fb1_local".into(),"fb2_inst".into(),"fb3_inst".into()]).is_some());
+    assert_eq!(true, index.find_callable_instance_variable(Some("prg"), &["fb1_inst".into(),"fb2_inst".into()]).is_some());
+    assert_eq!(true, index.find_callable_instance_variable(Some("prg"), &["fb1_inst".into(),"fb2_inst".into(),"fb3_inst".into()]).is_some());
+    assert_eq!(true, index.find_callable_instance_variable(Some("prg"), &["foo".into()]).is_none());
+    assert_eq!(true, index.find_callable_instance_variable(Some("prg"), &["a".into()]).is_none());
+    assert_eq!(true, index.find_callable_instance_variable(Some("prg"), &["b".into()]).is_none());
+    assert_eq!(true, index.find_callable_instance_variable(Some("prg"), &["c".into()]).is_none());
+    assert_eq!(true, index.find_callable_instance_variable(Some("prg"), &["d".into()]).is_none());
+}
+
+#[test]
 fn pre_processing_generates_inline_enums_global() {
     // GIVEN a global inline enum
     let lexer = lexer::lex(
@@ -256,8 +340,7 @@ fn pre_processing_generates_inline_enums_global() {
     let (mut ast, _) = parser::parse(lexer).unwrap();
 
     // WHEN the AST ist pre-processed
-    let mut index = Index::new();
-    index.pre_process(&mut ast);
+    crate::ast::pre_process(&mut ast);
 
     //ENUM
     // THEN an implicit datatype should have been generated for the enum
@@ -302,8 +385,7 @@ fn pre_processing_generates_inline_structs_global() {
     let (mut ast, _) = parser::parse(lexer).unwrap();
 
     // WHEN the AST ist pre-processed
-    let mut index = Index::new();
-    index.pre_process(&mut ast);
+    crate::ast::pre_process(&mut ast);
 
     //STRUCT
     //THEN an implicit datatype should have been generated for the struct
@@ -348,8 +430,7 @@ fn pre_processing_generates_inline_enums() {
     let (mut ast, _) = parser::parse(lexer).unwrap();
 
     // WHEN the AST ist pre-processed
-    let mut index = Index::new();
-    index.pre_process(&mut ast);
+    crate::ast::pre_process(&mut ast);
 
     //ENUM
     // THEN an implicit datatype should have been generated for the enum
@@ -387,8 +468,7 @@ fn pre_processing_generates_inline_structs() {
     let (mut ast, _) = parser::parse(lexer).unwrap();
 
     // WHEN the AST ist pre-processed
-    let mut index = Index::new();
-    index.pre_process(&mut ast);
+    crate::ast::pre_process(&mut ast);
 
     //STRUCT
     //THEN an implicit datatype should have been generated for the struct
@@ -434,8 +514,7 @@ fn pre_processing_generates_inline_arrays() {
     let (mut ast, _) = parser::parse(lexer).unwrap();
 
     // WHEN the AST ist pre-processed
-    let mut index = Index::new();
-    index.pre_process(&mut ast);
+    crate::ast::pre_process(&mut ast);
 
     //ARRAY
     //THEN an implicit datatype should have been generated for the array
@@ -485,8 +564,7 @@ fn pre_processing_generates_inline_array_of_array() {
     let (mut ast, _) = parser::parse(lexer).unwrap();
 
     // WHEN the AST ist pre-processed
-    let mut index = Index::new();
-    index.pre_process(&mut ast);
+    crate::ast::pre_process(&mut ast);
 
     //ARRAY
     //THEN an implicit datatype should have been generated for the array
@@ -563,8 +641,7 @@ fn pre_processing_nested_array_in_struct() {
     let (mut ast, _) = parser::parse(lexer).unwrap();
 
      // WHEN the AST ist pre-processed
-    let mut index = Index::new();
-    index.pre_process(&mut ast);
+    crate::ast::pre_process(&mut ast);
 
     //THEN an implicit datatype should have been generated for the array
 
@@ -627,8 +704,7 @@ fn pre_processing_generates_inline_array_of_array_of_array() {
     let (mut ast, _) = parser::parse(lexer).unwrap();
 
     // WHEN the AST ist pre-processed
-    let mut index = Index::new();
-    index.pre_process(&mut ast);
+    crate::ast::pre_process(&mut ast);
 
     //ARRAY
     //THEN an implicit datatype should have been generated for the array
