@@ -1,6 +1,6 @@
+/// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use core::ops::Range;
 use logos::Filter;
-/// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use logos::Lexer;
 use logos::Logos;
 

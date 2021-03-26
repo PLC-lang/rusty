@@ -1,3 +1,4 @@
+/// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use crate::{
     ast::SourceRange,
     codegen::{TypeAndPointer, TypeAndValue},
@@ -5,7 +6,6 @@ use crate::{
     index::Index,
     typesystem,
 };
-/// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use inkwell::{
     builder::Builder,
     context::Context,

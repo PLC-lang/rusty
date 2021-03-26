@@ -1,5 +1,5 @@
-use crate::compile_error::CompileError;
 /// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
+use crate::compile_error::CompileError;
 use std::{
     fmt::{Debug, Display, Formatter, Result},
     iter, result, unimplemented,
@@ -227,6 +227,7 @@ pub enum DataType {
     SubRangeType {
         name: Option<String>,
         referenced_type: String,
+        bounds: Option<Statement>,
     },
     ArrayType {
         name: Option<String>,
@@ -256,10 +257,12 @@ impl Debug for DataType {
             DataType::SubRangeType {
                 name,
                 referenced_type,
+                bounds,
             } => f
                 .debug_struct("SubRangeType")
                 .field("name", name)
                 .field("referenced_type", referenced_type)
+                .field("bounds", bounds)
                 .finish(),
             DataType::ArrayType {
                 name,
@@ -300,9 +303,9 @@ impl DataType {
         match self {
             DataType::StructType { name, variables: _ } => name.as_ref().map(|x| x.as_str()),
             DataType::EnumType { name, elements: _ } => name.as_ref().map(|x| x.as_str()),
-            DataType::SubRangeType { name, .. } => name.as_ref().map(|x| x.as_str()),
             DataType::ArrayType { name, .. } => name.as_ref().map(|x| x.as_str()),
             DataType::StringType { name, .. } => name.as_ref().map(|x| x.as_str()),
+            DataType::SubRangeType { name, .. } => name.as_ref().map(|x| x.as_str()),
         }
     }
 

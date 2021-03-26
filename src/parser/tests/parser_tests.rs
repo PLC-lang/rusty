@@ -1,5 +1,5 @@
-use crate::ast::*;
 /// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
+use crate::ast::*;
 use crate::parser::Statement::LiteralInteger;
 use crate::{lexer, parser::parse};
 use pretty_assertions::*;
@@ -514,6 +514,7 @@ fn type_alias_can_be_parsed() {
             data_type: DataType::SubRangeType {
                 name: Some("MyInt".to_string()),
                 referenced_type: "INT".to_string(),
+                bounds: None,
             },
             initializer: None,
         }
@@ -1043,6 +1044,7 @@ fn initial_scalar_values_can_be_parsed() {
             "MyInt",
         ),
         referenced_type: "INT",
+        bounds: None,
     },
     initializer: Some(
         LiteralInteger {
@@ -1319,4 +1321,40 @@ fn string_variable_declaration_can_be_parsed() {
     },
 }"#;
     assert_eq!(expected, format!("{:#?}", x).as_str());
+}
+
+#[test]
+fn subrangetype_can_be_parsed() {
+    let lexer = lexer::lex(
+        "
+            VAR_GLOBAL
+                x : UINT(0..1000);
+            END_VAR
+           ",
+    );
+    let (parse_result, _) = parse(lexer).unwrap();
+
+    let x = &parse_result.global_vars[0].variables[0];
+    let expected = Variable {
+        name: "x".to_string(),
+        data_type: DataTypeDeclaration::DataTypeDefinition {
+            data_type: DataType::SubRangeType {
+                name: None,
+                bounds: Some(Statement::RangeStatement {
+                    start: Box::new(LiteralInteger {
+                        value: "0".to_string(),
+                        location: 0..0,
+                    }),
+                    end: Box::new(LiteralInteger {
+                        value: "1000".to_string(),
+                        location: 0..0,
+                    }),
+                }),
+                referenced_type: "UINT".to_string(),
+            },
+        },
+        initializer: None,
+        location: (0..0),
+    };
+    assert_eq!(format!("{:#?}", expected), format!("{:#?}", x).as_str());
 }

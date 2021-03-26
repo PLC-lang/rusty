@@ -1,6 +1,6 @@
+/// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use inkwell::context::Context;
 use inkwell::execution_engine::{ExecutionEngine, JitFunction};
-/// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use rusty::*;
 
 type MainFunction<T> = unsafe extern "C" fn(*mut T) -> i32;
@@ -14,6 +14,7 @@ mod correctness {
     mod functions;
     mod global_variables;
     mod initial_values;
+    mod sub_range_types;
     mod sums;
 }
 

@@ -204,20 +204,24 @@ impl Index {
             .ok_or_else(|| CompileError::unknown_type(type_name, 0..0))
     }
 
-    /// Retrieves the "Effctive" type behind this datatype
+    /// Retrieves the "Effective" type behind this datatype
     /// An effective type will be any end type i.e. Structs, Integers, Floats, String and Array
     pub fn find_effective_type<'ret>(
         &'ret self,
         data_type: &'ret DataTypeInformation,
     ) -> Option<&'ret DataTypeInformation> {
-        if let DataTypeInformation::Alias {
-            referenced_type, ..
-        } = data_type
-        {
-            self.find_type(&referenced_type)
-                .and_then(|it| self.find_effective_type(it.get_type_information()))
-        } else {
-            Some(data_type)
+        match data_type {
+            DataTypeInformation::SubRange {
+                referenced_type, ..
+            } => self
+                .find_type(&referenced_type)
+                .and_then(|it| self.find_effective_type(it.get_type_information())),
+            DataTypeInformation::Alias {
+                referenced_type, ..
+            } => self
+                .find_type(&referenced_type)
+                .and_then(|it| self.find_effective_type(it.get_type_information())),
+            _ => Some(data_type),
         }
     }
 

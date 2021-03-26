@@ -3,7 +3,7 @@ use pretty_assertions::assert_eq;
 
 use crate::lexer;
 use crate::parser;
-use crate::{ast::*, index::VariableType};
+use crate::{ast::*, index::VariableType, typesystem::DataTypeInformation};
 
 macro_rules! index {
     ($code:tt) => {{
@@ -978,4 +978,40 @@ fn pre_processing_generates_inline_array_of_array_of_array() {
         },
         var_data_type
     );
+}
+
+#[test]
+fn sub_range_boundaries_are_registered_at_the_index() {
+    // GIVEN a Subrange INT from 7 to 1000
+    let src = "
+        TYPE MyInt: INT(7..1000); END_TYPE 
+        TYPE MyAliasInt: MyInt; END_TYPE 
+        ";
+    // WHEN the program is indexed
+    let index = index!(src);
+
+    // THEN I expect the index to contain the defined range-information for the given type
+    let my_int = &index.get_types().get("MyInt").unwrap().information;
+    let expected = &DataTypeInformation::SubRange {
+        name: "MyInt".to_string(),
+        referenced_type: "INT".to_string(),
+        sub_range: Statement::LiteralInteger {
+            value: "7".to_string(),
+            location: 0..0,
+        }..Statement::LiteralInteger {
+            value: "1000".to_string(),
+            location: 0..0,
+        },
+    };
+
+    assert_eq!(format!("{:?}", expected), format!("{:?}", my_int));
+
+    // THEN I expect the index to contain the defined range-information for the given type
+    let my_int = &index.get_types().get("MyAliasInt").unwrap().information;
+    let expected = &DataTypeInformation::Alias {
+        name: "MyAliasInt".to_string(),
+        referenced_type: "MyInt".to_string(),
+    };
+
+    assert_eq!(format!("{:?}", expected), format!("{:?}", my_int));
 }

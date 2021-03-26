@@ -1,6 +1,6 @@
+/// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use crate::compile_error::CompileError;
 use inkwell::types::BasicTypeEnum;
-/// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use inkwell::values::{BasicValueEnum, FunctionValue, GlobalValue, PointerValue};
 use std::collections::HashMap;
 
