@@ -1,7 +1,16 @@
 /// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
+use std::ops::Range;
+
 use crate::ast::{Dimension, Statement};
 
 pub const DEFAULT_STRING_LEN: u32 = 80;
+
+//CheckRan­geSigned, CheckLRangeSigned or CheckRangeUnsigned, CheckLRangeUnsigned
+pub const RANGE_CHECK_S_FN: &str = "CheckRangeSigned";
+pub const RANGE_CHECK_LS_FN: &str = "CheckLRangeSigned";
+pub const RANGE_CHECK_U_FN: &str = "CheckRangeUnsigned";
+pub const RANGE_CHECK_LU_FN: &str = "CheckLRangeUnsigned";
+
 #[derive(Debug, PartialEq)]
 pub struct DataType {
     pub name: String,
@@ -48,6 +57,11 @@ pub enum DataTypeInformation {
     String {
         size: u32,
     },
+    SubRange {
+        name: String,
+        referenced_type: String,
+        sub_range: Range<Statement>,
+    },
     Alias {
         name: String,
         referenced_type: String,
@@ -63,8 +77,9 @@ impl DataTypeInformation {
             DataTypeInformation::Integer { name, .. } => name,
             DataTypeInformation::Float { name, .. } => name,
             DataTypeInformation::String { .. } => "String",
-            DataTypeInformation::Alias { name, .. } => name,
+            DataTypeInformation::SubRange { name, .. } => name,
             DataTypeInformation::Void => "Void",
+            DataTypeInformation::Alias { name, .. } => name,
         }
     }
 
@@ -98,6 +113,7 @@ impl DataTypeInformation {
             DataTypeInformation::String { size, .. } => *size,
             DataTypeInformation::Struct { .. } => 0, //TODO : Should we fill in the struct members here for size calculation or save the struct size.
             DataTypeInformation::Array { .. } => unimplemented!(), //Propably length * inner type size
+            DataTypeInformation::SubRange { .. } => unimplemented!(),
             DataTypeInformation::Alias { .. } => unimplemented!(),
             DataTypeInformation::Void => 0,
         }

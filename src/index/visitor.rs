@@ -1,12 +1,12 @@
+/// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use super::super::ast::{
     evaluate_constant_int, get_array_dimensions, CompilationUnit, DataType, DataTypeDeclaration,
     PouType, VariableBlock, VariableBlockType, POU,
 };
 use super::Index;
 use super::VariableType;
-/// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-use crate::ast::Implementation;
 use crate::ast::{self, UserTypeDeclaration};
+use crate::ast::{Implementation, Statement};
 use crate::typesystem::*;
 
 pub fn visit(unit: &CompilationUnit) -> Index {
@@ -206,11 +206,19 @@ fn visit_data_type(index: &mut Index, type_declatation: &UserTypeDeclaration) {
         DataType::SubRangeType {
             name,
             referenced_type,
-            ..
+            bounds,
         } => {
-            let information = DataTypeInformation::Alias {
-                name: name.as_ref().unwrap().into(),
-                referenced_type: referenced_type.into(),
+            let information = if let Some(Statement::RangeStatement { start, end }) = bounds {
+                DataTypeInformation::SubRange {
+                    name: name.as_ref().unwrap().into(),
+                    referenced_type: referenced_type.into(),
+                    sub_range: (*start.clone()..*end.clone()),
+                }
+            } else {
+                DataTypeInformation::Alias {
+                    name: name.as_ref().unwrap().into(),
+                    referenced_type: referenced_type.into(),
+                }
             };
             index.register_type(
                 name.as_ref().unwrap(),

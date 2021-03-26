@@ -3501,6 +3501,24 @@ source_filename = "main"
 }
 
 #[test]
+fn initial_values_in_sub_range_type() {
+    let result = codegen!(
+        "
+        TYPE MyInt: INT(0..1000) := 7; END_TYPE 
+        VAR_GLOBAL x : MyInt; END_VAR
+        "
+    );
+
+    let expected = r#"; ModuleID = 'main'
+source_filename = "main"
+
+@x = global i16 7
+"#;
+
+    assert_eq!(result, expected);
+}
+
+#[test]
 fn alias_chain_with_lots_of_initializers() {
     let result = codegen!(
         "
@@ -3818,6 +3836,135 @@ source_filename = "main"
 %Point = type { i32, i32, i32 }
 
 @x = global %Point { i32 1, i32 2, i32 3 }
+"#;
+    assert_eq!(expected, result);
+}
+#[test]
+fn sub_range_type_calls_check_function_missing() {
+    let source = "
+            TYPE MyInt: INT(0..100); END_TYPE
+
+            FUNCTION Check_XX_RangeSigned : INT
+            VAR_INPUT
+              value : INT;
+              lower : INT;
+              upper : INT;
+            END_VAR
+            Check_XX_RangeSigned := value;
+            END_FUNCTION
+  
+            PROGRAM Main
+            VAR
+              x : MyInt;
+            END_VAR 
+
+            x := 7;
+            END_PROGRAM
+           ";
+    let result = codegen!(source);
+
+    // we expect a normal assignemnt, no check-function call
+    let expected = r#"; ModuleID = 'main'
+source_filename = "main"
+
+%Main_interface = type { i16 }
+%Check_XX_RangeSigned_interface = type { i16, i16, i16 }
+
+@Main_instance = global %Main_interface zeroinitializer
+
+define i16 @Check_XX_RangeSigned(%Check_XX_RangeSigned_interface* %0) {
+entry:
+  %value = getelementptr inbounds %Check_XX_RangeSigned_interface, %Check_XX_RangeSigned_interface* %0, i32 0, i32 0
+  %lower = getelementptr inbounds %Check_XX_RangeSigned_interface, %Check_XX_RangeSigned_interface* %0, i32 0, i32 1
+  %upper = getelementptr inbounds %Check_XX_RangeSigned_interface, %Check_XX_RangeSigned_interface* %0, i32 0, i32 2
+  %Check_XX_RangeSigned = alloca i16, align 2
+  %load_value = load i16, i16* %value, align 2
+  store i16 %load_value, i16* %Check_XX_RangeSigned, align 2
+  %Check_XX_RangeSigned_ret = load i16, i16* %Check_XX_RangeSigned, align 2
+  ret i16 %Check_XX_RangeSigned_ret
+}
+
+define void @Main(%Main_interface* %0) {
+entry:
+  %x = getelementptr inbounds %Main_interface, %Main_interface* %0, i32 0, i32 0
+  store i16 7, i16* %x, align 2
+  ret void
+}
+"#;
+    assert_eq!(expected, result);
+}
+
+#[test]
+fn sub_range_type_calls_check_function_on_assigment() {
+    let source = "
+            TYPE MyInt: INT(0..100); END_TYPE
+
+            FUNCTION CheckRangeSigned : INT
+            VAR_INPUT
+              value : INT;
+              lower : INT;
+              upper : INT;
+            END_VAR
+            CheckRangeSigned := value;
+            END_FUNCTION
+  
+            PROGRAM Main
+            VAR
+              x : MyInt;
+            END_VAR 
+
+            x := 7;
+            END_PROGRAM
+           ";
+    let result = codegen!(source);
+
+    // we expect no simple assigment, but we expect somehting like x:= CheckRangeSigned(7);
+    let expected = r#"; ModuleID = 'main'
+source_filename = "main"
+
+%Main_interface = type { i16 }
+%CheckRangeSigned_interface = type { i16, i16, i16 }
+
+@Main_instance = global %Main_interface zeroinitializer
+
+define i16 @CheckRangeSigned(%CheckRangeSigned_interface* %0) {
+entry:
+  %value = getelementptr inbounds %CheckRangeSigned_interface, %CheckRangeSigned_interface* %0, i32 0, i32 0
+  %lower = getelementptr inbounds %CheckRangeSigned_interface, %CheckRangeSigned_interface* %0, i32 0, i32 1
+  %upper = getelementptr inbounds %CheckRangeSigned_interface, %CheckRangeSigned_interface* %0, i32 0, i32 2
+  %CheckRangeSigned = alloca i16, align 2
+  %load_value = load i16, i16* %value, align 2
+  store i16 %load_value, i16* %CheckRangeSigned, align 2
+  %CheckRangeSigned_ret = load i16, i16* %CheckRangeSigned, align 2
+  ret i16 %CheckRangeSigned_ret
+}
+
+define void @Main(%Main_interface* %0) {
+entry:
+  %x = getelementptr inbounds %Main_interface, %Main_interface* %0, i32 0, i32 0
+  %CheckRangeSigned_instance = alloca %CheckRangeSigned_interface, align 8
+  br label %input
+
+input:                                            ; preds = %entry
+  %1 = getelementptr inbounds %CheckRangeSigned_interface, %CheckRangeSigned_interface* %CheckRangeSigned_instance, i32 0, i32 0
+  store i16 7, i16* %1, align 2
+  %2 = getelementptr inbounds %CheckRangeSigned_interface, %CheckRangeSigned_interface* %CheckRangeSigned_instance, i32 0, i32 1
+  store i16 0, i16* %2, align 2
+  %3 = getelementptr inbounds %CheckRangeSigned_interface, %CheckRangeSigned_interface* %CheckRangeSigned_instance, i32 0, i32 2
+  store i16 100, i16* %3, align 2
+  br label %call
+
+call:                                             ; preds = %input
+  %call1 = call i16 @CheckRangeSigned(%CheckRangeSigned_interface* %CheckRangeSigned_instance)
+  br label %output
+
+output:                                           ; preds = %call
+  br label %continue
+
+continue:                                         ; preds = %output
+  store i16 %call1, i16* %x, align 2
+  ret void
+}
 "#;
     assert_eq!(expected, result);
 }

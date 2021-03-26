@@ -1,11 +1,17 @@
+/// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
+use std::ops::Range;
+
 use super::{expression_generator::ExpressionCodeGenerator, llvm::LLVM};
 use crate::codegen::llvm_typesystem::cast_if_needed;
 use crate::codegen::LLVMTypedIndex;
-/// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-use crate::index::{ImplementationIndexEntry, Index};
+use crate::typesystem::{RANGE_CHECK_LS_FN, RANGE_CHECK_LU_FN, RANGE_CHECK_S_FN, RANGE_CHECK_U_FN};
 use crate::{
     ast::{flatten_expression_list, ConditionalBlock, Operator, Statement},
     compile_error::CompileError,
+};
+use crate::{
+    index::{ImplementationIndexEntry, Index},
+    typesystem::DataTypeInformation,
 };
 use inkwell::{
     basic_block::BasicBlock,
@@ -129,7 +135,30 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
     ) -> Result<(), CompileError> {
         let exp_gen = self.create_expr_generator();
         let left = exp_gen.generate_load(left_statement)?;
-        let (right_type, right) = exp_gen.generate_expression(right_statement)?;
+        // if the lhs-type is a subrange type we may need to generate a check-call
+        // e.g. x := y,  ==> x := CheckSignedInt(y);
+        let range_checked_right_side =
+            if let DataTypeInformation::SubRange { sub_range, .. } = left.get_type_information() {
+                // there is a sub-range defined, so we need to wrap the right side into the check function if it exists
+                self.find_range_check_impolementation_for(left.get_type_information())
+                    .and_then(|implementation| {
+                        Some(create_call_to_check_function_ast(
+                            implementation.get_call_name().to_string(),
+                            right_statement.clone(),
+                            sub_range.clone(),
+                            &left_statement.get_location(),
+                        ))
+                    })
+            } else {
+                None
+            };
+
+        let (right_type, right) = if let Some(check_call) = range_checked_right_side {
+            exp_gen.generate_expression(&check_call)?
+        } else {
+            exp_gen.generate_expression(right_statement)?
+        };
+
         let cast_value = cast_if_needed(
             self.llvm,
             self.index,
@@ -140,6 +169,29 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         )?;
         self.llvm.builder.build_store(left.ptr_value, cast_value);
         Ok(())
+    }
+
+    /// returns the implementation of the sub-range-check-function for a variable of the given dataType
+    fn find_range_check_impolementation_for(
+        &self,
+        data_type: &DataTypeInformation,
+    ) -> Option<&ImplementationIndexEntry> {
+        let effective_type = self.index.find_effective_type(data_type);
+        match effective_type {
+            Some(DataTypeInformation::Integer { signed, size, .. }) if *signed && *size <= 32 => {
+                self.index.find_implementation(RANGE_CHECK_S_FN)
+            }
+            Some(DataTypeInformation::Integer { signed, size, .. }) if *signed && *size > 32 => {
+                self.index.find_implementation(RANGE_CHECK_LS_FN)
+            }
+            Some(DataTypeInformation::Integer { signed, size, .. }) if !*signed && *size <= 32 => {
+                self.index.find_implementation(RANGE_CHECK_U_FN)
+            }
+            Some(DataTypeInformation::Integer { signed, size, .. }) if !*signed && *size > 32 => {
+                self.index.find_implementation(RANGE_CHECK_LU_FN)
+            }
+            _ => None,
+        }
     }
 
     /// generates a for-loop statement
@@ -541,5 +593,27 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         //Continue
         builder.position_at_end(continue_block);
         Ok(())
+    }
+}
+
+fn create_call_to_check_function_ast(
+    check_function_name: String,
+    parameter: Statement,
+    sub_range: Range<Statement>,
+    location: &Range<usize>,
+) -> Statement {
+    Statement::CallStatement {
+        operator: Box::new(Statement::Reference {
+            name: check_function_name,
+            location: location.clone(),
+        }),
+        parameters: Box::new(Some(Statement::ExpressionList {
+            expressions: vec![
+                parameter.clone(),
+                sub_range.start.clone(),
+                sub_range.end.clone(),
+            ],
+        })),
+        location: location.clone(),
     }
 }
