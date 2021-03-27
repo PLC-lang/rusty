@@ -82,8 +82,7 @@ impl<'a, 'b> StructGenerator<'a, 'b> {
                     exp_gen.generate_expression(statement)
                         .map(|(_, value)| Some(value))?
                 }
-                None => 
-                    type_index_entry.get_initial_value()
+                None => self.global_index.get_type_initial_value(type_name),
             };
 
             Ok((variable.name.to_string(), variable_type.get_type(), initializer))

@@ -3173,6 +3173,58 @@ source_filename = "main"
 }
 
 #[test]
+fn alias_type_out_of_order() {
+  let result = codegen!(
+        "
+        TYPE MyInt: MyOtherInt1; END_TYPE 
+        VAR_GLOBAL x : MyInt; END_VAR
+
+        TYPE MyOtherInt3 : DINT := 3; END_TYPE
+        TYPE MyOtherInt1 : MyOtherInt2; END_TYPE
+        TYPE MyOtherInt2 : MyOtherInt3; END_TYPE
+        "
+    );
+
+    let expected = r#"; ModuleID = 'main'
+source_filename = "main"
+
+@x = global i32 3
+"#;
+
+  assert_eq!(result, expected);
+}
+
+#[test]
+fn alias_chain_with_lots_of_initializers() {
+  let result = codegen!(
+        "
+        TYPE MyInt: MyOtherInt1; END_TYPE 
+        VAR_GLOBAL 
+          x0 : MyInt; 
+          x1 : MyOtherInt1; 
+          x2 : MyOtherInt2; 
+          x3 : MyOtherInt3; 
+        END_VAR
+
+        TYPE MyOtherInt3 : DINT := 3; END_TYPE
+        TYPE MyOtherInt1 : MyOtherInt2 := 1; END_TYPE
+        TYPE MyOtherInt2 : MyOtherInt3 := 2; END_TYPE
+        "
+    );
+
+    let expected = r#"; ModuleID = 'main'
+source_filename = "main"
+
+@x0 = global i32 1
+@x1 = global i32 1
+@x2 = global i32 2
+@x3 = global i32 3
+"#;
+
+  assert_eq!(result, expected);
+}
+
+#[test]
 fn initial_values_in_type_alias() {
   let result = codegen!(
         "

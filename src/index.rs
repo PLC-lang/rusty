@@ -166,10 +166,6 @@ impl<'ctx> DataTypeIndexEntry<'ctx> {
         self.implementation
     }
 
-    pub fn get_initial_value(&self) -> Option<BasicValueEnum<'ctx>> {
-        self.initial_value
-    } 
-
     pub fn get_name(&self) -> &str {
         self.name.as_str()
     }
@@ -433,6 +429,23 @@ impl<'ctx> Index<'ctx> {
         if let Some(entry) = self.types.get_mut(name) {
             entry.initial_value = Some(initial_value);
         }
+    }
+
+    /// returns the initial value associated to the given datatype
+    ///
+    /// if the given type is an alias type, this will return the initial value of the
+    /// referenced type.
+    pub fn get_type_initial_value(&self, name: &str) -> Option<BasicValueEnum<'ctx>> {
+        let data_type = self.types.get(name);
+        data_type.map(|it| {
+            if it.initial_value.is_some() {
+                return it.initial_value;
+            }
+            if let Some(DataTypeInformation::Alias { referenced_type, .. }) = &it.information {
+                return self.get_type_initial_value(referenced_type.as_str());
+            }
+            None
+        }).flatten()
     }
 
     pub fn associate_member_initial_value(&mut self, container_name: &str, member_name: &str, initial_value: BasicValueEnum<'ctx>) {

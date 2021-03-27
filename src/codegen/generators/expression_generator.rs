@@ -847,7 +847,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                         .ok_or_else(|| CompileError::codegen_error(format!("invalid index entry for {}.{} - no location_in_parent.", struct_name, variable_name), declaration_location.clone()))?;
                     
                     let initial_value = self.index.find_member_initial_value(struct_name, variable_name)
-                        .or(self.index.get_type(member.get_type_name())?.get_initial_value())
+                        .or(self.index.get_type_initial_value(member.get_type_name()))
                         .ok_or_else(|| CompileError::codegen_error(format!("cannot derive initial value for {}.{}", struct_name, variable_name), declaration_location.clone()))?;
                     
                     member_values.push((index_in_parent, initial_value));

@@ -50,8 +50,9 @@ pub fn generate_data_type_stubs<'a>(llvm: &LLVM<'a>, index: &mut Index<'a>, data
                     DataTypeInformation::Alias {
                         name: alias_name.clone(),
                         referenced_type: type_ref_name.clone(),
-                    },
-                );
+                    });
+                // associate the type's value right away if there is one initialized
+                associate_type_initial_value(&user_type.initializer, alias_name, llvm, index)?;
             }
             DataType::ArrayType {
                 name,
@@ -141,11 +142,13 @@ pub fn generate_data_type<'a>(
                 referenced_type,
             } => {
                 let alias_name = name.as_ref().map(|it| it.as_str()).unwrap();
+                let referenced_initial_value = index.get_type_initial_value(&referenced_type);
                 index.associate_type_alias(alias_name, referenced_type.as_str());
-                if let Some(initializer) = &data_type.initializer {
-                    let generator = ExpressionCodeGenerator::new_context_free(llvm, index, None);
-                    let (_, initial_value) = generator.generate_expression(initializer)?;
-                    index.associate_type_initial_value(alias_name, initial_value);
+                // if this type has an initilizer we already associated it in the generate_stub_step
+                if data_type.initializer.is_none(){
+                    if let Some(initial_value) = referenced_initial_value {
+                        index.associate_type_initial_value(alias_name, initial_value);
+                    }
                 }
             }
             DataType::ArrayType { name, .. } => {
@@ -233,6 +236,21 @@ fn extract_value(s: &Statement) -> Result<String, CompileError> {
 fn evaluate_constant_int(s: &Statement) -> Result<i32, CompileError> {
     let value = extract_value(s);
     value.map(|v| v.parse().unwrap_or(0))
+}
+
+/// associates the given initializer with the given type
+/// only associates if the the initial value is not None
+fn associate_type_initial_value<'a>(
+    initializer: &Option<Statement>, 
+    type_name: &str,
+    llvm: &LLVM<'a>,
+    index: &mut Index<'a>) -> Result<(), CompileError>{
+    if let Some(initializer) = initializer {
+        let generator = ExpressionCodeGenerator::new_context_free(llvm, index, None);
+        let (_, initial_value) = generator.generate_expression(initializer)?;
+        index.associate_type_initial_value(type_name, initial_value);
+    }
+    Ok(())
 }
 
 /// creates the llvm types for a multi-dimensional array

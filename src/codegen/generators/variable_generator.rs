@@ -36,7 +36,7 @@ pub fn generate_global_variable<'ctx, 'b>(
     } else {
         None
     };
-    let initial_value = initial_value.or(variable_type_index_entry.get_initial_value());
+    let initial_value = initial_value.or(index.get_type_initial_value(type_name));
     let global_ir_variable = llvm.create_global_variable(module, &global_variable.name, variable_type, initial_value);
     index.associate_global_variable(&global_variable.name, global_ir_variable.as_pointer_value());
     Ok(global_ir_variable)

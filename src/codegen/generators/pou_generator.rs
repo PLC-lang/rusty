@@ -86,8 +86,7 @@ impl<'a, 'b> PouGenerator<'a, 'b> {
         if pou.pou_type == PouType::Program {
             let instance_initializer = self
                 .index
-                .find_type(pou_name)
-                .and_then(DataTypeIndexEntry::get_initial_value);
+                .get_type_initial_value(pou_name);
             let global_value = self.llvm.create_global_variable(
                     module, 
                     &struct_generator::get_pou_instance_variable_name(pou_name),
