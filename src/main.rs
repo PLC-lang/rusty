@@ -1,12 +1,16 @@
 /// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
-use rusty::{cli::CompileParameters, compile, compile_error::CompileError, compile_to_bitcode, compile_to_ir, compile_to_shared_object};
-use structopt::StructOpt;
+use rusty::{cli::{CompileParameters, ParameterError, parse_parameters}, compile, compile_error::CompileError, compile_to_bitcode, compile_to_ir, compile_to_shared_object};
 use std::fs;
 
 fn main() {
     let args: Vec<String> = std::env::args().collect();
-    main_compile(parse_parameters(args).unwrap());
+
+    let compile_parameters: Result<CompileParameters, ParameterError>  = parse_parameters(args);
+    match compile_parameters {
+        Ok(cp) => main_compile(cp),
+        Err(err) => err.exit() // prints the nice message to std-out
+    }
 }
 
 fn main_compile(parameters: CompileParameters) {
@@ -27,11 +31,6 @@ fn main_compile(parameters: CompileParameters) {
         panic!("no output format defined");
     }
 }
-
-pub fn parse_parameters(args: Vec<String>) -> Result<CompileParameters, structopt::clap::Error> {
-    CompileParameters::from_iter_safe(args)
-}
-
 fn generate_ir(content : String, output: &str) -> Result<(), CompileError> {
     let ir = compile_to_ir(content)?;
     fs::write(output, ir).unwrap(); 
