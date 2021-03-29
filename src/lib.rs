@@ -17,6 +17,8 @@ pub mod index;
 mod lexer;
 mod parser;
 pub mod compile_error;
+pub mod cli;
+
 #[macro_use]
 extern crate pretty_assertions;
 
