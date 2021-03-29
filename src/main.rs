@@ -1,95 +1,39 @@
 /// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
-use core::slice::Iter;
-use compile_error::CompileError;
-use rusty::*;
-use std::env;
+use rusty::{cli::CompileParameters, compile, compile_error::CompileError, compile_to_bitcode, compile_to_ir, compile_to_shared_object};
+use structopt::StructOpt;
 use std::fs;
 
 fn main() {
-    let args: Vec<String> = env::args().collect();
+    let args: Vec<String> = std::env::args().collect();
+    main_compile(parse_parameters(args).unwrap());
+}
 
-    let parameters = read_params(args.as_slice());
-    let contents = fs::read_to_string(parameters.input).expect("Cannot read file");
-    match parameters.output_type {
-        OutputType::IR => generate_ir(contents.to_string(), parameters.output.as_str()).unwrap(),
-        OutputType::ObjectCode => compile(contents.to_string(), parameters.output.as_str(), parameters.target).unwrap(),
-        OutputType::PicObject => compile_to_shared_object(contents.to_string(), parameters.output.as_str(), parameters.target).unwrap(),
-        OutputType::SharedObject => compile_to_shared_object(contents.to_string(), parameters.output.as_str(), parameters.target).unwrap(),
-        OutputType::Bitcode => compile_to_bitcode(contents.to_string(),parameters.output.as_str()).unwrap(),
+fn main_compile(parameters: CompileParameters) {
+    let contents = fs::read_to_string(parameters.input.as_str()).expect(format!("Cannot read input file {}", parameters.input.as_str()).as_str());
+
+    if parameters.output_bit_code {
+        compile_to_bitcode(contents.to_string(),parameters.output.as_str()).unwrap();
+    }else if parameters.output_ir {   
+        generate_ir(contents.to_string(), parameters.output.as_str()).unwrap();
+    }else if parameters.output_pic_obj {   
+        compile_to_shared_object(contents.to_string(), parameters.output.as_str(), parameters.target).unwrap();
+    }else if parameters.output_shared_obj {   
+        compile_to_shared_object(contents.to_string(), parameters.output.as_str(), parameters.target).unwrap()
+    }else if parameters.output_obj_code {
+        compile(contents.to_string(), parameters.output.as_str(), parameters.target).unwrap();
+    }else{
+        //none is set, so we use default
+        panic!("no output format defined");
     }
+}
+
+pub fn parse_parameters(args: Vec<String>) -> Result<CompileParameters, structopt::clap::Error> {
+    CompileParameters::from_iter_safe(args)
 }
 
 fn generate_ir(content : String, output: &str) -> Result<(), CompileError> {
     let ir = compile_to_ir(content)?;
     fs::write(output, ir).unwrap(); 
     Ok(())
-}
-
-struct CompileParameters {
-    input: String,
-    output: String,
-    output_type: OutputType,
-    target : Option<String>,
-}
-
-enum OutputType {
-    IR,
-    SharedObject,
-    PicObject,
-    ObjectCode,
-    Bitcode,
-}
-
-fn read_params(args: &[String]) -> CompileParameters {
-    let mut result = CompileParameters {
-        input: "".to_string(),
-        output: "a.out".to_string(),
-        output_type: OutputType::PicObject,
-        target : None,
-    };
-
-    let mut args_iter = args.iter();
-    let _application_name = args_iter.next();
-    while let Some(arg) = args_iter.next() {
-        if arg.starts_with("-") {
-            parse_argument(&mut result, arg, &mut args_iter);
-        } else {
-            if !result.input.is_empty() {
-                panic!("Input already defined");
-            }
-            result.input = arg.to_string();
-        }
-    }
-    if result.input.is_empty() {
-        panic!("Input not set");
-    }
-    result
-}
-
-fn parse_argument(
-    parameters: &mut CompileParameters,
-    option: &String,
-    iterator: &mut Iter<String>,
-) {
-    match option.as_str() {
-        "--output" | "-o" => {
-            parameters.output = iterator
-                .next()
-                .expect("Output file not specified")
-                .to_string()
-        }
-        "--bc" => parameters.output_type = OutputType::Bitcode,
-        "--ir" => parameters.output_type = OutputType::IR,
-        "--static" => parameters.output_type = OutputType::ObjectCode,
-        "--shared" => parameters.output_type = OutputType::SharedObject,
-        "--pic" => parameters.output_type = OutputType::PicObject,
-        "--target" => {
-            //Resolve the target here since the --target was specified
-            parameters.target = Some(iterator.next()
-                .expect("Target not specified")
-                .to_string())
-        }
-        _ => panic!("Unkown parameter {}", option),
-    }
 }
