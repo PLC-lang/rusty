@@ -2,14 +2,14 @@
 
 /// offers operations to generate global variables
 
-use crate::index::GlobalIndex;
+use crate::index::Index;
 use inkwell::{module::Module, values::GlobalValue};
 
 use crate::{codegen::llvm_index::LLVMTypedIndex, compile_error::CompileError, index::VariableIndexEntry};
 
 use super::{expression_generator::ExpressionCodeGenerator, llvm::LLVM};
 
-pub fn generate_global_variables<'ctx, 'b> (module : &'b Module<'ctx>, llvm : &'b LLVM<'ctx>, global_index : &'b GlobalIndex,  types_index : &'b LLVMTypedIndex<'ctx>) -> Result<LLVMTypedIndex<'ctx>, CompileError> {
+pub fn generate_global_variables<'ctx, 'b> (module : &'b Module<'ctx>, llvm : &'b LLVM<'ctx>, global_index : &'b Index,  types_index : &'b LLVMTypedIndex<'ctx>) -> Result<LLVMTypedIndex<'ctx>, CompileError> {
    let mut index = LLVMTypedIndex::new();
    let globals = global_index.get_globals();
    for (name,variable) in globals {
@@ -28,7 +28,7 @@ pub fn generate_global_variables<'ctx, 'b> (module : &'b Module<'ctx>, llvm : &'
 pub fn generate_global_variable<'ctx, 'b>(
     module: &'b Module<'ctx>,
     llvm : &'b LLVM<'ctx>,
-    global_index: &'b GlobalIndex,
+    global_index: &'b Index,
     index: &'b LLVMTypedIndex<'ctx>,
     global_variable: &VariableIndexEntry,
 ) -> Result<GlobalValue<'ctx>, CompileError> {

@@ -1,5 +1,5 @@
 /// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-use crate::index::GlobalIndex;
+use crate::index::Index;
 use inkwell::{types::{BasicTypeEnum, StructType}, values::BasicValueEnum};
 use crate::{codegen::llvm_index::LLVMTypedIndex, compile_error::CompileError, index::VariableIndexEntry};
 use super::{expression_generator::ExpressionCodeGenerator, llvm::LLVM};
@@ -7,8 +7,8 @@ use super::{expression_generator::ExpressionCodeGenerator, llvm::LLVM};
 /// object that offers convinient operations to create struct types and instances
 pub struct StructGenerator<'a, 'b> {
     llvm: &'b LLVM<'a>,
-    global_index: &'b GlobalIndex,
-    index: &'b LLVMTypedIndex<'a>,
+    index: &'b Index,
+    llvm_index: &'b LLVMTypedIndex<'a>,
 }
 
 ///
@@ -20,11 +20,11 @@ type StructTypeAndValue<'a> = (StructType<'a>, BasicValueEnum<'a>);
 impl<'a, 'b> StructGenerator<'a, 'b> {
 
     /// creates a new StructGenerator
-    pub fn new(llvm: &'b LLVM<'a>, global_index : &'b GlobalIndex, index: &'b LLVMTypedIndex<'a> ) -> StructGenerator<'a, 'b> {
+    pub fn new(llvm: &'b LLVM<'a>, index : &'b Index, llvm_index: &'b LLVMTypedIndex<'a> ) -> StructGenerator<'a, 'b> {
         StructGenerator{
             llvm,
-            global_index,
             index,
+            llvm_index,
         }       
     }
 
@@ -37,7 +37,7 @@ impl<'a, 'b> StructGenerator<'a, 'b> {
         member_variables: &Vec<&VariableIndexEntry>,
         name: &str) -> Result<(StructTypeAndValue<'a>, Vec<(String, BasicValueEnum<'a>)>), CompileError> {
 
-        let struct_type = self.index.get_associated_type(name).map(BasicTypeEnum::into_struct_type)?;
+        let struct_type = self.llvm_index.get_associated_type(name).map(BasicTypeEnum::into_struct_type)?;
 
         let mut members = Vec::new();
         for member in member_variables {
@@ -73,18 +73,18 @@ impl<'a, 'b> StructGenerator<'a, 'b> {
             // let type_index_entry = self.index.get_type(type_name)?;
             //                         //&variable.data_type.get_name().ok_or_else(|| error_type_not_associated(type_name, &variable.location))?;
 
-            let variable_type = self.global_index.get_type_information(type_name)?;
+            let variable_type = self.index.get_type_information(type_name)?;
             let initializer = match &variable.initial_value {
                 Some(statement) => {
-                    let exp_gen = ExpressionCodeGenerator::new_context_free(self.llvm, self.global_index, self.index, Some(variable_type.clone()));
+                    let exp_gen = ExpressionCodeGenerator::new_context_free(self.llvm, self.index, self.llvm_index, Some(variable_type.clone()));
                     exp_gen.generate_expression(statement)
                         .map(|(_, value)| Some(value))?
                 }
                 None => 
-                   self.index.find_associated_initial_value(type_name)
+                   self.llvm_index.find_associated_initial_value(type_name)
             };
 
-            Ok((variable.get_name().to_string(), self.index.get_associated_type(type_name).unwrap(), initializer))
+            Ok((variable.get_name().to_string(), self.llvm_index.get_associated_type(type_name).unwrap(), initializer))
         }
 
 

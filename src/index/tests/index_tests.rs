@@ -48,7 +48,6 @@ fn program_is_indexed() {
     index.find_type("myProgram").unwrap();
     let program_variable = index.find_global_variable("myProgram").unwrap();
 
-    //TODO: type name should refer to my
     assert_eq!("myProgram", program_variable.information.data_type_name);
 }
 

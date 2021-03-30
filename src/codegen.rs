@@ -60,7 +60,7 @@ pub struct CodeGen<'ink> {
     /// the module represents a llvm compilation unit
     pub module: Module<'ink>,
     /// the index / symbol table
-    pub index: GlobalIndex,
+    pub index: Index,
 }
 
 impl<'ink> CodeGen<'ink> {
@@ -68,7 +68,7 @@ impl<'ink> CodeGen<'ink> {
     /// constructs a new code-generator that generates CompilationUnits into a module with the given module_name
     pub fn new(
         context : &'ink Context,
-        index: GlobalIndex,
+        index: Index,
         module_name: &str,
     ) -> CodeGen<'ink> {
         let module = context.create_module(module_name);
@@ -80,7 +80,7 @@ impl<'ink> CodeGen<'ink> {
         codegen
     }
 
-    fn generate_llvm_index(&self, module : &Module<'ink>, global_index : &GlobalIndex, ) -> Result<LLVMTypedIndex<'ink>, CompileError>{
+    fn generate_llvm_index(&self, module : &Module<'ink>, global_index : &Index, ) -> Result<LLVMTypedIndex<'ink>, CompileError>{
         let llvm = LLVM::new(&self.context, self.context.create_builder());
         let mut index = LLVMTypedIndex::new();
         //Generate types index, and any global variables associated with them.

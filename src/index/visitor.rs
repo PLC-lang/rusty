@@ -2,13 +2,13 @@
 
 use crate::ast::Implementation;
 use crate::ast::{self, UserTypeDeclaration};
-use super::GlobalIndex;
+use super::Index;
 use super::VariableType;
 use crate::typesystem::*;
 use super::super::ast::{ POU, PouType, CompilationUnit, VariableBlock, VariableBlockType, DataType, DataTypeDeclaration, get_array_dimensions, evaluate_constant_int};
 
-pub fn visit(unit: &CompilationUnit) -> GlobalIndex {
-    let mut index = GlobalIndex::new();
+pub fn visit(unit: &CompilationUnit) -> Index {
+    let mut index = Index::new();
 
     //Create the typesystem
     let builtins = get_builtin_types();
@@ -39,7 +39,7 @@ pub fn visit(unit: &CompilationUnit) -> GlobalIndex {
 
 }
 
-pub fn visit_pou(index: &mut GlobalIndex, pou: &POU){
+pub fn visit_pou(index: &mut Index, pou: &POU){
 
     let interface_name = format!("{}_interface", &pou.name);
 
@@ -87,12 +87,12 @@ pub fn visit_pou(index: &mut GlobalIndex, pou: &POU){
 
 }
 
-fn visit_implementation(index :&mut GlobalIndex, implementation : &Implementation) {
+fn visit_implementation(index :&mut Index, implementation : &Implementation) {
     index.register_implementation(&implementation.name, &implementation.type_name)
 }
 
 
-fn visit_global_var_block(index :&mut GlobalIndex, block: &VariableBlock) {
+fn visit_global_var_block(index :&mut Index, block: &VariableBlock) {
     for var in &block.variables {
 
         index.register_global_variable(
@@ -113,7 +113,7 @@ fn get_variable_type_from_block(block: &VariableBlock) -> VariableType {
 }
 
 
-fn visit_data_type(index: &mut GlobalIndex, type_declatation: &UserTypeDeclaration) {
+fn visit_data_type(index: &mut Index, type_declatation: &UserTypeDeclaration) {
     let data_type = &type_declatation.data_type;
     //names should not be empty
     match data_type {

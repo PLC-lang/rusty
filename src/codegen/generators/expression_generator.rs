@@ -1,5 +1,5 @@
 /// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-use crate::index::GlobalIndex;
+use crate::index::Index;
 use inkwell::{AddressSpace, FloatPredicate, IntPredicate, basic_block::BasicBlock, types::BasicTypeEnum, values::{ArrayValue, BasicValue, BasicValueEnum, FloatValue, IntValue, PointerValue, StructValue, VectorValue}};
 use std::{collections::HashSet, ops::Range};
 
@@ -10,8 +10,8 @@ use super::{llvm::LLVM, statement_generator::FunctionContext, struct_generator};
 /// the generator for expressions
 pub struct ExpressionCodeGenerator<'a, 'b> {
     llvm: &'b LLVM<'a>,
-    global_index: &'b GlobalIndex,
-    index: &'b LLVMTypedIndex<'a>,
+    index: &'b Index,
+    llvm_index: &'b LLVMTypedIndex<'a>,
     /// an optional type hint for generating literals
     type_hint: Option<DataTypeInformation>,
     /// the current function to create blocks in
@@ -33,15 +33,15 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
     /// - `function_context` the current function to create blocks
     pub fn new(
         llvm: &'b LLVM<'a>,
-        global_index: &'b GlobalIndex,
-        index: &'b LLVMTypedIndex<'a>,
+        index: &'b Index,
+        llvm_index: &'b LLVMTypedIndex<'a>,
         type_hint: Option<DataTypeInformation>,
         function_context: &'b FunctionContext<'a>,
     ) -> ExpressionCodeGenerator<'a, 'b> {
         ExpressionCodeGenerator {
             llvm,
-            global_index,
             index,
+            llvm_index,
             type_hint,
             function_context: Some(function_context),
             temp_variable_prefix: "load_".to_string(),
@@ -58,14 +58,14 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
     /// - `type_hint` an optional type hint for generating literals
     pub fn new_context_free(
         llvm: &'b LLVM<'a>,
-        global_index: &'b GlobalIndex,
-        index: &'b LLVMTypedIndex<'a>,
+        index: &'b Index,
+        llvm_index: &'b LLVMTypedIndex<'a>,
         type_hint: Option<DataTypeInformation>,
     ) -> ExpressionCodeGenerator<'a, 'b> {
         ExpressionCodeGenerator {
             llvm,
-            global_index,
             index,
+            llvm_index,
             type_hint,
             function_context: None,
             temp_variable_prefix: "load_".to_string(),
@@ -76,8 +76,8 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
     pub fn morph_to_typed(&self, type_hint: &DataTypeInformation) -> ExpressionCodeGenerator<'a, 'b> {
         ExpressionCodeGenerator {
             llvm: self.llvm,
-            global_index : self.global_index,
-            index: self.index,
+            index : self.index,
+            llvm_index: self.llvm_index,
             type_hint: Some(type_hint.clone()),
             function_context: self.function_context ,
             temp_variable_prefix: self.temp_variable_prefix.clone(),
@@ -93,7 +93,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
 
     /// returns an option with the current type_hint as a BasicTypeEnum
     fn get_type_context(&self) -> Option<BasicTypeEnum<'a>> {
-        self.type_hint.as_ref().and_then(|it| self.index.get_associated_type(it.get_name()).ok())
+        self.type_hint.as_ref().and_then(|it| self.llvm_index.get_associated_type(it.get_name()).ok())
     }
 
     /// generates the given expression and returns a TypeAndValue as a result of the
@@ -138,8 +138,8 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                     builder,
                     &left_type_and_value,
                     &right_type_and_value,
-                    self.global_index,
                     self.index,
+                    self.llvm_index,
                 );
 
                 if common_type.is_int() {
@@ -207,13 +207,11 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
         let instance_and_index_entry = match operator {
             Statement::Reference { name, .. } => {
                 //Get associated Variable or generate a variable for the type with the same name
-                let variable = self.global_index
+                let variable = self.index
                     .find_callable_instance_variable(Some(function_context.linking_context.as_str()), &[name.clone()]);
         
                 let callable_reference = if let Some(variable_instance) = variable {
-                    self.index.find_loaded_associated_variable_value(&variable_instance.get_qualified_name())
-                    //FIXME : This is a hack
-                    .or_else(|| self.index.find_loaded_associated_variable_value(name))
+                    self.llvm_index.find_loaded_associated_variable_value(&variable_instance.get_qualified_name())
                     .ok_or_else(||
                             CompileError::CodeGenError{ message: format!("cannot find callable type for {:?}", operator), location: operator.get_location().clone() })?
                 } else {
@@ -224,7 +222,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                     .map(|it| it.get_type_name()) // we called f() --> look for f's datatype
                     .or(Some(&name)); // we didnt call a variable ([0so we treat the string as the function's name
 
-                let index_entry = self.global_index.get_type(call_name.unwrap())?;
+                let index_entry = self.index.get_type(call_name.unwrap())?;
                 Ok((callable_reference, index_entry))
             },
             Statement::QualifiedReference { .. } => {
@@ -254,12 +252,12 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
         builder.build_unconditional_branch(continue_block);
         builder.position_at_end(call_block);
         let return_type = self
-            .global_index
+            .index
             .find_member(function_name, function_name)
             .map(VariableIndexEntry::get_type_name)
             .or(Some("__VOID"))
-            .and_then(|it| self.global_index.find_type_information(it));
-        let function = self.index.find_associated_implementation(function_name)  //using the non error option to control the output error
+            .and_then(|it| self.index.find_type_information(it));
+        let function = self.llvm_index.find_associated_implementation(function_name)  //using the non error option to control the output error
                 .ok_or_else(|| 
                     CompileError::CodeGenError{ message: format!("No callable implementation associated to {:?}", function_name), location: operator.get_location().clone() })?;
         let call_result = 
@@ -272,14 +270,11 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
         //Continue here after function call
         builder.position_at_end(continue_block);
 
-        // !! TODO REVIEW !! we return an uninitialized int pointer for void methods :-/
+        // !! REVIEW !! we return an uninitialized int pointer for void methods :-/
         // dont touch it!!
         let value = call_result.either(
             |value| Ok(value), 
             |_| get_llvm_int_type(self.llvm.context, 16, "INT").map(|int| int.ptr_type(AddressSpace::Const).const_null().as_basic_value_enum())
-            // self.index.get_type_information("INT")
-            //         .map(|it| it.get_type())
-            //         .map(|it| it.ptr_type(AddressSpace::Const).const_null().as_basic_value_enum())
         )?;
 
         return Ok(( return_type.unwrap(), value ));
@@ -291,7 +286,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
     /// - `context` the statement used to report a possible CompileError on
     fn allocate_function_struct_instance(&self, function_name: &str, context: &Statement) -> Result<PointerValue<'a>, CompileError> {
         let instance_name = struct_generator::get_pou_instance_variable_name(function_name);
-        let function_type = self.index.find_associated_type(function_name) //Using find instead of get to control the compile error
+        let function_type = self.llvm_index.find_associated_type(function_name) //Using find instead of get to control the compile error
                                 .ok_or_else(|| CompileError::no_type_associated(function_name, context.get_location().clone()))?;
 
         Ok(self.llvm.create_local_variable(&instance_name, &function_type))
@@ -352,12 +347,12 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                 builder.position_at_end(*input_block);
                 if let Statement::Reference { name, ..} = &**left {
                     let parameter = self
-                        .global_index
+                        .index
                         .find_member(function_name, &name)
                         .unwrap();
                     let index = parameter
                         .get_location_in_parent();
-                    let param_type = self.global_index.find_type(parameter.get_type_name());
+                    let param_type = self.index.find_type(parameter.get_type_name());
                     self.generate_single_parameter(right, function_name, param_type, index, parameter_struct, input_block, output_block)?;
                 }
             }
@@ -367,13 +362,13 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                 builder.position_at_end(*output_block);
                 if let Statement::Reference { name, ..} = &**left {
                     let parameter = self
-                        .global_index
+                        .index
                         .find_member(function_name, &name)
                         .unwrap();
                     let index = parameter
                         .get_location_in_parent();
-                    let param_type = self.global_index.find_type(parameter.get_type_name()).or_else(|| 
-                        self.global_index.find_input_parameter(function_name, index as u32).and_then(|var| self.global_index.find_type(var.get_type_name()))).map(|var| var.get_type_information()).unwrap();
+                    let param_type = self.index.find_type(parameter.get_type_name()).or_else(|| 
+                        self.index.find_input_parameter(function_name, index as u32).and_then(|var| self.index.find_type(var.get_type_name()))).map(|var| var.get_type_information()).unwrap();
                     //load the function prameter
                     let pointer_to_param = builder
                         .build_struct_gep(parameter_struct, index as u32, "")
@@ -395,7 +390,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                     .build_struct_gep(parameter_struct, index as u32, "")
                     .unwrap();
                 let parameter = parameter_type.or_else(|| 
-                    self.global_index.find_input_parameter(function_name, index as u32).and_then(|var| self.global_index.find_type(var.get_type_name()))).map(|var| var.get_type_information()).unwrap();
+                    self.index.find_input_parameter(function_name, index as u32).and_then(|var| self.index.find_type(var.get_type_name()))).map(|var| var.get_type_information()).unwrap();
                 let value = cast_if_needed(self.llvm, parameter, generated_exp, &value_type, assignment_statement)?;
                 builder
                     .build_store(pointer_to_param, value);
@@ -444,7 +439,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
         let offset = &context.get_location();
         let l_value = if let Some(l_value) = qualifier {
             let qualifier_name = l_value.type_entry.get_name();
-            let member = self.global_index.find_member(l_value.type_entry.get_name(), name);
+            let member = self.index.find_member(l_value.type_entry.get_name(), name);
             let member_location = member
                 .map(|it| it.get_location_in_parent())
                 .ok_or_else(||
@@ -452,7 +447,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
 
             //.unwrap();
             let member_data_type = member.map(|it| it.get_type_name()).unwrap();
-            let member_type_entry = self.global_index.get_type(member_data_type)?;
+            let member_type_entry = self.index.get_type(member_data_type)?;
             let gep = self.llvm.get_member_pointer_from_struct(l_value.ptr_value, member_location, name, offset)?;
 
             TypeAndPointer::new(member_type_entry, gep)
@@ -462,15 +457,13 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
             let linking_context = self.get_function_context(context)?.linking_context.as_str();
 
             let variable_index_entry = self
-                .global_index
+                .index
                 .find_variable(Some(linking_context), &[name.clone()])
                 .ok_or_else(|| CompileError::InvalidReference{ reference: name.clone(), location: offset.clone() })?;
-            let accessor_ptr = self.index.find_loaded_associated_variable_value(&variable_index_entry.get_qualified_name())
-                    //FIXME : This is a hack
-                    .or_else(|| self.index.find_loaded_associated_variable_value(name))
+            let accessor_ptr = self.llvm_index.find_loaded_associated_variable_value(&variable_index_entry.get_qualified_name())
                     .ok_or_else(||CompileError::codegen_error(format!("Cannot generate reference for {:}",name),offset.clone()))?;
 
-            let variable_type = self.global_index.get_type(variable_index_entry.get_type_name())?;
+            let variable_type = self.index.get_type(variable_index_entry.get_type_name())?;
 
             TypeAndPointer::new(variable_type, accessor_ptr)
         };
@@ -545,7 +538,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                     //Load the access from that reference
                     let pointer = self.llvm.load_array_element(lvalue.ptr_value, indices.as_slice(), "tmpVar")?;
 
-                    let internal_type = self.global_index.get_type(inner_type_name)?; //TODO this is WRONG!!! typename is not correct
+                    let internal_type = self.index.get_type(inner_type_name)?; //TODO this is WRONG!!! typename is not correct
                     return Ok(TypeAndPointer::new(internal_type, pointer))
                }
                 Err(CompileError::codegen_error("Invalid array access".to_string(), access.get_location()))
@@ -654,46 +647,46 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                 self.llvm.builder
                     .build_int_compare(IntPredicate::EQ, int_lvalue, int_rvalue, "tmpVar")
                     .into(),
-                self.global_index.find_type_information("BOOL").unwrap(),
+                self.index.find_type_information("BOOL").unwrap(),
             ),
 
             Operator::NotEqual => (
                 self.llvm.builder
                     .build_int_compare(IntPredicate::NE, int_lvalue, int_rvalue, "tmpVar")
                     .into(),
-                self.global_index.find_type_information("BOOL").unwrap(),
+                self.index.find_type_information("BOOL").unwrap(),
             ),
 
             Operator::Less => (
                 self.llvm.builder
                     .build_int_compare(IntPredicate::SLT, int_lvalue, int_rvalue, "tmpVar")
                     .into(),
-                self.global_index.find_type_information("BOOL").unwrap(),
+                self.index.find_type_information("BOOL").unwrap(),
             ),
 
             Operator::Greater => (
                 self.llvm.builder
                     .build_int_compare(IntPredicate::SGT, int_lvalue, int_rvalue, "tmpVar")
                     .into(),
-                self.global_index.find_type_information("BOOL").unwrap(),
+                self.index.find_type_information("BOOL").unwrap(),
             ),
 
             Operator::LessOrEqual => (
                 self.llvm.builder
                     .build_int_compare(IntPredicate::SLE, int_lvalue, int_rvalue, "tmpVar")
                     .into(),
-                self.global_index.find_type_information("BOOL").unwrap(),
+                self.index.find_type_information("BOOL").unwrap(),
             ),
 
             Operator::GreaterOrEqual => (
                 self.llvm.builder
                     .build_int_compare(IntPredicate::SGE, int_lvalue, int_rvalue, "tmpVar")
                     .into(),
-                self.global_index.find_type_information("BOOL").unwrap(),
+                self.index.find_type_information("BOOL").unwrap(),
             ),
             Operator::Xor => (
                 self.llvm.builder.build_xor(int_lvalue, int_rvalue, "tmpVar").into(),
-                self.global_index.find_type_information("BOOL").unwrap(),
+                self.index.find_type_information("BOOL").unwrap(),
             ),
             _ => unimplemented!(),
         };
@@ -751,42 +744,42 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                 self.llvm.builder
                     .build_float_compare(FloatPredicate::OEQ, float_lvalue, float_rvalue, "tmpVar")
                     .into(),
-                self.global_index.find_type_information("BOOL").unwrap(),
+                self.index.find_type_information("BOOL").unwrap(),
             ),
 
             Operator::NotEqual => (
                 self.llvm.builder
                     .build_float_compare(FloatPredicate::ONE, float_lvalue, float_rvalue, "tmpVar")
                     .into(),
-                self.global_index.find_type_information("BOOL").unwrap(),
+                self.index.find_type_information("BOOL").unwrap(),
             ),
 
             Operator::Less => (
                 self.llvm.builder
                     .build_float_compare(FloatPredicate::OLT, float_lvalue, float_rvalue, "tmpVar")
                     .into(),
-                self.global_index.find_type_information("BOOL").unwrap(),
+                self.index.find_type_information("BOOL").unwrap(),
             ),
 
             Operator::Greater => (
                 self.llvm.builder
                     .build_float_compare(FloatPredicate::OGT, float_lvalue, float_rvalue, "tmpVar")
                     .into(),
-                self.global_index.find_type_information("BOOL").unwrap(),
+                self.index.find_type_information("BOOL").unwrap(),
             ),
 
             Operator::LessOrEqual => (
                 self.llvm.builder
                     .build_float_compare(FloatPredicate::OLE, float_lvalue, float_rvalue, "tmpVar")
                     .into(),
-                self.global_index.find_type_information("BOOL").unwrap(),
+                self.index.find_type_information("BOOL").unwrap(),
             ),
 
             Operator::GreaterOrEqual => (
                 self.llvm.builder
                     .build_float_compare(FloatPredicate::OGE, float_lvalue, float_rvalue, "tmpVar")
                     .into(),
-                self.global_index.find_type_information("BOOL").unwrap(),
+                self.index.find_type_information("BOOL").unwrap(),
             ),
 
             _ => unimplemented!(),
@@ -802,11 +795,11 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
         literal_statement: &Statement,
     ) -> Result<TypeAndValue<'a>, CompileError> {
         match literal_statement {
-            Statement::LiteralBool { value, .. } => self.llvm.create_const_bool(self.global_index, *value),
+            Statement::LiteralBool { value, .. } => self.llvm.create_const_bool(self.index, *value),
             Statement::LiteralInteger { value, .. } => {
-                self.llvm.create_const_int(self.global_index, &self.get_type_context(), value)
+                self.llvm.create_const_int(self.index, &self.get_type_context(), value)
             }
-            Statement::LiteralReal { value, .. } => self.llvm.create_const_real(self.global_index, &self.get_type_context(), value),
+            Statement::LiteralReal { value, .. } => self.llvm.create_const_real(self.index, &self.get_type_context(), value),
             Statement::LiteralString { value, .. } => self.llvm.create_const_string(value.as_str()),
             Statement::LiteralArray { elements, location} => self.generate_literal_array(elements, location),
             // if there is an expression-list this might be a struct-initialization
@@ -824,18 +817,18 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
     fn generate_literal_struct(&self, assignments : &Statement, declaration_location: &Range<usize>) -> Result<TypeAndValue<'a>, CompileError> {
         if let Some(type_info) = &self.type_hint {
             if let DataTypeInformation::Struct { name: struct_name, member_names} = type_info {
-                let generated_type = self.index.get_associated_type(struct_name)?;
+                let generated_type = self.llvm_index.get_associated_type(struct_name)?;
                 let mut uninitialized_members: HashSet<&str> = member_names.iter().map(|it| it.as_str()).collect();
                 let mut member_values : Vec<(u32, BasicValueEnum<'a>)> = Vec::new();
                 for assignment in flatten_expression_list(assignments) {
                     if let Statement::Assignment { left, right} = assignment {
                         if let Statement::Reference { name: variable_name, location} = &**left {
-                            let member = self.global_index.find_member(struct_name, &variable_name)
+                            let member = self.index.find_member(struct_name, &variable_name)
                                 .ok_or_else(|| CompileError::invalid_reference(format!("{}.{}", struct_name, variable_name).as_str(), location.clone()))?;
                             
                             let index_in_parent = member.get_location_in_parent();
 
-                            let typed_generator = self.morph_to_typed(&self.global_index.get_type_information(member.get_type_name())?);
+                            let typed_generator = self.morph_to_typed(&self.index.get_type_information(member.get_type_name())?);
                             let (_, value) = typed_generator.generate_expression(right)?;
 
                             uninitialized_members.remove(member.get_name());
@@ -851,14 +844,14 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                 let struct_type = generated_type.into_struct_type();
                 //fill the struct with fields we didnt mention yet
                 for variable_name in uninitialized_members {
-                    let member = self.global_index.find_member(struct_name, variable_name)
+                    let member = self.index.find_member(struct_name, variable_name)
                                 .ok_or_else(|| CompileError::invalid_reference(format!("{}.{}", struct_name, variable_name).as_str(), declaration_location.clone()))?;
                             
                     let index_in_parent = member.get_location_in_parent();
                     
-                    let initial_value = self.index.find_associated_variable_value(&member.get_qualified_name())
+                    let initial_value = self.llvm_index.find_associated_variable_value(&member.get_qualified_name())
                         // .or_else(|| self.index.find_associated_variable_value(name))
-                        .or_else(|| self.index.find_associated_initial_value(member.get_type_name())).unwrap();
+                        .or_else(|| self.llvm_index.find_associated_initial_value(member.get_type_name())).unwrap();
                     
                     member_values.push((index_in_parent, initial_value));
 
@@ -880,7 +873,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
     fn generate_literal_array(&self, elements: &Option<Box<Statement>>, location: &Range<usize>) -> Result<TypeAndValue<'a>, CompileError> {
         if let Some(type_info) = &self.type_hint {
             if let DataTypeInformation::Array{inner_type_name, ..}  = type_info {
-                let inner_type_hint = self.global_index.get_type_information(inner_type_name)?;
+                let inner_type_hint = self.index.get_type_information(inner_type_name)?;
                 if let Some(initializer) = elements {
                     let array_value = self.generate_literal_array_value(
                         flatten_expression_list(initializer), 
@@ -899,7 +892,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
     /// i16-array-value
     fn generate_literal_array_value(&self, elements: Vec<&Statement>, inner_array_type: &DataTypeInformation) -> Result<BasicValueEnum<'a>, CompileError> {
         let element_expression_gen = self.morph_to_typed(inner_array_type);
-        let llvm_type = self.index.get_associated_type(inner_array_type.get_name())?;
+        let llvm_type = self.llvm_index.get_associated_type(inner_array_type.get_name())?;
 
         let mut v = Vec::new();
         for e in elements {
@@ -945,7 +938,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
 
         let (left_type, left_value) = self.generate_expression(left)?;
         let final_left_block = builder.get_insert_block().unwrap();
-        let left_llvm_type = self.index.get_associated_type(left_type.get_name())?;
+        let left_llvm_type = self.llvm_index.get_associated_type(left_type.get_name())?;
         //Compare left to 0
         let lhs = builder.build_int_compare(IntPredicate::NE, left_value.into_int_value(), left_llvm_type.into_int_type().const_int(0,false), "");
         match operator {
@@ -963,7 +956,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
         builder.position_at_end(continue_branch);
         //Generate phi
         let target_type = if left_type.get_size() > right_type.get_size() { left_type } else { right_type };
-        let llvm_target_type = self.index.get_associated_type(target_type.get_name())?;
+        let llvm_target_type = self.llvm_index.get_associated_type(target_type.get_name())?;
         let phi_value = builder.build_phi(llvm_target_type,"");
         phi_value.add_incoming(&[(&left_value.into_int_value(),final_left_block), (&rhs,final_right_block)]);
 

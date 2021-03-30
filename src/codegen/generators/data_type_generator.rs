@@ -6,7 +6,7 @@
 /// - SubRange types
 /// - Alias types
 /// - sized Strings
-use crate::index::GlobalIndex;
+use crate::index::Index;
 use crate::{codegen::{llvm_index::LLVMTypedIndex, llvm_typesystem::{get_llvm_int_type, get_llvm_float_type}}, typesystem::DataType};
 use inkwell::{types::{ArrayType, BasicTypeEnum}, values::BasicValueEnum};
 use crate::{ast::{Dimension, Statement}, compile_error::CompileError, typesystem::DataTypeInformation};
@@ -21,25 +21,25 @@ use super::{expression_generator::ExpressionCodeGenerator, llvm::LLVM, struct_ge
 /// - an alias index entry for sub-range types
 /// - Array type for arrays
 /// - array type for sized Strings
-pub fn generate_data_types<'ink, 'ind>(llvm: &LLVM<'ink>, global_index: &'ind GlobalIndex) -> Result<LLVMTypedIndex<'ink>, CompileError>{
-    let mut index = LLVMTypedIndex::new();
-    let types = global_index.get_types();
+pub fn generate_data_types<'ink, 'ind>(llvm: &LLVM<'ink>, index: &'ind Index) -> Result<LLVMTypedIndex<'ink>, CompileError>{
+    let mut types_index = LLVMTypedIndex::new();
+    let types = index.get_types();
     for (name, user_type) in types {
         if let Some(gen_type) =  create_opaque_struct(llvm, user_type) {
-            index.associate_type(name, gen_type)?
+            types_index.associate_type(name, gen_type)?
         }
     }
     for (name, user_type) in types {
-        let gen_type =  create_type(llvm, global_index, &index, name, user_type)?;
-        index.associate_type(name, gen_type)?
+        let gen_type =  create_type(llvm, index, &types_index, name, user_type)?;
+        types_index.associate_type(name, gen_type)?
     }
     for (name, user_type) in types {
-        expand_opaque_types(llvm, global_index, &mut index, user_type)?;
-        if let Some(initial_value) = generate_initial_value(global_index, &index, llvm, user_type) {
-            index.associate_initial_value(name, initial_value)?
+        expand_opaque_types(llvm, index, &mut types_index, user_type)?;
+        if let Some(initial_value) = generate_initial_value(index, &types_index, llvm, user_type) {
+            types_index.associate_initial_value(name, initial_value)?
         }
     }
-    Ok(index)
+    Ok(types_index)
 }
 
 fn create_opaque_struct<'a>(llvm : &LLVM<'a>, data_type : &DataType) -> Option<BasicTypeEnum<'a>> {
@@ -52,20 +52,20 @@ fn create_opaque_struct<'a>(llvm : &LLVM<'a>, data_type : &DataType) -> Option<B
 
 
 /// generates the members of an opaque struct and associates its initial values 
-fn expand_opaque_types<'ink>(llvm: &LLVM<'ink>, global_index : &GlobalIndex, index : &mut LLVMTypedIndex<'ink>, data_type : &DataType) -> Result<(), CompileError> {
+fn expand_opaque_types<'ink>(llvm: &LLVM<'ink>, index : &Index, types_index : &mut LLVMTypedIndex<'ink>, data_type : &DataType) -> Result<(), CompileError> {
     let information = data_type.get_type_information();
     if let DataTypeInformation::Struct {member_names, .. } = information {
-            let mut struct_generator = StructGenerator::new(llvm, global_index, index);
-            let members = member_names.iter().map(|variable_name| global_index.find_member(data_type.get_name(), variable_name)
+            let mut struct_generator = StructGenerator::new(llvm, index, types_index);
+            let members = member_names.iter().map(|variable_name| index.find_member(data_type.get_name(), variable_name)
             .unwrap())
             .filter(|var| !var.is_return())
             .collect();
             let ((_, initial_value), member_values) = struct_generator.generate_struct_type(&members, data_type.get_name())?;
             for (member, value) in member_values {
                 let qualified_name = format!("{}.{}", data_type.get_name(), member);
-                index.associate_initial_value(&qualified_name, value)?;
+                types_index.associate_initial_value(&qualified_name, value)?;
             }
-            index.associate_initial_value(data_type.get_name(), initial_value)?;
+            types_index.associate_initial_value(data_type.get_name(), initial_value)?;
     }
     Ok(())
 }
@@ -74,47 +74,26 @@ fn expand_opaque_types<'ink>(llvm: &LLVM<'ink>, global_index : &GlobalIndex, ind
 /// Creates an llvm type to be associated with the given data type.
 /// Generates only an opaque type for structs.
 /// Eagerly generates but does not associate nested array and referenced aliased types
-fn create_type<'ink>(llvm : &LLVM<'ink>, index: &GlobalIndex, type_index : &LLVMTypedIndex<'ink>, name : &str, data_type : &DataType) -> Result<BasicTypeEnum<'ink>, CompileError> {
+fn create_type<'ink>(llvm : &LLVM<'ink>, index: &Index, types_index : &LLVMTypedIndex<'ink>, name : &str, data_type : &DataType) -> Result<BasicTypeEnum<'ink>, CompileError> {
         let information = data_type.get_type_information();
         match information {
             DataTypeInformation::Struct { .. } => {
-                // let mut struct_generator = StructGenerator::new(llvm, index);
-                // let members = member_names.iter().map(|variable_name| index.find_member(name, variable_name).unwrap()).collect();
-                // struct_generator.generate_struct_type(&members, name).map(|(a,b)|a.into())
-                type_index.get_associated_type(data_type.get_name())
+                types_index.get_associated_type(data_type.get_name())
             },
             DataTypeInformation::Array { inner_type_name, dimensions, .. } => {
-                //FIXME : Structs are problematic here
-                let inner_type = create_type(llvm, index, type_index, inner_type_name, index.find_type(inner_type_name).unwrap()).unwrap();
+                let inner_type = create_type(llvm, index, types_index, inner_type_name, index.find_type(inner_type_name).unwrap()).unwrap();
                 let array_type = create_nested_array_type(inner_type, dimensions.clone()).into();
-                // let initial_value = generate_array_initializer(data_type, name, index, llvm, 
-                //     |stmt| match stmt {
-                //         Statement::LiteralArray{..} => true,
-                //         _ => false
-                //     },
-                //     "LiteralArray")?;
                 Ok(array_type)
             },
             DataTypeInformation::Integer {size, .. } => get_llvm_int_type(llvm.context, *size, name).map(|it| it.into()),
             DataTypeInformation::Float {size, .. } => get_llvm_float_type(llvm.context, *size, name).map(|it| it.into()),
             DataTypeInformation::String { size } => {
                 let gen_type  = llvm.context.i8_type().array_type(*size).into();
-                // let initial_value = generate_array_initializer(data_type, name, index, llvm, |stmt| match stmt {
-                //     Statement::LiteralString{..} => true,
-                //     _ => false
-                // }, "LiteralString")?;
                 Ok(gen_type)
 
             },
             DataTypeInformation::Alias { referenced_type, .. } => {
-                let ref_type  = create_type(llvm, index, type_index, name, index.find_type(referenced_type).unwrap())?;
-                // let initial_value = if let Some(initializer) = &data_type.initial_value {
-                //     let generator = ExpressionCodeGenerator::new_context_free(llvm, index, None);
-                //     let (_, initial_value) = generator.generate_expression(initializer)?;
-                //     Some(initial_value)
-                // } else {
-                //     None
-                // };
+                let ref_type  = create_type(llvm, index, types_index, name, index.find_type(referenced_type).unwrap())?;
                 Ok(ref_type)
             },
             // REVIEW: Void types are not basic type enums, so we return an int here 
@@ -125,7 +104,7 @@ fn create_type<'ink>(llvm : &LLVM<'ink>, index: &GlobalIndex, type_index : &LLVM
 }
 
 fn generate_initial_value<'ink>(
-    index : &GlobalIndex, 
+    index : &Index, 
     types_index : &LLVMTypedIndex<'ink>,
     llvm : &LLVM<'ink>,
     data_type : &DataType,
@@ -141,8 +120,8 @@ fn generate_initial_value<'ink>(
                     },
                     "LiteralArray").unwrap()
             },
-            DataTypeInformation::Integer {.. } => None,// TODO : Should we return default types here?
-            DataTypeInformation::Float {.. } => None,// TODO : Should we return default types here?
+            DataTypeInformation::Integer {.. } => None,
+            DataTypeInformation::Float {.. } => None,
             DataTypeInformation::String { .. } => {
                 generate_array_initializer(data_type, data_type.get_name(), index, types_index, llvm, |stmt| match stmt {
                     Statement::LiteralString{..} => true,
@@ -159,9 +138,8 @@ fn generate_initial_value<'ink>(
                     None
                 }
             },
-            // REVIEW: Void types are not basic type enums, so we return an int here 
+            // Void types are not basic type enums, so we return an int here 
             DataTypeInformation::Void => None, //get_llvm_int_type(llvm.context, 32, "Void").map(Into::into),
-            //Ok((llvm.context.void_type().into(),None)),
         }
 }
 
@@ -170,7 +148,7 @@ fn generate_initial_value<'ink>(
 fn generate_array_initializer<'ink>(
         data_type: &DataType, 
         name: &str, 
-        index: &GlobalIndex, 
+        index: &Index, 
         types_index: &LLVMTypedIndex<'ink>, 
         llvm: &LLVM<'ink>, 
         predicate: fn(&Statement) -> bool,
