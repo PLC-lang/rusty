@@ -119,13 +119,16 @@ fn generate_initial_value<'ink>(
                 }, "LiteralString").unwrap()
 
             },
-            DataTypeInformation::Alias { .. } => {
+            DataTypeInformation::Alias { referenced_type, .. } => {
                 if let Some(initializer) = &data_type.initial_value {
                     let generator = ExpressionCodeGenerator::new_context_free(llvm, index, types_index, None);
                     let (_, initial_value) = generator.generate_expression(initializer).unwrap();
                     Some(initial_value)
                 } else {
-                    None
+                    // if there's no initializer defined for this alias, we go and check the aliased type for an initial value
+                    index.get_types().get(referenced_type)
+                        .and_then(|referenced_data_type| 
+                            generate_initial_value(index, types_index, llvm, referenced_data_type))
                 }
             },
             // Void types are not basic type enums, so we return an int here 
