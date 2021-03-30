@@ -1,60 +1,58 @@
-use std::ops::RangeFull;
 
 /// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
-use indexmap::IndexMap;
 use inkwell::values::{BasicValueEnum, FunctionValue, GlobalValue, PointerValue};
 use inkwell::types::BasicTypeEnum;
 use crate::compile_error::CompileError ;
+use std::collections::HashMap;
 
 /// Index view containing declared values for the current context
 /// Parent Index is the a fallback lookup index for values not declared locally
 #[derive(Debug, Clone)]
 pub struct LLVMTypedIndex<'ink> {
     parent_index : Option<&'ink LLVMTypedIndex<'ink>>,
-    type_associations : IndexMap<String, BasicTypeEnum<'ink>>,
-    initial_value_associations : IndexMap<String, BasicValueEnum<'ink>>,
-    loaded_variable_associations : IndexMap<String, PointerValue<'ink>>,
-    implementations : IndexMap<String, FunctionValue<'ink>>,
+    type_associations : HashMap<String, BasicTypeEnum<'ink>>,
+    initial_value_associations : HashMap<String, BasicValueEnum<'ink>>,
+    loaded_variable_associations : HashMap<String, PointerValue<'ink>>,
+    implementations : HashMap<String, FunctionValue<'ink>>,
 }
 
 impl<'ink> LLVMTypedIndex<'ink> {
     pub fn new() -> LLVMTypedIndex<'ink> {
         LLVMTypedIndex {
             parent_index : None,
-            type_associations : IndexMap::new(),
-            initial_value_associations : IndexMap::new(),
-            loaded_variable_associations : IndexMap::new(),
-            implementations : IndexMap::new(),
+            type_associations : HashMap::new(),
+            initial_value_associations : HashMap::new(),
+            loaded_variable_associations : HashMap::new(),
+            implementations : HashMap::new(),
         }
     }
 
     pub fn create_child(parent : &'ink LLVMTypedIndex<'ink>) -> LLVMTypedIndex<'ink>{
         LLVMTypedIndex {
             parent_index : Some(parent),
-            type_associations : IndexMap::new(),
-            initial_value_associations : IndexMap::new(),
-            loaded_variable_associations : IndexMap::new(),
-            implementations : IndexMap::new(),
+            type_associations : HashMap::new(),
+            initial_value_associations : HashMap::new(),
+            loaded_variable_associations : HashMap::new(),
+            implementations : HashMap::new(),
         }
     }
 
-    //TODO : Try to use mut self 
-    pub fn merge(&mut self, mut other : LLVMTypedIndex<'ink>) { //-> LLVMTypedIndex<'ctx> {
+    pub fn merge(&mut self, mut other : LLVMTypedIndex<'ink>) { 
 
-        for (name, assocication) in other.type_associations.drain(RangeFull) {
+        for (name, assocication) in other.type_associations.drain() {
             self.type_associations.insert(name.into(),assocication);
         }
-        for (name, assocication) in other.initial_value_associations.drain(RangeFull) {
+        for (name, assocication) in other.initial_value_associations.drain() {
             self.initial_value_associations.insert(name.into(),assocication);
         }
-        for (name, assocication) in other.initial_value_associations.drain(RangeFull) {
+        for (name, assocication) in other.initial_value_associations.drain() {
             self.initial_value_associations.insert(name.into(),assocication);
         }
-        for (name, assocication) in other.loaded_variable_associations.drain(RangeFull) {
+        for (name, assocication) in other.loaded_variable_associations.drain() {
             self.loaded_variable_associations.insert(name.into(),assocication);
         }
-        for (name, implementation) in other.implementations.drain(RangeFull) {
+        for (name, implementation) in other.implementations.drain() {
             self.implementations.insert(name.into(),implementation);
         }
         // index

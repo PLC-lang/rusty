@@ -2,7 +2,7 @@
 
 use inkwell::{builder::Builder, context::Context, types::{FloatType, IntType}, values::{BasicValueEnum, IntValue}};
 
-use crate::{index::GlobalIndex, ast::Statement, compile_error::CompileError, typesystem::{get_bigger_type,DataTypeInformation}};
+use crate::{index::Index, ast::Statement, compile_error::CompileError, typesystem::{get_bigger_type,DataTypeInformation}};
 
 use super::{TypeAndValue, generators::llvm::LLVM, llvm_index::LLVMTypedIndex};
 
@@ -11,8 +11,8 @@ pub fn promote_if_needed<'a>(
     builder: &Builder<'a>,
     lvalue: &TypeAndValue<'a>,
     rvalue: &TypeAndValue<'a>,
-    global_index : &GlobalIndex,
-    index: &LLVMTypedIndex<'a>,
+    index : &Index,
+    llvm_index: &LLVMTypedIndex<'a>,
 ) -> (
     DataTypeInformation,
     BasicValueEnum<'a>,
@@ -21,8 +21,8 @@ pub fn promote_if_needed<'a>(
     let (ltype, lvalue) = lvalue;
     let (rtype, rvalue) = rvalue;
 
-    let ltype_llvm = index.find_associated_type(ltype.get_name()).unwrap();
-    let rtype_llvm = index.find_associated_type(rtype.get_name()).unwrap();
+    let ltype_llvm = llvm_index.find_associated_type(ltype.get_name()).unwrap();
+    let rtype_llvm = llvm_index.find_associated_type(rtype.get_name()).unwrap();
 
     if ltype.is_numerical() && rtype.is_numerical() {
         if ltype_llvm == rtype_llvm {
@@ -30,7 +30,7 @@ pub fn promote_if_needed<'a>(
         } else {
             let target_type = get_bigger_type(
                 &get_bigger_type(ltype, rtype),
-                &global_index.find_type_information("DINT").unwrap()
+                &index.find_type_information("DINT").unwrap()
             );
 
             let promoted_lvalue = promote_value_if_needed(context, builder, *lvalue, ltype, &target_type);

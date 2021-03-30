@@ -13,6 +13,7 @@ mod tests;
 #[derive(Debug, PartialEq)]
 pub struct VariableIndexEntry {
     name: String,
+    qualified_name : String,
     pub initial_value: Option<Statement>,
     information: VariableInformation,
 }
@@ -24,12 +25,8 @@ impl VariableIndexEntry {
         &self.name
     }
 
-    pub fn get_qualified_name(&self) -> String {
-        if let Some(container_name) = &self.information.qualifier {
-            format!("{}.{}", container_name, self.name)
-        } else {
-            self.name.clone()
-        }
+    pub fn get_qualified_name(&self) -> &str {
+        &self.qualified_name
     }
 
     pub fn get_type_name(&self) -> &str {
@@ -97,10 +94,9 @@ impl ImplementationIndexEntry {
 ///
 /// The index contains information about all referencable elements. 
 ///
-/// TODO: consider String-references
 ///
 #[derive(Debug)]
-pub struct GlobalIndex {
+pub struct Index {
     /// all global variables
     global_variables: IndexMap<String, VariableIndexEntry>,
 
@@ -116,9 +112,9 @@ pub struct GlobalIndex {
     void_type: DataType,
 }
 
-impl GlobalIndex {
-    pub fn new() -> GlobalIndex {
-        let index = GlobalIndex {
+impl Index {
+    pub fn new() -> Index {
+        let index = Index {
             global_variables: IndexMap::new(),
             member_variables: IndexMap::new(),
             types: IndexMap::new(),
@@ -272,9 +268,12 @@ impl GlobalIndex {
             .member_variables
             .entry(container_name.into())
             .or_insert_with(|| IndexMap::new());
+        
+        let qualified_name = format!("{}.{}", container_name, variable_name);
 
         let entry = VariableIndexEntry {
             name: variable_name.into(),
+            qualified_name,
             initial_value,
             information: VariableInformation {
                 variable_type: variable_linkage,
@@ -291,8 +290,12 @@ impl GlobalIndex {
     }
 
     pub fn register_global_variable_with_name(&mut self, association_name: &str,variable_name : &str, type_name: &str, initial_value : Option<Statement>) {
+        //REVIEW, this seems like a misuse of the qualified name to store the association name. Any other ideas?
+        // If we do enough mental gymnastic, we could say that a Qualified name is how you would find a unique id for a variable, which the association name is.
+        let qualified_name = association_name.into();
         let entry = VariableIndexEntry {
             name: variable_name.into(),
+            qualified_name,
             initial_value,
             information: VariableInformation {
                 variable_type: VariableType::Global,

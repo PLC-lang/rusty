@@ -1,6 +1,6 @@
 /// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use inkwell::{AddressSpace, builder::Builder, context::Context, module::{Linkage, Module}, types::{BasicType, BasicTypeEnum, StringRadix}, values::{BasicValue, BasicValueEnum, GlobalValue, IntValue, PointerValue}};
-use crate::{typesystem, ast::SourceRange, codegen::{TypeAndPointer, TypeAndValue}, compile_error::CompileError, index::GlobalIndex};
+use crate::{typesystem, ast::SourceRange, codegen::{TypeAndPointer, TypeAndValue}, compile_error::CompileError, index::Index};
 
 
 /// Holds dependencies required to generate IR-code
@@ -9,7 +9,7 @@ pub struct LLVM<'a> {
     pub builder: Builder<'a>,
 }
 
-impl<'a, 'b> LLVM<'a> {
+impl<'a> LLVM<'a> {
     /// constructs a new LLVM struct
     pub fn new(context: &'a Context, builder: Builder<'a>) -> LLVM<'a> {
         LLVM {
@@ -27,7 +27,7 @@ impl<'a, 'b> LLVM<'a> {
     /// - `initial_value` an optional initial value of the global variable    
     pub fn create_global_variable(
         &self,
-        module: &'b Module<'a>,
+        module: &Module<'a>,
         name: &str,
         data_type: BasicTypeEnum<'a>,
         initial_value: Option<BasicValueEnum<'a>>,
@@ -142,7 +142,7 @@ impl<'a, 'b> LLVM<'a> {
     /// - `value` the value of the constant bool value
     pub fn create_const_bool(
         &self,
-        index: &GlobalIndex,
+        index: &Index,
         value: bool,
     ) -> Result<TypeAndValue<'a>, CompileError> {
         let itype = self.context.bool_type();
@@ -159,7 +159,7 @@ impl<'a, 'b> LLVM<'a> {
     /// - `value` the value of the constant int value
     pub fn create_const_int(
         &self,
-        index: &GlobalIndex,
+        index: &Index,
         target_type: &Option<BasicTypeEnum<'a>>,
         value: &str,
     ) -> Result<TypeAndValue<'a>, CompileError> {
@@ -183,7 +183,7 @@ impl<'a, 'b> LLVM<'a> {
     /// - `value` the value of the constant float value
     pub fn create_const_real(
         &self,
-        index: &GlobalIndex,
+        index: &Index,
         target_type: &Option<BasicTypeEnum<'a>>,
         value: &str,
     ) -> Result<TypeAndValue<'a>, CompileError> {
