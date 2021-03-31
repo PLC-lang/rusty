@@ -59,23 +59,20 @@ pub struct CodeGen<'ink> {
     pub context: &'ink Context,
     /// the module represents a llvm compilation unit
     pub module: Module<'ink>,
-    /// the index / symbol table
-    pub index: Index,
 }
 
 impl<'ink> CodeGen<'ink> {
 
     /// constructs a new code-generator that generates CompilationUnits into a module with the given module_name
-    pub fn new(
+    pub fn 
+    new(
         context : &'ink Context,
-        index: Index,
         module_name: &str,
     ) -> CodeGen<'ink> {
         let module = context.create_module(module_name);
         let codegen = CodeGen {
             context,
             module,
-            index,
         };
         codegen
     }
@@ -97,13 +94,13 @@ impl<'ink> CodeGen<'ink> {
     }
 
     /// generates all TYPEs, GLOBAL-sections and POUs of the given CompilationUnit
-    pub fn generate(&self, unit: CompilationUnit) -> Result<String, CompileError> {
+    pub fn generate(&self, unit: CompilationUnit, global_index : &Index) -> Result<String, CompileError> {
         //Associate the index type with LLVM types
-        let llvm_index = self.generate_llvm_index(&self.module, &self.index)?;
+        let llvm_index = self.generate_llvm_index(&self.module, global_index)?;
         
         //generate all pous
         let llvm = LLVM::new(&self.context, self.context.create_builder());
-        let pou_generator = PouGenerator::new(llvm, &self.index, &llvm_index);
+        let pou_generator = PouGenerator::new(llvm, global_index, &llvm_index);
         //Generate the POU stubs in the first go to make sure they can be referenced.
         for (i,pou) in unit.units.iter().enumerate() {
             //Don't generate external functions

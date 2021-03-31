@@ -102,8 +102,8 @@ pub fn compile_module(context : &Context, source : String) -> Result<codegen::Co
     //then index the AST
     let index = index::visitor::visit(&parse_result);
     //and finally codegen
-    let code_generator = codegen::CodeGen::new(context, index, "main");
-    code_generator.generate(parse_result)?;
+    let code_generator = codegen::CodeGen::new(context,  "main");
+    code_generator.generate(parse_result, &index)?;
     Ok(code_generator)
 }
 

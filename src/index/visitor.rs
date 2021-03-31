@@ -151,6 +151,7 @@ fn visit_data_type(index: &mut Index, type_declatation: &UserTypeDeclaration) {
 
         DataType::EnumType { name, elements, .. } =>  {
                 let information = DataTypeInformation::Integer {
+                    name: "DINT".into(),
                     signed: true,
                     size: 32,
                 };

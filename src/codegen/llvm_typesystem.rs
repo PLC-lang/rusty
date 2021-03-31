@@ -62,7 +62,6 @@ fn promote_value_if_needed<'ctx>(
    match target_type {
        DataTypeInformation::Integer {
            size: target_size,
-           // generated_type,
            ..
        } => {
            // INT --> INT
@@ -80,7 +79,7 @@ fn promote_value_if_needed<'ctx>(
        }
        DataTypeInformation::Float {
            size: target_size,
-           // generated_type: target_generated_type,
+           ..
        } => {
            if let DataTypeInformation::Integer { signed, .. } = ltype {
                // INT --> FLOAT
@@ -156,7 +155,7 @@ pub fn cast_if_needed<'ctx>(
        DataTypeInformation::Integer {
            signed,
            size: lsize,
-           // generated_type,
+           ..
        } => {
            match value_type {
                DataTypeInformation::Integer { size: rsize, .. } => {
@@ -179,6 +178,7 @@ pub fn cast_if_needed<'ctx>(
                }
                DataTypeInformation::Float {
                    size: _rsize,
+                   ..
                } => {
                    if *signed {
                        Ok(llvm.builder
@@ -295,7 +295,7 @@ pub fn get_llvm_int_type<'a>(context: &'a Context, size : u32, name : &str) -> R
         32 => Ok(context.i32_type()),
         64 => Ok(context.i64_type()),
         128 => Ok(context.i128_type()),
-        _ => Err(CompileError::invalid_type_size(name, size))
+        _ => Err(CompileError::codegen_error(format!("Invalid size for type : '{}' at {}",name, size), 0..0)),
     }
 
 }
@@ -304,7 +304,7 @@ pub fn get_llvm_int_type<'a>(context: &'a Context, size : u32, name : &str) -> R
     match size {
         32 => Ok(context.f32_type()),
         64 => Ok(context.f64_type()),
-        _ => Err(CompileError::invalid_type_size(name, size))
+        _ => Err(CompileError::codegen_error(format!("Invalid size for type : '{}' at {}",name, size), 0..0)),
     }
 
 }

@@ -39,10 +39,12 @@ pub enum DataTypeInformation {
         dimensions : Vec<Dimension>, 
     },
     Integer {
+        name : String,
         signed: bool,
         size: u32,
     },
     Float {
+        name : String,
         size: u32,
     },
     String {
@@ -61,8 +63,8 @@ impl DataTypeInformation {
         match self {
             DataTypeInformation::Struct { name, .. } => name,
             DataTypeInformation::Array { name, .. } => name,
-            DataTypeInformation::Integer { size, ..} => get_integer_type_name(size), 
-            DataTypeInformation::Float { size, .. } => get_float_type_name(size), 
+            DataTypeInformation::Integer { name, ..} => name, 
+            DataTypeInformation::Float { name, .. } => name, 
             DataTypeInformation::String { ..} => "String", 
             DataTypeInformation::Alias { name, .. } => name,
             DataTypeInformation::Void  => "Void",
@@ -105,25 +107,6 @@ impl DataTypeInformation {
     }
 }
 
-fn get_integer_type_name(size : &u32) -> &str{
-    match size {
-        1 => "BOOL",
-        8 => "BYTE",
-        16 => "INT",
-        32 => "DINT",
-        64 => "LINT",
-        _ => "Interger"
-    }
-}
-
-fn get_float_type_name(size : &u32) -> &str{
-    match size {
-        32 => "REAL",
-        64 => "LREAL",
-        _ => "Float"
-    }
-}
-
 pub fn get_builtin_types() -> Vec<DataType> {
     let mut res = vec![];
     res.push(DataType {
@@ -135,133 +118,133 @@ pub fn get_builtin_types() -> Vec<DataType> {
         name : "BOOL".into(),
         initial_value : None,
         information : DataTypeInformation::Integer {
+                name : "BOOL".into(),
                 signed: true,
                 size: 1,
-                // generated_type: c.bool_type().as_basic_type_enum(),
             },
     });
     res.push(DataType {
         name : "BYTE".into(),
         initial_value : None,
         information : DataTypeInformation::Integer {
+                name : "BYTE".into(),
                 signed: false,
                 size: 8,
-                // generated_type: c.i8_type().as_basic_type_enum(),
             },
     });
     res.push(DataType {
         name : "SINT".into(),
         initial_value : None,
         information : DataTypeInformation::Integer {
+                name : "SINT".into(),
                 signed: true,
                 size: 8,
-                // generated_type: c.i8_type().as_basic_type_enum(),
             },
     });
     res.push(DataType {
         name : "USINT".into(),
         initial_value : None,
         information : DataTypeInformation::Integer {
+                name : "USINT".into(),
                 signed: false,
                 size: 8,
-                // generated_type: c.i8_type().as_basic_type_enum(),
             },
     });
     res.push(DataType {
         name : "WORD".into(),
         initial_value : None,
         information : DataTypeInformation::Integer {
+                name : "WORD".into(),
                 signed: false,
                 size: 16,
-                // generated_type: c.i16_type().as_basic_type_enum(),
             },
     });
     res.push(DataType {
         name : "INT".into(),
         initial_value : None,
         information : DataTypeInformation::Integer {
+                name : "INT".into(),
                 signed: true,
                 size: 16,
-                // generated_type: c.i16_type().as_basic_type_enum(),
             },
     });
     res.push(DataType {
         name : "UINT".into(),
         initial_value : None,
         information : DataTypeInformation::Integer {
+                name : "UINT".into(),
                 signed: false,
                 size: 16,
-                // generated_type: c.i16_type().as_basic_type_enum(),
             },
     });
     res.push(DataType {
         name : "DWORD".into(),
         initial_value : None,
         information : DataTypeInformation::Integer {
+                name : "DWORD".into(),
                 signed: false,
                 size: 32,
-                // generated_type: c.i32_type().as_basic_type_enum(),
             },
     });
     res.push(DataType {
         name : "DINT".into(),
         initial_value : None,
         information : DataTypeInformation::Integer {
+                name : "DINT".into(),
                 signed: true,
                 size: 32,
-                // generated_type: c.i32_type().as_basic_type_enum(),
             },
     });
     res.push(DataType {
         name : "UDINT".into(),
         initial_value : None,
         information : DataTypeInformation::Integer {
+                name : "UDINT".into(),
                 signed: false,
                 size: 32,
-                // generated_type: c.i32_type().as_basic_type_enum(),
             },
     });
     res.push(DataType {
         name : "LWORD".into(),
         initial_value : None,
         information : DataTypeInformation::Integer {
+                name : "LWORD".into(),
                 signed: false,
                 size: 64,
-                // generated_type: c.i64_type().as_basic_type_enum(),
             },
     });
     res.push(DataType {
         name : "LINT".into(),
         initial_value : None,
         information : DataTypeInformation::Integer {
+                name : "LINT".into(),
                 signed: true,
                 size: 64,
-                // generated_type: c.i64_type().as_basic_type_enum(),
             },
     });
     res.push(DataType {
         name : "ULINT".into(),
         initial_value : None,
         information : DataTypeInformation::Integer {
+                name : "ULINT".into(),
                 signed: false,
                 size: 64,
-                // generated_type: c.i64_type().as_basic_type_enum(),
             },
     });
     res.push(DataType {
         name : "REAL".into(),
         initial_value : None,
         information : DataTypeInformation::Float {
+                name : "REAL".into(),
                 size: 32,
-                // generated_type: c.f32_type().as_basic_type_enum(),
             },
     });
     res.push(DataType {
         name : "LREAL".into(),
         initial_value : None,
         information : DataTypeInformation::Float {
+                name : "LREAL".into(),
                 size: 64,
-                // generated_type: c.f64_type().as_basic_type_enum(),
             },
     });
     res.push(DataType {
@@ -269,7 +252,6 @@ pub fn get_builtin_types() -> Vec<DataType> {
         initial_value : None,
         information : DataTypeInformation::String {
                 size: DEFAULT_STRING_LEN + 1,
-                // generated_type: c.i8_type().array_type(DEFAULT_STRING_LEN).as_basic_type_enum(),
             },
     });
     res
@@ -279,7 +261,6 @@ pub fn get_builtin_types() -> Vec<DataType> {
 pub fn new_string_information<'ctx>(len: u32) -> DataTypeInformation {
     DataTypeInformation::String {
         size: len + 1,
-        // generated_type: context.i8_type().array_type(len + 1).as_basic_type_enum(),
     }
 }
 
@@ -304,12 +285,14 @@ fn is_same_type_nature(ltype: &DataTypeInformation, rtype: &DataTypeInformation)
 
 fn get_real_type() -> DataTypeInformation {
     DataTypeInformation::Float {
+        name : "REAL".into(),
         size : 32
     }
 }
 
 fn get_lreal_type() -> DataTypeInformation {
     DataTypeInformation::Float {
+        name : "LREAL".into(),
         size : 64
     }
 }

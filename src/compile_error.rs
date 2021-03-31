@@ -10,9 +10,6 @@ pub enum CompileError {
     #[error("Unknown type '{type_name}' at {location:?}")]
     UnknownType{type_name: String, location: core::ops::Range<usize>},
 
-    #[error("Invalid size for type : '{type_name}' at {size}")]
-    InvalidSize{type_name: String, size : u32},
-
     #[error("{message}")]
     CodeGenError{message: String, location: core::ops::Range<usize>},
 
@@ -40,11 +37,6 @@ impl CompileError {
     pub fn unknown_type(type_name: &str, location: Range<usize>) -> CompileError {
         CompileError::UnknownType{ type_name: type_name.to_string(), location}
     }
-
-    pub fn invalid_type_size(type_name: &str, size: u32) -> CompileError {
-        CompileError::InvalidSize{ type_name: type_name.to_string(), size}
-    }
-
 
     pub fn codegen_error(message: String, location: Range<usize>) -> CompileError {
         CompileError::CodeGenError{ message, location}

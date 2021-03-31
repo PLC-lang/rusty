@@ -68,7 +68,7 @@ impl<'ink> LLVMTypedIndex<'ink> {
         Ok(())
     }
 
-    pub fn associate_loded_local_variable(&mut self, container_name : &str, variable_name: &str, target_value: PointerValue<'ink>) -> Result<(), CompileError>{
+    pub fn associate_loaded_local_variable(&mut self, container_name : &str, variable_name: &str, target_value: PointerValue<'ink>) -> Result<(), CompileError>{
         let qualified_name = format!("{}.{}", container_name, variable_name);
         self.loaded_variable_associations.insert(qualified_name, target_value); 
         Ok(())

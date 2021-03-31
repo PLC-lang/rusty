@@ -14,8 +14,8 @@ macro_rules! codegen_wihout_unwrap {
     let context = inkwell::context::Context::create();
     crate::ast::pre_process(&mut ast);
     let index = crate::index::visitor::visit(&ast);
-    let code_generator = crate::codegen::CodeGen::new(&context, index, "main");
-    code_generator.generate(ast)
+    let code_generator = crate::codegen::CodeGen::new(&context, "main");
+    code_generator.generate(ast, &index)
   }};
 }
 
@@ -29,8 +29,8 @@ macro_rules! codegen {
     let context = inkwell::context::Context::create();
     crate::ast::pre_process(&mut ast);
     let index = crate::index::visitor::visit(&ast);
-    let code_generator = crate::codegen::CodeGen::new(&context, index, "main");
-    code_generator.generate(ast).unwrap()
+    let code_generator = crate::codegen::CodeGen::new(&context, "main");
+    code_generator.generate(ast, &index).unwrap()
   }};
 }
 
