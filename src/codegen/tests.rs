@@ -1,10 +1,5 @@
 /// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
-use crate::lexer;
-use crate::parser;
-use crate::index::Index;
-use inkwell::context::Context;
-
 mod code_gen_tests;
 mod codegen_error_messages_tests;
 mod typesystem_test;
@@ -13,15 +8,14 @@ mod typesystem_test;
 #[macro_export]
 macro_rules! codegen_wihout_unwrap {
   ($code:tt) => {{
-    let lexer = lexer::lex($code);
-    let (mut ast, _) = parser::parse(lexer).unwrap();
+    let lexer = crate::lexer::lex($code);
+    let (mut ast, _) = crate::parser::parse(lexer).unwrap();
     
-    let context = Context::create();
-    let mut index = Index::new();
-    index.pre_process(&mut ast);
-    index.visit(&mut ast);
-    let mut code_generator = crate::codegen::CodeGen::new(&context, &mut index, "main");
-    code_generator.generate(ast)
+    let context = inkwell::context::Context::create();
+    crate::ast::pre_process(&mut ast);
+    let index = crate::index::visitor::visit(&ast);
+    let code_generator = crate::codegen::CodeGen::new(&context, "main");
+    code_generator.generate(ast, &index)
   }};
 }
 
@@ -29,15 +23,14 @@ macro_rules! codegen_wihout_unwrap {
 #[macro_export]
 macro_rules! codegen {
   ($code:tt) => {{
-    let lexer = lexer::lex($code);
-    let (mut ast, _) = parser::parse(lexer).unwrap();
+    let lexer = crate::lexer::lex($code);
+    let (mut ast, _) = crate::parser::parse(lexer).unwrap();
     
-    let context = Context::create();
-    let mut index = Index::new();
-    index.pre_process(&mut ast);
-    index.visit(&mut ast);
-    let mut code_generator = crate::codegen::CodeGen::new(&context, &mut index, "main");
-    code_generator.generate(ast).unwrap()
+    let context = inkwell::context::Context::create();
+    crate::ast::pre_process(&mut ast);
+    let index = crate::index::visitor::visit(&ast);
+    let code_generator = crate::codegen::CodeGen::new(&context, "main");
+    code_generator.generate(ast, &index).unwrap()
   }};
 }
 

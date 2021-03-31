@@ -1,11 +1,27 @@
 /// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-use std::{fmt::{Debug, Display, Formatter, Result}, iter, unimplemented};
+use std::{result, fmt::{Debug, Display, Formatter, Result}, iter, unimplemented};
+use crate::compile_error::CompileError;
+mod pre_processor;
+
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct Dimension {
+    pub start_offset: i32,
+    pub end_offset : i32,
+}
+
+impl Dimension {
+    pub fn get_length(&self) -> u32 {
+        (self.end_offset - self.start_offset + 1) as u32
+    }
+}
+
+
 
 #[derive(PartialEq)]
 pub struct POU {
     pub name: String,
     pub variable_blocks: Vec<VariableBlock>,
-    pub statements: Vec<Statement>,
     pub pou_type: PouType,
     pub return_type: Option<DataTypeDeclaration>,
     pub linkage : LinkageType,
@@ -18,11 +34,18 @@ impl Debug for POU {
         f.debug_struct("POU")
             .field("name", &self.name)
             .field("variable_blocks", &self.variable_blocks)
-            .field("statements", &self.statements)
             .field("pou_type", &self.pou_type)
             .field("return_type", &self.return_type)
             .finish()
     }
+}
+
+#[derive(Debug, PartialEq)]
+pub struct Implementation {
+    pub name: String,
+    pub type_name: String,
+    pub statements: Vec<Statement>,
+    pub location : SourceRange,
 }
 
 #[derive(Debug, Copy, PartialEq, Clone)]
@@ -43,6 +66,7 @@ pub enum PouType {
 pub struct CompilationUnit {
     pub global_vars: Vec<VariableBlock>,
     pub units: Vec<POU>,
+    pub implementations: Vec<Implementation>,
     pub types: Vec<UserTypeDeclaration>,
 }
 
@@ -69,7 +93,7 @@ impl Debug for VariableBlock {
     }
 }
 
-#[derive(PartialEq)]
+#[derive(Clone, PartialEq)]
 pub struct Variable {
     pub name: String,
     pub data_type: DataTypeDeclaration,
@@ -166,7 +190,7 @@ impl NewLines{
     }
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum DataTypeDeclaration {
     DataTypeReference { referenced_type: String },
     DataTypeDefinition { data_type: DataType },
@@ -189,7 +213,7 @@ pub struct UserTypeDeclaration {
     pub initializer: Option<Statement>,
 }
 
-#[derive(PartialEq)]
+#[derive(Clone, PartialEq)]
 pub enum DataType {
     StructType {
         name: Option<String>, //maybe None for inline structs
@@ -307,7 +331,7 @@ impl DataType {
     }
 }
 
-#[derive(PartialEq)]
+#[derive(Clone, PartialEq)]
 pub struct ConditionalBlock {
     pub condition: Box<Statement>,
     pub body: Vec<Statement>,
@@ -322,7 +346,7 @@ impl Debug for ConditionalBlock {
     }
 }
 
-#[derive(PartialEq)]
+#[derive(Clone,PartialEq)]
 pub enum Statement {
     // Literals
     LiteralInteger {
@@ -621,7 +645,7 @@ impl Statement {
     }
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum Operator {
     Plus,
     Minus,
@@ -669,4 +693,52 @@ pub fn flatten_expression_list(condition: &Statement) -> Vec<&Statement> {
                 .collect(),
         _ => vec![condition]
     }
+}
+
+pub fn pre_process(unit : &mut CompilationUnit) {
+    pre_processor::pre_process(unit)
+}
+
+/// constructs a vector with all dimensions for the given bounds-statement
+/// e.g. [0..10, 0..5]
+pub fn get_array_dimensions(bounds: &Statement) -> result::Result<Vec<Dimension>, CompileError> {
+    let mut result = vec![];
+    for statement in bounds.get_as_list() {
+        result.push(get_single_array_dimension(statement)?);
+    }
+    Ok(result)
+}
+
+/// constructs a Dimension for the given RangeStatement
+/// throws an error if the given statement is no RangeStatement
+fn get_single_array_dimension(bounds: &Statement) -> result::Result<Dimension, CompileError> {
+    if let Statement::RangeStatement { start, end } = bounds {
+        let start_offset = evaluate_constant_int(start).unwrap_or(0);
+        let end_offset = evaluate_constant_int(end).unwrap_or(0);
+        Ok(Dimension {
+            start_offset,
+            end_offset,
+        })
+    } else {
+        Err(CompileError::codegen_error(format!("Unexpected Statement {:?}, expected range", bounds), bounds.get_location()))
+    }
+}
+
+/// extracts the compile-time value of the given statement.
+/// returns an error if no value can be derived at compile-time
+fn extract_value(s: &Statement) -> result::Result<String, CompileError> {
+    match s {
+        Statement::UnaryExpression {
+            operator, value, ..
+        } => extract_value(value).map(|result| format!("{}{}", operator, result)),
+        Statement::LiteralInteger { value, .. } => Ok(value.to_string()),
+        //TODO constants
+        _ => Err(CompileError::codegen_error("Unsupported Statement. Cannot evaluate expression.".to_string() , s.get_location())),
+    }
+}
+
+/// evaluate the given statemetn as i32
+pub fn evaluate_constant_int(s: &Statement) -> result::Result<i32, CompileError> {
+    let value = extract_value(s);
+    value.map(|v| v.parse().unwrap_or(0))
 }

@@ -15,6 +15,7 @@ inkwell = { git = "https://github.com/TheDan64/inkwell", branch = "master", feat
 pretty_assertions = "0.6.1"
 thiserror = "1.0"
 structopt = "0.3"
+indexmap = "1.6"
 
 [lib]
 name = "rusty"

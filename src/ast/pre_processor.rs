@@ -15,6 +15,7 @@ pub fn pre_process(unit: &mut CompilationUnit) {
         for var in all_variables {
             pre_process_variable_data_type(pou.name.as_str(), var, &mut unit.types)   
         }
+
     }
    
     //process all variables from GVLs
@@ -23,7 +24,7 @@ pub fn pre_process(unit: &mut CompilationUnit) {
                 .filter(|it| should_generate_implicit_type(it));
                 
     for var in all_variables {
-        pre_process_variable_data_type("global", var, &mut unit.types)   
+        pre_process_variable_data_type("global", var, &mut unit.types)
     }
 
     //process all variables in dataTypes

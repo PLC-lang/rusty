@@ -227,7 +227,7 @@ fn parse_leaf_expression(lexer: &mut RustyLexer) -> Result<Statement, String> {
         lexer.advance();
         return Ok(Statement::OutputAssignment {
             left: Box::new(current?),
-            right: Box::new(parse_range_statement(lexer)?), //TODO: Do we force references here or wait until validation?
+            right: Box::new(parse_range_statement(lexer)?), 
         });
     };
     current

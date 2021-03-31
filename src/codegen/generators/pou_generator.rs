@@ -5,112 +5,82 @@
 /// - generates a struct-datatype for the POU's members
 /// - generates a function for the pou
 /// - declares a global instance if the POU is a PROGRAM
-use super::{expression_generator::ExpressionCodeGenerator, llvm::LLVM, statement_generator::{FunctionContext, StatementCodeGenerator}, struct_generator::{self, StructGenerator}};
-use crate::{ast::{DataTypeDeclaration, POU, PouType, SourceRange, Statement, Variable, VariableBlock, VariableBlockType}, compile_error::CompileError, index::{DataTypeIndexEntry, DataTypeInformation, Index}};
-use inkwell::{AddressSpace, context::Context, module::Module, types::{BasicTypeEnum, FunctionType}, values::{BasicValueEnum, FunctionValue}};
+use crate::index::ImplementationIndexEntry;
+use inkwell::types::StructType;
+use super::{expression_generator::ExpressionCodeGenerator, llvm::LLVM, statement_generator::{FunctionContext, StatementCodeGenerator}};
+use crate::codegen::llvm_index::LLVMTypedIndex;
+use crate::typesystem::*;
+use crate::{ast::{DataTypeDeclaration, POU, Implementation, PouType, SourceRange, Statement, Variable, VariableBlock, VariableBlockType}, compile_error::CompileError, index::Index};
+use inkwell::{AddressSpace, module::Module, types::{BasicTypeEnum, FunctionType}, values::{BasicValueEnum, FunctionValue}};
 
 
-pub struct PouGenerator<'a, 'b> {
-    llvm: &'b LLVM<'a>,
-    index: &'b mut Index<'a>,
+pub struct PouGenerator<'ink, 'cg> {
+    llvm: LLVM<'ink>,
+    index : &'cg Index, 
+    llvm_index: &'cg LLVMTypedIndex<'ink>,
 }
 
-/// creates an opaque-struct type for the pou and registers at the given index
-pub fn index_pou<'a>(pou_name: &str, context: &'a Context, index: &mut Index<'a>, variable_names: Vec<String>) {
-    let struct_name = format!("{}_interface", pou_name);
-    let struct_type = context.opaque_struct_type(struct_name.as_str());
-    index.associate_type(
-        pou_name,
-        DataTypeInformation::Struct {
-            name: struct_name,
-            generated_type: struct_type.into(),
-            member_names: variable_names,
-        },
-    );
+/// Creates opaque implementations for all callable items in the index 
+/// Returns a Typed index containing the associated implementations.
+pub fn generate_implementation_stubs<'ink>(module : &Module<'ink>, llvm : LLVM<'ink>, index : &Index, types_index : &LLVMTypedIndex<'ink>) -> Result<LLVMTypedIndex<'ink>, CompileError> {
+    let mut llvm_index = LLVMTypedIndex::new();
+    let pou_generator = PouGenerator::new(llvm, index, &types_index);
+    for (name, implementation) in index.get_implementations() {
+        let curr_f = pou_generator.generate_implementation_stub(implementation, module)?;
+        llvm_index
+            .associate_implementation(name, curr_f)?;
+    }
+
+    Ok(llvm_index)
 }
 
-impl<'a, 'b> PouGenerator<'a, 'b> {
+impl<'ink,'cg> PouGenerator<'ink,'cg> {
 
     /// creates a new PouGenerator
     ///
     /// the PouGenerator needs a mutable index to register the generated pou
     pub fn new(
-        llvm: &'b LLVM<'a>,
-        index: &'b mut Index<'a>,
-    ) -> PouGenerator<'a, 'b> {
+        llvm: LLVM<'ink>,
+        index : &'cg Index, 
+        llvm_index: &'cg LLVMTypedIndex<'ink>,
+    ) -> PouGenerator<'ink, 'cg> {
         PouGenerator {
             llvm,
             index,
+            llvm_index,
         }
     }
 
-    /// generates the stub of a POU (The function call placehoder, as well as the associated
-    /// struct
-    pub fn generate_pou_stub(&mut self, pou: &POU,module: &Module<'a>) -> Result<(), CompileError> {
-        let return_type = pou
-            .return_type
-            .as_ref()
-            .and_then(DataTypeDeclaration::get_name)
-            .and_then(|it| self.index.find_type(it))
-            .and_then(DataTypeIndexEntry::get_type);
-
-        let pou_name = &pou.name;
-
-        //generate the instance-struct type
-        let pou_members: Vec<&Variable> = pou
-            .variable_blocks
-            .iter()
-            .flat_map(|it| it.variables.iter())
-            .collect();
-        let instance_struct_type = {
-            let mut struct_generator =
-                StructGenerator::new(self.llvm, self.index);
-            let (struct_type, initial_value) = struct_generator.generate_struct_type(&pou_members, pou_name)?;
-            self.index.associate_type_initial_value(pou_name, initial_value);
-            struct_type
-        };
-
+    pub fn generate_implementation_stub(&self, implementation : &ImplementationIndexEntry, module : &Module<'ink>) -> Result<FunctionValue<'ink>, CompileError> {
+        let global_index = self.index;
         //generate a function that takes a instance-struct parameter
-        {
-            let function_declaration = self.create_llvm_function_type(
-                vec![instance_struct_type.ptr_type(AddressSpace::Generic).into()],
-                return_type,
-            );
+        let pou_name = implementation.get_call_name();
+        let instance_struct_type : StructType = self.llvm_index.get_associated_type(implementation.get_type_name()).map(|it| it.into_struct_type())?;
+        let return_type : Option<&DataType> = global_index.find_return_type(implementation.get_type_name()); 
+        let return_type = return_type
+                .map(DataType::get_name)
+                .map(|it|  self.llvm_index.get_associated_type(it).unwrap());
 
-            let curr_f = module.add_function(pou_name, function_declaration, None);
-            self.index
-                .associate_callable_implementation(pou_name, curr_f);
-        };
+        let function_declaration = self.create_llvm_function_type(
+            vec![instance_struct_type.ptr_type(AddressSpace::Generic).into()],
+            return_type,
+        );
 
-        //generate a global variable if it's a program
-        if pou.pou_type == PouType::Program {
-            let instance_initializer = self
-                .index
-                .find_type(pou_name)
-                .and_then(DataTypeIndexEntry::get_initial_value);
-            let global_value = self.llvm.create_global_variable(
-                    module, 
-                    &struct_generator::get_pou_instance_variable_name(pou_name),
-                    instance_struct_type.into(),
-                    instance_initializer);
-            self.index
-                .associate_global_variable(pou_name, global_value.as_pointer_value());
-        }
-        Ok(())
-
+        let curr_f = module.add_function(pou_name, function_declaration, None);
+        Ok(curr_f)
     }
 
     /// generates a function for the given pou
-    pub fn generate_pou(&mut self, pou: &POU) -> Result<(), CompileError> {
+    pub fn generate_pou(&self, pou: &POU, implementation : &Implementation) -> Result<(), CompileError> {
 
         let context = self.llvm.context;
+        let mut local_index = LLVMTypedIndex::create_child(self.llvm_index);
 
         let return_type = pou
             .return_type
             .as_ref()
             .and_then(DataTypeDeclaration::get_name)
-            .and_then(|it| self.index.find_type(it))
-            .and_then(DataTypeIndexEntry::get_type);
+            .and_then(|it| self.llvm_index.find_associated_type(it));
 
         let pou_name = &pou.name;
 
@@ -121,9 +91,7 @@ impl<'a, 'b> PouGenerator<'a, 'b> {
             .collect();
 
 
-
-        let current_function = self.index.find_type(pou_name)
-            .and_then(|entry| entry.get_implementation())
+        let current_function = self.llvm_index.find_associated_implementation(pou_name)
             .ok_or_else(|| CompileError::codegen_error(format!("Could not find generated stub for {}",pou_name), pou.location.clone()))?;
         
         //generate the body
@@ -133,11 +101,12 @@ impl<'a, 'b> PouGenerator<'a, 'b> {
         //generate the return-variable
         if let Some(return_type) = return_type {
             let return_variable = self.llvm.create_local_variable(pou_name, &return_type);
-            self.index.associate_local_variable(pou_name, pou_name, return_variable);
+            local_index.associate_loaded_local_variable(pou_name, pou_name, return_variable)?;
         }
 
         // generate loads for all the parameters
         self.generate_local_variable_accessors(
+            &mut local_index,
             pou_name,
             current_function,
             &pou_members,
@@ -145,16 +114,16 @@ impl<'a, 'b> PouGenerator<'a, 'b> {
 
         let function_context = FunctionContext{linking_context: pou_name.clone(), function: current_function};
         {
-            let statement_gen = StatementCodeGenerator::new(self.llvm, &self.index, &function_context);
+            let statement_gen = StatementCodeGenerator::new(&self.llvm, self.index, &local_index, &function_context);
             //if this is a function, we need to initilialize the VAR-variables
             if pou.pou_type == PouType::Function {
                 self.generate_initialization_of_local_vars(&pou.variable_blocks, &statement_gen)?;
             }
-            statement_gen.generate_body(&pou.statements)?
+            statement_gen.generate_body(&implementation.statements)?
         }
 
         // generate return statement
-        self.generate_return_statement(&function_context, pou.pou_type, Some(0..0))?; //TODO location
+        self.generate_return_statement(&function_context, &local_index, pou.pou_type, Some(0..0))?; //TODO location
 
         Ok(())
     }
@@ -164,9 +133,9 @@ impl<'a, 'b> PouGenerator<'a, 'b> {
     /// returns the given `return_type`
     fn create_llvm_function_type(
         &self,
-        parameters: Vec<BasicTypeEnum<'a>>,
-        return_type: Option<BasicTypeEnum<'a>>,
-    ) -> FunctionType<'a> {
+        parameters: Vec<BasicTypeEnum<'ink>>,
+        return_type: Option<BasicTypeEnum<'ink>>,
+    ) -> FunctionType<'ink> {
         let params = parameters.as_slice();
         match return_type {
             Some(enum_type) if enum_type.is_int_type() => {
@@ -185,10 +154,11 @@ impl<'a, 'b> PouGenerator<'a, 'b> {
 
     /// generates a load-statement for the given member
     fn generate_local_variable_accessors(
-        &mut self,
+        &self,
+        index : &mut LLVMTypedIndex<'ink>,
         pou_name: &str,
-        current_function: FunctionValue<'a>,
-        members: &Vec<&Variable>,
+        current_function: FunctionValue<'ink>,
+        members: &Vec<&Variable>
     ) -> Result<(), CompileError> {
 
         //Generate reference to parameter
@@ -200,13 +170,13 @@ impl<'a, 'b> PouGenerator<'a, 'b> {
                 .map(BasicValueEnum::into_pointer_value)
                 .ok_or_else(|| CompileError::MissingFunctionError{location: m.location.clone()})?;
 
-            self.index.associate_local_variable(
+            index.associate_loaded_local_variable(
                 pou_name,
                 parameter_name,
                 self.llvm.builder
                     .build_struct_gep(ptr_value, i as u32, &parameter_name)
                     .unwrap(),
-            )
+            )?;
         }
 
         Ok(())
@@ -218,7 +188,7 @@ impl<'a, 'b> PouGenerator<'a, 'b> {
     fn generate_initialization_of_local_vars(
         &self,
         blocks : &Vec<VariableBlock>,
-        statement_generator: &StatementCodeGenerator<'a, '_>,
+        statement_generator: &StatementCodeGenerator<'ink, '_>,
     )-> Result<(), CompileError> {
         let variables_with_initializers = blocks.iter()
             .filter(|it| it.variable_block_type == VariableBlockType::Local)
@@ -236,14 +206,14 @@ impl<'a, 'b> PouGenerator<'a, 'b> {
     /// generates the function's return statement only if the given pou_type is a `PouType::Function`
     ///
     /// a function returns the value of the local variable that has the function's name
-    fn generate_return_statement(&self, function_context: &FunctionContext<'a>, pou_type: PouType, location: Option<SourceRange>) -> Result<(), CompileError> {
+    fn generate_return_statement(&self, function_context: &FunctionContext<'ink>, local_index : &LLVMTypedIndex<'ink>, pou_type: PouType, location: Option<SourceRange>) -> Result<(), CompileError> {
         match pou_type {
             PouType::Function => {
                 let reference = Statement::Reference{
                     name: function_context.linking_context.clone(),
                     location: location.unwrap_or(0usize..0usize)
                 };
-                let mut exp_gen = ExpressionCodeGenerator::new(self.llvm, self.index, None, &function_context);
+                let mut exp_gen = ExpressionCodeGenerator::new(&self.llvm, self.index , local_index, None, &function_context);
                 exp_gen.temp_variable_prefix = "".to_string();
                 exp_gen.temp_variable_suffix = "_ret".to_string();
                 let (_, value) = exp_gen.generate_expression(&reference)?;

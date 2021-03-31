@@ -1,42 +1,68 @@
 /// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
+use crate::ast::Implementation;
+use crate::ast::{self, UserTypeDeclaration};
 use super::Index;
 use super::VariableType;
-use super::super::ast::{ POU, PouType, CompilationUnit, VariableBlock, VariableBlockType, DataType, DataTypeDeclaration };
+use crate::typesystem::*;
+use super::super::ast::{ POU, PouType, CompilationUnit, VariableBlock, VariableBlockType, DataType, DataTypeDeclaration, get_array_dimensions, evaluate_constant_int};
 
-pub fn visit(index: &mut Index, unit: &mut CompilationUnit) {
+pub fn visit(unit: &CompilationUnit) -> Index {
+    let mut index = Index::new();
+
+    //Create the typesystem
+    let builtins = get_builtin_types();
+    for data_type in builtins {
+        index.types.insert(data_type.get_name().into(), data_type);
+    }
+
+    //Create user defined datatypes
     for user_type in &unit.types {
-        visit_data_type(index, &user_type.data_type);
+        visit_data_type(&mut index, &user_type);
     }
 
+    //Create defined global variables
     for global_vars in &unit.global_vars {
-        visit_global_var_block(index, global_vars);
+        visit_global_var_block(&mut index, global_vars);
     }
 
+    //Create types and variables for POUs
     for pou in &unit.units {
-        visit_pou(index, pou);
+        visit_pou(&mut index, pou);
     }
+
+    for implementation in &unit.implementations {
+        visit_implementation(&mut index, implementation);
+    }
+
+    index
 
 }
 
 pub fn visit_pou(index: &mut Index, pou: &POU){
 
-    index.register_type(pou.name.as_str().to_string());
+    let interface_name = format!("{}_interface", &pou.name);
+
 
     if pou.pou_type == PouType::Program {
         //Associate a global variable for the program 
-        index.register_global_variable(pou.name.clone(), pou.name.clone()); 
+    let instance_name = format!("{}_instance", &pou.name);
+        index.register_global_variable_with_name(&pou.name, &instance_name, &pou.name, None); 
     }
+
+    let mut member_names = vec![];
 
     let mut count = 0;
     for block in &pou.variable_blocks {
         let block_type = get_variable_type_from_block(block);
         for var in &block.variables {
+            member_names.push(var.name.clone());
             index.register_member_variable(
-                pou.name.clone(), 
-                var.name.clone(), 
+                &pou.name, 
+                &var.name, 
                 block_type,
-                var.data_type.get_name().unwrap().to_string(), 
+                var.data_type.get_name().unwrap(), 
+                var.initializer.clone(),
                 count,
             );
             count = count + 1;
@@ -44,14 +70,25 @@ pub fn visit_pou(index: &mut Index, pou: &POU){
     }
 
     if let Some(return_type) = &pou.return_type {
+        member_names.push(pou.name.clone());
         index.register_member_variable(
-            pou.name.clone(), 
-            pou.name.clone(), 
+            &pou.name, 
+            &pou.name, 
             VariableType::Return, 
-            return_type.get_name().unwrap().to_string(), 
+            return_type.get_name().unwrap().into(), 
+            None,
             count)
     }
 
+    index.register_type(&pou.name, None, DataTypeInformation::Struct {
+        name : interface_name, 
+        member_names,
+    });
+
+}
+
+fn visit_implementation(index :&mut Index, implementation : &Implementation) {
+    index.register_implementation(&implementation.name, &implementation.type_name)
 }
 
 
@@ -59,8 +96,9 @@ fn visit_global_var_block(index :&mut Index, block: &VariableBlock) {
     for var in &block.variables {
 
         index.register_global_variable(
-                            var.name.clone(),
-                            var.data_type.get_name().unwrap().to_string()
+                            &var.name,
+                            var.data_type.get_name().unwrap(),
+                            var.initializer.clone(),
                         );
     }
 }
@@ -75,26 +113,35 @@ fn get_variable_type_from_block(block: &VariableBlock) -> VariableType {
 }
 
 
-fn visit_data_type(index: &mut Index, data_type: &DataType) {
+fn visit_data_type(index: &mut Index, type_declatation: &UserTypeDeclaration) {
+    let data_type = &type_declatation.data_type;
     //names should not be empty
     match data_type {
         DataType::StructType { name, variables } => 
         {
-            let struct_name = name.as_ref().unwrap();
-            index.register_type(name.as_ref().map(|it| it.to_string()).unwrap());
+            let struct_name = name.as_ref().unwrap(); 
+
+            let member_names :Vec<String> = variables.iter().map(|it| it.name.to_string()).collect();
+            
+            let information = DataTypeInformation::Struct {
+                        name: name.clone().unwrap(),
+                        member_names
+                    };
+            index.register_type(name.as_ref().unwrap(), type_declatation.initializer.clone(), information);
             let mut count = 0;
             for var in variables {
 
-                if let DataTypeDeclaration::DataTypeDefinition{ data_type} = &var.data_type {
+                if let DataTypeDeclaration::DataTypeDefinition{data_type} = &var.data_type {
                     //first we need to handle the inner type
-                    visit_data_type(index, &data_type)
+                    visit_data_type(index, &UserTypeDeclaration{data_type : data_type.clone(), initializer : None})
                 }
 
                 index.register_member_variable(
-                    struct_name.clone(), 
-                    var.name.clone(), 
+                    &struct_name, 
+                    &var.name,
                     VariableType::Local,
-                    var.data_type.get_name().unwrap().to_string(), 
+                    var.data_type.get_name().unwrap(), 
+                    var.initializer.clone(),
                     count,
                 );
                 count = count + 1;
@@ -103,15 +150,45 @@ fn visit_data_type(index: &mut Index, data_type: &DataType) {
         },
 
         DataType::EnumType { name, elements, .. } =>  {
-            index.register_type( name.as_ref().map(|it| it.to_string()).unwrap());
-            elements.iter().for_each(|v| index.register_global_variable(v.to_string(), "INT".to_string()));
+                let information = DataTypeInformation::Integer {
+                    name: "DINT".into(),
+                    signed: true,
+                    size: 32,
+                };
+            index.register_type( name.as_ref().unwrap(), type_declatation.initializer.clone(), information);
+            elements.iter().enumerate().for_each(|(i,v)| index.register_global_variable(v, "DINT", Some(ast::Statement::LiteralInteger{value:i.to_string(), location: 0..0})));
         },
 
-        DataType::SubRangeType { name, .. } => 
-            index.register_type (name.as_ref().map(|it| it.to_string()).unwrap()),
-        DataType::ArrayType { name, .. } => 
-            index.register_type (name.as_ref().map(|it| it.to_string()).unwrap()),
-        DataType::StringType { name, ..} => 
-            index.register_type (name.as_ref().map(|it| it.to_string()).unwrap()),
-    }
+        DataType::SubRangeType { name, referenced_type,  .. } => {
+                let information = DataTypeInformation::Alias {
+                    name: name.as_ref().unwrap().into(),
+                    referenced_type : referenced_type.into(),
+                };
+            index.register_type (name.as_ref().unwrap(),type_declatation.initializer.clone(), information)
+        },
+        DataType::ArrayType { name, referenced_type, bounds } => {
+                let dimensions = get_array_dimensions(&bounds).unwrap();
+                let referenced_type_name = referenced_type.get_name().unwrap();
+                let information = DataTypeInformation::Array {
+                        name : name.as_ref().unwrap().clone(),
+                        inner_type_name: referenced_type_name.to_string(),
+                        dimensions,
+
+                };
+            index.register_type (name.as_ref().unwrap(),type_declatation.initializer.clone(), information)
+        },
+        DataType::StringType { name, size, ..} => {
+
+                let size = if let Some(statement) = size {
+                    evaluate_constant_int(&statement).unwrap() as u32
+                } else {
+                    crate::typesystem::DEFAULT_STRING_LEN  // DEFAULT STRING LEN
+                } + 1;
+                let information = DataTypeInformation::String {
+                    size
+                };
+                index.register_type (name.as_ref().unwrap(),type_declatation.initializer.clone(), information)
+        },
+                
+    };
 }

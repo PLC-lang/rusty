@@ -27,22 +27,22 @@ impl CompileError {
     }
 
     pub fn casting_error(type_name: &str, target_type: &str, location: Range<usize>) -> CompileError {
-        CompileError::CastError{ type_name: type_name.to_string(), target_type: target_type.to_string(), location: location}
+        CompileError::CastError{ type_name: type_name.to_string(), target_type: target_type.to_string(), location}
     }
 
     pub fn invalid_reference(reference: &str, location: Range<usize>) -> CompileError {
-        CompileError::InvalidReference{ reference: reference.to_string(), location: location}
+        CompileError::InvalidReference{ reference: reference.to_string(), location}
     }
 
     pub fn unknown_type(type_name: &str, location: Range<usize>) -> CompileError {
-        CompileError::UnknownType{ type_name: type_name.to_string(), location: location}
+        CompileError::UnknownType{ type_name: type_name.to_string(), location}
     }
 
     pub fn codegen_error(message: String, location: Range<usize>) -> CompileError {
-        CompileError::CodeGenError{ message: message, location: location}
+        CompileError::CodeGenError{ message, location}
     }
 
     pub fn no_type_associated(type_name: &str, location: Range<usize>) -> CompileError {
-        CompileError::CodeGenError{message: format!("No type associated to {:}", type_name), location: location}
+        CompileError::CodeGenError{message: format!("No type associated to {:}", type_name), location}
     }
 }

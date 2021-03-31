@@ -1,9 +1,6 @@
 /// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
-use crate::{codegen_wihout_unwrap, compile_error::CompileError, lexer};
-use crate::parser;
-use crate::index::Index;
-use inkwell::context::Context;
+use crate::{codegen_wihout_unwrap, compile_error::CompileError};
 use pretty_assertions::assert_eq;
 
 #[test]
@@ -24,7 +21,6 @@ fn unknown_reference_should_be_reported_with_line_number() {
         panic!("expected code-gen error but got none")
     }
 }
-
 
 #[test]
 #[ignore]
