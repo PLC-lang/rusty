@@ -101,7 +101,7 @@ impl<'ink,'cg> PouGenerator<'ink,'cg> {
         //generate the return-variable
         if let Some(return_type) = return_type {
             let return_variable = self.llvm.create_local_variable(pou_name, &return_type);
-            local_index.associate_loded_local_variable(pou_name, pou_name, return_variable)?;
+            local_index.associate_loaded_local_variable(pou_name, pou_name, return_variable)?;
         }
 
         // generate loads for all the parameters
@@ -170,7 +170,7 @@ impl<'ink,'cg> PouGenerator<'ink,'cg> {
                 .map(BasicValueEnum::into_pointer_value)
                 .ok_or_else(|| CompileError::MissingFunctionError{location: m.location.clone()})?;
 
-            index.associate_loded_local_variable(
+            index.associate_loaded_local_variable(
                 pou_name,
                 parameter_name,
                 self.llvm.builder

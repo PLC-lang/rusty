@@ -21,12 +21,12 @@ use super::{expression_generator::ExpressionCodeGenerator, llvm::LLVM, struct_ge
 /// - an alias index entry for sub-range types
 /// - Array type for arrays
 /// - array type for sized Strings
-pub fn generate_data_types<'ink, 'ind>(llvm: &LLVM<'ink>, index: &'ind Index) -> Result<LLVMTypedIndex<'ink>, CompileError>{
+pub fn generate_data_types<'ink>(llvm: &LLVM<'ink>, index: &Index) -> Result<LLVMTypedIndex<'ink>, CompileError>{
     let mut types_index = LLVMTypedIndex::new();
     let types = index.get_types();
     for (name, user_type) in types {
-        if let Some(gen_type) =  create_opaque_struct(llvm, user_type) {
-            types_index.associate_type(name, gen_type)?
+        if let DataTypeInformation::Struct {name : struct_name, ..} = user_type.get_type_information() {
+            types_index.associate_type(name, llvm.create_struct_stub(struct_name).into())?;
         }
     }
     for (name, user_type) in types {
@@ -40,14 +40,6 @@ pub fn generate_data_types<'ink, 'ind>(llvm: &LLVM<'ink>, index: &'ind Index) ->
         }
     }
     Ok(types_index)
-}
-
-fn create_opaque_struct<'a>(llvm : &LLVM<'a>, data_type : &DataType) -> Option<BasicTypeEnum<'a>> {
-    if let DataTypeInformation::Struct {name, ..} = data_type.get_type_information() {
-        Some(llvm.create_struct_stub(name).into())
-    } else {
-        None
-    }
 }
 
 
@@ -70,7 +62,6 @@ fn expand_opaque_types<'ink>(llvm: &LLVM<'ink>, index : &Index, types_index : &m
     Ok(())
 }
 
-//TODO : Recursion here might hurt us later
 /// Creates an llvm type to be associated with the given data type.
 /// Generates only an opaque type for structs.
 /// Eagerly generates but does not associate nested array and referenced aliased types
@@ -98,7 +89,6 @@ fn create_type<'ink>(llvm : &LLVM<'ink>, index: &Index, types_index : &LLVMTyped
             },
             // REVIEW: Void types are not basic type enums, so we return an int here 
             DataTypeInformation::Void => get_llvm_int_type(llvm.context, 32, "Void").map(Into::into),
-            //Ok((llvm.context.void_type().into(),None)),
         }
 
 }

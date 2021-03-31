@@ -220,7 +220,7 @@ impl Index {
         self.find_type_information(type_name).ok_or_else(|| CompileError::unknown_type(type_name, 0..0))
     }
     
-    pub fn get_types<'a>(&'a self) -> &'a IndexMap<String, DataType> {
+    pub fn get_types(&self) -> &IndexMap<String, DataType> {
         &self.types
     }
 
@@ -228,7 +228,7 @@ impl Index {
         &self.global_variables
     }
 
-    pub fn get_implementations<'a>(&'a self) -> &'a IndexMap<String, ImplementationIndexEntry> {
+    pub fn get_implementations(&self) -> &IndexMap<String, ImplementationIndexEntry> {
         &self.implementations
     }
 
