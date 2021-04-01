@@ -102,10 +102,10 @@ impl<'ink> CodeGen<'ink> {
         let llvm = LLVM::new(&self.context, self.context.create_builder());
         let pou_generator = PouGenerator::new(llvm, global_index, &llvm_index);
         //Generate the POU stubs in the first go to make sure they can be referenced.
-        for (i,pou) in unit.units.iter().enumerate() {
+        for implementation in unit.implementations {
             //Don't generate external functions
-            if pou.linkage != LinkageType::External {
-                pou_generator.generate_pou(pou, &unit.implementations[i])?;
+            if implementation.linkage != LinkageType::External {
+                pou_generator.generate_implementation(&implementation)?;
             }
         }
         Ok(self.module.print_to_string().to_string())

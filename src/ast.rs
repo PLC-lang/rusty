@@ -45,6 +45,7 @@ pub struct Implementation {
     pub name: String,
     pub type_name: String,
     pub linkage : LinkageType,
+    pub pou_type : PouType,
     pub statements: Vec<Statement>,
     pub location : SourceRange,
 }
@@ -61,6 +62,7 @@ pub enum PouType {
     Program,
     Function,
     FunctionBlock,
+    Action,
 }
 
 #[derive(Debug, PartialEq)]

@@ -97,6 +97,51 @@ fn datatypes_smaller_than_dint_promoted_to_dint() {
 }
 
 #[test]
+fn aliased_datatypes_respect_conversion_rules() {
+    let result = codegen!(
+        r#"
+        TYPE MYSINT : SINT; END_TYPE
+        TYPE MYDINT : DINT; END_TYPE
+        PROGRAM prg
+        VAR
+        b : MYSINT;
+        c : MYDINT;
+        x : MYDINT;
+        END_VAR
+
+        x := b + c;
+        b := c + x;
+
+        END_PROGRAM
+        "#
+    );
+    
+    let expected = generate_program_boiler_plate(
+        "prg",
+        &[("i8", "b"), ("i32","c"),("i32","x")],
+        "void",
+        "",
+        "",
+        r#"%load_b = load i8, i8* %b, align 1
+  %load_c = load i32, i32* %c, align 4
+  %1 = sext i8 %load_b to i32
+  %tmpVar = add i32 %1, %load_c
+  store i32 %tmpVar, i32* %x, align 4
+  %load_c1 = load i32, i32* %c, align 4
+  %load_x = load i32, i32* %x, align 4
+  %tmpVar2 = add i32 %load_c1, %load_x
+  %2 = trunc i32 %tmpVar2 to i8
+  store i8 %2, i8* %b, align 1
+  ret void
+"#
+    );
+
+    assert_eq!(result,expected)
+
+}
+
+
+#[test]
 fn unsingned_datatypes_smaller_than_dint_promoted_to_dint() {
     let result = codegen!(
         r#"PROGRAM prg
@@ -128,7 +173,6 @@ fn unsingned_datatypes_smaller_than_dint_promoted_to_dint() {
     );
 
     assert_eq!(result,expected)
-
 }
 
 #[test]

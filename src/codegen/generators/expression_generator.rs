@@ -15,7 +15,7 @@ pub struct ExpressionCodeGenerator<'a, 'b> {
     /// an optional type hint for generating literals
     type_hint: Option<DataTypeInformation>,
     /// the current function to create blocks in
-    function_context: Option<&'b FunctionContext<'a>>,
+    function_context: Option<&'a FunctionContext<'a>>,
 
     /// the string-prefix to use for temporary variables
     pub temp_variable_prefix: String,
@@ -36,7 +36,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
         index: &'b Index,
         llvm_index: &'b LLVMTypedIndex<'a>,
         type_hint: Option<DataTypeInformation>,
-        function_context: &'b FunctionContext<'a>,
+        function_context: &'a FunctionContext<'a>,
     ) -> ExpressionCodeGenerator<'a, 'b> {
         ExpressionCodeGenerator {
             llvm,
@@ -86,7 +86,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
     }
 
     /// returns the function context or returns a Compile-Error
-    fn get_function_context(&self, statement: &Statement) -> Result<&FunctionContext, CompileError> {
+    fn get_function_context(&self, statement: &Statement) -> Result<&'a FunctionContext<'a>, CompileError> {
         self.function_context.ok_or_else(||
             CompileError::missing_function(statement.get_location()))
     }
@@ -208,32 +208,37 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
             Statement::Reference { name, .. } => {
                 //Get associated Variable or generate a variable for the type with the same name
                 let variable = self.index
-                    .find_callable_instance_variable(Some(function_context.linking_context.as_str()), &[name.clone()]);
+                    .find_callable_instance_variable(Some(function_context.linking_context.get_type_name()), &[name.clone()]);
         
-                let callable_reference = if let Some(variable_instance) = variable {
-                    self.llvm_index.find_loaded_associated_variable_value(&variable_instance.get_qualified_name())
+                let (implementation, callable_reference )= if let Some(variable_instance) = variable {
+                    let implementation = self.index.find_implementation(variable_instance.get_type_name()).unwrap();
+                    (implementation, self.llvm_index.find_loaded_associated_variable_value(&variable_instance.get_qualified_name())
                     .ok_or_else(||
-                            CompileError::CodeGenError{ message: format!("cannot find callable type for {:?}", operator), location: operator.get_location().clone() })?
+                            CompileError::CodeGenError{ message: format!("cannot find callable type for {:?}", operator), location: operator.get_location().clone() })?)
                 } else {
-                    self.allocate_function_struct_instance(&name, operator)?
+                    let implementation = self.index.find_implementation(name);
+                    if let Some(implementation) = implementation {
+                        (implementation, self.allocate_function_struct_instance(implementation.get_call_name(), operator)?)
+                    } else {
+                        //Look for a possible action
+                        let qualified_name = format!("{}.{}", function_context.linking_context.get_type_name(), name);
+                        let function = function_context.function;
+                        let ptr = function.get_first_param().unwrap();
+                        (self.index.find_implementation(&qualified_name).unwrap(), ptr.into_pointer_value())
+                    }
                 };
-                        
-                let call_name = variable
-                    .map(|it| it.get_type_name()) // we called f() --> look for f's datatype
-                    .or(Some(&name)); // we didnt call a variable ([0so we treat the string as the function's name
 
-                let index_entry = self.index.get_type(call_name.unwrap())?;
-                Ok((callable_reference, index_entry))
+                Ok((callable_reference, implementation))
             },
             Statement::QualifiedReference { .. } => {
                 let loaded_value = self.generate_load_for(operator);
-                loaded_value.map(|TypeAndPointer{type_entry, ptr_value}| Ok((ptr_value, type_entry)))?
+                loaded_value.map(|TypeAndPointer{type_entry, ptr_value}| Ok((ptr_value, self.index.find_implementation(type_entry.get_name()).unwrap())))?
             },
             _ => Err(CompileError::CodeGenError{ message: format!("cannot generate call statement for {:?}", operator), location: operator.get_location().clone() }),
         };
 
         let (instance, index_entry) = instance_and_index_entry?;
-        let function_name = index_entry.get_name();
+        let function_name = index_entry.get_call_name();
         //Create parameters for input and output blocks
         let current_f = function_context.function;
         let input_block = self.llvm.context.append_basic_block(current_f, "input");
@@ -377,7 +382,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                     
                     let l_value = self.generate_load_for( right).unwrap();
                     let loaded_value = builder.build_load(pointer_to_param,parameter.get_name());
-                    let value = cast_if_needed(self.llvm, l_value.get_type_information(), loaded_value,param_type, right)?;
+                    let value = cast_if_needed(self.llvm, self.index, l_value.get_type_information(), loaded_value,param_type, right)?;
                     builder
                         .build_store(l_value.ptr_value, value);
                 }
@@ -391,7 +396,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                     .unwrap();
                 let parameter = parameter_type.or_else(|| 
                     self.index.find_input_parameter(function_name, index as u32).and_then(|var| self.index.find_type(var.get_type_name()))).map(|var| var.get_type_information()).unwrap();
-                let value = cast_if_needed(self.llvm, parameter, generated_exp, &value_type, assignment_statement)?;
+                let value = cast_if_needed(self.llvm, self.index, parameter, generated_exp, &value_type, assignment_statement)?;
                 builder
                     .build_store(pointer_to_param, value);
             }
@@ -454,11 +459,11 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
         } else {
             //no context
 
-            let linking_context = self.get_function_context(context)?.linking_context.as_str();
+            let type_name = self.get_function_context(context)?.linking_context.get_type_name();
 
             let variable_index_entry = self
                 .index
-                .find_variable(Some(linking_context), &[name.clone()])
+                .find_variable(Some(type_name), &[name.clone()])
                 .ok_or_else(|| CompileError::InvalidReference{ reference: name.clone(), location: offset.clone() })?;
             let accessor_ptr = self.llvm_index.find_loaded_associated_variable_value(&variable_index_entry.get_qualified_name())
                     .ok_or_else(||CompileError::codegen_error(format!("Cannot generate reference for {:}",name),offset.clone()))?;
@@ -585,12 +590,27 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                 }
                 current_lvalue
             }
-            Statement::Reference { name, .. } => self
+            Statement::Reference { name, .. } => {
+                if let Some(qualifier) = qualifier {
+                    //Find if there is an action with the current name 
+                    let qualified_name = format!("{}.{}",qualifier.type_entry.get_name(), name);
+                    let implementation = self.index.find_implementation(&qualified_name);
+                    if implementation.is_some() {
+                        let result = TypeAndPointer {
+                            type_entry : self.index.get_type(&qualified_name)?,
+                            ptr_value : qualifier.ptr_value,
+                        };
+                        return Ok(result);
+                    }
+                };
+                //Otherwise, load a variable reference
+                self
                 .create_llvm_pointer_value_for_reference(
                     qualifier,
                     name,
                     reference,
-                ),
+                )
+            },
             Statement::ArrayAccess { reference, access } => {
                 self.generate_load_for_array(qualifier, reference, access)
             }

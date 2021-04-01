@@ -5,12 +5,12 @@
 /// - generates a struct-datatype for the POU's members
 /// - generates a function for the pou
 /// - declares a global instance if the POU is a PROGRAM
-use crate::index::ImplementationIndexEntry;
+use crate::index::{ImplementationIndexEntry, VariableIndexEntry};
 use inkwell::types::StructType;
 use super::{expression_generator::ExpressionCodeGenerator, llvm::LLVM, statement_generator::{FunctionContext, StatementCodeGenerator}};
 use crate::codegen::llvm_index::LLVMTypedIndex;
 use crate::typesystem::*;
-use crate::{ast::{DataTypeDeclaration, POU, Implementation, PouType, SourceRange, Statement, Variable, VariableBlock, VariableBlockType}, compile_error::CompileError, index::Index};
+use crate::{ast::{Implementation, PouType, SourceRange, Statement}, compile_error::CompileError, index::Index};
 use inkwell::{AddressSpace, module::Module, types::{BasicTypeEnum, FunctionType}, values::{BasicValueEnum, FunctionValue}};
 
 
@@ -71,59 +71,46 @@ impl<'ink,'cg> PouGenerator<'ink,'cg> {
     }
 
     /// generates a function for the given pou
-    pub fn generate_pou(&self, pou: &POU, implementation : &Implementation) -> Result<(), CompileError> {
+    pub fn generate_implementation(&self, implementation : &Implementation) -> Result<(), CompileError> {
 
         let context = self.llvm.context;
         let mut local_index = LLVMTypedIndex::create_child(self.llvm_index);
 
-        let return_type = pou
-            .return_type
-            .as_ref()
-            .and_then(DataTypeDeclaration::get_name)
-            .and_then(|it| self.llvm_index.find_associated_type(it));
+        let pou_name = &implementation.name;
 
-        let pou_name = &pou.name;
-
-        let pou_members: Vec<&Variable> = pou
-            .variable_blocks
-            .iter()
-            .flat_map(|it| it.variables.iter())
-            .collect();
-
+        let pou_members= self.index.find_local_members(&implementation.type_name);
 
         let current_function = self.llvm_index.find_associated_implementation(pou_name)
-            .ok_or_else(|| CompileError::codegen_error(format!("Could not find generated stub for {}",pou_name), pou.location.clone()))?;
+            .ok_or_else(|| CompileError::codegen_error(format!("Could not find generated stub for {}",pou_name), implementation.location.clone()))?;
         
         //generate the body
         let block = context.append_basic_block(current_function, "entry");
         self.llvm.builder.position_at_end(block);
         
-        //generate the return-variable
-        if let Some(return_type) = return_type {
-            let return_variable = self.llvm.create_local_variable(pou_name, &return_type);
-            local_index.associate_loaded_local_variable(pou_name, pou_name, return_variable)?;
-        }
 
         // generate loads for all the parameters
         self.generate_local_variable_accessors(
             &mut local_index,
-            pou_name,
+            &implementation.type_name,
             current_function,
             &pou_members,
         )?;
 
-        let function_context = FunctionContext{linking_context: pou_name.clone(), function: current_function};
+        let function_context = FunctionContext{
+                linking_context: implementation.into(), 
+                function: current_function
+            };
         {
             let statement_gen = StatementCodeGenerator::new(&self.llvm, self.index, &local_index, &function_context);
             //if this is a function, we need to initilialize the VAR-variables
-            if pou.pou_type == PouType::Function {
-                self.generate_initialization_of_local_vars(&pou.variable_blocks, &statement_gen)?;
+            if implementation.pou_type == PouType::Function {
+                self.generate_initialization_of_local_vars(pou_members, &statement_gen)?;
             }
             statement_gen.generate_body(&implementation.statements)?
         }
 
         // generate return statement
-        self.generate_return_statement(&function_context, &local_index, pou.pou_type, Some(0..0))?; //TODO location
+        self.generate_return_statement(&function_context, &local_index, implementation.pou_type, Some(0..0))?; //TODO location
 
         Ok(())
     }
@@ -148,7 +135,7 @@ impl<'ink,'cg> PouGenerator<'ink,'cg> {
                 enum_type.into_array_type().fn_type(params, false)
             }
             None => self.llvm.context.void_type().fn_type(params, false),
-            _ => panic!(format!("Unsupported return type {:?}", return_type)),
+            _ => panic!("Unsupported return type {:?}", return_type),
         }
     }
 
@@ -156,27 +143,36 @@ impl<'ink,'cg> PouGenerator<'ink,'cg> {
     fn generate_local_variable_accessors(
         &self,
         index : &mut LLVMTypedIndex<'ink>,
-        pou_name: &str,
+        type_name: &str,
         current_function: FunctionValue<'ink>,
-        members: &Vec<&Variable>
+        members: &Vec<&VariableIndexEntry>
     ) -> Result<(), CompileError> {
 
         //Generate reference to parameter
         for (i, m) in members.iter().enumerate() {
-            let parameter_name = &m.name;
+            let parameter_name = m.get_name();
 
-            let ptr_value = current_function
-                .get_first_param()
-                .map(BasicValueEnum::into_pointer_value)
-                .ok_or_else(|| CompileError::MissingFunctionError{location: m.location.clone()})?;
+            let (name, variable) = if m.is_return() {
+                let return_type = index.get_associated_type(m.get_type_name())?;
+                (type_name, self.llvm.create_local_variable(type_name, &return_type))
+            } else {
+                let ptr_value = current_function
+                    .get_first_param()
+                    .map(BasicValueEnum::into_pointer_value)
+                    .ok_or_else(|| CompileError::MissingFunctionError{location: m.source_location.clone()})?;
 
+                    (parameter_name, self.llvm.builder
+                        .build_struct_gep(ptr_value, i as u32, &parameter_name)
+                        .unwrap())
+
+            };
             index.associate_loaded_local_variable(
-                pou_name,
-                parameter_name,
-                self.llvm.builder
-                    .build_struct_gep(ptr_value, i as u32, &parameter_name)
-                    .unwrap(),
+                type_name,
+                name,
+                variable,
             )?;
+
+            
         }
 
         Ok(())
@@ -187,17 +183,16 @@ impl<'ink,'cg> PouGenerator<'ink,'cg> {
     /// - `blocks` - all declaration blocks of the current pou
     fn generate_initialization_of_local_vars(
         &self,
-        blocks : &Vec<VariableBlock>,
+        variables : Vec<&VariableIndexEntry>,
         statement_generator: &StatementCodeGenerator<'ink, '_>,
     )-> Result<(), CompileError> {
-        let variables_with_initializers = blocks.iter()
-            .filter(|it| it.variable_block_type == VariableBlockType::Local)
-            .flat_map(|it| &it.variables)
-            .filter(|it| it.initializer.is_some());
+        let variables_with_initializers = variables.iter()
+            .filter(|it| it.is_local())
+            .filter(|it| it.initial_value.is_some());
 
         for variable in variables_with_initializers {
-            let left = Statement::Reference{ name: variable.name.clone(), location: variable.location.clone() };
-            let right = variable.initializer.as_ref().unwrap();
+            let left = Statement::Reference{ name: variable.get_name().into(), location: variable.source_location.clone() };
+            let right = variable.initial_value.as_ref().unwrap();
             statement_generator.generate_assignment_statement(&left, right)?;
         }
         Ok(())
@@ -210,7 +205,7 @@ impl<'ink,'cg> PouGenerator<'ink,'cg> {
         match pou_type {
             PouType::Function => {
                 let reference = Statement::Reference{
-                    name: function_context.linking_context.clone(),
+                    name: function_context.linking_context.get_call_name().into(),
                     location: location.unwrap_or(0usize..0usize)
                 };
                 let mut exp_gen = ExpressionCodeGenerator::new(&self.llvm, self.index , local_index, None, &function_context);

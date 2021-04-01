@@ -916,7 +916,7 @@ fn real_float_assingment() {
 #[test]
 fn real_to_int_assignment2() {
     struct Type {
-    };
+    }
 
     let function = r#"
         FUNCTION LOG : REAL
@@ -934,7 +934,7 @@ fn real_to_int_assignment2() {
 #[test]
 fn lreal_to_int_assignment() {
     struct Type {
-    };
+    }
 
     let function = r#"
         FUNCTION LOG : LREAL
