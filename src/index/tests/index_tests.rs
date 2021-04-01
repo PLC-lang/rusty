@@ -83,7 +83,7 @@ fn actions_are_indexed() {
         name,
         ..
 
-    } = index.find_primitive_type(info).unwrap() {
+    } = index.find_effective_type(info).unwrap() {
         assert_eq!("myProgram_interface", name);
     } else {
         panic!("Wrong variant : {:#?}", info);
@@ -107,7 +107,7 @@ fn actions_are_indexed() {
         name,
         ..
 
-    } = index.find_primitive_type(info).unwrap() {
+    } = index.find_effective_type(info).unwrap() {
         assert_eq!("myProgram_interface", name);
     } else {
         panic!("Wrong variant : {:#?}", info);
@@ -410,7 +410,7 @@ fn find_type_retrieves_directly_registered_type() {
 }
 
 #[test]
-fn find_primitive_type_finds_the_inner_primitive_type() {
+fn find_effective_type_finds_the_inner_effective_type() {
     let index = index!(r"
             TYPE MyAlias : INT;  END_TYPE
             TYPE MySecondAlias : MyAlias;  END_TYPE
@@ -419,19 +419,19 @@ fn find_primitive_type_finds_the_inner_primitive_type() {
         ");
 
     let my_alias = index.find_type("MyAlias").unwrap().get_type_information();
-    let int = index.find_primitive_type(&my_alias).unwrap();
+    let int = index.find_effective_type(&my_alias).unwrap();
     assert_eq!("INT",int.get_name());
     
     let my_alias = index.find_type("MySecondAlias").unwrap().get_type_information();
-    let int = index.find_primitive_type(&my_alias).unwrap();
+    let int = index.find_effective_type(&my_alias).unwrap();
     assert_eq!("INT",int.get_name());
 
     let my_alias = index.find_type("MyArrayAlias").unwrap().get_type_information();
-    let array = index.find_primitive_type(&my_alias).unwrap();
+    let array = index.find_effective_type(&my_alias).unwrap();
     assert_eq!("MyArray",array.get_name());
 
     let my_alias = index.find_type("MyArray").unwrap().get_type_information();
-    let array = index.find_primitive_type(&my_alias).unwrap();
+    let array = index.find_effective_type(&my_alias).unwrap();
     assert_eq!("MyArray",array.get_name());
 }
 
