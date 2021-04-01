@@ -855,8 +855,8 @@ fn programs_can_be_external() {
             "@EXTERNAL PROGRAM foo END_PROGRAM"
     );
     let parse_result = parse(lexer).unwrap().0;
-    let pou = &parse_result.units[0];
-    assert_eq!(LinkageType::External, pou.linkage);
+    let implementation = &parse_result.implementations[0];
+    assert_eq!(LinkageType::External, implementation.linkage);
 }
 
 #[test]

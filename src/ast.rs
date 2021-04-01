@@ -24,8 +24,6 @@ pub struct POU {
     pub variable_blocks: Vec<VariableBlock>,
     pub pou_type: PouType,
     pub return_type: Option<DataTypeDeclaration>,
-    pub linkage : LinkageType,
-
     pub location: SourceRange,
 }
 
