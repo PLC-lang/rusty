@@ -201,13 +201,6 @@ impl Index {
 
     pub fn find_type(&self, type_name: &str) -> Option<&DataType> {
         self.types.get(type_name)
-        // let data_type = self.types.get(type_name);
-        // data_type.map(|it| {
-        //     if let DataTypeInformation::Alias { referenced_type, .. } = it.get_type_information() {
-        //         return self.find_type(referenced_type.as_str());
-        //     }
-        //     Some(it)
-        // }).flatten()
     }
 
     
