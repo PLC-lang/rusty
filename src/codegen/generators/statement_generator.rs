@@ -1,6 +1,6 @@
 /// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
-use crate::index::Index;
+use crate::index::{ImplementationIndexEntry, Index};
 use crate::codegen::LLVMTypedIndex;
 use super::{expression_generator::ExpressionCodeGenerator, llvm::LLVM};
 use crate::codegen::llvm_typesystem::cast_if_needed;
@@ -10,7 +10,7 @@ use inkwell::{IntPredicate, basic_block::BasicBlock, values::{BasicValueEnum, Fu
 /// the full context when generating statements inside a POU
 pub struct FunctionContext<'a> {
     /// the current pou's name. This means that a variable x may refer to "`linking_context`.x"
-    pub linking_context: String,
+    pub linking_context: ImplementationIndexEntry,
     /// the llvm function to generate statements into
     pub function: FunctionValue<'a>,
 }
@@ -45,7 +45,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
     }
 
     /// convinience method to create an expression-generator
-    fn create_expr_generator(&self) -> ExpressionCodeGenerator<'a, 'b> {
+    fn create_expr_generator(&'a self) -> ExpressionCodeGenerator<'a, 'b> {
         ExpressionCodeGenerator::new(self.llvm, self.index, self.llvm_index, None, self.function_context)
     }
  
@@ -119,7 +119,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         let left = exp_gen.generate_load(left_statement)?;
         let (right_type, right) = exp_gen.generate_expression(right_statement)?;
         let cast_value =
-            cast_if_needed(self.llvm, &left.get_type_information(), right, &right_type, right_statement)?;
+            cast_if_needed(self.llvm, self.index, &left.get_type_information(), right, &right_type, right_statement)?;
         self.llvm.builder.build_store(left.ptr_value, cast_value);
         Ok(())
     }

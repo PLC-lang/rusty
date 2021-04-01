@@ -174,11 +174,11 @@ fn parse_pou(lexer: &mut RustyLexer, pou_type: PouType, linkage: LinkageType, ex
         location : line_nr .. lexer.get_current_line_nr(), 
     };
 
-    let implementation = parse_implementation(lexer, linkage, line_nr, expected_end_token, &name, &name)?;
+    let implementation = parse_implementation(lexer, linkage, pou_type, line_nr, expected_end_token, &name, &name)?;
     Ok((pou, implementation))
 }
 
-fn parse_implementation(lexer : &mut RustyLexer, linkage: LinkageType, start : usize, expected_end_token: lexer::Token, call_name : &str, type_name : &str) -> Result<Implementation, String>{
+fn parse_implementation(lexer : &mut RustyLexer, linkage: LinkageType, pou_type : PouType, start : usize, expected_end_token: lexer::Token, call_name : &str, type_name : &str) -> Result<Implementation, String>{
     //Parse the statements
     let statements = parse_body(lexer, start, &|it| *it == expected_end_token)?; 
     expect!(expected_end_token, lexer);
@@ -187,6 +187,7 @@ fn parse_implementation(lexer : &mut RustyLexer, linkage: LinkageType, start : u
         name : call_name.into(),
         type_name : type_name.into(), 
         linkage,
+        pou_type,
         statements, 
         location : start .. lexer.get_current_line_nr()
     };
@@ -210,7 +211,7 @@ fn parse_action(lexer: &mut RustyLexer, linkage: LinkageType, container : Option
     };
     let call_name = format!("{}.{}", &container, &name);
 
-    let implementation = parse_implementation(lexer, linkage, start, lexer::Token::KeywordEndAction, &call_name, &container)?;
+    let implementation = parse_implementation(lexer, linkage, PouType::Action ,start, lexer::Token::KeywordEndAction, &call_name, &container)?;
     
     Ok(implementation)
 
