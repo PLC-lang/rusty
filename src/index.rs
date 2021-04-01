@@ -209,8 +209,8 @@ impl Index {
     }
 
 
-    /// Retrieves the "Primitive" type behind this datatype
-    /// A primitive type will be any end type i.e. Structs, Integers, Floats, String and Array
+    /// Retrieves the "Effctive" type behind this datatype
+    /// An effective type will be any end type i.e. Structs, Integers, Floats, String and Array
     pub fn find_effective_type<'ret>(&'ret self, data_type : &'ret DataTypeInformation) -> Option<&'ret DataTypeInformation> {
         if let DataTypeInformation::Alias{referenced_type, ..} = data_type{
             self.find_type(&referenced_type).and_then(|it| self.find_effective_type(it.get_type_information()))
