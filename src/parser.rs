@@ -167,7 +167,6 @@ fn parse_pou(lexer: &mut RustyLexer, pou_type: PouType, linkage: LinkageType, ex
     }
     let pou = POU {
         name : name.clone(), 
-        linkage,
         pou_type,
         variable_blocks,
         return_type,
