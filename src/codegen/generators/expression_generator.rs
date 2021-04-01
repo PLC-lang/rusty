@@ -15,7 +15,7 @@ pub struct ExpressionCodeGenerator<'a, 'b> {
     /// an optional type hint for generating literals
     type_hint: Option<DataTypeInformation>,
     /// the current function to create blocks in
-    function_context: Option<&'a FunctionContext<'a>>,
+    function_context: Option<&'b FunctionContext<'a>>,
 
     /// the string-prefix to use for temporary variables
     pub temp_variable_prefix: String,
@@ -36,7 +36,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
         index: &'b Index,
         llvm_index: &'b LLVMTypedIndex<'a>,
         type_hint: Option<DataTypeInformation>,
-        function_context: &'a FunctionContext<'a>,
+        function_context: &'b FunctionContext<'a>,
     ) -> ExpressionCodeGenerator<'a, 'b> {
         ExpressionCodeGenerator {
             llvm,
@@ -86,7 +86,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
     }
 
     /// returns the function context or returns a Compile-Error
-    fn get_function_context(&self, statement: &Statement) -> Result<&'a FunctionContext<'a>, CompileError> {
+    fn get_function_context(&self, statement: &Statement) -> Result<&'b FunctionContext<'a>, CompileError> {
         self.function_context.ok_or_else(||
             CompileError::missing_function(statement.get_location()))
     }

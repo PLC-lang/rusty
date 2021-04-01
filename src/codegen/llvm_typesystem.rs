@@ -22,8 +22,8 @@ pub fn promote_if_needed<'a>(
     let (rtype, rvalue) = rvalue;
 
     //TODO : We need better error handling here
-    let ltype = index.find_primitive_type(ltype).unwrap();
-    let rtype = index.find_primitive_type(rtype).unwrap();
+    let ltype = index.find_effective_type(ltype).unwrap();
+    let rtype = index.find_effective_type(rtype).unwrap();
 
     let ltype_llvm = llvm_index.find_associated_type(ltype.get_name()).unwrap();
     let rtype_llvm = llvm_index.find_associated_type(rtype.get_name()).unwrap();
@@ -156,8 +156,8 @@ pub fn cast_if_needed<'ctx>(
    location_context: &Statement,
 ) -> Result<BasicValueEnum<'ctx>, CompileError> {
    let builder = &llvm.builder;
-   let target_type = index.find_primitive_type(target_type).ok_or_else(|| CompileError::codegen_error(format!("Could not find primitive type for {:?}", target_type), 0..0))?;
-   let value_type  = index.find_primitive_type(value_type).ok_or_else(|| CompileError::codegen_error(format!("Could not find primitive type for {:?}", value_type), 0..0))?;
+   let target_type = index.find_effective_type(target_type).ok_or_else(|| CompileError::codegen_error(format!("Could not find primitive type for {:?}", target_type), 0..0))?;
+   let value_type  = index.find_effective_type(value_type).ok_or_else(|| CompileError::codegen_error(format!("Could not find primitive type for {:?}", value_type), 0..0))?;
    match target_type {
        DataTypeInformation::Integer {
            signed,
