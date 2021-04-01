@@ -52,6 +52,70 @@ fn program_is_indexed() {
 }
 
 #[test]
+fn actions_are_indexed() {
+    let index = index!(
+        r#"
+        PROGRAM myProgram
+        END_PROGRAM
+        ACTIONS myProgram
+            ACTION foo
+            END_ACTION
+        END_ACTIONS
+        ACTION myProgram.bar
+        END_ACTION
+    "#
+    );
+
+    let foo = index.find_implementation("myProgram.foo").unwrap();
+    assert_eq!("myProgram.foo",foo.call_name);
+    assert_eq!("myProgram",foo.type_name);
+    let info = index.get_type("myProgram.foo").unwrap().get_type_information(); 
+    if let crate::typesystem::DataTypeInformation::Alias{
+        name,
+        referenced_type, 
+    } = info {
+        assert_eq!("myProgram.foo", name);
+        assert_eq!("myProgram", referenced_type);
+    } else {
+        panic!("Wrong variant : {:#?}", info);
+    }
+    if let crate::typesystem::DataTypeInformation::Struct{
+        name,
+        ..
+
+    } = index.find_effective_type(info).unwrap() {
+        assert_eq!("myProgram_interface", name);
+    } else {
+        panic!("Wrong variant : {:#?}", info);
+    }
+    
+    let bar = index.find_implementation("myProgram.bar").unwrap();
+    assert_eq!("myProgram.bar",bar.call_name);
+    assert_eq!("myProgram",bar.type_name);
+
+    let info = index.get_type("myProgram.bar").unwrap().get_type_information(); 
+    if let crate::typesystem::DataTypeInformation::Alias{
+        name,
+        referenced_type, 
+    } = info {
+        assert_eq!("myProgram.bar", name);
+        assert_eq!("myProgram", referenced_type);
+    } else {
+        panic!("Wrong variant : {:#?}", info);
+    }
+    if let crate::typesystem::DataTypeInformation::Struct{
+        name,
+        ..
+
+    } = index.find_effective_type(info).unwrap() {
+        assert_eq!("myProgram_interface", name);
+    } else {
+        panic!("Wrong variant : {:#?}", info);
+    }
+
+}
+
+#[test]
 fn function_is_indexed() {
     let index = index!(
         r#"
@@ -325,6 +389,52 @@ fn callable_instances_can_be_retreived() {
     assert_eq!(true, index.find_callable_instance_variable(Some("prg"), &["c".into()]).is_none());
     assert_eq!(true, index.find_callable_instance_variable(Some("prg"), &["d".into()]).is_none());
 }
+
+#[test]
+fn find_type_retrieves_directly_registered_type() {
+    let index = index!(r"
+            TYPE MyAlias : INT;  END_TYPE
+            TYPE MySecondAlias : MyAlias;  END_TYPE
+            TYPE MyArray : ARRAY[0..10] OF INT;  END_TYPE
+            TYPE MyArrayAlias : MyArray; END_TYPE
+        ");
+
+    let my_alias = index.find_type("MyAlias").unwrap();
+    assert_eq!("MyAlias",my_alias.get_name());
+    
+    let my_alias = index.find_type("MySecondAlias").unwrap();
+    assert_eq!("MySecondAlias",my_alias.get_name());
+
+    let my_alias = index.find_type("MyArrayAlias").unwrap();
+    assert_eq!("MyArrayAlias",my_alias.get_name());
+}
+
+#[test]
+fn find_effective_type_finds_the_inner_effective_type() {
+    let index = index!(r"
+            TYPE MyAlias : INT;  END_TYPE
+            TYPE MySecondAlias : MyAlias;  END_TYPE
+            TYPE MyArray : ARRAY[0..10] OF INT;  END_TYPE
+            TYPE MyArrayAlias : MyArray; END_TYPE
+        ");
+
+    let my_alias = index.find_type("MyAlias").unwrap().get_type_information();
+    let int = index.find_effective_type(&my_alias).unwrap();
+    assert_eq!("INT",int.get_name());
+    
+    let my_alias = index.find_type("MySecondAlias").unwrap().get_type_information();
+    let int = index.find_effective_type(&my_alias).unwrap();
+    assert_eq!("INT",int.get_name());
+
+    let my_alias = index.find_type("MyArrayAlias").unwrap().get_type_information();
+    let array = index.find_effective_type(&my_alias).unwrap();
+    assert_eq!("MyArray",array.get_name());
+
+    let my_alias = index.find_type("MyArray").unwrap().get_type_information();
+    let array = index.find_effective_type(&my_alias).unwrap();
+    assert_eq!("MyArray",array.get_name());
+}
+
 
 #[test]
 fn pre_processing_generates_inline_enums_global() {

@@ -58,7 +58,7 @@ fn using_nested_structs() {
         field1: i8,
         field2: i16,
         field3: i32,
-    };
+    }
 
     #[repr(C)]
     #[derive(Debug, Default)]
@@ -304,7 +304,7 @@ fn using_arrays() {
     #[warn(dead_code)]
     struct Main {
         arr : [i32; 10],
-    };
+    }
     
     let mut main = Main {
         arr : [0; 10],

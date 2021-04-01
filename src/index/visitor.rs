@@ -43,11 +43,10 @@ pub fn visit_pou(index: &mut Index, pou: &POU){
 
     let interface_name = format!("{}_interface", &pou.name);
 
-
     if pou.pou_type == PouType::Program {
         //Associate a global variable for the program 
     let instance_name = format!("{}_instance", &pou.name);
-        index.register_global_variable_with_name(&pou.name, &instance_name, &pou.name, None); 
+        index.register_global_variable_with_name(&pou.name, &instance_name, &pou.name, None, pou.location.clone()); 
     }
 
     let mut member_names = vec![];
@@ -63,6 +62,7 @@ pub fn visit_pou(index: &mut Index, pou: &POU){
                 block_type,
                 var.data_type.get_name().unwrap(), 
                 var.initializer.clone(),
+                var.location.clone(),
                 count,
             );
             count = count + 1;
@@ -71,12 +71,14 @@ pub fn visit_pou(index: &mut Index, pou: &POU){
 
     if let Some(return_type) = &pou.return_type {
         member_names.push(pou.name.clone());
+        let source_location = pou.location.end .. pou.location.end;
         index.register_member_variable(
             &pou.name, 
             &pou.name, 
             VariableType::Return, 
             return_type.get_name().unwrap().into(), 
             None,
+            source_location,
             count)
     }
 
@@ -88,7 +90,16 @@ pub fn visit_pou(index: &mut Index, pou: &POU){
 }
 
 fn visit_implementation(index :&mut Index, implementation : &Implementation) {
-    index.register_implementation(&implementation.name, &implementation.type_name)
+    index.register_implementation(&implementation.name, &implementation.type_name);
+    //if we are registing an action, also register a datatype for it
+    if implementation.pou_type == PouType::Action {
+        index.register_type(&implementation.name, None, 
+            DataTypeInformation::Alias {
+                name : implementation.name.clone(),
+                referenced_type : implementation.type_name.clone(),
+            }
+        );
+    }
 }
 
 
@@ -99,6 +110,7 @@ fn visit_global_var_block(index :&mut Index, block: &VariableBlock) {
                             &var.name,
                             var.data_type.get_name().unwrap(),
                             var.initializer.clone(),
+                            var.location.clone(),
                         );
     }
 }
@@ -142,6 +154,7 @@ fn visit_data_type(index: &mut Index, type_declatation: &UserTypeDeclaration) {
                     VariableType::Local,
                     var.data_type.get_name().unwrap(), 
                     var.initializer.clone(),
+                    var.location.clone(),
                     count,
                 );
                 count = count + 1;
@@ -149,14 +162,14 @@ fn visit_data_type(index: &mut Index, type_declatation: &UserTypeDeclaration) {
 
         },
 
-        DataType::EnumType { name, elements, .. } =>  {
+        DataType::EnumType { name, elements } =>  {
                 let information = DataTypeInformation::Integer {
                     name: "DINT".into(),
                     signed: true,
                     size: 32,
                 };
             index.register_type( name.as_ref().unwrap(), type_declatation.initializer.clone(), information);
-            elements.iter().enumerate().for_each(|(i,v)| index.register_global_variable(v, "DINT", Some(ast::Statement::LiteralInteger{value:i.to_string(), location: 0..0})));
+            elements.iter().enumerate().for_each(|(i,v)| index.register_global_variable(v, "DINT", Some(ast::Statement::LiteralInteger{value:i.to_string(), location: 0..0}), 0..0)); //TODO : Enum locations
         },
 
         DataType::SubRangeType { name, referenced_type,  .. } => {

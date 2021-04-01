@@ -45,7 +45,7 @@ impl<'a> RustyLexer<'a> {
     }
 
     pub fn get_current_line_nr(&self) -> usize {
-        self.new_lines.get_line_of(self.range().start).unwrap_or(0)
+        self.new_lines.get_line_of(self.range().start).unwrap_or(1)
     }
 
     pub fn get_location_information(&self) -> String {
@@ -159,6 +159,18 @@ pub enum Token {
 
     #[token("END_STRUCT")]
     KeywordEndStruct,
+
+    #[token("ACTIONS")]
+    KeywordActions,
+
+    #[token("ACTION")]
+    KeywordAction,
+
+    #[token("END_ACTION")]
+    KeywordEndAction,
+
+    #[token("END_ACTIONS")]
+    KeywordEndActions,
 
     #[token(":")]
     KeywordColon,
