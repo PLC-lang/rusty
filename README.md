@@ -30,7 +30,7 @@ Structured text compiler written in Rust
 - :heavy_check_mark: Program
 - :heavy_check_mark: Function
 - :heavy_check_mark: FunctionBlock
-- :x: Action
+- :heavy_check_mark: Action
 
 ## Datatypes
 - :heavy_check_mark: IEC 61131-3 numeric types
