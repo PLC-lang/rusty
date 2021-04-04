@@ -131,7 +131,7 @@ impl<'a> LLVM<'a> {
     pub fn load_pointer(&self, lvalue: &TypeAndPointer<'a, '_>, name: &str) -> TypeAndValue<'a> {
         (
             lvalue.get_type_information().clone(),
-            self.builder.build_load(lvalue.ptr_value, name).into(),
+            self.builder.build_load(lvalue.ptr_value, name),
         )
     }
 

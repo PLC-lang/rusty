@@ -77,7 +77,7 @@ fn global_variables_with_initialization() {
     VAR_GLOBAL
         gX : INT := 77;
         gY : BOOL := TRUE;
-        gZ : REAL := 3.1415;
+        gZ : REAL := 9.1415;
     END_VAR
     PROGRAM main
         VAR
@@ -104,7 +104,7 @@ fn global_variables_with_initialization() {
         MainGlobalsType {
             x: 77,
             y: true,
-            z: 3.1415,
+            z: 9.1415,
         }
     );
 }

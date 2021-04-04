@@ -42,7 +42,7 @@ impl<'a, 'b> StructGenerator<'a, 'b> {
     /// - `name` the name of the StructType
     pub fn generate_struct_type(
         &mut self,
-        member_variables: &Vec<&VariableIndexEntry>,
+        member_variables: &[&VariableIndexEntry],
         name: &str,
     ) -> Result<(StructTypeAndValue<'a>, Vec<(String, BasicValueEnum<'a>)>), CompileError> {
         let struct_type = self
@@ -64,7 +64,7 @@ impl<'a, 'b> StructGenerator<'a, 'b> {
             .map(|(name, basic_type, initializer)| {
                 initializer
                     .map(|it| (name, it))
-                    .unwrap_or_else(|| (name, get_default_for(basic_type.clone())))
+                    .unwrap_or_else(|| (name, get_default_for(*basic_type)))
             })
             .collect::<Vec<(&String, BasicValueEnum)>>();
 
@@ -102,7 +102,7 @@ impl<'a, 'b> StructGenerator<'a, 'b> {
                     self.llvm,
                     self.index,
                     self.llvm_index,
-                    Some(variable_type.clone()),
+                    Some(variable_type),
                 );
                 exp_gen
                     .generate_expression(statement)
@@ -124,7 +124,7 @@ pub fn get_pou_instance_variable_name(pou_name: &str) -> String {
     format!("{}_instance", pou_name)
 }
 
-pub fn get_default_for<'ctx>(basic_type: BasicTypeEnum<'ctx>) -> BasicValueEnum<'ctx> {
+pub fn get_default_for(basic_type: BasicTypeEnum) -> BasicValueEnum {
     match basic_type {
         BasicTypeEnum::ArrayType(t) => t.const_zero().into(),
         BasicTypeEnum::FloatType(t) => t.const_zero().into(),

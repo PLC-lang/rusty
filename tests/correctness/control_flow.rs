@@ -47,7 +47,7 @@ fn adding_through_conditions() {
     let (func_true, func_false) = function;
 
     let (res, _) = compile_and_run(
-        func_true.to_string(),
+        func_true,
         &mut MainType {
             inc: 0,
             cond: false,
@@ -56,7 +56,7 @@ fn adding_through_conditions() {
     );
     assert_eq!(res, 10);
     let (res, _) = compile_and_run(
-        func_false.to_string(),
+        func_false,
         &mut MainType {
             inc: 0,
             cond: false,
@@ -94,9 +94,9 @@ fn adding_through_conditions_to_function_return() {
 
     let (func_true, func_false) = function;
 
-    let (res, _) = compile_and_run(func_true.to_string(), &mut MainType { ret: 0 });
+    let (res, _) = compile_and_run(func_true, &mut MainType { ret: 0 });
     assert_eq!(res, 10);
-    let (res, _) = compile_and_run(func_false.to_string(), &mut MainType { ret: 0 });
+    let (res, _) = compile_and_run(func_false, &mut MainType { ret: 0 });
     assert_eq!(res, 100);
 }
 

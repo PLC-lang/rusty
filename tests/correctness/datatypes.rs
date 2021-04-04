@@ -627,7 +627,7 @@ fn unsinged_byte_expansion3() {
     compile_and_run(program.to_string(), &mut maintype);
     let arg1: u64 = maintype.arg1.into();
     let arg2: u64 = maintype.arg2.into();
-    let arg3: u64 = maintype.arg3.into();
+    let arg3: u64 = maintype.arg3;
     let expected: u64 = arg1 + (arg2 + arg3) + (arg2 + arg3);
     assert_eq!(expected, maintype.result);
 }
@@ -661,25 +661,25 @@ fn assign_short_string_to_long_string_variable() {
     };
     compile_and_run(program.to_string(), &mut maintype);
 
-    let t: [u8; 81] = maintype.text.into();
-    assert_eq!(t[0] as u8, 'a' as u8);
-    assert_eq!(t[1], 'b' as u8);
-    assert_eq!(t[2], 'c' as u8);
-    for i in 3..81 {
+    let t: [u8; 81] = maintype.text;
+    assert_eq!(t[0] as u8, b'a');
+    assert_eq!(t[1], b'b');
+    assert_eq!(t[2], b'c');
+    (3..81).for_each(|i| {
         assert_eq!(0, t[i]);
-    }
+    });
 
-    let t: [u8; 81] = maintype.text2.into();
-    assert_eq!(t[0] as u8, 'x' as u8);
-    assert_eq!(t[1], 'y' as u8);
-    assert_eq!(t[2], 'z' as u8);
+    let t: [u8; 81] = maintype.text2;
+    assert_eq!(t[0] as u8, b'x');
+    assert_eq!(t[1], b'y');
+    assert_eq!(t[2], b'z');
     assert_eq!(t[3], 0);
-    assert_eq!(t[4], 'e' as u8);
-    assert_eq!(t[5], 'f' as u8);
-    assert_eq!(t[6], 'g' as u8);
-    for i in 7..81 {
+    assert_eq!(t[4], b'e');
+    assert_eq!(t[5], b'f');
+    assert_eq!(t[6], b'g');
+    (7..81).for_each(|i| {
         assert_eq!(0, t[i]);
-    }
+    });
 }
 
 #[test]
@@ -711,21 +711,21 @@ fn assign_string_to_string() {
     };
     compile_and_run(program.to_string(), &mut maintype);
 
-    let t: [u8; 81] = maintype.text2.into();
-    assert_eq!(t[0] as u8, 'a' as u8);
-    assert_eq!(t[1], 'b' as u8);
-    assert_eq!(t[2], 'c' as u8);
-    for i in 3..81 {
+    let t: [u8; 81] = maintype.text2;
+    assert_eq!(t[0] as u8, b'a');
+    assert_eq!(t[1], b'b');
+    assert_eq!(t[2], b'c');
+    (3..81).for_each(|i| {
         assert_eq!(0, t[i]);
-    }
+    });
 
-    let t: [u8; 81] = maintype.text.into();
-    assert_eq!(t[0] as u8, 'd' as u8);
-    assert_eq!(t[1], 'e' as u8);
-    assert_eq!(t[2], 'f' as u8);
-    for i in 8..81 {
+    let t: [u8; 81] = maintype.text;
+    assert_eq!(t[0] as u8, b'd');
+    assert_eq!(t[1], b'e');
+    assert_eq!(t[2], b'f');
+    (8..81).for_each(|i| {
         assert_eq!(0, t[i]);
-    }
+    });
 }
 
 #[test]
@@ -755,14 +755,14 @@ fn assign_long_string_to_short_string_variable() {
     }
     compile_and_run(program.to_string(), &mut maintype);
 
-    let t: [u8; 81] = maintype.text.into();
+    let t: [u8; 81] = maintype.text;
     for i in (0..75).step_by(3) {
-        assert_eq!(t[i], 'a' as u8);
-        assert_eq!(t[i + 1], 'b' as u8);
-        assert_eq!(t[i + 2], 'c' as u8);
+        assert_eq!(t[i], b'a');
+        assert_eq!(t[i + 1], b'b');
+        assert_eq!(t[i + 2], b'c');
     }
-    assert_eq!(t[78], 'a' as u8);
-    assert_eq!(t[79], 'b' as u8);
+    assert_eq!(t[78], b'a');
+    assert_eq!(t[79], b'b');
     assert_eq!(t[80], 0);
 
     let text2 = str::from_utf8(&maintype.text2).unwrap();
@@ -802,20 +802,20 @@ fn function_parameters_string() {
         text3: [0; 81],
     };
     compile_and_run(program.to_string(), &mut maintype);
-    let t: [u8; 81] = maintype.text.into();
+    let t: [u8; 81] = maintype.text;
     for i in (0..75).step_by(3) {
-        assert_eq!(t[i], 'a' as u8);
-        assert_eq!(t[i + 1], 'b' as u8);
-        assert_eq!(t[i + 2], 'c' as u8);
+        assert_eq!(t[i], b'a');
+        assert_eq!(t[i + 1], b'b');
+        assert_eq!(t[i + 2], b'c');
     }
-    assert_eq!(t[78], 'a' as u8);
-    assert_eq!(t[79], 'b' as u8);
+    assert_eq!(t[78], b'a');
+    assert_eq!(t[79], b'b');
     assert_eq!(t[80], 0);
 
-    let t: [u8; 81] = maintype.text2.into();
-    for i in 0..81 {
+    let t: [u8; 81] = maintype.text2;
+    (0..81).for_each(|i| {
         assert_eq!(t[i], 0);
-    }
+    });
     let text3 = str::from_utf8(&maintype.text3[0..5]).unwrap();
     assert_eq!(&text3[0..5], "hello");
     assert_eq!(maintype.text2[5], 0);
@@ -854,9 +854,9 @@ fn real_to_int_assignment() {
     };
 
     compile_and_run(function.to_string(), &mut maintype);
-    assert_eq!(2.0, maintype.real_val);
+    assert_almost_eq!(2.0, maintype.real_val, f32::EPSILON);
     assert_eq!(2, maintype.int_val);
-    assert_eq!(4.0, maintype.lreal_val);
+    assert_almost_eq!(4.0, maintype.lreal_val, f64::EPSILON);
     assert_eq!(4, maintype.int_val2);
 }
 
@@ -893,10 +893,10 @@ fn real_float_assingment() {
     };
 
     compile_and_run(function.to_string(), &mut maintype);
-    assert_eq!(2.0, maintype.real_val);
-    assert_eq!(2.0, maintype.lreal_target);
-    assert_eq!(4.0, maintype.lreal_val);
-    assert_eq!(4.0, maintype.real_target);
+    assert_almost_eq!(2.0, maintype.real_val, f32::EPSILON);
+    assert_almost_eq!(2.0, maintype.lreal_target, f64::EPSILON);
+    assert_almost_eq!(4.0, maintype.lreal_val, f64::EPSILON);
+    assert_almost_eq!(4.0, maintype.real_target, f32::EPSILON);
 }
 
 #[test]

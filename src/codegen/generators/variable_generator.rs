@@ -47,12 +47,7 @@ pub fn generate_global_variable<'ctx, 'b>(
             llvm,
             global_index,
             index,
-            Some(
-                global_index
-                    .get_type_information(type_name)
-                    .unwrap()
-                    .clone(),
-            ),
+            Some(global_index.get_type_information(type_name).unwrap()),
         );
         let (_, value) = expr_generator.generate_expression(&initializer)?;
         //Todo cast if necessary
