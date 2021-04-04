@@ -1,7 +1,6 @@
-/// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-
-use crate::{ast::Statement, lexer};
 use crate::parser::parse;
+/// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
+use crate::{ast::Statement, lexer};
 use pretty_assertions::*;
 
 #[test]
@@ -372,7 +371,6 @@ fn while_with_body_statement() {
     assert_eq!(ast_string, expected_ast);
 }
 
-
 #[test]
 fn repeat_with_literal() {
     let lexer = lexer::lex(
@@ -467,10 +465,9 @@ fn repeat_with_body_statement() {
     assert_eq!(ast_string, expected_ast);
 }
 
-
 #[test]
 fn case_statement_with_one_condition() {
-     let lexer = lexer::lex(
+    let lexer = lexer::lex(
         "
         PROGRAM exp 
         CASE StateMachine OF
@@ -504,12 +501,12 @@ fn case_statement_with_one_condition() {
     else_block: [],
 }"#;
 
-    assert_eq!(ast_string, expected_ast);   
+    assert_eq!(ast_string, expected_ast);
 }
 
 #[test]
 fn case_statement_with_else_and_no_condition() {
-     let lexer = lexer::lex(
+    let lexer = lexer::lex(
         "
         PROGRAM exp 
         CASE StateMachine OF
@@ -532,13 +529,12 @@ fn case_statement_with_else_and_no_condition() {
     else_block: [],
 }"#;
 
-    assert_eq!(ast_string, expected_ast);   
+    assert_eq!(ast_string, expected_ast);
 }
-
 
 #[test]
 fn case_statement_with_no_conditions() {
-     let lexer = lexer::lex(
+    let lexer = lexer::lex(
         "
         PROGRAM exp 
         CASE StateMachine OF
@@ -560,12 +556,12 @@ fn case_statement_with_no_conditions() {
     else_block: [],
 }"#;
 
-    assert_eq!(ast_string, expected_ast);   
+    assert_eq!(ast_string, expected_ast);
 }
 
 #[test]
 fn case_statement_with_one_condition_and_an_else() {
-     let lexer = lexer::lex(
+    let lexer = lexer::lex(
         "
         PROGRAM exp 
         CASE StateMachine OF
@@ -605,12 +601,12 @@ fn case_statement_with_one_condition_and_an_else() {
     ],
 }"#;
 
-    assert_eq!(ast_string, expected_ast);   
+    assert_eq!(ast_string, expected_ast);
 }
 
 #[test]
 fn case_statement_with_one_empty_condition_and_an_else() {
-     let lexer = lexer::lex(
+    let lexer = lexer::lex(
         "
         PROGRAM exp 
         CASE StateMachine OF
@@ -646,12 +642,12 @@ fn case_statement_with_one_empty_condition_and_an_else() {
     ],
 }"#;
 
-    assert_eq!(ast_string, expected_ast);   
+    assert_eq!(ast_string, expected_ast);
 }
 
 #[test]
 fn case_statement_with_multiple_conditions() {
-     let lexer = lexer::lex(
+    let lexer = lexer::lex(
         "
         PROGRAM exp 
         CASE StateMachine OF
@@ -713,12 +709,12 @@ fn case_statement_with_multiple_conditions() {
     else_block: [],
 }"#;
 
-    assert_eq!(ast_string, expected_ast);   
+    assert_eq!(ast_string, expected_ast);
 }
 
 #[test]
 fn case_statement_with_multiple_expressions_per_condition() {
-     let lexer = lexer::lex(
+    let lexer = lexer::lex(
         "
         PROGRAM exp 
         CASE StateMachine OF
@@ -799,29 +795,35 @@ fn if_stmnt_location_test() {
     END_IF
     END_PROGRAM";
 
-
     let lexer = lexer::lex(source);
     let parse_result = parse(lexer).unwrap().0;
 
     let unit = &parse_result.implementations[0];
-    
+
     let location = &unit.statements[0].get_location();
-    assert_eq!(source[location.start..location.end].to_string(), 
-    "IF a > 4 THEN
+    assert_eq!(
+        source[location.start..location.end].to_string(),
+        "IF a > 4 THEN
         a + b;
     ELSIF x < 2 THEN
         b + c;
-    END_IF");
+    END_IF"
+    );
 
-    if let Statement::IfStatement { blocks, ..} = &unit.statements[0] {
+    if let Statement::IfStatement { blocks, .. } = &unit.statements[0] {
         let if_location = blocks[0].condition.as_ref().get_location();
-        assert_eq!(source[if_location.start..if_location.end].to_string(), "a > 4");
+        assert_eq!(
+            source[if_location.start..if_location.end].to_string(),
+            "a > 4"
+        );
 
         let elsif_location = blocks[1].condition.as_ref().get_location();
-        assert_eq!(source[elsif_location.start..elsif_location.end].to_string(), "x < 2");
+        assert_eq!(
+            source[elsif_location.start..elsif_location.end].to_string(),
+            "x < 2"
+        );
     }
 }
-
 
 #[test]
 fn for_stmnt_location_test() {
@@ -832,31 +834,51 @@ fn for_stmnt_location_test() {
     END_FOR
     END_PROGRAM";
 
-
     let lexer = lexer::lex(source);
     let parse_result = parse(lexer).unwrap().0;
 
     let unit = &parse_result.implementations[0];
-    
-    let location = &unit.statements[0].get_location();
-    assert_eq!(source[location.start..location.end].to_string(), 
-    "FOR x := 3 TO 9 BY 2 DO
-        a + b;
-    END_FOR");
 
-    if let Statement::ForLoopStatement { counter, start  , end, by_step, .. } = &unit.statements[0] {
+    let location = &unit.statements[0].get_location();
+    assert_eq!(
+        source[location.start..location.end].to_string(),
+        "FOR x := 3 TO 9 BY 2 DO
+        a + b;
+    END_FOR"
+    );
+
+    if let Statement::ForLoopStatement {
+        counter,
+        start,
+        end,
+        by_step,
+        ..
+    } = &unit.statements[0]
+    {
         let counter_location = counter.as_ref().get_location();
-        assert_eq!(source[counter_location.start..counter_location.end].to_string(), "x");
+        assert_eq!(
+            source[counter_location.start..counter_location.end].to_string(),
+            "x"
+        );
 
         let start_location = start.as_ref().get_location();
-        assert_eq!(source[start_location.start..start_location.end].to_string(), "3");
+        assert_eq!(
+            source[start_location.start..start_location.end].to_string(),
+            "3"
+        );
 
         let end_location = end.as_ref().get_location();
-        assert_eq!(source[end_location.start..end_location.end].to_string(), "9");
+        assert_eq!(
+            source[end_location.start..end_location.end].to_string(),
+            "9"
+        );
 
-        let by_location = by_step.as_ref().map(|it| it.as_ref().get_location()).unwrap();
+        let by_location = by_step
+            .as_ref()
+            .map(|it| it.as_ref().get_location())
+            .unwrap();
         assert_eq!(source[by_location.start..by_location.end].to_string(), "2");
-    }else{
+    } else {
         panic!("expected ForLoopStatement")
     }
 }
@@ -870,17 +892,18 @@ fn while_stmnt_location_test() {
     END_WHILE
     END_PROGRAM";
 
-
     let lexer = lexer::lex(source);
     let parse_result = parse(lexer).unwrap().0;
 
     let unit = &parse_result.implementations[0];
-    
+
     let location = &unit.statements[0].get_location();
-    assert_eq!(source[location.start..location.end].to_string(), 
-    "WHILE a < 2 DO
+    assert_eq!(
+        source[location.start..location.end].to_string(),
+        "WHILE a < 2 DO
         a := a - 1;
-    END_WHILE"); 
+    END_WHILE"
+    );
 }
 
 #[test]
@@ -895,20 +918,21 @@ fn case_stmnt_location_test() {
     END_CASE
     END_PROGRAM";
 
-
     let lexer = lexer::lex(source);
     let parse_result = parse(lexer).unwrap().0;
 
     let unit = &parse_result.implementations[0];
-    
+
     let location = &unit.statements[0].get_location();
-    assert_eq!(source[location.start..location.end].to_string(), 
-    "CASE a OF
+    assert_eq!(
+        source[location.start..location.end].to_string(),
+        "CASE a OF
     1:
         a := a - 1;
     2:
         a := a - 1;
-    END_CASE"); 
+    END_CASE"
+    );
 }
 
 #[test]
@@ -918,21 +942,34 @@ fn call_stmnt_location_test() {
     foo(a:=3, b:=4);
     END_PROGRAM";
 
-
     let lexer = lexer::lex(source);
     let parse_result = parse(lexer).unwrap().0;
 
     let unit = &parse_result.implementations[0];
-    
-    let location = &unit.statements[0].get_location();
-    assert_eq!(source[location.start..location.end].to_string(), "foo(a:=3, b:=4)"); 
 
-    if let Statement::CallStatement{ operator, parameters, ..} = &unit.statements[0] {
+    let location = &unit.statements[0].get_location();
+    assert_eq!(
+        source[location.start..location.end].to_string(),
+        "foo(a:=3, b:=4)"
+    );
+
+    if let Statement::CallStatement {
+        operator,
+        parameters,
+        ..
+    } = &unit.statements[0]
+    {
         let operator_location = operator.as_ref().get_location();
-        assert_eq!(source[operator_location.start..operator_location.end].to_string(), "foo");
+        assert_eq!(
+            source[operator_location.start..operator_location.end].to_string(),
+            "foo"
+        );
 
         let parameters_statement = parameters.as_ref().as_ref();
         let parameters_location = parameters_statement.map(|it| it.get_location()).unwrap();
-        assert_eq!(source[parameters_location.start..parameters_location.end].to_string(), "a:=3, b:=4");
+        assert_eq!(
+            source[parameters_location.start..parameters_location.end].to_string(),
+            "a:=3, b:=4"
+        );
     }
 }

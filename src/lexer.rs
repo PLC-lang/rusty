@@ -1,9 +1,8 @@
-/// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-
-use logos::Lexer;
-use logos::Filter;
-use logos::Logos;
 use core::ops::Range;
+use logos::Filter;
+/// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
+use logos::Lexer;
+use logos::Logos;
 
 use crate::ast::NewLines;
 
@@ -17,12 +16,11 @@ pub struct RustyLexer<'a> {
 }
 
 impl<'a> RustyLexer<'a> {
-
     pub fn new(l: Lexer<'a, Token>, new_lines: NewLines) -> RustyLexer<'a> {
-        let mut lexer = RustyLexer{
+        let mut lexer = RustyLexer {
             lexer: l,
             token: Token::KeywordBy,
-            new_lines
+            new_lines,
         };
         lexer.advance();
         lexer
@@ -52,21 +50,24 @@ impl<'a> RustyLexer<'a> {
         let line_index = self.new_lines.get_line_of(self.range().start);
 
         let location = line_index.map_or_else(
-            || self.range(), 
+            || self.range(),
             |it| {
                 let new_line_offset = self.new_lines.get_offest_of_line(it);
                 let current_range = self.range();
-                (current_range.start - new_line_offset) .. (current_range.end - new_line_offset)
-            });
-        format!("line: {line:?} offset: {location:?}",
-                line = line_index.map_or_else(|| 1, |line_index| line_index),
-                location = location)
+                (current_range.start - new_line_offset)..(current_range.end - new_line_offset)
+            },
+        );
+        format!(
+            "line: {line:?} offset: {location:?}",
+            line = line_index.map_or_else(|| 1, |line_index| line_index),
+            location = location
+        )
     }
 }
 
-fn parse_comments(lexer : &mut Lexer<Token>) -> Filter<()> {
-    let (open,close) = get_closing_tag(lexer.slice());
-    let  remainder = lexer.remainder();
+fn parse_comments(lexer: &mut Lexer<Token>) -> Filter<()> {
+    let (open, close) = get_closing_tag(lexer.slice());
+    let remainder = lexer.remainder();
     let mut unclosed = 1;
     let chars = remainder.chars();
 
@@ -93,14 +94,13 @@ fn parse_comments(lexer : &mut Lexer<Token>) -> Filter<()> {
     Filter::Emit(())
 }
 
-fn get_closing_tag(open_tag : &str) -> (char,char) {
+fn get_closing_tag(open_tag: &str) -> (char, char) {
     match open_tag {
         "(*" => ('(', ')'),
         "/*" => ('/', '/'),
-        _ => unreachable!()
+        _ => unreachable!(),
     }
 }
-
 
 #[derive(Debug, PartialEq, Logos)]
 pub enum Token {
@@ -111,7 +111,6 @@ pub enum Token {
     #[regex(r"(?m)\r", logos::skip)]
     Error,
 
-    
     #[token("@EXTERNAL")]
     PropertyExternal,
 
@@ -123,12 +122,12 @@ pub enum Token {
 
     #[token("VAR_OUTPUT")]
     KeywordVarOutput,
-    
+
     #[token("VAR")]
     KeywordVar,
 
     #[token("VAR_GLOBAL")]
-    KeywordVarGlobal, 
+    KeywordVarGlobal,
 
     #[token("END_VAR")]
     KeywordEndVar,
@@ -141,7 +140,7 @@ pub enum Token {
 
     #[token("END_FUNCTION")]
     KeywordEndFunction,
- 
+
     #[token("FUNCTION_BLOCK")]
     KeywordFunctionBlock,
 
@@ -196,7 +195,7 @@ pub enum Token {
     #[token("]")]
     KeywordSquareParensClose,
 
-    #[token(",")] 
+    #[token(",")]
     KeywordComma,
 
     #[token("..")]
@@ -223,16 +222,16 @@ pub enum Token {
 
     #[token("FOR")]
     KeywordFor,
-    
+
     #[token("TO")]
     KeywordTo,
 
     #[token("BY")]
     KeywordBy,
- 
+
     #[token("DO")]
     KeywordDo,
- 
+
     #[token("END_FOR")]
     KeywordEndFor,
 
@@ -253,7 +252,7 @@ pub enum Token {
 
     #[token("CASE")]
     KeywordCase,
-    
+
     #[token("ARRAY")]
     KeywordArray,
 
@@ -262,7 +261,7 @@ pub enum Token {
 
     #[token("OF")]
     KeywordOf,
-    
+
     #[token("END_CASE")]
     KeywordEndCase,
 
@@ -313,16 +312,14 @@ pub enum Token {
     OperatorNot,
 
     //Identifiers
-
-    #[regex (r"[a-zA-Z_][a-zA-Z_0-9]*")]
+    #[regex(r"[a-zA-Z_][a-zA-Z_0-9]*")]
     Identifier,
 
     //Literals
-
-    #[regex (r"[0-9]+")]
+    #[regex(r"[0-9]+")]
     LiteralInteger,
 
-    #[regex ("[eE][+-]?[0-9]+")]
+    #[regex("[eE][+-]?[0-9]+")]
     LiteralExponent,
 
     #[token("TRUE")]
@@ -331,7 +328,7 @@ pub enum Token {
     #[token("FALSE")]
     LiteralFalse,
 
-    #[regex ("'((\\$.)|[^$'])*'")]
+    #[regex("'((\\$.)|[^$'])*'")]
     LiteralString,
 
     #[regex(r"[ \t\n\f]+", logos::skip)]
@@ -341,4 +338,3 @@ pub enum Token {
 pub fn lex(source: &str) -> RustyLexer {
     RustyLexer::new(Token::lexer(source), NewLines::new(source))
 }
-

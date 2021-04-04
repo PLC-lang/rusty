@@ -1,11 +1,10 @@
 /// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-
-use crate::{codegen, codegen_wihout_unwrap, compile_error::CompileError, generate_with_empty_program};
+use crate::{
+    codegen, codegen_wihout_unwrap, compile_error::CompileError, generate_with_empty_program,
+};
 use pretty_assertions::assert_eq;
 
 use super::{generate_program_boiler_plate, generate_program_boiler_plate_globals};
-
-
 
 #[test]
 fn program_with_variables_and_references_generates_void_function_and_struct_and_body() {
@@ -22,14 +21,14 @@ END_PROGRAM
     );
     let expected = generate_program_boiler_plate(
         "prg",
-        &[("i32","x"),("i32","y")],
+        &[("i32", "x"), ("i32", "y")],
         "void",
         "",
         "",
         r#"%load_x = load i32, i32* %x, align 4
   %load_y = load i32, i32* %y, align 4
   ret void
-"#
+"#,
     );
 
     assert_eq!(result, expected);
@@ -47,28 +46,33 @@ fn empty_global_variable_list_generates_nothing() {
 fn a_global_variables_generates_in_separate_global_variables() {
     let result = generate_with_empty_program!("VAR_GLOBAL gX : INT; gY : BOOL; END_VAR");
     let expected = generate_program_boiler_plate_globals(
-r#"
+        r#"
 @gX = global i16 0
-@gY = global i1 false"#);
+@gY = global i1 false"#,
+    );
 
     assert_eq!(result, expected);
 }
 
 #[test]
 fn two_global_variables_generates_in_separate_global_variables() {
-    let result = generate_with_empty_program!("VAR_GLOBAL gX : INT; gY : BOOL; END_VAR VAR_GLOBAL gA : INT; END_VAR");
+    let result = generate_with_empty_program!(
+        "VAR_GLOBAL gX : INT; gY : BOOL; END_VAR VAR_GLOBAL gA : INT; END_VAR"
+    );
     let expected = generate_program_boiler_plate_globals(
-r#"
+        r#"
 @gX = global i16 0
 @gY = global i1 false
-@gA = global i16 0"#);
+@gA = global i16 0"#,
+    );
 
     assert_eq!(result, expected);
 }
 
 #[test]
 fn global_variable_reference_is_generated() {
-    let function = codegen!(r"
+    let function = codegen!(
+        r"
     VAR_GLOBAL
         gX : INT;
     END_VAR
@@ -79,28 +83,38 @@ fn global_variable_reference_is_generated() {
     gX := 20;
     x := gX;
     END_PROGRAM
-    ");
+    "
+    );
 
-    let expected = generate_program_boiler_plate("prg", &[("i16","x")], "void", "", 
-r"
+    let expected = generate_program_boiler_plate(
+        "prg",
+        &[("i16", "x")],
+        "void",
+        "",
+        r"
 @gX = global i16 0", //global vars
-r"store i16 20, i16* @gX, align 2
+        r"store i16 20, i16* @gX, align 2
   %load_gX = load i16, i16* @gX, align 2
   store i16 %load_gX, i16* %x, align 2
   ret void
 ", //body
     );
 
-    assert_eq!(function,expected)
-
+    assert_eq!(function, expected)
 }
 
 #[test]
 fn empty_program_with_name_generates_void_function() {
     let result = codegen!("PROGRAM prg END_PROGRAM");
-    let expected = generate_program_boiler_plate("prg", &[], "void", "", "",
-    r#"  ret void
-"#);
+    let expected = generate_program_boiler_plate(
+        "prg",
+        &[],
+        "void",
+        "",
+        "",
+        r#"  ret void
+"#,
+    );
 
     assert_eq!(result, expected);
 }
@@ -108,8 +122,7 @@ fn empty_program_with_name_generates_void_function() {
 #[test]
 fn empty_function_with_name_generates_int_function() {
     let result = codegen!("FUNCTION foo : INT END_FUNCTION");
-    let expected = 
-    r#"; ModuleID = 'main'
+    let expected = r#"; ModuleID = 'main'
 source_filename = "main"
 
 %foo_interface = type {}
@@ -121,7 +134,7 @@ entry:
   ret i16 %foo_ret
 }
 "#;
- 
+
     assert_eq!(result, expected);
 }
 #[test]
@@ -135,14 +148,18 @@ END_VAR
 END_PROGRAM
 "#
     );
-    let expected = generate_program_boiler_plate("prg", &[("i32","x"),("i32","y")],"void","","",
-    r#"ret void
-"#);
+    let expected = generate_program_boiler_plate(
+        "prg",
+        &[("i32", "x"), ("i32", "y")],
+        "void",
+        "",
+        "",
+        r#"ret void
+"#,
+    );
 
     assert_eq!(result, expected);
 }
-
-
 
 #[test]
 fn program_with_bool_variables_and_references_generates_void_function_and_struct_and_body() {
@@ -159,14 +176,14 @@ END_PROGRAM
     );
     let expected = generate_program_boiler_plate(
         "prg",
-        &[("i1","x"),("i1","y")],
+        &[("i1", "x"), ("i1", "y")],
         "void",
         "",
         "",
         r#"%load_x = load i1, i1* %x, align 1
   %load_y = load i1, i1* %y, align 1
   ret void
-"#
+"#,
     );
 
     assert_eq!(result, expected);
@@ -186,7 +203,7 @@ END_PROGRAM
     );
     let expected = generate_program_boiler_plate(
         "prg",
-        &[("i32","x"),("i32","y")],
+        &[("i32", "x"), ("i32", "y")],
         "void",
         "",
         "",
@@ -194,7 +211,7 @@ END_PROGRAM
   %load_y = load i32, i32* %y, align 4
   %tmpVar = add i32 %load_x, %load_y
   ret void
-"#
+"#,
     );
 
     assert_eq!(result, expected);
@@ -213,14 +230,14 @@ END_PROGRAM
     );
     let expected = generate_program_boiler_plate(
         "prg",
-        &[("i32","x")],
+        &[("i32", "x")],
         "void",
         "",
         "",
         r#"%load_x = load i32, i32* %x, align 4
   %tmpVar = add i32 %load_x, 7
   ret void
-"#
+"#,
     );
 
     assert_eq!(result, expected);
@@ -239,18 +256,17 @@ END_PROGRAM
     );
     let expected = generate_program_boiler_plate(
         "prg",
-        &[("i32","y")],
+        &[("i32", "y")],
         "void",
         "",
         "",
         r#"store i32 7, i32* %y, align 4
   ret void
-"#
+"#,
     );
 
     assert_eq!(result, expected);
 }
-
 
 #[test]
 fn program_with_real_assignment() {
@@ -265,13 +281,13 @@ END_PROGRAM
     );
     let expected = generate_program_boiler_plate(
         "prg",
-        &[("float","y")],
+        &[("float", "y")],
         "void",
         "",
         "",
         r#"store float 1.562500e-01, float* %y, align 4
   ret void
-"#
+"#,
     );
 
     assert_eq!(result, expected);
@@ -374,7 +390,6 @@ entry:
 "#;
 
     assert_eq!(result, expected);
-
 }
 
 #[test]
@@ -394,7 +409,7 @@ END_PROGRAM
     );
     let expected = generate_program_boiler_plate(
         "prg",
-        &[("float", "x"),("float","y"), ("float", "z")],
+        &[("float", "x"), ("float", "y"), ("float", "z")],
         "void",
         "",
         "",
@@ -405,12 +420,11 @@ END_PROGRAM
   %tmpVar = fadd float %load_x, %load_y
   store float %tmpVar, float* %z, align 4
   ret void
-"#
+"#,
     );
 
     assert_eq!(result, expected);
 }
-
 
 #[test]
 fn program_with_boolean_assignment_generates_void_function_and_struct_and_body() {
@@ -426,14 +440,14 @@ END_PROGRAM
     );
     let expected = generate_program_boiler_plate(
         "prg",
-        &[("i1","y")],
+        &[("i1", "y")],
         "void",
         "",
         "",
         r#"store i1 true, i1* %y, align 1
   store i1 false, i1* %y, align 1
   ret void
-"#
+"#,
     );
 
     assert_eq!(result, expected);
@@ -457,7 +471,7 @@ END_PROGRAM
     );
     let expected = generate_program_boiler_plate(
         "prg",
-        &[("i32","x"),("i32","y")],
+        &[("i32", "x"), ("i32", "y")],
         "void",
         "",
         "",
@@ -477,7 +491,7 @@ END_PROGRAM
   %tmpVar8 = srem i32 %load_x7, 5
   store i32 %tmpVar8, i32* %y, align 4
   ret void
-"#
+"#,
     );
 
     assert_eq!(result, expected);
@@ -502,7 +516,7 @@ END_PROGRAM
     );
     let expected = generate_program_boiler_plate(
         "prg",
-        &[("i32","x"),("i1","y")],
+        &[("i32", "x"), ("i1", "y")],
         "void",
         "",
         "",
@@ -525,7 +539,7 @@ END_PROGRAM
   %tmpVar10 = icmp sle i32 %load_x9, 6
   store i1 %tmpVar10, i1* %y, align 1
   ret void
-"#
+"#,
     );
 
     assert_eq!(result, expected);
@@ -545,7 +559,7 @@ END_PROGRAM
     );
     let expected = generate_program_boiler_plate(
         "prg",
-        &[("i1","x"),("i1","y")],
+        &[("i1", "x"), ("i1", "y")],
         "void",
         "",
         "",
@@ -560,7 +574,7 @@ END_PROGRAM
 3:                                                ; preds = %2, %entry
   %4 = phi i1 [ %load_x, %entry ], [ %load_y, %2 ]
   ret void
-"#
+"#,
     );
 
     assert_eq!(result, expected);
@@ -580,7 +594,7 @@ END_PROGRAM
     );
     let expected = generate_program_boiler_plate(
         "prg",
-        &[("i1","x"),("i1","y")],
+        &[("i1", "x"), ("i1", "y")],
         "void",
         "",
         "",
@@ -595,7 +609,7 @@ END_PROGRAM
 3:                                                ; preds = %2, %entry
   %4 = phi i1 [ %load_x, %entry ], [ %load_y, %2 ]
   ret void
-"#
+"#,
     );
 
     assert_eq!(result, expected);
@@ -615,7 +629,7 @@ END_PROGRAM
     );
     let expected = generate_program_boiler_plate(
         "prg",
-        &[("i1","x"),("i1","y")],
+        &[("i1", "x"), ("i1", "y")],
         "void",
         "",
         "",
@@ -623,7 +637,7 @@ END_PROGRAM
   %load_y = load i1, i1* %y, align 1
   %tmpVar = xor i1 %load_x, %load_y
   ret void
-"#
+"#,
     );
 
     assert_eq!(result, expected);
@@ -644,7 +658,7 @@ END_PROGRAM
     );
     let expected = generate_program_boiler_plate(
         "prg",
-        &[("i1","x"),("i1","y")],
+        &[("i1", "x"), ("i1", "y")],
         "void",
         "",
         "",
@@ -662,7 +676,7 @@ END_PROGRAM
 3:                                                ; preds = %2, %entry
   %4 = phi i1 [ %load_x1, %entry ], [ %tmpVar2, %2 ]
   ret void
-"#
+"#,
     );
 
     assert_eq!(result, expected);
@@ -683,7 +697,7 @@ END_PROGRAM
     );
     let expected = generate_program_boiler_plate(
         "prg",
-        &[("i32","z"),("i1","y")],
+        &[("i32", "z"), ("i1", "y")],
         "void",
         "",
         "",
@@ -711,7 +725,7 @@ END_PROGRAM
 7:                                                ; preds = %6, %3
   %8 = phi i1 [ %tmpVar3, %3 ], [ %load_y4, %6 ]
   ret void
-"#
+"#,
     );
 
     assert_eq!(result, expected);
@@ -733,7 +747,7 @@ fn program_with_signed_combined_expressions() {
     );
     let expected = generate_program_boiler_plate(
         "prg",
-        &[("i32","z"),("i32","y")],
+        &[("i32", "z"), ("i32", "y")],
         "void",
         "",
         "",
@@ -746,7 +760,7 @@ fn program_with_signed_combined_expressions() {
   %tmpVar4 = sub i32 0, %load_y
   %tmpVar5 = add i32 %tmpVar4, 3
   ret void
-"#
+"#,
     );
 
     assert_eq!(result, expected);
@@ -778,12 +792,21 @@ fn if_elsif_else_generator_test() {
         END_PROGRAM
         "
     );
-    let expected = generate_program_boiler_plate("prg",
-    &[("i32","x"),("i32","y"),("i32", "z"), ("i32", "u"), ("i1", "b1"), ("i1", "b2"), ("i1", "b3")],
-    "void",
-    "",
-    "",
-r#"%load_b1 = load i1, i1* %b1, align 1
+    let expected = generate_program_boiler_plate(
+        "prg",
+        &[
+            ("i32", "x"),
+            ("i32", "y"),
+            ("i32", "z"),
+            ("i32", "u"),
+            ("i1", "b1"),
+            ("i1", "b2"),
+            ("i1", "b3"),
+        ],
+        "void",
+        "",
+        "",
+        r#"%load_b1 = load i1, i1* %b1, align 1
   br i1 %load_b1, label %condition_body, label %branch
 
 condition_body:                                   ; preds = %entry
@@ -812,7 +835,7 @@ else:                                             ; preds = %branch1
 
 continue:                                         ; preds = %else, %condition_body3, %condition_body2, %condition_body
   ret void
-"#
+"#,
     );
 
     assert_eq!(result, expected);
@@ -833,12 +856,13 @@ fn if_generator_test() {
         END_PROGRAM
         "
     );
-    let expected = generate_program_boiler_plate("prg",
-    &[("i32","x"),("i1","b1")],
-    "void",
-    "",
-    "",
-r#"%load_b1 = load i1, i1* %b1, align 1
+    let expected = generate_program_boiler_plate(
+        "prg",
+        &[("i32", "x"), ("i1", "b1")],
+        "void",
+        "",
+        "",
+        r#"%load_b1 = load i1, i1* %b1, align 1
   br i1 %load_b1, label %condition_body, label %continue
 
 condition_body:                                   ; preds = %entry
@@ -847,7 +871,8 @@ condition_body:                                   ; preds = %entry
 
 continue:                                         ; preds = %condition_body, %entry
   ret void
-"#);
+"#,
+    );
 
     assert_eq!(result, expected);
 }
@@ -867,12 +892,13 @@ fn if_with_expression_generator_test() {
         END_PROGRAM
         "
     );
-    let expected = generate_program_boiler_plate("prg",
-    &[("i32","x"),("i1","b1")],
-    "void",
-    "",
-    "",
-r#"%load_x = load i32, i32* %x, align 4
+    let expected = generate_program_boiler_plate(
+        "prg",
+        &[("i32", "x"), ("i1", "b1")],
+        "void",
+        "",
+        "",
+        r#"%load_x = load i32, i32* %x, align 4
   %tmpVar = icmp sgt i32 %load_x, 1
   %1 = icmp ne i1 %tmpVar, false
   br i1 %1, label %3, label %2
@@ -891,7 +917,8 @@ continue:                                         ; preds = %condition_body, %3
 3:                                                ; preds = %2, %entry
   %4 = phi i1 [ %tmpVar, %entry ], [ %load_b1, %2 ]
   br i1 %4, label %condition_body, label %continue
-"#);
+"#,
+    );
 
     assert_eq!(result, expected);
 }
@@ -911,12 +938,13 @@ fn for_statement_with_steps_test() {
         "
     );
 
-    let expected = generate_program_boiler_plate("prg",
-    &[("i32","x")],
-    "void",
-    "",
-    "",
-r#"store i32 3, i32* %x, align 4
+    let expected = generate_program_boiler_plate(
+        "prg",
+        &[("i32", "x")],
+        "void",
+        "",
+        "",
+        r#"store i32 3, i32* %x, align 4
   br label %condition_check
 
 condition_check:                                  ; preds = %for_body, %entry
@@ -932,7 +960,8 @@ for_body:                                         ; preds = %condition_check
 
 continue:                                         ; preds = %condition_check
   ret void
-"#);
+"#,
+    );
 
     assert_eq!(result, expected);
 }
@@ -952,11 +981,13 @@ fn for_statement_without_steps_test() {
         "
     );
 
-    let expected = generate_program_boiler_plate("prg",&[("i32","x")],
-    "void",
-    "",
-    "",
-r#"store i32 3, i32* %x, align 4
+    let expected = generate_program_boiler_plate(
+        "prg",
+        &[("i32", "x")],
+        "void",
+        "",
+        "",
+        r#"store i32 3, i32* %x, align 4
   br label %condition_check
 
 condition_check:                                  ; preds = %for_body, %entry
@@ -972,7 +1003,8 @@ for_body:                                         ; preds = %condition_check
 
 continue:                                         ; preds = %condition_check
   ret void
-"#);
+"#,
+    );
 
     assert_eq!(result, expected);
 }
@@ -992,11 +1024,13 @@ fn for_statement_continue() {
         "
     );
 
-    let expected = generate_program_boiler_plate("prg",&[("i32","x")],
-    "void",
-    "",
-    "",
-r#"store i32 3, i32* %x, align 4
+    let expected = generate_program_boiler_plate(
+        "prg",
+        &[("i32", "x")],
+        "void",
+        "",
+        "",
+        r#"store i32 3, i32* %x, align 4
   br label %condition_check
 
 condition_check:                                  ; preds = %for_body, %entry
@@ -1012,7 +1046,8 @@ for_body:                                         ; preds = %condition_check
 continue:                                         ; preds = %condition_check
   %load_x2 = load i32, i32* %x, align 4
   ret void
-"#);
+"#,
+    );
 
     assert_eq!(result, expected);
 }
@@ -1035,12 +1070,13 @@ fn for_statement_with_references_steps_test() {
         "
     );
 
-    let expected = generate_program_boiler_plate("prg",
-    &[("i32","step"),("i32","x"),("i32","y"),("i32","z")],
-    "void",
-    "",
-    "",
-r#"%load_y = load i32, i32* %y, align 4
+    let expected = generate_program_boiler_plate(
+        "prg",
+        &[("i32", "step"), ("i32", "x"), ("i32", "y"), ("i32", "z")],
+        "void",
+        "",
+        "",
+        r#"%load_y = load i32, i32* %y, align 4
   store i32 %load_y, i32* %x, align 4
   br label %condition_check
 
@@ -1059,7 +1095,8 @@ for_body:                                         ; preds = %condition_check
 
 continue:                                         ; preds = %condition_check
   ret void
-"#);
+"#,
+    );
 
     assert_eq!(result, expected);
 }
@@ -1079,11 +1116,13 @@ fn while_statement() {
         "
     );
 
-    let expected = generate_program_boiler_plate("prg",&[("i1","x")], 
-    "void",
-    "",
-    "",
-r#"br label %condition_check
+    let expected = generate_program_boiler_plate(
+        "prg",
+        &[("i1", "x")],
+        "void",
+        "",
+        "",
+        r#"br label %condition_check
 
 condition_check:                                  ; preds = %entry, %while_body
   %load_x = load i1, i1* %x, align 1
@@ -1095,7 +1134,8 @@ while_body:                                       ; preds = %condition_check
 
 continue:                                         ; preds = %condition_check
   ret void
-"#);
+"#,
+    );
 
     assert_eq!(result, expected);
 }
@@ -1115,11 +1155,13 @@ fn while_with_expression_statement() {
         "
     );
 
-    let expected = generate_program_boiler_plate("prg",&[("i1","x")], 
-    "void",
-    "",
-    "",
-r#"br label %condition_check
+    let expected = generate_program_boiler_plate(
+        "prg",
+        &[("i1", "x")],
+        "void",
+        "",
+        "",
+        r#"br label %condition_check
 
 condition_check:                                  ; preds = %entry, %while_body
   %load_x = load i1, i1* %x, align 1
@@ -1133,7 +1175,8 @@ while_body:                                       ; preds = %condition_check
 
 continue:                                         ; preds = %condition_check
   ret void
-"#);
+"#,
+    );
 
     assert_eq!(result, expected);
 }
@@ -1154,11 +1197,13 @@ fn repeat_statement() {
         "
     );
 
-    let expected = generate_program_boiler_plate("prg",&[("i1","x")], 
-    "void",
-    "",
-    "",
-r#"br label %while_body
+    let expected = generate_program_boiler_plate(
+        "prg",
+        &[("i1", "x")],
+        "void",
+        "",
+        "",
+        r#"br label %while_body
 
 condition_check:                                  ; preds = %while_body
   %load_x = load i1, i1* %x, align 1
@@ -1170,11 +1215,11 @@ while_body:                                       ; preds = %entry, %condition_c
 
 continue:                                         ; preds = %condition_check
   ret void
-"#);
+"#,
+    );
 
     assert_eq!(result, expected);
 }
-
 
 #[test]
 fn simple_case_statement() {
@@ -1196,11 +1241,13 @@ fn simple_case_statement() {
         "
     );
 
-    let expected = generate_program_boiler_plate("prg",&[("i32","x"),("i32","y")], 
-    "void",
-    "",
-    "",
-r#"%load_x = load i32, i32* %x, align 4
+    let expected = generate_program_boiler_plate(
+        "prg",
+        &[("i32", "x"), ("i32", "y")],
+        "void",
+        "",
+        "",
+        r#"%load_x = load i32, i32* %x, align 4
   switch i32 %load_x, label %else [
     i32 1, label %case
     i32 2, label %case1
@@ -1225,7 +1272,8 @@ else:                                             ; preds = %entry
 
 continue:                                         ; preds = %else, %case2, %case1, %case
   ret void
-"#);
+"#,
+    );
 
     assert_eq!(result, expected);
 }
@@ -1250,11 +1298,13 @@ fn simple_case_i8_statement() {
         "
     );
 
-    let expected = generate_program_boiler_plate("prg",&[("i8","x"),("i8","y")], 
-    "void",
-    "",
-    "",
-r#"%load_x = load i8, i8* %x, align 1
+    let expected = generate_program_boiler_plate(
+        "prg",
+        &[("i8", "x"), ("i8", "y")],
+        "void",
+        "",
+        "",
+        r#"%load_x = load i8, i8* %x, align 1
   switch i8 %load_x, label %else [
     i8 1, label %case
     i8 2, label %case1
@@ -1279,7 +1329,8 @@ else:                                             ; preds = %entry
 
 continue:                                         ; preds = %else, %case2, %case1, %case
   ret void
-"#);
+"#,
+    );
 
     assert_eq!(result, expected);
 }
@@ -1303,11 +1354,13 @@ fn case_with_multiple_labels_statement() {
         "
     );
 
-    let expected = generate_program_boiler_plate("prg",&[("i32","x"),("i32","y")], 
-    "void",
-    "",
-    "",
-r#"%load_x = load i32, i32* %x, align 4
+    let expected = generate_program_boiler_plate(
+        "prg",
+        &[("i32", "x"), ("i32", "y")],
+        "void",
+        "",
+        "",
+        r#"%load_x = load i32, i32* %x, align 4
   switch i32 %load_x, label %else [
     i32 1, label %case
     i32 2, label %case
@@ -1329,7 +1382,8 @@ else:                                             ; preds = %entry
 
 continue:                                         ; preds = %else, %case1, %case
   ret void
-"#);
+"#,
+    );
 
     assert_eq!(result, expected);
 }
@@ -1350,11 +1404,13 @@ fn case_with_ranges_statement() {
         "
     );
 
-    let expected = generate_program_boiler_plate("prg",&[("i32","x"),("i32","y")], 
-    "void",
-    "",
-    "",
-r#"%load_x = load i32, i32* %x, align 4
+    let expected = generate_program_boiler_plate(
+        "prg",
+        &[("i32", "x"), ("i32", "y")],
+        "void",
+        "",
+        "",
+        r#"%load_x = load i32, i32* %x, align 4
   switch i32 %load_x, label %else [
   ]
 
@@ -1377,7 +1433,8 @@ range_else:                                       ; preds = %range_then, %else
 
 continue:                                         ; preds = %range_else, %case
   ret void
-"#);
+"#,
+    );
 
     assert_eq!(result, expected);
 }
@@ -1437,7 +1494,7 @@ continue:                                         ; preds = %output
 }
 "#;
 
-  assert_eq!(result, expected);
+    assert_eq!(result, expected);
 }
 
 #[test]
@@ -1496,7 +1553,7 @@ continue:                                         ; preds = %output
 }
 "#;
 
-  assert_eq!(result, expected);
+    assert_eq!(result, expected);
 }
 
 #[test]
@@ -1542,7 +1599,7 @@ continue:                                         ; preds = %output
 }
 "#;
 
-  assert_eq!(result, expected);
+    assert_eq!(result, expected);
 }
 
 #[test]
@@ -1634,7 +1691,7 @@ continue4:                                        ; preds = %output3
 }
 "#;
 
-  assert_eq!(result, expected);
+    assert_eq!(result, expected);
 }
 
 #[test]
@@ -1698,7 +1755,7 @@ continue:                                         ; preds = %output
 }
 "#;
 
-  assert_eq!(result, expected);
+    assert_eq!(result, expected);
 }
 
 #[test]
@@ -1766,7 +1823,7 @@ continue:                                         ; preds = %output
 }
 "#;
 
-  assert_eq!(result, expected);
+    assert_eq!(result, expected);
 }
 
 #[test]
@@ -1807,9 +1864,8 @@ entry:
 }
 "#;
 
-  assert_eq!(result, expected);
+    assert_eq!(result, expected);
 }
-
 
 #[test]
 fn program_called_in_program() {
@@ -1857,7 +1913,7 @@ continue:                                         ; preds = %output
 }
 "#;
 
-  assert_eq!(result, expected);
+    assert_eq!(result, expected);
 }
 
 #[test]
@@ -1911,7 +1967,7 @@ entry:
 }
 "#;
 
-  assert_eq!(result, expected);
+    assert_eq!(result, expected);
 }
 
 #[test]
@@ -1965,7 +2021,7 @@ entry:
 }
 "#;
 
-  assert_eq!(result, expected);
+    assert_eq!(result, expected);
 }
 
 #[test]
@@ -2029,7 +2085,7 @@ entry:
 }
 "#;
 
-  assert_eq!(result, expected);
+    assert_eq!(result, expected);
 }
 
 #[test]
@@ -2097,7 +2153,7 @@ entry:
 }
 "#;
 
-  assert_eq!(result, expected);
+    assert_eq!(result, expected);
 }
 
 #[test]
@@ -2154,7 +2210,7 @@ continue:                                         ; preds = %output
 }
 "#;
 
-  assert_eq!(result, expected);
+    assert_eq!(result, expected);
 }
 
 #[test]
@@ -2211,7 +2267,7 @@ continue:                                         ; preds = %output
 }
 "#;
 
-  assert_eq!(result, expected);
+    assert_eq!(result, expected);
 }
 
 #[test]
@@ -2275,7 +2331,7 @@ continue:                                         ; preds = %output
 }
 "#;
 
-  assert_eq!(result, expected);
+    assert_eq!(result, expected);
 }
 
 #[test]
@@ -2339,7 +2395,7 @@ continue:                                         ; preds = %output
 }
 "#;
 
-  assert_eq!(result, expected);
+    assert_eq!(result, expected);
 }
 
 #[test]
@@ -2375,7 +2431,7 @@ fn function_called_before_decalaration() {
 
 #[test]
 fn function_called_when_shadowed() {
-  let result = codegen!(
+    let result = codegen!(
         "
         FUNCTION foo : DINT
         foo := 1;
@@ -2428,12 +2484,12 @@ continue:                                         ; preds = %output
 }
 "#;
 
-  assert_eq!(result, expected);
+    assert_eq!(result, expected);
 }
 
 #[test]
 fn function_block_instance_call() {
-  let result = codegen!(
+    let result = codegen!(
         "
         FUNCTION_BLOCK foo
         END_FUNCTION_BLOCK
@@ -2480,13 +2536,13 @@ continue:                                         ; preds = %output
 }
 "#;
 
-  assert_eq!(result, expected);
+    assert_eq!(result, expected);
 }
 
 #[test]
 fn function_block_qualified_instance_call() {
-  let result = codegen!(
-      "
+    let result = codegen!(
+        "
         FUNCTION_BLOCK foo
         VAR
           bar_inst : bar;
@@ -2502,7 +2558,8 @@ fn function_block_qualified_instance_call() {
         END_VAR
           foo_inst.bar_inst();
         END_PROGRAM
-      ");
+      "
+    );
 
     let expected = r#"; ModuleID = 'main'
 source_filename = "main"
@@ -2545,12 +2602,12 @@ continue:                                         ; preds = %output
 }
 "#;
 
-  assert_eq!(result, expected);
+    assert_eq!(result, expected);
 }
 
 #[test]
 fn reference_qualified_name() {
-  let result = codegen!(
+    let result = codegen!(
         "
         FUNCTION_BLOCK fb
         VAR_INPUT
@@ -2612,12 +2669,12 @@ entry:
 }
 "#;
 
-  assert_eq!(result, expected);
+    assert_eq!(result, expected);
 }
 
 #[test]
 fn structs_are_generated() {
-  let result = codegen!(
+    let result = codegen!(
         "
         TYPE MyStruct: STRUCT
           a: DINT;
@@ -2639,12 +2696,12 @@ source_filename = "main"
 @x = global %MyStruct zeroinitializer
 "#;
 
-  assert_eq!(result, expected);
+    assert_eq!(result, expected);
 }
 
 #[test]
 fn arrays_are_generated() {
-  let result = codegen!(
+    let result = codegen!(
         "
         TYPE MyArray: ARRAY[0..9] OF INT; END_TYPE
 
@@ -2660,12 +2717,12 @@ source_filename = "main"
 @x = external global [10 x i16]
 "#;
 
-  assert_eq!(result, expected);
+    assert_eq!(result, expected);
 }
 
 #[test]
 fn structs_members_can_be_referenced() {
-  let result = codegen!(
+    let result = codegen!(
         "
         TYPE MyStruct: STRUCT
           a: DINT;
@@ -2699,13 +2756,12 @@ entry:
 }
 "#;
 
-  assert_eq!(result, expected);
+    assert_eq!(result, expected);
 }
-
 
 #[test]
 fn enums_are_generated() {
-  let result = codegen!(
+    let result = codegen!(
         "
         TYPE MyEnum: (red, yellow, green);
         END_TYPE
@@ -2725,14 +2781,13 @@ source_filename = "main"
 @x = global i32 0
 "#;
 
-  assert_eq!(result, expected);
+    assert_eq!(result, expected);
 }
-
 
 #[test]
 fn enum_members_can_be_used_in_asignments() {
-  let result = codegen!(
-      "
+    let result = codegen!(
+        "
       TYPE MyEnum: (red, yellow, green);
       END_TYPE
 
@@ -2770,12 +2825,12 @@ entry:
 }
 "#;
 
-  assert_eq!(result, expected);
+    assert_eq!(result, expected);
 }
 
 #[test]
 fn inline_structs_are_generated() {
-  let result = codegen!(
+    let result = codegen!(
         "
         
         VAR_GLOBAL
@@ -2795,12 +2850,12 @@ source_filename = "main"
 @x = global %__global_x zeroinitializer
 "#;
 
-  assert_eq!(result, expected);
+    assert_eq!(result, expected);
 }
 
 #[test]
 fn accessing_nested_structs() {
-  let result = codegen!(
+    let result = codegen!(
         "
         TYPE InnerStruct:
         STRUCT 
@@ -2849,12 +2904,12 @@ entry:
 }
 "#;
 
-  assert_eq!(result, expected);
+    assert_eq!(result, expected);
 }
 
 #[test]
 fn inline_enums_are_generated() {
-  let result = codegen!(
+    let result = codegen!(
         "
         VAR_GLOBAL
           x : (red, yellow, green);
@@ -2871,7 +2926,7 @@ source_filename = "main"
 @x = global i32 0
 "#;
 
-  assert_eq!(result, expected);
+    assert_eq!(result, expected);
 }
 
 #[test]
@@ -2928,13 +2983,15 @@ fn array_of_int_type_generated() {
         "
     );
 
-    let expected = generate_program_boiler_plate("prg",
-    &[("[11 x i16]","x")],
-    "void",
-    "",
-    "",
-r#"ret void
-"#);
+    let expected = generate_program_boiler_plate(
+        "prg",
+        &[("[11 x i16]", "x")],
+        "void",
+        "",
+        "",
+        r#"ret void
+"#,
+    );
     assert_eq!(result, expected);
 }
 
@@ -2952,12 +3009,13 @@ fn array_of_int_type_used() {
         "
     );
 
-    let expected = generate_program_boiler_plate("prg",
-    &[("[4 x i32]","x")],
-    "void",
-    "",
-    "",
-r#"%tmpVar = getelementptr inbounds [4 x i32], [4 x i32]* %x, i32 0, i32 1
+    let expected = generate_program_boiler_plate(
+        "prg",
+        &[("[4 x i32]", "x")],
+        "void",
+        "",
+        "",
+        r#"%tmpVar = getelementptr inbounds [4 x i32], [4 x i32]* %x, i32 0, i32 1
   store i32 3, i32* %tmpVar, align 4
   %tmpVar1 = getelementptr inbounds [4 x i32], [4 x i32]* %x, i32 0, i32 2
   %tmpVar2 = getelementptr inbounds [4 x i32], [4 x i32]* %x, i32 0, i32 3
@@ -2965,7 +3023,8 @@ r#"%tmpVar = getelementptr inbounds [4 x i32], [4 x i32]* %x, i32 0, i32 1
   %tmpVar3 = add i32 %load_tmpVar, 3
   store i32 %tmpVar3, i32* %tmpVar1, align 4
   ret void
-"#);
+"#,
+    );
     assert_eq!(result, expected);
 }
 
@@ -2981,13 +3040,15 @@ fn array_of_int_non_zero_type_generated() {
         "
     );
 
-    let expected = generate_program_boiler_plate("prg",
-    &[("[11 x i16]","x")],
-    "void",
-    "",
-    "",
-r#"ret void
-"#);
+    let expected = generate_program_boiler_plate(
+        "prg",
+        &[("[11 x i16]", "x")],
+        "void",
+        "",
+        "",
+        r#"ret void
+"#,
+    );
     assert_eq!(result, expected);
 }
 
@@ -3005,12 +3066,13 @@ fn array_of_int_type_with_non_zero_start_used() {
         "
     );
 
-    let expected = generate_program_boiler_plate("prg",
-    &[("[3 x i32]","x")],
-    "void",
-    "",
-    "",
-r#"%tmpVar = getelementptr inbounds [3 x i32], [3 x i32]* %x, i32 0, i32 0
+    let expected = generate_program_boiler_plate(
+        "prg",
+        &[("[3 x i32]", "x")],
+        "void",
+        "",
+        "",
+        r#"%tmpVar = getelementptr inbounds [3 x i32], [3 x i32]* %x, i32 0, i32 0
   store i32 3, i32* %tmpVar, align 4
   %tmpVar1 = getelementptr inbounds [3 x i32], [3 x i32]* %x, i32 0, i32 1
   %tmpVar2 = getelementptr inbounds [3 x i32], [3 x i32]* %x, i32 0, i32 2
@@ -3018,7 +3080,8 @@ r#"%tmpVar = getelementptr inbounds [3 x i32], [3 x i32]* %x, i32 0, i32 0
   %tmpVar3 = add i32 %load_tmpVar, 3
   store i32 %tmpVar3, i32* %tmpVar1, align 4
   ret void
-"#);
+"#,
+    );
     assert_eq!(result, expected);
 }
 
@@ -3034,13 +3097,15 @@ fn array_of_int_non_zero_negative_type_generated() {
         "
     );
 
-    let expected = generate_program_boiler_plate("prg",
-    &[("[31 x i16]","x")],
-    "void",
-    "",
-    "",
-r#"ret void
-"#);
+    let expected = generate_program_boiler_plate(
+        "prg",
+        &[("[31 x i16]", "x")],
+        "void",
+        "",
+        "",
+        r#"ret void
+"#,
+    );
     assert_eq!(result, expected);
 }
 
@@ -3058,12 +3123,13 @@ fn array_of_int_type_with_non_zero_negative_start_used() {
         "
     );
 
-    let expected = generate_program_boiler_plate("prg",
-    &[("[6 x i32]","x")],
-    "void",
-    "",
-    "",
-r#"%tmpVar = getelementptr inbounds [6 x i32], [6 x i32]* %x, i32 0, i32 1
+    let expected = generate_program_boiler_plate(
+        "prg",
+        &[("[6 x i32]", "x")],
+        "void",
+        "",
+        "",
+        r#"%tmpVar = getelementptr inbounds [6 x i32], [6 x i32]* %x, i32 0, i32 1
   store i32 3, i32* %tmpVar, align 4
   %tmpVar1 = getelementptr inbounds [6 x i32], [6 x i32]* %x, i32 0, i32 4
   %tmpVar2 = getelementptr inbounds [6 x i32], [6 x i32]* %x, i32 0, i32 5
@@ -3071,7 +3137,8 @@ r#"%tmpVar = getelementptr inbounds [6 x i32], [6 x i32]* %x, i32 0, i32 1
   %tmpVar3 = add i32 %load_tmpVar, 3
   store i32 %tmpVar3, i32* %tmpVar1, align 4
   ret void
-"#);
+"#,
+    );
     assert_eq!(result, expected);
 }
 
@@ -3087,13 +3154,15 @@ fn multidim_array_declaration() {
         "
     );
 
-    let expected = generate_program_boiler_plate("prg",
-    &[("[2 x [3 x i16]]","x")],
-    "void",
-    "",
-    "",
-r#"ret void
-"#);
+    let expected = generate_program_boiler_plate(
+        "prg",
+        &[("[2 x [3 x i16]]", "x")],
+        "void",
+        "",
+        "",
+        r#"ret void
+"#,
+    );
     assert_eq!(result, expected);
 }
 
@@ -3111,12 +3180,13 @@ fn multidim_array_access() {
         "
     );
 
-    let expected = generate_program_boiler_plate("prg",
-    &[("[4 x [2 x i32]]","x")],
-    "void",
-    "",
-    "",
-r#"%tmpVar = getelementptr inbounds [4 x [2 x i32]], [4 x [2 x i32]]* %x, i32 0, i32 2, i32 0
+    let expected = generate_program_boiler_plate(
+        "prg",
+        &[("[4 x [2 x i32]]", "x")],
+        "void",
+        "",
+        "",
+        r#"%tmpVar = getelementptr inbounds [4 x [2 x i32]], [4 x [2 x i32]]* %x, i32 0, i32 2, i32 0
   store i32 3, i32* %tmpVar, align 4
   %tmpVar1 = getelementptr inbounds [4 x [2 x i32]], [4 x [2 x i32]]* %x, i32 0, i32 3, i32 1
   %tmpVar2 = getelementptr inbounds [4 x [2 x i32]], [4 x [2 x i32]]* %x, i32 0, i32 1, i32 1
@@ -3124,7 +3194,8 @@ r#"%tmpVar = getelementptr inbounds [4 x [2 x i32]], [4 x [2 x i32]]* %x, i32 0,
   %tmpVar3 = add i32 %load_tmpVar, 3
   store i32 %tmpVar3, i32* %tmpVar1, align 4
   ret void
-"#);
+"#,
+    );
     assert_eq!(result, expected);
 }
 
@@ -3140,13 +3211,15 @@ fn nested_array_declaration() {
         "
     );
 
-    let expected = generate_program_boiler_plate("prg",
-    &[("[3 x [2 x i16]]","x")],
-    "void",
-    "",
-    "",
-r#"ret void
-"#);
+    let expected = generate_program_boiler_plate(
+        "prg",
+        &[("[3 x [2 x i16]]", "x")],
+        "void",
+        "",
+        "",
+        r#"ret void
+"#,
+    );
     assert_eq!(result, expected);
 }
 
@@ -3164,12 +3237,13 @@ fn nested_array_access() {
         "
     );
 
-    let expected = generate_program_boiler_plate("prg",
-    &[("[4 x [2 x i32]]","x")],
-    "void",
-    "",
-    "",
-r#"%tmpVar = getelementptr inbounds [4 x [2 x i32]], [4 x [2 x i32]]* %x, i32 0, i32 2
+    let expected = generate_program_boiler_plate(
+        "prg",
+        &[("[4 x [2 x i32]]", "x")],
+        "void",
+        "",
+        "",
+        r#"%tmpVar = getelementptr inbounds [4 x [2 x i32]], [4 x [2 x i32]]* %x, i32 0, i32 2
   %tmpVar1 = getelementptr inbounds [2 x i32], [2 x i32]* %tmpVar, i32 0, i32 0
   store i32 3, i32* %tmpVar1, align 4
   %tmpVar2 = getelementptr inbounds [4 x [2 x i32]], [4 x [2 x i32]]* %x, i32 0, i32 3
@@ -3180,13 +3254,14 @@ r#"%tmpVar = getelementptr inbounds [4 x [2 x i32]], [4 x [2 x i32]]* %x, i32 0,
   %tmpVar6 = add i32 %load_tmpVar, 3
   store i32 %tmpVar6, i32* %tmpVar3, align 4
   ret void
-"#);
+"#,
+    );
     assert_eq!(result, expected);
 }
 
 #[test]
 fn accessing_nested_array_in_struct() {
-  let result = codegen!(
+    let result = codegen!(
         "
         TYPE MyStruct:
         STRUCT 
@@ -3222,12 +3297,12 @@ entry:
 }
 "#;
 
-  assert_eq!(result, expected);
+    assert_eq!(result, expected);
 }
 
 #[test]
 fn initial_values_in_global_variables() {
-  let result = codegen!(
+    let result = codegen!(
         "
         VAR_GLOBAL
           x : INT := 7;
@@ -3245,12 +3320,12 @@ source_filename = "main"
 @z = global float 0x400921CAC0000000
 "#;
 
-  assert_eq!(result, expected);
+    assert_eq!(result, expected);
 }
 
 #[test]
 fn initial_values_in_program_pou() {
-  let result = codegen!(
+    let result = codegen!(
         "
         PROGRAM Main
         VAR
@@ -3284,12 +3359,12 @@ entry:
 }
 "#;
 
-  assert_eq!(result, expected);
+    assert_eq!(result, expected);
 }
 
 #[test]
 fn initial_values_in_function_block_pou() {
-  let result = codegen!(
+    let result = codegen!(
         "
         FUNCTION_BLOCK FB
         VAR
@@ -3336,12 +3411,12 @@ entry:
 }
 "#;
 
-  assert_eq!(result, expected);
+    assert_eq!(result, expected);
 }
 
 #[test]
 fn initial_values_in_struct_types() {
-  let result = codegen!(
+    let result = codegen!(
         "
         TYPE MyStruct:
         STRUCT
@@ -3366,12 +3441,12 @@ source_filename = "main"
 @x = global %MyStruct { i16 7, i16 0, i1 true, i1 false, float 0x400921CAC0000000, float 0.000000e+00 }
 "#;
 
-  assert_eq!(result, expected);
+    assert_eq!(result, expected);
 }
 
 #[test]
 fn initial_values_different_data_types() {
-  let result = codegen!(
+    let result = codegen!(
         "
         TYPE MyStruct:
         STRUCT
@@ -3404,12 +3479,12 @@ source_filename = "main"
 @x = global %MyStruct { i8 7, i8 7, i8 7, i16 7, i16 7, i16 7, i32 7, i32 7, i32 7, i64 7, i64 7, i64 7, float 0x401ECCCCC0000000, double 7.700000e+00 }
 "#;
 
-  assert_eq!(result, expected);
+    assert_eq!(result, expected);
 }
 
 #[test]
 fn initial_values_in_type_alias() {
-  let result = codegen!(
+    let result = codegen!(
         "
         TYPE MyInt: INT := 7; END_TYPE 
         VAR_GLOBAL x : MyInt; END_VAR
@@ -3422,12 +3497,12 @@ source_filename = "main"
 @x = global i16 7
 "#;
 
-  assert_eq!(result, expected);
+    assert_eq!(result, expected);
 }
 
 #[test]
 fn alias_chain_with_lots_of_initializers() {
-  let result = codegen!(
+    let result = codegen!(
         "
         TYPE MyInt: MyOtherInt1; END_TYPE 
         VAR_GLOBAL 
@@ -3451,12 +3526,12 @@ source_filename = "main"
 @x3 = global i32 3
 "#;
 
-  assert_eq!(result, expected);
+    assert_eq!(result, expected);
 }
 
 #[test]
-fn initial_values_in_single_dimension_array_variable(){
-   let result = codegen!(
+fn initial_values_in_single_dimension_array_variable() {
+    let result = codegen!(
         "
         VAR_GLOBAL 
           a : ARRAY[0..2] OF SINT  := [1, 2, 3]; 
@@ -3484,12 +3559,12 @@ source_filename = "main"
 @h = global [3 x i1] [i1 true, i1 false, i1 true]
 "#;
 
-  assert_eq!(result, expected); 
+    assert_eq!(result, expected);
 }
 
 #[test]
-fn initial_values_in_single_dimension_array_type(){
-   let result = codegen!(
+fn initial_values_in_single_dimension_array_type() {
+    let result = codegen!(
         "
         TYPE MyArray : ARRAY[0..2] OF INT := [1, 2, 3]; END_TYPE
         VAR_GLOBAL x : MyArray; END_VAR
@@ -3502,51 +3577,51 @@ source_filename = "main"
 @x = global [3 x i16] [i16 1, i16 2, i16 3]
 "#;
 
-  assert_eq!(result, expected); 
+    assert_eq!(result, expected);
 }
 
 #[test]
-fn initial_values_in_multi_dimension_array_variable(){
+fn initial_values_in_multi_dimension_array_variable() {
     let result = codegen!(
-         "
+        "
          VAR_GLOBAL 
            a : ARRAY[0..1, 0..1] OF BYTE  := [1,2,3,4]; 
          END_VAR
          "
-     );
+    );
 
-  let expected = r#"; ModuleID = 'main'
+    let expected = r#"; ModuleID = 'main'
 source_filename = "main"
 
 @a = global [2 x [2 x i8]] c"\01\02\03\04"
 "#;
- 
-  assert_eq!(result, expected); 
+
+    assert_eq!(result, expected);
 }
 
 #[test]
-fn initial_values_in_array_of_array_variable(){
+fn initial_values_in_array_of_array_variable() {
     let result = codegen!(
-         "
+        "
          VAR_GLOBAL 
            a : ARRAY[0..1] OF ARRAY[0..1] OF BYTE  := [[1,2],[3,4]]; 
          END_VAR
          "
-     );
+    );
 
-  let expected = r#"; ModuleID = 'main'
+    let expected = r#"; ModuleID = 'main'
 source_filename = "main"
 
 @a = global [2 x [2 x i8]] [[2 x i8] c"\01\02", [2 x i8] c"\03\04"]
 "#;
- 
-  assert_eq!(result, expected); 
+
+    assert_eq!(result, expected);
 }
 
 #[test]
-fn initial_values_in_array_variable_using_multiplied_statement(){
+fn initial_values_in_array_variable_using_multiplied_statement() {
     let result = codegen!(
-         "
+        "
          VAR_GLOBAL 
            a : ARRAY[0..3] OF BYTE  := [4(7)]; 
            b : ARRAY[0..3] OF BYTE  := [2, 2(7), 3]; 
@@ -3554,9 +3629,9 @@ fn initial_values_in_array_variable_using_multiplied_statement(){
            d : ARRAY[0..9] OF BYTE  := [2(2(0), 2(1), 2)]; 
          END_VAR
          "
-     );
+    );
 
-  let expected = r#"; ModuleID = 'main'
+    let expected = r#"; ModuleID = 'main'
 source_filename = "main"
 
 @a = global [4 x i8] c"\07\07\07\07"
@@ -3564,14 +3639,14 @@ source_filename = "main"
 @c = global [10 x i8] c"\00\01\00\01\00\01\00\01\00\01"
 @d = global [10 x i8] c"\00\00\01\01\02\00\00\01\01\02"
 "#;
- 
-  assert_eq!(result, expected); 
+
+    assert_eq!(result, expected);
 }
 
 #[test]
-fn initial_values_in_struct_variable_using_multiplied_statement(){
+fn initial_values_in_struct_variable_using_multiplied_statement() {
     let result = codegen!(
-         "
+        "
         TYPE MyStruct: STRUCT
           a: DINT;
           b: DINT;
@@ -3583,9 +3658,9 @@ fn initial_values_in_struct_variable_using_multiplied_statement(){
            b : MyStruct  := (b:=3, a:=5); 
          END_VAR
          "
-     );
+    );
 
-  let expected = r#"; ModuleID = 'main'
+    let expected = r#"; ModuleID = 'main'
 source_filename = "main"
 
 %MyStruct = type { i32, i32 }
@@ -3593,14 +3668,14 @@ source_filename = "main"
 @a = global %MyStruct { i32 3, i32 5 }
 @b = global %MyStruct { i32 5, i32 3 }
 "#;
- 
-  assert_eq!(result, expected); 
+
+    assert_eq!(result, expected);
 }
 
 #[test]
-fn complex_initial_values_in_struct_variable_using_multiplied_statement(){
+fn complex_initial_values_in_struct_variable_using_multiplied_statement() {
     let result = codegen!(
-         "
+        "
         TYPE MyPoint: STRUCT
           x: DINT;
           y: DINT;
@@ -3622,9 +3697,9 @@ fn complex_initial_values_in_struct_variable_using_multiplied_statement(){
             ); 
         END_VAR
         "
-     );
+    );
 
-  let expected = r#"; ModuleID = 'main'
+    let expected = r#"; ModuleID = 'main'
 source_filename = "main"
 
 %MyStruct = type { %MyPoint, [4 x i16], i32 }
@@ -3632,14 +3707,14 @@ source_filename = "main"
 
 @a = global %MyStruct { %MyPoint { i32 1, i32 2 }, [4 x i16] [i16 0, i16 1, i16 2, i16 3], i32 7 }
 "#;
- 
-  assert_eq!(result, expected); 
+
+    assert_eq!(result, expected);
 }
 
 #[test]
-fn struct_with_one_field_can_be_initialized(){
+fn struct_with_one_field_can_be_initialized() {
     let result = codegen!(
-         "
+        "
         TYPE MyPoint: STRUCT
           x: DINT;
         END_STRUCT
@@ -3649,23 +3724,22 @@ fn struct_with_one_field_can_be_initialized(){
           a : MyPoint := ( x := 7);
         END_VAR
         "
-     );
+    );
 
-  let expected = r#"; ModuleID = 'main'
+    let expected = r#"; ModuleID = 'main'
 source_filename = "main"
 
 %MyPoint = type { i32 }
 
 @a = global %MyPoint { i32 7 }
 "#;
- 
-  assert_eq!(result, expected); 
+
+    assert_eq!(result, expected);
 }
 
 #[test]
-fn struct_initializer_needs_assignments(){
-    let source =
-            "
+fn struct_initializer_needs_assignments() {
+    let source = "
             TYPE Point: STRUCT
               x: DINT;
               y: DINT;
@@ -3677,17 +3751,23 @@ fn struct_initializer_needs_assignments(){
             END_VAR
            ";
     let result = codegen_wihout_unwrap!(source);
-    assert_eq!(result, Err(CompileError::codegen_error("struct literal must consist of explicit assignments in the form of member := value".to_string(), 185..186)));
+    assert_eq!(
+        result,
+        Err(CompileError::codegen_error(
+            "struct literal must consist of explicit assignments in the form of member := value"
+                .to_string(),
+            185..186
+        ))
+    );
     assert_eq!(source[185..186].to_string(), "2".to_string());
 }
 
 #[test]
-fn struct_initialization_uses_types_default_if_not_provided(){
+fn struct_initialization_uses_types_default_if_not_provided() {
     // GIVEN a custom dataType MyDINT with initial value of 7
     // AND a struct point that uses it for member z
     // AND a global instance that does not initializes z
-    let source =
-            "
+    let source = "
             TYPE MyDINT : DINT := 7; END_TYPE
 
             TYPE Point: STRUCT
@@ -3717,9 +3797,8 @@ source_filename = "main"
 }
 
 #[test]
-fn struct_initializer_uses_fallback_to_field_default(){
-    let source =
-            "
+fn struct_initializer_uses_fallback_to_field_default() {
+    let source = "
             TYPE Point: STRUCT
               x: DINT;
               y: DINT;
@@ -3733,7 +3812,7 @@ fn struct_initializer_uses_fallback_to_field_default(){
            ";
     let result = codegen!(source);
 
-  let expected = r#"; ModuleID = 'main'
+    let expected = r#"; ModuleID = 'main'
 source_filename = "main"
 
 %Point = type { i32, i32, i32 }

@@ -1,5 +1,4 @@
 /// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-
 use super::super::*;
 #[allow(dead_code)]
 #[repr(C)]
@@ -109,7 +108,6 @@ fn matrix_array_assignments2() {
     }
 }
 
-
 #[test]
 fn cube_array_assignments_array_of_array_of_array() {
     let function = r"
@@ -174,7 +172,7 @@ fn cube_array_assignments2() {
     for x in 0..5 {
         for y in 0..5 {
             for z in 0..5 {
-                assert_eq!(((x+1) * (y+1) * (z+1)) as i32, maintype.cube[x][y][z]);
+                assert_eq!(((x + 1) * (y + 1) * (z + 1)) as i32, maintype.cube[x][y][z]);
             }
         }
     }

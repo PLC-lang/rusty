@@ -1,27 +1,26 @@
 /// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-
 use indexmap::IndexMap;
 
-use crate::{ast::{Implementation, SourceRange, Statement}, compile_error::CompileError, typesystem::*};
+use crate::{
+    ast::{Implementation, SourceRange, Statement},
+    compile_error::CompileError,
+    typesystem::*,
+};
 
-pub mod visitor;
 #[cfg(test)]
 mod tests;
-
-
+pub mod visitor;
 
 #[derive(Debug, PartialEq)]
 pub struct VariableIndexEntry {
     name: String,
-    qualified_name : String,
+    qualified_name: String,
     pub initial_value: Option<Statement>,
     information: VariableInformation,
     pub source_location: SourceRange,
 }
 
-
 impl VariableIndexEntry {
-
     pub fn get_name(&self) -> &str {
         &self.name
     }
@@ -42,10 +41,9 @@ impl VariableIndexEntry {
         self.information.variable_type == VariableType::Return
     }
 
-    pub fn is_local(&self)  -> bool {
+    pub fn is_local(&self) -> bool {
         self.information.variable_type == VariableType::Local
     }
-
 }
 
 #[derive(Copy, Clone, Debug, PartialEq)]
@@ -81,8 +79,8 @@ pub enum DataTypeType {
 
 #[derive(Debug, Clone)]
 pub struct ImplementationIndexEntry {
-    call_name : String,
-    type_name : String,
+    call_name: String,
+    type_name: String,
 }
 
 impl ImplementationIndexEntry {
@@ -97,16 +95,15 @@ impl ImplementationIndexEntry {
 impl From<&Implementation> for ImplementationIndexEntry {
     fn from(implementation: &Implementation) -> Self {
         ImplementationIndexEntry {
-            call_name : implementation.name.clone(),
-            type_name : implementation.type_name.clone(),
+            call_name: implementation.name.clone(),
+            type_name: implementation.type_name.clone(),
         }
     }
 }
 
-
 /// The global index of the rusty-compiler
 ///
-/// The index contains information about all referencable elements. 
+/// The index contains information about all referencable elements.
 ///
 ///
 #[derive(Debug)]
@@ -116,12 +113,12 @@ pub struct Index {
 
     /// all local variables, grouped by the POU's name
     member_variables: IndexMap<String, IndexMap<String, VariableIndexEntry>>,
-    
+
     /// all types (structs, enums, type, POUs, etc.)
     types: IndexMap<String, DataType>,
 
     /// all implementations
-    implementations : IndexMap<String, ImplementationIndexEntry>,
+    implementations: IndexMap<String, ImplementationIndexEntry>,
 
     void_type: DataType,
 }
@@ -135,7 +132,7 @@ impl Index {
             implementations: IndexMap::new(),
             void_type: DataType {
                 name: "void".to_string(),
-                initial_value : None,
+                initial_value: None,
                 information: DataTypeInformation::Void,
             },
         };
@@ -150,25 +147,25 @@ impl Index {
         self.global_variables.get(name)
     }
 
-    pub fn find_member(
-        &self,
-        pou_name: &str,
-        variable_name: &str,
-    ) -> Option<&VariableIndexEntry> {
+    pub fn find_member(&self, pou_name: &str, variable_name: &str) -> Option<&VariableIndexEntry> {
         self.member_variables
             .get(pou_name)
             .and_then(|map| map.get(variable_name))
     }
 
-    pub fn find_local_members(&self,
-        container_name: &str
-    ) -> Vec<&VariableIndexEntry> {
-        self.member_variables.get(container_name).map(|it| it.values().collect()).unwrap_or_else(|| vec![])
+    pub fn find_local_members(&self, container_name: &str) -> Vec<&VariableIndexEntry> {
+        self.member_variables
+            .get(container_name)
+            .map(|it| it.values().collect())
+            .unwrap_or_else(|| vec![])
     }
 
-    pub fn find_input_parameter(&self, pou_name : &str, index : u32) -> Option<&VariableIndexEntry> {
-        self.member_variables.get(pou_name)
-            .and_then(|map| map.values().filter(|item| item.information.variable_type == VariableType::Input).find(|item| item.information.location == index))
+    pub fn find_input_parameter(&self, pou_name: &str, index: u32) -> Option<&VariableIndexEntry> {
+        self.member_variables.get(pou_name).and_then(|map| {
+            map.values()
+                .filter(|item| item.information.variable_type == VariableType::Input)
+                .find(|item| item.information.location == index)
+        })
     }
 
     //                                     none                 ["myGlobal", "a", "b"]
@@ -188,7 +185,6 @@ impl Index {
                 .find_member(context, first_var)
                 .or_else(|| self.find_global_variable(first_var)),
             None => self.find_global_variable(first_var),
-
         };
         for segment in segments.iter().skip(1) {
             result = match result {
@@ -203,35 +199,41 @@ impl Index {
         self.types.get(type_name)
     }
 
-    
     pub fn get_type(&self, type_name: &str) -> Result<&DataType, CompileError> {
-        self.find_type(type_name).ok_or_else(|| CompileError::unknown_type(type_name, 0..0))
+        self.find_type(type_name)
+            .ok_or_else(|| CompileError::unknown_type(type_name, 0..0))
     }
-
 
     /// Retrieves the "Effctive" type behind this datatype
     /// An effective type will be any end type i.e. Structs, Integers, Floats, String and Array
-    pub fn find_effective_type<'ret>(&'ret self, data_type : &'ret DataTypeInformation) -> Option<&'ret DataTypeInformation> {
-        if let DataTypeInformation::Alias{referenced_type, ..} = data_type{
-            self.find_type(&referenced_type).and_then(|it| self.find_effective_type(it.get_type_information()))
+    pub fn find_effective_type<'ret>(
+        &'ret self,
+        data_type: &'ret DataTypeInformation,
+    ) -> Option<&'ret DataTypeInformation> {
+        if let DataTypeInformation::Alias {
+            referenced_type, ..
+        } = data_type
+        {
+            self.find_type(&referenced_type)
+                .and_then(|it| self.find_effective_type(it.get_type_information()))
         } else {
             Some(data_type)
         }
     }
 
-    pub fn find_return_variable(&self, pou_name : &str) -> Option<&VariableIndexEntry> {
-        let members = self.member_variables.get(pou_name);//.ok_or_else(||CompileError::unknown_type(pou_name, 0..0))?;
+    pub fn find_return_variable(&self, pou_name: &str) -> Option<&VariableIndexEntry> {
+        let members = self.member_variables.get(pou_name); //.ok_or_else(||CompileError::unknown_type(pou_name, 0..0))?;
         if let Some(members) = members {
             for (_, variable) in members {
                 if variable.information.variable_type == VariableType::Return {
-                    return Some(variable)
+                    return Some(variable);
                 }
             }
         }
         None
     }
 
-    pub fn find_return_type(&self, pou_name : &str) -> Option<&DataType> {
+    pub fn find_return_type(&self, pou_name: &str) -> Option<&DataType> {
         let variable = self.find_return_variable(pou_name);
         variable.map(|it| self.get_type(it.get_type_name()).unwrap())
     }
@@ -241,10 +243,14 @@ impl Index {
             .map(|entry| entry.clone_type_information())
     }
 
-    pub fn get_type_information(&self, type_name: &str) -> Result<DataTypeInformation, CompileError> {
-        self.find_type_information(type_name).ok_or_else(|| CompileError::unknown_type(type_name, 0..0))
+    pub fn get_type_information(
+        &self,
+        type_name: &str,
+    ) -> Result<DataTypeInformation, CompileError> {
+        self.find_type_information(type_name)
+            .ok_or_else(|| CompileError::unknown_type(type_name, 0..0))
     }
-    
+
     pub fn get_types(&self) -> &IndexMap<String, DataType> {
         &self.types
     }
@@ -257,18 +263,19 @@ impl Index {
         &self.implementations
     }
 
-    pub fn register_implementation(&mut self, call_name : &str, type_name: &str) {
-        self.implementations.insert(call_name.into(), ImplementationIndexEntry {
-            call_name: call_name.into(),type_name : type_name.into()
-        });
+    pub fn register_implementation(&mut self, call_name: &str, type_name: &str) {
+        self.implementations.insert(
+            call_name.into(),
+            ImplementationIndexEntry {
+                call_name: call_name.into(),
+                type_name: type_name.into(),
+            },
+        );
     }
 
-    pub fn find_implementation(&self, call_name : &str) -> Option<&ImplementationIndexEntry> {
+    pub fn find_implementation(&self, call_name: &str) -> Option<&ImplementationIndexEntry> {
         self.implementations.get(call_name)
     }
-
-   
-
 
     /// registers a member-variable of a container to be accessed in a qualified name.
     /// e.g. "POU.member", "StructName.member", etc.
@@ -286,15 +293,15 @@ impl Index {
         variable_name: &str,
         variable_linkage: VariableType,
         variable_type_name: &str,
-        initial_value : Option<Statement>,
-        source_location : SourceRange,
+        initial_value: Option<Statement>,
+        source_location: SourceRange,
         location: u32,
     ) {
         let members = self
             .member_variables
             .entry(container_name.into())
             .or_insert_with(|| IndexMap::new());
-        
+
         let qualified_name = format!("{}.{}", container_name, variable_name);
 
         let entry = VariableIndexEntry {
@@ -312,11 +319,30 @@ impl Index {
         members.insert(variable_name.into(), entry);
     }
 
-    pub fn register_global_variable(&mut self, name: &str, type_name: &str, initial_value : Option<Statement>, source_location : SourceRange) {
-        self.register_global_variable_with_name(name, name, type_name, initial_value, source_location);
+    pub fn register_global_variable(
+        &mut self,
+        name: &str,
+        type_name: &str,
+        initial_value: Option<Statement>,
+        source_location: SourceRange,
+    ) {
+        self.register_global_variable_with_name(
+            name,
+            name,
+            type_name,
+            initial_value,
+            source_location,
+        );
     }
 
-    pub fn register_global_variable_with_name(&mut self, association_name: &str,variable_name : &str, type_name: &str, initial_value : Option<Statement>, source_location : SourceRange) {
+    pub fn register_global_variable_with_name(
+        &mut self,
+        association_name: &str,
+        variable_name: &str,
+        type_name: &str,
+        initial_value: Option<Statement>,
+        source_location: SourceRange,
+    ) {
         //REVIEW, this seems like a misuse of the qualified name to store the association name. Any other ideas?
         // If we do enough mental gymnastic, we could say that a Qualified name is how you would find a unique id for a variable, which the association name is.
         let qualified_name = association_name.into();
@@ -335,14 +361,18 @@ impl Index {
         self.global_variables.insert(association_name.into(), entry);
     }
 
-   
     pub fn print_global_variables(&self) {
         println!("{:?}", self.global_variables);
     }
 
-    pub fn register_type(&mut self, type_name: &str, initial_value : Option<Statement>, information: DataTypeInformation) {
+    pub fn register_type(
+        &mut self,
+        type_name: &str,
+        initial_value: Option<Statement>,
+        information: DataTypeInformation,
+    ) {
         let index_entry = DataType {
-            name : type_name.into(),
+            name: type_name.into(),
             initial_value,
             information,
         };
@@ -350,16 +380,15 @@ impl Index {
     }
 
     pub fn find_callable_instance_variable(
-       &self,
-       context: Option<&str>,
-       reference: &[String],
+        &self,
+        context: Option<&str>,
+        reference: &[String],
     ) -> Option<&VariableIndexEntry> {
-       //look for a *callable* variable with that name
-       self.find_variable(context, reference).filter(|v| {
-           //callable means, there is an implementation associated with the variable's datatype
-           self.find_implementation(&v.information.data_type_name).is_some()
-       })
+        //look for a *callable* variable with that name
+        self.find_variable(context, reference).filter(|v| {
+            //callable means, there is an implementation associated with the variable's datatype
+            self.find_implementation(&v.information.data_type_name)
+                .is_some()
+        })
     }
-
 }
-
