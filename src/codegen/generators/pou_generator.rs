@@ -186,7 +186,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         index: &mut LLVMTypedIndex<'ink>,
         type_name: &str,
         current_function: FunctionValue<'ink>,
-        members: &Vec<&VariableIndexEntry>,
+        members: &[&VariableIndexEntry],
     ) -> Result<(), CompileError> {
         //Generate reference to parameter
         for (i, m) in members.iter().enumerate() {

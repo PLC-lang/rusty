@@ -36,7 +36,7 @@ fn initia_values_of_programs_members() {
             x_  : DINT;
             y   : BOOL := TRUE;
             y_  : BOOL;
-            z   : REAL := 3.1415;
+            z   : REAL := 9.1415;
             z_  : REAL;
         END_VAR
         END_PROGRAM
@@ -67,8 +67,8 @@ fn initia_values_of_programs_members() {
     assert_eq!(0, maintype.x_);
     assert_eq!(true, maintype.y);
     assert_eq!(false, maintype.y_);
-    assert_eq!(3.1415, maintype.z);
-    assert_eq!(0.0, maintype.z_);
+    assert_almost_eq!(9.1415, maintype.z, f32::EPSILON);
+    assert_almost_eq!(0.0, maintype.z_, f32::EPSILON);
 }
 
 #[test]
@@ -80,7 +80,7 @@ fn initia_values_of_functionblock_members() {
             x_  : DINT;
             y   : BOOL := TRUE;
             y_  : BOOL;
-            z   : REAL := 3.1415;
+            z   : REAL := 9.1415;
             z_  : REAL;
         END_VAR
         END_FUNCTION_BLOCK
@@ -115,8 +115,8 @@ fn initia_values_of_functionblock_members() {
     assert_eq!(0, maintype.x_);
     assert_eq!(true, maintype.y);
     assert_eq!(false, maintype.y_);
-    assert_eq!(3.1415, maintype.z);
-    assert_eq!(0.0, maintype.z_);
+    assert_almost_eq!(9.1415, maintype.z, f32::EPSILON);
+    assert_almost_eq!(0.0, maintype.z_, f32::EPSILON);
 }
 
 #[test]
@@ -171,7 +171,7 @@ fn initia_values_of_struct_type_members() {
                 x_  : DINT;
                 y   : BOOL := TRUE;
                 y_  : BOOL;
-                z   : REAL := 3.1415;
+                z   : REAL := 9.1415;
                 z_  : REAL;
             END_STRUCT
         END_TYPE
@@ -206,8 +206,8 @@ fn initia_values_of_struct_type_members() {
     assert_eq!(0, maintype.x_);
     assert_eq!(true, maintype.y);
     assert_eq!(false, maintype.y_);
-    assert_eq!(3.1415, maintype.z);
-    assert_eq!(0.0, maintype.z_);
+    assert_almost_eq!(9.1415, maintype.z, f32::EPSILON);
+    assert_almost_eq!(0.0, maintype.z_, f32::EPSILON);
 }
 
 #[test]
@@ -252,8 +252,8 @@ fn initia_values_of_alias_type() {
     assert_eq!(8, maintype.x_);
     assert_eq!(true, maintype.y);
     assert_eq!(false, maintype.y_);
-    assert_eq!(5.67, maintype.z);
-    assert_eq!(1.23, maintype.z_);
+    assert_almost_eq!(5.67, maintype.z, f32::EPSILON);
+    assert_almost_eq!(1.23, maintype.z_, f32::EPSILON);
 }
 
 #[derive(Debug)]
@@ -479,8 +479,8 @@ struct RealsAndFloats {
 fn real_initial_values_in_array_variable() {
     let function = r"
         VAR_GLOBAL 
-            f : ARRAY[0..1] OF REAL := [3.1415, 0.001];
-            r : ARRAY[0..1] OF LREAL := [3.141592653589, 0.000000001];
+            f : ARRAY[0..1] OF REAL := [9.1415, 0.001];
+            r : ARRAY[0..1] OF LREAL := [9.141592653589, 0.000000001];
         END_VAR
 
         PROGRAM main
@@ -505,10 +505,10 @@ fn real_initial_values_in_array_variable() {
     };
 
     compile_and_run(function.to_string(), &mut maintype);
-    assert_eq!(3.1415, maintype.f1);
-    assert_eq!(0.001, maintype.f2);
-    assert_eq!(3.141592653589, maintype.r1);
-    assert_eq!(0.000000001, maintype.r2);
+    assert_almost_eq!(9.1415, maintype.f1, f32::EPSILON);
+    assert_almost_eq!(0.001, maintype.f2, f32::EPSILON);
+    assert_almost_eq!(9.141592653589, maintype.r1, f64::EPSILON);
+    assert_almost_eq!(0.000000001, maintype.r2, f64::EPSILON);
 }
 
 #[derive(Debug)]
@@ -575,14 +575,14 @@ fn initialization_of_complex_struct_instance() {
     assert_eq!(2, maintype.y);
     assert_eq!(1, maintype.arr1);
     assert_eq!(3, maintype.arr3);
-    assert_eq!(7.89, maintype.f);
+    assert_almost_eq!(7.89, maintype.f, f32::EPSILON);
 }
 
 #[test]
 fn initialization_of_complex_struct_instance_using_defaults() {
     // a.point.y and a.f are note initialized!
     let src = "
-        TYPE MyReal : REAL := 3.1415; END_TYPE
+        TYPE MyReal : REAL := 9.1415; END_TYPE
 
         TYPE MyPoint: STRUCT
           x: DINT;
@@ -634,7 +634,7 @@ fn initialization_of_complex_struct_instance_using_defaults() {
     assert_eq!(7, maintype.y);
     assert_eq!(1, maintype.arr1);
     assert_eq!(3, maintype.arr3);
-    assert_eq!(3.1415, maintype.f);
+    assert_almost_eq!(9.1415, maintype.f, f32::EPSILON);
 }
 
 #[derive(Debug)]
@@ -699,14 +699,14 @@ fn initialization_of_string_variables() {
     assert_eq!(&maintype.mystring2[0..8], [65, 66, 67, 68, 69, 70, 71, 0]); // ABCDEFG
     assert_eq!(&maintype.mystring2[9..26], [0; 17]); //rest is blank
 
-    assert_eq!(maintype.string1, [0 as i8; 81]); // blank string
+    assert_eq!(maintype.string1, [0; 81]); // blank string
 
     assert_eq!(maintype.string2[0..6], [113, 119, 101, 114, 116, 0]); // qwert
-    assert_eq!(maintype.string2[7..81], [0 as i8; 74]); // rest is blank
+    assert_eq!(maintype.string2[7..81], [0; 74]); // rest is blank
 
     assert_eq!(
         maintype.string3[0..6],
         [113 - 32, 119 - 32, 101 - 32, 114 - 32, 116 - 32, 0]
     ); // QWERT
-    assert_eq!(maintype.string3[7..21], [0 as i8; 14]); // rest is blank
+    assert_eq!(maintype.string3[7..21], [0; 14]); // rest is blank
 }

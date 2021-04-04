@@ -41,6 +41,15 @@ pub struct ExpressionCodeGenerator<'a, 'b> {
     pub temp_variable_suffix: String,
 }
 
+/// context information to generate a parameter
+struct ParameterContext<'a, 'b> {
+    assignment_statement: &'b Statement,
+    function_name: &'b str,
+    parameter_type: Option<&'b DataType>,
+    index: u32,
+    parameter_struct: PointerValue<'a>
+}
+
 impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
     /// creates a new expression generator
     ///
@@ -264,7 +273,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                             )
                             .ok_or_else(|| CompileError::CodeGenError {
                                 message: format!("cannot find callable type for {:?}", operator),
-                                location: operator.get_location().clone(),
+                                location: operator.get_location(),
                             })?,
                     )
                 } else {
@@ -313,7 +322,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
             }
             _ => Err(CompileError::CodeGenError {
                 message: format!("cannot generate call statement for {:?}", operator),
-                location: operator.get_location().clone(),
+                location: operator.get_location(),
             }),
         };
 
@@ -356,7 +365,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                     "No callable implementation associated to {:?}",
                     function_name
                 ),
-                location: operator.get_location().clone(),
+                location: operator.get_location(),
             })?;
         //If the target is a function, declare the struct locally
         //Assign all parameters into the struct values
@@ -369,18 +378,15 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
 
         // !! REVIEW !! we return an uninitialized int pointer for void methods :-/
         // dont touch it!!
-        let value = call_result.either(
-            |value| Ok(value),
-            |_| {
-                get_llvm_int_type(self.llvm.context, 16, "INT").map(|int| {
-                    int.ptr_type(AddressSpace::Const)
-                        .const_null()
-                        .as_basic_value_enum()
-                })
-            },
-        )?;
+        let value = call_result.either(Ok, |_| {
+            get_llvm_int_type(self.llvm.context, 16, "INT").map(|int| {
+                int.ptr_type(AddressSpace::Const)
+                    .const_null()
+                    .as_basic_value_enum()
+            })
+        })?;
 
-        return Ok((return_type.unwrap(), value));
+        Ok((return_type.unwrap(), value))
     }
 
     /// generates a new instance of a function called `function_name` and returns a PointerValue to it
@@ -397,7 +403,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
             .llvm_index
             .find_associated_type(function_name) //Using find instead of get to control the compile error
             .ok_or_else(|| {
-                CompileError::no_type_associated(function_name, context.get_location().clone())
+                CompileError::no_type_associated(function_name, context.get_location())
             })?;
 
         Ok(self
@@ -424,11 +430,13 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
             Some(Statement::ExpressionList { expressions }) => {
                 for (index, exp) in expressions.iter().enumerate() {
                     self.generate_single_parameter(
-                        exp,
-                        function_name,
-                        None,
-                        index as u32,
-                        parameter_struct,
+                        &ParameterContext {
+                            assignment_statement: exp,
+                            function_name,
+                            parameter_type: None,
+                            index: index as u32,
+                            parameter_struct
+                        },
                         input_block,
                         output_block,
                     )?;
@@ -436,11 +444,13 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
             }
             Some(statement) => {
                 self.generate_single_parameter(
-                    statement,
-                    function_name,
-                    None,
-                    0,
-                    parameter_struct,
+                    &ParameterContext {
+                        assignment_statement: statement,
+                        function_name,
+                        parameter_type: None,
+                        index: 0,
+                        parameter_struct
+                    },
                     input_block,
                     output_block,
                 )?;
@@ -461,15 +471,18 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
     /// - `output_block` the block to generate the output-assignments into
     fn generate_single_parameter(
         &self,
-        assignment_statement: &Statement,
-        function_name: &str,
-        parameter_type: Option<&DataType>,
-        index: u32,
-        parameter_struct: PointerValue<'a>,
+        param_context: &ParameterContext,
         input_block: &BasicBlock,
         output_block: &BasicBlock,
     ) -> Result<(), CompileError> {
         let builder = &self.llvm.builder;
+
+        let assignment_statement = param_context.assignment_statement;
+        let function_name = param_context.function_name;
+        let index = param_context.index;
+        let parameter_struct = param_context.parameter_struct;
+        let parameter_type = param_context.parameter_type;
+
         match assignment_statement {
             // explicit call parameter: foo(param := value)
             Statement::Assignment { left, right } => {
@@ -479,11 +492,13 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                     let index = parameter.get_location_in_parent();
                     let param_type = self.index.find_type(parameter.get_type_name());
                     self.generate_single_parameter(
-                        right,
-                        function_name,
-                        param_type,
-                        index,
-                        parameter_struct,
+                        &ParameterContext {
+                            assignment_statement: right,
+                            function_name,
+                            parameter_type: param_type,
+                            index,
+                            parameter_struct,
+                        },
                         input_block,
                         output_block,
                     )?;
@@ -585,7 +600,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
     fn create_llvm_pointer_value_for_reference(
         &self,
         qualifier: Option<&TypeAndPointer<'a, '_>>,
-        name: &String,
+        name: &str,
         context: &Statement,
     ) -> Result<TypeAndPointer<'a, '_>, CompileError> {
         //let (data_type, ptr) = if let Some((qualifier_name, qualifier)) = type_with_context {
@@ -624,11 +639,11 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
 
             let variable_index_entry = self
                 .index
-                .find_variable(Some(type_name), &[name.clone()])
+                .find_variable(Some(type_name), &[name.to_string()])
                 .ok_or_else(|| CompileError::InvalidReference {
-                reference: name.clone(),
-                location: offset.clone(),
-            })?;
+                    reference: name.to_string(),
+                    location: offset.clone(),
+                })?;
             let accessor_ptr = self
                 .llvm_index
                 .find_loaded_associated_variable_value(&variable_index_entry.get_qualified_name())
@@ -696,7 +711,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
 
                     //Make sure dimensions match statement list
                     let statements = access.get_as_list();
-                    if statements.len() == 0 || statements.len() != dimensions.len() {
+                    if statements.is_empty() || statements.len() != dimensions.len() {
                         panic!(
                             "Mismatched array access : {} -> {} ",
                             statements.len(),
@@ -813,83 +828,90 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
             Operator::Minus => (
                 self.llvm
                     .builder
-                    .build_int_sub(int_lvalue, int_rvalue, "tmpVar")
-                    .into(),
+                    .build_int_sub(int_lvalue, int_rvalue, "tmpVar"),
                 target_type.clone(),
             ),
             Operator::Multiplication => (
                 self.llvm
                     .builder
-                    .build_int_mul(int_lvalue, int_rvalue, "tmpVar")
-                    .into(),
+                    .build_int_mul(int_lvalue, int_rvalue, "tmpVar"),
                 target_type.clone(),
             ),
             Operator::Division => (
                 self.llvm
                     .builder
-                    .build_int_signed_div(int_lvalue, int_rvalue, "tmpVar")
-                    .into(),
+                    .build_int_signed_div(int_lvalue, int_rvalue, "tmpVar"),
                 target_type.clone(),
             ),
             Operator::Modulo => (
                 self.llvm
                     .builder
-                    .build_int_signed_rem(int_lvalue, int_rvalue, "tmpVar")
-                    .into(),
+                    .build_int_signed_rem(int_lvalue, int_rvalue, "tmpVar"),
                 target_type.clone(),
             ),
             Operator::Equal => (
-                self.llvm
-                    .builder
-                    .build_int_compare(IntPredicate::EQ, int_lvalue, int_rvalue, "tmpVar")
-                    .into(),
+                self.llvm.builder.build_int_compare(
+                    IntPredicate::EQ,
+                    int_lvalue,
+                    int_rvalue,
+                    "tmpVar",
+                ),
                 self.index.find_type_information("BOOL").unwrap(),
             ),
 
             Operator::NotEqual => (
-                self.llvm
-                    .builder
-                    .build_int_compare(IntPredicate::NE, int_lvalue, int_rvalue, "tmpVar")
-                    .into(),
+                self.llvm.builder.build_int_compare(
+                    IntPredicate::NE,
+                    int_lvalue,
+                    int_rvalue,
+                    "tmpVar",
+                ),
                 self.index.find_type_information("BOOL").unwrap(),
             ),
 
             Operator::Less => (
-                self.llvm
-                    .builder
-                    .build_int_compare(IntPredicate::SLT, int_lvalue, int_rvalue, "tmpVar")
-                    .into(),
+                self.llvm.builder.build_int_compare(
+                    IntPredicate::SLT,
+                    int_lvalue,
+                    int_rvalue,
+                    "tmpVar",
+                ),
                 self.index.find_type_information("BOOL").unwrap(),
             ),
 
             Operator::Greater => (
-                self.llvm
-                    .builder
-                    .build_int_compare(IntPredicate::SGT, int_lvalue, int_rvalue, "tmpVar")
-                    .into(),
+                self.llvm.builder.build_int_compare(
+                    IntPredicate::SGT,
+                    int_lvalue,
+                    int_rvalue,
+                    "tmpVar",
+                ),
                 self.index.find_type_information("BOOL").unwrap(),
             ),
 
             Operator::LessOrEqual => (
-                self.llvm
-                    .builder
-                    .build_int_compare(IntPredicate::SLE, int_lvalue, int_rvalue, "tmpVar")
-                    .into(),
+                self.llvm.builder.build_int_compare(
+                    IntPredicate::SLE,
+                    int_lvalue,
+                    int_rvalue,
+                    "tmpVar",
+                ),
                 self.index.find_type_information("BOOL").unwrap(),
             ),
 
             Operator::GreaterOrEqual => (
-                self.llvm
-                    .builder
-                    .build_int_compare(IntPredicate::SGE, int_lvalue, int_rvalue, "tmpVar")
-                    .into(),
+                self.llvm.builder.build_int_compare(
+                    IntPredicate::SGE,
+                    int_lvalue,
+                    int_rvalue,
+                    "tmpVar",
+                ),
                 self.index.find_type_information("BOOL").unwrap(),
             ),
             Operator::Xor => (
                 self.llvm
                     .builder
-                    .build_xor(int_lvalue, int_rvalue, "tmpVar")
-                    .into(),
+                    .build_xor(int_lvalue, int_rvalue, "tmpVar"),
                 self.index.find_type_information("BOOL").unwrap(),
             ),
             _ => unimplemented!(),
@@ -1084,11 +1106,11 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                             return Err(CompileError::codegen_error(
                                 "struct member lvalue required as left operand of assignment"
                                     .to_string(),
-                                left.get_location().clone(),
+                                left.get_location(),
                             ));
                         }
                     } else {
-                        return Err(CompileError::codegen_error("struct literal must consist of explicit assignments in the form of member := value".to_string(), assignment.get_location().clone()));
+                        return Err(CompileError::codegen_error("struct literal must consist of explicit assignments in the form of member := value".to_string(), assignment.get_location()));
                     }
                 }
 
@@ -1143,14 +1165,13 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                 }
             }
         }
-        return Err(CompileError::codegen_error(
+        Err(CompileError::codegen_error(
             format!(
                 "Internal error when generating Struct literal: incompatible type: {:?}",
                 self.type_hint
-            )
-            .to_string(),
+            ),
             declaration_location.clone(),
-        ));
+        ))
     }
 
     /// generates an array literal with the given optional elements (represented as an ExpressionList)
@@ -1174,10 +1195,10 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                 }
             }
         }
-        return Err(CompileError::codegen_error(
+        Err(CompileError::codegen_error(
             "Internal error when generating Array literal: unknown inner array-type.".to_string(),
             location.clone(),
-        ));
+        ))
     }
 
     /// constructs an ArrayValue (returned as a BasicValueEnum) of the given element-literals constructing an array-value of the

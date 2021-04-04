@@ -6,7 +6,7 @@
 /// - SubRange types
 /// - Alias types
 /// - sized Strings
-use crate::index::Index;
+use crate::index::{Index, VariableIndexEntry};
 use crate::{
     ast::{Dimension, Statement},
     compile_error::CompileError,
@@ -72,7 +72,7 @@ fn expand_opaque_types<'ink>(
     let information = data_type.get_type_information();
     if let DataTypeInformation::Struct { member_names, .. } = information {
         let mut struct_generator = StructGenerator::new(llvm, index, types_index);
-        let members = member_names
+        let members: Vec<&VariableIndexEntry> = member_names
             .iter()
             .map(|variable_name| {
                 index
@@ -175,10 +175,7 @@ fn generate_initial_value<'ink>(
             index,
             types_index,
             llvm,
-            |stmt| match stmt {
-                Statement::LiteralArray { .. } => true,
-                _ => false,
-            },
+            |stmt| matches!(stmt, Statement::LiteralArray { .. }),
             "LiteralArray",
         )
         .unwrap(),
@@ -190,10 +187,7 @@ fn generate_initial_value<'ink>(
             index,
             types_index,
             llvm,
-            |stmt| match stmt {
-                Statement::LiteralString { .. } => true,
-                _ => false,
-            },
+            |stmt| matches!(stmt, Statement::LiteralString { .. }),
             "LiteralString",
         )
         .unwrap(),
@@ -216,7 +210,7 @@ fn register_aliased_initial_value<'ink>(
     types_index: &LLVMTypedIndex<'ink>,
     llvm: &LLVM<'ink>,
     data_type: &DataType,
-    referenced_type: &String,
+    referenced_type: &str,
 ) -> Option<BasicValueEnum<'ink>> {
     if let Some(initializer) = &data_type.initial_value {
         let generator = ExpressionCodeGenerator::new_context_free(llvm, index, types_index, None);
