@@ -131,6 +131,18 @@ fn create_type<'ink>(
             let gen_type = llvm.context.i8_type().array_type(*size).into();
             Ok(gen_type)
         }
+        DataTypeInformation::SubRange {
+            referenced_type, ..
+        } => {
+            let ref_type = create_type(
+                llvm,
+                index,
+                types_index,
+                name,
+                index.find_type(referenced_type).unwrap(),
+            )?;
+            Ok(ref_type)
+        }
         DataTypeInformation::Alias {
             referenced_type, ..
         } => {
@@ -185,26 +197,39 @@ fn generate_initial_value<'ink>(
             "LiteralString",
         )
         .unwrap(),
+        DataTypeInformation::SubRange {
+            referenced_type, ..
+        } => register_aliased_initial_value(index, types_index, llvm, data_type, referenced_type),
         DataTypeInformation::Alias {
             referenced_type, ..
-        } => {
-            if let Some(initializer) = &data_type.initial_value {
-                let generator =
-                    ExpressionCodeGenerator::new_context_free(llvm, index, types_index, None);
-                let (_, initial_value) = generator.generate_expression(initializer).unwrap();
-                Some(initial_value)
-            } else {
-                // if there's no initializer defined for this alias, we go and check the aliased type for an initial value
-                index
-                    .get_types()
-                    .get(referenced_type)
-                    .and_then(|referenced_data_type| {
-                        generate_initial_value(index, types_index, llvm, referenced_data_type)
-                    })
-            }
-        }
+        } => register_aliased_initial_value(index, types_index, llvm, data_type, referenced_type),
         // Void types are not basic type enums, so we return an int here
         DataTypeInformation::Void => None, //get_llvm_int_type(llvm.context, 32, "Void").map(Into::into),
+    }
+}
+
+/// generates and returns an optional inital value at the given dataType
+/// if no initial value is defined, it returns  an optional initial value of
+/// the aliased type (referenced_type)
+fn register_aliased_initial_value<'ink>(
+    index: &Index,
+    types_index: &LLVMTypedIndex<'ink>,
+    llvm: &LLVM<'ink>,
+    data_type: &DataType,
+    referenced_type: &String,
+) -> Option<BasicValueEnum<'ink>> {
+    if let Some(initializer) = &data_type.initial_value {
+        let generator = ExpressionCodeGenerator::new_context_free(llvm, index, types_index, None);
+        let (_, initial_value) = generator.generate_expression(initializer).unwrap();
+        Some(initial_value)
+    } else {
+        // if there's no initializer defined for this alias, we go and check the aliased type for an initial value
+        index
+            .get_types()
+            .get(referenced_type)
+            .and_then(|referenced_data_type| {
+                generate_initial_value(index, types_index, llvm, referenced_data_type)
+            })
     }
 }
 

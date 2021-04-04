@@ -1,5 +1,5 @@
-use super::super::*;
 /// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
+use super::super::*;
 use std::str;
 #[allow(dead_code)]
 #[repr(C)]

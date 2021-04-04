@@ -1,10 +1,10 @@
+/// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use super::{
     expression_generator::ExpressionCodeGenerator,
     llvm::LLVM,
     statement_generator::{FunctionContext, StatementCodeGenerator},
 };
 use crate::codegen::llvm_index::LLVMTypedIndex;
-/// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
 /// The pou_generator contains functions to generate the code for POUs (PROGRAM, FUNCTION, FUNCTION_BLOCK)
 /// # responsibilities

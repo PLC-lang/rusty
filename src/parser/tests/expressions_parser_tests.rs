@@ -1,5 +1,5 @@
-use crate::parser::parse;
 /// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
+use crate::parser::parse;
 use crate::{
     ast::{Operator, Statement},
     lexer,

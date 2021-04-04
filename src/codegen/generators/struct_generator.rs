@@ -1,5 +1,5 @@
-use super::{expression_generator::ExpressionCodeGenerator, llvm::LLVM};
 /// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
+use super::{expression_generator::ExpressionCodeGenerator, llvm::LLVM};
 use crate::index::Index;
 use crate::{
     codegen::llvm_index::LLVMTypedIndex, compile_error::CompileError, index::VariableIndexEntry,

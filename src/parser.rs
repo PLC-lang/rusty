@@ -393,6 +393,32 @@ fn parse_data_type_definition(
         //Subrange
         let referenced_type = slice_and_advance(lexer);
 
+        if allow(KeywordParensOpen, lexer) {
+            let bounds = parse_expression(lexer)?;
+            expect!(KeywordParensClose, lexer);
+            lexer.advance();
+
+            let initial_value = if allow(KeywordAssignment, lexer) {
+                Some(parse_expression(lexer)?)
+            } else {
+                None
+            };
+
+            expect!(KeywordSemicolon, lexer);
+            lexer.advance();
+
+            return Ok((
+                DataTypeDeclaration::DataTypeDefinition {
+                    data_type: DataType::SubRangeType {
+                        name,
+                        bounds: Some(bounds),
+                        referenced_type,
+                    },
+                },
+                initial_value,
+            ));
+        }
+
         if name.is_some() {
             let initial_value = if allow(KeywordAssignment, lexer) {
                 Some(parse_expression(lexer)?)
@@ -403,6 +429,7 @@ fn parse_data_type_definition(
                 data_type: DataType::SubRangeType {
                     name,
                     referenced_type,
+                    bounds: None,
                 },
             };
             expect!(KeywordSemicolon, lexer);

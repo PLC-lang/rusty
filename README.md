@@ -39,7 +39,7 @@ Structured text compiler written in Rust
 - :heavy_check_mark: Enum types
 - :heavy_check_mark: Array data types
 - :heavy_check_mark: Alias types
-- :x: Sub-ranges types
+- :heavy_check_mark: Sub-ranges types
 - :heavy_check_mark: Sized String types
 - :heavy_check_mark: Initial values
 
