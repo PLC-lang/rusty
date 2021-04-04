@@ -1,7 +1,19 @@
+use crate::{
+    ast::SourceRange,
+    codegen::{TypeAndPointer, TypeAndValue},
+    compile_error::CompileError,
+    index::Index,
+    typesystem,
+};
 /// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-use inkwell::{AddressSpace, builder::Builder, context::Context, module::{Linkage, Module}, types::{BasicType, BasicTypeEnum, StringRadix}, values::{BasicValue, BasicValueEnum, GlobalValue, IntValue, PointerValue}};
-use crate::{typesystem, ast::SourceRange, codegen::{TypeAndPointer, TypeAndValue}, compile_error::CompileError, index::Index};
-
+use inkwell::{
+    builder::Builder,
+    context::Context,
+    module::{Linkage, Module},
+    types::{BasicType, BasicTypeEnum, StringRadix},
+    values::{BasicValue, BasicValueEnum, GlobalValue, IntValue, PointerValue},
+    AddressSpace,
+};
 
 /// Holds dependencies required to generate IR-code
 pub struct LLVM<'a> {
@@ -12,10 +24,7 @@ pub struct LLVM<'a> {
 impl<'a> LLVM<'a> {
     /// constructs a new LLVM struct
     pub fn new(context: &'a Context, builder: Builder<'a>) -> LLVM<'a> {
-        LLVM {
-            context,
-            builder,
-        }
+        LLVM { context, builder }
     }
 
     /// generates a global variable with the given name, datatype and optional initial value
@@ -32,8 +41,7 @@ impl<'a> LLVM<'a> {
         data_type: BasicTypeEnum<'a>,
         initial_value: Option<BasicValueEnum<'a>>,
     ) -> GlobalValue<'a> {
-        let global = module
-            .add_global(data_type, Some(AddressSpace::Generic), name);
+        let global = module.add_global(data_type, Some(AddressSpace::Generic), name);
 
         if let Some(initializer) = initial_value {
             let v = &initializer as &dyn BasicValue;
@@ -80,13 +88,16 @@ impl<'a> LLVM<'a> {
     /// - `access_sequence` a sequence of IntValue's used to access the array. For multi-dimensional arrays
     ///    you may provide multiple accessors
     /// - `name` the name of the resulting variable
-    pub fn load_array_element(&self,
+    pub fn load_array_element(
+        &self,
         pointer_to_array_instance: PointerValue<'a>,
         accessor_sequence: &[IntValue<'a>],
-        name: &str
+        name: &str,
     ) -> Result<PointerValue<'a>, CompileError> {
-        unsafe { 
-            Ok(self.builder.build_in_bounds_gep(pointer_to_array_instance, accessor_sequence, name)) 
+        unsafe {
+            Ok(self
+                .builder
+                .build_in_bounds_gep(pointer_to_array_instance, accessor_sequence, name))
         }
     }
 
@@ -114,7 +125,7 @@ impl<'a> LLVM<'a> {
     }
 
     /// loads the value behind the given pointer
-    /// 
+    ///
     /// - `lvalue` the pointer and it's datatype
     /// - `name` the name of the temporary variable
     pub fn load_pointer(&self, lvalue: &TypeAndPointer<'a, '_>, name: &str) -> TypeAndValue<'a> {
@@ -202,10 +213,7 @@ impl<'a> LLVM<'a> {
     /// create a constant string-value with the given value
     ///
     /// - `value` the value of the constant string value
-    pub fn create_const_string(
-        &self,
-        value: &str,
-    ) -> Result<TypeAndValue<'a>, CompileError> {
+    pub fn create_const_string(&self, value: &str) -> Result<TypeAndValue<'a>, CompileError> {
         self.create_llvm_const_vec_string(value.as_bytes())
     }
 
@@ -222,5 +230,4 @@ impl<'a> LLVM<'a> {
             BasicValueEnum::VectorValue(exp_value),
         ))
     }
-
 }

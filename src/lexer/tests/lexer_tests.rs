@@ -1,5 +1,4 @@
 /// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-
 use pretty_assertions::{assert_eq, assert_ne};
 
 use crate::lexer::{lex, Token::*};
@@ -33,10 +32,14 @@ fn comments_are_ignored_by_the_lexer() {
     lexer.advance();
     assert_eq!(lexer.token, KeywordEndProgram, "Token : {}", lexer.slice());
     lexer.advance();
-    assert_eq!(lexer.token, KeywordEndFunctionBlock, "Token : {}", lexer.slice());
+    assert_eq!(
+        lexer.token,
+        KeywordEndFunctionBlock,
+        "Token : {}",
+        lexer.slice()
+    );
     lexer.advance();
 }
-
 
 #[test]
 fn comments_are_not_ignored_in_strings() {
@@ -51,7 +54,7 @@ fn comments_are_not_ignored_in_strings() {
         "#);
     assert_eq!(lexer.token, LiteralString, "Token : {}", lexer.slice());
     lexer.advance();
-    assert_eq!(lexer.token , End, "Token : {}", lexer.slice());
+    assert_eq!(lexer.token, End, "Token : {}", lexer.slice());
 }
 
 #[test]
@@ -69,7 +72,6 @@ fn string_delimiter_dont_leak_out_of_comments() {
     lexer.advance();
     assert_eq!(lexer.token, LiteralString, "Token : {}", lexer.slice());
     assert_eq!(lexer.slice(), "' abc // '");
-
 }
 
 #[test]
@@ -87,14 +89,19 @@ fn unicode_chars_in_comments() {
     lexer.advance();
     assert_eq!(lexer.token, KeywordEndProgram, "Token : {}", lexer.slice());
     lexer.advance();
-    assert_eq!(lexer.token, KeywordEndFunctionBlock, "Token : {}", lexer.slice());
+    assert_eq!(
+        lexer.token,
+        KeywordEndFunctionBlock,
+        "Token : {}",
+        lexer.slice()
+    );
     lexer.advance();
-
 }
 
 #[test]
 fn pou_tokens() {
-    let mut lexer = lex("PROGRAM END_PROGRAM FUNCTION END_FUNCTION FUNCTION_BLOCK END_FUNCTION_BLOCK");
+    let mut lexer =
+        lex("PROGRAM END_PROGRAM FUNCTION END_FUNCTION FUNCTION_BLOCK END_FUNCTION_BLOCK");
     assert_eq!(lexer.token, KeywordProgram);
     lexer.advance();
     assert_eq!(lexer.token, KeywordEndProgram);
@@ -157,12 +164,7 @@ fn punctuations() {
     let lexer = lex(":");
     assert_eq!(lexer.token, KeywordColon, "{}", lexer.slice());
     let lexer = lex(";");
-    assert_eq!(
-        lexer.token,
-        KeywordSemicolon,
-        "{}",
-        lexer.slice()
-    );
+    assert_eq!(lexer.token, KeywordSemicolon, "{}", lexer.slice());
 }
 
 #[test]
@@ -182,7 +184,7 @@ fn a_assignment_is_keyword_assignment() {
 }
 
 #[test]
-fn comma(){
+fn comma() {
     let lexer = lex(",");
     assert_eq!(lexer.token, KeywordComma);
 }
@@ -240,33 +242,31 @@ fn int_literals_test() {
 fn real_literals_test() {
     let mut lexer = lex("1.234 0.9E10");
 
-        assert_eq!(lexer.token, LiteralInteger);
-        lexer.advance();
-        assert_eq!(lexer.token, KeywordDot);
-        lexer.advance();
-        assert_eq!(lexer.token, LiteralInteger);
-        lexer.advance();
-        assert_eq!(lexer.token, LiteralInteger);
-        lexer.advance();
-        assert_eq!(lexer.token, KeywordDot);
-        lexer.advance();
-        assert_eq!(lexer.token, LiteralInteger);
-        lexer.advance();
-        assert_eq!(lexer.token, LiteralExponent);
-        lexer.advance();
+    assert_eq!(lexer.token, LiteralInteger);
+    lexer.advance();
+    assert_eq!(lexer.token, KeywordDot);
+    lexer.advance();
+    assert_eq!(lexer.token, LiteralInteger);
+    lexer.advance();
+    assert_eq!(lexer.token, LiteralInteger);
+    lexer.advance();
+    assert_eq!(lexer.token, KeywordDot);
+    lexer.advance();
+    assert_eq!(lexer.token, LiteralInteger);
+    lexer.advance();
+    assert_eq!(lexer.token, LiteralExponent);
+    lexer.advance();
 }
 
 #[test]
 fn a_full_program_generates_correct_token_sequence() {
-    let mut lexer = lex(
-        r"
+    let mut lexer = lex(r"
         PROGRAM hello
         VAR
           a : INT;
         END_VAR
         END_PROGRAM
-        ",
-    );
+        ");
 
     assert_eq!(lexer.token, KeywordProgram);
     lexer.advance();
@@ -297,11 +297,9 @@ fn boolean_literals() {
 
 #[test]
 fn if_expression() {
-    let mut lexer = lex(
-        r"
+    let mut lexer = lex(r"
         IF THEN ELSIF ELSE END_IF
-        ",
-    );
+        ");
 
     assert_eq!(lexer.token, KeywordIf);
     lexer.advance();
@@ -316,11 +314,9 @@ fn if_expression() {
 
 #[test]
 fn for_statement() {
-    let mut lexer = lex(
-        r"
+    let mut lexer = lex(r"
         FOR TO BY DO END_FOR
-        ",
-    );
+        ");
 
     assert_eq!(lexer.token, KeywordFor);
     lexer.advance();
@@ -335,11 +331,9 @@ fn for_statement() {
 
 #[test]
 fn while_statement() {
-    let mut lexer = lex(
-        r"
+    let mut lexer = lex(r"
         WHILE DO END_WHILE
-        ",
-    );
+        ");
 
     assert_eq!(lexer.token, KeywordWhile);
     lexer.advance();
@@ -350,11 +344,9 @@ fn while_statement() {
 
 #[test]
 fn repeat_statement() {
-    let mut lexer = lex(
-        r"
+    let mut lexer = lex(r"
         REPEAT UNTIL END_REPEAT
-        ",
-    );
+        ");
 
     assert_eq!(lexer.token, KeywordRepeat);
     lexer.advance();
@@ -365,11 +357,9 @@ fn repeat_statement() {
 
 #[test]
 fn case_statement() {
-    let mut lexer = lex(
-        r"
+    let mut lexer = lex(r"
         CASE OF ELSE END_CASE
-        ",
-    );
+        ");
 
     assert_eq!(lexer.token, KeywordCase);
     lexer.advance();
@@ -382,9 +372,7 @@ fn case_statement() {
 
 #[test]
 fn dot_statements() {
-    let mut lexer = lex(
-        r".. .",
-    );
+    let mut lexer = lex(r".. .");
 
     assert_eq!(lexer.token, KeywordDotDot);
     lexer.advance();
@@ -394,9 +382,7 @@ fn dot_statements() {
 
 #[test]
 fn range_statements() {
-    let mut lexer = lex(
-        r"123..ABC",
-    );
+    let mut lexer = lex(r"123..ABC");
 
     println!("{:?}", lexer.token);
     lexer.advance();
@@ -408,9 +394,7 @@ fn range_statements() {
 
 #[test]
 fn struct_enum_datatype() {
-    let mut lexer = lex(
-        r"TYPE STRUCT END_STRUCT END_TYPE",
-    );
+    let mut lexer = lex(r"TYPE STRUCT END_STRUCT END_TYPE");
 
     assert_eq!(lexer.token, KeywordType);
     lexer.advance();
@@ -423,9 +407,7 @@ fn struct_enum_datatype() {
 
 #[test]
 fn array_parsing() {
-    let mut lexer = lex(
-        r"ARRAY OF x[5]",
-    );
+    let mut lexer = lex(r"ARRAY OF x[5]");
 
     assert_eq!(lexer.token, KeywordArray);
     lexer.advance();
@@ -439,25 +421,22 @@ fn array_parsing() {
     lexer.advance();
     assert_eq!(lexer.token, KeywordSquareParensClose);
     lexer.advance();
-    
 }
 
 #[test]
 fn string_parsing() {
-    let mut lexer = lex(
-        r"STRING 'AB C' 'AB$$' 'AB$''"
-    );
+    let mut lexer = lex(r"STRING 'AB C' 'AB$$' 'AB$''");
 
     assert_eq!(lexer.token, KeywordString);
-    assert_eq!("STRING",lexer.slice());
+    assert_eq!("STRING", lexer.slice());
     lexer.advance();
     assert_eq!(lexer.token, LiteralString);
-    assert_eq!("'AB C'",lexer.slice());
+    assert_eq!("'AB C'", lexer.slice());
     lexer.advance();
     assert_eq!(lexer.token, LiteralString);
-    assert_eq!("'AB$$'",lexer.slice());
+    assert_eq!("'AB$$'", lexer.slice());
     lexer.advance();
     assert_eq!(lexer.token, LiteralString);
-    assert_eq!("'AB$''",lexer.slice());
+    assert_eq!("'AB$''", lexer.slice());
     lexer.advance();
 }

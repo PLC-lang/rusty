@@ -1,10 +1,9 @@
 /// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-
 use pretty_assertions::assert_eq;
 
-use crate::{ast::*, index::VariableType};
 use crate::lexer;
 use crate::parser;
+use crate::{ast::*, index::VariableType};
 
 macro_rules! index {
     ($code:tt) => {{
@@ -67,52 +66,55 @@ fn actions_are_indexed() {
     );
 
     let foo = index.find_implementation("myProgram.foo").unwrap();
-    assert_eq!("myProgram.foo",foo.call_name);
-    assert_eq!("myProgram",foo.type_name);
-    let info = index.get_type("myProgram.foo").unwrap().get_type_information(); 
-    if let crate::typesystem::DataTypeInformation::Alias{
+    assert_eq!("myProgram.foo", foo.call_name);
+    assert_eq!("myProgram", foo.type_name);
+    let info = index
+        .get_type("myProgram.foo")
+        .unwrap()
+        .get_type_information();
+    if let crate::typesystem::DataTypeInformation::Alias {
         name,
-        referenced_type, 
-    } = info {
+        referenced_type,
+    } = info
+    {
         assert_eq!("myProgram.foo", name);
         assert_eq!("myProgram", referenced_type);
     } else {
         panic!("Wrong variant : {:#?}", info);
     }
-    if let crate::typesystem::DataTypeInformation::Struct{
-        name,
-        ..
-
-    } = index.find_effective_type(info).unwrap() {
+    if let crate::typesystem::DataTypeInformation::Struct { name, .. } =
+        index.find_effective_type(info).unwrap()
+    {
         assert_eq!("myProgram_interface", name);
     } else {
         panic!("Wrong variant : {:#?}", info);
     }
-    
-    let bar = index.find_implementation("myProgram.bar").unwrap();
-    assert_eq!("myProgram.bar",bar.call_name);
-    assert_eq!("myProgram",bar.type_name);
 
-    let info = index.get_type("myProgram.bar").unwrap().get_type_information(); 
-    if let crate::typesystem::DataTypeInformation::Alias{
+    let bar = index.find_implementation("myProgram.bar").unwrap();
+    assert_eq!("myProgram.bar", bar.call_name);
+    assert_eq!("myProgram", bar.type_name);
+
+    let info = index
+        .get_type("myProgram.bar")
+        .unwrap()
+        .get_type_information();
+    if let crate::typesystem::DataTypeInformation::Alias {
         name,
-        referenced_type, 
-    } = info {
+        referenced_type,
+    } = info
+    {
         assert_eq!("myProgram.bar", name);
         assert_eq!("myProgram", referenced_type);
     } else {
         panic!("Wrong variant : {:#?}", info);
     }
-    if let crate::typesystem::DataTypeInformation::Struct{
-        name,
-        ..
-
-    } = index.find_effective_type(info).unwrap() {
+    if let crate::typesystem::DataTypeInformation::Struct { name, .. } =
+        index.find_effective_type(info).unwrap()
+    {
         assert_eq!("myProgram_interface", name);
     } else {
         panic!("Wrong variant : {:#?}", info);
     }
-
 }
 
 #[test]
@@ -166,7 +168,8 @@ fn implementations_are_indexed() {
         END_FUNCTION_BLOCK
         FUNCTION foo : INT
         END_FUNCTION
-        "#);
+        "#
+    );
 
     let my_program = index.find_implementation("myProgram").unwrap();
     assert_eq!(my_program.call_name, "myProgram");
@@ -376,65 +379,140 @@ fn callable_instances_can_be_retreived() {
     "#
     );
 
-    assert_eq!(true, index.find_callable_instance_variable(Some("prg"), &["fb1_inst".into()]).is_some());
-    assert_eq!(true, index.find_callable_instance_variable(Some("prg"), &["fb2_inst".into()]).is_some());
-    assert_eq!(true, index.find_callable_instance_variable(Some("prg"), &["fb3_inst".into()]).is_some());
-    assert_eq!(true, index.find_callable_instance_variable(Some("prg"), &["fb1_local".into()]).is_some());
-    assert_eq!(true, index.find_callable_instance_variable(Some("prg"), &["fb1_local".into(),"fb2_inst".into(),"fb3_inst".into()]).is_some());
-    assert_eq!(true, index.find_callable_instance_variable(Some("prg"), &["fb1_inst".into(),"fb2_inst".into()]).is_some());
-    assert_eq!(true, index.find_callable_instance_variable(Some("prg"), &["fb1_inst".into(),"fb2_inst".into(),"fb3_inst".into()]).is_some());
-    assert_eq!(true, index.find_callable_instance_variable(Some("prg"), &["foo".into()]).is_none());
-    assert_eq!(true, index.find_callable_instance_variable(Some("prg"), &["a".into()]).is_none());
-    assert_eq!(true, index.find_callable_instance_variable(Some("prg"), &["b".into()]).is_none());
-    assert_eq!(true, index.find_callable_instance_variable(Some("prg"), &["c".into()]).is_none());
-    assert_eq!(true, index.find_callable_instance_variable(Some("prg"), &["d".into()]).is_none());
+    assert_eq!(
+        true,
+        index
+            .find_callable_instance_variable(Some("prg"), &["fb1_inst".into()])
+            .is_some()
+    );
+    assert_eq!(
+        true,
+        index
+            .find_callable_instance_variable(Some("prg"), &["fb2_inst".into()])
+            .is_some()
+    );
+    assert_eq!(
+        true,
+        index
+            .find_callable_instance_variable(Some("prg"), &["fb3_inst".into()])
+            .is_some()
+    );
+    assert_eq!(
+        true,
+        index
+            .find_callable_instance_variable(Some("prg"), &["fb1_local".into()])
+            .is_some()
+    );
+    assert_eq!(
+        true,
+        index
+            .find_callable_instance_variable(
+                Some("prg"),
+                &["fb1_local".into(), "fb2_inst".into(), "fb3_inst".into()]
+            )
+            .is_some()
+    );
+    assert_eq!(
+        true,
+        index
+            .find_callable_instance_variable(Some("prg"), &["fb1_inst".into(), "fb2_inst".into()])
+            .is_some()
+    );
+    assert_eq!(
+        true,
+        index
+            .find_callable_instance_variable(
+                Some("prg"),
+                &["fb1_inst".into(), "fb2_inst".into(), "fb3_inst".into()]
+            )
+            .is_some()
+    );
+    assert_eq!(
+        true,
+        index
+            .find_callable_instance_variable(Some("prg"), &["foo".into()])
+            .is_none()
+    );
+    assert_eq!(
+        true,
+        index
+            .find_callable_instance_variable(Some("prg"), &["a".into()])
+            .is_none()
+    );
+    assert_eq!(
+        true,
+        index
+            .find_callable_instance_variable(Some("prg"), &["b".into()])
+            .is_none()
+    );
+    assert_eq!(
+        true,
+        index
+            .find_callable_instance_variable(Some("prg"), &["c".into()])
+            .is_none()
+    );
+    assert_eq!(
+        true,
+        index
+            .find_callable_instance_variable(Some("prg"), &["d".into()])
+            .is_none()
+    );
 }
 
 #[test]
 fn find_type_retrieves_directly_registered_type() {
-    let index = index!(r"
+    let index = index!(
+        r"
             TYPE MyAlias : INT;  END_TYPE
             TYPE MySecondAlias : MyAlias;  END_TYPE
             TYPE MyArray : ARRAY[0..10] OF INT;  END_TYPE
             TYPE MyArrayAlias : MyArray; END_TYPE
-        ");
+        "
+    );
 
     let my_alias = index.find_type("MyAlias").unwrap();
-    assert_eq!("MyAlias",my_alias.get_name());
-    
+    assert_eq!("MyAlias", my_alias.get_name());
+
     let my_alias = index.find_type("MySecondAlias").unwrap();
-    assert_eq!("MySecondAlias",my_alias.get_name());
+    assert_eq!("MySecondAlias", my_alias.get_name());
 
     let my_alias = index.find_type("MyArrayAlias").unwrap();
-    assert_eq!("MyArrayAlias",my_alias.get_name());
+    assert_eq!("MyArrayAlias", my_alias.get_name());
 }
 
 #[test]
 fn find_effective_type_finds_the_inner_effective_type() {
-    let index = index!(r"
+    let index = index!(
+        r"
             TYPE MyAlias : INT;  END_TYPE
             TYPE MySecondAlias : MyAlias;  END_TYPE
             TYPE MyArray : ARRAY[0..10] OF INT;  END_TYPE
             TYPE MyArrayAlias : MyArray; END_TYPE
-        ");
+        "
+    );
 
     let my_alias = index.find_type("MyAlias").unwrap().get_type_information();
     let int = index.find_effective_type(&my_alias).unwrap();
-    assert_eq!("INT",int.get_name());
-    
-    let my_alias = index.find_type("MySecondAlias").unwrap().get_type_information();
-    let int = index.find_effective_type(&my_alias).unwrap();
-    assert_eq!("INT",int.get_name());
+    assert_eq!("INT", int.get_name());
 
-    let my_alias = index.find_type("MyArrayAlias").unwrap().get_type_information();
+    let my_alias = index
+        .find_type("MySecondAlias")
+        .unwrap()
+        .get_type_information();
+    let int = index.find_effective_type(&my_alias).unwrap();
+    assert_eq!("INT", int.get_name());
+
+    let my_alias = index
+        .find_type("MyArrayAlias")
+        .unwrap()
+        .get_type_information();
     let array = index.find_effective_type(&my_alias).unwrap();
-    assert_eq!("MyArray",array.get_name());
+    assert_eq!("MyArray", array.get_name());
 
     let my_alias = index.find_type("MyArray").unwrap().get_type_information();
     let array = index.find_effective_type(&my_alias).unwrap();
-    assert_eq!("MyArray",array.get_name());
+    assert_eq!("MyArray", array.get_name());
 }
-
 
 #[test]
 fn pre_processing_generates_inline_enums_global() {
@@ -607,7 +685,6 @@ fn pre_processing_generates_inline_structs() {
     );
 }
 
-
 #[test]
 fn pre_processing_generates_inline_arrays() {
     // GIVEN an inline array is declared
@@ -628,24 +705,27 @@ fn pre_processing_generates_inline_arrays() {
     //ARRAY
     //THEN an implicit datatype should have been generated for the array
     let new_array_type = &ast.types[0];
-    
+
     let expected = &UserTypeDeclaration {
         data_type: DataType::ArrayType {
             name: Some("__foo_inline_array".to_string()),
-            bounds: Statement::RangeStatement{
-                start: Box::new(Statement::LiteralInteger { value: "0".to_string(), location:0..0}),
-                end: Box::new(Statement::LiteralInteger {value: "1".to_string(), location: 0..0}),
+            bounds: Statement::RangeStatement {
+                start: Box::new(Statement::LiteralInteger {
+                    value: "0".to_string(),
+                    location: 0..0,
+                }),
+                end: Box::new(Statement::LiteralInteger {
+                    value: "1".to_string(),
+                    location: 0..0,
+                }),
             },
-            referenced_type: Box::new(DataTypeDeclaration::DataTypeReference{
+            referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
                 referenced_type: "INT".to_string(),
             }),
         },
-        initializer: None
+        initializer: None,
     };
-    assert_eq!(
-        format!("{:?}", expected),
-        format!("{:?}", new_array_type)
-    );
+    assert_eq!(format!("{:?}", expected), format!("{:?}", new_array_type));
 
     // AND the original variable should now point to the new DataType
     let var_data_type = &ast.units[0].variable_blocks[0].variables[0].data_type;
@@ -656,7 +736,6 @@ fn pre_processing_generates_inline_arrays() {
         var_data_type
     );
 }
-
 
 #[test]
 fn pre_processing_generates_inline_array_of_array() {
@@ -683,40 +762,46 @@ fn pre_processing_generates_inline_array_of_array() {
     let expected = &UserTypeDeclaration {
         data_type: DataType::ArrayType {
             name: Some("__foo_inline_array_".to_string()),
-            bounds: Statement::RangeStatement{
-                start: Box::new(Statement::LiteralInteger { value: "0".to_string(), location:0..0}),
-                end: Box::new(Statement::LiteralInteger {value: "1".to_string(), location: 0..0}),
+            bounds: Statement::RangeStatement {
+                start: Box::new(Statement::LiteralInteger {
+                    value: "0".to_string(),
+                    location: 0..0,
+                }),
+                end: Box::new(Statement::LiteralInteger {
+                    value: "1".to_string(),
+                    location: 0..0,
+                }),
             },
-            referenced_type: Box::new(DataTypeDeclaration::DataTypeReference{
+            referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
                 referenced_type: "INT".to_string(),
             }),
-        }, 
+        },
         initializer: None,
-        };
-    assert_eq!(
-        format!("{:?}", expected),
-        format!("{:?}", new_array_type)
-    );
+    };
+    assert_eq!(format!("{:?}", expected), format!("{:?}", new_array_type));
 
     // ARRAY OF ARRAY
     let new_array_type = &ast.types[1];
-    let expected = &UserTypeDeclaration{
+    let expected = &UserTypeDeclaration {
         data_type: DataType::ArrayType {
             name: Some("__foo_inline_array".to_string()),
-            bounds: Statement::RangeStatement{
-                start: Box::new(Statement::LiteralInteger { value: "0".to_string(), location:0..0}),
-                end: Box::new(Statement::LiteralInteger {value: "1".to_string(), location: 0..0}),
+            bounds: Statement::RangeStatement {
+                start: Box::new(Statement::LiteralInteger {
+                    value: "0".to_string(),
+                    location: 0..0,
+                }),
+                end: Box::new(Statement::LiteralInteger {
+                    value: "1".to_string(),
+                    location: 0..0,
+                }),
             },
-            referenced_type: Box::new(DataTypeDeclaration::DataTypeReference{
+            referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
                 referenced_type: "__foo_inline_array_".to_string(),
             }),
         },
         initializer: None,
     };
-    assert_eq!(
-        format!("{:?}", expected),
-        format!("{:?}", new_array_type)
-    );
+    assert_eq!(format!("{:?}", expected), format!("{:?}", new_array_type));
 
     // AND the original variable should now point to the new DataType
     let var_data_type = &ast.units[0].variable_blocks[0].variables[0].data_type;
@@ -744,58 +829,56 @@ fn pre_processing_nested_array_in_struct() {
         END_VAR
           m.field1[3] := 7;
         END_PROGRAM
-        "#
+        "#,
     );
 
     let (mut ast, _) = parser::parse(lexer).unwrap();
 
-     // WHEN the AST ist pre-processed
+    // WHEN the AST ist pre-processed
     crate::ast::pre_process(&mut ast);
 
     //THEN an implicit datatype should have been generated for the array
 
-    // Struct Type 
+    // Struct Type
     let new_array_type = &ast.types[0];
-    let expected = &UserTypeDeclaration{
+    let expected = &UserTypeDeclaration {
         data_type: DataType::StructType {
             name: Some("MyStruct".to_string()),
-            variables: vec![
-                Variable {
-                    name: "field1".to_string(),
-                    data_type: DataTypeDeclaration::DataTypeReference { referenced_type: "__MyStruct_field1".to_string() },
-                    location : 0..0,
-                    initializer: None,
-                }
-            ],
+            variables: vec![Variable {
+                name: "field1".to_string(),
+                data_type: DataTypeDeclaration::DataTypeReference {
+                    referenced_type: "__MyStruct_field1".to_string(),
+                },
+                location: 0..0,
+                initializer: None,
+            }],
         },
-        initializer: None
+        initializer: None,
     };
-    assert_eq!(
-        format!("{:?}", expected),
-        format!("{:?}", new_array_type)
-    );
+    assert_eq!(format!("{:?}", expected), format!("{:?}", new_array_type));
 
-// ARRAY OF INT
+    // ARRAY OF INT
     let new_array_type = &ast.types[1];
     let expected = &UserTypeDeclaration {
         data_type: DataType::ArrayType {
             name: Some("__MyStruct_field1".to_string()),
-            bounds: Statement::RangeStatement{
-                start: Box::new(Statement::LiteralInteger { value: "0".to_string(), location:0..0}),
-                end: Box::new(Statement::LiteralInteger {value: "4".to_string(), location: 0..0}),
+            bounds: Statement::RangeStatement {
+                start: Box::new(Statement::LiteralInteger {
+                    value: "0".to_string(),
+                    location: 0..0,
+                }),
+                end: Box::new(Statement::LiteralInteger {
+                    value: "4".to_string(),
+                    location: 0..0,
+                }),
             },
-            referenced_type: Box::new(DataTypeDeclaration::DataTypeReference{
+            referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
                 referenced_type: "INT".to_string(),
             }),
         },
         initializer: None,
     };
-    assert_eq!(
-        format!("{:?}", expected),
-        format!("{:?}", new_array_type)
-    );
-
-
+    assert_eq!(format!("{:?}", expected), format!("{:?}", new_array_type));
 }
 
 #[test]
@@ -820,63 +903,72 @@ fn pre_processing_generates_inline_array_of_array_of_array() {
 
     // ARRAY OF INT
     let new_array_type = &ast.types[0];
-    let expected = &UserTypeDeclaration{
+    let expected = &UserTypeDeclaration {
         data_type: DataType::ArrayType {
             name: Some("__foo_inline_array__".to_string()),
-            bounds: Statement::RangeStatement{
-                start: Box::new(Statement::LiteralInteger { value: "0".to_string(), location:0..0}),
-                end: Box::new(Statement::LiteralInteger {value: "1".to_string(), location: 0..0}),
+            bounds: Statement::RangeStatement {
+                start: Box::new(Statement::LiteralInteger {
+                    value: "0".to_string(),
+                    location: 0..0,
+                }),
+                end: Box::new(Statement::LiteralInteger {
+                    value: "1".to_string(),
+                    location: 0..0,
+                }),
             },
-            referenced_type: Box::new(DataTypeDeclaration::DataTypeReference{
+            referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
                 referenced_type: "INT".to_string(),
             }),
         },
         initializer: None,
     };
-    assert_eq!(
-        format!("{:?}", expected),
-        format!("{:?}", new_array_type)
-    );
+    assert_eq!(format!("{:?}", expected), format!("{:?}", new_array_type));
 
     // ARRAY OF ARRAY
     let new_array_type = &ast.types[1];
     let expected = UserTypeDeclaration {
         data_type: DataType::ArrayType {
             name: Some("__foo_inline_array_".to_string()),
-            bounds: Statement::RangeStatement{
-                start: Box::new(Statement::LiteralInteger { value: "0".to_string(), location:0..0}),
-                end: Box::new(Statement::LiteralInteger {value: "1".to_string(), location: 0..0}),
+            bounds: Statement::RangeStatement {
+                start: Box::new(Statement::LiteralInteger {
+                    value: "0".to_string(),
+                    location: 0..0,
+                }),
+                end: Box::new(Statement::LiteralInteger {
+                    value: "1".to_string(),
+                    location: 0..0,
+                }),
             },
-            referenced_type: Box::new(DataTypeDeclaration::DataTypeReference{
+            referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
                 referenced_type: "__foo_inline_array__".to_string(),
             }),
         },
-        initializer: None
+        initializer: None,
     };
-    assert_eq!(
-        format!("{:?}", expected),
-        format!("{:?}", new_array_type)
-    );
+    assert_eq!(format!("{:?}", expected), format!("{:?}", new_array_type));
 
     // ARRAY OF ARRAY
     let new_array_type = &ast.types[2];
-    let expected = UserTypeDeclaration{
+    let expected = UserTypeDeclaration {
         data_type: DataType::ArrayType {
             name: Some("__foo_inline_array".to_string()),
-            bounds: Statement::RangeStatement{
-                start: Box::new(Statement::LiteralInteger { value: "0".to_string(), location:0..0}),
-                end: Box::new(Statement::LiteralInteger {value: "1".to_string(), location: 0..0}),
+            bounds: Statement::RangeStatement {
+                start: Box::new(Statement::LiteralInteger {
+                    value: "0".to_string(),
+                    location: 0..0,
+                }),
+                end: Box::new(Statement::LiteralInteger {
+                    value: "1".to_string(),
+                    location: 0..0,
+                }),
             },
-            referenced_type: Box::new(DataTypeDeclaration::DataTypeReference{
+            referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
                 referenced_type: "__foo_inline_array_".to_string(),
             }),
         },
         initializer: None,
     };
-    assert_eq!(
-        format!("{:?}", expected),
-        format!("{:?}", new_array_type)
-    );
+    assert_eq!(format!("{:?}", expected), format!("{:?}", new_array_type));
 
     // AND the original variable should now point to the new DataType
     let var_data_type = &ast.units[0].variable_blocks[0].variables[0].data_type;

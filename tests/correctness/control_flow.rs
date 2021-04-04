@@ -1,29 +1,26 @@
 /// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-
 use super::super::*;
 
 macro_rules! permutate_conditionals {
     ($code: tt, $condition : tt) => {{
-       let true_1 = format!($code, $condition = "TRUE" );
-       let false_1 = format!($code, $condition = "FALSE");
-       (true_1, false_1)
+        let true_1 = format!($code, $condition = "TRUE");
+        let false_1 = format!($code, $condition = "FALSE");
+        (true_1, false_1)
     }};
 }
 
-
-
 #[test]
 fn adding_through_conditions() {
-    
     #[allow(dead_code)]
     #[repr(C)]
     struct MainType {
-        inc : i32, 
-        cond : bool,
-        ret : i32,
+        inc: i32,
+        cond: bool,
+        ret: i32,
     }
-    
-    let function = permutate_conditionals!(r#"
+
+    let function = permutate_conditionals!(
+        r#"
     FUNCTION main : DINT
     VAR
         inc : DINT;
@@ -43,26 +40,42 @@ fn adding_through_conditions() {
 
     END_FUNCTION
 
-    "#, cond);
+    "#,
+        cond
+    );
 
     let (func_true, func_false) = function;
 
-    let (res, _) = compile_and_run(func_true.to_string(),  &mut MainType{inc : 0, cond: false, ret: 0});
-    assert_eq!(res,10);
-    let (res, _) = compile_and_run(func_false.to_string(),  &mut MainType{inc : 0, cond: false, ret: 0});
-    assert_eq!(res,100);
+    let (res, _) = compile_and_run(
+        func_true.to_string(),
+        &mut MainType {
+            inc: 0,
+            cond: false,
+            ret: 0,
+        },
+    );
+    assert_eq!(res, 10);
+    let (res, _) = compile_and_run(
+        func_false.to_string(),
+        &mut MainType {
+            inc: 0,
+            cond: false,
+            ret: 0,
+        },
+    );
+    assert_eq!(res, 100);
 }
 
 #[test]
 fn adding_through_conditions_to_function_return() {
-
     #[allow(dead_code)]
     #[repr(C)]
     struct MainType {
-        ret : i32,
+        ret: i32,
     }
 
-    let function = permutate_conditionals!(r#"
+    let function = permutate_conditionals!(
+        r#"
     FUNCTION main : DINT
     VAR
     END_VAR
@@ -75,24 +88,25 @@ fn adding_through_conditions_to_function_return() {
 
     END_FUNCTION
 
-    "#, cond);
+    "#,
+        cond
+    );
 
     let (func_true, func_false) = function;
 
-    let (res, _) = compile_and_run(func_true.to_string(), &mut MainType{ret : 0});
-    assert_eq!(res,10);
-    let (res, _) = compile_and_run(func_false.to_string(), &mut MainType{ret : 0});
-    assert_eq!(res,100);
+    let (res, _) = compile_and_run(func_true.to_string(), &mut MainType { ret: 0 });
+    assert_eq!(res, 10);
+    let (res, _) = compile_and_run(func_false.to_string(), &mut MainType { ret: 0 });
+    assert_eq!(res, 100);
 }
 
 #[test]
 fn for_loop_and_increment_10_times() {
-
     #[allow(dead_code)]
     #[repr(C)]
     struct MainType {
-        i : i16,
-        ret : i32,
+        i: i16,
+        ret: i32,
     }
 
     let function = r#"
@@ -106,9 +120,9 @@ fn for_loop_and_increment_10_times() {
     END_FOR
     END_FUNCTION
     "#;
-    
-    let (res, _) = compile_and_run(function.to_string(), &mut MainType{i : 0, ret : 0});
-    assert_eq!(res,110);
+
+    let (res, _) = compile_and_run(function.to_string(), &mut MainType { i: 0, ret: 0 });
+    assert_eq!(res, 110);
 }
 
 #[test]
@@ -116,8 +130,8 @@ fn for_loop_and_increment_10_times_skipping_1() {
     #[allow(dead_code)]
     #[repr(C)]
     struct MainType {
-        i : i16,
-        ret : i16,
+        i: i16,
+        ret: i16,
     }
     let function = r#"
     FUNCTION main : DINT
@@ -130,9 +144,9 @@ fn for_loop_and_increment_10_times_skipping_1() {
     END_FOR
     END_FUNCTION
     "#;
-    
-    let (res, _) = compile_and_run(function.to_string(), &mut MainType{i : 0, ret: 0});
-    assert_eq!(res,1005);
+
+    let (res, _) = compile_and_run(function.to_string(), &mut MainType { i: 0, ret: 0 });
+    assert_eq!(res, 1005);
 }
 
 #[test]
@@ -140,8 +154,8 @@ fn while_loop_no_entry() {
     #[allow(dead_code)]
     #[repr(C)]
     struct MainType {
-        i : i16,
-        ret : i32,
+        i: i16,
+        ret: i32,
     }
 
     let function = r#"
@@ -158,9 +172,9 @@ fn while_loop_no_entry() {
     main := main + (i * 1000);
     END_FUNCTION
     "#;
-    
-    let (res, _) = compile_and_run(function.to_string(), &mut MainType{i : 0, ret :0});
-    assert_eq!(res,5);
+
+    let (res, _) = compile_and_run(function.to_string(), &mut MainType { i: 0, ret: 0 });
+    assert_eq!(res, 5);
 }
 
 #[test]
@@ -168,10 +182,10 @@ fn repeat_loop_no_entry() {
     #[allow(dead_code)]
     #[repr(C)]
     struct MainType {
-        i : i16,
-        ret : i32,
+        i: i16,
+        ret: i32,
     }
-    
+
     let function = r#"
     FUNCTION main : DINT
     VAR
@@ -187,17 +201,17 @@ fn repeat_loop_no_entry() {
     main := main + (i * 1000);
     END_FUNCTION
     "#;
-    
-    let (res, _) = compile_and_run(function.to_string(), &mut MainType {i: 0, ret: 0});
-    assert_eq!(res,1017);
+
+    let (res, _) = compile_and_run(function.to_string(), &mut MainType { i: 0, ret: 0 });
+    assert_eq!(res, 1017);
 }
 #[test]
 fn while_loop_10_times() {
     #[allow(dead_code)]
     #[repr(C)]
     struct MainType {
-        i : i16,
-        ret : i32,
+        i: i16,
+        ret: i32,
     }
     let function = r#"
     FUNCTION main : DINT
@@ -213,20 +227,18 @@ fn while_loop_10_times() {
     main := main + (i * 1000);
     END_FUNCTION
     "#;
-    
-    let (res, _) = compile_and_run(function.to_string(), &mut MainType{i : 0, ret : 0});
-    assert_eq!(res,10101);
+
+    let (res, _) = compile_and_run(function.to_string(), &mut MainType { i: 0, ret: 0 });
+    assert_eq!(res, 10101);
 }
-
-
 
 #[test]
 fn repeat_loop_10_times() {
     #[allow(dead_code)]
     #[repr(C)]
     struct MainType {
-        i : i16,
-        ret : i32,
+        i: i16,
+        ret: i32,
     }
     let function = r#"
     FUNCTION main : DINT
@@ -243,18 +255,17 @@ fn repeat_loop_10_times() {
     main := main + (i * 1000);
     END_FUNCTION
     "#;
-    
-    let (res, _) = compile_and_run(function.to_string(), &mut MainType{i: 0, ret: 0});
-    assert_eq!(res,10101);
-}
 
+    let (res, _) = compile_and_run(function.to_string(), &mut MainType { i: 0, ret: 0 });
+    assert_eq!(res, 10101);
+}
 
 #[test]
 fn case_statement() {
     #[allow(dead_code)]
     #[repr(C)]
     struct MainType {
-        i : i16,
+        i: i16,
     }
     let function = r#"
     FUNCTION main : DINT
@@ -271,24 +282,22 @@ fn case_statement() {
     END_CASE
     END_FUNCTION
     "#;
-    
+
     (1..9).for_each(|i| {
-        let (res, _) = compile_and_run(function.to_string(), &mut MainType{i});
-        assert_eq!(res,101);
+        let (res, _) = compile_and_run(function.to_string(), &mut MainType { i });
+        assert_eq!(res, 101);
     });
 
     (10..19).for_each(|i| {
-        let (res, _) = compile_and_run(function.to_string(), &mut MainType{i});
-        assert_eq!(res,201);
+        let (res, _) = compile_and_run(function.to_string(), &mut MainType { i });
+        assert_eq!(res, 201);
     });
 
     (20..29).for_each(|i| {
-        let (res, _) = compile_and_run(function.to_string(), &mut MainType{i});
-        assert_eq!(res,301);
+        let (res, _) = compile_and_run(function.to_string(), &mut MainType { i });
+        assert_eq!(res, 301);
     });
 
-    let (res, _) = compile_and_run(function.to_string(), &mut MainType{i: 999});
-    assert_eq!(res,7);
-
+    let (res, _) = compile_and_run(function.to_string(), &mut MainType { i: 999 });
+    assert_eq!(res, 7);
 }
-

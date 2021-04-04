@@ -1,13 +1,15 @@
-/// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-use std::{result, fmt::{Debug, Display, Formatter, Result}, iter, unimplemented};
 use crate::compile_error::CompileError;
+/// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
+use std::{
+    fmt::{Debug, Display, Formatter, Result},
+    iter, result, unimplemented,
+};
 mod pre_processor;
-
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Dimension {
     pub start_offset: i32,
-    pub end_offset : i32,
+    pub end_offset: i32,
 }
 
 impl Dimension {
@@ -15,8 +17,6 @@ impl Dimension {
         (self.end_offset - self.start_offset + 1) as u32
     }
 }
-
-
 
 #[derive(PartialEq)]
 pub struct POU {
@@ -42,10 +42,10 @@ impl Debug for POU {
 pub struct Implementation {
     pub name: String,
     pub type_name: String,
-    pub linkage : LinkageType,
-    pub pou_type : PouType,
+    pub linkage: LinkageType,
+    pub pou_type: PouType,
     pub statements: Vec<Statement>,
-    pub location : SourceRange,
+    pub location: SourceRange,
 }
 
 #[derive(Debug, Copy, PartialEq, Clone)]
@@ -53,7 +53,6 @@ pub enum LinkageType {
     Internal,
     External,
 }
-
 
 #[derive(Debug, Copy, PartialEq, Clone)]
 pub enum PouType {
@@ -106,15 +105,15 @@ impl Debug for Variable {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
         if self.initializer.is_some() {
             f.debug_struct("Variable")
-            .field("name", &self.name)
-            .field("data_type", &self.data_type)
-            .field("initializer", &self.initializer)
-            .finish()
+                .field("name", &self.name)
+                .field("data_type", &self.data_type)
+                .field("initializer", &self.initializer)
+                .finish()
         } else {
             f.debug_struct("Variable")
-            .field("name", &self.name)
-            .field("data_type", &self.data_type)
-            .finish()
+                .field("name", &self.name)
+                .field("data_type", &self.data_type)
+                .finish()
         }
     }
 }
@@ -136,10 +135,10 @@ pub type SourceRange = core::ops::Range<usize>;
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct NewLines {
-    new_lines : Vec<usize>,
+    new_lines: Vec<usize>,
 }
 
-impl NewLines{
+impl NewLines {
     pub fn new(source: &str) -> NewLines {
         let mut new_lines = Vec::new();
         new_lines.push(0);
@@ -150,17 +149,18 @@ impl NewLines{
         }
         NewLines { new_lines }
     }
-    
- /// binary search the first element which is bigger than the given index
- /// starting with line 1
+
+    /// binary search the first element which is bigger than the given index
+    /// starting with line 1
     pub fn get_line_of(&self, offset: usize) -> Option<usize> {
+        if offset == 0 {
+            return Some(1);
+        }
 
-        if offset == 0 { return Some(1); }
-
-        let mut start  = 0;
-        let mut end   = self.new_lines.len() - 1;
+        let mut start = 0;
+        let mut end = self.new_lines.len() - 1;
         let mut result: usize = 0;
-        while  start <= end {
+        while start <= end {
             let mid = (start + end) / 2;
 
             if self.new_lines[mid] <= offset {
@@ -175,18 +175,18 @@ impl NewLines{
             Some(result)
         } else {
             None
-        }
+        };
     }
 
     /// get the offset of the new_line that starts line l (starting with line 1)
-    pub fn get_offest_of_line(&self, l: usize) -> usize{ 
-        self.new_lines[l-1]
+    pub fn get_offest_of_line(&self, l: usize) -> usize {
+        self.new_lines[l - 1]
     }
 
     pub fn _get_location_information(&self, offset: &core::ops::Range<usize>) -> String {
         let line = self.get_line_of(offset.start).unwrap_or(1);
         let line_offset = self.get_offest_of_line(line);
-        let offset = offset.start-line_offset .. offset.end-line_offset;
+        let offset = offset.start - line_offset..offset.end - line_offset;
         format!("line: {:}, offset: {:?}", line, offset)
     }
 }
@@ -237,7 +237,7 @@ pub enum DataType {
         name: Option<String>,
         is_wide: bool, //WSTRING
         size: Option<Statement>,
-    }
+    },
 }
 
 impl Debug for DataType {
@@ -273,14 +273,14 @@ impl Debug for DataType {
                 .finish(),
             DataType::StringType {
                 name,
-                is_wide, 
-                size 
+                is_wide,
+                size,
             } => f
                 .debug_struct("StringType")
                 .field("name", name)
                 .field("is_wide", is_wide)
                 .field("size", size)
-                .finish()
+                .finish(),
         }
     }
 }
@@ -290,12 +290,9 @@ impl DataType {
         match self {
             DataType::StructType { name, variables: _ } => *name = Some(new_name),
             DataType::EnumType { name, elements: _ } => *name = Some(new_name),
-            DataType::SubRangeType {
-                name,
-                ..
-            } => *name = Some(new_name),
+            DataType::SubRangeType { name, .. } => *name = Some(new_name),
             DataType::ArrayType { name, .. } => *name = Some(new_name),
-            DataType::StringType { name, ..} => *name = Some(new_name),
+            DataType::StringType { name, .. } => *name = Some(new_name),
         }
     }
 
@@ -303,10 +300,7 @@ impl DataType {
         match self {
             DataType::StructType { name, variables: _ } => name.as_ref().map(|x| x.as_str()),
             DataType::EnumType { name, elements: _ } => name.as_ref().map(|x| x.as_str()),
-            DataType::SubRangeType {
-                name,
-                ..
-            } => name.as_ref().map(|x| x.as_str()),
+            DataType::SubRangeType { name, .. } => name.as_ref().map(|x| x.as_str()),
             DataType::ArrayType { name, .. } => name.as_ref().map(|x| x.as_str()),
             DataType::StringType { name, .. } => name.as_ref().map(|x| x.as_str()),
         }
@@ -317,10 +311,13 @@ impl DataType {
         &mut self,
         type_name: String,
     ) -> Option<DataTypeDeclaration> {
-        if let DataType::ArrayType{referenced_type,..} = self {
-            if let DataTypeDeclaration::DataTypeReference{..} = **referenced_type {
+        if let DataType::ArrayType {
+            referenced_type, ..
+        } = self
+        {
+            if let DataTypeDeclaration::DataTypeReference { .. } = **referenced_type {
                 return None;
-            } 
+            }
             let new_data_type = DataTypeDeclaration::DataTypeReference {
                 referenced_type: type_name,
             };
@@ -347,7 +344,7 @@ impl Debug for ConditionalBlock {
     }
 }
 
-#[derive(Clone,PartialEq)]
+#[derive(Clone, PartialEq)]
 pub enum Statement {
     // Literals
     LiteralInteger {
@@ -367,7 +364,7 @@ pub enum Statement {
         location: SourceRange,
     },
     LiteralArray {
-        elements: Option<Box<Statement>>,    // expression-list
+        elements: Option<Box<Statement>>, // expression-list
         location: SourceRange,
     },
     MultipliedStatement {
@@ -377,7 +374,7 @@ pub enum Statement {
     },
     // Expressions
     QualifiedReference {
-        elements: Vec<Statement>
+        elements: Vec<Statement>,
     },
     Reference {
         name: String,
@@ -385,7 +382,7 @@ pub enum Statement {
     },
     ArrayAccess {
         reference: Box<Statement>,
-        access: Box<Statement>
+        access: Box<Statement>,
     },
     BinaryExpression {
         operator: Operator,
@@ -473,11 +470,10 @@ impl Debug for Statement {
                 .debug_struct("LiteralArray")
                 .field("elements", elements)
                 .finish(),
-            Statement::Reference { name, .. } => f
-                .debug_struct("Reference")
-                .field("name", name)
-                .finish(),
-            Statement::QualifiedReference {elements, ..} => f
+            Statement::Reference { name, .. } => {
+                f.debug_struct("Reference").field("name", name).finish()
+            }
+            Statement::QualifiedReference { elements, .. } => f
                 .debug_struct("QualifiedReference")
                 .field("elements", elements)
                 .finish(),
@@ -581,9 +577,10 @@ impl Debug for Statement {
                 .field("reference", reference)
                 .field("access", access)
                 .finish(),
-            Statement::MultipliedStatement { 
-                multiplier, 
-                element, ..
+            Statement::MultipliedStatement {
+                multiplier,
+                element,
+                ..
             } => f
                 .debug_struct("MultipliedStatement")
                 .field("multiplier", multiplier)
@@ -596,12 +593,11 @@ impl Debug for Statement {
 impl Statement {
     ///Returns the statement in a singleton list, or the contained statements if the statement is already a list
     pub fn get_as_list(&self) -> Vec<&Statement> {
-        if let Statement::ExpressionList{expressions} = self {
+        if let Statement::ExpressionList { expressions } = self {
             expressions.iter().collect::<Vec<&Statement>>()
         } else {
             vec![self]
         }
-
     }
     pub fn get_location(&self) -> SourceRange {
         match self {
@@ -609,11 +605,11 @@ impl Statement {
             Statement::LiteralReal { location, .. } => location.clone(),
             Statement::LiteralBool { location, .. } => location.clone(),
             Statement::LiteralString { location, .. } => location.clone(),
-            Statement::LiteralArray {location, ..} => location.clone(),
+            Statement::LiteralArray { location, .. } => location.clone(),
             Statement::Reference { location, .. } => location.clone(),
             Statement::QualifiedReference { elements, .. } => {
                 elements.first().map_or(0, |it| it.get_location().start)
-                    ..elements.last().map_or(0, |it|it.get_location().end)
+                    ..elements.last().map_or(0, |it| it.get_location().end)
             }
             Statement::BinaryExpression { left, right, .. } => {
                 left.get_location().start..right.get_location().end
@@ -641,7 +637,7 @@ impl Statement {
             Statement::ArrayAccess { reference, access } => {
                 reference.get_location().start..access.get_location().end
             }
-            Statement::MultipliedStatement { location, ..} => location.clone(),
+            Statement::MultipliedStatement { location, .. } => location.clone(),
         }
     }
 }
@@ -668,12 +664,12 @@ pub enum Operator {
 impl Display for Operator {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
         let symbol = match self {
-            Operator::Plus=>  "+",
-            Operator::Minus =>  "-",
-            Operator::Multiplication =>  "*",
-            Operator::Division =>  "/",
-            Operator::Equal =>  "=",
-            _ =>  unimplemented!(),
+            Operator::Plus => "+",
+            Operator::Minus => "-",
+            Operator::Multiplication => "*",
+            Operator::Division => "/",
+            Operator::Equal => "=",
+            _ => unimplemented!(),
         };
         f.write_str(symbol)
     }
@@ -683,20 +679,24 @@ impl Display for Operator {
 /// It can also handle nested structures like 2(3(4,5))
 pub fn flatten_expression_list(condition: &Statement) -> Vec<&Statement> {
     match condition {
-        Statement::ExpressionList { expressions} => 
-            expressions.iter().by_ref()
-                .flat_map(|statement| flatten_expression_list(statement))
-                .collect(),
-        Statement::MultipliedStatement { multiplier, element, ..} => 
-            iter::repeat(flatten_expression_list(element))
-                .take(*multiplier as usize)
-                .flatten()
-                .collect(),
-        _ => vec![condition]
+        Statement::ExpressionList { expressions } => expressions
+            .iter()
+            .by_ref()
+            .flat_map(|statement| flatten_expression_list(statement))
+            .collect(),
+        Statement::MultipliedStatement {
+            multiplier,
+            element,
+            ..
+        } => iter::repeat(flatten_expression_list(element))
+            .take(*multiplier as usize)
+            .flatten()
+            .collect(),
+        _ => vec![condition],
     }
 }
 
-pub fn pre_process(unit : &mut CompilationUnit) {
+pub fn pre_process(unit: &mut CompilationUnit) {
     pre_processor::pre_process(unit)
 }
 
@@ -721,7 +721,10 @@ fn get_single_array_dimension(bounds: &Statement) -> result::Result<Dimension, C
             end_offset,
         })
     } else {
-        Err(CompileError::codegen_error(format!("Unexpected Statement {:?}, expected range", bounds), bounds.get_location()))
+        Err(CompileError::codegen_error(
+            format!("Unexpected Statement {:?}, expected range", bounds),
+            bounds.get_location(),
+        ))
     }
 }
 
@@ -734,7 +737,10 @@ fn extract_value(s: &Statement) -> result::Result<String, CompileError> {
         } => extract_value(value).map(|result| format!("{}{}", operator, result)),
         Statement::LiteralInteger { value, .. } => Ok(value.to_string()),
         //TODO constants
-        _ => Err(CompileError::codegen_error("Unsupported Statement. Cannot evaluate expression.".to_string() , s.get_location())),
+        _ => Err(CompileError::codegen_error(
+            "Unsupported Statement. Cannot evaluate expression.".to_string(),
+            s.get_location(),
+        )),
     }
 }
 

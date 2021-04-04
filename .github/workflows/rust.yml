@@ -13,6 +13,17 @@ jobs:
       uses: ./docker-build/
       with:
         build-step: 'test'
+    - name: Formatter
+      uses: ./docker-build/
+      with:
+        build-step: 'fmt'
+        args: '-- --check'
+    - name: Clippy
+      uses: ./docker-build/
+      with:
+        build-step: 'clippy'
+        args: '-- -D warnings'
+
     # - name: rust-tarpaulin
     #   uses: actions-rs/tarpaulin@v0.1
     # - name: Codecov

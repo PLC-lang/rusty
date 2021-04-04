@@ -1,10 +1,9 @@
 /// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-
-use crate::{ast::*};
+use crate::ast::*;
 use crate::expect;
 use crate::lexer::Token::*;
 
-use super::{allow};
+use super::allow;
 use super::RustyLexer;
 use super::{slice_and_advance, unexpected_token};
 
@@ -210,7 +209,7 @@ fn parse_leaf_expression(lexer: &mut RustyLexer) -> Result<Statement, String> {
     let current = match lexer.token {
         Identifier => parse_qualified_reference(lexer),
         LiteralInteger => parse_literal_number(lexer),
-        LiteralString => parse_literal_string(lexer), 
+        LiteralString => parse_literal_string(lexer),
         LiteralTrue => parse_bool_literal(lexer, true),
         LiteralFalse => parse_bool_literal(lexer, false),
         KeywordSquareParensOpen => parse_array_literal(lexer),
@@ -227,7 +226,7 @@ fn parse_leaf_expression(lexer: &mut RustyLexer) -> Result<Statement, String> {
         lexer.advance();
         return Ok(Statement::OutputAssignment {
             left: Box::new(current?),
-            right: Box::new(parse_range_statement(lexer)?), 
+            right: Box::new(parse_range_statement(lexer)?),
         });
     };
     current
@@ -241,7 +240,10 @@ fn parse_array_literal(lexer: &mut RustyLexer) -> Result<Statement, String> {
     let end = lexer.range().end;
     expect!(KeywordSquareParensClose, lexer);
     lexer.advance();
-    Ok(Statement::LiteralArray{ elements, location: (start..end) })
+    Ok(Statement::LiteralArray {
+        elements,
+        location: (start..end),
+    })
 }
 
 fn parse_bool_literal(lexer: &mut RustyLexer, value: bool) -> Result<Statement, String> {
@@ -278,26 +280,28 @@ pub fn parse_qualified_reference(lexer: &mut RustyLexer) -> Result<Statement, St
         Ok(Statement::CallStatement {
             operator: Box::new(reference),
             parameters: Box::new(statement_list),
-            location: start..end
+            location: start..end,
         })
     } else {
         Ok(reference)
     }
-
 }
 
-pub fn parse_reference_access(lexer : &mut RustyLexer) -> Result<Statement, String> {
+pub fn parse_reference_access(lexer: &mut RustyLexer) -> Result<Statement, String> {
     let location = lexer.range();
     let mut reference = Statement::Reference {
-        name : slice_and_advance(lexer),
+        name: slice_and_advance(lexer),
         location,
     };
     //If (while) we hit a dereference, parse and append the dereference to the result
-    while allow(KeywordSquareParensOpen,lexer) { 
+    while allow(KeywordSquareParensOpen, lexer) {
         let access = parse_primary_expression(lexer)?;
-        expect!(KeywordSquareParensClose,lexer);
+        expect!(KeywordSquareParensClose, lexer);
         lexer.advance();
-        reference = Statement::ArrayAccess { reference : Box::new(reference), access : Box::new(access) };
+        reference = Statement::ArrayAccess {
+            reference: Box::new(reference),
+            access: Box::new(access),
+        };
     }
     Ok(reference)
 }
@@ -313,25 +317,39 @@ fn parse_literal_number(lexer: &mut RustyLexer) -> Result<Statement, String> {
         expect!(KeywordParensClose, lexer);
         let end = lexer.range().end;
         lexer.advance();
-        return Ok(Statement::MultipliedStatement { multiplier, element: Box::new(element), location: location.start..end});
+        return Ok(Statement::MultipliedStatement {
+            multiplier,
+            element: Box::new(element),
+            location: location.start..end,
+        });
     }
 
-    Ok(Statement::LiteralInteger { value: result, location })
+    Ok(Statement::LiteralInteger {
+        value: result,
+        location,
+    })
 }
 
-fn trim_quotes<'a>(quoted_string : &str) -> String {
-    quoted_string[1..quoted_string.len()-1].to_string()
+fn trim_quotes<'a>(quoted_string: &str) -> String {
+    quoted_string[1..quoted_string.len() - 1].to_string()
 }
 
 fn parse_literal_string(lexer: &mut RustyLexer) -> Result<Statement, String> {
     let result = lexer.slice();
     let location = lexer.range();
-    let string_literal = Ok(Statement::LiteralString { value: trim_quotes(result), location});
+    let string_literal = Ok(Statement::LiteralString {
+        value: trim_quotes(result),
+        location,
+    });
     lexer.advance();
     string_literal
 }
 
-fn parse_literal_real(lexer: &mut RustyLexer, integer: String, integer_range: SourceRange) -> Result<Statement, String> {
+fn parse_literal_real(
+    lexer: &mut RustyLexer,
+    integer: String,
+    integer_range: SourceRange,
+) -> Result<Statement, String> {
     expect!(LiteralInteger, lexer);
     let start = integer_range.start;
     let fraction_end = lexer.range().end;
@@ -346,5 +364,8 @@ fn parse_literal_real(lexer: &mut RustyLexer, integer: String, integer_range: So
 
     let result = format!("{}.{}{}", integer, fractional, exponent);
     let new_location = start..end;
-    Ok(Statement::LiteralReal { value: result, location: new_location })
+    Ok(Statement::LiteralReal {
+        value: result,
+        location: new_location,
+    })
 }

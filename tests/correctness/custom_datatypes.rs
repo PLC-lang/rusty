@@ -1,10 +1,8 @@
 /// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-
 use super::super::*;
 
 #[test]
 fn using_structs() {
-
     #[repr(C)]
     #[derive(Debug, Default)]
     struct MyStruct {
@@ -14,13 +12,15 @@ fn using_structs() {
     }
 
     struct MainType {
-        my_s : MyStruct,
+        my_s: MyStruct,
     }
 
-    let mut main_data = MainType { 
-        my_s: MyStruct{
-            field1: 0, field2: 0, field3: 0
-        }, 
+    let mut main_data = MainType {
+        my_s: MyStruct {
+            field1: 0,
+            field2: 0,
+            field3: 0,
+        },
     };
 
     let testcode = r#"
@@ -51,7 +51,6 @@ fn using_structs() {
 
 #[test]
 fn using_nested_structs() {
-
     #[repr(C)]
     #[derive(Debug, Default)]
     struct MyInnerStruct {
@@ -70,14 +69,26 @@ fn using_nested_structs() {
 
     #[derive(Debug, Default)]
     struct MainType {
-        my_s : MyStruct
+        my_s: MyStruct,
     }
 
-    let mut main_data = MainType  {
-        my_s : MyStruct {
-            mys1 : MyInnerStruct{ field1: 0, field2: 0, field3: 0, },
-            mys2 : MyInnerStruct{ field1: 0, field2: 0, field3: 0, },
-            mys3 : MyInnerStruct{ field1: 0, field2: 0, field3: 0, },
+    let mut main_data = MainType {
+        my_s: MyStruct {
+            mys1: MyInnerStruct {
+                field1: 0,
+                field2: 0,
+                field3: 0,
+            },
+            mys2: MyInnerStruct {
+                field1: 0,
+                field2: 0,
+                field3: 0,
+            },
+            mys3: MyInnerStruct {
+                field1: 0,
+                field2: 0,
+                field3: 0,
+            },
         },
     };
 
@@ -119,7 +130,7 @@ fn using_nested_structs() {
     "#;
 
     compile_and_run(testcode.to_string(), &mut main_data);
-    println!("{:?}", main_data); 
+    println!("{:?}", main_data);
     assert_eq!(11, main_data.my_s.mys1.field1);
     assert_eq!(12, main_data.my_s.mys1.field2);
     assert_eq!(13, main_data.my_s.mys1.field3);
@@ -145,7 +156,7 @@ fn using_enums() {
         field2: 0,
         field3: 0,
     };
-    
+
     let testcode = r#"
     TYPE TrafficLight:
         (White, Red, Yellow, Green);
@@ -170,7 +181,6 @@ fn using_enums() {
     assert_eq!(3, d.field3);
 }
 
-
 #[test]
 fn using_inline_enums() {
     struct ThreeFields {
@@ -183,7 +193,7 @@ fn using_inline_enums() {
         field2: 0,
         field3: 0,
     };
-    
+
     let testcode = r#"
     TYPE TrafficLight:
         (White, Red, Yellow, Green);
@@ -210,7 +220,6 @@ fn using_inline_enums() {
 
 #[test]
 fn using_inline_enums_in_structs() {
-
     struct MyStruct {
         tf1: i32,
         tf2: i32,
@@ -221,7 +230,7 @@ fn using_inline_enums_in_structs() {
         tf2: 0,
         tf3: 0,
     };
-    
+
     let testcode = r#"
     TYPE TrafficLight:
         (White, Red, Yellow, Green);
@@ -253,19 +262,18 @@ fn using_inline_enums_in_structs() {
 
 #[test]
 fn using_inline_arrays_in_structs() {
-
     #[repr(C)]
     struct MyStruct {
-        arr1: [i16 ; 4],
-        arr2: [i16 ; 8],
-        arr3: [i16 ; 3],
+        arr1: [i16; 4],
+        arr2: [i16; 8],
+        arr3: [i16; 3],
     }
     let mut data = MyStruct {
         arr1: [0; 4],
         arr2: [0; 8],
         arr3: [0; 3],
     };
-    
+
     let testcode = r#"
     
     TYPE MyStruct:
@@ -295,20 +303,18 @@ fn using_inline_arrays_in_structs() {
     "#;
 
     compile_and_run(testcode.to_string(), &mut data);
-    assert_eq!([0,1,2,3], data.arr1);
-    assert_eq!([0,10,20,30,0,0,0,77], data.arr2);
-    assert_eq!([77,0,-1], data.arr3);
+    assert_eq!([0, 1, 2, 3], data.arr1);
+    assert_eq!([0, 10, 20, 30, 0, 0, 0, 77], data.arr2);
+    assert_eq!([77, 0, -1], data.arr3);
 }
 #[test]
 fn using_arrays() {
     #[warn(dead_code)]
     struct Main {
-        arr : [i32; 10],
+        arr: [i32; 10],
     }
-    
-    let mut main = Main {
-        arr : [0; 10],
-    };
+
+    let mut main = Main { arr: [0; 10] };
 
     let testcode = r#"
     TYPE ARR : ARRAY[0..9] OF DINT; END_TYPE
@@ -323,9 +329,9 @@ fn using_arrays() {
     END_FOR
     END_PROGRAM
     "#;
-    
+
     compile_and_run(testcode.to_string(), &mut main);
-    for (i,j) in main.arr.iter_mut().enumerate() {
-        assert_eq!(i as i32,*j);
+    for (i, j) in main.arr.iter_mut().enumerate() {
+        assert_eq!(i as i32, *j);
     }
 }

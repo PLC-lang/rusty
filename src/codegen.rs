@@ -1,17 +1,20 @@
 /// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
 /// module to generate llvm intermediate representation for a CompilationUnit
-use self::{generators::{
-    data_type_generator,
-    llvm::LLVM,
-    pou_generator::{self, PouGenerator},
-    variable_generator,
-}, llvm_index::LLVMTypedIndex};
+use self::{
+    generators::{
+        data_type_generator,
+        llvm::LLVM,
+        pou_generator::{self, PouGenerator},
+        variable_generator,
+    },
+    llvm_index::LLVMTypedIndex,
+};
 use crate::compile_error::CompileError;
 
 use super::ast::*;
 use super::index::*;
-use crate::typesystem::{*, DataType};
+use crate::typesystem::{DataType, *};
 use inkwell::context::Context;
 use inkwell::module::Module;
 use inkwell::values::{BasicValueEnum, PointerValue};
@@ -36,10 +39,7 @@ pub struct TypeAndPointer<'a, 'b> {
 
 impl<'a, 'b> TypeAndPointer<'a, 'b> {
     /// constructs a new TypeAndPointer
-    pub fn new(
-        entry: &'b DataType,
-        value: PointerValue<'a>,
-    ) -> TypeAndPointer<'a, 'b> {
+    pub fn new(entry: &'b DataType, value: PointerValue<'a>) -> TypeAndPointer<'a, 'b> {
         TypeAndPointer {
             type_entry: entry,
             ptr_value: value,
@@ -62,42 +62,44 @@ pub struct CodeGen<'ink> {
 }
 
 impl<'ink> CodeGen<'ink> {
-
     /// constructs a new code-generator that generates CompilationUnits into a module with the given module_name
-    pub fn 
-    new(
-        context : &'ink Context,
-        module_name: &str,
-    ) -> CodeGen<'ink> {
+    pub fn new(context: &'ink Context, module_name: &str) -> CodeGen<'ink> {
         let module = context.create_module(module_name);
-        let codegen = CodeGen {
-            context,
-            module,
-        };
+        let codegen = CodeGen { context, module };
         codegen
     }
 
-    fn generate_llvm_index(&self, module : &Module<'ink>, global_index : &Index, ) -> Result<LLVMTypedIndex<'ink>, CompileError>{
+    fn generate_llvm_index(
+        &self,
+        module: &Module<'ink>,
+        global_index: &Index,
+    ) -> Result<LLVMTypedIndex<'ink>, CompileError> {
         let llvm = LLVM::new(&self.context, self.context.create_builder());
         let mut index = LLVMTypedIndex::new();
         //Generate types index, and any global variables associated with them.
         let llvm_type_index = data_type_generator::generate_data_types(&llvm, global_index)?;
         index.merge(llvm_type_index);
         //Generate global variables
-        let llvm_gv_index = variable_generator::generate_global_variables(module, &llvm, global_index, &index)?;
+        let llvm_gv_index =
+            variable_generator::generate_global_variables(module, &llvm, global_index, &index)?;
         index.merge(llvm_gv_index);
         //Generate opaque functions for implementations and associate them with their types
         let llvm = LLVM::new(&self.context, self.context.create_builder());
-        let llvm_impl_index = pou_generator::generate_implementation_stubs(module, llvm, global_index, &index)?;
+        let llvm_impl_index =
+            pou_generator::generate_implementation_stubs(module, llvm, global_index, &index)?;
         index.merge(llvm_impl_index);
         Ok(index)
     }
 
     /// generates all TYPEs, GLOBAL-sections and POUs of the given CompilationUnit
-    pub fn generate(&self, unit: CompilationUnit, global_index : &Index) -> Result<String, CompileError> {
+    pub fn generate(
+        &self,
+        unit: CompilationUnit,
+        global_index: &Index,
+    ) -> Result<String, CompileError> {
         //Associate the index type with LLVM types
         let llvm_index = self.generate_llvm_index(&self.module, global_index)?;
-        
+
         //generate all pous
         let llvm = LLVM::new(&self.context, self.context.create_builder());
         let pou_generator = PouGenerator::new(llvm, global_index, &llvm_index);
@@ -109,6 +111,5 @@ impl<'ink> CodeGen<'ink> {
             }
         }
         Ok(self.module.print_to_string().to_string())
-
     }
 }
