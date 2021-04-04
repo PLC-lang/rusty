@@ -63,12 +63,12 @@ fn initia_values_of_programs_members() {
 
     compile_and_run(function.to_string(), &mut maintype);
 
-        assert_eq!(77, maintype.x);
-        assert_eq!(0, maintype.x_);
-        assert_eq!(true, maintype.y);
-        assert_eq!(false, maintype.y_);
-        assert_eq!(3.1415, maintype.z);
-        assert_eq!(0.0, maintype.z_);
+    assert_eq!(77, maintype.x);
+    assert_eq!(0, maintype.x_);
+    assert_eq!(true, maintype.y);
+    assert_eq!(false, maintype.y_);
+    assert_eq!(3.1415, maintype.z);
+    assert_eq!(0.0, maintype.z_);
 }
 
 #[test]
@@ -111,15 +111,13 @@ fn initia_values_of_functionblock_members() {
 
     compile_and_run(function.to_string(), &mut maintype);
 
-        assert_eq!(77, maintype.x);
-        assert_eq!(0, maintype.x_);
-        assert_eq!(true, maintype.y);
-        assert_eq!(false, maintype.y_);
-        assert_eq!(3.1415, maintype.z);
-        assert_eq!(0.0, maintype.z_);
+    assert_eq!(77, maintype.x);
+    assert_eq!(0, maintype.x_);
+    assert_eq!(true, maintype.y);
+    assert_eq!(false, maintype.y_);
+    assert_eq!(3.1415, maintype.z);
+    assert_eq!(0.0, maintype.z_);
 }
-
-
 
 #[test]
 fn initia_values_of_function_members() {
@@ -155,13 +153,13 @@ fn initia_values_of_function_members() {
         END_PROGRAM
         ";
 
-    let mut maintype = ThreeInts{ x:0, y:0, z:0 };
+    let mut maintype = ThreeInts { x: 0, y: 0, z: 0 };
 
     compile_and_run(function.to_string(), &mut maintype);
 
-        assert_eq!(77, maintype.x);
-        assert_eq!(88, maintype.y);
-        assert_eq!(99, maintype.z);
+    assert_eq!(77, maintype.x);
+    assert_eq!(88, maintype.y);
+    assert_eq!(99, maintype.z);
 }
 
 #[test]
@@ -204,12 +202,12 @@ fn initia_values_of_struct_type_members() {
 
     compile_and_run(function.to_string(), &mut maintype);
 
-        assert_eq!(77, maintype.x);
-        assert_eq!(0, maintype.x_);
-        assert_eq!(true, maintype.y);
-        assert_eq!(false, maintype.y_);
-        assert_eq!(3.1415, maintype.z);
-        assert_eq!(0.0, maintype.z_);
+    assert_eq!(77, maintype.x);
+    assert_eq!(0, maintype.x_);
+    assert_eq!(true, maintype.y);
+    assert_eq!(false, maintype.y_);
+    assert_eq!(3.1415, maintype.z);
+    assert_eq!(0.0, maintype.z_);
 }
 
 #[test]
@@ -250,12 +248,12 @@ fn initia_values_of_alias_type() {
 
     compile_and_run(function.to_string(), &mut maintype);
 
-        assert_eq!(7, maintype.x);
-        assert_eq!(8, maintype.x_);
-        assert_eq!(true, maintype.y);
-        assert_eq!(false, maintype.y_);
-        assert_eq!(5.67, maintype.z);
-        assert_eq!(1.23, maintype.z_);
+    assert_eq!(7, maintype.x);
+    assert_eq!(8, maintype.x_);
+    assert_eq!(true, maintype.y);
+    assert_eq!(false, maintype.y_);
+    assert_eq!(5.67, maintype.z);
+    assert_eq!(1.23, maintype.z_);
 }
 
 #[derive(Debug)]
@@ -280,8 +278,8 @@ struct ArrayProgram {
 }
 
 #[test]
-fn initial_values_in_single_dimension_array_variable(){
-   let function = r"
+fn initial_values_in_single_dimension_array_variable() {
+    let function = r"
         VAR_GLOBAL 
           a : ARRAY[0..2] OF SINT  := [1, 2, 3]; 
           b : ARRAY[0..2] OF INT  := [4, 5, 6]; 
@@ -322,24 +320,23 @@ fn initial_values_in_single_dimension_array_variable(){
             h0 := h[0]; h2 := h[2];
         END_PROGRAM";
 
-
-    let mut maintype : ArrayProgram = ArrayProgram{
-    a0: 0,
-    a2: 0,
-    b0: 0,
-    b2: 0,
-    c0: 0,
-    c2: 0,
-    d0: 0,
-    d2: 0,
-    e0: 0,
-    e2: 0,
-    f0: 0,
-    f2: 0,
-    g0: 0,
-    g2: 0,
-    h0: false,
-    h2: true,
+    let mut maintype: ArrayProgram = ArrayProgram {
+        a0: 0,
+        a2: 0,
+        b0: 0,
+        b2: 0,
+        c0: 0,
+        c2: 0,
+        d0: 0,
+        d2: 0,
+        e0: 0,
+        e2: 0,
+        f0: 0,
+        f2: 0,
+        g0: 0,
+        g2: 0,
+        h0: false,
+        h2: true,
     };
 
     compile_and_run(function.to_string(), &mut maintype);
@@ -371,8 +368,8 @@ struct MultiDimArrayProgram {
 }
 
 #[test]
-fn initial_values_in_multi_dimension_array_variable(){
-   let function = r"
+fn initial_values_in_multi_dimension_array_variable() {
+    let function = r"
         VAR_GLOBAL 
           a : ARRAY[0..1, 3..4] OF SINT  := [1, 2, 3, 4]; 
         END_VAR
@@ -391,11 +388,11 @@ fn initial_values_in_multi_dimension_array_variable(){
             a3 := a[1,4];
         END_PROGRAM";
 
-    let mut maintype : MultiDimArrayProgram = MultiDimArrayProgram{
-    a0: 0,
-    a1: 0,
-    a2: 0,
-    a3: 0,
+    let mut maintype: MultiDimArrayProgram = MultiDimArrayProgram {
+        a0: 0,
+        a1: 0,
+        a2: 0,
+        a3: 0,
     };
 
     compile_and_run(function.to_string(), &mut maintype);
@@ -404,7 +401,6 @@ fn initial_values_in_multi_dimension_array_variable(){
     assert_eq!(3, maintype.a2);
     assert_eq!(4, maintype.a3);
 }
-
 
 #[derive(Debug)]
 #[repr(C)]
@@ -419,10 +415,9 @@ struct ArrayOfArrayProgram {
     a8: i8,
 }
 
-
 #[test]
-fn initial_values_in_array_of_array_variable(){
-   let function = r"
+fn initial_values_in_array_of_array_variable() {
+    let function = r"
         VAR_GLOBAL 
           a : ARRAY[0..1] OF ARRAY[0..1] OF ARRAY[0..1] OF SINT  := [[[1, 2], [3, 4]], [[5, 6], [7, 8]]]; 
         END_VAR
@@ -449,7 +444,7 @@ fn initial_values_in_array_of_array_variable(){
             a8 := a[1][1][1];
         END_PROGRAM";
 
-    let mut maintype :ArrayOfArrayProgram = ArrayOfArrayProgram{
+    let mut maintype: ArrayOfArrayProgram = ArrayOfArrayProgram {
         a1: 0,
         a2: 0,
         a3: 0,
@@ -480,10 +475,9 @@ struct RealsAndFloats {
     r2: f64,
 }
 
-
 #[test]
-fn real_initial_values_in_array_variable(){
-   let function = r"
+fn real_initial_values_in_array_variable() {
+    let function = r"
         VAR_GLOBAL 
             f : ARRAY[0..1] OF REAL := [3.1415, 0.001];
             r : ARRAY[0..1] OF LREAL := [3.141592653589, 0.000000001];
@@ -517,7 +511,6 @@ fn real_initial_values_in_array_variable(){
     assert_eq!(0.000000001, maintype.r2);
 }
 
-
 #[derive(Debug)]
 #[repr(C)]
 struct StructProgram {
@@ -530,8 +523,7 @@ struct StructProgram {
 
 #[test]
 fn initialization_of_complex_struct_instance() {
-    let src =
-         "
+    let src = "
         TYPE MyPoint: STRUCT
           x: DINT;
           y: DINT;
@@ -571,25 +563,25 @@ fn initialization_of_complex_struct_instance() {
         ";
 
     let mut maintype = StructProgram {
-        x: 0, y: 0,
-        arr1 : 0, arr3 : 0,
-        f : 0.0
+        x: 0,
+        y: 0,
+        arr1: 0,
+        arr3: 0,
+        f: 0.0,
     };
 
     compile_and_run(src.to_string(), &mut maintype);
     assert_eq!(1, maintype.x);
     assert_eq!(2, maintype.y);
-    assert_eq!(1 , maintype.arr1);
+    assert_eq!(1, maintype.arr1);
     assert_eq!(3, maintype.arr3);
     assert_eq!(7.89, maintype.f);
-    
 }
 
 #[test]
 fn initialization_of_complex_struct_instance_using_defaults() {
     // a.point.y and a.f are note initialized!
-    let src =
-         "
+    let src = "
         TYPE MyReal : REAL := 3.1415; END_TYPE
 
         TYPE MyPoint: STRUCT
@@ -630,20 +622,20 @@ fn initialization_of_complex_struct_instance_using_defaults() {
         ";
 
     let mut maintype = StructProgram {
-        x: 0, y: 0,
-        arr1 : 0, arr3 : 0,
-        f : 0.0
+        x: 0,
+        y: 0,
+        arr1: 0,
+        arr3: 0,
+        f: 0.0,
     };
 
     compile_and_run(src.to_string(), &mut maintype);
     assert_eq!(1, maintype.x);
     assert_eq!(7, maintype.y);
-    assert_eq!(1 , maintype.arr1);
+    assert_eq!(1, maintype.arr1);
     assert_eq!(3, maintype.arr3);
     assert_eq!(3.1415, maintype.f);
-    
 }
-
 
 #[derive(Debug)]
 #[repr(C)]
@@ -655,13 +647,10 @@ struct StringStruct {
     string3: [i8; 21],
 }
 
-
-
 #[test]
 fn initialization_of_string_variables() {
     // a.point.y and a.f are note initialized!
-    let src =
-         "
+    let src = "
         TYPE MyString : STRING[25] := 'abcdefg'; END_TYPE
 
         TYPE StringStruct : STRUCT
@@ -698,22 +687,26 @@ fn initialization_of_string_variables() {
         string1: [1; 81],
         string2: [1; 81],
         string3: [1; 21],
-
     };
 
     compile_and_run(src.to_string(), &mut maintype);
-    assert_eq!(&maintype.mystring1[0..8], [97,98,99,100,101,102,103,0]); // abcdefg
-    assert_eq!(&maintype.mystring1[9..26], [0;17]); //rest is blank
+    assert_eq!(
+        &maintype.mystring1[0..8],
+        [97, 98, 99, 100, 101, 102, 103, 0]
+    ); // abcdefg
+    assert_eq!(&maintype.mystring1[9..26], [0; 17]); //rest is blank
 
-    assert_eq!(&maintype.mystring2[0..8], [65,66,67,68,69,70,71,0]); // ABCDEFG
-    assert_eq!(&maintype.mystring2[9..26], [0;17]); //rest is blank
-    
+    assert_eq!(&maintype.mystring2[0..8], [65, 66, 67, 68, 69, 70, 71, 0]); // ABCDEFG
+    assert_eq!(&maintype.mystring2[9..26], [0; 17]); //rest is blank
+
     assert_eq!(maintype.string1, [0 as i8; 81]); // blank string
-    
-    assert_eq!(maintype.string2[0..6], [113,119,101,114,116,0]); // qwert
+
+    assert_eq!(maintype.string2[0..6], [113, 119, 101, 114, 116, 0]); // qwert
     assert_eq!(maintype.string2[7..81], [0 as i8; 74]); // rest is blank
-    
-    assert_eq!(maintype.string3[0..6], [113-32,119-32,101-32,114-32,116-32,0]); // QWERT
+
+    assert_eq!(
+        maintype.string3[0..6],
+        [113 - 32, 119 - 32, 101 - 32, 114 - 32, 116 - 32, 0]
+    ); // QWERT
     assert_eq!(maintype.string3[7..21], [0 as i8; 14]); // rest is blank
 }
-

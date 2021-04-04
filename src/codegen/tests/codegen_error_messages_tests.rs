@@ -1,5 +1,4 @@
 /// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-
 use crate::{codegen_wihout_unwrap, compile_error::CompileError};
 use pretty_assertions::assert_eq;
 
@@ -17,7 +16,7 @@ fn unknown_reference_should_be_reported_with_line_number() {
     );
     if let Err(msg) = result {
         assert_eq!(CompileError::invalid_reference("y", 100..101), msg);
-    }else{
+    } else {
         panic!("expected code-gen error but got none")
     }
 }
@@ -39,7 +38,7 @@ fn unknown_type_should_be_reported_with_line_number() {
         // that's not perfect yet, the error is reported for the region of the variable
         // but better than nothing
         assert_eq!(CompileError::unknown_type("unknown_type", 17..18), msg);
-    }else{
+    } else {
         panic!("expected code-gen error but got none")
     }
 }
@@ -67,7 +66,7 @@ fn unknown_struct_field_should_be_reported_with_line_number() {
     );
     if let Err(msg) = result {
         assert_eq!(CompileError::invalid_reference("MyStruct.c", 264..265), msg);
-    }else{
+    } else {
         panic!("expected code-gen error but got none")
     }
 }
@@ -87,8 +86,11 @@ fn invalid_array_access_should_be_reported_with_line_number() {
     if let Err(msg) = result {
         // that's not perfect yet, the error is reported for the region of the variable
         // but better than nothing
-        assert_eq!(CompileError::codegen_error("Invalid array access".to_string(), 97..98), msg);
-    }else{
+        assert_eq!(
+            CompileError::codegen_error("Invalid array access".to_string(), 97..98),
+            msg
+        );
+    } else {
         panic!("expected code-gen error but got none")
     }
 }
@@ -113,8 +115,11 @@ fn invalid_array_access_in_struct_should_be_reported_with_line_number() {
         "
     );
     if let Err(msg) = result {
-        assert_eq!(CompileError::codegen_error("Invalid array access".to_string(), 228..229), msg);
-    }else{
+        assert_eq!(
+            CompileError::codegen_error("Invalid array access".to_string(), 228..229),
+            msg
+        );
+    } else {
         panic!("expected code-gen error but got none")
     }
 }
@@ -130,12 +135,11 @@ fn invalid_struct_access_in_array_should_be_reported_with_line_number() {
         END_PROGRAM
         ";
 
-    let result = codegen_wihout_unwrap!(
-            src);
+    let result = codegen_wihout_unwrap!(src);
     if let Err(msg) = result {
         // that's not perfect yet, we need display-names for generated datatypes
         assert_eq!(CompileError::invalid_reference("INT.a", 114..115), msg)
-    }else{
+    } else {
         panic!("expected code-gen error but got none")
     }
 }
@@ -152,12 +156,11 @@ fn invalid_struct_access_in_array_access_should_be_reported_with_line_number() {
         END_PROGRAM
         ";
 
-    let result = codegen_wihout_unwrap!(
-            src);
+    let result = codegen_wihout_unwrap!(src);
     if let Err(msg) = result {
         // that's not perfect yet, we need display-names for generated datatypes
         assert_eq!(CompileError::invalid_reference("INT.index", 139..144), msg)
-    }else{
+    } else {
         panic!("expected code-gen error but got none")
     }
 }

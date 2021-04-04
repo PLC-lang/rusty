@@ -1,7 +1,9 @@
-/// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-
-use crate::{ast::{Operator, Statement}, lexer};
 use crate::parser::parse;
+/// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
+use crate::{
+    ast::{Operator, Statement},
+    lexer,
+};
 use pretty_assertions::*;
 
 #[test]
@@ -12,7 +14,7 @@ fn single_statement_parsed() {
     let prg = &result.implementations[0];
     let statement = &prg.statements[0];
 
-    if let Statement::Reference { name, ..} = statement {
+    if let Statement::Reference { name, .. } = statement {
         assert_eq!(name, "x");
     } else {
         panic!("Expected Reference but found {:?}", statement);
@@ -27,11 +29,20 @@ fn qualified_reference_statement_parsed() {
     let prg = &result.implementations[0];
     let statement = &prg.statements[0];
 
-    if let Statement::QualifiedReference { elements , ..} = statement {
-        assert_eq!(elements, &[
-            Statement::Reference{name: "a".to_string(), location: 12..13},
-            Statement::Reference{name: "x".to_string(), location: 14..15},
-        ]);
+    if let Statement::QualifiedReference { elements, .. } = statement {
+        assert_eq!(
+            elements,
+            &[
+                Statement::Reference {
+                    name: "a".to_string(),
+                    location: 12..13
+                },
+                Statement::Reference {
+                    name: "x".to_string(),
+                    location: 14..15
+                },
+            ]
+        );
     } else {
         panic!("Expected Reference but found {:?}", statement);
     }
@@ -102,10 +113,10 @@ fn additon_of_three_variables_parsed() {
             right,
         } = &**right
         {
-            if let Statement::Reference { name ,..} = &**left {
+            if let Statement::Reference { name, .. } = &**left {
                 assert_eq!(name, "y");
             }
-            if let Statement::Reference { name, ..} = &**right {
+            if let Statement::Reference { name, .. } = &**right {
                 assert_eq!(name, "z");
             }
             assert_eq!(operator, &Operator::Minus);
@@ -131,7 +142,7 @@ fn parenthesis_expressions_should_not_change_the_ast() {
         right,
     } = statement
     {
-        if let Statement::Reference { name, ..} = &**left {
+        if let Statement::Reference { name, .. } = &**left {
             assert_eq!(name, "x");
         }
         if let Statement::Reference { name, .. } = &**right {
@@ -1655,7 +1666,7 @@ fn literals_location_test() {
     let parse_result = parse(lexer).unwrap().0;
 
     let unit = &parse_result.implementations[0];
-    
+
     // 1
     let location = &unit.statements[0].get_location();
     assert_eq!(location, &(12..13));
@@ -1684,7 +1695,7 @@ fn reference_location_test() {
     let parse_result = parse(lexer).unwrap().0;
 
     let unit = &parse_result.implementations[0];
-    
+
     let location = &unit.statements[0].get_location();
     assert_eq!(source[location.start..location.end].to_string(), "a");
 
@@ -1709,12 +1720,15 @@ fn expressions_location_test() {
     let parse_result = parse(lexer).unwrap().0;
 
     let unit = &parse_result.implementations[0];
-    
+
     let location = &unit.statements[0].get_location();
     assert_eq!(source[location.start..location.end].to_string(), "a + b");
 
     let location = &unit.statements[1].get_location();
-    assert_eq!(source[location.start..location.end].to_string(), "x + z - y + u - v");
+    assert_eq!(
+        source[location.start..location.end].to_string(),
+        "x + z - y + u - v"
+    );
 
     let location = &unit.statements[2].get_location();
     assert_eq!(source[location.start..location.end].to_string(), "-x");
@@ -1723,6 +1737,8 @@ fn expressions_location_test() {
     assert_eq!(source[location.start..location.end].to_string(), "1..3");
 
     let location = &unit.statements[4].get_location();
-    assert_eq!(source[location.start..location.end].to_string(), "a := a + 4");
+    assert_eq!(
+        source[location.start..location.end].to_string(),
+        "a := a + 4"
+    );
 }
-

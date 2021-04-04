@@ -1,5 +1,4 @@
 /// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-
 use super::super::*;
 
 #[test]
@@ -7,10 +6,10 @@ fn max_function() {
     #[allow(dead_code)]
     #[repr(C)]
     struct MainType {
-        the_a: i16, 
+        the_a: i16,
         the_b: i16,
     }
-    
+
     let function = r#"
 
     FUNCTION MAX : DINT 
@@ -36,28 +35,31 @@ fn max_function() {
 
     END_FUNCTION
 
-    "#.to_string();
+    "#
+    .to_string();
 
-    let context : Context = Context::create();
+    let context: Context = Context::create();
     let engine = compile(&context, function);
-    let mut case1 = MainType{the_a : 4, the_b: 7};
-    let mut case2 = MainType{the_a : 9, the_b: -2};
+    let mut case1 = MainType { the_a: 4, the_b: 7 };
+    let mut case2 = MainType {
+        the_a: 9,
+        the_b: -2,
+    };
 
     let (res, _) = run(&engine, "main", &mut case1);
-    assert_eq!(res,7);
+    assert_eq!(res, 7);
     let (res, _) = run(&engine, "main", &mut case2);
-    assert_eq!(res,9);
+    assert_eq!(res, 9);
 }
 
 #[test]
 fn nested_function_call() {
     #[allow(dead_code)]
     #[repr(C)]
-    struct MainType {
-    }
-    
+    struct MainType {}
+
     let mut main_data = MainType {};
-    
+
     let function = r#"
             FUNCTION bar : DINT
             VAR_INPUT
@@ -78,8 +80,8 @@ fn nested_function_call() {
                 main := foo(bar(1000));
             END_FUNCTION
         "#;
-        
-    let (res, _ ) = compile_and_run(function.to_string(), &mut main_data);
+
+    let (res, _) = compile_and_run(function.to_string(), &mut main_data);
     assert_eq!(1000, res);
 }
 
@@ -88,9 +90,9 @@ fn test_or_sideeffects() {
     #[allow(dead_code)]
     #[repr(C)]
     struct MainType {
-        x : bool,
+        x: bool,
     }
-    
+
     let function = r#"
     VAR_GLOBAL
         res_or : INT;
@@ -118,23 +120,24 @@ fn test_or_sideeffects() {
 
     END_FUNCTION
 
-    "#.to_string();
+    "#
+    .to_string();
 
-    let context : Context = Context::create(); 
+    let context: Context = Context::create();
     let engine = compile(&context, function);
-    let mut case1 = MainType{x : false,};
+    let mut case1 = MainType { x: false };
     let (res, _) = run(&engine, "main", &mut case1);
-    assert_eq!(res,31);
+    assert_eq!(res, 31);
 }
 
 #[test]
 fn test_and_sideeffects() {
-     #[allow(dead_code)]
+    #[allow(dead_code)]
     #[repr(C)]
     struct MainType {
-        x : bool,
+        x: bool,
     }
-    
+
     let function = r#"
     VAR_GLOBAL
         res_and : INT;
@@ -162,14 +165,14 @@ fn test_and_sideeffects() {
 
     END_FUNCTION
 
-    "#.to_string();
+    "#
+    .to_string();
 
-    let context : Context = Context::create(); 
+    let context: Context = Context::create();
     let engine = compile(&context, function);
-    let mut case1 = MainType{x : false,};
+    let mut case1 = MainType { x: false };
     let (res, _) = run(&engine, "main", &mut case1);
-    assert_eq!(res,31);
-
+    assert_eq!(res, 31);
 }
 
 #[test]
@@ -177,12 +180,12 @@ fn function_block_instances_save_state_per_instance() {
     #[allow(dead_code)]
     #[repr(C)]
     struct FooType {
-        i : i16,
+        i: i16,
     }
 
     struct MainType {
-        f : FooType,
-        j : FooType,
+        f: FooType,
+        j: FooType,
     }
     let function = r#"
     FUNCTION_BLOCK foo
@@ -204,22 +207,25 @@ fn function_block_instances_save_state_per_instance() {
     j();
     END_PROGRAM
     "#;
-    
-        let mut interface = MainType{ f: FooType{ i: 0}, j : FooType{ i: 0}};
-        let (_, _) = compile_and_run(function.to_string(), &mut interface);
-        assert_eq!(interface.f.i,2);
-        assert_eq!(interface.j.i,7);
+
+    let mut interface = MainType {
+        f: FooType { i: 0 },
+        j: FooType { i: 0 },
+    };
+    let (_, _) = compile_and_run(function.to_string(), &mut interface);
+    assert_eq!(interface.f.i, 2);
+    assert_eq!(interface.j.i, 7);
 }
 #[test]
 fn program_instances_save_state_per() {
     #[allow(dead_code)]
     #[repr(C)]
     struct FooType {
-        i : i16,
+        i: i16,
     }
 
     struct MainType {
-        f : FooType,
+        f: FooType,
     }
     let function = r#"
     PROGRAM main
@@ -229,19 +235,21 @@ fn program_instances_save_state_per() {
     i := i + 1;
     END_PROGRAM
     "#;
-    
-        let mut interface = MainType{ f: FooType{ i: 4}};
-        let context = inkwell::context::Context::create();
-        let exec_engine =compile(&context, function.to_string());
-        run(&exec_engine,"main", &mut interface);
-        run(&exec_engine,"main", &mut interface);
-        assert_eq!(interface.f.i,6);
+
+    let mut interface = MainType {
+        f: FooType { i: 4 },
+    };
+    let context = inkwell::context::Context::create();
+    let exec_engine = compile(&context, function.to_string());
+    run(&exec_engine, "main", &mut interface);
+    run(&exec_engine, "main", &mut interface);
+    assert_eq!(interface.f.i, 6);
 }
 
 #[test]
 fn functions_can_be_called_out_of_order() {
     struct MainType {
-        f : i16,
+        f: i16,
     }
     let function = r#"
 
@@ -260,8 +268,8 @@ fn functions_can_be_called_out_of_order() {
         r:= foo();
     END_PROGRAM
     "#;
-    
-    let mut interface = MainType{ f: 0 };
+
+    let mut interface = MainType { f: 0 };
     let (_, _) = compile_and_run(function.to_string(), &mut interface);
 
     assert_eq!(7, interface.f);
@@ -269,23 +277,22 @@ fn functions_can_be_called_out_of_order() {
 
 #[test]
 fn function_block_instances_save_state_per_instance_2() {
-    
     #[allow(dead_code)]
     #[repr(C)]
     struct BazType {
-        i : i16,
+        i: i16,
     }
-    
+
     #[allow(dead_code)]
     #[repr(C)]
     struct FooType {
-        i : i16,
-        baz : BazType,
+        i: i16,
+        baz: BazType,
     }
 
     struct MainType {
-        f : FooType,
-        j : FooType,
+        f: FooType,
+        j: FooType,
     }
     let function = r#"
     FUNCTION_BLOCK Baz 
@@ -318,12 +325,19 @@ fn function_block_instances_save_state_per_instance_2() {
     j.baz.i := j.baz.i + 1;
     END_PROGRAM
     "#;
-    
-        let mut interface = MainType{ f: FooType{ i: 0, baz: BazType{ i: 0}}, j : FooType{ i: 0, baz: BazType{i:0}}};
-        let (_, _) = compile_and_run(function.to_string(), &mut interface);
 
-        assert_eq!(2, interface.f.baz.i);
-        assert_eq!(4, interface.j.baz.i);
+    let mut interface = MainType {
+        f: FooType {
+            i: 0,
+            baz: BazType { i: 0 },
+        },
+        j: FooType {
+            i: 0,
+            baz: BazType { i: 0 },
+        },
+    };
+    let (_, _) = compile_and_run(function.to_string(), &mut interface);
 
-
+    assert_eq!(2, interface.f.baz.i);
+    assert_eq!(4, interface.j.baz.i);
 }

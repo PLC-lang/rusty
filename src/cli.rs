@@ -66,17 +66,17 @@ pub struct CompileParameters {
 
 #[cfg(test)]
 mod cli_tests {
-    use structopt::clap::ErrorKind;
-    use super::ParameterError;
     use super::parse_parameters;
+    use super::ParameterError;
+    use structopt::clap::ErrorKind;
 
     fn expect_argument_error(args: Vec<String>, expected_error_kind: ErrorKind) {
         let params = parse_parameters(args.clone());
         match params {
-            Err( ParameterError{ kind, ..} ) => {
+            Err(ParameterError { kind, .. }) => {
                 assert_eq!(kind, expected_error_kind);
-            },
-            _ => panic!("expected error, but found none. arguments: {:?}", args)
+            }
+            _ => panic!("expected error, but found none. arguments: {:?}", args),
         }
     }
     macro_rules! vec_of_strings {
@@ -88,32 +88,60 @@ mod cli_tests {
         // no arguments
         expect_argument_error(vec![], ErrorKind::MissingRequiredArgument);
         // only input file, missing format
-        expect_argument_error(vec_of_strings!["input.st"], ErrorKind::MissingRequiredArgument);
+        expect_argument_error(
+            vec_of_strings!["input.st"],
+            ErrorKind::MissingRequiredArgument,
+        );
         // no input file
         expect_argument_error(vec_of_strings!["--ir"], ErrorKind::MissingRequiredArgument);
     }
 
     #[test]
     fn multiple_output_formats_results_in_error() {
-        expect_argument_error(vec_of_strings!["input.st", "--ir", "--shared"], ErrorKind::ArgumentConflict);
-        expect_argument_error(vec_of_strings!["input.st", "--ir", "--shared", "--pic"], ErrorKind::ArgumentConflict);
-        expect_argument_error(vec_of_strings!["input.st", "--ir", "--shared", "--pic", "--bc"], ErrorKind::ArgumentConflict);
+        expect_argument_error(
+            vec_of_strings!["input.st", "--ir", "--shared"],
+            ErrorKind::ArgumentConflict,
+        );
+        expect_argument_error(
+            vec_of_strings!["input.st", "--ir", "--shared", "--pic"],
+            ErrorKind::ArgumentConflict,
+        );
+        expect_argument_error(
+            vec_of_strings!["input.st", "--ir", "--shared", "--pic", "--bc"],
+            ErrorKind::ArgumentConflict,
+        );
     }
 
     #[test]
     fn unknown_arguments_results_in_error() {
-        expect_argument_error(vec_of_strings!["input.st", "--unknown"], ErrorKind::UnknownArgument);
-        expect_argument_error(vec_of_strings!["input.st", "--ir", "--unknown"], ErrorKind::UnknownArgument);
-        expect_argument_error(vec_of_strings!["input.st", "--ir", "-u"], ErrorKind::UnknownArgument);
+        expect_argument_error(
+            vec_of_strings!["input.st", "--unknown"],
+            ErrorKind::UnknownArgument,
+        );
+        expect_argument_error(
+            vec_of_strings!["input.st", "--ir", "--unknown"],
+            ErrorKind::UnknownArgument,
+        );
+        expect_argument_error(
+            vec_of_strings!["input.st", "--ir", "-u"],
+            ErrorKind::UnknownArgument,
+        );
     }
 
     #[test]
     fn valid_output_files() {
         //short -o
-        let parameters = parse_parameters(vec_of_strings!("input.st", "--ir", "-o", "myout.out")).unwrap();
+        let parameters =
+            parse_parameters(vec_of_strings!("input.st", "--ir", "-o", "myout.out")).unwrap();
         assert_eq!(parameters.output, "myout.out".to_string());
         //long --output
-        let parameters = parse_parameters(vec_of_strings!("input.st", "--ir", "--output", "myout2.out")).unwrap();
+        let parameters = parse_parameters(vec_of_strings!(
+            "input.st",
+            "--ir",
+            "--output",
+            "myout2.out"
+        ))
+        .unwrap();
         assert_eq!(parameters.output, "myout2.out".to_string());
     }
 
@@ -132,7 +160,7 @@ mod cli_tests {
         assert_eq!(parameters.output_obj_code, false);
         assert_eq!(parameters.output_pic_obj, false);
         assert_eq!(parameters.output_shared_obj, false);
- 
+
         let parameters = parse_parameters(vec_of_strings!("input.st", "--static")).unwrap();
         assert_eq!(parameters.output_ir, false);
         assert_eq!(parameters.output_bit_code, false);
@@ -145,21 +173,21 @@ mod cli_tests {
         assert_eq!(parameters.output_bit_code, false);
         assert_eq!(parameters.output_obj_code, false);
         assert_eq!(parameters.output_pic_obj, true);
-        assert_eq!(parameters.output_shared_obj, false);       
+        assert_eq!(parameters.output_shared_obj, false);
 
         let parameters = parse_parameters(vec_of_strings!("input.st", "--shared")).unwrap();
         assert_eq!(parameters.output_ir, false);
         assert_eq!(parameters.output_bit_code, false);
         assert_eq!(parameters.output_obj_code, false);
         assert_eq!(parameters.output_pic_obj, false);
-        assert_eq!(parameters.output_shared_obj, true);       
+        assert_eq!(parameters.output_shared_obj, true);
     }
 
     #[test]
     fn cli_supports_version() {
         match parse_parameters(vec_of_strings!("input.st", "--version")) {
             Ok(_) => panic!("expected version output, but found OK"),
-            Err(ParameterError{ kind, ..}) => assert_eq!(kind, ErrorKind::VersionDisplayed) 
+            Err(ParameterError { kind, .. }) => assert_eq!(kind, ErrorKind::VersionDisplayed),
         }
     }
 
@@ -167,7 +195,7 @@ mod cli_tests {
     fn cli_supports_help() {
         match parse_parameters(vec_of_strings!("input.st", "--help")) {
             Ok(_) => panic!("expected help output, but found OK"),
-            Err(ParameterError{ kind, ..}) => assert_eq!(kind, ErrorKind::HelpDisplayed) 
+            Err(ParameterError { kind, .. }) => assert_eq!(kind, ErrorKind::HelpDisplayed),
         }
     }
 }

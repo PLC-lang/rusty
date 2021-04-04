@@ -1,22 +1,29 @@
 /// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
 /// offers operations to generate global variables
-
 use crate::index::Index;
 use inkwell::{module::Module, values::GlobalValue};
 
-use crate::{codegen::llvm_index::LLVMTypedIndex, compile_error::CompileError, index::VariableIndexEntry};
+use crate::{
+    codegen::llvm_index::LLVMTypedIndex, compile_error::CompileError, index::VariableIndexEntry,
+};
 
 use super::{expression_generator::ExpressionCodeGenerator, llvm::LLVM};
 
-pub fn generate_global_variables<'ctx, 'b> (module : &'b Module<'ctx>, llvm : &'b LLVM<'ctx>, global_index : &'b Index,  types_index : &'b LLVMTypedIndex<'ctx>) -> Result<LLVMTypedIndex<'ctx>, CompileError> {
-   let mut index = LLVMTypedIndex::new();
-   let globals = global_index.get_globals();
-   for (name,variable) in globals {
-       let global_variable = generate_global_variable(module, llvm, global_index, types_index, variable)?;
-       index.associate_global(name, global_variable)?
-   }
-   Ok(index)
+pub fn generate_global_variables<'ctx, 'b>(
+    module: &'b Module<'ctx>,
+    llvm: &'b LLVM<'ctx>,
+    global_index: &'b Index,
+    types_index: &'b LLVMTypedIndex<'ctx>,
+) -> Result<LLVMTypedIndex<'ctx>, CompileError> {
+    let mut index = LLVMTypedIndex::new();
+    let globals = global_index.get_globals();
+    for (name, variable) in globals {
+        let global_variable =
+            generate_global_variable(module, llvm, global_index, types_index, variable)?;
+        index.associate_global(name, global_variable)?
+    }
+    Ok(index)
 }
 
 /// convenience function to generates a global variable for the given variable
@@ -27,7 +34,7 @@ pub fn generate_global_variables<'ctx, 'b> (module : &'b Module<'ctx>, llvm : &'
 /// - `global_variable` the variable to generate
 pub fn generate_global_variable<'ctx, 'b>(
     module: &'b Module<'ctx>,
-    llvm : &'b LLVM<'ctx>,
+    llvm: &'b LLVM<'ctx>,
     global_index: &'b Index,
     index: &'b LLVMTypedIndex<'ctx>,
     global_variable: &VariableIndexEntry,
@@ -36,7 +43,17 @@ pub fn generate_global_variable<'ctx, 'b>(
     let variable_type = index.get_associated_type(type_name)?;
 
     let initial_value = if let Some(initializer) = &global_variable.initial_value {
-        let expr_generator = ExpressionCodeGenerator::new_context_free(llvm, global_index, index, Some(global_index.get_type_information(type_name).unwrap().clone()));
+        let expr_generator = ExpressionCodeGenerator::new_context_free(
+            llvm,
+            global_index,
+            index,
+            Some(
+                global_index
+                    .get_type_information(type_name)
+                    .unwrap()
+                    .clone(),
+            ),
+        );
         let (_, value) = expr_generator.generate_expression(&initializer)?;
         //Todo cast if necessary
         Some(value)
@@ -44,6 +61,11 @@ pub fn generate_global_variable<'ctx, 'b>(
         None
     };
     let initial_value = initial_value.or_else(|| index.find_associated_initial_value(type_name));
-    let global_ir_variable = llvm.create_global_variable(module, global_variable.get_name(), variable_type, initial_value);
+    let global_ir_variable = llvm.create_global_variable(
+        module,
+        global_variable.get_name(),
+        variable_type,
+        initial_value,
+    );
     Ok(global_ir_variable)
 }
