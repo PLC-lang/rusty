@@ -65,9 +65,9 @@ fn actions_are_indexed() {
     "#
     );
 
-    let foo = index.find_implementation("myProgram.foo").unwrap();
-    assert_eq!("myProgram.foo", foo.call_name);
-    assert_eq!("myProgram", foo.type_name);
+    let foo_impl = index.find_implementation("myProgram.foo").unwrap();
+    assert_eq!("myProgram.foo", foo_impl.call_name);
+    assert_eq!("myProgram", foo_impl.type_name);
     let info = index
         .get_type("myProgram.foo")
         .unwrap()
@@ -180,9 +180,9 @@ fn implementations_are_indexed() {
     let fb1 = index.find_implementation("fb1").unwrap();
     assert_eq!(fb1.call_name, "fb1");
     assert_eq!(fb1.type_name, "fb1");
-    let foo = index.find_implementation("foo").unwrap();
-    assert_eq!(foo.call_name, "foo");
-    assert_eq!(foo.type_name, "foo");
+    let foo_impl = index.find_implementation("foo").unwrap();
+    assert_eq!(foo_impl.call_name, "foo");
+    assert_eq!(foo_impl.type_name, "foo");
 }
 
 #[test]

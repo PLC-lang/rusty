@@ -35,9 +35,7 @@ pub enum CompileError {
 
 impl CompileError {
     pub fn missing_function(location: Range<usize>) -> CompileError {
-        CompileError::MissingFunctionError {
-            location: location.clone(),
-        }
+        CompileError::MissingFunctionError { location }
     }
 
     pub fn casting_error(

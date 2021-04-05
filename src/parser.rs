@@ -450,10 +450,10 @@ fn parse_data_type_definition(
             ))
         }
     } else {
-        return Err(format!(
+        Err(format!(
             "expected datatype, struct or enum, found {:?}",
             lexer.token
-        ));
+        ))
     }
 }
 

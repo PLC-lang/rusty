@@ -18,6 +18,24 @@ mod correctness {
     mod sums;
 }
 
+#[macro_export]
+macro_rules! assert_almost_eq {
+    ($left:expr, $right:expr, $prec:expr) => {{
+        match (&$left, &$right) {
+            (left_val, right_val) => {
+                let diff = (left_val - right_val).abs();
+
+                if diff > $prec {
+                    panic!(
+                        "assertion failed: `(left == right)`\n      left: `{:?}`,\n     right: `{:?}`",
+                        &*left_val, &*right_val
+                    )
+                }
+            }
+        }
+    }};
+}
+
 ///
 /// Compiles and runs the given source
 /// Returns the std result as String
@@ -25,7 +43,7 @@ mod correctness {
 /// The int is the return value which can be verified
 /// The string will eventually be the Stdout of the function.
 ///
-pub fn compile<'ctx>(context: &'ctx Context, source: String) -> ExecutionEngine<'ctx> {
+pub fn compile(context: &Context, source: String) -> ExecutionEngine {
     let code_gen = compile_module(context, source).unwrap();
     println!("{}", get_ir(&code_gen));
     code_gen

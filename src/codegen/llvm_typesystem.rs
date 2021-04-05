@@ -47,7 +47,7 @@ pub fn promote_if_needed<'a>(
             let promoted_rvalue =
                 promote_value_if_needed(context, builder, *rvalue, rtype, &target_type);
 
-            return (target_type, promoted_lvalue, promoted_rvalue);
+            (target_type, promoted_lvalue, promoted_rvalue)
         }
     } else {
         panic!("Binary operations need numerical types")
@@ -196,8 +196,7 @@ pub fn cast_if_needed<'ctx>(
                             value,
                             value_type,
                             &target_type,
-                        )
-                        .into())
+                        ))
                     }
                 }
                 DataTypeInformation::Float { size: _rsize, .. } => {
