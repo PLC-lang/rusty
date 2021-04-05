@@ -1,12 +1,11 @@
 /// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-use super::super::ast::{
-    evaluate_constant_int, get_array_dimensions, CompilationUnit, DataType, DataTypeDeclaration,
-    PouType, VariableBlock, VariableBlockType, POU,
-};
-use super::Index;
 use super::VariableType;
-use crate::ast::{self, UserTypeDeclaration};
-use crate::ast::{Implementation, Statement};
+use crate::ast::{
+    self, evaluate_constant_int, get_array_dimensions, CompilationUnit, DataType,
+    DataTypeDeclaration, Implementation, PouType, Statement, UserTypeDeclaration, VariableBlock,
+    VariableBlockType, POU,
+};
+use crate::index::{Index, MemberInfo};
 use crate::typesystem::*;
 
 pub fn visit(unit: &CompilationUnit) -> Index {
@@ -63,15 +62,17 @@ pub fn visit_pou(index: &mut Index, pou: &POU) {
         for var in &block.variables {
             member_names.push(var.name.clone());
             index.register_member_variable(
-                &pou.name,
-                &var.name,
-                block_type,
-                var.data_type.get_name().unwrap(),
+                &MemberInfo {
+                    container_name: &pou.name,
+                    variable_name: &var.name,
+                    variable_linkage: block_type,
+                    variable_type_name: var.data_type.get_name().unwrap(),
+                },
                 var.initializer.clone(),
                 var.location.clone(),
                 count,
             );
-            count = count + 1;
+            count += 1;
         }
     }
 
@@ -79,10 +80,12 @@ pub fn visit_pou(index: &mut Index, pou: &POU) {
         member_names.push(pou.name.clone());
         let source_location = pou.location.end..pou.location.end;
         index.register_member_variable(
-            &pou.name,
-            &pou.name,
-            VariableType::Return,
-            return_type.get_name().unwrap().into(),
+            &MemberInfo {
+                container_name: &pou.name,
+                variable_name: &pou.name,
+                variable_linkage: VariableType::Return,
+                variable_type_name: return_type.get_name().unwrap(),
+            },
             None,
             source_location,
             count,
@@ -153,8 +156,7 @@ fn visit_data_type(index: &mut Index, type_declatation: &UserTypeDeclaration) {
                 type_declatation.initializer.clone(),
                 information,
             );
-            let mut count = 0;
-            for var in variables {
+            for (count, var) in variables.iter().enumerate() {
                 if let DataTypeDeclaration::DataTypeDefinition { data_type } = &var.data_type {
                     //first we need to handle the inner type
                     visit_data_type(
@@ -167,15 +169,16 @@ fn visit_data_type(index: &mut Index, type_declatation: &UserTypeDeclaration) {
                 }
 
                 index.register_member_variable(
-                    &struct_name,
-                    &var.name,
-                    VariableType::Local,
-                    var.data_type.get_name().unwrap(),
+                    &MemberInfo {
+                        container_name: &struct_name,
+                        variable_name: &var.name,
+                        variable_linkage: VariableType::Local,
+                        variable_type_name: var.data_type.get_name().unwrap(),
+                    },
                     var.initializer.clone(),
                     var.location.clone(),
-                    count,
+                    count as u32,
                 );
-                count = count + 1;
             }
         }
 

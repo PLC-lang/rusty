@@ -40,7 +40,7 @@ fn compile_to_obj(
 
     let triple = triple
         .map(|it| TargetTriple::create(it.as_str()))
-        .or(Some(TargetMachine::get_default_triple()))
+        .or_else(|| Some(TargetMachine::get_default_triple()))
         .unwrap();
     let target = Target::from_triple(&triple).unwrap();
     let machine = target

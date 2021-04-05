@@ -8,14 +8,14 @@ use super::RustyLexer;
 use super::{parse_body, parse_expression, parse_reference, parse_statement};
 
 pub fn parse_control_statement(lexer: &mut RustyLexer) -> Result<Statement, String> {
-    return match lexer.token {
+    match lexer.token {
         KeywordIf => parse_if_statement(lexer),
         KeywordFor => parse_for_statement(lexer),
         KeywordWhile => parse_while_statement(lexer),
         KeywordRepeat => parse_repeat_statement(lexer),
         KeywordCase => parse_case_statement(lexer),
         _ => parse_statement(lexer),
-    };
+    }
 }
 
 fn parse_if_statement(lexer: &mut RustyLexer) -> Result<Statement, String> {
@@ -54,7 +54,7 @@ fn parse_if_statement(lexer: &mut RustyLexer) -> Result<Statement, String> {
 
     Ok(Statement::IfStatement {
         blocks: conditional_blocks,
-        else_block: else_block,
+        else_block,
         location: start..end,
     })
 }
@@ -232,5 +232,5 @@ fn parse_case_body_with_condition(
         body,
     };
     let block_without_next_condition = (block, None);
-    return Ok(block_without_next_condition);
+    Ok(block_without_next_condition)
 }

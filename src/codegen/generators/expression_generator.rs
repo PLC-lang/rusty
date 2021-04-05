@@ -47,7 +47,7 @@ struct ParameterContext<'a, 'b> {
     function_name: &'b str,
     parameter_type: Option<&'b DataType>,
     index: u32,
-    parameter_struct: PointerValue<'a>
+    parameter_struct: PointerValue<'a>,
 }
 
 impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
@@ -435,7 +435,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                             function_name,
                             parameter_type: None,
                             index: index as u32,
-                            parameter_struct
+                            parameter_struct,
                         },
                         input_block,
                         output_block,
@@ -449,7 +449,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                         function_name,
                         parameter_type: None,
                         index: 0,
-                        parameter_struct
+                        parameter_struct,
                     },
                     input_block,
                     output_block,

@@ -84,26 +84,15 @@ impl DataTypeInformation {
     }
 
     pub fn is_int(&self) -> bool {
-        if let DataTypeInformation::Integer { .. } = self {
-            true
-        } else {
-            false
-        }
+        matches!(self, DataTypeInformation::Integer { .. })
     }
 
     pub fn is_float(&self) -> bool {
-        if let DataTypeInformation::Float { .. } = self {
-            true
-        } else {
-            false
-        }
+        matches!(self, DataTypeInformation::Float { .. })
     }
 
     pub fn is_numerical(&self) -> bool {
-        match self {
-            DataTypeInformation::Integer { .. } | DataTypeInformation::Float { .. } => true,
-            _ => false,
-        }
+        matches!(self, DataTypeInformation::Integer { .. } | DataTypeInformation::Float { .. })
     }
 
     pub fn get_size(&self) -> u32 {
@@ -270,7 +259,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
     res
 }
 
-pub fn new_string_information<'ctx>(len: u32) -> DataTypeInformation {
+pub fn new_string_information(len: u32) -> DataTypeInformation {
     DataTypeInformation::String { size: len + 1 }
 }
 
@@ -307,11 +296,11 @@ fn get_lreal_type() -> DataTypeInformation {
     }
 }
 
-pub fn get_bigger_type<'a>(
+pub fn get_bigger_type(
     ltype: &DataTypeInformation,
     rtype: &DataTypeInformation,
 ) -> DataTypeInformation {
-    let bigger_type = if is_same_type_nature(&ltype, &rtype) {
+    if is_same_type_nature(&ltype, &rtype) {
         if get_rank(&ltype) < get_rank(&rtype) {
             rtype.clone()
         } else {
@@ -325,6 +314,5 @@ pub fn get_bigger_type<'a>(
         } else {
             real_type
         }
-    };
-    bigger_type
+    }
 }

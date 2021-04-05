@@ -126,8 +126,7 @@ impl Variable {
         let new_data_type = DataTypeDeclaration::DataTypeReference {
             referenced_type: type_name,
         };
-        let old_data_type = std::mem::replace(&mut self.data_type, new_data_type);
-        old_data_type
+        std::mem::replace(&mut self.data_type, new_data_type)
     }
 }
 
@@ -171,11 +170,11 @@ impl NewLines {
             }
         }
 
-        return if self.new_lines[result] > offset {
+        if self.new_lines[result] > offset {
             Some(result)
         } else {
             None
-        };
+        }
     }
 
     /// get the offset of the new_line that starts line l (starting with line 1)
@@ -198,7 +197,7 @@ pub enum DataTypeDeclaration {
 }
 
 impl DataTypeDeclaration {
-    pub fn get_name<'ctx>(&'ctx self) -> Option<&'ctx str> {
+    pub fn get_name(&self) -> Option<&str> {
         match self {
             DataTypeDeclaration::DataTypeReference { referenced_type } => {
                 Some(referenced_type.as_str())
@@ -299,7 +298,7 @@ impl DataType {
         }
     }
 
-    pub fn get_name<'ctx>(&'ctx self) -> Option<&'ctx str> {
+    pub fn get_name(&self) -> Option<&str> {
         match self {
             DataType::StructType { name, variables: _ } => name.as_ref().map(|x| x.as_str()),
             DataType::EnumType { name, elements: _ } => name.as_ref().map(|x| x.as_str()),
