@@ -181,9 +181,9 @@ fn parse_unary_expression(lexer: &mut RustyLexer) -> Result<Statement, String> {
         let expression = parse_parenthesized_expression(lexer)?;
         let location = start..expression.get_location().end;
         Ok(Statement::UnaryExpression {
-            operator: operator,
+            operator,
             value: Box::new(expression),
-            location: location,
+            location,
         })
     } else {
         parse_parenthesized_expression(lexer)
@@ -330,7 +330,7 @@ fn parse_literal_number(lexer: &mut RustyLexer) -> Result<Statement, String> {
     })
 }
 
-fn trim_quotes<'a>(quoted_string: &str) -> String {
+fn trim_quotes(quoted_string: &str) -> String {
     quoted_string[1..quoted_string.len() - 1].to_string()
 }
 

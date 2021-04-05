@@ -65,8 +65,7 @@ impl<'ink> CodeGen<'ink> {
     /// constructs a new code-generator that generates CompilationUnits into a module with the given module_name
     pub fn new(context: &'ink Context, module_name: &str) -> CodeGen<'ink> {
         let module = context.create_module(module_name);
-        let codegen = CodeGen { context, module };
-        codegen
+        CodeGen { context, module }
     }
 
     fn generate_llvm_index(

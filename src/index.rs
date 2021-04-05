@@ -20,6 +20,13 @@ pub struct VariableIndexEntry {
     pub source_location: SourceRange,
 }
 
+pub struct MemberInfo<'b> {
+    container_name: &'b str,
+    variable_name: &'b str,
+    variable_linkage: VariableType,
+    variable_type_name: &'b str,
+}
+
 impl VariableIndexEntry {
     pub fn get_name(&self) -> &str {
         &self.name
@@ -125,7 +132,7 @@ pub struct Index {
 
 impl Index {
     pub fn new() -> Index {
-        let index = Index {
+        Index {
             global_variables: IndexMap::new(),
             member_variables: IndexMap::new(),
             types: IndexMap::new(),
@@ -135,8 +142,7 @@ impl Index {
                 initial_value: None,
                 information: DataTypeInformation::Void,
             },
-        };
-        index
+        }
     }
 
     pub fn get_void_type(&self) -> &DataType {
@@ -157,7 +163,7 @@ impl Index {
         self.member_variables
             .get(container_name)
             .map(|it| it.values().collect())
-            .unwrap_or_else(|| vec![])
+            .unwrap_or_else(Vec::new)
     }
 
     pub fn find_input_parameter(&self, pou_name: &str, index: u32) -> Option<&VariableIndexEntry> {
@@ -293,18 +299,20 @@ impl Index {
     /// * `location` - the location (index) inside the container
     pub fn register_member_variable(
         &mut self,
-        container_name: &str,
-        variable_name: &str,
-        variable_linkage: VariableType,
-        variable_type_name: &str,
+        member_info: &MemberInfo,
         initial_value: Option<Statement>,
         source_location: SourceRange,
         location: u32,
     ) {
+        let container_name = member_info.container_name;
+        let variable_name = member_info.variable_name;
+        let variable_linkage = member_info.variable_linkage;
+        let variable_type_name = member_info.variable_type_name;
+
         let members = self
             .member_variables
             .entry(container_name.into())
-            .or_insert_with(|| IndexMap::new());
+            .or_insert_with(IndexMap::new);
 
         let qualified_name = format!("{}.{}", container_name, variable_name);
 
@@ -394,5 +402,11 @@ impl Index {
             self.find_implementation(&v.information.data_type_name)
                 .is_some()
         })
+    }
+}
+
+impl Default for Index {
+    fn default() -> Self {
+        Self::new()
     }
 }

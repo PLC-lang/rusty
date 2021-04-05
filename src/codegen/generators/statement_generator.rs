@@ -608,11 +608,7 @@ fn create_call_to_check_function_ast(
             location: location.clone(),
         }),
         parameters: Box::new(Some(Statement::ExpressionList {
-            expressions: vec![
-                parameter,
-                sub_range.start,
-                sub_range.end,
-            ],
+            expressions: vec![parameter, sub_range.start, sub_range.end],
         })),
         location: location.clone(),
     }
