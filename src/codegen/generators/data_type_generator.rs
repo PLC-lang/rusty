@@ -14,7 +14,7 @@ use crate::{
 };
 use crate::{
     codegen::{
-        llvm_index::LLVMTypedIndex,
+        llvm_index::LlvmTypedIndex,
         llvm_typesystem::{get_llvm_float_type, get_llvm_int_type},
     },
     typesystem::DataType,
@@ -25,7 +25,7 @@ use inkwell::{
 };
 
 use super::{
-    expression_generator::ExpressionCodeGenerator, llvm::LLVM, struct_generator::StructGenerator,
+    expression_generator::ExpressionCodeGenerator, llvm::Llvm, struct_generator::StructGenerator,
 };
 
 /// generates the llvm-type for the given data-type and registers it at the index
@@ -36,10 +36,10 @@ use super::{
 /// - Array type for arrays
 /// - array type for sized Strings
 pub fn generate_data_types<'ink>(
-    llvm: &LLVM<'ink>,
+    llvm: &Llvm<'ink>,
     index: &Index,
-) -> Result<LLVMTypedIndex<'ink>, CompileError> {
-    let mut types_index = LLVMTypedIndex::new();
+) -> Result<LlvmTypedIndex<'ink>, CompileError> {
+    let mut types_index = LlvmTypedIndex::new();
     let types = index.get_types();
     for (name, user_type) in types {
         if let DataTypeInformation::Struct {
@@ -64,9 +64,9 @@ pub fn generate_data_types<'ink>(
 
 /// generates the members of an opaque struct and associates its initial values
 fn expand_opaque_types<'ink>(
-    llvm: &LLVM<'ink>,
+    llvm: &Llvm<'ink>,
     index: &Index,
-    types_index: &mut LLVMTypedIndex<'ink>,
+    types_index: &mut LlvmTypedIndex<'ink>,
     data_type: &DataType,
 ) -> Result<(), CompileError> {
     let information = data_type.get_type_information();
@@ -96,9 +96,9 @@ fn expand_opaque_types<'ink>(
 /// Generates only an opaque type for structs.
 /// Eagerly generates but does not associate nested array and referenced aliased types
 fn create_type<'ink>(
-    llvm: &LLVM<'ink>,
+    llvm: &Llvm<'ink>,
     index: &Index,
-    types_index: &LLVMTypedIndex<'ink>,
+    types_index: &LlvmTypedIndex<'ink>,
     name: &str,
     data_type: &DataType,
 ) -> Result<BasicTypeEnum<'ink>, CompileError> {
@@ -162,8 +162,8 @@ fn create_type<'ink>(
 
 fn generate_initial_value<'ink>(
     index: &Index,
-    types_index: &LLVMTypedIndex<'ink>,
-    llvm: &LLVM<'ink>,
+    types_index: &LlvmTypedIndex<'ink>,
+    llvm: &Llvm<'ink>,
     data_type: &DataType,
 ) -> Option<BasicValueEnum<'ink>> {
     let information = data_type.get_type_information();
@@ -207,8 +207,8 @@ fn generate_initial_value<'ink>(
 /// the aliased type (referenced_type)
 fn register_aliased_initial_value<'ink>(
     index: &Index,
-    types_index: &LLVMTypedIndex<'ink>,
-    llvm: &LLVM<'ink>,
+    types_index: &LlvmTypedIndex<'ink>,
+    llvm: &Llvm<'ink>,
     data_type: &DataType,
     referenced_type: &str,
 ) -> Option<BasicValueEnum<'ink>> {
@@ -232,8 +232,8 @@ fn generate_array_initializer<'ink>(
     data_type: &DataType,
     name: &str,
     index: &Index,
-    types_index: &LLVMTypedIndex<'ink>,
-    llvm: &LLVM<'ink>,
+    types_index: &LlvmTypedIndex<'ink>,
+    llvm: &Llvm<'ink>,
     predicate: fn(&Statement) -> bool,
     expected_ast: &str,
 ) -> Result<Option<BasicValueEnum<'ink>>, CompileError> {

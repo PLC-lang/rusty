@@ -4,11 +4,11 @@
 use self::{
     generators::{
         data_type_generator,
-        llvm::LLVM,
+        llvm::Llvm,
         pou_generator::{self, PouGenerator},
         variable_generator,
     },
-    llvm_index::LLVMTypedIndex,
+    llvm_index::LlvmTypedIndex,
 };
 use crate::compile_error::CompileError;
 
@@ -72,9 +72,9 @@ impl<'ink> CodeGen<'ink> {
         &self,
         module: &Module<'ink>,
         global_index: &Index,
-    ) -> Result<LLVMTypedIndex<'ink>, CompileError> {
-        let llvm = LLVM::new(&self.context, self.context.create_builder());
-        let mut index = LLVMTypedIndex::new();
+    ) -> Result<LlvmTypedIndex<'ink>, CompileError> {
+        let llvm = Llvm::new(&self.context, self.context.create_builder());
+        let mut index = LlvmTypedIndex::new();
         //Generate types index, and any global variables associated with them.
         let llvm_type_index = data_type_generator::generate_data_types(&llvm, global_index)?;
         index.merge(llvm_type_index);
@@ -83,7 +83,7 @@ impl<'ink> CodeGen<'ink> {
             variable_generator::generate_global_variables(module, &llvm, global_index, &index)?;
         index.merge(llvm_gv_index);
         //Generate opaque functions for implementations and associate them with their types
-        let llvm = LLVM::new(&self.context, self.context.create_builder());
+        let llvm = Llvm::new(&self.context, self.context.create_builder());
         let llvm_impl_index =
             pou_generator::generate_implementation_stubs(module, llvm, global_index, &index)?;
         index.merge(llvm_impl_index);
@@ -100,7 +100,7 @@ impl<'ink> CodeGen<'ink> {
         let llvm_index = self.generate_llvm_index(&self.module, global_index)?;
 
         //generate all pous
-        let llvm = LLVM::new(&self.context, self.context.create_builder());
+        let llvm = Llvm::new(&self.context, self.context.create_builder());
         let pou_generator = PouGenerator::new(llvm, global_index, &llvm_index);
         //Generate the POU stubs in the first go to make sure they can be referenced.
         for implementation in unit.implementations {

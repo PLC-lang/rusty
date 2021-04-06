@@ -2,8 +2,8 @@
 use super::VariableType;
 use crate::ast::{
     self, evaluate_constant_int, get_array_dimensions, CompilationUnit, DataType,
-    DataTypeDeclaration, Implementation, PouType, Statement, UserTypeDeclaration, VariableBlock,
-    VariableBlockType, POU,
+    DataTypeDeclaration, Implementation, Pou, PouType, Statement, UserTypeDeclaration,
+    VariableBlock, VariableBlockType,
 };
 use crate::index::{Index, MemberInfo};
 use crate::typesystem::*;
@@ -39,7 +39,7 @@ pub fn visit(unit: &CompilationUnit) -> Index {
     index
 }
 
-pub fn visit_pou(index: &mut Index, pou: &POU) {
+pub fn visit_pou(index: &mut Index, pou: &Pou) {
     let interface_name = format!("{}_interface", &pou.name);
 
     if pou.pou_type == PouType::Program {

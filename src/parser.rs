@@ -160,7 +160,7 @@ fn parse_pou(
     pou_type: PouType,
     linkage: LinkageType,
     expected_end_token: lexer::Token,
-) -> Result<(POU, Implementation), String> {
+) -> Result<(Pou, Implementation), String> {
     let line_nr = lexer.get_current_line_nr();
     lexer.advance(); //Consume ProgramKeyword
 
@@ -188,7 +188,7 @@ fn parse_pou(
             Err(msg) => return Err(msg),
         };
     }
-    let pou = POU {
+    let pou = Pou {
         name: name.clone(),
         pou_type,
         variable_blocks,

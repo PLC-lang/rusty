@@ -92,7 +92,10 @@ impl DataTypeInformation {
     }
 
     pub fn is_numerical(&self) -> bool {
-        matches!(self, DataTypeInformation::Integer { .. } | DataTypeInformation::Float { .. })
+        matches!(
+            self,
+            DataTypeInformation::Integer { .. } | DataTypeInformation::Float { .. }
+        )
     }
 
     pub fn get_size(&self) -> u32 {
@@ -110,153 +113,153 @@ impl DataTypeInformation {
 }
 
 pub fn get_builtin_types() -> Vec<DataType> {
-    let mut res = vec![];
-    res.push(DataType {
-        name: "__VOID".into(),
-        initial_value: None,
-        information: DataTypeInformation::Void,
-    });
-    res.push(DataType {
-        name: "BOOL".into(),
-        initial_value: None,
-        information: DataTypeInformation::Integer {
+    vec![
+        DataType {
+            name: "__VOID".into(),
+            initial_value: None,
+            information: DataTypeInformation::Void,
+        },
+        DataType {
             name: "BOOL".into(),
-            signed: true,
-            size: 1,
+            initial_value: None,
+            information: DataTypeInformation::Integer {
+                name: "BOOL".into(),
+                signed: true,
+                size: 1,
+            },
         },
-    });
-    res.push(DataType {
-        name: "BYTE".into(),
-        initial_value: None,
-        information: DataTypeInformation::Integer {
+        DataType {
             name: "BYTE".into(),
-            signed: false,
-            size: 8,
+            initial_value: None,
+            information: DataTypeInformation::Integer {
+                name: "BYTE".into(),
+                signed: false,
+                size: 8,
+            },
         },
-    });
-    res.push(DataType {
-        name: "SINT".into(),
-        initial_value: None,
-        information: DataTypeInformation::Integer {
+        DataType {
             name: "SINT".into(),
-            signed: true,
-            size: 8,
+            initial_value: None,
+            information: DataTypeInformation::Integer {
+                name: "SINT".into(),
+                signed: true,
+                size: 8,
+            },
         },
-    });
-    res.push(DataType {
-        name: "USINT".into(),
-        initial_value: None,
-        information: DataTypeInformation::Integer {
+        DataType {
             name: "USINT".into(),
-            signed: false,
-            size: 8,
+            initial_value: None,
+            information: DataTypeInformation::Integer {
+                name: "USINT".into(),
+                signed: false,
+                size: 8,
+            },
         },
-    });
-    res.push(DataType {
-        name: "WORD".into(),
-        initial_value: None,
-        information: DataTypeInformation::Integer {
+        DataType {
             name: "WORD".into(),
-            signed: false,
-            size: 16,
+            initial_value: None,
+            information: DataTypeInformation::Integer {
+                name: "WORD".into(),
+                signed: false,
+                size: 16,
+            },
         },
-    });
-    res.push(DataType {
-        name: "INT".into(),
-        initial_value: None,
-        information: DataTypeInformation::Integer {
+        DataType {
             name: "INT".into(),
-            signed: true,
-            size: 16,
+            initial_value: None,
+            information: DataTypeInformation::Integer {
+                name: "INT".into(),
+                signed: true,
+                size: 16,
+            },
         },
-    });
-    res.push(DataType {
-        name: "UINT".into(),
-        initial_value: None,
-        information: DataTypeInformation::Integer {
+        DataType {
             name: "UINT".into(),
-            signed: false,
-            size: 16,
+            initial_value: None,
+            information: DataTypeInformation::Integer {
+                name: "UINT".into(),
+                signed: false,
+                size: 16,
+            },
         },
-    });
-    res.push(DataType {
-        name: "DWORD".into(),
-        initial_value: None,
-        information: DataTypeInformation::Integer {
+        DataType {
             name: "DWORD".into(),
-            signed: false,
-            size: 32,
+            initial_value: None,
+            information: DataTypeInformation::Integer {
+                name: "DWORD".into(),
+                signed: false,
+                size: 32,
+            },
         },
-    });
-    res.push(DataType {
-        name: "DINT".into(),
-        initial_value: None,
-        information: DataTypeInformation::Integer {
+        DataType {
             name: "DINT".into(),
-            signed: true,
-            size: 32,
+            initial_value: None,
+            information: DataTypeInformation::Integer {
+                name: "DINT".into(),
+                signed: true,
+                size: 32,
+            },
         },
-    });
-    res.push(DataType {
-        name: "UDINT".into(),
-        initial_value: None,
-        information: DataTypeInformation::Integer {
+        DataType {
             name: "UDINT".into(),
-            signed: false,
-            size: 32,
+            initial_value: None,
+            information: DataTypeInformation::Integer {
+                name: "UDINT".into(),
+                signed: false,
+                size: 32,
+            },
         },
-    });
-    res.push(DataType {
-        name: "LWORD".into(),
-        initial_value: None,
-        information: DataTypeInformation::Integer {
+        DataType {
             name: "LWORD".into(),
-            signed: false,
-            size: 64,
+            initial_value: None,
+            information: DataTypeInformation::Integer {
+                name: "LWORD".into(),
+                signed: false,
+                size: 64,
+            },
         },
-    });
-    res.push(DataType {
-        name: "LINT".into(),
-        initial_value: None,
-        information: DataTypeInformation::Integer {
+        DataType {
             name: "LINT".into(),
-            signed: true,
-            size: 64,
+            initial_value: None,
+            information: DataTypeInformation::Integer {
+                name: "LINT".into(),
+                signed: true,
+                size: 64,
+            },
         },
-    });
-    res.push(DataType {
-        name: "ULINT".into(),
-        initial_value: None,
-        information: DataTypeInformation::Integer {
+        DataType {
             name: "ULINT".into(),
-            signed: false,
-            size: 64,
+            initial_value: None,
+            information: DataTypeInformation::Integer {
+                name: "ULINT".into(),
+                signed: false,
+                size: 64,
+            },
         },
-    });
-    res.push(DataType {
-        name: "REAL".into(),
-        initial_value: None,
-        information: DataTypeInformation::Float {
+        DataType {
             name: "REAL".into(),
-            size: 32,
+            initial_value: None,
+            information: DataTypeInformation::Float {
+                name: "REAL".into(),
+                size: 32,
+            },
         },
-    });
-    res.push(DataType {
-        name: "LREAL".into(),
-        initial_value: None,
-        information: DataTypeInformation::Float {
+        DataType {
             name: "LREAL".into(),
-            size: 64,
+            initial_value: None,
+            information: DataTypeInformation::Float {
+                name: "LREAL".into(),
+                size: 64,
+            },
         },
-    });
-    res.push(DataType {
-        name: "STRING".into(),
-        initial_value: None,
-        information: DataTypeInformation::String {
-            size: DEFAULT_STRING_LEN + 1,
+        DataType {
+            name: "STRING".into(),
+            initial_value: None,
+            information: DataTypeInformation::String {
+                size: DEFAULT_STRING_LEN + 1,
+            },
         },
-    });
-    res
+    ]
 }
 
 pub fn new_string_information(len: u32) -> DataTypeInformation {
