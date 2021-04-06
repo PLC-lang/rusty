@@ -1,9 +1,9 @@
 /// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use std::ops::Range;
 
-use super::{expression_generator::ExpressionCodeGenerator, llvm::LLVM};
+use super::{expression_generator::ExpressionCodeGenerator, llvm::Llvm};
 use crate::codegen::llvm_typesystem::cast_if_needed;
-use crate::codegen::LLVMTypedIndex;
+use crate::codegen::LlvmTypedIndex;
 use crate::typesystem::{RANGE_CHECK_LS_FN, RANGE_CHECK_LU_FN, RANGE_CHECK_S_FN, RANGE_CHECK_U_FN};
 use crate::{
     ast::{flatten_expression_list, ConditionalBlock, Operator, Statement},
@@ -29,9 +29,9 @@ pub struct FunctionContext<'a> {
 
 /// the StatementCodeGenerator is used to generate statements (For, If, etc.) or expressions (references, literals, etc.)
 pub struct StatementCodeGenerator<'a, 'b> {
-    llvm: &'b LLVM<'a>,
+    llvm: &'b Llvm<'a>,
     index: &'b Index,
-    llvm_index: &'b LLVMTypedIndex<'a>,
+    llvm_index: &'b LlvmTypedIndex<'a>,
     function_context: &'b FunctionContext<'a>,
 
     pub load_prefix: String,
@@ -41,9 +41,9 @@ pub struct StatementCodeGenerator<'a, 'b> {
 impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
     /// constructs a new StatementCodeGenerator
     pub fn new(
-        llvm: &'b LLVM<'a>,
+        llvm: &'b Llvm<'a>,
         index: &'b Index,
-        llvm_index: &'b LLVMTypedIndex<'a>,
+        llvm_index: &'b LlvmTypedIndex<'a>,
         linking_context: &'b FunctionContext<'a>,
     ) -> StatementCodeGenerator<'a, 'b> {
         StatementCodeGenerator {
@@ -528,8 +528,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         else_body: &[Statement],
     ) -> Result<(), CompileError> {
         let builder = &self.llvm.builder;
-        let mut blocks = Vec::new();
-        blocks.push(builder.get_insert_block().unwrap());
+        let mut blocks = vec![builder.get_insert_block().unwrap()];
         let current_function = self.function_context.function;
         for _ in 1..conditional_blocks.len() {
             blocks.push(

@@ -1,10 +1,10 @@
 /// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use super::{
     expression_generator::ExpressionCodeGenerator,
-    llvm::LLVM,
+    llvm::Llvm,
     statement_generator::{FunctionContext, StatementCodeGenerator},
 };
-use crate::codegen::llvm_index::LLVMTypedIndex;
+use crate::codegen::llvm_index::LlvmTypedIndex;
 
 /// The pou_generator contains functions to generate the code for POUs (PROGRAM, FUNCTION, FUNCTION_BLOCK)
 /// # responsibilities
@@ -27,20 +27,20 @@ use inkwell::{
 };
 
 pub struct PouGenerator<'ink, 'cg> {
-    llvm: LLVM<'ink>,
+    llvm: Llvm<'ink>,
     index: &'cg Index,
-    llvm_index: &'cg LLVMTypedIndex<'ink>,
+    llvm_index: &'cg LlvmTypedIndex<'ink>,
 }
 
 /// Creates opaque implementations for all callable items in the index
 /// Returns a Typed index containing the associated implementations.
 pub fn generate_implementation_stubs<'ink>(
     module: &Module<'ink>,
-    llvm: LLVM<'ink>,
+    llvm: Llvm<'ink>,
     index: &Index,
-    types_index: &LLVMTypedIndex<'ink>,
-) -> Result<LLVMTypedIndex<'ink>, CompileError> {
-    let mut llvm_index = LLVMTypedIndex::new();
+    types_index: &LlvmTypedIndex<'ink>,
+) -> Result<LlvmTypedIndex<'ink>, CompileError> {
+    let mut llvm_index = LlvmTypedIndex::new();
     let pou_generator = PouGenerator::new(llvm, index, &types_index);
     for (name, implementation) in index.get_implementations() {
         let curr_f = pou_generator.generate_implementation_stub(implementation, module)?;
@@ -55,9 +55,9 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
     ///
     /// the PouGenerator needs a mutable index to register the generated pou
     pub fn new(
-        llvm: LLVM<'ink>,
+        llvm: Llvm<'ink>,
         index: &'cg Index,
-        llvm_index: &'cg LLVMTypedIndex<'ink>,
+        llvm_index: &'cg LlvmTypedIndex<'ink>,
     ) -> PouGenerator<'ink, 'cg> {
         PouGenerator {
             llvm,
@@ -99,7 +99,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         implementation: &Implementation,
     ) -> Result<(), CompileError> {
         let context = self.llvm.context;
-        let mut local_index = LLVMTypedIndex::create_child(self.llvm_index);
+        let mut local_index = LlvmTypedIndex::create_child(self.llvm_index);
 
         let pou_name = &implementation.name;
 
@@ -183,7 +183,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
     /// generates a load-statement for the given member
     fn generate_local_variable_accessors(
         &self,
-        index: &mut LLVMTypedIndex<'ink>,
+        index: &mut LlvmTypedIndex<'ink>,
         type_name: &str,
         current_function: FunctionValue<'ink>,
         members: &[&VariableIndexEntry],
@@ -250,7 +250,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
     fn generate_return_statement(
         &self,
         function_context: &FunctionContext<'ink>,
-        local_index: &LLVMTypedIndex<'ink>,
+        local_index: &LlvmTypedIndex<'ink>,
         pou_type: PouType,
         location: Option<SourceRange>,
     ) -> Result<(), CompileError> {

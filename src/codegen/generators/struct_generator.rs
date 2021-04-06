@@ -1,8 +1,8 @@
 /// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-use super::{expression_generator::ExpressionCodeGenerator, llvm::LLVM};
+use super::{expression_generator::ExpressionCodeGenerator, llvm::Llvm};
 use crate::index::Index;
 use crate::{
-    codegen::llvm_index::LLVMTypedIndex, compile_error::CompileError, index::VariableIndexEntry,
+    codegen::llvm_index::LlvmTypedIndex, compile_error::CompileError, index::VariableIndexEntry,
 };
 use inkwell::{
     types::{BasicTypeEnum, StructType},
@@ -11,9 +11,9 @@ use inkwell::{
 
 /// object that offers convinient operations to create struct types and instances
 pub struct StructGenerator<'a, 'b> {
-    llvm: &'b LLVM<'a>,
+    llvm: &'b Llvm<'a>,
     index: &'b Index,
-    llvm_index: &'b LLVMTypedIndex<'a>,
+    llvm_index: &'b LlvmTypedIndex<'a>,
 }
 
 ///
@@ -25,9 +25,9 @@ type StructTypeAndValue<'a> = (StructType<'a>, BasicValueEnum<'a>);
 impl<'a, 'b> StructGenerator<'a, 'b> {
     /// creates a new StructGenerator
     pub fn new(
-        llvm: &'b LLVM<'a>,
+        llvm: &'b Llvm<'a>,
         index: &'b Index,
-        llvm_index: &'b LLVMTypedIndex<'a>,
+        llvm_index: &'b LlvmTypedIndex<'a>,
     ) -> StructGenerator<'a, 'b> {
         StructGenerator {
             llvm,

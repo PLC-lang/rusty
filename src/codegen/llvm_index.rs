@@ -7,17 +7,17 @@ use std::collections::HashMap;
 /// Index view containing declared values for the current context
 /// Parent Index is the a fallback lookup index for values not declared locally
 #[derive(Debug, Clone)]
-pub struct LLVMTypedIndex<'ink> {
-    parent_index: Option<&'ink LLVMTypedIndex<'ink>>,
+pub struct LlvmTypedIndex<'ink> {
+    parent_index: Option<&'ink LlvmTypedIndex<'ink>>,
     type_associations: HashMap<String, BasicTypeEnum<'ink>>,
     initial_value_associations: HashMap<String, BasicValueEnum<'ink>>,
     loaded_variable_associations: HashMap<String, PointerValue<'ink>>,
     implementations: HashMap<String, FunctionValue<'ink>>,
 }
 
-impl<'ink> LLVMTypedIndex<'ink> {
-    pub fn new() -> LLVMTypedIndex<'ink> {
-        LLVMTypedIndex {
+impl<'ink> LlvmTypedIndex<'ink> {
+    pub fn new() -> LlvmTypedIndex<'ink> {
+        LlvmTypedIndex {
             parent_index: None,
             type_associations: HashMap::new(),
             initial_value_associations: HashMap::new(),
@@ -26,8 +26,8 @@ impl<'ink> LLVMTypedIndex<'ink> {
         }
     }
 
-    pub fn create_child(parent: &'ink LLVMTypedIndex<'ink>) -> LLVMTypedIndex<'ink> {
-        LLVMTypedIndex {
+    pub fn create_child(parent: &'ink LlvmTypedIndex<'ink>) -> LlvmTypedIndex<'ink> {
+        LlvmTypedIndex {
             parent_index: Some(parent),
             type_associations: HashMap::new(),
             initial_value_associations: HashMap::new(),
@@ -36,7 +36,7 @@ impl<'ink> LLVMTypedIndex<'ink> {
         }
     }
 
-    pub fn merge(&mut self, mut other: LLVMTypedIndex<'ink>) {
+    pub fn merge(&mut self, mut other: LlvmTypedIndex<'ink>) {
         for (name, assocication) in other.type_associations.drain() {
             self.type_associations.insert(name, assocication);
         }
