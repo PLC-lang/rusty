@@ -14,8 +14,7 @@ pub fn parse_primary_expression(lexer: &mut RustyLexer) -> Result<Statement, Str
 pub fn parse_expression_list(lexer: &mut RustyLexer) -> Result<Statement, String> {
     let left = parse_range_statement(lexer);
     if lexer.token == KeywordComma {
-        let mut expressions = Vec::new();
-        expressions.push(left?);
+        let mut expressions = vec![left?];
         // this starts an expression list
         while lexer.token == KeywordComma {
             lexer.advance();
@@ -23,7 +22,7 @@ pub fn parse_expression_list(lexer: &mut RustyLexer) -> Result<Statement, String
         }
         return Ok(Statement::ExpressionList { expressions });
     }
-    Ok(left?)
+    left
 }
 
 pub(crate) fn parse_range_statement(lexer: &mut RustyLexer) -> Result<Statement, String> {
@@ -246,6 +245,8 @@ fn parse_array_literal(lexer: &mut RustyLexer) -> Result<Statement, String> {
     })
 }
 
+#[allow(clippy::unnecessary_wraps)]
+//Allowing the unnecessary wrap here because this method is used along other methods that need to return Results
 fn parse_bool_literal(lexer: &mut RustyLexer, value: bool) -> Result<Statement, String> {
     let location = lexer.range();
     lexer.advance();

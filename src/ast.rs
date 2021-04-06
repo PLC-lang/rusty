@@ -19,7 +19,7 @@ impl Dimension {
 }
 
 #[derive(PartialEq)]
-pub struct POU {
+pub struct Pou {
     pub name: String,
     pub variable_blocks: Vec<VariableBlock>,
     pub pou_type: PouType,
@@ -27,7 +27,7 @@ pub struct POU {
     pub location: SourceRange,
 }
 
-impl Debug for POU {
+impl Debug for Pou {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
         f.debug_struct("POU")
             .field("name", &self.name)
@@ -65,7 +65,7 @@ pub enum PouType {
 #[derive(Debug, PartialEq)]
 pub struct CompilationUnit {
     pub global_vars: Vec<VariableBlock>,
-    pub units: Vec<POU>,
+    pub units: Vec<Pou>,
     pub implementations: Vec<Implementation>,
     pub types: Vec<UserTypeDeclaration>,
 }
@@ -139,8 +139,7 @@ pub struct NewLines {
 
 impl NewLines {
     pub fn new(source: &str) -> NewLines {
-        let mut new_lines = Vec::new();
-        new_lines.push(0);
+        let mut new_lines = vec![0];
         for (offset, c) in source.char_indices() {
             if c == '\n' {
                 new_lines.push(offset);

@@ -16,15 +16,15 @@ use inkwell::{
 };
 
 /// Holds dependencies required to generate IR-code
-pub struct LLVM<'a> {
+pub struct Llvm<'a> {
     pub context: &'a Context,
     pub builder: Builder<'a>,
 }
 
-impl<'a> LLVM<'a> {
+impl<'a> Llvm<'a> {
     /// constructs a new LLVM struct
-    pub fn new(context: &'a Context, builder: Builder<'a>) -> LLVM<'a> {
-        LLVM { context, builder }
+    pub fn new(context: &'a Context, builder: Builder<'a>) -> Llvm<'a> {
+        Llvm { context, builder }
     }
 
     /// generates a global variable with the given name, datatype and optional initial value

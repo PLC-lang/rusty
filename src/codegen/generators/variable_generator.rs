@@ -5,18 +5,18 @@ use crate::index::Index;
 use inkwell::{module::Module, values::GlobalValue};
 
 use crate::{
-    codegen::llvm_index::LLVMTypedIndex, compile_error::CompileError, index::VariableIndexEntry,
+    codegen::llvm_index::LlvmTypedIndex, compile_error::CompileError, index::VariableIndexEntry,
 };
 
-use super::{expression_generator::ExpressionCodeGenerator, llvm::LLVM};
+use super::{expression_generator::ExpressionCodeGenerator, llvm::Llvm};
 
 pub fn generate_global_variables<'ctx, 'b>(
     module: &'b Module<'ctx>,
-    llvm: &'b LLVM<'ctx>,
+    llvm: &'b Llvm<'ctx>,
     global_index: &'b Index,
-    types_index: &'b LLVMTypedIndex<'ctx>,
-) -> Result<LLVMTypedIndex<'ctx>, CompileError> {
-    let mut index = LLVMTypedIndex::new();
+    types_index: &'b LlvmTypedIndex<'ctx>,
+) -> Result<LlvmTypedIndex<'ctx>, CompileError> {
+    let mut index = LlvmTypedIndex::new();
     let globals = global_index.get_globals();
     for (name, variable) in globals {
         let global_variable =
@@ -34,9 +34,9 @@ pub fn generate_global_variables<'ctx, 'b>(
 /// - `global_variable` the variable to generate
 pub fn generate_global_variable<'ctx, 'b>(
     module: &'b Module<'ctx>,
-    llvm: &'b LLVM<'ctx>,
+    llvm: &'b Llvm<'ctx>,
     global_index: &'b Index,
-    index: &'b LLVMTypedIndex<'ctx>,
+    index: &'b LlvmTypedIndex<'ctx>,
     global_variable: &VariableIndexEntry,
 ) -> Result<GlobalValue<'ctx>, CompileError> {
     let type_name = global_variable.get_type_name();

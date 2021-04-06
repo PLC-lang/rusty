@@ -13,7 +13,7 @@ use crate::{
     typesystem::{get_bigger_type, DataTypeInformation},
 };
 
-use super::{generators::llvm::LLVM, llvm_index::LLVMTypedIndex, TypeAndValue};
+use super::{generators::llvm::Llvm, llvm_index::LlvmTypedIndex, TypeAndValue};
 
 pub fn promote_if_needed<'a>(
     context: &'a Context,
@@ -21,7 +21,7 @@ pub fn promote_if_needed<'a>(
     lvalue: &TypeAndValue<'a>,
     rvalue: &TypeAndValue<'a>,
     index: &Index,
-    llvm_index: &LLVMTypedIndex<'a>,
+    llvm_index: &LlvmTypedIndex<'a>,
 ) -> (DataTypeInformation, BasicValueEnum<'a>, BasicValueEnum<'a>) {
     let (ltype, lvalue) = lvalue;
     let (rtype, rvalue) = rvalue;
@@ -150,7 +150,7 @@ fn create_llvm_extend_int_value<'a>(
 }
 
 pub fn cast_if_needed<'ctx>(
-    llvm: &LLVM<'ctx>,
+    llvm: &Llvm<'ctx>,
     index: &Index,
     target_type: &DataTypeInformation,
     value: BasicValueEnum<'ctx>,

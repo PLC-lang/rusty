@@ -14,7 +14,7 @@ use std::{collections::HashSet, ops::Range};
 use crate::{
     ast::{flatten_expression_list, Dimension, Operator, Statement},
     codegen::{
-        llvm_index::LLVMTypedIndex,
+        llvm_index::LlvmTypedIndex,
         llvm_typesystem::{cast_if_needed, get_llvm_int_type, promote_if_needed},
         TypeAndPointer, TypeAndValue,
     },
@@ -23,13 +23,13 @@ use crate::{
     typesystem::{DataType, DataTypeInformation},
 };
 
-use super::{llvm::LLVM, statement_generator::FunctionContext, struct_generator};
+use super::{llvm::Llvm, statement_generator::FunctionContext, struct_generator};
 
 /// the generator for expressions
 pub struct ExpressionCodeGenerator<'a, 'b> {
-    llvm: &'b LLVM<'a>,
+    llvm: &'b Llvm<'a>,
     index: &'b Index,
-    llvm_index: &'b LLVMTypedIndex<'a>,
+    llvm_index: &'b LlvmTypedIndex<'a>,
     /// an optional type hint for generating literals
     type_hint: Option<DataTypeInformation>,
     /// the current function to create blocks in
@@ -58,9 +58,9 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
     /// - `type_hint` an optional type hint for generating literals
     /// - `function_context` the current function to create blocks
     pub fn new(
-        llvm: &'b LLVM<'a>,
+        llvm: &'b Llvm<'a>,
         index: &'b Index,
-        llvm_index: &'b LLVMTypedIndex<'a>,
+        llvm_index: &'b LlvmTypedIndex<'a>,
         type_hint: Option<DataTypeInformation>,
         function_context: &'b FunctionContext<'a>,
     ) -> ExpressionCodeGenerator<'a, 'b> {
@@ -83,9 +83,9 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
     /// - `index` the index / global symbol table
     /// - `type_hint` an optional type hint for generating literals
     pub fn new_context_free(
-        llvm: &'b LLVM<'a>,
+        llvm: &'b Llvm<'a>,
         index: &'b Index,
-        llvm_index: &'b LLVMTypedIndex<'a>,
+        llvm_index: &'b LlvmTypedIndex<'a>,
         type_hint: Option<DataTypeInformation>,
     ) -> ExpressionCodeGenerator<'a, 'b> {
         ExpressionCodeGenerator {
