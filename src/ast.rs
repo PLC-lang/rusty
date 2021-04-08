@@ -76,6 +76,7 @@ pub enum VariableBlockType {
     Input,
     Output,
     Global,
+    InOut,
 }
 
 #[derive(PartialEq)]

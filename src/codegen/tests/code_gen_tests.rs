@@ -2335,6 +2335,68 @@ continue:                                         ; preds = %output
 }
 
 #[test]
+fn program_with_var_inout_called_in_program() {
+    let result = codegen!(
+        "
+        PROGRAM foo 
+        VAR_IN_OUT
+          inout : INT;
+        END_VAR
+        inout := inout + 1;
+        END_PROGRAM
+
+        PROGRAM prg 
+        VAR
+            baz : INT;
+        END_VAR
+          baz := 7;
+          foo(inout := baz);
+        END_PROGRAM
+        "
+    );
+
+    let expected = r#"; ModuleID = 'main'
+source_filename = "main"
+
+%foo_interface = type { *i32 }
+%prg_interface = type { i32 }
+
+@foo_instance = global %foo_interface zeroinitializer
+@prg_instance = global %prg_interface zeroinitializer
+
+define void @foo(%foo_interface* %0) {
+entry:
+  %bar = getelementptr inbounds %foo_interface, %foo_interface* %0, i32 0, i32 0
+  ret void
+}
+
+define void @prg(%prg_interface* %0) {
+entry:
+  %baz = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 0
+  br label %input
+
+input:                                            ; preds = %entry
+  store i32 2, i32* getelementptr inbounds (%foo_interface, %foo_interface* @foo_instance, i32 0, i32 0), align 4
+  br label %call
+
+call:                                             ; preds = %input
+  call void @foo(%foo_interface* @foo_instance)
+  br label %output
+
+output:                                           ; preds = %call
+  %buz = load i1, i1* getelementptr inbounds (%foo_interface, %foo_interface* @foo_instance, i32 0, i32 1), align 1
+  store i1 %buz, i1* %baz, align 1
+  br label %continue
+
+continue:                                         ; preds = %output
+  ret void
+}
+"#;
+
+    assert_eq!(result, expected);
+}
+
+#[test]
 fn program_with_var_out_called_mixed_in_program() {
     let result = codegen!(
         "

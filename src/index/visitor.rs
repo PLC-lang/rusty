@@ -134,6 +134,7 @@ fn get_variable_type_from_block(block: &VariableBlock) -> VariableType {
         VariableBlockType::Input => VariableType::Input,
         VariableBlockType::Output => VariableType::Output,
         VariableBlockType::Global => VariableType::Global,
+        VariableBlockType::InOut => VariableType::InOut,
     }
 }
 
