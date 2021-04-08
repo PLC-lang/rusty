@@ -1,4 +1,4 @@
-/// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
+// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 mod code_gen_tests;
 mod codegen_error_messages_tests;
 mod typesystem_test;

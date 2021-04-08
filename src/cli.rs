@@ -1,4 +1,4 @@
-/// Copyright (c) 2021 Ghaith Hachem and Mathias Rieder
+// Copyright (c) 2021 Ghaith Hachem and Mathias Rieder
 use structopt::{clap::ArgGroup, StructOpt};
 
 pub type ParameterError = structopt::clap::Error;
