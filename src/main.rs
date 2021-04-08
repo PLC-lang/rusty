@@ -1,4 +1,4 @@
-/// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
+// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use rusty::{
     cli::{parse_parameters, CompileParameters, ParameterError},
     compile,

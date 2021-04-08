@@ -1,4 +1,4 @@
-/// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
+// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use inkwell::context::Context;
 use inkwell::execution_engine::{ExecutionEngine, JitFunction};
 use rusty::*;

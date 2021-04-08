@@ -1,4 +1,4 @@
-/// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
+// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
 /// the data_type_generator generates user defined data-types
 /// - Structures

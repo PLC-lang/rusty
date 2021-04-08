@@ -1,4 +1,4 @@
-/// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
+// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use std::path::Path;
 
 use ast::NewLines;

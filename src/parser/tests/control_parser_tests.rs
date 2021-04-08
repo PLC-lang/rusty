@@ -1,4 +1,4 @@
-/// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
+// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use crate::parser::parse;
 use crate::{ast::Statement, lexer};
 use pretty_assertions::*;
