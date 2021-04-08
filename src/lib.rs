@@ -1,4 +1,22 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
+//! A Structured Text LLVM Frontent
+//!
+//! RuSTy is an [`ST`] Compiler using LLVM
+//!
+//! # Features
+//! ## Standard language support
+//! Most of the [`IEC61131-3`] standard for ST and general programing is supported.
+//! ## Native compilation
+//! A (currently) single ST files into object code using LLVM.
+//! A compiled object can be linked statically or dynamically linked
+//!     with other programs using standard compiler linkers (ld, clang, gcc)
+//! ## IR Output
+//! An [`IR`] file can be generated from any given ST file in order to examin the generated LLVM IR code.
+//! For a usage guide refer to the [User Documentation](../../book)
+//!
+//! [`ST`]: https://en.wikipedia.org/wiki/Structured_text
+//! [`IEC61131-3`]: https://en.wikipedia.org/wiki/IEC_61131-3
+//! [`IR`]: https://llvm.org/docs/LangRef.html
 use std::path::Path;
 
 use ast::NewLines;
@@ -36,8 +54,6 @@ fn compile_to_obj(
     let initialization_config = &InitializationConfig::default();
     Target::initialize_all(initialization_config);
 
-    //TODO get triple as parameter.
-
     let triple = triple
         .map(|it| TargetTriple::create(it.as_str()))
         .or_else(|| Some(TargetMachine::get_default_triple()))
@@ -63,10 +79,26 @@ fn compile_to_obj(
     Ok(())
 }
 
-pub fn compile(source: String, output: &str, target: Option<String>) -> Result<(), CompileError> {
+/// Compiles a given source string to a static object and saves the output.
+///
+/// # Arguments
+///
+/// * `source` - the source to be compiled
+/// * `output` - the location on disk to save the output
+/// * `target` - an optional llvm target triple
+///     If not provided, the machine's triple will be used.
+pub fn compile_to_static_obj(source: String, output: &str, target: Option<String>) -> Result<(), CompileError> {
     compile_to_obj(source, output, RelocMode::Default, target)
 }
 
+/// Compiles a given source string to a shared position independent object and saves the output.
+///
+/// # Arguments
+///
+/// * `source` - the source to be compiled
+/// * `output` - the location on disk to save the output
+/// * `target` - an optional llvm target triple
+///     If not provided, the machine's triple will be used.
 pub fn compile_to_shared_pic_object(
     source: String,
     output: &str,
@@ -75,6 +107,14 @@ pub fn compile_to_shared_pic_object(
     compile_to_obj(source, output, RelocMode::PIC, target)
 }
 
+/// Compiles a given source string to a dynamic non PIC object and saves the output.
+///
+/// # Arguments
+///
+/// * `source` - the source to be compiled
+/// * `output` - the location on disk to save the output
+/// * `target` - an optional llvm target triple
+///     If not provided, the machine's triple will be used.
 pub fn compile_to_shared_object(
     source: String,
     output: &str,
@@ -86,6 +126,10 @@ pub fn compile_to_shared_object(
 ///
 /// Compiles the given source into a bitcode file
 ///
+/// # Arguments
+///
+/// * `source` - the source to be compiled
+/// * `output` - the location on disk to save the output
 pub fn compile_to_bitcode(source: String, output: &str) -> Result<(), CompileError> {
     let path = Path::new(output);
 
@@ -98,16 +142,26 @@ pub fn compile_to_bitcode(source: String, output: &str) -> Result<(), CompileErr
 ///
 /// Compiles the given source into LLVM IR and returns it
 ///
+/// # Arguments
+///
+/// * `source` - the source to be compiled
 pub fn compile_to_ir(source: String) -> Result<String, CompileError> {
     let context = Context::create();
     let code_gen = compile_module(&context, source)?;
     Ok(get_ir(&code_gen))
 }
 
-pub fn get_ir(codegen: &codegen::CodeGen) -> String {
+fn get_ir(codegen: &codegen::CodeGen) -> String {
     codegen.module.print_to_string().to_string()
 }
 
+///
+/// Compiles the given source into a `codegen::CodeGen` using the provided context
+///
+/// # Arguments
+///
+/// * `context` - the LLVM Context to be used for the compilation
+/// * `source` - the source to be compiled
 pub fn compile_module(context: &Context, source: String) -> Result<codegen::CodeGen, CompileError> {
     let (mut parse_result, _) = parse(source);
     //first pre-process the AST
