@@ -1,4 +1,4 @@
-/// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
+// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use inkwell::context::Context;
 use inkwell::execution_engine::{ExecutionEngine, JitFunction};
 use rusty::*;
@@ -45,7 +45,6 @@ macro_rules! assert_almost_eq {
 ///
 pub fn compile(context: &Context, source: String) -> ExecutionEngine {
     let code_gen = compile_module(context, source).unwrap();
-    println!("{}", get_ir(&code_gen));
     code_gen
         .module
         .create_jit_execution_engine(inkwell::OptimizationLevel::None)

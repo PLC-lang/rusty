@@ -1,0 +1,6 @@
+[book]
+authors = ["Ghaith Hachem", "Mathias Rieder"]
+language = "en"
+multilingual = false
+src = "src"
+title = "RuSTy User Documentation"

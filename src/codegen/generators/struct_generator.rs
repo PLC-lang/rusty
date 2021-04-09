@@ -1,4 +1,4 @@
-/// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
+// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use super::{expression_generator::ExpressionCodeGenerator, llvm::Llvm};
 use crate::index::Index;
 use crate::{

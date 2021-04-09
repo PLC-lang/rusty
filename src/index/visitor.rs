@@ -1,4 +1,4 @@
-/// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
+// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use super::VariableType;
 use crate::ast::{
     self, evaluate_constant_int, get_array_dimensions, CompilationUnit, DataType,

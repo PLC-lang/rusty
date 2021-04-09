@@ -27,43 +27,43 @@ Structured text compiler written in Rust
 
 # Supported Language Concepts
 ## POUs
-- :heavy_check_mark: Program
-- :heavy_check_mark: Function
-- :heavy_check_mark: FunctionBlock
-- :heavy_check_mark: Action
+- ✔ Program
+- ✔ Function
+- ✔ FunctionBlock
+- ✔ Action
 
 ## Datatypes
-- :heavy_check_mark: IEC 61131-3 numeric types
-- :heavy_check_mark: Strings
-- :heavy_check_mark: Struct types
-- :heavy_check_mark: Enum types
-- :heavy_check_mark: Array data types
-- :heavy_check_mark: Alias types
-- :heavy_check_mark: Sub-ranges types
-- :heavy_check_mark: Sized String types
-- :heavy_check_mark: Initial values
+- ✔ IEC 61131-3 numeric types
+- ✔ Strings
+- ✔ Struct types
+- ✔ Enum types
+- ✔ Array data types
+- ✔ Alias types
+- ✔ Sub-ranges types
+- ✔ Sized String types
+- ✔ Initial values
 
 ## Declarations
-- :heavy_check_mark: VAR
-- :heavy_check_mark: VAR_INPUT
-- :heavy_check_mark: VAR_OUTPUT
-- :x: VAR_INOUT
+- ✔ VAR
+- ✔ VAR_INPUT
+- ✔ VAR_OUTPUT
+- ❌ VAR_INOUT
 
 ## Statements
-- :heavy_check_mark: Assignments
-- :heavy_check_mark: Call statements
-- :heavy_check_mark: Implicit call arguments
-- :heavy_check_mark: Explicit call arguments
+- ✔ Assignments
+- ✔ Call statements
+- ✔ Implicit call arguments
+- ✔ Explicit call arguments
 
 ## Control Structures
-- :heavy_check_mark: IF Statement
-- :heavy_check_mark: CASE Statement
-- :heavy_check_mark: FOR Loops
-- :heavy_check_mark: WHILE Loops
-- :heavy_check_mark: REPEAT Loops
+- ✔ IF Statement
+- ✔ CASE Statement
+- ✔ FOR Loops
+- ✔ WHILE Loops
+- ✔ REPEAT Loops
 
 ## Expressions
-- :heavy_check_mark: Arithmetic Operators
-- :heavy_check_mark: Relational Operators
-- :heavy_check_mark: Logical Operators
-- :heavy_check_mark: Bitwise Operators
+- ✔ Arithmetic Operators
+- ✔ Relational Operators
+- ✔ Logical Operators
+- ✔ Bitwise Operators

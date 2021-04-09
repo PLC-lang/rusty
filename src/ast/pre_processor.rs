@@ -1,5 +1,5 @@
 use crate::ast::UserTypeDeclaration;
-/// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
+// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use std::vec;
 
 use super::super::ast::{CompilationUnit, DataType, DataTypeDeclaration, Variable};

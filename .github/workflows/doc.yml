@@ -1,0 +1,39 @@
+name: Deploy Documentation
+
+on: [push]
+
+jobs:
+  cargo-docs:
+    runs-on: ubuntu-latest
+    name: Build API and User Docs
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install rust toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+      - name: Setup mdbook
+        uses: peaceiris/actions-mdbook@v1
+        with:
+          mdbook-version: 'latest'
+      - name: Build API documentation
+        uses: actions-rs/cargo@v1
+        with:
+          command: doc
+      - name: Build User documentation
+        working-directory: ./book
+        run: |
+          mdbook build
+          mdbook test
+
+      - name: Copy documentation
+        run: |
+          cp -r book/book/ pages
+          cp -r target/doc pages/api
+
+      - name: Deploy to github pages
+        if: ${{ github.ref == 'refs/heads/master' }}
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./pages

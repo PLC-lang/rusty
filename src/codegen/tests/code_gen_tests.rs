@@ -1,4 +1,4 @@
-/// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
+// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use crate::{
     codegen, codegen_wihout_unwrap, compile_error::CompileError, generate_with_empty_program,
 };
