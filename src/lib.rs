@@ -12,7 +12,7 @@
 //!     with other programs using standard compiler linkers (ld, clang, gcc)
 //! ## IR Output
 //! An [`IR`] file can be generated from any given ST file in order to examin the generated LLVM IR code.
-//! For a usage guide refer to the [User Documentation](../../book)
+//! For a usage guide refer to the [User Documentation](../../)
 //!
 //! [`ST`]: https://en.wikipedia.org/wiki/Structured_text
 //! [`IEC61131-3`]: https://en.wikipedia.org/wiki/IEC_61131-3
