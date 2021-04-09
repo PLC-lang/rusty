@@ -1,0 +1,1 @@
+initSidebarItems({"mod":[["generic","This module contains the actual, albeit generic, implementaiton of the `Cow`, and the traits that are available to it."],["lean","Namespace containing the 2-word `Cow` implementation."]],"type":[["Cow","Compact three word `Cow` that puts the ownership tag in capacity. This is a type alias, for documentation see `beef::generic::Cow`."]]});

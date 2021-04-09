@@ -1,0 +1,1 @@
+initSidebarItems({"type":[["Cow","Faster, 2-word `Cow`. This version is available only on 64-bit architecture, and it puts both capacity and length together in a fat pointer. Both length and capacity is limited to 32 bits."]]});
