@@ -87,7 +87,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         let function_declaration = self.create_llvm_function_type(
             vec![instance_struct_type.ptr_type(AddressSpace::Generic).into()],
             return_type,
-        );
+        )?;
 
         let curr_f = module.add_function(pou_name, function_declaration, None);
         Ok(curr_f)
@@ -163,20 +163,20 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         &self,
         parameters: Vec<BasicTypeEnum<'ink>>,
         return_type: Option<BasicTypeEnum<'ink>>,
-    ) -> FunctionType<'ink> {
+    ) -> Result<FunctionType<'ink>, CompileError> {
         let params = parameters.as_slice();
         match return_type {
             Some(enum_type) if enum_type.is_int_type() => {
-                enum_type.into_int_type().fn_type(params, false)
+                Ok(enum_type.into_int_type().fn_type(params, false))
             }
             Some(enum_type) if enum_type.is_float_type() => {
-                enum_type.into_float_type().fn_type(params, false)
+                Ok(enum_type.into_float_type().fn_type(params, false))
             }
             Some(enum_type) if enum_type.is_array_type() => {
-                enum_type.into_array_type().fn_type(params, false)
+                Ok(enum_type.into_array_type().fn_type(params, false))
             }
-            None => self.llvm.context.void_type().fn_type(params, false),
-            _ => panic!("Unsupported return type {:?}", return_type),
+            None => Ok(self.llvm.context.void_type().fn_type(params, false)),
+            _ => Err(CompileError::codegen_error(format!("Unsupported return type {:?}", return_type),0..0)),
         }
     }
 
