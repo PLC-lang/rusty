@@ -318,14 +318,14 @@ fn parse_data_type_definition(
         expect!(KeywordSquareParensOpen, lexer);
         lexer.advance();
         //parse range
-        let range = parse_primary_expression(lexer).unwrap();
+        let range = parse_primary_expression(lexer)?;
         //expect close range
         expect!(KeywordSquareParensClose, lexer);
         lexer.advance();
         expect!(KeywordOf, lexer);
         lexer.advance();
         //expect type reference
-        let (reference, initializer) = parse_data_type_definition(lexer, None).unwrap();
+        let (reference, initializer) = parse_data_type_definition(lexer, None)?;
         Ok((
             DataTypeDeclaration::DataTypeDefinition {
                 data_type: DataType::ArrayType {
@@ -537,7 +537,7 @@ fn parse_variable_block(lexer: &mut RustyLexer) -> Result<VariableBlock, String>
 
     let mut result = VariableBlock {
         variables: Vec::new(),
-        variable_block_type: parse_variable_block_type(lexer).unwrap(),
+        variable_block_type: parse_variable_block_type(lexer)?,
     };
 
     while lexer.token == Identifier {

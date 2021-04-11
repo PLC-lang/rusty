@@ -163,7 +163,7 @@ fn get_ir(codegen: &codegen::CodeGen) -> String {
 /// * `context` - the LLVM Context to be used for the compilation
 /// * `source` - the source to be compiled
 pub fn compile_module(context: &Context, source: String) -> Result<codegen::CodeGen, CompileError> {
-    let (mut parse_result, _) = parse(source);
+    let (mut parse_result, _) = parse(source)?;
     //first pre-process the AST
     ast::pre_process(&mut parse_result);
     //then index the AST
@@ -174,9 +174,10 @@ pub fn compile_module(context: &Context, source: String) -> Result<codegen::Code
     Ok(code_generator)
 }
 
-fn parse(source: String) -> (ast::CompilationUnit, NewLines) {
+fn parse(source: String) -> Result<(ast::CompilationUnit, NewLines), CompileError> {
     //Start lexing
     let lexer = lexer::lex(&source);
     //Parse
-    parser::parse(lexer).unwrap()
+    //TODO : Parser should also return compile errors with sane locations
+    parser::parse(lexer).map_err(|err| CompileError::codegen_error(err, 0..0))
 }

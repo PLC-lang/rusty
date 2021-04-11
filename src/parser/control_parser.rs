@@ -63,19 +63,19 @@ fn parse_for_statement(lexer: &mut RustyLexer) -> Result<Statement, String> {
     let start = lexer.range().start;
     lexer.advance(); // FOR
 
-    let counter_expression = parse_reference(lexer).unwrap();
+    let counter_expression = parse_reference(lexer)?;
     expect!(KeywordAssignment, lexer); // :=
     lexer.advance();
 
-    let start_expression = parse_expression(lexer).unwrap();
+    let start_expression = parse_expression(lexer)?;
 
     expect!(KeywordTo, lexer); // TO
     lexer.advance();
-    let end_expression = parse_expression(lexer).unwrap();
+    let end_expression = parse_expression(lexer)?;
 
     let step = if lexer.token == KeywordBy {
         lexer.advance(); // BY
-        Some(Box::new(parse_expression(lexer).unwrap()))
+        Some(Box::new(parse_expression(lexer)?))
     } else {
         None
     };
@@ -158,15 +158,17 @@ fn parse_case_statement(lexer: &mut RustyLexer) -> Result<Statement, String> {
         expect!(KeywordColon, lexer); // :
         lexer.advance();
 
-        loop {
-            let (body, next_condition) =
-                parse_case_body_with_condition(condition.unwrap(), lexer, case_line_nr)?;
-            condition = next_condition;
-            case_blocks.push(body);
+        if condition.is_some() {
+            loop {
+                let (body, next_condition) =
+                    parse_case_body_with_condition(condition.unwrap(), lexer, case_line_nr)?;
+                condition = next_condition;
+                case_blocks.push(body);
 
-            if !(lexer.token != KeywordEndCase && lexer.token != KeywordElse && condition.is_some())
-            {
-                break;
+                if !(lexer.token != KeywordEndCase && lexer.token != KeywordElse && condition.is_some())
+                {
+                    break;
+                }
             }
         }
     }

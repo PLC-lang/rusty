@@ -272,7 +272,7 @@ pub fn parse_qualified_reference(lexer: &mut RustyLexer) -> Result<Statement, St
         let (statement_list, end) = if allow(KeywordParensClose, lexer) {
             (None, lexer.range().end)
         } else {
-            let list = parse_expression_list(lexer).unwrap();
+            let list = parse_expression_list(lexer)?;
             expect!(KeywordParensClose, lexer);
             let end = lexer.range().end;
             lexer.advance();
