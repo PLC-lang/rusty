@@ -712,11 +712,12 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                     //Make sure dimensions match statement list
                     let statements = access.get_as_list();
                     if statements.is_empty() || statements.len() != dimensions.len() {
-                        panic!(
+                        return Err(CompileError::codegen_error(
+                        format!(
                             "Mismatched array access : {} -> {} ",
                             statements.len(),
                             dimensions.len()
-                        )
+                        ),access.get_location()));
                     }
                     for (i, statement) in statements.iter().enumerate() {
                         indices.push(self.generate_access_for_dimension(&dimensions[i], statement)?)
