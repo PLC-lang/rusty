@@ -183,6 +183,7 @@
 <span id="180">180</span>
 <span id="181">181</span>
 <span id="182">182</span>
+<span id="183">183</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 <span class="doccomment">//! A Structured Text LLVM Frontent</span>
@@ -349,7 +350,7 @@
 <span class="doccomment">/// * `context` - the LLVM Context to be used for the compilation</span>
 <span class="doccomment">/// * `source` - the source to be compiled</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">compile_module</span>(<span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="ident">Context</span>, <span class="ident">source</span>: <span class="ident">String</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">codegen</span>::<span class="ident">CodeGen</span>, <span class="ident">CompileError</span><span class="op">&gt;</span> {
-    <span class="kw">let</span> (<span class="kw-2">mut</span> <span class="ident">parse_result</span>, <span class="kw">_</span>) <span class="op">=</span> <span class="ident">parse</span>(<span class="ident">source</span>);
+    <span class="kw">let</span> (<span class="kw-2">mut</span> <span class="ident">parse_result</span>, <span class="kw">_</span>) <span class="op">=</span> <span class="ident">parse</span>(<span class="ident">source</span>)<span class="question-mark">?</span>;
     <span class="comment">//first pre-process the AST</span>
     <span class="ident">ast</span>::<span class="ident">pre_process</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">parse_result</span>);
     <span class="comment">//then index the AST</span>
@@ -360,11 +361,12 @@
     <span class="prelude-val">Ok</span>(<span class="ident">code_generator</span>)
 }
 
-<span class="kw">fn</span> <span class="ident">parse</span>(<span class="ident">source</span>: <span class="ident">String</span>) <span class="op">-</span><span class="op">&gt;</span> (<span class="ident">ast</span>::<span class="ident">CompilationUnit</span>, <span class="ident">NewLines</span>) {
+<span class="kw">fn</span> <span class="ident">parse</span>(<span class="ident">source</span>: <span class="ident">String</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="ident">ast</span>::<span class="ident">CompilationUnit</span>, <span class="ident">NewLines</span>), <span class="ident">CompileError</span><span class="op">&gt;</span> {
     <span class="comment">//Start lexing</span>
     <span class="kw">let</span> <span class="ident">lexer</span> <span class="op">=</span> <span class="ident">lexer</span>::<span class="ident">lex</span>(<span class="kw-2">&amp;</span><span class="ident">source</span>);
     <span class="comment">//Parse</span>
-    <span class="ident">parser</span>::<span class="ident">parse</span>(<span class="ident">lexer</span>).<span class="ident">unwrap</span>()
+    <span class="comment">//TODO : Parser should also return compile errors with sane locations</span>
+    <span class="ident">parser</span>::<span class="ident">parse</span>(<span class="ident">lexer</span>).<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">err</span><span class="op">|</span> <span class="ident">CompileError</span>::<span class="ident">codegen_error</span>(<span class="ident">err</span>, <span class="number">0</span>..<span class="number">0</span>))
 }
 </pre></div>
 </section><section id="search" class="content hidden"></section><section class="footer"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="rusty"></div>

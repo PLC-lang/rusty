@@ -372,7 +372,7 @@
         <span class="kw">let</span> <span class="ident">function_declaration</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">create_llvm_function_type</span>(
             <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">instance_struct_type</span>.<span class="ident">ptr_type</span>(<span class="ident">AddressSpace</span>::<span class="ident">Generic</span>).<span class="ident">into</span>()],
             <span class="ident">return_type</span>,
-        );
+        )<span class="question-mark">?</span>;
 
         <span class="kw">let</span> <span class="ident">curr_f</span> <span class="op">=</span> <span class="ident">module</span>.<span class="ident">add_function</span>(<span class="ident">pou_name</span>, <span class="ident">function_declaration</span>, <span class="prelude-val">None</span>);
         <span class="prelude-val">Ok</span>(<span class="ident">curr_f</span>)
@@ -448,20 +448,20 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">parameters</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">BasicTypeEnum</span><span class="op">&lt;</span><span class="lifetime">&#39;ink</span><span class="op">&gt;</span><span class="op">&gt;</span>,
         <span class="ident">return_type</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">BasicTypeEnum</span><span class="op">&lt;</span><span class="lifetime">&#39;ink</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">FunctionType</span><span class="op">&lt;</span><span class="lifetime">&#39;ink</span><span class="op">&gt;</span> {
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">FunctionType</span><span class="op">&lt;</span><span class="lifetime">&#39;ink</span><span class="op">&gt;</span>, <span class="ident">CompileError</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">params</span> <span class="op">=</span> <span class="ident">parameters</span>.<span class="ident">as_slice</span>();
         <span class="kw">match</span> <span class="ident">return_type</span> {
             <span class="prelude-val">Some</span>(<span class="ident">enum_type</span>) <span class="kw">if</span> <span class="ident">enum_type</span>.<span class="ident">is_int_type</span>() <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="ident">enum_type</span>.<span class="ident">into_int_type</span>().<span class="ident">fn_type</span>(<span class="ident">params</span>, <span class="bool-val">false</span>)
+                <span class="prelude-val">Ok</span>(<span class="ident">enum_type</span>.<span class="ident">into_int_type</span>().<span class="ident">fn_type</span>(<span class="ident">params</span>, <span class="bool-val">false</span>))
             }
             <span class="prelude-val">Some</span>(<span class="ident">enum_type</span>) <span class="kw">if</span> <span class="ident">enum_type</span>.<span class="ident">is_float_type</span>() <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="ident">enum_type</span>.<span class="ident">into_float_type</span>().<span class="ident">fn_type</span>(<span class="ident">params</span>, <span class="bool-val">false</span>)
+                <span class="prelude-val">Ok</span>(<span class="ident">enum_type</span>.<span class="ident">into_float_type</span>().<span class="ident">fn_type</span>(<span class="ident">params</span>, <span class="bool-val">false</span>))
             }
             <span class="prelude-val">Some</span>(<span class="ident">enum_type</span>) <span class="kw">if</span> <span class="ident">enum_type</span>.<span class="ident">is_array_type</span>() <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="ident">enum_type</span>.<span class="ident">into_array_type</span>().<span class="ident">fn_type</span>(<span class="ident">params</span>, <span class="bool-val">false</span>)
+                <span class="prelude-val">Ok</span>(<span class="ident">enum_type</span>.<span class="ident">into_array_type</span>().<span class="ident">fn_type</span>(<span class="ident">params</span>, <span class="bool-val">false</span>))
             }
-            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">llvm</span>.<span class="ident">context</span>.<span class="ident">void_type</span>().<span class="ident">fn_type</span>(<span class="ident">params</span>, <span class="bool-val">false</span>),
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;Unsupported return type {:?}&quot;</span>, <span class="ident">return_type</span>),
+            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="self">self</span>.<span class="ident">llvm</span>.<span class="ident">context</span>.<span class="ident">void_type</span>().<span class="ident">fn_type</span>(<span class="ident">params</span>, <span class="bool-val">false</span>)),
+            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">CompileError</span>::<span class="ident">codegen_error</span>(<span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Unsupported return type {:?}&quot;</span>, <span class="ident">return_type</span>),<span class="number">0</span>..<span class="number">0</span>)),
         }
     }
 

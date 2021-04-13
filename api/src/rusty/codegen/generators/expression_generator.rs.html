@@ -1331,6 +1331,7 @@
 <span id="1328">1328</span>
 <span id="1329">1329</span>
 <span id="1330">1330</span>
+<span id="1331">1331</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">index</span>::<span class="ident">Index</span>;
@@ -2046,11 +2047,12 @@
                     <span class="comment">//Make sure dimensions match statement list</span>
                     <span class="kw">let</span> <span class="ident">statements</span> <span class="op">=</span> <span class="ident">access</span>.<span class="ident">get_as_list</span>();
                     <span class="kw">if</span> <span class="ident">statements</span>.<span class="ident">is_empty</span>() <span class="op">|</span><span class="op">|</span> <span class="ident">statements</span>.<span class="ident">len</span>() <span class="op">!</span><span class="op">=</span> <span class="ident">dimensions</span>.<span class="ident">len</span>() {
-                        <span class="macro">panic</span><span class="macro">!</span>(
+                        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">CompileError</span>::<span class="ident">codegen_error</span>(
+                        <span class="macro">format</span><span class="macro">!</span>(
                             <span class="string">&quot;Mismatched array access : {} -&gt; {} &quot;</span>,
                             <span class="ident">statements</span>.<span class="ident">len</span>(),
                             <span class="ident">dimensions</span>.<span class="ident">len</span>()
-                        )
+                        ),<span class="ident">access</span>.<span class="ident">get_location</span>()));
                     }
                     <span class="kw">for</span> (<span class="ident">i</span>, <span class="ident">statement</span>) <span class="kw">in</span> <span class="ident">statements</span>.<span class="ident">iter</span>().<span class="ident">enumerate</span>() {
                         <span class="ident">indices</span>.<span class="ident">push</span>(<span class="self">self</span>.<span class="ident">generate_access_for_dimension</span>(<span class="kw-2">&amp;</span><span class="ident">dimensions</span>[<span class="ident">i</span>], <span class="ident">statement</span>)<span class="question-mark">?</span>)

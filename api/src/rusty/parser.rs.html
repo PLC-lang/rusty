@@ -891,14 +891,14 @@
         <span class="macro">expect</span><span class="macro">!</span>(<span class="ident">KeywordSquareParensOpen</span>, <span class="ident">lexer</span>);
         <span class="ident">lexer</span>.<span class="ident">advance</span>();
         <span class="comment">//parse range</span>
-        <span class="kw">let</span> <span class="ident">range</span> <span class="op">=</span> <span class="ident">parse_primary_expression</span>(<span class="ident">lexer</span>).<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="ident">range</span> <span class="op">=</span> <span class="ident">parse_primary_expression</span>(<span class="ident">lexer</span>)<span class="question-mark">?</span>;
         <span class="comment">//expect close range</span>
         <span class="macro">expect</span><span class="macro">!</span>(<span class="ident">KeywordSquareParensClose</span>, <span class="ident">lexer</span>);
         <span class="ident">lexer</span>.<span class="ident">advance</span>();
         <span class="macro">expect</span><span class="macro">!</span>(<span class="ident">KeywordOf</span>, <span class="ident">lexer</span>);
         <span class="ident">lexer</span>.<span class="ident">advance</span>();
         <span class="comment">//expect type reference</span>
-        <span class="kw">let</span> (<span class="ident">reference</span>, <span class="ident">initializer</span>) <span class="op">=</span> <span class="ident">parse_data_type_definition</span>(<span class="ident">lexer</span>, <span class="prelude-val">None</span>).<span class="ident">unwrap</span>();
+        <span class="kw">let</span> (<span class="ident">reference</span>, <span class="ident">initializer</span>) <span class="op">=</span> <span class="ident">parse_data_type_definition</span>(<span class="ident">lexer</span>, <span class="prelude-val">None</span>)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>((
             <span class="ident">DataTypeDeclaration</span>::<span class="ident">DataTypeDefinition</span> {
                 <span class="ident">data_type</span>: <span class="ident">DataType</span>::<span class="ident">ArrayType</span> {
@@ -1110,7 +1110,7 @@
 
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">VariableBlock</span> {
         <span class="ident">variables</span>: <span class="ident">Vec</span>::<span class="ident">new</span>(),
-        <span class="ident">variable_block_type</span>: <span class="ident">parse_variable_block_type</span>(<span class="ident">lexer</span>).<span class="ident">unwrap</span>(),
+        <span class="ident">variable_block_type</span>: <span class="ident">parse_variable_block_type</span>(<span class="ident">lexer</span>)<span class="question-mark">?</span>,
     };
 
     <span class="kw">while</span> <span class="ident">lexer</span>.<span class="ident">token</span> <span class="op">=</span><span class="op">=</span> <span class="ident">Identifier</span> {
