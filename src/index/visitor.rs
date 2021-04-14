@@ -2,7 +2,7 @@
 use super::VariableType;
 use crate::ast::{
     self, evaluate_constant_int, get_array_dimensions, CompilationUnit, DataType,
-    DataTypeDeclaration, Implementation, Pou, PouType, Statement, UserTypeDeclaration,
+    DataTypeDeclaration, Implementation, Pou, PouType, Statement, UserTypeDeclaration, Variable,
     VariableBlock, VariableBlockType,
 };
 use crate::index::{Index, MemberInfo};
@@ -56,17 +56,26 @@ pub fn visit_pou(index: &mut Index, pou: &Pou) {
 
     let mut member_names = vec![];
 
+    //register the pou's member variables
     let mut count = 0;
     for block in &pou.variable_blocks {
         let block_type = get_variable_type_from_block(block);
         for var in &block.variables {
             member_names.push(var.name.clone());
+
+            let type_name = if block_type == VariableType::InOut {
+                //register a pointer type for the var_in_out
+                register_inout_pointer_type_for(index, var)
+            } else {
+                var.data_type.get_name().unwrap().to_string()
+            };
+
             index.register_member_variable(
                 &MemberInfo {
                     container_name: &pou.name,
                     variable_name: &var.name,
                     variable_linkage: block_type,
-                    variable_type_name: var.data_type.get_name().unwrap(),
+                    variable_type_name: &type_name,
                 },
                 var.initializer.clone(),
                 var.location.clone(),
@@ -76,6 +85,7 @@ pub fn visit_pou(index: &mut Index, pou: &Pou) {
         }
     }
 
+    //register a function's return type as a member variable
     if let Some(return_type) = &pou.return_type {
         member_names.push(pou.name.clone());
         let source_location = pou.location.end..pou.location.end;
@@ -115,6 +125,25 @@ fn visit_implementation(index: &mut Index, implementation: &Implementation) {
             },
         );
     }
+}
+
+fn register_inout_pointer_type_for(index: &mut Index, var: &Variable) -> String {
+    let inner_type_name = var.data_type.get_name().unwrap().to_string();
+    //get unique name
+    let type_name = format!("pointer_to_{}", inner_type_name);
+
+    //generate a pointertype for the variable
+    index.register_type(
+        &type_name,
+        None,
+        DataTypeInformation::Pointer {
+            name: type_name.clone(),
+            inner_type_name,
+            auto_deref: true,
+        },
+    );
+
+    type_name
 }
 
 fn visit_global_var_block(index: &mut Index, block: &VariableBlock) {

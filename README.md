@@ -47,7 +47,7 @@ Structured text compiler written in Rust
 - ✔ VAR
 - ✔ VAR_INPUT
 - ✔ VAR_OUTPUT
-- ❌ VAR_INOUT
+- ✔ VAR_INOUT
 
 ## Statements
 - ✔ Assignments
