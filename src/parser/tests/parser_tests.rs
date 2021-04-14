@@ -393,8 +393,6 @@ fn simple_program_with_var_inout_can_be_parsed() {
     assert_eq!(ast_string, expected_ast);
 }
 
-
-
 #[test]
 fn simple_struct_type_can_be_parsed() {
     let (result, _) = parse(lexer::lex(

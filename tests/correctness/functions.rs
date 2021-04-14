@@ -341,3 +341,97 @@ fn function_block_instances_save_state_per_instance_2() {
     assert_eq!(2, interface.f.baz.i);
     assert_eq!(4, interface.j.baz.i);
 }
+
+#[test]
+fn function_call_inout_variable() {
+    #[repr(C)]
+    struct MainType {
+        baz: i32,
+    }
+    let function = r#"
+        PROGRAM multiply
+            VAR_IN_OUT
+                param: DINT;
+            END_VAR
+            VAR_INPUT
+                factor : DINT;
+            END_VAR
+
+            param := param * factor;
+        END_PROGRAM
+
+        PROGRAM foo 
+            VAR_IN_OUT
+            inout : DINT;
+            END_VAR
+
+            inout := inout + 1;
+            multiply(param := inout, factor := inout);
+        END_PROGRAM
+
+        PROGRAM main
+            VAR
+                baz : DINT;
+            END_VAR
+            foo(inout := baz);
+        END_PROGRAM
+    "#;
+
+    let mut interface = MainType { baz: 7 };
+    let (_, _) = compile_and_run(function.to_string(), &mut interface);
+
+    assert_eq!(64, interface.baz);
+}
+
+#[test]
+fn inouts_behave_like_pointers() {
+    #[repr(C)]
+    struct MainType {
+        p1: i32,
+        p2: i32,
+        p3: i32,
+    }
+    let function = r#"
+        VAR_GLOBAL 
+            snap1 : DINT;
+            snap2 : DINT;
+            snap3 : DINT;
+        END_VAR
+
+        PROGRAM takeSnapshot
+            VAR_IN_OUT
+                param: DINT;
+            END_VAR
+            VAR_INPUT
+                data : DINT;
+            END_VAR
+            param := data;
+        END_PROGRAM
+
+        PROGRAM main
+            VAR
+                p1 : DINT;
+                p2 : DINT;
+                p3 : DINT;
+            END_VAR
+
+            takeSnapshot(param := snap1, data := 7);
+            p1 := snap1;
+            takeSnapshot(param := snap2, data := 8);
+            p2 := snap2;
+            takeSnapshot(param := snap3, data := 9);
+            p3 := snap3;
+        END_PROGRAM
+    "#;
+
+    let mut interface = MainType {
+        p1: 0,
+        p2: 0,
+        p3: 0,
+    };
+    let (_, _) = compile_and_run(function.to_string(), &mut interface);
+
+    assert_eq!(7, interface.p1);
+    assert_eq!(8, interface.p2);
+    assert_eq!(9, interface.p3);
+}

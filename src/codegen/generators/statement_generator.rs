@@ -134,7 +134,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         right_statement: &Statement,
     ) -> Result<(), CompileError> {
         let exp_gen = self.create_expr_generator();
-        let left = exp_gen.generate_load(left_statement)?;
+        let left = exp_gen.generate_element_pointer(left_statement)?;
         // if the lhs-type is a subrange type we may need to generate a check-call
         // e.g. x := y,  ==> x := CheckSignedInt(y);
         let range_checked_right_side =
@@ -265,7 +265,9 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
             "tmpVar",
         );
 
-        let ptr = expression_generator.generate_load_for(counter)?.ptr_value;
+        let ptr = expression_generator
+            .generate_element_pointer(counter)?
+            .ptr_value;
         builder.build_store(ptr, next);
 
         //Loop back

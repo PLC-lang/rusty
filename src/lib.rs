@@ -87,7 +87,11 @@ fn compile_to_obj(
 /// * `output` - the location on disk to save the output
 /// * `target` - an optional llvm target triple
 ///     If not provided, the machine's triple will be used.
-pub fn compile_to_static_obj(source: String, output: &str, target: Option<String>) -> Result<(), CompileError> {
+pub fn compile_to_static_obj(
+    source: String,
+    output: &str,
+    target: Option<String>,
+) -> Result<(), CompileError> {
     compile_to_obj(source, output, RelocMode::Default, target)
 }
 

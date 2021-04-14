@@ -20,8 +20,9 @@ use crate::{
     typesystem::DataType,
 };
 use inkwell::{
-    types::{ArrayType, BasicTypeEnum},
+    types::{ArrayType, BasicType, BasicTypeEnum},
     values::BasicValueEnum,
+    AddressSpace,
 };
 
 use super::{
@@ -157,6 +158,18 @@ fn create_type<'ink>(
         }
         // REVIEW: Void types are not basic type enums, so we return an int here
         DataTypeInformation::Void => get_llvm_int_type(llvm.context, 32, "Void").map(Into::into),
+        DataTypeInformation::Pointer {
+            inner_type_name, ..
+        } => {
+            let inner_type = create_type(
+                llvm,
+                index,
+                types_index,
+                inner_type_name,
+                index.get_type(inner_type_name)?,
+            )?;
+            Ok(inner_type.ptr_type(AddressSpace::Generic).into())
+        }
     }
 }
 
@@ -199,6 +212,7 @@ fn generate_initial_value<'ink>(
         } => register_aliased_initial_value(index, types_index, llvm, data_type, referenced_type),
         // Void types are not basic type enums, so we return an int here
         DataTypeInformation::Void => None, //get_llvm_int_type(llvm.context, 32, "Void").map(Into::into),
+        DataTypeInformation::Pointer { .. } => None,
     }
 }
 

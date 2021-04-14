@@ -45,6 +45,11 @@ pub enum DataTypeInformation {
         inner_type_name: String,
         dimensions: Vec<Dimension>,
     },
+    Pointer {
+        name: String,
+        inner_type_name: String,
+        auto_deref: bool,
+    },
     Integer {
         name: String,
         signed: bool,
@@ -74,6 +79,7 @@ impl DataTypeInformation {
         match self {
             DataTypeInformation::Struct { name, .. } => name,
             DataTypeInformation::Array { name, .. } => name,
+            DataTypeInformation::Pointer { name, .. } => name,
             DataTypeInformation::Integer { name, .. } => name,
             DataTypeInformation::Float { name, .. } => name,
             DataTypeInformation::String { .. } => "String",
@@ -105,6 +111,7 @@ impl DataTypeInformation {
             DataTypeInformation::String { size, .. } => *size,
             DataTypeInformation::Struct { .. } => 0, //TODO : Should we fill in the struct members here for size calculation or save the struct size.
             DataTypeInformation::Array { .. } => unimplemented!(), //Propably length * inner type size
+            DataTypeInformation::Pointer { .. } => unimplemented!(),
             DataTypeInformation::SubRange { .. } => unimplemented!(),
             DataTypeInformation::Alias { .. } => unimplemented!(),
             DataTypeInformation::Void => 0,

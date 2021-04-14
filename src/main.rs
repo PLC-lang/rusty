@@ -19,9 +19,8 @@
 //! [`IR`]: https://llvm.org/docs/LangRef.html
 use rusty::{
     cli::{parse_parameters, CompileParameters, ParameterError},
-    compile_to_static_obj,
     compile_error::CompileError,
-    compile_to_bitcode, compile_to_ir, compile_to_shared_object,
+    compile_to_bitcode, compile_to_ir, compile_to_shared_object, compile_to_static_obj,
 };
 use std::fs;
 

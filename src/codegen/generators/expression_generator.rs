@@ -143,15 +143,15 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                     "{}{}{}",
                     self.temp_variable_prefix, name, self.temp_variable_suffix
                 );
-                let l_value = self.generate_load_for(expression)?;
+                let l_value = self.generate_element_pointer(expression)?;
                 Ok(self.llvm.load_pointer(&l_value, load_name.as_str()))
             }
             Statement::QualifiedReference { .. } => {
-                let l_value = self.generate_load_for(expression)?;
+                let l_value = self.generate_element_pointer(expression)?;
                 Ok(self.llvm.load_pointer(&l_value, &self.temp_variable_prefix))
             }
             Statement::ArrayAccess { .. } => {
-                let l_value = self.generate_load_for(expression)?;
+                let l_value = self.generate_element_pointer(expression)?;
                 Ok(self.llvm.load_pointer(&l_value, "load_tmpVar"))
             }
             Statement::BinaryExpression {
@@ -305,7 +305,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                 Ok((callable_reference, implementation))
             }
             Statement::QualifiedReference { .. } => {
-                let loaded_value = self.generate_load_for(operator);
+                let loaded_value = self.generate_element_pointer_for_rec(None, operator);
                 loaded_value.map(
                     |TypeAndPointer {
                          type_entry,
@@ -415,7 +415,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
     /// the call parameters are passed to the function using a struct-instance with all the parameters
     ///
     /// - `function_name` the name of the function we're calling
-    /// - `parameter_struct' a pointer to a struct-instance that holds all function-parameters
+    /// - `parameter_struct` a pointer to a struct-instance that holds all function-parameters
     /// - `input_block` the block to generate the input-assignments into
     /// - `output_block` the block to generate the output-assignments into
     fn generate_function_parameters(
@@ -526,7 +526,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                         .build_struct_gep(parameter_struct, index as u32, "")
                         .unwrap();
 
-                    let l_value = self.generate_load_for(right).unwrap();
+                    let l_value = self.generate_element_pointer_for_rec(None, right)?;
                     let loaded_value = builder.build_load(pointer_to_param, parameter.get_name());
                     let value = cast_if_needed(
                         self.llvm,
@@ -542,7 +542,6 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
             }
             // foo(x)
             _ => {
-                let (value_type, generated_exp) = self.generate_expression(assignment_statement)?;
                 let pointer_to_param = builder
                     .build_struct_gep(parameter_struct, index as u32, "")
                     .unwrap();
@@ -554,6 +553,27 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                     })
                     .map(|var| var.get_type_information())
                     .unwrap();
+
+                let (value_type, generated_exp) = if let DataTypeInformation::Pointer {
+                    auto_deref: true,
+                    ..
+                } = parameter
+                {
+                    //this is VAR_IN_OUT assignemt, so don't load the value, assign the pointer
+                    self.generate_element_pointer_for_rec(None, assignment_statement)
+                        //get a pointer for that variable
+                        .and_then(|tp| self.auto_deref_if_necessary(tp.type_entry, tp.ptr_value))
+                        // auto-deref, if it is a var_in_out itself
+                        .map(|v| {
+                            (
+                                v.type_entry.get_type_information().clone(),
+                                v.ptr_value.as_basic_value_enum(),
+                            )
+                        })?
+                } else {
+                    self.generate_expression(assignment_statement)?
+                };
+
                 let value = cast_if_needed(
                     self.llvm,
                     self.index,
@@ -568,31 +588,34 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
         Ok(())
     }
 
-    /// generates an load-statement and returns the resulting pointer and DataTypeInfo
+    /// generates an gep-statement and returns the resulting pointer and DataTypeInfo
     ///
     /// - `reference_statement` - the statement to load (either a reference, an arrayAccess or a qualifiedReference)
-    pub fn generate_load(
+    pub fn generate_element_pointer(
         &self,
         reference_statement: &Statement,
     ) -> Result<TypeAndPointer<'a, '_>, CompileError> {
-        match reference_statement {
+        let result = match reference_statement {
             Statement::Reference { name, .. } => {
                 self.create_llvm_pointer_value_for_reference(None, name, reference_statement)
             }
 
             Statement::ArrayAccess { reference, access } => {
-                self.generate_load_for_array(None, reference, access)
-                //self.generate_reference_from_value((Some(value.type_information), Some(value.ptr_value)),"tmpVar")
+                self.generate_element_pointer_for_array(None, reference, access)
             }
-            Statement::QualifiedReference { .. } => self.generate_load_for(reference_statement),
+            Statement::QualifiedReference { .. } => {
+                self.generate_element_pointer_for_rec(None, reference_statement)
+            }
             _ => Err(CompileError::codegen_error(
                 format!("Cannot generate a LValue for {:?}", reference_statement),
                 reference_statement.get_location(),
             )),
-        }
+        };
+
+        result.and_then(|it| self.auto_deref_if_necessary(it.type_entry, it.ptr_value))
     }
 
-    /// loads the given reference with an optional qualifier
+    /// geneartes a gep for the given reference with an optional qualifier
     ///
     /// - `qualifier` an optional qualifier for a reference (e.g. myStruct.x where myStruct is the qualifier for x)
     /// - `name` the name of the reference-name (e.g. myStruct.x where 'x' is the reference-name)
@@ -620,7 +643,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
 
             //.unwrap();
             let member_data_type = member.map(|it| it.get_type_name()).unwrap();
-            let member_type_entry = self.index.get_type(member_data_type)?;
+            let member_type = self.index.get_type(member_data_type)?;
             let gep = self.llvm.get_member_pointer_from_struct(
                 l_value.ptr_value,
                 member_location,
@@ -628,7 +651,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                 offset,
             )?;
 
-            TypeAndPointer::new(member_type_entry, gep)
+            TypeAndPointer::new(member_type, gep)
         } else {
             //no context
 
@@ -654,12 +677,43 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                     )
                 })?;
 
-            let variable_type = self.index.get_type(variable_index_entry.get_type_name())?;
+            let type_name = variable_index_entry.get_type_name();
+            let variable_type = self.index.get_type(type_name)?;
 
             TypeAndPointer::new(variable_type, accessor_ptr)
+            //self.auto_deref_if_necessary(variable_type, accessor_ptr)?
         };
 
         Ok(l_value)
+    }
+
+    /// automatically derefs an inout variable pointer so it can be used like a normal variable
+    ///
+    /// # Arguments
+    /// - `variable_type` the reference's data type, this type will be used to determine if this variable needs to be auto-derefeferenced (var_in_out)
+    /// - `access_ptr` the original pointer value loaded for the reference. will be returned if no auto-deref is necessary
+    fn auto_deref_if_necessary(
+        &self,
+        variable_type: &'b DataType,
+        accessor_ptr: PointerValue<'a>,
+    ) -> Result<TypeAndPointer<'a, 'b>, CompileError> {
+        Ok(
+            if let DataTypeInformation::Pointer {
+                auto_deref: true,
+                inner_type_name,
+                ..
+            } = &variable_type.information
+            {
+                // auto_deref the pointer
+                let (_, value) = self
+                    .llvm
+                    .load_pointer(&TypeAndPointer::new(variable_type, accessor_ptr), "deref");
+                let inner_type = self.index.get_type(&inner_type_name)?;
+                TypeAndPointer::new(inner_type, value.into_pointer_value())
+            } else {
+                TypeAndPointer::new(variable_type, accessor_ptr)
+            },
+        )
     }
 
     /// generates the access-expression for an array-reference
@@ -686,19 +740,19 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
         }
     }
 
-    /// generates a load statement for a array-reference with an optional qualifier
+    /// generates a gep statement for a array-reference with an optional qualifier
     ///
     /// - `qualifier` an optional qualifier for a reference (e.g. myStruct.x[2] where myStruct is the qualifier for x)
     /// - `reference` the reference-statement pointing to the array
     /// - `access` the accessor expression (the expression between the brackets: reference[access])
-    fn generate_load_for_array(
+    fn generate_element_pointer_for_array(
         &self,
         qualifier: Option<&TypeAndPointer<'a, '_>>,
         reference: &Statement,
         access: &Statement,
     ) -> Result<TypeAndPointer<'a, '_>, CompileError> {
         //Load the reference
-        self.generate_load_for_rec(qualifier, reference)
+        self.generate_element_pointer_for_rec(qualifier, reference)
             .and_then(|lvalue| {
                 if let DataTypeInformation::Array {
                     inner_type_name,
@@ -739,21 +793,11 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
             })
     }
 
-    /// generate a load statement for the given referenc-statement
-    ///
-    /// - `reference` the reference-statement (either Reference, AccessRefeference or QualifiedReference)
-    pub fn generate_load_for(
-        &self,
-        reference: &Statement,
-    ) -> Result<TypeAndPointer<'a, '_>, CompileError> {
-        self.generate_load_for_rec(None, reference)
-    }
-
     /// the entry function for recursive reference-generation (for qualified references)
     ///
     /// - `qualifier` the qualifier (TypeAndPointer) for the given reference-statement
     /// - `reference` the reference to load
-    fn generate_load_for_rec(
+    fn generate_element_pointer_for_rec(
         &self,
         qualifier: Option<&TypeAndPointer<'a, '_>>,
         reference: &Statement,
@@ -763,14 +807,14 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                 let mut element_iter = elements.iter();
                 let current_element = element_iter.next();
                 let mut current_lvalue =
-                    self.generate_load_for_rec(qualifier, &current_element.unwrap());
+                    self.generate_element_pointer_for_rec(qualifier, &current_element.unwrap());
 
                 for it in element_iter {
                     let ctx = current_lvalue?;
                     let context_ptr = ctx.ptr_value;
                     let type_information = ctx.type_entry;
 
-                    current_lvalue = self.generate_load_for_rec(
+                    current_lvalue = self.generate_element_pointer_for_rec(
                         Some(&TypeAndPointer::new(type_information, context_ptr)),
                         it,
                     );
@@ -794,7 +838,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                 self.create_llvm_pointer_value_for_reference(qualifier, name, reference)
             }
             Statement::ArrayAccess { reference, access } => {
-                self.generate_load_for_array(qualifier, reference, access)
+                self.generate_element_pointer_for_array(qualifier, reference, access)
             }
             _ => Err(CompileError::codegen_error(
                 format!("Unsupported Statement {:?}", reference),
