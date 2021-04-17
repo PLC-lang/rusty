@@ -2,8 +2,8 @@
 use super::VariableType;
 use crate::ast::{
     self, evaluate_constant_int, get_array_dimensions, CompilationUnit, DataType,
-    DataTypeDeclaration, Implementation, Pou, PouType, Statement, UserTypeDeclaration, Variable,
-    VariableBlock, VariableBlockType,
+    DataTypeDeclaration, Implementation, Pou, PouType, SourceRange, Statement, UserTypeDeclaration,
+    Variable, VariableBlock, VariableBlockType,
 };
 use crate::index::{Index, MemberInfo};
 use crate::typesystem::*;
@@ -88,7 +88,10 @@ pub fn visit_pou(index: &mut Index, pou: &Pou) {
     //register a function's return type as a member variable
     if let Some(return_type) = &pou.return_type {
         member_names.push(pou.name.clone());
-        let source_location = pou.location.end..pou.location.end;
+        let source_location = SourceRange::new(
+            &pou.location.get_file_path(),
+            pou.location.get_end()..pou.location.get_end(),
+        );
         index.register_member_variable(
             &MemberInfo {
                 container_name: &pou.name,
@@ -229,9 +232,9 @@ fn visit_data_type(index: &mut Index, type_declatation: &UserTypeDeclaration) {
                     "DINT",
                     Some(ast::Statement::LiteralInteger {
                         value: i.to_string(),
-                        location: 0..0,
+                        location: SourceRange::undefined(),
                     }),
-                    0..0,
+                    SourceRange::undefined(),
                 )
             }); //TODO : Enum locations
         }

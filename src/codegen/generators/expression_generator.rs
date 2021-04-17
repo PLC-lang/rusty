@@ -1,5 +1,5 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-use crate::index::Index;
+use crate::{ast::SourceRange, index::Index};
 use inkwell::{
     basic_block::BasicBlock,
     types::BasicTypeEnum,
@@ -9,7 +9,7 @@ use inkwell::{
     },
     AddressSpace, FloatPredicate, IntPredicate,
 };
-use std::{collections::HashSet, ops::Range};
+use std::collections::HashSet;
 
 use crate::{
     ast::{flatten_expression_list, Dimension, Operator, Statement},
@@ -767,11 +767,13 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                     let statements = access.get_as_list();
                     if statements.is_empty() || statements.len() != dimensions.len() {
                         return Err(CompileError::codegen_error(
-                        format!(
-                            "Mismatched array access : {} -> {} ",
-                            statements.len(),
-                            dimensions.len()
-                        ),access.get_location()));
+                            format!(
+                                "Mismatched array access : {} -> {} ",
+                                statements.len(),
+                                dimensions.len()
+                            ),
+                            access.get_location(),
+                        ));
                     }
                     for (i, statement) in statements.iter().enumerate() {
                         indices.push(self.generate_access_for_dimension(&dimensions[i], statement)?)
@@ -1109,7 +1111,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
     fn generate_literal_struct(
         &self,
         assignments: &Statement,
-        declaration_location: &Range<usize>,
+        declaration_location: &SourceRange,
     ) -> Result<TypeAndValue<'a>, CompileError> {
         if let Some(type_info) = &self.type_hint {
             if let DataTypeInformation::Struct {
@@ -1223,7 +1225,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
     fn generate_literal_array(
         &self,
         elements: &Option<Box<Statement>>,
-        location: &Range<usize>,
+        location: &SourceRange,
     ) -> Result<TypeAndValue<'a>, CompileError> {
         if let Some(type_info) = &self.type_hint {
             if let DataTypeInformation::Array {

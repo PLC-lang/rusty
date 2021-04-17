@@ -150,7 +150,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
             &function_context,
             &local_index,
             implementation.pou_type,
-            Some(0..0),
+            None,
         )?; //TODO location
 
         Ok(())
@@ -176,7 +176,10 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                 Ok(enum_type.into_array_type().fn_type(params, false))
             }
             None => Ok(self.llvm.context.void_type().fn_type(params, false)),
-            _ => Err(CompileError::codegen_error(format!("Unsupported return type {:?}", return_type),0..0)),
+            _ => Err(CompileError::codegen_error(
+                format!("Unsupported return type {:?}", return_type),
+                SourceRange::undefined(),
+            )),
         }
     }
 
@@ -258,7 +261,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
             PouType::Function => {
                 let reference = Statement::Reference {
                     name: function_context.linking_context.get_call_name().into(),
-                    location: location.unwrap_or(0usize..0usize),
+                    location: location.unwrap_or_else(SourceRange::undefined),
                 };
                 let mut exp_gen = ExpressionCodeGenerator::new(
                     &self.llvm,

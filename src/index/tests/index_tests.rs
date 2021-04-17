@@ -7,12 +7,16 @@ use crate::{ast::*, index::VariableType, typesystem::DataTypeInformation};
 
 macro_rules! index {
     ($code:tt) => {{
-        let lexer = lexer::lex($code);
-        let (mut ast, _) = parser::parse(lexer).unwrap();
+        let lexer = crate::lexer::lex("", $code);
+        let (mut ast, _) = crate::parser::parse(lexer).unwrap();
 
         crate::ast::pre_process(&mut ast);
         crate::index::visitor::visit(&ast)
     }};
+}
+
+fn lex(source: &str) -> lexer::RustyLexer {
+    lexer::lex("", source)
 }
 
 #[test]
@@ -517,13 +521,11 @@ fn find_effective_type_finds_the_inner_effective_type() {
 #[test]
 fn pre_processing_generates_inline_enums_global() {
     // GIVEN a global inline enum
-    let lexer = lexer::lex(
-        r#"
+    let lexer = lex(r#"
         VAR_GLOBAL
             inline_enum : (a,b,c);
         END_VAR
-        "#,
-    );
+        "#);
     let (mut ast, _) = parser::parse(lexer).unwrap();
 
     // WHEN the AST ist pre-processed
@@ -562,13 +564,11 @@ fn pre_processing_generates_inline_enums_global() {
 #[test]
 fn pre_processing_generates_inline_structs_global() {
     // GIVEN a global inline enum
-    let lexer = lexer::lex(
-        r#"
+    let lexer = lex(r#"
         VAR_GLOBAL
             inline_struct: STRUCT a: INT; END_STRUCT
         END_VAR
-        "#,
-    );
+        "#);
     let (mut ast, _) = parser::parse(lexer).unwrap();
 
     // WHEN the AST ist pre-processed
@@ -585,7 +585,7 @@ fn pre_processing_generates_inline_structs_global() {
                 data_type: DataTypeDeclaration::DataTypeReference {
                     referenced_type: "INT".to_string()
                 },
-                location: 54..55,
+                location: (54..55).into(),
                 initializer: None,
             }]
         },
@@ -605,15 +605,13 @@ fn pre_processing_generates_inline_structs_global() {
 #[test]
 fn pre_processing_generates_inline_enums() {
     // GIVEN a global inline enum
-    let lexer = lexer::lex(
-        r#"
+    let lexer = lex(r#"
         PROGRAM foo
         VAR
             inline_enum : (a,b,c);
         END_VAR
         END_PROGRAM
-        "#,
-    );
+        "#);
     let (mut ast, _) = parser::parse(lexer).unwrap();
 
     // WHEN the AST ist pre-processed
@@ -643,15 +641,13 @@ fn pre_processing_generates_inline_enums() {
 #[test]
 fn pre_processing_generates_inline_structs() {
     // GIVEN a global inline enum
-    let lexer = lexer::lex(
-        r#"
+    let lexer = lex(r#"
         PROGRAM foo
         VAR
             inline_struct: STRUCT a: INT; END_STRUCT
         END_VAR
         END_PROGRAM
-        "#,
-    );
+        "#);
     let (mut ast, _) = parser::parse(lexer).unwrap();
 
     // WHEN the AST ist pre-processed
@@ -668,7 +664,7 @@ fn pre_processing_generates_inline_structs() {
                 data_type: DataTypeDeclaration::DataTypeReference {
                     referenced_type: "INT".to_string()
                 },
-                location: 67..68,
+                location: (67..68).into(),
                 initializer: None,
             }]
         },
@@ -688,15 +684,13 @@ fn pre_processing_generates_inline_structs() {
 #[test]
 fn pre_processing_generates_inline_arrays() {
     // GIVEN an inline array is declared
-    let lexer = lexer::lex(
-        r#"
+    let lexer = lex(r#"
         PROGRAM foo
         VAR
             inline_array: ARRAY[0..1] OF INT;
         END_VAR
         END_PROGRAM
-        "#,
-    );
+        "#);
     let (mut ast, _) = parser::parse(lexer).unwrap();
 
     // WHEN the AST ist pre-processed
@@ -712,11 +706,11 @@ fn pre_processing_generates_inline_arrays() {
             bounds: Statement::RangeStatement {
                 start: Box::new(Statement::LiteralInteger {
                     value: "0".to_string(),
-                    location: 0..0,
+                    location: SourceRange::undefined(),
                 }),
                 end: Box::new(Statement::LiteralInteger {
                     value: "1".to_string(),
-                    location: 0..0,
+                    location: SourceRange::undefined(),
                 }),
             },
             referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
@@ -740,15 +734,13 @@ fn pre_processing_generates_inline_arrays() {
 #[test]
 fn pre_processing_generates_inline_array_of_array() {
     // GIVEN an inline array is declared
-    let lexer = lexer::lex(
-        r#"
+    let lexer = lex(r#"
         PROGRAM foo
         VAR
             inline_array: ARRAY[0..1] OF ARRAY[0..1] OF INT;
         END_VAR
         END_PROGRAM
-        "#,
-    );
+        "#);
     let (mut ast, _) = parser::parse(lexer).unwrap();
 
     // WHEN the AST ist pre-processed
@@ -765,11 +757,11 @@ fn pre_processing_generates_inline_array_of_array() {
             bounds: Statement::RangeStatement {
                 start: Box::new(Statement::LiteralInteger {
                     value: "0".to_string(),
-                    location: 0..0,
+                    location: SourceRange::undefined(),
                 }),
                 end: Box::new(Statement::LiteralInteger {
                     value: "1".to_string(),
-                    location: 0..0,
+                    location: SourceRange::undefined(),
                 }),
             },
             referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
@@ -788,11 +780,11 @@ fn pre_processing_generates_inline_array_of_array() {
             bounds: Statement::RangeStatement {
                 start: Box::new(Statement::LiteralInteger {
                     value: "0".to_string(),
-                    location: 0..0,
+                    location: SourceRange::undefined(),
                 }),
                 end: Box::new(Statement::LiteralInteger {
                     value: "1".to_string(),
-                    location: 0..0,
+                    location: SourceRange::undefined(),
                 }),
             },
             referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
@@ -815,8 +807,7 @@ fn pre_processing_generates_inline_array_of_array() {
 
 #[test]
 fn pre_processing_nested_array_in_struct() {
-    let lexer = lexer::lex(
-        r#"
+    let lexer = lex(r#"
         TYPE MyStruct:
         STRUCT 
           field1 : ARRAY[0..4] OF INT;
@@ -829,8 +820,7 @@ fn pre_processing_nested_array_in_struct() {
         END_VAR
           m.field1[3] := 7;
         END_PROGRAM
-        "#,
-    );
+        "#);
 
     let (mut ast, _) = parser::parse(lexer).unwrap();
 
@@ -849,7 +839,7 @@ fn pre_processing_nested_array_in_struct() {
                 data_type: DataTypeDeclaration::DataTypeReference {
                     referenced_type: "__MyStruct_field1".to_string(),
                 },
-                location: 0..0,
+                location: SourceRange::undefined(),
                 initializer: None,
             }],
         },
@@ -865,11 +855,11 @@ fn pre_processing_nested_array_in_struct() {
             bounds: Statement::RangeStatement {
                 start: Box::new(Statement::LiteralInteger {
                     value: "0".to_string(),
-                    location: 0..0,
+                    location: SourceRange::undefined(),
                 }),
                 end: Box::new(Statement::LiteralInteger {
                     value: "4".to_string(),
-                    location: 0..0,
+                    location: SourceRange::undefined(),
                 }),
             },
             referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
@@ -884,15 +874,13 @@ fn pre_processing_nested_array_in_struct() {
 #[test]
 fn pre_processing_generates_inline_array_of_array_of_array() {
     // GIVEN an inline array is declared
-    let lexer = lexer::lex(
-        r#"
+    let lexer = lex(r#"
         PROGRAM foo
         VAR
             inline_array: ARRAY[0..1] OF ARRAY[0..1] OF ARRAY[0..1] OF INT;
         END_VAR
         END_PROGRAM
-        "#,
-    );
+        "#);
     let (mut ast, _) = parser::parse(lexer).unwrap();
 
     // WHEN the AST ist pre-processed
@@ -909,11 +897,11 @@ fn pre_processing_generates_inline_array_of_array_of_array() {
             bounds: Statement::RangeStatement {
                 start: Box::new(Statement::LiteralInteger {
                     value: "0".to_string(),
-                    location: 0..0,
+                    location: SourceRange::undefined(),
                 }),
                 end: Box::new(Statement::LiteralInteger {
                     value: "1".to_string(),
-                    location: 0..0,
+                    location: SourceRange::undefined(),
                 }),
             },
             referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
@@ -932,11 +920,11 @@ fn pre_processing_generates_inline_array_of_array_of_array() {
             bounds: Statement::RangeStatement {
                 start: Box::new(Statement::LiteralInteger {
                     value: "0".to_string(),
-                    location: 0..0,
+                    location: SourceRange::undefined(),
                 }),
                 end: Box::new(Statement::LiteralInteger {
                     value: "1".to_string(),
-                    location: 0..0,
+                    location: SourceRange::undefined(),
                 }),
             },
             referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
@@ -955,11 +943,11 @@ fn pre_processing_generates_inline_array_of_array_of_array() {
             bounds: Statement::RangeStatement {
                 start: Box::new(Statement::LiteralInteger {
                     value: "0".to_string(),
-                    location: 0..0,
+                    location: SourceRange::undefined(),
                 }),
                 end: Box::new(Statement::LiteralInteger {
                     value: "1".to_string(),
-                    location: 0..0,
+                    location: SourceRange::undefined(),
                 }),
             },
             referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
@@ -997,10 +985,10 @@ fn sub_range_boundaries_are_registered_at_the_index() {
         referenced_type: "INT".to_string(),
         sub_range: Statement::LiteralInteger {
             value: "7".to_string(),
-            location: 0..0,
+            location: SourceRange::undefined(),
         }..Statement::LiteralInteger {
             value: "1000".to_string(),
-            location: 0..0,
+            location: SourceRange::undefined(),
         },
     };
 

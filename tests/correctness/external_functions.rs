@@ -30,7 +30,7 @@ fn test_external_function_called() {
 
     Target::initialize_native(&InitializationConfig::default()).unwrap();
     let context: Context = Context::create();
-    let code_gen = compile_module(&context, prog.to_string()).unwrap();
+    let code_gen = compile_module(&context, "external_test.st", prog.to_string()).unwrap();
     let exec_engine = code_gen
         .module
         .create_jit_execution_engine(inkwell::OptimizationLevel::None)

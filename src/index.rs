@@ -207,7 +207,7 @@ impl Index {
 
     pub fn get_type(&self, type_name: &str) -> Result<&DataType, CompileError> {
         self.find_type(type_name)
-            .ok_or_else(|| CompileError::unknown_type(type_name, 0..0))
+            .ok_or_else(|| CompileError::unknown_type(type_name, SourceRange::undefined()))
     }
 
     /// Retrieves the "Effective" type behind this datatype
@@ -258,7 +258,7 @@ impl Index {
         type_name: &str,
     ) -> Result<DataTypeInformation, CompileError> {
         self.find_type_information(type_name)
-            .ok_or_else(|| CompileError::unknown_type(type_name, 0..0))
+            .ok_or_else(|| CompileError::unknown_type(type_name, SourceRange::undefined()))
     }
 
     pub fn get_types(&self) -> &IndexMap<String, DataType> {

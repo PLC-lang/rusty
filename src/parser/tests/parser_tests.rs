@@ -6,13 +6,13 @@ use pretty_assertions::*;
 
 #[test]
 fn empty_returns_empty_compilation_unit() {
-    let (result, _) = parse(lexer::lex("")).unwrap();
+    let (result, _) = parse(super::lex("")).unwrap();
     assert_eq!(result.units.len(), 0);
 }
 
 #[test]
 fn empty_global_vars_can_be_parsed() {
-    let lexer = lexer::lex("VAR_GLOBAL END_VAR");
+    let lexer = super::lex("VAR_GLOBAL END_VAR");
     let result = parse(lexer).unwrap().0;
 
     let vars = &result.global_vars[0]; //globar_vars
@@ -26,7 +26,7 @@ fn empty_global_vars_can_be_parsed() {
 
 #[test]
 fn global_vars_can_be_parsed() {
-    let lexer = lexer::lex("VAR_GLOBAL x : INT; y : BOOL; END_VAR");
+    let lexer = super::lex("VAR_GLOBAL x : INT; y : BOOL; END_VAR");
     let result = parse(lexer).unwrap().0;
 
     let vars = &result.global_vars[0]; //globar_vars
@@ -53,7 +53,7 @@ fn global_vars_can_be_parsed() {
 
 #[test]
 fn two_global_vars_can_be_parsed() {
-    let lexer = lexer::lex("VAR_GLOBAL a: INT; END_VAR VAR_GLOBAL x : INT; y : BOOL; END_VAR");
+    let lexer = super::lex("VAR_GLOBAL a: INT; END_VAR VAR_GLOBAL x : INT; y : BOOL; END_VAR");
     let result = parse(lexer).unwrap().0;
 
     let vars = &result.global_vars; //globar_vars
@@ -93,7 +93,7 @@ fn two_global_vars_can_be_parsed() {
 
 #[test]
 fn simple_foo_program_can_be_parsed() {
-    let lexer = lexer::lex("PROGRAM foo END_PROGRAM");
+    let lexer = super::lex("PROGRAM foo END_PROGRAM");
     let result = parse(lexer).unwrap().0;
 
     let prg = &result.units[0];
@@ -104,7 +104,7 @@ fn simple_foo_program_can_be_parsed() {
 
 #[test]
 fn simple_foo_function_can_be_parsed() {
-    let lexer = lexer::lex("FUNCTION foo : INT END_FUNCTION");
+    let lexer = super::lex("FUNCTION foo : INT END_FUNCTION");
     let result = parse(lexer).unwrap().0;
 
     let prg = &result.units[0];
@@ -120,7 +120,7 @@ fn simple_foo_function_can_be_parsed() {
 
 #[test]
 fn simple_foo_function_block_can_be_parsed() {
-    let lexer = lexer::lex("FUNCTION_BLOCK foo END_FUNCTION_BLOCK");
+    let lexer = super::lex("FUNCTION_BLOCK foo END_FUNCTION_BLOCK");
     let result = parse(lexer).unwrap().0;
 
     let prg = &result.units[0];
@@ -131,7 +131,7 @@ fn simple_foo_function_block_can_be_parsed() {
 
 #[test]
 fn single_action_parsed() {
-    let lexer = lexer::lex("ACTION foo.bar END_ACTION");
+    let lexer = super::lex("ACTION foo.bar END_ACTION");
     let result = parse(lexer).unwrap().0;
 
     let prg = &result.implementations[0];
@@ -141,7 +141,7 @@ fn single_action_parsed() {
 
 #[test]
 fn two_actions_parsed() {
-    let lexer = lexer::lex("ACTION foo.bar END_ACTION ACTION fuz.bar END_ACTION");
+    let lexer = super::lex("ACTION foo.bar END_ACTION ACTION fuz.bar END_ACTION");
     let result = parse(lexer).unwrap().0;
 
     let prg = &result.implementations[0];
@@ -155,7 +155,7 @@ fn two_actions_parsed() {
 
 #[test]
 fn action_container_parsed() {
-    let lexer = lexer::lex("ACTIONS foo ACTION bar END_ACTION END_ACTIONS");
+    let lexer = super::lex("ACTIONS foo ACTION bar END_ACTION END_ACTIONS");
     let result = parse(lexer).unwrap().0;
 
     let prg = &result.implementations[0];
@@ -165,7 +165,7 @@ fn action_container_parsed() {
 
 #[test]
 fn two_action_containers_parsed() {
-    let lexer = lexer::lex("ACTIONS foo ACTION bar END_ACTION ACTION buz END_ACTION END_ACTIONS");
+    let lexer = super::lex("ACTIONS foo ACTION bar END_ACTION ACTION buz END_ACTION END_ACTIONS");
     let result = parse(lexer).unwrap().0;
 
     let prg = &result.implementations[0];
@@ -179,7 +179,7 @@ fn two_action_containers_parsed() {
 
 #[test]
 fn mixed_action_types_parsed() {
-    let lexer = lexer::lex("PROGRAM foo END_PROGRAM ACTIONS foo ACTION bar END_ACTION END_ACTIONS ACTION foo.buz END_ACTION");
+    let lexer = super::lex("PROGRAM foo END_PROGRAM ACTIONS foo ACTION bar END_ACTION END_ACTIONS ACTION foo.buz END_ACTION");
     let result = parse(lexer).unwrap().0;
 
     let prg = &result.implementations[1];
@@ -193,7 +193,7 @@ fn mixed_action_types_parsed() {
 
 #[test]
 fn actions_with_no_container_error() {
-    let lexer = lexer::lex("ACTIONS ACTION bar END_ACTION ACTION buz END_ACTION END_ACTIONS");
+    let lexer = super::lex("ACTIONS ACTION bar END_ACTION ACTION buz END_ACTION END_ACTIONS");
     let err = parse(lexer).expect_err("Expecting parser failure");
     assert_eq!(
         err,
@@ -204,7 +204,7 @@ fn actions_with_no_container_error() {
 
 #[test]
 fn two_programs_can_be_parsed() {
-    let lexer = lexer::lex("PROGRAM foo END_PROGRAM  PROGRAM bar END_PROGRAM");
+    let lexer = super::lex("PROGRAM foo END_PROGRAM  PROGRAM bar END_PROGRAM");
     let result = parse(lexer).unwrap().0;
 
     let prg = &result.units[0];
@@ -215,7 +215,7 @@ fn two_programs_can_be_parsed() {
 
 #[test]
 fn simple_program_with_varblock_can_be_parsed() {
-    let lexer = lexer::lex("PROGRAM buz VAR END_VAR END_PROGRAM");
+    let lexer = super::lex("PROGRAM buz VAR END_VAR END_PROGRAM");
     let result = parse(lexer).unwrap().0;
 
     let prg = &result.units[0];
@@ -225,7 +225,7 @@ fn simple_program_with_varblock_can_be_parsed() {
 
 #[test]
 fn simple_program_with_two_varblocks_can_be_parsed() {
-    let lexer = lexer::lex("PROGRAM buz VAR END_VAR VAR END_VAR END_PROGRAM");
+    let lexer = super::lex("PROGRAM buz VAR END_VAR VAR END_VAR END_PROGRAM");
     let result = parse(lexer).unwrap().0;
 
     let prg = &result.units[0];
@@ -235,7 +235,7 @@ fn simple_program_with_two_varblocks_can_be_parsed() {
 
 #[test]
 fn a_program_needs_to_end_with_end_program() {
-    let lexer = lexer::lex("PROGRAM buz ");
+    let lexer = super::lex("PROGRAM buz ");
     let result = parse(lexer);
     assert_eq!(
         result,
@@ -248,7 +248,7 @@ fn a_program_needs_to_end_with_end_program() {
 
 #[test]
 fn a_variable_declaration_block_needs_to_end_with_endvar() {
-    let lexer = lexer::lex("PROGRAM buz VAR END_PROGRAM ");
+    let lexer = super::lex("PROGRAM buz VAR END_PROGRAM ");
     let result = parse(lexer);
     assert_eq!(
         result,
@@ -258,7 +258,7 @@ fn a_variable_declaration_block_needs_to_end_with_endvar() {
 
 #[test]
 fn a_statement_without_a_semicolon_fails() {
-    let lexer = lexer::lex("PROGRAM buz x END_PROGRAM ");
+    let lexer = super::lex("PROGRAM buz x END_PROGRAM ");
     let result = parse(lexer);
     assert_eq!(
         result,
@@ -268,7 +268,7 @@ fn a_statement_without_a_semicolon_fails() {
 
 #[test]
 fn empty_statements_are_ignored() {
-    let lexer = lexer::lex("PROGRAM buz ;;;; END_PROGRAM ");
+    let lexer = super::lex("PROGRAM buz ;;;; END_PROGRAM ");
     let result = parse(lexer).unwrap().0;
 
     let prg = &result.implementations[0];
@@ -277,7 +277,7 @@ fn empty_statements_are_ignored() {
 
 #[test]
 fn empty_statements_are_ignored_before_a_statement() {
-    let lexer = lexer::lex("PROGRAM buz ;;;;x; END_PROGRAM ");
+    let lexer = super::lex("PROGRAM buz ;;;;x; END_PROGRAM ");
     let result = parse(lexer).unwrap().0;
 
     let prg = &result.implementations[0];
@@ -292,7 +292,7 @@ fn empty_statements_are_ignored_before_a_statement() {
 
 #[test]
 fn empty_statements_are_ignored_after_a_statement() {
-    let lexer = lexer::lex("PROGRAM buz x;;;; END_PROGRAM ");
+    let lexer = super::lex("PROGRAM buz x;;;; END_PROGRAM ");
     let result = parse(lexer).unwrap().0;
 
     let prg = &result.implementations[0];
@@ -307,7 +307,7 @@ fn empty_statements_are_ignored_after_a_statement() {
 
 #[test]
 fn simple_program_with_variable_can_be_parsed() {
-    let lexer = lexer::lex("PROGRAM buz VAR x : INT; END_VAR END_PROGRAM");
+    let lexer = super::lex("PROGRAM buz VAR x : INT; END_VAR END_PROGRAM");
     let result = parse(lexer).unwrap().0;
 
     let prg = &result.units[0];
@@ -329,7 +329,7 @@ fn simple_program_with_variable_can_be_parsed() {
 
 #[test]
 fn simple_program_with_var_input_can_be_parsed() {
-    let lexer = lexer::lex("PROGRAM buz VAR_INPUT x : INT; END_VAR END_PROGRAM");
+    let lexer = super::lex("PROGRAM buz VAR_INPUT x : INT; END_VAR END_PROGRAM");
     let result = parse(lexer).unwrap().0;
 
     let prg = &result.units[0];
@@ -351,7 +351,7 @@ fn simple_program_with_var_input_can_be_parsed() {
 
 #[test]
 fn simple_program_with_var_output_can_be_parsed() {
-    let lexer = lexer::lex("PROGRAM buz VAR_OUTPUT x : INT; END_VAR END_PROGRAM");
+    let lexer = super::lex("PROGRAM buz VAR_OUTPUT x : INT; END_VAR END_PROGRAM");
     let result = parse(lexer).unwrap().0;
 
     let prg = &result.units[0];
@@ -373,7 +373,7 @@ fn simple_program_with_var_output_can_be_parsed() {
 
 #[test]
 fn simple_program_with_var_inout_can_be_parsed() {
-    let lexer = lexer::lex("PROGRAM buz VAR_IN_OUT x : INT; END_VAR END_PROGRAM");
+    let lexer = super::lex("PROGRAM buz VAR_IN_OUT x : INT; END_VAR END_PROGRAM");
     let result = parse(lexer).unwrap().0;
 
     let prg = &result.units[0];
@@ -395,7 +395,7 @@ fn simple_program_with_var_inout_can_be_parsed() {
 
 #[test]
 fn simple_struct_type_can_be_parsed() {
-    let (result, _) = parse(lexer::lex(
+    let (result, _) = parse(super::lex(
         r#"
         TYPE SampleStruct :
             STRUCT
@@ -422,7 +422,7 @@ fn simple_struct_type_can_be_parsed() {
                             referenced_type: "INT".to_string(),
                         },
                         initializer: None,
-                        location: 0..0,
+                        location: SourceRange::undefined(),
                     },
                     Variable {
                         name: "Two".to_string(),
@@ -430,7 +430,7 @@ fn simple_struct_type_can_be_parsed() {
                             referenced_type: "INT".to_string(),
                         },
                         initializer: None,
-                        location: 0..0,
+                        location: SourceRange::undefined(),
                     },
                     Variable {
                         name: "Three".to_string(),
@@ -438,7 +438,7 @@ fn simple_struct_type_can_be_parsed() {
                             referenced_type: "INT".to_string(),
                         },
                         initializer: None,
-                        location: 0..0,
+                        location: SourceRange::undefined(),
                     },
                 ),
             },
@@ -450,7 +450,7 @@ fn simple_struct_type_can_be_parsed() {
 
 #[test]
 fn struct_with_inline_array_can_be_parsed() {
-    let (result, _) = parse(lexer::lex(
+    let (result, _) = parse(super::lex(
         r#"
         TYPE SampleStruct :
             STRUCT
@@ -497,7 +497,7 @@ fn struct_with_inline_array_can_be_parsed() {
 
 #[test]
 fn simple_enum_type_can_be_parsed() {
-    let (result, _) = parse(lexer::lex(
+    let (result, _) = parse(super::lex(
         r#"
         TYPE SampleEnum : (red, yellow, green);
         END_TYPE 
@@ -520,7 +520,7 @@ fn simple_enum_type_can_be_parsed() {
 
 #[test]
 fn type_alias_can_be_parsed() {
-    let (result, _) = parse(lexer::lex(
+    let (result, _) = parse(super::lex(
         r#"
         TYPE 
             MyInt : INT;
@@ -547,7 +547,7 @@ fn type_alias_can_be_parsed() {
 
 #[test]
 fn array_type_can_be_parsed_test() {
-    let (result, _) = parse(lexer::lex(
+    let (result, _) = parse(super::lex(
         r#"
             TYPE MyArray : ARRAY[0..8] OF INT; END_TYPE
             "#,
@@ -564,11 +564,11 @@ fn array_type_can_be_parsed_test() {
                 bounds: Statement::RangeStatement {
                     start: Box::new(Statement::LiteralInteger {
                         value: "0".to_string(),
-                        location: 0..0,
+                        location: SourceRange::undefined(),
                     }),
                     end: Box::new(Statement::LiteralInteger {
                         value: "8".to_string(),
-                        location: 0..0,
+                        location: SourceRange::undefined(),
                     }),
                 },
                 referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
@@ -584,7 +584,7 @@ fn array_type_can_be_parsed_test() {
 
 #[test]
 fn string_type_can_be_parsed_test() {
-    let (result, _) = parse(lexer::lex(
+    let (result, _) = parse(super::lex(
         r#"
             TYPE MyString : STRING[253]; END_TYPE
             "#,
@@ -600,7 +600,7 @@ fn string_type_can_be_parsed_test() {
                 name: Some("MyString".to_string()),
                 size: Some(LiteralInteger {
                     value: "253".to_string(),
-                    location: 10..11,
+                    location: (10..11).into(),
                 }),
                 is_wide: false,
             },
@@ -613,7 +613,7 @@ fn string_type_can_be_parsed_test() {
 
 #[test]
 fn array_type_initialization_with_literals_can_be_parsed_test() {
-    let (result, _) = parse(lexer::lex(
+    let (result, _) = parse(super::lex(
         r#"
             TYPE MyArray : ARRAY[0..2] OF INT := [1,2,3]; END_TYPE
             "#,
@@ -647,7 +647,7 @@ fn array_type_initialization_with_literals_can_be_parsed_test() {
 
 #[test]
 fn array_initializer_in_pou_can_be_parsed() {
-    let (result, _) = parse(lexer::lex(
+    let (result, _) = parse(super::lex(
         r#"
             PROGRAM main
             VAR
@@ -686,7 +686,7 @@ fn array_initializer_in_pou_can_be_parsed() {
 
 #[test]
 fn inline_struct_declaration_can_be_parsed() {
-    let (result, _) = parse(lexer::lex(
+    let (result, _) = parse(super::lex(
         r#"
         VAR_GLOBAL
             my_struct : STRUCT
@@ -734,7 +734,7 @@ fn inline_struct_declaration_can_be_parsed() {
 
 #[test]
 fn inline_enum_declaration_can_be_parsed() {
-    let (result, _) = parse(lexer::lex(
+    let (result, _) = parse(super::lex(
         r#"
         VAR_GLOBAL
             my_enum : (red, yellow, green);
@@ -754,7 +754,7 @@ fn inline_enum_declaration_can_be_parsed() {
             },
         },
         initializer: None,
-        location: 0..0,
+        location: SourceRange::undefined(),
     };
     let expected_ast = format!("{:#?}", &v);
     assert_eq!(ast_string, expected_ast);
@@ -762,7 +762,7 @@ fn inline_enum_declaration_can_be_parsed() {
 
 #[test]
 fn multilevel_inline_struct_and_enum_declaration_can_be_parsed() {
-    let (result, _) = parse(lexer::lex(
+    let (result, _) = parse(super::lex(
         r#"
         VAR_GLOBAL
             my_struct : STRUCT
@@ -822,7 +822,7 @@ fn multilevel_inline_struct_and_enum_declaration_can_be_parsed() {
 
 #[test]
 fn test_ast_line_locations() {
-    let lexer = lexer::lex(
+    let lexer = super::lex(
         "PROGRAM prg
                 call1();
 
@@ -838,22 +838,22 @@ fn test_ast_line_locations() {
     let statements = &parse_result.implementations[0].statements;
 
     {
-        let statement_offset = statements.get(0).unwrap().get_location().start;
+        let statement_offset = statements.get(0).unwrap().get_location().get_start();
         let line = new_lines.get_line_of(statement_offset).unwrap();
         assert_eq!(2, line);
     }
     {
-        let statement_offset = statements.get(1).unwrap().get_location().start;
+        let statement_offset = statements.get(1).unwrap().get_location().get_start();
         let line = new_lines.get_line_of(statement_offset).unwrap();
         assert_eq!(4, line);
     }
     {
-        let statement_offset = statements.get(2).unwrap().get_location().start;
+        let statement_offset = statements.get(2).unwrap().get_location().get_start();
         let line = new_lines.get_line_of(statement_offset).unwrap();
         assert_eq!(5, line);
     }
     {
-        let statement_offset = statements.get(3).unwrap().get_location().start;
+        let statement_offset = statements.get(3).unwrap().get_location().get_start();
         let line = new_lines.get_line_of(statement_offset).unwrap();
         assert_eq!(8, line);
     }
@@ -861,7 +861,7 @@ fn test_ast_line_locations() {
 
 #[test]
 fn test_unexpected_token_error_message() {
-    let lexer = lexer::lex(
+    let lexer = super::lex(
         "PROGRAM prg
                 VAR ;
                 END_VAR
@@ -882,7 +882,7 @@ fn test_unexpected_token_error_message() {
 
 #[test]
 fn programs_can_be_external() {
-    let lexer = lexer::lex("@EXTERNAL PROGRAM foo END_PROGRAM");
+    let lexer = super::lex("@EXTERNAL PROGRAM foo END_PROGRAM");
     let parse_result = parse(lexer).unwrap().0;
     let implementation = &parse_result.implementations[0];
     assert_eq!(LinkageType::External, implementation.linkage);
@@ -890,7 +890,7 @@ fn programs_can_be_external() {
 
 #[test]
 fn test_unexpected_token_error_message2() {
-    let lexer = lexer::lex(
+    let lexer = super::lex(
         "SOME PROGRAM prg
                 VAR ;
                 END_VAR
@@ -910,7 +910,7 @@ fn test_unexpected_token_error_message2() {
 }
 #[test]
 fn test_unexpected_type_declaration_error_message() {
-    let lexer = lexer::lex(
+    let lexer = super::lex(
         "TYPE MyType:
                 PROGRAM
                 END_PROGRAM
@@ -928,7 +928,7 @@ fn test_unexpected_type_declaration_error_message() {
 
 #[test]
 fn test_unclosed_body_error_message() {
-    let lexer = lexer::lex(
+    let lexer = super::lex(
         "
             
             PROGRAM My_PRG
@@ -949,7 +949,7 @@ fn test_unclosed_body_error_message() {
 
 #[test]
 fn test_case_without_condition() {
-    let lexer = lexer::lex(
+    let lexer = super::lex(
         "PROGRAM My_PRG
                 CASE x OF
                     1: 
@@ -973,7 +973,7 @@ fn test_case_without_condition() {
 
 #[test]
 fn initial_scalar_values_can_be_parsed() {
-    let lexer = lexer::lex(
+    let lexer = super::lex(
         "
             VAR_GLOBAL
                 x : INT := 7;
@@ -1094,7 +1094,7 @@ fn initial_scalar_values_can_be_parsed() {
 
 #[test]
 fn array_initializer_can_be_parsed() {
-    let lexer = lexer::lex(
+    let lexer = super::lex(
         "
             VAR_GLOBAL
                 x : ARRAY[0..2] OF INT := [7,8,9];
@@ -1146,7 +1146,7 @@ fn array_initializer_can_be_parsed() {
 
 #[test]
 fn multi_dim_array_initializer_can_be_parsed() {
-    let lexer = lexer::lex(
+    let lexer = super::lex(
         "
             VAR_GLOBAL
                 x : MyMultiArray := [[1,2],[3,4],[5,6]];
@@ -1218,7 +1218,7 @@ fn multi_dim_array_initializer_can_be_parsed() {
 
 #[test]
 fn array_initializer_multiplier_can_be_parsed() {
-    let lexer = lexer::lex(
+    let lexer = super::lex(
         "
             VAR_GLOBAL
                 x : ARRAY[0..2] OF INT := [3(7)];
@@ -1263,7 +1263,7 @@ fn array_initializer_multiplier_can_be_parsed() {
 
 #[test]
 fn struct_initializer_can_be_parsed() {
-    let lexer = lexer::lex(
+    let lexer = super::lex(
         "
             VAR_GLOBAL
                 x : Point := (x := 1, y:= 2);
@@ -1305,7 +1305,7 @@ fn struct_initializer_can_be_parsed() {
 
 #[test]
 fn string_variable_declaration_can_be_parsed() {
-    let lexer = lexer::lex(
+    let lexer = super::lex(
         "
             VAR_GLOBAL
                 x : STRING;
@@ -1347,7 +1347,7 @@ fn string_variable_declaration_can_be_parsed() {
 
 #[test]
 fn subrangetype_can_be_parsed() {
-    let lexer = lexer::lex(
+    let lexer = super::lex(
         "
             VAR_GLOBAL
                 x : UINT(0..1000);
@@ -1365,18 +1365,38 @@ fn subrangetype_can_be_parsed() {
                 bounds: Some(Statement::RangeStatement {
                     start: Box::new(LiteralInteger {
                         value: "0".to_string(),
-                        location: 0..0,
+                        location: SourceRange::undefined(),
                     }),
                     end: Box::new(LiteralInteger {
                         value: "1000".to_string(),
-                        location: 0..0,
+                        location: SourceRange::undefined(),
                     }),
                 }),
                 referenced_type: "UINT".to_string(),
             },
         },
         initializer: None,
-        location: (0..0),
+        location: (0..0).into(),
     };
     assert_eq!(format!("{:#?}", expected), format!("{:#?}", x).as_str());
+}
+
+#[test]
+fn file_location_persisted() {
+    let lexer = lexer::lex(
+        "test_file.st",
+        "
+            VAR_GLOBAL
+                x : INT;
+            END_VAR
+
+            PROGRAM prg
+            END_PROGRAM
+           ",
+    );
+    let (parse_result, _) = parse(lexer).unwrap();
+    let location = &parse_result.global_vars[0].variables[0].location;
+    assert_eq!("test_file.st", location.get_file_path());
+    let location = &parse_result.units[0].location;
+    assert_eq!("test_file.st", location.get_file_path());
 }

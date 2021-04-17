@@ -7,6 +7,7 @@ use inkwell::{
 };
 
 use crate::{
+    ast::SourceRange,
     ast::Statement,
     compile_error::CompileError,
     index::Index,
@@ -161,13 +162,13 @@ pub fn cast_if_needed<'ctx>(
     let target_type = index.find_effective_type(target_type).ok_or_else(|| {
         CompileError::codegen_error(
             format!("Could not find primitive type for {:?}", target_type),
-            0..0,
+            SourceRange::undefined(),
         )
     })?;
     let value_type = index.find_effective_type(value_type).ok_or_else(|| {
         CompileError::codegen_error(
             format!("Could not find primitive type for {:?}", value_type),
-            0..0,
+            SourceRange::undefined(),
         )
     })?;
     match target_type {
@@ -322,7 +323,7 @@ pub fn get_llvm_int_type<'a>(
         128 => Ok(context.i128_type()),
         _ => Err(CompileError::codegen_error(
             format!("Invalid size for type : '{}' at {}", name, size),
-            0..0,
+            SourceRange::undefined(),
         )),
     }
 }
@@ -337,7 +338,7 @@ pub fn get_llvm_float_type<'a>(
         64 => Ok(context.f64_type()),
         _ => Err(CompileError::codegen_error(
             format!("Invalid size for type : '{}' at {}", name, size),
-            0..0,
+            SourceRange::undefined(),
         )),
     }
 }

@@ -4,21 +4,23 @@ use logos::Filter;
 use logos::Lexer;
 use logos::Logos;
 
-use crate::ast::NewLines;
+use crate::ast::{NewLines, SourceRange};
 
 #[cfg(test)]
 mod tests;
 
 pub struct RustyLexer<'a> {
     lexer: Lexer<'a, Token>,
+    file_path: String,
     pub token: Token,
     pub new_lines: NewLines,
 }
 
 impl<'a> RustyLexer<'a> {
-    pub fn new(l: Lexer<'a, Token>, new_lines: NewLines) -> RustyLexer<'a> {
+    pub fn new(l: Lexer<'a, Token>, file_path: &str, new_lines: NewLines) -> RustyLexer<'a> {
         let mut lexer = RustyLexer {
             lexer: l,
+            file_path: file_path.into(),
             token: Token::KeywordBy,
             new_lines,
         };
@@ -30,12 +32,20 @@ impl<'a> RustyLexer<'a> {
         &self.new_lines
     }
 
+    pub fn get_file_path(&self) -> &str {
+        &self.file_path
+    }
+
     pub fn advance(&mut self) {
         self.token = self.lexer.next().unwrap_or(Token::End);
     }
 
     pub fn slice(&self) -> &str {
         self.lexer.slice()
+    }
+
+    pub fn location(&self) -> SourceRange {
+        SourceRange::new(self.get_file_path(), self.range())
     }
 
     pub fn range(&self) -> Range<usize> {
@@ -338,6 +348,6 @@ pub enum Token {
     End,
 }
 
-pub fn lex(source: &str) -> RustyLexer {
-    RustyLexer::new(Token::lexer(source), NewLines::new(source))
+pub fn lex<'src>(file_path: &'src str, source: &'src str) -> RustyLexer<'src> {
+    RustyLexer::new(Token::lexer(source), file_path, NewLines::new(source))
 }
