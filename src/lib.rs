@@ -84,6 +84,7 @@ fn compile_to_obj(
 ///
 /// # Arguments
 ///
+/// * `file_path` - the source code's location
 /// * `source` - the source to be compiled
 /// * `output` - the location on disk to save the output
 /// * `target` - an optional llvm target triple
@@ -101,6 +102,7 @@ pub fn compile_to_static_obj(
 ///
 /// # Arguments
 ///
+/// * `file_path` - the source code's location
 /// * `source` - the source to be compiled
 /// * `output` - the location on disk to save the output
 /// * `target` - an optional llvm target triple
@@ -118,6 +120,7 @@ pub fn compile_to_shared_pic_object(
 ///
 /// # Arguments
 ///
+/// * `file_path` - the source code's location
 /// * `source` - the source to be compiled
 /// * `output` - the location on disk to save the output
 /// * `target` - an optional llvm target triple
@@ -136,6 +139,7 @@ pub fn compile_to_shared_object(
 ///
 /// # Arguments
 ///
+/// * `file_path` - the source code's location
 /// * `source` - the source to be compiled
 /// * `output` - the location on disk to save the output
 pub fn compile_to_bitcode(
@@ -156,6 +160,7 @@ pub fn compile_to_bitcode(
 ///
 /// # Arguments
 ///
+/// * `file_path` - the source code's location
 /// * `source` - the source to be compiled
 pub fn compile_to_ir(file_path: &str, source: String) -> Result<String, CompileError> {
     let context = Context::create();
@@ -173,6 +178,7 @@ fn get_ir(codegen: &codegen::CodeGen) -> String {
 /// # Arguments
 ///
 /// * `context` - the LLVM Context to be used for the compilation
+/// * `file_path` - the source code's location
 /// * `source` - the source to be compiled
 pub fn compile_module<'ink, 'file>(
     context: &'ink Context,
