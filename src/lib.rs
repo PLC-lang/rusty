@@ -19,7 +19,7 @@
 //! [`IR`]: https://llvm.org/docs/LangRef.html
 use std::path::Path;
 
-use ast::NewLines;
+use ast::{NewLines, SourceRange};
 use compile_error::CompileError;
 use inkwell::context::Context;
 use inkwell::targets::{
@@ -42,6 +42,7 @@ extern crate pretty_assertions;
 /// Compiles the given source into an object file and saves it in output
 ///
 fn compile_to_obj(
+    file_path: &str,
     source: String,
     output: &str,
     reloc: RelocMode,
@@ -50,7 +51,7 @@ fn compile_to_obj(
     let path = Path::new(output);
 
     let context = Context::create();
-    let code_generator = compile_module(&context, source)?;
+    let code_generator = compile_module(&context, file_path, source)?;
     let initialization_config = &InitializationConfig::default();
     Target::initialize_all(initialization_config);
 
@@ -88,11 +89,12 @@ fn compile_to_obj(
 /// * `target` - an optional llvm target triple
 ///     If not provided, the machine's triple will be used.
 pub fn compile_to_static_obj(
+    file_path: &str,
     source: String,
     output: &str,
     target: Option<String>,
 ) -> Result<(), CompileError> {
-    compile_to_obj(source, output, RelocMode::Default, target)
+    compile_to_obj(file_path, source, output, RelocMode::Default, target)
 }
 
 /// Compiles a given source string to a shared position independent object and saves the output.
@@ -104,11 +106,12 @@ pub fn compile_to_static_obj(
 /// * `target` - an optional llvm target triple
 ///     If not provided, the machine's triple will be used.
 pub fn compile_to_shared_pic_object(
+    file_path: &str,
     source: String,
     output: &str,
     target: Option<String>,
 ) -> Result<(), CompileError> {
-    compile_to_obj(source, output, RelocMode::PIC, target)
+    compile_to_obj(file_path, source, output, RelocMode::PIC, target)
 }
 
 /// Compiles a given source string to a dynamic non PIC object and saves the output.
@@ -120,11 +123,12 @@ pub fn compile_to_shared_pic_object(
 /// * `target` - an optional llvm target triple
 ///     If not provided, the machine's triple will be used.
 pub fn compile_to_shared_object(
+    file_path: &str,
     source: String,
     output: &str,
     target: Option<String>,
 ) -> Result<(), CompileError> {
-    compile_to_obj(source, output, RelocMode::DynamicNoPic, target)
+    compile_to_obj(file_path, source, output, RelocMode::DynamicNoPic, target)
 }
 
 ///
@@ -134,11 +138,15 @@ pub fn compile_to_shared_object(
 ///
 /// * `source` - the source to be compiled
 /// * `output` - the location on disk to save the output
-pub fn compile_to_bitcode(source: String, output: &str) -> Result<(), CompileError> {
+pub fn compile_to_bitcode(
+    file_path: &str,
+    source: String,
+    output: &str,
+) -> Result<(), CompileError> {
     let path = Path::new(output);
 
     let context = Context::create();
-    let code_generator = compile_module(&context, source)?;
+    let code_generator = compile_module(&context, file_path, source)?;
     code_generator.module.write_bitcode_to_path(path);
     Ok(())
 }
@@ -149,9 +157,9 @@ pub fn compile_to_bitcode(source: String, output: &str) -> Result<(), CompileErr
 /// # Arguments
 ///
 /// * `source` - the source to be compiled
-pub fn compile_to_ir(source: String) -> Result<String, CompileError> {
+pub fn compile_to_ir(file_path: &str, source: String) -> Result<String, CompileError> {
     let context = Context::create();
-    let code_gen = compile_module(&context, source)?;
+    let code_gen = compile_module(&context, file_path, source)?;
     Ok(get_ir(&code_gen))
 }
 
@@ -166,8 +174,12 @@ fn get_ir(codegen: &codegen::CodeGen) -> String {
 ///
 /// * `context` - the LLVM Context to be used for the compilation
 /// * `source` - the source to be compiled
-pub fn compile_module(context: &Context, source: String) -> Result<codegen::CodeGen, CompileError> {
-    let (mut parse_result, _) = parse(source)?;
+pub fn compile_module<'ink, 'file>(
+    context: &'ink Context,
+    file_path: &'file str,
+    source: String,
+) -> Result<codegen::CodeGen<'ink>, CompileError> {
+    let (mut parse_result, _) = parse(file_path, source)?;
     //first pre-process the AST
     ast::pre_process(&mut parse_result);
     //then index the AST
@@ -178,10 +190,13 @@ pub fn compile_module(context: &Context, source: String) -> Result<codegen::Code
     Ok(code_generator)
 }
 
-fn parse(source: String) -> Result<(ast::CompilationUnit, NewLines), CompileError> {
+fn parse(
+    file_path: &str,
+    source: String,
+) -> Result<(ast::CompilationUnit, NewLines), CompileError> {
     //Start lexing
-    let lexer = lexer::lex(&source);
+    let lexer = lexer::lex(file_path, &source);
     //Parse
     //TODO : Parser should also return compile errors with sane locations
-    parser::parse(lexer).map_err(|err| CompileError::codegen_error(err, 0..0))
+    parser::parse(lexer).map_err(|err| CompileError::codegen_error(err, SourceRange::undefined()))
 }

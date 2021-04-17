@@ -3939,7 +3939,7 @@ fn struct_initializer_needs_assignments() {
         Err(CompileError::codegen_error(
             "struct literal must consist of explicit assignments in the form of member := value"
                 .to_string(),
-            185..186
+            (185..186).into()
         ))
     );
     assert_eq!(source[185..186].to_string(), "2".to_string());

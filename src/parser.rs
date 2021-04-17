@@ -194,7 +194,7 @@ fn parse_pou(
         pou_type,
         variable_blocks,
         return_type,
-        location: line_nr..lexer.get_current_line_nr(),
+        location: SourceRange::new(lexer.get_file_path(), line_nr..lexer.get_current_line_nr()),
     };
 
     let implementation = parse_implementation(
@@ -228,7 +228,7 @@ fn parse_implementation(
         linkage,
         pou_type,
         statements,
-        location: start..lexer.get_current_line_nr(),
+        location: SourceRange::new(lexer.get_file_path(), start..lexer.get_current_line_nr()),
     };
     lexer.advance();
 
@@ -553,7 +553,7 @@ fn parse_variable_block(lexer: &mut RustyLexer) -> Result<VariableBlock, String>
 }
 
 fn parse_variable(lexer: &mut RustyLexer) -> Result<Variable, String> {
-    let variable_range = lexer.range();
+    let variable_location = lexer.location();
     let name = slice_and_advance(lexer);
 
     expect!(KeywordColon, lexer);
@@ -565,7 +565,7 @@ fn parse_variable(lexer: &mut RustyLexer) -> Result<Variable, String> {
     Ok(Variable {
         name,
         data_type,
-        location: variable_range,
+        location: variable_location,
         initializer,
     })
 }

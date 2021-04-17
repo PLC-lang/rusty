@@ -1,5 +1,5 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-use crate::compile_error::CompileError;
+use crate::{ast::SourceRange, compile_error::CompileError};
 use inkwell::types::BasicTypeEnum;
 use inkwell::values::{BasicValueEnum, FunctionValue, GlobalValue, PointerValue};
 use std::collections::HashMap;
@@ -99,7 +99,7 @@ impl<'ink> LlvmTypedIndex<'ink> {
         type_name: &str,
     ) -> Result<BasicTypeEnum<'ink>, CompileError> {
         self.find_associated_type(type_name)
-            .ok_or_else(|| CompileError::unknown_type(type_name, 0..0))
+            .ok_or_else(|| CompileError::unknown_type(type_name, SourceRange::undefined()))
     }
 
     pub fn find_associated_initial_value(&self, type_name: &str) -> Option<BasicValueEnum<'ink>> {
