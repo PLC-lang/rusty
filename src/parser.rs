@@ -181,6 +181,7 @@ fn parse_pou(
     while lexer.token == KeywordVar
         || lexer.token == KeywordVarInput
         || lexer.token == KeywordVarOutput
+        || lexer.token == KeywordVarInOut
     {
         let block = parse_variable_block(lexer);
         match block {
@@ -526,6 +527,7 @@ fn parse_variable_block_type(lexer: &mut RustyLexer) -> Result<VariableBlockType
         KeywordVarInput => Ok(VariableBlockType::Input),
         KeywordVarOutput => Ok(VariableBlockType::Output),
         KeywordVarGlobal => Ok(VariableBlockType::Global),
+        KeywordVarInOut => Ok(VariableBlockType::InOut),
         _ => Err(unexpected_token(lexer)),
     };
     lexer.advance();

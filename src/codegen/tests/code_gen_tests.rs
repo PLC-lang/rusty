@@ -1660,6 +1660,7 @@ entry:
   br label %input
 
 input:                                            ; preds = %entry
+  %1 = getelementptr inbounds %foo_interface, %foo_interface* %foo_instance, i32 0, i32 0
   %bar_instance = alloca %bar_interface, align 8
   br label %input1
 
@@ -1685,7 +1686,6 @@ output3:                                          ; preds = %call2
   br label %continue4
 
 continue4:                                        ; preds = %output3
-  %1 = getelementptr inbounds %foo_interface, %foo_interface* %foo_instance, i32 0, i32 0
   store i32 %call5, i32* %1, align 4
   br label %call
 }
@@ -2324,6 +2324,171 @@ call:                                             ; preds = %input
 output:                                           ; preds = %call
   %buz = load i1, i1* getelementptr inbounds (%foo_interface, %foo_interface* @foo_instance, i32 0, i32 1), align 1
   store i1 %buz, i1* %baz, align 1
+  br label %continue
+
+continue:                                         ; preds = %output
+  ret void
+}
+"#;
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn program_with_var_inout_called_in_program() {
+    let result = codegen!(
+        "
+        PROGRAM foo 
+        VAR_IN_OUT
+          inout : DINT;
+        END_VAR
+        inout := inout + 1;
+        END_PROGRAM
+
+        PROGRAM prg 
+        VAR
+            baz : DINT;
+        END_VAR
+          baz := 7;
+          foo(inout := baz);
+        END_PROGRAM
+        "
+    );
+
+    //TODO see if the auto-deref can be integrated into the cast_if_needed
+
+    let expected = r#"; ModuleID = 'main'
+source_filename = "main"
+
+%foo_interface = type { i32* }
+%prg_interface = type { i32 }
+
+@foo_instance = global %foo_interface zeroinitializer
+@prg_instance = global %prg_interface zeroinitializer
+
+define void @foo(%foo_interface* %0) {
+entry:
+  %inout = getelementptr inbounds %foo_interface, %foo_interface* %0, i32 0, i32 0
+  %deref = load i32*, i32** %inout, align 8
+  %deref1 = load i32*, i32** %inout, align 8
+  %load_inout = load i32, i32* %deref1, align 4
+  %tmpVar = add i32 %load_inout, 1
+  store i32 %tmpVar, i32* %deref, align 4
+  ret void
+}
+
+define void @prg(%prg_interface* %0) {
+entry:
+  %baz = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 0
+  store i32 7, i32* %baz, align 4
+  br label %input
+
+input:                                            ; preds = %entry
+  store i32* %baz, i32** getelementptr inbounds (%foo_interface, %foo_interface* @foo_instance, i32 0, i32 0), align 8
+  br label %call
+
+call:                                             ; preds = %input
+  call void @foo(%foo_interface* @foo_instance)
+  br label %output
+
+output:                                           ; preds = %call
+  br label %continue
+
+continue:                                         ; preds = %output
+  ret void
+}
+"#;
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn pass_inout_to_inout() {
+    let result = codegen!(
+        "
+        PROGRAM foo2
+        VAR_IN_OUT
+          inout : DINT;
+        END_VAR
+        VAR_INPUT 
+          in : DINT;
+        END_VAR
+        END_PROGRAM
+
+        PROGRAM foo 
+        VAR_IN_OUT
+          inout : DINT;
+        END_VAR
+        foo2(inout := inout, in := inout);
+        END_PROGRAM
+
+        PROGRAM prg 
+        VAR
+            baz : DINT;
+        END_VAR
+          foo(inout := baz);
+        END_PROGRAM
+        "
+    );
+
+    //TODO see if the auto-deref can be integrated into the cast_if_needed
+
+    let expected = r#"; ModuleID = 'main'
+source_filename = "main"
+
+%foo2_interface = type { i32*, i32 }
+%foo_interface = type { i32* }
+%prg_interface = type { i32 }
+
+@foo2_instance = global %foo2_interface zeroinitializer
+@foo_instance = global %foo_interface zeroinitializer
+@prg_instance = global %prg_interface zeroinitializer
+
+define void @foo2(%foo2_interface* %0) {
+entry:
+  %inout = getelementptr inbounds %foo2_interface, %foo2_interface* %0, i32 0, i32 0
+  %in = getelementptr inbounds %foo2_interface, %foo2_interface* %0, i32 0, i32 1
+  ret void
+}
+
+define void @foo(%foo_interface* %0) {
+entry:
+  %inout = getelementptr inbounds %foo_interface, %foo_interface* %0, i32 0, i32 0
+  br label %input
+
+input:                                            ; preds = %entry
+  %deref = load i32*, i32** %inout, align 8
+  store i32* %deref, i32** getelementptr inbounds (%foo2_interface, %foo2_interface* @foo2_instance, i32 0, i32 0), align 8
+  %deref1 = load i32*, i32** %inout, align 8
+  %load_inout = load i32, i32* %deref1, align 4
+  store i32 %load_inout, i32* getelementptr inbounds (%foo2_interface, %foo2_interface* @foo2_instance, i32 0, i32 1), align 4
+  br label %call
+
+call:                                             ; preds = %input
+  call void @foo2(%foo2_interface* @foo2_instance)
+  br label %output
+
+output:                                           ; preds = %call
+  br label %continue
+
+continue:                                         ; preds = %output
+  ret void
+}
+
+define void @prg(%prg_interface* %0) {
+entry:
+  %baz = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 0
+  br label %input
+
+input:                                            ; preds = %entry
+  store i32* %baz, i32** getelementptr inbounds (%foo_interface, %foo_interface* @foo_instance, i32 0, i32 0), align 8
+  br label %call
+
+call:                                             ; preds = %input
+  call void @foo(%foo_interface* @foo_instance)
+  br label %output
+
+output:                                           ; preds = %call
   br label %continue
 
 continue:                                         ; preds = %output

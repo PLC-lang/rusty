@@ -130,7 +130,7 @@ fn action_tokens() {
 
 #[test]
 fn var_tokens() {
-    let mut lexer = lex("VAR VAR_INPUT VAR_OUTPUT VAR_GLOBAL END_VAR");
+    let mut lexer = lex("VAR VAR_INPUT VAR_OUTPUT VAR_GLOBAL VAR_IN_OUT END_VAR");
     assert_eq!(lexer.token, KeywordVar);
     lexer.advance();
     assert_eq!(lexer.token, KeywordVarInput);
@@ -138,6 +138,8 @@ fn var_tokens() {
     assert_eq!(lexer.token, KeywordVarOutput);
     lexer.advance();
     assert_eq!(lexer.token, KeywordVarGlobal);
+    lexer.advance();
+    assert_eq!(lexer.token, KeywordVarInOut);
     lexer.advance();
     assert_eq!(lexer.token, KeywordEndVar);
 }
