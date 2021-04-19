@@ -184,6 +184,10 @@
 <span id="181">181</span>
 <span id="182">182</span>
 <span id="183">183</span>
+<span id="184">184</span>
+<span id="185">185</span>
+<span id="186">186</span>
+<span id="187">187</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 <span class="doccomment">//! A Structured Text LLVM Frontent</span>
@@ -274,7 +278,11 @@
 <span class="doccomment">/// * `output` - the location on disk to save the output</span>
 <span class="doccomment">/// * `target` - an optional llvm target triple</span>
 <span class="doccomment">///     If not provided, the machine&#39;s triple will be used.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">compile_to_static_obj</span>(<span class="ident">source</span>: <span class="ident">String</span>, <span class="ident">output</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">target</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">CompileError</span><span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">compile_to_static_obj</span>(
+    <span class="ident">source</span>: <span class="ident">String</span>,
+    <span class="ident">output</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
+    <span class="ident">target</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
+) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">CompileError</span><span class="op">&gt;</span> {
     <span class="ident">compile_to_obj</span>(<span class="ident">source</span>, <span class="ident">output</span>, <span class="ident">RelocMode</span>::<span class="ident">Default</span>, <span class="ident">target</span>)
 }
 

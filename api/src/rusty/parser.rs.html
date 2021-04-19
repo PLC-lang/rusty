@@ -570,6 +570,8 @@
 <span id="567">567</span>
 <span id="568">568</span>
 <span id="569">569</span>
+<span id="570">570</span>
+<span id="571">571</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">ast</span>::<span class="ident">Implementation</span>;
@@ -754,6 +756,7 @@
     <span class="kw">while</span> <span class="ident">lexer</span>.<span class="ident">token</span> <span class="op">=</span><span class="op">=</span> <span class="ident">KeywordVar</span>
         <span class="op">|</span><span class="op">|</span> <span class="ident">lexer</span>.<span class="ident">token</span> <span class="op">=</span><span class="op">=</span> <span class="ident">KeywordVarInput</span>
         <span class="op">|</span><span class="op">|</span> <span class="ident">lexer</span>.<span class="ident">token</span> <span class="op">=</span><span class="op">=</span> <span class="ident">KeywordVarOutput</span>
+        <span class="op">|</span><span class="op">|</span> <span class="ident">lexer</span>.<span class="ident">token</span> <span class="op">=</span><span class="op">=</span> <span class="ident">KeywordVarInOut</span>
     {
         <span class="kw">let</span> <span class="ident">block</span> <span class="op">=</span> <span class="ident">parse_variable_block</span>(<span class="ident">lexer</span>);
         <span class="kw">match</span> <span class="ident">block</span> {
@@ -1099,6 +1102,7 @@
         <span class="ident">KeywordVarInput</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">VariableBlockType</span>::<span class="ident">Input</span>),
         <span class="ident">KeywordVarOutput</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">VariableBlockType</span>::<span class="ident">Output</span>),
         <span class="ident">KeywordVarGlobal</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">VariableBlockType</span>::<span class="ident">Global</span>),
+        <span class="ident">KeywordVarInOut</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">VariableBlockType</span>::<span class="ident">InOut</span>),
         <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">unexpected_token</span>(<span class="ident">lexer</span>)),
     };
     <span class="ident">lexer</span>.<span class="ident">advance</span>();

@@ -1332,6 +1332,50 @@
 <span id="1329">1329</span>
 <span id="1330">1330</span>
 <span id="1331">1331</span>
+<span id="1332">1332</span>
+<span id="1333">1333</span>
+<span id="1334">1334</span>
+<span id="1335">1335</span>
+<span id="1336">1336</span>
+<span id="1337">1337</span>
+<span id="1338">1338</span>
+<span id="1339">1339</span>
+<span id="1340">1340</span>
+<span id="1341">1341</span>
+<span id="1342">1342</span>
+<span id="1343">1343</span>
+<span id="1344">1344</span>
+<span id="1345">1345</span>
+<span id="1346">1346</span>
+<span id="1347">1347</span>
+<span id="1348">1348</span>
+<span id="1349">1349</span>
+<span id="1350">1350</span>
+<span id="1351">1351</span>
+<span id="1352">1352</span>
+<span id="1353">1353</span>
+<span id="1354">1354</span>
+<span id="1355">1355</span>
+<span id="1356">1356</span>
+<span id="1357">1357</span>
+<span id="1358">1358</span>
+<span id="1359">1359</span>
+<span id="1360">1360</span>
+<span id="1361">1361</span>
+<span id="1362">1362</span>
+<span id="1363">1363</span>
+<span id="1364">1364</span>
+<span id="1365">1365</span>
+<span id="1366">1366</span>
+<span id="1367">1367</span>
+<span id="1368">1368</span>
+<span id="1369">1369</span>
+<span id="1370">1370</span>
+<span id="1371">1371</span>
+<span id="1372">1372</span>
+<span id="1373">1373</span>
+<span id="1374">1374</span>
+<span id="1375">1375</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">index</span>::<span class="ident">Index</span>;
@@ -1478,15 +1522,15 @@
                     <span class="string">&quot;{}{}{}&quot;</span>,
                     <span class="self">self</span>.<span class="ident">temp_variable_prefix</span>, <span class="ident">name</span>, <span class="self">self</span>.<span class="ident">temp_variable_suffix</span>
                 );
-                <span class="kw">let</span> <span class="ident">l_value</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">generate_load_for</span>(<span class="ident">expression</span>)<span class="question-mark">?</span>;
+                <span class="kw">let</span> <span class="ident">l_value</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">generate_element_pointer</span>(<span class="ident">expression</span>)<span class="question-mark">?</span>;
                 <span class="prelude-val">Ok</span>(<span class="self">self</span>.<span class="ident">llvm</span>.<span class="ident">load_pointer</span>(<span class="kw-2">&amp;</span><span class="ident">l_value</span>, <span class="ident">load_name</span>.<span class="ident">as_str</span>()))
             }
             <span class="ident">Statement</span>::<span class="ident">QualifiedReference</span> { .. } <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="kw">let</span> <span class="ident">l_value</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">generate_load_for</span>(<span class="ident">expression</span>)<span class="question-mark">?</span>;
+                <span class="kw">let</span> <span class="ident">l_value</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">generate_element_pointer</span>(<span class="ident">expression</span>)<span class="question-mark">?</span>;
                 <span class="prelude-val">Ok</span>(<span class="self">self</span>.<span class="ident">llvm</span>.<span class="ident">load_pointer</span>(<span class="kw-2">&amp;</span><span class="ident">l_value</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">temp_variable_prefix</span>))
             }
             <span class="ident">Statement</span>::<span class="ident">ArrayAccess</span> { .. } <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="kw">let</span> <span class="ident">l_value</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">generate_load_for</span>(<span class="ident">expression</span>)<span class="question-mark">?</span>;
+                <span class="kw">let</span> <span class="ident">l_value</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">generate_element_pointer</span>(<span class="ident">expression</span>)<span class="question-mark">?</span>;
                 <span class="prelude-val">Ok</span>(<span class="self">self</span>.<span class="ident">llvm</span>.<span class="ident">load_pointer</span>(<span class="kw-2">&amp;</span><span class="ident">l_value</span>, <span class="string">&quot;load_tmpVar&quot;</span>))
             }
             <span class="ident">Statement</span>::<span class="ident">BinaryExpression</span> {
@@ -1640,7 +1684,7 @@
                 <span class="prelude-val">Ok</span>((<span class="ident">callable_reference</span>, <span class="ident">implementation</span>))
             }
             <span class="ident">Statement</span>::<span class="ident">QualifiedReference</span> { .. } <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="kw">let</span> <span class="ident">loaded_value</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">generate_load_for</span>(<span class="ident">operator</span>);
+                <span class="kw">let</span> <span class="ident">loaded_value</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">generate_element_pointer_for_rec</span>(<span class="prelude-val">None</span>, <span class="ident">operator</span>);
                 <span class="ident">loaded_value</span>.<span class="ident">map</span>(
                     <span class="op">|</span><span class="ident">TypeAndPointer</span> {
                          <span class="ident">type_entry</span>,
@@ -1750,7 +1794,7 @@
     <span class="doccomment">/// the call parameters are passed to the function using a struct-instance with all the parameters</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// - `function_name` the name of the function we&#39;re calling</span>
-    <span class="doccomment">/// - `parameter_struct&#39; a pointer to a struct-instance that holds all function-parameters</span>
+    <span class="doccomment">/// - `parameter_struct` a pointer to a struct-instance that holds all function-parameters</span>
     <span class="doccomment">/// - `input_block` the block to generate the input-assignments into</span>
     <span class="doccomment">/// - `output_block` the block to generate the output-assignments into</span>
     <span class="kw">fn</span> <span class="ident">generate_function_parameters</span>(
@@ -1861,7 +1905,7 @@
                         .<span class="ident">build_struct_gep</span>(<span class="ident">parameter_struct</span>, <span class="ident">index</span> <span class="kw">as</span> <span class="ident">u32</span>, <span class="string">&quot;&quot;</span>)
                         .<span class="ident">unwrap</span>();
 
-                    <span class="kw">let</span> <span class="ident">l_value</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">generate_load_for</span>(<span class="ident">right</span>).<span class="ident">unwrap</span>();
+                    <span class="kw">let</span> <span class="ident">l_value</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">generate_element_pointer_for_rec</span>(<span class="prelude-val">None</span>, <span class="ident">right</span>)<span class="question-mark">?</span>;
                     <span class="kw">let</span> <span class="ident">loaded_value</span> <span class="op">=</span> <span class="ident">builder</span>.<span class="ident">build_load</span>(<span class="ident">pointer_to_param</span>, <span class="ident">parameter</span>.<span class="ident">get_name</span>());
                     <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">cast_if_needed</span>(
                         <span class="self">self</span>.<span class="ident">llvm</span>,
@@ -1877,7 +1921,6 @@
             }
             <span class="comment">// foo(x)</span>
             <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="kw">let</span> (<span class="ident">value_type</span>, <span class="ident">generated_exp</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">generate_expression</span>(<span class="ident">assignment_statement</span>)<span class="question-mark">?</span>;
                 <span class="kw">let</span> <span class="ident">pointer_to_param</span> <span class="op">=</span> <span class="ident">builder</span>
                     .<span class="ident">build_struct_gep</span>(<span class="ident">parameter_struct</span>, <span class="ident">index</span> <span class="kw">as</span> <span class="ident">u32</span>, <span class="string">&quot;&quot;</span>)
                     .<span class="ident">unwrap</span>();
@@ -1889,6 +1932,27 @@
                     })
                     .<span class="ident">map</span>(<span class="op">|</span><span class="ident">var</span><span class="op">|</span> <span class="ident">var</span>.<span class="ident">get_type_information</span>())
                     .<span class="ident">unwrap</span>();
+
+                <span class="kw">let</span> (<span class="ident">value_type</span>, <span class="ident">generated_exp</span>) <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="ident">DataTypeInformation</span>::<span class="ident">Pointer</span> {
+                    <span class="ident">auto_deref</span>: <span class="bool-val">true</span>,
+                    ..
+                } <span class="op">=</span> <span class="ident">parameter</span>
+                {
+                    <span class="comment">//this is VAR_IN_OUT assignemt, so don&#39;t load the value, assign the pointer</span>
+                    <span class="self">self</span>.<span class="ident">generate_element_pointer_for_rec</span>(<span class="prelude-val">None</span>, <span class="ident">assignment_statement</span>)
+                        <span class="comment">//get a pointer for that variable</span>
+                        .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">tp</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">auto_deref_if_necessary</span>(<span class="ident">tp</span>.<span class="ident">type_entry</span>, <span class="ident">tp</span>.<span class="ident">ptr_value</span>))
+                        <span class="comment">// auto-deref, if it is a var_in_out itself</span>
+                        .<span class="ident">map</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> {
+                            (
+                                <span class="ident">v</span>.<span class="ident">type_entry</span>.<span class="ident">get_type_information</span>().<span class="ident">clone</span>(),
+                                <span class="ident">v</span>.<span class="ident">ptr_value</span>.<span class="ident">as_basic_value_enum</span>(),
+                            )
+                        })<span class="question-mark">?</span>
+                } <span class="kw">else</span> {
+                    <span class="self">self</span>.<span class="ident">generate_expression</span>(<span class="ident">assignment_statement</span>)<span class="question-mark">?</span>
+                };
+
                 <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">cast_if_needed</span>(
                     <span class="self">self</span>.<span class="ident">llvm</span>,
                     <span class="self">self</span>.<span class="ident">index</span>,
@@ -1903,31 +1967,34 @@
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="doccomment">/// generates an load-statement and returns the resulting pointer and DataTypeInfo</span>
+    <span class="doccomment">/// generates an gep-statement and returns the resulting pointer and DataTypeInfo</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// - `reference_statement` - the statement to load (either a reference, an arrayAccess or a qualifiedReference)</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">generate_load</span>(
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">generate_element_pointer</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">reference_statement</span>: <span class="kw-2">&amp;</span><span class="ident">Statement</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">TypeAndPointer</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;_</span><span class="op">&gt;</span>, <span class="ident">CompileError</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> <span class="ident">reference_statement</span> {
+        <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">reference_statement</span> {
             <span class="ident">Statement</span>::<span class="ident">Reference</span> { <span class="ident">name</span>, .. } <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="self">self</span>.<span class="ident">create_llvm_pointer_value_for_reference</span>(<span class="prelude-val">None</span>, <span class="ident">name</span>, <span class="ident">reference_statement</span>)
             }
 
             <span class="ident">Statement</span>::<span class="ident">ArrayAccess</span> { <span class="ident">reference</span>, <span class="ident">access</span> } <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="self">self</span>.<span class="ident">generate_load_for_array</span>(<span class="prelude-val">None</span>, <span class="ident">reference</span>, <span class="ident">access</span>)
-                <span class="comment">//self.generate_reference_from_value((Some(value.type_information), Some(value.ptr_value)),&quot;tmpVar&quot;)</span>
+                <span class="self">self</span>.<span class="ident">generate_element_pointer_for_array</span>(<span class="prelude-val">None</span>, <span class="ident">reference</span>, <span class="ident">access</span>)
             }
-            <span class="ident">Statement</span>::<span class="ident">QualifiedReference</span> { .. } <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">generate_load_for</span>(<span class="ident">reference_statement</span>),
+            <span class="ident">Statement</span>::<span class="ident">QualifiedReference</span> { .. } <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="self">self</span>.<span class="ident">generate_element_pointer_for_rec</span>(<span class="prelude-val">None</span>, <span class="ident">reference_statement</span>)
+            }
             <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">CompileError</span>::<span class="ident">codegen_error</span>(
                 <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Cannot generate a LValue for {:?}&quot;</span>, <span class="ident">reference_statement</span>),
                 <span class="ident">reference_statement</span>.<span class="ident">get_location</span>(),
             )),
-        }
+        };
+
+        <span class="ident">result</span>.<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">it</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">auto_deref_if_necessary</span>(<span class="ident">it</span>.<span class="ident">type_entry</span>, <span class="ident">it</span>.<span class="ident">ptr_value</span>))
     }
 
-    <span class="doccomment">/// loads the given reference with an optional qualifier</span>
+    <span class="doccomment">/// geneartes a gep for the given reference with an optional qualifier</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// - `qualifier` an optional qualifier for a reference (e.g. myStruct.x where myStruct is the qualifier for x)</span>
     <span class="doccomment">/// - `name` the name of the reference-name (e.g. myStruct.x where &#39;x&#39; is the reference-name)</span>
@@ -1955,7 +2022,7 @@
 
             <span class="comment">//.unwrap();</span>
             <span class="kw">let</span> <span class="ident">member_data_type</span> <span class="op">=</span> <span class="ident">member</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">it</span><span class="op">|</span> <span class="ident">it</span>.<span class="ident">get_type_name</span>()).<span class="ident">unwrap</span>();
-            <span class="kw">let</span> <span class="ident">member_type_entry</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">index</span>.<span class="ident">get_type</span>(<span class="ident">member_data_type</span>)<span class="question-mark">?</span>;
+            <span class="kw">let</span> <span class="ident">member_type</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">index</span>.<span class="ident">get_type</span>(<span class="ident">member_data_type</span>)<span class="question-mark">?</span>;
             <span class="kw">let</span> <span class="ident">gep</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">llvm</span>.<span class="ident">get_member_pointer_from_struct</span>(
                 <span class="ident">l_value</span>.<span class="ident">ptr_value</span>,
                 <span class="ident">member_location</span>,
@@ -1963,7 +2030,7 @@
                 <span class="ident">offset</span>,
             )<span class="question-mark">?</span>;
 
-            <span class="ident">TypeAndPointer</span>::<span class="ident">new</span>(<span class="ident">member_type_entry</span>, <span class="ident">gep</span>)
+            <span class="ident">TypeAndPointer</span>::<span class="ident">new</span>(<span class="ident">member_type</span>, <span class="ident">gep</span>)
         } <span class="kw">else</span> {
             <span class="comment">//no context</span>
 
@@ -1989,12 +2056,43 @@
                     )
                 })<span class="question-mark">?</span>;
 
-            <span class="kw">let</span> <span class="ident">variable_type</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">index</span>.<span class="ident">get_type</span>(<span class="ident">variable_index_entry</span>.<span class="ident">get_type_name</span>())<span class="question-mark">?</span>;
+            <span class="kw">let</span> <span class="ident">type_name</span> <span class="op">=</span> <span class="ident">variable_index_entry</span>.<span class="ident">get_type_name</span>();
+            <span class="kw">let</span> <span class="ident">variable_type</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">index</span>.<span class="ident">get_type</span>(<span class="ident">type_name</span>)<span class="question-mark">?</span>;
 
             <span class="ident">TypeAndPointer</span>::<span class="ident">new</span>(<span class="ident">variable_type</span>, <span class="ident">accessor_ptr</span>)
+            <span class="comment">//self.auto_deref_if_necessary(variable_type, accessor_ptr)?</span>
         };
 
         <span class="prelude-val">Ok</span>(<span class="ident">l_value</span>)
+    }
+
+    <span class="doccomment">/// automatically derefs an inout variable pointer so it can be used like a normal variable</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// # Arguments</span>
+    <span class="doccomment">/// - `variable_type` the reference&#39;s data type, this type will be used to determine if this variable needs to be auto-derefeferenced (var_in_out)</span>
+    <span class="doccomment">/// - `access_ptr` the original pointer value loaded for the reference. will be returned if no auto-deref is necessary</span>
+    <span class="kw">fn</span> <span class="ident">auto_deref_if_necessary</span>(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        <span class="ident">variable_type</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="ident">DataType</span>,
+        <span class="ident">accessor_ptr</span>: <span class="ident">PointerValue</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">TypeAndPointer</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span><span class="op">&gt;</span>, <span class="ident">CompileError</span><span class="op">&gt;</span> {
+        <span class="prelude-val">Ok</span>(
+            <span class="kw">if</span> <span class="kw">let</span> <span class="ident">DataTypeInformation</span>::<span class="ident">Pointer</span> {
+                <span class="ident">auto_deref</span>: <span class="bool-val">true</span>,
+                <span class="ident">inner_type_name</span>,
+                ..
+            } <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">variable_type</span>.<span class="ident">information</span>
+            {
+                <span class="comment">// auto_deref the pointer</span>
+                <span class="kw">let</span> (<span class="kw">_</span>, <span class="ident">value</span>) <span class="op">=</span> <span class="self">self</span>
+                    .<span class="ident">llvm</span>
+                    .<span class="ident">load_pointer</span>(<span class="kw-2">&amp;</span><span class="ident">TypeAndPointer</span>::<span class="ident">new</span>(<span class="ident">variable_type</span>, <span class="ident">accessor_ptr</span>), <span class="string">&quot;deref&quot;</span>);
+                <span class="kw">let</span> <span class="ident">inner_type</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">index</span>.<span class="ident">get_type</span>(<span class="kw-2">&amp;</span><span class="ident">inner_type_name</span>)<span class="question-mark">?</span>;
+                <span class="ident">TypeAndPointer</span>::<span class="ident">new</span>(<span class="ident">inner_type</span>, <span class="ident">value</span>.<span class="ident">into_pointer_value</span>())
+            } <span class="kw">else</span> {
+                <span class="ident">TypeAndPointer</span>::<span class="ident">new</span>(<span class="ident">variable_type</span>, <span class="ident">accessor_ptr</span>)
+            },
+        )
     }
 
     <span class="doccomment">/// generates the access-expression for an array-reference</span>
@@ -2021,19 +2119,19 @@
         }
     }
 
-    <span class="doccomment">/// generates a load statement for a array-reference with an optional qualifier</span>
+    <span class="doccomment">/// generates a gep statement for a array-reference with an optional qualifier</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// - `qualifier` an optional qualifier for a reference (e.g. myStruct.x[2] where myStruct is the qualifier for x)</span>
     <span class="doccomment">/// - `reference` the reference-statement pointing to the array</span>
     <span class="doccomment">/// - `access` the accessor expression (the expression between the brackets: reference[access])</span>
-    <span class="kw">fn</span> <span class="ident">generate_load_for_array</span>(
+    <span class="kw">fn</span> <span class="ident">generate_element_pointer_for_array</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">qualifier</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">TypeAndPointer</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;_</span><span class="op">&gt;</span><span class="op">&gt;</span>,
         <span class="ident">reference</span>: <span class="kw-2">&amp;</span><span class="ident">Statement</span>,
         <span class="ident">access</span>: <span class="kw-2">&amp;</span><span class="ident">Statement</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">TypeAndPointer</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;_</span><span class="op">&gt;</span>, <span class="ident">CompileError</span><span class="op">&gt;</span> {
         <span class="comment">//Load the reference</span>
-        <span class="self">self</span>.<span class="ident">generate_load_for_rec</span>(<span class="ident">qualifier</span>, <span class="ident">reference</span>)
+        <span class="self">self</span>.<span class="ident">generate_element_pointer_for_rec</span>(<span class="ident">qualifier</span>, <span class="ident">reference</span>)
             .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">lvalue</span><span class="op">|</span> {
                 <span class="kw">if</span> <span class="kw">let</span> <span class="ident">DataTypeInformation</span>::<span class="ident">Array</span> {
                     <span class="ident">inner_type_name</span>,
@@ -2074,21 +2172,11 @@
             })
     }
 
-    <span class="doccomment">/// generate a load statement for the given referenc-statement</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// - `reference` the reference-statement (either Reference, AccessRefeference or QualifiedReference)</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">generate_load_for</span>(
-        <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">reference</span>: <span class="kw-2">&amp;</span><span class="ident">Statement</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">TypeAndPointer</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;_</span><span class="op">&gt;</span>, <span class="ident">CompileError</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">generate_load_for_rec</span>(<span class="prelude-val">None</span>, <span class="ident">reference</span>)
-    }
-
     <span class="doccomment">/// the entry function for recursive reference-generation (for qualified references)</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// - `qualifier` the qualifier (TypeAndPointer) for the given reference-statement</span>
     <span class="doccomment">/// - `reference` the reference to load</span>
-    <span class="kw">fn</span> <span class="ident">generate_load_for_rec</span>(
+    <span class="kw">fn</span> <span class="ident">generate_element_pointer_for_rec</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">qualifier</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">TypeAndPointer</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;_</span><span class="op">&gt;</span><span class="op">&gt;</span>,
         <span class="ident">reference</span>: <span class="kw-2">&amp;</span><span class="ident">Statement</span>,
@@ -2098,14 +2186,14 @@
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">element_iter</span> <span class="op">=</span> <span class="ident">elements</span>.<span class="ident">iter</span>();
                 <span class="kw">let</span> <span class="ident">current_element</span> <span class="op">=</span> <span class="ident">element_iter</span>.<span class="ident">next</span>();
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">current_lvalue</span> <span class="op">=</span>
-                    <span class="self">self</span>.<span class="ident">generate_load_for_rec</span>(<span class="ident">qualifier</span>, <span class="kw-2">&amp;</span><span class="ident">current_element</span>.<span class="ident">unwrap</span>());
+                    <span class="self">self</span>.<span class="ident">generate_element_pointer_for_rec</span>(<span class="ident">qualifier</span>, <span class="kw-2">&amp;</span><span class="ident">current_element</span>.<span class="ident">unwrap</span>());
 
                 <span class="kw">for</span> <span class="ident">it</span> <span class="kw">in</span> <span class="ident">element_iter</span> {
                     <span class="kw">let</span> <span class="ident">ctx</span> <span class="op">=</span> <span class="ident">current_lvalue</span><span class="question-mark">?</span>;
                     <span class="kw">let</span> <span class="ident">context_ptr</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">ptr_value</span>;
                     <span class="kw">let</span> <span class="ident">type_information</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">type_entry</span>;
 
-                    <span class="ident">current_lvalue</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">generate_load_for_rec</span>(
+                    <span class="ident">current_lvalue</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">generate_element_pointer_for_rec</span>(
                         <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="ident">TypeAndPointer</span>::<span class="ident">new</span>(<span class="ident">type_information</span>, <span class="ident">context_ptr</span>)),
                         <span class="ident">it</span>,
                     );
@@ -2129,7 +2217,7 @@
                 <span class="self">self</span>.<span class="ident">create_llvm_pointer_value_for_reference</span>(<span class="ident">qualifier</span>, <span class="ident">name</span>, <span class="ident">reference</span>)
             }
             <span class="ident">Statement</span>::<span class="ident">ArrayAccess</span> { <span class="ident">reference</span>, <span class="ident">access</span> } <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="self">self</span>.<span class="ident">generate_load_for_array</span>(<span class="ident">qualifier</span>, <span class="ident">reference</span>, <span class="ident">access</span>)
+                <span class="self">self</span>.<span class="ident">generate_element_pointer_for_array</span>(<span class="ident">qualifier</span>, <span class="ident">reference</span>, <span class="ident">access</span>)
             }
             <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">CompileError</span>::<span class="ident">codegen_error</span>(
                 <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Unsupported Statement {:?}&quot;</span>, <span class="ident">reference</span>),

@@ -322,6 +322,13 @@
 <span id="319">319</span>
 <span id="320">320</span>
 <span id="321">321</span>
+<span id="322">322</span>
+<span id="323">323</span>
+<span id="324">324</span>
+<span id="325">325</span>
+<span id="326">326</span>
+<span id="327">327</span>
+<span id="328">328</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">ops</span>::<span class="ident">Range</span>;
@@ -370,6 +377,11 @@
         <span class="ident">inner_type_name</span>: <span class="ident">String</span>,
         <span class="ident">dimensions</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Dimension</span><span class="op">&gt;</span>,
     },
+    <span class="ident">Pointer</span> {
+        <span class="ident">name</span>: <span class="ident">String</span>,
+        <span class="ident">inner_type_name</span>: <span class="ident">String</span>,
+        <span class="ident">auto_deref</span>: <span class="ident">bool</span>,
+    },
     <span class="ident">Integer</span> {
         <span class="ident">name</span>: <span class="ident">String</span>,
         <span class="ident">signed</span>: <span class="ident">bool</span>,
@@ -399,6 +411,7 @@
         <span class="kw">match</span> <span class="self">self</span> {
             <span class="ident">DataTypeInformation</span>::<span class="ident">Struct</span> { <span class="ident">name</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">name</span>,
             <span class="ident">DataTypeInformation</span>::<span class="ident">Array</span> { <span class="ident">name</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">name</span>,
+            <span class="ident">DataTypeInformation</span>::<span class="ident">Pointer</span> { <span class="ident">name</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">name</span>,
             <span class="ident">DataTypeInformation</span>::<span class="ident">Integer</span> { <span class="ident">name</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">name</span>,
             <span class="ident">DataTypeInformation</span>::<span class="ident">Float</span> { <span class="ident">name</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">name</span>,
             <span class="ident">DataTypeInformation</span>::<span class="ident">String</span> { .. } <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;String&quot;</span>,
@@ -430,6 +443,7 @@
             <span class="ident">DataTypeInformation</span>::<span class="ident">String</span> { <span class="ident">size</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="ident">size</span>,
             <span class="ident">DataTypeInformation</span>::<span class="ident">Struct</span> { .. } <span class="op">=</span><span class="op">&gt;</span> <span class="number">0</span>, <span class="comment">//TODO : Should we fill in the struct members here for size calculation or save the struct size.</span>
             <span class="ident">DataTypeInformation</span>::<span class="ident">Array</span> { .. } <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unimplemented</span><span class="macro">!</span>(), <span class="comment">//Propably length * inner type size</span>
+            <span class="ident">DataTypeInformation</span>::<span class="ident">Pointer</span> { .. } <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unimplemented</span><span class="macro">!</span>(),
             <span class="ident">DataTypeInformation</span>::<span class="ident">SubRange</span> { .. } <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unimplemented</span><span class="macro">!</span>(),
             <span class="ident">DataTypeInformation</span>::<span class="ident">Alias</span> { .. } <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unimplemented</span><span class="macro">!</span>(),
             <span class="ident">DataTypeInformation</span>::<span class="ident">Void</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">0</span>,

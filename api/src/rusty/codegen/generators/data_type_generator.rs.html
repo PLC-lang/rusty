@@ -291,6 +291,20 @@
 <span id="288">288</span>
 <span id="289">289</span>
 <span id="290">290</span>
+<span id="291">291</span>
+<span id="292">292</span>
+<span id="293">293</span>
+<span id="294">294</span>
+<span id="295">295</span>
+<span id="296">296</span>
+<span id="297">297</span>
+<span id="298">298</span>
+<span id="299">299</span>
+<span id="300">300</span>
+<span id="301">301</span>
+<span id="302">302</span>
+<span id="303">303</span>
+<span id="304">304</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 
@@ -314,8 +328,9 @@
     <span class="ident">typesystem</span>::<span class="ident">DataType</span>,
 };
 <span class="kw">use</span> <span class="ident">inkwell</span>::{
-    <span class="ident">types</span>::{<span class="ident">ArrayType</span>, <span class="ident">BasicTypeEnum</span>},
+    <span class="ident">types</span>::{<span class="ident">ArrayType</span>, <span class="ident">BasicType</span>, <span class="ident">BasicTypeEnum</span>},
     <span class="ident">values</span>::<span class="ident">BasicValueEnum</span>,
+    <span class="ident">AddressSpace</span>,
 };
 
 <span class="kw">use</span> <span class="kw">super</span>::{
@@ -451,6 +466,18 @@
         }
         <span class="comment">// REVIEW: Void types are not basic type enums, so we return an int here</span>
         <span class="ident">DataTypeInformation</span>::<span class="ident">Void</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">get_llvm_int_type</span>(<span class="ident">llvm</span>.<span class="ident">context</span>, <span class="number">32</span>, <span class="string">&quot;Void&quot;</span>).<span class="ident">map</span>(<span class="ident">Into</span>::<span class="ident">into</span>),
+        <span class="ident">DataTypeInformation</span>::<span class="ident">Pointer</span> {
+            <span class="ident">inner_type_name</span>, ..
+        } <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="kw">let</span> <span class="ident">inner_type</span> <span class="op">=</span> <span class="ident">create_type</span>(
+                <span class="ident">llvm</span>,
+                <span class="ident">index</span>,
+                <span class="ident">types_index</span>,
+                <span class="ident">inner_type_name</span>,
+                <span class="ident">index</span>.<span class="ident">get_type</span>(<span class="ident">inner_type_name</span>)<span class="question-mark">?</span>,
+            )<span class="question-mark">?</span>;
+            <span class="prelude-val">Ok</span>(<span class="ident">inner_type</span>.<span class="ident">ptr_type</span>(<span class="ident">AddressSpace</span>::<span class="ident">Generic</span>).<span class="ident">into</span>())
+        }
     }
 }
 
@@ -493,6 +520,7 @@
         } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">register_aliased_initial_value</span>(<span class="ident">index</span>, <span class="ident">types_index</span>, <span class="ident">llvm</span>, <span class="ident">data_type</span>, <span class="ident">referenced_type</span>),
         <span class="comment">// Void types are not basic type enums, so we return an int here</span>
         <span class="ident">DataTypeInformation</span>::<span class="ident">Void</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>, <span class="comment">//get_llvm_int_type(llvm.context, 32, &quot;Void&quot;).map(Into::into),</span>
+        <span class="ident">DataTypeInformation</span>::<span class="ident">Pointer</span> { .. } <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
     }
 }
 
