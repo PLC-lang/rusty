@@ -344,6 +344,7 @@
 <span id="341">341</span>
 <span id="342">342</span>
 <span id="343">343</span>
+<span id="344">344</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 <span class="kw">use</span> <span class="ident">inkwell</span>::{
@@ -354,6 +355,7 @@
 };
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
+    <span class="ident">ast</span>::<span class="ident">SourceRange</span>,
     <span class="ident">ast</span>::<span class="ident">Statement</span>,
     <span class="ident">compile_error</span>::<span class="ident">CompileError</span>,
     <span class="ident">index</span>::<span class="ident">Index</span>,
@@ -508,13 +510,13 @@
     <span class="kw">let</span> <span class="ident">target_type</span> <span class="op">=</span> <span class="ident">index</span>.<span class="ident">find_effective_type</span>(<span class="ident">target_type</span>).<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
         <span class="ident">CompileError</span>::<span class="ident">codegen_error</span>(
             <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Could not find primitive type for {:?}&quot;</span>, <span class="ident">target_type</span>),
-            <span class="number">0</span>..<span class="number">0</span>,
+            <span class="ident">SourceRange</span>::<span class="ident">undefined</span>(),
         )
     })<span class="question-mark">?</span>;
     <span class="kw">let</span> <span class="ident">value_type</span> <span class="op">=</span> <span class="ident">index</span>.<span class="ident">find_effective_type</span>(<span class="ident">value_type</span>).<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
         <span class="ident">CompileError</span>::<span class="ident">codegen_error</span>(
             <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Could not find primitive type for {:?}&quot;</span>, <span class="ident">value_type</span>),
-            <span class="number">0</span>..<span class="number">0</span>,
+            <span class="ident">SourceRange</span>::<span class="ident">undefined</span>(),
         )
     })<span class="question-mark">?</span>;
     <span class="kw">match</span> <span class="ident">target_type</span> {
@@ -669,7 +671,7 @@
         <span class="number">128</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">context</span>.<span class="ident">i128_type</span>()),
         <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">CompileError</span>::<span class="ident">codegen_error</span>(
             <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Invalid size for type : &#39;{}&#39; at {}&quot;</span>, <span class="ident">name</span>, <span class="ident">size</span>),
-            <span class="number">0</span>..<span class="number">0</span>,
+            <span class="ident">SourceRange</span>::<span class="ident">undefined</span>(),
         )),
     }
 }
@@ -684,7 +686,7 @@
         <span class="number">64</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">context</span>.<span class="ident">f64_type</span>()),
         <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">CompileError</span>::<span class="ident">codegen_error</span>(
             <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Invalid size for type : &#39;{}&#39; at {}&quot;</span>, <span class="ident">name</span>, <span class="ident">size</span>),
-            <span class="number">0</span>..<span class="number">0</span>,
+            <span class="ident">SourceRange</span>::<span class="ident">undefined</span>(),
         )),
     }
 }

@@ -1376,9 +1376,11 @@
 <span id="1373">1373</span>
 <span id="1374">1374</span>
 <span id="1375">1375</span>
+<span id="1376">1376</span>
+<span id="1377">1377</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">index</span>::<span class="ident">Index</span>;
+<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">ast</span>::<span class="ident">SourceRange</span>, <span class="ident">index</span>::<span class="ident">Index</span>};
 <span class="kw">use</span> <span class="ident">inkwell</span>::{
     <span class="ident">basic_block</span>::<span class="ident">BasicBlock</span>,
     <span class="ident">types</span>::<span class="ident">BasicTypeEnum</span>,
@@ -1388,7 +1390,7 @@
     },
     <span class="ident">AddressSpace</span>, <span class="ident">FloatPredicate</span>, <span class="ident">IntPredicate</span>,
 };
-<span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">collections</span>::<span class="ident">HashSet</span>, <span class="ident">ops</span>::<span class="ident">Range</span>};
+<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">collections</span>::<span class="ident">HashSet</span>;
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">ast</span>::{<span class="ident">flatten_expression_list</span>, <span class="ident">Dimension</span>, <span class="ident">Operator</span>, <span class="ident">Statement</span>},
@@ -2146,11 +2148,13 @@
                     <span class="kw">let</span> <span class="ident">statements</span> <span class="op">=</span> <span class="ident">access</span>.<span class="ident">get_as_list</span>();
                     <span class="kw">if</span> <span class="ident">statements</span>.<span class="ident">is_empty</span>() <span class="op">|</span><span class="op">|</span> <span class="ident">statements</span>.<span class="ident">len</span>() <span class="op">!</span><span class="op">=</span> <span class="ident">dimensions</span>.<span class="ident">len</span>() {
                         <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">CompileError</span>::<span class="ident">codegen_error</span>(
-                        <span class="macro">format</span><span class="macro">!</span>(
-                            <span class="string">&quot;Mismatched array access : {} -&gt; {} &quot;</span>,
-                            <span class="ident">statements</span>.<span class="ident">len</span>(),
-                            <span class="ident">dimensions</span>.<span class="ident">len</span>()
-                        ),<span class="ident">access</span>.<span class="ident">get_location</span>()));
+                            <span class="macro">format</span><span class="macro">!</span>(
+                                <span class="string">&quot;Mismatched array access : {} -&gt; {} &quot;</span>,
+                                <span class="ident">statements</span>.<span class="ident">len</span>(),
+                                <span class="ident">dimensions</span>.<span class="ident">len</span>()
+                            ),
+                            <span class="ident">access</span>.<span class="ident">get_location</span>(),
+                        ));
                     }
                     <span class="kw">for</span> (<span class="ident">i</span>, <span class="ident">statement</span>) <span class="kw">in</span> <span class="ident">statements</span>.<span class="ident">iter</span>().<span class="ident">enumerate</span>() {
                         <span class="ident">indices</span>.<span class="ident">push</span>(<span class="self">self</span>.<span class="ident">generate_access_for_dimension</span>(<span class="kw-2">&amp;</span><span class="ident">dimensions</span>[<span class="ident">i</span>], <span class="ident">statement</span>)<span class="question-mark">?</span>)
@@ -2488,7 +2492,7 @@
     <span class="kw">fn</span> <span class="ident">generate_literal_struct</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">assignments</span>: <span class="kw-2">&amp;</span><span class="ident">Statement</span>,
-        <span class="ident">declaration_location</span>: <span class="kw-2">&amp;</span><span class="ident">Range</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>,
+        <span class="ident">declaration_location</span>: <span class="kw-2">&amp;</span><span class="ident">SourceRange</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">TypeAndValue</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>, <span class="ident">CompileError</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">type_info</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">type_hint</span> {
             <span class="kw">if</span> <span class="kw">let</span> <span class="ident">DataTypeInformation</span>::<span class="ident">Struct</span> {
@@ -2602,7 +2606,7 @@
     <span class="kw">fn</span> <span class="ident">generate_literal_array</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">elements</span>: <span class="kw-2">&amp;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Statement</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-        <span class="ident">location</span>: <span class="kw-2">&amp;</span><span class="ident">Range</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>,
+        <span class="ident">location</span>: <span class="kw-2">&amp;</span><span class="ident">SourceRange</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">TypeAndValue</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>, <span class="ident">CompileError</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">type_info</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">type_hint</span> {
             <span class="kw">if</span> <span class="kw">let</span> <span class="ident">DataTypeInformation</span>::<span class="ident">Array</span> {

@@ -622,9 +622,9 @@
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">ops</span>::<span class="ident">Range</span>;
 
 <span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">expression_generator</span>::<span class="ident">ExpressionCodeGenerator</span>, <span class="ident">llvm</span>::<span class="ident">Llvm</span>};
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">codegen</span>::<span class="ident">llvm_typesystem</span>::<span class="ident">cast_if_needed</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">codegen</span>::<span class="ident">LlvmTypedIndex</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">typesystem</span>::{<span class="ident">RANGE_CHECK_LS_FN</span>, <span class="ident">RANGE_CHECK_LU_FN</span>, <span class="ident">RANGE_CHECK_S_FN</span>, <span class="ident">RANGE_CHECK_U_FN</span>};
+<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">ast</span>::<span class="ident">SourceRange</span>, <span class="ident">codegen</span>::<span class="ident">llvm_typesystem</span>::<span class="ident">cast_if_needed</span>};
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">ast</span>::{<span class="ident">flatten_expression_list</span>, <span class="ident">ConditionalBlock</span>, <span class="ident">Operator</span>, <span class="ident">Statement</span>},
     <span class="ident">compile_error</span>::<span class="ident">CompileError</span>,
@@ -901,10 +901,10 @@
 
     <span class="doccomment">/// genertes a case statement</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// CASE selector OF  </span>
-    <span class="doccomment">/// conditional_block#1:  </span>
-    <span class="doccomment">/// conditional_block#2:  </span>
-    <span class="doccomment">/// END_CASE;  </span>
+    <span class="doccomment">/// CASE selector OF</span>
+    <span class="doccomment">/// conditional_block#1:</span>
+    <span class="doccomment">/// conditional_block#2:</span>
+    <span class="doccomment">/// END_CASE;</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// - `selector` the case&#39;s selector expression</span>
     <span class="doccomment">/// - `conditional_blocks` all case-blocks including the condition and the body</span>
@@ -1044,9 +1044,9 @@
 
     <span class="doccomment">/// generates a while statement</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// WHILE condition DO  </span>
-    <span class="doccomment">///     body  </span>
-    <span class="doccomment">/// END_WHILE  </span>
+    <span class="doccomment">/// WHILE condition DO</span>
+    <span class="doccomment">///     body</span>
+    <span class="doccomment">/// END_WHILE</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// - `condition` the while&#39;s condition</span>
     <span class="doccomment">/// - `body` the while&#39;s body statements</span>
@@ -1072,9 +1072,9 @@
     <span class="doccomment">/// generates a repeat statement</span>
     <span class="doccomment">///</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// REPEAT  </span>
-    <span class="doccomment">///     body  </span>
-    <span class="doccomment">/// UNTIL condition END_REPEAT;  </span>
+    <span class="doccomment">/// REPEAT</span>
+    <span class="doccomment">///     body</span>
+    <span class="doccomment">/// UNTIL condition END_REPEAT;</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// - `condition` the repeat&#39;s condition</span>
     <span class="doccomment">/// - `body` the repeat&#39;s body statements</span>
@@ -1221,7 +1221,7 @@
     <span class="ident">check_function_name</span>: <span class="ident">String</span>,
     <span class="ident">parameter</span>: <span class="ident">Statement</span>,
     <span class="ident">sub_range</span>: <span class="ident">Range</span><span class="op">&lt;</span><span class="ident">Statement</span><span class="op">&gt;</span>,
-    <span class="ident">location</span>: <span class="kw-2">&amp;</span><span class="ident">Range</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>,
+    <span class="ident">location</span>: <span class="kw-2">&amp;</span><span class="ident">SourceRange</span>,
 ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Statement</span> {
     <span class="ident">Statement</span>::<span class="ident">CallStatement</span> {
         <span class="ident">operator</span>: <span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">Statement</span>::<span class="ident">Reference</span> {

@@ -188,6 +188,27 @@
 <span id="185">185</span>
 <span id="186">186</span>
 <span id="187">187</span>
+<span id="188">188</span>
+<span id="189">189</span>
+<span id="190">190</span>
+<span id="191">191</span>
+<span id="192">192</span>
+<span id="193">193</span>
+<span id="194">194</span>
+<span id="195">195</span>
+<span id="196">196</span>
+<span id="197">197</span>
+<span id="198">198</span>
+<span id="199">199</span>
+<span id="200">200</span>
+<span id="201">201</span>
+<span id="202">202</span>
+<span id="203">203</span>
+<span id="204">204</span>
+<span id="205">205</span>
+<span id="206">206</span>
+<span id="207">207</span>
+<span id="208">208</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 <span class="doccomment">//! A Structured Text LLVM Frontent</span>
@@ -210,7 +231,7 @@
 <span class="doccomment">//! [`IR`]: https://llvm.org/docs/LangRef.html</span>
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">path</span>::<span class="ident">Path</span>;
 
-<span class="kw">use</span> <span class="ident">ast</span>::<span class="ident">NewLines</span>;
+<span class="kw">use</span> <span class="ident">ast</span>::{<span class="ident">NewLines</span>, <span class="ident">SourceRange</span>};
 <span class="kw">use</span> <span class="ident">compile_error</span>::<span class="ident">CompileError</span>;
 <span class="kw">use</span> <span class="ident">inkwell</span>::<span class="ident">context</span>::<span class="ident">Context</span>;
 <span class="kw">use</span> <span class="ident">inkwell</span>::<span class="ident">targets</span>::{
@@ -233,6 +254,7 @@
 <span class="doccomment">/// Compiles the given source into an object file and saves it in output</span>
 <span class="doccomment">///</span>
 <span class="kw">fn</span> <span class="ident">compile_to_obj</span>(
+    <span class="ident">file_path</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
     <span class="ident">source</span>: <span class="ident">String</span>,
     <span class="ident">output</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
     <span class="ident">reloc</span>: <span class="ident">RelocMode</span>,
@@ -241,7 +263,7 @@
     <span class="kw">let</span> <span class="ident">path</span> <span class="op">=</span> <span class="ident">Path</span>::<span class="ident">new</span>(<span class="ident">output</span>);
 
     <span class="kw">let</span> <span class="ident">context</span> <span class="op">=</span> <span class="ident">Context</span>::<span class="ident">create</span>();
-    <span class="kw">let</span> <span class="ident">code_generator</span> <span class="op">=</span> <span class="ident">compile_module</span>(<span class="kw-2">&amp;</span><span class="ident">context</span>, <span class="ident">source</span>)<span class="question-mark">?</span>;
+    <span class="kw">let</span> <span class="ident">code_generator</span> <span class="op">=</span> <span class="ident">compile_module</span>(<span class="kw-2">&amp;</span><span class="ident">context</span>, <span class="ident">file_path</span>, <span class="ident">source</span>)<span class="question-mark">?</span>;
     <span class="kw">let</span> <span class="ident">initialization_config</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">InitializationConfig</span>::<span class="ident">default</span>();
     <span class="ident">Target</span>::<span class="ident">initialize_all</span>(<span class="ident">initialization_config</span>);
 
@@ -274,48 +296,54 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// # Arguments</span>
 <span class="doccomment">///</span>
+<span class="doccomment">/// * `file_path` - the source code&#39;s location</span>
 <span class="doccomment">/// * `source` - the source to be compiled</span>
 <span class="doccomment">/// * `output` - the location on disk to save the output</span>
 <span class="doccomment">/// * `target` - an optional llvm target triple</span>
 <span class="doccomment">///     If not provided, the machine&#39;s triple will be used.</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">compile_to_static_obj</span>(
+    <span class="ident">file_path</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
     <span class="ident">source</span>: <span class="ident">String</span>,
     <span class="ident">output</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
     <span class="ident">target</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
 ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">CompileError</span><span class="op">&gt;</span> {
-    <span class="ident">compile_to_obj</span>(<span class="ident">source</span>, <span class="ident">output</span>, <span class="ident">RelocMode</span>::<span class="ident">Default</span>, <span class="ident">target</span>)
+    <span class="ident">compile_to_obj</span>(<span class="ident">file_path</span>, <span class="ident">source</span>, <span class="ident">output</span>, <span class="ident">RelocMode</span>::<span class="ident">Default</span>, <span class="ident">target</span>)
 }
 
 <span class="doccomment">/// Compiles a given source string to a shared position independent object and saves the output.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// # Arguments</span>
 <span class="doccomment">///</span>
+<span class="doccomment">/// * `file_path` - the source code&#39;s location</span>
 <span class="doccomment">/// * `source` - the source to be compiled</span>
 <span class="doccomment">/// * `output` - the location on disk to save the output</span>
 <span class="doccomment">/// * `target` - an optional llvm target triple</span>
 <span class="doccomment">///     If not provided, the machine&#39;s triple will be used.</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">compile_to_shared_pic_object</span>(
+    <span class="ident">file_path</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
     <span class="ident">source</span>: <span class="ident">String</span>,
     <span class="ident">output</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
     <span class="ident">target</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
 ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">CompileError</span><span class="op">&gt;</span> {
-    <span class="ident">compile_to_obj</span>(<span class="ident">source</span>, <span class="ident">output</span>, <span class="ident">RelocMode</span>::<span class="ident">PIC</span>, <span class="ident">target</span>)
+    <span class="ident">compile_to_obj</span>(<span class="ident">file_path</span>, <span class="ident">source</span>, <span class="ident">output</span>, <span class="ident">RelocMode</span>::<span class="ident">PIC</span>, <span class="ident">target</span>)
 }
 
 <span class="doccomment">/// Compiles a given source string to a dynamic non PIC object and saves the output.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// # Arguments</span>
 <span class="doccomment">///</span>
+<span class="doccomment">/// * `file_path` - the source code&#39;s location</span>
 <span class="doccomment">/// * `source` - the source to be compiled</span>
 <span class="doccomment">/// * `output` - the location on disk to save the output</span>
 <span class="doccomment">/// * `target` - an optional llvm target triple</span>
 <span class="doccomment">///     If not provided, the machine&#39;s triple will be used.</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">compile_to_shared_object</span>(
+    <span class="ident">file_path</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
     <span class="ident">source</span>: <span class="ident">String</span>,
     <span class="ident">output</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
     <span class="ident">target</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
 ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">CompileError</span><span class="op">&gt;</span> {
-    <span class="ident">compile_to_obj</span>(<span class="ident">source</span>, <span class="ident">output</span>, <span class="ident">RelocMode</span>::<span class="ident">DynamicNoPic</span>, <span class="ident">target</span>)
+    <span class="ident">compile_to_obj</span>(<span class="ident">file_path</span>, <span class="ident">source</span>, <span class="ident">output</span>, <span class="ident">RelocMode</span>::<span class="ident">DynamicNoPic</span>, <span class="ident">target</span>)
 }
 
 <span class="doccomment">///</span>
@@ -323,13 +351,18 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// # Arguments</span>
 <span class="doccomment">///</span>
+<span class="doccomment">/// * `file_path` - the source code&#39;s location</span>
 <span class="doccomment">/// * `source` - the source to be compiled</span>
 <span class="doccomment">/// * `output` - the location on disk to save the output</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">compile_to_bitcode</span>(<span class="ident">source</span>: <span class="ident">String</span>, <span class="ident">output</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">CompileError</span><span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">compile_to_bitcode</span>(
+    <span class="ident">file_path</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
+    <span class="ident">source</span>: <span class="ident">String</span>,
+    <span class="ident">output</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
+) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">CompileError</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">path</span> <span class="op">=</span> <span class="ident">Path</span>::<span class="ident">new</span>(<span class="ident">output</span>);
 
     <span class="kw">let</span> <span class="ident">context</span> <span class="op">=</span> <span class="ident">Context</span>::<span class="ident">create</span>();
-    <span class="kw">let</span> <span class="ident">code_generator</span> <span class="op">=</span> <span class="ident">compile_module</span>(<span class="kw-2">&amp;</span><span class="ident">context</span>, <span class="ident">source</span>)<span class="question-mark">?</span>;
+    <span class="kw">let</span> <span class="ident">code_generator</span> <span class="op">=</span> <span class="ident">compile_module</span>(<span class="kw-2">&amp;</span><span class="ident">context</span>, <span class="ident">file_path</span>, <span class="ident">source</span>)<span class="question-mark">?</span>;
     <span class="ident">code_generator</span>.<span class="ident">module</span>.<span class="ident">write_bitcode_to_path</span>(<span class="ident">path</span>);
     <span class="prelude-val">Ok</span>(())
 }
@@ -339,10 +372,11 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// # Arguments</span>
 <span class="doccomment">///</span>
+<span class="doccomment">/// * `file_path` - the source code&#39;s location</span>
 <span class="doccomment">/// * `source` - the source to be compiled</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">compile_to_ir</span>(<span class="ident">source</span>: <span class="ident">String</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">CompileError</span><span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">compile_to_ir</span>(<span class="ident">file_path</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">source</span>: <span class="ident">String</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">CompileError</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">context</span> <span class="op">=</span> <span class="ident">Context</span>::<span class="ident">create</span>();
-    <span class="kw">let</span> <span class="ident">code_gen</span> <span class="op">=</span> <span class="ident">compile_module</span>(<span class="kw-2">&amp;</span><span class="ident">context</span>, <span class="ident">source</span>)<span class="question-mark">?</span>;
+    <span class="kw">let</span> <span class="ident">code_gen</span> <span class="op">=</span> <span class="ident">compile_module</span>(<span class="kw-2">&amp;</span><span class="ident">context</span>, <span class="ident">file_path</span>, <span class="ident">source</span>)<span class="question-mark">?</span>;
     <span class="prelude-val">Ok</span>(<span class="ident">get_ir</span>(<span class="kw-2">&amp;</span><span class="ident">code_gen</span>))
 }
 
@@ -356,9 +390,14 @@
 <span class="doccomment">/// # Arguments</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// * `context` - the LLVM Context to be used for the compilation</span>
+<span class="doccomment">/// * `file_path` - the source code&#39;s location</span>
 <span class="doccomment">/// * `source` - the source to be compiled</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">compile_module</span>(<span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="ident">Context</span>, <span class="ident">source</span>: <span class="ident">String</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">codegen</span>::<span class="ident">CodeGen</span>, <span class="ident">CompileError</span><span class="op">&gt;</span> {
-    <span class="kw">let</span> (<span class="kw-2">mut</span> <span class="ident">parse_result</span>, <span class="kw">_</span>) <span class="op">=</span> <span class="ident">parse</span>(<span class="ident">source</span>)<span class="question-mark">?</span>;
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">compile_module</span><span class="op">&lt;</span><span class="lifetime">&#39;ink</span>, <span class="lifetime">&#39;file</span><span class="op">&gt;</span>(
+    <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ink</span> <span class="ident">Context</span>,
+    <span class="ident">file_path</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;file</span> <span class="ident">str</span>,
+    <span class="ident">source</span>: <span class="ident">String</span>,
+) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">codegen</span>::<span class="ident">CodeGen</span><span class="op">&lt;</span><span class="lifetime">&#39;ink</span><span class="op">&gt;</span>, <span class="ident">CompileError</span><span class="op">&gt;</span> {
+    <span class="kw">let</span> (<span class="kw-2">mut</span> <span class="ident">parse_result</span>, <span class="kw">_</span>) <span class="op">=</span> <span class="ident">parse</span>(<span class="ident">file_path</span>, <span class="ident">source</span>)<span class="question-mark">?</span>;
     <span class="comment">//first pre-process the AST</span>
     <span class="ident">ast</span>::<span class="ident">pre_process</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">parse_result</span>);
     <span class="comment">//then index the AST</span>
@@ -369,12 +408,15 @@
     <span class="prelude-val">Ok</span>(<span class="ident">code_generator</span>)
 }
 
-<span class="kw">fn</span> <span class="ident">parse</span>(<span class="ident">source</span>: <span class="ident">String</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="ident">ast</span>::<span class="ident">CompilationUnit</span>, <span class="ident">NewLines</span>), <span class="ident">CompileError</span><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">parse</span>(
+    <span class="ident">file_path</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
+    <span class="ident">source</span>: <span class="ident">String</span>,
+) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="ident">ast</span>::<span class="ident">CompilationUnit</span>, <span class="ident">NewLines</span>), <span class="ident">CompileError</span><span class="op">&gt;</span> {
     <span class="comment">//Start lexing</span>
-    <span class="kw">let</span> <span class="ident">lexer</span> <span class="op">=</span> <span class="ident">lexer</span>::<span class="ident">lex</span>(<span class="kw-2">&amp;</span><span class="ident">source</span>);
+    <span class="kw">let</span> <span class="ident">lexer</span> <span class="op">=</span> <span class="ident">lexer</span>::<span class="ident">lex</span>(<span class="ident">file_path</span>, <span class="kw-2">&amp;</span><span class="ident">source</span>);
     <span class="comment">//Parse</span>
     <span class="comment">//TODO : Parser should also return compile errors with sane locations</span>
-    <span class="ident">parser</span>::<span class="ident">parse</span>(<span class="ident">lexer</span>).<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">err</span><span class="op">|</span> <span class="ident">CompileError</span>::<span class="ident">codegen_error</span>(<span class="ident">err</span>, <span class="number">0</span>..<span class="number">0</span>))
+    <span class="ident">parser</span>::<span class="ident">parse</span>(<span class="ident">lexer</span>).<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">err</span><span class="op">|</span> <span class="ident">CompileError</span>::<span class="ident">codegen_error</span>(<span class="ident">err</span>, <span class="ident">SourceRange</span>::<span class="ident">undefined</span>()))
 }
 </pre></div>
 </section><section id="search" class="content hidden"></section><section class="footer"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="rusty"></div>

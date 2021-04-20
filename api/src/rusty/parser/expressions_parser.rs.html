@@ -373,6 +373,10 @@
 <span id="370">370</span>
 <span id="371">371</span>
 <span id="372">372</span>
+<span id="373">373</span>
+<span id="374">374</span>
+<span id="375">375</span>
+<span id="376">376</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">ast</span>::<span class="kw-2">*</span>;
@@ -554,7 +558,11 @@
     <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">operator</span>) <span class="op">=</span> <span class="ident">operator</span> {
         <span class="ident">lexer</span>.<span class="ident">advance</span>();
         <span class="kw">let</span> <span class="ident">expression</span> <span class="op">=</span> <span class="ident">parse_parenthesized_expression</span>(<span class="ident">lexer</span>)<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">location</span> <span class="op">=</span> <span class="ident">start</span>..<span class="ident">expression</span>.<span class="ident">get_location</span>().<span class="ident">end</span>;
+        <span class="kw">let</span> <span class="ident">expression_location</span> <span class="op">=</span> <span class="ident">expression</span>.<span class="ident">get_location</span>();
+        <span class="kw">let</span> <span class="ident">location</span> <span class="op">=</span> <span class="ident">SourceRange</span>::<span class="ident">new</span>(
+            <span class="ident">expression_location</span>.<span class="ident">get_file_path</span>(),
+            <span class="ident">start</span>..<span class="ident">expression_location</span>.<span class="ident">get_end</span>(),
+        );
         <span class="prelude-val">Ok</span>(<span class="ident">Statement</span>::<span class="ident">UnaryExpression</span> {
             <span class="ident">operator</span>,
             <span class="ident">value</span>: <span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">expression</span>),
@@ -617,14 +625,14 @@
     <span class="ident">lexer</span>.<span class="ident">advance</span>();
     <span class="prelude-val">Ok</span>(<span class="ident">Statement</span>::<span class="ident">LiteralArray</span> {
         <span class="ident">elements</span>,
-        <span class="ident">location</span>: (<span class="ident">start</span>..<span class="ident">end</span>),
+        <span class="ident">location</span>: <span class="ident">SourceRange</span>::<span class="ident">new</span>(<span class="ident">lexer</span>.<span class="ident">get_file_path</span>(), <span class="ident">start</span>..<span class="ident">end</span>),
     })
 }
 
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy</span>::<span class="ident">unnecessary_wraps</span>)]</span>
 <span class="comment">//Allowing the unnecessary wrap here because this method is used along other methods that need to return Results</span>
 <span class="kw">fn</span> <span class="ident">parse_bool_literal</span>(<span class="ident">lexer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">RustyLexer</span>, <span class="ident">value</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Statement</span>, <span class="ident">String</span><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="ident">location</span> <span class="op">=</span> <span class="ident">lexer</span>.<span class="ident">range</span>();
+    <span class="kw">let</span> <span class="ident">location</span> <span class="op">=</span> <span class="ident">lexer</span>.<span class="ident">location</span>();
     <span class="ident">lexer</span>.<span class="ident">advance</span>();
     <span class="prelude-val">Ok</span>(<span class="ident">Statement</span>::<span class="ident">LiteralBool</span> { <span class="ident">value</span>, <span class="ident">location</span> })
 }
@@ -657,7 +665,7 @@
         <span class="prelude-val">Ok</span>(<span class="ident">Statement</span>::<span class="ident">CallStatement</span> {
             <span class="ident">operator</span>: <span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">reference</span>),
             <span class="ident">parameters</span>: <span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">statement_list</span>),
-            <span class="ident">location</span>: <span class="ident">start</span>..<span class="ident">end</span>,
+            <span class="ident">location</span>: <span class="ident">SourceRange</span>::<span class="ident">new</span>(<span class="ident">lexer</span>.<span class="ident">get_file_path</span>(), <span class="ident">start</span>..<span class="ident">end</span>),
         })
     } <span class="kw">else</span> {
         <span class="prelude-val">Ok</span>(<span class="ident">reference</span>)
@@ -665,7 +673,7 @@
 }
 
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">parse_reference_access</span>(<span class="ident">lexer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">RustyLexer</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Statement</span>, <span class="ident">String</span><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="ident">location</span> <span class="op">=</span> <span class="ident">lexer</span>.<span class="ident">range</span>();
+    <span class="kw">let</span> <span class="ident">location</span> <span class="op">=</span> <span class="ident">lexer</span>.<span class="ident">location</span>();
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">reference</span> <span class="op">=</span> <span class="ident">Statement</span>::<span class="ident">Reference</span> {
         <span class="ident">name</span>: <span class="ident">slice_and_advance</span>(<span class="ident">lexer</span>),
         <span class="ident">location</span>,
@@ -684,7 +692,7 @@
 }
 
 <span class="kw">fn</span> <span class="ident">parse_literal_number</span>(<span class="ident">lexer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">RustyLexer</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Statement</span>, <span class="ident">String</span><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="ident">location</span> <span class="op">=</span> <span class="ident">lexer</span>.<span class="ident">range</span>();
+    <span class="kw">let</span> <span class="ident">location</span> <span class="op">=</span> <span class="ident">lexer</span>.<span class="ident">location</span>();
     <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">slice_and_advance</span>(<span class="ident">lexer</span>);
     <span class="kw">if</span> <span class="ident">allow</span>(<span class="ident">KeywordDot</span>, <span class="ident">lexer</span>) {
         <span class="kw">return</span> <span class="ident">parse_literal_real</span>(<span class="ident">lexer</span>, <span class="ident">result</span>, <span class="ident">location</span>);
@@ -697,7 +705,7 @@
         <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Statement</span>::<span class="ident">MultipliedStatement</span> {
             <span class="ident">multiplier</span>,
             <span class="ident">element</span>: <span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">element</span>),
-            <span class="ident">location</span>: <span class="ident">location</span>.<span class="ident">start</span>..<span class="ident">end</span>,
+            <span class="ident">location</span>: <span class="ident">SourceRange</span>::<span class="ident">new</span>(<span class="ident">location</span>.<span class="ident">get_file_path</span>(), <span class="ident">location</span>.<span class="ident">get_start</span>()..<span class="ident">end</span>),
         });
     }
 
@@ -713,7 +721,7 @@
 
 <span class="kw">fn</span> <span class="ident">parse_literal_string</span>(<span class="ident">lexer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">RustyLexer</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Statement</span>, <span class="ident">String</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">lexer</span>.<span class="ident">slice</span>();
-    <span class="kw">let</span> <span class="ident">location</span> <span class="op">=</span> <span class="ident">lexer</span>.<span class="ident">range</span>();
+    <span class="kw">let</span> <span class="ident">location</span> <span class="op">=</span> <span class="ident">lexer</span>.<span class="ident">location</span>();
     <span class="kw">let</span> <span class="ident">string_literal</span> <span class="op">=</span> <span class="prelude-val">Ok</span>(<span class="ident">Statement</span>::<span class="ident">LiteralString</span> {
         <span class="ident">value</span>: <span class="ident">trim_quotes</span>(<span class="ident">result</span>),
         <span class="ident">location</span>,
@@ -728,7 +736,7 @@
     <span class="ident">integer_range</span>: <span class="ident">SourceRange</span>,
 ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Statement</span>, <span class="ident">String</span><span class="op">&gt;</span> {
     <span class="macro">expect</span><span class="macro">!</span>(<span class="ident">LiteralInteger</span>, <span class="ident">lexer</span>);
-    <span class="kw">let</span> <span class="ident">start</span> <span class="op">=</span> <span class="ident">integer_range</span>.<span class="ident">start</span>;
+    <span class="kw">let</span> <span class="ident">start</span> <span class="op">=</span> <span class="ident">integer_range</span>.<span class="ident">get_start</span>();
     <span class="kw">let</span> <span class="ident">fraction_end</span> <span class="op">=</span> <span class="ident">lexer</span>.<span class="ident">range</span>().<span class="ident">end</span>;
     <span class="kw">let</span> <span class="ident">fractional</span> <span class="op">=</span> <span class="ident">slice_and_advance</span>(<span class="ident">lexer</span>);
 
@@ -740,7 +748,7 @@
     };
 
     <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{}.{}{}&quot;</span>, <span class="ident">integer</span>, <span class="ident">fractional</span>, <span class="ident">exponent</span>);
-    <span class="kw">let</span> <span class="ident">new_location</span> <span class="op">=</span> <span class="ident">start</span>..<span class="ident">end</span>;
+    <span class="kw">let</span> <span class="ident">new_location</span> <span class="op">=</span> <span class="ident">SourceRange</span>::<span class="ident">new</span>(<span class="ident">lexer</span>.<span class="ident">get_file_path</span>(), <span class="ident">start</span>..<span class="ident">end</span>);
     <span class="prelude-val">Ok</span>(<span class="ident">Statement</span>::<span class="ident">LiteralReal</span> {
         <span class="ident">value</span>: <span class="ident">result</span>,
         <span class="ident">location</span>: <span class="ident">new_location</span>,
