@@ -178,7 +178,11 @@ fn parse_unary_expression(lexer: &mut RustyLexer) -> Result<Statement, String> {
     if let Some(operator) = operator {
         lexer.advance();
         let expression = parse_parenthesized_expression(lexer)?;
-        let location = start..expression.get_location().end;
+        let expression_location = expression.get_location();
+        let location = SourceRange::new(
+            expression_location.get_file_path(),
+            start..expression_location.get_end(),
+        );
         Ok(Statement::UnaryExpression {
             operator,
             value: Box::new(expression),
@@ -241,14 +245,14 @@ fn parse_array_literal(lexer: &mut RustyLexer) -> Result<Statement, String> {
     lexer.advance();
     Ok(Statement::LiteralArray {
         elements,
-        location: (start..end),
+        location: SourceRange::new(lexer.get_file_path(), start..end),
     })
 }
 
 #[allow(clippy::unnecessary_wraps)]
 //Allowing the unnecessary wrap here because this method is used along other methods that need to return Results
 fn parse_bool_literal(lexer: &mut RustyLexer, value: bool) -> Result<Statement, String> {
-    let location = lexer.range();
+    let location = lexer.location();
     lexer.advance();
     Ok(Statement::LiteralBool { value, location })
 }
@@ -281,7 +285,7 @@ pub fn parse_qualified_reference(lexer: &mut RustyLexer) -> Result<Statement, St
         Ok(Statement::CallStatement {
             operator: Box::new(reference),
             parameters: Box::new(statement_list),
-            location: start..end,
+            location: SourceRange::new(lexer.get_file_path(), start..end),
         })
     } else {
         Ok(reference)
@@ -289,7 +293,7 @@ pub fn parse_qualified_reference(lexer: &mut RustyLexer) -> Result<Statement, St
 }
 
 pub fn parse_reference_access(lexer: &mut RustyLexer) -> Result<Statement, String> {
-    let location = lexer.range();
+    let location = lexer.location();
     let mut reference = Statement::Reference {
         name: slice_and_advance(lexer),
         location,
@@ -308,7 +312,7 @@ pub fn parse_reference_access(lexer: &mut RustyLexer) -> Result<Statement, Strin
 }
 
 fn parse_literal_number(lexer: &mut RustyLexer) -> Result<Statement, String> {
-    let location = lexer.range();
+    let location = lexer.location();
     let result = slice_and_advance(lexer);
     if allow(KeywordDot, lexer) {
         return parse_literal_real(lexer, result, location);
@@ -321,7 +325,7 @@ fn parse_literal_number(lexer: &mut RustyLexer) -> Result<Statement, String> {
         return Ok(Statement::MultipliedStatement {
             multiplier,
             element: Box::new(element),
-            location: location.start..end,
+            location: SourceRange::new(location.get_file_path(), location.get_start()..end),
         });
     }
 
@@ -337,7 +341,7 @@ fn trim_quotes(quoted_string: &str) -> String {
 
 fn parse_literal_string(lexer: &mut RustyLexer) -> Result<Statement, String> {
     let result = lexer.slice();
-    let location = lexer.range();
+    let location = lexer.location();
     let string_literal = Ok(Statement::LiteralString {
         value: trim_quotes(result),
         location,
@@ -352,7 +356,7 @@ fn parse_literal_real(
     integer_range: SourceRange,
 ) -> Result<Statement, String> {
     expect!(LiteralInteger, lexer);
-    let start = integer_range.start;
+    let start = integer_range.get_start();
     let fraction_end = lexer.range().end;
     let fractional = slice_and_advance(lexer);
 
@@ -364,7 +368,7 @@ fn parse_literal_real(
     };
 
     let result = format!("{}.{}{}", integer, fractional, exponent);
-    let new_location = start..end;
+    let new_location = SourceRange::new(lexer.get_file_path(), start..end);
     Ok(Statement::LiteralReal {
         value: result,
         location: new_location,

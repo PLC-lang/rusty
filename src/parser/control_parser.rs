@@ -55,7 +55,7 @@ fn parse_if_statement(lexer: &mut RustyLexer) -> Result<Statement, String> {
     Ok(Statement::IfStatement {
         blocks: conditional_blocks,
         else_block,
-        location: start..end,
+        location: SourceRange::new(lexer.get_file_path(), start..end),
     })
 }
 
@@ -95,7 +95,7 @@ fn parse_for_statement(lexer: &mut RustyLexer) -> Result<Statement, String> {
         end: Box::new(end_expression),
         by_step: step,
         body: body?,
-        location: start..end,
+        location: SourceRange::new(lexer.get_file_path(), start..end),
     })
 }
 
@@ -117,7 +117,7 @@ fn parse_while_statement(lexer: &mut RustyLexer) -> Result<Statement, String> {
     Ok(Statement::WhileLoopStatement {
         condition,
         body,
-        location: start..end,
+        location: SourceRange::new(lexer.get_file_path(), start..end),
     })
 }
 
@@ -138,7 +138,7 @@ fn parse_repeat_statement(lexer: &mut RustyLexer) -> Result<Statement, String> {
     Ok(Statement::RepeatLoopStatement {
         condition,
         body,
-        location: start..end,
+        location: SourceRange::new(lexer.get_file_path(), start..end),
     })
 }
 
@@ -165,7 +165,9 @@ fn parse_case_statement(lexer: &mut RustyLexer) -> Result<Statement, String> {
                 condition = next_condition;
                 case_blocks.push(body);
 
-                if !(lexer.token != KeywordEndCase && lexer.token != KeywordElse && condition.is_some())
+                if !(lexer.token != KeywordEndCase
+                    && lexer.token != KeywordElse
+                    && condition.is_some())
                 {
                     break;
                 }
@@ -189,7 +191,7 @@ fn parse_case_statement(lexer: &mut RustyLexer) -> Result<Statement, String> {
         selector,
         case_blocks,
         else_block,
-        location: start..end,
+        location: SourceRange::new(lexer.get_file_path(), start..end),
     })
 }
 

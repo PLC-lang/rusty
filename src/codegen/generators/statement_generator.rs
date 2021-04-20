@@ -2,9 +2,9 @@
 use std::ops::Range;
 
 use super::{expression_generator::ExpressionCodeGenerator, llvm::Llvm};
-use crate::codegen::llvm_typesystem::cast_if_needed;
 use crate::codegen::LlvmTypedIndex;
 use crate::typesystem::{RANGE_CHECK_LS_FN, RANGE_CHECK_LU_FN, RANGE_CHECK_S_FN, RANGE_CHECK_U_FN};
+use crate::{ast::SourceRange, codegen::llvm_typesystem::cast_if_needed};
 use crate::{
     ast::{flatten_expression_list, ConditionalBlock, Operator, Statement},
     compile_error::CompileError,
@@ -281,10 +281,10 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
 
     /// genertes a case statement
     ///
-    /// CASE selector OF  
-    /// conditional_block#1:  
-    /// conditional_block#2:  
-    /// END_CASE;  
+    /// CASE selector OF
+    /// conditional_block#1:
+    /// conditional_block#2:
+    /// END_CASE;
     ///
     /// - `selector` the case's selector expression
     /// - `conditional_blocks` all case-blocks including the condition and the body
@@ -424,9 +424,9 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
 
     /// generates a while statement
     ///
-    /// WHILE condition DO  
-    ///     body  
-    /// END_WHILE  
+    /// WHILE condition DO
+    ///     body
+    /// END_WHILE
     ///
     /// - `condition` the while's condition
     /// - `body` the while's body statements
@@ -452,9 +452,9 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
     /// generates a repeat statement
     ///
     ///
-    /// REPEAT  
-    ///     body  
-    /// UNTIL condition END_REPEAT;  
+    /// REPEAT
+    ///     body
+    /// UNTIL condition END_REPEAT;
     ///
     /// - `condition` the repeat's condition
     /// - `body` the repeat's body statements
@@ -601,7 +601,7 @@ fn create_call_to_check_function_ast(
     check_function_name: String,
     parameter: Statement,
     sub_range: Range<Statement>,
-    location: &Range<usize>,
+    location: &SourceRange,
 ) -> Statement {
     Statement::CallStatement {
         operator: Box::new(Statement::Reference {

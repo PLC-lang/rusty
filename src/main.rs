@@ -35,26 +35,45 @@ fn main() {
 }
 
 fn main_compile(parameters: CompileParameters) {
+    let file_path = parameters.input.as_str();
     let contents = fs::read_to_string(parameters.input.as_str())
         .unwrap_or_else(|_| panic!("Cannot read input file {}", parameters.input.as_str()));
 
     if parameters.output_bit_code {
-        compile_to_bitcode(contents, parameters.output.as_str()).unwrap();
+        compile_to_bitcode(file_path, contents, parameters.output.as_str()).unwrap();
     } else if parameters.output_ir {
-        generate_ir(contents, parameters.output.as_str()).unwrap();
+        generate_ir(file_path, contents, parameters.output.as_str()).unwrap();
     } else if parameters.output_pic_obj {
-        compile_to_shared_object(contents, parameters.output.as_str(), parameters.target).unwrap();
+        compile_to_shared_object(
+            file_path,
+            contents,
+            parameters.output.as_str(),
+            parameters.target,
+        )
+        .unwrap();
     } else if parameters.output_shared_obj {
-        compile_to_shared_object(contents, parameters.output.as_str(), parameters.target).unwrap()
+        compile_to_shared_object(
+            file_path,
+            contents,
+            parameters.output.as_str(),
+            parameters.target,
+        )
+        .unwrap()
     } else if parameters.output_obj_code {
-        compile_to_static_obj(contents, parameters.output.as_str(), parameters.target).unwrap();
+        compile_to_static_obj(
+            file_path,
+            contents,
+            parameters.output.as_str(),
+            parameters.target,
+        )
+        .unwrap();
     } else {
         //none is set, so we use default
         panic!("no output format defined");
     }
 }
-fn generate_ir(content: String, output: &str) -> Result<(), CompileError> {
-    let ir = compile_to_ir(content)?;
+fn generate_ir(file_path: &str, content: String, output: &str) -> Result<(), CompileError> {
+    let ir = compile_to_ir(file_path, content)?;
     fs::write(output, ir).unwrap();
     Ok(())
 }

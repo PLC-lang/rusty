@@ -1,7 +1,11 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use pretty_assertions::{assert_eq, assert_ne};
 
-use crate::lexer::{lex, Token::*};
+use crate::lexer::{RustyLexer, Token::*};
+
+fn lex(source: &str) -> RustyLexer {
+    crate::lexer::lex("", source)
+}
 
 #[test]
 fn generic_properties() {

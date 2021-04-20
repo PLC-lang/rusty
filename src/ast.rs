@@ -131,7 +131,45 @@ impl Variable {
     }
 }
 
-pub type SourceRange = core::ops::Range<usize>;
+#[derive(Clone, Debug, PartialEq)]
+pub struct SourceRange {
+    file_path: String,
+    range: core::ops::Range<usize>,
+}
+
+impl SourceRange {
+    pub fn new(file_path: &str, range: core::ops::Range<usize>) -> SourceRange {
+        SourceRange {
+            file_path: file_path.into(),
+            range,
+        }
+    }
+
+    pub fn undefined() -> SourceRange {
+        SourceRange {
+            file_path: "".into(),
+            range: 0..0,
+        }
+    }
+
+    pub fn get_file_path(&self) -> &str {
+        &self.file_path
+    }
+
+    pub fn get_start(&self) -> usize {
+        self.range.start
+    }
+
+    pub fn get_end(&self) -> usize {
+        self.range.end
+    }
+}
+
+impl From<std::ops::Range<usize>> for SourceRange {
+    fn from(range: std::ops::Range<usize>) -> SourceRange {
+        SourceRange::new("", range)
+    }
+}
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct NewLines {
@@ -610,25 +648,55 @@ impl Statement {
             Statement::LiteralArray { location, .. } => location.clone(),
             Statement::Reference { location, .. } => location.clone(),
             Statement::QualifiedReference { elements, .. } => {
-                elements.first().map_or(0, |it| it.get_location().start)
-                    ..elements.last().map_or(0, |it| it.get_location().end)
+                let first = elements
+                    .first()
+                    .map_or_else(SourceRange::undefined, |it| it.get_location());
+                let last = elements
+                    .last()
+                    .map_or_else(SourceRange::undefined, |it| it.get_location());
+                SourceRange::new(first.get_file_path(), first.get_start()..last.get_end())
             }
             Statement::BinaryExpression { left, right, .. } => {
-                left.get_location().start..right.get_location().end
+                let left_loc = left.get_location();
+                let right_loc = right.get_location();
+                SourceRange::new(
+                    &left_loc.file_path,
+                    left_loc.range.start..right_loc.range.end,
+                )
             }
             Statement::UnaryExpression { location, .. } => location.clone(),
             Statement::ExpressionList { expressions } => {
-                expressions.first().map_or(0, |it| it.get_location().start)
-                    ..expressions.last().map_or(0, |it| it.get_location().end)
+                let first = expressions
+                    .first()
+                    .map_or_else(SourceRange::undefined, |it| it.get_location());
+                let last = expressions
+                    .last()
+                    .map_or_else(SourceRange::undefined, |it| it.get_location());
+                SourceRange::new(first.get_file_path(), first.get_start()..last.get_end())
             }
             Statement::RangeStatement { start, end } => {
-                start.get_location().start..end.get_location().end
+                let start_loc = start.get_location();
+                let end_loc = end.get_location();
+                SourceRange::new(
+                    &start_loc.file_path,
+                    start_loc.range.start..end_loc.range.end,
+                )
             }
             Statement::Assignment { left, right } => {
-                left.get_location().start..right.get_location().end
+                let left_loc = left.get_location();
+                let right_loc = right.get_location();
+                SourceRange::new(
+                    &left_loc.file_path,
+                    left_loc.range.start..right_loc.range.end,
+                )
             }
             Statement::OutputAssignment { left, right } => {
-                left.get_location().start..right.get_location().end
+                let left_loc = left.get_location();
+                let right_loc = right.get_location();
+                SourceRange::new(
+                    &left_loc.file_path,
+                    left_loc.range.start..right_loc.range.end,
+                )
             }
             Statement::CallStatement { location, .. } => location.clone(),
             Statement::IfStatement { location, .. } => location.clone(),
@@ -637,7 +705,12 @@ impl Statement {
             Statement::RepeatLoopStatement { location, .. } => location.clone(),
             Statement::CaseStatement { location, .. } => location.clone(),
             Statement::ArrayAccess { reference, access } => {
-                reference.get_location().start..access.get_location().end
+                let reference_loc = reference.get_location();
+                let access_loc = access.get_location();
+                SourceRange::new(
+                    &reference_loc.file_path,
+                    reference_loc.range.start..access_loc.range.end,
+                )
             }
             Statement::MultipliedStatement { location, .. } => location.clone(),
         }

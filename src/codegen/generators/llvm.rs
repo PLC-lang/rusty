@@ -183,7 +183,10 @@ impl<'a> Llvm<'a> {
 
             Ok((data_type, BasicValueEnum::IntValue(value.unwrap())))
         } else {
-            Err(CompileError::codegen_error("error expected inttype".into(),0..0))
+            Err(CompileError::codegen_error(
+                "error expected inttype".into(),
+                SourceRange::undefined(),
+            ))
         }
     }
 
@@ -206,7 +209,10 @@ impl<'a> Llvm<'a> {
             let data_type = index.get_type_information("REAL")?;
             Ok((data_type, BasicValueEnum::FloatValue(value)))
         } else {
-            Err(CompileError::codegen_error("error expected floattype".into(),0..0))
+            Err(CompileError::codegen_error(
+                "error expected floattype".into(),
+                SourceRange::undefined(),
+            ))
         }
     }
 
