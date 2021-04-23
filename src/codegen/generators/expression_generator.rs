@@ -25,6 +25,8 @@ use crate::{
 
 use super::{llvm::Llvm, statement_generator::FunctionContext, struct_generator};
 
+use chrono::{LocalResult, TimeZone, Utc};
+
 /// the generator for expressions
 pub struct ExpressionCodeGenerator<'a, 'b> {
     llvm: &'b Llvm<'a>,
@@ -1084,6 +1086,19 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                 self.llvm
                     .create_const_int(self.index, &self.get_type_context(), value)
             }
+            Statement::LiteralDate {
+                year,
+                month,
+                day,
+                location,
+            } => self.llvm.create_const_int(
+                self.index,
+                &Some(self.llvm.i64_type().into()),
+                calculate_date_time(*year, *month, *day, 0, 0, 0, 0)
+                    .map_err(|op| CompileError::codegen_error(op, location.clone()))
+                    .map(|millis| format!("{}", millis))?
+                    .as_str(),
+            ),
             Statement::LiteralReal { value, .. } => {
                 self.llvm
                     .create_const_real(self.index, &self.get_type_context(), value)
@@ -1374,4 +1389,27 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
 
         Ok((target_type, phi_value.as_basic_value()))
     }
+}
+
+/// calculates the milliseconds since 1970-01-01-00:00:00 for the given
+/// point in time
+fn calculate_date_time(
+    year: i32,
+    month: u32,
+    day: u32,
+    hour: u32,
+    min: u32,
+    sec: u32,
+    milli: u32,
+) -> Result<i64, String> {
+    if let LocalResult::Single(date_time) = Utc
+        .ymd_opt(year, month, day)
+        .and_hms_milli_opt(hour, min, sec, milli)
+    {
+        return Ok(date_time.timestamp_millis());
+    }
+    Err(format!(
+        "Invalid Date {}-{}-{}-{}:{}:{}.{}",
+        year, month, day, hour, min, sec, milli
+    ))
 }

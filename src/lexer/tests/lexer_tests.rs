@@ -265,6 +265,16 @@ fn real_literals_test() {
 }
 
 #[test]
+fn date_literals_test() {
+    let mut lexer = lex("DATE#1984-10-01 D#1-1-1");
+
+    assert_eq!(lexer.token, LiteralDate);
+    lexer.advance();
+    assert_eq!(lexer.token, LiteralDate);
+    lexer.advance();
+}
+
+#[test]
 fn a_full_program_generates_correct_token_sequence() {
     let mut lexer = lex(r"
         PROGRAM hello

@@ -294,6 +294,38 @@ END_PROGRAM
 }
 
 #[test]
+fn program_with_date_assignment() {
+    let result = codegen!(
+        r#"PROGRAM prg
+VAR
+y : DATE;
+END_VAR
+y := DATE#1984-10-01;
+y := DATE#1970-01-01;
+END_PROGRAM
+"#
+    );
+
+    let expected = r#"; ModuleID = 'main'
+source_filename = "main"
+
+%prg_interface = type { i64 }
+
+@prg_instance = global %prg_interface zeroinitializer
+
+define void @prg(%prg_interface* %0) {
+entry:
+  %y = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 0
+  store i64 465436800000, i64* %y, align 4
+  store i64 0, i64* %y, align 4
+  ret void
+}
+"#;
+
+    assert_eq!(result, expected);
+}
+
+#[test]
 fn program_with_string_assignment() {
     let result = codegen!(
         r#"PROGRAM prg

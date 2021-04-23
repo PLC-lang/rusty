@@ -621,6 +621,33 @@ fn signed_literal_minus_test() {
 }
 
 #[test]
+fn literal_date_test() {
+    let lexer = super::lex(
+        "
+        PROGRAM exp 
+            DATE#1984-10-01; 
+            D#2021-04-20; 
+        END_PROGRAM
+        ",
+    );
+    let result = parse(lexer).unwrap().0;
+    let ast_string = format!("{:#?}", &result.implementations[0].statements);
+    let expected_ast = r#"[
+    LiteralDate {
+        year: 1984,
+        month: 10,
+        day: 1,
+    },
+    LiteralDate {
+        year: 2021,
+        month: 4,
+        day: 20,
+    },
+]"#;
+    assert_eq!(ast_string, expected_ast);
+}
+
+#[test]
 fn literal_real_test() {
     let lexer = super::lex(
         "
