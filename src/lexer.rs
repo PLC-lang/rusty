@@ -341,6 +341,9 @@ pub enum Token {
     #[token("FALSE")]
     LiteralFalse,
 
+    #[regex("D(ATE)?#(\\d+)-(\\d+)-(\\d+)")]
+    LiteralDate,
+
     #[regex("'((\\$.)|[^$'])*'")]
     LiteralString,
 

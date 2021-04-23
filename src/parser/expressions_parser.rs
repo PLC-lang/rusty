@@ -212,6 +212,7 @@ fn parse_leaf_expression(lexer: &mut RustyLexer) -> Result<Statement, String> {
     let current = match lexer.token {
         Identifier => parse_qualified_reference(lexer),
         LiteralInteger => parse_literal_number(lexer),
+        LiteralDate => parse_literal_date(lexer),
         LiteralString => parse_literal_string(lexer),
         LiteralTrue => parse_bool_literal(lexer, true),
         LiteralFalse => parse_bool_literal(lexer, false),
@@ -332,6 +333,38 @@ fn parse_literal_number(lexer: &mut RustyLexer) -> Result<Statement, String> {
     Ok(Statement::LiteralInteger {
         value: result,
         location,
+    })
+}
+
+fn parse_literal_date(lexer: &mut RustyLexer) -> Result<Statement, String> {
+    let location = lexer.location();
+    //get rid of D# or DATE#
+    let slice = slice_and_advance(lexer);
+    let splitter_location = slice.find('#').unwrap_or_default();
+    let (_, slice) = slice.split_at(splitter_location + 1); //get rid of the prefix
+    let mut segments = slice.split('-');
+
+    //we can safely expect 3 numbers
+    let segment = segments.next().unwrap();
+    let year = segment
+        .parse::<i32>()
+        .map_err(|e| format!("Failed parsing number in {}: {}", segment, e))?;
+    let month = segments
+        .next()
+        .unwrap()
+        .parse::<u32>()
+        .map_err(|e| format!("Failed parsing number: {}", e))?;
+    let day = segments
+        .next()
+        .unwrap()
+        .parse::<u32>()
+        .map_err(|e| format!("Failed parsing number: {}", e))?;
+
+    Ok(Statement::LiteralDate {
+        location,
+        year,
+        month,
+        day,
     })
 }
 
