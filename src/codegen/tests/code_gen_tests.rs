@@ -299,9 +299,12 @@ fn program_with_date_assignment() {
         r#"PROGRAM prg
 VAR
 y : DATE;
+z : DATE_AND_TIME;
 END_VAR
 y := DATE#1984-10-01;
-y := DATE#1970-01-01;
+y := D#1970-01-01;
+z := DATE_AND_TIME#1984-10-01-20:15:14;
+z := DT#1970-01-01-16:20:04;
 END_PROGRAM
 "#
     );
@@ -309,15 +312,18 @@ END_PROGRAM
     let expected = r#"; ModuleID = 'main'
 source_filename = "main"
 
-%prg_interface = type { i64 }
+%prg_interface = type { i64, i64 }
 
 @prg_instance = global %prg_interface zeroinitializer
 
 define void @prg(%prg_interface* %0) {
 entry:
   %y = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 0
+  %z = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 1
   store i64 465436800000, i64* %y, align 4
   store i64 0, i64* %y, align 4
+  store i64 465509714000, i64* %z, align 4
+  store i64 58804000, i64* %z, align 4
   ret void
 }
 "#;

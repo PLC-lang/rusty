@@ -397,6 +397,16 @@ pub enum Statement {
         day: u32,
         location: SourceRange,
     },
+    LiteralDateAndTime {
+        year: i32,
+        month: u32,
+        day: u32,
+        hour: u32,
+        min: u32,
+        sec: u32,
+        milli: u32,
+        location: SourceRange,
+    },
     LiteralReal {
         value: String,
         location: SourceRange,
@@ -509,6 +519,25 @@ impl Debug for Statement {
                 .field("year", year)
                 .field("month", month)
                 .field("day", day)
+                .finish(),
+            Statement::LiteralDateAndTime {
+                year,
+                month,
+                day,
+                hour,
+                min,
+                sec,
+                milli,
+                ..
+            } => f
+                .debug_struct("LiteralDateAndTime")
+                .field("year", year)
+                .field("month", month)
+                .field("day", day)
+                .field("hour", hour)
+                .field("min", min)
+                .field("sec", sec)
+                .field("milli", milli)
                 .finish(),
             Statement::LiteralReal { value, .. } => {
                 f.debug_struct("LiteralReal").field("value", value).finish()
@@ -657,6 +686,7 @@ impl Statement {
         match self {
             Statement::LiteralInteger { location, .. } => location.clone(),
             Statement::LiteralDate { location, .. } => location.clone(),
+            Statement::LiteralDateAndTime { location, .. } => location.clone(),
             Statement::LiteralReal { location, .. } => location.clone(),
             Statement::LiteralBool { location, .. } => location.clone(),
             Statement::LiteralString { location, .. } => location.clone(),

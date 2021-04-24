@@ -1099,6 +1099,23 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                     .map(|millis| format!("{}", millis))?
                     .as_str(),
             ),
+            Statement::LiteralDateAndTime {
+                year,
+                month,
+                day,
+                hour,
+                min,
+                sec,
+                milli,
+                location,
+            } => self.llvm.create_const_int(
+                self.index,
+                &Some(self.llvm.i64_type().into()),
+                calculate_date_time(*year, *month, *day, *hour, *min, *sec, *milli)
+                    .map_err(|op| CompileError::codegen_error(op, location.clone()))
+                    .map(|millis| format!("{}", millis))?
+                    .as_str(),
+            ),
             Statement::LiteralReal { value, .. } => {
                 self.llvm
                     .create_const_real(self.index, &self.get_type_context(), value)

@@ -344,6 +344,9 @@ pub enum Token {
     #[regex("D(ATE)?#(\\d+)-(\\d+)-(\\d+)")]
     LiteralDate,
 
+    #[regex("(DATE_AND_TIME|DT)#(\\d+)-(\\d+)-(\\d+)-(\\d+):(\\d+):(\\d+)")]
+    LiteralDateAndTime,
+
     #[regex("'((\\$.)|[^$'])*'")]
     LiteralString,
 
