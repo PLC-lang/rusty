@@ -648,6 +648,41 @@ fn literal_date_test() {
 }
 
 #[test]
+fn literal_date_and_time_test() {
+    let lexer = super::lex(
+        "
+        PROGRAM exp 
+            DATE_AND_TIME#1984-10-01-16:40:22; 
+            DT#2021-04-20-22:33:14; 
+        END_PROGRAM
+        ",
+    );
+    let result = parse(lexer).unwrap().0;
+    let ast_string = format!("{:#?}", &result.implementations[0].statements);
+    let expected_ast = r#"[
+    LiteralDateAndTime {
+        year: 1984,
+        month: 10,
+        day: 1,
+        hour: 16,
+        min: 40,
+        sec: 22,
+        milli: 0,
+    },
+    LiteralDateAndTime {
+        year: 2021,
+        month: 4,
+        day: 20,
+        hour: 22,
+        min: 33,
+        sec: 14,
+        milli: 0,
+    },
+]"#;
+    assert_eq!(ast_string, expected_ast);
+}
+
+#[test]
 fn literal_real_test() {
     let lexer = super::lex(
         "

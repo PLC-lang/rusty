@@ -2,6 +2,7 @@
 use crate::ast::*;
 use crate::expect;
 use crate::lexer::Token::*;
+use std::str::FromStr;
 
 use super::allow;
 use super::RustyLexer;
@@ -213,6 +214,7 @@ fn parse_leaf_expression(lexer: &mut RustyLexer) -> Result<Statement, String> {
         Identifier => parse_qualified_reference(lexer),
         LiteralInteger => parse_literal_number(lexer),
         LiteralDate => parse_literal_date(lexer),
+        LiteralDateAndTime => parse_literal_date_and_time(lexer),
         LiteralString => parse_literal_string(lexer),
         LiteralTrue => parse_bool_literal(lexer, true),
         LiteralFalse => parse_bool_literal(lexer, false),
@@ -336,36 +338,69 @@ fn parse_literal_number(lexer: &mut RustyLexer) -> Result<Statement, String> {
     })
 }
 
-fn parse_literal_date(lexer: &mut RustyLexer) -> Result<Statement, String> {
+fn parse_number<F: FromStr>(text: &str) -> Result<F, String> {
+    text.parse::<F>()
+        .map_err(|_| format!("Failed parsing number {}", text))
+}
+
+fn parse_date_from_string(text: &str, location: SourceRange) -> Result<Statement, String> {
+    let mut segments = text.split('-');
+
+    //we can safely expect 3 numbers
+    let year = parse_number::<i32>(segments.next().unwrap())?;
+    let month = parse_number::<u32>(segments.next().unwrap())?;
+    let day = parse_number::<u32>(segments.next().unwrap())?;
+
+    Ok(Statement::LiteralDate {
+        year,
+        month,
+        day,
+        location,
+    })
+}
+
+fn parse_literal_date_and_time(lexer: &mut RustyLexer) -> Result<Statement, String> {
     let location = lexer.location();
     //get rid of D# or DATE#
     let slice = slice_and_advance(lexer);
-    let splitter_location = slice.find('#').unwrap_or_default();
-    let (_, slice) = slice.split_at(splitter_location + 1); //get rid of the prefix
-    let mut segments = slice.split('-');
+    let hash_location = slice.find('#').unwrap_or_default();
+    let last_minus_location = slice.rfind('-').unwrap();
+
+    let (_, date_and_time) = slice.split_at(hash_location + 1); //get rid of the prefix
+    let (date, time) = date_and_time.split_at(last_minus_location - hash_location);
 
     //we can safely expect 3 numbers
-    let segment = segments.next().unwrap();
-    let year = segment
-        .parse::<i32>()
-        .map_err(|e| format!("Failed parsing number in {}: {}", segment, e))?;
-    let month = segments
-        .next()
-        .unwrap()
-        .parse::<u32>()
-        .map_err(|e| format!("Failed parsing number: {}", e))?;
-    let day = segments
-        .next()
-        .unwrap()
-        .parse::<u32>()
-        .map_err(|e| format!("Failed parsing number: {}", e))?;
+    let mut segments = date.split('-');
+    let year = parse_number::<i32>(segments.next().unwrap())?;
+    let month = parse_number::<u32>(segments.next().unwrap())?;
+    let day = parse_number::<u32>(segments.next().unwrap())?;
 
-    Ok(Statement::LiteralDate {
+    //we can safely expect 3 numbers
+    let mut segments = time.split(':');
+    let hour = parse_number::<u32>(segments.next().unwrap())?;
+    let min = parse_number::<u32>(segments.next().unwrap())?;
+    let sec = parse_number::<u32>(segments.next().unwrap())?;
+
+    Ok(Statement::LiteralDateAndTime {
         location,
         year,
         month,
         day,
+        hour,
+        min,
+        sec,
+        milli: 0,
     })
+}
+
+fn parse_literal_date(lexer: &mut RustyLexer) -> Result<Statement, String> {
+    let location = lexer.location();
+    //get rid of D# or DATE#
+    let slice = slice_and_advance(lexer);
+    let hash_location = slice.find('#').unwrap_or_default();
+    let (_, slice) = slice.split_at(hash_location + 1); //get rid of the prefix
+
+    parse_date_from_string(slice, location)
 }
 
 fn trim_quotes(quoted_string: &str) -> String {
