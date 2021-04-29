@@ -283,6 +283,25 @@ fn date_and_time_literals_test() {
 }
 
 #[test]
+fn time_literals_test() {
+    let mut lexer = lex(r#"
+    t#12d t#13h time#14m TIME#15s t#16ms
+    t#12d10ms T#12h10m time#12m4s
+    TIME#4d6h8m7s12ms
+    "#);
+    for _ in 1..9 {
+        assert_eq!(
+            lexer.token,
+            LiteralTime,
+            "{} at {:?} is no Time Literal",
+            lexer.slice(),
+            lexer.location()
+        );
+        lexer.advance();
+    }
+}
+
+#[test]
 fn a_full_program_generates_correct_token_sequence() {
     let mut lexer = lex(r"
         PROGRAM hello

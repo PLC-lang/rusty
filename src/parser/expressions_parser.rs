@@ -214,6 +214,7 @@ fn parse_leaf_expression(lexer: &mut RustyLexer) -> Result<Statement, String> {
         Identifier => parse_qualified_reference(lexer),
         LiteralInteger => parse_literal_number(lexer),
         LiteralDate => parse_literal_date(lexer),
+        LiteralTime => parse_literal_time(lexer),
         LiteralDateAndTime => parse_literal_date_and_time(lexer),
         LiteralString => parse_literal_string(lexer),
         LiteralTrue => parse_bool_literal(lexer, true),
@@ -401,6 +402,89 @@ fn parse_literal_date(lexer: &mut RustyLexer) -> Result<Statement, String> {
     let (_, slice) = slice.split_at(hash_location + 1); //get rid of the prefix
 
     parse_date_from_string(slice, location)
+}
+
+const POS_D: usize = 0;
+const POS_H: usize = 1;
+const POS_M: usize = 2;
+const POS_S: usize = 3;
+const POS_MS: usize = 4;
+
+fn parse_literal_time(lexer: &mut RustyLexer) -> Result<Statement, String> {
+    let location = lexer.location();
+    //get rid of T# or TIME#
+    let slice = slice_and_advance(lexer);
+    let (_, slice) = slice.split_at(slice.find('#').unwrap_or_default() + 1); //get rid of the prefix
+
+    let mut chars = slice.char_indices();
+    let mut curr = chars.next();
+
+    let mut values = [0u32, 0u32, 0u32, 0u32, 0u32];
+    let mut writes = [0usize, 0usize, 0usize, 0usize, 0usize];
+
+    let mut prev_pos = 0;
+    while curr.is_some() {
+        //expect a number
+        let number = {
+            let start = curr.unwrap().0;
+            //just eat all the digits
+            curr = chars.find(|(_, ch)| !ch.is_digit(10));
+            curr.ok_or_else(|| "Invalid TIME Literal: Cannot parse segment.".to_string())
+                .and_then(|(index, _)| parse_number::<u32>(&slice[start..index]))?
+        };
+
+        //expect a unit
+        let unit = {
+            let start = curr
+                .map(|(index, _)| index)
+                .ok_or_else(|| "Invalid TIME Literal: Missing unit (d|h|m|s|ms)".to_string())?;
+
+            //just eat all the characters
+            curr = chars.find(|(_, ch)| !ch.is_ascii_alphabetic());
+            &slice[start..curr.unwrap_or((slice.len(), ' ')).0]
+        };
+
+        //now assign the number to the according segment of the value's array
+        let position = match unit {
+            "d" => Some(POS_D),
+            "h" => Some(POS_H),
+            "m" => Some(POS_M),
+            "s" => Some(POS_S),
+            "ms" => Some(POS_MS),
+            _ => None,
+        };
+        if let Some(position) = position {
+            //check if we assign out of order - every assignment before must have been a smaller position
+            if prev_pos > position {
+                return Err(
+                    "Invalid TIME Literal: segments out of order, use d-h-m-s-ms".to_string(),
+                );
+            }
+            prev_pos = position; //remember that we wrote this position
+            values[position] = number; //store the number
+            writes[position] += 1; //store how often we wrote this segment
+        } else {
+            return Err(format!("Invalid TIME Literal: illegal unit '{}'", unit));
+        }
+    }
+
+    //do some checks
+    if writes.iter().all(|v| *v == 0usize) {
+        //no component was set
+        return Err("Invalid TIME Literal: no components set".to_string());
+    } else if writes.iter().any(|v| *v > 1usize) {
+        //a component was written multiple times
+        return Err("Invalid TIME Literal: segments must be unique".to_string());
+    }
+
+    Ok(Statement::LiteralTime {
+        day: values[POS_D],
+        hour: values[POS_H],
+        min: values[POS_M],
+        sec: values[POS_S],
+        milli: values[POS_MS],
+        location,
+    })
 }
 
 fn trim_quotes(quoted_string: &str) -> String {

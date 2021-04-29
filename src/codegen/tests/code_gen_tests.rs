@@ -332,6 +332,43 @@ entry:
 }
 
 #[test]
+fn program_with_time_assignment() {
+    let result = codegen!(
+        r#"PROGRAM prg
+VAR
+y : TIME;
+
+END_VAR
+y := T#0d0h0m0s0ms;
+y := T#0d0h0m0s1ms;
+y := T#1d0h0m0s1ms;
+y := T#100d0h0m0s1ms;
+END_PROGRAM
+"#
+    );
+
+    let expected = r#"; ModuleID = 'main'
+source_filename = "main"
+
+%prg_interface = type { i64 }
+
+@prg_instance = global %prg_interface zeroinitializer
+
+define void @prg(%prg_interface* %0) {
+entry:
+  %y = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 0
+  store i64 0, i64* %y, align 4
+  store i64 1, i64* %y, align 4
+  store i64 86400001, i64* %y, align 4
+  store i64 8640000001, i64* %y, align 4
+  ret void
+}
+"#;
+
+    assert_eq!(result, expected);
+}
+
+#[test]
 fn program_with_string_assignment() {
     let result = codegen!(
         r#"PROGRAM prg

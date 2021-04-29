@@ -1116,6 +1116,18 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                     .map(|millis| format!("{}", millis))?
                     .as_str(),
             ),
+            Statement::LiteralTime {
+                day,
+                hour,
+                min,
+                sec,
+                milli,
+                ..
+            } => self.llvm.create_const_int(
+                self.index,
+                &Some(self.llvm.i64_type().into()),
+                format!("{}", calculate_time_milli(*day, *hour, *min, *sec, *milli)).as_str(),
+            ),
             Statement::LiteralReal { value, .. } => {
                 self.llvm
                     .create_const_real(self.index, &self.get_type_context(), value)
@@ -1406,6 +1418,13 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
 
         Ok((target_type, phi_value.as_basic_value()))
     }
+}
+
+fn calculate_time_milli(day: u32, hour: u32, min: u32, sec: u32, milli: u32) -> u64 {
+    let hours = day as u64 * 24 + hour as u64;
+    let mins = hours * 60 + min as u64;
+    let secs = mins * 60 + sec as u64;
+    secs * 1000 + milli as u64
 }
 
 /// calculates the milliseconds since 1970-01-01-00:00:00 for the given

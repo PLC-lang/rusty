@@ -407,6 +407,14 @@ pub enum Statement {
         milli: u32,
         location: SourceRange,
     },
+    LiteralTime {
+        day: u32,
+        hour: u32,
+        min: u32,
+        sec: u32,
+        milli: u32,
+        location: SourceRange,
+    },
     LiteralReal {
         value: String,
         location: SourceRange,
@@ -533,6 +541,21 @@ impl Debug for Statement {
                 .debug_struct("LiteralDateAndTime")
                 .field("year", year)
                 .field("month", month)
+                .field("day", day)
+                .field("hour", hour)
+                .field("min", min)
+                .field("sec", sec)
+                .field("milli", milli)
+                .finish(),
+            Statement::LiteralTime {
+                day,
+                hour,
+                min,
+                sec,
+                milli,
+                ..
+            } => f
+                .debug_struct("LiteralTime")
                 .field("day", day)
                 .field("hour", hour)
                 .field("min", min)
@@ -687,6 +710,7 @@ impl Statement {
             Statement::LiteralInteger { location, .. } => location.clone(),
             Statement::LiteralDate { location, .. } => location.clone(),
             Statement::LiteralDateAndTime { location, .. } => location.clone(),
+            Statement::LiteralTime { location, .. } => location.clone(),
             Statement::LiteralReal { location, .. } => location.clone(),
             Statement::LiteralBool { location, .. } => location.clone(),
             Statement::LiteralString { location, .. } => location.clone(),
