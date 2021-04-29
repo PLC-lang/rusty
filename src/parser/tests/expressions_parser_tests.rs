@@ -648,6 +648,133 @@ fn literal_date_test() {
 }
 
 #[test]
+fn literal_time_test() {
+    let lexer = super::lex(
+        "
+        PROGRAM exp 
+            t#12d;
+            time#12m;
+            TIME#12s;
+            t#12ms;
+            t#12d10ms;
+            T#12h10m;
+            time#12m4s;
+            TIME#4d6h8m7s12ms;
+        END_PROGRAM
+        ",
+    );
+    let result = parse(lexer).unwrap().0;
+    let ast_string = format!("{:#?}", &result.implementations[0].statements);
+    let expected_ast = r#"[
+    LiteralTime {
+        day: 12,
+        hour: 0,
+        min: 0,
+        sec: 0,
+        milli: 0,
+    },
+    LiteralTime {
+        day: 0,
+        hour: 0,
+        min: 12,
+        sec: 0,
+        milli: 0,
+    },
+    LiteralTime {
+        day: 0,
+        hour: 0,
+        min: 0,
+        sec: 12,
+        milli: 0,
+    },
+    LiteralTime {
+        day: 0,
+        hour: 0,
+        min: 0,
+        sec: 0,
+        milli: 12,
+    },
+    LiteralTime {
+        day: 12,
+        hour: 0,
+        min: 0,
+        sec: 0,
+        milli: 10,
+    },
+    LiteralTime {
+        day: 0,
+        hour: 12,
+        min: 10,
+        sec: 0,
+        milli: 0,
+    },
+    LiteralTime {
+        day: 0,
+        hour: 0,
+        min: 12,
+        sec: 4,
+        milli: 0,
+    },
+    LiteralTime {
+        day: 4,
+        hour: 6,
+        min: 8,
+        sec: 7,
+        milli: 12,
+    },
+]"#;
+    assert_eq!(ast_string, expected_ast);
+}
+
+#[test]
+fn illegal_literal_time_missing_segments_test() {
+    let lexer = super::lex(
+        "
+        PROGRAM exp 
+            t#;
+        END_PROGRAM
+        ",
+    );
+    assert_eq!(
+        parse(lexer),
+        Err(
+            "expected end of statement (e.g. ;), but found Error at line: 3 offset: 14..15"
+                .to_string()
+        )
+    );
+}
+
+#[test]
+fn illegal_literal_time_double_segments_test() {
+    let lexer = super::lex(
+        "
+        PROGRAM exp 
+            t#1d4d2h3m;
+        END_PROGRAM
+        ",
+    );
+    assert_eq!(
+        parse(lexer),
+        Err("Invalid TIME Literal: segments must be unique".to_string())
+    );
+}
+
+#[test]
+fn illegal_literal_time_out_of_order_segments_test() {
+    let lexer = super::lex(
+        "
+        PROGRAM exp 
+            t#1s2h3d;
+        END_PROGRAM
+        ",
+    );
+    assert_eq!(
+        parse(lexer),
+        Err("Invalid TIME Literal: segments out of order, use d-h-m-s-ms".to_string())
+    );
+}
+
+#[test]
 fn literal_date_and_time_test() {
     let lexer = super::lex(
         "
