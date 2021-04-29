@@ -340,6 +340,7 @@ y : TIME;
 
 END_VAR
 y := T#0d0h0m0s0ms;
+y := T#0.5d;
 y := T#0d0h0m0s1ms;
 y := T#1d0h0m0s1ms;
 y := T#100d0h0m0s1ms;
@@ -358,14 +359,53 @@ define void @prg(%prg_interface* %0) {
 entry:
   %y = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 0
   store i64 0, i64* %y, align 4
-  store i64 1, i64* %y, align 4
-  store i64 86400001, i64* %y, align 4
-  store i64 8640000001, i64* %y, align 4
+  store i64 43200000000, i64* %y, align 4
+  store i64 1000, i64* %y, align 4
+  store i64 86400001000, i64* %y, align 4
+  store i64 8640000001000, i64* %y, align 4
   ret void
 }
 "#;
 
     assert_eq!(result, expected);
+}
+
+#[test]
+fn time_variables_have_micro_seconds_resolution(){
+    let result = codegen!(
+        r#"PROGRAM prg
+VAR
+y : TIME;
+
+END_VAR
+y := T#1ms;
+y := T#0.000001s;
+y := T#0.0000001s;
+y := T#100d0h0m0s1.123ms;
+END_PROGRAM
+"#
+    );
+
+    let expected = r#"; ModuleID = 'main'
+source_filename = "main"
+
+%prg_interface = type { i64 }
+
+@prg_instance = global %prg_interface zeroinitializer
+
+define void @prg(%prg_interface* %0) {
+entry:
+  %y = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 0
+  store i64 1000, i64* %y, align 4
+  store i64 1, i64* %y, align 4
+  store i64 0, i64* %y, align 4
+  store i64 8640000001123, i64* %y, align 4
+  ret void
+}
+"#;
+
+    assert_eq!(result, expected);
+
 }
 
 #[test]

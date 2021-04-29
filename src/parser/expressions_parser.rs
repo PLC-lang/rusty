@@ -419,7 +419,7 @@ fn parse_literal_time(lexer: &mut RustyLexer) -> Result<Statement, String> {
     let mut chars = slice.char_indices();
     let mut curr = chars.next();
 
-    let mut values = [0u32, 0u32, 0u32, 0u32, 0u32];
+    let mut values = [0.0f64, 0.0, 0.0, 0.0, 0.0];
     let mut writes = [0usize, 0usize, 0usize, 0usize, 0usize];
 
     let mut prev_pos = 0;
@@ -428,9 +428,9 @@ fn parse_literal_time(lexer: &mut RustyLexer) -> Result<Statement, String> {
         let number = {
             let start = curr.unwrap().0;
             //just eat all the digits
-            curr = chars.find(|(_, ch)| !ch.is_digit(10));
+            curr = chars.find(|(_, ch)| !ch.is_digit(10) && !ch.eq(&'.'));
             curr.ok_or_else(|| "Invalid TIME Literal: Cannot parse segment.".to_string())
-                .and_then(|(index, _)| parse_number::<u32>(&slice[start..index]))?
+                .and_then(|(index, _)| parse_number::<f64>(&slice[start..index]))?
         };
 
         //expect a unit

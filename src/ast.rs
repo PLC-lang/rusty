@@ -408,11 +408,11 @@ pub enum Statement {
         location: SourceRange,
     },
     LiteralTime {
-        day: u32,
-        hour: u32,
-        min: u32,
-        sec: u32,
-        milli: u32,
+        day: f64,
+        hour: f64,
+        min: f64,
+        sec: f64,
+        milli: f64,
         location: SourceRange,
     },
     LiteralReal {

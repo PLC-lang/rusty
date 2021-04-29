@@ -1126,7 +1126,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
             } => self.llvm.create_const_int(
                 self.index,
                 &Some(self.llvm.i64_type().into()),
-                format!("{}", calculate_time_milli(*day, *hour, *min, *sec, *milli)).as_str(),
+                format!("{}", calculate_time_micro(*day, *hour, *min, *sec, *milli)).as_str(),
             ),
             Statement::LiteralReal { value, .. } => {
                 self.llvm
@@ -1419,12 +1419,14 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
         Ok((target_type, phi_value.as_basic_value()))
     }
 }
-
-fn calculate_time_milli(day: u32, hour: u32, min: u32, sec: u32, milli: u32) -> u64 {
-    let hours = day as u64 * 24 + hour as u64;
-    let mins = hours * 60 + min as u64;
-    let secs = mins * 60 + sec as u64;
-    secs * 1000 + milli as u64
+ 
+fn calculate_time_micro(day: f64, hour: f64, min: f64, sec: f64, milli: f64) -> i64 {
+    let hours = day * 24_f64 + hour;
+    let mins = hours * 60_f64  + min;
+    let secs = mins * 60_f64 + sec;
+    let millis = secs * 1000_f64 + milli;
+    //go to full micro
+    (millis * 1000_f64).round() as i64
 }
 
 /// calculates the milliseconds since 1970-01-01-00:00:00 for the given
