@@ -262,6 +262,15 @@ pub fn get_builtin_types() -> Vec<DataType> {
             },
         },
         DataType {
+            name: "TIME_OF_DAY".into(),
+            initial_value: None,
+            information: DataTypeInformation::Integer {
+                name: "TIME_OF_DAY".into(),
+                signed: true,
+                size: 64,
+            },
+        },
+        DataType {
             name: "ULINT".into(),
             initial_value: None,
             information: DataTypeInformation::Integer {

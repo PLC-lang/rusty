@@ -371,6 +371,43 @@ entry:
 }
 
 #[test]
+fn program_with_time_of_day_assignment() {
+    let result = codegen!(
+        r#"PROGRAM prg
+VAR
+y : TIME_OF_DAY;
+
+END_VAR
+y := TIME_OF_DAY#00:00:00;
+y := TOD#01:00:00;
+y := TIME_OF_DAY#01:00:00.001;
+y := TOD#1:1:1;
+END_PROGRAM
+"#
+    );
+
+    let expected = r#"; ModuleID = 'main'
+source_filename = "main"
+
+%prg_interface = type { i64 }
+
+@prg_instance = global %prg_interface zeroinitializer
+
+define void @prg(%prg_interface* %0) {
+entry:
+  %y = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 0
+  store i64 0, i64* %y, align 4
+  store i64 3600000, i64* %y, align 4
+  store i64 3600001, i64* %y, align 4
+  store i64 3661000, i64* %y, align 4
+  ret void
+}
+"#;
+
+    assert_eq!(result, expected);
+}
+
+#[test]
 fn time_variables_have_micro_seconds_resolution(){
     let result = codegen!(
         r#"PROGRAM prg

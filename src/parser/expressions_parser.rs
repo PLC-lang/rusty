@@ -214,6 +214,7 @@ fn parse_leaf_expression(lexer: &mut RustyLexer) -> Result<Statement, String> {
         Identifier => parse_qualified_reference(lexer),
         LiteralInteger => parse_literal_number(lexer),
         LiteralDate => parse_literal_date(lexer),
+        LiteralTimeOfDay => parse_literal_time_of_day(lexer),
         LiteralTime => parse_literal_time(lexer),
         LiteralDateAndTime => parse_literal_date_and_time(lexer),
         LiteralString => parse_literal_string(lexer),
@@ -402,6 +403,28 @@ fn parse_literal_date(lexer: &mut RustyLexer) -> Result<Statement, String> {
     let (_, slice) = slice.split_at(hash_location + 1); //get rid of the prefix
 
     parse_date_from_string(slice, location)
+}
+
+fn parse_literal_time_of_day(lexer: &mut RustyLexer) -> Result<Statement, String> {
+    let location = lexer.location();
+    //get rid of TOD# or TIME_OF_DAY#
+    let slice = slice_and_advance(lexer);
+    let hash_location = slice.find('#').unwrap_or_default();
+    let (_, slice) = slice.split_at(hash_location + 1); //get rid of the prefix
+
+    let mut segments = slice.split(':');
+    let hour = parse_number::<u32>(segments.next().unwrap())?;
+    let min = parse_number::<u32>(segments.next().unwrap())?;
+
+    let sec = parse_number::<f64>(segments.next().unwrap())?;
+    let milli = (sec.fract() * 1000_f64) as u32;
+    Ok(Statement::LiteralTimeOfDay {
+        hour,
+        min,
+        sec: sec.floor() as u32,
+        milli,
+        location
+    })
 }
 
 const POS_D: usize = 0;

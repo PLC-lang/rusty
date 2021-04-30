@@ -727,6 +727,63 @@ fn literal_time_test() {
 }
 
 #[test]
+fn literal_time_of_day_test() {
+    let lexer = super::lex(
+        "
+        PROGRAM exp 
+            TOD#12:00:00;
+            TOD#00:12:00;
+            TOD#00:00:12;
+            TIME_OF_DAY#04:16:22;
+            TIME_OF_DAY#04:16:22.1;
+            TIME_OF_DAY#04:16:22.001;
+        END_PROGRAM
+        ",
+    );
+    let result = parse(lexer).unwrap().0;
+    let ast_string = format!("{:#?}", &result.implementations[0].statements);
+    let expected_ast = r#"[
+    LiteralTimeOfDay {
+        hour: 12,
+        min: 0,
+        sec: 0,
+        milli: 0,
+    },
+    LiteralTimeOfDay {
+        hour: 0,
+        min: 12,
+        sec: 0,
+        milli: 0,
+    },
+    LiteralTimeOfDay {
+        hour: 0,
+        min: 0,
+        sec: 12,
+        milli: 0,
+    },
+    LiteralTimeOfDay {
+        hour: 4,
+        min: 16,
+        sec: 22,
+        milli: 0,
+    },
+    LiteralTimeOfDay {
+        hour: 4,
+        min: 16,
+        sec: 22,
+        milli: 100,
+    },
+    LiteralTimeOfDay {
+        hour: 4,
+        min: 16,
+        sec: 22,
+        milli: 1,
+    },
+]"#;
+    assert_eq!(ast_string, expected_ast);
+}
+
+#[test]
 fn illegal_literal_time_missing_segments_test() {
     let lexer = super::lex(
         "
