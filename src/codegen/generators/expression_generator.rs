@@ -1116,6 +1116,20 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                     .map(|millis| format!("{}", millis))?
                     .as_str(),
             ),
+            Statement::LiteralTimeOfDay {
+                hour,
+                min,
+                sec,
+                milli,
+                location,
+            } => self.llvm.create_const_int(
+                self.index,
+                &Some(self.llvm.i64_type().into()),
+                calculate_date_time(1970, 1, 1, *hour, *min, *sec, *milli)
+                    .map_err(|op| CompileError::codegen_error(op, location.clone()))
+                    .map(|millis| format!("{}", millis))?
+                    .as_str(),
+            ),
             Statement::LiteralTime {
                 day,
                 hour,
