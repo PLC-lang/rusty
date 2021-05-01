@@ -446,6 +446,45 @@ entry:
 }
 
 #[test]
+fn date_comparisons() {
+    let result = codegen!(
+        r#"PROGRAM prg
+        VAR
+          a : DATE;
+          b : DATE_AND_TIME;
+          c : TIME;
+          d : TIME_OF_DAY;
+        END_VAR
+
+          a > D#2021-05-01;
+          b > DT#2021-05-01-19:29:17;
+          c > T#1d19h29m17s;
+          d > TOD#19:29:17;
+        END_PROGRAM"#
+    );
+    let expected = generate_program_boiler_plate(
+        "prg",
+        &[("i64", "a"), ("i64", "b"), ("i64", "c"), ("i64", "d")],
+        "void",
+        "",
+        "",
+        r#"%load_a = load i64, i64* %a, align 4
+  %tmpVar = icmp sgt i64 %load_a, 1619827200000
+  %load_b = load i64, i64* %b, align 4
+  %tmpVar1 = icmp sgt i64 %load_b, 1619897357000
+  %load_c = load i64, i64* %c, align 4
+  %tmpVar2 = icmp sgt i64 %load_c, 156557000000
+  %load_d = load i64, i64* %d, align 4
+  %tmpVar3 = icmp sgt i64 %load_d, 70157000
+  ret void
+"#,
+    );
+
+    assert_eq!(result, expected);
+}
+
+
+#[test]
 fn program_with_string_assignment() {
     let result = codegen!(
         r#"PROGRAM prg
