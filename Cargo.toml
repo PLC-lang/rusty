@@ -1,6 +1,6 @@
 [package]
 name = "rusty"
-version = "0.1.0"
+version = "0.2.0"
 authors = ["Ghaith Hachem <ghaith.hachem@gmail.com>", "Mathias Rieder <mathias.rieder@gmail.com>"]
 edition = "2018"
 readme = "README.md"

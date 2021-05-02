@@ -1136,11 +1136,18 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                 min,
                 sec,
                 milli,
+                micro,
+                nano,
+                negative,
                 ..
             } => self.llvm.create_const_int(
                 self.index,
                 &Some(self.llvm.i64_type().into()),
-                format!("{}", calculate_time_micro(*day, *hour, *min, *sec, *milli)).as_str(),
+                format!(
+                    "{}",
+                    calculate_time_nano(*negative, calculate_dhm_time_seconds(*day, *hour, *min, *sec), *milli, *micro, *nano)
+                )
+                .as_str(),
             ),
             Statement::LiteralReal { value, .. } => {
                 self.llvm
@@ -1433,14 +1440,27 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
         Ok((target_type, phi_value.as_basic_value()))
     }
 }
- 
-fn calculate_time_micro(day: f64, hour: f64, min: f64, sec: f64, milli: f64) -> i64 {
+
+/// calculates the seconds in the given days, hours minutes and seconds
+fn calculate_dhm_time_seconds(day: f64, hour: f64, min: f64, sec: f64) -> f64 {
     let hours = day * 24_f64 + hour;
-    let mins = hours * 60_f64  + min;
-    let secs = mins * 60_f64 + sec;
-    let millis = secs * 1000_f64 + milli;
+    let mins = hours * 60_f64 + min;
+    mins * 60_f64 + sec
+}
+
+/// calculates the nanos in the given seconds, millis, micros and nano/**
+fn calculate_time_nano(negative: bool, sec: f64, milli: f64, micro: f64, nano: u32) -> i64 {
+    let millis = sec * 1000_f64 + milli;
+    let micro = millis * 1000_f64 + micro;
+    let nano = micro * 1000_f64 + nano as f64;
     //go to full micro
-    (millis * 1000_f64).round() as i64
+    let nanos = (nano).round() as i64;
+
+    if negative {
+        -nanos
+    } else {
+        nanos
+    }
 }
 
 /// calculates the milliseconds since 1970-01-01-00:00:00 for the given

@@ -396,7 +396,7 @@ checksum = "24d5f089152e60f62d28b835fbff2cd2e8dc0baf1ac13343bef92ab7eed84548"
 
 [[package]]
 name = "rusty"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "chrono",
  "indexmap",

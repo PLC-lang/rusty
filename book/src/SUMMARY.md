@@ -7,3 +7,5 @@
     - [Multiple Files]()
     - [Libraries]()
     - [Using in external programs]()
+
+- [Datatypes](./datatypes.md)

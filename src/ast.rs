@@ -420,6 +420,9 @@ pub enum Statement {
         min: f64,
         sec: f64,
         milli: f64,
+        micro: f64,
+        nano: u32,
+        negative: bool,
         location: SourceRange,
     },
     LiteralReal {
@@ -573,6 +576,9 @@ impl Debug for Statement {
                 min,
                 sec,
                 milli,
+                micro,
+                nano,
+                negative,
                 ..
             } => f
                 .debug_struct("LiteralTime")
@@ -581,6 +587,9 @@ impl Debug for Statement {
                 .field("min", min)
                 .field("sec", sec)
                 .field("milli", milli)
+                .field("micro", micro)
+                .field("nano", nano)
+                .field("negative", negative)
                 .finish(),
             Statement::LiteralReal { value, .. } => {
                 f.debug_struct("LiteralReal").field("value", value).finish()
