@@ -234,10 +234,42 @@ pub fn get_builtin_types() -> Vec<DataType> {
                 size: 64,
             },
         },
-        create_date_type(),
-        create_time_type(),
-        create_date_and_time_type(),
-        create_time_of_day_type(),
+        DataType {
+            name: "DATE".into(),
+            initial_value: None,
+            information: DataTypeInformation::Integer {
+                name: "DATE".into(),
+                signed: true,
+                size: 64,
+            },
+        },
+        DataType {
+            name: "TIME".into(),
+            initial_value: None,
+            information: DataTypeInformation::Integer {
+                name: "TIME".into(),
+                signed: true,
+                size: 64,
+            },
+        },
+        DataType {
+            name: "DATE_AND_TIME".into(),
+            initial_value: None,
+            information: DataTypeInformation::Integer {
+                name: "DATE_AND_TIME".into(),
+                signed: true,
+                size: 64,
+            },
+        },
+        DataType {
+            name: "TIME_OF_DAY".into(),
+            initial_value: None,
+            information: DataTypeInformation::Integer {
+                name: "TIME_OF_DAY".into(),
+                signed: true,
+                size: 64,
+            },
+        },
         DataType {
             name: "ULINT".into(),
             initial_value: None,
@@ -328,111 +360,5 @@ pub fn get_bigger_type(
         } else {
             real_type
         }
-    }
-}
-
-/// Create the TIME's DataType description
-///
-/// The TIME datatype is used to represent a time-span. A TIME value is stored as an
-/// i64 value with a precision in microseconds.
-/// TIME literals start with `TIME#` or `T#` followed by the TIME segements. TIME segements
-/// are:
-/// - d ... `f64` days
-/// - h ... `f64` hours
-/// - m ... `f64`minutes
-/// - s ... `f64` seconds
-/// - ms ... `f64` milliseconds
-///
-/// Note that only the last segment of a TIME literal can have a fraction.
-///
-/// # Example TIME Literals
-/// - `TIME#2d4h6m8s10ms`
-/// - `T#2d4.2h
-fn create_time_type() -> DataType {
-    DataType {
-        name: "TIME".into(),
-        initial_value: None,
-        information: DataTypeInformation::Integer {
-            name: "TIME".into(),
-            signed: true,
-            size: 64,
-        },
-    }
-}
-
-/// Create the DATE's DataType description
-///
-/// The DATE datatype is used to represent a Date in the Gregorian Calendar. A DATE value is stored as an
-/// i64 value with a precision in milliseconds and denotes the number of milliseconds that have elapsed since
-/// January 1, 1970 UTC not counting leap seconds.
-/// DATE literals start with `DATE#` or `D#` followed by a date in the format of `yyyy-mm-dd`.
-///
-/// # Example DATE Literals
-/// - `DATE#2021-05-02`
-/// - `DATE#1-12-24`
-/// - `D#2000-1-1`
-fn create_date_type() -> DataType {
-    DataType {
-        name: "DATE".into(),
-        initial_value: None,
-        information: DataTypeInformation::Integer {
-            name: "DATE".into(),
-            signed: true,
-            size: 64,
-        },
-    }
-}
-
-/// Create the DATE_AND_TIME's DataType description
-///
-/// The DATE_AND_TIME datatype is used to represent a certain point in time in the Gregorian Calendar.
-/// A DATE_AND_TIME value is stored as an i64 value with a precision in milliseconds and denotes the
-/// number of milliseconds that have elapsed since January 1, 1970 UTC not counting leap seconds.
-/// DATE_AND_TIME literals start with `DATE_AND_TIME#` or `DT#` followed by a date and time in the
-/// format of `yyyy-mm-dd-hh:mm:ss`.
-///
-/// Note that only the seconds-segment can have a fraction denoting the milliseconds.
-///
-/// # Example DATE Literals
-/// - `DATE_AND_TIME#2021-05-02-14:20:10.25`
-/// - `DATE_AND_TIME#1-12-24-00:00:1`
-/// - `DT#1999-12-31-23:59:59.999`
-fn create_date_and_time_type() -> DataType {
-    DataType {
-        name: "DATE_AND_TIME".into(),
-        initial_value: None,
-        information: DataTypeInformation::Integer {
-            name: "DATE_AND_TIME".into(),
-            signed: true,
-            size: 64,
-        },
-    }
-}
-
-/// Create the TIME_OF_DAY's DataType description
-///
-/// The TIME_OF_DY datatype is used to represent a specific moment in time in a day.
-/// A TIME_OF_DAY value is stored as an i64 value with a precision in milliseconds and denotes the
-/// number of milliseconds that have elapsed since January 1, 1970 UTC not counting leap seconds.
-/// Hence this value is stored as a DATE_AND_TIME with the day fixed to 1970-01-01.
-/// TIME_OF_DAY literals start with `TIME_OF_DAY#` or `TOD#` followed by a time in the
-/// format of `hh:mm:ss`.
-///
-/// Note that only the seconeds-segment can have a fraction denoting the milliseconds.
-///
-/// # Example TIME_OF_DAY Literals
-/// - `TIME_OF_DAY#14:20:10.25`
-/// - `TIME_OF_DY#0:00:1`
-/// - `TOD#23:59:59.999`
-/// - `TOD#23:59:59.999`
-fn create_time_of_day_type() -> DataType {
-    DataType {
-        name: "TIME_OF_DAY".into(),
-        initial_value: None,
-        information: DataTypeInformation::Integer {
-            name: "TIME_OF_DAY".into(),
-            signed: true,
-            size: 64,
-        },
     }
 }

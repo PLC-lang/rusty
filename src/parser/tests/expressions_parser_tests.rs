@@ -652,14 +652,15 @@ fn literal_time_test() {
     let lexer = super::lex(
         "
         PROGRAM exp 
-            t#12d;
-            time#12m;
+            T#12d;
+            T#12.4d;
+            TIME#-12m;
             TIME#12s;
-            t#12ms;
-            t#12d10ms;
-            T#12h10m;
-            time#12m4s;
-            TIME#4d6h8m7s12ms;
+            T#12ms;
+            T#12d10ms;
+            T#-12h10.6m;
+            TIME#12m4s;
+            TIME#4d6h8m7s12ms4us8ns;
         END_PROGRAM
         ",
     );
@@ -672,6 +673,19 @@ fn literal_time_test() {
         min: 0.0,
         sec: 0.0,
         milli: 0.0,
+        micro: 0.0,
+        nano: 0,
+        negative: false,
+    },
+    LiteralTime {
+        day: 12.4,
+        hour: 0.0,
+        min: 0.0,
+        sec: 0.0,
+        milli: 0.0,
+        micro: 0.0,
+        nano: 0,
+        negative: false,
     },
     LiteralTime {
         day: 0.0,
@@ -679,6 +693,9 @@ fn literal_time_test() {
         min: 12.0,
         sec: 0.0,
         milli: 0.0,
+        micro: 0.0,
+        nano: 0,
+        negative: true,
     },
     LiteralTime {
         day: 0.0,
@@ -686,6 +703,9 @@ fn literal_time_test() {
         min: 0.0,
         sec: 12.0,
         milli: 0.0,
+        micro: 0.0,
+        nano: 0,
+        negative: false,
     },
     LiteralTime {
         day: 0.0,
@@ -693,6 +713,9 @@ fn literal_time_test() {
         min: 0.0,
         sec: 0.0,
         milli: 12.0,
+        micro: 0.0,
+        nano: 0,
+        negative: false,
     },
     LiteralTime {
         day: 12.0,
@@ -700,13 +723,19 @@ fn literal_time_test() {
         min: 0.0,
         sec: 0.0,
         milli: 10.0,
+        micro: 0.0,
+        nano: 0,
+        negative: false,
     },
     LiteralTime {
         day: 0.0,
         hour: 12.0,
-        min: 10.0,
+        min: 10.6,
         sec: 0.0,
         milli: 0.0,
+        micro: 0.0,
+        nano: 0,
+        negative: true,
     },
     LiteralTime {
         day: 0.0,
@@ -714,6 +743,9 @@ fn literal_time_test() {
         min: 12.0,
         sec: 4.0,
         milli: 0.0,
+        micro: 0.0,
+        nano: 0,
+        negative: false,
     },
     LiteralTime {
         day: 4.0,
@@ -721,6 +753,9 @@ fn literal_time_test() {
         min: 8.0,
         sec: 7.0,
         milli: 12.0,
+        micro: 4.0,
+        nano: 8,
+        negative: false,
     },
 ]"#;
     assert_eq!(ast_string, expected_ast);
@@ -788,7 +823,7 @@ fn illegal_literal_time_missing_segments_test() {
     let lexer = super::lex(
         "
         PROGRAM exp 
-            t#;
+            T#;
         END_PROGRAM
         ",
     );
@@ -806,7 +841,7 @@ fn illegal_literal_time_double_segments_test() {
     let lexer = super::lex(
         "
         PROGRAM exp 
-            t#1d4d2h3m;
+            T#1d4d2h3m;
         END_PROGRAM
         ",
     );
@@ -821,7 +856,7 @@ fn illegal_literal_time_out_of_order_segments_test() {
     let lexer = super::lex(
         "
         PROGRAM exp 
-            t#1s2h3d;
+            T#1s2h3d;
         END_PROGRAM
         ",
     );
@@ -838,6 +873,7 @@ fn literal_date_and_time_test() {
         PROGRAM exp 
             DATE_AND_TIME#1984-10-01-16:40:22; 
             DT#2021-04-20-22:33:14; 
+            DT#2021-04-20-22:33:14.999; 
         END_PROGRAM
         ",
     );
@@ -861,6 +897,15 @@ fn literal_date_and_time_test() {
         min: 33,
         sec: 14,
         milli: 0,
+    },
+    LiteralDateAndTime {
+        year: 2021,
+        month: 4,
+        day: 20,
+        hour: 22,
+        min: 33,
+        sec: 14,
+        milli: 999,
     },
 ]"#;
     assert_eq!(ast_string, expected_ast);
