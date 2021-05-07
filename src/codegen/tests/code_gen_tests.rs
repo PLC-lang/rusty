@@ -294,6 +294,207 @@ END_PROGRAM
 }
 
 #[test]
+fn program_with_date_assignment() {
+    let result = codegen!(
+        r#"PROGRAM prg
+VAR
+y : DATE;
+z : DATE_AND_TIME;
+END_VAR
+y := DATE#1984-10-01;
+y := D#1970-01-01;
+z := DATE_AND_TIME#1984-10-01-20:15:14;
+z := DT#1970-01-01-16:20:04.123;
+z := DT#1970-01-01-16:20:04.123456789;
+END_PROGRAM
+"#
+    );
+
+    let expected = r#"; ModuleID = 'main'
+source_filename = "main"
+
+%prg_interface = type { i64, i64 }
+
+@prg_instance = global %prg_interface zeroinitializer
+
+define void @prg(%prg_interface* %0) {
+entry:
+  %y = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 0
+  %z = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 1
+  store i64 465436800000, i64* %y, align 4
+  store i64 0, i64* %y, align 4
+  store i64 465509714000, i64* %z, align 4
+  store i64 58804123, i64* %z, align 4
+  store i64 58804123, i64* %z, align 4
+  ret void
+}
+"#;
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn program_with_time_assignment() {
+    let result = codegen!(
+        r#"PROGRAM prg
+VAR
+y : TIME;
+
+END_VAR
+y := T#0d0h0m0s0ms;
+y := T#0.5d;
+y := T#0d0h0m0.1s;
+y := T#0d0h0m100ms;
+y := T#1ms;
+y := T#-1us;
+y := T#1ns;
+y := T#-1d0h0m0s1ms;
+y := T#100d0h0m0s1ms;
+END_PROGRAM
+"#
+    );
+
+    let expected = r#"; ModuleID = 'main'
+source_filename = "main"
+
+%prg_interface = type { i64 }
+
+@prg_instance = global %prg_interface zeroinitializer
+
+define void @prg(%prg_interface* %0) {
+entry:
+  %y = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 0
+  store i64 0, i64* %y, align 4
+  store i64 43200000000000, i64* %y, align 4
+  store i64 100000000, i64* %y, align 4
+  store i64 100000000, i64* %y, align 4
+  store i64 1000000, i64* %y, align 4
+  store i64 -1000, i64* %y, align 4
+  store i64 1, i64* %y, align 4
+  store i64 -86400001000000, i64* %y, align 4
+  store i64 8640000001000000, i64* %y, align 4
+  ret void
+}
+"#;
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn program_with_time_of_day_assignment() {
+    let result = codegen!(
+        r#"PROGRAM prg
+VAR
+y : TIME_OF_DAY;
+
+END_VAR
+y := TIME_OF_DAY#00:00:00;
+y := TOD#01:00:00;
+y := TIME_OF_DAY#01:00:00.001;
+y := TOD#1:1:1;
+END_PROGRAM
+"#
+    );
+
+    let expected = r#"; ModuleID = 'main'
+source_filename = "main"
+
+%prg_interface = type { i64 }
+
+@prg_instance = global %prg_interface zeroinitializer
+
+define void @prg(%prg_interface* %0) {
+entry:
+  %y = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 0
+  store i64 0, i64* %y, align 4
+  store i64 3600000, i64* %y, align 4
+  store i64 3600001, i64* %y, align 4
+  store i64 3661000, i64* %y, align 4
+  ret void
+}
+"#;
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn time_variables_have_nano_seconds_resolution(){
+    let result = codegen!(
+        r#"PROGRAM prg
+VAR
+y : TIME;
+
+END_VAR
+y := T#1ms;
+y := T#0.000001s;
+y := T#0.0000001s;
+y := T#100d0h0m0s1.125ms;
+END_PROGRAM
+"#
+    );
+
+    let expected = r#"; ModuleID = 'main'
+source_filename = "main"
+
+%prg_interface = type { i64 }
+
+@prg_instance = global %prg_interface zeroinitializer
+
+define void @prg(%prg_interface* %0) {
+entry:
+  %y = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 0
+  store i64 1000000, i64* %y, align 4
+  store i64 1000, i64* %y, align 4
+  store i64 100, i64* %y, align 4
+  store i64 8640000001125000, i64* %y, align 4
+  ret void
+}
+"#;
+
+    assert_eq!(result, expected);
+
+}
+
+#[test]
+fn date_comparisons() {
+    let result = codegen!(
+        r#"PROGRAM prg
+        VAR
+          a : DATE;
+          b : DATE_AND_TIME;
+          c : TIME;
+          d : TIME_OF_DAY;
+        END_VAR
+
+          a > D#2021-05-01;
+          b > DT#2021-05-01-19:29:17;
+          c > T#1d19h29m17s;
+          d > TOD#19:29:17;
+        END_PROGRAM"#
+    );
+    let expected = generate_program_boiler_plate(
+        "prg",
+        &[("i64", "a"), ("i64", "b"), ("i64", "c"), ("i64", "d")],
+        "void",
+        "",
+        "",
+        r#"%load_a = load i64, i64* %a, align 4
+  %tmpVar = icmp sgt i64 %load_a, 1619827200000
+  %load_b = load i64, i64* %b, align 4
+  %tmpVar1 = icmp sgt i64 %load_b, 1619897357000
+  %load_c = load i64, i64* %c, align 4
+  %tmpVar2 = icmp sgt i64 %load_c, 156557000000000
+  %load_d = load i64, i64* %d, align 4
+  %tmpVar3 = icmp sgt i64 %load_d, 70157000
+  ret void
+"#,
+    );
+
+    assert_eq!(result, expected);
+}
+
+
+#[test]
 fn program_with_string_assignment() {
     let result = codegen!(
         r#"PROGRAM prg

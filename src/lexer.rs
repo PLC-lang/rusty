@@ -341,6 +341,18 @@ pub enum Token {
     #[token("FALSE")]
     LiteralFalse,
 
+    #[regex("D(ATE)?#\\d+-\\d+-\\d+")]
+    LiteralDate,
+
+    #[regex("(DATE_AND_TIME|DT)#\\d+-\\d+-\\d+-\\d+:\\d+:\\d+(\\.\\d+)?")]
+    LiteralDateAndTime,
+
+    #[regex("(TIME_OF_DAY|TOD)#\\d+:\\d+:\\d+(\\.\\d+)?")]
+    LiteralTimeOfDay,
+
+    #[regex("T(IME)?#-?(\\d+(\\.\\d+)?(d|h|ms|m|s|us|ns))+")]
+    LiteralTime,
+
     #[regex("'((\\$.)|[^$'])*'")]
     LiteralString,
 

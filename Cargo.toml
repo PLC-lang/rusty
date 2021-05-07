@@ -1,6 +1,6 @@
 [package]
 name = "rusty"
-version = "0.1.0"
+version = "0.2.0"
 authors = ["Ghaith Hachem <ghaith.hachem@gmail.com>", "Mathias Rieder <mathias.rieder@gmail.com>"]
 edition = "2018"
 readme = "README.md"
@@ -16,6 +16,8 @@ pretty_assertions = "0.6.1"
 thiserror = "1.0"
 structopt = "0.3"
 indexmap = "1.6"
+chrono = "0.4"
+
 
 [lib]
 name = "rusty"

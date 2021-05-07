@@ -621,6 +621,297 @@ fn signed_literal_minus_test() {
 }
 
 #[test]
+fn literal_date_test() {
+    let lexer = super::lex(
+        "
+        PROGRAM exp 
+            DATE#1984-10-01; 
+            D#2021-04-20; 
+        END_PROGRAM
+        ",
+    );
+    let result = parse(lexer).unwrap().0;
+    let ast_string = format!("{:#?}", &result.implementations[0].statements);
+    let expected_ast = r#"[
+    LiteralDate {
+        year: 1984,
+        month: 10,
+        day: 1,
+    },
+    LiteralDate {
+        year: 2021,
+        month: 4,
+        day: 20,
+    },
+]"#;
+    assert_eq!(ast_string, expected_ast);
+}
+
+#[test]
+fn literal_time_test() {
+    let lexer = super::lex(
+        "
+        PROGRAM exp 
+            T#12d;
+            T#12.4d;
+            TIME#-12m;
+            TIME#12s;
+            T#12ms;
+            T#12d10ms;
+            T#-12h10.6m;
+            TIME#12m4s;
+            TIME#4d6h8m7s12ms4us8ns;
+        END_PROGRAM
+        ",
+    );
+    let result = parse(lexer).unwrap().0;
+    let ast_string = format!("{:#?}", &result.implementations[0].statements);
+    let expected_ast = r#"[
+    LiteralTime {
+        day: 12.0,
+        hour: 0.0,
+        min: 0.0,
+        sec: 0.0,
+        milli: 0.0,
+        micro: 0.0,
+        nano: 0,
+        negative: false,
+    },
+    LiteralTime {
+        day: 12.4,
+        hour: 0.0,
+        min: 0.0,
+        sec: 0.0,
+        milli: 0.0,
+        micro: 0.0,
+        nano: 0,
+        negative: false,
+    },
+    LiteralTime {
+        day: 0.0,
+        hour: 0.0,
+        min: 12.0,
+        sec: 0.0,
+        milli: 0.0,
+        micro: 0.0,
+        nano: 0,
+        negative: true,
+    },
+    LiteralTime {
+        day: 0.0,
+        hour: 0.0,
+        min: 0.0,
+        sec: 12.0,
+        milli: 0.0,
+        micro: 0.0,
+        nano: 0,
+        negative: false,
+    },
+    LiteralTime {
+        day: 0.0,
+        hour: 0.0,
+        min: 0.0,
+        sec: 0.0,
+        milli: 12.0,
+        micro: 0.0,
+        nano: 0,
+        negative: false,
+    },
+    LiteralTime {
+        day: 12.0,
+        hour: 0.0,
+        min: 0.0,
+        sec: 0.0,
+        milli: 10.0,
+        micro: 0.0,
+        nano: 0,
+        negative: false,
+    },
+    LiteralTime {
+        day: 0.0,
+        hour: 12.0,
+        min: 10.6,
+        sec: 0.0,
+        milli: 0.0,
+        micro: 0.0,
+        nano: 0,
+        negative: true,
+    },
+    LiteralTime {
+        day: 0.0,
+        hour: 0.0,
+        min: 12.0,
+        sec: 4.0,
+        milli: 0.0,
+        micro: 0.0,
+        nano: 0,
+        negative: false,
+    },
+    LiteralTime {
+        day: 4.0,
+        hour: 6.0,
+        min: 8.0,
+        sec: 7.0,
+        milli: 12.0,
+        micro: 4.0,
+        nano: 8,
+        negative: false,
+    },
+]"#;
+    assert_eq!(ast_string, expected_ast);
+}
+
+#[test]
+fn literal_time_of_day_test() {
+    let lexer = super::lex(
+        "
+        PROGRAM exp 
+            TOD#12:00:00;
+            TOD#00:12:00;
+            TOD#00:00:12;
+            TIME_OF_DAY#04:16:22;
+            TIME_OF_DAY#04:16:22.1;
+            TIME_OF_DAY#04:16:22.001;
+        END_PROGRAM
+        ",
+    );
+    let result = parse(lexer).unwrap().0;
+    let ast_string = format!("{:#?}", &result.implementations[0].statements);
+    let expected_ast = r#"[
+    LiteralTimeOfDay {
+        hour: 12,
+        min: 0,
+        sec: 0,
+        milli: 0,
+    },
+    LiteralTimeOfDay {
+        hour: 0,
+        min: 12,
+        sec: 0,
+        milli: 0,
+    },
+    LiteralTimeOfDay {
+        hour: 0,
+        min: 0,
+        sec: 12,
+        milli: 0,
+    },
+    LiteralTimeOfDay {
+        hour: 4,
+        min: 16,
+        sec: 22,
+        milli: 0,
+    },
+    LiteralTimeOfDay {
+        hour: 4,
+        min: 16,
+        sec: 22,
+        milli: 100,
+    },
+    LiteralTimeOfDay {
+        hour: 4,
+        min: 16,
+        sec: 22,
+        milli: 1,
+    },
+]"#;
+    assert_eq!(ast_string, expected_ast);
+}
+
+#[test]
+fn illegal_literal_time_missing_segments_test() {
+    let lexer = super::lex(
+        "
+        PROGRAM exp 
+            T#;
+        END_PROGRAM
+        ",
+    );
+    assert_eq!(
+        parse(lexer),
+        Err(
+            "expected end of statement (e.g. ;), but found Error at line: 3 offset: 14..15"
+                .to_string()
+        )
+    );
+}
+
+#[test]
+fn illegal_literal_time_double_segments_test() {
+    let lexer = super::lex(
+        "
+        PROGRAM exp 
+            T#1d4d2h3m;
+        END_PROGRAM
+        ",
+    );
+    assert_eq!(
+        parse(lexer),
+        Err("Invalid TIME Literal: segments must be unique".to_string())
+    );
+}
+
+#[test]
+fn illegal_literal_time_out_of_order_segments_test() {
+    let lexer = super::lex(
+        "
+        PROGRAM exp 
+            T#1s2h3d;
+        END_PROGRAM
+        ",
+    );
+    assert_eq!(
+        parse(lexer),
+        Err("Invalid TIME Literal: segments out of order, use d-h-m-s-ms".to_string())
+    );
+}
+
+#[test]
+fn literal_date_and_time_test() {
+    let lexer = super::lex(
+        "
+        PROGRAM exp 
+            DATE_AND_TIME#1984-10-01-16:40:22; 
+            DT#2021-04-20-22:33:14; 
+            DT#2021-04-20-22:33:14.999; 
+        END_PROGRAM
+        ",
+    );
+    let result = parse(lexer).unwrap().0;
+    let ast_string = format!("{:#?}", &result.implementations[0].statements);
+    let expected_ast = r#"[
+    LiteralDateAndTime {
+        year: 1984,
+        month: 10,
+        day: 1,
+        hour: 16,
+        min: 40,
+        sec: 22,
+        milli: 0,
+    },
+    LiteralDateAndTime {
+        year: 2021,
+        month: 4,
+        day: 20,
+        hour: 22,
+        min: 33,
+        sec: 14,
+        milli: 0,
+    },
+    LiteralDateAndTime {
+        year: 2021,
+        month: 4,
+        day: 20,
+        hour: 22,
+        min: 33,
+        sec: 14,
+        milli: 999,
+    },
+]"#;
+    assert_eq!(ast_string, expected_ast);
+}
+
+#[test]
 fn literal_real_test() {
     let lexer = super::lex(
         "

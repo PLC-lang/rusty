@@ -391,6 +391,40 @@ pub enum Statement {
         value: String,
         location: SourceRange,
     },
+    LiteralDate {
+        year: i32,
+        month: u32,
+        day: u32,
+        location: SourceRange,
+    },
+    LiteralDateAndTime {
+        year: i32,
+        month: u32,
+        day: u32,
+        hour: u32,
+        min: u32,
+        sec: u32,
+        milli: u32,
+        location: SourceRange,
+    },
+    LiteralTimeOfDay {
+        hour: u32,
+        min: u32,
+        sec: u32,
+        milli: u32,
+        location: SourceRange,
+    },
+    LiteralTime {
+        day: f64,
+        hour: f64,
+        min: f64,
+        sec: f64,
+        milli: f64,
+        micro: f64,
+        nano: u32,
+        negative: bool,
+        location: SourceRange,
+    },
     LiteralReal {
         value: String,
         location: SourceRange,
@@ -495,6 +529,67 @@ impl Debug for Statement {
             Statement::LiteralInteger { value, .. } => f
                 .debug_struct("LiteralInteger")
                 .field("value", value)
+                .finish(),
+            Statement::LiteralDate {
+                year, month, day, ..
+            } => f
+                .debug_struct("LiteralDate")
+                .field("year", year)
+                .field("month", month)
+                .field("day", day)
+                .finish(),
+            Statement::LiteralDateAndTime {
+                year,
+                month,
+                day,
+                hour,
+                min,
+                sec,
+                milli,
+                ..
+            } => f
+                .debug_struct("LiteralDateAndTime")
+                .field("year", year)
+                .field("month", month)
+                .field("day", day)
+                .field("hour", hour)
+                .field("min", min)
+                .field("sec", sec)
+                .field("milli", milli)
+                .finish(),
+            Statement::LiteralTimeOfDay {
+                hour,
+                min,
+                sec,
+                milli,
+                ..
+            } => f
+                .debug_struct("LiteralTimeOfDay")
+                .field("hour", hour)
+                .field("min", min)
+                .field("sec", sec)
+                .field("milli", milli)
+                .finish(),
+            Statement::LiteralTime {
+                day,
+                hour,
+                min,
+                sec,
+                milli,
+                micro,
+                nano,
+                negative,
+                ..
+            } => f
+                .debug_struct("LiteralTime")
+                .field("day", day)
+                .field("hour", hour)
+                .field("min", min)
+                .field("sec", sec)
+                .field("milli", milli)
+                .field("micro", micro)
+                .field("nano", nano)
+                .field("negative", negative)
                 .finish(),
             Statement::LiteralReal { value, .. } => {
                 f.debug_struct("LiteralReal").field("value", value).finish()
@@ -642,6 +737,10 @@ impl Statement {
     pub fn get_location(&self) -> SourceRange {
         match self {
             Statement::LiteralInteger { location, .. } => location.clone(),
+            Statement::LiteralDate { location, .. } => location.clone(),
+            Statement::LiteralDateAndTime { location, .. } => location.clone(),
+            Statement::LiteralTimeOfDay { location, .. } => location.clone(),
+            Statement::LiteralTime { location, .. } => location.clone(),
             Statement::LiteralReal { location, .. } => location.clone(),
             Statement::LiteralBool { location, .. } => location.clone(),
             Statement::LiteralString { location, .. } => location.clone(),
