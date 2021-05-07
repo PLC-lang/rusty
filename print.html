@@ -97,7 +97,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded "><a href="intro_1.html"><strong aria-hidden="true">1.</strong> RuSTy</a></li><li class="chapter-item expanded "><div><strong aria-hidden="true">2.</strong> Installation</div></li><li class="chapter-item expanded "><a href="using_rusty.html"><strong aria-hidden="true">3.</strong> Using RuSTy</a></li><li class="chapter-item expanded "><div><strong aria-hidden="true">4.</strong> Writing ST Programs</div></li><li><ol class="section"><li class="chapter-item expanded "><div><strong aria-hidden="true">4.1.</strong> Multiple Files</div></li><li class="chapter-item expanded "><div><strong aria-hidden="true">4.2.</strong> Libraries</div></li><li class="chapter-item expanded "><div><strong aria-hidden="true">4.3.</strong> Using in external programs</div></li></ol></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded "><a href="intro_1.html"><strong aria-hidden="true">1.</strong> RuSTy</a></li><li class="chapter-item expanded "><div><strong aria-hidden="true">2.</strong> Installation</div></li><li class="chapter-item expanded "><a href="using_rusty.html"><strong aria-hidden="true">3.</strong> Using RuSTy</a></li><li class="chapter-item expanded "><div><strong aria-hidden="true">4.</strong> Writing ST Programs</div></li><li><ol class="section"><li class="chapter-item expanded "><div><strong aria-hidden="true">4.1.</strong> Multiple Files</div></li><li class="chapter-item expanded "><div><strong aria-hidden="true">4.2.</strong> Libraries</div></li><li class="chapter-item expanded "><div><strong aria-hidden="true">4.3.</strong> Using in external programs</div></li></ol></li><li class="chapter-item expanded "><a href="datatypes.html"><strong aria-hidden="true">5.</strong> Datatypes</a></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -225,6 +225,66 @@
 <h2 id="creating-a-shared-library"><a class="header" href="#creating-a-shared-library">Creating a shared library</a></h2>
 <h2 id="linking-with-an-external-application"><a class="header" href="#linking-with-an-external-application">Linking with an external application</a></h2>
 <h2 id="writing-a-main"><a class="header" href="#writing-a-main">Writing a main</a></h2>
+<h1 id="datatypes-1"><a class="header" href="#datatypes-1">Datatypes</a></h1>
+<h2 id="date-and-time"><a class="header" href="#date-and-time">Date and Time</a></h2>
+<h3 id="date"><a class="header" href="#date">DATE</a></h3>
+<p>The <code>DATE</code> datatype is used to represent a Date in the Gregorian Calendar. Such a value is 
+stored as an i64 with a precision in milliseconds and denotes the number of milliseconds 
+that have elapsed since January 1, 1970 UTC not counting leap seconds. DATE literals start 
+with <code>DATE#</code> or <code>D#</code> followed by a date in the format of <code>yyyy-mm-dd</code>.</p>
+<p>Example literals</p>
+<ul>
+<li><code>d1 : DATE := DATE#2021-05-02;</code></li>
+<li><code>d2 : DATE := DATE#1-12-24;</code></li>
+<li><code>d3 : DATE := D#2000-1-1;</code></li>
+</ul>
+<h3 id="date_and_time"><a class="header" href="#date_and_time">DATE_AND_TIME</a></h3>
+<p>The <code>DATE_AND_TIME</code> datatype is used to represent a certain point in time in the Gregorian Calendar.
+Such a value is stored as an <code>i64</code> with a precision in milliseconds and denotes the
+number of milliseconds that have elapsed since January 1, 1970 UTC not counting leap seconds.
+DATE_AND_TIME literals start with <code>DATE_AND_TIME#</code> or <code>DT#</code> followed by a date and time in the
+format of <code>yyyy-mm-dd-hh:mm:ss</code>.</p>
+<p>Note that only the seconds-segment can have a fraction denoting the milliseconds.</p>
+<p>Example literals</p>
+<ul>
+<li><code>d1 : DATE_AND_TIME := DATE_AND_TIME#2021-05-02-14:20:10.25;</code></li>
+<li><code>d2 : DATE_AND_TIME := DATE_AND_TIME#1-12-24-00:00:1;</code></li>
+<li><code>d3 : DATE_AND_TIME := DT#1999-12-31-23:59:59.999;</code></li>
+</ul>
+<h3 id="time_of_day"><a class="header" href="#time_of_day">TIME_OF_DAY</a></h3>
+<p>The <code>TIME_OF_DAY</code> datatype is used to represent a specific moment in time in a day.
+Such a value is stored as an <code>i64</code> value with a precision in milliseconds and denotes the
+number of milliseconds that have elapsed since January 1, 1970 UTC not counting leap seconds.
+Hence this value is stored as a <code>DATE_AND_TIME</code> with the day fixed to 1970-01-01.
+<code>TIME_OF_DAY</code> literals start with <code>TIME_OF_DAY#</code> or <code>TOD#</code> followed by a time in the
+format of <code>hh:mm:ss</code>.</p>
+<p>Note that only the seconeds-segment can have a fraction denoting the milliseconds.</p>
+<p>Example literals</p>
+<ul>
+<li><code>t1 : TIME_OF_DAY := TIME_OF_DAY#14:20:10.25;</code></li>
+<li><code>t2 : TIME_OF_DAY := TIME_OF_DY#0:00:1;</code></li>
+<li><code>t3 : TIME_OF_DAY := TOD#23:59:59.999;</code></li>
+</ul>
+<h3 id="time"><a class="header" href="#time">TIME</a></h3>
+<p>The <code>TIME</code> datatype is used to represent a time-span. A <code>TIME</code> value is stored as an
+<code>i64</code> value with a precision in nanoseconds.
+TIME literals start with <code>TIME#</code> or <code>T#</code> followed by the <code>TIME</code> segements. Supported segements are:</p>
+<ul>
+<li><code>d</code> ... <code>f64</code> days</li>
+<li><code>h</code> ... <code>f64</code> hours</li>
+<li><code>m</code> ... <code>f64</code>minutes</li>
+<li><code>s</code> ... <code>f64</code> seconds</li>
+<li><code>ms</code> ... <code>f64</code> milliseconds</li>
+<li><code>us</code> ... <code>f64</code> microseconds</li>
+<li><code>ns</code> ... <code>u32</code> nanaoseconds</li>
+</ul>
+<p>Note that only the last segment of a <code>TIME</code> literal can have a fraction.</p>
+<p>Example literals</p>
+<ul>
+<li><code>t1 : TIME := TIME#2d4h6m8s10ms;</code></li>
+<li><code>t2 : TIME := T#2d4.2h;</code></li>
+<li><code>t3 : TIME := T#-10s4ms16ns;</code></li>
+</ul>
 
                     </main>
 
