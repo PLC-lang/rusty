@@ -304,6 +304,7 @@ fn visit_data_type(index: &mut Index, type_declatation: &UserTypeDeclaration) {
                 type_declatation.initializer.clone(),
                 information,
             )
-        }
+        },
+        DataType::VarArgs {..} => unimplemented!(),
     };
 }

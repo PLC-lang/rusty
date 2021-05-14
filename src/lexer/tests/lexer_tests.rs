@@ -437,8 +437,10 @@ fn case_statement() {
 
 #[test]
 fn dot_statements() {
-    let mut lexer = lex(r".. .");
+    let mut lexer = lex(r"... .. .");
 
+    assert_eq!(lexer.token, KeywordDotDotDot);
+    lexer.advance();
     assert_eq!(lexer.token, KeywordDotDot);
     lexer.advance();
     assert_eq!(lexer.token, KeywordDot);
