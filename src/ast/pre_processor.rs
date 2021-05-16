@@ -51,6 +51,9 @@ pub fn pre_process(unit: &mut CompilationUnit) {
 fn should_generate_implicit_type(variable: &Variable) -> bool {
     match variable.data_type {
         DataTypeDeclaration::DataTypeReference { .. } => false,
+        DataTypeDeclaration::DataTypeDefinition {
+            data_type: DataType::VarArgs { .. },
+        } => false,
         DataTypeDeclaration::DataTypeDefinition { .. } => true,
     }
 }

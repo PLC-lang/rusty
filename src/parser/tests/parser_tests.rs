@@ -256,7 +256,6 @@ fn a_variable_declaration_block_needs_to_end_with_endvar() {
     );
 }
 
-
 #[test]
 fn a_statement_without_a_semicolon_fails() {
     let lexer = super::lex("PROGRAM buz x END_PROGRAM ");
@@ -426,7 +425,8 @@ fn a_function_with_varargs_can_be_parsed() {
 
 #[test]
 fn a_function_with_typed_varargs_can_be_parsed() {
-    let lexer = super::lex("FUNCTION foo : INT VAR_INPUT x : INT; y : INT...; END_VAR END_FUNCTION");
+    let lexer =
+        super::lex("FUNCTION foo : INT VAR_INPUT x : INT; y : INT...; END_VAR END_FUNCTION");
     let result = parse(lexer).unwrap().0;
 
     let prg = &result.units[0];

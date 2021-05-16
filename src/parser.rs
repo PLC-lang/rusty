@@ -308,7 +308,7 @@ fn parse_data_type_definition(
                 data_type: DataType::StructType { name, variables },
             },
             None,
-        ))
+        ));
     } else if allow(KeywordArray, lexer) {
         //ARRAY
         //expect open square
@@ -333,7 +333,7 @@ fn parse_data_type_definition(
                 },
             },
             initializer,
-        ))
+        ));
     } else if allow(KeywordParensOpen, lexer) {
         //ENUM
         let mut elements = Vec::new();
@@ -439,24 +439,20 @@ fn parse_data_type_definition(
 
     let result = if allow(KeywordDotDotDot, lexer) {
         Some((
-            DataTypeDeclaration::DataTypeDefinition { 
-            data_type : DataType::VarArgs { 
-                referenced_type : result.map(|(it,_)|it).map(Box::new)
-            }
-        },None)
-        )
+            DataTypeDeclaration::DataTypeDefinition {
+                data_type: DataType::VarArgs {
+                    referenced_type: result.map(|(it, _)| it).map(Box::new),
+                },
+            },
+            None,
+        ))
     } else {
         result
     };
     expect!(KeywordSemicolon, lexer);
     lexer.advance();
 
-    result.ok_or_else(||
-        format!(
-            "expected datatype, struct or enum, found {:?}",
-            lexer.token
-        )
-    )
+    result.ok_or_else(|| format!("expected datatype, struct or enum, found {:?}", lexer.token))
 }
 
 fn is_end_of_stream(token: &lexer::Token) -> bool {

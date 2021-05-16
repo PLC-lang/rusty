@@ -58,9 +58,24 @@ pub fn visit_pou(index: &mut Index, pou: &Pou) {
 
     //register the pou's member variables
     let mut count = 0;
+    let mut varargs = None;
     for block in &pou.variable_blocks {
         let block_type = get_variable_type_from_block(block);
         for var in &block.variables {
+            println!("{:#?}", var);
+            if let DataTypeDeclaration::DataTypeDefinition {
+                data_type: ast::DataType::VarArgs { referenced_type },
+            } = &var.data_type
+            {
+                let name = referenced_type
+                    .as_ref()
+                    .map(|it| &**it)
+                    .map(DataTypeDeclaration::get_name)
+                    .flatten()
+                    .map(|it| it.to_string());
+                varargs = Some(name);
+                continue;
+            }
             member_names.push(var.name.clone());
 
             let type_name = if block_type == VariableType::InOut {
@@ -111,6 +126,7 @@ pub fn visit_pou(index: &mut Index, pou: &Pou) {
         DataTypeInformation::Struct {
             name: interface_name,
             member_names,
+            varargs,
         },
     );
 }
@@ -183,6 +199,7 @@ fn visit_data_type(index: &mut Index, type_declatation: &UserTypeDeclaration) {
             let information = DataTypeInformation::Struct {
                 name: name.clone().unwrap(),
                 member_names,
+                varargs: None,
             };
             index.register_type(
                 name.as_ref().unwrap(),
@@ -304,7 +321,7 @@ fn visit_data_type(index: &mut Index, type_declatation: &UserTypeDeclaration) {
                 type_declatation.initializer.clone(),
                 information,
             )
-        },
-        DataType::VarArgs {..} => unimplemented!(),
+        }
+        DataType::VarArgs { .. } => {} //Varargs are not indexed
     };
 }

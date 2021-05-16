@@ -304,7 +304,7 @@ pub enum DataType {
     },
     VarArgs {
         referenced_type: Option<Box<DataTypeDeclaration>>,
-    }
+    },
 }
 
 impl Debug for DataType {
@@ -350,9 +350,8 @@ impl Debug for DataType {
                 .field("is_wide", is_wide)
                 .field("size", size)
                 .finish(),
-            DataType::VarArgs {
-                referenced_type,
-            } => f.debug_struct("VarArgs")
+            DataType::VarArgs { referenced_type } => f
+                .debug_struct("VarArgs")
                 .field("referenced_type", referenced_type)
                 .finish(),
         }
@@ -367,7 +366,7 @@ impl DataType {
             DataType::SubRangeType { name, .. } => *name = Some(new_name),
             DataType::ArrayType { name, .. } => *name = Some(new_name),
             DataType::StringType { name, .. } => *name = Some(new_name),
-            DataType::VarArgs {..} => unreachable!(),
+            DataType::VarArgs { .. } => {} //No names on varargs
         }
     }
 
@@ -378,7 +377,7 @@ impl DataType {
             DataType::ArrayType { name, .. } => name.as_ref().map(|x| x.as_str()),
             DataType::StringType { name, .. } => name.as_ref().map(|x| x.as_str()),
             DataType::SubRangeType { name, .. } => name.as_ref().map(|x| x.as_str()),
-            DataType::VarArgs {..} => None,
+            DataType::VarArgs { .. } => None,
         }
     }
 

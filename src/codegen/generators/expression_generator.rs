@@ -1194,6 +1194,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
             if let DataTypeInformation::Struct {
                 name: struct_name,
                 member_names,
+                ..
             } = type_info
             {
                 let generated_type = self.llvm_index.get_associated_type(struct_name)?;
