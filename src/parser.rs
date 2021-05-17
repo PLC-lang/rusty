@@ -68,12 +68,7 @@ fn slice_and_advance(lexer: &mut RustyLexer) -> String {
 }
 
 pub fn parse(mut lexer: RustyLexer) -> Result<(CompilationUnit, NewLines), String> {
-    let mut unit = CompilationUnit {
-        global_vars: Vec::new(),
-        units: Vec::new(),
-        implementations: Vec::new(),
-        types: Vec::new(),
-    };
+    let mut unit = CompilationUnit::default();
 
     let mut linkage = LinkageType::Internal;
     loop {

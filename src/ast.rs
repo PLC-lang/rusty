@@ -70,6 +70,32 @@ pub struct CompilationUnit {
     pub types: Vec<UserTypeDeclaration>,
 }
 
+impl CompilationUnit {
+    /// imports all elements of the other CompilationUnit into this CompilationUnit
+    ///
+    /// this will import all global_vars, units, implementations and types. The imported
+    /// structs are moved from the other unit into this unit
+    /// # Arguments
+    /// `other` the other CompilationUnit to import the elements from.
+    pub fn import(&mut self, other: CompilationUnit) {
+        self.global_vars.extend(other.global_vars);
+        self.units.extend(other.units);
+        self.implementations.extend(other.implementations);
+        self.types.extend(other.types);
+    }
+}
+
+impl Default for CompilationUnit {
+    fn default() -> Self {
+        CompilationUnit {
+            global_vars: Vec::new(),
+            units: Vec::new(),
+            implementations: Vec::new(),
+            types: Vec::new(),
+        }
+    }
+}
+
 #[derive(Debug, Copy, PartialEq, Clone)]
 pub enum VariableBlockType {
     Local,

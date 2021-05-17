@@ -44,7 +44,11 @@ macro_rules! assert_almost_eq {
 /// The string will eventually be the Stdout of the function.
 ///
 pub fn compile(context: &Context, source: String) -> ExecutionEngine {
-    let code_gen = compile_module(context, "external_test.st", source).unwrap();
+    let source = SourceCode {
+        path: "external_test.st".to_string(),
+        source,
+    };
+    let code_gen = compile_module(context, &[source.as_source_container()]).unwrap();
     code_gen
         .module
         .create_jit_execution_engine(inkwell::OptimizationLevel::None)

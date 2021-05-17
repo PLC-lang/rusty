@@ -130,7 +130,6 @@ fn using_nested_structs() {
     "#;
 
     compile_and_run(testcode.to_string(), &mut main_data);
-    println!("{:?}", main_data);
     assert_eq!(11, main_data.my_s.mys1.field1);
     assert_eq!(12, main_data.my_s.mys1.field2);
     assert_eq!(13, main_data.my_s.mys1.field3);
