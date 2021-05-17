@@ -145,6 +145,19 @@ impl Index {
         }
     }
 
+    /// imports all entries from the given index into the current index
+    ///
+    /// imports all global_variables, member_variables, types and implementations
+    /// # Arguments
+    /// - `other` the other index. The elements are drained from the given index and moved
+    /// into the current one
+    pub fn import(&mut self, other: Index) {
+        self.global_variables.extend(other.global_variables);
+        self.member_variables.extend(other.member_variables);
+        self.types.extend(other.types);
+        self.implementations.extend(other.implementations);
+    }
+
     pub fn get_void_type(&self) -> &DataType {
         &self.void_type
     }
@@ -174,7 +187,6 @@ impl Index {
         })
     }
 
-    //                                     none                 ["myGlobal", "a", "b"]
     pub fn find_variable(
         &self,
         context: Option<&str>,

@@ -271,12 +271,12 @@ fn date_literals_test() {
         DATE#1946 D#2001.10.04
         DATE#1946-4 D#-1-1-1
         "#);
-    for _ in 1..=2  {
+    for _ in 1..=2 {
         assert_eq!(lexer.token, LiteralDate);
         lexer.advance();
     }
 
-    for _ in 1..=4  {
+    for _ in 1..=4 {
         assert_ne!(lexer.token, LiteralDate);
         lexer.advance();
     }

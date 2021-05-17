@@ -32,6 +32,9 @@ pub enum CompileError {
         target_type: String,
         location: SourceRange,
     },
+
+    #[error("Cannot read File {path:}: {reason:}")]
+    IoError { path: String, reason: String },
 }
 
 impl CompileError {
@@ -67,6 +70,11 @@ impl CompileError {
 
     pub fn codegen_error(message: String, location: SourceRange) -> CompileError {
         CompileError::CodeGenError { message, location }
+    }
+
+    /// creates a CompileError:IoError with the given parameters
+    pub fn io_error(path: String, reason: String) -> CompileError {
+        CompileError::IoError { path, reason }
     }
 
     pub fn no_type_associated(type_name: &str, location: SourceRange) -> CompileError {

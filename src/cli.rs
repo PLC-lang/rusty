@@ -7,15 +7,12 @@ pub fn parse_parameters(args: Vec<String>) -> Result<CompileParameters, Paramete
     CompileParameters::from_iter_safe(args)
 }
 
-#[derive(StructOpt)]
+#[derive(StructOpt, Debug)]
 #[structopt(
         group = ArgGroup::with_name("format").required(true),
         about = "IEC61131-3 Structured Text compiler powered by Rust & LLVM "
     )]
 pub struct CompileParameters {
-    #[structopt(name = "input-file", help = "Read input from <input-file>")]
-    pub input: String,
-
     #[structopt(
         short,
         long,
@@ -62,6 +59,15 @@ pub struct CompileParameters {
         help = "A target-tripple supported by LLVM"
     )]
     pub target: Option<String>,
+
+    #[structopt(
+        name = "input-files",
+        help = "Read input from <input-files>, may be a glob expression like 'src/**/*' or a sequence of files",
+        required = true,
+        min_values = 1
+    )]
+    // having a vec allows bash to resolve *.st itself
+    pub input: Vec<String>,
 }
 
 #[cfg(test)]
@@ -76,7 +82,10 @@ mod cli_tests {
             Err(ParameterError { kind, .. }) => {
                 assert_eq!(kind, expected_error_kind);
             }
-            _ => panic!("expected error, but found none. arguments: {:?}", args),
+            Ok(p) => panic!(
+                "expected error, but found none. arguments: {:?}. params: {:?}",
+                args, p
+            ),
         }
     }
     macro_rules! vec_of_strings {

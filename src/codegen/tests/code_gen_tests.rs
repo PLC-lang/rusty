@@ -418,7 +418,7 @@ entry:
 }
 
 #[test]
-fn time_variables_have_nano_seconds_resolution(){
+fn time_variables_have_nano_seconds_resolution() {
     let result = codegen!(
         r#"PROGRAM prg
 VAR
@@ -452,7 +452,6 @@ entry:
 "#;
 
     assert_eq!(result, expected);
-
 }
 
 #[test]
@@ -492,7 +491,6 @@ fn date_comparisons() {
 
     assert_eq!(result, expected);
 }
-
 
 #[test]
 fn program_with_string_assignment() {
