@@ -1,1 +1,1 @@
-initSidebarItems({"fn":[["generate_ir",""],["main",""],["main_compile",""]]});
+initSidebarItems({"fn":[["create_file_paths",""],["generate_ir",""],["main",""],["main_compile",""]],"struct":[["FilePath",""]]});

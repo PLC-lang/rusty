@@ -10,6 +10,7 @@ sourcesIndex["clap"] = {"name":"","dirs":[{"name":"app","files":["help.rs","meta
 sourcesIndex["difference"] = {"name":"","files":["display.rs","lcs.rs","lib.rs","merge.rs"]};
 sourcesIndex["either"] = {"name":"","files":["lib.rs"]};
 sourcesIndex["fnv"] = {"name":"","files":["lib.rs"]};
+sourcesIndex["glob"] = {"name":"","files":["lib.rs"]};
 sourcesIndex["hashbrown"] = {"name":"","dirs":[{"name":"external_trait_impls","files":["mod.rs"]},{"name":"raw","files":["bitmask.rs","mod.rs","sse2.rs"]}],"files":["lib.rs","macros.rs","map.rs","scopeguard.rs","set.rs"]};
 sourcesIndex["heck"] = {"name":"","files":["camel.rs","kebab.rs","lib.rs","mixed.rs","shouty_kebab.rs","shouty_snake.rs","snake.rs","title.rs"]};
 sourcesIndex["indexmap"] = {"name":"","dirs":[{"name":"map","dirs":[{"name":"core","files":["raw.rs"]}],"files":["core.rs"]}],"files":["equivalent.rs","lib.rs","macros.rs","map.rs","mutable_keys.rs","set.rs","util.rs"]};

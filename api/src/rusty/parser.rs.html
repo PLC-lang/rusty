@@ -567,11 +567,6 @@
 <span id="564">564</span>
 <span id="565">565</span>
 <span id="566">566</span>
-<span id="567">567</span>
-<span id="568">568</span>
-<span id="569">569</span>
-<span id="570">570</span>
-<span id="571">571</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">ast</span>::<span class="ident">Implementation</span>;
@@ -643,12 +638,7 @@
 }
 
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">parse</span>(<span class="kw-2">mut</span> <span class="ident">lexer</span>: <span class="ident">RustyLexer</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="ident">CompilationUnit</span>, <span class="ident">NewLines</span>), <span class="ident">String</span><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">unit</span> <span class="op">=</span> <span class="ident">CompilationUnit</span> {
-        <span class="ident">global_vars</span>: <span class="ident">Vec</span>::<span class="ident">new</span>(),
-        <span class="ident">units</span>: <span class="ident">Vec</span>::<span class="ident">new</span>(),
-        <span class="ident">implementations</span>: <span class="ident">Vec</span>::<span class="ident">new</span>(),
-        <span class="ident">types</span>: <span class="ident">Vec</span>::<span class="ident">new</span>(),
-    };
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">unit</span> <span class="op">=</span> <span class="ident">CompilationUnit</span>::<span class="ident">default</span>();
 
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">linkage</span> <span class="op">=</span> <span class="ident">LinkageType</span>::<span class="ident">Internal</span>;
     <span class="kw">loop</span> {

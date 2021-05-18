@@ -926,6 +926,32 @@
 <span id="923">923</span>
 <span id="924">924</span>
 <span id="925">925</span>
+<span id="926">926</span>
+<span id="927">927</span>
+<span id="928">928</span>
+<span id="929">929</span>
+<span id="930">930</span>
+<span id="931">931</span>
+<span id="932">932</span>
+<span id="933">933</span>
+<span id="934">934</span>
+<span id="935">935</span>
+<span id="936">936</span>
+<span id="937">937</span>
+<span id="938">938</span>
+<span id="939">939</span>
+<span id="940">940</span>
+<span id="941">941</span>
+<span id="942">942</span>
+<span id="943">943</span>
+<span id="944">944</span>
+<span id="945">945</span>
+<span id="946">946</span>
+<span id="947">947</span>
+<span id="948">948</span>
+<span id="949">949</span>
+<span id="950">950</span>
+<span id="951">951</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">compile_error</span>::<span class="ident">CompileError</span>;
@@ -997,6 +1023,32 @@
     <span class="kw">pub</span> <span class="ident">units</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Pou</span><span class="op">&gt;</span>,
     <span class="kw">pub</span> <span class="ident">implementations</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Implementation</span><span class="op">&gt;</span>,
     <span class="kw">pub</span> <span class="ident">types</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">UserTypeDeclaration</span><span class="op">&gt;</span>,
+}
+
+<span class="kw">impl</span> <span class="ident">CompilationUnit</span> {
+    <span class="doccomment">/// imports all elements of the other CompilationUnit into this CompilationUnit</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// this will import all global_vars, units, implementations and types. The imported</span>
+    <span class="doccomment">/// structs are moved from the other unit into this unit</span>
+    <span class="doccomment">/// # Arguments</span>
+    <span class="doccomment">/// `other` the other CompilationUnit to import the elements from.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">import</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">other</span>: <span class="ident">CompilationUnit</span>) {
+        <span class="self">self</span>.<span class="ident">global_vars</span>.<span class="ident">extend</span>(<span class="ident">other</span>.<span class="ident">global_vars</span>);
+        <span class="self">self</span>.<span class="ident">units</span>.<span class="ident">extend</span>(<span class="ident">other</span>.<span class="ident">units</span>);
+        <span class="self">self</span>.<span class="ident">implementations</span>.<span class="ident">extend</span>(<span class="ident">other</span>.<span class="ident">implementations</span>);
+        <span class="self">self</span>.<span class="ident">types</span>.<span class="ident">extend</span>(<span class="ident">other</span>.<span class="ident">types</span>);
+    }
+}
+
+<span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">CompilationUnit</span> {
+    <span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+        <span class="ident">CompilationUnit</span> {
+            <span class="ident">global_vars</span>: <span class="ident">Vec</span>::<span class="ident">new</span>(),
+            <span class="ident">units</span>: <span class="ident">Vec</span>::<span class="ident">new</span>(),
+            <span class="ident">implementations</span>: <span class="ident">Vec</span>::<span class="ident">new</span>(),
+            <span class="ident">types</span>: <span class="ident">Vec</span>::<span class="ident">new</span>(),
+        }
+    }
 }
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Copy</span>, <span class="ident">PartialEq</span>, <span class="ident">Clone</span>)]</span>

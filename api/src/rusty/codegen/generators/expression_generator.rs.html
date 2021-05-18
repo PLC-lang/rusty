@@ -1488,6 +1488,12 @@
 <span id="1485">1485</span>
 <span id="1486">1486</span>
 <span id="1487">1487</span>
+<span id="1488">1488</span>
+<span id="1489">1489</span>
+<span id="1490">1490</span>
+<span id="1491">1491</span>
+<span id="1492">1492</span>
+<span id="1493">1493</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 <span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">ast</span>::<span class="ident">SourceRange</span>, <span class="ident">index</span>::<span class="ident">Index</span>};
@@ -2636,7 +2642,13 @@
                 <span class="kw-2">&amp;</span><span class="prelude-val">Some</span>(<span class="self">self</span>.<span class="ident">llvm</span>.<span class="ident">i64_type</span>().<span class="ident">into</span>()),
                 <span class="macro">format</span><span class="macro">!</span>(
                     <span class="string">&quot;{}&quot;</span>,
-                    <span class="ident">calculate_time_nano</span>(<span class="kw-2">*</span><span class="ident">negative</span>, <span class="ident">calculate_dhm_time_seconds</span>(<span class="kw-2">*</span><span class="ident">day</span>, <span class="kw-2">*</span><span class="ident">hour</span>, <span class="kw-2">*</span><span class="ident">min</span>, <span class="kw-2">*</span><span class="ident">sec</span>), <span class="kw-2">*</span><span class="ident">milli</span>, <span class="kw-2">*</span><span class="ident">micro</span>, <span class="kw-2">*</span><span class="ident">nano</span>)
+                    <span class="ident">calculate_time_nano</span>(
+                        <span class="kw-2">*</span><span class="ident">negative</span>,
+                        <span class="ident">calculate_dhm_time_seconds</span>(<span class="kw-2">*</span><span class="ident">day</span>, <span class="kw-2">*</span><span class="ident">hour</span>, <span class="kw-2">*</span><span class="ident">min</span>, <span class="kw-2">*</span><span class="ident">sec</span>),
+                        <span class="kw-2">*</span><span class="ident">milli</span>,
+                        <span class="kw-2">*</span><span class="ident">micro</span>,
+                        <span class="kw-2">*</span><span class="ident">nano</span>
+                    )
                 )
                 .<span class="ident">as_str</span>(),
             ),

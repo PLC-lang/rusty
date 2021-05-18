@@ -136,13 +136,15 @@
                         </a>
                         
                         
+                        
+
                     </div>
                 </div>
 
                 
                 <div id="search-wrapper" class="hidden">
                     <form id="searchbar-outer" class="searchbar-outer">
-                        <input type="search" name="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
                     </form>
                     <div id="searchresults-outer" class="searchresults-outer hidden">
                         <div id="searchresults-header" class="searchresults-header"></div>
@@ -164,6 +166,15 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="using-rusty"><a class="header" href="#using-rusty">Using RuSTy</a></h1>
+<p><code>rustyc</code> offers a comprehensive help via the -h (--help) option. <code>rustyc</code> takes one output-format parameter and any number of input-files.
+The input files can also be written as <a href="https://en.wikipedia.org/wiki/Glob_(programming)">glob patterns</a>.</p>
+<p><code>rustyc [OPTIONS] &lt;input-files&gt;... &lt;--ir|--shared|--pic|--static|--bc&gt;</code></p>
+<p>Examples: </p>
+<ul>
+<li><code>rustyc --ir file1.st file2.st</code> will compile file1.st and file2.st.</li>
+<li><code>rustyc --ir src/*.st</code> will compile all st files in the src-folder.</li>
+<li><code>rustyc --ir &quot;**/*.st&quot;</code> will compile all st-files in the current folder and its subfolders recursively.</li>
+</ul>
 <h2 id="compiling-a-static-object"><a class="header" href="#compiling-a-static-object">Compiling a static object</a></h2>
 <h2 id="compiling-a-linkable-object"><a class="header" href="#compiling-a-linkable-object">Compiling a linkable object</a></h2>
 <h2 id="creating-a-shared-library"><a class="header" href="#creating-a-shared-library">Creating a shared library</a></h2>

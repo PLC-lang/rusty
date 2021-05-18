@@ -79,6 +79,14 @@
 <span id="76">76</span>
 <span id="77">77</span>
 <span id="78">78</span>
+<span id="79">79</span>
+<span id="80">80</span>
+<span id="81">81</span>
+<span id="82">82</span>
+<span id="83">83</span>
+<span id="84">84</span>
+<span id="85">85</span>
+<span id="86">86</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 <span class="kw">use</span> <span class="ident">thiserror</span>::<span class="ident">Error</span>;
@@ -114,6 +122,9 @@
         <span class="ident">target_type</span>: <span class="ident">String</span>,
         <span class="ident">location</span>: <span class="ident">SourceRange</span>,
     },
+
+    <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;Cannot read File {path:}: {reason:}&quot;</span>)]</span>
+    <span class="ident">IoError</span> { <span class="ident">path</span>: <span class="ident">String</span>, <span class="ident">reason</span>: <span class="ident">String</span> },
 }
 
 <span class="kw">impl</span> <span class="ident">CompileError</span> {
@@ -149,6 +160,11 @@
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">codegen_error</span>(<span class="ident">message</span>: <span class="ident">String</span>, <span class="ident">location</span>: <span class="ident">SourceRange</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">CompileError</span> {
         <span class="ident">CompileError</span>::<span class="ident">CodeGenError</span> { <span class="ident">message</span>, <span class="ident">location</span> }
+    }
+
+    <span class="doccomment">/// creates a CompileError:IoError with the given parameters</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">io_error</span>(<span class="ident">path</span>: <span class="ident">String</span>, <span class="ident">reason</span>: <span class="ident">String</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">CompileError</span> {
+        <span class="ident">CompileError</span>::<span class="ident">IoError</span> { <span class="ident">path</span>, <span class="ident">reason</span> }
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">no_type_associated</span>(<span class="ident">type_name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">location</span>: <span class="ident">SourceRange</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">CompileError</span> {
