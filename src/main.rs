@@ -17,10 +17,12 @@
 //! [`ST`]: https://en.wikipedia.org/wiki/Structured_text
 //! [`IEC61131-3`]: https://en.wikipedia.org/wiki/IEC_61131-3
 //! [`IR`]: https://llvm.org/docs/LangRef.html
+use glob::glob;
 use rusty::{
     cli::{parse_parameters, CompileParameters, ParameterError},
     compile_error::CompileError,
-    compile_to_bitcode, compile_to_ir, compile_to_shared_object, compile_to_static_obj,
+    compile_to_bitcode, compile_to_ir, compile_to_shared_object, compile_to_static_obj, SourceCode,
+    SourceContainer,
 };
 use std::fs;
 
@@ -34,46 +36,66 @@ fn main() {
     }
 }
 
+struct FilePath {
+    path: String,
+}
+
+impl SourceContainer for FilePath {
+    fn load_source(&self) -> Result<SourceCode, String> {
+        //why do I need to clone here :-( ???
+        let path = self.get_location().to_string();
+        fs::read_to_string(self.path.to_string())
+            .map(move |source| SourceCode { path, source })
+            .map_err(|err| format!("{:}", err))
+    }
+
+    fn get_location(&self) -> &str {
+        self.path.as_str()
+    }
+}
+
+fn create_file_paths(inputs: &[String]) -> Result<Vec<FilePath>, String> {
+    let mut sources = Vec::new();
+    for input in inputs {
+        let paths =
+            glob(input).map_err(|e| format!("Failed to read glob pattern: {}, ({})", input, e))?;
+
+        for p in paths {
+            let path = p.map_err(|err| format!("Illegal path: {:}", err))?;
+            sources.push(FilePath {
+                path: path.to_string_lossy().to_string(),
+            });
+        }
+    }
+    Ok(sources)
+}
+
 fn main_compile(parameters: CompileParameters) {
-    let file_path = parameters.input.as_str();
-    let contents = fs::read_to_string(parameters.input.as_str())
-        .unwrap_or_else(|_| panic!("Cannot read input file {}", parameters.input.as_str()));
+    let file_paths = create_file_paths(&parameters.input).unwrap();
+    let sources: Vec<_> = file_paths
+        .iter()
+        .map(|it| it as &dyn SourceContainer)
+        .collect::<Vec<_>>();
+
+    let sources = sources.as_slice();
 
     if parameters.output_bit_code {
-        compile_to_bitcode(file_path, contents, parameters.output.as_str()).unwrap();
+        compile_to_bitcode(sources, parameters.output.as_str()).unwrap();
     } else if parameters.output_ir {
-        generate_ir(file_path, contents, parameters.output.as_str()).unwrap();
+        generate_ir(sources, parameters.output.as_str()).unwrap();
     } else if parameters.output_pic_obj {
-        compile_to_shared_object(
-            file_path,
-            contents,
-            parameters.output.as_str(),
-            parameters.target,
-        )
-        .unwrap();
+        compile_to_shared_object(sources, parameters.output.as_str(), parameters.target).unwrap();
     } else if parameters.output_shared_obj {
-        compile_to_shared_object(
-            file_path,
-            contents,
-            parameters.output.as_str(),
-            parameters.target,
-        )
-        .unwrap()
+        compile_to_shared_object(sources, parameters.output.as_str(), parameters.target).unwrap()
     } else if parameters.output_obj_code {
-        compile_to_static_obj(
-            file_path,
-            contents,
-            parameters.output.as_str(),
-            parameters.target,
-        )
-        .unwrap();
+        compile_to_static_obj(sources, parameters.output.as_str(), parameters.target).unwrap();
     } else {
         //none is set, so we use default
         panic!("no output format defined");
     }
 }
-fn generate_ir(file_path: &str, content: String, output: &str) -> Result<(), CompileError> {
-    let ir = compile_to_ir(file_path, content)?;
+fn generate_ir(sources: &[&dyn SourceContainer], output: &str) -> Result<(), CompileError> {
+    let ir = compile_to_ir(sources)?;
     fs::write(output, ir).unwrap();
     Ok(())
 }

@@ -1145,7 +1145,13 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                 &Some(self.llvm.i64_type().into()),
                 format!(
                     "{}",
-                    calculate_time_nano(*negative, calculate_dhm_time_seconds(*day, *hour, *min, *sec), *milli, *micro, *nano)
+                    calculate_time_nano(
+                        *negative,
+                        calculate_dhm_time_seconds(*day, *hour, *min, *sec),
+                        *milli,
+                        *micro,
+                        *nano
+                    )
                 )
                 .as_str(),
             ),
