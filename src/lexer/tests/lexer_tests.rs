@@ -505,3 +505,26 @@ fn string_parsing() {
     assert_eq!("'AB$''", lexer.slice());
     lexer.advance();
 }
+
+#[test]
+fn wide_string_parsing() {
+    let mut lexer = lex(r#"
+    WSTRING 
+    "AB C" 
+    "AB$$" 
+    "AB$""
+    "#);
+
+    assert_eq!(lexer.token, KeywordWideString);
+    assert_eq!("WSTRING", lexer.slice());
+    lexer.advance();
+    assert_eq!(lexer.token, LiteralWideString);
+    assert_eq!(r#""AB C""#, lexer.slice());
+    lexer.advance();
+    assert_eq!(lexer.token, LiteralWideString);
+    assert_eq!(r#""AB$$""#, lexer.slice());
+    lexer.advance();
+    assert_eq!(lexer.token, LiteralWideString);
+    assert_eq!(r#""AB$"""#, lexer.slice());
+    lexer.advance();
+}

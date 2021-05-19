@@ -498,8 +498,10 @@ fn program_with_string_assignment() {
         r#"PROGRAM prg
 VAR
 y : STRING;
+z : WSTRING;
 END_VAR
 y := 'im a genius';
+z := "im a utf16 genius";
 END_PROGRAM
 "#
     );
@@ -507,14 +509,16 @@ END_PROGRAM
     let expected = r#"; ModuleID = 'main'
 source_filename = "main"
 
-%prg_interface = type { [81 x i8] }
+%prg_interface = type { [81 x i8], [162 x i8] }
 
 @prg_instance = global %prg_interface zeroinitializer
 
 define void @prg(%prg_interface* %0) {
 entry:
   %y = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 0
+  %z = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 1
   store [12 x i8] c"im a genius\00", [81 x i8]* %y, align 1
+  store [36 x i8] c"i\00m\00 \00a\00 \00u\00t\00f\001\006\00 \00g\00e\00n\00i\00u\00s\00\00\00", [162 x i8]* %z, align 1
   ret void
 }
 "#;
@@ -527,14 +531,17 @@ fn program_with_string_type_assignment() {
     let result = codegen!(
         r#"
 TYPE MyString: STRING[99] := 'abc'; END_TYPE
+TYPE MyWString: WSTRING[99] := "abc"; END_TYPE
 
 PROGRAM prg
 VAR
 y : STRING;
 z : MyString;
+zz : MyWString;
 END_VAR
 y := 'im a genius';
 z := 'im also a genius';
+zz := "im also a genius";
 END_PROGRAM
 "#
     );
@@ -542,16 +549,18 @@ END_PROGRAM
     let expected = r#"; ModuleID = 'main'
 source_filename = "main"
 
-%prg_interface = type { [81 x i8], [100 x i8] }
+%prg_interface = type { [81 x i8], [100 x i8], [200 x i8] }
 
-@prg_instance = global %prg_interface { [81 x i8] zeroinitializer, [4 x i8] c"abc\00" }
+@prg_instance = global %prg_interface { [81 x i8] zeroinitializer, [4 x i8] c"abc\00", [8 x i8] c"a\00b\00c\00\00\00" }
 
 define void @prg(%prg_interface* %0) {
 entry:
   %y = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 0
   %z = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 1
+  %zz = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 2
   store [12 x i8] c"im a genius\00", [81 x i8]* %y, align 1
   store [17 x i8] c"im also a genius\00", [100 x i8]* %z, align 1
+  store [34 x i8] c"i\00m\00 \00a\00l\00s\00o\00 \00a\00 \00g\00e\00n\00i\00u\00s\00\00\00", [200 x i8]* %zz, align 1
   ret void
 }
 "#;
@@ -566,8 +575,11 @@ fn variable_length_strings_can_be_created() {
           VAR
           y : STRING[15];
           z : STRING[3] := 'xyz';
+          wy : WSTRING[15];
+          wz : WSTRING[3] := "xyz";
           END_VAR
           y := 'im a genius';
+          wy := "im a genius";
         END_PROGRAM
         "#
     );
@@ -575,15 +587,18 @@ fn variable_length_strings_can_be_created() {
     let expected = r#"; ModuleID = 'main'
 source_filename = "main"
 
-%prg_interface = type { [16 x i8], [4 x i8] }
+%prg_interface = type { [16 x i8], [4 x i8], [32 x i8], [8 x i8] }
 
-@prg_instance = global %prg_interface { [16 x i8] zeroinitializer, [4 x i8] c"xyz\00" }
+@prg_instance = global %prg_interface { [16 x i8] zeroinitializer, [4 x i8] c"xyz\00", [32 x i8] zeroinitializer, [8 x i8] c"x\00y\00z\00\00\00" }
 
 define void @prg(%prg_interface* %0) {
 entry:
   %y = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 0
   %z = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 1
+  %wy = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 2
+  %wz = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 3
   store [12 x i8] c"im a genius\00", [16 x i8]* %y, align 1
+  store [24 x i8] c"i\00m\00 \00a\00 \00g\00e\00n\00i\00u\00s\00\00\00", [32 x i8]* %wy, align 1
   ret void
 }
 "#;
