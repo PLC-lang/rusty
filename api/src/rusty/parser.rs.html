@@ -567,6 +567,7 @@
 <span id="564">564</span>
 <span id="565">565</span>
 <span id="566">566</span>
+<span id="567">567</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">ast</span>::<span class="ident">Implementation</span>;
@@ -926,7 +927,8 @@
             },
             <span class="prelude-val">None</span>,
         ))
-    } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">lexer</span>.<span class="ident">token</span> <span class="op">=</span><span class="op">=</span> <span class="ident">KeywordString</span> {
+    } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">lexer</span>.<span class="ident">token</span> <span class="op">=</span><span class="op">=</span> <span class="ident">KeywordString</span> <span class="op">|</span><span class="op">|</span> <span class="ident">lexer</span>.<span class="ident">token</span> <span class="op">=</span><span class="op">=</span> <span class="ident">KeywordWideString</span> {
+        <span class="kw">let</span> <span class="ident">is_wide</span> <span class="op">=</span> <span class="ident">lexer</span>.<span class="ident">token</span> <span class="op">=</span><span class="op">=</span> <span class="ident">KeywordWideString</span>;
         <span class="ident">lexer</span>.<span class="ident">advance</span>();
         <span class="kw">let</span> <span class="ident">size</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">allow</span>(<span class="ident">KeywordSquareParensOpen</span>, <span class="ident">lexer</span>) {
             <span class="kw">let</span> <span class="ident">size_statement</span> <span class="op">=</span> <span class="ident">parse_expression</span>(<span class="ident">lexer</span>)<span class="question-mark">?</span>;
@@ -949,7 +951,7 @@
             <span class="ident">DataTypeDeclaration</span>::<span class="ident">DataTypeDefinition</span> {
                 <span class="ident">data_type</span>: <span class="ident">DataType</span>::<span class="ident">StringType</span> {
                     <span class="ident">name</span>,
-                    <span class="ident">is_wide</span>: <span class="bool-val">false</span>,
+                    <span class="ident">is_wide</span>,
                     <span class="ident">size</span>,
                 },
             },

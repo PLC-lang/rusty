@@ -237,13 +237,40 @@ The input files can also be written as <a href="https://en.wikipedia.org/wiki/Gl
 <h2 id="linking-with-an-external-application"><a class="header" href="#linking-with-an-external-application">Linking with an external application</a></h2>
 <h2 id="writing-a-main"><a class="header" href="#writing-a-main">Writing a main</a></h2>
 <div id="chapter_begin" style="break-before: page; page-break-before: always;"></div><h1 id="datatypes-1"><a class="header" href="#datatypes-1">Datatypes</a></h1>
+<h2 id="strings"><a class="header" href="#strings">Strings</a></h2>
+<h3 id="string"><a class="header" href="#string">STRING</a></h3>
+<p>rusty treats <code>STRING</code>s as byte-arrays storing UTF-8 character bytes with a Null-terminator (0-byte) at the end. 
+So a String of size n requres n+1 bytes to account for the Null-terminator.
+A <code>STRING</code> literal is surrounded by single-ticks <code>'</code>.</p>
+<p>A String has a well defined length which can be defined similar to the array-syntax. A String-variable 
+<code>myVariable: STRING[20]</code> declares a byte array of length 21, to store 20 utf8 character bytes. When 
+declaring a <code>STRING</code>, the length-attribute is optional. The default length is 80.</p>
+<p>Examples</p>
+<ul>
+<li><code>s1 : STRING;</code> - declares a String of length 80</li>
+<li><code>s2 : STRING[20];</code> - declares a String of length 20</li>
+<li><code>s3 : STRING := 'Hello World';</code> - declares and initializes a String of length 80, and initializes it with the utf8 characters and a null-terminator at the end</li>
+<li><code>s4 : STRING[55] := 'Foo Baz';</code> - declares and initializes a String of length 55 and initializes it with the utf8 characters and a null-terminator at the end.</li>
+</ul>
+<h3 id="wstring-wide-strings"><a class="header" href="#wstring-wide-strings">WSTRING (Wide Strings)</a></h3>
+<p>rusty treats <code>WSTRING</code>s as byte-arrays storing UTF-16 character bytes with two Null-terminator bytes at the end. The bytes are stored in Little Endian encoding. A Wide-String of size n requres 2 * (n+1) bytes to account for the 2 byes per utf16 character and the Null-terminators. A <code>WSTRING</code> literal is surrounded by doubly-ticks <code>&quot;</code>.</p>
+<p>A <code>WSTRING</code> has a well defined length which can be defined similar to the array-syntax. A <code>WSTRING</code>-variable 
+<code>myVariable: WSTRING[20]</code> declares a byte array of length 42, to store 20 utf16 character bytes. When 
+declaring a <code>WSTRING</code>, the length-attribute is optional. The default length is 80.</p>
+<p>Examples</p>
+<ul>
+<li><code>ws1 : WSTRING;</code> - declares a Wide-String of length 80</li>
+<li><code>ws2 : WSTRING[20];</code> - declares a Wide-String of length 20</li>
+<li><code>ws3 : WSTRING := &quot;Hello World&quot;;</code> - declares and initializes a Wide-String of length 80, and initializes it with the utf16 characters and a utf16-null-terminator at the end</li>
+<li><code>ws4 : WSTRING[55] := &quot;Foo Baz&quot;;</code> - declares and initializes a Wide-String of length 55 and initializes it with the utf8 characters and a utf16-null-terminator at the end.</li>
+</ul>
 <h2 id="date-and-time"><a class="header" href="#date-and-time">Date and Time</a></h2>
 <h3 id="date"><a class="header" href="#date">DATE</a></h3>
 <p>The <code>DATE</code> datatype is used to represent a Date in the Gregorian Calendar. Such a value is 
 stored as an i64 with a precision in milliseconds and denotes the number of milliseconds 
 that have elapsed since January 1, 1970 UTC not counting leap seconds. DATE literals start 
 with <code>DATE#</code> or <code>D#</code> followed by a date in the format of <code>yyyy-mm-dd</code>.</p>
-<p>Example literals</p>
+<p>Examples</p>
 <ul>
 <li><code>d1 : DATE := DATE#2021-05-02;</code></li>
 <li><code>d2 : DATE := DATE#1-12-24;</code></li>
@@ -256,7 +283,7 @@ number of milliseconds that have elapsed since January 1, 1970 UTC not counting 
 DATE_AND_TIME literals start with <code>DATE_AND_TIME#</code> or <code>DT#</code> followed by a date and time in the
 format of <code>yyyy-mm-dd-hh:mm:ss</code>.</p>
 <p>Note that only the seconds-segment can have a fraction denoting the milliseconds.</p>
-<p>Example literals</p>
+<p>Examples</p>
 <ul>
 <li><code>d1 : DATE_AND_TIME := DATE_AND_TIME#2021-05-02-14:20:10.25;</code></li>
 <li><code>d2 : DATE_AND_TIME := DATE_AND_TIME#1-12-24-00:00:1;</code></li>
@@ -270,7 +297,7 @@ Hence this value is stored as a <code>DATE_AND_TIME</code> with the day fixed to
 <code>TIME_OF_DAY</code> literals start with <code>TIME_OF_DAY#</code> or <code>TOD#</code> followed by a time in the
 format of <code>hh:mm:ss</code>.</p>
 <p>Note that only the seconeds-segment can have a fraction denoting the milliseconds.</p>
-<p>Example literals</p>
+<p>Examples</p>
 <ul>
 <li><code>t1 : TIME_OF_DAY := TIME_OF_DAY#14:20:10.25;</code></li>
 <li><code>t2 : TIME_OF_DAY := TIME_OF_DY#0:00:1;</code></li>
@@ -290,7 +317,7 @@ TIME literals start with <code>TIME#</code> or <code>T#</code> followed by the <
 <li><code>ns</code> ... <code>u32</code> nanaoseconds</li>
 </ul>
 <p>Note that only the last segment of a <code>TIME</code> literal can have a fraction.</p>
-<p>Example literals</p>
+<p>Examples</p>
 <ul>
 <li><code>t1 : TIME := TIME#2d4h6m8s10ms;</code></li>
 <li><code>t2 : TIME := T#2d4.2h;</code></li>

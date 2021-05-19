@@ -952,6 +952,8 @@
 <span id="949">949</span>
 <span id="950">950</span>
 <span id="951">951</span>
+<span id="952">952</span>
+<span id="953">953</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">compile_error</span>::<span class="ident">CompileError</span>;
@@ -1416,6 +1418,7 @@
     },
     <span class="ident">LiteralString</span> {
         <span class="ident">value</span>: <span class="ident">String</span>,
+        <span class="ident">is_wide</span>: <span class="ident">bool</span>,
         <span class="ident">location</span>: <span class="ident">SourceRange</span>,
     },
     <span class="ident">LiteralArray</span> {
@@ -1578,9 +1581,10 @@
             <span class="ident">Statement</span>::<span class="ident">LiteralBool</span> { <span class="ident">value</span>, .. } <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="ident">f</span>.<span class="ident">debug_struct</span>(<span class="string">&quot;LiteralBool&quot;</span>).<span class="ident">field</span>(<span class="string">&quot;value&quot;</span>, <span class="ident">value</span>).<span class="ident">finish</span>()
             }
-            <span class="ident">Statement</span>::<span class="ident">LiteralString</span> { <span class="ident">value</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">f</span>
+            <span class="ident">Statement</span>::<span class="ident">LiteralString</span> { <span class="ident">value</span>, <span class="ident">is_wide</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">f</span>
                 .<span class="ident">debug_struct</span>(<span class="string">&quot;LiteralString&quot;</span>)
                 .<span class="ident">field</span>(<span class="string">&quot;value&quot;</span>, <span class="ident">value</span>)
+                .<span class="ident">field</span>(<span class="string">&quot;is_wide&quot;</span>, <span class="ident">is_wide</span>)
                 .<span class="ident">finish</span>(),
             <span class="ident">Statement</span>::<span class="ident">LiteralArray</span> { <span class="ident">elements</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">f</span>
                 .<span class="ident">debug_struct</span>(<span class="string">&quot;LiteralArray&quot;</span>)

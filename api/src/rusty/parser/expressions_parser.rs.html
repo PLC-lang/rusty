@@ -559,6 +559,8 @@
 <span id="556">556</span>
 <span id="557">557</span>
 <span id="558">558</span>
+<span id="559">559</span>
+<span id="560">560</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">ast</span>::<span class="kw-2">*</span>;
@@ -779,7 +781,8 @@
         <span class="ident">LiteralTimeOfDay</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">parse_literal_time_of_day</span>(<span class="ident">lexer</span>),
         <span class="ident">LiteralTime</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">parse_literal_time</span>(<span class="ident">lexer</span>),
         <span class="ident">LiteralDateAndTime</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">parse_literal_date_and_time</span>(<span class="ident">lexer</span>),
-        <span class="ident">LiteralString</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">parse_literal_string</span>(<span class="ident">lexer</span>),
+        <span class="ident">LiteralString</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">parse_literal_string</span>(<span class="ident">lexer</span>, <span class="bool-val">false</span>),
+        <span class="ident">LiteralWideString</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">parse_literal_string</span>(<span class="ident">lexer</span>, <span class="bool-val">true</span>),
         <span class="ident">LiteralTrue</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">parse_bool_literal</span>(<span class="ident">lexer</span>, <span class="bool-val">true</span>),
         <span class="ident">LiteralFalse</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">parse_bool_literal</span>(<span class="ident">lexer</span>, <span class="bool-val">false</span>),
         <span class="ident">KeywordSquareParensOpen</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">parse_array_literal</span>(<span class="ident">lexer</span>),
@@ -1083,11 +1086,12 @@
     <span class="ident">quoted_string</span>[<span class="number">1</span>..<span class="ident">quoted_string</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="number">1</span>].<span class="ident">to_string</span>()
 }
 
-<span class="kw">fn</span> <span class="ident">parse_literal_string</span>(<span class="ident">lexer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">RustyLexer</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Statement</span>, <span class="ident">String</span><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">parse_literal_string</span>(<span class="ident">lexer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">RustyLexer</span>, <span class="ident">is_wide</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Statement</span>, <span class="ident">String</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">lexer</span>.<span class="ident">slice</span>();
     <span class="kw">let</span> <span class="ident">location</span> <span class="op">=</span> <span class="ident">lexer</span>.<span class="ident">location</span>();
     <span class="kw">let</span> <span class="ident">string_literal</span> <span class="op">=</span> <span class="prelude-val">Ok</span>(<span class="ident">Statement</span>::<span class="ident">LiteralString</span> {
         <span class="ident">value</span>: <span class="ident">trim_quotes</span>(<span class="ident">result</span>),
+        <span class="ident">is_wide</span>,
         <span class="ident">location</span>,
     });
     <span class="ident">lexer</span>.<span class="ident">advance</span>();

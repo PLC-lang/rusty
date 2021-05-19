@@ -298,6 +298,18 @@
 <span id="295">295</span>
 <span id="296">296</span>
 <span id="297">297</span>
+<span id="298">298</span>
+<span id="299">299</span>
+<span id="300">300</span>
+<span id="301">301</span>
+<span id="302">302</span>
+<span id="303">303</span>
+<span id="304">304</span>
+<span id="305">305</span>
+<span id="306">306</span>
+<span id="307">307</span>
+<span id="308">308</span>
+<span id="309">309</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 <span class="kw">use</span> <span class="kw">super</span>::<span class="ident">VariableType</span>;
@@ -581,13 +593,25 @@
                 <span class="ident">information</span>,
             )
         }
-        <span class="ident">DataType</span>::<span class="ident">StringType</span> { <span class="ident">name</span>, <span class="ident">size</span>, .. } <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">DataType</span>::<span class="ident">StringType</span> {
+            <span class="ident">name</span>,
+            <span class="ident">size</span>,
+            <span class="ident">is_wide</span>,
+            ..
+        } <span class="op">=</span><span class="op">&gt;</span> {
             <span class="kw">let</span> <span class="ident">size</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">statement</span>) <span class="op">=</span> <span class="ident">size</span> {
                 <span class="ident">evaluate_constant_int</span>(<span class="kw-2">&amp;</span><span class="ident">statement</span>).<span class="ident">unwrap</span>() <span class="kw">as</span> <span class="ident">u32</span>
             } <span class="kw">else</span> {
                 <span class="kw">crate</span>::<span class="ident">typesystem</span>::<span class="ident">DEFAULT_STRING_LEN</span> <span class="comment">// DEFAULT STRING LEN</span>
             } <span class="op">+</span> <span class="number">1</span>;
-            <span class="kw">let</span> <span class="ident">information</span> <span class="op">=</span> <span class="ident">DataTypeInformation</span>::<span class="ident">String</span> { <span class="ident">size</span> };
+
+            <span class="kw">let</span> <span class="ident">encoding</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw-2">*</span><span class="ident">is_wide</span> {
+                <span class="ident">StringEncoding</span>::<span class="ident">Utf16</span>
+            } <span class="kw">else</span> {
+                <span class="ident">StringEncoding</span>::<span class="ident">Utf8</span>
+            };
+
+            <span class="kw">let</span> <span class="ident">information</span> <span class="op">=</span> <span class="ident">DataTypeInformation</span>::<span class="ident">String</span> { <span class="ident">size</span>, <span class="ident">encoding</span> };
             <span class="ident">index</span>.<span class="ident">register_type</span>(
                 <span class="ident">name</span>.<span class="ident">as_ref</span>().<span class="ident">unwrap</span>(),
                 <span class="ident">type_declatation</span>.<span class="ident">initializer</span>.<span class="ident">clone</span>(),

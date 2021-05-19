@@ -305,6 +305,7 @@
 <span id="302">302</span>
 <span id="303">303</span>
 <span id="304">304</span>
+<span id="305">305</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 
@@ -436,10 +437,11 @@
         <span class="ident">DataTypeInformation</span>::<span class="ident">Float</span> { <span class="ident">size</span>, .. } <span class="op">=</span><span class="op">&gt;</span> {
             <span class="ident">get_llvm_float_type</span>(<span class="ident">llvm</span>.<span class="ident">context</span>, <span class="kw-2">*</span><span class="ident">size</span>, <span class="ident">name</span>).<span class="ident">map</span>(<span class="op">|</span><span class="ident">it</span><span class="op">|</span> <span class="ident">it</span>.<span class="ident">into</span>())
         }
-        <span class="ident">DataTypeInformation</span>::<span class="ident">String</span> { <span class="ident">size</span> } <span class="op">=</span><span class="op">&gt;</span> {
-            <span class="kw">let</span> <span class="ident">gen_type</span> <span class="op">=</span> <span class="ident">llvm</span>.<span class="ident">context</span>.<span class="ident">i8_type</span>().<span class="ident">array_type</span>(<span class="kw-2">*</span><span class="ident">size</span>).<span class="ident">into</span>();
-            <span class="prelude-val">Ok</span>(<span class="ident">gen_type</span>)
-        }
+        <span class="ident">DataTypeInformation</span>::<span class="ident">String</span> { <span class="ident">size</span>, <span class="ident">encoding</span> } <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">llvm</span>
+            .<span class="ident">context</span>
+            .<span class="ident">i8_type</span>()
+            .<span class="ident">array_type</span>(<span class="kw-2">*</span><span class="ident">size</span> <span class="op">*</span> <span class="ident">encoding</span>.<span class="ident">get_bytes_per_char</span>())
+            .<span class="ident">into</span>()),
         <span class="ident">DataTypeInformation</span>::<span class="ident">SubRange</span> {
             <span class="ident">referenced_type</span>, ..
         } <span class="op">=</span><span class="op">&gt;</span> {
