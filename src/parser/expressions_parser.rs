@@ -217,7 +217,8 @@ fn parse_leaf_expression(lexer: &mut RustyLexer) -> Result<Statement, String> {
         LiteralTimeOfDay => parse_literal_time_of_day(lexer),
         LiteralTime => parse_literal_time(lexer),
         LiteralDateAndTime => parse_literal_date_and_time(lexer),
-        LiteralString => parse_literal_string(lexer),
+        LiteralString => parse_literal_string(lexer, false),
+        LiteralWideString => parse_literal_string(lexer, true),
         LiteralTrue => parse_bool_literal(lexer, true),
         LiteralFalse => parse_bool_literal(lexer, false),
         KeywordSquareParensOpen => parse_array_literal(lexer),
@@ -521,11 +522,12 @@ fn trim_quotes(quoted_string: &str) -> String {
     quoted_string[1..quoted_string.len() - 1].to_string()
 }
 
-fn parse_literal_string(lexer: &mut RustyLexer) -> Result<Statement, String> {
+fn parse_literal_string(lexer: &mut RustyLexer, is_wide: bool) -> Result<Statement, String> {
     let result = lexer.slice();
     let location = lexer.location();
     let string_literal = Ok(Statement::LiteralString {
         value: trim_quotes(result),
+        is_wide,
         location,
     });
     lexer.advance();

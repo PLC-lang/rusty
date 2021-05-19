@@ -272,6 +272,9 @@ pub enum Token {
     #[token("STRING")]
     KeywordString,
 
+    #[token("WSTRING")]
+    KeywordWideString,
+
     #[token("OF")]
     KeywordOf,
 
@@ -355,6 +358,9 @@ pub enum Token {
 
     #[regex("'((\\$.)|[^$'])*'")]
     LiteralString,
+
+    #[regex("\"((\\$.)|[^$\"])*\"")]
+    LiteralWideString,
 
     #[regex(r"[ \t\n\f]+", logos::skip)]
     End,

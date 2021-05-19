@@ -356,7 +356,8 @@ fn parse_data_type_definition(
             },
             None,
         ))
-    } else if lexer.token == KeywordString {
+    } else if lexer.token == KeywordString || lexer.token == KeywordWideString {
+        let is_wide = lexer.token == KeywordWideString;
         lexer.advance();
         let size = if allow(KeywordSquareParensOpen, lexer) {
             let size_statement = parse_expression(lexer)?;
@@ -379,7 +380,7 @@ fn parse_data_type_definition(
             DataTypeDeclaration::DataTypeDefinition {
                 data_type: DataType::StringType {
                     name,
-                    is_wide: false,
+                    is_wide,
                     size,
                 },
             },
