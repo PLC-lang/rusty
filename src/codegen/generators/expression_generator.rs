@@ -1159,7 +1159,13 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                 self.llvm
                     .create_const_real(self.index, &self.get_type_context(), value)
             }
-            Statement::LiteralString { value, .. } => self.llvm.create_const_string(value.as_str()),
+            Statement::LiteralString { value, is_wide, .. } => {
+                if *is_wide {
+                    self.llvm.create_const_utf16_string(value.as_str())
+                } else {
+                    self.llvm.create_const_utf8_string(value.as_str())
+                }
+            }
             Statement::LiteralArray { elements, location } => {
                 self.generate_literal_array(elements, location)
             }

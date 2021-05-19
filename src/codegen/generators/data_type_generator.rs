@@ -128,10 +128,11 @@ fn create_type<'ink>(
         DataTypeInformation::Float { size, .. } => {
             get_llvm_float_type(llvm.context, *size, name).map(|it| it.into())
         }
-        DataTypeInformation::String { size } => {
-            let gen_type = llvm.context.i8_type().array_type(*size).into();
-            Ok(gen_type)
-        }
+        DataTypeInformation::String { size, encoding } => Ok(llvm
+            .context
+            .i8_type()
+            .array_type(*size * encoding.get_bytes_per_char())
+            .into()),
         DataTypeInformation::SubRange {
             referenced_type, ..
         } => {

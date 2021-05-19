@@ -280,13 +280,25 @@ fn visit_data_type(index: &mut Index, type_declatation: &UserTypeDeclaration) {
                 information,
             )
         }
-        DataType::StringType { name, size, .. } => {
+        DataType::StringType {
+            name,
+            size,
+            is_wide,
+            ..
+        } => {
             let size = if let Some(statement) = size {
                 evaluate_constant_int(&statement).unwrap() as u32
             } else {
                 crate::typesystem::DEFAULT_STRING_LEN // DEFAULT STRING LEN
             } + 1;
-            let information = DataTypeInformation::String { size };
+
+            let encoding = if *is_wide {
+                StringEncoding::Utf16
+            } else {
+                StringEncoding::Utf8
+            };
+
+            let information = DataTypeInformation::String { size, encoding };
             index.register_type(
                 name.as_ref().unwrap(),
                 type_declatation.initializer.clone(),

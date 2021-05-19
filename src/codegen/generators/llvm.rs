@@ -221,14 +221,45 @@ impl<'a> Llvm<'a> {
         }
     }
 
-    /// create a constant string-value with the given value
+    /// create a constant utf8 string-value with the given value
     ///
     /// - `value` the value of the constant string value
-    pub fn create_const_string(&self, value: &str) -> Result<TypeAndValue<'a>, CompileError> {
+    pub fn create_const_utf8_string(&self, value: &str) -> Result<TypeAndValue<'a>, CompileError> {
         self.create_llvm_const_vec_string(value.as_bytes())
     }
 
-    /// create a constant string-value with the given value
+    /// create a constant utf16 string-value with the given value
+    ///
+    /// - `value` the value of the constant string value
+    pub fn create_const_utf16_string(&self, value: &str) -> Result<TypeAndValue<'a>, CompileError> {
+        let mut utf16_chars: Vec<u16> = value.encode_utf16().collect();
+        //it only contains a single NUL-terminator-byte so we add a second one
+        utf16_chars.push(0);
+        self.create_llvm_const_utf16_vec_string(utf16_chars.as_slice())
+    }
+
+    /// create a constant utf16 string-value with the given value
+    ///
+    /// - `value` the value of the constant string value
+    pub fn create_llvm_const_utf16_vec_string(
+        &self,
+        value: &[u16],
+    ) -> Result<TypeAndValue<'a>, CompileError> {
+        let mut bytes = Vec::with_capacity(value.len() * 2);
+        value.iter().for_each(|it| {
+            let ordered_bytes = it.to_le_bytes(); //todo make this a compiler-setting
+            bytes.push(ordered_bytes[0]);
+            bytes.push(ordered_bytes[1]);
+        });
+
+        let exp_value = self.context.const_string(bytes.as_slice(), false);
+        Ok((
+            typesystem::new_wide_string_information(value.len() as u32),
+            BasicValueEnum::VectorValue(exp_value),
+        ))
+    }
+
+    /// create a constant utf8 string-value with the given value
     ///
     /// - `value` the value of the constant string value
     pub fn create_llvm_const_vec_string(

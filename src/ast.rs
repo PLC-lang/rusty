@@ -461,6 +461,7 @@ pub enum Statement {
     },
     LiteralString {
         value: String,
+        is_wide: bool,
         location: SourceRange,
     },
     LiteralArray {
@@ -623,9 +624,10 @@ impl Debug for Statement {
             Statement::LiteralBool { value, .. } => {
                 f.debug_struct("LiteralBool").field("value", value).finish()
             }
-            Statement::LiteralString { value, .. } => f
+            Statement::LiteralString { value, is_wide, .. } => f
                 .debug_struct("LiteralString")
                 .field("value", value)
+                .field("is_wide", is_wide)
                 .finish(),
             Statement::LiteralArray { elements, .. } => f
                 .debug_struct("LiteralArray")

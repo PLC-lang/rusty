@@ -1499,6 +1499,7 @@ fn string_can_be_parsed() {
     },
     right: LiteralString {
         value: "Hello, World!",
+        is_wide: false,
     },
 }"#;
     assert_eq!(ast_string, expected_ast);
@@ -1510,6 +1511,61 @@ fn string_can_be_parsed() {
     },
     right: LiteralString {
         value: "",
+        is_wide: false,
+    },
+}"#;
+    assert_eq!(ast_string, expected_ast);
+}
+
+#[test]
+fn wide_string_can_be_parsed() {
+    let lexer = super::lex(
+        "PROGRAM buz VAR x : WSTRING; END_VAR x := \"Hello, World!\"; x := \"\"; END_PROGRAM",
+    );
+    let result = parse(lexer).unwrap().0;
+
+    let unit = &result.units[0];
+    let prg = &result.implementations[0];
+    let variable_block = &unit.variable_blocks[0];
+    let ast_string = format!("{:#?}", variable_block);
+    let expected_ast = r#"VariableBlock {
+    variables: [
+        Variable {
+            name: "x",
+            data_type: DataTypeDefinition {
+                data_type: StringType {
+                    name: None,
+                    is_wide: true,
+                    size: None,
+                },
+            },
+        },
+    ],
+    variable_block_type: Local,
+}"#;
+    assert_eq!(ast_string, expected_ast);
+
+    let statements = &prg.statements;
+    let ast_string = format!("{:#?}", statements[0]);
+    let expected_ast = r#"Assignment {
+    left: Reference {
+        name: "x",
+    },
+    right: LiteralString {
+        value: "Hello, World!",
+        is_wide: true,
+    },
+}"#;
+    assert_eq!(ast_string, expected_ast);
+
+    let ast_string = format!("{:#?}", statements[1]);
+    let expected_ast = r#"Assignment {
+    left: Reference {
+        name: "x",
+    },
+    right: LiteralString {
+        value: "",
+        is_wide: true,
     },
 }"#;
     assert_eq!(ast_string, expected_ast);
@@ -1569,6 +1625,7 @@ fn arrays_can_be_parsed() {
     },
     right: LiteralString {
         value: "Hello, World!",
+        is_wide: false,
     },
 }"#;
     assert_eq!(ast_string, expected_ast);
@@ -1585,6 +1642,7 @@ fn arrays_can_be_parsed() {
     },
     right: LiteralString {
         value: "",
+        is_wide: false,
     },
 }"#;
     assert_eq!(ast_string, expected_ast);
@@ -1662,6 +1720,7 @@ fn nested_arrays_can_be_parsed() {
     },
     right: LiteralString {
         value: "Hello, World!",
+        is_wide: false,
     },
 }"#;
     assert_eq!(ast_string, expected_ast);
@@ -1683,6 +1742,7 @@ fn nested_arrays_can_be_parsed() {
     },
     right: LiteralString {
         value: "",
+        is_wide: false,
     },
 }"#;
     assert_eq!(ast_string, expected_ast);
@@ -1761,6 +1821,7 @@ fn multidim_arrays_can_be_parsed() {
     },
     right: LiteralString {
         value: "Hello, World!",
+        is_wide: false,
     },
 }"#;
     assert_eq!(ast_string, expected_ast);
@@ -1784,6 +1845,7 @@ fn multidim_arrays_can_be_parsed() {
     },
     right: LiteralString {
         value: "",
+        is_wide: false,
     },
 }"#;
     assert_eq!(ast_string, expected_ast);
