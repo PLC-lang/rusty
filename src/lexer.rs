@@ -5,24 +5,29 @@ use logos::Lexer;
 use logos::Logos;
 
 use crate::ast::{NewLines, SourceRange};
+use crate::Diagnostic;
 
 #[cfg(test)]
 mod tests;
 
-pub struct RustyLexer<'a> {
+pub struct ParseSession<'a> {
     lexer: Lexer<'a, Token>,
     file_path: String,
     pub token: Token,
     pub new_lines: NewLines,
+    pub diagnostics: Vec<Diagnostic>,
+    pub closing_keywords: Vec<Vec<Token>>,
 }
 
-impl<'a> RustyLexer<'a> {
-    pub fn new(l: Lexer<'a, Token>, file_path: &str, new_lines: NewLines) -> RustyLexer<'a> {
-        let mut lexer = RustyLexer {
+impl<'a> ParseSession<'a> {
+    pub fn new(l: Lexer<'a, Token>, file_path: &str, new_lines: NewLines) -> ParseSession<'a> {
+        let mut lexer = ParseSession {
             lexer: l,
             file_path: file_path.into(),
             token: Token::KeywordBy,
             new_lines,
+            diagnostics: vec![],
+            closing_keywords: vec![],
         };
         lexer.advance();
         lexer
@@ -72,6 +77,52 @@ impl<'a> RustyLexer<'a> {
             line = line_index.map_or_else(|| 1, |line_index| line_index),
             location = location
         )
+    }
+
+    pub fn accept_diagnostic(&mut self, diagnostic: Diagnostic) {
+        self.diagnostics.push(diagnostic);
+    }
+
+    pub fn enter_region(&mut self, end_token: Vec<Token>) {
+        self.closing_keywords.push(end_token);
+    }
+
+    pub fn close_region(&mut self) {
+        if let Some(expected_token) = self.closing_keywords.pop() {
+            if !expected_token.contains(&self.token) {
+                self.accept_diagnostic(Diagnostic::unexpected_token_found(
+                    format!("{:?}", expected_token[0]),
+                    format!("'{}', ({:?})", self.slice(), self.token),
+                    self.location(),
+                ));
+            }
+        }
+    }
+
+    //pops from the stack until it sees end_token
+    pub fn recover_until_close(&mut self) {
+        let mut hit = self
+            .closing_keywords
+            .iter()
+            .rposition(|it| it.contains(&self.token));
+        while self.token != Token::End && hit.is_none() {
+            self.advance();
+            hit = self
+                .closing_keywords
+                .iter()
+                .rposition(|it| it.contains(&self.token));
+        }
+
+        if let Some(hit) = hit {
+            //report errors for all closing_keywords > hit
+            let missing_closers = self.closing_keywords.drain((hit + 1)..).collect::<Vec<_>>();
+            for it in missing_closers {
+                self.accept_diagnostic(Diagnostic::unclosed_block(
+                    format!("{:?}", it[0]),
+                    self.location(),
+                ));
+            }
+        }
     }
 }
 
@@ -366,6 +417,6 @@ pub enum Token {
     End,
 }
 
-pub fn lex<'src>(file_path: &'src str, source: &'src str) -> RustyLexer<'src> {
-    RustyLexer::new(Token::lexer(source), file_path, NewLines::new(source))
+pub fn lex<'src>(file_path: &'src str, source: &'src str) -> ParseSession<'src> {
+    ParseSession::new(Token::lexer(source), file_path, NewLines::new(source))
 }

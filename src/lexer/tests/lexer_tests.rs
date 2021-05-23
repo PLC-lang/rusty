@@ -1,9 +1,9 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use pretty_assertions::{assert_eq, assert_ne};
 
-use crate::lexer::{RustyLexer, Token::*};
+use crate::lexer::{ParseSession, Token::*};
 
-fn lex(source: &str) -> RustyLexer {
+fn lex(source: &str) -> ParseSession {
     crate::lexer::lex("", source)
 }
 

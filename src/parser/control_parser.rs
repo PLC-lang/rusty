@@ -4,10 +4,10 @@ use crate::expect;
 use crate::lexer;
 use crate::lexer::Token::*;
 
-use super::RustyLexer;
+use super::ParseSession;
 use super::{parse_body, parse_expression, parse_reference, parse_statement};
 
-pub fn parse_control_statement(lexer: &mut RustyLexer) -> Result<Statement, String> {
+pub fn parse_control_statement(lexer: &mut ParseSession) -> Result<Statement, String> {
     match lexer.token {
         KeywordIf => parse_if_statement(lexer),
         KeywordFor => parse_for_statement(lexer),
@@ -18,7 +18,7 @@ pub fn parse_control_statement(lexer: &mut RustyLexer) -> Result<Statement, Stri
     }
 }
 
-fn parse_if_statement(lexer: &mut RustyLexer) -> Result<Statement, String> {
+fn parse_if_statement(lexer: &mut ParseSession) -> Result<Statement, String> {
     let start = lexer.range().start;
     let end_of_body =
         |it: &lexer::Token| *it == KeywordElseIf || *it == KeywordElse || *it == KeywordEndIf;
@@ -59,7 +59,7 @@ fn parse_if_statement(lexer: &mut RustyLexer) -> Result<Statement, String> {
     })
 }
 
-fn parse_for_statement(lexer: &mut RustyLexer) -> Result<Statement, String> {
+fn parse_for_statement(lexer: &mut ParseSession) -> Result<Statement, String> {
     let start = lexer.range().start;
     lexer.advance(); // FOR
 
@@ -99,7 +99,7 @@ fn parse_for_statement(lexer: &mut RustyLexer) -> Result<Statement, String> {
     })
 }
 
-fn parse_while_statement(lexer: &mut RustyLexer) -> Result<Statement, String> {
+fn parse_while_statement(lexer: &mut ParseSession) -> Result<Statement, String> {
     let start = lexer.range().start;
     let line_nr = lexer.get_current_line_nr();
     lexer.advance(); //WHILE
@@ -121,7 +121,7 @@ fn parse_while_statement(lexer: &mut RustyLexer) -> Result<Statement, String> {
     })
 }
 
-fn parse_repeat_statement(lexer: &mut RustyLexer) -> Result<Statement, String> {
+fn parse_repeat_statement(lexer: &mut ParseSession) -> Result<Statement, String> {
     let start = lexer.range().start;
     let line_nr = lexer.get_current_line_nr();
     lexer.advance(); //REPEAT
@@ -142,7 +142,7 @@ fn parse_repeat_statement(lexer: &mut RustyLexer) -> Result<Statement, String> {
     })
 }
 
-fn parse_case_statement(lexer: &mut RustyLexer) -> Result<Statement, String> {
+fn parse_case_statement(lexer: &mut ParseSession) -> Result<Statement, String> {
     let start = lexer.range().start;
     lexer.advance(); // CASE
 
@@ -201,7 +201,7 @@ fn parse_case_statement(lexer: &mut RustyLexer) -> Result<Statement, String> {
  */
 fn parse_case_body_with_condition(
     condition: Statement,
-    lexer: &mut RustyLexer,
+    lexer: &mut ParseSession,
     start_of_case: usize,
 ) -> Result<(ConditionalBlock, Option<Statement>), String> {
     let mut body = parse_body(lexer, start_of_case, &|t: &lexer::Token| {

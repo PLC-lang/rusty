@@ -19,13 +19,14 @@
 //! [`IR`]: https://llvm.org/docs/LangRef.html
 use std::path::Path;
 
-use ast::{NewLines, SourceRange};
+use ast::SourceRange;
 use compile_error::CompileError;
 use index::Index;
 use inkwell::context::Context;
 use inkwell::targets::{
     CodeModel, FileType, InitializationConfig, RelocMode, Target, TargetMachine, TargetTriple,
 };
+use parser::ParsedAst;
 
 use crate::ast::CompilationUnit;
 mod ast;
@@ -39,6 +40,48 @@ mod typesystem;
 
 #[macro_use]
 extern crate pretty_assertions;
+
+#[derive(PartialEq, Debug, Clone)]
+pub enum Diagnostic {
+    UnexpectedToken { message: String, range: SourceRange },
+}
+
+impl Diagnostic {
+    pub fn unexpected_token(message: String, range: SourceRange) -> Diagnostic {
+        Diagnostic::UnexpectedToken {
+            message: message.into(),
+            range,
+        }
+    }
+
+    pub fn unexpected_token_found(
+        expected: String,
+        found: String,
+        range: SourceRange,
+    ) -> Diagnostic {
+        Diagnostic::UnexpectedToken {
+            message: format!(
+                "Unexpected token: expected {} but found {}",
+                expected, found
+            ),
+            range,
+        }
+    }
+
+    pub fn unclosed_block(block_name: String, range: SourceRange) -> Diagnostic {
+        Diagnostic::UnexpectedToken {
+            message: format!("Unclosed block {}", block_name),
+            range,
+        }
+    }
+
+    pub fn illegal_token(illegal: &str, range: SourceRange) -> Diagnostic {
+        Diagnostic::UnexpectedToken {
+            message: format!("Found Illegal Token '{}'", illegal),
+            range,
+        }
+    }
+}
 
 pub type Sources<'a> = [&'a dyn SourceContainer];
 
@@ -205,12 +248,13 @@ pub fn compile_module<'c>(
 ) -> Result<codegen::CodeGen<'c>, CompileError> {
     let mut full_index = Index::new();
     let mut unit = CompilationUnit::default();
+    // let mut diagnostics : Vec<Diagnostic> = vec![];
     for container in sources {
         let e = container
             .load_source()
             .map_err(|err| CompileError::io_error(err, container.get_location().to_string()))?;
-        let (mut parse_result, _) = parse(e.path.as_str(), e.source.as_str())?; //TODO dont clone the source!
-                                                                                //first pre-process the AST
+        let (mut parse_result, ..) = parse(e.path.as_str(), e.source.as_str())?; //TODO dont clone the source!
+                                                                                 //first pre-process the AST
         ast::pre_process(&mut parse_result);
         //then index the AST
         full_index.import(index::visitor::visit(&parse_result));
@@ -223,7 +267,7 @@ pub fn compile_module<'c>(
     Ok(code_generator)
 }
 
-fn parse(file_path: &str, source: &str) -> Result<(ast::CompilationUnit, NewLines), CompileError> {
+fn parse(file_path: &str, source: &str) -> Result<ParsedAst, CompileError> {
     //Start lexing
     let lexer = lexer::lex(file_path, source);
     //Parse

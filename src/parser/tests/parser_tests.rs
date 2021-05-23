@@ -6,7 +6,7 @@ use pretty_assertions::*;
 
 #[test]
 fn empty_returns_empty_compilation_unit() {
-    let (result, _) = parse(super::lex("")).unwrap();
+    let (result, ..) = parse(super::lex("")).unwrap();
     assert_eq!(result.units.len(), 0);
 }
 
@@ -257,16 +257,6 @@ fn a_variable_declaration_block_needs_to_end_with_endvar() {
 }
 
 #[test]
-fn a_statement_without_a_semicolon_fails() {
-    let lexer = super::lex("PROGRAM buz x END_PROGRAM ");
-    let result = parse(lexer);
-    assert_eq!(
-        result,
-        Err("expected end of statement (e.g. ;), but found KeywordEndProgram at line: 1 offset: 14..25".to_string())
-    );
-}
-
-#[test]
 fn empty_statements_are_ignored() {
     let lexer = super::lex("PROGRAM buz ;;;; END_PROGRAM ");
     let result = parse(lexer).unwrap().0;
@@ -395,7 +385,7 @@ fn simple_program_with_var_inout_can_be_parsed() {
 
 #[test]
 fn simple_struct_type_can_be_parsed() {
-    let (result, _) = parse(super::lex(
+    let (result, ..) = parse(super::lex(
         r#"
         TYPE SampleStruct :
             STRUCT
@@ -450,7 +440,7 @@ fn simple_struct_type_can_be_parsed() {
 
 #[test]
 fn struct_with_inline_array_can_be_parsed() {
-    let (result, _) = parse(super::lex(
+    let (result, ..) = parse(super::lex(
         r#"
         TYPE SampleStruct :
             STRUCT
@@ -497,7 +487,7 @@ fn struct_with_inline_array_can_be_parsed() {
 
 #[test]
 fn simple_enum_type_can_be_parsed() {
-    let (result, _) = parse(super::lex(
+    let (result, ..) = parse(super::lex(
         r#"
         TYPE SampleEnum : (red, yellow, green);
         END_TYPE 
@@ -520,7 +510,7 @@ fn simple_enum_type_can_be_parsed() {
 
 #[test]
 fn type_alias_can_be_parsed() {
-    let (result, _) = parse(super::lex(
+    let (result, ..) = parse(super::lex(
         r#"
         TYPE 
             MyInt : INT;
@@ -547,7 +537,7 @@ fn type_alias_can_be_parsed() {
 
 #[test]
 fn array_type_can_be_parsed_test() {
-    let (result, _) = parse(super::lex(
+    let (result, ..) = parse(super::lex(
         r#"
             TYPE MyArray : ARRAY[0..8] OF INT; END_TYPE
             "#,
@@ -584,7 +574,7 @@ fn array_type_can_be_parsed_test() {
 
 #[test]
 fn string_type_can_be_parsed_test() {
-    let (result, _) = parse(super::lex(
+    let (result, ..) = parse(super::lex(
         r#"
             TYPE MyString : STRING[253]; END_TYPE
             "#,
@@ -613,7 +603,7 @@ fn string_type_can_be_parsed_test() {
 
 #[test]
 fn wide_string_type_can_be_parsed_test() {
-    let (result, _) = parse(super::lex(
+    let (result, ..) = parse(super::lex(
         r#"
             TYPE MyString : WSTRING[253]; END_TYPE
             "#,
@@ -642,7 +632,7 @@ fn wide_string_type_can_be_parsed_test() {
 
 #[test]
 fn array_type_initialization_with_literals_can_be_parsed_test() {
-    let (result, _) = parse(super::lex(
+    let (result, ..) = parse(super::lex(
         r#"
             TYPE MyArray : ARRAY[0..2] OF INT := [1,2,3]; END_TYPE
             "#,
@@ -676,7 +666,7 @@ fn array_type_initialization_with_literals_can_be_parsed_test() {
 
 #[test]
 fn array_initializer_in_pou_can_be_parsed() {
-    let (result, _) = parse(super::lex(
+    let (result, ..) = parse(super::lex(
         r#"
             PROGRAM main
             VAR
@@ -715,7 +705,7 @@ fn array_initializer_in_pou_can_be_parsed() {
 
 #[test]
 fn inline_struct_declaration_can_be_parsed() {
-    let (result, _) = parse(super::lex(
+    let (result, ..) = parse(super::lex(
         r#"
         VAR_GLOBAL
             my_struct : STRUCT
@@ -763,7 +753,7 @@ fn inline_struct_declaration_can_be_parsed() {
 
 #[test]
 fn inline_enum_declaration_can_be_parsed() {
-    let (result, _) = parse(super::lex(
+    let (result, ..) = parse(super::lex(
         r#"
         VAR_GLOBAL
             my_enum : (red, yellow, green);
@@ -791,7 +781,7 @@ fn inline_enum_declaration_can_be_parsed() {
 
 #[test]
 fn multilevel_inline_struct_and_enum_declaration_can_be_parsed() {
-    let (result, _) = parse(super::lex(
+    let (result, ..) = parse(super::lex(
         r#"
         VAR_GLOBAL
             my_struct : STRUCT
@@ -863,7 +853,7 @@ fn test_ast_line_locations() {
             END_PROGRAM
     ",
     );
-    let (parse_result, new_lines) = parse(lexer).unwrap();
+    let (parse_result, new_lines, ..) = parse(lexer).unwrap();
     let statements = &parse_result.implementations[0].statements;
 
     {
@@ -1026,7 +1016,7 @@ fn initial_scalar_values_can_be_parsed() {
             END_PROGRAM
             ",
     );
-    let (parse_result, _) = parse(lexer).unwrap();
+    let (parse_result, ..) = parse(lexer).unwrap();
 
     let x = &parse_result.global_vars[0].variables[0];
     let expected = r#"Variable {
@@ -1130,7 +1120,7 @@ fn array_initializer_can_be_parsed() {
             END_VAR
            ",
     );
-    let (parse_result, _) = parse(lexer).unwrap();
+    let (parse_result, ..) = parse(lexer).unwrap();
     let x = &parse_result.global_vars[0].variables[0];
     let expected = r#"Variable {
     name: "x",
@@ -1182,7 +1172,7 @@ fn multi_dim_array_initializer_can_be_parsed() {
             END_VAR
            ",
     );
-    let (parse_result, _) = parse(lexer).unwrap();
+    let (parse_result, ..) = parse(lexer).unwrap();
     let x = &parse_result.global_vars[0].variables[0];
     let expected = r#"Variable {
     name: "x",
@@ -1254,7 +1244,7 @@ fn array_initializer_multiplier_can_be_parsed() {
             END_VAR
            ",
     );
-    let (parse_result, _) = parse(lexer).unwrap();
+    let (parse_result, ..) = parse(lexer).unwrap();
     let x = &parse_result.global_vars[0].variables[0];
     let expected = r#"Variable {
     name: "x",
@@ -1299,7 +1289,7 @@ fn struct_initializer_can_be_parsed() {
             END_VAR
            ",
     );
-    let (parse_result, _) = parse(lexer).unwrap();
+    let (parse_result, ..) = parse(lexer).unwrap();
     let x = &parse_result.global_vars[0].variables[0];
     let expected = r#"Variable {
     name: "x",
@@ -1344,7 +1334,7 @@ fn string_variable_declaration_can_be_parsed() {
             END_VAR
            ",
     );
-    let (parse_result, _) = parse(lexer).unwrap();
+    let (parse_result, ..) = parse(lexer).unwrap();
     let x = &parse_result.global_vars[0].variables[0];
     let expected = r#"Variable {
     name: "x",
@@ -1415,7 +1405,7 @@ fn subrangetype_can_be_parsed() {
             END_VAR
            ",
     );
-    let (parse_result, _) = parse(lexer).unwrap();
+    let (parse_result, ..) = parse(lexer).unwrap();
 
     let x = &parse_result.global_vars[0].variables[0];
     let expected = Variable {
@@ -1455,7 +1445,7 @@ fn file_location_persisted() {
             END_PROGRAM
            ",
     );
-    let (parse_result, _) = parse(lexer).unwrap();
+    let (parse_result, ..) = parse(lexer).unwrap();
     let location = &parse_result.global_vars[0].variables[0].location;
     assert_eq!("test_file.st", location.get_file_path());
     let location = &parse_result.units[0].location;

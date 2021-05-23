@@ -412,6 +412,9 @@ impl Debug for ConditionalBlock {
 
 #[derive(Clone, PartialEq)]
 pub enum Statement {
+    EmptyStatement {
+        location: SourceRange,
+    },
     // Literals
     LiteralInteger {
         value: String,
@@ -553,6 +556,7 @@ pub enum Statement {
 impl Debug for Statement {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
         match self {
+            Statement::EmptyStatement { .. } => f.debug_struct("EmptyStatement").finish(),
             Statement::LiteralInteger { value, .. } => f
                 .debug_struct("LiteralInteger")
                 .field("value", value)
@@ -764,6 +768,7 @@ impl Statement {
     }
     pub fn get_location(&self) -> SourceRange {
         match self {
+            Statement::EmptyStatement { location, .. } => location.clone(),
             Statement::LiteralInteger { location, .. } => location.clone(),
             Statement::LiteralDate { location, .. } => location.clone(),
             Statement::LiteralDateAndTime { location, .. } => location.clone(),

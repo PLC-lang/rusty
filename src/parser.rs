@@ -1,8 +1,9 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-use crate::ast::Implementation;
 use crate::ast::*;
 use crate::lexer;
-use crate::lexer::{RustyLexer, Token::*};
+use crate::lexer::Token;
+use crate::lexer::{ParseSession, Token::*};
+use crate::{ast::Implementation, Diagnostic};
 
 use self::{control_parser::parse_control_statement, expressions_parser::parse_primary_expression};
 
@@ -29,7 +30,7 @@ macro_rules! expect {
 }
 
 /// consumes an optional token and returns true if it was consumed.
-pub fn allow(token: lexer::Token, lexer: &mut RustyLexer) -> bool {
+pub fn allow(token: lexer::Token, lexer: &mut ParseSession) -> bool {
     if lexer.token == token {
         lexer.advance();
         true
@@ -41,7 +42,7 @@ pub fn allow(token: lexer::Token, lexer: &mut RustyLexer) -> bool {
 ///
 /// returns an error for an unidientified token
 ///  
-fn unidentified_token(lexer: &RustyLexer) -> String {
+fn unidentified_token(lexer: &ParseSession) -> String {
     format!(
         "unidentified token: {t:?} at {location:?}",
         t = lexer.slice(),
@@ -52,7 +53,7 @@ fn unidentified_token(lexer: &RustyLexer) -> String {
 ///
 /// returns an error for an unexpected token
 ///  
-fn unexpected_token(lexer: &RustyLexer) -> String {
+fn unexpected_token(lexer: &ParseSession) -> String {
     format!(
         "unexpected token: '{slice:}' [{t:?}] at {location:}",
         t = lexer.token,
@@ -61,13 +62,18 @@ fn unexpected_token(lexer: &RustyLexer) -> String {
     )
 }
 
-fn slice_and_advance(lexer: &mut RustyLexer) -> String {
+fn slice_and_advance(lexer: &mut ParseSession) -> String {
     let slice = lexer.slice().to_string();
     lexer.advance();
     slice
 }
 
-pub fn parse(mut lexer: RustyLexer) -> Result<(CompilationUnit, NewLines), String> {
+pub type CompileError = String;
+
+pub type PResult<T> = Result<T, CompileError>;
+pub type ParsedAst = (CompilationUnit, NewLines, Vec<Diagnostic>);
+
+pub fn parse(mut lexer: ParseSession) -> PResult<ParsedAst> {
     let mut unit = CompilationUnit::default();
 
     let mut linkage = LinkageType::Internal;
@@ -111,7 +117,13 @@ pub fn parse(mut lexer: RustyLexer) -> Result<(CompilationUnit, NewLines), Strin
                 unit.implementations.append(&mut actions);
             }
             KeywordType => unit.types.push(parse_type(&mut lexer)?),
-            KeywordEndActions | End => return Ok((unit, lexer.get_new_lines().clone())),
+            KeywordEndActions | End => {
+                return Ok((
+                    unit,
+                    lexer.get_new_lines().clone(),
+                    lexer.diagnostics.clone(),
+                ))
+            }
             Error => return Err(unidentified_token(&lexer)),
             _ => return Err(unexpected_token(&lexer)),
         };
@@ -121,7 +133,7 @@ pub fn parse(mut lexer: RustyLexer) -> Result<(CompilationUnit, NewLines), Strin
 }
 
 fn parse_actions(
-    mut lexer: &mut RustyLexer,
+    mut lexer: &mut ParseSession,
     linkage: LinkageType,
 ) -> Result<Vec<Implementation>, String> {
     lexer.advance(); //Consume ACTIONS
@@ -151,7 +163,7 @@ fn parse_actions(
 /// * `expected_end_token` - the token that ends this pou
 ///
 fn parse_pou(
-    lexer: &mut RustyLexer,
+    lexer: &mut ParseSession,
     pou_type: PouType,
     linkage: LinkageType,
     expected_end_token: lexer::Token,
@@ -205,7 +217,7 @@ fn parse_pou(
 }
 
 fn parse_implementation(
-    lexer: &mut RustyLexer,
+    lexer: &mut ParseSession,
     linkage: LinkageType,
     pou_type: PouType,
     start: usize,
@@ -231,7 +243,7 @@ fn parse_implementation(
 }
 
 fn parse_action(
-    lexer: &mut RustyLexer,
+    lexer: &mut ParseSession,
     linkage: LinkageType,
     container: Option<&str>,
 ) -> Result<Implementation, String> {
@@ -263,7 +275,7 @@ fn parse_action(
 }
 
 // TYPE ... END_TYPE
-fn parse_type(lexer: &mut RustyLexer) -> Result<UserTypeDeclaration, String> {
+fn parse_type(lexer: &mut ParseSession) -> Result<UserTypeDeclaration, String> {
     lexer.advance(); // consume the TYPE
     let name = slice_and_advance(lexer);
     expect!(KeywordColon, lexer);
@@ -291,7 +303,7 @@ fn parse_type(lexer: &mut RustyLexer) -> Result<UserTypeDeclaration, String> {
 type DataTypeWithInitializer = (DataTypeDeclaration, Option<Statement>);
 // TYPE xxx : 'STRUCT' | '(' | IDENTIFIER
 fn parse_data_type_definition(
-    lexer: &mut RustyLexer,
+    lexer: &mut ParseSession,
     name: Option<String>,
 ) -> Result<DataTypeWithInitializer, String> {
     if allow(KeywordStruct, lexer) {
@@ -459,13 +471,23 @@ fn is_end_of_stream(token: &lexer::Token) -> bool {
 }
 
 fn parse_body(
-    lexer: &mut RustyLexer,
+    lexer: &mut ParseSession,
     open_line_nr: usize,
     until: &dyn Fn(&lexer::Token) -> bool,
 ) -> Result<Vec<Statement>, String> {
     let mut statements = Vec::new();
     consume_all(lexer, KeywordSemicolon);
-    while !until(&lexer.token) && !is_end_of_stream(&lexer.token) {
+    while !until(&lexer.token) && lexer.token != lexer::Token::End {
+        // !is_end_of_stream(&lexer.token) {
+        //if my token is an error, Recover from errors --> Read until the next non error token
+        if lexer.token == lexer::Token::Error {
+            lexer.accept_diagnostic(Diagnostic::illegal_token(lexer.slice(), lexer.location()));
+            lexer.advance();
+            //Consume all semicolons as empty statments
+            consume_all(lexer, KeywordSemicolon);
+            continue;
+        }
+
         let statement = parse_control(lexer)?;
         consume_all(lexer, KeywordSemicolon);
         statements.push(statement);
@@ -481,7 +503,7 @@ fn parse_body(
     Ok(statements)
 }
 
-fn consume_all(lexer: &mut RustyLexer, token: lexer::Token) {
+fn consume_all(lexer: &mut ParseSession, token: lexer::Token) {
     while lexer.token == token {
         lexer.advance();
     }
@@ -491,32 +513,69 @@ fn consume_all(lexer: &mut RustyLexer, token: lexer::Token) {
  * parses either an expression (ended with ';' or a case-condition ended with ':')
  * does not consume the terminating token
  */
-fn parse_statement(lexer: &mut RustyLexer) -> Result<Statement, String> {
-    let result = parse_expression(lexer);
-
-    if !(lexer.token == KeywordColon || lexer.token == KeywordSemicolon) {
-        return Err(format!(
-            "expected end of statement (e.g. ;), but found {:?} at {:}",
-            lexer.token,
-            lexer.get_location_information()
-        ));
-    }
-    result
+fn parse_statement(lexer: &mut ParseSession) -> Result<Statement, String> {
+    lexer.enter_region(vec![KeywordSemicolon, KeywordColon]);
+    let result = recover(lexer, |lexer| parse_expression(lexer));
+    Ok(result)
 }
 
-fn parse_expression(lexer: &mut RustyLexer) -> Result<Statement, String> {
+pub fn expect(token: Token, lexer: &mut ParseSession) -> bool {
+    if lexer.token != token {
+        lexer.accept_diagnostic(Diagnostic::unexpected_token(
+            format!(
+                "expected '{:?}' but found '{}' ({:?})",
+                token,
+                lexer.slice(),
+                lexer.token
+            ),
+            lexer.location(),
+        ));
+        false
+    } else {
+        true
+    }
+}
+
+pub fn recover<F: FnOnce(&mut ParseSession) -> PResult<Statement>>(
+    lexer: &mut ParseSession,
+    parse_fn: F,
+) -> Statement {
+    let start = lexer.range().start;
+    let result = parse_fn(lexer);
+    match result {
+        Ok(result) => {
+            lexer.close_region();
+            result
+        }
+        Err(message) => {
+            //report and recover from error
+            let end = lexer.range().end;
+            let location = SourceRange::new(lexer.get_file_path(), start..end);
+            //try to recover by eating everything until we believe the parser is able to continue
+            lexer.recover_until_close();
+            //Report a diagnostic
+            lexer.accept_diagnostic(Diagnostic::unexpected_token(message, location.clone()));
+            //drop the originally parsed statement and replace with an empty-statement
+            Statement::EmptyStatement {
+                location: location.clone(),
+            }
+        }
+    }
+}
+
+fn parse_expression(lexer: &mut ParseSession) -> Result<Statement, String> {
     parse_primary_expression(lexer)
 }
 
-fn parse_reference(lexer: &mut RustyLexer) -> Result<Statement, String> {
+fn parse_reference(lexer: &mut ParseSession) -> Result<Statement, String> {
     expressions_parser::parse_qualified_reference(lexer)
 }
 
-fn parse_control(lexer: &mut RustyLexer) -> Result<Statement, String> {
+fn parse_control(lexer: &mut ParseSession) -> Result<Statement, String> {
     parse_control_statement(lexer)
 }
 
-fn parse_variable_block_type(lexer: &mut RustyLexer) -> Result<VariableBlockType, String> {
+fn parse_variable_block_type(lexer: &mut ParseSession) -> Result<VariableBlockType, String> {
     let block_type = &lexer.token;
     let result = match block_type {
         KeywordVar => Ok(VariableBlockType::Local),
@@ -530,7 +589,7 @@ fn parse_variable_block_type(lexer: &mut RustyLexer) -> Result<VariableBlockType
     result
 }
 
-fn parse_variable_block(lexer: &mut RustyLexer) -> Result<VariableBlock, String> {
+fn parse_variable_block(lexer: &mut ParseSession) -> Result<VariableBlock, String> {
     //Consume the var block
 
     let mut result = VariableBlock {
@@ -548,7 +607,7 @@ fn parse_variable_block(lexer: &mut RustyLexer) -> Result<VariableBlock, String>
     Ok(result)
 }
 
-fn parse_variable(lexer: &mut RustyLexer) -> Result<Variable, String> {
+fn parse_variable(lexer: &mut ParseSession) -> Result<Variable, String> {
     let variable_location = lexer.location();
     let name = slice_and_advance(lexer);
 

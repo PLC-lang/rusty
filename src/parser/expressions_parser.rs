@@ -5,14 +5,14 @@ use crate::lexer::Token::*;
 use std::str::FromStr;
 
 use super::allow;
-use super::RustyLexer;
+use super::ParseSession;
 use super::{slice_and_advance, unexpected_token};
 
-pub fn parse_primary_expression(lexer: &mut RustyLexer) -> Result<Statement, String> {
+pub fn parse_primary_expression(lexer: &mut ParseSession) -> Result<Statement, String> {
     parse_expression_list(lexer)
 }
 
-pub fn parse_expression_list(lexer: &mut RustyLexer) -> Result<Statement, String> {
+pub fn parse_expression_list(lexer: &mut ParseSession) -> Result<Statement, String> {
     let left = parse_range_statement(lexer);
     if lexer.token == KeywordComma {
         let mut expressions = vec![left?];
@@ -26,7 +26,7 @@ pub fn parse_expression_list(lexer: &mut RustyLexer) -> Result<Statement, String
     left
 }
 
-pub(crate) fn parse_range_statement(lexer: &mut RustyLexer) -> Result<Statement, String> {
+pub(crate) fn parse_range_statement(lexer: &mut ParseSession) -> Result<Statement, String> {
     let start = parse_or_expression(lexer)?;
 
     if lexer.token == KeywordDotDot {
@@ -41,7 +41,7 @@ pub(crate) fn parse_range_statement(lexer: &mut RustyLexer) -> Result<Statement,
 }
 
 // OR
-fn parse_or_expression(lexer: &mut RustyLexer) -> Result<Statement, String> {
+fn parse_or_expression(lexer: &mut ParseSession) -> Result<Statement, String> {
     let left = parse_xor_expression(lexer)?;
 
     let operator = match lexer.token {
@@ -60,7 +60,7 @@ fn parse_or_expression(lexer: &mut RustyLexer) -> Result<Statement, String> {
 }
 
 // XOR
-fn parse_xor_expression(lexer: &mut RustyLexer) -> Result<Statement, String> {
+fn parse_xor_expression(lexer: &mut ParseSession) -> Result<Statement, String> {
     let left = parse_and_expression(lexer)?;
 
     let operator = match lexer.token {
@@ -79,7 +79,7 @@ fn parse_xor_expression(lexer: &mut RustyLexer) -> Result<Statement, String> {
 }
 
 // AND
-fn parse_and_expression(lexer: &mut RustyLexer) -> Result<Statement, String> {
+fn parse_and_expression(lexer: &mut ParseSession) -> Result<Statement, String> {
     let left = parse_equality_expression(lexer)?;
 
     let operator = match lexer.token {
@@ -98,7 +98,7 @@ fn parse_and_expression(lexer: &mut RustyLexer) -> Result<Statement, String> {
 }
 
 //EQUALITY  =, <>
-fn parse_equality_expression(lexer: &mut RustyLexer) -> Result<Statement, String> {
+fn parse_equality_expression(lexer: &mut ParseSession) -> Result<Statement, String> {
     let left = parse_compare_expression(lexer)?;
     let operator = match lexer.token {
         OperatorEqual => Operator::Equal,
@@ -115,7 +115,7 @@ fn parse_equality_expression(lexer: &mut RustyLexer) -> Result<Statement, String
 }
 
 //COMPARE <, >, <=, >=
-fn parse_compare_expression(lexer: &mut RustyLexer) -> Result<Statement, String> {
+fn parse_compare_expression(lexer: &mut ParseSession) -> Result<Statement, String> {
     let left = parse_additive_expression(lexer)?;
     let operator = match lexer.token {
         OperatorLess => Operator::Less,
@@ -134,7 +134,7 @@ fn parse_compare_expression(lexer: &mut RustyLexer) -> Result<Statement, String>
 }
 
 // Addition +, -
-fn parse_additive_expression(lexer: &mut RustyLexer) -> Result<Statement, String> {
+fn parse_additive_expression(lexer: &mut ParseSession) -> Result<Statement, String> {
     let left = parse_multiplication_expression(lexer)?;
     let operator = match lexer.token {
         OperatorPlus => Operator::Plus,
@@ -151,7 +151,7 @@ fn parse_additive_expression(lexer: &mut RustyLexer) -> Result<Statement, String
 }
 
 // Multiplication *, /, MOD
-fn parse_multiplication_expression(lexer: &mut RustyLexer) -> Result<Statement, String> {
+fn parse_multiplication_expression(lexer: &mut ParseSession) -> Result<Statement, String> {
     let left = parse_unary_expression(lexer)?;
     let operator = match lexer.token {
         OperatorMultiplication => Operator::Multiplication,
@@ -168,7 +168,7 @@ fn parse_multiplication_expression(lexer: &mut RustyLexer) -> Result<Statement, 
     })
 }
 // UNARY -x, NOT x
-fn parse_unary_expression(lexer: &mut RustyLexer) -> Result<Statement, String> {
+fn parse_unary_expression(lexer: &mut ParseSession) -> Result<Statement, String> {
     let operator = match lexer.token {
         OperatorNot => Some(Operator::Not),
         OperatorMinus => Some(Operator::Minus),
@@ -195,21 +195,23 @@ fn parse_unary_expression(lexer: &mut RustyLexer) -> Result<Statement, String> {
 }
 
 // PARENTHESIZED (...)
-fn parse_parenthesized_expression(lexer: &mut RustyLexer) -> Result<Statement, String> {
+fn parse_parenthesized_expression(lexer: &mut ParseSession) -> Result<Statement, String> {
     match lexer.token {
         KeywordParensOpen => {
             lexer.advance();
-            let result = parse_primary_expression(lexer);
-            expect!(KeywordParensClose, lexer);
-            lexer.advance();
-            result
+            lexer.enter_region(vec![KeywordParensClose]);
+            let result = super::recover(lexer, |lexer| parse_primary_expression(lexer));
+            if super::expect(KeywordParensClose, lexer) {
+                lexer.advance();
+            }
+            Ok(result)
         }
         _ => parse_leaf_expression(lexer),
     }
 }
 
 // Literals, Identifiers, etc.
-fn parse_leaf_expression(lexer: &mut RustyLexer) -> Result<Statement, String> {
+fn parse_leaf_expression(lexer: &mut ParseSession) -> Result<Statement, String> {
     let current = match lexer.token {
         Identifier => parse_qualified_reference(lexer),
         LiteralInteger => parse_literal_number(lexer),
@@ -241,7 +243,7 @@ fn parse_leaf_expression(lexer: &mut RustyLexer) -> Result<Statement, String> {
     current
 }
 
-fn parse_array_literal(lexer: &mut RustyLexer) -> Result<Statement, String> {
+fn parse_array_literal(lexer: &mut ParseSession) -> Result<Statement, String> {
     let start = lexer.range().start;
     expect!(KeywordSquareParensOpen, lexer);
     lexer.advance();
@@ -257,13 +259,13 @@ fn parse_array_literal(lexer: &mut RustyLexer) -> Result<Statement, String> {
 
 #[allow(clippy::unnecessary_wraps)]
 //Allowing the unnecessary wrap here because this method is used along other methods that need to return Results
-fn parse_bool_literal(lexer: &mut RustyLexer, value: bool) -> Result<Statement, String> {
+fn parse_bool_literal(lexer: &mut ParseSession, value: bool) -> Result<Statement, String> {
     let location = lexer.location();
     lexer.advance();
     Ok(Statement::LiteralBool { value, location })
 }
 
-pub fn parse_qualified_reference(lexer: &mut RustyLexer) -> Result<Statement, String> {
+pub fn parse_qualified_reference(lexer: &mut ParseSession) -> Result<Statement, String> {
     let start = lexer.range().start;
     let mut reference_elements = vec![parse_reference_access(lexer)?];
     while allow(KeywordDot, lexer) {
@@ -298,7 +300,7 @@ pub fn parse_qualified_reference(lexer: &mut RustyLexer) -> Result<Statement, St
     }
 }
 
-pub fn parse_reference_access(lexer: &mut RustyLexer) -> Result<Statement, String> {
+pub fn parse_reference_access(lexer: &mut ParseSession) -> Result<Statement, String> {
     let location = lexer.location();
     let mut reference = Statement::Reference {
         name: slice_and_advance(lexer),
@@ -317,7 +319,7 @@ pub fn parse_reference_access(lexer: &mut RustyLexer) -> Result<Statement, Strin
     Ok(reference)
 }
 
-fn parse_literal_number(lexer: &mut RustyLexer) -> Result<Statement, String> {
+fn parse_literal_number(lexer: &mut ParseSession) -> Result<Statement, String> {
     let location = lexer.location();
     let result = slice_and_advance(lexer);
     if allow(KeywordDot, lexer) {
@@ -362,7 +364,7 @@ fn parse_date_from_string(text: &str, location: SourceRange) -> Result<Statement
     })
 }
 
-fn parse_literal_date_and_time(lexer: &mut RustyLexer) -> Result<Statement, String> {
+fn parse_literal_date_and_time(lexer: &mut ParseSession) -> Result<Statement, String> {
     let location = lexer.location();
     //get rid of D# or DATE#
     let slice = slice_and_advance(lexer);
@@ -399,7 +401,7 @@ fn parse_literal_date_and_time(lexer: &mut RustyLexer) -> Result<Statement, Stri
     })
 }
 
-fn parse_literal_date(lexer: &mut RustyLexer) -> Result<Statement, String> {
+fn parse_literal_date(lexer: &mut ParseSession) -> Result<Statement, String> {
     let location = lexer.location();
     //get rid of D# or DATE#
     let slice = slice_and_advance(lexer);
@@ -409,7 +411,7 @@ fn parse_literal_date(lexer: &mut RustyLexer) -> Result<Statement, String> {
     parse_date_from_string(slice, location)
 }
 
-fn parse_literal_time_of_day(lexer: &mut RustyLexer) -> Result<Statement, String> {
+fn parse_literal_time_of_day(lexer: &mut ParseSession) -> Result<Statement, String> {
     let location = lexer.location();
     //get rid of TOD# or TIME_OF_DAY#
     let slice = slice_and_advance(lexer);
@@ -431,7 +433,7 @@ fn parse_literal_time_of_day(lexer: &mut RustyLexer) -> Result<Statement, String
     })
 }
 
-fn parse_literal_time(lexer: &mut RustyLexer) -> Result<Statement, String> {
+fn parse_literal_time(lexer: &mut ParseSession) -> Result<Statement, String> {
     const POS_D: usize = 0;
     const POS_H: usize = 1;
     const POS_M: usize = 2;
@@ -522,7 +524,7 @@ fn trim_quotes(quoted_string: &str) -> String {
     quoted_string[1..quoted_string.len() - 1].to_string()
 }
 
-fn parse_literal_string(lexer: &mut RustyLexer, is_wide: bool) -> Result<Statement, String> {
+fn parse_literal_string(lexer: &mut ParseSession, is_wide: bool) -> Result<Statement, String> {
     let result = lexer.slice();
     let location = lexer.location();
     let string_literal = Ok(Statement::LiteralString {
@@ -535,7 +537,7 @@ fn parse_literal_string(lexer: &mut RustyLexer, is_wide: bool) -> Result<Stateme
 }
 
 fn parse_literal_real(
-    lexer: &mut RustyLexer,
+    lexer: &mut ParseSession,
     integer: String,
     integer_range: SourceRange,
 ) -> Result<Statement, String> {

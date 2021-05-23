@@ -45,7 +45,7 @@ impl SourceContainer for FilePath {
         //why do I need to clone here :-( ???
         let path = self.get_location().to_string();
         fs::read_to_string(self.path.to_string())
-            .map(move |source| SourceCode { path, source })
+            .map(move |source| SourceCode { source, path })
             .map_err(|err| format!("{:}", err))
     }
 
