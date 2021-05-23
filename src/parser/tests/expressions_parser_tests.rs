@@ -819,54 +819,6 @@ fn literal_time_of_day_test() {
 }
 
 #[test]
-fn illegal_literal_time_missing_segments_test() {
-    let lexer = super::lex(
-        "
-        PROGRAM exp 
-            T#;
-        END_PROGRAM
-        ",
-    );
-    assert_eq!(
-        parse(lexer),
-        Err(
-            "expected end of statement (e.g. ;), but found Error at line: 3 offset: 14..15"
-                .to_string()
-        )
-    );
-}
-
-#[test]
-fn illegal_literal_time_double_segments_test() {
-    let lexer = super::lex(
-        "
-        PROGRAM exp 
-            T#1d4d2h3m;
-        END_PROGRAM
-        ",
-    );
-    assert_eq!(
-        parse(lexer),
-        Err("Invalid TIME Literal: segments must be unique".to_string())
-    );
-}
-
-#[test]
-fn illegal_literal_time_out_of_order_segments_test() {
-    let lexer = super::lex(
-        "
-        PROGRAM exp 
-            T#1s2h3d;
-        END_PROGRAM
-        ",
-    );
-    assert_eq!(
-        parse(lexer),
-        Err("Invalid TIME Literal: segments out of order, use d-h-m-s-ms".to_string())
-    );
-}
-
-#[test]
 fn literal_date_and_time_test() {
     let lexer = super::lex(
         "

@@ -1,12 +1,13 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use crate::ast::*;
+use crate::parser::parse;
 use crate::parser::Statement::LiteralInteger;
-use crate::{lexer, parser::parse};
+use crate::Diagnostic;
 use pretty_assertions::*;
 
 #[test]
 fn empty_returns_empty_compilation_unit() {
-    let (result, _) = parse(super::lex("")).unwrap();
+    let (result, ..) = parse(super::lex("")).unwrap();
     assert_eq!(result.units.len(), 0);
 }
 
@@ -197,8 +198,7 @@ fn actions_with_no_container_error() {
     let err = parse(lexer).expect_err("Expecting parser failure");
     assert_eq!(
         err,
-        "expected Identifier, but found 'ACTION' [KeywordAction] at line: 1 offset: 8..14"
-            .to_string()
+        Diagnostic::unexpected_token_found("Identifier".into(), "ACTION".into(), (8..14).into())
     );
 }
 
@@ -236,58 +236,94 @@ fn simple_program_with_two_varblocks_can_be_parsed() {
 #[test]
 fn a_program_needs_to_end_with_end_program() {
     let lexer = super::lex("PROGRAM buz ");
-    let result = parse(lexer);
+    let (_, diagnostics) = parse(lexer).unwrap();
     assert_eq!(
-        result,
-        Err(
-            "unexpected termination of body by '' [End], a block at line 1 was not closed"
-                .to_string()
-        )
+        diagnostics,
+        vec![Diagnostic::unexpected_token_found(
+            "KeywordEndProgram".into(),
+            "''".into(),
+            (12..12).into()
+        ),]
     );
 }
 
 #[test]
 fn a_variable_declaration_block_needs_to_end_with_endvar() {
     let lexer = super::lex("PROGRAM buz VAR END_PROGRAM ");
-    let result = parse(lexer);
+    let (_, diagnostics) = parse(lexer).unwrap();
+
     assert_eq!(
-        result,
-        Err("expected KeywordEndVar, but found 'END_PROGRAM' [KeywordEndProgram] at line: 1 offset: 16..27".to_string())
+        diagnostics,
+        vec![
+            Diagnostic::missing_token("[KeywordEndVar]".into(), (16..27).into()),
+            Diagnostic::unexpected_token_found(
+                "KeywordEndVar".into(),
+                "'END_PROGRAM'".into(),
+                (16..27).into()
+            ),
+        ]
     );
 }
 
 #[test]
-fn a_statement_without_a_semicolon_fails() {
-    let lexer = super::lex("PROGRAM buz x END_PROGRAM ");
-    let result = parse(lexer);
-    assert_eq!(
-        result,
-        Err("expected end of statement (e.g. ;), but found KeywordEndProgram at line: 1 offset: 14..25".to_string())
-    );
-}
-
-#[test]
-fn empty_statements_are_ignored() {
+fn empty_statements_are_are_parsed() {
     let lexer = super::lex("PROGRAM buz ;;;; END_PROGRAM ");
     let result = parse(lexer).unwrap().0;
 
     let prg = &result.implementations[0];
-    assert_eq!(0, prg.statements.len());
+    assert_eq!(
+        format!("{:?}", prg.statements),
+        format!(
+            "{:?}",
+            vec![
+                Statement::EmptyStatement {
+                    location: SourceRange::undefined()
+                },
+                Statement::EmptyStatement {
+                    location: SourceRange::undefined()
+                },
+                Statement::EmptyStatement {
+                    location: SourceRange::undefined()
+                },
+                Statement::EmptyStatement {
+                    location: SourceRange::undefined()
+                },
+            ]
+        ),
+    );
 }
 
 #[test]
-fn empty_statements_are_ignored_before_a_statement() {
+fn empty_statements_are_parsed_before_a_statement() {
     let lexer = super::lex("PROGRAM buz ;;;;x; END_PROGRAM ");
     let result = parse(lexer).unwrap().0;
 
     let prg = &result.implementations[0];
-    let statement = &prg.statements[0];
 
-    let ast_string = format!("{:#?}", statement);
-    let expected_ast = r#"Reference {
-    name: "x",
-}"#;
-    assert_eq!(ast_string, expected_ast);
+    assert_eq!(
+        format!("{:?}", prg.statements),
+        format!(
+            "{:?}",
+            vec![
+                Statement::EmptyStatement {
+                    location: SourceRange::undefined()
+                },
+                Statement::EmptyStatement {
+                    location: SourceRange::undefined()
+                },
+                Statement::EmptyStatement {
+                    location: SourceRange::undefined()
+                },
+                Statement::EmptyStatement {
+                    location: SourceRange::undefined()
+                },
+                Statement::Reference {
+                    name: "x".into(),
+                    location: SourceRange::undefined()
+                },
+            ]
+        ),
+    );
 }
 
 #[test]
@@ -460,7 +496,7 @@ fn a_function_with_typed_varargs_can_be_parsed() {
 
 #[test]
 fn simple_struct_type_can_be_parsed() {
-    let (result, _) = parse(super::lex(
+    let (result, ..) = parse(super::lex(
         r#"
         TYPE SampleStruct :
             STRUCT
@@ -515,7 +551,7 @@ fn simple_struct_type_can_be_parsed() {
 
 #[test]
 fn struct_with_inline_array_can_be_parsed() {
-    let (result, _) = parse(super::lex(
+    let (result, ..) = parse(super::lex(
         r#"
         TYPE SampleStruct :
             STRUCT
@@ -562,7 +598,7 @@ fn struct_with_inline_array_can_be_parsed() {
 
 #[test]
 fn simple_enum_type_can_be_parsed() {
-    let (result, _) = parse(super::lex(
+    let (result, ..) = parse(super::lex(
         r#"
         TYPE SampleEnum : (red, yellow, green);
         END_TYPE 
@@ -585,7 +621,7 @@ fn simple_enum_type_can_be_parsed() {
 
 #[test]
 fn type_alias_can_be_parsed() {
-    let (result, _) = parse(super::lex(
+    let (result, ..) = parse(super::lex(
         r#"
         TYPE 
             MyInt : INT;
@@ -612,7 +648,7 @@ fn type_alias_can_be_parsed() {
 
 #[test]
 fn array_type_can_be_parsed_test() {
-    let (result, _) = parse(super::lex(
+    let (result, ..) = parse(super::lex(
         r#"
             TYPE MyArray : ARRAY[0..8] OF INT; END_TYPE
             "#,
@@ -649,28 +685,46 @@ fn array_type_can_be_parsed_test() {
 
 #[test]
 fn string_type_can_be_parsed_test() {
-    let (result, _) = parse(super::lex(
+    let (result, ..) = parse(super::lex(
         r#"
             TYPE MyString : STRING[253]; END_TYPE
+            TYPE MyString : STRING[253] := 'abc'; END_TYPE
             "#,
     ))
     .unwrap();
 
-    let ast_string = format!("{:#?}", &result.types[0]);
+    let ast_string = format!("{:#?}", &result.types);
 
     let expected_ast = format!(
         "{:#?}",
-        &UserTypeDeclaration {
-            data_type: DataType::StringType {
-                name: Some("MyString".to_string()),
-                size: Some(LiteralInteger {
-                    value: "253".to_string(),
-                    location: (10..11).into(),
-                }),
-                is_wide: false,
+        vec![
+            UserTypeDeclaration {
+                data_type: DataType::StringType {
+                    name: Some("MyString".to_string()),
+                    size: Some(LiteralInteger {
+                        value: "253".to_string(),
+                        location: (10..11).into(),
+                    }),
+                    is_wide: false,
+                },
+                initializer: None,
             },
-            initializer: None,
-        }
+            UserTypeDeclaration {
+                data_type: DataType::StringType {
+                    name: Some("MyString".to_string()),
+                    size: Some(LiteralInteger {
+                        value: "253".to_string(),
+                        location: (10..11).into(),
+                    }),
+                    is_wide: false,
+                },
+                initializer: Some(Statement::LiteralString {
+                    is_wide: false,
+                    location: SourceRange::undefined(),
+                    value: "abc".into(),
+                }),
+            }
+        ]
     );
 
     assert_eq!(ast_string, expected_ast);
@@ -678,7 +732,7 @@ fn string_type_can_be_parsed_test() {
 
 #[test]
 fn wide_string_type_can_be_parsed_test() {
-    let (result, _) = parse(super::lex(
+    let (result, ..) = parse(super::lex(
         r#"
             TYPE MyString : WSTRING[253]; END_TYPE
             "#,
@@ -707,7 +761,7 @@ fn wide_string_type_can_be_parsed_test() {
 
 #[test]
 fn array_type_initialization_with_literals_can_be_parsed_test() {
-    let (result, _) = parse(super::lex(
+    let (result, ..) = parse(super::lex(
         r#"
             TYPE MyArray : ARRAY[0..2] OF INT := [1,2,3]; END_TYPE
             "#,
@@ -741,7 +795,7 @@ fn array_type_initialization_with_literals_can_be_parsed_test() {
 
 #[test]
 fn array_initializer_in_pou_can_be_parsed() {
-    let (result, _) = parse(super::lex(
+    let (result, ..) = parse(super::lex(
         r#"
             PROGRAM main
             VAR
@@ -780,7 +834,7 @@ fn array_initializer_in_pou_can_be_parsed() {
 
 #[test]
 fn inline_struct_declaration_can_be_parsed() {
-    let (result, _) = parse(super::lex(
+    let (result, ..) = parse(super::lex(
         r#"
         VAR_GLOBAL
             my_struct : STRUCT
@@ -828,7 +882,7 @@ fn inline_struct_declaration_can_be_parsed() {
 
 #[test]
 fn inline_enum_declaration_can_be_parsed() {
-    let (result, _) = parse(super::lex(
+    let (result, ..) = parse(super::lex(
         r#"
         VAR_GLOBAL
             my_enum : (red, yellow, green);
@@ -856,7 +910,7 @@ fn inline_enum_declaration_can_be_parsed() {
 
 #[test]
 fn multilevel_inline_struct_and_enum_declaration_can_be_parsed() {
-    let (result, _) = parse(super::lex(
+    let (result, ..) = parse(super::lex(
         r#"
         VAR_GLOBAL
             my_struct : STRUCT
@@ -915,63 +969,26 @@ fn multilevel_inline_struct_and_enum_declaration_can_be_parsed() {
 }
 
 #[test]
-fn test_ast_line_locations() {
-    let lexer = super::lex(
-        "PROGRAM prg
-                call1();
-
-                call2();
-                call3();
-            
-            
-                call4();
-            END_PROGRAM
-    ",
-    );
-    let (parse_result, new_lines) = parse(lexer).unwrap();
-    let statements = &parse_result.implementations[0].statements;
-
-    {
-        let statement_offset = statements.get(0).unwrap().get_location().get_start();
-        let line = new_lines.get_line_of(statement_offset).unwrap();
-        assert_eq!(2, line);
-    }
-    {
-        let statement_offset = statements.get(1).unwrap().get_location().get_start();
-        let line = new_lines.get_line_of(statement_offset).unwrap();
-        assert_eq!(4, line);
-    }
-    {
-        let statement_offset = statements.get(2).unwrap().get_location().get_start();
-        let line = new_lines.get_line_of(statement_offset).unwrap();
-        assert_eq!(5, line);
-    }
-    {
-        let statement_offset = statements.get(3).unwrap().get_location().get_start();
-        let line = new_lines.get_line_of(statement_offset).unwrap();
-        assert_eq!(8, line);
-    }
-}
-
-#[test]
 fn test_unexpected_token_error_message() {
-    let lexer = super::lex(
-        "PROGRAM prg
+    let source = "PROGRAM prg
                 VAR ;
                 END_VAR
             END_PROGRAM
-    ",
-    );
-    let parse_result = parse(lexer);
+    ";
+    let lexer = super::lex(source);
+    let (_, diagnostics) = parse(lexer).unwrap();
 
-    if let Err { 0: msg } = parse_result {
-        assert_eq!(
-            "expected KeywordEndVar, but found ';' [KeywordSemicolon] at line: 2 offset: 21..22",
-            msg
-        );
-    } else {
-        panic!("Expected parse error but didn't get one.");
-    }
+    assert_eq!(
+        format!("{:?}", diagnostics),
+        format!(
+            "{:?}",
+            vec![Diagnostic::unexpected_token_found(
+                "KeywordEndVar".into(),
+                "';'".into(),
+                (32..33).into()
+            ),]
+        )
+    );
 }
 
 #[test]
@@ -995,31 +1012,13 @@ fn test_unexpected_token_error_message2() {
 
     if let Err { 0: msg } = parse_result {
         assert_eq!(
-            "unexpected token: 'SOME' [Identifier] at line: 1 offset: 0..4",
+            Diagnostic::syntax_error("Unexpected token: 'SOME'".into(), (0..4).into()),
             msg
         );
     } else {
         panic!("Expected parse error but didn't get one.");
     }
 }
-#[test]
-fn test_unexpected_type_declaration_error_message() {
-    let lexer = super::lex(
-        "TYPE MyType:
-                PROGRAM
-                END_PROGRAM
-            END_TYPE
-    ",
-    );
-    let parse_result = parse(lexer);
-
-    if let Err { 0: msg } = parse_result {
-        assert_eq!("expected struct, enum, or subrange found 'PROGRAM' [KeywordProgram] at line: 2 offset: 17..24", msg);
-    } else {
-        panic!("Expected parse error but didn't get one.");
-    }
-}
-
 #[test]
 fn test_unclosed_body_error_message() {
     let lexer = super::lex(
@@ -1029,40 +1028,16 @@ fn test_unclosed_body_error_message() {
 
     ",
     );
-    let parse_result = parse(lexer);
+    let (_, diagnostics) = parse(lexer).unwrap();
 
-    if let Err { 0: msg } = parse_result {
-        assert_eq!(
-            "unexpected termination of body by '' [End], a block at line 3 was not closed",
-            msg
-        );
-    } else {
-        panic!("Expected parse error but didn't get one.");
-    }
-}
-
-#[test]
-fn test_case_without_condition() {
-    let lexer = super::lex(
-        "PROGRAM My_PRG
-                CASE x OF
-                    1: 
-                    : x := 3;
-                END_CASE
-            END_PROGRAM
-
-    ",
+    assert_eq!(
+        diagnostics,
+        vec![Diagnostic::unexpected_token_found(
+            "KeywordEndProgram".into(),
+            "''".into(),
+            (46..46).into()
+        )]
     );
-    let parse_result = parse(lexer);
-
-    if let Err { 0: msg } = parse_result {
-        assert_eq!(
-            "unexpected ':' at line 4 - no case-condition could be found",
-            msg
-        );
-    } else {
-        panic!("Expected parse error but didn't get one.");
-    }
 }
 
 #[test]
@@ -1091,7 +1066,7 @@ fn initial_scalar_values_can_be_parsed() {
             END_PROGRAM
             ",
     );
-    let (parse_result, _) = parse(lexer).unwrap();
+    let (parse_result, ..) = parse(lexer).unwrap();
 
     let x = &parse_result.global_vars[0].variables[0];
     let expected = r#"Variable {
@@ -1195,7 +1170,7 @@ fn array_initializer_can_be_parsed() {
             END_VAR
            ",
     );
-    let (parse_result, _) = parse(lexer).unwrap();
+    let (parse_result, ..) = parse(lexer).unwrap();
     let x = &parse_result.global_vars[0].variables[0];
     let expected = r#"Variable {
     name: "x",
@@ -1247,7 +1222,7 @@ fn multi_dim_array_initializer_can_be_parsed() {
             END_VAR
            ",
     );
-    let (parse_result, _) = parse(lexer).unwrap();
+    let (parse_result, ..) = parse(lexer).unwrap();
     let x = &parse_result.global_vars[0].variables[0];
     let expected = r#"Variable {
     name: "x",
@@ -1319,7 +1294,7 @@ fn array_initializer_multiplier_can_be_parsed() {
             END_VAR
            ",
     );
-    let (parse_result, _) = parse(lexer).unwrap();
+    let (parse_result, ..) = parse(lexer).unwrap();
     let x = &parse_result.global_vars[0].variables[0];
     let expected = r#"Variable {
     name: "x",
@@ -1364,7 +1339,7 @@ fn struct_initializer_can_be_parsed() {
             END_VAR
            ",
     );
-    let (parse_result, _) = parse(lexer).unwrap();
+    let (parse_result, ..) = parse(lexer).unwrap();
     let x = &parse_result.global_vars[0].variables[0];
     let expected = r#"Variable {
     name: "x",
@@ -1409,7 +1384,7 @@ fn string_variable_declaration_can_be_parsed() {
             END_VAR
            ",
     );
-    let (parse_result, _) = parse(lexer).unwrap();
+    let (parse_result, ..) = parse(lexer).unwrap();
     let x = &parse_result.global_vars[0].variables[0];
     let expected = r#"Variable {
     name: "x",
@@ -1480,7 +1455,7 @@ fn subrangetype_can_be_parsed() {
             END_VAR
            ",
     );
-    let (parse_result, _) = parse(lexer).unwrap();
+    let (parse_result, ..) = parse(lexer).unwrap();
 
     let x = &parse_result.global_vars[0].variables[0];
     let expected = Variable {
@@ -1508,21 +1483,61 @@ fn subrangetype_can_be_parsed() {
 }
 
 #[test]
-fn file_location_persisted() {
-    let lexer = lexer::lex(
-        "test_file.st",
+fn varargs_parameters_can_be_parsed() {
+    let lexer = super::lex(
         "
-            VAR_GLOBAL
-                x : INT;
+            FUNCTION foo : DINT
+            VAR_INPUT
+            args1 : ...;
+            args2 : INT...;
             END_VAR
-
-            PROGRAM prg
-            END_PROGRAM
+            END_FUNCTION
            ",
     );
-    let (parse_result, _) = parse(lexer).unwrap();
-    let location = &parse_result.global_vars[0].variables[0].location;
-    assert_eq!("test_file.st", location.get_file_path());
-    let location = &parse_result.units[0].location;
-    assert_eq!("test_file.st", location.get_file_path());
+    let (parse_result, diagnostics) = parse(lexer).unwrap();
+
+    assert_eq!(
+        format!("{:#?}", diagnostics),
+        format!("{:#?}", Vec::<Diagnostic>::new()).as_str()
+    );
+
+    let x = &parse_result.units[0];
+    let expected = Pou {
+        name: "foo".into(),
+        pou_type: PouType::Function,
+        return_type: Some(DataTypeDeclaration::DataTypeReference {
+            referenced_type: "DINT".into(),
+        }),
+        variable_blocks: vec![VariableBlock {
+            variable_block_type: VariableBlockType::Input,
+            variables: vec![
+                Variable {
+                    name: "args1".into(),
+                    data_type: DataTypeDeclaration::DataTypeDefinition {
+                        data_type: DataType::VarArgs {
+                            referenced_type: None,
+                        },
+                    },
+                    initializer: None,
+                    location: SourceRange::undefined(),
+                },
+                Variable {
+                    name: "args2".into(),
+                    data_type: DataTypeDeclaration::DataTypeDefinition {
+                        data_type: DataType::VarArgs {
+                            referenced_type: Some(Box::new(
+                                DataTypeDeclaration::DataTypeReference {
+                                    referenced_type: "INT".into(),
+                                },
+                            )),
+                        },
+                    },
+                    initializer: None,
+                    location: SourceRange::undefined(),
+                },
+            ],
+        }],
+        location: SourceRange::undefined(),
+    };
+    assert_eq!(format!("{:#?}", expected), format!("{:#?}", x).as_str());
 }

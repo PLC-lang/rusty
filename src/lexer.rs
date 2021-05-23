@@ -4,40 +4,48 @@ use logos::Filter;
 use logos::Lexer;
 use logos::Logos;
 
-use crate::ast::{NewLines, SourceRange};
+use crate::ast::SourceRange;
+use crate::Diagnostic;
 
 #[cfg(test)]
 mod tests;
 
-pub struct RustyLexer<'a> {
+pub struct ParseSession<'a> {
     lexer: Lexer<'a, Token>,
-    file_path: String,
     pub token: Token,
-    pub new_lines: NewLines,
+    pub diagnostics: Vec<Diagnostic>,
+    pub closing_keywords: Vec<Vec<Token>>,
+    /// the token parsed before the current one stored in `token`
+    pub last_token: Token,
+    /// the range of the `last_token`
+    pub last_range: Range<usize>,
+    pub parse_progress: usize,
 }
 
-impl<'a> RustyLexer<'a> {
-    pub fn new(l: Lexer<'a, Token>, file_path: &str, new_lines: NewLines) -> RustyLexer<'a> {
-        let mut lexer = RustyLexer {
+impl<'a> ParseSession<'a> {
+    pub fn new(l: Lexer<'a, Token>) -> ParseSession<'a> {
+        let mut lexer = ParseSession {
             lexer: l,
-            file_path: file_path.into(),
             token: Token::KeywordBy,
-            new_lines,
+            diagnostics: vec![],
+            closing_keywords: vec![],
+            last_token: Token::End,
+            last_range: 0..0,
+            parse_progress: 0,
         };
         lexer.advance();
         lexer
     }
 
-    pub fn get_new_lines(&self) -> &NewLines {
-        &self.new_lines
-    }
-
-    pub fn get_file_path(&self) -> &str {
-        &self.file_path
+    pub fn slice_region(&self, range: Range<usize>) -> &str {
+        &self.lexer.source()[range]
     }
 
     pub fn advance(&mut self) {
-        self.token = self.lexer.next().unwrap_or(Token::End);
+        self.last_range = self.range();
+        self.last_token =
+            std::mem::replace(&mut self.token, self.lexer.next().unwrap_or(Token::End));
+        self.parse_progress += 1;
     }
 
     pub fn slice(&self) -> &str {
@@ -45,33 +53,84 @@ impl<'a> RustyLexer<'a> {
     }
 
     pub fn location(&self) -> SourceRange {
-        SourceRange::new(self.get_file_path(), self.range())
+        SourceRange::new(self.range())
     }
 
     pub fn range(&self) -> Range<usize> {
         self.lexer.span()
     }
 
-    pub fn get_current_line_nr(&self) -> usize {
-        self.new_lines.get_line_of(self.range().start).unwrap_or(1)
+    pub fn accept_diagnostic(&mut self, diagnostic: Diagnostic) {
+        self.diagnostics.push(diagnostic);
     }
 
-    pub fn get_location_information(&self) -> String {
-        let line_index = self.new_lines.get_line_of(self.range().start);
+    pub fn enter_region(&mut self, end_token: Vec<Token>) {
+        self.closing_keywords.push(end_token);
+    }
 
-        let location = line_index.map_or_else(
-            || self.range(),
-            |it| {
-                let new_line_offset = self.new_lines.get_offest_of_line(it);
-                let current_range = self.range();
-                (current_range.start - new_line_offset)..(current_range.end - new_line_offset)
-            },
-        );
-        format!(
-            "line: {line:?} offset: {location:?}",
-            line = line_index.map_or_else(|| 1, |line_index| line_index),
-            location = location
-        )
+    pub fn close_region(&mut self) {
+        if let Some(expected_token) = self.closing_keywords.pop() {
+            if !expected_token.contains(&self.token) {
+                self.accept_diagnostic(Diagnostic::unexpected_token_found(
+                    format!("{:?}", expected_token[0]),
+                    format!("'{}'", self.slice()),
+                    self.location(),
+                ));
+            } else {
+                self.advance();
+            }
+        }
+    }
+
+    /// returns the level (which corresponds to the position on the `closing_keywords` stack)
+    /// returns `None` if this token does not close an open region
+    fn get_close_region_level(&self, token: &Token) -> Option<usize> {
+        self.closing_keywords
+            .iter()
+            .rposition(|it| it.contains(token))
+    }
+
+    /// returns true if the given token closes an open region
+    pub fn closes_open_region(&self, token: &Token) -> bool {
+        token == &Token::End || self.get_close_region_level(token).is_some()
+    }
+
+    pub fn recover_until_close(&mut self) {
+        let mut hit = self.get_close_region_level(&self.token);
+        let start = self.location();
+        let mut end = self.location().get_end();
+        while self.token != Token::End && hit.is_none() {
+            end = self.location().get_end();
+            self.advance();
+            hit = self
+                .closing_keywords
+                .iter()
+                .rposition(|it| it.contains(&self.token));
+        }
+
+        //Did we recover in the while loop above?
+        if start.get_end() != self.location().get_end() {
+            let range = start.get_start()..end;
+            self.accept_diagnostic(Diagnostic::unexpected_token_found(
+                format!(
+                    "{:?}",
+                    self.closing_keywords
+                        .last()
+                        .and_then(|it| it.first())
+                        .unwrap_or(&Token::End) //only show first expected token
+                ),
+                format!("'{}'", self.slice_region(range.clone())),
+                SourceRange::new(range),
+            ));
+        }
+
+        if let Some(hit) = hit {
+            if self.closing_keywords.len() > hit + 1 {
+                let closing = self.closing_keywords.last().unwrap();
+                let expected_tokens = format!("{:?}", closing);
+                self.accept_diagnostic(Diagnostic::missing_token(expected_tokens, self.location()));
+            }
+        }
     }
 }
 
@@ -112,7 +171,7 @@ fn get_closing_tag(open_tag: &str) -> (char, char) {
     }
 }
 
-#[derive(Debug, PartialEq, Logos)]
+#[derive(Debug, PartialEq, Logos, Clone)]
 pub enum Token {
     #[error]
     #[regex(r"\(\*", |lex| parse_comments(lex))]
@@ -369,6 +428,6 @@ pub enum Token {
     End,
 }
 
-pub fn lex<'src>(file_path: &'src str, source: &'src str) -> RustyLexer<'src> {
-    RustyLexer::new(Token::lexer(source), file_path, NewLines::new(source))
+pub fn lex(source: &str) -> ParseSession {
+    ParseSession::new(Token::lexer(source))
 }

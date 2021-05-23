@@ -80,6 +80,9 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
     /// - `statement` the statement to be generated
     pub fn generate_statement(&self, statement: &Statement) -> Result<(), CompileError> {
         match statement {
+            Statement::EmptyStatement { .. } => {
+                //nothing to generate
+            }
             Statement::Assignment { left, right } => {
                 self.generate_assignment_statement(left, right)?;
             }

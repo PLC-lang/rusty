@@ -19,13 +19,18 @@
 //! [`IR`]: https://llvm.org/docs/LangRef.html
 use std::path::Path;
 
-use ast::{NewLines, SourceRange};
+use ast::{PouType, SourceRange};
+use codespan_reporting::diagnostic::{self, Label};
+use codespan_reporting::files::SimpleFiles;
+use codespan_reporting::term::termcolor::{ColorChoice, StandardStream};
+use codespan_reporting::term::{self, Chars, Styles};
 use compile_error::CompileError;
 use index::Index;
 use inkwell::context::Context;
 use inkwell::targets::{
     CodeModel, FileType, InitializationConfig, RelocMode, Target, TargetMachine, TargetTriple,
 };
+use parser::ParsedAst;
 
 use crate::ast::CompilationUnit;
 mod ast;
@@ -39,6 +44,60 @@ mod typesystem;
 
 #[macro_use]
 extern crate pretty_assertions;
+
+#[derive(PartialEq, Debug, Clone)]
+pub enum Diagnostic {
+    SyntaxError { message: String, range: SourceRange },
+}
+
+impl Diagnostic {
+    pub fn syntax_error(message: String, range: SourceRange) -> Diagnostic {
+        Diagnostic::SyntaxError { message, range }
+    }
+
+    pub fn unexpected_token_found(
+        expected: String,
+        found: String,
+        range: SourceRange,
+    ) -> Diagnostic {
+        Diagnostic::SyntaxError {
+            message: format!(
+                "Unexpected token: expected {} but found {}",
+                expected, found
+            ),
+            range,
+        }
+    }
+
+    pub fn return_type_not_supported(pou_type: &PouType, range: SourceRange) -> Diagnostic {
+        Diagnostic::syntax_error(
+            format!(
+                "POU Type {:?} does not support a return type. Did you mean Function?",
+                pou_type
+            ),
+            range,
+        )
+    }
+
+    pub fn missing_token(epxected_token: String, range: SourceRange) -> Diagnostic {
+        Diagnostic::SyntaxError {
+            message: format!("Missing expected Token {}", epxected_token),
+            range,
+        }
+    }
+
+    pub fn get_message(&self) -> &str {
+        match self {
+            Diagnostic::SyntaxError { message, .. } => message.as_str(),
+        }
+    }
+
+    pub fn get_location(&self) -> SourceRange {
+        match self {
+            Diagnostic::SyntaxError { range, .. } => range.clone(),
+        }
+    }
+}
 
 pub type Sources<'a> = [&'a dyn SourceContainer];
 
@@ -205,16 +264,44 @@ pub fn compile_module<'c>(
 ) -> Result<codegen::CodeGen<'c>, CompileError> {
     let mut full_index = Index::new();
     let mut unit = CompilationUnit::default();
+    // let mut diagnostics : Vec<Diagnostic> = vec![];
+    let mut files: SimpleFiles<String, String> = SimpleFiles::new();
     for container in sources {
         let e = container
             .load_source()
             .map_err(|err| CompileError::io_error(err, container.get_location().to_string()))?;
-        let (mut parse_result, _) = parse(e.path.as_str(), e.source.as_str())?; //TODO dont clone the source!
-                                                                                //first pre-process the AST
+
+        let (mut parse_result, diagnostics) = parse(e.source.as_str())?;
         ast::pre_process(&mut parse_result);
-        //then index the AST
         full_index.import(index::visitor::visit(&parse_result));
         unit.import(parse_result);
+
+        //log errors
+        let file_id = files.add(e.path.clone(), e.source.clone());
+        for error in diagnostics {
+            let diag = diagnostic::Diagnostic::error()
+                .with_message(error.get_message())
+                .with_labels(vec![Label::primary(
+                    file_id,
+                    error.get_location().get_start()..error.get_location().get_end(),
+                )]);
+            let writer = StandardStream::stderr(ColorChoice::Always);
+            let config = codespan_reporting::term::Config {
+                display_style: term::DisplayStyle::Rich,
+                tab_width: 2,
+                styles: Styles::default(),
+                chars: Chars::default(),
+                start_context_lines: 5,
+                end_context_lines: 3,
+            };
+
+            term::emit(&mut writer.lock(), &config, &files, &diag).map_err(|err| {
+                CompileError::codegen_error(
+                    format!("Cannot print errors {:#?}", err),
+                    SourceRange::undefined(),
+                )
+            })?;
+        }
     }
 
     //and finally codegen
@@ -223,10 +310,10 @@ pub fn compile_module<'c>(
     Ok(code_generator)
 }
 
-fn parse(file_path: &str, source: &str) -> Result<(ast::CompilationUnit, NewLines), CompileError> {
+fn parse(source: &str) -> Result<ParsedAst, CompileError> {
     //Start lexing
-    let lexer = lexer::lex(file_path, source);
+    let lexer = lexer::lex(source);
     //Parse
     //TODO : Parser should also return compile errors with sane locations
-    parser::parse(lexer).map_err(|err| CompileError::codegen_error(err, SourceRange::undefined()))
+    parser::parse(lexer).map_err(|err| err.into())
 }
