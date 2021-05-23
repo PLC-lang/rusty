@@ -62,7 +62,6 @@ pub fn visit_pou(index: &mut Index, pou: &Pou) {
     for block in &pou.variable_blocks {
         let block_type = get_variable_type_from_block(block);
         for var in &block.variables {
-            println!("{:#?}", var);
             if let DataTypeDeclaration::DataTypeDefinition {
                 data_type: ast::DataType::VarArgs { referenced_type },
             } = &var.data_type

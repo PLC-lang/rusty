@@ -179,6 +179,22 @@ impl Index {
             .unwrap_or_else(Vec::new)
     }
 
+    /// Returns true if the current index is a VAR_INPUT, VAR_IN_OUT or VAR_OUTPUT that is not a variadic argument
+    pub fn is_declared_parameter(&self, pou_name: &str, index: u32) -> bool {
+        self.member_variables
+            .get(pou_name)
+            .and_then(|map| {
+                map.values()
+                    .filter(|item| {
+                        item.information.variable_type == VariableType::Input
+                            || item.information.variable_type == VariableType::InOut
+                            || item.information.variable_type == VariableType::Output
+                    })
+                    .find(|item| item.information.location == index)
+            })
+            .is_some()
+    }
+
     pub fn find_input_parameter(&self, pou_name: &str, index: u32) -> Option<&VariableIndexEntry> {
         self.member_variables.get(pou_name).and_then(|map| {
             map.values()

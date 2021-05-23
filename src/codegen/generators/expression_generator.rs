@@ -341,7 +341,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
         builder.build_unconditional_branch(input_block);
         builder.position_at_end(input_block);
         //Generate all parameters, this function may jump to the output block
-        self.generate_function_parameters(
+        let parameters = self.generate_function_parameters(
             function_name,
             instance,
             parameters,
@@ -372,7 +372,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
         //If the target is a function, declare the struct locally
         //Assign all parameters into the struct values
         let call_result = builder
-            .build_call(function, &[instance.as_basic_value_enum()], "call")
+            .build_call(function, &parameters, "call")
             .try_as_basic_value();
         builder.build_unconditional_branch(output_block);
         //Continue here after function call
@@ -427,11 +427,12 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
         parameters: &Option<Statement>,
         input_block: &BasicBlock,
         output_block: &BasicBlock,
-    ) -> Result<(), CompileError> {
+    ) -> Result<Vec<BasicValueEnum<'a>>, CompileError> {
+        let mut result = vec![parameter_struct.as_basic_value_enum()];
         match &parameters {
             Some(Statement::ExpressionList { expressions }) => {
                 for (index, exp) in expressions.iter().enumerate() {
-                    self.generate_single_parameter(
+                    let parameter = self.generate_single_parameter(
                         &ParameterContext {
                             assignment_statement: exp,
                             function_name,
@@ -442,10 +443,13 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                         input_block,
                         output_block,
                     )?;
+                    if let Some(parameter) = parameter {
+                        result.push(parameter);
+                    };
                 }
             }
             Some(statement) => {
-                self.generate_single_parameter(
+                let parameter = self.generate_single_parameter(
                     &ParameterContext {
                         assignment_statement: statement,
                         function_name,
@@ -456,10 +460,13 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                     input_block,
                     output_block,
                 )?;
+                if let Some(parameter) = parameter {
+                    result.push(parameter);
+                };
             }
             None => {}
         }
-        Ok(())
+        Ok(result)
     }
 
     /// generates an assignemnt of a single call's parameter
@@ -476,117 +483,164 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
         param_context: &ParameterContext,
         input_block: &BasicBlock,
         output_block: &BasicBlock,
-    ) -> Result<(), CompileError> {
-        let builder = &self.llvm.builder;
-
+    ) -> Result<Option<BasicValueEnum<'a>>, CompileError> {
         let assignment_statement = param_context.assignment_statement;
+
+        let parameter_value = match assignment_statement {
+            // explicit call parameter: foo(param := value)
+            Statement::Assignment { left, right } => {
+                self.generate_formal_parameter(
+                    param_context,
+                    left,
+                    right,
+                    input_block,
+                    output_block,
+                )?;
+                None
+            }
+            // foo (param => value)
+            Statement::OutputAssignment { left, right } => {
+                self.generate_output_parameter(param_context, left, right, output_block)?;
+                None
+            }
+            // foo(x)
+            _ => self.generate_nameless_parameter(param_context, assignment_statement)?,
+        };
+
+        Ok(parameter_value)
+    }
+
+    fn generate_nameless_parameter(
+        &self,
+        param_context: &ParameterContext,
+        assignment_statement: &Statement,
+    ) -> Result<Option<BasicValueEnum<'a>>, CompileError> {
+        let builder = &self.llvm.builder;
         let function_name = param_context.function_name;
         let index = param_context.index;
         let parameter_struct = param_context.parameter_struct;
         let parameter_type = param_context.parameter_type;
-
-        match assignment_statement {
-            // explicit call parameter: foo(param := value)
-            Statement::Assignment { left, right } => {
-                builder.position_at_end(*input_block);
-                if let Statement::Reference { name, .. } = &**left {
-                    let parameter = self.index.find_member(function_name, &name).unwrap();
-                    let index = parameter.get_location_in_parent();
-                    let param_type = self.index.find_type(parameter.get_type_name());
-                    self.generate_single_parameter(
-                        &ParameterContext {
-                            assignment_statement: right,
-                            function_name,
-                            parameter_type: param_type,
-                            index,
-                            parameter_struct,
-                        },
-                        input_block,
-                        output_block,
-                    )?;
-                }
-            }
-            // foo (param => value)
-            Statement::OutputAssignment { left, right } => {
-                let current_block = builder.get_insert_block().unwrap();
-                builder.position_at_end(*output_block);
-                if let Statement::Reference { name, .. } = &**left {
-                    let parameter = self.index.find_member(function_name, &name).unwrap();
-                    let index = parameter.get_location_in_parent();
-                    let param_type = self
-                        .index
-                        .find_type(parameter.get_type_name())
-                        .or_else(|| {
-                            self.index
-                                .find_input_parameter(function_name, index as u32)
-                                .and_then(|var| self.index.find_type(var.get_type_name()))
-                        })
-                        .map(|var| var.get_type_information())
-                        .unwrap();
-                    //load the function prameter
-                    let pointer_to_param = builder
-                        .build_struct_gep(parameter_struct, index as u32, "")
-                        .unwrap();
-
-                    let l_value = self.generate_element_pointer_for_rec(None, right)?;
-                    let loaded_value = builder.build_load(pointer_to_param, parameter.get_name());
-                    let value = cast_if_needed(
-                        self.llvm,
-                        self.index,
-                        l_value.get_type_information(),
-                        loaded_value,
-                        param_type,
-                        right,
-                    )?;
-                    builder.build_store(l_value.ptr_value, value);
-                }
-                builder.position_at_end(current_block);
-            }
-            // foo(x)
-            _ => {
-                let pointer_to_param = builder
-                    .build_struct_gep(parameter_struct, index as u32, "")
-                    .unwrap();
-                let parameter = parameter_type
-                    .or_else(|| {
-                        self.index
-                            .find_input_parameter(function_name, index as u32)
-                            .and_then(|var| self.index.find_type(var.get_type_name()))
-                    })
-                    .map(|var| var.get_type_information())
-                    .unwrap();
-
-                let (value_type, generated_exp) = if let DataTypeInformation::Pointer {
-                    auto_deref: true,
-                    ..
-                } = parameter
-                {
-                    //this is VAR_IN_OUT assignemt, so don't load the value, assign the pointer
-                    self.generate_element_pointer_for_rec(None, assignment_statement)
-                        //get a pointer for that variable
-                        .and_then(|tp| self.auto_deref_if_necessary(tp.type_entry, tp.ptr_value))
-                        // auto-deref, if it is a var_in_out itself
-                        .map(|v| {
-                            (
-                                v.type_entry.get_type_information().clone(),
-                                v.ptr_value.as_basic_value_enum(),
-                            )
-                        })?
-                } else {
-                    self.generate_expression(assignment_statement)?
-                };
-
-                let value = cast_if_needed(
-                    self.llvm,
-                    self.index,
-                    parameter,
-                    generated_exp,
-                    &value_type,
-                    assignment_statement,
-                )?;
-                builder.build_store(pointer_to_param, value);
-            }
+        if self.index.is_declared_parameter(function_name, index) {
+            let pointer_to_param = builder
+                .build_struct_gep(parameter_struct, index as u32, "")
+                .unwrap();
+            let parameter = parameter_type
+                .or_else(|| {
+                    self.index
+                        .find_input_parameter(function_name, index as u32)
+                        .and_then(|var| self.index.find_type(var.get_type_name()))
+                })
+                .map(|var| var.get_type_information())
+                .unwrap();
+            let (value_type, generated_exp) = if let DataTypeInformation::Pointer {
+                auto_deref: true,
+                ..
+            } = parameter
+            {
+                //this is VAR_IN_OUT assignemt, so don't load the value, assign the pointer
+                self.generate_element_pointer_for_rec(None, assignment_statement)
+                    //get a pointer for that variable
+                    .and_then(|tp| self.auto_deref_if_necessary(tp.type_entry, tp.ptr_value))
+                    // auto-deref, if it is a var_in_out itself
+                    .map(|v| {
+                        (
+                            v.type_entry.get_type_information().clone(),
+                            v.ptr_value.as_basic_value_enum(),
+                        )
+                    })?
+            } else {
+                self.generate_expression(assignment_statement)?
+            };
+            let value = cast_if_needed(
+                self.llvm,
+                self.index,
+                parameter,
+                generated_exp,
+                &value_type,
+                assignment_statement,
+            )?;
+            builder.build_store(pointer_to_param, value);
+            Ok(None)
+        } else {
+            let (_, value) = self.generate_expression(assignment_statement)?;
+            Ok(Some(value))
         }
+    }
+
+    fn generate_output_parameter(
+        &self,
+        param_context: &ParameterContext,
+        left: &Statement,
+        right: &Statement,
+        output_block: &BasicBlock,
+    ) -> Result<(), CompileError> {
+        let builder = &self.llvm.builder;
+        let function_name = param_context.function_name;
+        let parameter_struct = param_context.parameter_struct;
+        let current_block = builder.get_insert_block().unwrap();
+        builder.position_at_end(*output_block);
+        if let Statement::Reference { name, .. } = &*left {
+            let parameter = self.index.find_member(function_name, &name).unwrap();
+            let index = parameter.get_location_in_parent();
+            let param_type = self
+                .index
+                .find_type(parameter.get_type_name())
+                .or_else(|| {
+                    self.index
+                        .find_input_parameter(function_name, index as u32)
+                        .and_then(|var| self.index.find_type(var.get_type_name()))
+                })
+                .map(|var| var.get_type_information())
+                .unwrap();
+            //load the function prameter
+            let pointer_to_param = builder
+                .build_struct_gep(parameter_struct, index as u32, "")
+                .unwrap();
+
+            let l_value = self.generate_element_pointer_for_rec(None, right)?;
+            let loaded_value = builder.build_load(pointer_to_param, parameter.get_name());
+            let value = cast_if_needed(
+                self.llvm,
+                self.index,
+                l_value.get_type_information(),
+                loaded_value,
+                param_type,
+                right,
+            )?;
+            builder.build_store(l_value.ptr_value, value);
+        }
+        builder.position_at_end(current_block);
+        Ok(())
+    }
+
+    fn generate_formal_parameter(
+        &self,
+        param_context: &ParameterContext,
+        left: &Statement,
+        right: &Statement,
+        input_block: &BasicBlock,
+        output_block: &BasicBlock,
+    ) -> Result<(), CompileError> {
+        let builder = &self.llvm.builder;
+        let function_name = param_context.function_name;
+        let parameter_struct = param_context.parameter_struct;
+        builder.position_at_end(*input_block);
+        if let Statement::Reference { name, .. } = &*left {
+            let parameter = self.index.find_member(function_name, &name).unwrap();
+            let index = parameter.get_location_in_parent();
+            let param_type = self.index.find_type(parameter.get_type_name());
+            self.generate_single_parameter(
+                &ParameterContext {
+                    assignment_statement: right,
+                    function_name,
+                    parameter_type: param_type,
+                    index,
+                    parameter_struct,
+                },
+                input_block,
+                output_block,
+            )?;
+        };
         Ok(())
     }
 

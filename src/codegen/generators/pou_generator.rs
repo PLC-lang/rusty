@@ -83,11 +83,10 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         let return_type = return_type
             .map(DataType::get_name)
             .map(|it| self.llvm_index.get_associated_type(it).unwrap());
+        let parameters = vec![instance_struct_type.ptr_type(AddressSpace::Generic).into()];
+        let variadic = global_index.find_type_information(implementation.get_type_name()).map(|it| it.is_variadic()).unwrap_or(false);
 
-        let function_declaration = self.create_llvm_function_type(
-            vec![instance_struct_type.ptr_type(AddressSpace::Generic).into()],
-            return_type,
-        )?;
+        let function_declaration = self.create_llvm_function_type(parameters, variadic, return_type)?;
 
         let curr_f = module.add_function(pou_name, function_declaration, None);
         Ok(curr_f)
@@ -162,20 +161,21 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
     fn create_llvm_function_type(
         &self,
         parameters: Vec<BasicTypeEnum<'ink>>,
+        is_var_args: bool,
         return_type: Option<BasicTypeEnum<'ink>>,
     ) -> Result<FunctionType<'ink>, CompileError> {
         let params = parameters.as_slice();
         match return_type {
             Some(enum_type) if enum_type.is_int_type() => {
-                Ok(enum_type.into_int_type().fn_type(params, false))
+                Ok(enum_type.into_int_type().fn_type(params, is_var_args))
             }
             Some(enum_type) if enum_type.is_float_type() => {
-                Ok(enum_type.into_float_type().fn_type(params, false))
+                Ok(enum_type.into_float_type().fn_type(params, is_var_args))
             }
             Some(enum_type) if enum_type.is_array_type() => {
-                Ok(enum_type.into_array_type().fn_type(params, false))
+                Ok(enum_type.into_array_type().fn_type(params, is_var_args))
             }
-            None => Ok(self.llvm.context.void_type().fn_type(params, false)),
+            None => Ok(self.llvm.context.void_type().fn_type(params, is_var_args)),
             _ => Err(CompileError::codegen_error(
                 format!("Unsupported return type {:?}", return_type),
                 SourceRange::undefined(),
