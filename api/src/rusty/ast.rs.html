@@ -954,6 +954,15 @@
 <span id="951">951</span>
 <span id="952">952</span>
 <span id="953">953</span>
+<span id="954">954</span>
+<span id="955">955</span>
+<span id="956">956</span>
+<span id="957">957</span>
+<span id="958">958</span>
+<span id="959">959</span>
+<span id="960">960</span>
+<span id="961">961</span>
+<span id="962">962</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">compile_error</span>::<span class="ident">CompileError</span>;
@@ -1259,6 +1268,9 @@
         <span class="ident">is_wide</span>: <span class="ident">bool</span>, <span class="comment">//WSTRING</span>
         <span class="ident">size</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Statement</span><span class="op">&gt;</span>,
     },
+    <span class="ident">VarArgs</span> {
+        <span class="ident">referenced_type</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">DataTypeDeclaration</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    },
 }
 
 <span class="kw">impl</span> <span class="ident">Debug</span> <span class="kw">for</span> <span class="ident">DataType</span> {
@@ -1304,6 +1316,10 @@
                 .<span class="ident">field</span>(<span class="string">&quot;is_wide&quot;</span>, <span class="ident">is_wide</span>)
                 .<span class="ident">field</span>(<span class="string">&quot;size&quot;</span>, <span class="ident">size</span>)
                 .<span class="ident">finish</span>(),
+            <span class="ident">DataType</span>::<span class="ident">VarArgs</span> { <span class="ident">referenced_type</span> } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">f</span>
+                .<span class="ident">debug_struct</span>(<span class="string">&quot;VarArgs&quot;</span>)
+                .<span class="ident">field</span>(<span class="string">&quot;referenced_type&quot;</span>, <span class="ident">referenced_type</span>)
+                .<span class="ident">finish</span>(),
         }
     }
 }
@@ -1316,6 +1332,7 @@
             <span class="ident">DataType</span>::<span class="ident">SubRangeType</span> { <span class="ident">name</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="ident">name</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">new_name</span>),
             <span class="ident">DataType</span>::<span class="ident">ArrayType</span> { <span class="ident">name</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="ident">name</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">new_name</span>),
             <span class="ident">DataType</span>::<span class="ident">StringType</span> { <span class="ident">name</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="ident">name</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">new_name</span>),
+            <span class="ident">DataType</span>::<span class="ident">VarArgs</span> { .. } <span class="op">=</span><span class="op">&gt;</span> {} <span class="comment">//No names on varargs</span>
         }
     }
 
@@ -1326,6 +1343,7 @@
             <span class="ident">DataType</span>::<span class="ident">ArrayType</span> { <span class="ident">name</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">name</span>.<span class="ident">as_ref</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="ident">x</span>.<span class="ident">as_str</span>()),
             <span class="ident">DataType</span>::<span class="ident">StringType</span> { <span class="ident">name</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">name</span>.<span class="ident">as_ref</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="ident">x</span>.<span class="ident">as_str</span>()),
             <span class="ident">DataType</span>::<span class="ident">SubRangeType</span> { <span class="ident">name</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">name</span>.<span class="ident">as_ref</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="ident">x</span>.<span class="ident">as_str</span>()),
+            <span class="ident">DataType</span>::<span class="ident">VarArgs</span> { .. } <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
         }
     }
 

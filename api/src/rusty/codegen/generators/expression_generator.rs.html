@@ -1500,6 +1500,61 @@
 <span id="1497">1497</span>
 <span id="1498">1498</span>
 <span id="1499">1499</span>
+<span id="1500">1500</span>
+<span id="1501">1501</span>
+<span id="1502">1502</span>
+<span id="1503">1503</span>
+<span id="1504">1504</span>
+<span id="1505">1505</span>
+<span id="1506">1506</span>
+<span id="1507">1507</span>
+<span id="1508">1508</span>
+<span id="1509">1509</span>
+<span id="1510">1510</span>
+<span id="1511">1511</span>
+<span id="1512">1512</span>
+<span id="1513">1513</span>
+<span id="1514">1514</span>
+<span id="1515">1515</span>
+<span id="1516">1516</span>
+<span id="1517">1517</span>
+<span id="1518">1518</span>
+<span id="1519">1519</span>
+<span id="1520">1520</span>
+<span id="1521">1521</span>
+<span id="1522">1522</span>
+<span id="1523">1523</span>
+<span id="1524">1524</span>
+<span id="1525">1525</span>
+<span id="1526">1526</span>
+<span id="1527">1527</span>
+<span id="1528">1528</span>
+<span id="1529">1529</span>
+<span id="1530">1530</span>
+<span id="1531">1531</span>
+<span id="1532">1532</span>
+<span id="1533">1533</span>
+<span id="1534">1534</span>
+<span id="1535">1535</span>
+<span id="1536">1536</span>
+<span id="1537">1537</span>
+<span id="1538">1538</span>
+<span id="1539">1539</span>
+<span id="1540">1540</span>
+<span id="1541">1541</span>
+<span id="1542">1542</span>
+<span id="1543">1543</span>
+<span id="1544">1544</span>
+<span id="1545">1545</span>
+<span id="1546">1546</span>
+<span id="1547">1547</span>
+<span id="1548">1548</span>
+<span id="1549">1549</span>
+<span id="1550">1550</span>
+<span id="1551">1551</span>
+<span id="1552">1552</span>
+<span id="1553">1553</span>
+<span id="1554">1554</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 <span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">ast</span>::<span class="ident">SourceRange</span>, <span class="ident">index</span>::<span class="ident">Index</span>};
@@ -1844,7 +1899,7 @@
         <span class="ident">builder</span>.<span class="ident">build_unconditional_branch</span>(<span class="ident">input_block</span>);
         <span class="ident">builder</span>.<span class="ident">position_at_end</span>(<span class="ident">input_block</span>);
         <span class="comment">//Generate all parameters, this function may jump to the output block</span>
-        <span class="self">self</span>.<span class="ident">generate_function_parameters</span>(
+        <span class="kw">let</span> <span class="ident">parameters</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">generate_function_parameters</span>(
             <span class="ident">function_name</span>,
             <span class="ident">instance</span>,
             <span class="ident">parameters</span>,
@@ -1875,7 +1930,7 @@
         <span class="comment">//If the target is a function, declare the struct locally</span>
         <span class="comment">//Assign all parameters into the struct values</span>
         <span class="kw">let</span> <span class="ident">call_result</span> <span class="op">=</span> <span class="ident">builder</span>
-            .<span class="ident">build_call</span>(<span class="ident">function</span>, <span class="kw-2">&amp;</span>[<span class="ident">instance</span>.<span class="ident">as_basic_value_enum</span>()], <span class="string">&quot;call&quot;</span>)
+            .<span class="ident">build_call</span>(<span class="ident">function</span>, <span class="kw-2">&amp;</span><span class="ident">parameters</span>, <span class="string">&quot;call&quot;</span>)
             .<span class="ident">try_as_basic_value</span>();
         <span class="ident">builder</span>.<span class="ident">build_unconditional_branch</span>(<span class="ident">output_block</span>);
         <span class="comment">//Continue here after function call</span>
@@ -1930,11 +1985,12 @@
         <span class="ident">parameters</span>: <span class="kw-2">&amp;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Statement</span><span class="op">&gt;</span>,
         <span class="ident">input_block</span>: <span class="kw-2">&amp;</span><span class="ident">BasicBlock</span>,
         <span class="ident">output_block</span>: <span class="kw-2">&amp;</span><span class="ident">BasicBlock</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">CompileError</span><span class="op">&gt;</span> {
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">BasicValueEnum</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span>, <span class="ident">CompileError</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">result</span> <span class="op">=</span> <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">parameter_struct</span>.<span class="ident">as_basic_value_enum</span>()];
         <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="ident">parameters</span> {
             <span class="prelude-val">Some</span>(<span class="ident">Statement</span>::<span class="ident">ExpressionList</span> { <span class="ident">expressions</span> }) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">for</span> (<span class="ident">index</span>, <span class="ident">exp</span>) <span class="kw">in</span> <span class="ident">expressions</span>.<span class="ident">iter</span>().<span class="ident">enumerate</span>() {
-                    <span class="self">self</span>.<span class="ident">generate_single_parameter</span>(
+                    <span class="kw">let</span> <span class="ident">parameter</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">generate_single_parameter</span>(
                         <span class="kw-2">&amp;</span><span class="ident">ParameterContext</span> {
                             <span class="ident">assignment_statement</span>: <span class="ident">exp</span>,
                             <span class="ident">function_name</span>,
@@ -1945,10 +2001,13 @@
                         <span class="ident">input_block</span>,
                         <span class="ident">output_block</span>,
                     )<span class="question-mark">?</span>;
+                    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">parameter</span>) <span class="op">=</span> <span class="ident">parameter</span> {
+                        <span class="ident">result</span>.<span class="ident">push</span>(<span class="ident">parameter</span>);
+                    };
                 }
             }
             <span class="prelude-val">Some</span>(<span class="ident">statement</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="self">self</span>.<span class="ident">generate_single_parameter</span>(
+                <span class="kw">let</span> <span class="ident">parameter</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">generate_single_parameter</span>(
                     <span class="kw-2">&amp;</span><span class="ident">ParameterContext</span> {
                         <span class="ident">assignment_statement</span>: <span class="ident">statement</span>,
                         <span class="ident">function_name</span>,
@@ -1959,10 +2018,13 @@
                     <span class="ident">input_block</span>,
                     <span class="ident">output_block</span>,
                 )<span class="question-mark">?</span>;
+                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">parameter</span>) <span class="op">=</span> <span class="ident">parameter</span> {
+                    <span class="ident">result</span>.<span class="ident">push</span>(<span class="ident">parameter</span>);
+                };
             }
             <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> {}
         }
-        <span class="prelude-val">Ok</span>(())
+        <span class="prelude-val">Ok</span>(<span class="ident">result</span>)
     }
 
     <span class="doccomment">/// generates an assignemnt of a single call&#39;s parameter</span>
@@ -1979,117 +2041,164 @@
         <span class="ident">param_context</span>: <span class="kw-2">&amp;</span><span class="ident">ParameterContext</span>,
         <span class="ident">input_block</span>: <span class="kw-2">&amp;</span><span class="ident">BasicBlock</span>,
         <span class="ident">output_block</span>: <span class="kw-2">&amp;</span><span class="ident">BasicBlock</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">CompileError</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">builder</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">llvm</span>.<span class="ident">builder</span>;
-
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">BasicValueEnum</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span>, <span class="ident">CompileError</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">assignment_statement</span> <span class="op">=</span> <span class="ident">param_context</span>.<span class="ident">assignment_statement</span>;
+
+        <span class="kw">let</span> <span class="ident">parameter_value</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">assignment_statement</span> {
+            <span class="comment">// explicit call parameter: foo(param := value)</span>
+            <span class="ident">Statement</span>::<span class="ident">Assignment</span> { <span class="ident">left</span>, <span class="ident">right</span> } <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="self">self</span>.<span class="ident">generate_formal_parameter</span>(
+                    <span class="ident">param_context</span>,
+                    <span class="ident">left</span>,
+                    <span class="ident">right</span>,
+                    <span class="ident">input_block</span>,
+                    <span class="ident">output_block</span>,
+                )<span class="question-mark">?</span>;
+                <span class="prelude-val">None</span>
+            }
+            <span class="comment">// foo (param =&gt; value)</span>
+            <span class="ident">Statement</span>::<span class="ident">OutputAssignment</span> { <span class="ident">left</span>, <span class="ident">right</span> } <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="self">self</span>.<span class="ident">generate_output_parameter</span>(<span class="ident">param_context</span>, <span class="ident">left</span>, <span class="ident">right</span>, <span class="ident">output_block</span>)<span class="question-mark">?</span>;
+                <span class="prelude-val">None</span>
+            }
+            <span class="comment">// foo(x)</span>
+            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">generate_nameless_parameter</span>(<span class="ident">param_context</span>, <span class="ident">assignment_statement</span>)<span class="question-mark">?</span>,
+        };
+
+        <span class="prelude-val">Ok</span>(<span class="ident">parameter_value</span>)
+    }
+
+    <span class="kw">fn</span> <span class="ident">generate_nameless_parameter</span>(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        <span class="ident">param_context</span>: <span class="kw-2">&amp;</span><span class="ident">ParameterContext</span>,
+        <span class="ident">assignment_statement</span>: <span class="kw-2">&amp;</span><span class="ident">Statement</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">BasicValueEnum</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span>, <span class="ident">CompileError</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="ident">builder</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">llvm</span>.<span class="ident">builder</span>;
         <span class="kw">let</span> <span class="ident">function_name</span> <span class="op">=</span> <span class="ident">param_context</span>.<span class="ident">function_name</span>;
         <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="ident">param_context</span>.<span class="ident">index</span>;
         <span class="kw">let</span> <span class="ident">parameter_struct</span> <span class="op">=</span> <span class="ident">param_context</span>.<span class="ident">parameter_struct</span>;
         <span class="kw">let</span> <span class="ident">parameter_type</span> <span class="op">=</span> <span class="ident">param_context</span>.<span class="ident">parameter_type</span>;
-
-        <span class="kw">match</span> <span class="ident">assignment_statement</span> {
-            <span class="comment">// explicit call parameter: foo(param := value)</span>
-            <span class="ident">Statement</span>::<span class="ident">Assignment</span> { <span class="ident">left</span>, <span class="ident">right</span> } <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="ident">builder</span>.<span class="ident">position_at_end</span>(<span class="kw-2">*</span><span class="ident">input_block</span>);
-                <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Statement</span>::<span class="ident">Reference</span> { <span class="ident">name</span>, .. } <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="kw-2">*</span><span class="ident">left</span> {
-                    <span class="kw">let</span> <span class="ident">parameter</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">index</span>.<span class="ident">find_member</span>(<span class="ident">function_name</span>, <span class="kw-2">&amp;</span><span class="ident">name</span>).<span class="ident">unwrap</span>();
-                    <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="ident">parameter</span>.<span class="ident">get_location_in_parent</span>();
-                    <span class="kw">let</span> <span class="ident">param_type</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">index</span>.<span class="ident">find_type</span>(<span class="ident">parameter</span>.<span class="ident">get_type_name</span>());
-                    <span class="self">self</span>.<span class="ident">generate_single_parameter</span>(
-                        <span class="kw-2">&amp;</span><span class="ident">ParameterContext</span> {
-                            <span class="ident">assignment_statement</span>: <span class="ident">right</span>,
-                            <span class="ident">function_name</span>,
-                            <span class="ident">parameter_type</span>: <span class="ident">param_type</span>,
-                            <span class="ident">index</span>,
-                            <span class="ident">parameter_struct</span>,
-                        },
-                        <span class="ident">input_block</span>,
-                        <span class="ident">output_block</span>,
-                    )<span class="question-mark">?</span>;
-                }
-            }
-            <span class="comment">// foo (param =&gt; value)</span>
-            <span class="ident">Statement</span>::<span class="ident">OutputAssignment</span> { <span class="ident">left</span>, <span class="ident">right</span> } <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="kw">let</span> <span class="ident">current_block</span> <span class="op">=</span> <span class="ident">builder</span>.<span class="ident">get_insert_block</span>().<span class="ident">unwrap</span>();
-                <span class="ident">builder</span>.<span class="ident">position_at_end</span>(<span class="kw-2">*</span><span class="ident">output_block</span>);
-                <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Statement</span>::<span class="ident">Reference</span> { <span class="ident">name</span>, .. } <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="kw-2">*</span><span class="ident">left</span> {
-                    <span class="kw">let</span> <span class="ident">parameter</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">index</span>.<span class="ident">find_member</span>(<span class="ident">function_name</span>, <span class="kw-2">&amp;</span><span class="ident">name</span>).<span class="ident">unwrap</span>();
-                    <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="ident">parameter</span>.<span class="ident">get_location_in_parent</span>();
-                    <span class="kw">let</span> <span class="ident">param_type</span> <span class="op">=</span> <span class="self">self</span>
-                        .<span class="ident">index</span>
-                        .<span class="ident">find_type</span>(<span class="ident">parameter</span>.<span class="ident">get_type_name</span>())
-                        .<span class="ident">or_else</span>(<span class="op">|</span><span class="op">|</span> {
-                            <span class="self">self</span>.<span class="ident">index</span>
-                                .<span class="ident">find_input_parameter</span>(<span class="ident">function_name</span>, <span class="ident">index</span> <span class="kw">as</span> <span class="ident">u32</span>)
-                                .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">var</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">index</span>.<span class="ident">find_type</span>(<span class="ident">var</span>.<span class="ident">get_type_name</span>()))
-                        })
-                        .<span class="ident">map</span>(<span class="op">|</span><span class="ident">var</span><span class="op">|</span> <span class="ident">var</span>.<span class="ident">get_type_information</span>())
-                        .<span class="ident">unwrap</span>();
-                    <span class="comment">//load the function prameter</span>
-                    <span class="kw">let</span> <span class="ident">pointer_to_param</span> <span class="op">=</span> <span class="ident">builder</span>
-                        .<span class="ident">build_struct_gep</span>(<span class="ident">parameter_struct</span>, <span class="ident">index</span> <span class="kw">as</span> <span class="ident">u32</span>, <span class="string">&quot;&quot;</span>)
-                        .<span class="ident">unwrap</span>();
-
-                    <span class="kw">let</span> <span class="ident">l_value</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">generate_element_pointer_for_rec</span>(<span class="prelude-val">None</span>, <span class="ident">right</span>)<span class="question-mark">?</span>;
-                    <span class="kw">let</span> <span class="ident">loaded_value</span> <span class="op">=</span> <span class="ident">builder</span>.<span class="ident">build_load</span>(<span class="ident">pointer_to_param</span>, <span class="ident">parameter</span>.<span class="ident">get_name</span>());
-                    <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">cast_if_needed</span>(
-                        <span class="self">self</span>.<span class="ident">llvm</span>,
-                        <span class="self">self</span>.<span class="ident">index</span>,
-                        <span class="ident">l_value</span>.<span class="ident">get_type_information</span>(),
-                        <span class="ident">loaded_value</span>,
-                        <span class="ident">param_type</span>,
-                        <span class="ident">right</span>,
-                    )<span class="question-mark">?</span>;
-                    <span class="ident">builder</span>.<span class="ident">build_store</span>(<span class="ident">l_value</span>.<span class="ident">ptr_value</span>, <span class="ident">value</span>);
-                }
-                <span class="ident">builder</span>.<span class="ident">position_at_end</span>(<span class="ident">current_block</span>);
-            }
-            <span class="comment">// foo(x)</span>
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="kw">let</span> <span class="ident">pointer_to_param</span> <span class="op">=</span> <span class="ident">builder</span>
-                    .<span class="ident">build_struct_gep</span>(<span class="ident">parameter_struct</span>, <span class="ident">index</span> <span class="kw">as</span> <span class="ident">u32</span>, <span class="string">&quot;&quot;</span>)
-                    .<span class="ident">unwrap</span>();
-                <span class="kw">let</span> <span class="ident">parameter</span> <span class="op">=</span> <span class="ident">parameter_type</span>
-                    .<span class="ident">or_else</span>(<span class="op">|</span><span class="op">|</span> {
-                        <span class="self">self</span>.<span class="ident">index</span>
-                            .<span class="ident">find_input_parameter</span>(<span class="ident">function_name</span>, <span class="ident">index</span> <span class="kw">as</span> <span class="ident">u32</span>)
-                            .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">var</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">index</span>.<span class="ident">find_type</span>(<span class="ident">var</span>.<span class="ident">get_type_name</span>()))
-                    })
-                    .<span class="ident">map</span>(<span class="op">|</span><span class="ident">var</span><span class="op">|</span> <span class="ident">var</span>.<span class="ident">get_type_information</span>())
-                    .<span class="ident">unwrap</span>();
-
-                <span class="kw">let</span> (<span class="ident">value_type</span>, <span class="ident">generated_exp</span>) <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="ident">DataTypeInformation</span>::<span class="ident">Pointer</span> {
-                    <span class="ident">auto_deref</span>: <span class="bool-val">true</span>,
-                    ..
-                } <span class="op">=</span> <span class="ident">parameter</span>
-                {
-                    <span class="comment">//this is VAR_IN_OUT assignemt, so don&#39;t load the value, assign the pointer</span>
-                    <span class="self">self</span>.<span class="ident">generate_element_pointer_for_rec</span>(<span class="prelude-val">None</span>, <span class="ident">assignment_statement</span>)
-                        <span class="comment">//get a pointer for that variable</span>
-                        .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">tp</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">auto_deref_if_necessary</span>(<span class="ident">tp</span>.<span class="ident">type_entry</span>, <span class="ident">tp</span>.<span class="ident">ptr_value</span>))
-                        <span class="comment">// auto-deref, if it is a var_in_out itself</span>
-                        .<span class="ident">map</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> {
-                            (
-                                <span class="ident">v</span>.<span class="ident">type_entry</span>.<span class="ident">get_type_information</span>().<span class="ident">clone</span>(),
-                                <span class="ident">v</span>.<span class="ident">ptr_value</span>.<span class="ident">as_basic_value_enum</span>(),
-                            )
-                        })<span class="question-mark">?</span>
-                } <span class="kw">else</span> {
-                    <span class="self">self</span>.<span class="ident">generate_expression</span>(<span class="ident">assignment_statement</span>)<span class="question-mark">?</span>
-                };
-
-                <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">cast_if_needed</span>(
-                    <span class="self">self</span>.<span class="ident">llvm</span>,
-                    <span class="self">self</span>.<span class="ident">index</span>,
-                    <span class="ident">parameter</span>,
-                    <span class="ident">generated_exp</span>,
-                    <span class="kw-2">&amp;</span><span class="ident">value_type</span>,
-                    <span class="ident">assignment_statement</span>,
-                )<span class="question-mark">?</span>;
-                <span class="ident">builder</span>.<span class="ident">build_store</span>(<span class="ident">pointer_to_param</span>, <span class="ident">value</span>);
-            }
+        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">index</span>.<span class="ident">is_declared_parameter</span>(<span class="ident">function_name</span>, <span class="ident">index</span>) {
+            <span class="kw">let</span> <span class="ident">pointer_to_param</span> <span class="op">=</span> <span class="ident">builder</span>
+                .<span class="ident">build_struct_gep</span>(<span class="ident">parameter_struct</span>, <span class="ident">index</span> <span class="kw">as</span> <span class="ident">u32</span>, <span class="string">&quot;&quot;</span>)
+                .<span class="ident">unwrap</span>();
+            <span class="kw">let</span> <span class="ident">parameter</span> <span class="op">=</span> <span class="ident">parameter_type</span>
+                .<span class="ident">or_else</span>(<span class="op">|</span><span class="op">|</span> {
+                    <span class="self">self</span>.<span class="ident">index</span>
+                        .<span class="ident">find_input_parameter</span>(<span class="ident">function_name</span>, <span class="ident">index</span> <span class="kw">as</span> <span class="ident">u32</span>)
+                        .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">var</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">index</span>.<span class="ident">find_type</span>(<span class="ident">var</span>.<span class="ident">get_type_name</span>()))
+                })
+                .<span class="ident">map</span>(<span class="op">|</span><span class="ident">var</span><span class="op">|</span> <span class="ident">var</span>.<span class="ident">get_type_information</span>())
+                .<span class="ident">unwrap</span>();
+            <span class="kw">let</span> (<span class="ident">value_type</span>, <span class="ident">generated_exp</span>) <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="ident">DataTypeInformation</span>::<span class="ident">Pointer</span> {
+                <span class="ident">auto_deref</span>: <span class="bool-val">true</span>,
+                ..
+            } <span class="op">=</span> <span class="ident">parameter</span>
+            {
+                <span class="comment">//this is VAR_IN_OUT assignemt, so don&#39;t load the value, assign the pointer</span>
+                <span class="self">self</span>.<span class="ident">generate_element_pointer_for_rec</span>(<span class="prelude-val">None</span>, <span class="ident">assignment_statement</span>)
+                    <span class="comment">//get a pointer for that variable</span>
+                    .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">tp</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">auto_deref_if_necessary</span>(<span class="ident">tp</span>.<span class="ident">type_entry</span>, <span class="ident">tp</span>.<span class="ident">ptr_value</span>))
+                    <span class="comment">// auto-deref, if it is a var_in_out itself</span>
+                    .<span class="ident">map</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> {
+                        (
+                            <span class="ident">v</span>.<span class="ident">type_entry</span>.<span class="ident">get_type_information</span>().<span class="ident">clone</span>(),
+                            <span class="ident">v</span>.<span class="ident">ptr_value</span>.<span class="ident">as_basic_value_enum</span>(),
+                        )
+                    })<span class="question-mark">?</span>
+            } <span class="kw">else</span> {
+                <span class="self">self</span>.<span class="ident">generate_expression</span>(<span class="ident">assignment_statement</span>)<span class="question-mark">?</span>
+            };
+            <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">cast_if_needed</span>(
+                <span class="self">self</span>.<span class="ident">llvm</span>,
+                <span class="self">self</span>.<span class="ident">index</span>,
+                <span class="ident">parameter</span>,
+                <span class="ident">generated_exp</span>,
+                <span class="kw-2">&amp;</span><span class="ident">value_type</span>,
+                <span class="ident">assignment_statement</span>,
+            )<span class="question-mark">?</span>;
+            <span class="ident">builder</span>.<span class="ident">build_store</span>(<span class="ident">pointer_to_param</span>, <span class="ident">value</span>);
+            <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>)
+        } <span class="kw">else</span> {
+            <span class="kw">let</span> (<span class="kw">_</span>, <span class="ident">value</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">generate_expression</span>(<span class="ident">assignment_statement</span>)<span class="question-mark">?</span>;
+            <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="ident">value</span>))
         }
+    }
+
+    <span class="kw">fn</span> <span class="ident">generate_output_parameter</span>(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        <span class="ident">param_context</span>: <span class="kw-2">&amp;</span><span class="ident">ParameterContext</span>,
+        <span class="ident">left</span>: <span class="kw-2">&amp;</span><span class="ident">Statement</span>,
+        <span class="ident">right</span>: <span class="kw-2">&amp;</span><span class="ident">Statement</span>,
+        <span class="ident">output_block</span>: <span class="kw-2">&amp;</span><span class="ident">BasicBlock</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">CompileError</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="ident">builder</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">llvm</span>.<span class="ident">builder</span>;
+        <span class="kw">let</span> <span class="ident">function_name</span> <span class="op">=</span> <span class="ident">param_context</span>.<span class="ident">function_name</span>;
+        <span class="kw">let</span> <span class="ident">parameter_struct</span> <span class="op">=</span> <span class="ident">param_context</span>.<span class="ident">parameter_struct</span>;
+        <span class="kw">let</span> <span class="ident">current_block</span> <span class="op">=</span> <span class="ident">builder</span>.<span class="ident">get_insert_block</span>().<span class="ident">unwrap</span>();
+        <span class="ident">builder</span>.<span class="ident">position_at_end</span>(<span class="kw-2">*</span><span class="ident">output_block</span>);
+        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Statement</span>::<span class="ident">Reference</span> { <span class="ident">name</span>, .. } <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">left</span> {
+            <span class="kw">let</span> <span class="ident">parameter</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">index</span>.<span class="ident">find_member</span>(<span class="ident">function_name</span>, <span class="kw-2">&amp;</span><span class="ident">name</span>).<span class="ident">unwrap</span>();
+            <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="ident">parameter</span>.<span class="ident">get_location_in_parent</span>();
+            <span class="kw">let</span> <span class="ident">param_type</span> <span class="op">=</span> <span class="self">self</span>
+                .<span class="ident">index</span>
+                .<span class="ident">find_type</span>(<span class="ident">parameter</span>.<span class="ident">get_type_name</span>())
+                .<span class="ident">or_else</span>(<span class="op">|</span><span class="op">|</span> {
+                    <span class="self">self</span>.<span class="ident">index</span>
+                        .<span class="ident">find_input_parameter</span>(<span class="ident">function_name</span>, <span class="ident">index</span> <span class="kw">as</span> <span class="ident">u32</span>)
+                        .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">var</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">index</span>.<span class="ident">find_type</span>(<span class="ident">var</span>.<span class="ident">get_type_name</span>()))
+                })
+                .<span class="ident">map</span>(<span class="op">|</span><span class="ident">var</span><span class="op">|</span> <span class="ident">var</span>.<span class="ident">get_type_information</span>())
+                .<span class="ident">unwrap</span>();
+            <span class="comment">//load the function prameter</span>
+            <span class="kw">let</span> <span class="ident">pointer_to_param</span> <span class="op">=</span> <span class="ident">builder</span>
+                .<span class="ident">build_struct_gep</span>(<span class="ident">parameter_struct</span>, <span class="ident">index</span> <span class="kw">as</span> <span class="ident">u32</span>, <span class="string">&quot;&quot;</span>)
+                .<span class="ident">unwrap</span>();
+
+            <span class="kw">let</span> <span class="ident">l_value</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">generate_element_pointer_for_rec</span>(<span class="prelude-val">None</span>, <span class="ident">right</span>)<span class="question-mark">?</span>;
+            <span class="kw">let</span> <span class="ident">loaded_value</span> <span class="op">=</span> <span class="ident">builder</span>.<span class="ident">build_load</span>(<span class="ident">pointer_to_param</span>, <span class="ident">parameter</span>.<span class="ident">get_name</span>());
+            <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">cast_if_needed</span>(
+                <span class="self">self</span>.<span class="ident">llvm</span>,
+                <span class="self">self</span>.<span class="ident">index</span>,
+                <span class="ident">l_value</span>.<span class="ident">get_type_information</span>(),
+                <span class="ident">loaded_value</span>,
+                <span class="ident">param_type</span>,
+                <span class="ident">right</span>,
+            )<span class="question-mark">?</span>;
+            <span class="ident">builder</span>.<span class="ident">build_store</span>(<span class="ident">l_value</span>.<span class="ident">ptr_value</span>, <span class="ident">value</span>);
+        }
+        <span class="ident">builder</span>.<span class="ident">position_at_end</span>(<span class="ident">current_block</span>);
+        <span class="prelude-val">Ok</span>(())
+    }
+
+    <span class="kw">fn</span> <span class="ident">generate_formal_parameter</span>(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        <span class="ident">param_context</span>: <span class="kw-2">&amp;</span><span class="ident">ParameterContext</span>,
+        <span class="ident">left</span>: <span class="kw-2">&amp;</span><span class="ident">Statement</span>,
+        <span class="ident">right</span>: <span class="kw-2">&amp;</span><span class="ident">Statement</span>,
+        <span class="ident">input_block</span>: <span class="kw-2">&amp;</span><span class="ident">BasicBlock</span>,
+        <span class="ident">output_block</span>: <span class="kw-2">&amp;</span><span class="ident">BasicBlock</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">CompileError</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="ident">builder</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">llvm</span>.<span class="ident">builder</span>;
+        <span class="kw">let</span> <span class="ident">function_name</span> <span class="op">=</span> <span class="ident">param_context</span>.<span class="ident">function_name</span>;
+        <span class="kw">let</span> <span class="ident">parameter_struct</span> <span class="op">=</span> <span class="ident">param_context</span>.<span class="ident">parameter_struct</span>;
+        <span class="ident">builder</span>.<span class="ident">position_at_end</span>(<span class="kw-2">*</span><span class="ident">input_block</span>);
+        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Statement</span>::<span class="ident">Reference</span> { <span class="ident">name</span>, .. } <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">left</span> {
+            <span class="kw">let</span> <span class="ident">parameter</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">index</span>.<span class="ident">find_member</span>(<span class="ident">function_name</span>, <span class="kw-2">&amp;</span><span class="ident">name</span>).<span class="ident">unwrap</span>();
+            <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="ident">parameter</span>.<span class="ident">get_location_in_parent</span>();
+            <span class="kw">let</span> <span class="ident">param_type</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">index</span>.<span class="ident">find_type</span>(<span class="ident">parameter</span>.<span class="ident">get_type_name</span>());
+            <span class="self">self</span>.<span class="ident">generate_single_parameter</span>(
+                <span class="kw-2">&amp;</span><span class="ident">ParameterContext</span> {
+                    <span class="ident">assignment_statement</span>: <span class="ident">right</span>,
+                    <span class="ident">function_name</span>,
+                    <span class="ident">parameter_type</span>: <span class="ident">param_type</span>,
+                    <span class="ident">index</span>,
+                    <span class="ident">parameter_struct</span>,
+                },
+                <span class="ident">input_block</span>,
+                <span class="ident">output_block</span>,
+            )<span class="question-mark">?</span>;
+        };
         <span class="prelude-val">Ok</span>(())
     }
 
@@ -2697,6 +2806,7 @@
             <span class="kw">if</span> <span class="kw">let</span> <span class="ident">DataTypeInformation</span>::<span class="ident">Struct</span> {
                 <span class="ident">name</span>: <span class="ident">struct_name</span>,
                 <span class="ident">member_names</span>,
+                ..
             } <span class="op">=</span> <span class="ident">type_info</span>
             {
                 <span class="kw">let</span> <span class="ident">generated_type</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">llvm_index</span>.<span class="ident">get_associated_type</span>(<span class="ident">struct_name</span>)<span class="question-mark">?</span>;

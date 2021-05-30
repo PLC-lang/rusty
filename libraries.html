@@ -3,7 +3,7 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>Using RuSTy - RuSTy User Documentation</title>
+        <title>Libraries - RuSTy User Documentation</title>
         
         
 
@@ -95,7 +95,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded "><a href="intro_1.html"><strong aria-hidden="true">1.</strong> RuSTy</a></li><li class="chapter-item expanded "><div><strong aria-hidden="true">2.</strong> Installation</div></li><li class="chapter-item expanded "><a href="using_rusty.html" class="active"><strong aria-hidden="true">3.</strong> Using RuSTy</a></li><li class="chapter-item expanded "><div><strong aria-hidden="true">4.</strong> Writing ST Programs</div></li><li><ol class="section"><li class="chapter-item expanded "><div><strong aria-hidden="true">4.1.</strong> Multiple Files</div></li><li class="chapter-item expanded "><a href="libraries.html"><strong aria-hidden="true">4.2.</strong> Libraries</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="libraries/external_functions.html"><strong aria-hidden="true">4.2.1.</strong> External Functions</a></li></ol></li><li class="chapter-item expanded "><div><strong aria-hidden="true">4.3.</strong> Using in external programs</div></li></ol></li><li class="chapter-item expanded "><a href="datatypes.html"><strong aria-hidden="true">5.</strong> Datatypes</a></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded "><a href="intro_1.html"><strong aria-hidden="true">1.</strong> RuSTy</a></li><li class="chapter-item expanded "><div><strong aria-hidden="true">2.</strong> Installation</div></li><li class="chapter-item expanded "><a href="using_rusty.html"><strong aria-hidden="true">3.</strong> Using RuSTy</a></li><li class="chapter-item expanded "><div><strong aria-hidden="true">4.</strong> Writing ST Programs</div></li><li><ol class="section"><li class="chapter-item expanded "><div><strong aria-hidden="true">4.1.</strong> Multiple Files</div></li><li class="chapter-item expanded "><a href="libraries.html" class="active"><strong aria-hidden="true">4.2.</strong> Libraries</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="libraries/external_functions.html"><strong aria-hidden="true">4.2.1.</strong> External Functions</a></li></ol></li><li class="chapter-item expanded "><div><strong aria-hidden="true">4.3.</strong> Using in external programs</div></li></ol></li><li class="chapter-item expanded "><a href="datatypes.html"><strong aria-hidden="true">5.</strong> Datatypes</a></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -165,35 +165,24 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1 id="using-rusty"><a class="header" href="#using-rusty">Using RuSTy</a></h1>
-<p><code>rustyc</code> offers a comprehensive help via the -h (--help) option. <code>rustyc</code> takes 
-one output-format parameter and any number of input-files.</p>
-<p>The input files can also be written as <a href="https://en.wikipedia.org/wiki/Glob_(programming)">glob patterns</a>.</p>
-<p><code>rustyc [OPTIONS] &lt;input-files&gt;... &lt;--ir|--shared|--pic|--static|--bc&gt;</code></p>
-<p>Examples:</p>
-<ul>
-<li><code>rustyc --ir file1.st file2.st</code> will compile file1.st and file2.st.</li>
-<li><code>rustyc --ir src/*.st</code> will compile all st files in the src-folder.</li>
-<li><code>rustyc --ir &quot;**/*.st&quot;</code> will compile all st-files in the current folder and its subfolders recursively.</li>
-</ul>
-<h2 id="compiling-a-static-object"><a class="header" href="#compiling-a-static-object">Compiling a static object</a></h2>
-<h2 id="compiling-a-linkable-object"><a class="header" href="#compiling-a-linkable-object">Compiling a linkable object</a></h2>
-<h2 id="creating-a-shared-library"><a class="header" href="#creating-a-shared-library">Creating a shared library</a></h2>
-<h2 id="linking-with-an-external-application"><a class="header" href="#linking-with-an-external-application">Linking with an external application</a></h2>
-<h2 id="writing-a-main"><a class="header" href="#writing-a-main">Writing a main</a></h2>
+                        <h1 id="libraries"><a class="header" href="#libraries">Libraries</a></h1>
+<p>RuSTy does not currently have support for separate libraries.
+Libraries can be compiled together with the application as a normal files.</p>
+<p>Precompiled libraries or system functions can be called by declaring an
+<a href="libraries/external_functions.html">External Function</a> for each POU in that library.</p>
 
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
                         
-                            <a rel="prev" href="intro_1.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                            <a rel="prev" href="using_rusty.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                                 <i class="fa fa-angle-left"></i>
                             </a>
                         
 
                         
-                            <a rel="next" href="libraries.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                            <a rel="next" href="libraries/external_functions.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                                 <i class="fa fa-angle-right"></i>
                             </a>
                         
@@ -205,13 +194,13 @@ one output-format parameter and any number of input-files.</p>
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
                 
-                    <a rel="prev" href="intro_1.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                    <a rel="prev" href="using_rusty.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                         <i class="fa fa-angle-left"></i>
                     </a>
                 
 
                 
-                    <a rel="next" href="libraries.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                    <a rel="next" href="libraries/external_functions.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                         <i class="fa fa-angle-right"></i>
                     </a>
                 

@@ -150,7 +150,7 @@
         <span class="comment">//why do I need to clone here :-( ???</span>
         <span class="kw">let</span> <span class="ident">path</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_location</span>().<span class="ident">to_string</span>();
         <span class="ident">fs</span>::<span class="ident">read_to_string</span>(<span class="self">self</span>.<span class="ident">path</span>.<span class="ident">to_string</span>())
-            .<span class="ident">map</span>(<span class="kw">move</span> <span class="op">|</span><span class="ident">source</span><span class="op">|</span> <span class="ident">SourceCode</span> { <span class="ident">path</span>, <span class="ident">source</span> })
+            .<span class="ident">map</span>(<span class="kw">move</span> <span class="op">|</span><span class="ident">source</span><span class="op">|</span> <span class="ident">SourceCode</span> { <span class="ident">source</span>, <span class="ident">path</span> })
             .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">err</span><span class="op">|</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{:}&quot;</span>, <span class="ident">err</span>))
     }
 
