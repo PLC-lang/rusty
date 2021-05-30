@@ -211,6 +211,9 @@ pub enum Token {
     #[token(",")]
     KeywordComma,
 
+    #[token("...")]
+    KeywordDotDotDot,
+
     #[token("..")]
     KeywordDotDot,
 

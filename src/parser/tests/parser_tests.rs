@@ -394,6 +394,71 @@ fn simple_program_with_var_inout_can_be_parsed() {
 }
 
 #[test]
+fn a_function_with_varargs_can_be_parsed() {
+    let lexer = super::lex("FUNCTION foo : INT VAR_INPUT x : INT; y : ...; END_VAR END_FUNCTION");
+    let result = parse(lexer).unwrap().0;
+
+    let prg = &result.units[0];
+    let variable_block = &prg.variable_blocks[0];
+    let ast_string = format!("{:#?}", variable_block);
+    let expected_ast = r#"VariableBlock {
+    variables: [
+        Variable {
+            name: "x",
+            data_type: DataTypeReference {
+                referenced_type: "INT",
+            },
+        },
+        Variable {
+            name: "y",
+            data_type: DataTypeDefinition {
+                data_type: VarArgs {
+                    referenced_type: None,
+                },
+            },
+        },
+    ],
+    variable_block_type: Input,
+}"#;
+    assert_eq!(ast_string, expected_ast);
+}
+
+#[test]
+fn a_function_with_typed_varargs_can_be_parsed() {
+    let lexer =
+        super::lex("FUNCTION foo : INT VAR_INPUT x : INT; y : INT...; END_VAR END_FUNCTION");
+    let result = parse(lexer).unwrap().0;
+
+    let prg = &result.units[0];
+    let variable_block = &prg.variable_blocks[0];
+    let ast_string = format!("{:#?}", variable_block);
+    let expected_ast = r#"VariableBlock {
+    variables: [
+        Variable {
+            name: "x",
+            data_type: DataTypeReference {
+                referenced_type: "INT",
+            },
+        },
+        Variable {
+            name: "y",
+            data_type: DataTypeDefinition {
+                data_type: VarArgs {
+                    referenced_type: Some(
+                        DataTypeReference {
+                            referenced_type: "INT",
+                        },
+                    ),
+                },
+            },
+        },
+    ],
+    variable_block_type: Input,
+}"#;
+    assert_eq!(ast_string, expected_ast);
+}
+
+#[test]
 fn simple_struct_type_can_be_parsed() {
     let (result, _) = parse(super::lex(
         r#"

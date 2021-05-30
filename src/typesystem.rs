@@ -34,6 +34,8 @@ impl DataType {
     }
 }
 
+type VarArgs = Option<String>;
+
 #[derive(Debug, Clone, PartialEq)]
 pub enum StringEncoding {
     Utf8,
@@ -54,6 +56,7 @@ pub enum DataTypeInformation {
     Struct {
         name: String,
         member_names: Vec<String>,
+        varargs: Option<VarArgs>,
     },
     Array {
         name: String,
@@ -118,6 +121,28 @@ impl DataTypeInformation {
             self,
             DataTypeInformation::Integer { .. } | DataTypeInformation::Float { .. }
         )
+    }
+
+    pub fn is_variadic(&self) -> bool {
+        matches!(
+            self,
+            DataTypeInformation::Struct {
+                varargs: Some(_),
+                ..
+            }
+        )
+    }
+
+    pub fn get_variadic_type(&self) -> Option<&str> {
+        if let DataTypeInformation::Struct {
+            varargs: Some(inner_type),
+            ..
+        } = &self
+        {
+            inner_type.as_ref().map(String::as_str)
+        } else {
+            None
+        }
     }
 
     pub fn get_size(&self) -> u32 {

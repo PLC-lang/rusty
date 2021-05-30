@@ -146,6 +146,43 @@ fn function_is_indexed() {
 }
 
 #[test]
+fn function_with_varargs_param_marked() {
+    let index = index!(
+        r#"
+        FUNCTION myFunc : INT
+        VAR_INPUT
+            x : INT;
+            y : ...;
+        END_VAR
+        END_FUNCTION
+        "#
+    );
+    let function = index.find_type("myFunc").unwrap();
+    assert!(function.get_type_information().is_variadic());
+    assert_eq!(None, function.get_type_information().get_variadic_type());
+}
+
+#[test]
+fn function_with_typed_varargs_param_marked() {
+    let index = index!(
+        r#"
+        FUNCTION myFunc : INT
+        VAR_INPUT
+            x : INT;
+            y : INT...;
+        END_VAR
+        END_FUNCTION
+        "#
+    );
+    let function = index.find_type("myFunc").unwrap();
+    assert!(function.get_type_information().is_variadic());
+    assert_eq!(
+        Some("INT"),
+        function.get_type_information().get_variadic_type()
+    );
+}
+
+#[test]
 fn pous_are_indexed() {
     let index = index!(
         r#"
