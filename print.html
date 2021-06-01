@@ -181,15 +181,15 @@
 <ul>
 <li>✔ IEC 61131-3 numeric types</li>
 <li>✔ Strings</li>
-<li>❌ Wide Strings</li>
+<li>✔ Wide Strings</li>
 <li>✔ Struct types</li>
 <li>✔ Enum types</li>
 <li>✔ Array data types</li>
 <li>✔ Alias types</li>
 <li>✔ Sub-ranges types</li>
-<li>❌ Date and Time types</li>
+<li>✔ Date and Time types</li>
 <li>✔ Sized String types</li>
-<li>❌ Sized Wide String types</li>
+<li>✔ Sized Wide String types</li>
 <li>✔ Initial values</li>
 </ul>
 <h2 id="declarations"><a class="header" href="#declarations">Declarations</a></h2>
@@ -197,7 +197,7 @@
 <li>✔ VAR</li>
 <li>✔ VAR_INPUT</li>
 <li>✔ VAR_OUTPUT</li>
-<li>❌ VAR_INOUT</li>
+<li>✔ VAR_IN_OUT</li>
 </ul>
 <h2 id="statements"><a class="header" href="#statements">Statements</a></h2>
 <ul>
@@ -245,7 +245,7 @@ Libraries can be compiled together with the application as a normal files.</p>
 <div id="chapter_begin" style="break-before: page; page-break-before: always;"></div><h1 id="external-functions"><a class="header" href="#external-functions">External Functions</a></h1>
 <p>A <code>POU</code> (<code>PROGRAM</code>, <code>FUNCTION</code>, <code>FUNCTION_BLOCK</code>) can be marked as external,
 which will cause the compiler to ignore its implementation</p>
-<pre><code class="language-st">@EXTERNAL
+<pre><code class="language-iecst">@EXTERNAL
 FUNCTION log : DINT
 VAR_INPUT
   message : STRING[1024];
@@ -270,7 +270,7 @@ e.g. <code>extern &quot;C&quot;</code> blocks</p>
 }
 </code></pre>
 <p>An interface of that function in <code>ST</code> can be defined as</p>
-<pre><code class="language-st">@EXTERNAL
+<pre><code class="language-iecst">@EXTERNAL
 FUNCTION min : DINT
 VAR_INPUT
   a : DINT;
@@ -290,7 +290,7 @@ as variadic, you can add a parameter of type <code>...</code> to the <code>VAR_I
 <pre><code class="language-C">int printf( const char *restrict format, ... );
 </code></pre>
 <p>The <code>ST</code> interface can be defined as</p>
-<pre><code class="language-st">@EXTERNAL
+<pre><code class="language-iecst">@EXTERNAL
 FUNCTION printf : DINT
 VAR_INPUT
   format : STRING;
@@ -302,7 +302,7 @@ END_FUNCTION
 <p>With the printf function available on the system, there is no need to declare
 the C function</p>
 <p>Declare an <code>ST</code> program called <code>ExternalFunctions.st</code> with the following code:</p>
-<pre><code class="language-st">@EXTERNAL FUNCTION printf : DINT
+<pre><code class="language-iecst">@EXTERNAL FUNCTION printf : DINT
 VAR_INPUT
     format : STRING;
     args: ...;
