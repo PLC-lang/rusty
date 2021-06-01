@@ -3,7 +3,7 @@
 A `POU` (`PROGRAM`, `FUNCTION`, `FUNCTION_BLOCK`) can be marked as external,
 which will cause the compiler to ignore its implementation
 
-```st
+```iecst
 @EXTERNAL
 FUNCTION log : DINT
 VAR_INPUT
@@ -38,7 +38,7 @@ int min(int a, int b) {
 
 An interface of that function in `ST` can be defined as
 
-```st
+```iecst
 @EXTERNAL
 FUNCTION min : DINT
 VAR_INPUT
@@ -70,7 +70,7 @@ int printf( const char *restrict format, ... );
 
 The `ST` interface can be defined as
 
-```st
+```iecst
 @EXTERNAL
 FUNCTION printf : DINT
 VAR_INPUT
@@ -87,7 +87,7 @@ the C function
 
 Declare an `ST` program called `ExternalFunctions.st` with the following code:
 
-```st
+```iecst
 @EXTERNAL FUNCTION printf : DINT
 VAR_INPUT
     format : STRING;
