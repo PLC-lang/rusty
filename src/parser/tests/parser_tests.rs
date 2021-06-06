@@ -1,3 +1,4 @@
+use crate::Diagnostic;
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use crate::ast::*;
 use crate::parser::Statement::LiteralInteger;
@@ -197,8 +198,11 @@ fn actions_with_no_container_error() {
     let err = parse(lexer).expect_err("Expecting parser failure");
     assert_eq!(
         err,
-        "expected Identifier, but found 'ACTION' [KeywordAction] at line: 1 offset: 8..14"
-            .to_string()
+        Diagnostic::syntax_error(
+            "expected Identifier, but found 'ACTION' [KeywordAction] at line: 1 offset: 8..14"
+                .into(),
+            (8..14).into()
+        )
     );
 }
 
@@ -239,10 +243,10 @@ fn a_program_needs_to_end_with_end_program() {
     let result = parse(lexer);
     assert_eq!(
         result,
-        Err(
-            "unexpected termination of body by '' [End], a block at line 1 was not closed"
-                .to_string()
-        )
+        Err(Diagnostic::syntax_error(
+            "unexpected termination of body by '' [End], a block at line 1 was not closed".into(),
+            (1..1).into()
+        ))
     );
 }
 
@@ -252,7 +256,10 @@ fn a_variable_declaration_block_needs_to_end_with_endvar() {
     let result = parse(lexer);
     assert_eq!(
         result,
-        Err("expected KeywordEndVar, but found 'END_PROGRAM' [KeywordEndProgram] at line: 1 offset: 16..27".to_string())
+        Err(Diagnostic::syntax_error(
+            "expected KeywordEndVar, but found 'END_PROGRAM' [KeywordEndProgram].".to_string(),
+            (16..27).into()
+        ))
     );
 }
 
@@ -891,7 +898,7 @@ fn test_unexpected_token_error_message() {
 
     if let Err { 0: msg } = parse_result {
         assert_eq!(
-            "expected KeywordEndVar, but found ';' [KeywordSemicolon] at line: 2 offset: 21..22",
+        Diagnostic::syntax_error("expected KeywordEndVar, but found ';' [KeywordSemicolon] at line: 2 offset: 21..22".into(), (21..22).into()),
             msg
         );
     } else {
@@ -920,7 +927,7 @@ fn test_unexpected_token_error_message2() {
 
     if let Err { 0: msg } = parse_result {
         assert_eq!(
-            "unexpected token: 'SOME' [Identifier] at line: 1 offset: 0..4",
+            Diagnostic::syntax_error("unexpected token: 'SOME' [Identifier]".into(), (0..4).into()),
             msg
         );
     } else {
@@ -939,7 +946,8 @@ fn test_unexpected_type_declaration_error_message() {
     let parse_result = parse(lexer);
 
     if let Err { 0: msg } = parse_result {
-        assert_eq!("expected struct, enum, or subrange found 'PROGRAM' [KeywordProgram] at line: 2 offset: 17..24", msg);
+        assert_eq!(
+            Diagnostic::syntax_error("expected struct, enum, or subrange found 'PROGRAM'".into(), (17..24).into()), msg);
     } else {
         panic!("Expected parse error but didn't get one.");
     }
@@ -958,7 +966,7 @@ fn test_unclosed_body_error_message() {
 
     if let Err { 0: msg } = parse_result {
         assert_eq!(
-            "unexpected termination of body by '' [End], a block at line 3 was not closed",
+            Diagnostic::syntax_error("unexpected termination of body by '' [End], a block at line 3 was not closed".into(), (1..1).into()),
             msg
         );
     } else {
@@ -982,7 +990,7 @@ fn test_case_without_condition() {
 
     if let Err { 0: msg } = parse_result {
         assert_eq!(
-            "unexpected ':' at line 4 - no case-condition could be found",
+            Diagnostic::syntax_error("unexpected ':' at line 4 - no case-condition could be found".into(), (1..1).into()),
             msg
         );
     } else {

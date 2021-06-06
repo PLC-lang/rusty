@@ -189,6 +189,13 @@ impl SourceRange {
     pub fn get_end(&self) -> usize {
         self.range.end
     }
+
+    pub fn sub_range(&self, start: usize, len: usize) -> SourceRange {
+        SourceRange::new(
+            self.file_path.as_str(),
+            (self.get_start() + start)..(self.get_start()+len)
+        )
+    }
 }
 
 impl From<std::ops::Range<usize>> for SourceRange {

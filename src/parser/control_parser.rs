@@ -1,3 +1,4 @@
+use crate::Diagnostic;
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use crate::ast::*;
 use crate::expect;
@@ -7,7 +8,7 @@ use crate::lexer::Token::*;
 use super::ParseSession;
 use super::{parse_body, parse_expression, parse_reference, parse_statement};
 
-pub fn parse_control_statement(lexer: &mut ParseSession) -> Result<Statement, String> {
+pub fn parse_control_statement(lexer: &mut ParseSession) -> Result<Statement, Diagnostic> {
     match lexer.token {
         KeywordIf => parse_if_statement(lexer),
         KeywordFor => parse_for_statement(lexer),
@@ -18,7 +19,7 @@ pub fn parse_control_statement(lexer: &mut ParseSession) -> Result<Statement, St
     }
 }
 
-fn parse_if_statement(lexer: &mut ParseSession) -> Result<Statement, String> {
+fn parse_if_statement(lexer: &mut ParseSession) -> Result<Statement, Diagnostic> {
     let start = lexer.range().start;
     let end_of_body =
         |it: &lexer::Token| *it == KeywordElseIf || *it == KeywordElse || *it == KeywordEndIf;
@@ -26,12 +27,11 @@ fn parse_if_statement(lexer: &mut ParseSession) -> Result<Statement, String> {
     let mut conditional_blocks = vec![];
 
     while lexer.token == KeywordElseIf || lexer.token == KeywordIf {
-        let line_nr = lexer.get_current_line_nr();
         lexer.advance(); //If//ElseIf
         let condition = parse_expression(lexer);
         expect!(KeywordThen, lexer);
         lexer.advance();
-        let body = parse_body(lexer, line_nr, &end_of_body);
+        let body = parse_body(lexer, &end_of_body);
 
         let condition_block = ConditionalBlock {
             condition: Box::new(condition?),
@@ -44,9 +44,8 @@ fn parse_if_statement(lexer: &mut ParseSession) -> Result<Statement, String> {
     let mut else_block = Vec::new();
 
     if lexer.token == KeywordElse {
-        let line_nr = lexer.get_current_line_nr();
         lexer.advance(); // else
-        else_block.append(&mut parse_body(lexer, line_nr, &|it| *it == KeywordEndIf)?)
+        else_block.append(&mut parse_body(lexer, &|it| *it == KeywordEndIf)?)
     }
 
     let end = lexer.range().end;
@@ -59,7 +58,7 @@ fn parse_if_statement(lexer: &mut ParseSession) -> Result<Statement, String> {
     })
 }
 
-fn parse_for_statement(lexer: &mut ParseSession) -> Result<Statement, String> {
+fn parse_for_statement(lexer: &mut ParseSession) -> Result<Statement, Diagnostic> {
     let start = lexer.range().start;
     lexer.advance(); // FOR
 
@@ -81,10 +80,9 @@ fn parse_for_statement(lexer: &mut ParseSession) -> Result<Statement, String> {
     };
 
     expect!(KeywordDo, lexer); // DO
-    let line_nr = lexer.get_current_line_nr();
     lexer.advance();
 
-    let body = parse_body(lexer, line_nr, &|t: &lexer::Token| *t == KeywordEndFor);
+    let body = parse_body(lexer, &|t: &lexer::Token| *t == KeywordEndFor);
 
     let end = lexer.range().end;
     lexer.advance();
@@ -99,9 +97,8 @@ fn parse_for_statement(lexer: &mut ParseSession) -> Result<Statement, String> {
     })
 }
 
-fn parse_while_statement(lexer: &mut ParseSession) -> Result<Statement, String> {
+fn parse_while_statement(lexer: &mut ParseSession) -> Result<Statement, Diagnostic> {
     let start = lexer.range().start;
-    let line_nr = lexer.get_current_line_nr();
     lexer.advance(); //WHILE
 
     let condition = Box::new(parse_expression(lexer)?);
@@ -109,7 +106,7 @@ fn parse_while_statement(lexer: &mut ParseSession) -> Result<Statement, String> 
     expect!(KeywordDo, lexer); // DO
     lexer.advance();
 
-    let body = parse_body(lexer, line_nr, &|t: &lexer::Token| *t == KeywordEndWhile)?;
+    let body = parse_body(lexer, &|t: &lexer::Token| *t == KeywordEndWhile)?;
 
     let end = lexer.range().end;
     lexer.advance();
@@ -121,12 +118,11 @@ fn parse_while_statement(lexer: &mut ParseSession) -> Result<Statement, String> 
     })
 }
 
-fn parse_repeat_statement(lexer: &mut ParseSession) -> Result<Statement, String> {
+fn parse_repeat_statement(lexer: &mut ParseSession) -> Result<Statement, Diagnostic> {
     let start = lexer.range().start;
-    let line_nr = lexer.get_current_line_nr();
     lexer.advance(); //REPEAT
 
-    let body = parse_body(lexer, line_nr, &|t: &lexer::Token| *t == KeywordUntil)?; //UNTIL
+    let body = parse_body(lexer, &|t: &lexer::Token| *t == KeywordUntil)?; //UNTIL
     lexer.advance();
 
     let condition = Box::new(parse_expression(lexer)?);
@@ -142,7 +138,7 @@ fn parse_repeat_statement(lexer: &mut ParseSession) -> Result<Statement, String>
     })
 }
 
-fn parse_case_statement(lexer: &mut ParseSession) -> Result<Statement, String> {
+fn parse_case_statement(lexer: &mut ParseSession) -> Result<Statement, Diagnostic> {
     let start = lexer.range().start;
     lexer.advance(); // CASE
 
@@ -154,14 +150,13 @@ fn parse_case_statement(lexer: &mut ParseSession) -> Result<Statement, String> {
     let mut case_blocks = Vec::new();
     if lexer.token != KeywordEndCase && lexer.token != KeywordElse {
         let mut condition = Some(parse_expression(lexer)?);
-        let case_line_nr = lexer.get_current_line_nr();
         expect!(KeywordColon, lexer); // :
         lexer.advance();
 
         if condition.is_some() {
             loop {
                 let (body, next_condition) =
-                    parse_case_body_with_condition(condition.unwrap(), lexer, case_line_nr)?;
+                    parse_case_body_with_condition(condition.unwrap(), lexer)?;
                 condition = next_condition;
                 case_blocks.push(body);
 
@@ -178,9 +173,8 @@ fn parse_case_statement(lexer: &mut ParseSession) -> Result<Statement, String> {
     let mut else_block = Vec::new();
 
     if lexer.token == KeywordElse {
-        let line_nr = lexer.get_current_line_nr();
         lexer.advance(); // else
-        else_block.append(&mut parse_body(lexer, line_nr, &|it| {
+        else_block.append(&mut parse_body(lexer, &|it| {
             *it == KeywordEndCase
         })?)
     }
@@ -202,21 +196,21 @@ fn parse_case_statement(lexer: &mut ParseSession) -> Result<Statement, String> {
 fn parse_case_body_with_condition(
     condition: Statement,
     lexer: &mut ParseSession,
-    start_of_case: usize,
-) -> Result<(ConditionalBlock, Option<Statement>), String> {
-    let mut body = parse_body(lexer, start_of_case, &|t: &lexer::Token| {
+) -> Result<(ConditionalBlock, Option<Statement>), Diagnostic> {
+    let mut body = parse_body(lexer,  &|t: &lexer::Token| {
         *t == KeywordEndCase || *t == KeywordColon || *t == KeywordElse
     })?;
     if lexer.token == KeywordColon {
-        let colon_line_nr = lexer.get_current_line_nr();
+        let location = lexer.location();
         lexer.advance();
         // the block was ended with a new case-condition (e.g. '2:')
         // so we add the block and return the next block's condition
         // because we already parsed it
         if body.is_empty() {
-            return Err(format!(
-                "unexpected ':' at line {:} - no case-condition could be found",
-                colon_line_nr
+            return Err(
+                Diagnostic::syntax_error(
+                "unexpected ':' no case-condition could be found".into(),
+                location
             ));
         }
 

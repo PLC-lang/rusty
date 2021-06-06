@@ -417,6 +417,18 @@ pub enum Token {
     End,
 }
 
+impl Token {
+    pub fn ends_implementation(&self) -> bool {
+        matches!(
+            self,
+            &Token::KeywordEndFunction
+                | &Token::KeywordEndProgram
+                | &Token::KeywordEndFunctionBlock
+                | &Token::KeywordEndAction
+        )
+    }
+}
+
 pub fn lex<'src>(file_path: &'src str, source: &'src str) -> ParseSession<'src> {
     ParseSession::new(Token::lexer(source), file_path, NewLines::new(source))
 }

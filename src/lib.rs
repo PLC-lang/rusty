@@ -43,13 +43,14 @@ extern crate pretty_assertions;
 
 #[derive(PartialEq, Debug, Clone)]
 pub enum Diagnostic {
-    UnexpectedToken { message: String, range: SourceRange },
+
+    SyntaxError { message: String, range: SourceRange },
 }
 
 impl Diagnostic {
-    pub fn unexpected_token(message: String, range: SourceRange) -> Diagnostic {
-        Diagnostic::UnexpectedToken {
-            message: message.into(),
+    pub fn syntax_error(message: String, range: SourceRange) -> Diagnostic {
+        Diagnostic::SyntaxError {
+            message,
             range,
         }
     }
@@ -59,7 +60,7 @@ impl Diagnostic {
         found: String,
         range: SourceRange,
     ) -> Diagnostic {
-        Diagnostic::UnexpectedToken {
+        Diagnostic::SyntaxError {
             message: format!(
                 "Unexpected token: expected {} but found {}",
                 expected, found
@@ -69,16 +70,30 @@ impl Diagnostic {
     }
 
     pub fn unclosed_block(block_name: String, range: SourceRange) -> Diagnostic {
-        Diagnostic::UnexpectedToken {
+        Diagnostic::SyntaxError {
             message: format!("Unclosed block {}", block_name),
             range,
         }
     }
 
     pub fn illegal_token(illegal: &str, range: SourceRange) -> Diagnostic {
-        Diagnostic::UnexpectedToken {
+        Diagnostic::SyntaxError {
             message: format!("Found Illegal Token '{}'", illegal),
             range,
+        }
+    }
+
+    pub fn get_message(&self) -> &str {
+        match self {
+            Diagnostic::SyntaxError {message, ..} => message.as_str(),
+            _ => "",
+        }
+    }
+
+    pub fn get_location(&self) -> SourceRange {
+        match self {
+            Diagnostic::SyntaxError {range, ..} => range.clone(),
+            _ => SourceRange::undefined(),
         }
     }
 }
@@ -272,5 +287,5 @@ fn parse(file_path: &str, source: &str) -> Result<ParsedAst, CompileError> {
     let lexer = lexer::lex(file_path, source);
     //Parse
     //TODO : Parser should also return compile errors with sane locations
-    parser::parse(lexer).map_err(|err| CompileError::codegen_error(err, SourceRange::undefined()))
+    parser::parse(lexer).map_err(|err| err.into())
 }

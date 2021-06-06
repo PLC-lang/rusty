@@ -1,10 +1,18 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-use crate::{ast::SourceRange, parser::parse, Diagnostic};
+use crate::{Diagnostic, ast::SourceRange, parser::{parse, tests::lex}};
 use pretty_assertions::*;
 
+/*
+ * These tests deal with parsing-behavior in the presence of errors.
+ * following scenarios will be tested:
+ *  - missing semicolons at different locations
+ *  - incomplete statements
+ *  - incomplete statement-blocks (brackets)
+ */
+
 #[test]
-fn missing_semicolon_reported_as_diagnostic() {
-    let lexer = super::lex(
+fn missing_semicolon_after_call() {
+    let lexer = lex(
         r"
                 PROGRAM foo 
                     buz()
@@ -44,85 +52,40 @@ fn missing_semicolon_reported_as_diagnostic() {
 }
 
 #[test]
-fn illegal_literal_time_missing_segments_test() {
-    let lexer = super::lex(
-        "
-        PROGRAM exp 
-            T#;
-        END_PROGRAM
-        ",
+fn extra_semicolon_in_call_parameters() {
+    let lexer = lex(
+        r"
+                PROGRAM foo 
+                    buz(a,b;c);
+                END_PROGRAM
+    ",
     );
-    let (_, _, diagnostics) = parse(lexer).unwrap();
+
+    let (compilation_unit, _, diagnostics) = parse(lexer).unwrap();
     let expected = Diagnostic::unexpected_token_found(
         "KeywordSemicolon".into(),
-        "'#', (Error)".into(),
-        SourceRange::new("", 35..36),
+        "'foo', (Identifier)".into(),
+        SourceRange::new("", 76..79),
     );
     assert_eq!(diagnostics[0], expected);
 
-    let expected = Diagnostic::illegal_token("#", SourceRange::new("", 35..36));
-    assert_eq!(diagnostics[1], expected);
-}
-
-#[test]
-fn time_literal_problems_can_be_recovered_from_during_parsing() {
-    let lexer = super::lex(
-        "
-        PROGRAM exp 
-            T#1d4d2h3m;
-            x;
-        END_PROGRAM
-        ",
-    );
-    let (cu, ..) = parse(lexer).unwrap();
-
-    let actual_statements = cu.implementations[0].statements.len();
-    assert_eq!(actual_statements, 2);
-}
-
-#[test]
-fn illegal_literal_time_double_segments_test() {
-    let lexer = super::lex(
-        "
-        PROGRAM exp 
-            T#1d4d2h3m;
-        END_PROGRAM
-        ",
-    );
-
-    let (_, _, diagnostics) = parse(lexer).unwrap();
+    let pou = &compilation_unit.implementations[0];
     assert_eq!(
-        diagnostics[0],
-        Diagnostic::unexpected_token(
-            "Invalid TIME Literal: segments must be unique".into(),
-            SourceRange::new("", 34..45)
-        )
-    );
-}
-
-#[test]
-fn illegal_literal_time_out_of_order_segments_test() {
-    let lexer = super::lex(
-        "
-        PROGRAM exp 
-            T#1s2h3d;
-        END_PROGRAM
-        ",
-    );
-
-    let (_, _, diagnostics) = parse(lexer).unwrap();
-    assert_eq!(
-        diagnostics[0],
-        Diagnostic::unexpected_token(
-            "Invalid TIME Literal: segments out of order, use d-h-m-s-ms".into(),
-            SourceRange::new("", 34..43)
-        )
+        format!("{:#?}", pou.statements),
+        r#"[
+    CallStatement {
+        operator: Reference {
+            name: "buz",
+        },
+        parameters: None,
+    },
+]"#
     );
 }
 
 #[test]
 fn incomplete_statement_test() {
-    let lexer = super::lex(
+    let lexer = lex(
         "
         PROGRAM exp 
             1 + 2 +;
@@ -145,7 +108,7 @@ fn incomplete_statement_test() {
 
     assert_eq!(
         diagnostics[0],
-        Diagnostic::unexpected_token(
+        Diagnostic::syntax_error(
             "unexpected token: ';' [KeywordSemicolon] at line: 3 offset: 20..21".into(),
             SourceRange::new("", 34..42)
         )
@@ -154,7 +117,7 @@ fn incomplete_statement_test() {
 
 #[test]
 fn incomplete_statement_in_parantheses_recovery_test() {
-    let lexer = super::lex(
+    let lexer = lex(
         "
         PROGRAM exp 
             (1 + 2 - ) + 3;
@@ -183,7 +146,7 @@ fn incomplete_statement_in_parantheses_recovery_test() {
 
     assert_eq!(
         diagnostics[0],
-        Diagnostic::unexpected_token(
+        Diagnostic::syntax_error(
             "unexpected token: ')' [KeywordParensClose] at line: 3 offset: 22..23".into(),
             SourceRange::new("", 35..44)
         )
@@ -192,7 +155,7 @@ fn incomplete_statement_in_parantheses_recovery_test() {
 
 #[test]
 fn mismatched_parantheses_recovery_test() {
-    let lexer = super::lex(
+    let lexer = lex(
         "
         PROGRAM exp 
             (1 + 2;
@@ -233,4 +196,90 @@ fn mismatched_parantheses_recovery_test() {
     //     diagnostics[0],
     //     Diagnostic::unexpected_token("expected 'KeywordParensClose' but found ';' (KeywordSemicolon)".into(), SourceRange::new("", 40..41))
     // );
+}
+
+#[test]
+fn invalid_variable_name_error_recovery() {
+    let lexer = lex(
+        "
+        PROGRAM p
+            VAR 
+                a b: INT;
+                c : INT;
+            END_VAR
+        END_PROGRAM
+        ",
+    );
+
+    let (cu, _, diagnostics) = parse(lexer).unwrap();
+    let pou = &cu.units[0];
+    assert_eq!(
+        format!("{:#?}", pou.variable_blocks[0]),
+        r#"VariableBlock {
+    variables: [
+        Variable {
+            name: "a",
+            data_type: DataTypeReference {
+                referenced_type: "INT",
+            },
+        },
+        Variable {
+            name: "c",
+            data_type: DataTypeReference {
+                referenced_type: "INT",
+            },
+        },
+    ],
+    variable_block_type: Local,
+}"#
+    );
+
+    assert_eq!(
+        diagnostics[0],
+        Diagnostic::unexpected_token_found(
+            "Identifier".into(),
+            "':', (KeywordColon)".into(),
+            SourceRange::new("", 40..41)
+        )
+    );
+}
+
+#[test]
+fn invalid_variable_data_type_error_recovery() {
+    let lexer = lex(
+        "
+        PROGRAM p
+            VAR 
+                a INT : ;
+                c : INT;
+            END_VAR
+        END_PROGRAM
+        ",
+    );
+
+    let (cu, _, diagnostics) = parse(lexer).unwrap();
+    let pou = &cu.units[0];
+    assert_eq!(
+        format!("{:#?}", pou.variable_blocks[0]),
+        r#"VariableBlock {
+    variables: [
+        Variable {
+            name: "c",
+            data_type: DataTypeReference {
+                referenced_type: "INT",
+            },
+        },
+    ],
+    variable_block_type: Local,
+}"#
+    );
+
+    assert_eq!(
+        diagnostics[0],
+        Diagnostic::unexpected_token_found(
+            "Identifier".into(),
+            "':', (KeywordColon)".into(),
+            SourceRange::new("", 40..41)
+        )
+    );
 }
