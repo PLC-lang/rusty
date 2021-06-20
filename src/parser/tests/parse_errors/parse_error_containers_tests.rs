@@ -60,10 +60,9 @@ fn missing_pou_name_2() {
     let (compilation_unit, _, diagnostics) = parse(lexer).unwrap();
     //expected end of statement (e.g. ;), but found KeywordEndProgram at line: 1 offset: 14..25"
     //Expecting a missing semicolon message
-    let expected = Diagnostic::unexpected_token_found(
-        "Statement".into(),
-        ":=".into(),
-        SourceRange::new("", 35..38),
+    let expected = Diagnostic::syntax_error(
+        "Unexpected token: ':='".into(),
+        (36..38).into(),
     );
     assert_eq!(diagnostics[0], expected);
 
@@ -217,10 +216,8 @@ fn pou_inside_pou_body() {
 
     let (compilation_unit, _, diagnostics) = parse(lexer).unwrap();
     assert_eq!(
-        Diagnostic::unexpected_token_found(
-            "Statement".into(),
-            "'PROGRAM', (KeywordProgram)".into(),
-            SourceRange::undefined(),
+        Diagnostic::syntax_error("Unexpected token: 'PROGRAM'".into(),
+            (81..88).into(),
         ),
         diagnostics[0]
     );

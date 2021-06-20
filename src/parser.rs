@@ -18,10 +18,9 @@ macro_rules! expect {
     ( $token:expr, $lexer:expr) => {
         if $lexer.token != $token {
             return Err(
-                Diagnostic::syntax_error(    
-                    format!("expected {:?}, but found '{:}'",
-                    $token,
-                    $lexer.slice()),
+                Diagnostic::unexpected_token_found(
+                    format!("{:?}", $token),
+                    $lexer.slice().to_string(),
                     $lexer.location()));
         }
     };
@@ -53,10 +52,8 @@ fn unidentified_token(lexer: &ParseSession) -> Diagnostic {
 fn unexpected_token(lexer: &ParseSession) -> Diagnostic {
     Diagnostic::syntax_error(
         format!(
-            "Unexpected token: '{slice:}' [{t:?}] at {location:}",
-            t = lexer.token,
-            slice = lexer.slice(),
-            location = lexer.get_location_information(),
+            "Unexpected token: '{slice:}'",
+            slice = lexer.slice()
         ),
         lexer.location(),
     )

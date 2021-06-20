@@ -1,5 +1,9 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-use crate::{Diagnostic, ast::SourceRange, parser::{parse, tests::lex}};
+use crate::{
+    ast::SourceRange,
+    parser::{parse, tests::lex},
+    Diagnostic,
+};
 use pretty_assertions::*;
 
 /*
@@ -12,14 +16,12 @@ use pretty_assertions::*;
 
 #[test]
 fn missing_semicolon_after_call() {
-    let lexer = lex(
-        r"
+    let lexer = lex(r"
                 PROGRAM foo 
                     buz()
                     foo();
                 END_PROGRAM
-    ",
-    );
+    ");
 
     let (compilation_unit, _, diagnostics) = parse(lexer).unwrap();
     //expected end of statement (e.g. ;), but found KeywordEndProgram at line: 1 offset: 14..25"
@@ -53,19 +55,17 @@ fn missing_semicolon_after_call() {
 
 #[test]
 fn extra_semicolon_in_call_parameters() {
-    let lexer = lex(
-        r"
+    let lexer = lex(r"
                 PROGRAM foo 
                     buz(a,b;c);
                 END_PROGRAM
-    ",
-    );
+    ");
 
     let (compilation_unit, _, diagnostics) = parse(lexer).unwrap();
     let expected = Diagnostic::unexpected_token_found(
-        "KeywordSemicolon".into(),
-        "'foo', (Identifier)".into(),
-        SourceRange::new("", 76..79),
+        "KeywordParensClose".into(),
+        ";".into(),
+        SourceRange::new("", 57..58),
     );
     assert_eq!(diagnostics[0], expected);
 
@@ -85,14 +85,12 @@ fn extra_semicolon_in_call_parameters() {
 
 #[test]
 fn incomplete_statement_test() {
-    let lexer = lex(
-        "
+    let lexer = lex("
         PROGRAM exp 
             1 + 2 +;
             x;
         END_PROGRAM
-        ",
-    );
+        ");
 
     let (cu, _, diagnostics) = parse(lexer).unwrap();
     let pou = &cu.implementations[0];
@@ -108,23 +106,18 @@ fn incomplete_statement_test() {
 
     assert_eq!(
         diagnostics[0],
-        Diagnostic::syntax_error(
-            "unexpected token: ';' [KeywordSemicolon] at line: 3 offset: 20..21".into(),
-            SourceRange::new("", 34..42)
-        )
+        Diagnostic::syntax_error("Unexpected token: ';'".into(), SourceRange::new("", 41..42))
     );
 }
 
 #[test]
 fn incomplete_statement_in_parantheses_recovery_test() {
-    let lexer = lex(
-        "
+    let lexer = lex("
         PROGRAM exp 
             (1 + 2 - ) + 3;
             x;
         END_PROGRAM
-        ",
-    );
+        ");
 
     let (cu, _, diagnostics) = parse(lexer).unwrap();
     let pou = &cu.implementations[0];
@@ -146,23 +139,18 @@ fn incomplete_statement_in_parantheses_recovery_test() {
 
     assert_eq!(
         diagnostics[0],
-        Diagnostic::syntax_error(
-            "unexpected token: ')' [KeywordParensClose] at line: 3 offset: 22..23".into(),
-            SourceRange::new("", 35..44)
-        )
+        Diagnostic::syntax_error("Unexpected token: ')'".into(), SourceRange::new("", 43..44))
     );
 }
 
 #[test]
 fn mismatched_parantheses_recovery_test() {
-    let lexer = lex(
-        "
+    let lexer = lex("
         PROGRAM exp 
             (1 + 2;
             x;
         END_PROGRAM
-        ",
-    );
+        ");
 
     let (cu, _, diagnostics) = parse(lexer).unwrap();
     let pou = &cu.implementations[0];
@@ -200,16 +188,14 @@ fn mismatched_parantheses_recovery_test() {
 
 #[test]
 fn invalid_variable_name_error_recovery() {
-    let lexer = lex(
-        "
+    let lexer = lex("
         PROGRAM p
             VAR 
                 a b: INT;
                 c : INT;
             END_VAR
         END_PROGRAM
-        ",
-    );
+        ");
 
     let (cu, _, diagnostics) = parse(lexer).unwrap();
     let pou = &cu.units[0];
@@ -246,16 +232,14 @@ fn invalid_variable_name_error_recovery() {
 
 #[test]
 fn invalid_variable_data_type_error_recovery() {
-    let lexer = lex(
-        "
+    let lexer = lex("
         PROGRAM p
             VAR 
                 a INT : ;
                 c : INT;
             END_VAR
         END_PROGRAM
-        ",
-    );
+        ");
 
     let (cu, _, diagnostics) = parse(lexer).unwrap();
     let pou = &cu.units[0];
