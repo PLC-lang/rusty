@@ -271,12 +271,12 @@ fn date_literals_test() {
         DATE#1946 D#2001.10.04
         DATE#1946-4 D#-1-1-1
         "#);
-    for _ in 1..=2  {
+    for _ in 1..=2 {
         assert_eq!(lexer.token, LiteralDate);
         lexer.advance();
     }
 
-    for _ in 1..=4  {
+    for _ in 1..=4 {
         assert_ne!(lexer.token, LiteralDate);
         lexer.advance();
     }
@@ -437,8 +437,10 @@ fn case_statement() {
 
 #[test]
 fn dot_statements() {
-    let mut lexer = lex(r".. .");
+    let mut lexer = lex(r"... .. .");
 
+    assert_eq!(lexer.token, KeywordDotDotDot);
+    lexer.advance();
     assert_eq!(lexer.token, KeywordDotDot);
     lexer.advance();
     assert_eq!(lexer.token, KeywordDot);
@@ -503,5 +505,28 @@ fn string_parsing() {
     lexer.advance();
     assert_eq!(lexer.token, LiteralString);
     assert_eq!("'AB$''", lexer.slice());
+    lexer.advance();
+}
+
+#[test]
+fn wide_string_parsing() {
+    let mut lexer = lex(r#"
+    WSTRING 
+    "AB C" 
+    "AB$$" 
+    "AB$""
+    "#);
+
+    assert_eq!(lexer.token, KeywordWideString);
+    assert_eq!("WSTRING", lexer.slice());
+    lexer.advance();
+    assert_eq!(lexer.token, LiteralWideString);
+    assert_eq!(r#""AB C""#, lexer.slice());
+    lexer.advance();
+    assert_eq!(lexer.token, LiteralWideString);
+    assert_eq!(r#""AB$$""#, lexer.slice());
+    lexer.advance();
+    assert_eq!(lexer.token, LiteralWideString);
+    assert_eq!(r#""AB$"""#, lexer.slice());
     lexer.advance();
 }

@@ -68,12 +68,7 @@ fn slice_and_advance(lexer: &mut RustyLexer) -> String {
 }
 
 pub fn parse(mut lexer: RustyLexer) -> Result<(CompilationUnit, NewLines), String> {
-    let mut unit = CompilationUnit {
-        global_vars: Vec::new(),
-        units: Vec::new(),
-        implementations: Vec::new(),
-        types: Vec::new(),
-    };
+    let mut unit = CompilationUnit::default();
 
     let mut linkage = LinkageType::Internal;
     loop {
@@ -299,7 +294,7 @@ fn parse_data_type_definition(
     lexer: &mut RustyLexer,
     name: Option<String>,
 ) -> Result<DataTypeWithInitializer, String> {
-    if allow(KeywordStruct, lexer) {
+    let result = if allow(KeywordStruct, lexer) {
         //STRUCT
         let mut variables = Vec::new();
         while lexer.token == Identifier {
@@ -307,12 +302,13 @@ fn parse_data_type_definition(
         }
         expect!(KeywordEndStruct, lexer);
         lexer.advance();
-        Ok((
+        //Return early to avoid varargs. TODO : This is hacky
+        return Ok((
             DataTypeDeclaration::DataTypeDefinition {
                 data_type: DataType::StructType { name, variables },
             },
             None,
-        ))
+        ));
     } else if allow(KeywordArray, lexer) {
         //ARRAY
         //expect open square
@@ -327,7 +323,8 @@ fn parse_data_type_definition(
         lexer.advance();
         //expect type reference
         let (reference, initializer) = parse_data_type_definition(lexer, None)?;
-        Ok((
+        //Return early to avoid varargs. TODO : This is hacky
+        return Ok((
             DataTypeDeclaration::DataTypeDefinition {
                 data_type: DataType::ArrayType {
                     name,
@@ -336,7 +333,7 @@ fn parse_data_type_definition(
                 },
             },
             initializer,
-        ))
+        ));
     } else if allow(KeywordParensOpen, lexer) {
         //ENUM
         let mut elements = Vec::new();
@@ -352,16 +349,14 @@ fn parse_data_type_definition(
         expect!(KeywordParensClose, lexer);
         lexer.advance();
 
-        expect!(KeywordSemicolon, lexer);
-        lexer.advance();
-
-        Ok((
+        Some((
             DataTypeDeclaration::DataTypeDefinition {
                 data_type: DataType::EnumType { name, elements },
             },
             None,
         ))
-    } else if lexer.token == KeywordString {
+    } else if lexer.token == KeywordString || lexer.token == KeywordWideString {
+        let is_wide = lexer.token == KeywordWideString;
         lexer.advance();
         let size = if allow(KeywordSquareParensOpen, lexer) {
             let size_statement = parse_expression(lexer)?;
@@ -377,14 +372,11 @@ fn parse_data_type_definition(
         } else {
             None
         };
-        expect!(KeywordSemicolon, lexer);
-        lexer.advance();
-
-        Ok((
+        Some((
             DataTypeDeclaration::DataTypeDefinition {
                 data_type: DataType::StringType {
                     name,
-                    is_wide: false,
+                    is_wide,
                     size,
                 },
             },
@@ -405,10 +397,7 @@ fn parse_data_type_definition(
                 None
             };
 
-            expect!(KeywordSemicolon, lexer);
-            lexer.advance();
-
-            return Ok((
+            Some((
                 DataTypeDeclaration::DataTypeDefinition {
                     data_type: DataType::SubRangeType {
                         name,
@@ -417,10 +406,8 @@ fn parse_data_type_definition(
                     },
                 },
                 initial_value,
-            ));
-        }
-
-        if name.is_some() {
+            ))
+        } else if name.is_some() {
             let initial_value = if allow(KeywordAssignment, lexer) {
                 Some(parse_expression(lexer)?)
             } else {
@@ -433,9 +420,7 @@ fn parse_data_type_definition(
                     bounds: None,
                 },
             };
-            expect!(KeywordSemicolon, lexer);
-            lexer.advance();
-            Ok((data_type, initial_value))
+            Some((data_type, initial_value))
         } else {
             let initial_value = if allow(KeywordAssignment, lexer) {
                 Some(parse_expression(lexer)?)
@@ -443,19 +428,31 @@ fn parse_data_type_definition(
                 None
             };
 
-            expect!(KeywordSemicolon, lexer);
-            lexer.advance();
-            Ok((
+            Some((
                 DataTypeDeclaration::DataTypeReference { referenced_type },
                 initial_value,
             ))
         }
     } else {
-        Err(format!(
-            "expected datatype, struct or enum, found {:?}",
-            lexer.token
+        None
+    };
+
+    let result = if allow(KeywordDotDotDot, lexer) {
+        Some((
+            DataTypeDeclaration::DataTypeDefinition {
+                data_type: DataType::VarArgs {
+                    referenced_type: result.map(|(it, _)| it).map(Box::new),
+                },
+            },
+            None,
         ))
-    }
+    } else {
+        result
+    };
+    expect!(KeywordSemicolon, lexer);
+    lexer.advance();
+
+    result.ok_or_else(|| format!("expected datatype, struct or enum, found {:?}", lexer.token))
 }
 
 fn is_end_of_stream(token: &lexer::Token) -> bool {

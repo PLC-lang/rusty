@@ -4,3 +4,5 @@ language = "en"
 multilingual = false
 src = "src"
 title = "RuSTy User Documentation"
+[output.html]
+additional-js = ["iecst.min.js", "custom.js"]

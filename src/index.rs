@@ -145,6 +145,19 @@ impl Index {
         }
     }
 
+    /// imports all entries from the given index into the current index
+    ///
+    /// imports all global_variables, member_variables, types and implementations
+    /// # Arguments
+    /// - `other` the other index. The elements are drained from the given index and moved
+    /// into the current one
+    pub fn import(&mut self, other: Index) {
+        self.global_variables.extend(other.global_variables);
+        self.member_variables.extend(other.member_variables);
+        self.types.extend(other.types);
+        self.implementations.extend(other.implementations);
+    }
+
     pub fn get_void_type(&self) -> &DataType {
         &self.void_type
     }
@@ -166,6 +179,22 @@ impl Index {
             .unwrap_or_else(Vec::new)
     }
 
+    /// Returns true if the current index is a VAR_INPUT, VAR_IN_OUT or VAR_OUTPUT that is not a variadic argument
+    pub fn is_declared_parameter(&self, pou_name: &str, index: u32) -> bool {
+        self.member_variables
+            .get(pou_name)
+            .and_then(|map| {
+                map.values()
+                    .filter(|item| {
+                        item.information.variable_type == VariableType::Input
+                            || item.information.variable_type == VariableType::InOut
+                            || item.information.variable_type == VariableType::Output
+                    })
+                    .find(|item| item.information.location == index)
+            })
+            .is_some()
+    }
+
     pub fn find_input_parameter(&self, pou_name: &str, index: u32) -> Option<&VariableIndexEntry> {
         self.member_variables.get(pou_name).and_then(|map| {
             map.values()
@@ -174,7 +203,6 @@ impl Index {
         })
     }
 
-    //                                     none                 ["myGlobal", "a", "b"]
     pub fn find_variable(
         &self,
         context: Option<&str>,

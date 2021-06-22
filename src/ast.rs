@@ -70,6 +70,32 @@ pub struct CompilationUnit {
     pub types: Vec<UserTypeDeclaration>,
 }
 
+impl CompilationUnit {
+    /// imports all elements of the other CompilationUnit into this CompilationUnit
+    ///
+    /// this will import all global_vars, units, implementations and types. The imported
+    /// structs are moved from the other unit into this unit
+    /// # Arguments
+    /// `other` the other CompilationUnit to import the elements from.
+    pub fn import(&mut self, other: CompilationUnit) {
+        self.global_vars.extend(other.global_vars);
+        self.units.extend(other.units);
+        self.implementations.extend(other.implementations);
+        self.types.extend(other.types);
+    }
+}
+
+impl Default for CompilationUnit {
+    fn default() -> Self {
+        CompilationUnit {
+            global_vars: Vec::new(),
+            units: Vec::new(),
+            implementations: Vec::new(),
+            types: Vec::new(),
+        }
+    }
+}
+
 #[derive(Debug, Copy, PartialEq, Clone)]
 pub enum VariableBlockType {
     Local,
@@ -276,6 +302,9 @@ pub enum DataType {
         is_wide: bool, //WSTRING
         size: Option<Statement>,
     },
+    VarArgs {
+        referenced_type: Option<Box<DataTypeDeclaration>>,
+    },
 }
 
 impl Debug for DataType {
@@ -321,6 +350,10 @@ impl Debug for DataType {
                 .field("is_wide", is_wide)
                 .field("size", size)
                 .finish(),
+            DataType::VarArgs { referenced_type } => f
+                .debug_struct("VarArgs")
+                .field("referenced_type", referenced_type)
+                .finish(),
         }
     }
 }
@@ -333,6 +366,7 @@ impl DataType {
             DataType::SubRangeType { name, .. } => *name = Some(new_name),
             DataType::ArrayType { name, .. } => *name = Some(new_name),
             DataType::StringType { name, .. } => *name = Some(new_name),
+            DataType::VarArgs { .. } => {} //No names on varargs
         }
     }
 
@@ -343,6 +377,7 @@ impl DataType {
             DataType::ArrayType { name, .. } => name.as_ref().map(|x| x.as_str()),
             DataType::StringType { name, .. } => name.as_ref().map(|x| x.as_str()),
             DataType::SubRangeType { name, .. } => name.as_ref().map(|x| x.as_str()),
+            DataType::VarArgs { .. } => None,
         }
     }
 
@@ -435,6 +470,7 @@ pub enum Statement {
     },
     LiteralString {
         value: String,
+        is_wide: bool,
         location: SourceRange,
     },
     LiteralArray {
@@ -597,9 +633,10 @@ impl Debug for Statement {
             Statement::LiteralBool { value, .. } => {
                 f.debug_struct("LiteralBool").field("value", value).finish()
             }
-            Statement::LiteralString { value, .. } => f
+            Statement::LiteralString { value, is_wide, .. } => f
                 .debug_struct("LiteralString")
                 .field("value", value)
+                .field("is_wide", is_wide)
                 .finish(),
             Statement::LiteralArray { elements, .. } => f
                 .debug_struct("LiteralArray")

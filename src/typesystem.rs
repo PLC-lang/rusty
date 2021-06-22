@@ -34,11 +34,29 @@ impl DataType {
     }
 }
 
+type VarArgs = Option<String>;
+
+#[derive(Debug, Clone, PartialEq)]
+pub enum StringEncoding {
+    Utf8,
+    Utf16,
+}
+
+impl StringEncoding {
+    pub fn get_bytes_per_char(&self) -> u32 {
+        match self {
+            StringEncoding::Utf8 => 1,
+            StringEncoding::Utf16 => 2,
+        }
+    }
+}
+
 #[derive(Debug, Clone, PartialEq)]
 pub enum DataTypeInformation {
     Struct {
         name: String,
         member_names: Vec<String>,
+        varargs: Option<VarArgs>,
     },
     Array {
         name: String,
@@ -61,6 +79,7 @@ pub enum DataTypeInformation {
     },
     String {
         size: u32,
+        encoding: StringEncoding,
     },
     SubRange {
         name: String,
@@ -102,6 +121,28 @@ impl DataTypeInformation {
             self,
             DataTypeInformation::Integer { .. } | DataTypeInformation::Float { .. }
         )
+    }
+
+    pub fn is_variadic(&self) -> bool {
+        matches!(
+            self,
+            DataTypeInformation::Struct {
+                varargs: Some(_),
+                ..
+            }
+        )
+    }
+
+    pub fn get_variadic_type(&self) -> Option<&str> {
+        if let DataTypeInformation::Struct {
+            varargs: Some(inner_type),
+            ..
+        } = &self
+        {
+            inner_type.as_ref().map(String::as_str)
+        } else {
+            None
+        }
     }
 
     pub fn get_size(&self) -> u32 {
@@ -300,13 +341,32 @@ pub fn get_builtin_types() -> Vec<DataType> {
             initial_value: None,
             information: DataTypeInformation::String {
                 size: DEFAULT_STRING_LEN + 1,
+                encoding: StringEncoding::Utf8,
+            },
+        },
+        DataType {
+            name: "WSTRING".into(),
+            initial_value: None,
+            information: DataTypeInformation::String {
+                size: DEFAULT_STRING_LEN + 1,
+                encoding: StringEncoding::Utf16,
             },
         },
     ]
 }
 
 pub fn new_string_information(len: u32) -> DataTypeInformation {
-    DataTypeInformation::String { size: len + 1 }
+    DataTypeInformation::String {
+        size: len + 1,
+        encoding: StringEncoding::Utf8,
+    }
+}
+
+pub fn new_wide_string_information(len: u32) -> DataTypeInformation {
+    DataTypeInformation::String {
+        size: len + 1,
+        encoding: StringEncoding::Utf16,
+    }
 }
 
 fn get_rank(type_information: &DataTypeInformation) -> u32 {
