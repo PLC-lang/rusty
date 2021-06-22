@@ -56,7 +56,7 @@ fn two_global_vars_can_be_parsed() {
     let lexer = super::lex("VAR_GLOBAL a: INT; END_VAR VAR_GLOBAL x : INT; y : BOOL; END_VAR");
     let result = parse(lexer).unwrap().0;
 
-    let vars = &result.global_vars; //globar_vars
+    let vars = &result.global_vars; //global_vars
     let ast_string = format!("{:#?}", vars);
     let expected_ast = r#"[
     VariableBlock {
