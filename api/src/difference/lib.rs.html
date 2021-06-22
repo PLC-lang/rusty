@@ -1,6 +1,6 @@
 <!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/difference-2.0.0/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings"></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
 <link rel="alternate icon" type="image/png" href="../../favicon-16x16.png">
-<link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../difference/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
+<link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../difference/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
                 <a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" height="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
@@ -378,8 +378,8 @@
 <span class="kw">mod</span> <span class="ident">merge</span>;
 <span class="kw">mod</span> <span class="ident">display</span>;
 
-<span class="kw">use</span> <span class="ident">lcs</span>::<span class="ident">lcs</span>;
-<span class="kw">use</span> <span class="ident">merge</span>::<span class="ident">merge</span>;
+<span class="kw">use</span> <span class="ident">lcs::lcs</span>;
+<span class="kw">use</span> <span class="ident">merge::merge</span>;
 
 <span class="doccomment">/// Defines the contents of a changeset</span>
 <span class="doccomment">/// Changesets will be delivered in order of appearance in the original string</span>
@@ -470,7 +470,7 @@
 <span class="doccomment">/// ```</span>
 <span class="attribute">#[<span class="ident">deprecated</span>(<span class="ident">since</span> <span class="op">=</span> <span class="string">&quot;1.0.0&quot;</span>, <span class="ident">note</span> <span class="op">=</span> <span class="string">&quot;please use `Changeset::new` instead&quot;</span>)]</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">diff</span>(<span class="ident">orig</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">edit</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">split</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> (<span class="ident">i32</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Difference</span><span class="op">&gt;</span>) {
-    <span class="kw">let</span> <span class="ident">ch</span> <span class="op">=</span> <span class="ident">Changeset</span>::<span class="ident">new</span>(<span class="ident">orig</span>, <span class="ident">edit</span>, <span class="ident">split</span>);
+    <span class="kw">let</span> <span class="ident">ch</span> <span class="op">=</span> <span class="ident">Changeset::new</span>(<span class="ident">orig</span>, <span class="ident">edit</span>, <span class="ident">split</span>);
     (<span class="ident">ch</span>.<span class="ident">distance</span>, <span class="ident">ch</span>.<span class="ident">diffs</span>)
 }
 
@@ -492,15 +492,15 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// Will print an error with a colorful diff in case of failure.</span>
 <span class="attribute">#[<span class="ident">macro_export</span>]</span>
-<span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">assert_diff</span> {
+<span class="macro">macro_rules!</span> <span class="ident">assert_diff</span> {
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">orig</span>:<span class="ident">expr</span> , <span class="macro-nonterminal">$</span><span class="macro-nonterminal">edit</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">split</span>: <span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">expected</span>: <span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> ({
         <span class="kw">let</span> <span class="ident">orig</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">orig</span>;
         <span class="kw">let</span> <span class="ident">edit</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">edit</span>;
 
-        <span class="kw">let</span> <span class="ident">changeset</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">Changeset</span>::<span class="ident">new</span>(<span class="ident">orig</span>, <span class="ident">edit</span>, <span class="kw-2">&amp;</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">split</span>));
+        <span class="kw">let</span> <span class="ident">changeset</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="kw">crate</span><span class="macro-nonterminal">::Changeset::new</span>(<span class="ident">orig</span>, <span class="ident">edit</span>, <span class="kw-2">&amp;</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">split</span>));
         <span class="kw">if</span> <span class="ident">changeset</span>.<span class="ident">distance</span> <span class="op">!</span><span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">expected</span> {
-            <span class="macro">println</span><span class="macro">!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">changeset</span>);
-            <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;assertion failed: edit distance between {:?} and {:?} is {} and not {}, see \
+            <span class="macro">println!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">changeset</span>);
+            <span class="macro">panic!</span>(<span class="string">&quot;assertion failed: edit distance between {:?} and {:?} is {} and not {}, see \
                     diffset above&quot;</span>,
                    <span class="ident">orig</span>,
                    <span class="ident">edit</span>,
@@ -525,8 +525,8 @@
 <span class="doccomment">/// ```</span>
 <span class="attribute">#[<span class="ident">deprecated</span>(<span class="ident">since</span> <span class="op">=</span> <span class="string">&quot;1.0.0&quot;</span>, <span class="ident">note</span> <span class="op">=</span> <span class="string">&quot;`Changeset` now implements the `Display` trait instead&quot;</span>)]</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">print_diff</span>(<span class="ident">orig</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">edit</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">split</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) {
-    <span class="kw">let</span> <span class="ident">ch</span> <span class="op">=</span> <span class="ident">Changeset</span>::<span class="ident">new</span>(<span class="ident">orig</span>, <span class="ident">edit</span>, <span class="ident">split</span>);
-    <span class="macro">println</span><span class="macro">!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">ch</span>);
+    <span class="kw">let</span> <span class="ident">ch</span> <span class="op">=</span> <span class="ident">Changeset::new</span>(<span class="ident">orig</span>, <span class="ident">edit</span>, <span class="ident">split</span>);
+    <span class="macro">println!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">ch</span>);
 }
 
 <span class="attribute">#[<span class="ident">test</span>]</span>
@@ -541,19 +541,19 @@
                  just for you.\n\
                  (It&#39;s quite true).&quot;</span>;
 
-    <span class="kw">let</span> <span class="ident">changeset</span> <span class="op">=</span> <span class="ident">Changeset</span>::<span class="ident">new</span>(<span class="ident">text1</span>, <span class="ident">text2</span>, <span class="string">&quot;\n&quot;</span>);
+    <span class="kw">let</span> <span class="ident">changeset</span> <span class="op">=</span> <span class="ident">Changeset::new</span>(<span class="ident">text1</span>, <span class="ident">text2</span>, <span class="string">&quot;\n&quot;</span>);
 
-    <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">changeset</span>.<span class="ident">distance</span>, <span class="number">4</span>);
+    <span class="macro">assert_eq!</span>(<span class="ident">changeset</span>.<span class="ident">distance</span>, <span class="number">4</span>);
 
-    <span class="macro">assert_eq</span><span class="macro">!</span>(
+    <span class="macro">assert_eq!</span>(
         <span class="ident">changeset</span>.<span class="ident">diffs</span>,
-        <span class="macro">vec</span><span class="macro">!</span>[
-            <span class="ident">Difference</span>::<span class="ident">Same</span>(<span class="string">&quot;Roses are red, violets are blue,&quot;</span>.<span class="ident">to_string</span>()),
-            <span class="ident">Difference</span>::<span class="ident">Rem</span>(<span class="string">&quot;I wrote this library,&quot;</span>.<span class="ident">to_string</span>()),
-            <span class="ident">Difference</span>::<span class="ident">Add</span>(<span class="string">&quot;I wrote this documentation,&quot;</span>.<span class="ident">to_string</span>()),
-            <span class="ident">Difference</span>::<span class="ident">Same</span>(<span class="string">&quot;just for you.&quot;</span>.<span class="ident">to_string</span>()),
-            <span class="ident">Difference</span>::<span class="ident">Rem</span>(<span class="string">&quot;(It&#39;s true).&quot;</span>.<span class="ident">to_string</span>()),
-            <span class="ident">Difference</span>::<span class="ident">Add</span>(<span class="string">&quot;(It&#39;s quite true).&quot;</span>.<span class="ident">to_string</span>()),
+        <span class="macro">vec!</span>[
+            <span class="ident">Difference::Same</span>(<span class="string">&quot;Roses are red, violets are blue,&quot;</span>.<span class="ident">to_string</span>()),
+            <span class="ident">Difference::Rem</span>(<span class="string">&quot;I wrote this library,&quot;</span>.<span class="ident">to_string</span>()),
+            <span class="ident">Difference::Add</span>(<span class="string">&quot;I wrote this documentation,&quot;</span>.<span class="ident">to_string</span>()),
+            <span class="ident">Difference::Same</span>(<span class="string">&quot;just for you.&quot;</span>.<span class="ident">to_string</span>()),
+            <span class="ident">Difference::Rem</span>(<span class="string">&quot;(It&#39;s true).&quot;</span>.<span class="ident">to_string</span>()),
+            <span class="ident">Difference::Add</span>(<span class="string">&quot;(It&#39;s quite true).&quot;</span>.<span class="ident">to_string</span>()),
         ]
     );
 }
@@ -563,13 +563,13 @@
     <span class="kw">let</span> <span class="ident">text1</span> <span class="op">=</span> <span class="string">&quot;Hello\nworld&quot;</span>;
     <span class="kw">let</span> <span class="ident">text2</span> <span class="op">=</span> <span class="string">&quot;Ola\nmundo&quot;</span>;
 
-    <span class="kw">let</span> <span class="ident">changeset</span> <span class="op">=</span> <span class="ident">Changeset</span>::<span class="ident">new</span>(<span class="ident">text1</span>, <span class="ident">text2</span>, <span class="string">&quot;\n&quot;</span>);
+    <span class="kw">let</span> <span class="ident">changeset</span> <span class="op">=</span> <span class="ident">Changeset::new</span>(<span class="ident">text1</span>, <span class="ident">text2</span>, <span class="string">&quot;\n&quot;</span>);
 
-    <span class="macro">assert_eq</span><span class="macro">!</span>(
+    <span class="macro">assert_eq!</span>(
         <span class="ident">changeset</span>.<span class="ident">diffs</span>,
-        <span class="macro">vec</span><span class="macro">!</span>[
-            <span class="ident">Difference</span>::<span class="ident">Rem</span>(<span class="string">&quot;Hello\nworld&quot;</span>.<span class="ident">to_string</span>()),
-            <span class="ident">Difference</span>::<span class="ident">Add</span>(<span class="string">&quot;Ola\nmundo&quot;</span>.<span class="ident">to_string</span>()),
+        <span class="macro">vec!</span>[
+            <span class="ident">Difference::Rem</span>(<span class="string">&quot;Hello\nworld&quot;</span>.<span class="ident">to_string</span>()),
+            <span class="ident">Difference::Add</span>(<span class="string">&quot;Ola\nmundo&quot;</span>.<span class="ident">to_string</span>()),
         ]
     );
 }
@@ -579,15 +579,15 @@
     <span class="kw">let</span> <span class="ident">text1</span> <span class="op">=</span> <span class="string">&quot;Hello\nworld&quot;</span>;
     <span class="kw">let</span> <span class="ident">text2</span> <span class="op">=</span> <span class="string">&quot;Ola\nworld\nHow is it\ngoing?&quot;</span>;
 
-    <span class="kw">let</span> <span class="ident">changeset</span> <span class="op">=</span> <span class="ident">Changeset</span>::<span class="ident">new</span>(<span class="ident">text1</span>, <span class="ident">text2</span>, <span class="string">&quot;\n&quot;</span>);
+    <span class="kw">let</span> <span class="ident">changeset</span> <span class="op">=</span> <span class="ident">Changeset::new</span>(<span class="ident">text1</span>, <span class="ident">text2</span>, <span class="string">&quot;\n&quot;</span>);
 
-    <span class="macro">assert_eq</span><span class="macro">!</span>(
+    <span class="macro">assert_eq!</span>(
         <span class="ident">changeset</span>.<span class="ident">diffs</span>,
-        <span class="macro">vec</span><span class="macro">!</span>[
-            <span class="ident">Difference</span>::<span class="ident">Rem</span>(<span class="string">&quot;Hello&quot;</span>.<span class="ident">to_string</span>()),
-            <span class="ident">Difference</span>::<span class="ident">Add</span>(<span class="string">&quot;Ola&quot;</span>.<span class="ident">to_string</span>()),
-            <span class="ident">Difference</span>::<span class="ident">Same</span>(<span class="string">&quot;world&quot;</span>.<span class="ident">to_string</span>()),
-            <span class="ident">Difference</span>::<span class="ident">Add</span>(<span class="string">&quot;How is it\ngoing?&quot;</span>.<span class="ident">to_string</span>()),
+        <span class="macro">vec!</span>[
+            <span class="ident">Difference::Rem</span>(<span class="string">&quot;Hello&quot;</span>.<span class="ident">to_string</span>()),
+            <span class="ident">Difference::Add</span>(<span class="string">&quot;Ola&quot;</span>.<span class="ident">to_string</span>()),
+            <span class="ident">Difference::Same</span>(<span class="string">&quot;world&quot;</span>.<span class="ident">to_string</span>()),
+            <span class="ident">Difference::Add</span>(<span class="string">&quot;How is it\ngoing?&quot;</span>.<span class="ident">to_string</span>()),
         ]
     );
 }
@@ -597,15 +597,15 @@
     <span class="kw">let</span> <span class="ident">text1</span> <span class="op">=</span> <span class="string">&quot;Hello\nworld\nWhat a \nbeautiful\nday!&quot;</span>;
     <span class="kw">let</span> <span class="ident">text2</span> <span class="op">=</span> <span class="string">&quot;Ola\nworld&quot;</span>;
 
-    <span class="kw">let</span> <span class="ident">changeset</span> <span class="op">=</span> <span class="ident">Changeset</span>::<span class="ident">new</span>(<span class="ident">text1</span>, <span class="ident">text2</span>, <span class="string">&quot;\n&quot;</span>);
+    <span class="kw">let</span> <span class="ident">changeset</span> <span class="op">=</span> <span class="ident">Changeset::new</span>(<span class="ident">text1</span>, <span class="ident">text2</span>, <span class="string">&quot;\n&quot;</span>);
 
-    <span class="macro">assert_eq</span><span class="macro">!</span>(
+    <span class="macro">assert_eq!</span>(
         <span class="ident">changeset</span>.<span class="ident">diffs</span>,
-        <span class="macro">vec</span><span class="macro">!</span>[
-            <span class="ident">Difference</span>::<span class="ident">Rem</span>(<span class="string">&quot;Hello&quot;</span>.<span class="ident">to_string</span>()),
-            <span class="ident">Difference</span>::<span class="ident">Add</span>(<span class="string">&quot;Ola&quot;</span>.<span class="ident">to_string</span>()),
-            <span class="ident">Difference</span>::<span class="ident">Same</span>(<span class="string">&quot;world&quot;</span>.<span class="ident">to_string</span>()),
-            <span class="ident">Difference</span>::<span class="ident">Rem</span>(<span class="string">&quot;What a \nbeautiful\nday!&quot;</span>.<span class="ident">to_string</span>()),
+        <span class="macro">vec!</span>[
+            <span class="ident">Difference::Rem</span>(<span class="string">&quot;Hello&quot;</span>.<span class="ident">to_string</span>()),
+            <span class="ident">Difference::Add</span>(<span class="string">&quot;Ola&quot;</span>.<span class="ident">to_string</span>()),
+            <span class="ident">Difference::Same</span>(<span class="string">&quot;world&quot;</span>.<span class="ident">to_string</span>()),
+            <span class="ident">Difference::Rem</span>(<span class="string">&quot;What a \nbeautiful\nday!&quot;</span>.<span class="ident">to_string</span>()),
         ]
     );
 }
@@ -615,14 +615,14 @@
     <span class="kw">let</span> <span class="ident">text1</span> <span class="op">=</span> <span class="string">&quot;Hello\nworld\nWhat a \nbeautiful\nday!&quot;</span>;
     <span class="kw">let</span> <span class="ident">text2</span> <span class="op">=</span> <span class="string">&quot;Hello\nwoRLd&quot;</span>;
 
-    <span class="kw">let</span> <span class="ident">changeset</span> <span class="op">=</span> <span class="ident">Changeset</span>::<span class="ident">new</span>(<span class="ident">text1</span>, <span class="ident">text2</span>, <span class="string">&quot;\n&quot;</span>);
+    <span class="kw">let</span> <span class="ident">changeset</span> <span class="op">=</span> <span class="ident">Changeset::new</span>(<span class="ident">text1</span>, <span class="ident">text2</span>, <span class="string">&quot;\n&quot;</span>);
 
-    <span class="macro">assert_eq</span><span class="macro">!</span>(
+    <span class="macro">assert_eq!</span>(
         <span class="ident">changeset</span>.<span class="ident">diffs</span>,
-        <span class="macro">vec</span><span class="macro">!</span>[
-            <span class="ident">Difference</span>::<span class="ident">Same</span>(<span class="string">&quot;Hello&quot;</span>.<span class="ident">to_string</span>()),
-            <span class="ident">Difference</span>::<span class="ident">Rem</span>(<span class="string">&quot;world\nWhat a \nbeautiful\nday!&quot;</span>.<span class="ident">to_string</span>()),
-            <span class="ident">Difference</span>::<span class="ident">Add</span>(<span class="string">&quot;woRLd&quot;</span>.<span class="ident">to_string</span>()),
+        <span class="macro">vec!</span>[
+            <span class="ident">Difference::Same</span>(<span class="string">&quot;Hello&quot;</span>.<span class="ident">to_string</span>()),
+            <span class="ident">Difference::Rem</span>(<span class="string">&quot;world\nWhat a \nbeautiful\nday!&quot;</span>.<span class="ident">to_string</span>()),
+            <span class="ident">Difference::Add</span>(<span class="string">&quot;woRLd&quot;</span>.<span class="ident">to_string</span>()),
         ]
     );
 }
@@ -632,16 +632,16 @@
     <span class="kw">let</span> <span class="ident">text1</span> <span class="op">=</span> <span class="string">&quot;Hello\nworld\nWhat a \nbeautiful\nday!&quot;</span>;
     <span class="kw">let</span> <span class="ident">text2</span> <span class="op">=</span> <span class="string">&quot;Hello\nwoRLd\nbeautiful&quot;</span>;
 
-    <span class="kw">let</span> <span class="ident">changeset</span> <span class="op">=</span> <span class="ident">Changeset</span>::<span class="ident">new</span>(<span class="ident">text1</span>, <span class="ident">text2</span>, <span class="string">&quot;\n&quot;</span>);
+    <span class="kw">let</span> <span class="ident">changeset</span> <span class="op">=</span> <span class="ident">Changeset::new</span>(<span class="ident">text1</span>, <span class="ident">text2</span>, <span class="string">&quot;\n&quot;</span>);
 
-    <span class="macro">assert_eq</span><span class="macro">!</span>(
+    <span class="macro">assert_eq!</span>(
         <span class="ident">changeset</span>.<span class="ident">diffs</span>,
-        <span class="macro">vec</span><span class="macro">!</span>[
-            <span class="ident">Difference</span>::<span class="ident">Same</span>(<span class="string">&quot;Hello&quot;</span>.<span class="ident">to_string</span>()),
-            <span class="ident">Difference</span>::<span class="ident">Rem</span>(<span class="string">&quot;world\nWhat a &quot;</span>.<span class="ident">to_string</span>()),
-            <span class="ident">Difference</span>::<span class="ident">Add</span>(<span class="string">&quot;woRLd&quot;</span>.<span class="ident">to_string</span>()),
-            <span class="ident">Difference</span>::<span class="ident">Same</span>(<span class="string">&quot;beautiful&quot;</span>.<span class="ident">to_string</span>()),
-            <span class="ident">Difference</span>::<span class="ident">Rem</span>(<span class="string">&quot;day!&quot;</span>.<span class="ident">to_string</span>()),
+        <span class="macro">vec!</span>[
+            <span class="ident">Difference::Same</span>(<span class="string">&quot;Hello&quot;</span>.<span class="ident">to_string</span>()),
+            <span class="ident">Difference::Rem</span>(<span class="string">&quot;world\nWhat a &quot;</span>.<span class="ident">to_string</span>()),
+            <span class="ident">Difference::Add</span>(<span class="string">&quot;woRLd&quot;</span>.<span class="ident">to_string</span>()),
+            <span class="ident">Difference::Same</span>(<span class="string">&quot;beautiful&quot;</span>.<span class="ident">to_string</span>()),
+            <span class="ident">Difference::Rem</span>(<span class="string">&quot;day!&quot;</span>.<span class="ident">to_string</span>()),
         ]
     );
 }
@@ -659,7 +659,7 @@
                  just for you.\n\
                  (It&#39;s quite true).&quot;</span>;
 
-    <span class="macro">assert_diff</span><span class="macro">!</span>(<span class="ident">text1</span>, <span class="ident">text2</span>, <span class="string">&quot;\n&#39;&quot;</span>, <span class="number">0</span>);
+    <span class="macro">assert_diff!</span>(<span class="ident">text1</span>, <span class="ident">text2</span>, <span class="string">&quot;\n&#39;&quot;</span>, <span class="number">0</span>);
 }
 
 <span class="attribute">#[<span class="ident">test</span>]</span>
@@ -668,8 +668,8 @@
 
     <span class="kw">let</span> <span class="ident">text2</span> <span class="op">=</span> <span class="string">&quot;Roses are green, violets are blue&quot;</span>;
 
-    <span class="macro">assert_diff</span><span class="macro">!</span>(<span class="ident">text1</span>, <span class="ident">text2</span>, <span class="string">&quot; &quot;</span>, <span class="number">2</span>);
+    <span class="macro">assert_diff!</span>(<span class="ident">text1</span>, <span class="ident">text2</span>, <span class="string">&quot; &quot;</span>, <span class="number">2</span>);
 }
 </pre></div>
-</section><section id="search" class="content hidden"></section><section class="footer"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="difference" data-search-js="../../search-index.js"></div>
+</section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="difference" data-search-index-js="../../search-index.js" data-search-js="../../search.js"></div>
     <script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script></body></html>

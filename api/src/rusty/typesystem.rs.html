@@ -1,6 +1,6 @@
 <!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/typesystem.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>typesystem.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings"></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
 <link rel="alternate icon" type="image/png" href="../../favicon-16x16.png">
-<link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../rusty/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
+<link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../rusty/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
                 <a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" height="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
@@ -427,9 +427,9 @@
 <span id="424">424</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">ops</span>::<span class="ident">Range</span>;
+<span class="kw">use</span> <span class="ident">std::ops::Range</span>;
 
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">ast</span>::{<span class="ident">Dimension</span>, <span class="ident">Statement</span>};
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::ast</span>::{<span class="ident">Dimension</span>, <span class="ident">Statement</span>};
 
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">DEFAULT_STRING_LEN</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">80</span>;
 
@@ -473,8 +473,8 @@
 <span class="kw">impl</span> <span class="ident">StringEncoding</span> {
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_bytes_per_char</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">StringEncoding</span>::<span class="ident">Utf8</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">1</span>,
-            <span class="ident">StringEncoding</span>::<span class="ident">Utf16</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">2</span>,
+            <span class="ident">StringEncoding::Utf8</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">1</span>,
+            <span class="ident">StringEncoding::Utf16</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">2</span>,
         }
     }
 }
@@ -524,37 +524,37 @@
 <span class="kw">impl</span> <span class="ident">DataTypeInformation</span> {
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_name</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">str</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">DataTypeInformation</span>::<span class="ident">Struct</span> { <span class="ident">name</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">name</span>,
-            <span class="ident">DataTypeInformation</span>::<span class="ident">Array</span> { <span class="ident">name</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">name</span>,
-            <span class="ident">DataTypeInformation</span>::<span class="ident">Pointer</span> { <span class="ident">name</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">name</span>,
-            <span class="ident">DataTypeInformation</span>::<span class="ident">Integer</span> { <span class="ident">name</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">name</span>,
-            <span class="ident">DataTypeInformation</span>::<span class="ident">Float</span> { <span class="ident">name</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">name</span>,
-            <span class="ident">DataTypeInformation</span>::<span class="ident">String</span> { .. } <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;String&quot;</span>,
-            <span class="ident">DataTypeInformation</span>::<span class="ident">SubRange</span> { <span class="ident">name</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">name</span>,
-            <span class="ident">DataTypeInformation</span>::<span class="ident">Void</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;Void&quot;</span>,
-            <span class="ident">DataTypeInformation</span>::<span class="ident">Alias</span> { <span class="ident">name</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">name</span>,
+            <span class="ident">DataTypeInformation::Struct</span> { <span class="ident">name</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">name</span>,
+            <span class="ident">DataTypeInformation::Array</span> { <span class="ident">name</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">name</span>,
+            <span class="ident">DataTypeInformation::Pointer</span> { <span class="ident">name</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">name</span>,
+            <span class="ident">DataTypeInformation::Integer</span> { <span class="ident">name</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">name</span>,
+            <span class="ident">DataTypeInformation::Float</span> { <span class="ident">name</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">name</span>,
+            <span class="ident">DataTypeInformation::String</span> { .. } <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;String&quot;</span>,
+            <span class="ident">DataTypeInformation::SubRange</span> { <span class="ident">name</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">name</span>,
+            <span class="ident">DataTypeInformation::Void</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;Void&quot;</span>,
+            <span class="ident">DataTypeInformation::Alias</span> { <span class="ident">name</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">name</span>,
         }
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_int</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="macro">matches</span><span class="macro">!</span>(<span class="self">self</span>, <span class="ident">DataTypeInformation</span>::<span class="ident">Integer</span> { .. })
+        <span class="macro">matches!</span>(<span class="self">self</span>, <span class="ident">DataTypeInformation::Integer</span> { .. })
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_float</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="macro">matches</span><span class="macro">!</span>(<span class="self">self</span>, <span class="ident">DataTypeInformation</span>::<span class="ident">Float</span> { .. })
+        <span class="macro">matches!</span>(<span class="self">self</span>, <span class="ident">DataTypeInformation::Float</span> { .. })
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_numerical</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="macro">matches</span><span class="macro">!</span>(
+        <span class="macro">matches!</span>(
             <span class="self">self</span>,
-            <span class="ident">DataTypeInformation</span>::<span class="ident">Integer</span> { .. } <span class="op">|</span> <span class="ident">DataTypeInformation</span>::<span class="ident">Float</span> { .. }
+            <span class="ident">DataTypeInformation::Integer</span> { .. } <span class="op">|</span> <span class="ident">DataTypeInformation::Float</span> { .. }
         )
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_variadic</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="macro">matches</span><span class="macro">!</span>(
+        <span class="macro">matches!</span>(
             <span class="self">self</span>,
-            <span class="ident">DataTypeInformation</span>::<span class="ident">Struct</span> {
+            <span class="ident">DataTypeInformation::Struct</span> {
                 <span class="ident">varargs</span>: <span class="prelude-val">Some</span>(<span class="kw">_</span>),
                 ..
             }
@@ -562,12 +562,12 @@
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_variadic_type</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">DataTypeInformation</span>::<span class="ident">Struct</span> {
+        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">DataTypeInformation::Struct</span> {
             <span class="ident">varargs</span>: <span class="prelude-val">Some</span>(<span class="ident">inner_type</span>),
             ..
         } <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>
         {
-            <span class="ident">inner_type</span>.<span class="ident">as_ref</span>().<span class="ident">map</span>(<span class="ident">String</span>::<span class="ident">as_str</span>)
+            <span class="ident">inner_type</span>.<span class="ident">as_ref</span>().<span class="ident">map</span>(<span class="ident">String::as_str</span>)
         } <span class="kw">else</span> {
             <span class="prelude-val">None</span>
         }
@@ -575,30 +575,30 @@
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_size</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">DataTypeInformation</span>::<span class="ident">Integer</span> { <span class="ident">size</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="ident">size</span>,
-            <span class="ident">DataTypeInformation</span>::<span class="ident">Float</span> { <span class="ident">size</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="ident">size</span>,
-            <span class="ident">DataTypeInformation</span>::<span class="ident">String</span> { <span class="ident">size</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="ident">size</span>,
-            <span class="ident">DataTypeInformation</span>::<span class="ident">Struct</span> { .. } <span class="op">=</span><span class="op">&gt;</span> <span class="number">0</span>, <span class="comment">//TODO : Should we fill in the struct members here for size calculation or save the struct size.</span>
-            <span class="ident">DataTypeInformation</span>::<span class="ident">Array</span> { .. } <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unimplemented</span><span class="macro">!</span>(), <span class="comment">//Propably length * inner type size</span>
-            <span class="ident">DataTypeInformation</span>::<span class="ident">Pointer</span> { .. } <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unimplemented</span><span class="macro">!</span>(),
-            <span class="ident">DataTypeInformation</span>::<span class="ident">SubRange</span> { .. } <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unimplemented</span><span class="macro">!</span>(),
-            <span class="ident">DataTypeInformation</span>::<span class="ident">Alias</span> { .. } <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unimplemented</span><span class="macro">!</span>(),
-            <span class="ident">DataTypeInformation</span>::<span class="ident">Void</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">0</span>,
+            <span class="ident">DataTypeInformation::Integer</span> { <span class="ident">size</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="ident">size</span>,
+            <span class="ident">DataTypeInformation::Float</span> { <span class="ident">size</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="ident">size</span>,
+            <span class="ident">DataTypeInformation::String</span> { <span class="ident">size</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="ident">size</span>,
+            <span class="ident">DataTypeInformation::Struct</span> { .. } <span class="op">=</span><span class="op">&gt;</span> <span class="number">0</span>, <span class="comment">//TODO : Should we fill in the struct members here for size calculation or save the struct size.</span>
+            <span class="ident">DataTypeInformation::Array</span> { .. } <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unimplemented!</span>(), <span class="comment">//Propably length * inner type size</span>
+            <span class="ident">DataTypeInformation::Pointer</span> { .. } <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unimplemented!</span>(),
+            <span class="ident">DataTypeInformation::SubRange</span> { .. } <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unimplemented!</span>(),
+            <span class="ident">DataTypeInformation::Alias</span> { .. } <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unimplemented!</span>(),
+            <span class="ident">DataTypeInformation::Void</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">0</span>,
         }
     }
 }
 
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_builtin_types</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">DataType</span><span class="op">&gt;</span> {
-    <span class="macro">vec</span><span class="macro">!</span>[
+    <span class="macro">vec!</span>[
         <span class="ident">DataType</span> {
             <span class="ident">name</span>: <span class="string">&quot;__VOID&quot;</span>.<span class="ident">into</span>(),
             <span class="ident">initial_value</span>: <span class="prelude-val">None</span>,
-            <span class="ident">information</span>: <span class="ident">DataTypeInformation</span>::<span class="ident">Void</span>,
+            <span class="ident">information</span>: <span class="ident">DataTypeInformation::Void</span>,
         },
         <span class="ident">DataType</span> {
             <span class="ident">name</span>: <span class="string">&quot;BOOL&quot;</span>.<span class="ident">into</span>(),
             <span class="ident">initial_value</span>: <span class="prelude-val">None</span>,
-            <span class="ident">information</span>: <span class="ident">DataTypeInformation</span>::<span class="ident">Integer</span> {
+            <span class="ident">information</span>: <span class="ident">DataTypeInformation::Integer</span> {
                 <span class="ident">name</span>: <span class="string">&quot;BOOL&quot;</span>.<span class="ident">into</span>(),
                 <span class="ident">signed</span>: <span class="bool-val">true</span>,
                 <span class="ident">size</span>: <span class="number">1</span>,
@@ -607,7 +607,7 @@
         <span class="ident">DataType</span> {
             <span class="ident">name</span>: <span class="string">&quot;BYTE&quot;</span>.<span class="ident">into</span>(),
             <span class="ident">initial_value</span>: <span class="prelude-val">None</span>,
-            <span class="ident">information</span>: <span class="ident">DataTypeInformation</span>::<span class="ident">Integer</span> {
+            <span class="ident">information</span>: <span class="ident">DataTypeInformation::Integer</span> {
                 <span class="ident">name</span>: <span class="string">&quot;BYTE&quot;</span>.<span class="ident">into</span>(),
                 <span class="ident">signed</span>: <span class="bool-val">false</span>,
                 <span class="ident">size</span>: <span class="number">8</span>,
@@ -616,7 +616,7 @@
         <span class="ident">DataType</span> {
             <span class="ident">name</span>: <span class="string">&quot;SINT&quot;</span>.<span class="ident">into</span>(),
             <span class="ident">initial_value</span>: <span class="prelude-val">None</span>,
-            <span class="ident">information</span>: <span class="ident">DataTypeInformation</span>::<span class="ident">Integer</span> {
+            <span class="ident">information</span>: <span class="ident">DataTypeInformation::Integer</span> {
                 <span class="ident">name</span>: <span class="string">&quot;SINT&quot;</span>.<span class="ident">into</span>(),
                 <span class="ident">signed</span>: <span class="bool-val">true</span>,
                 <span class="ident">size</span>: <span class="number">8</span>,
@@ -625,7 +625,7 @@
         <span class="ident">DataType</span> {
             <span class="ident">name</span>: <span class="string">&quot;USINT&quot;</span>.<span class="ident">into</span>(),
             <span class="ident">initial_value</span>: <span class="prelude-val">None</span>,
-            <span class="ident">information</span>: <span class="ident">DataTypeInformation</span>::<span class="ident">Integer</span> {
+            <span class="ident">information</span>: <span class="ident">DataTypeInformation::Integer</span> {
                 <span class="ident">name</span>: <span class="string">&quot;USINT&quot;</span>.<span class="ident">into</span>(),
                 <span class="ident">signed</span>: <span class="bool-val">false</span>,
                 <span class="ident">size</span>: <span class="number">8</span>,
@@ -634,7 +634,7 @@
         <span class="ident">DataType</span> {
             <span class="ident">name</span>: <span class="string">&quot;WORD&quot;</span>.<span class="ident">into</span>(),
             <span class="ident">initial_value</span>: <span class="prelude-val">None</span>,
-            <span class="ident">information</span>: <span class="ident">DataTypeInformation</span>::<span class="ident">Integer</span> {
+            <span class="ident">information</span>: <span class="ident">DataTypeInformation::Integer</span> {
                 <span class="ident">name</span>: <span class="string">&quot;WORD&quot;</span>.<span class="ident">into</span>(),
                 <span class="ident">signed</span>: <span class="bool-val">false</span>,
                 <span class="ident">size</span>: <span class="number">16</span>,
@@ -643,7 +643,7 @@
         <span class="ident">DataType</span> {
             <span class="ident">name</span>: <span class="string">&quot;INT&quot;</span>.<span class="ident">into</span>(),
             <span class="ident">initial_value</span>: <span class="prelude-val">None</span>,
-            <span class="ident">information</span>: <span class="ident">DataTypeInformation</span>::<span class="ident">Integer</span> {
+            <span class="ident">information</span>: <span class="ident">DataTypeInformation::Integer</span> {
                 <span class="ident">name</span>: <span class="string">&quot;INT&quot;</span>.<span class="ident">into</span>(),
                 <span class="ident">signed</span>: <span class="bool-val">true</span>,
                 <span class="ident">size</span>: <span class="number">16</span>,
@@ -652,7 +652,7 @@
         <span class="ident">DataType</span> {
             <span class="ident">name</span>: <span class="string">&quot;UINT&quot;</span>.<span class="ident">into</span>(),
             <span class="ident">initial_value</span>: <span class="prelude-val">None</span>,
-            <span class="ident">information</span>: <span class="ident">DataTypeInformation</span>::<span class="ident">Integer</span> {
+            <span class="ident">information</span>: <span class="ident">DataTypeInformation::Integer</span> {
                 <span class="ident">name</span>: <span class="string">&quot;UINT&quot;</span>.<span class="ident">into</span>(),
                 <span class="ident">signed</span>: <span class="bool-val">false</span>,
                 <span class="ident">size</span>: <span class="number">16</span>,
@@ -661,7 +661,7 @@
         <span class="ident">DataType</span> {
             <span class="ident">name</span>: <span class="string">&quot;DWORD&quot;</span>.<span class="ident">into</span>(),
             <span class="ident">initial_value</span>: <span class="prelude-val">None</span>,
-            <span class="ident">information</span>: <span class="ident">DataTypeInformation</span>::<span class="ident">Integer</span> {
+            <span class="ident">information</span>: <span class="ident">DataTypeInformation::Integer</span> {
                 <span class="ident">name</span>: <span class="string">&quot;DWORD&quot;</span>.<span class="ident">into</span>(),
                 <span class="ident">signed</span>: <span class="bool-val">false</span>,
                 <span class="ident">size</span>: <span class="number">32</span>,
@@ -670,7 +670,7 @@
         <span class="ident">DataType</span> {
             <span class="ident">name</span>: <span class="string">&quot;DINT&quot;</span>.<span class="ident">into</span>(),
             <span class="ident">initial_value</span>: <span class="prelude-val">None</span>,
-            <span class="ident">information</span>: <span class="ident">DataTypeInformation</span>::<span class="ident">Integer</span> {
+            <span class="ident">information</span>: <span class="ident">DataTypeInformation::Integer</span> {
                 <span class="ident">name</span>: <span class="string">&quot;DINT&quot;</span>.<span class="ident">into</span>(),
                 <span class="ident">signed</span>: <span class="bool-val">true</span>,
                 <span class="ident">size</span>: <span class="number">32</span>,
@@ -679,7 +679,7 @@
         <span class="ident">DataType</span> {
             <span class="ident">name</span>: <span class="string">&quot;UDINT&quot;</span>.<span class="ident">into</span>(),
             <span class="ident">initial_value</span>: <span class="prelude-val">None</span>,
-            <span class="ident">information</span>: <span class="ident">DataTypeInformation</span>::<span class="ident">Integer</span> {
+            <span class="ident">information</span>: <span class="ident">DataTypeInformation::Integer</span> {
                 <span class="ident">name</span>: <span class="string">&quot;UDINT&quot;</span>.<span class="ident">into</span>(),
                 <span class="ident">signed</span>: <span class="bool-val">false</span>,
                 <span class="ident">size</span>: <span class="number">32</span>,
@@ -688,7 +688,7 @@
         <span class="ident">DataType</span> {
             <span class="ident">name</span>: <span class="string">&quot;LWORD&quot;</span>.<span class="ident">into</span>(),
             <span class="ident">initial_value</span>: <span class="prelude-val">None</span>,
-            <span class="ident">information</span>: <span class="ident">DataTypeInformation</span>::<span class="ident">Integer</span> {
+            <span class="ident">information</span>: <span class="ident">DataTypeInformation::Integer</span> {
                 <span class="ident">name</span>: <span class="string">&quot;LWORD&quot;</span>.<span class="ident">into</span>(),
                 <span class="ident">signed</span>: <span class="bool-val">false</span>,
                 <span class="ident">size</span>: <span class="number">64</span>,
@@ -697,7 +697,7 @@
         <span class="ident">DataType</span> {
             <span class="ident">name</span>: <span class="string">&quot;LINT&quot;</span>.<span class="ident">into</span>(),
             <span class="ident">initial_value</span>: <span class="prelude-val">None</span>,
-            <span class="ident">information</span>: <span class="ident">DataTypeInformation</span>::<span class="ident">Integer</span> {
+            <span class="ident">information</span>: <span class="ident">DataTypeInformation::Integer</span> {
                 <span class="ident">name</span>: <span class="string">&quot;LINT&quot;</span>.<span class="ident">into</span>(),
                 <span class="ident">signed</span>: <span class="bool-val">true</span>,
                 <span class="ident">size</span>: <span class="number">64</span>,
@@ -706,7 +706,7 @@
         <span class="ident">DataType</span> {
             <span class="ident">name</span>: <span class="string">&quot;DATE&quot;</span>.<span class="ident">into</span>(),
             <span class="ident">initial_value</span>: <span class="prelude-val">None</span>,
-            <span class="ident">information</span>: <span class="ident">DataTypeInformation</span>::<span class="ident">Integer</span> {
+            <span class="ident">information</span>: <span class="ident">DataTypeInformation::Integer</span> {
                 <span class="ident">name</span>: <span class="string">&quot;DATE&quot;</span>.<span class="ident">into</span>(),
                 <span class="ident">signed</span>: <span class="bool-val">true</span>,
                 <span class="ident">size</span>: <span class="number">64</span>,
@@ -715,7 +715,7 @@
         <span class="ident">DataType</span> {
             <span class="ident">name</span>: <span class="string">&quot;TIME&quot;</span>.<span class="ident">into</span>(),
             <span class="ident">initial_value</span>: <span class="prelude-val">None</span>,
-            <span class="ident">information</span>: <span class="ident">DataTypeInformation</span>::<span class="ident">Integer</span> {
+            <span class="ident">information</span>: <span class="ident">DataTypeInformation::Integer</span> {
                 <span class="ident">name</span>: <span class="string">&quot;TIME&quot;</span>.<span class="ident">into</span>(),
                 <span class="ident">signed</span>: <span class="bool-val">true</span>,
                 <span class="ident">size</span>: <span class="number">64</span>,
@@ -724,7 +724,7 @@
         <span class="ident">DataType</span> {
             <span class="ident">name</span>: <span class="string">&quot;DATE_AND_TIME&quot;</span>.<span class="ident">into</span>(),
             <span class="ident">initial_value</span>: <span class="prelude-val">None</span>,
-            <span class="ident">information</span>: <span class="ident">DataTypeInformation</span>::<span class="ident">Integer</span> {
+            <span class="ident">information</span>: <span class="ident">DataTypeInformation::Integer</span> {
                 <span class="ident">name</span>: <span class="string">&quot;DATE_AND_TIME&quot;</span>.<span class="ident">into</span>(),
                 <span class="ident">signed</span>: <span class="bool-val">true</span>,
                 <span class="ident">size</span>: <span class="number">64</span>,
@@ -733,7 +733,7 @@
         <span class="ident">DataType</span> {
             <span class="ident">name</span>: <span class="string">&quot;TIME_OF_DAY&quot;</span>.<span class="ident">into</span>(),
             <span class="ident">initial_value</span>: <span class="prelude-val">None</span>,
-            <span class="ident">information</span>: <span class="ident">DataTypeInformation</span>::<span class="ident">Integer</span> {
+            <span class="ident">information</span>: <span class="ident">DataTypeInformation::Integer</span> {
                 <span class="ident">name</span>: <span class="string">&quot;TIME_OF_DAY&quot;</span>.<span class="ident">into</span>(),
                 <span class="ident">signed</span>: <span class="bool-val">true</span>,
                 <span class="ident">size</span>: <span class="number">64</span>,
@@ -742,7 +742,7 @@
         <span class="ident">DataType</span> {
             <span class="ident">name</span>: <span class="string">&quot;ULINT&quot;</span>.<span class="ident">into</span>(),
             <span class="ident">initial_value</span>: <span class="prelude-val">None</span>,
-            <span class="ident">information</span>: <span class="ident">DataTypeInformation</span>::<span class="ident">Integer</span> {
+            <span class="ident">information</span>: <span class="ident">DataTypeInformation::Integer</span> {
                 <span class="ident">name</span>: <span class="string">&quot;ULINT&quot;</span>.<span class="ident">into</span>(),
                 <span class="ident">signed</span>: <span class="bool-val">false</span>,
                 <span class="ident">size</span>: <span class="number">64</span>,
@@ -751,7 +751,7 @@
         <span class="ident">DataType</span> {
             <span class="ident">name</span>: <span class="string">&quot;REAL&quot;</span>.<span class="ident">into</span>(),
             <span class="ident">initial_value</span>: <span class="prelude-val">None</span>,
-            <span class="ident">information</span>: <span class="ident">DataTypeInformation</span>::<span class="ident">Float</span> {
+            <span class="ident">information</span>: <span class="ident">DataTypeInformation::Float</span> {
                 <span class="ident">name</span>: <span class="string">&quot;REAL&quot;</span>.<span class="ident">into</span>(),
                 <span class="ident">size</span>: <span class="number">32</span>,
             },
@@ -759,7 +759,7 @@
         <span class="ident">DataType</span> {
             <span class="ident">name</span>: <span class="string">&quot;LREAL&quot;</span>.<span class="ident">into</span>(),
             <span class="ident">initial_value</span>: <span class="prelude-val">None</span>,
-            <span class="ident">information</span>: <span class="ident">DataTypeInformation</span>::<span class="ident">Float</span> {
+            <span class="ident">information</span>: <span class="ident">DataTypeInformation::Float</span> {
                 <span class="ident">name</span>: <span class="string">&quot;LREAL&quot;</span>.<span class="ident">into</span>(),
                 <span class="ident">size</span>: <span class="number">64</span>,
             },
@@ -767,47 +767,47 @@
         <span class="ident">DataType</span> {
             <span class="ident">name</span>: <span class="string">&quot;STRING&quot;</span>.<span class="ident">into</span>(),
             <span class="ident">initial_value</span>: <span class="prelude-val">None</span>,
-            <span class="ident">information</span>: <span class="ident">DataTypeInformation</span>::<span class="ident">String</span> {
+            <span class="ident">information</span>: <span class="ident">DataTypeInformation::String</span> {
                 <span class="ident">size</span>: <span class="ident">DEFAULT_STRING_LEN</span> <span class="op">+</span> <span class="number">1</span>,
-                <span class="ident">encoding</span>: <span class="ident">StringEncoding</span>::<span class="ident">Utf8</span>,
+                <span class="ident">encoding</span>: <span class="ident">StringEncoding::Utf8</span>,
             },
         },
         <span class="ident">DataType</span> {
             <span class="ident">name</span>: <span class="string">&quot;WSTRING&quot;</span>.<span class="ident">into</span>(),
             <span class="ident">initial_value</span>: <span class="prelude-val">None</span>,
-            <span class="ident">information</span>: <span class="ident">DataTypeInformation</span>::<span class="ident">String</span> {
+            <span class="ident">information</span>: <span class="ident">DataTypeInformation::String</span> {
                 <span class="ident">size</span>: <span class="ident">DEFAULT_STRING_LEN</span> <span class="op">+</span> <span class="number">1</span>,
-                <span class="ident">encoding</span>: <span class="ident">StringEncoding</span>::<span class="ident">Utf16</span>,
+                <span class="ident">encoding</span>: <span class="ident">StringEncoding::Utf16</span>,
             },
         },
     ]
 }
 
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_string_information</span>(<span class="ident">len</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">DataTypeInformation</span> {
-    <span class="ident">DataTypeInformation</span>::<span class="ident">String</span> {
+    <span class="ident">DataTypeInformation::String</span> {
         <span class="ident">size</span>: <span class="ident">len</span> <span class="op">+</span> <span class="number">1</span>,
-        <span class="ident">encoding</span>: <span class="ident">StringEncoding</span>::<span class="ident">Utf8</span>,
+        <span class="ident">encoding</span>: <span class="ident">StringEncoding::Utf8</span>,
     }
 }
 
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_wide_string_information</span>(<span class="ident">len</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">DataTypeInformation</span> {
-    <span class="ident">DataTypeInformation</span>::<span class="ident">String</span> {
+    <span class="ident">DataTypeInformation::String</span> {
         <span class="ident">size</span>: <span class="ident">len</span> <span class="op">+</span> <span class="number">1</span>,
-        <span class="ident">encoding</span>: <span class="ident">StringEncoding</span>::<span class="ident">Utf16</span>,
+        <span class="ident">encoding</span>: <span class="ident">StringEncoding::Utf16</span>,
     }
 }
 
 <span class="kw">fn</span> <span class="ident">get_rank</span>(<span class="ident">type_information</span>: <span class="kw-2">&amp;</span><span class="ident">DataTypeInformation</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span> {
     <span class="kw">match</span> <span class="ident">type_information</span> {
-        <span class="ident">DataTypeInformation</span>::<span class="ident">Integer</span> { <span class="ident">signed</span>, <span class="ident">size</span>, .. } <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">DataTypeInformation::Integer</span> { <span class="ident">signed</span>, <span class="ident">size</span>, .. } <span class="op">=</span><span class="op">&gt;</span> {
             <span class="kw">if</span> <span class="kw-2">*</span><span class="ident">signed</span> {
                 <span class="kw-2">*</span><span class="ident">size</span> <span class="op">+</span> <span class="number">1</span>
             } <span class="kw">else</span> {
                 <span class="kw-2">*</span><span class="ident">size</span>
             }
         }
-        <span class="ident">DataTypeInformation</span>::<span class="ident">Float</span> { <span class="ident">size</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">size</span> <span class="op">+</span> <span class="number">1000</span>,
-        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable</span><span class="macro">!</span>(),
+        <span class="ident">DataTypeInformation::Float</span> { <span class="ident">size</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">size</span> <span class="op">+</span> <span class="number">1000</span>,
+        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable!</span>(),
     }
 }
 
@@ -817,14 +817,14 @@
 }
 
 <span class="kw">fn</span> <span class="ident">get_real_type</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">DataTypeInformation</span> {
-    <span class="ident">DataTypeInformation</span>::<span class="ident">Float</span> {
+    <span class="ident">DataTypeInformation::Float</span> {
         <span class="ident">name</span>: <span class="string">&quot;REAL&quot;</span>.<span class="ident">into</span>(),
         <span class="ident">size</span>: <span class="number">32</span>,
     }
 }
 
 <span class="kw">fn</span> <span class="ident">get_lreal_type</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">DataTypeInformation</span> {
-    <span class="ident">DataTypeInformation</span>::<span class="ident">Float</span> {
+    <span class="ident">DataTypeInformation::Float</span> {
         <span class="ident">name</span>: <span class="string">&quot;LREAL&quot;</span>.<span class="ident">into</span>(),
         <span class="ident">size</span>: <span class="number">64</span>,
     }
@@ -851,5 +851,5 @@
     }
 }
 </pre></div>
-</section><section id="search" class="content hidden"></section><section class="footer"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="rusty" data-search-js="../../search-index.js"></div>
+</section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="rusty" data-search-index-js="../../search-index.js" data-search-js="../../search.js"></div>
     <script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script></body></html>

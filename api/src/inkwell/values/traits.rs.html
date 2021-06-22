@@ -1,6 +1,6 @@
 <!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/git/checkouts/inkwell-946411d814d2c9f8/f768691/src/values/traits.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>traits.rs - source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script id="default-settings"></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
 <link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png">
-<link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../inkwell/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
+<link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../inkwell/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
                 <a id="settings-menu" href="../../../settings.html"><img src="../../../wheel.svg" width="18" height="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
@@ -139,14 +139,14 @@
 <span id="136">136</span>
 <span id="137">137</span>
 </pre><div class="example-wrap"><pre class="rust ">
-<span class="kw">use</span> <span class="ident">llvm_sys</span>::<span class="ident">prelude</span>::<span class="ident">LLVMValueRef</span>;
-<span class="kw">use</span> <span class="ident">llvm_sys</span>::<span class="ident">core</span>::{<span class="ident">LLVMConstExtractValue</span>, <span class="ident">LLVMConstInsertValue</span>};
+<span class="kw">use</span> <span class="ident">llvm_sys::prelude::LLVMValueRef</span>;
+<span class="kw">use</span> <span class="ident">llvm_sys::core</span>::{<span class="ident">LLVMConstExtractValue</span>, <span class="ident">LLVMConstInsertValue</span>};
 
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">fmt</span>::<span class="ident">Debug</span>;
+<span class="kw">use</span> <span class="ident">std::fmt::Debug</span>;
 
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">values</span>::{<span class="ident">ArrayValue</span>, <span class="ident">AggregateValueEnum</span>, <span class="ident">BasicValueUse</span>, <span class="ident">CallSiteValue</span>, <span class="ident">GlobalValue</span>, <span class="ident">StructValue</span>, <span class="ident">BasicValueEnum</span>, <span class="ident">AnyValueEnum</span>, <span class="ident">IntValue</span>, <span class="ident">FloatValue</span>, <span class="ident">PointerValue</span>, <span class="ident">PhiValue</span>, <span class="ident">VectorValue</span>, <span class="ident">FunctionValue</span>, <span class="ident">InstructionValue</span>, <span class="ident">Value</span>};
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">types</span>::{<span class="ident">IntMathType</span>, <span class="ident">FloatMathType</span>, <span class="ident">PointerMathType</span>, <span class="ident">IntType</span>, <span class="ident">FloatType</span>, <span class="ident">PointerType</span>, <span class="ident">VectorType</span>};
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">support</span>::<span class="ident">LLVMString</span>;
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::values</span>::{<span class="ident">ArrayValue</span>, <span class="ident">AggregateValueEnum</span>, <span class="ident">BasicValueUse</span>, <span class="ident">CallSiteValue</span>, <span class="ident">GlobalValue</span>, <span class="ident">StructValue</span>, <span class="ident">BasicValueEnum</span>, <span class="ident">AnyValueEnum</span>, <span class="ident">IntValue</span>, <span class="ident">FloatValue</span>, <span class="ident">PointerValue</span>, <span class="ident">PhiValue</span>, <span class="ident">VectorValue</span>, <span class="ident">FunctionValue</span>, <span class="ident">InstructionValue</span>, <span class="ident">Value</span>};
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::types</span>::{<span class="ident">IntMathType</span>, <span class="ident">FloatMathType</span>, <span class="ident">PointerMathType</span>, <span class="ident">IntType</span>, <span class="ident">FloatType</span>, <span class="ident">PointerType</span>, <span class="ident">VectorType</span>};
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::support::LLVMString</span>;
 
 <span class="comment">// This is an ugly privacy hack so that Type can stay private to this module</span>
 <span class="comment">// and so that super traits using this trait will be not be implementable</span>
@@ -155,7 +155,7 @@
     <span class="kw">fn</span> <span class="ident">as_value_ref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">LLVMValueRef</span>;
 }
 
-<span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">trait_value_set</span> {
+<span class="macro">macro_rules!</span> <span class="ident">trait_value_set</span> {
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">trait_name</span>:<span class="ident">ident</span>: $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">args</span>:<span class="ident">ident</span>),<span class="kw-2">*</span>) <span class="op">=</span><span class="op">&gt;</span> (
         $(
             <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">trait_name</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">args</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> {}
@@ -166,13 +166,13 @@
     );
 }
 
-<span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">math_trait_value_set</span> {
+<span class="macro">macro_rules!</span> <span class="ident">math_trait_value_set</span> {
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">trait_name</span>:<span class="ident">ident</span>: $((<span class="macro-nonterminal">$</span><span class="macro-nonterminal">value_type</span>:<span class="ident">ident</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">base_type</span>:<span class="ident">ident</span>)),<span class="kw-2">*</span>) <span class="op">=</span><span class="op">&gt;</span> (
         $(
             <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">trait_name</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">value_type</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> {
                 <span class="kw">type</span> <span class="ident">BaseType</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">base_type</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span>;
                 <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">value</span>: <span class="ident">LLVMValueRef</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-                    <span class="macro-nonterminal">$</span><span class="macro-nonterminal">value_type</span>::<span class="ident">new</span>(<span class="ident">value</span>)
+                    <span class="macro-nonterminal">$</span><span class="macro-nonterminal">value_type::new</span>(<span class="ident">value</span>)
                 }
             }
         )<span class="op">*</span>
@@ -183,7 +183,7 @@
 <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">AggregateValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span>: <span class="ident">BasicValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> {
     <span class="doccomment">/// Returns an enum containing a typed version of the `AggregateValue`.</span>
     <span class="kw">fn</span> <span class="ident">as_aggregate_value_enum</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">AggregateValueEnum</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> {
-        <span class="ident">AggregateValueEnum</span>::<span class="ident">new</span>(<span class="self">self</span>.<span class="ident">as_value_ref</span>())
+        <span class="ident">AggregateValueEnum::new</span>(<span class="self">self</span>.<span class="ident">as_value_ref</span>())
     }
 
     <span class="comment">// REVIEW: How does LLVM treat out of bound index? Maybe we should return an Option?</span>
@@ -194,7 +194,7 @@
             <span class="ident">LLVMConstExtractValue</span>(<span class="self">self</span>.<span class="ident">as_value_ref</span>(), <span class="ident">indexes</span>.<span class="ident">as_mut_ptr</span>(), <span class="ident">indexes</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u32</span>)
         };
 
-        <span class="ident">BasicValueEnum</span>::<span class="ident">new</span>(<span class="ident">value</span>)
+        <span class="ident">BasicValueEnum::new</span>(<span class="ident">value</span>)
     }
 
     <span class="comment">// SubTypes: value should really be T in self: VectorValue&lt;T&gt; I think</span>
@@ -203,7 +203,7 @@
             <span class="ident">LLVMConstInsertValue</span>(<span class="self">self</span>.<span class="ident">as_value_ref</span>(), <span class="ident">value</span>.<span class="ident">as_value_ref</span>(), <span class="ident">indexes</span>.<span class="ident">as_mut_ptr</span>(), <span class="ident">indexes</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u32</span>)
         };
 
-        <span class="ident">BasicValueEnum</span>::<span class="ident">new</span>(<span class="ident">value</span>)
+        <span class="ident">BasicValueEnum::new</span>(<span class="ident">value</span>)
     }
 }
 
@@ -211,28 +211,28 @@
 <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">BasicValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span>: <span class="ident">AnyValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> {
     <span class="doccomment">/// Returns an enum containing a typed version of the `BasicValue`.</span>
     <span class="kw">fn</span> <span class="ident">as_basic_value_enum</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">BasicValueEnum</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> {
-        <span class="ident">BasicValueEnum</span>::<span class="ident">new</span>(<span class="self">self</span>.<span class="ident">as_value_ref</span>())
+        <span class="ident">BasicValueEnum::new</span>(<span class="self">self</span>.<span class="ident">as_value_ref</span>())
     }
 
     <span class="doccomment">/// Most `BasicValue`s are the byproduct of an instruction</span>
     <span class="doccomment">/// and so are convertable into an `InstructionValue`</span>
     <span class="kw">fn</span> <span class="ident">as_instruction_value</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">InstructionValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">Value</span>::<span class="ident">new</span>(<span class="self">self</span>.<span class="ident">as_value_ref</span>());
+        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">Value::new</span>(<span class="self">self</span>.<span class="ident">as_value_ref</span>());
 
         <span class="kw">if</span> <span class="op">!</span><span class="ident">value</span>.<span class="ident">is_instruction</span>() {
             <span class="kw">return</span> <span class="prelude-val">None</span>;
         }
 
-        <span class="prelude-val">Some</span>(<span class="ident">InstructionValue</span>::<span class="ident">new</span>(<span class="self">self</span>.<span class="ident">as_value_ref</span>()))
+        <span class="prelude-val">Some</span>(<span class="ident">InstructionValue::new</span>(<span class="self">self</span>.<span class="ident">as_value_ref</span>()))
     }
 
     <span class="kw">fn</span> <span class="ident">get_first_use</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">BasicValueUse</span><span class="op">&gt;</span> {
-        <span class="ident">Value</span>::<span class="ident">new</span>(<span class="self">self</span>.<span class="ident">as_value_ref</span>()).<span class="ident">get_first_use</span>()
+        <span class="ident">Value::new</span>(<span class="self">self</span>.<span class="ident">as_value_ref</span>()).<span class="ident">get_first_use</span>()
     }
 
     <span class="doccomment">/// Sets the name of a `BasicValue`. If the value is a constant, this is a noop.</span>
     <span class="kw">fn</span> <span class="ident">set_name</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) {
-        <span class="ident">Value</span>::<span class="ident">new</span>(<span class="self">self</span>.<span class="ident">as_value_ref</span>()).<span class="ident">set_name</span>(<span class="ident">name</span>)
+        <span class="ident">Value::new</span>(<span class="self">self</span>.<span class="ident">as_value_ref</span>()).<span class="ident">set_name</span>(<span class="ident">name</span>)
     }
 
     <span class="comment">// REVIEW: Possible encompassing methods to implement:</span>
@@ -261,21 +261,21 @@
 <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">AnyValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span>: <span class="ident">AsValueRef</span> <span class="op">+</span> <span class="ident">Debug</span> {
     <span class="doccomment">/// Returns an enum containing a typed version of `AnyValue`.</span>
     <span class="kw">fn</span> <span class="ident">as_any_value_enum</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">AnyValueEnum</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> {
-        <span class="ident">AnyValueEnum</span>::<span class="ident">new</span>(<span class="self">self</span>.<span class="ident">as_value_ref</span>())
+        <span class="ident">AnyValueEnum::new</span>(<span class="self">self</span>.<span class="ident">as_value_ref</span>())
     }
 
     <span class="doccomment">/// Prints a value to a `LLVMString`</span>
     <span class="kw">fn</span> <span class="ident">print_to_string</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">LLVMString</span> {
-        <span class="ident">Value</span>::<span class="ident">new</span>(<span class="self">self</span>.<span class="ident">as_value_ref</span>()).<span class="ident">print_to_string</span>()
+        <span class="ident">Value::new</span>(<span class="self">self</span>.<span class="ident">as_value_ref</span>()).<span class="ident">print_to_string</span>()
     }
 }
 
-<span class="macro">trait_value_set</span><span class="macro">!</span> {<span class="ident">AggregateValue</span>: <span class="ident">ArrayValue</span>, <span class="ident">AggregateValueEnum</span>, <span class="ident">StructValue</span>}
-<span class="macro">trait_value_set</span><span class="macro">!</span> {<span class="ident">AnyValue</span>: <span class="ident">AnyValueEnum</span>, <span class="ident">BasicValueEnum</span>, <span class="ident">AggregateValueEnum</span>, <span class="ident">ArrayValue</span>, <span class="ident">IntValue</span>, <span class="ident">FloatValue</span>, <span class="ident">GlobalValue</span>, <span class="ident">PhiValue</span>, <span class="ident">PointerValue</span>, <span class="ident">FunctionValue</span>, <span class="ident">StructValue</span>, <span class="ident">VectorValue</span>, <span class="ident">InstructionValue</span>, <span class="ident">CallSiteValue</span>}
-<span class="macro">trait_value_set</span><span class="macro">!</span> {<span class="ident">BasicValue</span>: <span class="ident">ArrayValue</span>, <span class="ident">BasicValueEnum</span>, <span class="ident">AggregateValueEnum</span>, <span class="ident">IntValue</span>, <span class="ident">FloatValue</span>, <span class="ident">GlobalValue</span>, <span class="ident">StructValue</span>, <span class="ident">PointerValue</span>, <span class="ident">VectorValue</span>}
-<span class="macro">math_trait_value_set</span><span class="macro">!</span> {<span class="ident">IntMathValue</span>: (<span class="ident">IntValue</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">IntType</span>), (<span class="ident">VectorValue</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">VectorType</span>)}
-<span class="macro">math_trait_value_set</span><span class="macro">!</span> {<span class="ident">FloatMathValue</span>: (<span class="ident">FloatValue</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">FloatType</span>), (<span class="ident">VectorValue</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">VectorType</span>)}
-<span class="macro">math_trait_value_set</span><span class="macro">!</span> {<span class="ident">PointerMathValue</span>: (<span class="ident">PointerValue</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">PointerType</span>), (<span class="ident">VectorValue</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">VectorType</span>)}
+<span class="macro">trait_value_set!</span> {<span class="ident">AggregateValue</span>: <span class="ident">ArrayValue</span>, <span class="ident">AggregateValueEnum</span>, <span class="ident">StructValue</span>}
+<span class="macro">trait_value_set!</span> {<span class="ident">AnyValue</span>: <span class="ident">AnyValueEnum</span>, <span class="ident">BasicValueEnum</span>, <span class="ident">AggregateValueEnum</span>, <span class="ident">ArrayValue</span>, <span class="ident">IntValue</span>, <span class="ident">FloatValue</span>, <span class="ident">GlobalValue</span>, <span class="ident">PhiValue</span>, <span class="ident">PointerValue</span>, <span class="ident">FunctionValue</span>, <span class="ident">StructValue</span>, <span class="ident">VectorValue</span>, <span class="ident">InstructionValue</span>, <span class="ident">CallSiteValue</span>}
+<span class="macro">trait_value_set!</span> {<span class="ident">BasicValue</span>: <span class="ident">ArrayValue</span>, <span class="ident">BasicValueEnum</span>, <span class="ident">AggregateValueEnum</span>, <span class="ident">IntValue</span>, <span class="ident">FloatValue</span>, <span class="ident">GlobalValue</span>, <span class="ident">StructValue</span>, <span class="ident">PointerValue</span>, <span class="ident">VectorValue</span>}
+<span class="macro">math_trait_value_set!</span> {<span class="ident">IntMathValue</span>: (<span class="ident">IntValue</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">IntType</span>), (<span class="ident">VectorValue</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">VectorType</span>)}
+<span class="macro">math_trait_value_set!</span> {<span class="ident">FloatMathValue</span>: (<span class="ident">FloatValue</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">FloatType</span>), (<span class="ident">VectorValue</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">VectorType</span>)}
+<span class="macro">math_trait_value_set!</span> {<span class="ident">PointerMathValue</span>: (<span class="ident">PointerValue</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">PointerType</span>), (<span class="ident">VectorValue</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">VectorType</span>)}
 </pre></div>
-</section><section id="search" class="content hidden"></section><section class="footer"></section><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="inkwell" data-search-js="../../../search-index.js"></div>
+</section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="inkwell" data-search-index-js="../../../search-index.js" data-search-js="../../../search.js"></div>
     <script src="../../../main.js"></script><script src="../../../source-script.js"></script><script src="../../../source-files.js"></script></body></html>

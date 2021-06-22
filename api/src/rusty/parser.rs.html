@@ -1,6 +1,6 @@
 <!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/parser.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>parser.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings"></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
 <link rel="alternate icon" type="image/png" href="../../favicon-16x16.png">
-<link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../rusty/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
+<link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../rusty/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
                 <a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" height="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
@@ -571,12 +571,12 @@
 <span id="568">568</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">ast</span>::<span class="ident">Implementation</span>;
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">ast</span>::<span class="kw-2">*</span>;
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">lexer</span>;
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">lexer</span>::{<span class="ident">RustyLexer</span>, <span class="ident">Token</span>::<span class="kw-2">*</span>};
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::ast::Implementation</span>;
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::ast</span>::<span class="kw-2">*</span>;
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::lexer</span>;
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::lexer</span>::{<span class="ident">RustyLexer</span>, <span class="ident">Token</span>::<span class="kw-2">*</span>};
 
-<span class="kw">use</span> <span class="self">self</span>::{<span class="ident">control_parser</span>::<span class="ident">parse_control_statement</span>, <span class="ident">expressions_parser</span>::<span class="ident">parse_primary_expression</span>};
+<span class="kw">use</span> <span class="self">self</span>::{<span class="ident">control_parser::parse_control_statement</span>, <span class="ident">expressions_parser::parse_primary_expression</span>};
 
 <span class="kw">mod</span> <span class="ident">control_parser</span>;
 <span class="kw">mod</span> <span class="ident">expressions_parser</span>;
@@ -585,10 +585,10 @@
 <span class="kw">mod</span> <span class="ident">tests</span>;
 
 <span class="attribute">#[<span class="ident">macro_export</span>]</span>
-<span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">expect</span> {
+<span class="macro">macro_rules!</span> <span class="ident">expect</span> {
     ( <span class="macro-nonterminal">$</span><span class="macro-nonterminal">token</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">lexer</span>:<span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">lexer</span>.<span class="ident">token</span> <span class="op">!</span><span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">token</span> {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="macro">format</span><span class="macro">!</span>(
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="macro">format!</span>(
                 <span class="string">&quot;expected {:?}, but found &#39;{:}&#39; [{:?}] at {:}&quot;</span>,
                 <span class="macro-nonterminal">$</span><span class="macro-nonterminal">token</span>,
                 <span class="macro-nonterminal">$</span><span class="macro-nonterminal">lexer</span>.<span class="ident">slice</span>(),
@@ -601,7 +601,7 @@
 }
 
 <span class="doccomment">/// consumes an optional token and returns true if it was consumed.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">allow</span>(<span class="ident">token</span>: <span class="ident">lexer</span>::<span class="ident">Token</span>, <span class="ident">lexer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">RustyLexer</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">allow</span>(<span class="ident">token</span>: <span class="ident">lexer::Token</span>, <span class="ident">lexer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">RustyLexer</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
     <span class="kw">if</span> <span class="ident">lexer</span>.<span class="ident">token</span> <span class="op">=</span><span class="op">=</span> <span class="ident">token</span> {
         <span class="ident">lexer</span>.<span class="ident">advance</span>();
         <span class="bool-val">true</span>
@@ -614,7 +614,7 @@
 <span class="doccomment">/// returns an error for an unidientified token</span>
 <span class="doccomment">///  </span>
 <span class="kw">fn</span> <span class="ident">unidentified_token</span>(<span class="ident">lexer</span>: <span class="kw-2">&amp;</span><span class="ident">RustyLexer</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">String</span> {
-    <span class="macro">format</span><span class="macro">!</span>(
+    <span class="macro">format!</span>(
         <span class="string">&quot;unidentified token: {t:?} at {location:?}&quot;</span>,
         <span class="ident">t</span> <span class="op">=</span> <span class="ident">lexer</span>.<span class="ident">slice</span>(),
         <span class="ident">location</span> <span class="op">=</span> <span class="ident">lexer</span>.<span class="ident">get_location_information</span>()
@@ -625,7 +625,7 @@
 <span class="doccomment">/// returns an error for an unexpected token</span>
 <span class="doccomment">///  </span>
 <span class="kw">fn</span> <span class="ident">unexpected_token</span>(<span class="ident">lexer</span>: <span class="kw-2">&amp;</span><span class="ident">RustyLexer</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">String</span> {
-    <span class="macro">format</span><span class="macro">!</span>(
+    <span class="macro">format!</span>(
         <span class="string">&quot;unexpected token: &#39;{slice:}&#39; [{t:?}] at {location:}&quot;</span>,
         <span class="ident">t</span> <span class="op">=</span> <span class="ident">lexer</span>.<span class="ident">token</span>,
         <span class="ident">slice</span> <span class="op">=</span> <span class="ident">lexer</span>.<span class="ident">slice</span>(),
@@ -640,13 +640,13 @@
 }
 
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">parse</span>(<span class="kw-2">mut</span> <span class="ident">lexer</span>: <span class="ident">RustyLexer</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="ident">CompilationUnit</span>, <span class="ident">NewLines</span>), <span class="ident">String</span><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">unit</span> <span class="op">=</span> <span class="ident">CompilationUnit</span>::<span class="ident">default</span>();
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">unit</span> <span class="op">=</span> <span class="ident">CompilationUnit::default</span>();
 
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">linkage</span> <span class="op">=</span> <span class="ident">LinkageType</span>::<span class="ident">Internal</span>;
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">linkage</span> <span class="op">=</span> <span class="ident">LinkageType::Internal</span>;
     <span class="kw">loop</span> {
         <span class="kw">match</span> <span class="ident">lexer</span>.<span class="ident">token</span> {
             <span class="ident">PropertyExternal</span> <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="ident">linkage</span> <span class="op">=</span> <span class="ident">LinkageType</span>::<span class="ident">External</span>;
+                <span class="ident">linkage</span> <span class="op">=</span> <span class="ident">LinkageType::External</span>;
                 <span class="ident">lexer</span>.<span class="ident">advance</span>();
                 <span class="comment">//Don&#39;t reset linkage</span>
                 <span class="kw">continue</span>;
@@ -654,20 +654,20 @@
             <span class="ident">KeywordVarGlobal</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">unit</span>.<span class="ident">global_vars</span>.<span class="ident">push</span>(<span class="ident">parse_variable_block</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">lexer</span>)<span class="question-mark">?</span>),
             <span class="ident">KeywordProgram</span> <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">let</span> (<span class="ident">pou</span>, <span class="ident">implementation</span>) <span class="op">=</span>
-                    <span class="ident">parse_pou</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">lexer</span>, <span class="ident">PouType</span>::<span class="ident">Program</span>, <span class="ident">linkage</span>, <span class="ident">KeywordEndProgram</span>)<span class="question-mark">?</span>;
+                    <span class="ident">parse_pou</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">lexer</span>, <span class="ident">PouType::Program</span>, <span class="ident">linkage</span>, <span class="ident">KeywordEndProgram</span>)<span class="question-mark">?</span>;
                 <span class="ident">unit</span>.<span class="ident">units</span>.<span class="ident">push</span>(<span class="ident">pou</span>);
                 <span class="ident">unit</span>.<span class="ident">implementations</span>.<span class="ident">push</span>(<span class="ident">implementation</span>);
             }
             <span class="ident">KeywordFunction</span> <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">let</span> (<span class="ident">pou</span>, <span class="ident">implementation</span>) <span class="op">=</span>
-                    <span class="ident">parse_pou</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">lexer</span>, <span class="ident">PouType</span>::<span class="ident">Function</span>, <span class="ident">linkage</span>, <span class="ident">KeywordEndFunction</span>)<span class="question-mark">?</span>;
+                    <span class="ident">parse_pou</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">lexer</span>, <span class="ident">PouType::Function</span>, <span class="ident">linkage</span>, <span class="ident">KeywordEndFunction</span>)<span class="question-mark">?</span>;
                 <span class="ident">unit</span>.<span class="ident">units</span>.<span class="ident">push</span>(<span class="ident">pou</span>);
                 <span class="ident">unit</span>.<span class="ident">implementations</span>.<span class="ident">push</span>(<span class="ident">implementation</span>);
             }
             <span class="ident">KeywordFunctionBlock</span> <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">let</span> (<span class="ident">pou</span>, <span class="ident">implementation</span>) <span class="op">=</span> <span class="ident">parse_pou</span>(
                     <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">lexer</span>,
-                    <span class="ident">PouType</span>::<span class="ident">FunctionBlock</span>,
+                    <span class="ident">PouType::FunctionBlock</span>,
                     <span class="ident">linkage</span>,
                     <span class="ident">KeywordEndFunctionBlock</span>,
                 )<span class="question-mark">?</span>;
@@ -687,7 +687,7 @@
             <span class="ident">Error</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">unidentified_token</span>(<span class="kw-2">&amp;</span><span class="ident">lexer</span>)),
             <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">unexpected_token</span>(<span class="kw-2">&amp;</span><span class="ident">lexer</span>)),
         };
-        <span class="ident">linkage</span> <span class="op">=</span> <span class="ident">LinkageType</span>::<span class="ident">Internal</span>;
+        <span class="ident">linkage</span> <span class="op">=</span> <span class="ident">LinkageType::Internal</span>;
     }
     <span class="comment">//the match in the loop will always return</span>
 }
@@ -697,9 +697,9 @@
     <span class="ident">linkage</span>: <span class="ident">LinkageType</span>,
 ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Implementation</span><span class="op">&gt;</span>, <span class="ident">String</span><span class="op">&gt;</span> {
     <span class="ident">lexer</span>.<span class="ident">advance</span>(); <span class="comment">//Consume ACTIONS</span>
-    <span class="macro">expect</span><span class="macro">!</span>(<span class="ident">Identifier</span>, <span class="ident">lexer</span>);
+    <span class="macro">expect!</span>(<span class="ident">Identifier</span>, <span class="ident">lexer</span>);
     <span class="kw">let</span> <span class="ident">container</span> <span class="op">=</span> <span class="ident">slice_and_advance</span>(<span class="ident">lexer</span>);
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">result</span> <span class="op">=</span> <span class="macro">vec</span><span class="macro">!</span>[];
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">result</span> <span class="op">=</span> <span class="macro">vec!</span>[];
 
     <span class="comment">//Go through each action</span>
     <span class="kw">while</span> <span class="ident">lexer</span>.<span class="ident">token</span> <span class="op">!</span><span class="op">=</span> <span class="ident">KeywordEndActions</span> <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">is_end_of_stream</span>(<span class="kw-2">&amp;</span><span class="ident">lexer</span>.<span class="ident">token</span>) {
@@ -726,25 +726,25 @@
     <span class="ident">lexer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">RustyLexer</span>,
     <span class="ident">pou_type</span>: <span class="ident">PouType</span>,
     <span class="ident">linkage</span>: <span class="ident">LinkageType</span>,
-    <span class="ident">expected_end_token</span>: <span class="ident">lexer</span>::<span class="ident">Token</span>,
+    <span class="ident">expected_end_token</span>: <span class="ident">lexer::Token</span>,
 ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="ident">Pou</span>, <span class="ident">Implementation</span>), <span class="ident">String</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">line_nr</span> <span class="op">=</span> <span class="ident">lexer</span>.<span class="ident">get_current_line_nr</span>();
     <span class="ident">lexer</span>.<span class="ident">advance</span>(); <span class="comment">//Consume ProgramKeyword</span>
 
     <span class="comment">//Parse Identifier</span>
-    <span class="macro">expect</span><span class="macro">!</span>(<span class="ident">Identifier</span>, <span class="ident">lexer</span>);
+    <span class="macro">expect!</span>(<span class="ident">Identifier</span>, <span class="ident">lexer</span>);
     <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="ident">slice_and_advance</span>(<span class="ident">lexer</span>);
 
     <span class="comment">//optional return type</span>
     <span class="kw">let</span> <span class="ident">return_type</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">allow</span>(<span class="ident">KeywordColon</span>, <span class="ident">lexer</span>) {
         <span class="kw">let</span> <span class="ident">referenced_type</span> <span class="op">=</span> <span class="ident">slice_and_advance</span>(<span class="ident">lexer</span>);
-        <span class="prelude-val">Some</span>(<span class="ident">DataTypeDeclaration</span>::<span class="ident">DataTypeReference</span> { <span class="ident">referenced_type</span> })
+        <span class="prelude-val">Some</span>(<span class="ident">DataTypeDeclaration::DataTypeReference</span> { <span class="ident">referenced_type</span> })
     } <span class="kw">else</span> {
         <span class="prelude-val">None</span>
     };
 
     <span class="comment">//Parse variable declarations</span>
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">variable_blocks</span> <span class="op">=</span> <span class="macro">vec</span><span class="macro">!</span>[];
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">variable_blocks</span> <span class="op">=</span> <span class="macro">vec!</span>[];
     <span class="kw">while</span> <span class="ident">lexer</span>.<span class="ident">token</span> <span class="op">=</span><span class="op">=</span> <span class="ident">KeywordVar</span>
         <span class="op">|</span><span class="op">|</span> <span class="ident">lexer</span>.<span class="ident">token</span> <span class="op">=</span><span class="op">=</span> <span class="ident">KeywordVarInput</span>
         <span class="op">|</span><span class="op">|</span> <span class="ident">lexer</span>.<span class="ident">token</span> <span class="op">=</span><span class="op">=</span> <span class="ident">KeywordVarOutput</span>
@@ -761,7 +761,7 @@
         <span class="ident">pou_type</span>,
         <span class="ident">variable_blocks</span>,
         <span class="ident">return_type</span>,
-        <span class="ident">location</span>: <span class="ident">SourceRange</span>::<span class="ident">new</span>(<span class="ident">lexer</span>.<span class="ident">get_file_path</span>(), <span class="ident">line_nr</span>..<span class="ident">lexer</span>.<span class="ident">get_current_line_nr</span>()),
+        <span class="ident">location</span>: <span class="ident">SourceRange::new</span>(<span class="ident">lexer</span>.<span class="ident">get_file_path</span>(), <span class="ident">line_nr</span>..<span class="ident">lexer</span>.<span class="ident">get_current_line_nr</span>()),
     };
 
     <span class="kw">let</span> <span class="ident">implementation</span> <span class="op">=</span> <span class="ident">parse_implementation</span>(
@@ -781,13 +781,13 @@
     <span class="ident">linkage</span>: <span class="ident">LinkageType</span>,
     <span class="ident">pou_type</span>: <span class="ident">PouType</span>,
     <span class="ident">start</span>: <span class="ident">usize</span>,
-    <span class="ident">expected_end_token</span>: <span class="ident">lexer</span>::<span class="ident">Token</span>,
+    <span class="ident">expected_end_token</span>: <span class="ident">lexer::Token</span>,
     <span class="ident">call_name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
     <span class="ident">type_name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
 ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Implementation</span>, <span class="ident">String</span><span class="op">&gt;</span> {
     <span class="comment">//Parse the statements</span>
     <span class="kw">let</span> <span class="ident">statements</span> <span class="op">=</span> <span class="ident">parse_body</span>(<span class="ident">lexer</span>, <span class="ident">start</span>, <span class="kw-2">&amp;</span><span class="op">|</span><span class="ident">it</span><span class="op">|</span> <span class="kw-2">*</span><span class="ident">it</span> <span class="op">=</span><span class="op">=</span> <span class="ident">expected_end_token</span>)<span class="question-mark">?</span>;
-    <span class="macro">expect</span><span class="macro">!</span>(<span class="ident">expected_end_token</span>, <span class="ident">lexer</span>);
+    <span class="macro">expect!</span>(<span class="ident">expected_end_token</span>, <span class="ident">lexer</span>);
 
     <span class="kw">let</span> <span class="ident">implementation</span> <span class="op">=</span> <span class="ident">Implementation</span> {
         <span class="ident">name</span>: <span class="ident">call_name</span>.<span class="ident">into</span>(),
@@ -795,7 +795,7 @@
         <span class="ident">linkage</span>,
         <span class="ident">pou_type</span>,
         <span class="ident">statements</span>,
-        <span class="ident">location</span>: <span class="ident">SourceRange</span>::<span class="ident">new</span>(<span class="ident">lexer</span>.<span class="ident">get_file_path</span>(), <span class="ident">start</span>..<span class="ident">lexer</span>.<span class="ident">get_current_line_nr</span>()),
+        <span class="ident">location</span>: <span class="ident">SourceRange::new</span>(<span class="ident">lexer</span>.<span class="ident">get_file_path</span>(), <span class="ident">start</span>..<span class="ident">lexer</span>.<span class="ident">get_current_line_nr</span>()),
     };
     <span class="ident">lexer</span>.<span class="ident">advance</span>();
 
@@ -813,20 +813,20 @@
     <span class="kw">let</span> (<span class="ident">container</span>, <span class="ident">name</span>) <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">container</span>) <span class="op">=</span> <span class="ident">container</span> {
         (<span class="ident">container</span>.<span class="ident">into</span>(), <span class="ident">name_or_container</span>)
     } <span class="kw">else</span> {
-        <span class="macro">expect</span><span class="macro">!</span>(<span class="ident">KeywordDot</span>, <span class="ident">lexer</span>);
+        <span class="macro">expect!</span>(<span class="ident">KeywordDot</span>, <span class="ident">lexer</span>);
         <span class="ident">lexer</span>.<span class="ident">advance</span>();
-        <span class="macro">expect</span><span class="macro">!</span>(<span class="ident">Identifier</span>, <span class="ident">lexer</span>);
+        <span class="macro">expect!</span>(<span class="ident">Identifier</span>, <span class="ident">lexer</span>);
         <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="ident">slice_and_advance</span>(<span class="ident">lexer</span>);
         (<span class="ident">name_or_container</span>, <span class="ident">name</span>)
     };
-    <span class="kw">let</span> <span class="ident">call_name</span> <span class="op">=</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{}.{}&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">container</span>, <span class="kw-2">&amp;</span><span class="ident">name</span>);
+    <span class="kw">let</span> <span class="ident">call_name</span> <span class="op">=</span> <span class="macro">format!</span>(<span class="string">&quot;{}.{}&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">container</span>, <span class="kw-2">&amp;</span><span class="ident">name</span>);
 
     <span class="kw">let</span> <span class="ident">implementation</span> <span class="op">=</span> <span class="ident">parse_implementation</span>(
         <span class="ident">lexer</span>,
         <span class="ident">linkage</span>,
-        <span class="ident">PouType</span>::<span class="ident">Action</span>,
+        <span class="ident">PouType::Action</span>,
         <span class="ident">start</span>,
-        <span class="ident">lexer</span>::<span class="ident">Token</span>::<span class="ident">KeywordEndAction</span>,
+        <span class="ident">lexer::Token::KeywordEndAction</span>,
         <span class="kw-2">&amp;</span><span class="ident">call_name</span>,
         <span class="kw-2">&amp;</span><span class="ident">container</span>,
     )<span class="question-mark">?</span>;
@@ -838,20 +838,20 @@
 <span class="kw">fn</span> <span class="ident">parse_type</span>(<span class="ident">lexer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">RustyLexer</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">UserTypeDeclaration</span>, <span class="ident">String</span><span class="op">&gt;</span> {
     <span class="ident">lexer</span>.<span class="ident">advance</span>(); <span class="comment">// consume the TYPE</span>
     <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="ident">slice_and_advance</span>(<span class="ident">lexer</span>);
-    <span class="macro">expect</span><span class="macro">!</span>(<span class="ident">KeywordColon</span>, <span class="ident">lexer</span>);
+    <span class="macro">expect!</span>(<span class="ident">KeywordColon</span>, <span class="ident">lexer</span>);
     <span class="ident">lexer</span>.<span class="ident">advance</span>();
 
     <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">parse_data_type_definition</span>(<span class="ident">lexer</span>, <span class="prelude-val">Some</span>(<span class="ident">name</span>));
 
-    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>((<span class="ident">DataTypeDeclaration</span>::<span class="ident">DataTypeDefinition</span> { <span class="ident">data_type</span> }, <span class="ident">initializer</span>)) <span class="op">=</span> <span class="ident">result</span> {
-        <span class="macro">expect</span><span class="macro">!</span>(<span class="ident">KeywordEndType</span>, <span class="ident">lexer</span>);
+    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>((<span class="ident">DataTypeDeclaration::DataTypeDefinition</span> { <span class="ident">data_type</span> }, <span class="ident">initializer</span>)) <span class="op">=</span> <span class="ident">result</span> {
+        <span class="macro">expect!</span>(<span class="ident">KeywordEndType</span>, <span class="ident">lexer</span>);
         <span class="ident">lexer</span>.<span class="ident">advance</span>();
         <span class="prelude-val">Ok</span>(<span class="ident">UserTypeDeclaration</span> {
             <span class="ident">data_type</span>,
             <span class="ident">initializer</span>,
         })
     } <span class="kw">else</span> {
-        <span class="prelude-val">Err</span>(<span class="macro">format</span><span class="macro">!</span>(
+        <span class="prelude-val">Err</span>(<span class="macro">format!</span>(
             <span class="string">&quot;expected struct, enum, or subrange found &#39;{:}&#39; [{:?}] at {:}&quot;</span>,
             <span class="ident">lexer</span>.<span class="ident">slice</span>(),
             <span class="ident">lexer</span>.<span class="ident">token</span>,
@@ -868,62 +868,62 @@
 ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">DataTypeWithInitializer</span>, <span class="ident">String</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">allow</span>(<span class="ident">KeywordStruct</span>, <span class="ident">lexer</span>) {
         <span class="comment">//STRUCT</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">variables</span> <span class="op">=</span> <span class="ident">Vec</span>::<span class="ident">new</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">variables</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
         <span class="kw">while</span> <span class="ident">lexer</span>.<span class="ident">token</span> <span class="op">=</span><span class="op">=</span> <span class="ident">Identifier</span> {
             <span class="ident">variables</span>.<span class="ident">push</span>(<span class="ident">parse_variable</span>(<span class="ident">lexer</span>)<span class="question-mark">?</span>);
         }
-        <span class="macro">expect</span><span class="macro">!</span>(<span class="ident">KeywordEndStruct</span>, <span class="ident">lexer</span>);
+        <span class="macro">expect!</span>(<span class="ident">KeywordEndStruct</span>, <span class="ident">lexer</span>);
         <span class="ident">lexer</span>.<span class="ident">advance</span>();
         <span class="comment">//Return early to avoid varargs. TODO : This is hacky</span>
         <span class="kw">return</span> <span class="prelude-val">Ok</span>((
-            <span class="ident">DataTypeDeclaration</span>::<span class="ident">DataTypeDefinition</span> {
-                <span class="ident">data_type</span>: <span class="ident">DataType</span>::<span class="ident">StructType</span> { <span class="ident">name</span>, <span class="ident">variables</span> },
+            <span class="ident">DataTypeDeclaration::DataTypeDefinition</span> {
+                <span class="ident">data_type</span>: <span class="ident">DataType::StructType</span> { <span class="ident">name</span>, <span class="ident">variables</span> },
             },
             <span class="prelude-val">None</span>,
         ));
     } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">allow</span>(<span class="ident">KeywordArray</span>, <span class="ident">lexer</span>) {
         <span class="comment">//ARRAY</span>
         <span class="comment">//expect open square</span>
-        <span class="macro">expect</span><span class="macro">!</span>(<span class="ident">KeywordSquareParensOpen</span>, <span class="ident">lexer</span>);
+        <span class="macro">expect!</span>(<span class="ident">KeywordSquareParensOpen</span>, <span class="ident">lexer</span>);
         <span class="ident">lexer</span>.<span class="ident">advance</span>();
         <span class="comment">//parse range</span>
         <span class="kw">let</span> <span class="ident">range</span> <span class="op">=</span> <span class="ident">parse_primary_expression</span>(<span class="ident">lexer</span>)<span class="question-mark">?</span>;
         <span class="comment">//expect close range</span>
-        <span class="macro">expect</span><span class="macro">!</span>(<span class="ident">KeywordSquareParensClose</span>, <span class="ident">lexer</span>);
+        <span class="macro">expect!</span>(<span class="ident">KeywordSquareParensClose</span>, <span class="ident">lexer</span>);
         <span class="ident">lexer</span>.<span class="ident">advance</span>();
-        <span class="macro">expect</span><span class="macro">!</span>(<span class="ident">KeywordOf</span>, <span class="ident">lexer</span>);
+        <span class="macro">expect!</span>(<span class="ident">KeywordOf</span>, <span class="ident">lexer</span>);
         <span class="ident">lexer</span>.<span class="ident">advance</span>();
         <span class="comment">//expect type reference</span>
         <span class="kw">let</span> (<span class="ident">reference</span>, <span class="ident">initializer</span>) <span class="op">=</span> <span class="ident">parse_data_type_definition</span>(<span class="ident">lexer</span>, <span class="prelude-val">None</span>)<span class="question-mark">?</span>;
         <span class="comment">//Return early to avoid varargs. TODO : This is hacky</span>
         <span class="kw">return</span> <span class="prelude-val">Ok</span>((
-            <span class="ident">DataTypeDeclaration</span>::<span class="ident">DataTypeDefinition</span> {
-                <span class="ident">data_type</span>: <span class="ident">DataType</span>::<span class="ident">ArrayType</span> {
+            <span class="ident">DataTypeDeclaration::DataTypeDefinition</span> {
+                <span class="ident">data_type</span>: <span class="ident">DataType::ArrayType</span> {
                     <span class="ident">name</span>,
                     <span class="ident">bounds</span>: <span class="ident">range</span>,
-                    <span class="ident">referenced_type</span>: <span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">reference</span>),
+                    <span class="ident">referenced_type</span>: <span class="ident">Box::new</span>(<span class="ident">reference</span>),
                 },
             },
             <span class="ident">initializer</span>,
         ));
     } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">allow</span>(<span class="ident">KeywordParensOpen</span>, <span class="ident">lexer</span>) {
         <span class="comment">//ENUM</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">elements</span> <span class="op">=</span> <span class="ident">Vec</span>::<span class="ident">new</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">elements</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
 
         <span class="comment">//we expect at least one element</span>
-        <span class="macro">expect</span><span class="macro">!</span>(<span class="ident">Identifier</span>, <span class="ident">lexer</span>);
+        <span class="macro">expect!</span>(<span class="ident">Identifier</span>, <span class="ident">lexer</span>);
         <span class="ident">elements</span>.<span class="ident">push</span>(<span class="ident">slice_and_advance</span>(<span class="ident">lexer</span>));
         <span class="comment">//parse additional elements separated by ,</span>
         <span class="kw">while</span> <span class="ident">allow</span>(<span class="ident">KeywordComma</span>, <span class="ident">lexer</span>) {
-            <span class="macro">expect</span><span class="macro">!</span>(<span class="ident">Identifier</span>, <span class="ident">lexer</span>);
+            <span class="macro">expect!</span>(<span class="ident">Identifier</span>, <span class="ident">lexer</span>);
             <span class="ident">elements</span>.<span class="ident">push</span>(<span class="ident">slice_and_advance</span>(<span class="ident">lexer</span>));
         }
-        <span class="macro">expect</span><span class="macro">!</span>(<span class="ident">KeywordParensClose</span>, <span class="ident">lexer</span>);
+        <span class="macro">expect!</span>(<span class="ident">KeywordParensClose</span>, <span class="ident">lexer</span>);
         <span class="ident">lexer</span>.<span class="ident">advance</span>();
 
         <span class="prelude-val">Some</span>((
-            <span class="ident">DataTypeDeclaration</span>::<span class="ident">DataTypeDefinition</span> {
-                <span class="ident">data_type</span>: <span class="ident">DataType</span>::<span class="ident">EnumType</span> { <span class="ident">name</span>, <span class="ident">elements</span> },
+            <span class="ident">DataTypeDeclaration::DataTypeDefinition</span> {
+                <span class="ident">data_type</span>: <span class="ident">DataType::EnumType</span> { <span class="ident">name</span>, <span class="ident">elements</span> },
             },
             <span class="prelude-val">None</span>,
         ))
@@ -932,7 +932,7 @@
         <span class="ident">lexer</span>.<span class="ident">advance</span>();
         <span class="kw">let</span> <span class="ident">size</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">allow</span>(<span class="ident">KeywordSquareParensOpen</span>, <span class="ident">lexer</span>) {
             <span class="kw">let</span> <span class="ident">size_statement</span> <span class="op">=</span> <span class="ident">parse_expression</span>(<span class="ident">lexer</span>)<span class="question-mark">?</span>;
-            <span class="macro">expect</span><span class="macro">!</span>(<span class="ident">KeywordSquareParensClose</span>, <span class="ident">lexer</span>);
+            <span class="macro">expect!</span>(<span class="ident">KeywordSquareParensClose</span>, <span class="ident">lexer</span>);
             <span class="ident">lexer</span>.<span class="ident">advance</span>();
             <span class="prelude-val">Some</span>(<span class="ident">size_statement</span>)
         } <span class="kw">else</span> {
@@ -945,8 +945,8 @@
             <span class="prelude-val">None</span>
         };
         <span class="prelude-val">Some</span>((
-            <span class="ident">DataTypeDeclaration</span>::<span class="ident">DataTypeDefinition</span> {
-                <span class="ident">data_type</span>: <span class="ident">DataType</span>::<span class="ident">StringType</span> {
+            <span class="ident">DataTypeDeclaration::DataTypeDefinition</span> {
+                <span class="ident">data_type</span>: <span class="ident">DataType::StringType</span> {
                     <span class="ident">name</span>,
                     <span class="ident">is_wide</span>,
                     <span class="ident">size</span>,
@@ -960,7 +960,7 @@
 
         <span class="kw">if</span> <span class="ident">allow</span>(<span class="ident">KeywordParensOpen</span>, <span class="ident">lexer</span>) {
             <span class="kw">let</span> <span class="ident">bounds</span> <span class="op">=</span> <span class="ident">parse_expression</span>(<span class="ident">lexer</span>)<span class="question-mark">?</span>;
-            <span class="macro">expect</span><span class="macro">!</span>(<span class="ident">KeywordParensClose</span>, <span class="ident">lexer</span>);
+            <span class="macro">expect!</span>(<span class="ident">KeywordParensClose</span>, <span class="ident">lexer</span>);
             <span class="ident">lexer</span>.<span class="ident">advance</span>();
 
             <span class="kw">let</span> <span class="ident">initial_value</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">allow</span>(<span class="ident">KeywordAssignment</span>, <span class="ident">lexer</span>) {
@@ -970,8 +970,8 @@
             };
 
             <span class="prelude-val">Some</span>((
-                <span class="ident">DataTypeDeclaration</span>::<span class="ident">DataTypeDefinition</span> {
-                    <span class="ident">data_type</span>: <span class="ident">DataType</span>::<span class="ident">SubRangeType</span> {
+                <span class="ident">DataTypeDeclaration::DataTypeDefinition</span> {
+                    <span class="ident">data_type</span>: <span class="ident">DataType::SubRangeType</span> {
                         <span class="ident">name</span>,
                         <span class="ident">bounds</span>: <span class="prelude-val">Some</span>(<span class="ident">bounds</span>),
                         <span class="ident">referenced_type</span>,
@@ -985,8 +985,8 @@
             } <span class="kw">else</span> {
                 <span class="prelude-val">None</span>
             };
-            <span class="kw">let</span> <span class="ident">data_type</span> <span class="op">=</span> <span class="ident">DataTypeDeclaration</span>::<span class="ident">DataTypeDefinition</span> {
-                <span class="ident">data_type</span>: <span class="ident">DataType</span>::<span class="ident">SubRangeType</span> {
+            <span class="kw">let</span> <span class="ident">data_type</span> <span class="op">=</span> <span class="ident">DataTypeDeclaration::DataTypeDefinition</span> {
+                <span class="ident">data_type</span>: <span class="ident">DataType::SubRangeType</span> {
                     <span class="ident">name</span>,
                     <span class="ident">referenced_type</span>,
                     <span class="ident">bounds</span>: <span class="prelude-val">None</span>,
@@ -1001,7 +1001,7 @@
             };
 
             <span class="prelude-val">Some</span>((
-                <span class="ident">DataTypeDeclaration</span>::<span class="ident">DataTypeReference</span> { <span class="ident">referenced_type</span> },
+                <span class="ident">DataTypeDeclaration::DataTypeReference</span> { <span class="ident">referenced_type</span> },
                 <span class="ident">initial_value</span>,
             ))
         }
@@ -1011,9 +1011,9 @@
 
     <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">allow</span>(<span class="ident">KeywordDotDotDot</span>, <span class="ident">lexer</span>) {
         <span class="prelude-val">Some</span>((
-            <span class="ident">DataTypeDeclaration</span>::<span class="ident">DataTypeDefinition</span> {
-                <span class="ident">data_type</span>: <span class="ident">DataType</span>::<span class="ident">VarArgs</span> {
-                    <span class="ident">referenced_type</span>: <span class="ident">result</span>.<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">it</span>, <span class="kw">_</span>)<span class="op">|</span> <span class="ident">it</span>).<span class="ident">map</span>(<span class="ident">Box</span>::<span class="ident">new</span>),
+            <span class="ident">DataTypeDeclaration::DataTypeDefinition</span> {
+                <span class="ident">data_type</span>: <span class="ident">DataType::VarArgs</span> {
+                    <span class="ident">referenced_type</span>: <span class="ident">result</span>.<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">it</span>, <span class="kw">_</span>)<span class="op">|</span> <span class="ident">it</span>).<span class="ident">map</span>(<span class="ident">Box::new</span>),
                 },
             },
             <span class="prelude-val">None</span>,
@@ -1021,22 +1021,22 @@
     } <span class="kw">else</span> {
         <span class="ident">result</span>
     };
-    <span class="macro">expect</span><span class="macro">!</span>(<span class="ident">KeywordSemicolon</span>, <span class="ident">lexer</span>);
+    <span class="macro">expect!</span>(<span class="ident">KeywordSemicolon</span>, <span class="ident">lexer</span>);
     <span class="ident">lexer</span>.<span class="ident">advance</span>();
 
-    <span class="ident">result</span>.<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;expected datatype, struct or enum, found {:?}&quot;</span>, <span class="ident">lexer</span>.<span class="ident">token</span>))
+    <span class="ident">result</span>.<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="macro">format!</span>(<span class="string">&quot;expected datatype, struct or enum, found {:?}&quot;</span>, <span class="ident">lexer</span>.<span class="ident">token</span>))
 }
 
-<span class="kw">fn</span> <span class="ident">is_end_of_stream</span>(<span class="ident">token</span>: <span class="kw-2">&amp;</span><span class="ident">lexer</span>::<span class="ident">Token</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+<span class="kw">fn</span> <span class="ident">is_end_of_stream</span>(<span class="ident">token</span>: <span class="kw-2">&amp;</span><span class="ident">lexer::Token</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
     <span class="kw-2">*</span><span class="ident">token</span> <span class="op">=</span><span class="op">=</span> <span class="ident">End</span> <span class="op">|</span><span class="op">|</span> <span class="kw-2">*</span><span class="ident">token</span> <span class="op">=</span><span class="op">=</span> <span class="ident">Error</span>
 }
 
 <span class="kw">fn</span> <span class="ident">parse_body</span>(
     <span class="ident">lexer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">RustyLexer</span>,
     <span class="ident">open_line_nr</span>: <span class="ident">usize</span>,
-    <span class="ident">until</span>: <span class="kw-2">&amp;</span><span class="kw">dyn</span> <span class="ident">Fn</span>(<span class="kw-2">&amp;</span><span class="ident">lexer</span>::<span class="ident">Token</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span>,
+    <span class="ident">until</span>: <span class="kw-2">&amp;</span><span class="kw">dyn</span> <span class="ident">Fn</span>(<span class="kw-2">&amp;</span><span class="ident">lexer::Token</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span>,
 ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Statement</span><span class="op">&gt;</span>, <span class="ident">String</span><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">statements</span> <span class="op">=</span> <span class="ident">Vec</span>::<span class="ident">new</span>();
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">statements</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
     <span class="ident">consume_all</span>(<span class="ident">lexer</span>, <span class="ident">KeywordSemicolon</span>);
     <span class="kw">while</span> <span class="op">!</span><span class="ident">until</span>(<span class="kw-2">&amp;</span><span class="ident">lexer</span>.<span class="ident">token</span>) <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">is_end_of_stream</span>(<span class="kw-2">&amp;</span><span class="ident">lexer</span>.<span class="ident">token</span>) {
         <span class="kw">let</span> <span class="ident">statement</span> <span class="op">=</span> <span class="ident">parse_control</span>(<span class="ident">lexer</span>)<span class="question-mark">?</span>;
@@ -1044,7 +1044,7 @@
         <span class="ident">statements</span>.<span class="ident">push</span>(<span class="ident">statement</span>);
     }
     <span class="kw">if</span> <span class="op">!</span><span class="ident">until</span>(<span class="kw-2">&amp;</span><span class="ident">lexer</span>.<span class="ident">token</span>) {
-        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="macro">format</span><span class="macro">!</span>(
+        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="macro">format!</span>(
             <span class="string">&quot;unexpected termination of body by &#39;{:}&#39; [{:?}], a block at line {:} was not closed&quot;</span>,
             <span class="ident">lexer</span>.<span class="ident">slice</span>(),
             <span class="ident">lexer</span>.<span class="ident">token</span>,
@@ -1054,7 +1054,7 @@
     <span class="prelude-val">Ok</span>(<span class="ident">statements</span>)
 }
 
-<span class="kw">fn</span> <span class="ident">consume_all</span>(<span class="ident">lexer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">RustyLexer</span>, <span class="ident">token</span>: <span class="ident">lexer</span>::<span class="ident">Token</span>) {
+<span class="kw">fn</span> <span class="ident">consume_all</span>(<span class="ident">lexer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">RustyLexer</span>, <span class="ident">token</span>: <span class="ident">lexer::Token</span>) {
     <span class="kw">while</span> <span class="ident">lexer</span>.<span class="ident">token</span> <span class="op">=</span><span class="op">=</span> <span class="ident">token</span> {
         <span class="ident">lexer</span>.<span class="ident">advance</span>();
     }
@@ -1068,7 +1068,7 @@
     <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">parse_expression</span>(<span class="ident">lexer</span>);
 
     <span class="kw">if</span> <span class="op">!</span>(<span class="ident">lexer</span>.<span class="ident">token</span> <span class="op">=</span><span class="op">=</span> <span class="ident">KeywordColon</span> <span class="op">|</span><span class="op">|</span> <span class="ident">lexer</span>.<span class="ident">token</span> <span class="op">=</span><span class="op">=</span> <span class="ident">KeywordSemicolon</span>) {
-        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="macro">format</span><span class="macro">!</span>(
+        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="macro">format!</span>(
             <span class="string">&quot;expected end of statement (e.g. ;), but found {:?} at {:}&quot;</span>,
             <span class="ident">lexer</span>.<span class="ident">token</span>,
             <span class="ident">lexer</span>.<span class="ident">get_location_information</span>()
@@ -1082,7 +1082,7 @@
 }
 
 <span class="kw">fn</span> <span class="ident">parse_reference</span>(<span class="ident">lexer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">RustyLexer</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Statement</span>, <span class="ident">String</span><span class="op">&gt;</span> {
-    <span class="ident">expressions_parser</span>::<span class="ident">parse_qualified_reference</span>(<span class="ident">lexer</span>)
+    <span class="ident">expressions_parser::parse_qualified_reference</span>(<span class="ident">lexer</span>)
 }
 
 <span class="kw">fn</span> <span class="ident">parse_control</span>(<span class="ident">lexer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">RustyLexer</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Statement</span>, <span class="ident">String</span><span class="op">&gt;</span> {
@@ -1092,11 +1092,11 @@
 <span class="kw">fn</span> <span class="ident">parse_variable_block_type</span>(<span class="ident">lexer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">RustyLexer</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">VariableBlockType</span>, <span class="ident">String</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">block_type</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">lexer</span>.<span class="ident">token</span>;
     <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">block_type</span> {
-        <span class="ident">KeywordVar</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">VariableBlockType</span>::<span class="ident">Local</span>),
-        <span class="ident">KeywordVarInput</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">VariableBlockType</span>::<span class="ident">Input</span>),
-        <span class="ident">KeywordVarOutput</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">VariableBlockType</span>::<span class="ident">Output</span>),
-        <span class="ident">KeywordVarGlobal</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">VariableBlockType</span>::<span class="ident">Global</span>),
-        <span class="ident">KeywordVarInOut</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">VariableBlockType</span>::<span class="ident">InOut</span>),
+        <span class="ident">KeywordVar</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">VariableBlockType::Local</span>),
+        <span class="ident">KeywordVarInput</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">VariableBlockType::Input</span>),
+        <span class="ident">KeywordVarOutput</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">VariableBlockType::Output</span>),
+        <span class="ident">KeywordVarGlobal</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">VariableBlockType::Global</span>),
+        <span class="ident">KeywordVarInOut</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">VariableBlockType::InOut</span>),
         <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">unexpected_token</span>(<span class="ident">lexer</span>)),
     };
     <span class="ident">lexer</span>.<span class="ident">advance</span>();
@@ -1107,7 +1107,7 @@
     <span class="comment">//Consume the var block</span>
 
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">VariableBlock</span> {
-        <span class="ident">variables</span>: <span class="ident">Vec</span>::<span class="ident">new</span>(),
+        <span class="ident">variables</span>: <span class="ident">Vec::new</span>(),
         <span class="ident">variable_block_type</span>: <span class="ident">parse_variable_block_type</span>(<span class="ident">lexer</span>)<span class="question-mark">?</span>,
     };
 
@@ -1115,7 +1115,7 @@
         <span class="ident">result</span>.<span class="ident">variables</span>.<span class="ident">push</span>(<span class="ident">parse_variable</span>(<span class="ident">lexer</span>)<span class="question-mark">?</span>);
     }
 
-    <span class="macro">expect</span><span class="macro">!</span>(<span class="ident">KeywordEndVar</span>, <span class="ident">lexer</span>);
+    <span class="macro">expect!</span>(<span class="ident">KeywordEndVar</span>, <span class="ident">lexer</span>);
 
     <span class="ident">lexer</span>.<span class="ident">advance</span>();
     <span class="prelude-val">Ok</span>(<span class="ident">result</span>)
@@ -1125,7 +1125,7 @@
     <span class="kw">let</span> <span class="ident">variable_location</span> <span class="op">=</span> <span class="ident">lexer</span>.<span class="ident">location</span>();
     <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="ident">slice_and_advance</span>(<span class="ident">lexer</span>);
 
-    <span class="macro">expect</span><span class="macro">!</span>(<span class="ident">KeywordColon</span>, <span class="ident">lexer</span>);
+    <span class="macro">expect!</span>(<span class="ident">KeywordColon</span>, <span class="ident">lexer</span>);
     <span class="ident">lexer</span>.<span class="ident">advance</span>();
 
     <span class="kw">let</span> (<span class="ident">data_type</span>, <span class="ident">initializer</span>) <span class="op">=</span> <span class="ident">parse_data_type_definition</span>(<span class="ident">lexer</span>, <span class="prelude-val">None</span>)<span class="question-mark">?</span>;
@@ -1139,5 +1139,5 @@
     })
 }
 </pre></div>
-</section><section id="search" class="content hidden"></section><section class="footer"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="rusty" data-search-js="../../search-index.js"></div>
+</section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="rusty" data-search-index-js="../../search-index.js" data-search-js="../../search.js"></div>
     <script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script></body></html>

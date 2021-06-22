@@ -1,6 +1,6 @@
 <!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/cli.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>cli.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings"></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
 <link rel="alternate icon" type="image/png" href="../../favicon-16x16.png">
-<link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../rusty/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
+<link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../rusty/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
                 <a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" height="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
@@ -213,17 +213,17 @@
 <span id="210">210</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// Copyright (c) 2021 Ghaith Hachem and Mathias Rieder</span>
-<span class="kw">use</span> <span class="ident">structopt</span>::{<span class="ident">clap</span>::<span class="ident">ArgGroup</span>, <span class="ident">StructOpt</span>};
+<span class="kw">use</span> <span class="ident">structopt</span>::{<span class="ident">clap::ArgGroup</span>, <span class="ident">StructOpt</span>};
 
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">ParameterError</span> <span class="op">=</span> <span class="ident">structopt</span>::<span class="ident">clap</span>::<span class="ident">Error</span>;
+<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">ParameterError</span> <span class="op">=</span> <span class="ident">structopt::clap::Error</span>;
 
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">parse_parameters</span>(<span class="ident">args</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">CompileParameters</span>, <span class="ident">ParameterError</span><span class="op">&gt;</span> {
-    <span class="ident">CompileParameters</span>::<span class="ident">from_iter_safe</span>(<span class="ident">args</span>)
+    <span class="ident">CompileParameters::from_iter_safe</span>(<span class="ident">args</span>)
 }
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">StructOpt</span>, <span class="ident">Debug</span>)]</span>
 <span class="attribute">#[<span class="ident">structopt</span>(
-        <span class="ident">group</span> <span class="op">=</span> <span class="ident">ArgGroup</span>::<span class="ident">with_name</span>(<span class="string">&quot;format&quot;</span>).<span class="ident">required</span>(<span class="bool-val">true</span>),
+        <span class="ident">group</span> <span class="op">=</span> <span class="ident">ArgGroup::with_name</span>(<span class="string">&quot;format&quot;</span>).<span class="ident">required</span>(<span class="bool-val">true</span>),
         <span class="ident">about</span> <span class="op">=</span> <span class="string">&quot;IEC61131-3 Structured Text compiler powered by Rust &amp; LLVM &quot;</span>
     )]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">CompileParameters</span> {
@@ -286,68 +286,68 @@
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">cli_tests</span> {
-    <span class="kw">use</span> <span class="kw">super</span>::<span class="ident">parse_parameters</span>;
-    <span class="kw">use</span> <span class="kw">super</span>::<span class="ident">ParameterError</span>;
-    <span class="kw">use</span> <span class="ident">structopt</span>::<span class="ident">clap</span>::<span class="ident">ErrorKind</span>;
+    <span class="kw">use</span> <span class="kw">super</span><span class="ident">::parse_parameters</span>;
+    <span class="kw">use</span> <span class="kw">super</span><span class="ident">::ParameterError</span>;
+    <span class="kw">use</span> <span class="ident">structopt::clap::ErrorKind</span>;
 
     <span class="kw">fn</span> <span class="ident">expect_argument_error</span>(<span class="ident">args</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>, <span class="ident">expected_error_kind</span>: <span class="ident">ErrorKind</span>) {
         <span class="kw">let</span> <span class="ident">params</span> <span class="op">=</span> <span class="ident">parse_parameters</span>(<span class="ident">args</span>.<span class="ident">clone</span>());
         <span class="kw">match</span> <span class="ident">params</span> {
             <span class="prelude-val">Err</span>(<span class="ident">ParameterError</span> { <span class="ident">kind</span>, .. }) <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">kind</span>, <span class="ident">expected_error_kind</span>);
+                <span class="macro">assert_eq!</span>(<span class="ident">kind</span>, <span class="ident">expected_error_kind</span>);
             }
-            <span class="prelude-val">Ok</span>(<span class="ident">p</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic</span><span class="macro">!</span>(
+            <span class="prelude-val">Ok</span>(<span class="ident">p</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic!</span>(
                 <span class="string">&quot;expected error, but found none. arguments: {:?}. params: {:?}&quot;</span>,
                 <span class="ident">args</span>, <span class="ident">p</span>
             ),
         }
     }
-    <span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">vec_of_strings</span> {
-        ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">x</span>:<span class="ident">expr</span>),<span class="kw-2">*</span>) <span class="op">=</span><span class="op">&gt;</span> (<span class="macro">vec</span><span class="macro">!</span>[<span class="string">&quot;rustyc&quot;</span>.<span class="ident">to_string</span>(), $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">x</span>.<span class="ident">to_string</span>()),<span class="kw-2">*</span>]);
+    <span class="macro">macro_rules!</span> <span class="ident">vec_of_strings</span> {
+        ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">x</span>:<span class="ident">expr</span>),<span class="kw-2">*</span>) <span class="op">=</span><span class="op">&gt;</span> (<span class="macro">vec!</span>[<span class="string">&quot;rustyc&quot;</span>.<span class="ident">to_string</span>(), $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">x</span>.<span class="ident">to_string</span>()),<span class="kw-2">*</span>]);
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">missing_parameters_results_in_error</span>() {
         <span class="comment">// no arguments</span>
-        <span class="ident">expect_argument_error</span>(<span class="macro">vec</span><span class="macro">!</span>[], <span class="ident">ErrorKind</span>::<span class="ident">MissingRequiredArgument</span>);
+        <span class="ident">expect_argument_error</span>(<span class="macro">vec!</span>[], <span class="ident">ErrorKind::MissingRequiredArgument</span>);
         <span class="comment">// only input file, missing format</span>
         <span class="ident">expect_argument_error</span>(
-            <span class="macro">vec_of_strings</span><span class="macro">!</span>[<span class="string">&quot;input.st&quot;</span>],
-            <span class="ident">ErrorKind</span>::<span class="ident">MissingRequiredArgument</span>,
+            <span class="macro">vec_of_strings!</span>[<span class="string">&quot;input.st&quot;</span>],
+            <span class="ident">ErrorKind::MissingRequiredArgument</span>,
         );
         <span class="comment">// no input file</span>
-        <span class="ident">expect_argument_error</span>(<span class="macro">vec_of_strings</span><span class="macro">!</span>[<span class="string">&quot;--ir&quot;</span>], <span class="ident">ErrorKind</span>::<span class="ident">MissingRequiredArgument</span>);
+        <span class="ident">expect_argument_error</span>(<span class="macro">vec_of_strings!</span>[<span class="string">&quot;--ir&quot;</span>], <span class="ident">ErrorKind::MissingRequiredArgument</span>);
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">multiple_output_formats_results_in_error</span>() {
         <span class="ident">expect_argument_error</span>(
-            <span class="macro">vec_of_strings</span><span class="macro">!</span>[<span class="string">&quot;input.st&quot;</span>, <span class="string">&quot;--ir&quot;</span>, <span class="string">&quot;--shared&quot;</span>],
-            <span class="ident">ErrorKind</span>::<span class="ident">ArgumentConflict</span>,
+            <span class="macro">vec_of_strings!</span>[<span class="string">&quot;input.st&quot;</span>, <span class="string">&quot;--ir&quot;</span>, <span class="string">&quot;--shared&quot;</span>],
+            <span class="ident">ErrorKind::ArgumentConflict</span>,
         );
         <span class="ident">expect_argument_error</span>(
-            <span class="macro">vec_of_strings</span><span class="macro">!</span>[<span class="string">&quot;input.st&quot;</span>, <span class="string">&quot;--ir&quot;</span>, <span class="string">&quot;--shared&quot;</span>, <span class="string">&quot;--pic&quot;</span>],
-            <span class="ident">ErrorKind</span>::<span class="ident">ArgumentConflict</span>,
+            <span class="macro">vec_of_strings!</span>[<span class="string">&quot;input.st&quot;</span>, <span class="string">&quot;--ir&quot;</span>, <span class="string">&quot;--shared&quot;</span>, <span class="string">&quot;--pic&quot;</span>],
+            <span class="ident">ErrorKind::ArgumentConflict</span>,
         );
         <span class="ident">expect_argument_error</span>(
-            <span class="macro">vec_of_strings</span><span class="macro">!</span>[<span class="string">&quot;input.st&quot;</span>, <span class="string">&quot;--ir&quot;</span>, <span class="string">&quot;--shared&quot;</span>, <span class="string">&quot;--pic&quot;</span>, <span class="string">&quot;--bc&quot;</span>],
-            <span class="ident">ErrorKind</span>::<span class="ident">ArgumentConflict</span>,
+            <span class="macro">vec_of_strings!</span>[<span class="string">&quot;input.st&quot;</span>, <span class="string">&quot;--ir&quot;</span>, <span class="string">&quot;--shared&quot;</span>, <span class="string">&quot;--pic&quot;</span>, <span class="string">&quot;--bc&quot;</span>],
+            <span class="ident">ErrorKind::ArgumentConflict</span>,
         );
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">unknown_arguments_results_in_error</span>() {
         <span class="ident">expect_argument_error</span>(
-            <span class="macro">vec_of_strings</span><span class="macro">!</span>[<span class="string">&quot;input.st&quot;</span>, <span class="string">&quot;--unknown&quot;</span>],
-            <span class="ident">ErrorKind</span>::<span class="ident">UnknownArgument</span>,
+            <span class="macro">vec_of_strings!</span>[<span class="string">&quot;input.st&quot;</span>, <span class="string">&quot;--unknown&quot;</span>],
+            <span class="ident">ErrorKind::UnknownArgument</span>,
         );
         <span class="ident">expect_argument_error</span>(
-            <span class="macro">vec_of_strings</span><span class="macro">!</span>[<span class="string">&quot;input.st&quot;</span>, <span class="string">&quot;--ir&quot;</span>, <span class="string">&quot;--unknown&quot;</span>],
-            <span class="ident">ErrorKind</span>::<span class="ident">UnknownArgument</span>,
+            <span class="macro">vec_of_strings!</span>[<span class="string">&quot;input.st&quot;</span>, <span class="string">&quot;--ir&quot;</span>, <span class="string">&quot;--unknown&quot;</span>],
+            <span class="ident">ErrorKind::UnknownArgument</span>,
         );
         <span class="ident">expect_argument_error</span>(
-            <span class="macro">vec_of_strings</span><span class="macro">!</span>[<span class="string">&quot;input.st&quot;</span>, <span class="string">&quot;--ir&quot;</span>, <span class="string">&quot;-u&quot;</span>],
-            <span class="ident">ErrorKind</span>::<span class="ident">UnknownArgument</span>,
+            <span class="macro">vec_of_strings!</span>[<span class="string">&quot;input.st&quot;</span>, <span class="string">&quot;--ir&quot;</span>, <span class="string">&quot;-u&quot;</span>],
+            <span class="ident">ErrorKind::UnknownArgument</span>,
         );
     }
 
@@ -355,73 +355,73 @@
     <span class="kw">fn</span> <span class="ident">valid_output_files</span>() {
         <span class="comment">//short -o</span>
         <span class="kw">let</span> <span class="ident">parameters</span> <span class="op">=</span>
-            <span class="ident">parse_parameters</span>(<span class="macro">vec_of_strings</span><span class="macro">!</span>(<span class="string">&quot;input.st&quot;</span>, <span class="string">&quot;--ir&quot;</span>, <span class="string">&quot;-o&quot;</span>, <span class="string">&quot;myout.out&quot;</span>)).<span class="ident">unwrap</span>();
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">parameters</span>.<span class="ident">output</span>, <span class="string">&quot;myout.out&quot;</span>.<span class="ident">to_string</span>());
+            <span class="ident">parse_parameters</span>(<span class="macro">vec_of_strings!</span>(<span class="string">&quot;input.st&quot;</span>, <span class="string">&quot;--ir&quot;</span>, <span class="string">&quot;-o&quot;</span>, <span class="string">&quot;myout.out&quot;</span>)).<span class="ident">unwrap</span>();
+        <span class="macro">assert_eq!</span>(<span class="ident">parameters</span>.<span class="ident">output</span>, <span class="string">&quot;myout.out&quot;</span>.<span class="ident">to_string</span>());
         <span class="comment">//long --output</span>
-        <span class="kw">let</span> <span class="ident">parameters</span> <span class="op">=</span> <span class="ident">parse_parameters</span>(<span class="macro">vec_of_strings</span><span class="macro">!</span>(
+        <span class="kw">let</span> <span class="ident">parameters</span> <span class="op">=</span> <span class="ident">parse_parameters</span>(<span class="macro">vec_of_strings!</span>(
             <span class="string">&quot;input.st&quot;</span>,
             <span class="string">&quot;--ir&quot;</span>,
             <span class="string">&quot;--output&quot;</span>,
             <span class="string">&quot;myout2.out&quot;</span>
         ))
         .<span class="ident">unwrap</span>();
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">parameters</span>.<span class="ident">output</span>, <span class="string">&quot;myout2.out&quot;</span>.<span class="ident">to_string</span>());
+        <span class="macro">assert_eq!</span>(<span class="ident">parameters</span>.<span class="ident">output</span>, <span class="string">&quot;myout2.out&quot;</span>.<span class="ident">to_string</span>());
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">valid_output_formats</span>() {
-        <span class="kw">let</span> <span class="ident">parameters</span> <span class="op">=</span> <span class="ident">parse_parameters</span>(<span class="macro">vec_of_strings</span><span class="macro">!</span>(<span class="string">&quot;input.st&quot;</span>, <span class="string">&quot;--ir&quot;</span>)).<span class="ident">unwrap</span>();
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">parameters</span>.<span class="ident">output_ir</span>, <span class="bool-val">true</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">parameters</span>.<span class="ident">output_bit_code</span>, <span class="bool-val">false</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">parameters</span>.<span class="ident">output_obj_code</span>, <span class="bool-val">false</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">parameters</span>.<span class="ident">output_pic_obj</span>, <span class="bool-val">false</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">parameters</span>.<span class="ident">output_shared_obj</span>, <span class="bool-val">false</span>);
+        <span class="kw">let</span> <span class="ident">parameters</span> <span class="op">=</span> <span class="ident">parse_parameters</span>(<span class="macro">vec_of_strings!</span>(<span class="string">&quot;input.st&quot;</span>, <span class="string">&quot;--ir&quot;</span>)).<span class="ident">unwrap</span>();
+        <span class="macro">assert_eq!</span>(<span class="ident">parameters</span>.<span class="ident">output_ir</span>, <span class="bool-val">true</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">parameters</span>.<span class="ident">output_bit_code</span>, <span class="bool-val">false</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">parameters</span>.<span class="ident">output_obj_code</span>, <span class="bool-val">false</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">parameters</span>.<span class="ident">output_pic_obj</span>, <span class="bool-val">false</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">parameters</span>.<span class="ident">output_shared_obj</span>, <span class="bool-val">false</span>);
 
-        <span class="kw">let</span> <span class="ident">parameters</span> <span class="op">=</span> <span class="ident">parse_parameters</span>(<span class="macro">vec_of_strings</span><span class="macro">!</span>(<span class="string">&quot;input.st&quot;</span>, <span class="string">&quot;--bc&quot;</span>)).<span class="ident">unwrap</span>();
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">parameters</span>.<span class="ident">output_ir</span>, <span class="bool-val">false</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">parameters</span>.<span class="ident">output_bit_code</span>, <span class="bool-val">true</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">parameters</span>.<span class="ident">output_obj_code</span>, <span class="bool-val">false</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">parameters</span>.<span class="ident">output_pic_obj</span>, <span class="bool-val">false</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">parameters</span>.<span class="ident">output_shared_obj</span>, <span class="bool-val">false</span>);
+        <span class="kw">let</span> <span class="ident">parameters</span> <span class="op">=</span> <span class="ident">parse_parameters</span>(<span class="macro">vec_of_strings!</span>(<span class="string">&quot;input.st&quot;</span>, <span class="string">&quot;--bc&quot;</span>)).<span class="ident">unwrap</span>();
+        <span class="macro">assert_eq!</span>(<span class="ident">parameters</span>.<span class="ident">output_ir</span>, <span class="bool-val">false</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">parameters</span>.<span class="ident">output_bit_code</span>, <span class="bool-val">true</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">parameters</span>.<span class="ident">output_obj_code</span>, <span class="bool-val">false</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">parameters</span>.<span class="ident">output_pic_obj</span>, <span class="bool-val">false</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">parameters</span>.<span class="ident">output_shared_obj</span>, <span class="bool-val">false</span>);
 
-        <span class="kw">let</span> <span class="ident">parameters</span> <span class="op">=</span> <span class="ident">parse_parameters</span>(<span class="macro">vec_of_strings</span><span class="macro">!</span>(<span class="string">&quot;input.st&quot;</span>, <span class="string">&quot;--static&quot;</span>)).<span class="ident">unwrap</span>();
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">parameters</span>.<span class="ident">output_ir</span>, <span class="bool-val">false</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">parameters</span>.<span class="ident">output_bit_code</span>, <span class="bool-val">false</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">parameters</span>.<span class="ident">output_obj_code</span>, <span class="bool-val">true</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">parameters</span>.<span class="ident">output_pic_obj</span>, <span class="bool-val">false</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">parameters</span>.<span class="ident">output_shared_obj</span>, <span class="bool-val">false</span>);
+        <span class="kw">let</span> <span class="ident">parameters</span> <span class="op">=</span> <span class="ident">parse_parameters</span>(<span class="macro">vec_of_strings!</span>(<span class="string">&quot;input.st&quot;</span>, <span class="string">&quot;--static&quot;</span>)).<span class="ident">unwrap</span>();
+        <span class="macro">assert_eq!</span>(<span class="ident">parameters</span>.<span class="ident">output_ir</span>, <span class="bool-val">false</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">parameters</span>.<span class="ident">output_bit_code</span>, <span class="bool-val">false</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">parameters</span>.<span class="ident">output_obj_code</span>, <span class="bool-val">true</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">parameters</span>.<span class="ident">output_pic_obj</span>, <span class="bool-val">false</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">parameters</span>.<span class="ident">output_shared_obj</span>, <span class="bool-val">false</span>);
 
-        <span class="kw">let</span> <span class="ident">parameters</span> <span class="op">=</span> <span class="ident">parse_parameters</span>(<span class="macro">vec_of_strings</span><span class="macro">!</span>(<span class="string">&quot;input.st&quot;</span>, <span class="string">&quot;--pic&quot;</span>)).<span class="ident">unwrap</span>();
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">parameters</span>.<span class="ident">output_ir</span>, <span class="bool-val">false</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">parameters</span>.<span class="ident">output_bit_code</span>, <span class="bool-val">false</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">parameters</span>.<span class="ident">output_obj_code</span>, <span class="bool-val">false</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">parameters</span>.<span class="ident">output_pic_obj</span>, <span class="bool-val">true</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">parameters</span>.<span class="ident">output_shared_obj</span>, <span class="bool-val">false</span>);
+        <span class="kw">let</span> <span class="ident">parameters</span> <span class="op">=</span> <span class="ident">parse_parameters</span>(<span class="macro">vec_of_strings!</span>(<span class="string">&quot;input.st&quot;</span>, <span class="string">&quot;--pic&quot;</span>)).<span class="ident">unwrap</span>();
+        <span class="macro">assert_eq!</span>(<span class="ident">parameters</span>.<span class="ident">output_ir</span>, <span class="bool-val">false</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">parameters</span>.<span class="ident">output_bit_code</span>, <span class="bool-val">false</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">parameters</span>.<span class="ident">output_obj_code</span>, <span class="bool-val">false</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">parameters</span>.<span class="ident">output_pic_obj</span>, <span class="bool-val">true</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">parameters</span>.<span class="ident">output_shared_obj</span>, <span class="bool-val">false</span>);
 
-        <span class="kw">let</span> <span class="ident">parameters</span> <span class="op">=</span> <span class="ident">parse_parameters</span>(<span class="macro">vec_of_strings</span><span class="macro">!</span>(<span class="string">&quot;input.st&quot;</span>, <span class="string">&quot;--shared&quot;</span>)).<span class="ident">unwrap</span>();
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">parameters</span>.<span class="ident">output_ir</span>, <span class="bool-val">false</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">parameters</span>.<span class="ident">output_bit_code</span>, <span class="bool-val">false</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">parameters</span>.<span class="ident">output_obj_code</span>, <span class="bool-val">false</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">parameters</span>.<span class="ident">output_pic_obj</span>, <span class="bool-val">false</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">parameters</span>.<span class="ident">output_shared_obj</span>, <span class="bool-val">true</span>);
+        <span class="kw">let</span> <span class="ident">parameters</span> <span class="op">=</span> <span class="ident">parse_parameters</span>(<span class="macro">vec_of_strings!</span>(<span class="string">&quot;input.st&quot;</span>, <span class="string">&quot;--shared&quot;</span>)).<span class="ident">unwrap</span>();
+        <span class="macro">assert_eq!</span>(<span class="ident">parameters</span>.<span class="ident">output_ir</span>, <span class="bool-val">false</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">parameters</span>.<span class="ident">output_bit_code</span>, <span class="bool-val">false</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">parameters</span>.<span class="ident">output_obj_code</span>, <span class="bool-val">false</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">parameters</span>.<span class="ident">output_pic_obj</span>, <span class="bool-val">false</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">parameters</span>.<span class="ident">output_shared_obj</span>, <span class="bool-val">true</span>);
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">cli_supports_version</span>() {
-        <span class="kw">match</span> <span class="ident">parse_parameters</span>(<span class="macro">vec_of_strings</span><span class="macro">!</span>(<span class="string">&quot;input.st&quot;</span>, <span class="string">&quot;--version&quot;</span>)) {
-            <span class="prelude-val">Ok</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;expected version output, but found OK&quot;</span>),
-            <span class="prelude-val">Err</span>(<span class="ident">ParameterError</span> { <span class="ident">kind</span>, .. }) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">kind</span>, <span class="ident">ErrorKind</span>::<span class="ident">VersionDisplayed</span>),
+        <span class="kw">match</span> <span class="ident">parse_parameters</span>(<span class="macro">vec_of_strings!</span>(<span class="string">&quot;input.st&quot;</span>, <span class="string">&quot;--version&quot;</span>)) {
+            <span class="prelude-val">Ok</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic!</span>(<span class="string">&quot;expected version output, but found OK&quot;</span>),
+            <span class="prelude-val">Err</span>(<span class="ident">ParameterError</span> { <span class="ident">kind</span>, .. }) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">assert_eq!</span>(<span class="ident">kind</span>, <span class="ident">ErrorKind::VersionDisplayed</span>),
         }
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">cli_supports_help</span>() {
-        <span class="kw">match</span> <span class="ident">parse_parameters</span>(<span class="macro">vec_of_strings</span><span class="macro">!</span>(<span class="string">&quot;input.st&quot;</span>, <span class="string">&quot;--help&quot;</span>)) {
-            <span class="prelude-val">Ok</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;expected help output, but found OK&quot;</span>),
-            <span class="prelude-val">Err</span>(<span class="ident">ParameterError</span> { <span class="ident">kind</span>, .. }) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">kind</span>, <span class="ident">ErrorKind</span>::<span class="ident">HelpDisplayed</span>),
+        <span class="kw">match</span> <span class="ident">parse_parameters</span>(<span class="macro">vec_of_strings!</span>(<span class="string">&quot;input.st&quot;</span>, <span class="string">&quot;--help&quot;</span>)) {
+            <span class="prelude-val">Ok</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic!</span>(<span class="string">&quot;expected help output, but found OK&quot;</span>),
+            <span class="prelude-val">Err</span>(<span class="ident">ParameterError</span> { <span class="ident">kind</span>, .. }) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">assert_eq!</span>(<span class="ident">kind</span>, <span class="ident">ErrorKind::HelpDisplayed</span>),
         }
     }
 }
 </pre></div>
-</section><section id="search" class="content hidden"></section><section class="footer"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="rusty" data-search-js="../../search-index.js"></div>
+</section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="rusty" data-search-index-js="../../search-index.js" data-search-js="../../search.js"></div>
     <script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script></body></html>

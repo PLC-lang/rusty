@@ -1,6 +1,6 @@
 <!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/llvm-sys-110.0.1/src/debuginfo.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>debuginfo.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings"></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
 <link rel="alternate icon" type="image/png" href="../../favicon-16x16.png">
-<link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../llvm_sys/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
+<link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../llvm_sys/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
                 <a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" height="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
@@ -874,7 +874,7 @@
 <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
 
 <span class="comment">// Debug info flags.</span>
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">LLVMDIFlags</span> <span class="op">=</span> ::<span class="ident">libc</span>::<span class="ident">c_int</span>;
+<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">LLVMDIFlags</span> <span class="op">=</span> <span class="ident">::libc::c_int</span>;
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">LLVMDIFlagZero</span>: <span class="ident">LLVMDIFlags</span> <span class="op">=</span> <span class="number">0</span>;
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">LLVMDIFlagPrivate</span>: <span class="ident">LLVMDIFlags</span> <span class="op">=</span> <span class="number">1</span>;
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">LLVMDIFlagProtected</span>: <span class="ident">LLVMDIFlags</span> <span class="op">=</span> <span class="number">2</span>;
@@ -1008,7 +1008,7 @@
     <span class="ident">LLVMDICommonBlockMetadataKind</span>,
 }
 
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">LLVMDWARFTypeEncoding</span> <span class="op">=</span> ::<span class="ident">libc</span>::<span class="ident">c_uint</span>;
+<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">LLVMDWARFTypeEncoding</span> <span class="op">=</span> <span class="ident">::libc::c_uint</span>;
 
 <span class="attribute">#[<span class="ident">repr</span>(<span class="ident">C</span>)]</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
@@ -1022,9 +1022,9 @@
 
 <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
     <span class="doccomment">/// The current debug metadata version number.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">LLVMDebugMetadataVersion</span>() <span class="op">-</span><span class="op">&gt;</span> ::<span class="ident">libc</span>::<span class="ident">c_uint</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">LLVMDebugMetadataVersion</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">::libc::c_uint</span>;
     <span class="doccomment">/// The version of debug metadata that&#39;s present in the provided Module.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">LLVMGetModuleDebugMetadataVersion</span>(<span class="ident">Module</span>: <span class="ident">LLVMModuleRef</span>) <span class="op">-</span><span class="op">&gt;</span> ::<span class="ident">libc</span>::<span class="ident">c_uint</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">LLVMGetModuleDebugMetadataVersion</span>(<span class="ident">Module</span>: <span class="ident">LLVMModuleRef</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">::libc::c_uint</span>;
     <span class="doccomment">/// Strip debug info in the module if it exists.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">LLVMStripModuleDebugInfo</span>(<span class="ident">Module</span>: <span class="ident">LLVMModuleRef</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">LLVMBool</span>;
     <span class="doccomment">/// Construct a builder for a module, do not allow unresolved nodes.</span>
@@ -1041,52 +1041,52 @@
         <span class="ident">Builder</span>: <span class="ident">LLVMDIBuilderRef</span>,
         <span class="ident">Lang</span>: <span class="ident">LLVMDWARFSourceLanguage</span>,
         <span class="ident">FileRef</span>: <span class="ident">LLVMMetadataRef</span>,
-        <span class="ident">Producer</span>: <span class="kw-2">*</span><span class="kw">const</span> ::<span class="ident">libc</span>::<span class="ident">c_char</span>,
-        <span class="ident">ProducerLen</span>: ::<span class="ident">libc</span>::<span class="ident">size_t</span>,
+        <span class="ident">Producer</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">::libc::c_char</span>,
+        <span class="ident">ProducerLen</span>: <span class="ident">::libc::size_t</span>,
         <span class="ident">isOptimized</span>: <span class="ident">LLVMBool</span>,
-        <span class="ident">Flags</span>: <span class="kw-2">*</span><span class="kw">const</span> ::<span class="ident">libc</span>::<span class="ident">c_char</span>,
-        <span class="ident">FlagsLen</span>: ::<span class="ident">libc</span>::<span class="ident">size_t</span>,
-        <span class="ident">RuntimeVer</span>: ::<span class="ident">libc</span>::<span class="ident">c_uint</span>,
-        <span class="ident">SplitName</span>: <span class="kw-2">*</span><span class="kw">const</span> ::<span class="ident">libc</span>::<span class="ident">c_char</span>,
-        <span class="ident">SplitNameLen</span>: ::<span class="ident">libc</span>::<span class="ident">size_t</span>,
+        <span class="ident">Flags</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">::libc::c_char</span>,
+        <span class="ident">FlagsLen</span>: <span class="ident">::libc::size_t</span>,
+        <span class="ident">RuntimeVer</span>: <span class="ident">::libc::c_uint</span>,
+        <span class="ident">SplitName</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">::libc::c_char</span>,
+        <span class="ident">SplitNameLen</span>: <span class="ident">::libc::size_t</span>,
         <span class="ident">Kind</span>: <span class="ident">LLVMDWARFEmissionKind</span>,
-        <span class="ident">DWOId</span>: ::<span class="ident">libc</span>::<span class="ident">c_uint</span>,
+        <span class="ident">DWOId</span>: <span class="ident">::libc::c_uint</span>,
         <span class="ident">SplitDebugInlining</span>: <span class="ident">LLVMBool</span>,
         <span class="ident">DebugInfoForProfiling</span>: <span class="ident">LLVMBool</span>,
-        <span class="ident">SysRoot</span>: <span class="kw-2">*</span><span class="kw">const</span> ::<span class="ident">libc</span>::<span class="ident">c_char</span>,
-        <span class="ident">SysRootLen</span>: ::<span class="ident">libc</span>::<span class="ident">size_t</span>,
-        <span class="ident">SDK</span>: <span class="kw-2">*</span><span class="kw">const</span> ::<span class="ident">libc</span>::<span class="ident">c_char</span>,
-        <span class="ident">SDKLen</span>: ::<span class="ident">libc</span>::<span class="ident">size_t</span>,
+        <span class="ident">SysRoot</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">::libc::c_char</span>,
+        <span class="ident">SysRootLen</span>: <span class="ident">::libc::size_t</span>,
+        <span class="ident">SDK</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">::libc::c_char</span>,
+        <span class="ident">SDKLen</span>: <span class="ident">::libc::size_t</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">LLVMMetadataRef</span>;
     <span class="doccomment">/// Create a file descriptor to hold debugging information for a file.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">LLVMDIBuilderCreateFile</span>(
         <span class="ident">Builder</span>: <span class="ident">LLVMDIBuilderRef</span>,
-        <span class="ident">Filename</span>: <span class="kw-2">*</span><span class="kw">const</span> ::<span class="ident">libc</span>::<span class="ident">c_char</span>,
-        <span class="ident">FilenameLen</span>: ::<span class="ident">libc</span>::<span class="ident">size_t</span>,
-        <span class="ident">Directory</span>: <span class="kw-2">*</span><span class="kw">const</span> ::<span class="ident">libc</span>::<span class="ident">c_char</span>,
-        <span class="ident">DirectoryLen</span>: ::<span class="ident">libc</span>::<span class="ident">size_t</span>,
+        <span class="ident">Filename</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">::libc::c_char</span>,
+        <span class="ident">FilenameLen</span>: <span class="ident">::libc::size_t</span>,
+        <span class="ident">Directory</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">::libc::c_char</span>,
+        <span class="ident">DirectoryLen</span>: <span class="ident">::libc::size_t</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">LLVMMetadataRef</span>;
 
     <span class="doccomment">/// Creates a new descriptor for a module with the specified parent scope.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">LLVMDIBuilderCreateModule</span>(
         <span class="ident">Builder</span>: <span class="ident">LLVMDIBuilderRef</span>,
         <span class="ident">ParentScope</span>: <span class="ident">LLVMMetadataRef</span>,
-        <span class="ident">Name</span>: <span class="kw-2">*</span><span class="kw">const</span> ::<span class="ident">libc</span>::<span class="ident">c_char</span>,
-        <span class="ident">NameLen</span>: ::<span class="ident">libc</span>::<span class="ident">size_t</span>,
-        <span class="ident">ConfigMacros</span>: <span class="kw-2">*</span><span class="kw">const</span> ::<span class="ident">libc</span>::<span class="ident">c_char</span>,
-        <span class="ident">ConfigMacrosLen</span>: ::<span class="ident">libc</span>::<span class="ident">size_t</span>,
-        <span class="ident">IncludePath</span>: <span class="kw-2">*</span><span class="kw">const</span> ::<span class="ident">libc</span>::<span class="ident">c_char</span>,
-        <span class="ident">IncludePathLen</span>: ::<span class="ident">libc</span>::<span class="ident">size_t</span>,
-        <span class="ident">APINotesFile</span>: <span class="kw-2">*</span><span class="kw">const</span> ::<span class="ident">libc</span>::<span class="ident">c_char</span>,
-        <span class="ident">APINotesFileLen</span>: ::<span class="ident">libc</span>::<span class="ident">size_t</span>,
+        <span class="ident">Name</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">::libc::c_char</span>,
+        <span class="ident">NameLen</span>: <span class="ident">::libc::size_t</span>,
+        <span class="ident">ConfigMacros</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">::libc::c_char</span>,
+        <span class="ident">ConfigMacrosLen</span>: <span class="ident">::libc::size_t</span>,
+        <span class="ident">IncludePath</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">::libc::c_char</span>,
+        <span class="ident">IncludePathLen</span>: <span class="ident">::libc::size_t</span>,
+        <span class="ident">APINotesFile</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">::libc::c_char</span>,
+        <span class="ident">APINotesFileLen</span>: <span class="ident">::libc::size_t</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">LLVMMetadataRef</span>;
 
     <span class="doccomment">/// Creates a new descriptor for a namespace with the specified parent scope.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">LLVMDIBuilderCreateNameSpace</span>(
         <span class="ident">Builder</span>: <span class="ident">LLVMDIBuilderRef</span>,
         <span class="ident">ParentScope</span>: <span class="ident">LLVMMetadataRef</span>,
-        <span class="ident">Name</span>: <span class="kw-2">*</span><span class="kw">const</span> ::<span class="ident">libc</span>::<span class="ident">c_char</span>,
-        <span class="ident">NameLen</span>: ::<span class="ident">libc</span>::<span class="ident">size_t</span>,
+        <span class="ident">Name</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">::libc::c_char</span>,
+        <span class="ident">NameLen</span>: <span class="ident">::libc::size_t</span>,
         <span class="ident">ExportSymbols</span>: <span class="ident">LLVMBool</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">LLVMMetadataRef</span>;
 
@@ -1094,16 +1094,16 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">LLVMDIBuilderCreateFunction</span>(
         <span class="ident">Builder</span>: <span class="ident">LLVMDIBuilderRef</span>,
         <span class="ident">Scope</span>: <span class="ident">LLVMMetadataRef</span>,
-        <span class="ident">Name</span>: <span class="kw-2">*</span><span class="kw">const</span> ::<span class="ident">libc</span>::<span class="ident">c_char</span>,
-        <span class="ident">NameLen</span>: ::<span class="ident">libc</span>::<span class="ident">size_t</span>,
-        <span class="ident">LinkageName</span>: <span class="kw-2">*</span><span class="kw">const</span> ::<span class="ident">libc</span>::<span class="ident">c_char</span>,
-        <span class="ident">LinkageNameLen</span>: ::<span class="ident">libc</span>::<span class="ident">size_t</span>,
+        <span class="ident">Name</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">::libc::c_char</span>,
+        <span class="ident">NameLen</span>: <span class="ident">::libc::size_t</span>,
+        <span class="ident">LinkageName</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">::libc::c_char</span>,
+        <span class="ident">LinkageNameLen</span>: <span class="ident">::libc::size_t</span>,
         <span class="ident">File</span>: <span class="ident">LLVMMetadataRef</span>,
-        <span class="ident">LineNo</span>: ::<span class="ident">libc</span>::<span class="ident">c_uint</span>,
+        <span class="ident">LineNo</span>: <span class="ident">::libc::c_uint</span>,
         <span class="ident">Ty</span>: <span class="ident">LLVMMetadataRef</span>,
         <span class="ident">IsLocalToUnit</span>: <span class="ident">LLVMBool</span>,
         <span class="ident">IsDefinition</span>: <span class="ident">LLVMBool</span>,
-        <span class="ident">ScopeLine</span>: ::<span class="ident">libc</span>::<span class="ident">c_uint</span>,
+        <span class="ident">ScopeLine</span>: <span class="ident">::libc::c_uint</span>,
         <span class="ident">Flags</span>: <span class="ident">LLVMDIFlags</span>,
         <span class="ident">IsOptimized</span>: <span class="ident">LLVMBool</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">LLVMMetadataRef</span>;
@@ -1113,8 +1113,8 @@
         <span class="ident">Builder</span>: <span class="ident">LLVMDIBuilderRef</span>,
         <span class="ident">Scope</span>: <span class="ident">LLVMMetadataRef</span>,
         <span class="ident">File</span>: <span class="ident">LLVMMetadataRef</span>,
-        <span class="ident">Line</span>: ::<span class="ident">libc</span>::<span class="ident">c_uint</span>,
-        <span class="ident">Column</span>: ::<span class="ident">libc</span>::<span class="ident">c_uint</span>,
+        <span class="ident">Line</span>: <span class="ident">::libc::c_uint</span>,
+        <span class="ident">Column</span>: <span class="ident">::libc::c_uint</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">LLVMMetadataRef</span>;
 
     <span class="doccomment">/// Create a descriptor for a lexical block with a new file attached.</span>
@@ -1122,7 +1122,7 @@
         <span class="ident">Builder</span>: <span class="ident">LLVMDIBuilderRef</span>,
         <span class="ident">Scope</span>: <span class="ident">LLVMMetadataRef</span>,
         <span class="ident">File</span>: <span class="ident">LLVMMetadataRef</span>,
-        <span class="ident">Discriminator</span>: ::<span class="ident">libc</span>::<span class="ident">c_uint</span>,
+        <span class="ident">Discriminator</span>: <span class="ident">::libc::c_uint</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">LLVMMetadataRef</span>;
 
     <span class="doccomment">/// Create a descriptor for an imported namespace. Suitable for e.g. C++ using declarations.</span>
@@ -1131,7 +1131,7 @@
         <span class="ident">Scope</span>: <span class="ident">LLVMMetadataRef</span>,
         <span class="ident">NS</span>: <span class="ident">LLVMMetadataRef</span>,
         <span class="ident">File</span>: <span class="ident">LLVMMetadataRef</span>,
-        <span class="ident">Line</span>: ::<span class="ident">libc</span>::<span class="ident">c_uint</span>,
+        <span class="ident">Line</span>: <span class="ident">::libc::c_uint</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">LLVMMetadataRef</span>;
 
     <span class="doccomment">/// Create a descriptor for an imported module that aliases another imported entity descriptor.</span>
@@ -1140,7 +1140,7 @@
         <span class="ident">Scope</span>: <span class="ident">LLVMMetadataRef</span>,
         <span class="ident">ImportedEntity</span>: <span class="ident">LLVMMetadataRef</span>,
         <span class="ident">File</span>: <span class="ident">LLVMMetadataRef</span>,
-        <span class="ident">Line</span>: ::<span class="ident">libc</span>::<span class="ident">c_uint</span>,
+        <span class="ident">Line</span>: <span class="ident">::libc::c_uint</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">LLVMMetadataRef</span>;
 
     <span class="doccomment">/// Create a descriptor for an imported module.</span>
@@ -1149,7 +1149,7 @@
         <span class="ident">Scope</span>: <span class="ident">LLVMMetadataRef</span>,
         <span class="ident">M</span>: <span class="ident">LLVMMetadataRef</span>,
         <span class="ident">File</span>: <span class="ident">LLVMMetadataRef</span>,
-        <span class="ident">Line</span>: ::<span class="ident">libc</span>::<span class="ident">c_uint</span>,
+        <span class="ident">Line</span>: <span class="ident">::libc::c_uint</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">LLVMMetadataRef</span>;
 
     <span class="doccomment">/// Create a descriptor for an imported function, type, or variable.</span>
@@ -1160,25 +1160,25 @@
         <span class="ident">Scope</span>: <span class="ident">LLVMMetadataRef</span>,
         <span class="ident">Decl</span>: <span class="ident">LLVMMetadataRef</span>,
         <span class="ident">File</span>: <span class="ident">LLVMMetadataRef</span>,
-        <span class="ident">Line</span>: ::<span class="ident">libc</span>::<span class="ident">c_uint</span>,
-        <span class="ident">Name</span>: <span class="kw-2">*</span><span class="kw">const</span> ::<span class="ident">libc</span>::<span class="ident">c_char</span>,
-        <span class="ident">NameLen</span>: ::<span class="ident">libc</span>::<span class="ident">size_t</span>,
+        <span class="ident">Line</span>: <span class="ident">::libc::c_uint</span>,
+        <span class="ident">Name</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">::libc::c_char</span>,
+        <span class="ident">NameLen</span>: <span class="ident">::libc::size_t</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">LLVMMetadataRef</span>;
 
     <span class="doccomment">/// Creates a new DebugLocation that describes a source location.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">LLVMDIBuilderCreateDebugLocation</span>(
         <span class="ident">Ctx</span>: <span class="ident">LLVMContextRef</span>,
-        <span class="ident">Line</span>: ::<span class="ident">libc</span>::<span class="ident">c_uint</span>,
-        <span class="ident">Column</span>: ::<span class="ident">libc</span>::<span class="ident">c_uint</span>,
+        <span class="ident">Line</span>: <span class="ident">::libc::c_uint</span>,
+        <span class="ident">Column</span>: <span class="ident">::libc::c_uint</span>,
         <span class="ident">Scope</span>: <span class="ident">LLVMMetadataRef</span>,
         <span class="ident">InlinedAt</span>: <span class="ident">LLVMMetadataRef</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">LLVMMetadataRef</span>;
 
     <span class="doccomment">/// Get the line number of this debug location.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">LLVMDILocationGetLine</span>(<span class="ident">Location</span>: <span class="ident">LLVMMetadataRef</span>) <span class="op">-</span><span class="op">&gt;</span> ::<span class="ident">libc</span>::<span class="ident">c_uint</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">LLVMDILocationGetLine</span>(<span class="ident">Location</span>: <span class="ident">LLVMMetadataRef</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">::libc::c_uint</span>;
 
     <span class="doccomment">/// Get the column number of this debug location.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">LLVMDILocationGetColumn</span>(<span class="ident">Location</span>: <span class="ident">LLVMMetadataRef</span>) <span class="op">-</span><span class="op">&gt;</span> ::<span class="ident">libc</span>::<span class="ident">c_uint</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">LLVMDILocationGetColumn</span>(<span class="ident">Location</span>: <span class="ident">LLVMMetadataRef</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">::libc::c_uint</span>;
 
     <span class="doccomment">/// Get the local scope associated with this debug location.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">LLVMDILocationGetScope</span>(<span class="ident">Location</span>: <span class="ident">LLVMMetadataRef</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">LLVMMetadataRef</span>;
@@ -1192,26 +1192,26 @@
     <span class="doccomment">/// Get the directory of a given file.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">LLVMDIFileGetDirectory</span>(
         <span class="ident">File</span>: <span class="ident">LLVMMetadataRef</span>,
-        <span class="ident">Len</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> ::<span class="ident">libc</span>::<span class="ident">c_uint</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw">const</span> ::<span class="ident">libc</span>::<span class="ident">c_char</span>;
+        <span class="ident">Len</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">::libc::c_uint</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">::libc::c_char</span>;
 
     <span class="doccomment">/// Get the name of a given file.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">LLVMDIFileGetFilename</span>(
         <span class="ident">File</span>: <span class="ident">LLVMMetadataRef</span>,
-        <span class="ident">Len</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> ::<span class="ident">libc</span>::<span class="ident">c_uint</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw">const</span> ::<span class="ident">libc</span>::<span class="ident">c_char</span>;
+        <span class="ident">Len</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">::libc::c_uint</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">::libc::c_char</span>;
 
     <span class="doccomment">/// Get the source of a given file.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">LLVMDIFileGetSource</span>(
         <span class="ident">File</span>: <span class="ident">LLVMMetadataRef</span>,
-        <span class="ident">Len</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> ::<span class="ident">libc</span>::<span class="ident">c_uint</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw">const</span> ::<span class="ident">libc</span>::<span class="ident">c_char</span>;
+        <span class="ident">Len</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">::libc::c_uint</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">::libc::c_char</span>;
 
     <span class="doccomment">/// Create a type array.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">LLVMDIBuilderGetOrCreateTypeArray</span>(
         <span class="ident">Builder</span>: <span class="ident">LLVMDIBuilderRef</span>,
         <span class="ident">Data</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">LLVMMetadataRef</span>,
-        <span class="ident">NumElements</span>: ::<span class="ident">libc</span>::<span class="ident">size_t</span>,
+        <span class="ident">NumElements</span>: <span class="ident">::libc::size_t</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">LLVMMetadataRef</span>;
 
     <span class="doccomment">/// Create subroutine type.</span>
@@ -1219,33 +1219,33 @@
         <span class="ident">Builder</span>: <span class="ident">LLVMDIBuilderRef</span>,
         <span class="ident">File</span>: <span class="ident">LLVMMetadataRef</span>,
         <span class="ident">ParameterTypes</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">LLVMMetadataRef</span>,
-        <span class="ident">NumParameterTypes</span>: ::<span class="ident">libc</span>::<span class="ident">c_uint</span>,
+        <span class="ident">NumParameterTypes</span>: <span class="ident">::libc::c_uint</span>,
         <span class="ident">Flags</span>: <span class="ident">LLVMDIFlags</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">LLVMMetadataRef</span>;
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">LLVMDIBuilderCreateMacro</span>(
         <span class="ident">Builder</span>: <span class="ident">LLVMDIBuilderRef</span>,
         <span class="ident">ParentMacroFile</span>: <span class="ident">LLVMMetadataRef</span>,
-        <span class="ident">Line</span>: ::<span class="ident">libc</span>::<span class="ident">c_uint</span>,
+        <span class="ident">Line</span>: <span class="ident">::libc::c_uint</span>,
         <span class="ident">RecordType</span>: <span class="ident">LLVMDWARFMacinfoRecordType</span>,
-        <span class="ident">Name</span>: <span class="kw-2">*</span><span class="kw">const</span> ::<span class="ident">libc</span>::<span class="ident">c_char</span>,
+        <span class="ident">Name</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">::libc::c_char</span>,
         <span class="ident">NameLen</span>: <span class="ident">usize</span>,
-        <span class="ident">Value</span>: <span class="kw-2">*</span><span class="kw">const</span> ::<span class="ident">libc</span>::<span class="ident">c_char</span>,
+        <span class="ident">Value</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">::libc::c_char</span>,
         <span class="ident">ValueLen</span>: <span class="ident">usize</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">LLVMMetadataRef</span>;
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">LLVMDIBuilderCreateTempMacroFile</span>(
         <span class="ident">Builder</span>: <span class="ident">LLVMDIBuilderRef</span>,
         <span class="ident">ParentMacroFile</span>: <span class="ident">LLVMMetadataRef</span>,
-        <span class="ident">Line</span>: ::<span class="ident">libc</span>::<span class="ident">c_uint</span>,
+        <span class="ident">Line</span>: <span class="ident">::libc::c_uint</span>,
         <span class="ident">File</span>: <span class="ident">LLVMMetadataRef</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">LLVMMetadataRef</span>;
 
     <span class="doccomment">/// Create debugging information entry for an enumerator.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">LLVMDIBuilderCreateEnumerator</span>(
         <span class="ident">Builder</span>: <span class="ident">LLVMDIBuilderRef</span>,
-        <span class="ident">Name</span>: <span class="kw-2">*</span><span class="kw">const</span> ::<span class="ident">libc</span>::<span class="ident">c_char</span>,
-        <span class="ident">NameLen</span>: ::<span class="ident">libc</span>::<span class="ident">size_t</span>,
+        <span class="ident">Name</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">::libc::c_char</span>,
+        <span class="ident">NameLen</span>: <span class="ident">::libc::size_t</span>,
         <span class="ident">Value</span>: <span class="ident">i64</span>,
         <span class="ident">IsUnsigned</span>: <span class="ident">LLVMBool</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">LLVMMetadataRef</span>;
@@ -1254,14 +1254,14 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">LLVMDIBuilderCreateEnumerationType</span>(
         <span class="ident">Builder</span>: <span class="ident">LLVMDIBuilderRef</span>,
         <span class="ident">Scope</span>: <span class="ident">LLVMMetadataRef</span>,
-        <span class="ident">Name</span>: <span class="kw-2">*</span><span class="kw">const</span> ::<span class="ident">libc</span>::<span class="ident">c_char</span>,
-        <span class="ident">NameLen</span>: ::<span class="ident">libc</span>::<span class="ident">size_t</span>,
+        <span class="ident">Name</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">::libc::c_char</span>,
+        <span class="ident">NameLen</span>: <span class="ident">::libc::size_t</span>,
         <span class="ident">File</span>: <span class="ident">LLVMMetadataRef</span>,
-        <span class="ident">LineNumber</span>: ::<span class="ident">libc</span>::<span class="ident">c_uint</span>,
+        <span class="ident">LineNumber</span>: <span class="ident">::libc::c_uint</span>,
         <span class="ident">SizeInBits</span>: <span class="ident">u64</span>,
         <span class="ident">AlignInBits</span>: <span class="ident">u32</span>,
         <span class="ident">Elements</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">LLVMMetadataRef</span>,
-        <span class="ident">NumElements</span>: ::<span class="ident">libc</span>::<span class="ident">c_uint</span>,
+        <span class="ident">NumElements</span>: <span class="ident">::libc::c_uint</span>,
         <span class="ident">ClassTy</span>: <span class="ident">LLVMMetadataRef</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">LLVMMetadataRef</span>;
 
@@ -1269,18 +1269,18 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">LLVMDIBuilderCreateUnionType</span>(
         <span class="ident">Builder</span>: <span class="ident">LLVMDIBuilderRef</span>,
         <span class="ident">Scope</span>: <span class="ident">LLVMMetadataRef</span>,
-        <span class="ident">Name</span>: <span class="kw-2">*</span><span class="kw">const</span> ::<span class="ident">libc</span>::<span class="ident">c_char</span>,
-        <span class="ident">NameLen</span>: ::<span class="ident">libc</span>::<span class="ident">size_t</span>,
+        <span class="ident">Name</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">::libc::c_char</span>,
+        <span class="ident">NameLen</span>: <span class="ident">::libc::size_t</span>,
         <span class="ident">File</span>: <span class="ident">LLVMMetadataRef</span>,
-        <span class="ident">LineNumber</span>: ::<span class="ident">libc</span>::<span class="ident">c_uint</span>,
+        <span class="ident">LineNumber</span>: <span class="ident">::libc::c_uint</span>,
         <span class="ident">SizeInBits</span>: <span class="ident">u64</span>,
         <span class="ident">AlignInBits</span>: <span class="ident">u32</span>,
         <span class="ident">Flags</span>: <span class="ident">LLVMDIFlags</span>,
         <span class="ident">Elements</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">LLVMMetadataRef</span>,
-        <span class="ident">NumElements</span>: ::<span class="ident">libc</span>::<span class="ident">c_uint</span>,
-        <span class="ident">RunTimeLang</span>: ::<span class="ident">libc</span>::<span class="ident">c_uint</span>,
-        <span class="ident">UniqueId</span>: <span class="kw-2">*</span><span class="kw">const</span> ::<span class="ident">libc</span>::<span class="ident">c_char</span>,
-        <span class="ident">UniqueIdLen</span>: ::<span class="ident">libc</span>::<span class="ident">size_t</span>,
+        <span class="ident">NumElements</span>: <span class="ident">::libc::c_uint</span>,
+        <span class="ident">RunTimeLang</span>: <span class="ident">::libc::c_uint</span>,
+        <span class="ident">UniqueId</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">::libc::c_char</span>,
+        <span class="ident">UniqueIdLen</span>: <span class="ident">::libc::size_t</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">LLVMMetadataRef</span>;
 
     <span class="doccomment">/// Create debugging information entry for an array.</span>
@@ -1290,7 +1290,7 @@
         <span class="ident">AlignInBits</span>: <span class="ident">u32</span>,
         <span class="ident">Ty</span>: <span class="ident">LLVMMetadataRef</span>,
         <span class="ident">Subscripts</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">LLVMMetadataRef</span>,
-        <span class="ident">NumSubscripts</span>: ::<span class="ident">libc</span>::<span class="ident">c_uint</span>,
+        <span class="ident">NumSubscripts</span>: <span class="ident">::libc::c_uint</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">LLVMMetadataRef</span>;
 
     <span class="doccomment">/// Create debugging information entry for a vector type.</span>
@@ -1300,21 +1300,21 @@
         <span class="ident">AlignInBits</span>: <span class="ident">u32</span>,
         <span class="ident">Ty</span>: <span class="ident">LLVMMetadataRef</span>,
         <span class="ident">Subscripts</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">LLVMMetadataRef</span>,
-        <span class="ident">NumSubscripts</span>: ::<span class="ident">libc</span>::<span class="ident">c_uint</span>,
+        <span class="ident">NumSubscripts</span>: <span class="ident">::libc::c_uint</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">LLVMMetadataRef</span>;
 
     <span class="doccomment">/// Create a DWARF unspecified type.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">LLVMDIBuilderCreateUnspecifiedType</span>(
         <span class="ident">Builder</span>: <span class="ident">LLVMDIBuilderRef</span>,
-        <span class="ident">Name</span>: <span class="kw-2">*</span><span class="kw">const</span> ::<span class="ident">libc</span>::<span class="ident">c_char</span>,
-        <span class="ident">NameLen</span>: ::<span class="ident">libc</span>::<span class="ident">size_t</span>,
+        <span class="ident">Name</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">::libc::c_char</span>,
+        <span class="ident">NameLen</span>: <span class="ident">::libc::size_t</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">LLVMMetadataRef</span>;
 
     <span class="doccomment">/// Create debugging information entry for a basic type.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">LLVMDIBuilderCreateBasicType</span>(
         <span class="ident">Builder</span>: <span class="ident">LLVMDIBuilderRef</span>,
-        <span class="ident">Name</span>: <span class="kw-2">*</span><span class="kw">const</span> ::<span class="ident">libc</span>::<span class="ident">c_char</span>,
-        <span class="ident">NameLen</span>: ::<span class="ident">libc</span>::<span class="ident">size_t</span>,
+        <span class="ident">Name</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">::libc::c_char</span>,
+        <span class="ident">NameLen</span>: <span class="ident">::libc::size_t</span>,
         <span class="ident">SizeInBits</span>: <span class="ident">u64</span>,
         <span class="ident">Encoding</span>: <span class="ident">LLVMDWARFTypeEncoding</span>,
         <span class="ident">Flags</span>: <span class="ident">LLVMDIFlags</span>,
@@ -1326,39 +1326,39 @@
         <span class="ident">PointeeTy</span>: <span class="ident">LLVMMetadataRef</span>,
         <span class="ident">SizeInBits</span>: <span class="ident">u64</span>,
         <span class="ident">AlignInBits</span>: <span class="ident">u32</span>,
-        <span class="ident">AddressSpace</span>: ::<span class="ident">libc</span>::<span class="ident">c_uint</span>,
-        <span class="ident">Name</span>: <span class="kw-2">*</span><span class="kw">const</span> ::<span class="ident">libc</span>::<span class="ident">c_char</span>,
-        <span class="ident">NameLen</span>: ::<span class="ident">libc</span>::<span class="ident">size_t</span>,
+        <span class="ident">AddressSpace</span>: <span class="ident">::libc::c_uint</span>,
+        <span class="ident">Name</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">::libc::c_char</span>,
+        <span class="ident">NameLen</span>: <span class="ident">::libc::size_t</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">LLVMMetadataRef</span>;
 
     <span class="doccomment">/// Create debugging information entry for a struct.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">LLVMDIBuilderCreateStructType</span>(
         <span class="ident">Builder</span>: <span class="ident">LLVMDIBuilderRef</span>,
         <span class="ident">Scope</span>: <span class="ident">LLVMMetadataRef</span>,
-        <span class="ident">Name</span>: <span class="kw-2">*</span><span class="kw">const</span> ::<span class="ident">libc</span>::<span class="ident">c_char</span>,
-        <span class="ident">NameLen</span>: ::<span class="ident">libc</span>::<span class="ident">size_t</span>,
+        <span class="ident">Name</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">::libc::c_char</span>,
+        <span class="ident">NameLen</span>: <span class="ident">::libc::size_t</span>,
         <span class="ident">File</span>: <span class="ident">LLVMMetadataRef</span>,
-        <span class="ident">LineNumber</span>: ::<span class="ident">libc</span>::<span class="ident">c_uint</span>,
+        <span class="ident">LineNumber</span>: <span class="ident">::libc::c_uint</span>,
         <span class="ident">SizeInBits</span>: <span class="ident">u64</span>,
         <span class="ident">AlignInBits</span>: <span class="ident">u32</span>,
         <span class="ident">Flags</span>: <span class="ident">LLVMDIFlags</span>,
         <span class="ident">DerivedFrom</span>: <span class="ident">LLVMMetadataRef</span>,
         <span class="ident">Elements</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">LLVMMetadataRef</span>,
-        <span class="ident">NumElements</span>: ::<span class="ident">libc</span>::<span class="ident">c_uint</span>,
-        <span class="ident">RunTimeLang</span>: ::<span class="ident">libc</span>::<span class="ident">c_uint</span>,
+        <span class="ident">NumElements</span>: <span class="ident">::libc::c_uint</span>,
+        <span class="ident">RunTimeLang</span>: <span class="ident">::libc::c_uint</span>,
         <span class="ident">VTableHolder</span>: <span class="ident">LLVMMetadataRef</span>,
-        <span class="ident">UniqueId</span>: <span class="kw-2">*</span><span class="kw">const</span> ::<span class="ident">libc</span>::<span class="ident">c_char</span>,
-        <span class="ident">UniqueIdLen</span>: ::<span class="ident">libc</span>::<span class="ident">size_t</span>,
+        <span class="ident">UniqueId</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">::libc::c_char</span>,
+        <span class="ident">UniqueIdLen</span>: <span class="ident">::libc::size_t</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">LLVMMetadataRef</span>;
 
     <span class="doccomment">/// Create debugging information entry for a member.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">LLVMDIBuilderCreateMemberType</span>(
         <span class="ident">Builder</span>: <span class="ident">LLVMDIBuilderRef</span>,
         <span class="ident">Scope</span>: <span class="ident">LLVMMetadataRef</span>,
-        <span class="ident">Name</span>: <span class="kw-2">*</span><span class="kw">const</span> ::<span class="ident">libc</span>::<span class="ident">c_char</span>,
-        <span class="ident">NameLen</span>: ::<span class="ident">libc</span>::<span class="ident">size_t</span>,
+        <span class="ident">Name</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">::libc::c_char</span>,
+        <span class="ident">NameLen</span>: <span class="ident">::libc::size_t</span>,
         <span class="ident">File</span>: <span class="ident">LLVMMetadataRef</span>,
-        <span class="ident">LineNo</span>: ::<span class="ident">libc</span>::<span class="ident">c_uint</span>,
+        <span class="ident">LineNo</span>: <span class="ident">::libc::c_uint</span>,
         <span class="ident">SizeInBits</span>: <span class="ident">u64</span>,
         <span class="ident">AlignInBits</span>: <span class="ident">u32</span>,
         <span class="ident">OffsetInBits</span>: <span class="ident">u64</span>,
@@ -1370,10 +1370,10 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">LLVMDIBuilderCreateStaticMemberType</span>(
         <span class="ident">Builder</span>: <span class="ident">LLVMDIBuilderRef</span>,
         <span class="ident">Scope</span>: <span class="ident">LLVMMetadataRef</span>,
-        <span class="ident">Name</span>: <span class="kw-2">*</span><span class="kw">const</span> ::<span class="ident">libc</span>::<span class="ident">c_char</span>,
-        <span class="ident">NameLen</span>: ::<span class="ident">libc</span>::<span class="ident">size_t</span>,
+        <span class="ident">Name</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">::libc::c_char</span>,
+        <span class="ident">NameLen</span>: <span class="ident">::libc::size_t</span>,
         <span class="ident">File</span>: <span class="ident">LLVMMetadataRef</span>,
-        <span class="ident">LineNumber</span>: ::<span class="ident">libc</span>::<span class="ident">c_uint</span>,
+        <span class="ident">LineNumber</span>: <span class="ident">::libc::c_uint</span>,
         <span class="ident">Type</span>: <span class="ident">LLVMMetadataRef</span>,
         <span class="ident">Flags</span>: <span class="ident">LLVMDIFlags</span>,
         <span class="ident">ConstantVal</span>: <span class="ident">LLVMValueRef</span>,
@@ -1393,10 +1393,10 @@
     <span class="doccomment">/// Create debugging information entry for Objective-C instance variable.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">LLVMDIBuilderCreateObjCIVar</span>(
         <span class="ident">Builder</span>: <span class="ident">LLVMDIBuilderRef</span>,
-        <span class="ident">Name</span>: <span class="kw-2">*</span><span class="kw">const</span> ::<span class="ident">libc</span>::<span class="ident">c_char</span>,
-        <span class="ident">NameLen</span>: ::<span class="ident">libc</span>::<span class="ident">size_t</span>,
+        <span class="ident">Name</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">::libc::c_char</span>,
+        <span class="ident">NameLen</span>: <span class="ident">::libc::size_t</span>,
         <span class="ident">File</span>: <span class="ident">LLVMMetadataRef</span>,
-        <span class="ident">LineNo</span>: ::<span class="ident">libc</span>::<span class="ident">c_uint</span>,
+        <span class="ident">LineNo</span>: <span class="ident">::libc::c_uint</span>,
         <span class="ident">SizeInBits</span>: <span class="ident">u64</span>,
         <span class="ident">AlignInBits</span>: <span class="ident">u32</span>,
         <span class="ident">OffsetInBits</span>: <span class="ident">u64</span>,
@@ -1408,15 +1408,15 @@
     <span class="doccomment">/// Create debugging information entry for Objective-C property.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">LLVMDIBuilderCreateObjCProperty</span>(
         <span class="ident">Builder</span>: <span class="ident">LLVMDIBuilderRef</span>,
-        <span class="ident">Name</span>: <span class="kw-2">*</span><span class="kw">const</span> ::<span class="ident">libc</span>::<span class="ident">c_char</span>,
-        <span class="ident">NameLen</span>: ::<span class="ident">libc</span>::<span class="ident">size_t</span>,
+        <span class="ident">Name</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">::libc::c_char</span>,
+        <span class="ident">NameLen</span>: <span class="ident">::libc::size_t</span>,
         <span class="ident">File</span>: <span class="ident">LLVMMetadataRef</span>,
-        <span class="ident">LineNo</span>: ::<span class="ident">libc</span>::<span class="ident">c_uint</span>,
-        <span class="ident">GetterName</span>: <span class="kw-2">*</span><span class="kw">const</span> ::<span class="ident">libc</span>::<span class="ident">c_char</span>,
-        <span class="ident">GetterNameLen</span>: ::<span class="ident">libc</span>::<span class="ident">size_t</span>,
-        <span class="ident">SetterName</span>: <span class="kw-2">*</span><span class="kw">const</span> ::<span class="ident">libc</span>::<span class="ident">c_char</span>,
-        <span class="ident">SetterNameLen</span>: ::<span class="ident">libc</span>::<span class="ident">size_t</span>,
-        <span class="ident">PropertyAttributes</span>: ::<span class="ident">libc</span>::<span class="ident">c_uint</span>,
+        <span class="ident">LineNo</span>: <span class="ident">::libc::c_uint</span>,
+        <span class="ident">GetterName</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">::libc::c_char</span>,
+        <span class="ident">GetterNameLen</span>: <span class="ident">::libc::size_t</span>,
+        <span class="ident">SetterName</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">::libc::c_char</span>,
+        <span class="ident">SetterNameLen</span>: <span class="ident">::libc::size_t</span>,
+        <span class="ident">PropertyAttributes</span>: <span class="ident">::libc::c_uint</span>,
         <span class="ident">Ty</span>: <span class="ident">LLVMMetadataRef</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">LLVMMetadataRef</span>;
 
@@ -1429,14 +1429,14 @@
     <span class="doccomment">/// Create debugging information entry for a qualified type, e.g. &#39;const int&#39;.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">LLVMDIBuilderCreateQualifiedType</span>(
         <span class="ident">Builder</span>: <span class="ident">LLVMDIBuilderRef</span>,
-        <span class="ident">Tag</span>: ::<span class="ident">libc</span>::<span class="ident">c_uint</span>,
+        <span class="ident">Tag</span>: <span class="ident">::libc::c_uint</span>,
         <span class="ident">Type</span>: <span class="ident">LLVMMetadataRef</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">LLVMMetadataRef</span>;
 
     <span class="doccomment">/// Create debugging information entry for a c++ style reference or rvalue reference type.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">LLVMDIBuilderCreateReferenceType</span>(
         <span class="ident">Builder</span>: <span class="ident">LLVMDIBuilderRef</span>,
-        <span class="ident">Tag</span>: ::<span class="ident">libc</span>::<span class="ident">c_uint</span>,
+        <span class="ident">Tag</span>: <span class="ident">::libc::c_uint</span>,
         <span class="ident">Type</span>: <span class="ident">LLVMMetadataRef</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">LLVMMetadataRef</span>;
 
@@ -1447,10 +1447,10 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">LLVMDIBuilderCreateTypedef</span>(
         <span class="ident">Builder</span>: <span class="ident">LLVMDIBuilderRef</span>,
         <span class="ident">Type</span>: <span class="ident">LLVMMetadataRef</span>,
-        <span class="ident">Name</span>: <span class="kw-2">*</span><span class="kw">const</span> ::<span class="ident">libc</span>::<span class="ident">c_char</span>,
-        <span class="ident">NameLen</span>: ::<span class="ident">libc</span>::<span class="ident">size_t</span>,
+        <span class="ident">Name</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">::libc::c_char</span>,
+        <span class="ident">NameLen</span>: <span class="ident">::libc::size_t</span>,
         <span class="ident">File</span>: <span class="ident">LLVMMetadataRef</span>,
-        <span class="ident">LineNo</span>: ::<span class="ident">libc</span>::<span class="ident">c_uint</span>,
+        <span class="ident">LineNo</span>: <span class="ident">::libc::c_uint</span>,
         <span class="ident">Scope</span>: <span class="ident">LLVMMetadataRef</span>,
         <span class="ident">AlignInBits</span>: <span class="ident">u32</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">LLVMMetadataRef</span>;
@@ -1468,44 +1468,44 @@
     <span class="doccomment">/// Create a permanent forward-declared type.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">LLVMDIBuilderCreateForwardDecl</span>(
         <span class="ident">Builder</span>: <span class="ident">LLVMDIBuilderRef</span>,
-        <span class="ident">Tag</span>: ::<span class="ident">libc</span>::<span class="ident">c_uint</span>,
-        <span class="ident">Name</span>: <span class="kw-2">*</span><span class="kw">const</span> ::<span class="ident">libc</span>::<span class="ident">c_char</span>,
-        <span class="ident">NameLen</span>: ::<span class="ident">libc</span>::<span class="ident">size_t</span>,
+        <span class="ident">Tag</span>: <span class="ident">::libc::c_uint</span>,
+        <span class="ident">Name</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">::libc::c_char</span>,
+        <span class="ident">NameLen</span>: <span class="ident">::libc::size_t</span>,
         <span class="ident">Scope</span>: <span class="ident">LLVMMetadataRef</span>,
         <span class="ident">File</span>: <span class="ident">LLVMMetadataRef</span>,
-        <span class="ident">Line</span>: ::<span class="ident">libc</span>::<span class="ident">c_uint</span>,
-        <span class="ident">RuntimeLang</span>: ::<span class="ident">libc</span>::<span class="ident">c_uint</span>,
+        <span class="ident">Line</span>: <span class="ident">::libc::c_uint</span>,
+        <span class="ident">RuntimeLang</span>: <span class="ident">::libc::c_uint</span>,
         <span class="ident">SizeInBits</span>: <span class="ident">u64</span>,
         <span class="ident">AlignInBits</span>: <span class="ident">u32</span>,
-        <span class="ident">UniqueIdentifier</span>: <span class="kw-2">*</span><span class="kw">const</span> ::<span class="ident">libc</span>::<span class="ident">c_char</span>,
-        <span class="ident">UniqueIdentifierLen</span>: ::<span class="ident">libc</span>::<span class="ident">size_t</span>,
+        <span class="ident">UniqueIdentifier</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">::libc::c_char</span>,
+        <span class="ident">UniqueIdentifierLen</span>: <span class="ident">::libc::size_t</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">LLVMMetadataRef</span>;
 
     <span class="doccomment">/// Create a temporary forward-declared type.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">LLVMDIBuilderCreateReplaceableCompositeType</span>(
         <span class="ident">Builder</span>: <span class="ident">LLVMDIBuilderRef</span>,
-        <span class="ident">Tag</span>: ::<span class="ident">libc</span>::<span class="ident">c_uint</span>,
-        <span class="ident">Name</span>: <span class="kw-2">*</span><span class="kw">const</span> ::<span class="ident">libc</span>::<span class="ident">c_char</span>,
-        <span class="ident">NameLen</span>: ::<span class="ident">libc</span>::<span class="ident">size_t</span>,
+        <span class="ident">Tag</span>: <span class="ident">::libc::c_uint</span>,
+        <span class="ident">Name</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">::libc::c_char</span>,
+        <span class="ident">NameLen</span>: <span class="ident">::libc::size_t</span>,
         <span class="ident">Scope</span>: <span class="ident">LLVMMetadataRef</span>,
         <span class="ident">File</span>: <span class="ident">LLVMMetadataRef</span>,
-        <span class="ident">Line</span>: ::<span class="ident">libc</span>::<span class="ident">c_uint</span>,
-        <span class="ident">RuntimeLang</span>: ::<span class="ident">libc</span>::<span class="ident">c_uint</span>,
+        <span class="ident">Line</span>: <span class="ident">::libc::c_uint</span>,
+        <span class="ident">RuntimeLang</span>: <span class="ident">::libc::c_uint</span>,
         <span class="ident">SizeInBits</span>: <span class="ident">u64</span>,
         <span class="ident">AlignInBits</span>: <span class="ident">u32</span>,
         <span class="ident">Flags</span>: <span class="ident">LLVMDIFlags</span>,
-        <span class="ident">UniqueIdentifier</span>: <span class="kw-2">*</span><span class="kw">const</span> ::<span class="ident">libc</span>::<span class="ident">c_char</span>,
-        <span class="ident">UniqueIdentifierLen</span>: ::<span class="ident">libc</span>::<span class="ident">size_t</span>,
+        <span class="ident">UniqueIdentifier</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">::libc::c_char</span>,
+        <span class="ident">UniqueIdentifierLen</span>: <span class="ident">::libc::size_t</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">LLVMMetadataRef</span>;
 
     <span class="doccomment">/// Create debugging information entry for a bit field member.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">LLVMDIBuilderCreateBitFieldMemberType</span>(
         <span class="ident">Builder</span>: <span class="ident">LLVMDIBuilderRef</span>,
         <span class="ident">Scope</span>: <span class="ident">LLVMMetadataRef</span>,
-        <span class="ident">Name</span>: <span class="kw-2">*</span><span class="kw">const</span> ::<span class="ident">libc</span>::<span class="ident">c_char</span>,
-        <span class="ident">NameLen</span>: ::<span class="ident">libc</span>::<span class="ident">size_t</span>,
+        <span class="ident">Name</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">::libc::c_char</span>,
+        <span class="ident">NameLen</span>: <span class="ident">::libc::size_t</span>,
         <span class="ident">File</span>: <span class="ident">LLVMMetadataRef</span>,
-        <span class="ident">LineNumber</span>: ::<span class="ident">libc</span>::<span class="ident">c_uint</span>,
+        <span class="ident">LineNumber</span>: <span class="ident">::libc::c_uint</span>,
         <span class="ident">SizeInBits</span>: <span class="ident">u64</span>,
         <span class="ident">OffsetInBits</span>: <span class="ident">u64</span>,
         <span class="ident">StorageOffsetInBits</span>: <span class="ident">u64</span>,
@@ -1517,21 +1517,21 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">LLVMDIBuilderCreateClassType</span>(
         <span class="ident">Builder</span>: <span class="ident">LLVMDIBuilderRef</span>,
         <span class="ident">Scope</span>: <span class="ident">LLVMMetadataRef</span>,
-        <span class="ident">Name</span>: <span class="kw-2">*</span><span class="kw">const</span> ::<span class="ident">libc</span>::<span class="ident">c_char</span>,
-        <span class="ident">NameLen</span>: ::<span class="ident">libc</span>::<span class="ident">size_t</span>,
+        <span class="ident">Name</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">::libc::c_char</span>,
+        <span class="ident">NameLen</span>: <span class="ident">::libc::size_t</span>,
         <span class="ident">File</span>: <span class="ident">LLVMMetadataRef</span>,
-        <span class="ident">LineNumber</span>: ::<span class="ident">libc</span>::<span class="ident">c_uint</span>,
+        <span class="ident">LineNumber</span>: <span class="ident">::libc::c_uint</span>,
         <span class="ident">SizeInBits</span>: <span class="ident">u64</span>,
         <span class="ident">AlignInBits</span>: <span class="ident">u32</span>,
         <span class="ident">OffsetInBits</span>: <span class="ident">u64</span>,
         <span class="ident">Flags</span>: <span class="ident">LLVMDIFlags</span>,
         <span class="ident">DerivedFrom</span>: <span class="ident">LLVMMetadataRef</span>,
         <span class="ident">Elements</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">LLVMMetadataRef</span>,
-        <span class="ident">NumElements</span>: ::<span class="ident">libc</span>::<span class="ident">c_uint</span>,
+        <span class="ident">NumElements</span>: <span class="ident">::libc::c_uint</span>,
         <span class="ident">VTableHolder</span>: <span class="ident">LLVMMetadataRef</span>,
         <span class="ident">TemplateParamsNode</span>: <span class="ident">LLVMMetadataRef</span>,
-        <span class="ident">UniqueIdentifier</span>: <span class="kw-2">*</span><span class="kw">const</span> ::<span class="ident">libc</span>::<span class="ident">c_char</span>,
-        <span class="ident">UniqueIdentifierLen</span>: ::<span class="ident">libc</span>::<span class="ident">size_t</span>,
+        <span class="ident">UniqueIdentifier</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">::libc::c_char</span>,
+        <span class="ident">UniqueIdentifierLen</span>: <span class="ident">::libc::size_t</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">LLVMMetadataRef</span>;
 
     <span class="doccomment">/// Create a uniqued DIType* clone with FlagArtificial set.</span>
@@ -1543,8 +1543,8 @@
     <span class="doccomment">/// Get the name of this DIType.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">LLVMDITypeGetName</span>(
         <span class="ident">DType</span>: <span class="ident">LLVMMetadataRef</span>,
-        <span class="ident">Length</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> ::<span class="ident">libc</span>::<span class="ident">size_t</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw">const</span> ::<span class="ident">libc</span>::<span class="ident">c_char</span>;
+        <span class="ident">Length</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">::libc::size_t</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">::libc::c_char</span>;
 
     <span class="doccomment">/// Get the size of this DIType in bits.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">LLVMDITypeGetSizeInBits</span>(<span class="ident">DType</span>: <span class="ident">LLVMMetadataRef</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u64</span>;
@@ -1556,7 +1556,7 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">LLVMDITypeGetAlignInBits</span>(<span class="ident">DType</span>: <span class="ident">LLVMMetadataRef</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span>;
 
     <span class="doccomment">/// Get the source line where this DIType is declared.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">LLVMDITypeGetLine</span>(<span class="ident">DType</span>: <span class="ident">LLVMMetadataRef</span>) <span class="op">-</span><span class="op">&gt;</span> ::<span class="ident">libc</span>::<span class="ident">c_uint</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">LLVMDITypeGetLine</span>(<span class="ident">DType</span>: <span class="ident">LLVMMetadataRef</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">::libc::c_uint</span>;
 
     <span class="doccomment">/// Get the flags associated with this DIType.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">LLVMDITypeGetFlags</span>(<span class="ident">DType</span>: <span class="ident">LLVMMetadataRef</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">LLVMDIFlags</span>;
@@ -1572,14 +1572,14 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">LLVMDIBuilderGetOrCreateArray</span>(
         <span class="ident">Builder</span>: <span class="ident">LLVMDIBuilderRef</span>,
         <span class="ident">Data</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">LLVMMetadataRef</span>,
-        <span class="ident">NumElements</span>: ::<span class="ident">libc</span>::<span class="ident">size_t</span>,
+        <span class="ident">NumElements</span>: <span class="ident">::libc::size_t</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">LLVMMetadataRef</span>;
 
     <span class="doccomment">/// Create a new descriptor for the specified variable which has a complex</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">LLVMDIBuilderCreateExpression</span>(
         <span class="ident">Builder</span>: <span class="ident">LLVMDIBuilderRef</span>,
         <span class="ident">Addr</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">i64</span>,
-        <span class="ident">Length</span>: ::<span class="ident">libc</span>::<span class="ident">size_t</span>,
+        <span class="ident">Length</span>: <span class="ident">::libc::size_t</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">LLVMMetadataRef</span>;
 
     <span class="doccomment">/// Create a new descriptor for the specified variable that does not have an</span>
@@ -1592,12 +1592,12 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">LLVMDIBuilderCreateGlobalVariableExpression</span>(
         <span class="ident">Builder</span>: <span class="ident">LLVMDIBuilderRef</span>,
         <span class="ident">Scope</span>: <span class="ident">LLVMMetadataRef</span>,
-        <span class="ident">Name</span>: <span class="kw-2">*</span><span class="kw">const</span> ::<span class="ident">libc</span>::<span class="ident">c_char</span>,
-        <span class="ident">NameLen</span>: ::<span class="ident">libc</span>::<span class="ident">size_t</span>,
-        <span class="ident">Linkage</span>: <span class="kw-2">*</span><span class="kw">const</span> ::<span class="ident">libc</span>::<span class="ident">c_char</span>,
-        <span class="ident">LinkLen</span>: ::<span class="ident">libc</span>::<span class="ident">size_t</span>,
+        <span class="ident">Name</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">::libc::c_char</span>,
+        <span class="ident">NameLen</span>: <span class="ident">::libc::size_t</span>,
+        <span class="ident">Linkage</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">::libc::c_char</span>,
+        <span class="ident">LinkLen</span>: <span class="ident">::libc::size_t</span>,
         <span class="ident">File</span>: <span class="ident">LLVMMetadataRef</span>,
-        <span class="ident">LineNo</span>: ::<span class="ident">libc</span>::<span class="ident">c_uint</span>,
+        <span class="ident">LineNo</span>: <span class="ident">::libc::c_uint</span>,
         <span class="ident">Ty</span>: <span class="ident">LLVMMetadataRef</span>,
         <span class="ident">LocalToUnit</span>: <span class="ident">LLVMBool</span>,
         <span class="ident">Expr</span>: <span class="ident">LLVMMetadataRef</span>,
@@ -1618,13 +1618,13 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">LLVMDIVariableGetScope</span>(<span class="ident">Var</span>: <span class="ident">LLVMMetadataRef</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">LLVMMetadataRef</span>;
 
     <span class="doccomment">/// Get the source line where this \c DIVariable is declared.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">LLVMDIVariableGetLine</span>(<span class="ident">Var</span>: <span class="ident">LLVMMetadataRef</span>) <span class="op">-</span><span class="op">&gt;</span> ::<span class="ident">libc</span>::<span class="ident">c_uint</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">LLVMDIVariableGetLine</span>(<span class="ident">Var</span>: <span class="ident">LLVMMetadataRef</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">::libc::c_uint</span>;
 
     <span class="doccomment">/// Create a new temporary \c MDNode.  Suitable for use in constructing cyclic</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">LLVMTemporaryMDNode</span>(
         <span class="ident">Ctx</span>: <span class="ident">LLVMContextRef</span>,
         <span class="ident">Data</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">LLVMMetadataRef</span>,
-        <span class="ident">NumElements</span>: ::<span class="ident">libc</span>::<span class="ident">size_t</span>,
+        <span class="ident">NumElements</span>: <span class="ident">::libc::size_t</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">LLVMMetadataRef</span>;
 
     <span class="doccomment">/// Deallocate a temporary node.</span>
@@ -1640,12 +1640,12 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">LLVMDIBuilderCreateTempGlobalVariableFwdDecl</span>(
         <span class="ident">Builder</span>: <span class="ident">LLVMDIBuilderRef</span>,
         <span class="ident">Scope</span>: <span class="ident">LLVMMetadataRef</span>,
-        <span class="ident">Name</span>: <span class="kw-2">*</span><span class="kw">const</span> ::<span class="ident">libc</span>::<span class="ident">c_char</span>,
-        <span class="ident">NameLen</span>: ::<span class="ident">libc</span>::<span class="ident">size_t</span>,
-        <span class="ident">Linkage</span>: <span class="kw-2">*</span><span class="kw">const</span> ::<span class="ident">libc</span>::<span class="ident">c_char</span>,
-        <span class="ident">LnkLen</span>: ::<span class="ident">libc</span>::<span class="ident">size_t</span>,
+        <span class="ident">Name</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">::libc::c_char</span>,
+        <span class="ident">NameLen</span>: <span class="ident">::libc::size_t</span>,
+        <span class="ident">Linkage</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">::libc::c_char</span>,
+        <span class="ident">LnkLen</span>: <span class="ident">::libc::size_t</span>,
         <span class="ident">File</span>: <span class="ident">LLVMMetadataRef</span>,
-        <span class="ident">LineNo</span>: ::<span class="ident">libc</span>::<span class="ident">c_uint</span>,
+        <span class="ident">LineNo</span>: <span class="ident">::libc::c_uint</span>,
         <span class="ident">Ty</span>: <span class="ident">LLVMMetadataRef</span>,
         <span class="ident">LocalToUnit</span>: <span class="ident">LLVMBool</span>,
         <span class="ident">Decl</span>: <span class="ident">LLVMMetadataRef</span>,
@@ -1696,10 +1696,10 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">LLVMDIBuilderCreateAutoVariable</span>(
         <span class="ident">Builder</span>: <span class="ident">LLVMDIBuilderRef</span>,
         <span class="ident">Scope</span>: <span class="ident">LLVMMetadataRef</span>,
-        <span class="ident">Name</span>: <span class="kw-2">*</span><span class="kw">const</span> ::<span class="ident">libc</span>::<span class="ident">c_char</span>,
-        <span class="ident">NameLen</span>: ::<span class="ident">libc</span>::<span class="ident">size_t</span>,
+        <span class="ident">Name</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">::libc::c_char</span>,
+        <span class="ident">NameLen</span>: <span class="ident">::libc::size_t</span>,
         <span class="ident">File</span>: <span class="ident">LLVMMetadataRef</span>,
-        <span class="ident">LineNo</span>: ::<span class="ident">libc</span>::<span class="ident">c_uint</span>,
+        <span class="ident">LineNo</span>: <span class="ident">::libc::c_uint</span>,
         <span class="ident">Ty</span>: <span class="ident">LLVMMetadataRef</span>,
         <span class="ident">AlwaysPreserve</span>: <span class="ident">LLVMBool</span>,
         <span class="ident">Flags</span>: <span class="ident">LLVMDIFlags</span>,
@@ -1710,11 +1710,11 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">LLVMDIBuilderCreateParameterVariable</span>(
         <span class="ident">Builder</span>: <span class="ident">LLVMDIBuilderRef</span>,
         <span class="ident">Scope</span>: <span class="ident">LLVMMetadataRef</span>,
-        <span class="ident">Name</span>: <span class="kw-2">*</span><span class="kw">const</span> ::<span class="ident">libc</span>::<span class="ident">c_char</span>,
-        <span class="ident">NameLen</span>: ::<span class="ident">libc</span>::<span class="ident">size_t</span>,
-        <span class="ident">ArgNo</span>: ::<span class="ident">libc</span>::<span class="ident">c_uint</span>,
+        <span class="ident">Name</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">::libc::c_char</span>,
+        <span class="ident">NameLen</span>: <span class="ident">::libc::size_t</span>,
+        <span class="ident">ArgNo</span>: <span class="ident">::libc::c_uint</span>,
         <span class="ident">File</span>: <span class="ident">LLVMMetadataRef</span>,
-        <span class="ident">LineNo</span>: ::<span class="ident">libc</span>::<span class="ident">c_uint</span>,
+        <span class="ident">LineNo</span>: <span class="ident">::libc::c_uint</span>,
         <span class="ident">Ty</span>: <span class="ident">LLVMMetadataRef</span>,
         <span class="ident">AlwaysPreserve</span>: <span class="ident">LLVMBool</span>,
         <span class="ident">Flags</span>: <span class="ident">LLVMDIFlags</span>,
@@ -1727,7 +1727,7 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">LLVMSetSubprogram</span>(<span class="ident">Func</span>: <span class="ident">LLVMValueRef</span>, <span class="ident">SP</span>: <span class="ident">LLVMMetadataRef</span>);
 
     <span class="doccomment">/// Get the line associated with a given subprogram.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">LLVMDISubprogramGetLine</span>(<span class="ident">Subprogram</span>: <span class="ident">LLVMMetadataRef</span>) <span class="op">-</span><span class="op">&gt;</span> ::<span class="ident">libc</span>::<span class="ident">c_uint</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">LLVMDISubprogramGetLine</span>(<span class="ident">Subprogram</span>: <span class="ident">LLVMMetadataRef</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">::libc::c_uint</span>;
 
     <span class="doccomment">/// Get the debug location for the given instruction.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">LLVMInstructionGetDebugLoc</span>(<span class="ident">Inst</span>: <span class="ident">LLVMValueRef</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">LLVMMetadataRef</span>;
@@ -1739,5 +1739,5 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">LLVMGetMetadataKind</span>(<span class="ident">Metadata</span>: <span class="ident">LLVMMetadataRef</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">LLVMMetadataKind</span>;
 }
 </pre></div>
-</section><section id="search" class="content hidden"></section><section class="footer"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="llvm_sys" data-search-js="../../search-index.js"></div>
+</section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="llvm_sys" data-search-index-js="../../search-index.js" data-search-js="../../search.js"></div>
     <script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script></body></html>

@@ -1,6 +1,6 @@
 <!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/llvm-sys-110.0.1/src/lto.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lto.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings"></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
 <link rel="alternate icon" type="image/png" href="../../favicon-16x16.png">
-<link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../llvm_sys/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
+<link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../llvm_sys/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
                 <a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" height="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
@@ -525,79 +525,79 @@
 <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">lto_diagnostic_handler_t</span> <span class="op">=</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span>
     <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span>(
         <span class="ident">severity</span>: <span class="ident">lto_codegen_diagnostic_severity_t</span>,
-        <span class="ident">diag</span>: <span class="kw-2">*</span><span class="kw">const</span> ::<span class="ident">libc</span>::<span class="ident">c_char</span>,
-        <span class="ident">ctxt</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> ::<span class="ident">libc</span>::<span class="ident">c_void</span>,
+        <span class="ident">diag</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">::libc::c_char</span>,
+        <span class="ident">ctxt</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">::libc::c_void</span>,
     ),
 <span class="op">&gt;</span>;
 
 <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">lto_get_version</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw">const</span> ::<span class="ident">libc</span>::<span class="ident">c_char</span>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">lto_get_error_message</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw">const</span> ::<span class="ident">libc</span>::<span class="ident">c_char</span>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">lto_module_is_object_file</span>(<span class="ident">path</span>: <span class="kw-2">*</span><span class="kw">const</span> ::<span class="ident">libc</span>::<span class="ident">c_char</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">lto_bool_t</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">lto_get_version</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">::libc::c_char</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">lto_get_error_message</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">::libc::c_char</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">lto_module_is_object_file</span>(<span class="ident">path</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">::libc::c_char</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">lto_bool_t</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">lto_module_is_object_file_for_target</span>(
-        <span class="ident">path</span>: <span class="kw-2">*</span><span class="kw">const</span> ::<span class="ident">libc</span>::<span class="ident">c_char</span>,
-        <span class="ident">target_triple_prefix</span>: <span class="kw-2">*</span><span class="kw">const</span> ::<span class="ident">libc</span>::<span class="ident">c_char</span>,
+        <span class="ident">path</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">::libc::c_char</span>,
+        <span class="ident">target_triple_prefix</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">::libc::c_char</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">lto_bool_t</span>;
     <span class="doccomment">/// Return true if `Buffer` contains a bitcode file with ObjC code</span>
     <span class="doccomment">/// (category or class) in it.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">lto_module_has_objc_category</span>(
-        <span class="ident">mem</span>: <span class="kw-2">*</span><span class="kw">const</span> ::<span class="ident">libc</span>::<span class="ident">c_void</span>,
-        <span class="ident">length</span>: ::<span class="ident">libc</span>::<span class="ident">size_t</span>,
+        <span class="ident">mem</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">::libc::c_void</span>,
+        <span class="ident">length</span>: <span class="ident">::libc::size_t</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">lto_bool_t</span>;
     <span class="doccomment">/// Checks if a buffer is a loadable object file.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">lto_module_is_object_file_in_memory</span>(
-        <span class="ident">mem</span>: <span class="kw-2">*</span><span class="kw">const</span> ::<span class="ident">libc</span>::<span class="ident">c_void</span>,
-        <span class="ident">length</span>: ::<span class="ident">libc</span>::<span class="ident">size_t</span>,
+        <span class="ident">mem</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">::libc::c_void</span>,
+        <span class="ident">length</span>: <span class="ident">::libc::size_t</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">lto_bool_t</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">lto_module_is_object_file_in_memory_for_target</span>(
-        <span class="ident">mem</span>: <span class="kw-2">*</span><span class="kw">const</span> ::<span class="ident">libc</span>::<span class="ident">c_void</span>,
-        <span class="ident">length</span>: ::<span class="ident">libc</span>::<span class="ident">size_t</span>,
-        <span class="ident">target_triple_prefix</span>: <span class="kw-2">*</span><span class="kw">const</span> ::<span class="ident">libc</span>::<span class="ident">c_char</span>,
+        <span class="ident">mem</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">::libc::c_void</span>,
+        <span class="ident">length</span>: <span class="ident">::libc::size_t</span>,
+        <span class="ident">target_triple_prefix</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">::libc::c_char</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">lto_bool_t</span>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">lto_module_create</span>(<span class="ident">path</span>: <span class="kw-2">*</span><span class="kw">const</span> ::<span class="ident">libc</span>::<span class="ident">c_char</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">lto_module_t</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">lto_module_create</span>(<span class="ident">path</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">::libc::c_char</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">lto_module_t</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">lto_module_create_from_memory</span>(
-        <span class="ident">mem</span>: <span class="kw-2">*</span><span class="kw">const</span> ::<span class="ident">libc</span>::<span class="ident">c_void</span>,
-        <span class="ident">length</span>: ::<span class="ident">libc</span>::<span class="ident">size_t</span>,
+        <span class="ident">mem</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">::libc::c_void</span>,
+        <span class="ident">length</span>: <span class="ident">::libc::size_t</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">lto_module_t</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">lto_module_create_from_memory_with_path</span>(
-        <span class="ident">mem</span>: <span class="kw-2">*</span><span class="kw">const</span> ::<span class="ident">libc</span>::<span class="ident">c_void</span>,
-        <span class="ident">length</span>: ::<span class="ident">libc</span>::<span class="ident">size_t</span>,
-        <span class="ident">path</span>: <span class="kw-2">*</span><span class="kw">const</span> ::<span class="ident">libc</span>::<span class="ident">c_char</span>,
+        <span class="ident">mem</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">::libc::c_void</span>,
+        <span class="ident">length</span>: <span class="ident">::libc::size_t</span>,
+        <span class="ident">path</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">::libc::c_char</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">lto_module_t</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">lto_module_create_in_local_context</span>(
-        <span class="ident">mem</span>: <span class="kw-2">*</span><span class="kw">const</span> ::<span class="ident">libc</span>::<span class="ident">c_void</span>,
-        <span class="ident">length</span>: ::<span class="ident">libc</span>::<span class="ident">size_t</span>,
-        <span class="ident">path</span>: <span class="kw-2">*</span><span class="kw">const</span> ::<span class="ident">libc</span>::<span class="ident">c_char</span>,
+        <span class="ident">mem</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">::libc::c_void</span>,
+        <span class="ident">length</span>: <span class="ident">::libc::size_t</span>,
+        <span class="ident">path</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">::libc::c_char</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">lto_module_t</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">lto_module_create_in_codegen_context</span>(
-        <span class="ident">mem</span>: <span class="kw-2">*</span><span class="kw">const</span> ::<span class="ident">libc</span>::<span class="ident">c_void</span>,
-        <span class="ident">length</span>: ::<span class="ident">libc</span>::<span class="ident">size_t</span>,
-        <span class="ident">path</span>: <span class="kw-2">*</span><span class="kw">const</span> ::<span class="ident">libc</span>::<span class="ident">c_char</span>,
+        <span class="ident">mem</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">::libc::c_void</span>,
+        <span class="ident">length</span>: <span class="ident">::libc::size_t</span>,
+        <span class="ident">path</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">::libc::c_char</span>,
         <span class="ident">cg</span>: <span class="ident">lto_code_gen_t</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">lto_module_t</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">lto_module_create_from_fd</span>(
-        <span class="ident">fd</span>: ::<span class="ident">libc</span>::<span class="ident">c_int</span>,
-        <span class="ident">path</span>: <span class="kw-2">*</span><span class="kw">const</span> ::<span class="ident">libc</span>::<span class="ident">c_char</span>,
-        <span class="ident">file_size</span>: ::<span class="ident">libc</span>::<span class="ident">size_t</span>,
+        <span class="ident">fd</span>: <span class="ident">::libc::c_int</span>,
+        <span class="ident">path</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">::libc::c_char</span>,
+        <span class="ident">file_size</span>: <span class="ident">::libc::size_t</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">lto_module_t</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">lto_module_create_from_fd_at_offset</span>(
-        <span class="ident">fd</span>: ::<span class="ident">libc</span>::<span class="ident">c_int</span>,
-        <span class="ident">path</span>: <span class="kw-2">*</span><span class="kw">const</span> ::<span class="ident">libc</span>::<span class="ident">c_char</span>,
-        <span class="ident">file_size</span>: ::<span class="ident">libc</span>::<span class="ident">size_t</span>,
-        <span class="ident">map_size</span>: ::<span class="ident">libc</span>::<span class="ident">size_t</span>,
-        <span class="ident">offset</span>: ::<span class="ident">libc</span>::<span class="ident">off_t</span>,
+        <span class="ident">fd</span>: <span class="ident">::libc::c_int</span>,
+        <span class="ident">path</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">::libc::c_char</span>,
+        <span class="ident">file_size</span>: <span class="ident">::libc::size_t</span>,
+        <span class="ident">map_size</span>: <span class="ident">::libc::size_t</span>,
+        <span class="ident">offset</span>: <span class="ident">::libc::off_t</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">lto_module_t</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">lto_module_dispose</span>(<span class="ident">_mod</span>: <span class="ident">lto_module_t</span>);
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">lto_module_get_target_triple</span>(<span class="ident">_mod</span>: <span class="ident">lto_module_t</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw">const</span> ::<span class="ident">libc</span>::<span class="ident">c_char</span>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">lto_module_set_target_triple</span>(<span class="ident">_mod</span>: <span class="ident">lto_module_t</span>, <span class="ident">triple</span>: <span class="kw-2">*</span><span class="kw">const</span> ::<span class="ident">libc</span>::<span class="ident">c_char</span>);
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">lto_module_get_num_symbols</span>(<span class="ident">_mod</span>: <span class="ident">lto_module_t</span>) <span class="op">-</span><span class="op">&gt;</span> ::<span class="ident">libc</span>::<span class="ident">c_uint</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">lto_module_get_target_triple</span>(<span class="ident">_mod</span>: <span class="ident">lto_module_t</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">::libc::c_char</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">lto_module_set_target_triple</span>(<span class="ident">_mod</span>: <span class="ident">lto_module_t</span>, <span class="ident">triple</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">::libc::c_char</span>);
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">lto_module_get_num_symbols</span>(<span class="ident">_mod</span>: <span class="ident">lto_module_t</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">::libc::c_uint</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">lto_module_get_symbol_name</span>(
         <span class="ident">_mod</span>: <span class="ident">lto_module_t</span>,
-        <span class="ident">index</span>: ::<span class="ident">libc</span>::<span class="ident">c_uint</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw">const</span> ::<span class="ident">libc</span>::<span class="ident">c_char</span>;
+        <span class="ident">index</span>: <span class="ident">::libc::c_uint</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">::libc::c_char</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">lto_module_get_symbol_attribute</span>(
         <span class="ident">_mod</span>: <span class="ident">lto_module_t</span>,
-        <span class="ident">index</span>: ::<span class="ident">libc</span>::<span class="ident">c_uint</span>,
+        <span class="ident">index</span>: <span class="ident">::libc::c_uint</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">lto_symbol_attributes</span>;
     <span class="doccomment">/// Returns the module&#39;s linker options.</span>
     <span class="doccomment">///</span>
@@ -605,16 +605,16 @@
     <span class="doccomment">/// responsibility to split the flags using a platform-specific mechanism.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Added in LLVM 3.7.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">lto_module_get_linkeropts</span>(<span class="ident">_mod</span>: <span class="ident">lto_module_t</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw">const</span> ::<span class="ident">libc</span>::<span class="ident">c_char</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">lto_module_get_linkeropts</span>(<span class="ident">_mod</span>: <span class="ident">lto_module_t</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">::libc::c_char</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">lto_module_get_macho_cputype</span>(
         <span class="ident">_mod</span>: <span class="ident">lto_module_t</span>,
-        <span class="ident">out_cputype</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> ::<span class="ident">libc</span>::<span class="ident">c_uint</span>,
-        <span class="ident">out_cpusubtype</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> ::<span class="ident">libc</span>::<span class="ident">c_uint</span>,
+        <span class="ident">out_cputype</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">::libc::c_uint</span>,
+        <span class="ident">out_cpusubtype</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">::libc::c_uint</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">lto_bool_t</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">lto_codegen_set_diagnostic_handler</span>(
         <span class="ident">arg1</span>: <span class="ident">lto_code_gen_t</span>,
         <span class="ident">arg2</span>: <span class="ident">lto_diagnostic_handler_t</span>,
-        <span class="ident">arg3</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> ::<span class="ident">libc</span>::<span class="ident">c_void</span>,
+        <span class="ident">arg3</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">::libc::c_void</span>,
     );
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">lto_codegen_create</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">lto_code_gen_t</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">lto_codegen_create_in_local_context</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">lto_code_gen_t</span>;
@@ -627,25 +627,25 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">lto_codegen_set_module</span>(<span class="ident">cg</span>: <span class="ident">lto_code_gen_t</span>, <span class="ident">_mod</span>: <span class="ident">lto_module_t</span>);
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">lto_codegen_set_debug_model</span>(<span class="ident">cg</span>: <span class="ident">lto_code_gen_t</span>, <span class="ident">arg1</span>: <span class="ident">lto_debug_model</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">lto_bool_t</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">lto_codegen_set_pic_model</span>(<span class="ident">cg</span>: <span class="ident">lto_code_gen_t</span>, <span class="ident">arg1</span>: <span class="ident">lto_codegen_model</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">lto_bool_t</span>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">lto_codegen_set_cpu</span>(<span class="ident">cg</span>: <span class="ident">lto_code_gen_t</span>, <span class="ident">cpu</span>: <span class="kw-2">*</span><span class="kw">const</span> ::<span class="ident">libc</span>::<span class="ident">c_char</span>);
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">lto_codegen_set_assembler_path</span>(<span class="ident">cg</span>: <span class="ident">lto_code_gen_t</span>, <span class="ident">path</span>: <span class="kw-2">*</span><span class="kw">const</span> ::<span class="ident">libc</span>::<span class="ident">c_char</span>);
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">lto_codegen_set_cpu</span>(<span class="ident">cg</span>: <span class="ident">lto_code_gen_t</span>, <span class="ident">cpu</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">::libc::c_char</span>);
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">lto_codegen_set_assembler_path</span>(<span class="ident">cg</span>: <span class="ident">lto_code_gen_t</span>, <span class="ident">path</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">::libc::c_char</span>);
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">lto_codegen_set_assembler_args</span>(
         <span class="ident">cg</span>: <span class="ident">lto_code_gen_t</span>,
-        <span class="ident">args</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="kw">const</span> ::<span class="ident">libc</span>::<span class="ident">c_char</span>,
-        <span class="ident">nargs</span>: ::<span class="ident">libc</span>::<span class="ident">c_int</span>,
+        <span class="ident">args</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">::libc::c_char</span>,
+        <span class="ident">nargs</span>: <span class="ident">::libc::c_int</span>,
     );
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">lto_codegen_add_must_preserve_symbol</span>(<span class="ident">cg</span>: <span class="ident">lto_code_gen_t</span>, <span class="ident">symbol</span>: <span class="kw-2">*</span><span class="kw">const</span> ::<span class="ident">libc</span>::<span class="ident">c_char</span>);
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">lto_codegen_add_must_preserve_symbol</span>(<span class="ident">cg</span>: <span class="ident">lto_code_gen_t</span>, <span class="ident">symbol</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">::libc::c_char</span>);
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">lto_codegen_write_merged_modules</span>(
         <span class="ident">cg</span>: <span class="ident">lto_code_gen_t</span>,
-        <span class="ident">path</span>: <span class="kw-2">*</span><span class="kw">const</span> ::<span class="ident">libc</span>::<span class="ident">c_char</span>,
+        <span class="ident">path</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">::libc::c_char</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">lto_bool_t</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">lto_codegen_compile</span>(
         <span class="ident">cg</span>: <span class="ident">lto_code_gen_t</span>,
-        <span class="ident">length</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> ::<span class="ident">libc</span>::<span class="ident">size_t</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw">const</span> ::<span class="ident">libc</span>::<span class="ident">c_void</span>;
+        <span class="ident">length</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">::libc::size_t</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">::libc::c_void</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">lto_codegen_compile_to_file</span>(
         <span class="ident">cg</span>: <span class="ident">lto_code_gen_t</span>,
-        <span class="ident">name</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="kw">const</span> ::<span class="ident">libc</span>::<span class="ident">c_char</span>,
+        <span class="ident">name</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">::libc::c_char</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">lto_bool_t</span>;
     <span class="doccomment">/// Runs optimization for the merged module.</span>
     <span class="doccomment">///</span>
@@ -665,17 +665,17 @@
     <span class="doccomment">/// Added in LLVM 3.7.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">lto_codegen_compile_optimized</span>(
         <span class="ident">cg</span>: <span class="ident">lto_code_gen_t</span>,
-        <span class="ident">length</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> ::<span class="ident">libc</span>::<span class="ident">size_t</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> ::<span class="ident">libc</span>::<span class="ident">c_void</span>;
+        <span class="ident">length</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">::libc::size_t</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">::libc::c_void</span>;
     <span class="doccomment">/// Returns the runtime API version.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Added in LLVM 3.7.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">lto_api_version</span>() <span class="op">-</span><span class="op">&gt;</span> ::<span class="ident">libc</span>::<span class="ident">c_uint</span>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">lto_codegen_debug_options</span>(<span class="ident">cg</span>: <span class="ident">lto_code_gen_t</span>, <span class="ident">arg1</span>: <span class="kw-2">*</span><span class="kw">const</span> ::<span class="ident">libc</span>::<span class="ident">c_char</span>);
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">lto_api_version</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">::libc::c_uint</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">lto_codegen_debug_options</span>(<span class="ident">cg</span>: <span class="ident">lto_code_gen_t</span>, <span class="ident">arg1</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">::libc::c_char</span>);
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">lto_codegen_debug_options_array</span>(
         <span class="ident">cg</span>: <span class="ident">lto_code_gen_t</span>,
-        <span class="ident">arg2</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="kw-2">*</span><span class="kw">const</span> ::<span class="ident">libc</span>::<span class="ident">c_char</span>,
-        <span class="ident">number</span>: ::<span class="ident">libc</span>::<span class="ident">c_int</span>,
+        <span class="ident">arg2</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">::libc::c_char</span>,
+        <span class="ident">number</span>: <span class="ident">::libc::c_int</span>,
     );
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">lto_initialize_disassembler</span>();
     <span class="doccomment">/// Sets if we should run the itnernalize pass during optimization and code generation.</span>
@@ -699,8 +699,8 @@
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">non_snake_case</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">LTOObjectBuffer</span> {
-    <span class="ident">Buffer</span>: <span class="kw-2">*</span><span class="kw">const</span> ::<span class="ident">libc</span>::<span class="ident">c_char</span>,
-    <span class="ident">Size</span>: ::<span class="ident">libc</span>::<span class="ident">size_t</span>,
+    <span class="ident">Buffer</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">::libc::c_char</span>,
+    <span class="ident">Size</span>: <span class="ident">::libc::size_t</span>,
 }
 
 <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
@@ -721,9 +721,9 @@
     <span class="doccomment">/// Returns null on failure.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">thinlto_codegen_add_module</span>(
         <span class="ident">cg</span>: <span class="ident">thinlto_code_gen_t</span>,
-        <span class="ident">identifier</span>: <span class="kw-2">*</span><span class="kw">const</span> ::<span class="ident">libc</span>::<span class="ident">c_char</span>,
-        <span class="ident">data</span>: <span class="kw-2">*</span><span class="kw">const</span> ::<span class="ident">libc</span>::<span class="ident">c_char</span>,
-        <span class="ident">length</span>: ::<span class="ident">libc</span>::<span class="ident">c_int</span>,
+        <span class="ident">identifier</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">::libc::c_char</span>,
+        <span class="ident">data</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">::libc::c_char</span>,
+        <span class="ident">length</span>: <span class="ident">::libc::c_int</span>,
     );
     <span class="doccomment">/// Optimize and codegen all modules attached to the code generator.</span>
     <span class="doccomment">///</span>
@@ -733,24 +733,24 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// This usually matches the number of input files, but is not guaranteed</span>
     <span class="doccomment">/// to.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">thinlto_module_get_num_objects</span>(<span class="ident">cg</span>: <span class="ident">thinlto_code_gen_t</span>) <span class="op">-</span><span class="op">&gt;</span> ::<span class="ident">libc</span>::<span class="ident">c_int</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">thinlto_module_get_num_objects</span>(<span class="ident">cg</span>: <span class="ident">thinlto_code_gen_t</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">::libc::c_int</span>;
     <span class="doccomment">/// Return a reference to the `index`th object file produced by the</span>
     <span class="doccomment">/// code generator.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">thinlto_module_get_object</span>(
         <span class="ident">cg</span>: <span class="ident">thinlto_code_gen_t</span>,
-        <span class="ident">index</span>: ::<span class="ident">libc</span>::<span class="ident">c_uint</span>,
+        <span class="ident">index</span>: <span class="ident">::libc::c_uint</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">LTOObjectBuffer</span>;
     <span class="doccomment">/// Return the number of object files produced by the code generator.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Usually the same as the number of input files, but not guaranteed.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">thinlto_module_get_num_object_files</span>(<span class="ident">cg</span>: <span class="ident">thinlto_code_gen_t</span>) <span class="op">-</span><span class="op">&gt;</span> ::<span class="ident">libc</span>::<span class="ident">c_uint</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">thinlto_module_get_num_object_files</span>(<span class="ident">cg</span>: <span class="ident">thinlto_code_gen_t</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">::libc::c_uint</span>;
     <span class="doccomment">/// Return the path to the ith output object file.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Use `thinlto_module_get_num_object_files` to get the number of available objects.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">thinlto_module_get_object_file</span>(
         <span class="ident">cg</span>: <span class="ident">thinlto_code_gen_t</span>,
-        <span class="ident">index</span>: ::<span class="ident">libc</span>::<span class="ident">c_uint</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw">const</span> ::<span class="ident">libc</span>::<span class="ident">c_char</span>;
+        <span class="ident">index</span>: <span class="ident">::libc::c_uint</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">::libc::c_char</span>;
     <span class="doccomment">/// Set which PIC code model to generate.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Returns true on error.</span>
@@ -763,13 +763,13 @@
     <span class="comment">// Set the path to a directory to use as cache for increment build.</span>
     <span class="comment">//</span>
     <span class="comment">// Setting this activates caching.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">thinlto_codegen_set_cache_dir</span>(<span class="ident">cg</span>: <span class="ident">thinlto_code_gen_t</span>, <span class="ident">cache_dir</span>: <span class="kw-2">*</span><span class="kw">const</span> ::<span class="ident">libc</span>::<span class="ident">c_char</span>);
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">thinlto_codegen_set_cache_dir</span>(<span class="ident">cg</span>: <span class="ident">thinlto_code_gen_t</span>, <span class="ident">cache_dir</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">::libc::c_char</span>);
     <span class="doccomment">/// Set the cache pruning interval, in seconds.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// A negative value disables pruning, and 0 will force pruning to occur.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">thinlto_codegen_set_cache_pruning_interval</span>(
         <span class="ident">cg</span>: <span class="ident">thinlto_code_gen_t</span>,
-        <span class="ident">interval</span>: ::<span class="ident">libc</span>::<span class="ident">c_int</span>,
+        <span class="ident">interval</span>: <span class="ident">::libc::c_int</span>,
     );
     <span class="doccomment">/// Set the maximum cache size to persist across builds.</span>
     <span class="doccomment">///</span>
@@ -778,12 +778,12 @@
     <span class="doccomment">/// values over 100 will be reduced to 100.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">thinlto_codegen_set_final_cache_size_relative_to_available_space</span>(
         <span class="ident">cg</span>: <span class="ident">thinlto_code_gen_t</span>,
-        <span class="ident">percentage</span>: ::<span class="ident">libc</span>::<span class="ident">c_uint</span>,
+        <span class="ident">percentage</span>: <span class="ident">::libc::c_uint</span>,
     );
     <span class="doccomment">/// Set the expiration (in seconds) for cache entries.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">thinlto_codegen_set_cache_entry_expiration</span>(
         <span class="ident">cg</span>: <span class="ident">thinlto_code_gen_t</span>,
-        <span class="ident">expiration</span>: ::<span class="ident">libc</span>::<span class="ident">c_uint</span>,
+        <span class="ident">expiration</span>: <span class="ident">::libc::c_uint</span>,
     );
     <span class="doccomment">/// Set the maximum size of the cache directory (in bytes). A value over the</span>
     <span class="doccomment">/// amount of available space on the disk will be reduced to the amount of</span>
@@ -791,48 +791,48 @@
     <span class="doccomment">/// will be ignored.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">thinlto_codegen_set_cache_size_bytes</span>(
         <span class="ident">cg</span>: <span class="ident">thinlto_code_gen_t</span>,
-        <span class="ident">max_size_bytes</span>: ::<span class="ident">libc</span>::<span class="ident">c_uint</span>,
+        <span class="ident">max_size_bytes</span>: <span class="ident">::libc::c_uint</span>,
     );
     <span class="doccomment">/// Same as thinlto_codegen_set_cache_size_bytes, except the maximum size is in</span>
     <span class="doccomment">/// megabytes (2^20 bytes).</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">thinlto_codegen_set_cache_size_megabytes</span>(
         <span class="ident">cg</span>: <span class="ident">thinlto_code_gen_t</span>,
-        <span class="ident">max_size_megabytes</span>: ::<span class="ident">libc</span>::<span class="ident">c_uint</span>,
+        <span class="ident">max_size_megabytes</span>: <span class="ident">::libc::c_uint</span>,
     );
     <span class="doccomment">/// Sets the maximum number of files in the cache directory. An unspecified default value will be applied. A value of 0 will be ignored.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">thinlto_codegen_set_cache_size_files</span>(
         <span class="ident">cg</span>: <span class="ident">thinlto_code_gen_t</span>,
-        <span class="ident">max_size_files</span>: ::<span class="ident">libc</span>::<span class="ident">c_uint</span>,
+        <span class="ident">max_size_files</span>: <span class="ident">::libc::c_uint</span>,
     );
 
     <span class="doccomment">/// Create an LTO input file from a buffer.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">lto_input_create</span>(
-        <span class="ident">buffer</span>: <span class="kw-2">*</span><span class="kw">const</span> ::<span class="ident">libc</span>::<span class="ident">c_void</span>,
-        <span class="ident">buffer_size</span>: ::<span class="ident">libc</span>::<span class="ident">size_t</span>,
-        <span class="ident">path</span>: <span class="kw-2">*</span><span class="kw">const</span> ::<span class="ident">libc</span>::<span class="ident">c_char</span>,
+        <span class="ident">buffer</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">::libc::c_void</span>,
+        <span class="ident">buffer_size</span>: <span class="ident">::libc::size_t</span>,
+        <span class="ident">path</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">::libc::c_char</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">lto_input_t</span>;
     <span class="doccomment">/// Free all memory allocated by the input file.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">lto_input_dispose</span>(<span class="ident">input</span>: <span class="ident">lto_input_t</span>);
     <span class="doccomment">/// Get the number of dependent library specifiers for the given input.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">lto_input_get_num_dependent_libraries</span>(<span class="ident">input</span>: <span class="ident">lto_input_t</span>) <span class="op">-</span><span class="op">&gt;</span> ::<span class="ident">libc</span>::<span class="ident">c_uint</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">lto_input_get_num_dependent_libraries</span>(<span class="ident">input</span>: <span class="ident">lto_input_t</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">::libc::c_uint</span>;
     <span class="doccomment">/// Get the `i`th dependent library specifier for the given input file.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// The returned string is not null-terminated.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">lto_input_get_dependent_library</span>(
         <span class="ident">input</span>: <span class="ident">lto_input_t</span>,
-        <span class="ident">index</span>: ::<span class="ident">libc</span>::<span class="ident">size_t</span>,
-        <span class="ident">size</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> ::<span class="ident">libc</span>::<span class="ident">size_t</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw">const</span> ::<span class="ident">libc</span>::<span class="ident">c_char</span>;
+        <span class="ident">index</span>: <span class="ident">::libc::size_t</span>,
+        <span class="ident">size</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">::libc::size_t</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">::libc::c_char</span>;
     <span class="doccomment">/// Return the list of libcall symbols that can be generated by LTO</span>
     <span class="doccomment">/// that might not be visible from the symbol table of bitcode files.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">lto_runtime_lib_symbols_list</span>(<span class="ident">size</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="kw-2">*</span><span class="kw">const</span> ::<span class="ident">libc</span>::<span class="ident">c_char</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">lto_runtime_lib_symbols_list</span>(<span class="ident">size</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">::libc::c_char</span>;
 
     <span class="doccomment">/// Set the path to a directory to use as temporary bitcode storage.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// This is meant to make the bitcode files available for debugging.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">thinlto_codegen_set_savetemps_dir</span>(
         <span class="ident">cg</span>: <span class="ident">thinlto_code_gen_t</span>,
-        <span class="ident">save_temps_dir</span>: <span class="kw-2">*</span><span class="kw">const</span> ::<span class="ident">libc</span>::<span class="ident">c_char</span>,
+        <span class="ident">save_temps_dir</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">::libc::c_char</span>,
     );
     <span class="doccomment">/// Set the path to a directory to save generated object files.</span>
     <span class="doccomment">///</span>
@@ -840,10 +840,10 @@
     <span class="doccomment">/// `thinlto_module_get_object_file` instead of `thinlto_module_get_object`.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">thinlto_set_generated_objects_dir</span>(
         <span class="ident">cg</span>: <span class="ident">thinlto_code_gen_t</span>,
-        <span class="ident">save_temps_dir</span>: <span class="kw-2">*</span><span class="kw">const</span> ::<span class="ident">libc</span>::<span class="ident">c_char</span>,
+        <span class="ident">save_temps_dir</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">::libc::c_char</span>,
     );
     <span class="doccomment">/// Set the CPU to generate code for.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">thinlto_codegen_set_cpu</span>(<span class="ident">cg</span>: <span class="ident">thinlto_code_gen_t</span>, <span class="ident">cpu</span>: <span class="kw-2">*</span><span class="kw">const</span> ::<span class="ident">libc</span>::<span class="ident">c_char</span>);
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">thinlto_codegen_set_cpu</span>(<span class="ident">cg</span>: <span class="ident">thinlto_code_gen_t</span>, <span class="ident">cpu</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">::libc::c_char</span>);
     <span class="doccomment">/// Disable code generation (running all stages until codegen).</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// The output with codegen disabled is bitcode.</span>
@@ -851,7 +851,7 @@
     <span class="doccomment">/// Perform codegen only; disable all other stages.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">thinlto_codegen_set_codegen_only</span>(<span class="ident">cg</span>: <span class="ident">thinlto_code_gen_t</span>, <span class="ident">codegen_only</span>: <span class="ident">lto_bool_t</span>);
     <span class="doccomment">/// Parse -mllvm style debug options.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">thinlto_debug_options</span>(<span class="ident">options</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="kw-2">*</span><span class="kw">const</span> ::<span class="ident">libc</span>::<span class="ident">c_char</span>, <span class="ident">number</span>: ::<span class="ident">libc</span>::<span class="ident">c_int</span>);
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">thinlto_debug_options</span>(<span class="ident">options</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">::libc::c_char</span>, <span class="ident">number</span>: <span class="ident">::libc::c_int</span>);
     <span class="doccomment">/// Test if a module has ThinLTO linking support.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">lto_module_is_thinlto</span>(<span class="ident">module</span>: <span class="ident">lto_module_t</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">lto_bool_t</span>;
     <span class="doccomment">/// Add a symbol to the list of global symbols that must exist in the</span>
@@ -860,8 +860,8 @@
     <span class="doccomment">/// Functions not listed may be inlined in every usage and optimized away.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">thinlto_codegen_add_must_preserve_symbol</span>(
         <span class="ident">cg</span>: <span class="ident">thinlto_code_gen_t</span>,
-        <span class="ident">name</span>: <span class="kw-2">*</span><span class="kw">const</span> ::<span class="ident">libc</span>::<span class="ident">c_char</span>,
-        <span class="ident">length</span>: ::<span class="ident">libc</span>::<span class="ident">c_int</span>,
+        <span class="ident">name</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">::libc::c_char</span>,
+        <span class="ident">length</span>: <span class="ident">::libc::c_int</span>,
     );
     <span class="doccomment">/// Add a symbol to the list of global symbols that are cross-referenced</span>
     <span class="doccomment">/// between ThinLTO files.</span>
@@ -870,10 +870,10 @@
     <span class="doccomment">/// to a symbol is optimized away, then the symbol can be discarded.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">thinlto_codegen_add_cross_referenced_symbol</span>(
         <span class="ident">cg</span>: <span class="ident">thinlto_code_gen_t</span>,
-        <span class="ident">name</span>: <span class="kw-2">*</span><span class="kw">const</span> ::<span class="ident">libc</span>::<span class="ident">c_char</span>,
-        <span class="ident">length</span>: ::<span class="ident">libc</span>::<span class="ident">c_int</span>,
+        <span class="ident">name</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">::libc::c_char</span>,
+        <span class="ident">length</span>: <span class="ident">::libc::c_int</span>,
     );
 }
 </pre></div>
-</section><section id="search" class="content hidden"></section><section class="footer"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="llvm_sys" data-search-js="../../search-index.js"></div>
+</section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="llvm_sys" data-search-index-js="../../search-index.js" data-search-js="../../search.js"></div>
     <script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script></body></html>

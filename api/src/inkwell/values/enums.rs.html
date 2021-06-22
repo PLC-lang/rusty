@@ -1,6 +1,6 @@
 <!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/git/checkouts/inkwell-946411d814d2c9f8/f768691/src/values/enums.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>enums.rs - source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script id="default-settings"></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
 <link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png">
-<link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../inkwell/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
+<link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../inkwell/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
                 <a id="settings-menu" href="../../../settings.html"><img src="../../../wheel.svg" width="18" height="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
@@ -486,17 +486,17 @@
 <span id="483">483</span>
 <span id="484">484</span>
 </pre><div class="example-wrap"><pre class="rust ">
-<span class="kw">use</span> <span class="ident">llvm_sys</span>::<span class="ident">core</span>::{<span class="ident">LLVMIsAInstruction</span>, <span class="ident">LLVMTypeOf</span>, <span class="ident">LLVMGetTypeKind</span>};
-<span class="kw">use</span> <span class="ident">llvm_sys</span>::<span class="ident">LLVMTypeKind</span>;
-<span class="kw">use</span> <span class="ident">llvm_sys</span>::<span class="ident">prelude</span>::<span class="ident">LLVMValueRef</span>;
+<span class="kw">use</span> <span class="ident">llvm_sys::core</span>::{<span class="ident">LLVMIsAInstruction</span>, <span class="ident">LLVMTypeOf</span>, <span class="ident">LLVMGetTypeKind</span>};
+<span class="kw">use</span> <span class="ident">llvm_sys::LLVMTypeKind</span>;
+<span class="kw">use</span> <span class="ident">llvm_sys::prelude::LLVMValueRef</span>;
 
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">types</span>::{<span class="ident">AnyTypeEnum</span>, <span class="ident">BasicTypeEnum</span>};
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">values</span>::<span class="ident">traits</span>::<span class="ident">AsValueRef</span>;
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">values</span>::{<span class="ident">IntValue</span>, <span class="ident">FunctionValue</span>, <span class="ident">PointerValue</span>, <span class="ident">VectorValue</span>, <span class="ident">ArrayValue</span>, <span class="ident">StructValue</span>, <span class="ident">FloatValue</span>, <span class="ident">PhiValue</span>, <span class="ident">InstructionValue</span>, <span class="ident">MetadataValue</span>};
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::types</span>::{<span class="ident">AnyTypeEnum</span>, <span class="ident">BasicTypeEnum</span>};
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::values::traits::AsValueRef</span>;
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::values</span>::{<span class="ident">IntValue</span>, <span class="ident">FunctionValue</span>, <span class="ident">PointerValue</span>, <span class="ident">VectorValue</span>, <span class="ident">ArrayValue</span>, <span class="ident">StructValue</span>, <span class="ident">FloatValue</span>, <span class="ident">PhiValue</span>, <span class="ident">InstructionValue</span>, <span class="ident">MetadataValue</span>};
 
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">convert</span>::<span class="ident">TryFrom</span>;
+<span class="kw">use</span> <span class="ident">std::convert::TryFrom</span>;
 
-<span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">enum_value_set</span> {
+<span class="macro">macro_rules!</span> <span class="ident">enum_value_set</span> {
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">enum_name</span>:<span class="ident">ident</span>: $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">args</span>:<span class="ident">ident</span>),<span class="kw-2">*</span>) <span class="op">=</span><span class="op">&gt;</span> (
         <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Hash</span>)]</span>
         <span class="kw">pub</span> <span class="kw">enum</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">enum_name</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> {
@@ -537,7 +537,7 @@
             <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> <span class="ident">TryFrom</span><span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">enum_name</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">args</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> {
                 <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> ();
 
-                <span class="kw">fn</span> <span class="ident">try_from</span>(<span class="ident">value</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">enum_name</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="self">Self</span>::<span class="ident">Error</span><span class="op">&gt;</span> {
+                <span class="kw">fn</span> <span class="ident">try_from</span>(<span class="ident">value</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">enum_name</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="self">Self</span><span class="ident">::Error</span><span class="op">&gt;</span> {
                     <span class="kw">match</span> <span class="ident">value</span> {
                         <span class="macro-nonterminal">$</span><span class="macro-nonterminal">enum_name</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">args</span>(<span class="ident">ty</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">ty</span>),
                         <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(()),
@@ -548,10 +548,10 @@
     );
 }
 
-<span class="macro">enum_value_set</span><span class="macro">!</span> {<span class="ident">AggregateValueEnum</span>: <span class="ident">ArrayValue</span>, <span class="ident">StructValue</span>}
-<span class="macro">enum_value_set</span><span class="macro">!</span> {<span class="ident">AnyValueEnum</span>: <span class="ident">ArrayValue</span>, <span class="ident">IntValue</span>, <span class="ident">FloatValue</span>, <span class="ident">PhiValue</span>, <span class="ident">FunctionValue</span>, <span class="ident">PointerValue</span>, <span class="ident">StructValue</span>, <span class="ident">VectorValue</span>, <span class="ident">InstructionValue</span>}
-<span class="macro">enum_value_set</span><span class="macro">!</span> {<span class="ident">BasicValueEnum</span>: <span class="ident">ArrayValue</span>, <span class="ident">IntValue</span>, <span class="ident">FloatValue</span>, <span class="ident">PointerValue</span>, <span class="ident">StructValue</span>, <span class="ident">VectorValue</span>}
-<span class="macro">enum_value_set</span><span class="macro">!</span> {<span class="ident">BasicMetadataValueEnum</span>: <span class="ident">ArrayValue</span>, <span class="ident">IntValue</span>, <span class="ident">FloatValue</span>, <span class="ident">PointerValue</span>, <span class="ident">StructValue</span>, <span class="ident">VectorValue</span>, <span class="ident">MetadataValue</span>}
+<span class="macro">enum_value_set!</span> {<span class="ident">AggregateValueEnum</span>: <span class="ident">ArrayValue</span>, <span class="ident">StructValue</span>}
+<span class="macro">enum_value_set!</span> {<span class="ident">AnyValueEnum</span>: <span class="ident">ArrayValue</span>, <span class="ident">IntValue</span>, <span class="ident">FloatValue</span>, <span class="ident">PhiValue</span>, <span class="ident">FunctionValue</span>, <span class="ident">PointerValue</span>, <span class="ident">StructValue</span>, <span class="ident">VectorValue</span>, <span class="ident">InstructionValue</span>}
+<span class="macro">enum_value_set!</span> {<span class="ident">BasicValueEnum</span>: <span class="ident">ArrayValue</span>, <span class="ident">IntValue</span>, <span class="ident">FloatValue</span>, <span class="ident">PointerValue</span>, <span class="ident">StructValue</span>, <span class="ident">VectorValue</span>}
+<span class="macro">enum_value_set!</span> {<span class="ident">BasicMetadataValueEnum</span>: <span class="ident">ArrayValue</span>, <span class="ident">IntValue</span>, <span class="ident">FloatValue</span>, <span class="ident">PointerValue</span>, <span class="ident">StructValue</span>, <span class="ident">VectorValue</span>, <span class="ident">MetadataValue</span>}
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> <span class="ident">AnyValueEnum</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> {
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">value</span>: <span class="ident">LLVMValueRef</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
@@ -560,26 +560,26 @@
         };
 
         <span class="kw">match</span> <span class="ident">type_kind</span> {
-            <span class="ident">LLVMTypeKind</span>::<span class="ident">LLVMFloatTypeKind</span> <span class="op">|</span>
-            <span class="ident">LLVMTypeKind</span>::<span class="ident">LLVMFP128TypeKind</span> <span class="op">|</span>
-            <span class="ident">LLVMTypeKind</span>::<span class="ident">LLVMDoubleTypeKind</span> <span class="op">|</span>
-            <span class="ident">LLVMTypeKind</span>::<span class="ident">LLVMHalfTypeKind</span> <span class="op">|</span>
-            <span class="ident">LLVMTypeKind</span>::<span class="ident">LLVMX86_FP80TypeKind</span> <span class="op">|</span>
-            <span class="ident">LLVMTypeKind</span>::<span class="ident">LLVMPPC_FP128TypeKind</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">AnyValueEnum</span>::<span class="ident">FloatValue</span>(<span class="ident">FloatValue</span>::<span class="ident">new</span>(<span class="ident">value</span>)),
-            <span class="ident">LLVMTypeKind</span>::<span class="ident">LLVMIntegerTypeKind</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">AnyValueEnum</span>::<span class="ident">IntValue</span>(<span class="ident">IntValue</span>::<span class="ident">new</span>(<span class="ident">value</span>)),
-            <span class="ident">LLVMTypeKind</span>::<span class="ident">LLVMStructTypeKind</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">AnyValueEnum</span>::<span class="ident">StructValue</span>(<span class="ident">StructValue</span>::<span class="ident">new</span>(<span class="ident">value</span>)),
-            <span class="ident">LLVMTypeKind</span>::<span class="ident">LLVMPointerTypeKind</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">AnyValueEnum</span>::<span class="ident">PointerValue</span>(<span class="ident">PointerValue</span>::<span class="ident">new</span>(<span class="ident">value</span>)),
-            <span class="ident">LLVMTypeKind</span>::<span class="ident">LLVMArrayTypeKind</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">AnyValueEnum</span>::<span class="ident">ArrayValue</span>(<span class="ident">ArrayValue</span>::<span class="ident">new</span>(<span class="ident">value</span>)),
-            <span class="ident">LLVMTypeKind</span>::<span class="ident">LLVMVectorTypeKind</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">AnyValueEnum</span>::<span class="ident">VectorValue</span>(<span class="ident">VectorValue</span>::<span class="ident">new</span>(<span class="ident">value</span>)),
-            <span class="ident">LLVMTypeKind</span>::<span class="ident">LLVMFunctionTypeKind</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">AnyValueEnum</span>::<span class="ident">FunctionValue</span>(<span class="ident">FunctionValue</span>::<span class="ident">new</span>(<span class="ident">value</span>).<span class="ident">unwrap</span>()),
-            <span class="ident">LLVMTypeKind</span>::<span class="ident">LLVMVoidTypeKind</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">LLVMTypeKind::LLVMFloatTypeKind</span> <span class="op">|</span>
+            <span class="ident">LLVMTypeKind::LLVMFP128TypeKind</span> <span class="op">|</span>
+            <span class="ident">LLVMTypeKind::LLVMDoubleTypeKind</span> <span class="op">|</span>
+            <span class="ident">LLVMTypeKind::LLVMHalfTypeKind</span> <span class="op">|</span>
+            <span class="ident">LLVMTypeKind::LLVMX86_FP80TypeKind</span> <span class="op">|</span>
+            <span class="ident">LLVMTypeKind::LLVMPPC_FP128TypeKind</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">AnyValueEnum::FloatValue</span>(<span class="ident">FloatValue::new</span>(<span class="ident">value</span>)),
+            <span class="ident">LLVMTypeKind::LLVMIntegerTypeKind</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">AnyValueEnum::IntValue</span>(<span class="ident">IntValue::new</span>(<span class="ident">value</span>)),
+            <span class="ident">LLVMTypeKind::LLVMStructTypeKind</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">AnyValueEnum::StructValue</span>(<span class="ident">StructValue::new</span>(<span class="ident">value</span>)),
+            <span class="ident">LLVMTypeKind::LLVMPointerTypeKind</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">AnyValueEnum::PointerValue</span>(<span class="ident">PointerValue::new</span>(<span class="ident">value</span>)),
+            <span class="ident">LLVMTypeKind::LLVMArrayTypeKind</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">AnyValueEnum::ArrayValue</span>(<span class="ident">ArrayValue::new</span>(<span class="ident">value</span>)),
+            <span class="ident">LLVMTypeKind::LLVMVectorTypeKind</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">AnyValueEnum::VectorValue</span>(<span class="ident">VectorValue::new</span>(<span class="ident">value</span>)),
+            <span class="ident">LLVMTypeKind::LLVMFunctionTypeKind</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">AnyValueEnum::FunctionValue</span>(<span class="ident">FunctionValue::new</span>(<span class="ident">value</span>).<span class="ident">unwrap</span>()),
+            <span class="ident">LLVMTypeKind::LLVMVoidTypeKind</span> <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">if</span> <span class="kw">unsafe</span> { <span class="ident">LLVMIsAInstruction</span>(<span class="ident">value</span>) }.<span class="ident">is_null</span>() {
-                    <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;Void value isn&#39;t an instruction.&quot;</span>);
+                    <span class="macro">panic!</span>(<span class="string">&quot;Void value isn&#39;t an instruction.&quot;</span>);
                 }
-                <span class="ident">AnyValueEnum</span>::<span class="ident">InstructionValue</span>(<span class="ident">InstructionValue</span>::<span class="ident">new</span>(<span class="ident">value</span>))
+                <span class="ident">AnyValueEnum::InstructionValue</span>(<span class="ident">InstructionValue::new</span>(<span class="ident">value</span>))
             },
-            <span class="ident">LLVMTypeKind</span>::<span class="ident">LLVMMetadataTypeKind</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;Metadata values are not supported as AnyValue&#39;s.&quot;</span>),
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;The given type is not supported.&quot;</span>)
+            <span class="ident">LLVMTypeKind::LLVMMetadataTypeKind</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic!</span>(<span class="string">&quot;Metadata values are not supported as AnyValue&#39;s.&quot;</span>),
+            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic!</span>(<span class="string">&quot;The given type is not supported.&quot;</span>)
         }
     }
 
@@ -588,114 +588,114 @@
             <span class="ident">LLVMTypeOf</span>(<span class="self">self</span>.<span class="ident">as_value_ref</span>())
         };
 
-        <span class="ident">AnyTypeEnum</span>::<span class="ident">new</span>(<span class="ident">type_</span>)
+        <span class="ident">AnyTypeEnum::new</span>(<span class="ident">type_</span>)
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_array_value</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="macro">matches</span><span class="macro">!</span>(<span class="self">self</span>, <span class="ident">AnyValueEnum</span>::<span class="ident">ArrayValue</span>(<span class="kw">_</span>))
+        <span class="macro">matches!</span>(<span class="self">self</span>, <span class="ident">AnyValueEnum::ArrayValue</span>(<span class="kw">_</span>))
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_int_value</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="macro">matches</span><span class="macro">!</span>(<span class="self">self</span>, <span class="ident">AnyValueEnum</span>::<span class="ident">IntValue</span>(<span class="kw">_</span>))
+        <span class="macro">matches!</span>(<span class="self">self</span>, <span class="ident">AnyValueEnum::IntValue</span>(<span class="kw">_</span>))
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_float_value</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="macro">matches</span><span class="macro">!</span>(<span class="self">self</span>, <span class="ident">AnyValueEnum</span>::<span class="ident">FloatValue</span>(<span class="kw">_</span>))
+        <span class="macro">matches!</span>(<span class="self">self</span>, <span class="ident">AnyValueEnum::FloatValue</span>(<span class="kw">_</span>))
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_phi_value</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="macro">matches</span><span class="macro">!</span>(<span class="self">self</span>, <span class="ident">AnyValueEnum</span>::<span class="ident">PhiValue</span>(<span class="kw">_</span>))
+        <span class="macro">matches!</span>(<span class="self">self</span>, <span class="ident">AnyValueEnum::PhiValue</span>(<span class="kw">_</span>))
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_function_value</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="macro">matches</span><span class="macro">!</span>(<span class="self">self</span>, <span class="ident">AnyValueEnum</span>::<span class="ident">FunctionValue</span>(<span class="kw">_</span>))
+        <span class="macro">matches!</span>(<span class="self">self</span>, <span class="ident">AnyValueEnum::FunctionValue</span>(<span class="kw">_</span>))
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_pointer_value</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="macro">matches</span><span class="macro">!</span>(<span class="self">self</span>, <span class="ident">AnyValueEnum</span>::<span class="ident">PointerValue</span>(<span class="kw">_</span>))
+        <span class="macro">matches!</span>(<span class="self">self</span>, <span class="ident">AnyValueEnum::PointerValue</span>(<span class="kw">_</span>))
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_struct_value</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="macro">matches</span><span class="macro">!</span>(<span class="self">self</span>, <span class="ident">AnyValueEnum</span>::<span class="ident">StructValue</span>(<span class="kw">_</span>))
+        <span class="macro">matches!</span>(<span class="self">self</span>, <span class="ident">AnyValueEnum::StructValue</span>(<span class="kw">_</span>))
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_vector_value</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="macro">matches</span><span class="macro">!</span>(<span class="self">self</span>, <span class="ident">AnyValueEnum</span>::<span class="ident">VectorValue</span>(<span class="kw">_</span>))
+        <span class="macro">matches!</span>(<span class="self">self</span>, <span class="ident">AnyValueEnum::VectorValue</span>(<span class="kw">_</span>))
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_instruction_value</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="macro">matches</span><span class="macro">!</span>(<span class="self">self</span>, <span class="ident">AnyValueEnum</span>::<span class="ident">InstructionValue</span>(<span class="kw">_</span>))
+        <span class="macro">matches!</span>(<span class="self">self</span>, <span class="ident">AnyValueEnum::InstructionValue</span>(<span class="kw">_</span>))
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_array_value</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ArrayValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">AnyValueEnum</span>::<span class="ident">ArrayValue</span>(<span class="ident">v</span>) <span class="op">=</span> <span class="self">self</span> {
+        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">AnyValueEnum::ArrayValue</span>(<span class="ident">v</span>) <span class="op">=</span> <span class="self">self</span> {
             <span class="ident">v</span>
         } <span class="kw">else</span> {
-            <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;Found {:?} but expected a different variant&quot;</span>, <span class="self">self</span>)
+            <span class="macro">panic!</span>(<span class="string">&quot;Found {:?} but expected a different variant&quot;</span>, <span class="self">self</span>)
         }
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_int_value</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">IntValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">AnyValueEnum</span>::<span class="ident">IntValue</span>(<span class="ident">v</span>) <span class="op">=</span> <span class="self">self</span> {
+        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">AnyValueEnum::IntValue</span>(<span class="ident">v</span>) <span class="op">=</span> <span class="self">self</span> {
             <span class="ident">v</span>
         } <span class="kw">else</span> {
-            <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;Found {:?} but expected a different variant&quot;</span>, <span class="self">self</span>)
+            <span class="macro">panic!</span>(<span class="string">&quot;Found {:?} but expected a different variant&quot;</span>, <span class="self">self</span>)
         }
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_float_value</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">FloatValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">AnyValueEnum</span>::<span class="ident">FloatValue</span>(<span class="ident">v</span>) <span class="op">=</span> <span class="self">self</span> {
+        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">AnyValueEnum::FloatValue</span>(<span class="ident">v</span>) <span class="op">=</span> <span class="self">self</span> {
             <span class="ident">v</span>
         } <span class="kw">else</span> {
-            <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;Found {:?} but expected a different variant&quot;</span>, <span class="self">self</span>)
+            <span class="macro">panic!</span>(<span class="string">&quot;Found {:?} but expected a different variant&quot;</span>, <span class="self">self</span>)
         }
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_phi_value</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PhiValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">AnyValueEnum</span>::<span class="ident">PhiValue</span>(<span class="ident">v</span>) <span class="op">=</span> <span class="self">self</span> {
+        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">AnyValueEnum::PhiValue</span>(<span class="ident">v</span>) <span class="op">=</span> <span class="self">self</span> {
             <span class="ident">v</span>
         } <span class="kw">else</span> {
-            <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;Found {:?} but expected a different variant&quot;</span>, <span class="self">self</span>)
+            <span class="macro">panic!</span>(<span class="string">&quot;Found {:?} but expected a different variant&quot;</span>, <span class="self">self</span>)
         }
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_function_value</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">FunctionValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">AnyValueEnum</span>::<span class="ident">FunctionValue</span>(<span class="ident">v</span>) <span class="op">=</span> <span class="self">self</span> {
+        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">AnyValueEnum::FunctionValue</span>(<span class="ident">v</span>) <span class="op">=</span> <span class="self">self</span> {
             <span class="ident">v</span>
         } <span class="kw">else</span> {
-            <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;Found {:?} but expected a different variant&quot;</span>, <span class="self">self</span>)
+            <span class="macro">panic!</span>(<span class="string">&quot;Found {:?} but expected a different variant&quot;</span>, <span class="self">self</span>)
         }
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_pointer_value</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PointerValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">AnyValueEnum</span>::<span class="ident">PointerValue</span>(<span class="ident">v</span>) <span class="op">=</span> <span class="self">self</span> {
+        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">AnyValueEnum::PointerValue</span>(<span class="ident">v</span>) <span class="op">=</span> <span class="self">self</span> {
             <span class="ident">v</span>
         } <span class="kw">else</span> {
-            <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;Found {:?} but expected a different variant&quot;</span>, <span class="self">self</span>)
+            <span class="macro">panic!</span>(<span class="string">&quot;Found {:?} but expected a different variant&quot;</span>, <span class="self">self</span>)
         }
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_struct_value</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">StructValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">AnyValueEnum</span>::<span class="ident">StructValue</span>(<span class="ident">v</span>) <span class="op">=</span> <span class="self">self</span> {
+        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">AnyValueEnum::StructValue</span>(<span class="ident">v</span>) <span class="op">=</span> <span class="self">self</span> {
             <span class="ident">v</span>
         } <span class="kw">else</span> {
-            <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;Found {:?} but expected a different variant&quot;</span>, <span class="self">self</span>)
+            <span class="macro">panic!</span>(<span class="string">&quot;Found {:?} but expected a different variant&quot;</span>, <span class="self">self</span>)
         }
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_vector_value</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">VectorValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">AnyValueEnum</span>::<span class="ident">VectorValue</span>(<span class="ident">v</span>) <span class="op">=</span> <span class="self">self</span> {
+        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">AnyValueEnum::VectorValue</span>(<span class="ident">v</span>) <span class="op">=</span> <span class="self">self</span> {
             <span class="ident">v</span>
         } <span class="kw">else</span> {
-            <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;Found {:?} but expected a different variant&quot;</span>, <span class="self">self</span>)
+            <span class="macro">panic!</span>(<span class="string">&quot;Found {:?} but expected a different variant&quot;</span>, <span class="self">self</span>)
         }
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_instruction_value</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">InstructionValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">AnyValueEnum</span>::<span class="ident">InstructionValue</span>(<span class="ident">v</span>) <span class="op">=</span> <span class="self">self</span> {
+        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">AnyValueEnum::InstructionValue</span>(<span class="ident">v</span>) <span class="op">=</span> <span class="self">self</span> {
             <span class="ident">v</span>
         } <span class="kw">else</span> {
-            <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;Found {:?} but expected a different variant&quot;</span>, <span class="self">self</span>)
+            <span class="macro">panic!</span>(<span class="string">&quot;Found {:?} but expected a different variant&quot;</span>, <span class="self">self</span>)
         }
     }
 }
@@ -707,18 +707,18 @@
         };
 
         <span class="kw">match</span> <span class="ident">type_kind</span> {
-            <span class="ident">LLVMTypeKind</span>::<span class="ident">LLVMFloatTypeKind</span> <span class="op">|</span>
-            <span class="ident">LLVMTypeKind</span>::<span class="ident">LLVMFP128TypeKind</span> <span class="op">|</span>
-            <span class="ident">LLVMTypeKind</span>::<span class="ident">LLVMDoubleTypeKind</span> <span class="op">|</span>
-            <span class="ident">LLVMTypeKind</span>::<span class="ident">LLVMHalfTypeKind</span> <span class="op">|</span>
-            <span class="ident">LLVMTypeKind</span>::<span class="ident">LLVMX86_FP80TypeKind</span> <span class="op">|</span>
-            <span class="ident">LLVMTypeKind</span>::<span class="ident">LLVMPPC_FP128TypeKind</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">BasicValueEnum</span>::<span class="ident">FloatValue</span>(<span class="ident">FloatValue</span>::<span class="ident">new</span>(<span class="ident">value</span>)),
-            <span class="ident">LLVMTypeKind</span>::<span class="ident">LLVMIntegerTypeKind</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">BasicValueEnum</span>::<span class="ident">IntValue</span>(<span class="ident">IntValue</span>::<span class="ident">new</span>(<span class="ident">value</span>)),
-            <span class="ident">LLVMTypeKind</span>::<span class="ident">LLVMStructTypeKind</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">BasicValueEnum</span>::<span class="ident">StructValue</span>(<span class="ident">StructValue</span>::<span class="ident">new</span>(<span class="ident">value</span>)),
-            <span class="ident">LLVMTypeKind</span>::<span class="ident">LLVMPointerTypeKind</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">BasicValueEnum</span>::<span class="ident">PointerValue</span>(<span class="ident">PointerValue</span>::<span class="ident">new</span>(<span class="ident">value</span>)),
-            <span class="ident">LLVMTypeKind</span>::<span class="ident">LLVMArrayTypeKind</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">BasicValueEnum</span>::<span class="ident">ArrayValue</span>(<span class="ident">ArrayValue</span>::<span class="ident">new</span>(<span class="ident">value</span>)),
-            <span class="ident">LLVMTypeKind</span>::<span class="ident">LLVMVectorTypeKind</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">BasicValueEnum</span>::<span class="ident">VectorValue</span>(<span class="ident">VectorValue</span>::<span class="ident">new</span>(<span class="ident">value</span>)),
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable</span><span class="macro">!</span>(<span class="string">&quot;The given type is not a basic type.&quot;</span>),
+            <span class="ident">LLVMTypeKind::LLVMFloatTypeKind</span> <span class="op">|</span>
+            <span class="ident">LLVMTypeKind::LLVMFP128TypeKind</span> <span class="op">|</span>
+            <span class="ident">LLVMTypeKind::LLVMDoubleTypeKind</span> <span class="op">|</span>
+            <span class="ident">LLVMTypeKind::LLVMHalfTypeKind</span> <span class="op">|</span>
+            <span class="ident">LLVMTypeKind::LLVMX86_FP80TypeKind</span> <span class="op">|</span>
+            <span class="ident">LLVMTypeKind::LLVMPPC_FP128TypeKind</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">BasicValueEnum::FloatValue</span>(<span class="ident">FloatValue::new</span>(<span class="ident">value</span>)),
+            <span class="ident">LLVMTypeKind::LLVMIntegerTypeKind</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">BasicValueEnum::IntValue</span>(<span class="ident">IntValue::new</span>(<span class="ident">value</span>)),
+            <span class="ident">LLVMTypeKind::LLVMStructTypeKind</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">BasicValueEnum::StructValue</span>(<span class="ident">StructValue::new</span>(<span class="ident">value</span>)),
+            <span class="ident">LLVMTypeKind::LLVMPointerTypeKind</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">BasicValueEnum::PointerValue</span>(<span class="ident">PointerValue::new</span>(<span class="ident">value</span>)),
+            <span class="ident">LLVMTypeKind::LLVMArrayTypeKind</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">BasicValueEnum::ArrayValue</span>(<span class="ident">ArrayValue::new</span>(<span class="ident">value</span>)),
+            <span class="ident">LLVMTypeKind::LLVMVectorTypeKind</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">BasicValueEnum::VectorValue</span>(<span class="ident">VectorValue::new</span>(<span class="ident">value</span>)),
+            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable!</span>(<span class="string">&quot;The given type is not a basic type.&quot;</span>),
         }
     }
 
@@ -727,78 +727,78 @@
             <span class="ident">LLVMTypeOf</span>(<span class="self">self</span>.<span class="ident">as_value_ref</span>())
         };
 
-        <span class="ident">BasicTypeEnum</span>::<span class="ident">new</span>(<span class="ident">type_</span>)
+        <span class="ident">BasicTypeEnum::new</span>(<span class="ident">type_</span>)
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_array_value</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="macro">matches</span><span class="macro">!</span>(<span class="self">self</span>, <span class="ident">BasicValueEnum</span>::<span class="ident">ArrayValue</span>(<span class="kw">_</span>))
+        <span class="macro">matches!</span>(<span class="self">self</span>, <span class="ident">BasicValueEnum::ArrayValue</span>(<span class="kw">_</span>))
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_int_value</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="macro">matches</span><span class="macro">!</span>(<span class="self">self</span>, <span class="ident">BasicValueEnum</span>::<span class="ident">IntValue</span>(<span class="kw">_</span>))
+        <span class="macro">matches!</span>(<span class="self">self</span>, <span class="ident">BasicValueEnum::IntValue</span>(<span class="kw">_</span>))
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_float_value</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="macro">matches</span><span class="macro">!</span>(<span class="self">self</span>, <span class="ident">BasicValueEnum</span>::<span class="ident">FloatValue</span>(<span class="kw">_</span>))
+        <span class="macro">matches!</span>(<span class="self">self</span>, <span class="ident">BasicValueEnum::FloatValue</span>(<span class="kw">_</span>))
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_pointer_value</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="macro">matches</span><span class="macro">!</span>(<span class="self">self</span>, <span class="ident">BasicValueEnum</span>::<span class="ident">PointerValue</span>(<span class="kw">_</span>))
+        <span class="macro">matches!</span>(<span class="self">self</span>, <span class="ident">BasicValueEnum::PointerValue</span>(<span class="kw">_</span>))
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_struct_value</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="macro">matches</span><span class="macro">!</span>(<span class="self">self</span>, <span class="ident">BasicValueEnum</span>::<span class="ident">StructValue</span>(<span class="kw">_</span>))
+        <span class="macro">matches!</span>(<span class="self">self</span>, <span class="ident">BasicValueEnum::StructValue</span>(<span class="kw">_</span>))
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_vector_value</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="macro">matches</span><span class="macro">!</span>(<span class="self">self</span>, <span class="ident">BasicValueEnum</span>::<span class="ident">VectorValue</span>(<span class="kw">_</span>))
+        <span class="macro">matches!</span>(<span class="self">self</span>, <span class="ident">BasicValueEnum::VectorValue</span>(<span class="kw">_</span>))
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_array_value</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ArrayValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">BasicValueEnum</span>::<span class="ident">ArrayValue</span>(<span class="ident">v</span>) <span class="op">=</span> <span class="self">self</span> {
+        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">BasicValueEnum::ArrayValue</span>(<span class="ident">v</span>) <span class="op">=</span> <span class="self">self</span> {
             <span class="ident">v</span>
         } <span class="kw">else</span> {
-            <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;Found {:?} but expected a different variant&quot;</span>, <span class="self">self</span>)
+            <span class="macro">panic!</span>(<span class="string">&quot;Found {:?} but expected a different variant&quot;</span>, <span class="self">self</span>)
         }
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_int_value</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">IntValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">BasicValueEnum</span>::<span class="ident">IntValue</span>(<span class="ident">v</span>) <span class="op">=</span> <span class="self">self</span> {
+        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">BasicValueEnum::IntValue</span>(<span class="ident">v</span>) <span class="op">=</span> <span class="self">self</span> {
             <span class="ident">v</span>
         } <span class="kw">else</span> {
-            <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;Found {:?} but expected a different variant&quot;</span>, <span class="self">self</span>)
+            <span class="macro">panic!</span>(<span class="string">&quot;Found {:?} but expected a different variant&quot;</span>, <span class="self">self</span>)
         }
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_float_value</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">FloatValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">BasicValueEnum</span>::<span class="ident">FloatValue</span>(<span class="ident">v</span>) <span class="op">=</span> <span class="self">self</span> {
+        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">BasicValueEnum::FloatValue</span>(<span class="ident">v</span>) <span class="op">=</span> <span class="self">self</span> {
             <span class="ident">v</span>
         } <span class="kw">else</span> {
-            <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;Found {:?} but expected a different variant&quot;</span>, <span class="self">self</span>)
+            <span class="macro">panic!</span>(<span class="string">&quot;Found {:?} but expected a different variant&quot;</span>, <span class="self">self</span>)
         }
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_pointer_value</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PointerValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">BasicValueEnum</span>::<span class="ident">PointerValue</span>(<span class="ident">v</span>) <span class="op">=</span> <span class="self">self</span> {
+        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">BasicValueEnum::PointerValue</span>(<span class="ident">v</span>) <span class="op">=</span> <span class="self">self</span> {
             <span class="ident">v</span>
         } <span class="kw">else</span> {
-            <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;Found {:?} but expected a different variant&quot;</span>, <span class="self">self</span>)
+            <span class="macro">panic!</span>(<span class="string">&quot;Found {:?} but expected a different variant&quot;</span>, <span class="self">self</span>)
         }
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_struct_value</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">StructValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">BasicValueEnum</span>::<span class="ident">StructValue</span>(<span class="ident">v</span>) <span class="op">=</span> <span class="self">self</span> {
+        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">BasicValueEnum::StructValue</span>(<span class="ident">v</span>) <span class="op">=</span> <span class="self">self</span> {
             <span class="ident">v</span>
         } <span class="kw">else</span> {
-            <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;Found {:?} but expected a different variant&quot;</span>, <span class="self">self</span>)
+            <span class="macro">panic!</span>(<span class="string">&quot;Found {:?} but expected a different variant&quot;</span>, <span class="self">self</span>)
         }
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_vector_value</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">VectorValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">BasicValueEnum</span>::<span class="ident">VectorValue</span>(<span class="ident">v</span>) <span class="op">=</span> <span class="self">self</span> {
+        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">BasicValueEnum::VectorValue</span>(<span class="ident">v</span>) <span class="op">=</span> <span class="self">self</span> {
             <span class="ident">v</span>
         } <span class="kw">else</span> {
-            <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;Found {:?} but expected a different variant&quot;</span>, <span class="self">self</span>)
+            <span class="macro">panic!</span>(<span class="string">&quot;Found {:?} but expected a different variant&quot;</span>, <span class="self">self</span>)
         }
     }
 }
@@ -810,33 +810,33 @@
         };
 
         <span class="kw">match</span> <span class="ident">type_kind</span> {
-            <span class="ident">LLVMTypeKind</span>::<span class="ident">LLVMArrayTypeKind</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">AggregateValueEnum</span>::<span class="ident">ArrayValue</span>(<span class="ident">ArrayValue</span>::<span class="ident">new</span>(<span class="ident">value</span>)),
-            <span class="ident">LLVMTypeKind</span>::<span class="ident">LLVMStructTypeKind</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">AggregateValueEnum</span>::<span class="ident">StructValue</span>(<span class="ident">StructValue</span>::<span class="ident">new</span>(<span class="ident">value</span>)),
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable</span><span class="macro">!</span>(<span class="string">&quot;The given type is not an aggregate type.&quot;</span>),
+            <span class="ident">LLVMTypeKind::LLVMArrayTypeKind</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">AggregateValueEnum::ArrayValue</span>(<span class="ident">ArrayValue::new</span>(<span class="ident">value</span>)),
+            <span class="ident">LLVMTypeKind::LLVMStructTypeKind</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">AggregateValueEnum::StructValue</span>(<span class="ident">StructValue::new</span>(<span class="ident">value</span>)),
+            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable!</span>(<span class="string">&quot;The given type is not an aggregate type.&quot;</span>),
         }
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_array_value</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="macro">matches</span><span class="macro">!</span>(<span class="self">self</span>, <span class="ident">AggregateValueEnum</span>::<span class="ident">ArrayValue</span>(<span class="kw">_</span>))
+        <span class="macro">matches!</span>(<span class="self">self</span>, <span class="ident">AggregateValueEnum::ArrayValue</span>(<span class="kw">_</span>))
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_struct_value</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="macro">matches</span><span class="macro">!</span>(<span class="self">self</span>, <span class="ident">AggregateValueEnum</span>::<span class="ident">StructValue</span>(<span class="kw">_</span>))
+        <span class="macro">matches!</span>(<span class="self">self</span>, <span class="ident">AggregateValueEnum::StructValue</span>(<span class="kw">_</span>))
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_array_value</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ArrayValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">AggregateValueEnum</span>::<span class="ident">ArrayValue</span>(<span class="ident">v</span>) <span class="op">=</span> <span class="self">self</span> {
+        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">AggregateValueEnum::ArrayValue</span>(<span class="ident">v</span>) <span class="op">=</span> <span class="self">self</span> {
             <span class="ident">v</span>
         } <span class="kw">else</span> {
-            <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;Found {:?} but expected a different variant&quot;</span>, <span class="self">self</span>)
+            <span class="macro">panic!</span>(<span class="string">&quot;Found {:?} but expected a different variant&quot;</span>, <span class="self">self</span>)
         }
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_struct_value</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">StructValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">AggregateValueEnum</span>::<span class="ident">StructValue</span>(<span class="ident">v</span>) <span class="op">=</span> <span class="self">self</span> {
+        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">AggregateValueEnum::StructValue</span>(<span class="ident">v</span>) <span class="op">=</span> <span class="self">self</span> {
             <span class="ident">v</span>
         } <span class="kw">else</span> {
-            <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;Found {:?} but expected a different variant&quot;</span>, <span class="self">self</span>)
+            <span class="macro">panic!</span>(<span class="string">&quot;Found {:?} but expected a different variant&quot;</span>, <span class="self">self</span>)
         }
     }
 }
@@ -848,128 +848,128 @@
         };
 
         <span class="kw">match</span> <span class="ident">type_kind</span> {
-            <span class="ident">LLVMTypeKind</span>::<span class="ident">LLVMFloatTypeKind</span> <span class="op">|</span>
-            <span class="ident">LLVMTypeKind</span>::<span class="ident">LLVMFP128TypeKind</span> <span class="op">|</span>
-            <span class="ident">LLVMTypeKind</span>::<span class="ident">LLVMDoubleTypeKind</span> <span class="op">|</span>
-            <span class="ident">LLVMTypeKind</span>::<span class="ident">LLVMHalfTypeKind</span> <span class="op">|</span>
-            <span class="ident">LLVMTypeKind</span>::<span class="ident">LLVMX86_FP80TypeKind</span> <span class="op">|</span>
-            <span class="ident">LLVMTypeKind</span>::<span class="ident">LLVMPPC_FP128TypeKind</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">BasicMetadataValueEnum</span>::<span class="ident">FloatValue</span>(<span class="ident">FloatValue</span>::<span class="ident">new</span>(<span class="ident">value</span>)),
-            <span class="ident">LLVMTypeKind</span>::<span class="ident">LLVMIntegerTypeKind</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">BasicMetadataValueEnum</span>::<span class="ident">IntValue</span>(<span class="ident">IntValue</span>::<span class="ident">new</span>(<span class="ident">value</span>)),
-            <span class="ident">LLVMTypeKind</span>::<span class="ident">LLVMStructTypeKind</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">BasicMetadataValueEnum</span>::<span class="ident">StructValue</span>(<span class="ident">StructValue</span>::<span class="ident">new</span>(<span class="ident">value</span>)),
-            <span class="ident">LLVMTypeKind</span>::<span class="ident">LLVMPointerTypeKind</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">BasicMetadataValueEnum</span>::<span class="ident">PointerValue</span>(<span class="ident">PointerValue</span>::<span class="ident">new</span>(<span class="ident">value</span>)),
-            <span class="ident">LLVMTypeKind</span>::<span class="ident">LLVMArrayTypeKind</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">BasicMetadataValueEnum</span>::<span class="ident">ArrayValue</span>(<span class="ident">ArrayValue</span>::<span class="ident">new</span>(<span class="ident">value</span>)),
-            <span class="ident">LLVMTypeKind</span>::<span class="ident">LLVMVectorTypeKind</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">BasicMetadataValueEnum</span>::<span class="ident">VectorValue</span>(<span class="ident">VectorValue</span>::<span class="ident">new</span>(<span class="ident">value</span>)),
-            <span class="ident">LLVMTypeKind</span>::<span class="ident">LLVMMetadataTypeKind</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">BasicMetadataValueEnum</span>::<span class="ident">MetadataValue</span>(<span class="ident">MetadataValue</span>::<span class="ident">new</span>(<span class="ident">value</span>)),
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable</span><span class="macro">!</span>(<span class="string">&quot;Unsupported type&quot;</span>),
+            <span class="ident">LLVMTypeKind::LLVMFloatTypeKind</span> <span class="op">|</span>
+            <span class="ident">LLVMTypeKind::LLVMFP128TypeKind</span> <span class="op">|</span>
+            <span class="ident">LLVMTypeKind::LLVMDoubleTypeKind</span> <span class="op">|</span>
+            <span class="ident">LLVMTypeKind::LLVMHalfTypeKind</span> <span class="op">|</span>
+            <span class="ident">LLVMTypeKind::LLVMX86_FP80TypeKind</span> <span class="op">|</span>
+            <span class="ident">LLVMTypeKind::LLVMPPC_FP128TypeKind</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">BasicMetadataValueEnum::FloatValue</span>(<span class="ident">FloatValue::new</span>(<span class="ident">value</span>)),
+            <span class="ident">LLVMTypeKind::LLVMIntegerTypeKind</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">BasicMetadataValueEnum::IntValue</span>(<span class="ident">IntValue::new</span>(<span class="ident">value</span>)),
+            <span class="ident">LLVMTypeKind::LLVMStructTypeKind</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">BasicMetadataValueEnum::StructValue</span>(<span class="ident">StructValue::new</span>(<span class="ident">value</span>)),
+            <span class="ident">LLVMTypeKind::LLVMPointerTypeKind</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">BasicMetadataValueEnum::PointerValue</span>(<span class="ident">PointerValue::new</span>(<span class="ident">value</span>)),
+            <span class="ident">LLVMTypeKind::LLVMArrayTypeKind</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">BasicMetadataValueEnum::ArrayValue</span>(<span class="ident">ArrayValue::new</span>(<span class="ident">value</span>)),
+            <span class="ident">LLVMTypeKind::LLVMVectorTypeKind</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">BasicMetadataValueEnum::VectorValue</span>(<span class="ident">VectorValue::new</span>(<span class="ident">value</span>)),
+            <span class="ident">LLVMTypeKind::LLVMMetadataTypeKind</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">BasicMetadataValueEnum::MetadataValue</span>(<span class="ident">MetadataValue::new</span>(<span class="ident">value</span>)),
+            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable!</span>(<span class="string">&quot;Unsupported type&quot;</span>),
         }
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_array_value</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="macro">matches</span><span class="macro">!</span>(<span class="self">self</span>, <span class="ident">BasicMetadataValueEnum</span>::<span class="ident">ArrayValue</span>(<span class="kw">_</span>))
+        <span class="macro">matches!</span>(<span class="self">self</span>, <span class="ident">BasicMetadataValueEnum::ArrayValue</span>(<span class="kw">_</span>))
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_int_value</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="macro">matches</span><span class="macro">!</span>(<span class="self">self</span>, <span class="ident">BasicMetadataValueEnum</span>::<span class="ident">IntValue</span>(<span class="kw">_</span>))
+        <span class="macro">matches!</span>(<span class="self">self</span>, <span class="ident">BasicMetadataValueEnum::IntValue</span>(<span class="kw">_</span>))
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_float_value</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="macro">matches</span><span class="macro">!</span>(<span class="self">self</span>, <span class="ident">BasicMetadataValueEnum</span>::<span class="ident">FloatValue</span>(<span class="kw">_</span>))
+        <span class="macro">matches!</span>(<span class="self">self</span>, <span class="ident">BasicMetadataValueEnum::FloatValue</span>(<span class="kw">_</span>))
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_pointer_value</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="macro">matches</span><span class="macro">!</span>(<span class="self">self</span>, <span class="ident">BasicMetadataValueEnum</span>::<span class="ident">PointerValue</span>(<span class="kw">_</span>))
+        <span class="macro">matches!</span>(<span class="self">self</span>, <span class="ident">BasicMetadataValueEnum::PointerValue</span>(<span class="kw">_</span>))
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_struct_value</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="macro">matches</span><span class="macro">!</span>(<span class="self">self</span>, <span class="ident">BasicMetadataValueEnum</span>::<span class="ident">StructValue</span>(<span class="kw">_</span>))
+        <span class="macro">matches!</span>(<span class="self">self</span>, <span class="ident">BasicMetadataValueEnum::StructValue</span>(<span class="kw">_</span>))
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_vector_value</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="macro">matches</span><span class="macro">!</span>(<span class="self">self</span>, <span class="ident">BasicMetadataValueEnum</span>::<span class="ident">VectorValue</span>(<span class="kw">_</span>))
+        <span class="macro">matches!</span>(<span class="self">self</span>, <span class="ident">BasicMetadataValueEnum::VectorValue</span>(<span class="kw">_</span>))
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_metadata_value</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="macro">matches</span><span class="macro">!</span>(<span class="self">self</span>, <span class="ident">BasicMetadataValueEnum</span>::<span class="ident">MetadataValue</span>(<span class="kw">_</span>))
+        <span class="macro">matches!</span>(<span class="self">self</span>, <span class="ident">BasicMetadataValueEnum::MetadataValue</span>(<span class="kw">_</span>))
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_array_value</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ArrayValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">BasicMetadataValueEnum</span>::<span class="ident">ArrayValue</span>(<span class="ident">v</span>) <span class="op">=</span> <span class="self">self</span> {
+        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">BasicMetadataValueEnum::ArrayValue</span>(<span class="ident">v</span>) <span class="op">=</span> <span class="self">self</span> {
             <span class="ident">v</span>
         } <span class="kw">else</span> {
-            <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;Found {:?} but expected a different variant&quot;</span>, <span class="self">self</span>)
+            <span class="macro">panic!</span>(<span class="string">&quot;Found {:?} but expected a different variant&quot;</span>, <span class="self">self</span>)
         }
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_int_value</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">IntValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">BasicMetadataValueEnum</span>::<span class="ident">IntValue</span>(<span class="ident">v</span>) <span class="op">=</span> <span class="self">self</span> {
+        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">BasicMetadataValueEnum::IntValue</span>(<span class="ident">v</span>) <span class="op">=</span> <span class="self">self</span> {
             <span class="ident">v</span>
         } <span class="kw">else</span> {
-            <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;Found {:?} but expected a different variant&quot;</span>, <span class="self">self</span>)
+            <span class="macro">panic!</span>(<span class="string">&quot;Found {:?} but expected a different variant&quot;</span>, <span class="self">self</span>)
         }
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_float_value</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">FloatValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">BasicMetadataValueEnum</span>::<span class="ident">FloatValue</span>(<span class="ident">v</span>) <span class="op">=</span> <span class="self">self</span> {
+        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">BasicMetadataValueEnum::FloatValue</span>(<span class="ident">v</span>) <span class="op">=</span> <span class="self">self</span> {
             <span class="ident">v</span>
         } <span class="kw">else</span> {
-            <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;Found {:?} but expected a different variant&quot;</span>, <span class="self">self</span>)
+            <span class="macro">panic!</span>(<span class="string">&quot;Found {:?} but expected a different variant&quot;</span>, <span class="self">self</span>)
         }
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_pointer_value</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PointerValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">BasicMetadataValueEnum</span>::<span class="ident">PointerValue</span>(<span class="ident">v</span>) <span class="op">=</span> <span class="self">self</span> {
+        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">BasicMetadataValueEnum::PointerValue</span>(<span class="ident">v</span>) <span class="op">=</span> <span class="self">self</span> {
             <span class="ident">v</span>
         } <span class="kw">else</span> {
-            <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;Found {:?} but expected a different variant&quot;</span>, <span class="self">self</span>)
+            <span class="macro">panic!</span>(<span class="string">&quot;Found {:?} but expected a different variant&quot;</span>, <span class="self">self</span>)
         }
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_struct_value</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">StructValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">BasicMetadataValueEnum</span>::<span class="ident">StructValue</span>(<span class="ident">v</span>) <span class="op">=</span> <span class="self">self</span> {
+        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">BasicMetadataValueEnum::StructValue</span>(<span class="ident">v</span>) <span class="op">=</span> <span class="self">self</span> {
             <span class="ident">v</span>
         } <span class="kw">else</span> {
-            <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;Found {:?} but expected a different variant&quot;</span>, <span class="self">self</span>)
+            <span class="macro">panic!</span>(<span class="string">&quot;Found {:?} but expected a different variant&quot;</span>, <span class="self">self</span>)
         }
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_vector_value</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">VectorValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">BasicMetadataValueEnum</span>::<span class="ident">VectorValue</span>(<span class="ident">v</span>) <span class="op">=</span> <span class="self">self</span> {
+        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">BasicMetadataValueEnum::VectorValue</span>(<span class="ident">v</span>) <span class="op">=</span> <span class="self">self</span> {
             <span class="ident">v</span>
         } <span class="kw">else</span> {
-            <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;Found {:?} but expected a different variant&quot;</span>, <span class="self">self</span>)
+            <span class="macro">panic!</span>(<span class="string">&quot;Found {:?} but expected a different variant&quot;</span>, <span class="self">self</span>)
         }
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_metadata_value</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">MetadataValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">BasicMetadataValueEnum</span>::<span class="ident">MetadataValue</span>(<span class="ident">v</span>) <span class="op">=</span> <span class="self">self</span> {
+        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">BasicMetadataValueEnum::MetadataValue</span>(<span class="ident">v</span>) <span class="op">=</span> <span class="self">self</span> {
             <span class="ident">v</span>
         } <span class="kw">else</span> {
-            <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;Found {:?} but expected a different variant&quot;</span>, <span class="self">self</span>)
+            <span class="macro">panic!</span>(<span class="string">&quot;Found {:?} but expected a different variant&quot;</span>, <span class="self">self</span>)
         }
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">BasicValueEnum</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">AnyValueEnum</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">value</span>: <span class="ident">BasicValueEnum</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="ident">AnyValueEnum</span>::<span class="ident">new</span>(<span class="ident">value</span>.<span class="ident">as_value_ref</span>())
+        <span class="ident">AnyValueEnum::new</span>(<span class="ident">value</span>.<span class="ident">as_value_ref</span>())
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> <span class="ident">TryFrom</span><span class="op">&lt;</span><span class="ident">AnyValueEnum</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">BasicValueEnum</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> {
     <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> ();
 
-    <span class="kw">fn</span> <span class="ident">try_from</span>(<span class="ident">value</span>: <span class="ident">AnyValueEnum</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="self">Self</span>::<span class="ident">Error</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">try_from</span>(<span class="ident">value</span>: <span class="ident">AnyValueEnum</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="self">Self</span><span class="ident">::Error</span><span class="op">&gt;</span> {
         <span class="prelude-val">Ok</span>(<span class="kw">match</span> <span class="ident">value</span> {
-            <span class="ident">AnyValueEnum</span>::<span class="ident">ArrayValue</span>(<span class="ident">av</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">av</span>.<span class="ident">into</span>(),
-            <span class="ident">AnyValueEnum</span>::<span class="ident">IntValue</span>(<span class="ident">iv</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">iv</span>.<span class="ident">into</span>(),
-            <span class="ident">AnyValueEnum</span>::<span class="ident">FloatValue</span>(<span class="ident">fv</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">fv</span>.<span class="ident">into</span>(),
-            <span class="ident">AnyValueEnum</span>::<span class="ident">PointerValue</span>(<span class="ident">pv</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">pv</span>.<span class="ident">into</span>(),
-            <span class="ident">AnyValueEnum</span>::<span class="ident">StructValue</span>(<span class="ident">sv</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">sv</span>.<span class="ident">into</span>(),
-            <span class="ident">AnyValueEnum</span>::<span class="ident">VectorValue</span>(<span class="ident">vv</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">vv</span>.<span class="ident">into</span>(),
+            <span class="ident">AnyValueEnum::ArrayValue</span>(<span class="ident">av</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">av</span>.<span class="ident">into</span>(),
+            <span class="ident">AnyValueEnum::IntValue</span>(<span class="ident">iv</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">iv</span>.<span class="ident">into</span>(),
+            <span class="ident">AnyValueEnum::FloatValue</span>(<span class="ident">fv</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">fv</span>.<span class="ident">into</span>(),
+            <span class="ident">AnyValueEnum::PointerValue</span>(<span class="ident">pv</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">pv</span>.<span class="ident">into</span>(),
+            <span class="ident">AnyValueEnum::StructValue</span>(<span class="ident">sv</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">sv</span>.<span class="ident">into</span>(),
+            <span class="ident">AnyValueEnum::VectorValue</span>(<span class="ident">vv</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">vv</span>.<span class="ident">into</span>(),
             <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Err</span>(()),
         })
     }
 }
 </pre></div>
-</section><section id="search" class="content hidden"></section><section class="footer"></section><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="inkwell" data-search-js="../../../search-index.js"></div>
+</section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="inkwell" data-search-index-js="../../../search-index.js" data-search-js="../../../search.js"></div>
     <script src="../../../main.js"></script><script src="../../../source-script.js"></script><script src="../../../source-files.js"></script></body></html>

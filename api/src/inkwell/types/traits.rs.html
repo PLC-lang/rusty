@@ -1,6 +1,6 @@
 <!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/git/checkouts/inkwell-946411d814d2c9f8/f768691/src/types/traits.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>traits.rs - source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script id="default-settings"></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
 <link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png">
-<link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../inkwell/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
+<link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../inkwell/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
                 <a id="settings-menu" href="../../../settings.html"><img src="../../../wheel.svg" width="18" height="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
@@ -196,15 +196,15 @@
 <span id="193">193</span>
 <span id="194">194</span>
 </pre><div class="example-wrap"><pre class="rust ">
-<span class="kw">use</span> <span class="ident">llvm_sys</span>::<span class="ident">prelude</span>::<span class="ident">LLVMTypeRef</span>;
+<span class="kw">use</span> <span class="ident">llvm_sys::prelude::LLVMTypeRef</span>;
 
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">fmt</span>::<span class="ident">Debug</span>;
+<span class="kw">use</span> <span class="ident">std::fmt::Debug</span>;
 
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">AddressSpace</span>;
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">types</span>::{<span class="ident">IntType</span>, <span class="ident">FunctionType</span>, <span class="ident">FloatType</span>, <span class="ident">PointerType</span>, <span class="ident">StructType</span>, <span class="ident">ArrayType</span>, <span class="ident">VectorType</span>, <span class="ident">VoidType</span>, <span class="ident">Type</span>};
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">types</span>::<span class="ident">enums</span>::{<span class="ident">AnyTypeEnum</span>, <span class="ident">BasicTypeEnum</span>};
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">values</span>::{<span class="ident">IntMathValue</span>, <span class="ident">FloatMathValue</span>, <span class="ident">PointerMathValue</span>, <span class="ident">IntValue</span>, <span class="ident">FloatValue</span>, <span class="ident">PointerValue</span>, <span class="ident">VectorValue</span>};
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">support</span>::<span class="ident">LLVMString</span>;
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::AddressSpace</span>;
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::types</span>::{<span class="ident">IntType</span>, <span class="ident">FunctionType</span>, <span class="ident">FloatType</span>, <span class="ident">PointerType</span>, <span class="ident">StructType</span>, <span class="ident">ArrayType</span>, <span class="ident">VectorType</span>, <span class="ident">VoidType</span>, <span class="ident">Type</span>};
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::types::enums</span>::{<span class="ident">AnyTypeEnum</span>, <span class="ident">BasicTypeEnum</span>};
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::values</span>::{<span class="ident">IntMathValue</span>, <span class="ident">FloatMathValue</span>, <span class="ident">PointerMathValue</span>, <span class="ident">IntValue</span>, <span class="ident">FloatValue</span>, <span class="ident">PointerValue</span>, <span class="ident">VectorValue</span>};
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::support::LLVMString</span>;
 
 <span class="comment">// This is an ugly privacy hack so that Type can stay private to this module</span>
 <span class="comment">// and so that super traits using this trait will be not be implementable</span>
@@ -213,7 +213,7 @@
     <span class="kw">fn</span> <span class="ident">as_type_ref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">LLVMTypeRef</span>;
 }
 
-<span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">trait_type_set</span> {
+<span class="macro">macro_rules!</span> <span class="ident">trait_type_set</span> {
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">trait_name</span>:<span class="ident">ident</span>: $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">args</span>:<span class="ident">ident</span>),<span class="kw-2">*</span>) <span class="op">=</span><span class="op">&gt;</span> (
         $(
             <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">trait_name</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">args</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> {}
@@ -225,12 +225,12 @@
 <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">AnyType</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span>: <span class="ident">AsTypeRef</span> <span class="op">+</span> <span class="ident">Debug</span> {
     <span class="doccomment">/// Returns an `AnyTypeEnum` that represents the current type.</span>
     <span class="kw">fn</span> <span class="ident">as_any_type_enum</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">AnyTypeEnum</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> {
-        <span class="ident">AnyTypeEnum</span>::<span class="ident">new</span>(<span class="self">self</span>.<span class="ident">as_type_ref</span>())
+        <span class="ident">AnyTypeEnum::new</span>(<span class="self">self</span>.<span class="ident">as_type_ref</span>())
     }
 
     <span class="doccomment">/// Prints the definition of a Type to a `LLVMString`.</span>
     <span class="kw">fn</span> <span class="ident">print_to_string</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">LLVMString</span> {
-        <span class="ident">Type</span>::<span class="ident">new</span>(<span class="self">self</span>.<span class="ident">as_type_ref</span>()).<span class="ident">print_to_string</span>()
+        <span class="ident">Type::new</span>(<span class="self">self</span>.<span class="ident">as_type_ref</span>()).<span class="ident">print_to_string</span>()
     }
 }
 
@@ -238,7 +238,7 @@
 <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">BasicType</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span>: <span class="ident">AnyType</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> {
     <span class="doccomment">/// Returns a `BasicTypeEnum` that represents the current type.</span>
     <span class="kw">fn</span> <span class="ident">as_basic_type_enum</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">BasicTypeEnum</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> {
-        <span class="ident">BasicTypeEnum</span>::<span class="ident">new</span>(<span class="self">self</span>.<span class="ident">as_type_ref</span>())
+        <span class="ident">BasicTypeEnum::new</span>(<span class="self">self</span>.<span class="ident">as_type_ref</span>())
     }
 
     <span class="doccomment">/// Create a `FunctionType` with this `BasicType` as its return type.</span>
@@ -255,7 +255,7 @@
     <span class="doccomment">/// assert_eq!(int_basic_type.fn_type(&amp;[], false), int.fn_type(&amp;[], false));</span>
     <span class="doccomment">/// ```</span>
     <span class="kw">fn</span> <span class="ident">fn_type</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">param_types</span>: <span class="kw-2">&amp;</span>[<span class="ident">BasicTypeEnum</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span>], <span class="ident">is_var_args</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">FunctionType</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> {
-        <span class="ident">Type</span>::<span class="ident">new</span>(<span class="self">self</span>.<span class="ident">as_type_ref</span>()).<span class="ident">fn_type</span>(<span class="ident">param_types</span>, <span class="ident">is_var_args</span>)
+        <span class="ident">Type::new</span>(<span class="self">self</span>.<span class="ident">as_type_ref</span>()).<span class="ident">fn_type</span>(<span class="ident">param_types</span>, <span class="ident">is_var_args</span>)
     }
 
     <span class="doccomment">/// Determines whether or not this `BasicType` is sized or not.</span>
@@ -274,7 +274,7 @@
     <span class="doccomment">/// assert!(f32_vec_type.is_sized());</span>
     <span class="doccomment">/// ```</span>
     <span class="kw">fn</span> <span class="ident">is_sized</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="ident">Type</span>::<span class="ident">new</span>(<span class="self">self</span>.<span class="ident">as_type_ref</span>()).<span class="ident">is_sized</span>()
+        <span class="ident">Type::new</span>(<span class="self">self</span>.<span class="ident">as_type_ref</span>()).<span class="ident">is_sized</span>()
     }
 
     <span class="doccomment">/// Gets the size of this `BasicType`. Value may vary depending on the target architecture.</span>
@@ -291,7 +291,7 @@
     <span class="doccomment">/// let f32_type_size = f32_basic_type.size_of();</span>
     <span class="doccomment">/// ```</span>
     <span class="kw">fn</span> <span class="ident">size_of</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">IntValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="ident">Type</span>::<span class="ident">new</span>(<span class="self">self</span>.<span class="ident">as_type_ref</span>()).<span class="ident">size_of</span>()
+        <span class="ident">Type::new</span>(<span class="self">self</span>.<span class="ident">as_type_ref</span>()).<span class="ident">size_of</span>()
     }
 
     <span class="doccomment">/// Create an `ArrayType` with this `BasicType` as its elements.</span>
@@ -308,7 +308,7 @@
     <span class="doccomment">/// ```</span>
     <span class="comment">// FIXME: This likely doesn&#39;t belong on the trait, since not all basic types can be turned into arrays?</span>
     <span class="kw">fn</span> <span class="ident">array_type</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">size</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ArrayType</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> {
-        <span class="ident">Type</span>::<span class="ident">new</span>(<span class="self">self</span>.<span class="ident">as_type_ref</span>()).<span class="ident">array_type</span>(<span class="ident">size</span>)
+        <span class="ident">Type::new</span>(<span class="self">self</span>.<span class="ident">as_type_ref</span>()).<span class="ident">array_type</span>(<span class="ident">size</span>)
     }
 
     <span class="doccomment">/// Create a `PointerType` that points to this `BasicType`.</span>
@@ -326,7 +326,7 @@
     <span class="doccomment">/// assert_eq!(int_basic_type.ptr_type(addr_space), int.ptr_type(addr_space));</span>
     <span class="doccomment">/// ```</span>
     <span class="kw">fn</span> <span class="ident">ptr_type</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">address_space</span>: <span class="ident">AddressSpace</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PointerType</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> {
-        <span class="ident">Type</span>::<span class="ident">new</span>(<span class="self">self</span>.<span class="ident">as_type_ref</span>()).<span class="ident">ptr_type</span>(<span class="ident">address_space</span>)
+        <span class="ident">Type::new</span>(<span class="self">self</span>.<span class="ident">as_type_ref</span>()).<span class="ident">ptr_type</span>(<span class="ident">address_space</span>)
     }
 }
 
@@ -356,8 +356,8 @@
     <span class="kw">type</span> <span class="ident">PtrConvType</span>: <span class="ident">IntMathType</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span>;
 }
 
-<span class="macro">trait_type_set</span><span class="macro">!</span> {<span class="ident">AnyType</span>: <span class="ident">AnyTypeEnum</span>, <span class="ident">BasicTypeEnum</span>, <span class="ident">IntType</span>, <span class="ident">FunctionType</span>, <span class="ident">FloatType</span>, <span class="ident">PointerType</span>, <span class="ident">StructType</span>, <span class="ident">ArrayType</span>, <span class="ident">VoidType</span>, <span class="ident">VectorType</span>}
-<span class="macro">trait_type_set</span><span class="macro">!</span> {<span class="ident">BasicType</span>: <span class="ident">BasicTypeEnum</span>, <span class="ident">IntType</span>, <span class="ident">FloatType</span>, <span class="ident">PointerType</span>, <span class="ident">StructType</span>, <span class="ident">ArrayType</span>, <span class="ident">VectorType</span>}
+<span class="macro">trait_type_set!</span> {<span class="ident">AnyType</span>: <span class="ident">AnyTypeEnum</span>, <span class="ident">BasicTypeEnum</span>, <span class="ident">IntType</span>, <span class="ident">FunctionType</span>, <span class="ident">FloatType</span>, <span class="ident">PointerType</span>, <span class="ident">StructType</span>, <span class="ident">ArrayType</span>, <span class="ident">VoidType</span>, <span class="ident">VectorType</span>}
+<span class="macro">trait_type_set!</span> {<span class="ident">BasicType</span>: <span class="ident">BasicTypeEnum</span>, <span class="ident">IntType</span>, <span class="ident">FloatType</span>, <span class="ident">PointerType</span>, <span class="ident">StructType</span>, <span class="ident">ArrayType</span>, <span class="ident">VectorType</span>}
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> <span class="ident">IntMathType</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">IntType</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> {
     <span class="kw">type</span> <span class="ident">ValueType</span> <span class="op">=</span> <span class="ident">IntValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span>;
@@ -391,5 +391,5 @@
     <span class="kw">type</span> <span class="ident">PtrConvType</span> <span class="op">=</span> <span class="ident">VectorType</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span>;
 }
 </pre></div>
-</section><section id="search" class="content hidden"></section><section class="footer"></section><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="inkwell" data-search-js="../../../search-index.js"></div>
+</section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="inkwell" data-search-index-js="../../../search-index.js" data-search-js="../../../search.js"></div>
     <script src="../../../main.js"></script><script src="../../../source-script.js"></script><script src="../../../source-files.js"></script></body></html>

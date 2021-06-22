@@ -1,6 +1,6 @@
 <!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/llvm-sys-110.0.1/src/orc.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>orc.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings"></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
 <link rel="alternate icon" type="image/png" href="../../favicon-16x16.png">
-<link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../llvm_sys/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
+<link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../llvm_sys/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
                 <a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" height="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
@@ -136,9 +136,9 @@
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! The ORC JIT.</span>
 
-<span class="kw">use</span> <span class="kw">super</span>::<span class="ident">error</span>::<span class="ident">LLVMErrorRef</span>;
-<span class="kw">use</span> <span class="kw">super</span>::<span class="ident">prelude</span>::<span class="kw-2">*</span>;
-<span class="kw">use</span> <span class="kw">super</span>::<span class="ident">target_machine</span>::<span class="ident">LLVMTargetMachineRef</span>;
+<span class="kw">use</span> <span class="kw">super</span><span class="ident">::error::LLVMErrorRef</span>;
+<span class="kw">use</span> <span class="kw">super</span><span class="ident">::prelude</span>::<span class="kw-2">*</span>;
+<span class="kw">use</span> <span class="kw">super</span><span class="ident">::target_machine::LLVMTargetMachineRef</span>;
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">LLVMOrcOpaqueJITStack</span> {}
@@ -148,9 +148,9 @@
 <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">LLVMOrcTargetAddress</span> <span class="op">=</span> <span class="ident">u64</span>;
 
 <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">LLVMOrcSymbolResolverFn</span> <span class="op">=</span>
-    <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span>(<span class="kw-2">*</span><span class="kw">const</span> ::<span class="ident">libc</span>::<span class="ident">c_char</span>, <span class="kw-2">*</span><span class="kw-2">mut</span> ::<span class="ident">libc</span>::<span class="ident">c_void</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u64</span><span class="op">&gt;</span>;
+    <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span>(<span class="kw-2">*</span><span class="kw">const</span> <span class="ident">::libc::c_char</span>, <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">::libc::c_void</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u64</span><span class="op">&gt;</span>;
 <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">LLVMOrcLazyCompileCallbackFn</span> <span class="op">=</span>
-    <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span>(<span class="ident">LLVMOrcJITStackRef</span>, <span class="kw-2">*</span><span class="kw-2">mut</span> ::<span class="ident">libc</span>::<span class="ident">c_void</span>)<span class="op">&gt;</span>;
+    <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span>(<span class="ident">LLVMOrcJITStackRef</span>, <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">::libc::c_void</span>)<span class="op">&gt;</span>;
 <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
     <span class="doccomment">/// Create an ORC JIT stack.</span>
     <span class="doccomment">///</span>
@@ -162,7 +162,7 @@
     <span class="doccomment">/// Get the error message for the most recent error (if any).</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// The returned message is owned by the ORC JIT stack.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">LLVMOrcGetErrorMsg</span>(<span class="ident">JITStack</span>: <span class="ident">LLVMOrcJITStackRef</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw">const</span> ::<span class="ident">libc</span>::<span class="ident">c_char</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">LLVMOrcGetErrorMsg</span>(<span class="ident">JITStack</span>: <span class="ident">LLVMOrcJITStackRef</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">::libc::c_char</span>;
 
     <span class="doccomment">/// Mangle the given symbol.</span>
     <span class="doccomment">///</span>
@@ -170,32 +170,32 @@
     <span class="doccomment">/// the client.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">LLVMOrcGetMangledSymbol</span>(
         <span class="ident">JITStack</span>: <span class="ident">LLVMOrcJITStackRef</span>,
-        <span class="ident">MangledSymbol</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="kw-2">mut</span> ::<span class="ident">libc</span>::<span class="ident">c_char</span>,
-        <span class="ident">Symbol</span>: <span class="kw-2">*</span><span class="kw">const</span> ::<span class="ident">libc</span>::<span class="ident">c_char</span>,
+        <span class="ident">MangledSymbol</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">::libc::c_char</span>,
+        <span class="ident">Symbol</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">::libc::c_char</span>,
     );
 
     <span class="doccomment">/// Dispose of a mangled symbol.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">LLVMOrcDisposeMangledSymbol</span>(<span class="ident">MangledSymbol</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> ::<span class="ident">libc</span>::<span class="ident">c_char</span>);
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">LLVMOrcDisposeMangledSymbol</span>(<span class="ident">MangledSymbol</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">::libc::c_char</span>);
 
     <span class="doccomment">/// Create a lazy compile callback.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">LLVMOrcCreateLazyCompileCallback</span>(
         <span class="ident">JITStack</span>: <span class="ident">LLVMOrcJITStackRef</span>,
         <span class="ident">RetAddr</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">LLVMOrcTargetAddress</span>,
         <span class="ident">Callback</span>: <span class="ident">LLVMOrcLazyCompileCallbackFn</span>,
-        <span class="ident">CallbackCtx</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> ::<span class="ident">libc</span>::<span class="ident">c_void</span>,
+        <span class="ident">CallbackCtx</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">::libc::c_void</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">LLVMErrorRef</span>;
 
     <span class="doccomment">/// Create a named indirect call stub.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">LLVMOrcCreateIndirectStub</span>(
         <span class="ident">JITStack</span>: <span class="ident">LLVMOrcJITStackRef</span>,
-        <span class="ident">StubName</span>: <span class="kw-2">*</span><span class="kw">const</span> ::<span class="ident">libc</span>::<span class="ident">c_char</span>,
+        <span class="ident">StubName</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">::libc::c_char</span>,
         <span class="ident">InitAddr</span>: <span class="ident">LLVMOrcTargetAddress</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">LLVMErrorRef</span>;
 
     <span class="doccomment">/// Set the pointer for the given indirect stub.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">LLVMOrcSetIndirectStubPointer</span>(
         <span class="ident">JITStack</span>: <span class="ident">LLVMOrcJITStackRef</span>,
-        <span class="ident">StubName</span>: <span class="kw-2">*</span><span class="kw">const</span> ::<span class="ident">libc</span>::<span class="ident">c_char</span>,
+        <span class="ident">StubName</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">::libc::c_char</span>,
         <span class="ident">NewAddr</span>: <span class="ident">LLVMOrcTargetAddress</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">LLVMErrorRef</span>;
 
@@ -205,7 +205,7 @@
         <span class="ident">RetHandle</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">LLVMOrcModuleHandle</span>,
         <span class="ident">Mod</span>: <span class="ident">LLVMModuleRef</span>,
         <span class="ident">SymbolResolver</span>: <span class="ident">LLVMOrcSymbolResolverFn</span>,
-        <span class="ident">SymbolResolverCtx</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> ::<span class="ident">libc</span>::<span class="ident">c_void</span>,
+        <span class="ident">SymbolResolverCtx</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">::libc::c_void</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">LLVMErrorRef</span>;
 
     <span class="doccomment">/// Add a module to be lazily compiled one function at a time.</span>
@@ -214,7 +214,7 @@
         <span class="ident">RetHandle</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">LLVMOrcModuleHandle</span>,
         <span class="ident">Mod</span>: <span class="ident">LLVMModuleRef</span>,
         <span class="ident">SymbolResolver</span>: <span class="ident">LLVMOrcSymbolResolverFn</span>,
-        <span class="ident">SymbolResolverCtx</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> ::<span class="ident">libc</span>::<span class="ident">c_void</span>,
+        <span class="ident">SymbolResolverCtx</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">::libc::c_void</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">LLVMErrorRef</span>;
 
     <span class="doccomment">/// Add an object file.</span>
@@ -223,7 +223,7 @@
         <span class="ident">RetHandle</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">LLVMOrcModuleHandle</span>,
         <span class="ident">Obj</span>: <span class="ident">LLVMMemoryBufferRef</span>,
         <span class="ident">SymbolResolver</span>: <span class="ident">LLVMOrcSymbolResolverFn</span>,
-        <span class="ident">SymbolResolverCtx</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> ::<span class="ident">libc</span>::<span class="ident">c_void</span>,
+        <span class="ident">SymbolResolverCtx</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">::libc::c_void</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">LLVMErrorRef</span>;
 
     <span class="doccomment">/// Remove a module set from the JIT.</span>
@@ -236,7 +236,7 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">LLVMOrcGetSymbolAddress</span>(
         <span class="ident">JITStack</span>: <span class="ident">LLVMOrcJITStackRef</span>,
         <span class="ident">RetAddr</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">LLVMOrcTargetAddress</span>,
-        <span class="ident">SymbolName</span>: <span class="kw-2">*</span><span class="kw">const</span> ::<span class="ident">libc</span>::<span class="ident">c_char</span>,
+        <span class="ident">SymbolName</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">::libc::c_char</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">LLVMErrorRef</span>;
 
     <span class="doccomment">/// Get symbol address from JIT instance, searching only the specified handle.</span>
@@ -244,7 +244,7 @@
         <span class="ident">JITStack</span>: <span class="ident">LLVMOrcJITStackRef</span>,
         <span class="ident">RetAddr</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">LLVMOrcTargetAddress</span>,
         <span class="ident">H</span>: <span class="ident">LLVMOrcModuleHandle</span>,
-        <span class="ident">SymbolName</span>: <span class="kw-2">*</span><span class="kw">const</span> ::<span class="ident">libc</span>::<span class="ident">c_char</span>,
+        <span class="ident">SymbolName</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">::libc::c_char</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">LLVMErrorRef</span>;
 
     <span class="doccomment">/// Dispose of an ORC JIT stack.</span>
@@ -267,5 +267,5 @@
     );
 }
 </pre></div>
-</section><section id="search" class="content hidden"></section><section class="footer"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="llvm_sys" data-search-js="../../search-index.js"></div>
+</section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="llvm_sys" data-search-index-js="../../search-index.js" data-search-js="../../search.js"></div>
     <script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script></body></html>

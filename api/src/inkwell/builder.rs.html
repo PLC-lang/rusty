@@ -1,6 +1,6 @@
 <!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/git/checkouts/inkwell-946411d814d2c9f8/f768691/src/builder.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>builder.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings"></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
 <link rel="alternate icon" type="image/png" href="../../favicon-16x16.png">
-<link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../inkwell/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
+<link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../inkwell/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
                 <a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" height="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
 <span id="2">   2</span>
 <span id="3">   3</span>
@@ -1859,25 +1859,25 @@
 <span class="doccomment">//! A `Builder` enables you to build instructions.</span>
 
 <span class="kw">use</span> <span class="ident">either</span>::{<span class="ident">Either</span>, <span class="ident">Left</span>, <span class="ident">Right</span>};
-<span class="kw">use</span> <span class="ident">llvm_sys</span>::<span class="ident">core</span>::{<span class="ident">LLVMBuildAdd</span>, <span class="ident">LLVMBuildAlloca</span>, <span class="ident">LLVMBuildAnd</span>, <span class="ident">LLVMBuildArrayAlloca</span>, <span class="ident">LLVMBuildArrayMalloc</span>, <span class="ident">LLVMBuildAtomicRMW</span>, <span class="ident">LLVMBuildBr</span>, <span class="ident">LLVMBuildCall</span>, <span class="ident">LLVMBuildCast</span>, <span class="ident">LLVMBuildCondBr</span>, <span class="ident">LLVMBuildExtractValue</span>, <span class="ident">LLVMBuildFAdd</span>, <span class="ident">LLVMBuildFCmp</span>, <span class="ident">LLVMBuildFDiv</span>, <span class="ident">LLVMBuildFence</span>, <span class="ident">LLVMBuildFMul</span>, <span class="ident">LLVMBuildFNeg</span>, <span class="ident">LLVMBuildFree</span>, <span class="ident">LLVMBuildFSub</span>, <span class="ident">LLVMBuildGEP</span>, <span class="ident">LLVMBuildICmp</span>, <span class="ident">LLVMBuildInsertValue</span>, <span class="ident">LLVMBuildIsNotNull</span>, <span class="ident">LLVMBuildIsNull</span>, <span class="ident">LLVMBuildLoad</span>, <span class="ident">LLVMBuildMalloc</span>, <span class="ident">LLVMBuildMul</span>, <span class="ident">LLVMBuildNeg</span>, <span class="ident">LLVMBuildNot</span>, <span class="ident">LLVMBuildOr</span>, <span class="ident">LLVMBuildPhi</span>, <span class="ident">LLVMBuildPointerCast</span>, <span class="ident">LLVMBuildRet</span>, <span class="ident">LLVMBuildRetVoid</span>, <span class="ident">LLVMBuildStore</span>, <span class="ident">LLVMBuildSub</span>, <span class="ident">LLVMBuildUDiv</span>, <span class="ident">LLVMBuildUnreachable</span>, <span class="ident">LLVMBuildXor</span>, <span class="ident">LLVMDisposeBuilder</span>, <span class="ident">LLVMGetElementType</span>, <span class="ident">LLVMGetInsertBlock</span>, <span class="ident">LLVMGetReturnType</span>, <span class="ident">LLVMGetTypeKind</span>, <span class="ident">LLVMInsertIntoBuilder</span>, <span class="ident">LLVMPositionBuilderAtEnd</span>, <span class="ident">LLVMTypeOf</span>, <span class="ident">LLVMBuildExtractElement</span>, <span class="ident">LLVMBuildInsertElement</span>, <span class="ident">LLVMBuildIntToPtr</span>, <span class="ident">LLVMBuildPtrToInt</span>, <span class="ident">LLVMInsertIntoBuilderWithName</span>, <span class="ident">LLVMClearInsertionPosition</span>, <span class="ident">LLVMPositionBuilder</span>, <span class="ident">LLVMPositionBuilderBefore</span>, <span class="ident">LLVMBuildAggregateRet</span>, <span class="ident">LLVMBuildStructGEP</span>, <span class="ident">LLVMBuildInBoundsGEP</span>, <span class="ident">LLVMBuildPtrDiff</span>, <span class="ident">LLVMBuildNSWAdd</span>, <span class="ident">LLVMBuildNUWAdd</span>, <span class="ident">LLVMBuildNSWSub</span>, <span class="ident">LLVMBuildNUWSub</span>, <span class="ident">LLVMBuildNSWMul</span>, <span class="ident">LLVMBuildNUWMul</span>, <span class="ident">LLVMBuildSDiv</span>, <span class="ident">LLVMBuildSRem</span>, <span class="ident">LLVMBuildURem</span>, <span class="ident">LLVMBuildFRem</span>, <span class="ident">LLVMBuildNSWNeg</span>, <span class="ident">LLVMBuildNUWNeg</span>, <span class="ident">LLVMBuildFPToUI</span>, <span class="ident">LLVMBuildFPToSI</span>, <span class="ident">LLVMBuildSIToFP</span>, <span class="ident">LLVMBuildUIToFP</span>, <span class="ident">LLVMBuildFPTrunc</span>, <span class="ident">LLVMBuildFPExt</span>, <span class="ident">LLVMBuildIntCast</span>, <span class="ident">LLVMBuildFPCast</span>, <span class="ident">LLVMBuildSExtOrBitCast</span>, <span class="ident">LLVMBuildZExtOrBitCast</span>, <span class="ident">LLVMBuildTruncOrBitCast</span>, <span class="ident">LLVMBuildSwitch</span>, <span class="ident">LLVMAddCase</span>, <span class="ident">LLVMBuildShl</span>, <span class="ident">LLVMBuildAShr</span>, <span class="ident">LLVMBuildLShr</span>, <span class="ident">LLVMBuildGlobalString</span>, <span class="ident">LLVMBuildGlobalStringPtr</span>, <span class="ident">LLVMBuildExactSDiv</span>, <span class="ident">LLVMBuildTrunc</span>, <span class="ident">LLVMBuildSExt</span>, <span class="ident">LLVMBuildZExt</span>, <span class="ident">LLVMBuildSelect</span>, <span class="ident">LLVMBuildAddrSpaceCast</span>, <span class="ident">LLVMBuildBitCast</span>, <span class="ident">LLVMBuildShuffleVector</span>, <span class="ident">LLVMBuildVAArg</span>, <span class="ident">LLVMBuildIndirectBr</span>, <span class="ident">LLVMAddDestination</span>};
+<span class="kw">use</span> <span class="ident">llvm_sys::core</span>::{<span class="ident">LLVMBuildAdd</span>, <span class="ident">LLVMBuildAlloca</span>, <span class="ident">LLVMBuildAnd</span>, <span class="ident">LLVMBuildArrayAlloca</span>, <span class="ident">LLVMBuildArrayMalloc</span>, <span class="ident">LLVMBuildAtomicRMW</span>, <span class="ident">LLVMBuildBr</span>, <span class="ident">LLVMBuildCall</span>, <span class="ident">LLVMBuildCast</span>, <span class="ident">LLVMBuildCondBr</span>, <span class="ident">LLVMBuildExtractValue</span>, <span class="ident">LLVMBuildFAdd</span>, <span class="ident">LLVMBuildFCmp</span>, <span class="ident">LLVMBuildFDiv</span>, <span class="ident">LLVMBuildFence</span>, <span class="ident">LLVMBuildFMul</span>, <span class="ident">LLVMBuildFNeg</span>, <span class="ident">LLVMBuildFree</span>, <span class="ident">LLVMBuildFSub</span>, <span class="ident">LLVMBuildGEP</span>, <span class="ident">LLVMBuildICmp</span>, <span class="ident">LLVMBuildInsertValue</span>, <span class="ident">LLVMBuildIsNotNull</span>, <span class="ident">LLVMBuildIsNull</span>, <span class="ident">LLVMBuildLoad</span>, <span class="ident">LLVMBuildMalloc</span>, <span class="ident">LLVMBuildMul</span>, <span class="ident">LLVMBuildNeg</span>, <span class="ident">LLVMBuildNot</span>, <span class="ident">LLVMBuildOr</span>, <span class="ident">LLVMBuildPhi</span>, <span class="ident">LLVMBuildPointerCast</span>, <span class="ident">LLVMBuildRet</span>, <span class="ident">LLVMBuildRetVoid</span>, <span class="ident">LLVMBuildStore</span>, <span class="ident">LLVMBuildSub</span>, <span class="ident">LLVMBuildUDiv</span>, <span class="ident">LLVMBuildUnreachable</span>, <span class="ident">LLVMBuildXor</span>, <span class="ident">LLVMDisposeBuilder</span>, <span class="ident">LLVMGetElementType</span>, <span class="ident">LLVMGetInsertBlock</span>, <span class="ident">LLVMGetReturnType</span>, <span class="ident">LLVMGetTypeKind</span>, <span class="ident">LLVMInsertIntoBuilder</span>, <span class="ident">LLVMPositionBuilderAtEnd</span>, <span class="ident">LLVMTypeOf</span>, <span class="ident">LLVMBuildExtractElement</span>, <span class="ident">LLVMBuildInsertElement</span>, <span class="ident">LLVMBuildIntToPtr</span>, <span class="ident">LLVMBuildPtrToInt</span>, <span class="ident">LLVMInsertIntoBuilderWithName</span>, <span class="ident">LLVMClearInsertionPosition</span>, <span class="ident">LLVMPositionBuilder</span>, <span class="ident">LLVMPositionBuilderBefore</span>, <span class="ident">LLVMBuildAggregateRet</span>, <span class="ident">LLVMBuildStructGEP</span>, <span class="ident">LLVMBuildInBoundsGEP</span>, <span class="ident">LLVMBuildPtrDiff</span>, <span class="ident">LLVMBuildNSWAdd</span>, <span class="ident">LLVMBuildNUWAdd</span>, <span class="ident">LLVMBuildNSWSub</span>, <span class="ident">LLVMBuildNUWSub</span>, <span class="ident">LLVMBuildNSWMul</span>, <span class="ident">LLVMBuildNUWMul</span>, <span class="ident">LLVMBuildSDiv</span>, <span class="ident">LLVMBuildSRem</span>, <span class="ident">LLVMBuildURem</span>, <span class="ident">LLVMBuildFRem</span>, <span class="ident">LLVMBuildNSWNeg</span>, <span class="ident">LLVMBuildNUWNeg</span>, <span class="ident">LLVMBuildFPToUI</span>, <span class="ident">LLVMBuildFPToSI</span>, <span class="ident">LLVMBuildSIToFP</span>, <span class="ident">LLVMBuildUIToFP</span>, <span class="ident">LLVMBuildFPTrunc</span>, <span class="ident">LLVMBuildFPExt</span>, <span class="ident">LLVMBuildIntCast</span>, <span class="ident">LLVMBuildFPCast</span>, <span class="ident">LLVMBuildSExtOrBitCast</span>, <span class="ident">LLVMBuildZExtOrBitCast</span>, <span class="ident">LLVMBuildTruncOrBitCast</span>, <span class="ident">LLVMBuildSwitch</span>, <span class="ident">LLVMAddCase</span>, <span class="ident">LLVMBuildShl</span>, <span class="ident">LLVMBuildAShr</span>, <span class="ident">LLVMBuildLShr</span>, <span class="ident">LLVMBuildGlobalString</span>, <span class="ident">LLVMBuildGlobalStringPtr</span>, <span class="ident">LLVMBuildExactSDiv</span>, <span class="ident">LLVMBuildTrunc</span>, <span class="ident">LLVMBuildSExt</span>, <span class="ident">LLVMBuildZExt</span>, <span class="ident">LLVMBuildSelect</span>, <span class="ident">LLVMBuildAddrSpaceCast</span>, <span class="ident">LLVMBuildBitCast</span>, <span class="ident">LLVMBuildShuffleVector</span>, <span class="ident">LLVMBuildVAArg</span>, <span class="ident">LLVMBuildIndirectBr</span>, <span class="ident">LLVMAddDestination</span>};
 <span class="attribute">#[<span class="ident">llvm_versions</span>(<span class="number">3.9</span>..<span class="op">=</span><span class="ident">latest</span>)]</span>
-<span class="kw">use</span> <span class="ident">llvm_sys</span>::<span class="ident">core</span>::<span class="ident">LLVMBuildAtomicCmpXchg</span>;
+<span class="kw">use</span> <span class="ident">llvm_sys::core::LLVMBuildAtomicCmpXchg</span>;
 <span class="attribute">#[<span class="ident">llvm_versions</span>(<span class="number">8.0</span>..<span class="op">=</span><span class="ident">latest</span>)]</span>
-<span class="kw">use</span> <span class="ident">llvm_sys</span>::<span class="ident">core</span>::{<span class="ident">LLVMBuildMemCpy</span>, <span class="ident">LLVMBuildMemMove</span>};
-<span class="kw">use</span> <span class="ident">llvm_sys</span>::<span class="ident">prelude</span>::{<span class="ident">LLVMBuilderRef</span>, <span class="ident">LLVMValueRef</span>};
+<span class="kw">use</span> <span class="ident">llvm_sys::core</span>::{<span class="ident">LLVMBuildMemCpy</span>, <span class="ident">LLVMBuildMemMove</span>};
+<span class="kw">use</span> <span class="ident">llvm_sys::prelude</span>::{<span class="ident">LLVMBuilderRef</span>, <span class="ident">LLVMValueRef</span>};
 <span class="kw">use</span> <span class="ident">llvm_sys</span>::{<span class="ident">LLVMTypeKind</span>};
 
 <span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">AtomicOrdering</span>, <span class="ident">AtomicRMWBinOp</span>, <span class="ident">IntPredicate</span>, <span class="ident">FloatPredicate</span>};
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">basic_block</span>::<span class="ident">BasicBlock</span>;
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">support</span>::<span class="ident">to_c_str</span>;
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">values</span>::{<span class="ident">AggregateValue</span>, <span class="ident">AggregateValueEnum</span>, <span class="ident">AsValueRef</span>, <span class="ident">BasicValue</span>, <span class="ident">BasicValueEnum</span>, <span class="ident">PhiValue</span>, <span class="ident">FunctionValue</span>, <span class="ident">IntValue</span>, <span class="ident">PointerValue</span>, <span class="ident">VectorValue</span>, <span class="ident">InstructionValue</span>, <span class="ident">GlobalValue</span>, <span class="ident">IntMathValue</span>, <span class="ident">FloatMathValue</span>, <span class="ident">PointerMathValue</span>, <span class="ident">InstructionOpcode</span>, <span class="ident">CallSiteValue</span>};
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::basic_block::BasicBlock</span>;
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::support::to_c_str</span>;
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::values</span>::{<span class="ident">AggregateValue</span>, <span class="ident">AggregateValueEnum</span>, <span class="ident">AsValueRef</span>, <span class="ident">BasicValue</span>, <span class="ident">BasicValueEnum</span>, <span class="ident">PhiValue</span>, <span class="ident">FunctionValue</span>, <span class="ident">IntValue</span>, <span class="ident">PointerValue</span>, <span class="ident">VectorValue</span>, <span class="ident">InstructionValue</span>, <span class="ident">GlobalValue</span>, <span class="ident">IntMathValue</span>, <span class="ident">FloatMathValue</span>, <span class="ident">PointerMathValue</span>, <span class="ident">InstructionOpcode</span>, <span class="ident">CallSiteValue</span>};
 <span class="attribute">#[<span class="ident">llvm_versions</span>(<span class="number">7.0</span>..<span class="op">=</span><span class="ident">latest</span>)]</span>
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">debug_info</span>::<span class="ident">DILocation</span>;
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::debug_info::DILocation</span>;
 <span class="attribute">#[<span class="ident">llvm_versions</span>(<span class="number">3.9</span>..<span class="op">=</span><span class="ident">latest</span>)]</span>
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">values</span>::<span class="ident">StructValue</span>;
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">types</span>::{<span class="ident">AsTypeRef</span>, <span class="ident">BasicType</span>, <span class="ident">IntMathType</span>, <span class="ident">FloatMathType</span>, <span class="ident">PointerType</span>, <span class="ident">PointerMathType</span>};
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::values::StructValue</span>;
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::types</span>::{<span class="ident">AsTypeRef</span>, <span class="ident">BasicType</span>, <span class="ident">IntMathType</span>, <span class="ident">FloatMathType</span>, <span class="ident">PointerType</span>, <span class="ident">PointerMathType</span>};
 
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">marker</span>::<span class="ident">PhantomData</span>;
+<span class="kw">use</span> <span class="ident">std::marker::PhantomData</span>;
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Builder</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> {
@@ -1887,7 +1887,7 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> <span class="ident">Builder</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> {
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">builder</span>: <span class="ident">LLVMBuilderRef</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="op">!</span><span class="ident">builder</span>.<span class="ident">is_null</span>());
+        <span class="macro">debug_assert!</span>(<span class="op">!</span><span class="ident">builder</span>.<span class="ident">is_null</span>());
 
         <span class="ident">Builder</span> {
             <span class="ident">builder</span>,
@@ -1924,7 +1924,7 @@
             <span class="ident">value</span>.<span class="ident">map_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">LLVMBuildRetVoid</span>(<span class="self">self</span>.<span class="ident">builder</span>), <span class="op">|</span><span class="ident">value</span><span class="op">|</span> <span class="ident">LLVMBuildRet</span>(<span class="self">self</span>.<span class="ident">builder</span>, <span class="ident">value</span>.<span class="ident">as_value_ref</span>()))
         };
 
-        <span class="ident">InstructionValue</span>::<span class="ident">new</span>(<span class="ident">value</span>)
+        <span class="ident">InstructionValue::new</span>(<span class="ident">value</span>)
     }
 
     <span class="doccomment">/// Builds a function return instruction for a return type which is an aggregate type (ie structs and arrays).</span>
@@ -1958,7 +1958,7 @@
             <span class="ident">LLVMBuildAggregateRet</span>(<span class="self">self</span>.<span class="ident">builder</span>, <span class="ident">args</span>.<span class="ident">as_mut_ptr</span>(), <span class="ident">args</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u32</span>)
         };
 
-        <span class="ident">InstructionValue</span>::<span class="ident">new</span>(<span class="ident">value</span>)
+        <span class="ident">InstructionValue::new</span>(<span class="ident">value</span>)
     }
 
     <span class="doccomment">/// Builds a function call instruction. It can take either a `FunctionValue` or a `PointerValue`</span>
@@ -2000,12 +2000,12 @@
                 <span class="kw">let</span> <span class="ident">value_ref</span> <span class="op">=</span> <span class="ident">val</span>.<span class="ident">as_value_ref</span>();
                 <span class="kw">let</span> <span class="ident">ty_kind</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">LLVMGetTypeKind</span>(<span class="ident">LLVMGetElementType</span>(<span class="ident">LLVMTypeOf</span>(<span class="ident">value_ref</span>))) };
                 <span class="kw">let</span> <span class="ident">is_a_fn_ptr</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">ty_kind</span> {
-                    <span class="ident">LLVMTypeKind</span>::<span class="ident">LLVMFunctionTypeKind</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">true</span>,
+                    <span class="ident">LLVMTypeKind::LLVMFunctionTypeKind</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">true</span>,
                     <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
                 };
 
                 <span class="comment">// REVIEW: We should probably turn this into a Result?</span>
-                <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">is_a_fn_ptr</span>, <span class="string">&quot;build_call called with a pointer which is not a function pointer&quot;</span>);
+                <span class="macro">assert!</span>(<span class="ident">is_a_fn_ptr</span>, <span class="string">&quot;build_call called with a pointer which is not a function pointer&quot;</span>);
 
                 <span class="ident">value_ref</span>
             },
@@ -2014,7 +2014,7 @@
         <span class="comment">// LLVM gets upset when void return calls are named because they don&#39;t return anything</span>
         <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="kw">unsafe</span> {
             <span class="kw">match</span> <span class="ident">LLVMGetTypeKind</span>(<span class="ident">LLVMGetReturnType</span>(<span class="ident">LLVMGetElementType</span>(<span class="ident">LLVMTypeOf</span>(<span class="ident">fn_val_ref</span>)))) {
-                <span class="ident">LLVMTypeKind</span>::<span class="ident">LLVMVoidTypeKind</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;&quot;</span>,
+                <span class="ident">LLVMTypeKind::LLVMVoidTypeKind</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;&quot;</span>,
                 <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">name</span>,
             }
         };
@@ -2027,7 +2027,7 @@
             <span class="ident">LLVMBuildCall</span>(<span class="self">self</span>.<span class="ident">builder</span>, <span class="ident">fn_val_ref</span>, <span class="ident">args</span>.<span class="ident">as_mut_ptr</span>(), <span class="ident">args</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u32</span>, <span class="ident">c_string</span>.<span class="ident">as_ptr</span>())
         };
 
-        <span class="ident">CallSiteValue</span>::<span class="ident">new</span>(<span class="ident">value</span>)
+        <span class="ident">CallSiteValue::new</span>(<span class="ident">value</span>)
     }
 
     <span class="comment">// REVIEW: Doesn&#39;t GEP work on array too?</span>
@@ -2040,7 +2040,7 @@
                                                                  .<span class="ident">collect</span>();
         <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">LLVMBuildGEP</span>(<span class="self">self</span>.<span class="ident">builder</span>, <span class="ident">ptr</span>.<span class="ident">as_value_ref</span>(), <span class="ident">index_values</span>.<span class="ident">as_mut_ptr</span>(), <span class="ident">index_values</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u32</span>, <span class="ident">c_string</span>.<span class="ident">as_ptr</span>());
 
-        <span class="ident">PointerValue</span>::<span class="ident">new</span>(<span class="ident">value</span>)
+        <span class="ident">PointerValue::new</span>(<span class="ident">value</span>)
     }
 
     <span class="comment">// REVIEW: Doesn&#39;t GEP work on array too?</span>
@@ -2054,7 +2054,7 @@
                                                                  .<span class="ident">collect</span>();
         <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">LLVMBuildInBoundsGEP</span>(<span class="self">self</span>.<span class="ident">builder</span>, <span class="ident">ptr</span>.<span class="ident">as_value_ref</span>(), <span class="ident">index_values</span>.<span class="ident">as_mut_ptr</span>(), <span class="ident">index_values</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u32</span>, <span class="ident">c_string</span>.<span class="ident">as_ptr</span>());
 
-        <span class="ident">PointerValue</span>::<span class="ident">new</span>(<span class="ident">value</span>)
+        <span class="ident">PointerValue::new</span>(<span class="ident">value</span>)
     }
 
     <span class="doccomment">/// Builds a GEP instruction on a struct pointer. Returns `Err(())` if input `PointerValue` doesn&#39;t</span>
@@ -2107,7 +2107,7 @@
         <span class="kw">let</span> <span class="ident">c_string</span> <span class="op">=</span> <span class="ident">to_c_str</span>(<span class="ident">name</span>);
         <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">LLVMBuildStructGEP</span>(<span class="self">self</span>.<span class="ident">builder</span>, <span class="ident">ptr</span>.<span class="ident">as_value_ref</span>(), <span class="ident">index</span>, <span class="ident">c_string</span>.<span class="ident">as_ptr</span>()) };
 
-        <span class="prelude-val">Ok</span>(<span class="ident">PointerValue</span>::<span class="ident">new</span>(<span class="ident">value</span>))
+        <span class="prelude-val">Ok</span>(<span class="ident">PointerValue::new</span>(<span class="ident">value</span>))
     }
 
     <span class="doccomment">/// Builds an instruction which calculates the difference of two pointers.</span>
@@ -2142,7 +2142,7 @@
             <span class="ident">LLVMBuildPtrDiff</span>(<span class="self">self</span>.<span class="ident">builder</span>, <span class="ident">lhs_ptr</span>.<span class="ident">as_value_ref</span>(), <span class="ident">rhs_ptr</span>.<span class="ident">as_value_ref</span>(), <span class="ident">c_string</span>.<span class="ident">as_ptr</span>())
         };
 
-        <span class="ident">IntValue</span>::<span class="ident">new</span>(<span class="ident">value</span>)
+        <span class="ident">IntValue::new</span>(<span class="ident">value</span>)
     }
 
     <span class="comment">// SubTypes: Maybe this should return PhiValue&lt;T&gt;? That way we could force incoming values to be of T::Value?</span>
@@ -2157,7 +2157,7 @@
             <span class="ident">LLVMBuildPhi</span>(<span class="self">self</span>.<span class="ident">builder</span>, <span class="ident">type_</span>.<span class="ident">as_type_ref</span>(), <span class="ident">c_string</span>.<span class="ident">as_ptr</span>())
         };
 
-        <span class="ident">PhiValue</span>::<span class="ident">new</span>(<span class="ident">value</span>)
+        <span class="ident">PhiValue::new</span>(<span class="ident">value</span>)
     }
 
     <span class="doccomment">/// Builds a store instruction. It allows you to store a value of type `T` in a pointer to a type `T`.</span>
@@ -2190,7 +2190,7 @@
             <span class="ident">LLVMBuildStore</span>(<span class="self">self</span>.<span class="ident">builder</span>, <span class="ident">value</span>.<span class="ident">as_value_ref</span>(), <span class="ident">ptr</span>.<span class="ident">as_value_ref</span>())
         };
 
-        <span class="ident">InstructionValue</span>::<span class="ident">new</span>(<span class="ident">value</span>)
+        <span class="ident">InstructionValue::new</span>(<span class="ident">value</span>)
     }
 
     <span class="doccomment">/// Builds a load instruction. It allows you to retrieve a value of type `T` from a pointer to a type `T`.</span>
@@ -2225,7 +2225,7 @@
             <span class="ident">LLVMBuildLoad</span>(<span class="self">self</span>.<span class="ident">builder</span>, <span class="ident">ptr</span>.<span class="ident">as_value_ref</span>(), <span class="ident">c_string</span>.<span class="ident">as_ptr</span>())
         };
 
-        <span class="ident">BasicValueEnum</span>::<span class="ident">new</span>(<span class="ident">value</span>)
+        <span class="ident">BasicValueEnum::new</span>(<span class="ident">value</span>)
     }
 
     <span class="comment">// TODOC: Stack allocation</span>
@@ -2236,7 +2236,7 @@
             <span class="ident">LLVMBuildAlloca</span>(<span class="self">self</span>.<span class="ident">builder</span>, <span class="ident">ty</span>.<span class="ident">as_type_ref</span>(), <span class="ident">c_string</span>.<span class="ident">as_ptr</span>())
         };
 
-        <span class="ident">PointerValue</span>::<span class="ident">new</span>(<span class="ident">value</span>)
+        <span class="ident">PointerValue::new</span>(<span class="ident">value</span>)
     }
 
     <span class="comment">// TODOC: Stack allocation</span>
@@ -2247,7 +2247,7 @@
             <span class="ident">LLVMBuildArrayAlloca</span>(<span class="self">self</span>.<span class="ident">builder</span>, <span class="ident">ty</span>.<span class="ident">as_type_ref</span>(), <span class="ident">size</span>.<span class="ident">as_value_ref</span>(), <span class="ident">c_string</span>.<span class="ident">as_ptr</span>())
         };
 
-        <span class="ident">PointerValue</span>::<span class="ident">new</span>(<span class="ident">value</span>)
+        <span class="ident">PointerValue::new</span>(<span class="ident">value</span>)
     }
 
     <span class="doccomment">/// Build a [memcpy](https://llvm.org/docs/LangRef.html#llvm-memcpy-intrinsic) instruction.</span>
@@ -2286,7 +2286,7 @@
             )
         };
 
-        <span class="prelude-val">Ok</span>(<span class="ident">PointerValue</span>::<span class="ident">new</span>(<span class="ident">value</span>))
+        <span class="prelude-val">Ok</span>(<span class="ident">PointerValue::new</span>(<span class="ident">value</span>))
     }
 
     <span class="doccomment">/// Build a [memmove](http://llvm.org/docs/LangRef.html#llvm-memmove-intrinsic) instruction.</span>
@@ -2325,7 +2325,7 @@
             )
         };
 
-        <span class="prelude-val">Ok</span>(<span class="ident">PointerValue</span>::<span class="ident">new</span>(<span class="ident">value</span>))
+        <span class="prelude-val">Ok</span>(<span class="ident">PointerValue::new</span>(<span class="ident">value</span>))
     }
 
     <span class="comment">// TODOC: Heap allocation</span>
@@ -2341,7 +2341,7 @@
             <span class="ident">LLVMBuildMalloc</span>(<span class="self">self</span>.<span class="ident">builder</span>, <span class="ident">ty</span>.<span class="ident">as_type_ref</span>(), <span class="ident">c_string</span>.<span class="ident">as_ptr</span>())
         };
 
-        <span class="prelude-val">Ok</span>(<span class="ident">PointerValue</span>::<span class="ident">new</span>(<span class="ident">value</span>))
+        <span class="prelude-val">Ok</span>(<span class="ident">PointerValue::new</span>(<span class="ident">value</span>))
     }
 
     <span class="comment">// TODOC: Heap allocation</span>
@@ -2362,7 +2362,7 @@
             <span class="ident">LLVMBuildArrayMalloc</span>(<span class="self">self</span>.<span class="ident">builder</span>, <span class="ident">ty</span>.<span class="ident">as_type_ref</span>(), <span class="ident">size</span>.<span class="ident">as_value_ref</span>(), <span class="ident">c_string</span>.<span class="ident">as_ptr</span>())
         };
 
-        <span class="prelude-val">Ok</span>(<span class="ident">PointerValue</span>::<span class="ident">new</span>(<span class="ident">value</span>))
+        <span class="prelude-val">Ok</span>(<span class="ident">PointerValue::new</span>(<span class="ident">value</span>))
     }
 
     <span class="comment">// SubType: &lt;P&gt;(&amp;self, ptr: PointerValue&lt;P&gt;) -&gt; InstructionValue {</span>
@@ -2371,7 +2371,7 @@
             <span class="ident">LLVMBuildFree</span>(<span class="self">self</span>.<span class="ident">builder</span>, <span class="ident">ptr</span>.<span class="ident">as_value_ref</span>())
         };
 
-        <span class="ident">InstructionValue</span>::<span class="ident">new</span>(<span class="ident">val</span>)
+        <span class="ident">InstructionValue::new</span>(<span class="ident">val</span>)
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">insert_instruction</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">instruction</span>: <span class="kw-2">&amp;</span><span class="ident">InstructionValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span>, <span class="ident">name</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span>) {
@@ -2394,7 +2394,7 @@
             <span class="ident">LLVMGetInsertBlock</span>(<span class="self">self</span>.<span class="ident">builder</span>)
         };
 
-        <span class="ident">BasicBlock</span>::<span class="ident">new</span>(<span class="ident">bb</span>)
+        <span class="ident">BasicBlock::new</span>(<span class="ident">bb</span>)
     }
 
     <span class="comment">// TODO: Possibly make this generic over sign via struct metadata or subtypes</span>
@@ -2407,7 +2407,7 @@
             <span class="ident">LLVMBuildUDiv</span>(<span class="self">self</span>.<span class="ident">builder</span>, <span class="ident">lhs</span>.<span class="ident">as_value_ref</span>(), <span class="ident">rhs</span>.<span class="ident">as_value_ref</span>(), <span class="ident">c_string</span>.<span class="ident">as_ptr</span>())
         };
 
-        <span class="ident">T</span>::<span class="ident">new</span>(<span class="ident">value</span>)
+        <span class="ident">T::new</span>(<span class="ident">value</span>)
     }
 
     <span class="comment">// TODO: Possibly make this generic over sign via struct metadata or subtypes</span>
@@ -2419,7 +2419,7 @@
             <span class="ident">LLVMBuildSDiv</span>(<span class="self">self</span>.<span class="ident">builder</span>, <span class="ident">lhs</span>.<span class="ident">as_value_ref</span>(), <span class="ident">rhs</span>.<span class="ident">as_value_ref</span>(), <span class="ident">c_string</span>.<span class="ident">as_ptr</span>())
         };
 
-        <span class="ident">T</span>::<span class="ident">new</span>(<span class="ident">value</span>)
+        <span class="ident">T::new</span>(<span class="ident">value</span>)
     }
 
     <span class="comment">// TODO: Possibly make this generic over sign via struct metadata or subtypes</span>
@@ -2431,7 +2431,7 @@
             <span class="ident">LLVMBuildExactSDiv</span>(<span class="self">self</span>.<span class="ident">builder</span>, <span class="ident">lhs</span>.<span class="ident">as_value_ref</span>(), <span class="ident">rhs</span>.<span class="ident">as_value_ref</span>(), <span class="ident">c_string</span>.<span class="ident">as_ptr</span>())
         };
 
-        <span class="ident">T</span>::<span class="ident">new</span>(<span class="ident">value</span>)
+        <span class="ident">T::new</span>(<span class="ident">value</span>)
     }
 
     <span class="comment">// TODO: Possibly make this generic over sign via struct metadata or subtypes</span>
@@ -2443,7 +2443,7 @@
             <span class="ident">LLVMBuildURem</span>(<span class="self">self</span>.<span class="ident">builder</span>, <span class="ident">lhs</span>.<span class="ident">as_value_ref</span>(), <span class="ident">rhs</span>.<span class="ident">as_value_ref</span>(), <span class="ident">c_string</span>.<span class="ident">as_ptr</span>())
         };
 
-        <span class="ident">T</span>::<span class="ident">new</span>(<span class="ident">value</span>)
+        <span class="ident">T::new</span>(<span class="ident">value</span>)
     }
 
 
@@ -2456,17 +2456,17 @@
             <span class="ident">LLVMBuildSRem</span>(<span class="self">self</span>.<span class="ident">builder</span>, <span class="ident">lhs</span>.<span class="ident">as_value_ref</span>(), <span class="ident">rhs</span>.<span class="ident">as_value_ref</span>(), <span class="ident">c_string</span>.<span class="ident">as_ptr</span>())
         };
 
-        <span class="ident">T</span>::<span class="ident">new</span>(<span class="ident">value</span>)
+        <span class="ident">T::new</span>(<span class="ident">value</span>)
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">build_int_s_extend</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">IntMathValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">int_value</span>: <span class="ident">T</span>, <span class="ident">int_type</span>: <span class="ident">T</span>::<span class="ident">BaseType</span>, <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">T</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">build_int_s_extend</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">IntMathValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">int_value</span>: <span class="ident">T</span>, <span class="ident">int_type</span>: <span class="ident">T::BaseType</span>, <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">T</span> {
         <span class="kw">let</span> <span class="ident">c_string</span> <span class="op">=</span> <span class="ident">to_c_str</span>(<span class="ident">name</span>);
 
         <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="kw">unsafe</span> {
             <span class="ident">LLVMBuildSExt</span>(<span class="self">self</span>.<span class="ident">builder</span>, <span class="ident">int_value</span>.<span class="ident">as_value_ref</span>(), <span class="ident">int_type</span>.<span class="ident">as_type_ref</span>(), <span class="ident">c_string</span>.<span class="ident">as_ptr</span>())
         };
 
-        <span class="ident">T</span>::<span class="ident">new</span>(<span class="ident">value</span>)
+        <span class="ident">T::new</span>(<span class="ident">value</span>)
     }
 
     <span class="comment">// REVIEW: Does this need vector support?</span>
@@ -2482,7 +2482,7 @@
             <span class="ident">LLVMBuildAddrSpaceCast</span>(<span class="self">self</span>.<span class="ident">builder</span>, <span class="ident">ptr_val</span>.<span class="ident">as_value_ref</span>(), <span class="ident">ptr_type</span>.<span class="ident">as_type_ref</span>(), <span class="ident">c_string</span>.<span class="ident">as_ptr</span>())
         };
 
-        <span class="ident">PointerValue</span>::<span class="ident">new</span>(<span class="ident">value</span>)
+        <span class="ident">PointerValue::new</span>(<span class="ident">value</span>)
     }
 
     <span class="doccomment">/// Builds a bitcast instruction. A bitcast reinterprets the bits of one value</span>
@@ -2523,57 +2523,57 @@
             <span class="ident">LLVMBuildBitCast</span>(<span class="self">self</span>.<span class="ident">builder</span>, <span class="ident">val</span>.<span class="ident">as_value_ref</span>(), <span class="ident">ty</span>.<span class="ident">as_type_ref</span>(), <span class="ident">c_string</span>.<span class="ident">as_ptr</span>())
         };
 
-        <span class="ident">BasicValueEnum</span>::<span class="ident">new</span>(<span class="ident">value</span>)
+        <span class="ident">BasicValueEnum::new</span>(<span class="ident">value</span>)
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">build_int_s_extend_or_bit_cast</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">IntMathValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">int_value</span>: <span class="ident">T</span>, <span class="ident">int_type</span>: <span class="ident">T</span>::<span class="ident">BaseType</span>, <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">T</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">build_int_s_extend_or_bit_cast</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">IntMathValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">int_value</span>: <span class="ident">T</span>, <span class="ident">int_type</span>: <span class="ident">T::BaseType</span>, <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">T</span> {
         <span class="kw">let</span> <span class="ident">c_string</span> <span class="op">=</span> <span class="ident">to_c_str</span>(<span class="ident">name</span>);
 
         <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="kw">unsafe</span> {
             <span class="ident">LLVMBuildSExtOrBitCast</span>(<span class="self">self</span>.<span class="ident">builder</span>, <span class="ident">int_value</span>.<span class="ident">as_value_ref</span>(), <span class="ident">int_type</span>.<span class="ident">as_type_ref</span>(), <span class="ident">c_string</span>.<span class="ident">as_ptr</span>())
         };
 
-        <span class="ident">T</span>::<span class="ident">new</span>(<span class="ident">value</span>)
+        <span class="ident">T::new</span>(<span class="ident">value</span>)
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">build_int_z_extend</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">IntMathValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">int_value</span>: <span class="ident">T</span>, <span class="ident">int_type</span>: <span class="ident">T</span>::<span class="ident">BaseType</span>, <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">T</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">build_int_z_extend</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">IntMathValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">int_value</span>: <span class="ident">T</span>, <span class="ident">int_type</span>: <span class="ident">T::BaseType</span>, <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">T</span> {
        <span class="kw">let</span> <span class="ident">c_string</span> <span class="op">=</span> <span class="ident">to_c_str</span>(<span class="ident">name</span>);
 
        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="kw">unsafe</span> {
             <span class="ident">LLVMBuildZExt</span>(<span class="self">self</span>.<span class="ident">builder</span>, <span class="ident">int_value</span>.<span class="ident">as_value_ref</span>(), <span class="ident">int_type</span>.<span class="ident">as_type_ref</span>(), <span class="ident">c_string</span>.<span class="ident">as_ptr</span>())
         };
 
-        <span class="ident">T</span>::<span class="ident">new</span>(<span class="ident">value</span>)
+        <span class="ident">T::new</span>(<span class="ident">value</span>)
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">build_int_z_extend_or_bit_cast</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">IntMathValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">int_value</span>: <span class="ident">T</span>, <span class="ident">int_type</span>: <span class="ident">T</span>::<span class="ident">BaseType</span>, <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">T</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">build_int_z_extend_or_bit_cast</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">IntMathValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">int_value</span>: <span class="ident">T</span>, <span class="ident">int_type</span>: <span class="ident">T::BaseType</span>, <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">T</span> {
        <span class="kw">let</span> <span class="ident">c_string</span> <span class="op">=</span> <span class="ident">to_c_str</span>(<span class="ident">name</span>);
 
        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="kw">unsafe</span> {
             <span class="ident">LLVMBuildZExtOrBitCast</span>(<span class="self">self</span>.<span class="ident">builder</span>, <span class="ident">int_value</span>.<span class="ident">as_value_ref</span>(), <span class="ident">int_type</span>.<span class="ident">as_type_ref</span>(), <span class="ident">c_string</span>.<span class="ident">as_ptr</span>())
         };
 
-        <span class="ident">T</span>::<span class="ident">new</span>(<span class="ident">value</span>)
+        <span class="ident">T::new</span>(<span class="ident">value</span>)
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">build_int_truncate</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">IntMathValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">int_value</span>: <span class="ident">T</span>, <span class="ident">int_type</span>: <span class="ident">T</span>::<span class="ident">BaseType</span>, <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">T</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">build_int_truncate</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">IntMathValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">int_value</span>: <span class="ident">T</span>, <span class="ident">int_type</span>: <span class="ident">T::BaseType</span>, <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">T</span> {
        <span class="kw">let</span> <span class="ident">c_string</span> <span class="op">=</span> <span class="ident">to_c_str</span>(<span class="ident">name</span>);
 
        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="kw">unsafe</span> {
             <span class="ident">LLVMBuildTrunc</span>(<span class="self">self</span>.<span class="ident">builder</span>, <span class="ident">int_value</span>.<span class="ident">as_value_ref</span>(), <span class="ident">int_type</span>.<span class="ident">as_type_ref</span>(), <span class="ident">c_string</span>.<span class="ident">as_ptr</span>())
         };
 
-        <span class="ident">T</span>::<span class="ident">new</span>(<span class="ident">value</span>)
+        <span class="ident">T::new</span>(<span class="ident">value</span>)
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">build_int_truncate_or_bit_cast</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">IntMathValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">int_value</span>: <span class="ident">T</span>, <span class="ident">int_type</span>: <span class="ident">T</span>::<span class="ident">BaseType</span>, <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">T</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">build_int_truncate_or_bit_cast</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">IntMathValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">int_value</span>: <span class="ident">T</span>, <span class="ident">int_type</span>: <span class="ident">T::BaseType</span>, <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">T</span> {
        <span class="kw">let</span> <span class="ident">c_string</span> <span class="op">=</span> <span class="ident">to_c_str</span>(<span class="ident">name</span>);
 
        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="kw">unsafe</span> {
             <span class="ident">LLVMBuildTruncOrBitCast</span>(<span class="self">self</span>.<span class="ident">builder</span>, <span class="ident">int_value</span>.<span class="ident">as_value_ref</span>(), <span class="ident">int_type</span>.<span class="ident">as_type_ref</span>(), <span class="ident">c_string</span>.<span class="ident">as_ptr</span>())
         };
 
-        <span class="ident">T</span>::<span class="ident">new</span>(<span class="ident">value</span>)
+        <span class="ident">T::new</span>(<span class="ident">value</span>)
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">build_float_rem</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">FloatMathValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">lhs</span>: <span class="ident">T</span>, <span class="ident">rhs</span>: <span class="ident">T</span>, <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">T</span> {
@@ -2583,110 +2583,110 @@
             <span class="ident">LLVMBuildFRem</span>(<span class="self">self</span>.<span class="ident">builder</span>, <span class="ident">lhs</span>.<span class="ident">as_value_ref</span>(), <span class="ident">rhs</span>.<span class="ident">as_value_ref</span>(), <span class="ident">c_string</span>.<span class="ident">as_ptr</span>())
         };
 
-        <span class="ident">T</span>::<span class="ident">new</span>(<span class="ident">value</span>)
+        <span class="ident">T::new</span>(<span class="ident">value</span>)
     }
 
     <span class="comment">// REVIEW: Consolidate these two casts into one via subtypes</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">build_float_to_unsigned_int</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">FloatMathValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span><span class="op">&gt;</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">float</span>: <span class="ident">T</span>,
-        <span class="ident">int_type</span>: <span class="op">&lt;</span><span class="ident">T</span>::<span class="ident">BaseType</span> <span class="kw">as</span> <span class="ident">FloatMathType</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span><span class="op">&gt;</span>::<span class="ident">MathConvType</span>,
+        <span class="ident">int_type</span>: <span class="op">&lt;</span><span class="ident">T::BaseType</span> <span class="kw">as</span> <span class="ident">FloatMathType</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::MathConvType</span>,
         <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="op">&lt;</span><span class="op">&lt;</span><span class="ident">T</span>::<span class="ident">BaseType</span> <span class="kw">as</span> <span class="ident">FloatMathType</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span><span class="op">&gt;</span>::<span class="ident">MathConvType</span> <span class="kw">as</span> <span class="ident">IntMathType</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span><span class="op">&gt;</span>::<span class="ident">ValueType</span> {
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="op">&lt;</span><span class="op">&lt;</span><span class="ident">T::BaseType</span> <span class="kw">as</span> <span class="ident">FloatMathType</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::MathConvType</span> <span class="kw">as</span> <span class="ident">IntMathType</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::ValueType</span> {
         <span class="kw">let</span> <span class="ident">c_string</span> <span class="op">=</span> <span class="ident">to_c_str</span>(<span class="ident">name</span>);
 
         <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="kw">unsafe</span> {
             <span class="ident">LLVMBuildFPToUI</span>(<span class="self">self</span>.<span class="ident">builder</span>, <span class="ident">float</span>.<span class="ident">as_value_ref</span>(), <span class="ident">int_type</span>.<span class="ident">as_type_ref</span>(), <span class="ident">c_string</span>.<span class="ident">as_ptr</span>())
         };
 
-        <span class="op">&lt;</span><span class="op">&lt;</span><span class="ident">T</span>::<span class="ident">BaseType</span> <span class="kw">as</span> <span class="ident">FloatMathType</span><span class="op">&gt;</span>::<span class="ident">MathConvType</span> <span class="kw">as</span> <span class="ident">IntMathType</span><span class="op">&gt;</span>::<span class="ident">ValueType</span>::<span class="ident">new</span>(<span class="ident">value</span>)
+        <span class="op">&lt;</span><span class="op">&lt;</span><span class="ident">T::BaseType</span> <span class="kw">as</span> <span class="ident">FloatMathType</span><span class="op">&gt;</span><span class="ident">::MathConvType</span> <span class="kw">as</span> <span class="ident">IntMathType</span><span class="op">&gt;</span><span class="ident">::ValueType::new</span>(<span class="ident">value</span>)
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">build_float_to_signed_int</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">FloatMathValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span><span class="op">&gt;</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">float</span>: <span class="ident">T</span>,
-        <span class="ident">int_type</span>: <span class="op">&lt;</span><span class="ident">T</span>::<span class="ident">BaseType</span> <span class="kw">as</span> <span class="ident">FloatMathType</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span><span class="op">&gt;</span>::<span class="ident">MathConvType</span>,
+        <span class="ident">int_type</span>: <span class="op">&lt;</span><span class="ident">T::BaseType</span> <span class="kw">as</span> <span class="ident">FloatMathType</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::MathConvType</span>,
         <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="op">&lt;</span><span class="op">&lt;</span><span class="ident">T</span>::<span class="ident">BaseType</span> <span class="kw">as</span> <span class="ident">FloatMathType</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span><span class="op">&gt;</span>::<span class="ident">MathConvType</span> <span class="kw">as</span> <span class="ident">IntMathType</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span><span class="op">&gt;</span>::<span class="ident">ValueType</span> {
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="op">&lt;</span><span class="op">&lt;</span><span class="ident">T::BaseType</span> <span class="kw">as</span> <span class="ident">FloatMathType</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::MathConvType</span> <span class="kw">as</span> <span class="ident">IntMathType</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::ValueType</span> {
         <span class="kw">let</span> <span class="ident">c_string</span> <span class="op">=</span> <span class="ident">to_c_str</span>(<span class="ident">name</span>);
 
         <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="kw">unsafe</span> {
             <span class="ident">LLVMBuildFPToSI</span>(<span class="self">self</span>.<span class="ident">builder</span>, <span class="ident">float</span>.<span class="ident">as_value_ref</span>(), <span class="ident">int_type</span>.<span class="ident">as_type_ref</span>(), <span class="ident">c_string</span>.<span class="ident">as_ptr</span>())
         };
 
-        <span class="op">&lt;</span><span class="op">&lt;</span><span class="ident">T</span>::<span class="ident">BaseType</span> <span class="kw">as</span> <span class="ident">FloatMathType</span><span class="op">&gt;</span>::<span class="ident">MathConvType</span> <span class="kw">as</span> <span class="ident">IntMathType</span><span class="op">&gt;</span>::<span class="ident">ValueType</span>::<span class="ident">new</span>(<span class="ident">value</span>)
+        <span class="op">&lt;</span><span class="op">&lt;</span><span class="ident">T::BaseType</span> <span class="kw">as</span> <span class="ident">FloatMathType</span><span class="op">&gt;</span><span class="ident">::MathConvType</span> <span class="kw">as</span> <span class="ident">IntMathType</span><span class="op">&gt;</span><span class="ident">::ValueType::new</span>(<span class="ident">value</span>)
     }
 
     <span class="comment">// REVIEW: Consolidate these two casts into one via subtypes</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">build_unsigned_int_to_float</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">IntMathValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span><span class="op">&gt;</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">int</span>: <span class="ident">T</span>,
-        <span class="ident">float_type</span>: <span class="op">&lt;</span><span class="ident">T</span>::<span class="ident">BaseType</span> <span class="kw">as</span> <span class="ident">IntMathType</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span><span class="op">&gt;</span>::<span class="ident">MathConvType</span>,
+        <span class="ident">float_type</span>: <span class="op">&lt;</span><span class="ident">T::BaseType</span> <span class="kw">as</span> <span class="ident">IntMathType</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::MathConvType</span>,
         <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="op">&lt;</span><span class="op">&lt;</span><span class="ident">T</span>::<span class="ident">BaseType</span> <span class="kw">as</span> <span class="ident">IntMathType</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span><span class="op">&gt;</span>::<span class="ident">MathConvType</span> <span class="kw">as</span> <span class="ident">FloatMathType</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span><span class="op">&gt;</span>::<span class="ident">ValueType</span> {
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="op">&lt;</span><span class="op">&lt;</span><span class="ident">T::BaseType</span> <span class="kw">as</span> <span class="ident">IntMathType</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::MathConvType</span> <span class="kw">as</span> <span class="ident">FloatMathType</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::ValueType</span> {
         <span class="kw">let</span> <span class="ident">c_string</span> <span class="op">=</span> <span class="ident">to_c_str</span>(<span class="ident">name</span>);
 
         <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="kw">unsafe</span> {
             <span class="ident">LLVMBuildUIToFP</span>(<span class="self">self</span>.<span class="ident">builder</span>, <span class="ident">int</span>.<span class="ident">as_value_ref</span>(), <span class="ident">float_type</span>.<span class="ident">as_type_ref</span>(), <span class="ident">c_string</span>.<span class="ident">as_ptr</span>())
         };
 
-        <span class="op">&lt;</span><span class="op">&lt;</span><span class="ident">T</span>::<span class="ident">BaseType</span> <span class="kw">as</span> <span class="ident">IntMathType</span><span class="op">&gt;</span>::<span class="ident">MathConvType</span> <span class="kw">as</span> <span class="ident">FloatMathType</span><span class="op">&gt;</span>::<span class="ident">ValueType</span>::<span class="ident">new</span>(<span class="ident">value</span>)
+        <span class="op">&lt;</span><span class="op">&lt;</span><span class="ident">T::BaseType</span> <span class="kw">as</span> <span class="ident">IntMathType</span><span class="op">&gt;</span><span class="ident">::MathConvType</span> <span class="kw">as</span> <span class="ident">FloatMathType</span><span class="op">&gt;</span><span class="ident">::ValueType::new</span>(<span class="ident">value</span>)
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">build_signed_int_to_float</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">IntMathValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span><span class="op">&gt;</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">int</span>: <span class="ident">T</span>,
-        <span class="ident">float_type</span>: <span class="op">&lt;</span><span class="ident">T</span>::<span class="ident">BaseType</span> <span class="kw">as</span> <span class="ident">IntMathType</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span><span class="op">&gt;</span>::<span class="ident">MathConvType</span>,
+        <span class="ident">float_type</span>: <span class="op">&lt;</span><span class="ident">T::BaseType</span> <span class="kw">as</span> <span class="ident">IntMathType</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::MathConvType</span>,
         <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="op">&lt;</span><span class="op">&lt;</span><span class="ident">T</span>::<span class="ident">BaseType</span> <span class="kw">as</span> <span class="ident">IntMathType</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span><span class="op">&gt;</span>::<span class="ident">MathConvType</span> <span class="kw">as</span> <span class="ident">FloatMathType</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span><span class="op">&gt;</span>::<span class="ident">ValueType</span> {
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="op">&lt;</span><span class="op">&lt;</span><span class="ident">T::BaseType</span> <span class="kw">as</span> <span class="ident">IntMathType</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::MathConvType</span> <span class="kw">as</span> <span class="ident">FloatMathType</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::ValueType</span> {
         <span class="kw">let</span> <span class="ident">c_string</span> <span class="op">=</span> <span class="ident">to_c_str</span>(<span class="ident">name</span>);
 
         <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="kw">unsafe</span> {
             <span class="ident">LLVMBuildSIToFP</span>(<span class="self">self</span>.<span class="ident">builder</span>, <span class="ident">int</span>.<span class="ident">as_value_ref</span>(), <span class="ident">float_type</span>.<span class="ident">as_type_ref</span>(), <span class="ident">c_string</span>.<span class="ident">as_ptr</span>())
         };
 
-        <span class="op">&lt;</span><span class="op">&lt;</span><span class="ident">T</span>::<span class="ident">BaseType</span> <span class="kw">as</span> <span class="ident">IntMathType</span><span class="op">&gt;</span>::<span class="ident">MathConvType</span> <span class="kw">as</span> <span class="ident">FloatMathType</span><span class="op">&gt;</span>::<span class="ident">ValueType</span>::<span class="ident">new</span>(<span class="ident">value</span>)
+        <span class="op">&lt;</span><span class="op">&lt;</span><span class="ident">T::BaseType</span> <span class="kw">as</span> <span class="ident">IntMathType</span><span class="op">&gt;</span><span class="ident">::MathConvType</span> <span class="kw">as</span> <span class="ident">FloatMathType</span><span class="op">&gt;</span><span class="ident">::ValueType::new</span>(<span class="ident">value</span>)
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">build_float_trunc</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">FloatMathValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">float</span>: <span class="ident">T</span>, <span class="ident">float_type</span>: <span class="ident">T</span>::<span class="ident">BaseType</span>, <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">T</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">build_float_trunc</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">FloatMathValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">float</span>: <span class="ident">T</span>, <span class="ident">float_type</span>: <span class="ident">T::BaseType</span>, <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">T</span> {
         <span class="kw">let</span> <span class="ident">c_string</span> <span class="op">=</span> <span class="ident">to_c_str</span>(<span class="ident">name</span>);
 
         <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="kw">unsafe</span> {
             <span class="ident">LLVMBuildFPTrunc</span>(<span class="self">self</span>.<span class="ident">builder</span>, <span class="ident">float</span>.<span class="ident">as_value_ref</span>(), <span class="ident">float_type</span>.<span class="ident">as_type_ref</span>(), <span class="ident">c_string</span>.<span class="ident">as_ptr</span>())
         };
 
-        <span class="ident">T</span>::<span class="ident">new</span>(<span class="ident">value</span>)
+        <span class="ident">T::new</span>(<span class="ident">value</span>)
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">build_float_ext</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">FloatMathValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">float</span>: <span class="ident">T</span>, <span class="ident">float_type</span>: <span class="ident">T</span>::<span class="ident">BaseType</span>, <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">T</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">build_float_ext</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">FloatMathValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">float</span>: <span class="ident">T</span>, <span class="ident">float_type</span>: <span class="ident">T::BaseType</span>, <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">T</span> {
         <span class="kw">let</span> <span class="ident">c_string</span> <span class="op">=</span> <span class="ident">to_c_str</span>(<span class="ident">name</span>);
 
         <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="kw">unsafe</span> {
             <span class="ident">LLVMBuildFPExt</span>(<span class="self">self</span>.<span class="ident">builder</span>, <span class="ident">float</span>.<span class="ident">as_value_ref</span>(), <span class="ident">float_type</span>.<span class="ident">as_type_ref</span>(), <span class="ident">c_string</span>.<span class="ident">as_ptr</span>())
         };
 
-        <span class="ident">T</span>::<span class="ident">new</span>(<span class="ident">value</span>)
+        <span class="ident">T::new</span>(<span class="ident">value</span>)
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">build_float_cast</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">FloatMathValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">float</span>: <span class="ident">T</span>, <span class="ident">float_type</span>: <span class="ident">T</span>::<span class="ident">BaseType</span>, <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">T</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">build_float_cast</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">FloatMathValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">float</span>: <span class="ident">T</span>, <span class="ident">float_type</span>: <span class="ident">T::BaseType</span>, <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">T</span> {
         <span class="kw">let</span> <span class="ident">c_string</span> <span class="op">=</span> <span class="ident">to_c_str</span>(<span class="ident">name</span>);
 
         <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="kw">unsafe</span> {
             <span class="ident">LLVMBuildFPCast</span>(<span class="self">self</span>.<span class="ident">builder</span>, <span class="ident">float</span>.<span class="ident">as_value_ref</span>(), <span class="ident">float_type</span>.<span class="ident">as_type_ref</span>(), <span class="ident">c_string</span>.<span class="ident">as_ptr</span>())
         };
 
-        <span class="ident">T</span>::<span class="ident">new</span>(<span class="ident">value</span>)
+        <span class="ident">T::new</span>(<span class="ident">value</span>)
     }
 
     <span class="comment">// SubType: &lt;L, R&gt;(&amp;self, lhs: &amp;IntValue&lt;L&gt;, rhs: &amp;IntType&lt;R&gt;, name: &amp;str) -&gt; IntValue&lt;R&gt; {</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">build_int_cast</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">IntMathValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">int</span>: <span class="ident">T</span>, <span class="ident">int_type</span>: <span class="ident">T</span>::<span class="ident">BaseType</span>, <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">T</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">build_int_cast</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">IntMathValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">int</span>: <span class="ident">T</span>, <span class="ident">int_type</span>: <span class="ident">T::BaseType</span>, <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">T</span> {
         <span class="kw">let</span> <span class="ident">c_string</span> <span class="op">=</span> <span class="ident">to_c_str</span>(<span class="ident">name</span>);
 
         <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="kw">unsafe</span> {
             <span class="ident">LLVMBuildIntCast</span>(<span class="self">self</span>.<span class="ident">builder</span>, <span class="ident">int</span>.<span class="ident">as_value_ref</span>(), <span class="ident">int_type</span>.<span class="ident">as_type_ref</span>(), <span class="ident">c_string</span>.<span class="ident">as_ptr</span>())
         };
 
-        <span class="ident">T</span>::<span class="ident">new</span>(<span class="ident">value</span>)
+        <span class="ident">T::new</span>(<span class="ident">value</span>)
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">build_float_div</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">FloatMathValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">lhs</span>: <span class="ident">T</span>, <span class="ident">rhs</span>: <span class="ident">T</span>, <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">T</span> {
@@ -2696,7 +2696,7 @@
             <span class="ident">LLVMBuildFDiv</span>(<span class="self">self</span>.<span class="ident">builder</span>, <span class="ident">lhs</span>.<span class="ident">as_value_ref</span>(), <span class="ident">rhs</span>.<span class="ident">as_value_ref</span>(), <span class="ident">c_string</span>.<span class="ident">as_ptr</span>())
         };
 
-        <span class="ident">T</span>::<span class="ident">new</span>(<span class="ident">value</span>)
+        <span class="ident">T::new</span>(<span class="ident">value</span>)
     }
 
     <span class="comment">// SubType: &lt;I&gt;(&amp;self, lhs: &amp;IntValue&lt;I&gt;, rhs: &amp;IntValue&lt;I&gt;, name: &amp;str) -&gt; IntValue&lt;I&gt; {</span>
@@ -2707,7 +2707,7 @@
             <span class="ident">LLVMBuildAdd</span>(<span class="self">self</span>.<span class="ident">builder</span>, <span class="ident">lhs</span>.<span class="ident">as_value_ref</span>(), <span class="ident">rhs</span>.<span class="ident">as_value_ref</span>(), <span class="ident">c_string</span>.<span class="ident">as_ptr</span>())
         };
 
-        <span class="ident">T</span>::<span class="ident">new</span>(<span class="ident">value</span>)
+        <span class="ident">T::new</span>(<span class="ident">value</span>)
     }
 
     <span class="comment">// REVIEW: Possibly incorperate into build_int_add via flag param</span>
@@ -2719,7 +2719,7 @@
             <span class="ident">LLVMBuildNSWAdd</span>(<span class="self">self</span>.<span class="ident">builder</span>, <span class="ident">lhs</span>.<span class="ident">as_value_ref</span>(), <span class="ident">rhs</span>.<span class="ident">as_value_ref</span>(), <span class="ident">c_string</span>.<span class="ident">as_ptr</span>())
         };
 
-        <span class="ident">T</span>::<span class="ident">new</span>(<span class="ident">value</span>)
+        <span class="ident">T::new</span>(<span class="ident">value</span>)
     }
 
     <span class="comment">// REVIEW: Possibly incorperate into build_int_add via flag param</span>
@@ -2731,7 +2731,7 @@
             <span class="ident">LLVMBuildNUWAdd</span>(<span class="self">self</span>.<span class="ident">builder</span>, <span class="ident">lhs</span>.<span class="ident">as_value_ref</span>(), <span class="ident">rhs</span>.<span class="ident">as_value_ref</span>(), <span class="ident">c_string</span>.<span class="ident">as_ptr</span>())
         };
 
-        <span class="ident">T</span>::<span class="ident">new</span>(<span class="ident">value</span>)
+        <span class="ident">T::new</span>(<span class="ident">value</span>)
     }
 
     <span class="comment">// SubType: &lt;F&gt;(&amp;self, lhs: &amp;FloatValue&lt;F&gt;, rhs: &amp;FloatValue&lt;F&gt;, name: &amp;str) -&gt; FloatValue&lt;F&gt; {</span>
@@ -2742,7 +2742,7 @@
             <span class="ident">LLVMBuildFAdd</span>(<span class="self">self</span>.<span class="ident">builder</span>, <span class="ident">lhs</span>.<span class="ident">as_value_ref</span>(), <span class="ident">rhs</span>.<span class="ident">as_value_ref</span>(), <span class="ident">c_string</span>.<span class="ident">as_ptr</span>())
         };
 
-        <span class="ident">T</span>::<span class="ident">new</span>(<span class="ident">value</span>)
+        <span class="ident">T::new</span>(<span class="ident">value</span>)
     }
 
     <span class="comment">// SubType: (&amp;self, lhs: &amp;IntValue&lt;bool&gt;, rhs: &amp;IntValue&lt;bool&gt;, name: &amp;str) -&gt; IntValue&lt;bool&gt; {</span>
@@ -2753,7 +2753,7 @@
             <span class="ident">LLVMBuildXor</span>(<span class="self">self</span>.<span class="ident">builder</span>, <span class="ident">lhs</span>.<span class="ident">as_value_ref</span>(), <span class="ident">rhs</span>.<span class="ident">as_value_ref</span>(), <span class="ident">c_string</span>.<span class="ident">as_ptr</span>())
         };
 
-        <span class="ident">T</span>::<span class="ident">new</span>(<span class="ident">value</span>)
+        <span class="ident">T::new</span>(<span class="ident">value</span>)
     }
 
     <span class="comment">// SubType: (&amp;self, lhs: &amp;IntValue&lt;bool&gt;, rhs: &amp;IntValue&lt;bool&gt;, name: &amp;str) -&gt; IntValue&lt;bool&gt; {</span>
@@ -2764,7 +2764,7 @@
             <span class="ident">LLVMBuildAnd</span>(<span class="self">self</span>.<span class="ident">builder</span>, <span class="ident">lhs</span>.<span class="ident">as_value_ref</span>(), <span class="ident">rhs</span>.<span class="ident">as_value_ref</span>(), <span class="ident">c_string</span>.<span class="ident">as_ptr</span>())
         };
 
-        <span class="ident">T</span>::<span class="ident">new</span>(<span class="ident">value</span>)
+        <span class="ident">T::new</span>(<span class="ident">value</span>)
     }
 
     <span class="comment">// SubType: (&amp;self, lhs: &amp;IntValue&lt;bool&gt;, rhs: &amp;IntValue&lt;bool&gt;, name: &amp;str) -&gt; IntValue&lt;bool&gt; {</span>
@@ -2775,7 +2775,7 @@
             <span class="ident">LLVMBuildOr</span>(<span class="self">self</span>.<span class="ident">builder</span>, <span class="ident">lhs</span>.<span class="ident">as_value_ref</span>(), <span class="ident">rhs</span>.<span class="ident">as_value_ref</span>(), <span class="ident">c_string</span>.<span class="ident">as_ptr</span>())
         };
 
-        <span class="ident">T</span>::<span class="ident">new</span>(<span class="ident">value</span>)
+        <span class="ident">T::new</span>(<span class="ident">value</span>)
     }
 
     <span class="doccomment">/// Builds an `IntValue` containing the result of a logical left shift instruction.</span>
@@ -2828,7 +2828,7 @@
             <span class="ident">LLVMBuildShl</span>(<span class="self">self</span>.<span class="ident">builder</span>, <span class="ident">lhs</span>.<span class="ident">as_value_ref</span>(), <span class="ident">rhs</span>.<span class="ident">as_value_ref</span>(), <span class="ident">c_string</span>.<span class="ident">as_ptr</span>())
         };
 
-        <span class="ident">T</span>::<span class="ident">new</span>(<span class="ident">value</span>)
+        <span class="ident">T::new</span>(<span class="ident">value</span>)
     }
 
     <span class="doccomment">/// Builds an `IntValue` containing the result of a right shift instruction.</span>
@@ -2906,7 +2906,7 @@
             }
         };
 
-        <span class="ident">T</span>::<span class="ident">new</span>(<span class="ident">value</span>)
+        <span class="ident">T::new</span>(<span class="ident">value</span>)
     }
 
     <span class="comment">// SubType: &lt;I&gt;(&amp;self, lhs: &amp;IntValue&lt;I&gt;, rhs: &amp;IntValue&lt;I&gt;, name: &amp;str) -&gt; IntValue&lt;I&gt; {</span>
@@ -2917,7 +2917,7 @@
             <span class="ident">LLVMBuildSub</span>(<span class="self">self</span>.<span class="ident">builder</span>, <span class="ident">lhs</span>.<span class="ident">as_value_ref</span>(), <span class="ident">rhs</span>.<span class="ident">as_value_ref</span>(), <span class="ident">c_string</span>.<span class="ident">as_ptr</span>())
         };
 
-        <span class="ident">T</span>::<span class="ident">new</span>(<span class="ident">value</span>)
+        <span class="ident">T::new</span>(<span class="ident">value</span>)
     }
 
     <span class="comment">// REVIEW: Possibly incorperate into build_int_sub via flag param</span>
@@ -2928,7 +2928,7 @@
             <span class="ident">LLVMBuildNSWSub</span>(<span class="self">self</span>.<span class="ident">builder</span>, <span class="ident">lhs</span>.<span class="ident">as_value_ref</span>(), <span class="ident">rhs</span>.<span class="ident">as_value_ref</span>(), <span class="ident">c_string</span>.<span class="ident">as_ptr</span>())
         };
 
-        <span class="ident">T</span>::<span class="ident">new</span>(<span class="ident">value</span>)
+        <span class="ident">T::new</span>(<span class="ident">value</span>)
     }
 
     <span class="comment">// REVIEW: Possibly incorperate into build_int_sub via flag param</span>
@@ -2940,7 +2940,7 @@
             <span class="ident">LLVMBuildNUWSub</span>(<span class="self">self</span>.<span class="ident">builder</span>, <span class="ident">lhs</span>.<span class="ident">as_value_ref</span>(), <span class="ident">rhs</span>.<span class="ident">as_value_ref</span>(), <span class="ident">c_string</span>.<span class="ident">as_ptr</span>())
         };
 
-        <span class="ident">T</span>::<span class="ident">new</span>(<span class="ident">value</span>)
+        <span class="ident">T::new</span>(<span class="ident">value</span>)
     }
 
     <span class="comment">// SubType: &lt;F&gt;(&amp;self, lhs: &amp;FloatValue&lt;F&gt;, rhs: &amp;FloatValue&lt;F&gt;, name: &amp;str) -&gt; FloatValue&lt;F&gt; {</span>
@@ -2951,7 +2951,7 @@
             <span class="ident">LLVMBuildFSub</span>(<span class="self">self</span>.<span class="ident">builder</span>, <span class="ident">lhs</span>.<span class="ident">as_value_ref</span>(), <span class="ident">rhs</span>.<span class="ident">as_value_ref</span>(), <span class="ident">c_string</span>.<span class="ident">as_ptr</span>())
         };
 
-        <span class="ident">T</span>::<span class="ident">new</span>(<span class="ident">value</span>)
+        <span class="ident">T::new</span>(<span class="ident">value</span>)
     }
 
     <span class="comment">// SubType: &lt;I&gt;(&amp;self, lhs: &amp;IntValue&lt;I&gt;, rhs: &amp;IntValue&lt;I&gt;, name: &amp;str) -&gt; IntValue&lt;I&gt; {</span>
@@ -2962,7 +2962,7 @@
             <span class="ident">LLVMBuildMul</span>(<span class="self">self</span>.<span class="ident">builder</span>, <span class="ident">lhs</span>.<span class="ident">as_value_ref</span>(), <span class="ident">rhs</span>.<span class="ident">as_value_ref</span>(), <span class="ident">c_string</span>.<span class="ident">as_ptr</span>())
         };
 
-        <span class="ident">T</span>::<span class="ident">new</span>(<span class="ident">value</span>)
+        <span class="ident">T::new</span>(<span class="ident">value</span>)
     }
 
     <span class="comment">// REVIEW: Possibly incorperate into build_int_mul via flag param</span>
@@ -2974,7 +2974,7 @@
             <span class="ident">LLVMBuildNSWMul</span>(<span class="self">self</span>.<span class="ident">builder</span>, <span class="ident">lhs</span>.<span class="ident">as_value_ref</span>(), <span class="ident">rhs</span>.<span class="ident">as_value_ref</span>(), <span class="ident">c_string</span>.<span class="ident">as_ptr</span>())
         };
 
-        <span class="ident">T</span>::<span class="ident">new</span>(<span class="ident">value</span>)
+        <span class="ident">T::new</span>(<span class="ident">value</span>)
     }
 
     <span class="comment">// REVIEW: Possibly incorperate into build_int_mul via flag param</span>
@@ -2986,7 +2986,7 @@
             <span class="ident">LLVMBuildNUWMul</span>(<span class="self">self</span>.<span class="ident">builder</span>, <span class="ident">lhs</span>.<span class="ident">as_value_ref</span>(), <span class="ident">rhs</span>.<span class="ident">as_value_ref</span>(), <span class="ident">c_string</span>.<span class="ident">as_ptr</span>())
         };
 
-        <span class="ident">T</span>::<span class="ident">new</span>(<span class="ident">value</span>)
+        <span class="ident">T::new</span>(<span class="ident">value</span>)
     }
 
     <span class="comment">// SubType: &lt;F&gt;(&amp;self, lhs: &amp;FloatValue&lt;F&gt;, rhs: &amp;FloatValue&lt;F&gt;, name: &amp;str) -&gt; FloatValue&lt;F&gt; {</span>
@@ -2997,7 +2997,7 @@
             <span class="ident">LLVMBuildFMul</span>(<span class="self">self</span>.<span class="ident">builder</span>, <span class="ident">lhs</span>.<span class="ident">as_value_ref</span>(), <span class="ident">rhs</span>.<span class="ident">as_value_ref</span>(), <span class="ident">c_string</span>.<span class="ident">as_ptr</span>())
         };
 
-        <span class="ident">T</span>::<span class="ident">new</span>(<span class="ident">value</span>)
+        <span class="ident">T::new</span>(<span class="ident">value</span>)
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">build_cast</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">BasicType</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span>, <span class="ident">V</span>: <span class="ident">BasicValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span><span class="op">&gt;</span>(
@@ -3013,18 +3013,18 @@
             <span class="ident">LLVMBuildCast</span>(<span class="self">self</span>.<span class="ident">builder</span>, <span class="ident">op</span>.<span class="ident">into</span>(), <span class="ident">from_value</span>.<span class="ident">as_value_ref</span>(), <span class="ident">to_type</span>.<span class="ident">as_type_ref</span>(), <span class="ident">c_string</span>.<span class="ident">as_ptr</span>())
         };
 
-        <span class="ident">BasicValueEnum</span>::<span class="ident">new</span>(<span class="ident">value</span>)
+        <span class="ident">BasicValueEnum::new</span>(<span class="ident">value</span>)
     }
 
     <span class="comment">// SubType: &lt;F, T&gt;(&amp;self, from: &amp;PointerValue&lt;F&gt;, to: &amp;PointerType&lt;T&gt;, name: &amp;str) -&gt; PointerValue&lt;T&gt; {</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">build_pointer_cast</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">PointerMathValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">from</span>: <span class="ident">T</span>, <span class="ident">to</span>: <span class="ident">T</span>::<span class="ident">BaseType</span>, <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">T</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">build_pointer_cast</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">PointerMathValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">from</span>: <span class="ident">T</span>, <span class="ident">to</span>: <span class="ident">T::BaseType</span>, <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">T</span> {
         <span class="kw">let</span> <span class="ident">c_string</span> <span class="op">=</span> <span class="ident">to_c_str</span>(<span class="ident">name</span>);
 
         <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="kw">unsafe</span> {
             <span class="ident">LLVMBuildPointerCast</span>(<span class="self">self</span>.<span class="ident">builder</span>, <span class="ident">from</span>.<span class="ident">as_value_ref</span>(), <span class="ident">to</span>.<span class="ident">as_type_ref</span>(), <span class="ident">c_string</span>.<span class="ident">as_ptr</span>())
         };
 
-        <span class="ident">T</span>::<span class="ident">new</span>(<span class="ident">value</span>)
+        <span class="ident">T::new</span>(<span class="ident">value</span>)
     }
 
     <span class="comment">// SubType: &lt;I&gt;(&amp;self, op, lhs: &amp;IntValue&lt;I&gt;, rhs: &amp;IntValue&lt;I&gt;, name) -&gt; IntValue&lt;bool&gt; { ?</span>
@@ -3038,7 +3038,7 @@
             <span class="ident">LLVMBuildICmp</span>(<span class="self">self</span>.<span class="ident">builder</span>, <span class="ident">op</span>.<span class="ident">into</span>(), <span class="ident">lhs</span>.<span class="ident">as_value_ref</span>(), <span class="ident">rhs</span>.<span class="ident">as_value_ref</span>(), <span class="ident">c_string</span>.<span class="ident">as_ptr</span>())
         };
 
-        <span class="ident">T</span>::<span class="ident">new</span>(<span class="ident">value</span>)
+        <span class="ident">T::new</span>(<span class="ident">value</span>)
     }
 
     <span class="comment">// SubType: &lt;F&gt;(&amp;self, op, lhs: &amp;FloatValue&lt;F&gt;, rhs: &amp;FloatValue&lt;F&gt;, name) -&gt; IntValue&lt;bool&gt; { ?</span>
@@ -3049,14 +3049,14 @@
         <span class="ident">lhs</span>: <span class="ident">T</span>,
         <span class="ident">rhs</span>: <span class="ident">T</span>,
         <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="op">&lt;</span><span class="op">&lt;</span><span class="ident">T</span>::<span class="ident">BaseType</span> <span class="kw">as</span> <span class="ident">FloatMathType</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span><span class="op">&gt;</span>::<span class="ident">MathConvType</span> <span class="kw">as</span> <span class="ident">IntMathType</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span><span class="op">&gt;</span>::<span class="ident">ValueType</span> {
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="op">&lt;</span><span class="op">&lt;</span><span class="ident">T::BaseType</span> <span class="kw">as</span> <span class="ident">FloatMathType</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::MathConvType</span> <span class="kw">as</span> <span class="ident">IntMathType</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::ValueType</span> {
         <span class="kw">let</span> <span class="ident">c_string</span> <span class="op">=</span> <span class="ident">to_c_str</span>(<span class="ident">name</span>);
 
         <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="kw">unsafe</span> {
             <span class="ident">LLVMBuildFCmp</span>(<span class="self">self</span>.<span class="ident">builder</span>, <span class="ident">op</span>.<span class="ident">into</span>(), <span class="ident">lhs</span>.<span class="ident">as_value_ref</span>(), <span class="ident">rhs</span>.<span class="ident">as_value_ref</span>(), <span class="ident">c_string</span>.<span class="ident">as_ptr</span>())
         };
 
-        <span class="op">&lt;</span><span class="op">&lt;</span><span class="ident">T</span>::<span class="ident">BaseType</span> <span class="kw">as</span> <span class="ident">FloatMathType</span><span class="op">&gt;</span>::<span class="ident">MathConvType</span> <span class="kw">as</span> <span class="ident">IntMathType</span><span class="op">&gt;</span>::<span class="ident">ValueType</span>::<span class="ident">new</span>(<span class="ident">value</span>)
+        <span class="op">&lt;</span><span class="op">&lt;</span><span class="ident">T::BaseType</span> <span class="kw">as</span> <span class="ident">FloatMathType</span><span class="op">&gt;</span><span class="ident">::MathConvType</span> <span class="kw">as</span> <span class="ident">IntMathType</span><span class="op">&gt;</span><span class="ident">::ValueType::new</span>(<span class="ident">value</span>)
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">build_unconditional_branch</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">destination_block</span>: <span class="ident">BasicBlock</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">InstructionValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> {
@@ -3064,7 +3064,7 @@
             <span class="ident">LLVMBuildBr</span>(<span class="self">self</span>.<span class="ident">builder</span>, <span class="ident">destination_block</span>.<span class="ident">basic_block</span>)
         };
 
-        <span class="ident">InstructionValue</span>::<span class="ident">new</span>(<span class="ident">value</span>)
+        <span class="ident">InstructionValue::new</span>(<span class="ident">value</span>)
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">build_conditional_branch</span>(
@@ -3077,7 +3077,7 @@
             <span class="ident">LLVMBuildCondBr</span>(<span class="self">self</span>.<span class="ident">builder</span>, <span class="ident">comparison</span>.<span class="ident">as_value_ref</span>(), <span class="ident">then_block</span>.<span class="ident">basic_block</span>, <span class="ident">else_block</span>.<span class="ident">basic_block</span>)
         };
 
-        <span class="ident">InstructionValue</span>::<span class="ident">new</span>(<span class="ident">value</span>)
+        <span class="ident">InstructionValue::new</span>(<span class="ident">value</span>)
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">build_indirect_branch</span><span class="op">&lt;</span><span class="ident">BV</span>: <span class="ident">BasicValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span><span class="op">&gt;</span>(
@@ -3095,7 +3095,7 @@
             }
         }
 
-        <span class="ident">InstructionValue</span>::<span class="ident">new</span>(<span class="ident">value</span>)
+        <span class="ident">InstructionValue::new</span>(<span class="ident">value</span>)
     }
 
     <span class="comment">// SubType: &lt;I&gt;(&amp;self, value: &amp;IntValue&lt;I&gt;, name) -&gt; IntValue&lt;I&gt; {</span>
@@ -3106,7 +3106,7 @@
             <span class="ident">LLVMBuildNeg</span>(<span class="self">self</span>.<span class="ident">builder</span>, <span class="ident">value</span>.<span class="ident">as_value_ref</span>(), <span class="ident">c_string</span>.<span class="ident">as_ptr</span>())
         };
 
-        <span class="ident">T</span>::<span class="ident">new</span>(<span class="ident">value</span>)
+        <span class="ident">T::new</span>(<span class="ident">value</span>)
     }
 
     <span class="comment">// REVIEW: Possibly incorperate into build_int_neg via flag and subtypes</span>
@@ -3118,7 +3118,7 @@
             <span class="ident">LLVMBuildNSWNeg</span>(<span class="self">self</span>.<span class="ident">builder</span>, <span class="ident">value</span>.<span class="ident">as_value_ref</span>(), <span class="ident">c_string</span>.<span class="ident">as_ptr</span>())
         };
 
-        <span class="ident">T</span>::<span class="ident">new</span>(<span class="ident">value</span>)
+        <span class="ident">T::new</span>(<span class="ident">value</span>)
     }
 
     <span class="comment">// SubType: &lt;I&gt;(&amp;self, value: &amp;IntValue&lt;I&gt;, name) -&gt; IntValue&lt;I&gt; {</span>
@@ -3129,7 +3129,7 @@
             <span class="ident">LLVMBuildNUWNeg</span>(<span class="self">self</span>.<span class="ident">builder</span>, <span class="ident">value</span>.<span class="ident">as_value_ref</span>(), <span class="ident">c_string</span>.<span class="ident">as_ptr</span>())
         };
 
-        <span class="ident">T</span>::<span class="ident">new</span>(<span class="ident">value</span>)
+        <span class="ident">T::new</span>(<span class="ident">value</span>)
     }
 
     <span class="comment">// SubType: &lt;F&gt;(&amp;self, value: &amp;FloatValue&lt;F&gt;, name) -&gt; FloatValue&lt;F&gt; {</span>
@@ -3140,7 +3140,7 @@
             <span class="ident">LLVMBuildFNeg</span>(<span class="self">self</span>.<span class="ident">builder</span>, <span class="ident">value</span>.<span class="ident">as_value_ref</span>(), <span class="ident">c_string</span>.<span class="ident">as_ptr</span>())
         };
 
-        <span class="ident">T</span>::<span class="ident">new</span>(<span class="ident">value</span>)
+        <span class="ident">T::new</span>(<span class="ident">value</span>)
     }
 
     <span class="comment">// SubType: &lt;I&gt;(&amp;self, value: &amp;IntValue&lt;I&gt;, name) -&gt; IntValue&lt;bool&gt; { ?</span>
@@ -3151,7 +3151,7 @@
             <span class="ident">LLVMBuildNot</span>(<span class="self">self</span>.<span class="ident">builder</span>, <span class="ident">value</span>.<span class="ident">as_value_ref</span>(), <span class="ident">c_string</span>.<span class="ident">as_ptr</span>())
         };
 
-        <span class="ident">T</span>::<span class="ident">new</span>(<span class="ident">value</span>)
+        <span class="ident">T::new</span>(<span class="ident">value</span>)
     }
 
     <span class="comment">// REVIEW: What if instruction and basic_block are completely unrelated?</span>
@@ -3219,8 +3219,8 @@
         <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">BasicValueEnum</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">size</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">agg</span>.<span class="ident">as_aggregate_value_enum</span>() {
-            <span class="ident">AggregateValueEnum</span>::<span class="ident">ArrayValue</span>(<span class="ident">av</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">av</span>.<span class="ident">get_type</span>().<span class="ident">len</span>(),
-            <span class="ident">AggregateValueEnum</span>::<span class="ident">StructValue</span>(<span class="ident">sv</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">sv</span>.<span class="ident">get_type</span>().<span class="ident">count_fields</span>(),
+            <span class="ident">AggregateValueEnum::ArrayValue</span>(<span class="ident">av</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">av</span>.<span class="ident">get_type</span>().<span class="ident">len</span>(),
+            <span class="ident">AggregateValueEnum::StructValue</span>(<span class="ident">sv</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">sv</span>.<span class="ident">get_type</span>().<span class="ident">count_fields</span>(),
         };
 
         <span class="kw">if</span> <span class="ident">index</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">size</span> {
@@ -3233,7 +3233,7 @@
             <span class="ident">LLVMBuildExtractValue</span>(<span class="self">self</span>.<span class="ident">builder</span>, <span class="ident">agg</span>.<span class="ident">as_value_ref</span>(), <span class="ident">index</span>, <span class="ident">c_string</span>.<span class="ident">as_ptr</span>())
         };
 
-        <span class="prelude-val">Some</span>(<span class="ident">BasicValueEnum</span>::<span class="ident">new</span>(<span class="ident">value</span>))
+        <span class="prelude-val">Some</span>(<span class="ident">BasicValueEnum::new</span>(<span class="ident">value</span>))
     }
 
     <span class="doccomment">/// Builds an insert value instruction which inserts a `BasicValue` into a struct</span>
@@ -3275,8 +3275,8 @@
         <span class="ident">BV</span>: <span class="ident">BasicValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span>,
     {
         <span class="kw">let</span> <span class="ident">size</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">agg</span>.<span class="ident">as_aggregate_value_enum</span>() {
-            <span class="ident">AggregateValueEnum</span>::<span class="ident">ArrayValue</span>(<span class="ident">av</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">av</span>.<span class="ident">get_type</span>().<span class="ident">len</span>(),
-            <span class="ident">AggregateValueEnum</span>::<span class="ident">StructValue</span>(<span class="ident">sv</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">sv</span>.<span class="ident">get_type</span>().<span class="ident">count_fields</span>(),
+            <span class="ident">AggregateValueEnum::ArrayValue</span>(<span class="ident">av</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">av</span>.<span class="ident">get_type</span>().<span class="ident">len</span>(),
+            <span class="ident">AggregateValueEnum::StructValue</span>(<span class="ident">sv</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">sv</span>.<span class="ident">get_type</span>().<span class="ident">count_fields</span>(),
         };
 
         <span class="kw">if</span> <span class="ident">index</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">size</span> {
@@ -3289,7 +3289,7 @@
             <span class="ident">LLVMBuildInsertValue</span>(<span class="self">self</span>.<span class="ident">builder</span>, <span class="ident">agg</span>.<span class="ident">as_value_ref</span>(), <span class="ident">value</span>.<span class="ident">as_value_ref</span>(), <span class="ident">index</span>, <span class="ident">c_string</span>.<span class="ident">as_ptr</span>())
         };
 
-        <span class="prelude-val">Some</span>(<span class="ident">AggregateValueEnum</span>::<span class="ident">new</span>(<span class="ident">value</span>))
+        <span class="prelude-val">Some</span>(<span class="ident">AggregateValueEnum::new</span>(<span class="ident">value</span>))
     }
 
     <span class="doccomment">/// Builds an extract element instruction which extracts a `BasicValueEnum`</span>
@@ -3323,7 +3323,7 @@
             <span class="ident">LLVMBuildExtractElement</span>(<span class="self">self</span>.<span class="ident">builder</span>, <span class="ident">vector</span>.<span class="ident">as_value_ref</span>(), <span class="ident">index</span>.<span class="ident">as_value_ref</span>(), <span class="ident">c_string</span>.<span class="ident">as_ptr</span>())
         };
 
-        <span class="ident">BasicValueEnum</span>::<span class="ident">new</span>(<span class="ident">value</span>)
+        <span class="ident">BasicValueEnum::new</span>(<span class="ident">value</span>)
     }
 
     <span class="doccomment">/// Builds an insert element instruction which inserts a `BasicValue` into a vector</span>
@@ -3364,7 +3364,7 @@
             <span class="ident">LLVMBuildInsertElement</span>(<span class="self">self</span>.<span class="ident">builder</span>, <span class="ident">vector</span>.<span class="ident">as_value_ref</span>(), <span class="ident">element</span>.<span class="ident">as_value_ref</span>(), <span class="ident">index</span>.<span class="ident">as_value_ref</span>(), <span class="ident">c_string</span>.<span class="ident">as_ptr</span>())
         };
 
-        <span class="ident">VectorValue</span>::<span class="ident">new</span>(<span class="ident">value</span>)
+        <span class="ident">VectorValue::new</span>(<span class="ident">value</span>)
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">build_unreachable</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">InstructionValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> {
@@ -3372,7 +3372,7 @@
             <span class="ident">LLVMBuildUnreachable</span>(<span class="self">self</span>.<span class="ident">builder</span>)
         };
 
-        <span class="ident">InstructionValue</span>::<span class="ident">new</span>(<span class="ident">val</span>)
+        <span class="ident">InstructionValue::new</span>(<span class="ident">val</span>)
     }
 
     <span class="comment">// REVIEW: Not sure if this should return InstructionValue or an actual value</span>
@@ -3384,56 +3384,56 @@
             <span class="ident">LLVMBuildFence</span>(<span class="self">self</span>.<span class="ident">builder</span>, <span class="ident">atomic_ordering</span>.<span class="ident">into</span>(), <span class="ident">num</span>, <span class="ident">c_string</span>.<span class="ident">as_ptr</span>())
         };
 
-        <span class="ident">InstructionValue</span>::<span class="ident">new</span>(<span class="ident">val</span>)
+        <span class="ident">InstructionValue::new</span>(<span class="ident">val</span>)
     }
 
     <span class="comment">// SubType: &lt;P&gt;(&amp;self, ptr: &amp;PointerValue&lt;P&gt;, name) -&gt; IntValue&lt;bool&gt; {</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">build_is_null</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">PointerMathValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">ptr</span>: <span class="ident">T</span>, <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="op">&lt;</span><span class="op">&lt;</span><span class="ident">T</span>::<span class="ident">BaseType</span> <span class="kw">as</span> <span class="ident">PointerMathType</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span><span class="op">&gt;</span>::<span class="ident">PtrConvType</span> <span class="kw">as</span> <span class="ident">IntMathType</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span><span class="op">&gt;</span>::<span class="ident">ValueType</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">build_is_null</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">PointerMathValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">ptr</span>: <span class="ident">T</span>, <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="op">&lt;</span><span class="op">&lt;</span><span class="ident">T::BaseType</span> <span class="kw">as</span> <span class="ident">PointerMathType</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::PtrConvType</span> <span class="kw">as</span> <span class="ident">IntMathType</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::ValueType</span> {
         <span class="kw">let</span> <span class="ident">c_string</span> <span class="op">=</span> <span class="ident">to_c_str</span>(<span class="ident">name</span>);
 
         <span class="kw">let</span> <span class="ident">val</span> <span class="op">=</span> <span class="kw">unsafe</span> {
             <span class="ident">LLVMBuildIsNull</span>(<span class="self">self</span>.<span class="ident">builder</span>, <span class="ident">ptr</span>.<span class="ident">as_value_ref</span>(), <span class="ident">c_string</span>.<span class="ident">as_ptr</span>())
         };
 
-        <span class="op">&lt;</span><span class="op">&lt;</span><span class="ident">T</span>::<span class="ident">BaseType</span> <span class="kw">as</span> <span class="ident">PointerMathType</span><span class="op">&gt;</span>::<span class="ident">PtrConvType</span> <span class="kw">as</span> <span class="ident">IntMathType</span><span class="op">&gt;</span>::<span class="ident">ValueType</span>::<span class="ident">new</span>(<span class="ident">val</span>)
+        <span class="op">&lt;</span><span class="op">&lt;</span><span class="ident">T::BaseType</span> <span class="kw">as</span> <span class="ident">PointerMathType</span><span class="op">&gt;</span><span class="ident">::PtrConvType</span> <span class="kw">as</span> <span class="ident">IntMathType</span><span class="op">&gt;</span><span class="ident">::ValueType::new</span>(<span class="ident">val</span>)
     }
 
     <span class="comment">// SubType: &lt;P&gt;(&amp;self, ptr: &amp;PointerValue&lt;P&gt;, name) -&gt; IntValue&lt;bool&gt; {</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">build_is_not_null</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">PointerMathValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">ptr</span>: <span class="ident">T</span>, <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="op">&lt;</span><span class="op">&lt;</span><span class="ident">T</span>::<span class="ident">BaseType</span> <span class="kw">as</span> <span class="ident">PointerMathType</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span><span class="op">&gt;</span>::<span class="ident">PtrConvType</span> <span class="kw">as</span> <span class="ident">IntMathType</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span><span class="op">&gt;</span>::<span class="ident">ValueType</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">build_is_not_null</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">PointerMathValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">ptr</span>: <span class="ident">T</span>, <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="op">&lt;</span><span class="op">&lt;</span><span class="ident">T::BaseType</span> <span class="kw">as</span> <span class="ident">PointerMathType</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::PtrConvType</span> <span class="kw">as</span> <span class="ident">IntMathType</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::ValueType</span> {
         <span class="kw">let</span> <span class="ident">c_string</span> <span class="op">=</span> <span class="ident">to_c_str</span>(<span class="ident">name</span>);
 
         <span class="kw">let</span> <span class="ident">val</span> <span class="op">=</span> <span class="kw">unsafe</span> {
             <span class="ident">LLVMBuildIsNotNull</span>(<span class="self">self</span>.<span class="ident">builder</span>, <span class="ident">ptr</span>.<span class="ident">as_value_ref</span>(), <span class="ident">c_string</span>.<span class="ident">as_ptr</span>())
         };
 
-        <span class="op">&lt;</span><span class="op">&lt;</span><span class="ident">T</span>::<span class="ident">BaseType</span> <span class="kw">as</span> <span class="ident">PointerMathType</span><span class="op">&gt;</span>::<span class="ident">PtrConvType</span> <span class="kw">as</span> <span class="ident">IntMathType</span><span class="op">&gt;</span>::<span class="ident">ValueType</span>::<span class="ident">new</span>(<span class="ident">val</span>)
+        <span class="op">&lt;</span><span class="op">&lt;</span><span class="ident">T::BaseType</span> <span class="kw">as</span> <span class="ident">PointerMathType</span><span class="op">&gt;</span><span class="ident">::PtrConvType</span> <span class="kw">as</span> <span class="ident">IntMathType</span><span class="op">&gt;</span><span class="ident">::ValueType::new</span>(<span class="ident">val</span>)
     }
 
     <span class="comment">// SubType: &lt;I, P&gt;(&amp;self, int: &amp;IntValue&lt;I&gt;, ptr_type: &amp;PointerType&lt;P&gt;, name) -&gt; PointerValue&lt;P&gt; {</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">build_int_to_ptr</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">IntMathValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">int</span>: <span class="ident">T</span>, <span class="ident">ptr_type</span>: <span class="op">&lt;</span><span class="ident">T</span>::<span class="ident">BaseType</span> <span class="kw">as</span> <span class="ident">IntMathType</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span><span class="op">&gt;</span>::<span class="ident">PtrConvType</span>, <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="op">&lt;</span><span class="op">&lt;</span><span class="ident">T</span>::<span class="ident">BaseType</span> <span class="kw">as</span> <span class="ident">IntMathType</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span><span class="op">&gt;</span>::<span class="ident">PtrConvType</span> <span class="kw">as</span> <span class="ident">PointerMathType</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span><span class="op">&gt;</span>::<span class="ident">ValueType</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">build_int_to_ptr</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">IntMathValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">int</span>: <span class="ident">T</span>, <span class="ident">ptr_type</span>: <span class="op">&lt;</span><span class="ident">T::BaseType</span> <span class="kw">as</span> <span class="ident">IntMathType</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::PtrConvType</span>, <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="op">&lt;</span><span class="op">&lt;</span><span class="ident">T::BaseType</span> <span class="kw">as</span> <span class="ident">IntMathType</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::PtrConvType</span> <span class="kw">as</span> <span class="ident">PointerMathType</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::ValueType</span> {
         <span class="kw">let</span> <span class="ident">c_string</span> <span class="op">=</span> <span class="ident">to_c_str</span>(<span class="ident">name</span>);
 
         <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="kw">unsafe</span> {
             <span class="ident">LLVMBuildIntToPtr</span>(<span class="self">self</span>.<span class="ident">builder</span>, <span class="ident">int</span>.<span class="ident">as_value_ref</span>(), <span class="ident">ptr_type</span>.<span class="ident">as_type_ref</span>(), <span class="ident">c_string</span>.<span class="ident">as_ptr</span>())
         };
 
-        <span class="op">&lt;</span><span class="op">&lt;</span><span class="ident">T</span>::<span class="ident">BaseType</span> <span class="kw">as</span> <span class="ident">IntMathType</span><span class="op">&gt;</span>::<span class="ident">PtrConvType</span> <span class="kw">as</span> <span class="ident">PointerMathType</span><span class="op">&gt;</span>::<span class="ident">ValueType</span>::<span class="ident">new</span>(<span class="ident">value</span>)
+        <span class="op">&lt;</span><span class="op">&lt;</span><span class="ident">T::BaseType</span> <span class="kw">as</span> <span class="ident">IntMathType</span><span class="op">&gt;</span><span class="ident">::PtrConvType</span> <span class="kw">as</span> <span class="ident">PointerMathType</span><span class="op">&gt;</span><span class="ident">::ValueType::new</span>(<span class="ident">value</span>)
     }
 
     <span class="comment">// SubType: &lt;I, P&gt;(&amp;self, ptr: &amp;PointerValue&lt;P&gt;, int_type: &amp;IntType&lt;I&gt;, name) -&gt; IntValue&lt;I&gt; {</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">build_ptr_to_int</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">PointerMathValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span><span class="op">&gt;</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">ptr</span>: <span class="ident">T</span>,
-        <span class="ident">int_type</span>: <span class="op">&lt;</span><span class="ident">T</span>::<span class="ident">BaseType</span> <span class="kw">as</span> <span class="ident">PointerMathType</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span><span class="op">&gt;</span>::<span class="ident">PtrConvType</span>,
+        <span class="ident">int_type</span>: <span class="op">&lt;</span><span class="ident">T::BaseType</span> <span class="kw">as</span> <span class="ident">PointerMathType</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::PtrConvType</span>,
         <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="op">&lt;</span><span class="op">&lt;</span><span class="ident">T</span>::<span class="ident">BaseType</span> <span class="kw">as</span> <span class="ident">PointerMathType</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span><span class="op">&gt;</span>::<span class="ident">PtrConvType</span> <span class="kw">as</span> <span class="ident">IntMathType</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span><span class="op">&gt;</span>::<span class="ident">ValueType</span> {
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="op">&lt;</span><span class="op">&lt;</span><span class="ident">T::BaseType</span> <span class="kw">as</span> <span class="ident">PointerMathType</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::PtrConvType</span> <span class="kw">as</span> <span class="ident">IntMathType</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::ValueType</span> {
         <span class="kw">let</span> <span class="ident">c_string</span> <span class="op">=</span> <span class="ident">to_c_str</span>(<span class="ident">name</span>);
 
         <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="kw">unsafe</span> {
             <span class="ident">LLVMBuildPtrToInt</span>(<span class="self">self</span>.<span class="ident">builder</span>, <span class="ident">ptr</span>.<span class="ident">as_value_ref</span>(), <span class="ident">int_type</span>.<span class="ident">as_type_ref</span>(), <span class="ident">c_string</span>.<span class="ident">as_ptr</span>())
         };
 
-        <span class="op">&lt;</span><span class="op">&lt;</span><span class="ident">T</span>::<span class="ident">BaseType</span> <span class="kw">as</span> <span class="ident">PointerMathType</span><span class="op">&gt;</span>::<span class="ident">PtrConvType</span> <span class="kw">as</span> <span class="ident">IntMathType</span><span class="op">&gt;</span>::<span class="ident">ValueType</span>::<span class="ident">new</span>(<span class="ident">value</span>)
+        <span class="op">&lt;</span><span class="op">&lt;</span><span class="ident">T::BaseType</span> <span class="kw">as</span> <span class="ident">PointerMathType</span><span class="op">&gt;</span><span class="ident">::PtrConvType</span> <span class="kw">as</span> <span class="ident">IntMathType</span><span class="op">&gt;</span><span class="ident">::ValueType::new</span>(<span class="ident">value</span>)
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">clear_insertion_position</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) {
@@ -3456,7 +3456,7 @@
             }
         }
 
-        <span class="ident">InstructionValue</span>::<span class="ident">new</span>(<span class="ident">switch_value</span>)
+        <span class="ident">InstructionValue::new</span>(<span class="ident">switch_value</span>)
     }
 
     <span class="comment">// SubTypes: condition can only be IntValue&lt;bool&gt; or VectorValue&lt;IntValue&lt;Bool&gt;&gt;</span>
@@ -3466,7 +3466,7 @@
             <span class="ident">LLVMBuildSelect</span>(<span class="self">self</span>.<span class="ident">builder</span>, <span class="ident">condition</span>.<span class="ident">as_value_ref</span>(), <span class="ident">then</span>.<span class="ident">as_value_ref</span>(), <span class="ident">else_</span>.<span class="ident">as_value_ref</span>(), <span class="ident">c_string</span>.<span class="ident">as_ptr</span>())
         };
 
-        <span class="ident">BasicValueEnum</span>::<span class="ident">new</span>(<span class="ident">value</span>)
+        <span class="ident">BasicValueEnum::new</span>(<span class="ident">value</span>)
     }
 
     <span class="comment">// The unsafety of this function should be fixable with subtypes. See GH #32</span>
@@ -3475,7 +3475,7 @@
         <span class="kw">let</span> <span class="ident">c_string_name</span> <span class="op">=</span> <span class="ident">to_c_str</span>(<span class="ident">name</span>);
         <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">LLVMBuildGlobalString</span>(<span class="self">self</span>.<span class="ident">builder</span>, <span class="ident">c_string_value</span>.<span class="ident">as_ptr</span>(), <span class="ident">c_string_name</span>.<span class="ident">as_ptr</span>());
 
-        <span class="ident">GlobalValue</span>::<span class="ident">new</span>(<span class="ident">value</span>)
+        <span class="ident">GlobalValue::new</span>(<span class="ident">value</span>)
     }
 
     <span class="comment">// REVIEW: Does this similar fn have the same issue build_global_string does? If so, mark as unsafe</span>
@@ -3487,7 +3487,7 @@
             <span class="ident">LLVMBuildGlobalStringPtr</span>(<span class="self">self</span>.<span class="ident">builder</span>, <span class="ident">c_string_value</span>.<span class="ident">as_ptr</span>(), <span class="ident">c_string_name</span>.<span class="ident">as_ptr</span>())
         };
 
-        <span class="ident">GlobalValue</span>::<span class="ident">new</span>(<span class="ident">value</span>)
+        <span class="ident">GlobalValue::new</span>(<span class="ident">value</span>)
     }
 
     <span class="comment">// REVIEW: Do we need to constrain types here? subtypes?</span>
@@ -3497,7 +3497,7 @@
             <span class="ident">LLVMBuildShuffleVector</span>(<span class="self">self</span>.<span class="ident">builder</span>, <span class="ident">left</span>.<span class="ident">as_value_ref</span>(), <span class="ident">right</span>.<span class="ident">as_value_ref</span>(), <span class="ident">mask</span>.<span class="ident">as_value_ref</span>(), <span class="ident">c_string</span>.<span class="ident">as_ptr</span>())
         };
 
-        <span class="ident">VectorValue</span>::<span class="ident">new</span>(<span class="ident">value</span>)
+        <span class="ident">VectorValue::new</span>(<span class="ident">value</span>)
     }
 
     <span class="comment">// REVIEW: Is return type correct?</span>
@@ -3510,7 +3510,7 @@
             <span class="ident">LLVMBuildVAArg</span>(<span class="self">self</span>.<span class="ident">builder</span>, <span class="ident">list</span>.<span class="ident">as_value_ref</span>(), <span class="ident">type_</span>.<span class="ident">as_type_ref</span>(), <span class="ident">c_string</span>.<span class="ident">as_ptr</span>())
         };
 
-        <span class="ident">BasicValueEnum</span>::<span class="ident">new</span>(<span class="ident">value</span>)
+        <span class="ident">BasicValueEnum::new</span>(<span class="ident">value</span>)
     }
 
     <span class="doccomment">/// Builds an atomicrmw instruction. It allows you to atomically modify memory.</span>
@@ -3558,7 +3558,7 @@
             <span class="ident">LLVMBuildAtomicRMW</span>(<span class="self">self</span>.<span class="ident">builder</span>, <span class="ident">op</span>.<span class="ident">into</span>(), <span class="ident">ptr</span>.<span class="ident">as_value_ref</span>(), <span class="ident">value</span>.<span class="ident">as_value_ref</span>(), <span class="ident">ordering</span>.<span class="ident">into</span>(), <span class="bool-val">false</span> <span class="kw">as</span> <span class="ident">i32</span>)
         };
 
-        <span class="prelude-val">Ok</span>(<span class="ident">IntValue</span>::<span class="ident">new</span>(<span class="ident">val</span>))
+        <span class="prelude-val">Ok</span>(<span class="ident">IntValue::new</span>(<span class="ident">val</span>))
     }
 
     <span class="doccomment">/// Builds a cmpxchg instruction. It allows you to atomically compare and replace memory.</span>
@@ -3607,13 +3607,13 @@
         }
 
         <span class="comment">// &quot;Both ordering parameters must be at least monotonic, the ordering constraint on failure must be no stronger than that on success, and the failure ordering cannot be either release or acq_rel.&quot; -- https://llvm.org/docs/LangRef.html#cmpxchg-instruction</span>
-        <span class="kw">if</span> <span class="ident">success</span> <span class="op">&lt;</span> <span class="ident">AtomicOrdering</span>::<span class="ident">Monotonic</span> <span class="op">|</span><span class="op">|</span> <span class="ident">failure</span> <span class="op">&lt;</span> <span class="ident">AtomicOrdering</span>::<span class="ident">Monotonic</span> {
+        <span class="kw">if</span> <span class="ident">success</span> <span class="op">&lt;</span> <span class="ident">AtomicOrdering::Monotonic</span> <span class="op">|</span><span class="op">|</span> <span class="ident">failure</span> <span class="op">&lt;</span> <span class="ident">AtomicOrdering::Monotonic</span> {
             <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="string">&quot;Both success and failure orderings must be Monotonic or stronger.&quot;</span>);
         }
         <span class="kw">if</span> <span class="ident">failure</span> <span class="op">&gt;</span> <span class="ident">success</span> {
             <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="string">&quot;The failure ordering may not be stronger than the success ordering.&quot;</span>);
         }
-        <span class="kw">if</span> <span class="ident">failure</span> <span class="op">=</span><span class="op">=</span> <span class="ident">AtomicOrdering</span>::<span class="ident">Release</span> <span class="op">|</span><span class="op">|</span> <span class="ident">failure</span> <span class="op">=</span><span class="op">=</span> <span class="ident">AtomicOrdering</span>::<span class="ident">AcquireRelease</span> {
+        <span class="kw">if</span> <span class="ident">failure</span> <span class="op">=</span><span class="op">=</span> <span class="ident">AtomicOrdering::Release</span> <span class="op">|</span><span class="op">|</span> <span class="ident">failure</span> <span class="op">=</span><span class="op">=</span> <span class="ident">AtomicOrdering::AcquireRelease</span> {
             <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="string">&quot;The failure ordering may not be release or acquire release.&quot;</span>);
         }
 
@@ -3621,18 +3621,18 @@
             <span class="ident">LLVMBuildAtomicCmpXchg</span>(<span class="self">self</span>.<span class="ident">builder</span>, <span class="ident">ptr</span>.<span class="ident">as_value_ref</span>(), <span class="ident">cmp</span>.<span class="ident">as_value_ref</span>(), <span class="ident">new</span>.<span class="ident">as_value_ref</span>(), <span class="ident">success</span>.<span class="ident">into</span>(), <span class="ident">failure</span>.<span class="ident">into</span>(), <span class="bool-val">false</span> <span class="kw">as</span> <span class="ident">i32</span>)
         };
 
-        <span class="prelude-val">Ok</span>(<span class="ident">StructValue</span>::<span class="ident">new</span>(<span class="ident">val</span>))
+        <span class="prelude-val">Ok</span>(<span class="ident">StructValue::new</span>(<span class="ident">val</span>))
     }
 
     <span class="doccomment">/// Set the debug info source location of the instruction currently pointed at by the builder</span>
     <span class="attribute">#[<span class="ident">llvm_versions</span>(<span class="number">7.0</span>..<span class="op">=</span><span class="ident">latest</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_current_debug_location</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ctx</span> <span class="kw">crate</span>::<span class="ident">context</span>::<span class="ident">Context</span>,
+        <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ctx</span> <span class="kw">crate</span><span class="ident">::context::Context</span>,
         <span class="ident">location</span>: <span class="ident">DILocation</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span>,
     ) {
-        <span class="kw">use</span> <span class="ident">llvm_sys</span>::<span class="ident">core</span>::<span class="ident">LLVMMetadataAsValue</span>;
-        <span class="kw">use</span> <span class="ident">llvm_sys</span>::<span class="ident">core</span>::<span class="ident">LLVMSetCurrentDebugLocation</span>;
+        <span class="kw">use</span> <span class="ident">llvm_sys::core::LLVMMetadataAsValue</span>;
+        <span class="kw">use</span> <span class="ident">llvm_sys::core::LLVMSetCurrentDebugLocation</span>;
         <span class="kw">unsafe</span> {
             <span class="ident">LLVMSetCurrentDebugLocation</span>(
                 <span class="self">self</span>.<span class="ident">builder</span>,
@@ -3648,8 +3648,8 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">DILocation</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span><span class="op">&gt;</span>
      {
-        <span class="kw">use</span> <span class="ident">llvm_sys</span>::<span class="ident">core</span>::<span class="ident">LLVMGetCurrentDebugLocation</span>;
-        <span class="kw">use</span> <span class="ident">llvm_sys</span>::<span class="ident">core</span>::<span class="ident">LLVMValueAsMetadata</span>;
+        <span class="kw">use</span> <span class="ident">llvm_sys::core::LLVMGetCurrentDebugLocation</span>;
+        <span class="kw">use</span> <span class="ident">llvm_sys::core::LLVMValueAsMetadata</span>;
         <span class="kw">let</span> <span class="ident">metadata_ref</span> <span class="op">=</span> <span class="kw">unsafe</span> {
             <span class="ident">LLVMGetCurrentDebugLocation</span>(
                 <span class="self">self</span>.<span class="ident">builder</span>,
@@ -3669,11 +3669,11 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">unset_current_debug_location</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
     ) {
-        <span class="kw">use</span> <span class="ident">llvm_sys</span>::<span class="ident">core</span>::<span class="ident">LLVMSetCurrentDebugLocation</span>;
+        <span class="kw">use</span> <span class="ident">llvm_sys::core::LLVMSetCurrentDebugLocation</span>;
         <span class="kw">unsafe</span> {
             <span class="ident">LLVMSetCurrentDebugLocation</span>(
                 <span class="self">self</span>.<span class="ident">builder</span>,
-                <span class="ident">std</span>::<span class="ident">ptr</span>::<span class="ident">null_mut</span>(),
+                <span class="ident">std::ptr::null_mut</span>(),
             );
         }
     }
@@ -3711,5 +3711,5 @@
     }
 }
 </pre></div>
-</section><section id="search" class="content hidden"></section><section class="footer"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="inkwell" data-search-js="../../search-index.js"></div>
+</section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="inkwell" data-search-index-js="../../search-index.js" data-search-js="../../search.js"></div>
     <script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script></body></html>

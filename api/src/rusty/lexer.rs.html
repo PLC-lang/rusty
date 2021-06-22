@@ -1,6 +1,6 @@
 <!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/lexer.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lexer.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings"></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
 <link rel="alternate icon" type="image/png" href="../../favicon-16x16.png">
-<link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../rusty/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
+<link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../rusty/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
                 <a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" height="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
@@ -377,12 +377,12 @@
 <span id="374">374</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
-<span class="kw">use</span> <span class="ident">core</span>::<span class="ident">ops</span>::<span class="ident">Range</span>;
-<span class="kw">use</span> <span class="ident">logos</span>::<span class="ident">Filter</span>;
-<span class="kw">use</span> <span class="ident">logos</span>::<span class="ident">Lexer</span>;
-<span class="kw">use</span> <span class="ident">logos</span>::<span class="ident">Logos</span>;
+<span class="kw">use</span> <span class="ident">core::ops::Range</span>;
+<span class="kw">use</span> <span class="ident">logos::Filter</span>;
+<span class="kw">use</span> <span class="ident">logos::Lexer</span>;
+<span class="kw">use</span> <span class="ident">logos::Logos</span>;
 
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">ast</span>::{<span class="ident">NewLines</span>, <span class="ident">SourceRange</span>};
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::ast</span>::{<span class="ident">NewLines</span>, <span class="ident">SourceRange</span>};
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">tests</span>;
@@ -399,7 +399,7 @@
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">lexer</span> <span class="op">=</span> <span class="ident">RustyLexer</span> {
             <span class="ident">lexer</span>: <span class="ident">l</span>,
             <span class="ident">file_path</span>: <span class="ident">file_path</span>.<span class="ident">into</span>(),
-            <span class="ident">token</span>: <span class="ident">Token</span>::<span class="ident">KeywordBy</span>,
+            <span class="ident">token</span>: <span class="ident">Token::KeywordBy</span>,
             <span class="ident">new_lines</span>,
         };
         <span class="ident">lexer</span>.<span class="ident">advance</span>();
@@ -415,7 +415,7 @@
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">advance</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) {
-        <span class="self">self</span>.<span class="ident">token</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">lexer</span>.<span class="ident">next</span>().<span class="ident">unwrap_or</span>(<span class="ident">Token</span>::<span class="ident">End</span>);
+        <span class="self">self</span>.<span class="ident">token</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">lexer</span>.<span class="ident">next</span>().<span class="ident">unwrap_or</span>(<span class="ident">Token::End</span>);
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">slice</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">str</span> {
@@ -423,7 +423,7 @@
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">location</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">SourceRange</span> {
-        <span class="ident">SourceRange</span>::<span class="ident">new</span>(<span class="self">self</span>.<span class="ident">get_file_path</span>(), <span class="self">self</span>.<span class="ident">range</span>())
+        <span class="ident">SourceRange::new</span>(<span class="self">self</span>.<span class="ident">get_file_path</span>(), <span class="self">self</span>.<span class="ident">range</span>())
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">range</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Range</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
@@ -445,7 +445,7 @@
                 (<span class="ident">current_range</span>.<span class="ident">start</span> <span class="op">-</span> <span class="ident">new_line_offset</span>)..(<span class="ident">current_range</span>.<span class="ident">end</span> <span class="op">-</span> <span class="ident">new_line_offset</span>)
             },
         );
-        <span class="macro">format</span><span class="macro">!</span>(
+        <span class="macro">format!</span>(
             <span class="string">&quot;line: {line:?} offset: {location:?}&quot;</span>,
             <span class="ident">line</span> <span class="op">=</span> <span class="ident">line_index</span>.<span class="ident">map_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="number">1</span>, <span class="op">|</span><span class="ident">line_index</span><span class="op">|</span> <span class="ident">line_index</span>),
             <span class="ident">location</span> <span class="op">=</span> <span class="ident">location</span>
@@ -476,17 +476,17 @@
         <span class="kw">if</span> <span class="ident">unclosed</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
             <span class="ident">lexer</span>.<span class="ident">bump</span>(<span class="ident">traversed</span>);
             <span class="comment">//This is a well formed comment, treat it as whitespace</span>
-            <span class="kw">return</span> <span class="ident">Filter</span>::<span class="ident">Skip</span>;
+            <span class="kw">return</span> <span class="ident">Filter::Skip</span>;
         }
     }
-    <span class="ident">Filter</span>::<span class="ident">Emit</span>(())
+    <span class="ident">Filter::Emit</span>(())
 }
 
 <span class="kw">fn</span> <span class="ident">get_closing_tag</span>(<span class="ident">open_tag</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> (<span class="ident">char</span>, <span class="ident">char</span>) {
     <span class="kw">match</span> <span class="ident">open_tag</span> {
         <span class="string">&quot;(*&quot;</span> <span class="op">=</span><span class="op">&gt;</span> (<span class="string">&#39;(&#39;</span>, <span class="string">&#39;)&#39;</span>),
         <span class="string">&quot;/*&quot;</span> <span class="op">=</span><span class="op">&gt;</span> (<span class="string">&#39;/&#39;</span>, <span class="string">&#39;/&#39;</span>),
-        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable</span><span class="macro">!</span>(),
+        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable!</span>(),
     }
 }
 
@@ -495,8 +495,8 @@
     <span class="attribute">#[<span class="ident">error</span>]</span>
     <span class="attribute">#[<span class="ident">regex</span>(<span class="string">r&quot;\(\*&quot;</span>, <span class="op">|</span><span class="ident">lex</span><span class="op">|</span> <span class="ident">parse_comments</span>(<span class="ident">lex</span>))]</span>
     <span class="attribute">#[<span class="ident">regex</span>(<span class="string">r&quot;/\*&quot;</span>, <span class="op">|</span><span class="ident">lex</span><span class="op">|</span> <span class="ident">parse_comments</span>(<span class="ident">lex</span>))]</span>
-    <span class="attribute">#[<span class="ident">regex</span>(<span class="string">r&quot;//.*&quot;</span>, <span class="ident">logos</span>::<span class="ident">skip</span>)]</span>
-    <span class="attribute">#[<span class="ident">regex</span>(<span class="string">r&quot;(?m)\r&quot;</span>, <span class="ident">logos</span>::<span class="ident">skip</span>)]</span>
+    <span class="attribute">#[<span class="ident">regex</span>(<span class="string">r&quot;//.*&quot;</span>, <span class="ident">logos::skip</span>)]</span>
+    <span class="attribute">#[<span class="ident">regex</span>(<span class="string">r&quot;(?m)\r&quot;</span>, <span class="ident">logos::skip</span>)]</span>
     <span class="ident">Error</span>,
 
     <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;@EXTERNAL&quot;</span>)]</span>
@@ -743,13 +743,13 @@
     <span class="attribute">#[<span class="ident">regex</span>(<span class="string">&quot;\&quot;((\\$.)|[^$\&quot;])*\&quot;&quot;</span>)]</span>
     <span class="ident">LiteralWideString</span>,
 
-    <span class="attribute">#[<span class="ident">regex</span>(<span class="string">r&quot;[ \t\n\f]+&quot;</span>, <span class="ident">logos</span>::<span class="ident">skip</span>)]</span>
+    <span class="attribute">#[<span class="ident">regex</span>(<span class="string">r&quot;[ \t\n\f]+&quot;</span>, <span class="ident">logos::skip</span>)]</span>
     <span class="ident">End</span>,
 }
 
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">lex</span><span class="op">&lt;</span><span class="lifetime">&#39;src</span><span class="op">&gt;</span>(<span class="ident">file_path</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;src</span> <span class="ident">str</span>, <span class="ident">source</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;src</span> <span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">RustyLexer</span><span class="op">&lt;</span><span class="lifetime">&#39;src</span><span class="op">&gt;</span> {
-    <span class="ident">RustyLexer</span>::<span class="ident">new</span>(<span class="ident">Token</span>::<span class="ident">lexer</span>(<span class="ident">source</span>), <span class="ident">file_path</span>, <span class="ident">NewLines</span>::<span class="ident">new</span>(<span class="ident">source</span>))
+    <span class="ident">RustyLexer::new</span>(<span class="ident">Token::lexer</span>(<span class="ident">source</span>), <span class="ident">file_path</span>, <span class="ident">NewLines::new</span>(<span class="ident">source</span>))
 }
 </pre></div>
-</section><section id="search" class="content hidden"></section><section class="footer"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="rusty" data-search-js="../../search-index.js"></div>
+</section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="rusty" data-search-index-js="../../search-index.js" data-search-js="../../search.js"></div>
     <script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script></body></html>

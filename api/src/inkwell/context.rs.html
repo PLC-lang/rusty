@@ -1,6 +1,6 @@
 <!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/git/checkouts/inkwell-946411d814d2c9f8/f768691/src/context.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>context.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings"></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
 <link rel="alternate icon" type="image/png" href="../../favicon-16x16.png">
-<link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../inkwell/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
+<link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../inkwell/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
                 <a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" height="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
 <span id="2">   2</span>
 <span id="3">   3</span>
@@ -1012,39 +1012,39 @@
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! A `Context` is an opaque owner and manager of core global data.</span>
 
-<span class="kw">use</span> <span class="ident">llvm_sys</span>::<span class="ident">core</span>::{<span class="ident">LLVMAppendBasicBlockInContext</span>, <span class="ident">LLVMContextCreate</span>, <span class="ident">LLVMContextDispose</span>, <span class="ident">LLVMCreateBuilderInContext</span>, <span class="ident">LLVMDoubleTypeInContext</span>, <span class="ident">LLVMFloatTypeInContext</span>, <span class="ident">LLVMFP128TypeInContext</span>, <span class="ident">LLVMInsertBasicBlockInContext</span>, <span class="ident">LLVMInt16TypeInContext</span>, <span class="ident">LLVMInt1TypeInContext</span>, <span class="ident">LLVMInt32TypeInContext</span>, <span class="ident">LLVMInt64TypeInContext</span>, <span class="ident">LLVMInt8TypeInContext</span>, <span class="ident">LLVMIntTypeInContext</span>, <span class="ident">LLVMModuleCreateWithNameInContext</span>, <span class="ident">LLVMStructCreateNamed</span>, <span class="ident">LLVMStructTypeInContext</span>, <span class="ident">LLVMVoidTypeInContext</span>, <span class="ident">LLVMHalfTypeInContext</span>, <span class="ident">LLVMGetGlobalContext</span>, <span class="ident">LLVMPPCFP128TypeInContext</span>, <span class="ident">LLVMConstStructInContext</span>, <span class="ident">LLVMMDNodeInContext</span>, <span class="ident">LLVMMDStringInContext</span>, <span class="ident">LLVMGetMDKindIDInContext</span>, <span class="ident">LLVMX86FP80TypeInContext</span>, <span class="ident">LLVMConstStringInContext</span>, <span class="ident">LLVMContextSetDiagnosticHandler</span>};
+<span class="kw">use</span> <span class="ident">llvm_sys::core</span>::{<span class="ident">LLVMAppendBasicBlockInContext</span>, <span class="ident">LLVMContextCreate</span>, <span class="ident">LLVMContextDispose</span>, <span class="ident">LLVMCreateBuilderInContext</span>, <span class="ident">LLVMDoubleTypeInContext</span>, <span class="ident">LLVMFloatTypeInContext</span>, <span class="ident">LLVMFP128TypeInContext</span>, <span class="ident">LLVMInsertBasicBlockInContext</span>, <span class="ident">LLVMInt16TypeInContext</span>, <span class="ident">LLVMInt1TypeInContext</span>, <span class="ident">LLVMInt32TypeInContext</span>, <span class="ident">LLVMInt64TypeInContext</span>, <span class="ident">LLVMInt8TypeInContext</span>, <span class="ident">LLVMIntTypeInContext</span>, <span class="ident">LLVMModuleCreateWithNameInContext</span>, <span class="ident">LLVMStructCreateNamed</span>, <span class="ident">LLVMStructTypeInContext</span>, <span class="ident">LLVMVoidTypeInContext</span>, <span class="ident">LLVMHalfTypeInContext</span>, <span class="ident">LLVMGetGlobalContext</span>, <span class="ident">LLVMPPCFP128TypeInContext</span>, <span class="ident">LLVMConstStructInContext</span>, <span class="ident">LLVMMDNodeInContext</span>, <span class="ident">LLVMMDStringInContext</span>, <span class="ident">LLVMGetMDKindIDInContext</span>, <span class="ident">LLVMX86FP80TypeInContext</span>, <span class="ident">LLVMConstStringInContext</span>, <span class="ident">LLVMContextSetDiagnosticHandler</span>};
 <span class="attribute">#[<span class="ident">llvm_versions</span>(<span class="number">3.9</span>..<span class="op">=</span><span class="ident">latest</span>)]</span>
-<span class="kw">use</span> <span class="ident">llvm_sys</span>::<span class="ident">core</span>::{<span class="ident">LLVMCreateEnumAttribute</span>, <span class="ident">LLVMCreateStringAttribute</span>};
+<span class="kw">use</span> <span class="ident">llvm_sys::core</span>::{<span class="ident">LLVMCreateEnumAttribute</span>, <span class="ident">LLVMCreateStringAttribute</span>};
 <span class="attribute">#[<span class="ident">llvm_versions</span>(<span class="number">3.6</span>..<span class="number">7.0</span>)]</span>
-<span class="kw">use</span> <span class="ident">llvm_sys</span>::<span class="ident">core</span>::{<span class="ident">LLVMConstInlineAsm</span>};
+<span class="kw">use</span> <span class="ident">llvm_sys::core</span>::{<span class="ident">LLVMConstInlineAsm</span>};
 <span class="attribute">#[<span class="ident">llvm_versions</span>(<span class="number">7.0</span>..<span class="op">=</span><span class="ident">latest</span>)]</span>
-<span class="kw">use</span> <span class="ident">llvm_sys</span>::<span class="ident">core</span>::{<span class="ident">LLVMGetInlineAsm</span>};
+<span class="kw">use</span> <span class="ident">llvm_sys::core</span>::{<span class="ident">LLVMGetInlineAsm</span>};
 <span class="attribute">#[<span class="ident">llvm_versions</span>(<span class="number">7.0</span>..<span class="op">=</span><span class="ident">latest</span>)]</span>
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">InlineAsmDialect</span>;
-<span class="kw">use</span> <span class="ident">llvm_sys</span>::<span class="ident">prelude</span>::{<span class="ident">LLVMContextRef</span>, <span class="ident">LLVMTypeRef</span>, <span class="ident">LLVMValueRef</span>, <span class="ident">LLVMDiagnosticInfoRef</span>};
-<span class="kw">use</span> <span class="ident">llvm_sys</span>::<span class="ident">ir_reader</span>::<span class="ident">LLVMParseIRInContext</span>;
-<span class="kw">use</span> <span class="ident">llvm_sys</span>::<span class="ident">target</span>::{<span class="ident">LLVMIntPtrTypeForASInContext</span>, <span class="ident">LLVMIntPtrTypeInContext</span>};
-<span class="kw">use</span> <span class="ident">libc</span>::<span class="ident">c_void</span>;
-<span class="kw">use</span> <span class="ident">once_cell</span>::<span class="ident">sync</span>::<span class="ident">Lazy</span>;
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::InlineAsmDialect</span>;
+<span class="kw">use</span> <span class="ident">llvm_sys::prelude</span>::{<span class="ident">LLVMContextRef</span>, <span class="ident">LLVMTypeRef</span>, <span class="ident">LLVMValueRef</span>, <span class="ident">LLVMDiagnosticInfoRef</span>};
+<span class="kw">use</span> <span class="ident">llvm_sys::ir_reader::LLVMParseIRInContext</span>;
+<span class="kw">use</span> <span class="ident">llvm_sys::target</span>::{<span class="ident">LLVMIntPtrTypeForASInContext</span>, <span class="ident">LLVMIntPtrTypeInContext</span>};
+<span class="kw">use</span> <span class="ident">libc::c_void</span>;
+<span class="kw">use</span> <span class="ident">once_cell::sync::Lazy</span>;
 <span class="kw">use</span> <span class="ident">parking_lot</span>::{<span class="ident">Mutex</span>, <span class="ident">MutexGuard</span>};
 
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">AddressSpace</span>;
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::AddressSpace</span>;
 <span class="attribute">#[<span class="ident">llvm_versions</span>(<span class="number">3.9</span>..<span class="op">=</span><span class="ident">latest</span>)]</span>
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">attributes</span>::<span class="ident">Attribute</span>;
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">basic_block</span>::<span class="ident">BasicBlock</span>;
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">builder</span>::<span class="ident">Builder</span>;
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">memory_buffer</span>::<span class="ident">MemoryBuffer</span>;
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">module</span>::<span class="ident">Module</span>;
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">support</span>::{<span class="ident">to_c_str</span>, <span class="ident">LLVMString</span>};
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">targets</span>::<span class="ident">TargetData</span>;
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">types</span>::{<span class="ident">BasicTypeEnum</span>, <span class="ident">FloatType</span>, <span class="ident">IntType</span>, <span class="ident">StructType</span>, <span class="ident">VoidType</span>, <span class="ident">AsTypeRef</span>, <span class="ident">FunctionType</span>};
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">values</span>::{<span class="ident">AsValueRef</span>, <span class="ident">BasicMetadataValueEnum</span>, <span class="ident">BasicValueEnum</span>, <span class="ident">FunctionValue</span>, <span class="ident">StructValue</span>, <span class="ident">MetadataValue</span>, <span class="ident">VectorValue</span>, <span class="ident">PointerValue</span>};
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::attributes::Attribute</span>;
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::basic_block::BasicBlock</span>;
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::builder::Builder</span>;
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::memory_buffer::MemoryBuffer</span>;
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::module::Module</span>;
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::support</span>::{<span class="ident">to_c_str</span>, <span class="ident">LLVMString</span>};
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::targets::TargetData</span>;
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::types</span>::{<span class="ident">BasicTypeEnum</span>, <span class="ident">FloatType</span>, <span class="ident">IntType</span>, <span class="ident">StructType</span>, <span class="ident">VoidType</span>, <span class="ident">AsTypeRef</span>, <span class="ident">FunctionType</span>};
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::values</span>::{<span class="ident">AsValueRef</span>, <span class="ident">BasicMetadataValueEnum</span>, <span class="ident">BasicValueEnum</span>, <span class="ident">FunctionValue</span>, <span class="ident">StructValue</span>, <span class="ident">MetadataValue</span>, <span class="ident">VectorValue</span>, <span class="ident">PointerValue</span>};
 
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">marker</span>::<span class="ident">PhantomData</span>;
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">mem</span>::{<span class="ident">forget</span>, <span class="ident">ManuallyDrop</span>};
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">ops</span>::<span class="ident">Deref</span>;
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">ptr</span>;
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">thread_local</span>;
+<span class="kw">use</span> <span class="ident">std::marker::PhantomData</span>;
+<span class="kw">use</span> <span class="ident">std::mem</span>::{<span class="ident">forget</span>, <span class="ident">ManuallyDrop</span>};
+<span class="kw">use</span> <span class="ident">std::ops::Deref</span>;
+<span class="kw">use</span> <span class="ident">std::ptr</span>;
+<span class="kw">use</span> <span class="ident">std::thread_local</span>;
 
 <span class="comment">// The idea of using a Mutex&lt;Context&gt; here and a thread local&#39;d MutexGuard&lt;Context&gt; in</span>
 <span class="comment">// GLOBAL_CTX_LOCK is to ensure two things:</span>
@@ -1053,16 +1053,16 @@
 <span class="comment">// This is still technically unsafe because another program in the same process</span>
 <span class="comment">// could also be accessing the global context via the C API. `get_global` has been</span>
 <span class="comment">// marked unsafe for this reason. Iff this isn&#39;t the case then this should be fully safe.</span>
-<span class="kw">static</span> <span class="ident">GLOBAL_CTX</span>: <span class="ident">Lazy</span><span class="op">&lt;</span><span class="ident">Mutex</span><span class="op">&lt;</span><span class="ident">Context</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Lazy</span>::<span class="ident">new</span>(<span class="op">|</span><span class="op">|</span> {
+<span class="kw">static</span> <span class="ident">GLOBAL_CTX</span>: <span class="ident">Lazy</span><span class="op">&lt;</span><span class="ident">Mutex</span><span class="op">&lt;</span><span class="ident">Context</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Lazy::new</span>(<span class="op">|</span><span class="op">|</span> {
     <span class="kw">let</span> <span class="ident">ctx</span> <span class="op">=</span> <span class="kw">unsafe</span> {
         <span class="ident">LLVMGetGlobalContext</span>()
     };
 
-    <span class="ident">Mutex</span>::<span class="ident">new</span>(<span class="ident">Context</span>::<span class="ident">new</span>(<span class="ident">ctx</span>))
+    <span class="ident">Mutex::new</span>(<span class="ident">Context::new</span>(<span class="ident">ctx</span>))
 });
 
-<span class="macro">thread_local</span><span class="macro">!</span> {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static</span> <span class="ident">GLOBAL_CTX_LOCK</span>: <span class="ident">Lazy</span><span class="op">&lt;</span><span class="ident">MutexGuard</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span>, <span class="ident">Context</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Lazy</span>::<span class="ident">new</span>(<span class="op">|</span><span class="op">|</span> {
+<span class="macro">thread_local!</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static</span> <span class="ident">GLOBAL_CTX_LOCK</span>: <span class="ident">Lazy</span><span class="op">&lt;</span><span class="ident">MutexGuard</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span>, <span class="ident">Context</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Lazy::new</span>(<span class="op">|</span><span class="op">|</span> {
         <span class="ident">GLOBAL_CTX</span>.<span class="ident">lock</span>()
     });
 }
@@ -1080,7 +1080,7 @@
 
 <span class="kw">impl</span> <span class="ident">Context</span> {
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">context</span>: <span class="ident">LLVMContextRef</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="op">!</span><span class="ident">context</span>.<span class="ident">is_null</span>());
+        <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">context</span>.<span class="ident">is_null</span>());
 
         <span class="ident">Context</span> {
             <span class="ident">context</span>,
@@ -1101,7 +1101,7 @@
             <span class="ident">LLVMContextCreate</span>()
         };
 
-        <span class="ident">Context</span>::<span class="ident">new</span>(<span class="ident">context</span>)
+        <span class="ident">Context::new</span>(<span class="ident">context</span>)
     }
 
     <span class="doccomment">/// Gets a `Mutex&lt;Context&gt;` which points to the global context singleton.</span>
@@ -1143,7 +1143,7 @@
             <span class="ident">LLVMCreateBuilderInContext</span>(<span class="self">self</span>.<span class="ident">context</span>)
         };
 
-        <span class="ident">Builder</span>::<span class="ident">new</span>(<span class="ident">builder</span>)
+        <span class="ident">Builder::new</span>(<span class="ident">builder</span>)
     }
 
     <span class="doccomment">/// Creates a new `Module` for a `Context`.</span>
@@ -1163,7 +1163,7 @@
             <span class="ident">LLVMModuleCreateWithNameInContext</span>(<span class="ident">c_string</span>.<span class="ident">as_ptr</span>(), <span class="self">self</span>.<span class="ident">context</span>)
         };
 
-        <span class="ident">Module</span>::<span class="ident">new</span>(<span class="ident">module</span>)
+        <span class="ident">Module::new</span>(<span class="ident">module</span>)
     }
 
     <span class="doccomment">/// Creates a new `Module` for the current `Context` from a `MemoryBuffer`.</span>
@@ -1193,8 +1193,8 @@
     <span class="comment">// a double free in valgrind when the MemoryBuffer drops so we are `forget`ting MemoryBuffer here</span>
     <span class="comment">// for now until we can confirm this is the correct thing to do</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">create_module_from_ir</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">memory_buffer</span>: <span class="ident">MemoryBuffer</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Module</span>, <span class="ident">LLVMString</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">module</span> <span class="op">=</span> <span class="ident">ptr</span>::<span class="ident">null_mut</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">err_str</span> <span class="op">=</span> <span class="ident">ptr</span>::<span class="ident">null_mut</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">module</span> <span class="op">=</span> <span class="ident">ptr::null_mut</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">err_str</span> <span class="op">=</span> <span class="ident">ptr::null_mut</span>();
 
         <span class="kw">let</span> <span class="ident">code</span> <span class="op">=</span> <span class="kw">unsafe</span> {
             <span class="ident">LLVMParseIRInContext</span>(<span class="self">self</span>.<span class="ident">context</span>, <span class="ident">memory_buffer</span>.<span class="ident">memory_buffer</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">module</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">err_str</span>)
@@ -1203,10 +1203,10 @@
         <span class="ident">forget</span>(<span class="ident">memory_buffer</span>);
 
         <span class="kw">if</span> <span class="ident">code</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Module</span>::<span class="ident">new</span>(<span class="ident">module</span>));
+            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Module::new</span>(<span class="ident">module</span>));
         }
 
-        <span class="prelude-val">Err</span>(<span class="ident">LLVMString</span>::<span class="ident">new</span>(<span class="ident">err_str</span>))
+        <span class="prelude-val">Err</span>(<span class="ident">LLVMString::new</span>(<span class="ident">err_str</span>))
     }
 
     <span class="doccomment">/// Creates a inline asm function pointer.</span>
@@ -1234,16 +1234,16 @@
         <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="kw">unsafe</span> {
             <span class="ident">LLVMGetInlineAsm</span>(
                 <span class="ident">ty</span>.<span class="ident">as_type_ref</span>(),
-                <span class="ident">assembly</span>.<span class="ident">as_mut_ptr</span>() <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> ::<span class="ident">libc</span>::<span class="ident">c_char</span>,
+                <span class="ident">assembly</span>.<span class="ident">as_mut_ptr</span>() <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">::libc::c_char</span>,
                 <span class="ident">assembly</span>.<span class="ident">len</span>(),
-                <span class="ident">constraints</span>.<span class="ident">as_mut_ptr</span>() <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> ::<span class="ident">libc</span>::<span class="ident">c_char</span>,
+                <span class="ident">constraints</span>.<span class="ident">as_mut_ptr</span>() <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">::libc::c_char</span>,
                 <span class="ident">constraints</span>.<span class="ident">len</span>(),
                 <span class="ident">sideeffects</span> <span class="kw">as</span> <span class="ident">i32</span>,
                 <span class="ident">alignstack</span> <span class="kw">as</span> <span class="ident">i32</span>,
-                <span class="ident">dialect</span>.<span class="ident">unwrap_or</span>(<span class="ident">InlineAsmDialect</span>::<span class="ident">ATT</span>).<span class="ident">into</span>()
+                <span class="ident">dialect</span>.<span class="ident">unwrap_or</span>(<span class="ident">InlineAsmDialect::ATT</span>).<span class="ident">into</span>()
             )
         };
-        <span class="ident">PointerValue</span>::<span class="ident">new</span>(<span class="ident">value</span>)
+        <span class="ident">PointerValue::new</span>(<span class="ident">value</span>)
     }
     <span class="doccomment">/// Creates a inline asm function pointer.</span>
     <span class="doccomment">///</span>
@@ -1270,13 +1270,13 @@
         <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="kw">unsafe</span> {
             <span class="ident">LLVMConstInlineAsm</span>(
                 <span class="ident">ty</span>.<span class="ident">as_type_ref</span>(),
-                <span class="ident">assembly</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> ::<span class="ident">libc</span>::<span class="ident">c_char</span>,
-                <span class="ident">constraints</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> ::<span class="ident">libc</span>::<span class="ident">c_char</span>,
+                <span class="ident">assembly</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">::libc::c_char</span>,
+                <span class="ident">constraints</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">::libc::c_char</span>,
                 <span class="ident">sideeffects</span> <span class="kw">as</span> <span class="ident">i32</span>,
                 <span class="ident">alignstack</span> <span class="kw">as</span> <span class="ident">i32</span>
             )
         };
-        <span class="ident">PointerValue</span>::<span class="ident">new</span>(<span class="ident">value</span>)
+        <span class="ident">PointerValue::new</span>(<span class="ident">value</span>)
     }
 
     <span class="doccomment">/// Gets the `VoidType`. It will be assigned the current context.</span>
@@ -1296,7 +1296,7 @@
             <span class="ident">LLVMVoidTypeInContext</span>(<span class="self">self</span>.<span class="ident">context</span>)
         };
 
-        <span class="ident">VoidType</span>::<span class="ident">new</span>(<span class="ident">void_type</span>)
+        <span class="ident">VoidType::new</span>(<span class="ident">void_type</span>)
     }
 
     <span class="doccomment">/// Gets the `IntType` representing 1 bit width. It will be assigned the current context.</span>
@@ -1317,7 +1317,7 @@
             <span class="ident">LLVMInt1TypeInContext</span>(<span class="self">self</span>.<span class="ident">context</span>)
         };
 
-        <span class="ident">IntType</span>::<span class="ident">new</span>(<span class="ident">bool_type</span>)
+        <span class="ident">IntType::new</span>(<span class="ident">bool_type</span>)
     }
 
     <span class="doccomment">/// Gets the `IntType` representing 8 bit width. It will be assigned the current context.</span>
@@ -1338,7 +1338,7 @@
             <span class="ident">LLVMInt8TypeInContext</span>(<span class="self">self</span>.<span class="ident">context</span>)
         };
 
-        <span class="ident">IntType</span>::<span class="ident">new</span>(<span class="ident">i8_type</span>)
+        <span class="ident">IntType::new</span>(<span class="ident">i8_type</span>)
     }
 
     <span class="doccomment">/// Gets the `IntType` representing 16 bit width. It will be assigned the current context.</span>
@@ -1359,7 +1359,7 @@
             <span class="ident">LLVMInt16TypeInContext</span>(<span class="self">self</span>.<span class="ident">context</span>)
         };
 
-        <span class="ident">IntType</span>::<span class="ident">new</span>(<span class="ident">i16_type</span>)
+        <span class="ident">IntType::new</span>(<span class="ident">i16_type</span>)
     }
 
     <span class="doccomment">/// Gets the `IntType` representing 32 bit width. It will be assigned the current context.</span>
@@ -1380,7 +1380,7 @@
             <span class="ident">LLVMInt32TypeInContext</span>(<span class="self">self</span>.<span class="ident">context</span>)
         };
 
-        <span class="ident">IntType</span>::<span class="ident">new</span>(<span class="ident">i32_type</span>)
+        <span class="ident">IntType::new</span>(<span class="ident">i32_type</span>)
     }
 
     <span class="doccomment">/// Gets the `IntType` representing 64 bit width. It will be assigned the current context.</span>
@@ -1401,7 +1401,7 @@
             <span class="ident">LLVMInt64TypeInContext</span>(<span class="self">self</span>.<span class="ident">context</span>)
         };
 
-        <span class="ident">IntType</span>::<span class="ident">new</span>(<span class="ident">i64_type</span>)
+        <span class="ident">IntType::new</span>(<span class="ident">i64_type</span>)
     }
 
     <span class="doccomment">/// Gets the `IntType` representing 128 bit width. It will be assigned the current context.</span>
@@ -1442,7 +1442,7 @@
             <span class="ident">LLVMIntTypeInContext</span>(<span class="self">self</span>.<span class="ident">context</span>, <span class="ident">bits</span>)
         };
 
-        <span class="ident">IntType</span>::<span class="ident">new</span>(<span class="ident">int_type</span>)
+        <span class="ident">IntType::new</span>(<span class="ident">int_type</span>)
     }
 
     <span class="doccomment">/// Gets the `IntType` representing a bit width of a pointer. It will be assigned the referenced context.</span>
@@ -1478,7 +1478,7 @@
             <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">unsafe</span> { <span class="ident">LLVMIntPtrTypeInContext</span>(<span class="self">self</span>.<span class="ident">context</span>, <span class="ident">target_data</span>.<span class="ident">target_data</span>) },
         };
 
-        <span class="ident">IntType</span>::<span class="ident">new</span>(<span class="ident">int_type_ptr</span>)
+        <span class="ident">IntType::new</span>(<span class="ident">int_type_ptr</span>)
     }
 
     <span class="doccomment">/// Gets the `FloatType` representing a 16 bit width. It will be assigned the current context.</span>
@@ -1499,7 +1499,7 @@
             <span class="ident">LLVMHalfTypeInContext</span>(<span class="self">self</span>.<span class="ident">context</span>)
         };
 
-        <span class="ident">FloatType</span>::<span class="ident">new</span>(<span class="ident">f16_type</span>)
+        <span class="ident">FloatType::new</span>(<span class="ident">f16_type</span>)
     }
 
     <span class="doccomment">/// Gets the `FloatType` representing a 32 bit width. It will be assigned the current context.</span>
@@ -1520,7 +1520,7 @@
             <span class="ident">LLVMFloatTypeInContext</span>(<span class="self">self</span>.<span class="ident">context</span>)
         };
 
-        <span class="ident">FloatType</span>::<span class="ident">new</span>(<span class="ident">f32_type</span>)
+        <span class="ident">FloatType::new</span>(<span class="ident">f32_type</span>)
     }
 
     <span class="doccomment">/// Gets the `FloatType` representing a 64 bit width. It will be assigned the current context.</span>
@@ -1541,7 +1541,7 @@
             <span class="ident">LLVMDoubleTypeInContext</span>(<span class="self">self</span>.<span class="ident">context</span>)
         };
 
-        <span class="ident">FloatType</span>::<span class="ident">new</span>(<span class="ident">f64_type</span>)
+        <span class="ident">FloatType::new</span>(<span class="ident">f64_type</span>)
     }
 
     <span class="doccomment">/// Gets the `FloatType` representing a 80 bit width. It will be assigned the current context.</span>
@@ -1562,7 +1562,7 @@
             <span class="ident">LLVMX86FP80TypeInContext</span>(<span class="self">self</span>.<span class="ident">context</span>)
         };
 
-        <span class="ident">FloatType</span>::<span class="ident">new</span>(<span class="ident">f128_type</span>)
+        <span class="ident">FloatType::new</span>(<span class="ident">f128_type</span>)
     }
 
     <span class="doccomment">/// Gets the `FloatType` representing a 128 bit width. It will be assigned the current context.</span>
@@ -1584,7 +1584,7 @@
             <span class="ident">LLVMFP128TypeInContext</span>(<span class="self">self</span>.<span class="ident">context</span>)
         };
 
-        <span class="ident">FloatType</span>::<span class="ident">new</span>(<span class="ident">f128_type</span>)
+        <span class="ident">FloatType::new</span>(<span class="ident">f128_type</span>)
     }
 
     <span class="doccomment">/// Gets the `FloatType` representing a 128 bit width. It will be assigned the current context.</span>
@@ -1608,7 +1608,7 @@
             <span class="ident">LLVMPPCFP128TypeInContext</span>(<span class="self">self</span>.<span class="ident">context</span>)
         };
 
-        <span class="ident">FloatType</span>::<span class="ident">new</span>(<span class="ident">f128_type</span>)
+        <span class="ident">FloatType::new</span>(<span class="ident">f128_type</span>)
     }
 
     <span class="doccomment">/// Creates a `StructType` definiton from heterogeneous types in the current `Context`.</span>
@@ -1634,7 +1634,7 @@
             <span class="ident">LLVMStructTypeInContext</span>(<span class="self">self</span>.<span class="ident">context</span>, <span class="ident">field_types</span>.<span class="ident">as_mut_ptr</span>(), <span class="ident">field_types</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u32</span>, <span class="ident">packed</span> <span class="kw">as</span> <span class="ident">i32</span>)
         };
 
-        <span class="ident">StructType</span>::<span class="ident">new</span>(<span class="ident">struct_type</span>)
+        <span class="ident">StructType::new</span>(<span class="ident">struct_type</span>)
     }
 
     <span class="doccomment">/// Creates an opaque `StructType` with no type definition yet defined.</span>
@@ -1658,7 +1658,7 @@
             <span class="ident">LLVMStructCreateNamed</span>(<span class="self">self</span>.<span class="ident">context</span>, <span class="ident">c_string</span>.<span class="ident">as_ptr</span>())
         };
 
-        <span class="ident">StructType</span>::<span class="ident">new</span>(<span class="ident">struct_type</span>)
+        <span class="ident">StructType::new</span>(<span class="ident">struct_type</span>)
     }
 
     <span class="doccomment">/// Creates a constant `StructValue` from constant values.</span>
@@ -1685,7 +1685,7 @@
             <span class="ident">LLVMConstStructInContext</span>(<span class="self">self</span>.<span class="ident">context</span>, <span class="ident">args</span>.<span class="ident">as_mut_ptr</span>(), <span class="ident">args</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u32</span>, <span class="ident">packed</span> <span class="kw">as</span> <span class="ident">i32</span>)
         };
 
-        <span class="ident">StructValue</span>::<span class="ident">new</span>(<span class="ident">value</span>)
+        <span class="ident">StructValue::new</span>(<span class="ident">value</span>)
     }
 
     <span class="doccomment">/// Append a named `BasicBlock` at the end of the referenced `FunctionValue`.</span>
@@ -1717,7 +1717,7 @@
             <span class="ident">LLVMAppendBasicBlockInContext</span>(<span class="self">self</span>.<span class="ident">context</span>, <span class="ident">function</span>.<span class="ident">as_value_ref</span>(), <span class="ident">c_string</span>.<span class="ident">as_ptr</span>())
         };
 
-        <span class="ident">BasicBlock</span>::<span class="ident">new</span>(<span class="ident">bb</span>).<span class="ident">expect</span>(<span class="string">&quot;Appending basic block should never fail&quot;</span>)
+        <span class="ident">BasicBlock::new</span>(<span class="ident">bb</span>).<span class="ident">expect</span>(<span class="string">&quot;Appending basic block should never fail&quot;</span>)
     }
 
     <span class="doccomment">/// Append a named `BasicBlock` after the referenced `BasicBlock`.</span>
@@ -1785,7 +1785,7 @@
             <span class="ident">LLVMInsertBasicBlockInContext</span>(<span class="self">self</span>.<span class="ident">context</span>, <span class="ident">basic_block</span>.<span class="ident">basic_block</span>, <span class="ident">c_string</span>.<span class="ident">as_ptr</span>())
         };
 
-        <span class="ident">BasicBlock</span>::<span class="ident">new</span>(<span class="ident">bb</span>).<span class="ident">expect</span>(<span class="string">&quot;Prepending basic block should never fail&quot;</span>)
+        <span class="ident">BasicBlock::new</span>(<span class="ident">bb</span>).<span class="ident">expect</span>(<span class="string">&quot;Prepending basic block should never fail&quot;</span>)
     }
 
     <span class="doccomment">/// Creates a `MetadataValue` tuple of heterogeneous types (a &quot;Node&quot;) for the current context. It can be assigned to a value.</span>
@@ -1828,7 +1828,7 @@
             <span class="ident">LLVMMDNodeInContext</span>(<span class="self">self</span>.<span class="ident">context</span>, <span class="ident">tuple_values</span>.<span class="ident">as_mut_ptr</span>(), <span class="ident">tuple_values</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u32</span>)
         };
 
-        <span class="ident">MetadataValue</span>::<span class="ident">new</span>(<span class="ident">metadata_value</span>)
+        <span class="ident">MetadataValue::new</span>(<span class="ident">metadata_value</span>)
     }
 
     <span class="doccomment">/// Creates a `MetadataValue` string for the current context. It can be assigned to a value.</span>
@@ -1866,7 +1866,7 @@
             <span class="ident">LLVMMDStringInContext</span>(<span class="self">self</span>.<span class="ident">context</span>, <span class="ident">c_string</span>.<span class="ident">as_ptr</span>(), <span class="ident">string</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u32</span>)
         };
 
-        <span class="ident">MetadataValue</span>::<span class="ident">new</span>(<span class="ident">metadata_value</span>)
+        <span class="ident">MetadataValue::new</span>(<span class="ident">metadata_value</span>)
     }
 
     <span class="doccomment">/// Obtains the index of a metadata kind id. If the string doesn&#39;t exist, LLVM will add it at index `FIRST_CUSTOM_METADATA_KIND_ID` onward.</span>
@@ -1888,7 +1888,7 @@
     <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_kind_id</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">key</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span> {
         <span class="kw">unsafe</span> {
-            <span class="ident">LLVMGetMDKindIDInContext</span>(<span class="self">self</span>.<span class="ident">context</span>, <span class="ident">key</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> ::<span class="ident">libc</span>::<span class="ident">c_char</span>, <span class="ident">key</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u32</span>)
+            <span class="ident">LLVMGetMDKindIDInContext</span>(<span class="self">self</span>.<span class="ident">context</span>, <span class="ident">key</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">::libc::c_char</span>, <span class="ident">key</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u32</span>)
         }
     }
 
@@ -1921,7 +1921,7 @@
             <span class="ident">LLVMCreateEnumAttribute</span>(<span class="self">self</span>.<span class="ident">context</span>, <span class="ident">kind_id</span>, <span class="ident">val</span>)
         };
 
-        <span class="ident">Attribute</span>::<span class="ident">new</span>(<span class="ident">attribute</span>)
+        <span class="ident">Attribute::new</span>(<span class="ident">attribute</span>)
     }
 
     <span class="doccomment">/// Creates a string `Attribute` in this `Context`.</span>
@@ -1942,7 +1942,7 @@
             <span class="ident">LLVMCreateStringAttribute</span>(<span class="self">self</span>.<span class="ident">context</span>, <span class="ident">key</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="kw">_</span>, <span class="ident">key</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u32</span>, <span class="ident">val</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="kw">_</span>, <span class="ident">val</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u32</span>)
         };
 
-        <span class="ident">Attribute</span>::<span class="ident">new</span>(<span class="ident">attribute</span>)
+        <span class="ident">Attribute::new</span>(<span class="ident">attribute</span>)
     }
 
     <span class="doccomment">/// Creates a const string which may be null terminated.</span>
@@ -1961,10 +1961,10 @@
     <span class="comment">// SubTypes: Should return VectorValue&lt;IntValue&lt;i8&gt;&gt;</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">const_string</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">string</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">null_terminated</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">VectorValue</span> {
         <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <span class="kw">unsafe</span> {
-            <span class="ident">LLVMConstStringInContext</span>(<span class="self">self</span>.<span class="ident">context</span>, <span class="ident">string</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> ::<span class="ident">libc</span>::<span class="ident">c_char</span>, <span class="ident">string</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u32</span>, <span class="op">!</span><span class="ident">null_terminated</span> <span class="kw">as</span> <span class="ident">i32</span>)
+            <span class="ident">LLVMConstStringInContext</span>(<span class="self">self</span>.<span class="ident">context</span>, <span class="ident">string</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">::libc::c_char</span>, <span class="ident">string</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u32</span>, <span class="op">!</span><span class="ident">null_terminated</span> <span class="kw">as</span> <span class="ident">i32</span>)
         };
 
-        <span class="ident">VectorValue</span>::<span class="ident">new</span>(<span class="ident">ptr</span>)
+        <span class="ident">VectorValue::new</span>(<span class="ident">ptr</span>)
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">set_diagnostic_handler</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">handler</span>: <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> (<span class="ident">LLVMDiagnosticInfoRef</span>, <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span>), <span class="ident">void_ptr</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span>) {
@@ -1992,7 +1992,7 @@
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> <span class="ident">ContextRef</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> {
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">context</span>: <span class="ident">LLVMContextRef</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">ContextRef</span> {
-            <span class="ident">context</span>: <span class="ident">ManuallyDrop</span>::<span class="ident">new</span>(<span class="ident">Context</span>::<span class="ident">new</span>(<span class="ident">context</span>)),
+            <span class="ident">context</span>: <span class="ident">ManuallyDrop::new</span>(<span class="ident">Context::new</span>(<span class="ident">context</span>)),
             <span class="ident">_marker</span>: <span class="ident">PhantomData</span>,
         }
     }
@@ -2014,10 +2014,10 @@
 <span class="kw">impl</span> <span class="ident">Deref</span> <span class="kw">for</span> <span class="ident">ContextRef</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
     <span class="kw">type</span> <span class="ident">Target</span> <span class="op">=</span> <span class="ident">Context</span>;
 
-    <span class="kw">fn</span> <span class="ident">deref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="self">Self</span>::<span class="ident">Target</span> {
+    <span class="kw">fn</span> <span class="ident">deref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="self">Self</span><span class="ident">::Target</span> {
         <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="self">self</span>.<span class="ident">context</span>
     }
 }
 </pre></div>
-</section><section id="search" class="content hidden"></section><section class="footer"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="inkwell" data-search-js="../../search-index.js"></div>
+</section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="inkwell" data-search-index-js="../../search-index.js" data-search-js="../../search.js"></div>
     <script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script></body></html>
