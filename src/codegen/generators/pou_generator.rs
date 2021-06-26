@@ -84,9 +84,13 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
             .map(DataType::get_name)
             .map(|it| self.llvm_index.get_associated_type(it).unwrap());
         let parameters = vec![instance_struct_type.ptr_type(AddressSpace::Generic).into()];
-        let variadic = global_index.find_type_information(implementation.get_type_name()).map(|it| it.is_variadic()).unwrap_or(false);
+        let variadic = global_index
+            .find_type_information(implementation.get_type_name())
+            .map(|it| it.is_variadic())
+            .unwrap_or(false);
 
-        let function_declaration = self.create_llvm_function_type(parameters, variadic, return_type)?;
+        let function_declaration =
+            self.create_llvm_function_type(parameters, variadic, return_type)?;
 
         let curr_f = module.add_function(pou_name, function_declaration, None);
         Ok(curr_f)
