@@ -1,9 +1,5 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-use crate::{
-    ast::{SourceRange, Statement},
-    parser::{parse, tests::lex},
-    Diagnostic,
-};
+use crate::{Diagnostic, ast::{SourceRange, Statement}, lexer::Token, parser::{parse, tests::lex}};
 use pretty_assertions::*;
 
 /*
@@ -87,50 +83,49 @@ fn illegal_end_pou_keyword() {
             END_FUNCTION
             PROGRAM baz
             b;
-            END_FUNCTION
+            END_PROGRAM
             ");
 
     let (compilation_unit, _, diagnostics) = parse(lexer).unwrap();
-    //expected end of statement (e.g. ;), but found KeywordEndProgram at line: 1 offset: 14..25"
-    //Expecting a missing semicolon message
     let expected = Diagnostic::unexpected_token_found(
-        "END_PROGRAM".into(),
-        "'END_FUNCTION', (KeywordEndFunction)".into(),
-        SourceRange::new("", 76..79),
+        format!("{:?}", Token::KeywordEndProgram),
+        "END_FUNCTION".into(),
+        SourceRange::new("", 52..64),
     );
     assert_eq!(diagnostics[0], expected);
 
     //check if baz was parsed successfully
-    let pou = &compilation_unit.implementations[0];
+    let pou = &compilation_unit.implementations[1];
     assert_eq!(
         format!("{:#?}", pou.statements),
-        r#"[
-                Reference {
-        name: "b",
-    },
-    ]"#
+        format!("{:#?}", vec![Statement::Reference{
+            name: "b".into(),
+            location: SourceRange::undefined()   
+        }])
     );
 }
 
 #[test]
 fn function_without_return_variable_declaration() {
+    // GIVEN a function without a return type
     let lexer = lex(r"
         FUNCTION foo
         a;
         END_FUNCTION
         ");
 
+    // WHEN the function is parsed
     let (compilation_unit, _, diagnostics) = parse(lexer).unwrap();
-    //expected end of statement (e.g. ;), but found KeywordEndProgram at line: 1 offset: 14..25"
-    //Expecting a missing semicolon message
+    
+    // THEN I expect a diagnostic complaining about a missing return type
     let expected = Diagnostic::unexpected_token_found(
         "COLON".into(),
         "'a', (Identifier)".into(),
         SourceRange::new("", 76..79),
     );
-    assert_eq!(diagnostics[0], expected);
+    assert_eq!(diagnostics, vec![expected]);
 
-    //check if a was parsed successfully
+    // AND I expect the body to be parsed successfully 
     let pou = &compilation_unit.implementations[0];
     assert_eq!(
         format!("{:#?}", pou.statements),

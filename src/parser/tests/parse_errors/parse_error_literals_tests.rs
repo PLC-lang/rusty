@@ -12,7 +12,7 @@ fn illegal_literal_time_missing_segments_test() {
     let (_, _, diagnostics) = parse(lexer).unwrap();
     let expected = Diagnostic::unexpected_token_found(
         "KeywordSemicolon".into(),
-        "'#', (Error)".into(),
+        "'#'".into(),
         SourceRange::new("", 35..36),
     );
     assert_eq!(diagnostics[0], expected);
@@ -52,7 +52,7 @@ fn illegal_literal_time_double_segments_test() {
         diagnostics[0],
         Diagnostic::syntax_error(
             "Invalid TIME Literal: segments must be unique".into(),
-            SourceRange::new("", 34..45)
+            SourceRange::new("", 34..44)
         )
     );
 }
@@ -72,7 +72,7 @@ fn illegal_literal_time_out_of_order_segments_test() {
         diagnostics[0],
         Diagnostic::syntax_error(
             "Invalid TIME Literal: segments out of order, use d-h-m-s-ms".into(),
-            SourceRange::new("", 34..43)
+            SourceRange::new("", 34..42)
         )
     );
 }

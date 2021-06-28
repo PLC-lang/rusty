@@ -17,11 +17,11 @@ mod tests;
 macro_rules! expect {
     ( $token:expr, $lexer:expr) => {
         if $lexer.token != $token {
-            return Err(
-                Diagnostic::unexpected_token_found(
-                    format!("{:?}", $token),
-                    $lexer.slice().to_string(),
-                    $lexer.location()));
+            return Err(Diagnostic::unexpected_token_found(
+                format!("{:?}", $token),
+                $lexer.slice().to_string(),
+                $lexer.location(),
+            ));
         }
     };
 }
@@ -51,10 +51,7 @@ fn unidentified_token(lexer: &ParseSession) -> Diagnostic {
 ///  
 fn unexpected_token(lexer: &ParseSession) -> Diagnostic {
     Diagnostic::syntax_error(
-        format!(
-            "Unexpected token: '{slice:}'",
-            slice = lexer.slice()
-        ),
+        format!("Unexpected token: '{slice:}'", slice = lexer.slice()),
         lexer.location(),
     )
 }
@@ -240,8 +237,23 @@ fn parse_implementation(
     type_name: &str,
 ) -> Result<Implementation, Diagnostic> {
     //Parse the statements
+    lexer.enter_region(vec![
+        KeywordEndProgram,
+        KeywordEndFunction,
+        KeywordEndFunctionBlock,
+        KeywordEndAction,
+    ]);
     let statements = parse_body(lexer, &|it| it.ends_implementation())?;
-    expect!(expected_end_token, lexer);
+    lexer.recover_until_close();
+    //lets see if we ended on the right END_ keyword
+    if lexer.token != expected_end_token {
+        lexer.accept_diagnostic(Diagnostic::unexpected_token_found(
+            format!("{:?}", expected_end_token),
+            lexer.slice().into(),
+            lexer.location(),
+        ))
+    }
+    lexer.advance(); //eat the close keyword
 
     let implementation = Implementation {
         name: call_name.into(),
@@ -251,8 +263,6 @@ fn parse_implementation(
         statements,
         location: SourceRange::new(lexer.get_file_path(), start..lexer.get_current_line_nr()),
     };
-    lexer.advance();
-
     Ok(implementation)
 }
 
@@ -500,7 +510,6 @@ fn parse_body(
             consume_all(lexer, KeywordSemicolon);
             continue;
         }
-
         let statement = parse_control(lexer)?;
         consume_all(lexer, KeywordSemicolon);
         statements.push(statement);
@@ -524,11 +533,10 @@ fn consume_all(lexer: &mut ParseSession, token: lexer::Token) {
 }
 
 /**
- * parses either an expression (ended with ';' or a case-condition ended with ':')
- * does not consume the terminating token
+ * parses a statement ending with a ;
  */
 fn parse_statement(lexer: &mut ParseSession) -> Result<Statement, Diagnostic> {
-    lexer.enter_region(vec![KeywordSemicolon, KeywordColon]);
+    lexer.enter_region(vec![KeywordSemicolon]);
     let result = recover(lexer, |lexer| parse_expression(lexer));
     Ok(result)
 }
@@ -545,6 +553,10 @@ pub fn expect(token: Token, lexer: &mut ParseSession) -> bool {
     }
 }
 
+/// tries to parse tokens and recover from missing tokens error situations.
+///  - consumes the closing token and closes the ParseSession's region (e.g. a;)
+///  - it will recover until the next closing token is found and close the region
+///      (e.g. a b; will eat b)
 pub fn recover<F: FnOnce(&mut ParseSession) -> PResult<Statement>>(
     lexer: &mut ParseSession,
     parse_fn: F,
@@ -568,6 +580,27 @@ pub fn recover<F: FnOnce(&mut ParseSession) -> PResult<Statement>>(
             Statement::EmptyStatement { location }
         }
     }
+}
+
+pub fn parse_in_region<F: FnOnce(&mut ParseSession) -> PResult<Statement>>(
+    lexer: &mut ParseSession,
+    closing_tokens: Vec<Token>,
+    parse_fn: F,
+) -> Statement {
+    lexer.enter_region(closing_tokens);
+    let start = lexer.range().start;
+    let result = parse_fn(lexer).unwrap_or_else(|diagnostic| {
+        lexer.accept_diagnostic(diagnostic);
+        let end = lexer.range().end;
+        let location = SourceRange::new(lexer.get_file_path(), start..end);
+        //drop the originally parsed statement and replace with an empty-statement
+        Statement::EmptyStatement { location }
+    });
+    //try to recover by eating everything until we believe the parser is able to continue
+    lexer.recover_until_close();
+    lexer.close_region();
+    //Report a diagnostic
+    return result;
 }
 
 fn parse_expression(lexer: &mut ParseSession) -> Result<Statement, Diagnostic> {

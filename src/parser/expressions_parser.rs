@@ -3,6 +3,8 @@ use crate::Diagnostic;
 use crate::ast::*;
 use crate::expect;
 use crate::lexer::Token::*;
+use crate::parser::parse_in_region;
+use crate::parser::recover;
 use std::str::FromStr;
 
 use super::allow;
@@ -283,21 +285,25 @@ pub fn parse_qualified_reference(lexer: &mut ParseSession) -> Result<Statement, 
         }
     };
 
+
     if allow(KeywordParensOpen, lexer) {
-        let (statement_list, end) = if allow(KeywordParensClose, lexer) {
-            (None, lexer.range().end)
+        // Call Statement
+        let call_statement = if allow(KeywordParensClose, lexer) {
+            Statement::CallStatement {
+                    operator: Box::new(reference),
+                    parameters: Box::new(None),
+                    location: SourceRange::new(lexer.get_file_path(), start..lexer.range().end),
+            }
         } else {
-            let list = parse_expression_list(lexer)?;
-            expect!(KeywordParensClose, lexer);
-            let end = lexer.range().end;
-            lexer.advance();
-            (Some(list), end)
+            parse_in_region(lexer, vec![KeywordParensClose], |lexer| {
+                Ok(Statement::CallStatement {
+                    operator: Box::new(reference),
+                    parameters: Box::new(Some(parse_expression_list(lexer)?)),
+                    location: SourceRange::new(lexer.get_file_path(), start..lexer.range().end),
+                })
+            })
         };
-        Ok(Statement::CallStatement {
-            operator: Box::new(reference),
-            parameters: Box::new(statement_list),
-            location: SourceRange::new(lexer.get_file_path(), start..end),
-        })
+        Ok(call_statement)
     } else {
         Ok(reference)
     }

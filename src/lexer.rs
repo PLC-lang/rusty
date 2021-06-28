@@ -92,9 +92,11 @@ impl<'a> ParseSession<'a> {
             if !expected_token.contains(&self.token) {
                 self.accept_diagnostic(Diagnostic::unexpected_token_found(
                     format!("{:?}", expected_token[0]),
-                    format!("'{}', ({:?})", self.slice(), self.token),
+                    format!("'{}'", self.slice()),
                     self.location(),
                 ));
+            } else {
+                self.advance();
             }
         }
     }
