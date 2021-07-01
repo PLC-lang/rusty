@@ -119,7 +119,7 @@ impl<'a> ParseSession<'a> {
             //report errors for all closing_keywords > hit
             let missing_closers = self.closing_keywords.drain((hit + 1)..).collect::<Vec<_>>();
             for it in missing_closers {
-                self.accept_diagnostic(Diagnostic::unclosed_block(
+                self.accept_diagnostic(Diagnostic::missing_token(
                     format!("{:?}", it[0]),
                     self.location(),
                 ));

@@ -114,9 +114,8 @@ fn illegal_semicolon_in_call_parameters() {
     ");
 
     let (compilation_unit, _, diagnostics) = parse(lexer).unwrap();
-    let expected = Diagnostic::unexpected_token_found(
+    let expected = Diagnostic::missing_token(
         "KeywordParensClose".into(),
-        "';'".into(),
         SourceRange::new("", 57..58),
     );
     assert_eq!(diagnostics[0], expected);

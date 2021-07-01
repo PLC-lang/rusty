@@ -1,5 +1,11 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-use crate::{Diagnostic, ast::{SourceRange, Statement}, lexer::Token, parser::{parse, tests::lex}};
+use crate::{
+    ast::{PouType, SourceRange, Statement},
+    lexer::Token,
+    parser::{parse, tests::lex},
+    Diagnostic,
+};
+use logos::Source;
 use pretty_assertions::*;
 
 /*
@@ -56,10 +62,7 @@ fn missing_pou_name_2() {
     let (compilation_unit, _, diagnostics) = parse(lexer).unwrap();
     //expected end of statement (e.g. ;), but found KeywordEndProgram at line: 1 offset: 14..25"
     //Expecting a missing semicolon message
-    let expected = Diagnostic::syntax_error(
-        "Unexpected token: ':='".into(),
-        (36..38).into(),
-    );
+    let expected = Diagnostic::syntax_error("Unexpected token: ':='".into(), (36..38).into());
     assert_eq!(diagnostics[0], expected);
 
     let pou = &compilation_unit.implementations[0];
@@ -98,10 +101,13 @@ fn illegal_end_pou_keyword() {
     let pou = &compilation_unit.implementations[1];
     assert_eq!(
         format!("{:#?}", pou.statements),
-        format!("{:#?}", vec![Statement::Reference{
-            name: "b".into(),
-            location: SourceRange::undefined()   
-        }])
+        format!(
+            "{:#?}",
+            vec![Statement::Reference {
+                name: "b".into(),
+                location: SourceRange::undefined()
+            }]
+        )
     );
 }
 
@@ -116,7 +122,7 @@ fn function_without_return_variable_declaration() {
 
     // WHEN the function is parsed
     let (compilation_unit, _, diagnostics) = parse(lexer).unwrap();
-    
+
     // THEN I expect a diagnostic complaining about a missing return type
     let expected = Diagnostic::unexpected_token_found(
         "COLON".into(),
@@ -125,7 +131,7 @@ fn function_without_return_variable_declaration() {
     );
     assert_eq!(diagnostics, vec![expected]);
 
-    // AND I expect the body to be parsed successfully 
+    // AND I expect the body to be parsed successfully
     let pou = &compilation_unit.implementations[0];
     assert_eq!(
         format!("{:#?}", pou.statements),
@@ -180,22 +186,21 @@ fn program_with_illegal_return_variable_declaration() {
     let (compilation_unit, _, diagnostics) = parse(lexer).unwrap();
     //expected end of statement (e.g. ;), but found KeywordEndProgram at line: 1 offset: 14..25"
     //Expecting a missing semicolon message
-    let expected = Diagnostic::unexpected_token_found(
-        "???".into(),
-        "':', (KeywordColon)".into(),
-        SourceRange::new("", 76..79),
-    );
-    assert_eq!(diagnostics[0], expected);
+    let expected =
+        Diagnostic::return_type_not_supported(&PouType::Program, SourceRange::new("", 29..34));
+    assert_eq!(diagnostics.get(0), Some(&expected));
 
     //check if a was parsed successfully
     let pou = &compilation_unit.implementations[0];
     assert_eq!(
         format!("{:#?}", pou.statements),
-        r#"[
-                    Reference {
-                        name: "a",
-                    },
-                    ]"#
+        format!(
+            "{:#?}",
+            vec![Statement::Reference {
+                name: "a".into(),
+                location: SourceRange::undefined()
+            }]
+        )
     );
 }
 
@@ -211,9 +216,7 @@ fn pou_inside_pou_body() {
 
     let (compilation_unit, _, diagnostics) = parse(lexer).unwrap();
     assert_eq!(
-        Diagnostic::syntax_error("Unexpected token: 'PROGRAM'".into(),
-            (81..88).into(),
-        ),
+        Diagnostic::syntax_error("Unexpected token: 'PROGRAM'".into(), (81..88).into(),),
         diagnostics[0]
     );
     assert_eq!(

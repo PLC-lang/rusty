@@ -19,7 +19,7 @@
 //! [`IR`]: https://llvm.org/docs/LangRef.html
 use std::path::Path;
 
-use ast::SourceRange;
+use ast::{PouType, SourceRange};
 use compile_error::CompileError;
 use index::Index;
 use inkwell::context::Context;
@@ -43,16 +43,12 @@ extern crate pretty_assertions;
 
 #[derive(PartialEq, Debug, Clone)]
 pub enum Diagnostic {
-
     SyntaxError { message: String, range: SourceRange },
 }
 
 impl Diagnostic {
     pub fn syntax_error(message: String, range: SourceRange) -> Diagnostic {
-        Diagnostic::SyntaxError {
-            message,
-            range,
-        }
+        Diagnostic::SyntaxError { message, range }
     }
 
     pub fn unexpected_token_found(
@@ -69,9 +65,19 @@ impl Diagnostic {
         }
     }
 
-    pub fn unclosed_block(block_name: String, range: SourceRange) -> Diagnostic {
+    pub fn return_type_not_supported(pou_type: &PouType, range: SourceRange) -> Diagnostic {
+        Diagnostic::syntax_error(
+            format!(
+                "POU Type {:?} does not support a return type. Did you mean Function?",
+                pou_type
+            ),
+            range,
+        )
+    }
+
+    pub fn missing_token(epxected_token: String, range: SourceRange) -> Diagnostic {
         Diagnostic::SyntaxError {
-            message: format!("Unclosed block {}", block_name),
+            message: format!("Missing expected Token {}", epxected_token),
             range,
         }
     }
@@ -85,14 +91,14 @@ impl Diagnostic {
 
     pub fn get_message(&self) -> &str {
         match self {
-            Diagnostic::SyntaxError {message, ..} => message.as_str(),
+            Diagnostic::SyntaxError { message, .. } => message.as_str(),
             _ => "",
         }
     }
 
     pub fn get_location(&self) -> SourceRange {
         match self {
-            Diagnostic::SyntaxError {range, ..} => range.clone(),
+            Diagnostic::SyntaxError { range, .. } => range.clone(),
             _ => SourceRange::undefined(),
         }
     }

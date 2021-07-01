@@ -177,8 +177,15 @@ fn parse_pou(
     };
 
     //optional return type
+    let start_return_type = lexer.range().start;
     let return_type = if allow(KeywordColon, lexer) {
         if lexer.token == Identifier {
+            if pou_type != PouType::Function {
+                lexer.accept_diagnostic(Diagnostic::return_type_not_supported(
+                    &pou_type,
+                    SourceRange::new(lexer.get_file_path(), start_return_type..lexer.range().end),
+                ));
+            }
             let referenced_type = slice_and_advance(lexer);
             Some(DataTypeDeclaration::DataTypeReference { referenced_type })
         } else {
