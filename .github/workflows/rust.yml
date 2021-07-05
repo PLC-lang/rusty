@@ -1,6 +1,17 @@
 name: Build
 
-on: [pull_request, push]
+on:
+  # Triggers the workflow on push or pull request events but only for the master branch
+  push:
+  pull_request:
+    branches: [ master ]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+env:
+  toolchain-version: 1.53.0
+  llvm-version: "11.0.1"
 
 jobs:
   check: 
@@ -14,24 +25,53 @@ jobs:
       - name: Install Rust
         uses: actions-rs/toolchain@v1
         with:
-          toolchain: stable
+          toolchain: ${{ env.toolchain-version }}
           profile: minimal
           override: true
 
       - name: Install LLVM
-        uses: KyleMayes/install-llvm-action@v1
+        uses: ghaith/install-llvm-action@v1
         with:
-          version: "11.0.1"
+          version: ${{ env.llvm-version }}
 
       - name: Cargo check
         uses: actions-rs/cargo@v1
         with:
           command: check
 
+  test:
+    name: Test
+    runs-on: ${{ matrix.config.os }}
+    needs: check
+    strategy:
+      fail-fast: false
+      matrix:
+        config:
+          - { os: "ubuntu-latest"}
+          - { os: "windows-latest"}
+    steps:
+
+      - uses: actions/checkout@v2
+        with:
+          submodules: true
+
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: ${{ env.toolchain-version }}
+          profile: minimal
+          override: true
+
+      - name: Install LLVM
+        uses: ghaith/install-llvm-action@v1
+        with:
+          version: ${{ env.llvm-version }}
+
       - name: Cargo test
         uses: actions-rs/cargo@v1
         with:
           command: test
+          args: -- --nocapture
 
   style:
     name: Check Style
@@ -45,7 +85,7 @@ jobs:
       - name: Install stable toolchain
         uses: actions-rs/toolchain@v1
         with:
-          toolchain: stable
+          toolchain: ${{ env.toolchain-version }}
           profile: minimal
           override: true
           components: clippy, rustfmt
@@ -56,32 +96,9 @@ jobs:
           command: fmt
           args: --all -- --check
 
-      - name: Install LLVM
-        uses: KyleMayes/install-llvm-action@v1
-
       - name: Run cargo clippy
         uses: actions-rs/clippy-check@v1
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          args: --all-features
+          args: --all-features -- -D warnings
 
-  # build:
-  #   runs-on: ubuntu-latest
-  #   name: Cargo Docker build  with LLVM-11
-  #   steps:
-  #   - name: Checkout
-  #     uses: actions/checkout@v2
-  #   - name: Cargo Build and Test
-  #     uses: ./docker-build/
-  #     with:
-  #       build-step: 'test'
-  #   - name: Formatter
-  #     uses: ./docker-build/
-  #     with:
-  #       build-step: 'fmt'
-  #       args: '-- --check'
-  #   - name: Clippy
-  #     uses: ./docker-build/
-  #     with:
-  #       build-step: 'clippy'
-  #       args: '-- -D warnings'
