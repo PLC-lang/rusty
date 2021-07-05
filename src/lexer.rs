@@ -3,6 +3,7 @@ use core::ops::Range;
 use logos::Filter;
 use logos::Lexer;
 use logos::Logos;
+use logos::Source;
 
 use crate::ast::{NewLines, SourceRange};
 use crate::Diagnostic;
@@ -17,6 +18,8 @@ pub struct ParseSession<'a> {
     pub new_lines: NewLines,
     pub diagnostics: Vec<Diagnostic>,
     pub closing_keywords: Vec<Vec<Token>>,
+    pub last_token :Token,
+    pub parse_progress : usize,
 }
 
 impl<'a> ParseSession<'a> {
@@ -28,6 +31,8 @@ impl<'a> ParseSession<'a> {
             new_lines,
             diagnostics: vec![],
             closing_keywords: vec![],
+            last_token : Token::End,
+            parse_progress : 0,
         };
         lexer.advance();
         lexer
@@ -42,7 +47,8 @@ impl<'a> ParseSession<'a> {
     }
 
     pub fn advance(&mut self) {
-        self.token = self.lexer.next().unwrap_or(Token::End);
+        self.last_token = std::mem::replace(&mut self.token, self.lexer.next().unwrap_or(Token::End));
+        self.parse_progress = self.parse_progress + 1;
     }
 
     pub fn slice(&self) -> &str {
@@ -107,7 +113,12 @@ impl<'a> ParseSession<'a> {
             .closing_keywords
             .iter()
             .rposition(|it| it.contains(&self.token));
+        
+        let start = self.location();
+        let mut end = self.location().get_end();
         while self.token != Token::End && hit.is_none() {
+            end = self.location().get_end();
+            println!("Consumed : {}", self.slice());
             self.advance();
             hit = self
                 .closing_keywords
@@ -115,12 +126,16 @@ impl<'a> ParseSession<'a> {
                 .rposition(|it| it.contains(&self.token));
         }
 
+        //Did we recover in the while loop above?
+        if start.get_end() != self.location().get_end() {
+            self.accept_diagnostic(Diagnostic::syntax_error("Unexpected Tokens".into(), SourceRange::new(start.get_file_path(), start.get_start()..end)));
+        }
+
         if let Some(hit) = hit {
-            //report errors for all closing_keywords > hit
-            let missing_closers = self.closing_keywords.drain((hit + 1)..).collect::<Vec<_>>();
-            for it in missing_closers {
+            if self.closing_keywords.len() > hit + 1 {
+                let closing = self.closing_keywords.pop().unwrap();
                 self.accept_diagnostic(Diagnostic::missing_token(
-                    format!("{:?}", it[0]),
+                    format!("{:?}", closing),
                     self.location(),
                 ));
             }

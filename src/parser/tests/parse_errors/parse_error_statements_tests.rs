@@ -320,3 +320,55 @@ fn invalid_variable_data_type_error_recovery() {
         )
     );
 }
+
+#[test]
+fn test_case_without_condition() {
+    let lexer = lex(
+        "PROGRAM My_PRG
+                CASE x OF
+                    1: 
+                    : x := 3;
+                END_CASE
+            END_PROGRAM
+
+    ",
+    );
+    let (cu, _, diagnostics) = parse(lexer).unwrap();
+
+    assert_eq!(format!("{:#?}",cu.implementations[0].statements),
+r#"[
+    CaseStatement {
+        selector: Reference {
+            name: "x",
+        },
+        case_blocks: [
+            ConditionalBlock {
+                condition: LiteralInteger {
+                    value: "1",
+                },
+                body: [],
+            },
+            ConditionalBlock {
+                condition: EmptyStatement,
+                body: [
+                    Assignment {
+                        left: Reference {
+                            name: "x",
+                        },
+                        right: LiteralInteger {
+                            value: "3",
+                        },
+                    },
+                ],
+            },
+        ],
+        else_block: [],
+    },
+]"#);
+
+    assert_eq!(diagnostics, vec![Diagnostic::syntax_error(
+        "Unexpected token: ':'".into(),
+        (85..86).into()
+    ),]);
+
+}

@@ -980,32 +980,7 @@ fn test_unclosed_body_error_message() {
     }
 }
 
-#[test]
-fn test_case_without_condition() {
-    let lexer = super::lex(
-        "PROGRAM My_PRG
-                CASE x OF
-                    1: 
-                    : x := 3;
-                END_CASE
-            END_PROGRAM
 
-    ",
-    );
-    let parse_result = parse(lexer);
-
-    if let Err { 0: msg } = parse_result {
-        assert_eq!(
-            Diagnostic::syntax_error(
-                "unexpected ':' no case-condition could be found".into(),
-                (85..86).into()
-            ),
-            msg
-        );
-    } else {
-        panic!("Expected parse error but didn't get one.");
-    }
-}
 
 #[test]
 fn initial_scalar_values_can_be_parsed() {

@@ -112,6 +112,7 @@ fn illegal_end_pou_keyword() {
 }
 
 #[test]
+#[ignore = "Semantic validation"]
 fn function_without_return_variable_declaration() {
     // GIVEN a function without a return type
     let lexer = lex(r"

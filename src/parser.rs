@@ -250,7 +250,7 @@ fn parse_implementation(
         KeywordEndFunctionBlock,
         KeywordEndAction,
     ]);
-    let statements = parse_body(lexer, &|it| it.ends_implementation())?;
+    let statements = parse_body(lexer, &|it : &ParseSession| it.token.ends_implementation())?;
     lexer.recover_until_close();
     //lets see if we ended on the right END_ keyword
     if lexer.token != expected_end_token {
@@ -503,11 +503,11 @@ fn is_end_of_stream(token: &lexer::Token) -> bool {
 
 fn parse_body(
     lexer: &mut ParseSession,
-    until: &dyn Fn(&lexer::Token) -> bool,
+    until: &dyn Fn(&ParseSession) -> bool,
 ) -> Result<Vec<Statement>, Diagnostic> {
     let mut statements = Vec::new();
     consume_all(lexer, KeywordSemicolon);
-    while !until(&lexer.token) && lexer.token != lexer::Token::End {
+    while !until(&lexer) && lexer.token != lexer::Token::End {
         // !is_end_of_stream(&lexer.token) {
         //if my token is an error, Recover from errors --> Read until the next non error token
         if lexer.token == lexer::Token::Error {
@@ -521,7 +521,7 @@ fn parse_body(
         consume_all(lexer, KeywordSemicolon);
         statements.push(statement);
     }
-    if !until(&lexer.token) {
+    if !until(&lexer) {
         return Err(Diagnostic::syntax_error(
             format!(
                 "unexpected termination of body by '{:}', a block was not closed",
@@ -543,8 +543,7 @@ fn consume_all(lexer: &mut ParseSession, token: lexer::Token) {
  * parses a statement ending with a ;
  */
 fn parse_statement(lexer: &mut ParseSession) -> Result<Statement, Diagnostic> {
-    lexer.enter_region(vec![KeywordSemicolon]);
-    let result = recover(lexer, |lexer| parse_expression(lexer));
+    let result = parse_in_region(lexer,vec![KeywordSemicolon, KeywordColon], |lexer| parse_expression(lexer));
     Ok(result)
 }
 
