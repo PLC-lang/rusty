@@ -30,7 +30,7 @@ jobs:
           override: true
 
       - name: Install LLVM
-        uses: ghaith/install-llvm-action@v1
+        uses: ghaith/install-llvm-action@latest
         with:
           version: ${{ env.llvm-version }}
 
@@ -63,15 +63,31 @@ jobs:
           override: true
 
       - name: Install LLVM
-        uses: ghaith/install-llvm-action@v1
+        uses: ghaith/install-llvm-action@latest
         with:
           version: ${{ env.llvm-version }}
+          directory: "./llvm"
 
+      # - name: Configure LLVM SYS
+      #   run: |
+      #     echo "LLVM_SYS_110_PREFIX=${{ env.LLVM_PATH }}" >> $GITHUB_ENV
+        
+      - name: Test Config
+        if: ${{ matrix.config.os == 'windows-latest' }}
+        run: |
+          gci env:
+          $env:path -split ";"
+          ls ${{ env.LLVM_PATH }}/bin
+          llvm-config --version
+
+          
       - name: Cargo test
         uses: actions-rs/cargo@v1
         with:
           command: test
           args: -- --nocapture
+        # env:
+        #   LLVM_SYS_110_PREFIX: "$LLVM_PATH"
 
   style:
     name: Check Style
