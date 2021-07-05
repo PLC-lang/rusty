@@ -84,7 +84,7 @@ impl Diagnostic {
 
     pub fn illegal_token(illegal: &str, range: SourceRange) -> Diagnostic {
         Diagnostic::SyntaxError {
-            message: format!("Found Illegal Token '{}'", illegal),
+            message: format!("Illegal Token '{}'", illegal),
             range,
         }
     }

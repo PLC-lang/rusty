@@ -1,11 +1,13 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use crate::{
-    ast::{PouType, SourceRange, Statement},
+    ast::{PouType, SourceRange, Statement, Variable, VariableBlock, VariableBlockType},
     lexer::Token,
-    parser::{parse, tests::lex},
+    parser::{
+        parse,
+        tests::{lex, ref_to},
+    },
     Diagnostic,
 };
-use logos::Source;
 use pretty_assertions::*;
 
 /*
@@ -222,9 +224,9 @@ fn pou_inside_pou_body() {
     );
     assert_eq!(
         Diagnostic::unexpected_token_found(
-            "Semicolon".into(),
-            "'END_PROGRAM', (KeywordEndProgram)".into(),
-            SourceRange::undefined(),
+            "KeywordSemicolon".into(),
+            "'PROGRAM foo2'".into(),
+            (81..93).into(),
         ),
         diagnostics[1]
     );
@@ -233,14 +235,15 @@ fn pou_inside_pou_body() {
     let pou = &compilation_unit.implementations[0];
     assert_eq!(
         format!("{:#?}", pou.statements),
-        r#"[
-                Reference {
-                    name: "foo2",
+        format!(
+            "{:#?}",
+            vec![
+                Statement::EmptyStatement {
+                    location: SourceRange::undefined()
                 },
-                Reference {
-                        name: "foo2",
-                    },
-            ]"#
+                ref_to("a")
+            ]
+        ),
     );
 }
 
@@ -255,24 +258,30 @@ fn unclosed_var_container() {
 
     let (compilation_unit, _, diagnostics) = parse(lexer).unwrap();
     assert_eq!(
-        Diagnostic::unexpected_token_found(
-            "END_VAR".into(),
-            "'VAR', (KeywordVAR)".into(),
-            SourceRange::undefined(),
-        ),
-        diagnostics[0]
+        vec![Diagnostic::unexpected_token_found(
+            "KeywordEndVar".into(),
+            "'VAR b : INT;'".into(),
+            (82..94).into(),
+        )],
+        diagnostics
     );
     //check if b was parsed successfully
-    let var_block = &compilation_unit.units[1].variable_blocks[1];
+    let var_block = &compilation_unit.units[0].variable_blocks[0];
     assert_eq!(
-        format!("{:#?}", var_block.variables[0]),
-        r#"Variable {
-            name: "b",
-            data_type: DataTypeReference {
-                referenced_tye: "INT",
-            },
-            initializer: None,
-        }
-"#
+        format!("{:#?}", var_block),
+        format!(
+            "{:#?}",
+            VariableBlock {
+                variable_block_type: VariableBlockType::Local,
+                variables: vec![Variable {
+                    name: "a".into(),
+                    data_type: crate::ast::DataTypeDeclaration::DataTypeReference {
+                        referenced_type: "INT".into(),
+                    },
+                    initializer: None,
+                    location: SourceRange::undefined(),
+                }]
+            }
+        )
     );
 }

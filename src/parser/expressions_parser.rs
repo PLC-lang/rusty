@@ -3,7 +3,7 @@ use crate::Diagnostic;
 use crate::ast::*;
 use crate::expect;
 use crate::lexer::Token::*;
-use crate::parser::parse_in_region;
+use crate::parser::parse_statement_in_region;
 use crate::parser::recover;
 use std::str::FromStr;
 
@@ -295,7 +295,7 @@ pub fn parse_qualified_reference(lexer: &mut ParseSession) -> Result<Statement, 
                     location: SourceRange::new(lexer.get_file_path(), start..lexer.range().end),
             }
         } else {
-            parse_in_region(lexer, vec![KeywordParensClose], |lexer| {
+            parse_statement_in_region(lexer, vec![KeywordParensClose], |lexer| {
                 Ok(Statement::CallStatement {
                     operator: Box::new(reference),
                     parameters: Box::new(Some(parse_expression_list(lexer)?)),

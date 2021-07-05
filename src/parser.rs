@@ -77,7 +77,11 @@ pub fn parse(mut lexer: ParseSession) -> PResult<ParsedAst> {
                 //Don't reset linkage
                 continue;
             }
-            KeywordVarGlobal => unit.global_vars.push(parse_variable_block(&mut lexer)?),
+            KeywordVarGlobal => {
+                if let Some(block) = parse_variable_block(&mut lexer) {
+                    unit.global_vars.push(block);
+                }
+            }
             KeywordProgram => {
                 let (pou, implementation) =
                     parse_pou(&mut lexer, PouType::Program, linkage, KeywordEndProgram)?;
@@ -208,11 +212,9 @@ fn parse_pou(
         || lexer.token == KeywordVarOutput
         || lexer.token == KeywordVarInOut
     {
-        let block = parse_variable_block(lexer);
-        match block {
-            Ok(b) => variable_blocks.push(b),
-            Err(msg) => return Err(msg),
-        };
+        if let Some(block) = parse_variable_block(lexer) {
+            variable_blocks.push(block);
+        }
     }
     let pou = Pou {
         name: name.clone(),
@@ -250,7 +252,7 @@ fn parse_implementation(
         KeywordEndFunctionBlock,
         KeywordEndAction,
     ]);
-    let statements = parse_body(lexer, &|it : &ParseSession| it.token.ends_implementation())?;
+    let statements = parse_body(lexer, &|it: &ParseSession| it.token.ends_implementation())?;
     lexer.recover_until_close();
     //lets see if we ended on the right END_ keyword
     if lexer.token != expected_end_token {
@@ -543,7 +545,9 @@ fn consume_all(lexer: &mut ParseSession, token: lexer::Token) {
  * parses a statement ending with a ;
  */
 fn parse_statement(lexer: &mut ParseSession) -> Result<Statement, Diagnostic> {
-    let result = parse_in_region(lexer,vec![KeywordSemicolon, KeywordColon], |lexer| parse_expression(lexer));
+    let result = parse_statement_in_region(lexer, vec![KeywordSemicolon, KeywordColon], |lexer| {
+        parse_expression(lexer)
+    });
     Ok(result)
 }
 
@@ -588,7 +592,7 @@ pub fn recover<F: FnOnce(&mut ParseSession) -> PResult<Statement>>(
     }
 }
 
-pub fn parse_in_region<F: FnOnce(&mut ParseSession) -> PResult<Statement>>(
+pub fn parse_statement_in_region<F: FnOnce(&mut ParseSession) -> PResult<Statement>>(
     lexer: &mut ParseSession,
     closing_tokens: Vec<Token>,
     parse_fn: F,
@@ -606,7 +610,24 @@ pub fn parse_in_region<F: FnOnce(&mut ParseSession) -> PResult<Statement>>(
     lexer.recover_until_close();
     lexer.close_region();
     //Report a diagnostic
-    return result;
+    result
+}
+
+pub fn parse_any_in_region<T, F: FnOnce(&mut ParseSession) -> PResult<T>>(
+    lexer: &mut ParseSession,
+    closing_tokens: Vec<Token>,
+    parse_fn: F,
+) -> Option<T> {
+    lexer.enter_region(closing_tokens);
+    let result = parse_fn(lexer).map(Some).unwrap_or_else(|diagnostic| {
+        lexer.accept_diagnostic(diagnostic);
+        None
+    });
+    //try to recover by eating everything until we believe the parser is able to continue
+    lexer.recover_until_close();
+    lexer.close_region();
+    //Report a diagnostic
+    result
 }
 
 fn parse_expression(lexer: &mut ParseSession) -> Result<Statement, Diagnostic> {
@@ -635,22 +656,18 @@ fn parse_variable_block_type(lexer: &mut ParseSession) -> Result<VariableBlockTy
     result
 }
 
-fn parse_variable_block(lexer: &mut ParseSession) -> Result<VariableBlock, Diagnostic> {
-    //Consume the var block
+fn parse_variable_block(lexer: &mut ParseSession) -> Option<VariableBlock> {
+    parse_any_in_region(lexer, vec![KeywordEndVar], |lexer| {
+        let mut result = VariableBlock {
+            variables: Vec::new(),
+            variable_block_type: parse_variable_block_type(lexer)?,
+        };
 
-    let mut result = VariableBlock {
-        variables: Vec::new(),
-        variable_block_type: parse_variable_block_type(lexer)?,
-    };
-
-    while lexer.token == Identifier {
-        result.variables.push(parse_variable(lexer)?);
-    }
-
-    expect!(KeywordEndVar, lexer);
-
-    lexer.advance();
-    Ok(result)
+        while lexer.token == Identifier {
+            result.variables.push(parse_variable(lexer)?);
+        }
+        Ok(result)
+    })
 }
 
 fn parse_variable(lexer: &mut ParseSession) -> Result<Variable, Diagnostic> {

@@ -1,18 +1,6 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-use crate::{
-    ast::{SourceRange, Statement},
-    parser::{parse, tests::lex},
-    Diagnostic,
-};
+use crate::{Diagnostic, ast::{SourceRange, Statement}, parser::{parse, tests::{lex, ref_to}}};
 use pretty_assertions::*;
-
-/// helper function to create references
-fn ref_to(name: &str) -> Statement {
-    Statement::Reference {
-        location: SourceRange::undefined(),
-        name: name.to_string(),
-    }
-}
 
 /*
  * These tests deal with parsing-behavior in the expressions: ()  expressions: ()  presence of errors.
@@ -40,8 +28,8 @@ fn missing_semicolon_after_call() {
     //Expecting a missing semicolon message
     let expected = Diagnostic::unexpected_token_found(
         "KeywordSemicolon".into(),
-        "'foo'".into(),
-        SourceRange::new("", 76..79),
+        "'foo()'".into(),
+        SourceRange::new("", 76..81),
     );
     assert_eq!(diagnostics[0], expected);
 
@@ -52,12 +40,6 @@ fn missing_semicolon_after_call() {
     CallStatement {
         operator: Reference {
             name: "buz",
-        },
-        parameters: None,
-    },
-    CallStatement {
-        operator: Reference {
-            name: "foo",
         },
         parameters: None,
     },

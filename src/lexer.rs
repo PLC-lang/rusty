@@ -3,7 +3,6 @@ use core::ops::Range;
 use logos::Filter;
 use logos::Lexer;
 use logos::Logos;
-use logos::Source;
 
 use crate::ast::{NewLines, SourceRange};
 use crate::Diagnostic;
@@ -18,8 +17,8 @@ pub struct ParseSession<'a> {
     pub new_lines: NewLines,
     pub diagnostics: Vec<Diagnostic>,
     pub closing_keywords: Vec<Vec<Token>>,
-    pub last_token :Token,
-    pub parse_progress : usize,
+    pub last_token: Token,
+    pub parse_progress: usize,
 }
 
 impl<'a> ParseSession<'a> {
@@ -31,11 +30,15 @@ impl<'a> ParseSession<'a> {
             new_lines,
             diagnostics: vec![],
             closing_keywords: vec![],
-            last_token : Token::End,
-            parse_progress : 0,
+            last_token: Token::End,
+            parse_progress: 0,
         };
         lexer.advance();
         lexer
+    }
+
+    pub fn slice_region(&self, range: Range<usize>) -> &str {
+        &self.lexer.source()[range]
     }
 
     pub fn get_new_lines(&self) -> &NewLines {
@@ -47,7 +50,8 @@ impl<'a> ParseSession<'a> {
     }
 
     pub fn advance(&mut self) {
-        self.last_token = std::mem::replace(&mut self.token, self.lexer.next().unwrap_or(Token::End));
+        self.last_token =
+            std::mem::replace(&mut self.token, self.lexer.next().unwrap_or(Token::End));
         self.parse_progress = self.parse_progress + 1;
     }
 
@@ -113,12 +117,11 @@ impl<'a> ParseSession<'a> {
             .closing_keywords
             .iter()
             .rposition(|it| it.contains(&self.token));
-        
+
         let start = self.location();
         let mut end = self.location().get_end();
         while self.token != Token::End && hit.is_none() {
             end = self.location().get_end();
-            println!("Consumed : {}", self.slice());
             self.advance();
             hit = self
                 .closing_keywords
@@ -128,7 +131,15 @@ impl<'a> ParseSession<'a> {
 
         //Did we recover in the while loop above?
         if start.get_end() != self.location().get_end() {
-            self.accept_diagnostic(Diagnostic::syntax_error("Unexpected Tokens".into(), SourceRange::new(start.get_file_path(), start.get_start()..end)));
+            let range = start.get_start()..end;
+            self.accept_diagnostic(Diagnostic::unexpected_token_found(
+                format!(
+                    "{:?}",
+                    self.closing_keywords.last().and_then(|it| it.first()).unwrap_or(&Token::End) //only show first expected token
+                ),
+                format!("'{}'", self.slice_region(range.clone())),
+                SourceRange::new(start.get_file_path(), range),
+            ));
         }
 
         if let Some(hit) = hit {
