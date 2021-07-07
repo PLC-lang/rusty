@@ -3,6 +3,7 @@
 Structured text compiler written in Rust
 
 [![Rust Build](https://github.com/ghaith/ruSTy/workflows/Rust%20on%20Docker/badge.svg)](https://github.com/ghaith/ruSTy/actions)
+[![codecov](https://codecov.io/gh/ghaith/rusty/branch/master/graph/badge.svg?token=7ZZ5XZYE9V)](https://codecov.io/gh/ghaith/rusty)
 
 
 ```
