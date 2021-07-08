@@ -164,7 +164,7 @@ fn parse_pou(
     linkage: LinkageType,
     expected_end_token: lexer::Token,
 ) -> Result<(Pou, Implementation), Diagnostic> {
-    let line_nr = lexer.get_current_line_nr();
+    let start = lexer.range().start;
     lexer.advance(); //Consume ProgramKeyword
 
     //Parse pou name
@@ -183,7 +183,7 @@ fn parse_pou(
     //optional return type
     let start_return_type = lexer.range().start;
     let return_type = if allow(KeywordColon, lexer) {
-        if lexer.token == Identifier {
+        if lexer.token == Identifier || lexer.token == KeywordString {
             if pou_type != PouType::Function {
                 lexer.accept_diagnostic(Diagnostic::return_type_not_supported(
                     &pou_type,
@@ -205,6 +205,13 @@ fn parse_pou(
         None
     };
 
+    lexer.enter_region(vec![
+        KeywordEndProgram,
+        KeywordEndFunction,
+        KeywordEndFunctionBlock,
+        KeywordEndAction,
+    ]);
+
     //Parse variable declarations
     let mut variable_blocks = vec![];
     while lexer.token == KeywordVar
@@ -216,23 +223,21 @@ fn parse_pou(
             variable_blocks.push(block);
         }
     }
+
+    let implementation =
+        parse_implementation(lexer, linkage, pou_type, expected_end_token, &name, &name);
+
+    lexer.recover_until_close();
+    lexer.close_region();
+
     let pou = Pou {
-        name: name.clone(),
+        name,
         pou_type,
         variable_blocks,
         return_type,
-        location: SourceRange::new(lexer.get_file_path(), line_nr..lexer.get_current_line_nr()),
+        location: SourceRange::new(lexer.get_file_path(), start..lexer.range().end),
     };
 
-    let implementation = parse_implementation(
-        lexer,
-        linkage,
-        pou_type,
-        line_nr,
-        expected_end_token,
-        &name,
-        &name,
-    )?;
     Ok((pou, implementation))
 }
 
@@ -240,20 +245,13 @@ fn parse_implementation(
     lexer: &mut ParseSession,
     linkage: LinkageType,
     pou_type: PouType,
-    start: usize,
     expected_end_token: lexer::Token,
     call_name: &str,
     type_name: &str,
-) -> Result<Implementation, Diagnostic> {
-    //Parse the statements
-    lexer.enter_region(vec![
-        KeywordEndProgram,
-        KeywordEndFunction,
-        KeywordEndFunctionBlock,
-        KeywordEndAction,
-    ]);
-    let statements = parse_body(lexer, &|it: &ParseSession| it.token.ends_implementation())?;
-    lexer.recover_until_close();
+) -> Implementation {
+    let start = lexer.range().start;
+    let statements =
+        parse_body(lexer, &|it: &ParseSession| it.token.ends_implementation()).unwrap_or_default();
     //lets see if we ended on the right END_ keyword
     if lexer.token != expected_end_token {
         lexer.accept_diagnostic(Diagnostic::unexpected_token_found(
@@ -262,17 +260,14 @@ fn parse_implementation(
             lexer.location(),
         ))
     }
-    lexer.advance(); //eat the close keyword
-
-    let implementation = Implementation {
+    Implementation {
         name: call_name.into(),
         type_name: type_name.into(),
         linkage,
         pou_type,
         statements,
-        location: SourceRange::new(lexer.get_file_path(), start..lexer.get_current_line_nr()),
-    };
-    Ok(implementation)
+        location: SourceRange::new(lexer.get_file_path(), start..lexer.range().end),
+    }
 }
 
 fn parse_action(
@@ -280,8 +275,14 @@ fn parse_action(
     linkage: LinkageType,
     container: Option<&str>,
 ) -> Result<Implementation, Diagnostic> {
-    let start = lexer.get_current_line_nr();
     lexer.advance(); //Consume the Action keyword
+    lexer.enter_region(vec![
+        KeywordEndAction,
+        KeywordEndProgram,
+        KeywordEndFunction,
+        KeywordEndFunctionBlock,
+    ]);
+
     let name_or_container = slice_and_advance(lexer);
     let (container, name) = if let Some(container) = container {
         (container.into(), name_or_container)
@@ -298,11 +299,12 @@ fn parse_action(
         lexer,
         linkage,
         PouType::Action,
-        start,
         lexer::Token::KeywordEndAction,
         &call_name,
         &container,
-    )?;
+    );
+    lexer.recover_until_close();
+    lexer.close_region();
 
     Ok(implementation)
 }
@@ -460,12 +462,12 @@ fn parse_data_type_definition(
             ));
         }
 
+        let initial_value = if allow(KeywordAssignment, lexer) {
+            Some(parse_expression(lexer)?)
+        } else {
+            None
+        };
         if name.is_some() {
-            let initial_value = if allow(KeywordAssignment, lexer) {
-                Some(parse_expression(lexer)?)
-            } else {
-                None
-            };
             let data_type = DataTypeDeclaration::DataTypeDefinition {
                 data_type: DataType::SubRangeType {
                     name,
@@ -477,12 +479,6 @@ fn parse_data_type_definition(
             lexer.advance();
             Ok((data_type, initial_value))
         } else {
-            let initial_value = if allow(KeywordAssignment, lexer) {
-                Some(parse_expression(lexer)?)
-            } else {
-                None
-            };
-
             expect!(KeywordSemicolon, lexer);
             lexer.advance();
             Ok((
@@ -523,15 +519,7 @@ fn parse_body(
         consume_all(lexer, KeywordSemicolon);
         statements.push(statement);
     }
-    if !until(&lexer) {
-        return Err(Diagnostic::syntax_error(
-            format!(
-                "unexpected termination of body by '{:}', a block was not closed",
-                lexer.slice()
-            ),
-            lexer.location(),
-        ));
-    }
+
     Ok(statements)
 }
 
@@ -549,47 +537,6 @@ fn parse_statement(lexer: &mut ParseSession) -> Result<Statement, Diagnostic> {
         parse_expression(lexer)
     });
     Ok(result)
-}
-
-pub fn expect(token: Token, lexer: &mut ParseSession) -> bool {
-    if lexer.token != token {
-        lexer.accept_diagnostic(Diagnostic::syntax_error(
-            format!("expected '{:?}' but found '{}'", token, lexer.slice()),
-            lexer.location(),
-        ));
-        false
-    } else {
-        true
-    }
-}
-
-/// tries to parse tokens and recover from missing tokens error situations.
-///  - consumes the closing token and closes the ParseSession's region (e.g. a;)
-///  - it will recover until the next closing token is found and close the region
-///      (e.g. a b; will eat b)
-pub fn recover<F: FnOnce(&mut ParseSession) -> PResult<Statement>>(
-    lexer: &mut ParseSession,
-    parse_fn: F,
-) -> Statement {
-    let start = lexer.range().start;
-    let result = parse_fn(lexer);
-    match result {
-        Ok(result) => {
-            lexer.close_region();
-            result
-        }
-        Err(diagnostic) => {
-            //report and recover from error
-            let end = lexer.range().end;
-            let location = SourceRange::new(lexer.get_file_path(), start..end);
-            //try to recover by eating everything until we believe the parser is able to continue
-            lexer.recover_until_close();
-            //Report a diagnostic
-            lexer.accept_diagnostic(diagnostic);
-            //drop the originally parsed statement and replace with an empty-statement
-            Statement::EmptyStatement { location }
-        }
-    }
 }
 
 pub fn parse_statement_in_region<F: FnOnce(&mut ParseSession) -> PResult<Statement>>(
@@ -664,26 +611,46 @@ fn parse_variable_block(lexer: &mut ParseSession) -> Option<VariableBlock> {
         };
 
         while lexer.token == Identifier {
-            result.variables.push(parse_variable(lexer)?);
+            let variable = parse_variable(lexer);
+            if let Ok(variable) = variable {
+                result.variables.push(variable);
+            }
         }
         Ok(result)
     })
 }
 
 fn parse_variable(lexer: &mut ParseSession) -> Result<Variable, Diagnostic> {
+    //create an optional recovery point
+    lexer.enter_region(vec![KeywordSemicolon, KeywordEndType]);
+
     let variable_location = lexer.location();
     let name = slice_and_advance(lexer);
 
-    expect!(KeywordColon, lexer);
-    lexer.advance();
-
-    let (data_type, initializer) = parse_data_type_definition(lexer, None)?;
-
-    //Convert to real datatype
-    Ok(Variable {
-        name,
-        data_type,
-        location: variable_location,
-        initializer,
-    })
+    let maybe_data_type = if allow(KeywordColon, lexer) {
+        parse_data_type_definition(lexer, None)
+    } else {
+        Err(Diagnostic::unexpected_token_found(
+            format!("{:?}", KeywordColon),
+            lexer.slice().into(),
+            lexer.location(),
+        ))
+    };
+    match maybe_data_type {
+        Ok((data_type, initializer)) => {
+            //everything ok, so we drop the recovery-point
+            lexer.closing_keywords.pop();
+            Ok(Variable {
+                name,
+                data_type,
+                location: variable_location,
+                initializer,
+            })
+        }
+        Err(diagnostic) => {
+            lexer.recover_until_close();
+            lexer.close_region();
+            Err(diagnostic)
+        }
+    }
 }

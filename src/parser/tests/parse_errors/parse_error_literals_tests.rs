@@ -14,9 +14,11 @@ fn illegal_literal_time_missing_segments_test() {
     let (_, _, diagnostics) = parse(lexer).unwrap();
     assert_eq!(
         diagnostics,
-        vec![
-            Diagnostic::unexpected_token_found("KeywordSemicolon".into(), "'#'".into(), SourceRange::new("", 35..36))
-        ]
+        vec![Diagnostic::unexpected_token_found(
+            "KeywordSemicolon".into(),
+            "'#'".into(),
+            SourceRange::new("", 35..36)
+        )]
     );
 }
 

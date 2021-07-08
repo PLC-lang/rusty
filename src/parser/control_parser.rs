@@ -1,9 +1,8 @@
-use crate::Diagnostic;
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use crate::ast::*;
 use crate::expect;
-use crate::lexer;
 use crate::lexer::Token::*;
+use crate::Diagnostic;
 
 use super::ParseSession;
 use super::{parse_body, parse_expression, parse_reference, parse_statement};
@@ -21,8 +20,9 @@ pub fn parse_control_statement(lexer: &mut ParseSession) -> Result<Statement, Di
 
 fn parse_if_statement(lexer: &mut ParseSession) -> Result<Statement, Diagnostic> {
     let start = lexer.range().start;
-    let end_of_body =
-        |it : &ParseSession| it.token == KeywordElseIf || it.token == KeywordElse || it.token == KeywordEndIf;
+    let end_of_body = |it: &ParseSession| {
+        it.token == KeywordElseIf || it.token == KeywordElse || it.token == KeywordEndIf
+    };
 
     let mut conditional_blocks = vec![];
 
@@ -174,9 +174,7 @@ fn parse_case_statement(lexer: &mut ParseSession) -> Result<Statement, Diagnosti
 
     if lexer.token == KeywordElse {
         lexer.advance(); // else
-        else_block.append(&mut parse_body(lexer, &|it| {
-            it.token == KeywordEndCase
-        })?)
+        else_block.append(&mut parse_body(lexer, &|it| it.token == KeywordEndCase)?)
     }
     let end = lexer.range().end;
     lexer.advance();
@@ -198,8 +196,10 @@ fn parse_case_body_with_condition(
     lexer: &mut ParseSession,
 ) -> Result<(ConditionalBlock, Option<Statement>), Diagnostic> {
     let parser_position = lexer.parse_progress;
-    let mut body = parse_body(lexer,  &|l: &ParseSession| {
-        l.token == KeywordEndCase || (l.parse_progress > parser_position && l.last_token == KeywordColon) || l.token == KeywordElse
+    let mut body = parse_body(lexer, &|l: &ParseSession| {
+        l.token == KeywordEndCase
+            || (l.parse_progress > parser_position && l.last_token == KeywordColon)
+            || l.token == KeywordElse
     })?;
     if lexer.parse_progress > parser_position && lexer.last_token == KeywordColon {
         let location = lexer.location();
@@ -207,10 +207,9 @@ fn parse_case_body_with_condition(
         // so we add the block and return the next block's condition
         // because we already parsed it
         if body.is_empty() {
-            return Err(
-                Diagnostic::syntax_error(
+            return Err(Diagnostic::syntax_error(
                 "unexpected ':' no case-condition could be found".into(),
-                location
+                location,
             ));
         }
 

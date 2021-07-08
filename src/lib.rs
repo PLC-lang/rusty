@@ -26,6 +26,7 @@ use inkwell::context::Context;
 use inkwell::targets::{
     CodeModel, FileType, InitializationConfig, RelocMode, Target, TargetMachine, TargetTriple,
 };
+use lexer::Token;
 use parser::ParsedAst;
 
 use crate::ast::CompilationUnit;
@@ -65,6 +66,20 @@ impl Diagnostic {
         }
     }
 
+    pub fn unexpected_termination_of_body(
+        slice: &str,
+        token: &Token,
+        range: SourceRange,
+    ) -> Diagnostic {
+        Diagnostic::syntax_error(
+            format!(
+                "Unexpected termination of body by '{:}' ({:?}), a block was not closed",
+                slice, token
+            ),
+            range,
+        )
+    }
+
     pub fn return_type_not_supported(pou_type: &PouType, range: SourceRange) -> Diagnostic {
         Diagnostic::syntax_error(
             format!(
@@ -92,14 +107,12 @@ impl Diagnostic {
     pub fn get_message(&self) -> &str {
         match self {
             Diagnostic::SyntaxError { message, .. } => message.as_str(),
-            _ => "",
         }
     }
 
     pub fn get_location(&self) -> SourceRange {
         match self {
             Diagnostic::SyntaxError { range, .. } => range.clone(),
-            _ => SourceRange::undefined(),
         }
     }
 }

@@ -52,7 +52,7 @@ impl<'a> ParseSession<'a> {
     pub fn advance(&mut self) {
         self.last_token =
             std::mem::replace(&mut self.token, self.lexer.next().unwrap_or(Token::End));
-        self.parse_progress = self.parse_progress + 1;
+        self.parse_progress += 1;
     }
 
     pub fn slice(&self) -> &str {
@@ -65,28 +65,6 @@ impl<'a> ParseSession<'a> {
 
     pub fn range(&self) -> Range<usize> {
         self.lexer.span()
-    }
-
-    pub fn get_current_line_nr(&self) -> usize {
-        self.new_lines.get_line_of(self.range().start).unwrap_or(1)
-    }
-
-    pub fn get_location_information(&self) -> String {
-        let line_index = self.new_lines.get_line_of(self.range().start);
-
-        let location = line_index.map_or_else(
-            || self.range(),
-            |it| {
-                let new_line_offset = self.new_lines.get_offest_of_line(it);
-                let current_range = self.range();
-                (current_range.start - new_line_offset)..(current_range.end - new_line_offset)
-            },
-        );
-        format!(
-            "line: {line:?} offset: {location:?}",
-            line = line_index.map_or_else(|| 1, |line_index| line_index),
-            location = location
-        )
     }
 
     pub fn accept_diagnostic(&mut self, diagnostic: Diagnostic) {
@@ -111,7 +89,6 @@ impl<'a> ParseSession<'a> {
         }
     }
 
-    //pops from the stack until it sees end_token
     pub fn recover_until_close(&mut self) {
         let mut hit = self
             .closing_keywords
@@ -135,7 +112,10 @@ impl<'a> ParseSession<'a> {
             self.accept_diagnostic(Diagnostic::unexpected_token_found(
                 format!(
                     "{:?}",
-                    self.closing_keywords.last().and_then(|it| it.first()).unwrap_or(&Token::End) //only show first expected token
+                    self.closing_keywords
+                        .last()
+                        .and_then(|it| it.first())
+                        .unwrap_or(&Token::End) //only show first expected token
                 ),
                 format!("'{}'", self.slice_region(range.clone())),
                 SourceRange::new(start.get_file_path(), range),
@@ -144,11 +124,9 @@ impl<'a> ParseSession<'a> {
 
         if let Some(hit) = hit {
             if self.closing_keywords.len() > hit + 1 {
-                let closing = self.closing_keywords.pop().unwrap();
-                self.accept_diagnostic(Diagnostic::missing_token(
-                    format!("{:?}", closing),
-                    self.location(),
-                ));
+                let closing = self.closing_keywords.last().unwrap();
+                let expected_tokens = format!("{:?}", closing);
+                self.accept_diagnostic(Diagnostic::missing_token(expected_tokens, self.location()));
             }
         }
     }

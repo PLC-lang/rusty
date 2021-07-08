@@ -4,7 +4,6 @@ use crate::ast::*;
 use crate::expect;
 use crate::lexer::Token::*;
 use crate::parser::parse_statement_in_region;
-use crate::parser::recover;
 use std::str::FromStr;
 
 use super::allow;
@@ -204,12 +203,11 @@ fn parse_parenthesized_expression(lexer: &mut ParseSession) -> Result<Statement,
     match lexer.token {
         KeywordParensOpen => {
             lexer.advance();
-            lexer.enter_region(vec![KeywordParensClose]);
-            let result = super::recover(lexer, |lexer| parse_primary_expression(lexer));
-            if super::expect(KeywordParensClose, lexer) {
-                lexer.advance();
-            }
-            Ok(result)
+            Ok(super::parse_statement_in_region(
+                lexer,
+                vec![KeywordParensClose],
+                |lexer| parse_primary_expression(lexer),
+            ))
         }
         _ => parse_leaf_expression(lexer),
     }
@@ -285,14 +283,13 @@ pub fn parse_qualified_reference(lexer: &mut ParseSession) -> Result<Statement, 
         }
     };
 
-
     if allow(KeywordParensOpen, lexer) {
         // Call Statement
         let call_statement = if allow(KeywordParensClose, lexer) {
             Statement::CallStatement {
-                    operator: Box::new(reference),
-                    parameters: Box::new(None),
-                    location: SourceRange::new(lexer.get_file_path(), start..lexer.range().end),
+                operator: Box::new(reference),
+                parameters: Box::new(None),
+                location: SourceRange::new(lexer.get_file_path(), start..lexer.range().end),
             }
         } else {
             parse_statement_in_region(lexer, vec![KeywordParensClose], |lexer| {
@@ -355,17 +352,27 @@ fn parse_literal_number(lexer: &mut ParseSession) -> Result<Statement, ParseErro
 }
 
 fn parse_number<F: FromStr>(text: &str, location: &SourceRange) -> Result<F, Diagnostic> {
-    text.parse::<F>()
-        .map_err(|_| Diagnostic::syntax_error(format!("Failed parsing number {}", text), location.clone()))
+    text.parse::<F>().map_err(|_| {
+        Diagnostic::syntax_error(format!("Failed parsing number {}", text), location.clone())
+    })
 }
 
 fn parse_date_from_string(text: &str, location: SourceRange) -> Result<Statement, ParseError> {
     let mut segments = text.split('-');
 
     //we can safely expect 3 numbers
-    let year = segments.next().map(|s| parse_number::<i32>(s, &location)).unwrap()?;
-    let month = segments.next().map(|s| parse_number::<u32>(s, &location)).unwrap()?;
-    let day = segments.next().map(|s| parse_number::<u32>(s, &location)).unwrap()?;
+    let year = segments
+        .next()
+        .map(|s| parse_number::<i32>(s, &location))
+        .unwrap()?;
+    let month = segments
+        .next()
+        .map(|s| parse_number::<u32>(s, &location))
+        .unwrap()?;
+    let day = segments
+        .next()
+        .map(|s| parse_number::<u32>(s, &location))
+        .unwrap()?;
 
     Ok(Statement::LiteralDate {
         year,
@@ -474,14 +481,22 @@ fn parse_literal_time(lexer: &mut ParseSession) -> Result<Statement, ParseError>
             let start = char.unwrap().0;
             //just eat all the digits
             char = chars.find(|(_, ch)| !ch.is_digit(10) && !ch.eq(&'.'));
-            char.ok_or_else(|| Diagnostic::syntax_error("Invalid TIME Literal: Cannot parse segment.".to_string(), location.clone()))
-                .and_then(|(index, _)| parse_number::<f64>(&slice[start..index], &location))?
+            char.ok_or_else(|| {
+                Diagnostic::syntax_error(
+                    "Invalid TIME Literal: Cannot parse segment.".to_string(),
+                    location.clone(),
+                )
+            })
+            .and_then(|(index, _)| parse_number::<f64>(&slice[start..index], &location))?
         };
 
         //expect a unit
         let unit = {
             let start = char.map(|(index, _)| index).ok_or_else(|| {
-                Diagnostic::syntax_error("Invalid TIME Literal: Missing unit (d|h|m|s|ms|us|ns)".to_string(), location.clone())
+                Diagnostic::syntax_error(
+                    "Invalid TIME Literal: Missing unit (d|h|m|s|ms|us|ns)".to_string(),
+                    location.clone(),
+                )
             })?;
 
             //just eat all the characters
@@ -503,18 +518,25 @@ fn parse_literal_time(lexer: &mut ParseSession) -> Result<Statement, ParseError>
         if let Some(position) = position {
             //check if we assign out of order - every assignment before must have been a smaller position
             if prev_pos > position {
-                return Err(
-                    Diagnostic::syntax_error("Invalid TIME Literal: segments out of order, use d-h-m-s-ms".to_string(),location)
-                );
+                return Err(Diagnostic::syntax_error(
+                    "Invalid TIME Literal: segments out of order, use d-h-m-s-ms".to_string(),
+                    location,
+                ));
             }
             prev_pos = position; //remember that we wrote this position
 
             if values[position].is_some() {
-                return Err(Diagnostic::syntax_error("Invalid TIME Literal: segments must be unique".to_string(), location));
+                return Err(Diagnostic::syntax_error(
+                    "Invalid TIME Literal: segments must be unique".to_string(),
+                    location,
+                ));
             }
             values[position] = Some(number); //store the number
         } else {
-            return Err(Diagnostic::syntax_error(format!("Invalid TIME Literal: illegal unit '{}'", unit), location));
+            return Err(Diagnostic::syntax_error(
+                format!("Invalid TIME Literal: illegal unit '{}'", unit),
+                location,
+            ));
         }
     }
 

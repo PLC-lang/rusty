@@ -193,7 +193,7 @@ impl SourceRange {
     pub fn sub_range(&self, start: usize, len: usize) -> SourceRange {
         SourceRange::new(
             self.file_path.as_str(),
-            (self.get_start() + start)..(self.get_start()+len)
+            (self.get_start() + start)..(self.get_start() + len),
         )
     }
 }
@@ -222,7 +222,7 @@ impl NewLines {
 
     /// binary search the first element which is bigger than the given index
     /// starting with line 1
-    pub fn get_line_of(&self, offset: usize) -> Option<usize> {
+    pub fn _get_line_of(&self, offset: usize) -> Option<usize> {
         if offset == 0 {
             return Some(1);
         }
@@ -246,18 +246,6 @@ impl NewLines {
         } else {
             None
         }
-    }
-
-    /// get the offset of the new_line that starts line l (starting with line 1)
-    pub fn get_offest_of_line(&self, l: usize) -> usize {
-        self.new_lines[l - 1]
-    }
-
-    pub fn get_location_information(&self, offset: &core::ops::Range<usize>) -> String {
-        let line = self.get_line_of(offset.start).unwrap_or(1);
-        let line_offset = self.get_offest_of_line(line);
-        let offset = offset.start - line_offset..offset.end - line_offset;
-        format!("line: {:}, offset: {:?}", line, offset)
     }
 }
 
