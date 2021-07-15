@@ -294,6 +294,34 @@ END_PROGRAM
 }
 
 #[test]
+fn program_with_real_cast_assignment() {
+    let result = codegen!(
+        r#"PROGRAM prg
+VAR
+y : REAL;
+x : INT;
+END_VAR
+y := x;
+END_PROGRAM
+"#
+    );
+    let expected = generate_program_boiler_plate(
+        "prg",
+        &[("float", "y"), ("i16", "x")],
+        "void",
+        "",
+        "",
+        r#"%load_x = load i16, i16* %x, align 2
+  %1 = sitofp i16 %load_x to float
+  store float %1, float* %y, align 4
+  ret void
+"#,
+    );
+
+    assert_eq!(result, expected);
+}
+
+#[test]
 fn program_with_date_assignment() {
     let result = codegen!(
         r#"PROGRAM prg
