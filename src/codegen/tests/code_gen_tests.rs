@@ -760,6 +760,54 @@ END_PROGRAM
 }
 
 #[test]
+fn program_with_floats_variable_and_comparison_assignment_generates_correctly() {
+    let result = codegen!(
+        r#"PROGRAM prg
+VAR
+x : REAL;
+y : BOOL;
+END_VAR
+y := x = 1;
+y := x > 2;
+y := x < 3;
+y := x <> 4;
+y := x >= 5;
+y := x <= 6;
+END_PROGRAM
+"#
+    );
+    let expected = generate_program_boiler_plate(
+        "prg",
+        &[("float", "x"), ("i1", "y")],
+        "void",
+        "",
+        "",
+        r#"%load_x = load float, float* %x, align 4
+  %tmpVar = fcmp oeq float %load_x, 1.000000e+00
+  store i1 %tmpVar, i1* %y, align 1
+  %load_x1 = load float, float* %x, align 4
+  %tmpVar2 = fcmp ogt float %load_x1, 2.000000e+00
+  store i1 %tmpVar2, i1* %y, align 1
+  %load_x3 = load float, float* %x, align 4
+  %tmpVar4 = fcmp olt float %load_x3, 3.000000e+00
+  store i1 %tmpVar4, i1* %y, align 1
+  %load_x5 = load float, float* %x, align 4
+  %tmpVar6 = fcmp one float %load_x5, 4.000000e+00
+  store i1 %tmpVar6, i1* %y, align 1
+  %load_x7 = load float, float* %x, align 4
+  %tmpVar8 = fcmp oge float %load_x7, 5.000000e+00
+  store i1 %tmpVar8, i1* %y, align 1
+  %load_x9 = load float, float* %x, align 4
+  %tmpVar10 = fcmp ole float %load_x9, 6.000000e+00
+  store i1 %tmpVar10, i1* %y, align 1
+  ret void
+"#,
+    );
+
+    assert_eq!(result, expected);
+}
+
+#[test]
 fn program_with_and_statement() {
     let result = codegen!(
         r#"PROGRAM prg
