@@ -6,8 +6,8 @@ mod typesystem_test;
 #[macro_export]
 macro_rules! codegen_wihout_unwrap {
     ($code:tt) => {{
-        let lexer = crate::lexer::lex("", $code);
-        let (mut ast, _) = crate::parser::parse(lexer).unwrap();
+        let lexer = crate::lexer::lex($code);
+        let (mut ast, ..) = crate::parser::parse(lexer).unwrap();
 
         let context = inkwell::context::Context::create();
         crate::ast::pre_process(&mut ast);
@@ -20,8 +20,8 @@ macro_rules! codegen_wihout_unwrap {
 #[macro_export]
 macro_rules! codegen {
     ($code:tt) => {{
-        let lexer = crate::lexer::lex("", $code);
-        let (mut ast, _) = crate::parser::parse(lexer).unwrap();
+        let lexer = crate::lexer::lex($code);
+        let (mut ast, ..) = crate::parser::parse(lexer).unwrap();
 
         let context = inkwell::context::Context::create();
         crate::ast::pre_process(&mut ast);

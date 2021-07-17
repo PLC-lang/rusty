@@ -35,6 +35,32 @@ END_PROGRAM
 }
 
 #[test]
+fn empty_statements_dont_generate_anything() {
+    let result = codegen!(
+        r#"PROGRAM prg
+            VAR x : DINT; y : DINT; END_VAR
+            x;
+            ;;;;
+            y;
+END_PROGRAM
+"#
+    );
+    let expected = generate_program_boiler_plate(
+        "prg",
+        &[("i32", "x"), ("i32", "y")],
+        "void",
+        "",
+        "",
+        r#"%load_x = load i32, i32* %x, align 4
+  %load_y = load i32, i32* %y, align 4
+  ret void
+"#,
+    );
+
+    assert_eq!(result, expected);
+}
+
+#[test]
 fn empty_global_variable_list_generates_nothing() {
     let result = generate_with_empty_program!("VAR_GLOBAL END_VAR");
     let expected = generate_program_boiler_plate_globals("");

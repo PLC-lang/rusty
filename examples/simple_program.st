@@ -1,5 +1,4 @@
-PROGRAM hello
-VAR
-
-END_VAR
-END_PROGRAM
+TYPE MyType:
+                PROGRAM
+                END_PROGRAM
+            END_TYPE

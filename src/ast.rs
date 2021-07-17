@@ -159,27 +159,16 @@ impl Variable {
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct SourceRange {
-    file_path: String,
     range: core::ops::Range<usize>,
 }
 
 impl SourceRange {
-    pub fn new(file_path: &str, range: core::ops::Range<usize>) -> SourceRange {
-        SourceRange {
-            file_path: file_path.into(),
-            range,
-        }
+    pub fn new(range: core::ops::Range<usize>) -> SourceRange {
+        SourceRange { range }
     }
 
     pub fn undefined() -> SourceRange {
-        SourceRange {
-            file_path: "".into(),
-            range: 0..0,
-        }
-    }
-
-    pub fn get_file_path(&self) -> &str {
-        &self.file_path
+        SourceRange { range: 0..0 }
     }
 
     pub fn get_start(&self) -> usize {
@@ -189,68 +178,15 @@ impl SourceRange {
     pub fn get_end(&self) -> usize {
         self.range.end
     }
+
+    pub fn sub_range(&self, start: usize, len: usize) -> SourceRange {
+        SourceRange::new((self.get_start() + start)..(self.get_start() + len))
+    }
 }
 
 impl From<std::ops::Range<usize>> for SourceRange {
     fn from(range: std::ops::Range<usize>) -> SourceRange {
-        SourceRange::new("", range)
-    }
-}
-
-#[derive(Clone, Debug, PartialEq)]
-pub struct NewLines {
-    new_lines: Vec<usize>,
-}
-
-impl NewLines {
-    pub fn new(source: &str) -> NewLines {
-        let mut new_lines = vec![0];
-        for (offset, c) in source.char_indices() {
-            if c == '\n' {
-                new_lines.push(offset);
-            }
-        }
-        NewLines { new_lines }
-    }
-
-    /// binary search the first element which is bigger than the given index
-    /// starting with line 1
-    pub fn get_line_of(&self, offset: usize) -> Option<usize> {
-        if offset == 0 {
-            return Some(1);
-        }
-
-        let mut start = 0;
-        let mut end = self.new_lines.len() - 1;
-        let mut result: usize = 0;
-        while start <= end {
-            let mid = (start + end) / 2;
-
-            if self.new_lines[mid] <= offset {
-                start = mid + 1; //move to the right
-            } else {
-                result = mid;
-                end = mid - 1;
-            }
-        }
-
-        if self.new_lines[result] > offset {
-            Some(result)
-        } else {
-            None
-        }
-    }
-
-    /// get the offset of the new_line that starts line l (starting with line 1)
-    pub fn get_offest_of_line(&self, l: usize) -> usize {
-        self.new_lines[l - 1]
-    }
-
-    pub fn _get_location_information(&self, offset: &core::ops::Range<usize>) -> String {
-        let line = self.get_line_of(offset.start).unwrap_or(1);
-        let line_offset = self.get_offest_of_line(line);
-        let offset = offset.start - line_offset..offset.end - line_offset;
-        format!("line: {:}, offset: {:?}", line, offset)
+        SourceRange::new(range)
     }
 }
 
@@ -421,6 +357,9 @@ impl Debug for ConditionalBlock {
 
 #[derive(Clone, PartialEq)]
 pub enum Statement {
+    EmptyStatement {
+        location: SourceRange,
+    },
     // Literals
     LiteralInteger {
         value: String,
@@ -557,11 +496,15 @@ pub enum Statement {
         else_block: Vec<Statement>,
         location: SourceRange,
     },
+    CaseCondition {
+        condition: Box<Statement>,
+    },
 }
 
 impl Debug for Statement {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
         match self {
+            Statement::EmptyStatement { .. } => f.debug_struct("EmptyStatement").finish(),
             Statement::LiteralInteger { value, .. } => f
                 .debug_struct("LiteralInteger")
                 .field("value", value)
@@ -758,6 +701,10 @@ impl Debug for Statement {
                 .field("multiplier", multiplier)
                 .field("element", element)
                 .finish(),
+            Statement::CaseCondition { condition } => f
+                .debug_struct("CaseCondition")
+                .field("condition", condition)
+                .finish(),
         }
     }
 }
@@ -773,6 +720,7 @@ impl Statement {
     }
     pub fn get_location(&self) -> SourceRange {
         match self {
+            Statement::EmptyStatement { location, .. } => location.clone(),
             Statement::LiteralInteger { location, .. } => location.clone(),
             Statement::LiteralDate { location, .. } => location.clone(),
             Statement::LiteralDateAndTime { location, .. } => location.clone(),
@@ -790,15 +738,12 @@ impl Statement {
                 let last = elements
                     .last()
                     .map_or_else(SourceRange::undefined, |it| it.get_location());
-                SourceRange::new(first.get_file_path(), first.get_start()..last.get_end())
+                SourceRange::new(first.get_start()..last.get_end())
             }
             Statement::BinaryExpression { left, right, .. } => {
                 let left_loc = left.get_location();
                 let right_loc = right.get_location();
-                SourceRange::new(
-                    &left_loc.file_path,
-                    left_loc.range.start..right_loc.range.end,
-                )
+                SourceRange::new(left_loc.range.start..right_loc.range.end)
             }
             Statement::UnaryExpression { location, .. } => location.clone(),
             Statement::ExpressionList { expressions } => {
@@ -808,31 +753,22 @@ impl Statement {
                 let last = expressions
                     .last()
                     .map_or_else(SourceRange::undefined, |it| it.get_location());
-                SourceRange::new(first.get_file_path(), first.get_start()..last.get_end())
+                SourceRange::new(first.get_start()..last.get_end())
             }
             Statement::RangeStatement { start, end } => {
                 let start_loc = start.get_location();
                 let end_loc = end.get_location();
-                SourceRange::new(
-                    &start_loc.file_path,
-                    start_loc.range.start..end_loc.range.end,
-                )
+                SourceRange::new(start_loc.range.start..end_loc.range.end)
             }
             Statement::Assignment { left, right } => {
                 let left_loc = left.get_location();
                 let right_loc = right.get_location();
-                SourceRange::new(
-                    &left_loc.file_path,
-                    left_loc.range.start..right_loc.range.end,
-                )
+                SourceRange::new(left_loc.range.start..right_loc.range.end)
             }
             Statement::OutputAssignment { left, right } => {
                 let left_loc = left.get_location();
                 let right_loc = right.get_location();
-                SourceRange::new(
-                    &left_loc.file_path,
-                    left_loc.range.start..right_loc.range.end,
-                )
+                SourceRange::new(left_loc.range.start..right_loc.range.end)
             }
             Statement::CallStatement { location, .. } => location.clone(),
             Statement::IfStatement { location, .. } => location.clone(),
@@ -843,12 +779,10 @@ impl Statement {
             Statement::ArrayAccess { reference, access } => {
                 let reference_loc = reference.get_location();
                 let access_loc = access.get_location();
-                SourceRange::new(
-                    &reference_loc.file_path,
-                    reference_loc.range.start..access_loc.range.end,
-                )
+                SourceRange::new(reference_loc.range.start..access_loc.range.end)
             }
             Statement::MultipliedStatement { location, .. } => location.clone(),
+            Statement::CaseCondition { condition } => condition.get_location(),
         }
     }
 }
