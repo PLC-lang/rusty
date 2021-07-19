@@ -1,9 +1,6 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use crate::{
-    ast::{
-        ConditionalBlock, DataTypeDeclaration, SourceRange, Statement, Variable, VariableBlock,
-        VariableBlockType,
-    },
+    ast::*,
     lexer::Token,
     parser::{
         parse,
