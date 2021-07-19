@@ -83,15 +83,11 @@ fn main_compile(parameters: CompileParameters) {
         compile_to_bitcode(sources, parameters.output.as_str()).unwrap();
     } else if parameters.output_ir {
         generate_ir(sources, parameters.output.as_str()).unwrap();
-    } else if parameters.output_pic_obj {
+    } else if parameters.output_pic_obj || parameters.output_shared_obj {
         compile_to_shared_object(sources, parameters.output.as_str(), parameters.target).unwrap();
-    } else if parameters.output_shared_obj {
-        compile_to_shared_object(sources, parameters.output.as_str(), parameters.target).unwrap()
-    } else if parameters.output_obj_code {
-        compile_to_static_obj(sources, parameters.output.as_str(), parameters.target).unwrap();
     } else {
-        //none is set, so we use default
-        panic!("no output format defined");
+        // default is static
+        compile_to_static_obj(sources, parameters.output.as_str(), parameters.target).unwrap();
     }
 }
 fn generate_ir(sources: &[&dyn SourceContainer], output: &str) -> Result<(), CompileError> {

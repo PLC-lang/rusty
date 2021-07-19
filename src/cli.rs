@@ -9,7 +9,7 @@ pub fn parse_parameters(args: Vec<String>) -> Result<CompileParameters, Paramete
 
 #[derive(StructOpt, Debug)]
 #[structopt(
-        group = ArgGroup::with_name("format").required(true),
+        group = ArgGroup::with_name("format") /* .required(true) */,
         about = "IEC61131-3 Structured Text compiler powered by Rust & LLVM "
     )]
 pub struct CompileParameters {
@@ -96,11 +96,6 @@ mod cli_tests {
     fn missing_parameters_results_in_error() {
         // no arguments
         expect_argument_error(vec![], ErrorKind::MissingRequiredArgument);
-        // only input file, missing format
-        expect_argument_error(
-            vec_of_strings!["input.st"],
-            ErrorKind::MissingRequiredArgument,
-        );
         // no input file
         expect_argument_error(vec_of_strings!["--ir"], ErrorKind::MissingRequiredArgument);
     }
@@ -143,6 +138,7 @@ mod cli_tests {
         let parameters =
             parse_parameters(vec_of_strings!("input.st", "--ir", "-o", "myout.out")).unwrap();
         assert_eq!(parameters.output, "myout.out".to_string());
+
         //long --output
         let parameters = parse_parameters(vec_of_strings!(
             "input.st",
@@ -190,6 +186,13 @@ mod cli_tests {
         assert_eq!(parameters.output_obj_code, false);
         assert_eq!(parameters.output_pic_obj, false);
         assert_eq!(parameters.output_shared_obj, true);
+
+        let parameters = parse_parameters(vec_of_strings!("input.st")).unwrap();
+        assert_eq!(parameters.output_ir, false);
+        assert_eq!(parameters.output_bit_code, false);
+        assert_eq!(parameters.output_obj_code, false);
+        assert_eq!(parameters.output_pic_obj, false);
+        assert_eq!(parameters.output_shared_obj, false);
     }
 
     #[test]
