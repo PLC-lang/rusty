@@ -35,15 +35,13 @@ fn test_unexpected_token_error_message2() {
     ",
     );
     let parse_result = parse(lexer);
-
-    if let Err { 0: msg } = parse_result {
-        assert_eq!(
-            Diagnostic::syntax_error("Unexpected token: 'SOME'".into(), (0..4).into()),
-            msg
-        );
-    } else {
-        panic!("Expected parse error but didn't get one.");
-    }
+    assert_eq!(
+        Err(Diagnostic::syntax_error(
+            "Unexpected token: 'SOME'".into(),
+            (0..4).into()
+        )),
+        parse_result
+    );
 }
 
 #[test]
