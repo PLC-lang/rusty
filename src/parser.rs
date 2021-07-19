@@ -14,19 +14,6 @@ mod expressions_parser;
 #[cfg(test)]
 mod tests;
 
-#[macro_export]
-macro_rules! expect {
-    ( $token:expr, $lexer:expr) => {
-        if $lexer.token != $token {
-            return Err(Diagnostic::unexpected_token_found(
-                format!("{:?}", $token),
-                $lexer.slice().to_string(),
-                $lexer.location(),
-            ));
-        }
-    };
-}
-
 pub type PResult<T> = Result<T, Diagnostic>;
 pub type ParsedAst = (CompilationUnit, Vec<Diagnostic>);
 
@@ -100,7 +87,7 @@ fn parse_actions(
     linkage: LinkageType,
 ) -> Result<Vec<Implementation>, Diagnostic> {
     lexer.advance(); //Consume ACTIONS
-    expect!(Identifier, lexer);
+    lexer.expect(Identifier)?;
     let container = lexer.slice_and_advance();
     let mut result = vec![];
 
@@ -257,9 +244,9 @@ fn parse_action(
         let (container, name) = if let Some(container) = container {
             (container.into(), name_or_container)
         } else {
-            expect!(KeywordDot, lexer);
+            lexer.expect(KeywordDot)?;
             lexer.advance();
-            expect!(Identifier, lexer);
+            lexer.expect(Identifier)?;
             let name = lexer.slice_and_advance();
             (name_or_container, name)
         };
@@ -394,7 +381,7 @@ fn parse_type_reference_type_definition(
     let bounds = if lexer.allow(&KeywordParensOpen) {
         // INT (..) :=
         let bounds = parse_expression(lexer)?;
-        expect!(KeywordParensClose, lexer);
+        lexer.expect(KeywordParensClose)?;
         lexer.advance();
         Some(bounds)
     } else {
@@ -464,11 +451,11 @@ fn parse_enum_type_definition(
         //ENUM
         let mut elements = Vec::new();
         //we expect at least one element
-        expect!(Identifier, lexer);
+        lexer.expect(Identifier)?;
         elements.push(lexer.slice_and_advance());
         //parse additional elements separated by ,
         while lexer.allow(&KeywordComma) {
-            expect!(Identifier, lexer);
+            lexer.expect(Identifier)?;
             elements.push(lexer.slice_and_advance());
         }
         Ok(elements)
@@ -490,12 +477,12 @@ fn parse_array_type_definition(
     let range = parse_statement_in_region(lexer, vec![KeywordOf], |lexer| {
         //ARRAY
         //expect open square
-        expect!(KeywordSquareParensOpen, lexer);
+        lexer.expect(KeywordSquareParensOpen)?;
         lexer.advance();
         //parse range
         let range = parse_primary_expression(lexer);
         //expect close range
-        expect!(KeywordSquareParensClose, lexer);
+        lexer.expect(KeywordSquareParensClose)?;
         lexer.advance();
         range
     });

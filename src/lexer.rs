@@ -37,6 +37,18 @@ impl<'a> ParseSession<'a> {
         lexer
     }
 
+    pub fn expect(&self, token: Token) -> Result<(), Diagnostic> {
+        if self.token != token {
+            Err(Diagnostic::unexpected_token_found(
+                format!("{:?}", token),
+                self.slice().to_string(),
+                self.location(),
+            ))
+        } else {
+            Ok(())
+        }
+    }
+
     /// consumes an optional token and returns true if it was consumed.
     pub fn allow(&mut self, token: &Token) -> bool {
         if self.token == *token {

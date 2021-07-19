@@ -1,7 +1,6 @@
 use crate::Diagnostic;
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use crate::ast::*;
-use crate::expect;
 use crate::lexer::Token::*;
 use crate::parser::parse_statement_in_region;
 use std::str::FromStr;
@@ -249,11 +248,11 @@ fn parse_leaf_expression(lexer: &mut ParseSession) -> Result<Statement, ParseErr
 
 fn parse_array_literal(lexer: &mut ParseSession) -> Result<Statement, ParseError> {
     let start = lexer.range().start;
-    expect!(KeywordSquareParensOpen, lexer);
+    lexer.expect(KeywordSquareParensOpen)?;
     lexer.advance();
     let elements = Some(Box::new(parse_primary_expression(lexer)?));
     let end = lexer.range().end;
-    expect!(KeywordSquareParensClose, lexer);
+    lexer.expect(KeywordSquareParensClose)?;
     lexer.advance();
     Ok(Statement::LiteralArray {
         elements,
@@ -316,7 +315,7 @@ pub fn parse_reference_access(lexer: &mut ParseSession) -> Result<Statement, Par
     //If (while) we hit a dereference, parse and append the dereference to the result
     while lexer.allow(&KeywordSquareParensOpen) {
         let access = parse_primary_expression(lexer)?;
-        expect!(KeywordSquareParensClose, lexer);
+        lexer.expect(KeywordSquareParensClose)?;
         lexer.advance();
         reference = Statement::ArrayAccess {
             reference: Box::new(reference),
@@ -336,7 +335,7 @@ fn parse_literal_number(lexer: &mut ParseSession) -> Result<Statement, ParseErro
             .parse::<u32>()
             .map_err(|e| Diagnostic::syntax_error(format!("{}", e), location.clone()))?;
         let element = parse_primary_expression(lexer)?;
-        expect!(KeywordParensClose, lexer);
+        lexer.expect(KeywordParensClose)?;
         let end = lexer.range().end;
         lexer.advance();
         return Ok(Statement::MultipliedStatement {
@@ -575,7 +574,7 @@ fn parse_literal_real(
     integer: String,
     integer_range: SourceRange,
 ) -> Result<Statement, ParseError> {
-    expect!(LiteralInteger, lexer);
+    lexer.expect(LiteralInteger)?;
     let start = integer_range.get_start();
     let fraction_end = lexer.range().end;
     let fractional = lexer.slice_and_advance();
