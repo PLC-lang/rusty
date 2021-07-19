@@ -279,3 +279,35 @@ fn test_unexpected_type_declaration_error_message() {
         diagnostics
     );
 }
+
+#[test]
+fn a_program_needs_to_end_with_end_program() {
+    let lexer = lex("PROGRAM buz ");
+    let (_, diagnostics) = parse(lexer).unwrap();
+    assert_eq!(
+        diagnostics,
+        vec![Diagnostic::unexpected_token_found(
+            "KeywordEndProgram".into(),
+            "''".into(),
+            (12..12).into()
+        ),]
+    );
+}
+
+#[test]
+fn a_variable_declaration_block_needs_to_end_with_endvar() {
+    let lexer = lex("PROGRAM buz VAR END_PROGRAM ");
+    let (_, diagnostics) = parse(lexer).unwrap();
+
+    assert_eq!(
+        diagnostics,
+        vec![
+            Diagnostic::missing_token("[KeywordEndVar]".into(), (16..27).into()),
+            Diagnostic::unexpected_token_found(
+                "KeywordEndVar".into(),
+                "'END_PROGRAM'".into(),
+                (16..27).into()
+            ),
+        ]
+    );
+}
