@@ -26,18 +26,6 @@ macro_rules! expect {
     };
 }
 
-#[macro_export]
-macro_rules! consume_or_report {
-    ( $token:expr, $lexer:expr) => {
-        if !crate::parser::allow($token, $lexer) {
-            $lexer.accept_diagnostic(Diagnostic::missing_token(
-                format!("{:?}", $token),
-                $lexer.location(),
-            ));
-        }
-    };
-}
-
 /// consumes an optional token and returns true if it was consumed.
 pub fn allow(token: lexer::Token, lexer: &mut ParseSession) -> bool {
     if lexer.token == token {
@@ -330,12 +318,12 @@ fn parse_action(
 fn parse_type(lexer: &mut ParseSession) -> Option<UserTypeDeclaration> {
     lexer.advance(); // consume the TYPE
     let name = slice_and_advance(lexer);
-    consume_or_report!(KeywordColon, lexer);
+    lexer.consume_or_report(KeywordColon);
 
     let result = parse_full_data_type_definition(lexer, Some(name));
 
     if let Some((DataTypeDeclaration::DataTypeDefinition { data_type }, initializer)) = result {
-        consume_or_report!(KeywordEndType, lexer);
+        lexer.consume_or_report(KeywordEndType);
         Some(UserTypeDeclaration {
             data_type,
             initializer,

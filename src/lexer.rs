@@ -37,6 +37,16 @@ impl<'a> ParseSession<'a> {
         lexer
     }
 
+    pub fn consume_or_report(&mut self, token: Token) {
+        let format_token = token.clone();
+        if !crate::parser::allow(token, self) {
+            self.accept_diagnostic(Diagnostic::missing_token(
+                format!("{:?}", format_token),
+                self.location(),
+            ));
+        }
+    }
+
     pub fn slice_region(&self, range: Range<usize>) -> &str {
         &self.lexer.source()[range]
     }
