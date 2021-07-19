@@ -1,9 +1,10 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-use crate::ast::*;
-use crate::lexer;
-use crate::lexer::Token;
-use crate::lexer::{ParseSession, Token::*};
-use crate::{ast::Implementation, Diagnostic};
+use crate::{
+    ast::*,
+    lexer,
+    lexer::{ParseSession, Token, Token::*},
+    Diagnostic
+};
 
 use self::{control_parser::parse_control_statement, expressions_parser::parse_primary_expression};
 
