@@ -3,7 +3,7 @@ use crate::{
     ast::*,
     lexer,
     lexer::{ParseSession, Token, Token::*},
-    Diagnostic
+    Diagnostic,
 };
 
 use self::{control_parser::parse_control_statement, expressions_parser::parse_primary_expression};
@@ -25,26 +25,6 @@ macro_rules! expect {
             ));
         }
     };
-}
-
-///
-/// returns an error for an unidientified token
-///  
-fn unidentified_token(lexer: &ParseSession) -> Diagnostic {
-    Diagnostic::syntax_error(
-        format!("Unidentified token: {t:?}", t = lexer.slice()),
-        lexer.location(),
-    )
-}
-
-///
-/// returns an error for an unexpected token
-///  
-fn unexpected_token(lexer: &ParseSession) -> Diagnostic {
-    Diagnostic::syntax_error(
-        format!("Unexpected token: '{slice:}'", slice = lexer.slice()),
-        lexer.location(),
-    )
 }
 
 pub type PResult<T> = Result<T, Diagnostic>;
@@ -107,8 +87,8 @@ pub fn parse(mut lexer: ParseSession) -> PResult<ParsedAst> {
                 }
             }
             KeywordEndActions | End => return Ok((unit, lexer.diagnostics)),
-            Error => return Err(unidentified_token(&lexer)),
-            _ => return Err(unexpected_token(&lexer)),
+            Error => return Err(Diagnostic::unidentified_token(&lexer)),
+            _ => return Err(Diagnostic::unexpected_token(&lexer)),
         };
         linkage = LinkageType::Internal;
     }
@@ -132,8 +112,8 @@ fn parse_actions(
                     result.push(implementation);
                 }
             }
-            Error => return Err(unidentified_token(&lexer)),
-            _ => return Err(unexpected_token(&lexer)),
+            Error => return Err(Diagnostic::unidentified_token(&lexer)),
+            _ => return Err(Diagnostic::unexpected_token(&lexer)),
         }
     }
     lexer.advance(); //Consume end actions

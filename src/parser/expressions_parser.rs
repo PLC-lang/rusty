@@ -6,7 +6,7 @@ use crate::lexer::Token::*;
 use crate::parser::parse_statement_in_region;
 use std::str::FromStr;
 
-use super::{unexpected_token, ParseSession};
+use super::ParseSession;
 
 type ParseError = Diagnostic;
 
@@ -228,7 +228,7 @@ fn parse_leaf_expression(lexer: &mut ParseSession) -> Result<Statement, ParseErr
         LiteralTrue => parse_bool_literal(lexer, true),
         LiteralFalse => parse_bool_literal(lexer, false),
         KeywordSquareParensOpen => parse_array_literal(lexer),
-        _ => Err(unexpected_token(lexer)),
+        _ => Err(Diagnostic::unexpected_token(lexer)),
     };
 
     if current.is_ok() && lexer.token == KeywordAssignment {

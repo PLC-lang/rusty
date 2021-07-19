@@ -69,6 +69,26 @@ impl Diagnostic {
         }
     }
 
+    ///
+    /// returns an error for an unidientified token
+    ///
+    pub fn unidentified_token(lexer: &lexer::ParseSession) -> Diagnostic {
+        Diagnostic::syntax_error(
+            format!("Unidentified token: {t:?}", t = lexer.slice()),
+            lexer.location(),
+        )
+    }
+
+    ///
+    /// returns an error for an unexpected token
+    ///
+    pub fn unexpected_token(lexer: &lexer::ParseSession) -> Diagnostic {
+        Diagnostic::syntax_error(
+            format!("Unexpected token: '{slice:}'", slice = lexer.slice()),
+            lexer.location(),
+        )
+    }
+
     pub fn return_type_not_supported(pou_type: &PouType, range: SourceRange) -> Diagnostic {
         Diagnostic::syntax_error(
             format!(
