@@ -124,7 +124,7 @@ fn parse_actions(
     let mut result = vec![];
 
     //Go through each action
-    while lexer.token != KeywordEndActions && !is_end_of_stream(&lexer.token) {
+    while lexer.token != KeywordEndActions && !lexer.is_end_of_stream() {
         match lexer.token {
             KeywordAction => {
                 if let Some(implementation) = parse_action(&mut lexer, linkage, Some(&container)) {
@@ -531,10 +531,6 @@ fn parse_array_type_definition(
             initializer,
         )
     })
-}
-
-fn is_end_of_stream(token: &lexer::Token) -> bool {
-    *token == End || *token == Error
 }
 
 /// parse a body and recovers until the given `end_keywords`

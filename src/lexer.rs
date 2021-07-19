@@ -62,6 +62,10 @@ impl<'a> ParseSession<'a> {
         slice
     }
 
+    pub fn is_end_of_stream(&self) -> bool {
+        self.token == Token::End || self.token == Token::Error
+    }
+
     pub fn slice_region(&self, range: Range<usize>) -> &str {
         &self.lexer.source()[range]
     }
