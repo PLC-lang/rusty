@@ -37,11 +37,20 @@ impl<'a> ParseSession<'a> {
         lexer
     }
 
+    /// consumes an optional token and returns true if it was consumed.
+    pub fn allow(&mut self, token: &Token) -> bool {
+        if self.token == *token {
+            self.advance();
+            true
+        } else {
+            false
+        }
+    }
+
     pub fn consume_or_report(&mut self, token: Token) {
-        let format_token = token.clone();
-        if !crate::parser::allow(token, self) {
+        if !self.allow(&token) {
             self.accept_diagnostic(Diagnostic::missing_token(
-                format!("{:?}", format_token),
+                format!("{:?}", token),
                 self.location(),
             ));
         }

@@ -6,7 +6,6 @@ use crate::lexer::Token::*;
 use crate::parser::parse_statement_in_region;
 use std::str::FromStr;
 
-use super::allow;
 use super::ParseSession;
 use super::{slice_and_advance, unexpected_token};
 
@@ -274,7 +273,7 @@ fn parse_bool_literal(lexer: &mut ParseSession, value: bool) -> Result<Statement
 pub fn parse_qualified_reference(lexer: &mut ParseSession) -> Result<Statement, ParseError> {
     let start = lexer.range().start;
     let mut reference_elements = vec![parse_reference_access(lexer)?];
-    while allow(KeywordDot, lexer) {
+    while lexer.allow(&KeywordDot) {
         reference_elements.push(parse_reference_access(lexer)?);
     }
 
@@ -286,9 +285,9 @@ pub fn parse_qualified_reference(lexer: &mut ParseSession) -> Result<Statement, 
         }
     };
 
-    if allow(KeywordParensOpen, lexer) {
+    if lexer.allow(&KeywordParensOpen) {
         // Call Statement
-        let call_statement = if allow(KeywordParensClose, lexer) {
+        let call_statement = if lexer.allow(&KeywordParensClose) {
             Statement::CallStatement {
                 operator: Box::new(reference),
                 parameters: Box::new(None),
@@ -316,7 +315,7 @@ pub fn parse_reference_access(lexer: &mut ParseSession) -> Result<Statement, Par
         location,
     };
     //If (while) we hit a dereference, parse and append the dereference to the result
-    while allow(KeywordSquareParensOpen, lexer) {
+    while lexer.allow(&KeywordSquareParensOpen) {
         let access = parse_primary_expression(lexer)?;
         expect!(KeywordSquareParensClose, lexer);
         lexer.advance();
@@ -331,9 +330,9 @@ pub fn parse_reference_access(lexer: &mut ParseSession) -> Result<Statement, Par
 fn parse_literal_number(lexer: &mut ParseSession) -> Result<Statement, ParseError> {
     let location = lexer.location();
     let result = slice_and_advance(lexer);
-    if allow(KeywordDot, lexer) {
+    if lexer.allow(&KeywordDot) {
         return parse_literal_real(lexer, result, location);
-    } else if allow(KeywordParensOpen, lexer) {
+    } else if lexer.allow(&KeywordParensOpen) {
         let multiplier = result
             .parse::<u32>()
             .map_err(|e| Diagnostic::syntax_error(format!("{}", e), location.clone()))?;
