@@ -56,6 +56,12 @@ impl<'a> ParseSession<'a> {
         }
     }
 
+    pub fn slice_and_advance(&mut self) -> String {
+        let slice = self.slice().to_string();
+        self.advance();
+        slice
+    }
+
     pub fn slice_region(&self, range: Range<usize>) -> &str {
         &self.lexer.source()[range]
     }

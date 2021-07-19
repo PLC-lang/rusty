@@ -46,12 +46,6 @@ fn unexpected_token(lexer: &ParseSession) -> Diagnostic {
     )
 }
 
-fn slice_and_advance(lexer: &mut ParseSession) -> String {
-    let slice = lexer.slice().to_string();
-    lexer.advance();
-    slice
-}
-
 pub type PResult<T> = Result<T, Diagnostic>;
 pub type ParsedAst = (CompilationUnit, Vec<Diagnostic>);
 
@@ -126,7 +120,7 @@ fn parse_actions(
 ) -> Result<Vec<Implementation>, Diagnostic> {
     lexer.advance(); //Consume ACTIONS
     expect!(Identifier, lexer);
-    let container = slice_and_advance(lexer);
+    let container = lexer.slice_and_advance();
     let mut result = vec![];
 
     //Go through each action
@@ -172,7 +166,7 @@ fn parse_pou(
     let pou = parse_any_in_region(lexer, closing_tokens.clone(), |lexer| {
         //Parse pou name
         let name = if lexer.token == Identifier {
-            slice_and_advance(lexer)
+            lexer.slice_and_advance()
         } else {
             //missing pou name
             lexer.accept_diagnostic(Diagnostic::unexpected_token_found(
@@ -193,7 +187,7 @@ fn parse_pou(
                         SourceRange::new(start_return_type..lexer.range().end),
                     ));
                 }
-                let referenced_type = slice_and_advance(lexer);
+                let referenced_type = lexer.slice_and_advance();
                 Some(DataTypeDeclaration::DataTypeReference { referenced_type })
             } else {
                 //missing return type
@@ -278,14 +272,14 @@ fn parse_action(
     ];
 
     parse_any_in_region(lexer, closing_tokens.clone(), |lexer| {
-        let name_or_container = slice_and_advance(lexer);
+        let name_or_container = lexer.slice_and_advance();
         let (container, name) = if let Some(container) = container {
             (container.into(), name_or_container)
         } else {
             expect!(KeywordDot, lexer);
             lexer.advance();
             expect!(Identifier, lexer);
-            let name = slice_and_advance(lexer);
+            let name = lexer.slice_and_advance();
             (name_or_container, name)
         };
         let call_name = format!("{}.{}", &container, &name);
@@ -307,7 +301,7 @@ fn parse_action(
 // TYPE ... END_TYPE
 fn parse_type(lexer: &mut ParseSession) -> Option<UserTypeDeclaration> {
     lexer.advance(); // consume the TYPE
-    let name = slice_and_advance(lexer);
+    let name = lexer.slice_and_advance();
     lexer.consume_or_report(KeywordColon);
 
     let result = parse_full_data_type_definition(lexer, Some(name));
@@ -414,7 +408,7 @@ fn parse_type_reference_type_definition(
     name: Option<String>,
 ) -> PResult<(DataTypeDeclaration, Option<Statement>)> {
     //Subrange
-    let referenced_type = slice_and_advance(lexer);
+    let referenced_type = lexer.slice_and_advance();
 
     let bounds = if lexer.allow(&KeywordParensOpen) {
         // INT (..) :=
@@ -490,11 +484,11 @@ fn parse_enum_type_definition(
         let mut elements = Vec::new();
         //we expect at least one element
         expect!(Identifier, lexer);
-        elements.push(slice_and_advance(lexer));
+        elements.push(lexer.slice_and_advance());
         //parse additional elements separated by ,
         while lexer.allow(&KeywordComma) {
             expect!(Identifier, lexer);
-            elements.push(slice_and_advance(lexer));
+            elements.push(lexer.slice_and_advance());
         }
         Ok(elements)
     })
@@ -656,7 +650,7 @@ fn parse_variable_block(
 
 fn parse_variable(lexer: &mut ParseSession) -> Option<Variable> {
     let variable_location = lexer.location();
-    let name = slice_and_advance(lexer);
+    let name = lexer.slice_and_advance();
 
     //parse or recover until the colon
     if !lexer.allow(&KeywordColon) {
