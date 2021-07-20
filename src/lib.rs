@@ -36,6 +36,7 @@ use inkwell::targets::{
 use parser::ParsedAst;
 use resolver::TypeAnnotator;
 use std::{fs::File, io::Read};
+use validation::Validator;
 
 use crate::ast::CompilationUnit;
 mod ast;
@@ -47,19 +48,48 @@ mod lexer;
 mod parser;
 mod resolver;
 mod typesystem;
+mod validation;
 
 #[macro_use]
 extern crate pretty_assertions;
 
 #[derive(PartialEq, Debug, Clone)]
 pub enum Diagnostic {
-    SyntaxError { message: String, range: SourceRange },
+    SyntaxError { message: String, range: SourceRange, err_no: ErrNo },
     ImprovementSuggestion { message: String, range: SourceRange },
+}
+
+#[allow(non_camel_case_types)]
+#[derive(PartialEq, Debug, Clone)]
+pub enum ErrNo {
+    undefined,
+
+    //syntax
+    syntax__generic_error,
+    syntax__missing_token,
+    syntax__unexpected_token,
+
+    //semantic
+    // pou related
+    pou__missing_return_type,
+    pou__unexpected_return_type,
+    pou__empty_variable_block,
+    
+    //reference related
+    reference__unresolved,
+
+    //variable related
+
+
+    //type related
+
+
+
 }
 
 impl Diagnostic {
     pub fn syntax_error(message: String, range: SourceRange) -> Diagnostic {
-        Diagnostic::SyntaxError { message, range }
+        Diagnostic::SyntaxError { message, range, err_no: ErrNo::syntax__generic_error }
     }
 
     pub fn unexpected_token_found(
@@ -67,29 +97,40 @@ impl Diagnostic {
         found: String,
         range: SourceRange,
     ) -> Diagnostic {
-        Diagnostic::syntax_error(
-            format!(
+        Diagnostic::SyntaxError {
+            message: format!(
                 "Unexpected token: expected {} but found {}",
                 expected, found
             ),
             range,
-        )
+            err_no: ErrNo::syntax__unexpected_token,
+        }
     }
 
     pub fn return_type_not_supported(pou_type: &PouType, range: SourceRange) -> Diagnostic {
-        Diagnostic::syntax_error(
-            format!(
+        Diagnostic::SyntaxError {
+            message: format!(
                 "POU Type {:?} does not support a return type. Did you mean Function?",
                 pou_type
             ),
             range,
-        )
+            err_no: ErrNo::pou__unexpected_return_type,
+        }
+    }
+
+    pub fn function_return_missing(range: SourceRange) -> Diagnostic {
+        Diagnostic::SyntaxError {
+            message: "Function Return type missing".into(),
+            range,
+            err_no: ErrNo::pou__missing_return_type,
+        }
     }
 
     pub fn missing_token(epxected_token: String, range: SourceRange) -> Diagnostic {
         Diagnostic::SyntaxError {
             message: format!("Missing expected Token {}", epxected_token),
             range,
+            err_no: ErrNo::syntax__missing_token
         }
     }
 
@@ -97,9 +138,26 @@ impl Diagnostic {
         Diagnostic::SyntaxError {
             message: "Missing Actions Container Name".to_string(),
             range,
+            err_no: ErrNo::undefined,
         }
     }
-
+    
+    pub fn unrseolved_reference(reference: &str, location: SourceRange) -> Diagnostic {
+        Diagnostic::SyntaxError {
+            message: format!("Could not resolve reference to '{:}", reference),
+            range: location,
+            err_no: ErrNo::reference__unresolved,
+        }
+    }
+    
+    pub fn empty_variable_block(location: SourceRange) -> Diagnostic {
+        Diagnostic::SyntaxError {
+            message: "Variable block is empty".into(),
+            range: location,
+            err_no: ErrNo::pou__empty_variable_block,
+        }
+    }
+    
     pub fn get_message(&self) -> &str {
         match self {
             Diagnostic::SyntaxError { message, .. } => message.as_str(),
@@ -336,6 +394,13 @@ pub fn compile_module<'c, T: SourceContainer>(
         full_index.import(index::visitor::visit(&parse_result));
         all_units.push(parse_result);
 
+        let mut validator = Validator::new(&full_index);
+        validator.visit_unit(&parse_result);
+        let syntactic_diagnostics = diagnostics.into_iter();
+        let semantic_diagnostics = validator.diagnostic.into_iter();
+
+        let diagnostics = syntactic_diagnostics.chain(semantic_diagnostics);
+        unit.import(parse_result);
         //log errors
         let file_id = files.add(location, e.source.clone());
         for error in diagnostics {

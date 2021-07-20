@@ -463,6 +463,7 @@ fn parse_full_data_type_definition(
                     data_type: DataType::VarArgs {
                         referenced_type: None,
                     },
+                    location: lexer.last_range.clone().into(),
                 },
                 None,
             ))
@@ -474,6 +475,7 @@ fn parse_full_data_type_definition(
                             data_type: DataType::VarArgs {
                                 referenced_type: Some(Box::new(type_def)),
                             },
+                            location: lexer.last_range.clone().into(),
                         },
                         None,
                     )
@@ -496,6 +498,7 @@ fn parse_data_type_definition(
         Some((
             DataTypeDeclaration::DataTypeDefinition {
                 data_type: DataType::StructType { name, variables },
+                location: (start..lexer.range().end).into(),
             },
             None,
         ))
@@ -548,6 +551,7 @@ fn parse_type_reference_type_definition(
                 referenced_type,
                 bounds,
             },
+            location: (start..end).into(),
         };
         Some((data_type, initial_value))
     } else {
@@ -605,6 +609,7 @@ fn parse_string_type_definition(
                 is_wide,
                 size,
             },
+            location: (start..end).into(),
         },
         lexer
             .allow(&KeywordAssignment)
@@ -634,6 +639,7 @@ fn parse_enum_type_definition(
     Some((
         DataTypeDeclaration::DataTypeDefinition {
             data_type: DataType::EnumType { name, elements },
+            location: (start..lexer.last_range.end).into(),
         },
         None,
     ))
@@ -659,6 +665,7 @@ fn parse_array_type_definition(
 
     let inner_type_defintion = parse_data_type_definition(lexer, None);
     inner_type_defintion.map(|(reference, initializer)| {
+        let end = reference.get_location().get_end();
         (
             DataTypeDeclaration::DataTypeDefinition {
                 data_type: DataType::ArrayType {
@@ -666,6 +673,7 @@ fn parse_array_type_definition(
                     bounds: range,
                     referenced_type: Box::new(reference),
                 },
+                location: (start..end).into(),
             },
             initializer,
         )
