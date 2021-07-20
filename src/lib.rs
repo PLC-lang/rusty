@@ -56,26 +56,17 @@ impl Diagnostic {
     }
 
     pub fn unexpected_token_found(
-        expected: String,
+        expected: Option<String>,
         found: String,
         range: SourceRange,
     ) -> Diagnostic {
         Diagnostic::syntax_error(
-            format!(
-                "Unexpected token: expected {} but found {}",
-                expected, found
-            ),
+            if let Some(e) = expected {
+                format!("Unexpected token: expected {} but found {}", e, found)
+            } else {
+                format!("Unexpected token: '{}'", found)
+            },
             range,
-        )
-    }
-
-    ///
-    /// returns an error for an unexpected token
-    ///
-    pub fn unexpected_token(lexer: &lexer::ParseSession) -> Diagnostic {
-        Diagnostic::syntax_error(
-            format!("Unexpected token: '{slice:}'", slice = lexer.slice()),
-            lexer.location(),
         )
     }
 

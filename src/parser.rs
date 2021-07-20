@@ -74,7 +74,13 @@ pub fn parse(mut lexer: ParseSession) -> PResult<ParsedAst> {
                 }
             }
             KeywordEndActions | End => return Ok((unit, lexer.diagnostics)),
-            _ => return Err(Diagnostic::unexpected_token(&lexer)),
+            _ => {
+                return Err(Diagnostic::unexpected_token_found(
+                    None,
+                    lexer.slice().to_string(),
+                    lexer.location(),
+                ))
+            }
         };
         linkage = LinkageType::Internal;
     }
@@ -98,7 +104,13 @@ fn parse_actions(
                     result.push(implementation);
                 }
             }
-            _ => return Err(Diagnostic::unexpected_token(&lexer)),
+            _ => {
+                return Err(Diagnostic::unexpected_token_found(
+                    None,
+                    lexer.slice().to_string(),
+                    lexer.location(),
+                ))
+            }
         }
     }
     lexer.advance(); //Consume end actions
@@ -136,7 +148,7 @@ fn parse_pou(
         } else {
             //missing pou name
             lexer.accept_diagnostic(Diagnostic::unexpected_token_found(
-                "Identifier".to_string(),
+                Some("Identifier".to_string()),
                 lexer.slice().to_string(),
                 SourceRange::new(lexer.range()),
             ));
@@ -158,7 +170,7 @@ fn parse_pou(
             } else {
                 //missing return type
                 lexer.accept_diagnostic(Diagnostic::unexpected_token_found(
-                    "Datatype".to_string(),
+                    Some("Datatype".to_string()),
                     lexer.slice().to_string(),
                     SourceRange::new(lexer.range()),
                 ));
@@ -197,7 +209,7 @@ fn parse_pou(
     //check if we ended on the right end-keyword
     if closing_tokens.contains(&lexer.last_token) && lexer.last_token != expected_end_token {
         lexer.accept_diagnostic(Diagnostic::unexpected_token_found(
-            format!("{:?}", expected_end_token),
+            Some(format!("{:?}", expected_end_token)),
             lexer.slice_region(lexer.last_range.clone()).into(),
             SourceRange::new(lexer.last_range.clone()),
         ));
@@ -255,7 +267,7 @@ fn parse_action(
         //lets see if we ended on the right END_ keyword
         if closing_tokens.contains(&lexer.last_token) && lexer.last_token != KeywordEndAction {
             lexer.accept_diagnostic(Diagnostic::unexpected_token_found(
-                format!("{:?}", KeywordEndAction),
+                Some(format!("{:?}", KeywordEndAction)),
                 lexer.slice().into(),
                 lexer.location(),
             ))
@@ -280,8 +292,8 @@ fn parse_type(lexer: &mut ParseSession) -> Option<UserTypeDeclaration> {
         })
     // } else {
     //     //What do we do if we want to continue parsing :(
-    //     Err(Diagnostic::unexpected_token_found(
-    //         "struct, enum or subrange".into(),
+    //     Err(Diagnostic::unexpected_token_found(Some(
+    //         "struct, enum or subrange".into()),
     //         lexer.slice().into(),
     //         lexer.location(),
     //     ))
@@ -360,7 +372,7 @@ fn parse_data_type_definition(
     } else {
         //no datatype?
         Err(Diagnostic::unexpected_token_found(
-            "DataTypeDefinition".into(),
+            Some("DataTypeDefinition".into()),
             format!("{:?}", lexer.token),
             lexer.location(),
         ))

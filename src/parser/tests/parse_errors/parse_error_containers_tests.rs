@@ -29,7 +29,7 @@ fn missing_pou_name() {
     //expected end of statement (e.g. ;), but found KeywordEndProgram at line: 1 offset: 14..25"
     //Expecting a missing semicolon message
     let expected = Diagnostic::unexpected_token_found(
-        "Identifier".into(),
+        Some("Identifier".into()),
         "VAR".into(),
         SourceRange::new(35..38),
     );
@@ -64,7 +64,7 @@ fn missing_pou_name_2() {
         vec![
             Diagnostic::syntax_error("Unexpected token: ':='".into(), (36..38).into()),
             Diagnostic::unexpected_token_found(
-                "KeywordSemicolon".into(),
+                Some("KeywordSemicolon".into()),
                 "':= 2'".into(),
                 (36..40).into()
             )
@@ -97,7 +97,7 @@ fn illegal_end_pou_keyword() {
 
     let (compilation_unit, diagnostics) = parse(lexer).unwrap();
     let expected = Diagnostic::unexpected_token_found(
-        format!("{:?}", Token::KeywordEndProgram),
+        Some(format!("{:?}", Token::KeywordEndProgram)),
         "END_FUNCTION".into(),
         SourceRange::new(52..64),
     );
@@ -132,7 +132,7 @@ fn function_without_return_variable_declaration() {
 
     // THEN I expect a diagnostic complaining about a missing return type
     let expected = Diagnostic::unexpected_token_found(
-        "COLON".into(),
+        Some("COLON".into()),
         "'a', (Identifier)".into(),
         SourceRange::new(76..79),
     );
@@ -163,7 +163,7 @@ fn function_with_illegal_return_variable_declaration() {
     //expected end of statement (e.g. ;), but found KeywordEndProgram at line: 1 offset: 14..25"
     //Expecting a missing semicolon message
     let expected = Diagnostic::unexpected_token_found(
-        "Datatype".into(),
+        Some("Datatype".into()),
         "VAR".into(),
         SourceRange::new(40..43),
     );
@@ -223,7 +223,7 @@ fn unclosed_var_container() {
     let (compilation_unit, diagnostics) = parse(lexer).unwrap();
     assert_eq!(
         vec![Diagnostic::unexpected_token_found(
-            "KeywordEndVar".into(),
+            Some("KeywordEndVar".into()),
             "'VAR b : INT;'".into(),
             (82..94).into(),
         )],
@@ -261,17 +261,17 @@ fn test_unexpected_type_declaration_error_message() {
     assert_eq!(
         vec![
             Diagnostic::unexpected_token_found(
-                "DataTypeDefinition".into(),
+                Some("DataTypeDefinition".into()),
                 "KeywordProgram".into(),
                 (29..36).into(),
             ),
             Diagnostic::unexpected_token_found(
-                "KeywordSemicolon".into(),
+                Some("KeywordSemicolon".into()),
                 "'PROGRAM\n                END_PROGRAM\n            END_TYPE'".into(),
                 (29..85).into(),
             ),
             Diagnostic::unexpected_token_found(
-                "KeywordSemicolon".into(),
+                Some("KeywordSemicolon".into()),
                 "''".into(),
                 (90..90).into(),
             ),
@@ -287,7 +287,7 @@ fn a_program_needs_to_end_with_end_program() {
     assert_eq!(
         diagnostics,
         vec![Diagnostic::unexpected_token_found(
-            "KeywordEndProgram".into(),
+            Some("KeywordEndProgram".into()),
             "''".into(),
             (12..12).into()
         ),]
@@ -304,7 +304,7 @@ fn a_variable_declaration_block_needs_to_end_with_endvar() {
         vec![
             Diagnostic::missing_token("[KeywordEndVar]".into(), (16..27).into()),
             Diagnostic::unexpected_token_found(
-                "KeywordEndVar".into(),
+                Some("KeywordEndVar".into()),
                 "'END_PROGRAM'".into(),
                 (16..27).into()
             ),

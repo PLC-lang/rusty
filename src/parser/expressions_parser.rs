@@ -227,7 +227,11 @@ fn parse_leaf_expression(lexer: &mut ParseSession) -> Result<Statement, ParseErr
         LiteralTrue => parse_bool_literal(lexer, true),
         LiteralFalse => parse_bool_literal(lexer, false),
         KeywordSquareParensOpen => parse_array_literal(lexer),
-        _ => Err(Diagnostic::unexpected_token(lexer)),
+        _ => Err(Diagnostic::unexpected_token_found(
+            None,
+            lexer.slice().to_string(),
+            lexer.location(),
+        )),
     };
 
     if current.is_ok() && lexer.token == KeywordAssignment {
