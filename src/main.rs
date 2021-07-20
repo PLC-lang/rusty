@@ -79,9 +79,7 @@ fn main_compile(parameters: CompileParameters) {
         .collect::<Vec<_>>();
 
     let sources = sources.as_slice();
-    let output_filename = parameters.output_name().unwrap_or_else(|| {
-        panic!("Bad output file path!");
-    });
+    let output_filename = parameters.output_name().unwrap();
 
     match parameters.output_format_or_default() {
         FormatOption::Static => {
@@ -96,7 +94,6 @@ fn main_compile(parameters: CompileParameters) {
         FormatOption::IR => {
             generate_ir(sources, output_filename.as_str()).unwrap();
         }
-        _ => panic!("output_format_or_default() should not return None!"),
     }
 }
 fn generate_ir(sources: &[&dyn SourceContainer], output: &str) -> Result<(), CompileError> {

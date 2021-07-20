@@ -9,7 +9,6 @@ pub enum FormatOption {
     Shared,
     Bitcode,
     IR,
-    None,
 }
 
 // => Set the default output format here:
@@ -85,19 +84,19 @@ impl CompileParameters {
     }
 
     // convert the scattered bools from structopt into an enum
-    pub fn output_format(&self) -> FormatOption {
+    pub fn output_format(&self) -> Option<FormatOption> {
         if self.output_bit_code {
-            FormatOption::Bitcode
+            Some(FormatOption::Bitcode)
         } else if self.output_ir {
-            FormatOption::IR
+            Some(FormatOption::IR)
         } else if self.output_pic_obj {
-            FormatOption::PIC
+            Some(FormatOption::PIC)
         } else if self.output_shared_obj {
-            FormatOption::Shared
+            Some(FormatOption::Shared)
         } else if self.output_obj_code {
-            FormatOption::Static
+            Some(FormatOption::Static)
         } else {
-            FormatOption::None
+            None
         }
     }
 
@@ -105,12 +104,7 @@ impl CompileParameters {
     pub fn output_format_or_default(&self) -> FormatOption {
         // structop makes sure only one or zero format flags are
         // selected. So if none are selected, the default is chosen
-        let output_format = self.output_format();
-        if output_format == FormatOption::None {
-            DEFAULT_FORMAT
-        } else {
-            output_format
-        }
+        self.output_format().unwrap_or_else(|| DEFAULT_FORMAT)
     }
 
     /// return the output filename with the correct ending
@@ -124,7 +118,6 @@ impl CompileParameters {
                 FormatOption::Shared => "so",
                 FormatOption::PIC => "so",
                 FormatOption::IR => "ir",
-                _ => panic!("don't know what ending to choose!"),
             };
 
             let output_name = self.input.first().unwrap();
@@ -201,7 +194,7 @@ mod cli_tests {
         let parameters =
             CompileParameters::parse(vec_of_strings!("input.st", "--ir", "-o", "myout.out"))
                 .unwrap();
-        assert_eq!(parameters.output.unwrap(), "myout.out".to_string());
+        assert_eq!(parameters.output_name().unwrap(), "myout.out".to_string());
 
         //long --output
         let parameters = CompileParameters::parse(vec_of_strings!(
@@ -211,7 +204,7 @@ mod cli_tests {
             "myout2.out"
         ))
         .unwrap();
-        assert_eq!(parameters.output.unwrap(), "myout2.out".to_string());
+        assert_eq!(parameters.output_name().unwrap(), "myout2.out".to_string());
     }
 
     #[test]
