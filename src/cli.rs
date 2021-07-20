@@ -1,26 +1,34 @@
 // Copyright (c) 2021 Ghaith Hachem and Mathias Rieder
 use structopt::{clap::ArgGroup, StructOpt};
 
-pub type ParameterError = structopt::clap::Error;
-
-pub fn parse_parameters(args: Vec<String>) -> Result<CompileParameters, ParameterError> {
-    CompileParameters::from_iter_safe(args)
+#[derive(PartialEq)]
+pub enum FormatOption {
+    Static,
+    PIC,
+    Shared,
+    Bitcode,
+    IR,
+    None,
 }
+
+// => Set the default output format here:
+const DEFAULT_FORMAT: FormatOption = FormatOption::Static;
+
+pub type ParameterError = structopt::clap::Error;
 
 #[derive(StructOpt, Debug)]
 #[structopt(
-        group = ArgGroup::with_name("format") /* .required(true) */,
-        about = "IEC61131-3 Structured Text compiler powered by Rust & LLVM "
-    )]
+    group = ArgGroup::with_name("format") /* .required(true) */,
+    about = "IEC61131-3 Structured Text compiler powered by Rust & LLVM "
+)]
 pub struct CompileParameters {
     #[structopt(
         short,
         long,
         name = "output-file",
-        default_value = "a.out",
         help = "Write output to <output-file>"
     )]
-    pub output: String,
+    pub output: Option<String>,
 
     #[structopt(
         long = "ir",
@@ -70,14 +78,67 @@ pub struct CompileParameters {
     pub input: Vec<String>,
 }
 
+impl CompileParameters {
+    pub fn parse(args: Vec<String>) -> Result<CompileParameters, ParameterError> {
+        CompileParameters::from_iter_safe(args)
+    }
+
+    // convert the scattered bools from structopt into an enum
+    pub fn output_format(&self) -> FormatOption {
+        if self.output_bit_code {
+            FormatOption::Bitcode
+        } else if self.output_ir {
+            FormatOption::IR
+        } else if self.output_pic_obj {
+            FormatOption::PIC
+        } else if self.output_shared_obj {
+            FormatOption::Shared
+        } else if self.output_obj_code {
+            FormatOption::Static
+        } else {
+            FormatOption::None
+        }
+    }
+
+    /// return the selected output format, or the default if none.
+    pub fn output_format_or_default(&self) -> FormatOption {
+        // structop makes sure only one or zero format flags are
+        // selected. So if none are selected, the default is chosen
+        let output_format = self.output_format();
+        if output_format == FormatOption::None {
+            DEFAULT_FORMAT
+        } else {
+            output_format
+        }
+    }
+
+    /// return the output filename with the correct ending
+    pub fn output_name(&self) -> String {
+        if let Some(n) = &self.output {
+            n.to_string()
+        } else {
+            let ending = match self.output_format_or_default() {
+                FormatOption::Bitcode => "bc",
+                FormatOption::Static => "o",
+                FormatOption::Shared => "so",
+                FormatOption::PIC => "so",
+                FormatOption::IR => "ir",
+                _ => panic!("don't know what ending to choose!"),
+            };
+
+            let output_name = self.input.first().unwrap();
+            format!("{}.{}", output_name, ending)
+        }
+    }
+}
+
 #[cfg(test)]
 mod cli_tests {
-    use super::parse_parameters;
-    use super::ParameterError;
+    use super::{CompileParameters, ParameterError};
     use structopt::clap::ErrorKind;
 
     fn expect_argument_error(args: Vec<String>, expected_error_kind: ErrorKind) {
-        let params = parse_parameters(args.clone());
+        let params = CompileParameters::parse(args.clone());
         match params {
             Err(ParameterError { kind, .. }) => {
                 assert_eq!(kind, expected_error_kind);
@@ -136,11 +197,12 @@ mod cli_tests {
     fn valid_output_files() {
         //short -o
         let parameters =
-            parse_parameters(vec_of_strings!("input.st", "--ir", "-o", "myout.out")).unwrap();
+            CompileParameters::parse(vec_of_strings!("input.st", "--ir", "-o", "myout.out"))
+                .unwrap();
         assert_eq!(parameters.output, "myout.out".to_string());
 
         //long --output
-        let parameters = parse_parameters(vec_of_strings!(
+        let parameters = CompileParameters::parse(vec_of_strings!(
             "input.st",
             "--ir",
             "--output",
@@ -152,42 +214,42 @@ mod cli_tests {
 
     #[test]
     fn valid_output_formats() {
-        let parameters = parse_parameters(vec_of_strings!("input.st", "--ir")).unwrap();
+        let parameters = CompileParameters::parse(vec_of_strings!("input.st", "--ir")).unwrap();
         assert_eq!(parameters.output_ir, true);
         assert_eq!(parameters.output_bit_code, false);
         assert_eq!(parameters.output_obj_code, false);
         assert_eq!(parameters.output_pic_obj, false);
         assert_eq!(parameters.output_shared_obj, false);
 
-        let parameters = parse_parameters(vec_of_strings!("input.st", "--bc")).unwrap();
+        let parameters = CompileParameters::parse(vec_of_strings!("input.st", "--bc")).unwrap();
         assert_eq!(parameters.output_ir, false);
         assert_eq!(parameters.output_bit_code, true);
         assert_eq!(parameters.output_obj_code, false);
         assert_eq!(parameters.output_pic_obj, false);
         assert_eq!(parameters.output_shared_obj, false);
 
-        let parameters = parse_parameters(vec_of_strings!("input.st", "--static")).unwrap();
+        let parameters = CompileParameters::parse(vec_of_strings!("input.st", "--static")).unwrap();
         assert_eq!(parameters.output_ir, false);
         assert_eq!(parameters.output_bit_code, false);
         assert_eq!(parameters.output_obj_code, true);
         assert_eq!(parameters.output_pic_obj, false);
         assert_eq!(parameters.output_shared_obj, false);
 
-        let parameters = parse_parameters(vec_of_strings!("input.st", "--pic")).unwrap();
+        let parameters = CompileParameters::parse(vec_of_strings!("input.st", "--pic")).unwrap();
         assert_eq!(parameters.output_ir, false);
         assert_eq!(parameters.output_bit_code, false);
         assert_eq!(parameters.output_obj_code, false);
         assert_eq!(parameters.output_pic_obj, true);
         assert_eq!(parameters.output_shared_obj, false);
 
-        let parameters = parse_parameters(vec_of_strings!("input.st", "--shared")).unwrap();
+        let parameters = CompileParameters::parse(vec_of_strings!("input.st", "--shared")).unwrap();
         assert_eq!(parameters.output_ir, false);
         assert_eq!(parameters.output_bit_code, false);
         assert_eq!(parameters.output_obj_code, false);
         assert_eq!(parameters.output_pic_obj, false);
         assert_eq!(parameters.output_shared_obj, true);
 
-        let parameters = parse_parameters(vec_of_strings!("input.st")).unwrap();
+        let parameters = CompileParameters::parse(vec_of_strings!("input.st")).unwrap();
         assert_eq!(parameters.output_ir, false);
         assert_eq!(parameters.output_bit_code, false);
         assert_eq!(parameters.output_obj_code, false);
@@ -197,7 +259,7 @@ mod cli_tests {
 
     #[test]
     fn cli_supports_version() {
-        match parse_parameters(vec_of_strings!("input.st", "--version")) {
+        match CompileParameters::parse(vec_of_strings!("input.st", "--version")) {
             Ok(_) => panic!("expected version output, but found OK"),
             Err(ParameterError { kind, .. }) => assert_eq!(kind, ErrorKind::VersionDisplayed),
         }
@@ -205,7 +267,7 @@ mod cli_tests {
 
     #[test]
     fn cli_supports_help() {
-        match parse_parameters(vec_of_strings!("input.st", "--help")) {
+        match CompileParameters::parse(vec_of_strings!("input.st", "--help")) {
             Ok(_) => panic!("expected help output, but found OK"),
             Err(ParameterError { kind, .. }) => assert_eq!(kind, ErrorKind::HelpDisplayed),
         }
