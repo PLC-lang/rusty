@@ -1,7 +1,8 @@
 // Copyright (c) 2021 Ghaith Hachem and Mathias Rieder
+use std::path::Path;
 use structopt::{clap::ArgGroup, StructOpt};
 
-#[derive(PartialEq)]
+#[derive(PartialEq, Debug)]
 pub enum FormatOption {
     Static,
     PIC,
@@ -113,9 +114,9 @@ impl CompileParameters {
     }
 
     /// return the output filename with the correct ending
-    pub fn output_name(&self) -> String {
+    pub fn output_name(&self) -> Option<String> {
         if let Some(n) = &self.output {
-            n.to_string()
+            Some(n.to_string())
         } else {
             let ending = match self.output_format_or_default() {
                 FormatOption::Bitcode => "bc",
@@ -127,14 +128,15 @@ impl CompileParameters {
             };
 
             let output_name = self.input.first().unwrap();
-            format!("{}.{}", output_name, ending)
+            let basename = Path::new(output_name).file_stem()?.to_str()?;
+            Some(format!("{}.{}", basename, ending))
         }
     }
 }
 
 #[cfg(test)]
 mod cli_tests {
-    use super::{CompileParameters, ParameterError};
+    use super::{CompileParameters, FormatOption, ParameterError};
     use structopt::clap::ErrorKind;
 
     fn expect_argument_error(args: Vec<String>, expected_error_kind: ErrorKind) {
@@ -199,7 +201,7 @@ mod cli_tests {
         let parameters =
             CompileParameters::parse(vec_of_strings!("input.st", "--ir", "-o", "myout.out"))
                 .unwrap();
-        assert_eq!(parameters.output, "myout.out".to_string());
+        assert_eq!(parameters.output.unwrap(), "myout.out".to_string());
 
         //long --output
         let parameters = CompileParameters::parse(vec_of_strings!(
@@ -209,7 +211,55 @@ mod cli_tests {
             "myout2.out"
         ))
         .unwrap();
-        assert_eq!(parameters.output, "myout2.out".to_string());
+        assert_eq!(parameters.output.unwrap(), "myout2.out".to_string());
+    }
+
+    #[test]
+    fn test_default_output_names() {
+        let parameters = CompileParameters::parse(vec_of_strings!("alpha.st", "--ir")).unwrap();
+        assert_eq!(parameters.output_name().unwrap(), "alpha.ir".to_string());
+
+        let parameters = CompileParameters::parse(vec_of_strings!("bravo", "--shared")).unwrap();
+        assert_eq!(parameters.output_name().unwrap(), "bravo.so".to_string());
+
+        let parameters =
+            CompileParameters::parse(vec_of_strings!("examples/charlie.st", "--pic")).unwrap();
+        assert_eq!(parameters.output_name().unwrap(), "charlie.so".to_string());
+
+        let parameters =
+            CompileParameters::parse(vec_of_strings!("examples/test/delta.st", "--static"))
+                .unwrap();
+        assert_eq!(parameters.output_name().unwrap(), "delta.o".to_string());
+
+        let parameters =
+            CompileParameters::parse(vec_of_strings!("examples/test/echo", "--bc")).unwrap();
+        assert_eq!(parameters.output_name().unwrap(), "echo.bc".to_string());
+    }
+
+    #[test]
+    fn test_default_format() {
+        let parameters = CompileParameters::parse(vec_of_strings!("alpha.st", "--ir")).unwrap();
+        assert_eq!(parameters.output_format_or_default(), FormatOption::IR);
+
+        let parameters = CompileParameters::parse(vec_of_strings!("bravo", "--shared")).unwrap();
+        assert_eq!(parameters.output_format_or_default(), FormatOption::Shared);
+
+        let parameters =
+            CompileParameters::parse(vec_of_strings!("examples/charlie.st", "--pic")).unwrap();
+        assert_eq!(parameters.output_format_or_default(), FormatOption::PIC);
+
+        let parameters =
+            CompileParameters::parse(vec_of_strings!("examples/test/delta.st", "--static"))
+                .unwrap();
+        assert_eq!(parameters.output_format_or_default(), FormatOption::Static);
+
+        let parameters =
+            CompileParameters::parse(vec_of_strings!("examples/test/echo", "--bc")).unwrap();
+        assert_eq!(parameters.output_format_or_default(), FormatOption::Bitcode);
+
+        let parameters =
+            CompileParameters::parse(vec_of_strings!("examples/test/echo.st")).unwrap();
+        assert_eq!(parameters.output_format_or_default(), super::DEFAULT_FORMAT);
     }
 
     #[test]
