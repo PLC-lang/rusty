@@ -104,7 +104,7 @@ impl CompileParameters {
     pub fn output_format_or_default(&self) -> FormatOption {
         // structop makes sure only one or zero format flags are
         // selected. So if none are selected, the default is chosen
-        self.output_format().unwrap_or_else(|| DEFAULT_FORMAT)
+        self.output_format().unwrap_or(DEFAULT_FORMAT)
     }
 
     /// return the output filename with the correct ending
