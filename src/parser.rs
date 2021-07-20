@@ -74,7 +74,6 @@ pub fn parse(mut lexer: ParseSession) -> PResult<ParsedAst> {
                 }
             }
             KeywordEndActions | End => return Ok((unit, lexer.diagnostics)),
-            Error => return Err(Diagnostic::unidentified_token(&lexer)),
             _ => return Err(Diagnostic::unexpected_token(&lexer)),
         };
         linkage = LinkageType::Internal;
@@ -99,7 +98,6 @@ fn parse_actions(
                     result.push(implementation);
                 }
             }
-            Error => return Err(Diagnostic::unidentified_token(&lexer)),
             _ => return Err(Diagnostic::unexpected_token(&lexer)),
         }
     }

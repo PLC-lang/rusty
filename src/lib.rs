@@ -70,16 +70,6 @@ impl Diagnostic {
     }
 
     ///
-    /// returns an error for an unidientified token
-    ///
-    pub fn unidentified_token(lexer: &lexer::ParseSession) -> Diagnostic {
-        Diagnostic::syntax_error(
-            format!("Unidentified token: {t:?}", t = lexer.slice()),
-            lexer.location(),
-        )
-    }
-
-    ///
     /// returns an error for an unexpected token
     ///
     pub fn unexpected_token(lexer: &lexer::ParseSession) -> Diagnostic {
