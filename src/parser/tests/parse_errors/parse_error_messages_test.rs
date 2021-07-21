@@ -37,7 +37,7 @@ fn test_unexpected_token_error_message2() {
     let parse_result = parse(lexer);
     assert_eq!(
         Err(Diagnostic::syntax_error(
-            "Unexpected token: 'SOME'".into(),
+            "Unexpected token: expected StartKeyword but found SOME".into(),
             (0..4).into()
         )),
         parse_result

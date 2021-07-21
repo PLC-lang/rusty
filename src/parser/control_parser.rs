@@ -1,7 +1,5 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use crate::ast::*;
-use crate::consume_or_report;
-use crate::expect;
 use crate::lexer::Token::*;
 use crate::parser::parse_body_in_region;
 use crate::parser::parse_statement_in_region;
@@ -28,7 +26,7 @@ fn parse_if_statement(lexer: &mut ParseSession) -> Result<Statement, Diagnostic>
 
     while lexer.last_token == KeywordElseIf || lexer.last_token == KeywordIf {
         let condition = parse_expression(lexer);
-        expect!(KeywordThen, lexer);
+        lexer.expect(KeywordThen)?;
         lexer.advance();
         let body = parse_body_in_region(lexer, vec![KeywordEndIf, KeywordElseIf, KeywordElse]);
 
@@ -60,12 +58,12 @@ fn parse_for_statement(lexer: &mut ParseSession) -> Result<Statement, Diagnostic
     lexer.advance(); // FOR
 
     let counter_expression = parse_reference(lexer)?;
-    expect!(KeywordAssignment, lexer); // :=
+    lexer.expect(KeywordAssignment)?; // :=
     lexer.advance();
 
     let start_expression = parse_expression(lexer)?;
 
-    expect!(KeywordTo, lexer); // TO
+    lexer.expect(KeywordTo)?; // TO
     lexer.advance();
     let end_expression = parse_expression(lexer)?;
 
@@ -76,7 +74,7 @@ fn parse_for_statement(lexer: &mut ParseSession) -> Result<Statement, Diagnostic
         None
     };
 
-    consume_or_report!(KeywordDo, lexer); // DO
+    lexer.consume_or_report(KeywordDo); // DO
 
     let body = parse_body_in_region(lexer, vec![KeywordEndFor]);
     Ok(Statement::ForLoopStatement {
@@ -103,7 +101,7 @@ fn parse_while_statement(lexer: &mut ParseSession) -> Result<Statement, Diagnost
             }
         }
     };
-    consume_or_report!(KeywordDo, lexer);
+    lexer.consume_or_report(KeywordDo);
 
     let body = parse_body_in_region(lexer, vec![KeywordEndWhile])?;
     Ok(Statement::WhileLoopStatement {
@@ -141,7 +139,7 @@ fn parse_case_statement(lexer: &mut ParseSession) -> Result<Statement, Diagnosti
 
     let selector = Box::new(parse_expression(lexer)?);
 
-    expect!(KeywordOf, lexer); // OF
+    lexer.expect(KeywordOf)?; // OF
     lexer.advance();
 
     let mut case_blocks = Vec::new();

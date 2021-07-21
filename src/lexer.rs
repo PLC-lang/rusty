@@ -37,6 +37,47 @@ impl<'a> ParseSession<'a> {
         lexer
     }
 
+    pub fn expect(&self, token: Token) -> Result<(), Diagnostic> {
+        if self.token != token {
+            Err(Diagnostic::unexpected_token_found(
+                format!("{:?}", token),
+                self.slice().to_string(),
+                self.location(),
+            ))
+        } else {
+            Ok(())
+        }
+    }
+
+    /// consumes an optional token and returns true if it was consumed.
+    pub fn allow(&mut self, token: &Token) -> bool {
+        if self.token == *token {
+            self.advance();
+            true
+        } else {
+            false
+        }
+    }
+
+    pub fn consume_or_report(&mut self, token: Token) {
+        if !self.allow(&token) {
+            self.accept_diagnostic(Diagnostic::missing_token(
+                format!("{:?}", token),
+                self.location(),
+            ));
+        }
+    }
+
+    pub fn slice_and_advance(&mut self) -> String {
+        let slice = self.slice().to_string();
+        self.advance();
+        slice
+    }
+
+    pub fn is_end_of_stream(&self) -> bool {
+        self.token == Token::End || self.token == Token::Error
+    }
+
     pub fn slice_region(&self, range: Range<usize>) -> &str {
         &self.lexer.source()[range]
     }

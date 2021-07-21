@@ -163,7 +163,10 @@ fn incomplete_statement_test() {
 
     assert_eq!(
         diagnostics[0],
-        Diagnostic::syntax_error("Unexpected token: ';'".into(), SourceRange::new(41..42))
+        Diagnostic::syntax_error(
+            "Unexpected token: expected Value but found ;".into(),
+            SourceRange::new(41..42)
+        )
     );
 }
 
@@ -196,7 +199,10 @@ fn incomplete_statement_in_parantheses_recovery_test() {
 
     assert_eq!(
         diagnostics[0],
-        Diagnostic::syntax_error("Unexpected token: ')'".into(), SourceRange::new(43..44))
+        Diagnostic::syntax_error(
+            "Unexpected token: expected Value but found )".into(),
+            SourceRange::new(43..44)
+        )
     );
 }
 
@@ -629,7 +635,10 @@ fn test_nested_repeat_with_missing_condition_and_end_repeat() {
     assert_eq!(
         diagnostics,
         vec![
-            Diagnostic::syntax_error("Unexpected token: 'END_PROGRAM'".into(), (171..182).into()),
+            Diagnostic::syntax_error(
+                "Unexpected token: expected Value but found END_PROGRAM".into(),
+                (171..182).into()
+            ),
             Diagnostic::missing_token("[KeywordEndRepeat]".into(), (171..182).into()),
             Diagnostic::unexpected_token_found(
                 "KeywordEndRepeat".into(),
@@ -962,7 +971,7 @@ fn test_case_without_condition() {
     assert_eq!(
         diagnostics,
         vec![Diagnostic::syntax_error(
-            "Unexpected token: ':'".into(),
+            "Unexpected token: expected Value but found :".into(),
             (85..86).into()
         ),]
     );

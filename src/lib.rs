@@ -60,13 +60,13 @@ impl Diagnostic {
         found: String,
         range: SourceRange,
     ) -> Diagnostic {
-        Diagnostic::SyntaxError {
-            message: format!(
+        Diagnostic::syntax_error(
+            format!(
                 "Unexpected token: expected {} but found {}",
                 expected, found
             ),
             range,
-        }
+        )
     }
 
     pub fn return_type_not_supported(pou_type: &PouType, range: SourceRange) -> Diagnostic {

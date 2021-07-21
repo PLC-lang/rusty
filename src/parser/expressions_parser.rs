@@ -1,14 +1,11 @@
 use crate::Diagnostic;
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use crate::ast::*;
-use crate::expect;
 use crate::lexer::Token::*;
 use crate::parser::parse_statement_in_region;
 use std::str::FromStr;
 
-use super::allow;
 use super::ParseSession;
-use super::{slice_and_advance, unexpected_token};
 
 type ParseError = Diagnostic;
 
@@ -230,7 +227,11 @@ fn parse_leaf_expression(lexer: &mut ParseSession) -> Result<Statement, ParseErr
         LiteralTrue => parse_bool_literal(lexer, true),
         LiteralFalse => parse_bool_literal(lexer, false),
         KeywordSquareParensOpen => parse_array_literal(lexer),
-        _ => Err(unexpected_token(lexer)),
+        _ => Err(Diagnostic::unexpected_token_found(
+            "Value".to_string(),
+            lexer.slice().to_string(),
+            lexer.location(),
+        )),
     };
 
     if current.is_ok() && lexer.token == KeywordAssignment {
@@ -251,11 +252,11 @@ fn parse_leaf_expression(lexer: &mut ParseSession) -> Result<Statement, ParseErr
 
 fn parse_array_literal(lexer: &mut ParseSession) -> Result<Statement, ParseError> {
     let start = lexer.range().start;
-    expect!(KeywordSquareParensOpen, lexer);
+    lexer.expect(KeywordSquareParensOpen)?;
     lexer.advance();
     let elements = Some(Box::new(parse_primary_expression(lexer)?));
     let end = lexer.range().end;
-    expect!(KeywordSquareParensClose, lexer);
+    lexer.expect(KeywordSquareParensClose)?;
     lexer.advance();
     Ok(Statement::LiteralArray {
         elements,
@@ -274,7 +275,7 @@ fn parse_bool_literal(lexer: &mut ParseSession, value: bool) -> Result<Statement
 pub fn parse_qualified_reference(lexer: &mut ParseSession) -> Result<Statement, ParseError> {
     let start = lexer.range().start;
     let mut reference_elements = vec![parse_reference_access(lexer)?];
-    while allow(KeywordDot, lexer) {
+    while lexer.allow(&KeywordDot) {
         reference_elements.push(parse_reference_access(lexer)?);
     }
 
@@ -286,9 +287,9 @@ pub fn parse_qualified_reference(lexer: &mut ParseSession) -> Result<Statement, 
         }
     };
 
-    if allow(KeywordParensOpen, lexer) {
+    if lexer.allow(&KeywordParensOpen) {
         // Call Statement
-        let call_statement = if allow(KeywordParensClose, lexer) {
+        let call_statement = if lexer.allow(&KeywordParensClose) {
             Statement::CallStatement {
                 operator: Box::new(reference),
                 parameters: Box::new(None),
@@ -312,13 +313,13 @@ pub fn parse_qualified_reference(lexer: &mut ParseSession) -> Result<Statement, 
 pub fn parse_reference_access(lexer: &mut ParseSession) -> Result<Statement, ParseError> {
     let location = lexer.location();
     let mut reference = Statement::Reference {
-        name: slice_and_advance(lexer),
+        name: lexer.slice_and_advance(),
         location,
     };
     //If (while) we hit a dereference, parse and append the dereference to the result
-    while allow(KeywordSquareParensOpen, lexer) {
+    while lexer.allow(&KeywordSquareParensOpen) {
         let access = parse_primary_expression(lexer)?;
-        expect!(KeywordSquareParensClose, lexer);
+        lexer.expect(KeywordSquareParensClose)?;
         lexer.advance();
         reference = Statement::ArrayAccess {
             reference: Box::new(reference),
@@ -330,15 +331,15 @@ pub fn parse_reference_access(lexer: &mut ParseSession) -> Result<Statement, Par
 
 fn parse_literal_number(lexer: &mut ParseSession) -> Result<Statement, ParseError> {
     let location = lexer.location();
-    let result = slice_and_advance(lexer);
-    if allow(KeywordDot, lexer) {
+    let result = lexer.slice_and_advance();
+    if lexer.allow(&KeywordDot) {
         return parse_literal_real(lexer, result, location);
-    } else if allow(KeywordParensOpen, lexer) {
+    } else if lexer.allow(&KeywordParensOpen) {
         let multiplier = result
             .parse::<u32>()
             .map_err(|e| Diagnostic::syntax_error(format!("{}", e), location.clone()))?;
         let element = parse_primary_expression(lexer)?;
-        expect!(KeywordParensClose, lexer);
+        lexer.expect(KeywordParensClose)?;
         let end = lexer.range().end;
         lexer.advance();
         return Ok(Statement::MultipliedStatement {
@@ -388,7 +389,7 @@ fn parse_date_from_string(text: &str, location: SourceRange) -> Result<Statement
 fn parse_literal_date_and_time(lexer: &mut ParseSession) -> Result<Statement, ParseError> {
     let location = lexer.location();
     //get rid of D# or DATE#
-    let slice = slice_and_advance(lexer);
+    let slice = lexer.slice_and_advance();
     let hash_location = slice.find('#').unwrap_or_default();
     let last_minus_location = slice.rfind('-').unwrap();
 
@@ -425,7 +426,7 @@ fn parse_literal_date_and_time(lexer: &mut ParseSession) -> Result<Statement, Pa
 fn parse_literal_date(lexer: &mut ParseSession) -> Result<Statement, ParseError> {
     let location = lexer.location();
     //get rid of D# or DATE#
-    let slice = slice_and_advance(lexer);
+    let slice = lexer.slice_and_advance();
     let hash_location = slice.find('#').unwrap_or_default();
     let (_, slice) = slice.split_at(hash_location + 1); //get rid of the prefix
 
@@ -435,7 +436,7 @@ fn parse_literal_date(lexer: &mut ParseSession) -> Result<Statement, ParseError>
 fn parse_literal_time_of_day(lexer: &mut ParseSession) -> Result<Statement, ParseError> {
     let location = lexer.location();
     //get rid of TOD# or TIME_OF_DAY#
-    let slice = slice_and_advance(lexer);
+    let slice = lexer.slice_and_advance();
     let hash_location = slice.find('#').unwrap_or_default();
     let (_, slice) = slice.split_at(hash_location + 1); //get rid of the prefix
 
@@ -464,7 +465,7 @@ fn parse_literal_time(lexer: &mut ParseSession) -> Result<Statement, ParseError>
     const POS_NS: usize = 6;
     let location = lexer.location();
     //get rid of T# or TIME#
-    let slice = slice_and_advance(lexer);
+    let slice = lexer.slice_and_advance();
     let (_, slice) = slice.split_at(slice.find('#').unwrap_or_default() + 1); //get rid of the prefix
 
     let mut chars = slice.char_indices();
@@ -577,14 +578,14 @@ fn parse_literal_real(
     integer: String,
     integer_range: SourceRange,
 ) -> Result<Statement, ParseError> {
-    expect!(LiteralInteger, lexer);
+    lexer.expect(LiteralInteger)?;
     let start = integer_range.get_start();
     let fraction_end = lexer.range().end;
-    let fractional = slice_and_advance(lexer);
+    let fractional = lexer.slice_and_advance();
 
     let (exponent, end) = if lexer.token == LiteralExponent {
         //this spans everything, [integer].[integer]
-        (slice_and_advance(lexer), lexer.range().end)
+        (lexer.slice_and_advance(), lexer.range().end)
     } else {
         ("".to_string(), fraction_end)
     };

@@ -53,6 +53,20 @@ fn actions_with_no_container_error() {
 }
 
 #[test]
+fn actions_with_invalid_token() {
+    let lexer = lex("ACTIONS LIMA BRAVO END_ACTIONS");
+    let err = parse(lexer).expect_err("Expecting parser failure");
+    assert_eq!(
+        err,
+        Diagnostic::unexpected_token_found(
+            "KeywordAction".to_string(),
+            "BRAVO".into(),
+            (13..18).into()
+        )
+    );
+}
+
+#[test]
 fn two_programs_can_be_parsed() {
     let lexer = lex("PROGRAM foo END_PROGRAM  PROGRAM bar END_PROGRAM");
     let result = parse(lexer).unwrap().0;

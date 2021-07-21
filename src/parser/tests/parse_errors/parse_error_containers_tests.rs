@@ -62,7 +62,10 @@ fn missing_pou_name_2() {
     assert_eq!(
         diagnostics,
         vec![
-            Diagnostic::syntax_error("Unexpected token: ':='".into(), (36..38).into()),
+            Diagnostic::syntax_error(
+                "Unexpected token: expected Value but found :=".into(),
+                (36..38).into()
+            ),
             Diagnostic::unexpected_token_found(
                 "KeywordSemicolon".into(),
                 "':= 2'".into(),
