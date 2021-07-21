@@ -199,13 +199,9 @@
 <span id="196">196</span>
 <span id="197">197</span>
 <span id="198">198</span>
-<span id="199">199</span>
-<span id="200">200</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::ast</span>::<span class="kw-2">*</span>;
-<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::consume_or_report</span>;
-<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::expect</span>;
 <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::lexer::Token</span>::<span class="kw-2">*</span>;
 <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::parser::parse_body_in_region</span>;
 <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::parser::parse_statement_in_region</span>;
@@ -232,7 +228,7 @@
 
     <span class="kw">while</span> <span class="ident">lexer</span>.<span class="ident">last_token</span> <span class="op">=</span><span class="op">=</span> <span class="ident">KeywordElseIf</span> <span class="op">|</span><span class="op">|</span> <span class="ident">lexer</span>.<span class="ident">last_token</span> <span class="op">=</span><span class="op">=</span> <span class="ident">KeywordIf</span> {
         <span class="kw">let</span> <span class="ident">condition</span> <span class="op">=</span> <span class="ident">parse_expression</span>(<span class="ident">lexer</span>);
-        <span class="macro">expect!</span>(<span class="ident">KeywordThen</span>, <span class="ident">lexer</span>);
+        <span class="ident">lexer</span>.<span class="ident">expect</span>(<span class="ident">KeywordThen</span>)<span class="question-mark">?</span>;
         <span class="ident">lexer</span>.<span class="ident">advance</span>();
         <span class="kw">let</span> <span class="ident">body</span> <span class="op">=</span> <span class="ident">parse_body_in_region</span>(<span class="ident">lexer</span>, <span class="macro">vec!</span>[<span class="ident">KeywordEndIf</span>, <span class="ident">KeywordElseIf</span>, <span class="ident">KeywordElse</span>]);
 
@@ -264,12 +260,12 @@
     <span class="ident">lexer</span>.<span class="ident">advance</span>(); <span class="comment">// FOR</span>
 
     <span class="kw">let</span> <span class="ident">counter_expression</span> <span class="op">=</span> <span class="ident">parse_reference</span>(<span class="ident">lexer</span>)<span class="question-mark">?</span>;
-    <span class="macro">expect!</span>(<span class="ident">KeywordAssignment</span>, <span class="ident">lexer</span>); <span class="comment">// :=</span>
+    <span class="ident">lexer</span>.<span class="ident">expect</span>(<span class="ident">KeywordAssignment</span>)<span class="question-mark">?</span>; <span class="comment">// :=</span>
     <span class="ident">lexer</span>.<span class="ident">advance</span>();
 
     <span class="kw">let</span> <span class="ident">start_expression</span> <span class="op">=</span> <span class="ident">parse_expression</span>(<span class="ident">lexer</span>)<span class="question-mark">?</span>;
 
-    <span class="macro">expect!</span>(<span class="ident">KeywordTo</span>, <span class="ident">lexer</span>); <span class="comment">// TO</span>
+    <span class="ident">lexer</span>.<span class="ident">expect</span>(<span class="ident">KeywordTo</span>)<span class="question-mark">?</span>; <span class="comment">// TO</span>
     <span class="ident">lexer</span>.<span class="ident">advance</span>();
     <span class="kw">let</span> <span class="ident">end_expression</span> <span class="op">=</span> <span class="ident">parse_expression</span>(<span class="ident">lexer</span>)<span class="question-mark">?</span>;
 
@@ -280,7 +276,7 @@
         <span class="prelude-val">None</span>
     };
 
-    <span class="macro">consume_or_report!</span>(<span class="ident">KeywordDo</span>, <span class="ident">lexer</span>); <span class="comment">// DO</span>
+    <span class="ident">lexer</span>.<span class="ident">consume_or_report</span>(<span class="ident">KeywordDo</span>); <span class="comment">// DO</span>
 
     <span class="kw">let</span> <span class="ident">body</span> <span class="op">=</span> <span class="ident">parse_body_in_region</span>(<span class="ident">lexer</span>, <span class="macro">vec!</span>[<span class="ident">KeywordEndFor</span>]);
     <span class="prelude-val">Ok</span>(<span class="ident">Statement::ForLoopStatement</span> {
@@ -307,7 +303,7 @@
             }
         }
     };
-    <span class="macro">consume_or_report!</span>(<span class="ident">KeywordDo</span>, <span class="ident">lexer</span>);
+    <span class="ident">lexer</span>.<span class="ident">consume_or_report</span>(<span class="ident">KeywordDo</span>);
 
     <span class="kw">let</span> <span class="ident">body</span> <span class="op">=</span> <span class="ident">parse_body_in_region</span>(<span class="ident">lexer</span>, <span class="macro">vec!</span>[<span class="ident">KeywordEndWhile</span>])<span class="question-mark">?</span>;
     <span class="prelude-val">Ok</span>(<span class="ident">Statement::WhileLoopStatement</span> {
@@ -345,7 +341,7 @@
 
     <span class="kw">let</span> <span class="ident">selector</span> <span class="op">=</span> <span class="ident">Box::new</span>(<span class="ident">parse_expression</span>(<span class="ident">lexer</span>)<span class="question-mark">?</span>);
 
-    <span class="macro">expect!</span>(<span class="ident">KeywordOf</span>, <span class="ident">lexer</span>); <span class="comment">// OF</span>
+    <span class="ident">lexer</span>.<span class="ident">expect</span>(<span class="ident">KeywordOf</span>)<span class="question-mark">?</span>; <span class="comment">// OF</span>
     <span class="ident">lexer</span>.<span class="ident">advance</span>();
 
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">case_blocks</span> <span class="op">=</span> <span class="ident">Vec::new</span>();

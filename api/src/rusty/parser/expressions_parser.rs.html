@@ -599,18 +599,16 @@
 <span id="596">596</span>
 <span id="597">597</span>
 <span id="598">598</span>
+<span id="599">599</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::Diagnostic</span>;
 <span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::ast</span>::<span class="kw-2">*</span>;
-<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::expect</span>;
 <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::lexer::Token</span>::<span class="kw-2">*</span>;
 <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::parser::parse_statement_in_region</span>;
 <span class="kw">use</span> <span class="ident">std::str::FromStr</span>;
 
-<span class="kw">use</span> <span class="kw">super</span><span class="ident">::allow</span>;
 <span class="kw">use</span> <span class="kw">super</span><span class="ident">::ParseSession</span>;
-<span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">slice_and_advance</span>, <span class="ident">unexpected_token</span>};
 
 <span class="kw">type</span> <span class="ident">ParseError</span> <span class="op">=</span> <span class="ident">Diagnostic</span>;
 
@@ -832,7 +830,11 @@
         <span class="ident">LiteralTrue</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">parse_bool_literal</span>(<span class="ident">lexer</span>, <span class="bool-val">true</span>),
         <span class="ident">LiteralFalse</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">parse_bool_literal</span>(<span class="ident">lexer</span>, <span class="bool-val">false</span>),
         <span class="ident">KeywordSquareParensOpen</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">parse_array_literal</span>(<span class="ident">lexer</span>),
-        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">unexpected_token</span>(<span class="ident">lexer</span>)),
+        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">Diagnostic::unexpected_token_found</span>(
+            <span class="string">&quot;Value&quot;</span>.<span class="ident">to_string</span>(),
+            <span class="ident">lexer</span>.<span class="ident">slice</span>().<span class="ident">to_string</span>(),
+            <span class="ident">lexer</span>.<span class="ident">location</span>(),
+        )),
     };
 
     <span class="kw">if</span> <span class="ident">current</span>.<span class="ident">is_ok</span>() <span class="op">&amp;&amp;</span> <span class="ident">lexer</span>.<span class="ident">token</span> <span class="op">=</span><span class="op">=</span> <span class="ident">KeywordAssignment</span> {
@@ -853,11 +855,11 @@
 
 <span class="kw">fn</span> <span class="ident">parse_array_literal</span>(<span class="ident">lexer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ParseSession</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Statement</span>, <span class="ident">ParseError</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">start</span> <span class="op">=</span> <span class="ident">lexer</span>.<span class="ident">range</span>().<span class="ident">start</span>;
-    <span class="macro">expect!</span>(<span class="ident">KeywordSquareParensOpen</span>, <span class="ident">lexer</span>);
+    <span class="ident">lexer</span>.<span class="ident">expect</span>(<span class="ident">KeywordSquareParensOpen</span>)<span class="question-mark">?</span>;
     <span class="ident">lexer</span>.<span class="ident">advance</span>();
     <span class="kw">let</span> <span class="ident">elements</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">Box::new</span>(<span class="ident">parse_primary_expression</span>(<span class="ident">lexer</span>)<span class="question-mark">?</span>));
     <span class="kw">let</span> <span class="ident">end</span> <span class="op">=</span> <span class="ident">lexer</span>.<span class="ident">range</span>().<span class="ident">end</span>;
-    <span class="macro">expect!</span>(<span class="ident">KeywordSquareParensClose</span>, <span class="ident">lexer</span>);
+    <span class="ident">lexer</span>.<span class="ident">expect</span>(<span class="ident">KeywordSquareParensClose</span>)<span class="question-mark">?</span>;
     <span class="ident">lexer</span>.<span class="ident">advance</span>();
     <span class="prelude-val">Ok</span>(<span class="ident">Statement::LiteralArray</span> {
         <span class="ident">elements</span>,
@@ -876,7 +878,7 @@
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">parse_qualified_reference</span>(<span class="ident">lexer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ParseSession</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Statement</span>, <span class="ident">ParseError</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">start</span> <span class="op">=</span> <span class="ident">lexer</span>.<span class="ident">range</span>().<span class="ident">start</span>;
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">reference_elements</span> <span class="op">=</span> <span class="macro">vec!</span>[<span class="ident">parse_reference_access</span>(<span class="ident">lexer</span>)<span class="question-mark">?</span>];
-    <span class="kw">while</span> <span class="ident">allow</span>(<span class="ident">KeywordDot</span>, <span class="ident">lexer</span>) {
+    <span class="kw">while</span> <span class="ident">lexer</span>.<span class="ident">allow</span>(<span class="kw-2">&amp;</span><span class="ident">KeywordDot</span>) {
         <span class="ident">reference_elements</span>.<span class="ident">push</span>(<span class="ident">parse_reference_access</span>(<span class="ident">lexer</span>)<span class="question-mark">?</span>);
     }
 
@@ -888,9 +890,9 @@
         }
     };
 
-    <span class="kw">if</span> <span class="ident">allow</span>(<span class="ident">KeywordParensOpen</span>, <span class="ident">lexer</span>) {
+    <span class="kw">if</span> <span class="ident">lexer</span>.<span class="ident">allow</span>(<span class="kw-2">&amp;</span><span class="ident">KeywordParensOpen</span>) {
         <span class="comment">// Call Statement</span>
-        <span class="kw">let</span> <span class="ident">call_statement</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">allow</span>(<span class="ident">KeywordParensClose</span>, <span class="ident">lexer</span>) {
+        <span class="kw">let</span> <span class="ident">call_statement</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">lexer</span>.<span class="ident">allow</span>(<span class="kw-2">&amp;</span><span class="ident">KeywordParensClose</span>) {
             <span class="ident">Statement::CallStatement</span> {
                 <span class="ident">operator</span>: <span class="ident">Box::new</span>(<span class="ident">reference</span>),
                 <span class="ident">parameters</span>: <span class="ident">Box::new</span>(<span class="prelude-val">None</span>),
@@ -914,13 +916,13 @@
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">parse_reference_access</span>(<span class="ident">lexer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ParseSession</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Statement</span>, <span class="ident">ParseError</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">location</span> <span class="op">=</span> <span class="ident">lexer</span>.<span class="ident">location</span>();
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">reference</span> <span class="op">=</span> <span class="ident">Statement::Reference</span> {
-        <span class="ident">name</span>: <span class="ident">slice_and_advance</span>(<span class="ident">lexer</span>),
+        <span class="ident">name</span>: <span class="ident">lexer</span>.<span class="ident">slice_and_advance</span>(),
         <span class="ident">location</span>,
     };
     <span class="comment">//If (while) we hit a dereference, parse and append the dereference to the result</span>
-    <span class="kw">while</span> <span class="ident">allow</span>(<span class="ident">KeywordSquareParensOpen</span>, <span class="ident">lexer</span>) {
+    <span class="kw">while</span> <span class="ident">lexer</span>.<span class="ident">allow</span>(<span class="kw-2">&amp;</span><span class="ident">KeywordSquareParensOpen</span>) {
         <span class="kw">let</span> <span class="ident">access</span> <span class="op">=</span> <span class="ident">parse_primary_expression</span>(<span class="ident">lexer</span>)<span class="question-mark">?</span>;
-        <span class="macro">expect!</span>(<span class="ident">KeywordSquareParensClose</span>, <span class="ident">lexer</span>);
+        <span class="ident">lexer</span>.<span class="ident">expect</span>(<span class="ident">KeywordSquareParensClose</span>)<span class="question-mark">?</span>;
         <span class="ident">lexer</span>.<span class="ident">advance</span>();
         <span class="ident">reference</span> <span class="op">=</span> <span class="ident">Statement::ArrayAccess</span> {
             <span class="ident">reference</span>: <span class="ident">Box::new</span>(<span class="ident">reference</span>),
@@ -932,15 +934,15 @@
 
 <span class="kw">fn</span> <span class="ident">parse_literal_number</span>(<span class="ident">lexer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ParseSession</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Statement</span>, <span class="ident">ParseError</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">location</span> <span class="op">=</span> <span class="ident">lexer</span>.<span class="ident">location</span>();
-    <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">slice_and_advance</span>(<span class="ident">lexer</span>);
-    <span class="kw">if</span> <span class="ident">allow</span>(<span class="ident">KeywordDot</span>, <span class="ident">lexer</span>) {
+    <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">lexer</span>.<span class="ident">slice_and_advance</span>();
+    <span class="kw">if</span> <span class="ident">lexer</span>.<span class="ident">allow</span>(<span class="kw-2">&amp;</span><span class="ident">KeywordDot</span>) {
         <span class="kw">return</span> <span class="ident">parse_literal_real</span>(<span class="ident">lexer</span>, <span class="ident">result</span>, <span class="ident">location</span>);
-    } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">allow</span>(<span class="ident">KeywordParensOpen</span>, <span class="ident">lexer</span>) {
+    } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">lexer</span>.<span class="ident">allow</span>(<span class="kw-2">&amp;</span><span class="ident">KeywordParensOpen</span>) {
         <span class="kw">let</span> <span class="ident">multiplier</span> <span class="op">=</span> <span class="ident">result</span>
             .<span class="ident">parse</span>::<span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>()
             .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">Diagnostic::syntax_error</span>(<span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">e</span>), <span class="ident">location</span>.<span class="ident">clone</span>()))<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">element</span> <span class="op">=</span> <span class="ident">parse_primary_expression</span>(<span class="ident">lexer</span>)<span class="question-mark">?</span>;
-        <span class="macro">expect!</span>(<span class="ident">KeywordParensClose</span>, <span class="ident">lexer</span>);
+        <span class="ident">lexer</span>.<span class="ident">expect</span>(<span class="ident">KeywordParensClose</span>)<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">end</span> <span class="op">=</span> <span class="ident">lexer</span>.<span class="ident">range</span>().<span class="ident">end</span>;
         <span class="ident">lexer</span>.<span class="ident">advance</span>();
         <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Statement::MultipliedStatement</span> {
@@ -990,7 +992,7 @@
 <span class="kw">fn</span> <span class="ident">parse_literal_date_and_time</span>(<span class="ident">lexer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ParseSession</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Statement</span>, <span class="ident">ParseError</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">location</span> <span class="op">=</span> <span class="ident">lexer</span>.<span class="ident">location</span>();
     <span class="comment">//get rid of D# or DATE#</span>
-    <span class="kw">let</span> <span class="ident">slice</span> <span class="op">=</span> <span class="ident">slice_and_advance</span>(<span class="ident">lexer</span>);
+    <span class="kw">let</span> <span class="ident">slice</span> <span class="op">=</span> <span class="ident">lexer</span>.<span class="ident">slice_and_advance</span>();
     <span class="kw">let</span> <span class="ident">hash_location</span> <span class="op">=</span> <span class="ident">slice</span>.<span class="ident">find</span>(<span class="string">&#39;#&#39;</span>).<span class="ident">unwrap_or_default</span>();
     <span class="kw">let</span> <span class="ident">last_minus_location</span> <span class="op">=</span> <span class="ident">slice</span>.<span class="ident">rfind</span>(<span class="string">&#39;-&#39;</span>).<span class="ident">unwrap</span>();
 
@@ -1027,7 +1029,7 @@
 <span class="kw">fn</span> <span class="ident">parse_literal_date</span>(<span class="ident">lexer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ParseSession</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Statement</span>, <span class="ident">ParseError</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">location</span> <span class="op">=</span> <span class="ident">lexer</span>.<span class="ident">location</span>();
     <span class="comment">//get rid of D# or DATE#</span>
-    <span class="kw">let</span> <span class="ident">slice</span> <span class="op">=</span> <span class="ident">slice_and_advance</span>(<span class="ident">lexer</span>);
+    <span class="kw">let</span> <span class="ident">slice</span> <span class="op">=</span> <span class="ident">lexer</span>.<span class="ident">slice_and_advance</span>();
     <span class="kw">let</span> <span class="ident">hash_location</span> <span class="op">=</span> <span class="ident">slice</span>.<span class="ident">find</span>(<span class="string">&#39;#&#39;</span>).<span class="ident">unwrap_or_default</span>();
     <span class="kw">let</span> (<span class="kw">_</span>, <span class="ident">slice</span>) <span class="op">=</span> <span class="ident">slice</span>.<span class="ident">split_at</span>(<span class="ident">hash_location</span> <span class="op">+</span> <span class="number">1</span>); <span class="comment">//get rid of the prefix</span>
 
@@ -1037,7 +1039,7 @@
 <span class="kw">fn</span> <span class="ident">parse_literal_time_of_day</span>(<span class="ident">lexer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ParseSession</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Statement</span>, <span class="ident">ParseError</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">location</span> <span class="op">=</span> <span class="ident">lexer</span>.<span class="ident">location</span>();
     <span class="comment">//get rid of TOD# or TIME_OF_DAY#</span>
-    <span class="kw">let</span> <span class="ident">slice</span> <span class="op">=</span> <span class="ident">slice_and_advance</span>(<span class="ident">lexer</span>);
+    <span class="kw">let</span> <span class="ident">slice</span> <span class="op">=</span> <span class="ident">lexer</span>.<span class="ident">slice_and_advance</span>();
     <span class="kw">let</span> <span class="ident">hash_location</span> <span class="op">=</span> <span class="ident">slice</span>.<span class="ident">find</span>(<span class="string">&#39;#&#39;</span>).<span class="ident">unwrap_or_default</span>();
     <span class="kw">let</span> (<span class="kw">_</span>, <span class="ident">slice</span>) <span class="op">=</span> <span class="ident">slice</span>.<span class="ident">split_at</span>(<span class="ident">hash_location</span> <span class="op">+</span> <span class="number">1</span>); <span class="comment">//get rid of the prefix</span>
 
@@ -1066,7 +1068,7 @@
     <span class="kw">const</span> <span class="ident">POS_NS</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">6</span>;
     <span class="kw">let</span> <span class="ident">location</span> <span class="op">=</span> <span class="ident">lexer</span>.<span class="ident">location</span>();
     <span class="comment">//get rid of T# or TIME#</span>
-    <span class="kw">let</span> <span class="ident">slice</span> <span class="op">=</span> <span class="ident">slice_and_advance</span>(<span class="ident">lexer</span>);
+    <span class="kw">let</span> <span class="ident">slice</span> <span class="op">=</span> <span class="ident">lexer</span>.<span class="ident">slice_and_advance</span>();
     <span class="kw">let</span> (<span class="kw">_</span>, <span class="ident">slice</span>) <span class="op">=</span> <span class="ident">slice</span>.<span class="ident">split_at</span>(<span class="ident">slice</span>.<span class="ident">find</span>(<span class="string">&#39;#&#39;</span>).<span class="ident">unwrap_or_default</span>() <span class="op">+</span> <span class="number">1</span>); <span class="comment">//get rid of the prefix</span>
 
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">chars</span> <span class="op">=</span> <span class="ident">slice</span>.<span class="ident">char_indices</span>();
@@ -1179,14 +1181,14 @@
     <span class="ident">integer</span>: <span class="ident">String</span>,
     <span class="ident">integer_range</span>: <span class="ident">SourceRange</span>,
 ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Statement</span>, <span class="ident">ParseError</span><span class="op">&gt;</span> {
-    <span class="macro">expect!</span>(<span class="ident">LiteralInteger</span>, <span class="ident">lexer</span>);
+    <span class="ident">lexer</span>.<span class="ident">expect</span>(<span class="ident">LiteralInteger</span>)<span class="question-mark">?</span>;
     <span class="kw">let</span> <span class="ident">start</span> <span class="op">=</span> <span class="ident">integer_range</span>.<span class="ident">get_start</span>();
     <span class="kw">let</span> <span class="ident">fraction_end</span> <span class="op">=</span> <span class="ident">lexer</span>.<span class="ident">range</span>().<span class="ident">end</span>;
-    <span class="kw">let</span> <span class="ident">fractional</span> <span class="op">=</span> <span class="ident">slice_and_advance</span>(<span class="ident">lexer</span>);
+    <span class="kw">let</span> <span class="ident">fractional</span> <span class="op">=</span> <span class="ident">lexer</span>.<span class="ident">slice_and_advance</span>();
 
     <span class="kw">let</span> (<span class="ident">exponent</span>, <span class="ident">end</span>) <span class="op">=</span> <span class="kw">if</span> <span class="ident">lexer</span>.<span class="ident">token</span> <span class="op">=</span><span class="op">=</span> <span class="ident">LiteralExponent</span> {
         <span class="comment">//this spans everything, [integer].[integer]</span>
-        (<span class="ident">slice_and_advance</span>(<span class="ident">lexer</span>), <span class="ident">lexer</span>.<span class="ident">range</span>().<span class="ident">end</span>)
+        (<span class="ident">lexer</span>.<span class="ident">slice_and_advance</span>(), <span class="ident">lexer</span>.<span class="ident">range</span>().<span class="ident">end</span>)
     } <span class="kw">else</span> {
         (<span class="string">&quot;&quot;</span>.<span class="ident">to_string</span>(), <span class="ident">fraction_end</span>)
     };
