@@ -102,6 +102,8 @@
 <span id="99"> 99</span>
 <span id="100">100</span>
 <span id="101">101</span>
+<span id="102">102</span>
+<span id="103">103</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 <span class="doccomment">//! A Structured Text LLVM Frontent</span>
@@ -124,7 +126,7 @@
 <span class="doccomment">//! [`IR`]: https://llvm.org/docs/LangRef.html</span>
 <span class="kw">use</span> <span class="ident">glob::glob</span>;
 <span class="kw">use</span> <span class="ident">rusty</span>::{
-    <span class="ident">cli</span>::{<span class="ident">parse_parameters</span>, <span class="ident">CompileParameters</span>, <span class="ident">ParameterError</span>},
+    <span class="ident">cli</span>::{<span class="ident">CompileParameters</span>, <span class="ident">FormatOption</span>, <span class="ident">ParameterError</span>},
     <span class="ident">compile_error::CompileError</span>,
     <span class="ident">compile_to_bitcode</span>, <span class="ident">compile_to_ir</span>, <span class="ident">compile_to_shared_object</span>, <span class="ident">compile_to_static_obj</span>, <span class="ident">SourceCode</span>,
     <span class="ident">SourceContainer</span>,
@@ -134,7 +136,8 @@
 <span class="kw">fn</span> <span class="ident">main</span>() {
     <span class="kw">let</span> <span class="ident">args</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">std::env::args</span>().<span class="ident">collect</span>();
 
-    <span class="kw">let</span> <span class="ident">compile_parameters</span>: <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">CompileParameters</span>, <span class="ident">ParameterError</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">parse_parameters</span>(<span class="ident">args</span>);
+    <span class="kw">let</span> <span class="ident">compile_parameters</span>: <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">CompileParameters</span>, <span class="ident">ParameterError</span><span class="op">&gt;</span> <span class="op">=</span>
+        <span class="ident">CompileParameters::parse</span>(<span class="ident">args</span>);
     <span class="kw">match</span> <span class="ident">compile_parameters</span> {
         <span class="prelude-val">Ok</span>(<span class="ident">cp</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">main_compile</span>(<span class="ident">cp</span>),
         <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">err</span>.<span class="ident">exit</span>(), <span class="comment">// prints the nice message to std-out</span>
@@ -183,20 +186,21 @@
         .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>();
 
     <span class="kw">let</span> <span class="ident">sources</span> <span class="op">=</span> <span class="ident">sources</span>.<span class="ident">as_slice</span>();
+    <span class="kw">let</span> <span class="ident">output_filename</span> <span class="op">=</span> <span class="ident">parameters</span>.<span class="ident">output_name</span>().<span class="ident">unwrap</span>();
 
-    <span class="kw">if</span> <span class="ident">parameters</span>.<span class="ident">output_bit_code</span> {
-        <span class="ident">compile_to_bitcode</span>(<span class="ident">sources</span>, <span class="ident">parameters</span>.<span class="ident">output</span>.<span class="ident">as_str</span>()).<span class="ident">unwrap</span>();
-    } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">parameters</span>.<span class="ident">output_ir</span> {
-        <span class="ident">generate_ir</span>(<span class="ident">sources</span>, <span class="ident">parameters</span>.<span class="ident">output</span>.<span class="ident">as_str</span>()).<span class="ident">unwrap</span>();
-    } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">parameters</span>.<span class="ident">output_pic_obj</span> {
-        <span class="ident">compile_to_shared_object</span>(<span class="ident">sources</span>, <span class="ident">parameters</span>.<span class="ident">output</span>.<span class="ident">as_str</span>(), <span class="ident">parameters</span>.<span class="ident">target</span>).<span class="ident">unwrap</span>();
-    } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">parameters</span>.<span class="ident">output_shared_obj</span> {
-        <span class="ident">compile_to_shared_object</span>(<span class="ident">sources</span>, <span class="ident">parameters</span>.<span class="ident">output</span>.<span class="ident">as_str</span>(), <span class="ident">parameters</span>.<span class="ident">target</span>).<span class="ident">unwrap</span>()
-    } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">parameters</span>.<span class="ident">output_obj_code</span> {
-        <span class="ident">compile_to_static_obj</span>(<span class="ident">sources</span>, <span class="ident">parameters</span>.<span class="ident">output</span>.<span class="ident">as_str</span>(), <span class="ident">parameters</span>.<span class="ident">target</span>).<span class="ident">unwrap</span>();
-    } <span class="kw">else</span> {
-        <span class="comment">//none is set, so we use default</span>
-        <span class="macro">panic!</span>(<span class="string">&quot;no output format defined&quot;</span>);
+    <span class="kw">match</span> <span class="ident">parameters</span>.<span class="ident">output_format_or_default</span>() {
+        <span class="ident">FormatOption::Static</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">compile_to_static_obj</span>(<span class="ident">sources</span>, <span class="ident">output_filename</span>.<span class="ident">as_str</span>(), <span class="ident">parameters</span>.<span class="ident">target</span>).<span class="ident">unwrap</span>();
+        }
+        <span class="ident">FormatOption::Shared</span> <span class="op">|</span> <span class="ident">FormatOption::PIC</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">compile_to_shared_object</span>(<span class="ident">sources</span>, <span class="ident">output_filename</span>.<span class="ident">as_str</span>(), <span class="ident">parameters</span>.<span class="ident">target</span>).<span class="ident">unwrap</span>();
+        }
+        <span class="ident">FormatOption::Bitcode</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">compile_to_bitcode</span>(<span class="ident">sources</span>, <span class="ident">output_filename</span>.<span class="ident">as_str</span>()).<span class="ident">unwrap</span>();
+        }
+        <span class="ident">FormatOption::IR</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">generate_ir</span>(<span class="ident">sources</span>, <span class="ident">output_filename</span>.<span class="ident">as_str</span>()).<span class="ident">unwrap</span>();
+        }
     }
 }
 <span class="kw">fn</span> <span class="ident">generate_ir</span>(<span class="ident">sources</span>: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><span class="kw">dyn</span> <span class="ident">SourceContainer</span>], <span class="ident">output</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">CompileError</span><span class="op">&gt;</span> {

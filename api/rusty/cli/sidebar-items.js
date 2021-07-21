@@ -1,1 +1,1 @@
-initSidebarItems({"fn":[["parse_parameters",""]],"struct":[["CompileParameters",""]],"type":[["ParameterError",""]]});
+initSidebarItems({"enum":[["FormatOption",""]],"struct":[["CompileParameters",""]],"type":[["ParameterError",""]]});
