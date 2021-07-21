@@ -19,7 +19,7 @@
 //! [`IR`]: https://llvm.org/docs/LangRef.html
 use glob::glob;
 use rusty::{
-    cli::{parse_parameters, CompileParameters, ParameterError},
+    cli::{CompileParameters, FormatOption, ParameterError},
     compile_error::CompileError,
     compile_to_bitcode, compile_to_ir, compile_to_shared_object, compile_to_static_obj, SourceCode,
     SourceContainer,
@@ -29,7 +29,8 @@ use std::fs;
 fn main() {
     let args: Vec<String> = std::env::args().collect();
 
-    let compile_parameters: Result<CompileParameters, ParameterError> = parse_parameters(args);
+    let compile_parameters: Result<CompileParameters, ParameterError> =
+        CompileParameters::parse(args);
     match compile_parameters {
         Ok(cp) => main_compile(cp),
         Err(err) => err.exit(), // prints the nice message to std-out
@@ -78,20 +79,21 @@ fn main_compile(parameters: CompileParameters) {
         .collect::<Vec<_>>();
 
     let sources = sources.as_slice();
+    let output_filename = parameters.output_name().unwrap();
 
-    if parameters.output_bit_code {
-        compile_to_bitcode(sources, parameters.output.as_str()).unwrap();
-    } else if parameters.output_ir {
-        generate_ir(sources, parameters.output.as_str()).unwrap();
-    } else if parameters.output_pic_obj {
-        compile_to_shared_object(sources, parameters.output.as_str(), parameters.target).unwrap();
-    } else if parameters.output_shared_obj {
-        compile_to_shared_object(sources, parameters.output.as_str(), parameters.target).unwrap()
-    } else if parameters.output_obj_code {
-        compile_to_static_obj(sources, parameters.output.as_str(), parameters.target).unwrap();
-    } else {
-        //none is set, so we use default
-        panic!("no output format defined");
+    match parameters.output_format_or_default() {
+        FormatOption::Static => {
+            compile_to_static_obj(sources, output_filename.as_str(), parameters.target).unwrap();
+        }
+        FormatOption::Shared | FormatOption::PIC => {
+            compile_to_shared_object(sources, output_filename.as_str(), parameters.target).unwrap();
+        }
+        FormatOption::Bitcode => {
+            compile_to_bitcode(sources, output_filename.as_str()).unwrap();
+        }
+        FormatOption::IR => {
+            generate_ir(sources, output_filename.as_str()).unwrap();
+        }
     }
 }
 fn generate_ir(sources: &[&dyn SourceContainer], output: &str) -> Result<(), CompileError> {
