@@ -56,16 +56,15 @@ impl Diagnostic {
     }
 
     pub fn unexpected_token_found(
-        expected: Option<String>,
+        expected: String,
         found: String,
         range: SourceRange,
     ) -> Diagnostic {
         Diagnostic::syntax_error(
-            if let Some(e) = expected {
-                format!("Unexpected token: expected {} but found {}", e, found)
-            } else {
-                format!("Unexpected token: '{}'", found)
-            },
+            format!(
+                "Unexpected token: expected {} but found {}",
+                expected, found
+            ),
             range,
         )
     }

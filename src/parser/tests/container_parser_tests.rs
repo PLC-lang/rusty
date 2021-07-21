@@ -48,11 +48,7 @@ fn actions_with_no_container_error() {
     let err = parse(lexer).expect_err("Expecting parser failure");
     assert_eq!(
         err,
-        Diagnostic::unexpected_token_found(
-            Some("Identifier".into()),
-            "ACTION".into(),
-            (8..14).into()
-        )
+        Diagnostic::unexpected_token_found("Identifier".into(), "ACTION".into(), (8..14).into())
     );
 }
 
@@ -62,7 +58,11 @@ fn actions_with_invalid_token() {
     let err = parse(lexer).expect_err("Expecting parser failure");
     assert_eq!(
         err,
-        Diagnostic::unexpected_token_found(None, "BRAVO".into(), (13..18).into())
+        Diagnostic::unexpected_token_found(
+            "KeywordAction".to_string(),
+            "BRAVO".into(),
+            (13..18).into()
+        )
     );
 }
 

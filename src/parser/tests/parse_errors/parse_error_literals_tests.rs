@@ -15,7 +15,7 @@ fn illegal_literal_time_missing_segments_test() {
     assert_eq!(
         diagnostics,
         vec![Diagnostic::unexpected_token_found(
-            Some("KeywordSemicolon".into()),
+            "KeywordSemicolon".into(),
             "'#'".into(),
             SourceRange::new(35..36)
         )]

@@ -17,7 +17,7 @@ fn test_unexpected_token_error_message() {
         format!(
             "{:?}",
             vec![Diagnostic::unexpected_token_found(
-                Some("KeywordEndVar".into()),
+                "KeywordEndVar".into(),
                 "';'".into(),
                 (32..33).into()
             ),]
@@ -37,7 +37,7 @@ fn test_unexpected_token_error_message2() {
     let parse_result = parse(lexer);
     assert_eq!(
         Err(Diagnostic::syntax_error(
-            "Unexpected token: 'SOME'".into(),
+            "Unexpected token: expected StartKeyword but found SOME".into(),
             (0..4).into()
         )),
         parse_result
@@ -58,7 +58,7 @@ fn test_unclosed_body_error_message() {
     assert_eq!(
         diagnostics,
         vec![Diagnostic::unexpected_token_found(
-            Some("KeywordEndProgram".into()),
+            "KeywordEndProgram".into(),
             "''".into(),
             (46..46).into()
         )]

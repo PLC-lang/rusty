@@ -76,7 +76,7 @@ pub fn parse(mut lexer: ParseSession) -> PResult<ParsedAst> {
             KeywordEndActions | End => return Ok((unit, lexer.diagnostics)),
             _ => {
                 return Err(Diagnostic::unexpected_token_found(
-                    None,
+                    "StartKeyword".to_string(),
                     lexer.slice().to_string(),
                     lexer.location(),
                 ))
@@ -106,7 +106,7 @@ fn parse_actions(
             }
             _ => {
                 return Err(Diagnostic::unexpected_token_found(
-                    None,
+                    "KeywordAction".to_string(),
                     lexer.slice().to_string(),
                     lexer.location(),
                 ))
@@ -148,7 +148,7 @@ fn parse_pou(
         } else {
             //missing pou name
             lexer.accept_diagnostic(Diagnostic::unexpected_token_found(
-                Some("Identifier".to_string()),
+                "Identifier".to_string(),
                 lexer.slice().to_string(),
                 SourceRange::new(lexer.range()),
             ));
@@ -170,7 +170,7 @@ fn parse_pou(
             } else {
                 //missing return type
                 lexer.accept_diagnostic(Diagnostic::unexpected_token_found(
-                    Some("Datatype".to_string()),
+                    "Datatype".to_string(),
                     lexer.slice().to_string(),
                     SourceRange::new(lexer.range()),
                 ));
@@ -209,7 +209,7 @@ fn parse_pou(
     //check if we ended on the right end-keyword
     if closing_tokens.contains(&lexer.last_token) && lexer.last_token != expected_end_token {
         lexer.accept_diagnostic(Diagnostic::unexpected_token_found(
-            Some(format!("{:?}", expected_end_token)),
+            format!("{:?}", expected_end_token),
             lexer.slice_region(lexer.last_range.clone()).into(),
             SourceRange::new(lexer.last_range.clone()),
         ));
@@ -267,7 +267,7 @@ fn parse_action(
         //lets see if we ended on the right END_ keyword
         if closing_tokens.contains(&lexer.last_token) && lexer.last_token != KeywordEndAction {
             lexer.accept_diagnostic(Diagnostic::unexpected_token_found(
-                Some(format!("{:?}", KeywordEndAction)),
+                format!("{:?}", KeywordEndAction),
                 lexer.slice().into(),
                 lexer.location(),
             ))
@@ -372,7 +372,7 @@ fn parse_data_type_definition(
     } else {
         //no datatype?
         Err(Diagnostic::unexpected_token_found(
-            Some("DataTypeDefinition".into()),
+            "DataTypeDefinition".into(),
             format!("{:?}", lexer.token),
             lexer.location(),
         ))

@@ -40,7 +40,7 @@ impl<'a> ParseSession<'a> {
     pub fn expect(&self, token: Token) -> Result<(), Diagnostic> {
         if self.token != token {
             Err(Diagnostic::unexpected_token_found(
-                Some(format!("{:?}", token)),
+                format!("{:?}", token),
                 self.slice().to_string(),
                 self.location(),
             ))
@@ -113,7 +113,7 @@ impl<'a> ParseSession<'a> {
         if let Some(expected_token) = self.closing_keywords.pop() {
             if !expected_token.contains(&self.token) {
                 self.accept_diagnostic(Diagnostic::unexpected_token_found(
-                    Some(format!("{:?}", expected_token[0])),
+                    format!("{:?}", expected_token[0]),
                     format!("'{}'", self.slice()),
                     self.location(),
                 ));
@@ -153,13 +153,13 @@ impl<'a> ParseSession<'a> {
         if start.get_end() != self.location().get_end() {
             let range = start.get_start()..end;
             self.accept_diagnostic(Diagnostic::unexpected_token_found(
-                Some(format!(
+                format!(
                     "{:?}",
                     self.closing_keywords
                         .last()
                         .and_then(|it| it.first())
                         .unwrap_or(&Token::End) //only show first expected token
-                )),
+                ),
                 format!("'{}'", self.slice_region(range.clone())),
                 SourceRange::new(range),
             ));

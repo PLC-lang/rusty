@@ -228,7 +228,7 @@ fn parse_leaf_expression(lexer: &mut ParseSession) -> Result<Statement, ParseErr
         LiteralFalse => parse_bool_literal(lexer, false),
         KeywordSquareParensOpen => parse_array_literal(lexer),
         _ => Err(Diagnostic::unexpected_token_found(
-            None,
+            "Value".to_string(),
             lexer.slice().to_string(),
             lexer.location(),
         )),
