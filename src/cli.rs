@@ -18,7 +18,7 @@ pub type ParameterError = structopt::clap::Error;
 
 #[derive(StructOpt, Debug)]
 #[structopt(
-    group = ArgGroup::with_name("format") /* .required(true) */,
+    group = ArgGroup::with_name("format"),
     about = "IEC61131-3 Structured Text compiler powered by Rust & LLVM "
 )]
 pub struct CompileParameters {
