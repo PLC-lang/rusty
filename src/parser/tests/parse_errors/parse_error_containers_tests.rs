@@ -63,7 +63,7 @@ fn missing_pou_name_2() {
         diagnostics,
         vec![
             Diagnostic::syntax_error(
-                "Unexpected token: expected Value but found :=".into(),
+                "Unexpected token: expected Literal but found :=".into(),
                 (36..38).into()
             ),
             Diagnostic::unexpected_token_found(

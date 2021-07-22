@@ -154,7 +154,19 @@ fn incomplete_statement_test() {
     assert_eq!(
         format!("{:#?}", pou.statements),
         r#"[
-    EmptyStatement,
+    BinaryExpression {
+        operator: Plus,
+        left: LiteralInteger {
+            value: "1",
+        },
+        right: BinaryExpression {
+            operator: Plus,
+            left: LiteralInteger {
+                value: "2",
+            },
+            right: EmptyStatement,
+        },
+    },
     Reference {
         name: "x",
     },
@@ -164,7 +176,7 @@ fn incomplete_statement_test() {
     assert_eq!(
         diagnostics[0],
         Diagnostic::syntax_error(
-            "Unexpected token: expected Value but found ;".into(),
+            "Unexpected token: expected Literal but found ;".into(),
             SourceRange::new(41..42)
         )
     );
@@ -186,7 +198,19 @@ fn incomplete_statement_in_parantheses_recovery_test() {
         r#"[
     BinaryExpression {
         operator: Plus,
-        left: EmptyStatement,
+        left: BinaryExpression {
+            operator: Plus,
+            left: LiteralInteger {
+                value: "1",
+            },
+            right: BinaryExpression {
+                operator: Minus,
+                left: LiteralInteger {
+                    value: "2",
+                },
+                right: EmptyStatement,
+            },
+        },
         right: LiteralInteger {
             value: "3",
         },
@@ -200,7 +224,7 @@ fn incomplete_statement_in_parantheses_recovery_test() {
     assert_eq!(
         diagnostics[0],
         Diagnostic::syntax_error(
-            "Unexpected token: expected Value but found )".into(),
+            "Unexpected token: expected Literal but found )".into(),
             SourceRange::new(43..44)
         )
     );
@@ -636,7 +660,7 @@ fn test_nested_repeat_with_missing_condition_and_end_repeat() {
         diagnostics,
         vec![
             Diagnostic::syntax_error(
-                "Unexpected token: expected Value but found END_PROGRAM".into(),
+                "Unexpected token: expected Literal but found END_PROGRAM".into(),
                 (171..182).into()
             ),
             Diagnostic::missing_token("[KeywordEndRepeat]".into(), (171..182).into()),
@@ -971,7 +995,7 @@ fn test_case_without_condition() {
     assert_eq!(
         diagnostics,
         vec![Diagnostic::syntax_error(
-            "Unexpected token: expected Value but found :".into(),
+            "Unexpected token: expected Literal but found :".into(),
             (85..86).into()
         ),]
     );
