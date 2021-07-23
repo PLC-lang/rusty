@@ -10,13 +10,13 @@ use super::ParseSession;
 
 type ParseError = Diagnostic;
 
-pub fn parse_primary_expression(lexer: &mut ParseSession) -> Result<Statement, ParseError> {
+pub fn parse_primary_expression(lexer: &mut ParseSession) -> Statement {
     if lexer.token == KeywordSemicolon {
-        Ok(Statement::EmptyStatement {
+        Statement::EmptyStatement {
             location: lexer.location(),
-        })
+        }
     } else {
-        Ok(parse_expression_list(lexer))
+        parse_expression_list(lexer)
     }
 }
 
@@ -206,7 +206,7 @@ fn parse_parenthesized_expression(lexer: &mut ParseSession) -> Statement {
         KeywordParensOpen => {
             lexer.advance();
             super::parse_statement_in_region(lexer, vec![KeywordParensClose], |lexer| {
-                parse_primary_expression(lexer)
+                Ok(parse_primary_expression(lexer))
             })
         }
         _ => parse_leaf_expression(lexer),
@@ -266,7 +266,7 @@ fn parse_array_literal(lexer: &mut ParseSession) -> Result<Statement, ParseError
     let start = lexer.range().start;
     lexer.expect(KeywordSquareParensOpen)?;
     lexer.advance();
-    let elements = Some(Box::new(parse_primary_expression(lexer)?));
+    let elements = Some(Box::new(parse_primary_expression(lexer)));
     let end = lexer.range().end;
     lexer.expect(KeywordSquareParensClose)?;
     lexer.advance();
@@ -330,7 +330,7 @@ pub fn parse_reference_access(lexer: &mut ParseSession) -> Result<Statement, Par
     };
     //If (while) we hit a dereference, parse and append the dereference to the result
     while lexer.allow(&KeywordSquareParensOpen) {
-        let access = parse_primary_expression(lexer)?;
+        let access = parse_primary_expression(lexer);
         lexer.expect(KeywordSquareParensClose)?;
         lexer.advance();
         reference = Statement::ArrayAccess {
@@ -350,7 +350,7 @@ fn parse_literal_number(lexer: &mut ParseSession) -> Result<Statement, ParseErro
         let multiplier = result
             .parse::<u32>()
             .map_err(|e| Diagnostic::syntax_error(format!("{}", e), location.clone()))?;
-        let element = parse_primary_expression(lexer)?;
+        let element = parse_primary_expression(lexer);
         lexer.expect(KeywordParensClose)?;
         let end = lexer.range().end;
         lexer.advance();

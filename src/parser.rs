@@ -494,7 +494,7 @@ fn parse_array_type_definition(
         //expect close range
         lexer.expect(KeywordSquareParensClose)?;
         lexer.advance();
-        range
+        Ok(range)
     });
     let inner_type_defintion = parse_data_type_definition(lexer, None);
     inner_type_defintion.map(|(reference, initializer)| {
@@ -512,14 +512,9 @@ fn parse_array_type_definition(
 }
 
 /// parse a body and recovers until the given `end_keywords`
-fn parse_body_in_region(
-    lexer: &mut ParseSession,
-    end_keywords: Vec<Token>,
-) -> Result<Vec<Statement>, Diagnostic> {
-    let statements = parse_any_in_region(lexer, end_keywords, |lexer| parse_body_standalone(lexer))
-        .unwrap_or_default();
-
-    Ok(statements)
+fn parse_body_in_region(lexer: &mut ParseSession, end_keywords: Vec<Token>) -> Vec<Statement> {
+    parse_any_in_region(lexer, end_keywords, |lexer| parse_body_standalone(lexer))
+        .unwrap_or_default()
 }
 
 fn parse_body_standalone(lexer: &mut ParseSession) -> PResult<Vec<Statement>> {
@@ -533,16 +528,16 @@ fn parse_body_standalone(lexer: &mut ParseSession) -> PResult<Vec<Statement>> {
 /**
  * parses a statement ending with a ;
  */
-fn parse_statement(lexer: &mut ParseSession) -> Result<Statement, Diagnostic> {
+fn parse_statement(lexer: &mut ParseSession) -> Statement {
     let result = parse_statement_in_region(lexer, vec![KeywordSemicolon, KeywordColon], |lexer| {
         parse_expression(lexer)
     });
     if lexer.last_token == KeywordColon {
-        Ok(Statement::CaseCondition {
+        Statement::CaseCondition {
             condition: Box::new(result),
-        })
+        }
     } else {
-        Ok(result)
+        result
     }
 }
 
@@ -578,15 +573,24 @@ pub fn parse_any_in_region<T, F: FnOnce(&mut ParseSession) -> PResult<T>>(
 }
 
 fn parse_expression(lexer: &mut ParseSession) -> Result<Statement, Diagnostic> {
-    parse_primary_expression(lexer)
+    Ok(parse_primary_expression(lexer))
 }
 
-fn parse_reference(lexer: &mut ParseSession) -> Result<Statement, Diagnostic> {
-    expressions_parser::parse_qualified_reference(lexer)
+fn parse_reference(lexer: &mut ParseSession) -> Statement {
+    match expressions_parser::parse_qualified_reference(lexer) {
+        Ok(statement) => statement,
+        Err(diagnostic) => {
+            let statement = Statement::EmptyStatement {
+                location: diagnostic.get_location(),
+            };
+            lexer.accept_diagnostic(diagnostic);
+            statement
+        }
+    }
 }
 
 fn parse_control(lexer: &mut ParseSession) -> Result<Statement, Diagnostic> {
-    parse_control_statement(lexer)
+    Ok(parse_control_statement(lexer))
 }
 
 fn parse_variable_block_type(block_type: &Token) -> VariableBlockType {

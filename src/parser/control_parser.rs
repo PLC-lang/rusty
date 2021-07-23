@@ -6,9 +6,9 @@ use crate::parser::parse_statement_in_region;
 use crate::Diagnostic;
 
 use super::ParseSession;
-use super::{parse_expression, parse_reference, parse_statement};
+use super::{parse_primary_expression, parse_reference, parse_statement};
 
-pub fn parse_control_statement(lexer: &mut ParseSession) -> Result<Statement, Diagnostic> {
+pub fn parse_control_statement(lexer: &mut ParseSession) -> Statement {
     match lexer.token {
         KeywordIf => parse_if_statement(lexer),
         KeywordFor => parse_for_statement(lexer),
@@ -19,20 +19,23 @@ pub fn parse_control_statement(lexer: &mut ParseSession) -> Result<Statement, Di
     }
 }
 
-fn parse_if_statement(lexer: &mut ParseSession) -> Result<Statement, Diagnostic> {
+fn parse_if_statement(lexer: &mut ParseSession) -> Statement {
     let start = lexer.range().start;
     lexer.advance(); //If
     let mut conditional_blocks = vec![];
 
     while lexer.last_token == KeywordElseIf || lexer.last_token == KeywordIf {
-        let condition = parse_expression(lexer);
-        lexer.expect(KeywordThen)?;
+        let condition = parse_primary_expression(lexer);
+        if !lexer.expect_token(KeywordThen) {
+            return Statement::EmptyStatement {
+                location: lexer.location(),
+            };
+        }
         lexer.advance();
-        let body = parse_body_in_region(lexer, vec![KeywordEndIf, KeywordElseIf, KeywordElse]);
 
         let condition_block = ConditionalBlock {
-            condition: Box::new(condition?),
-            body: body?,
+            condition: Box::new(condition),
+            body: parse_body_in_region(lexer, vec![KeywordEndIf, KeywordElseIf, KeywordElse]),
         };
 
         conditional_blocks.push(condition_block);
@@ -41,84 +44,80 @@ fn parse_if_statement(lexer: &mut ParseSession) -> Result<Statement, Diagnostic>
     let mut else_block = Vec::new();
 
     if lexer.last_token == KeywordElse {
-        else_block.append(&mut parse_body_in_region(lexer, vec![KeywordEndIf])?);
+        else_block.append(&mut parse_body_in_region(lexer, vec![KeywordEndIf]));
     }
 
     let end = lexer.last_range.end;
 
-    Ok(Statement::IfStatement {
+    Statement::IfStatement {
         blocks: conditional_blocks,
         else_block,
         location: SourceRange::new(start..end),
-    })
+    }
 }
 
-fn parse_for_statement(lexer: &mut ParseSession) -> Result<Statement, Diagnostic> {
+fn parse_for_statement(lexer: &mut ParseSession) -> Statement {
     let start = lexer.range().start;
     lexer.advance(); // FOR
 
-    let counter_expression = parse_reference(lexer)?;
-    lexer.expect(KeywordAssignment)?; // :=
+    let counter_expression = parse_reference(lexer);
+    if !lexer.expect_token(KeywordAssignment) {
+        return Statement::EmptyStatement {
+            location: lexer.location(),
+        };
+    }
     lexer.advance();
 
-    let start_expression = parse_expression(lexer)?;
-
-    lexer.expect(KeywordTo)?; // TO
+    let start_expression = parse_primary_expression(lexer);
+    if !lexer.expect_token(KeywordTo) {
+        return Statement::EmptyStatement {
+            location: lexer.location(),
+        };
+    }
     lexer.advance();
-    let end_expression = parse_expression(lexer)?;
+    let end_expression = parse_primary_expression(lexer);
 
     let step = if lexer.token == KeywordBy {
         lexer.advance(); // BY
-        Some(Box::new(parse_expression(lexer)?))
+        Some(Box::new(parse_primary_expression(lexer)))
     } else {
         None
     };
 
     lexer.consume_or_report(KeywordDo); // DO
 
-    let body = parse_body_in_region(lexer, vec![KeywordEndFor]);
-    Ok(Statement::ForLoopStatement {
+    Statement::ForLoopStatement {
         counter: Box::new(counter_expression),
         start: Box::new(start_expression),
         end: Box::new(end_expression),
         by_step: step,
-        body: body?,
+        body: parse_body_in_region(lexer, vec![KeywordEndFor]),
         location: SourceRange::new(start..lexer.last_range.end),
-    })
+    }
 }
 
-fn parse_while_statement(lexer: &mut ParseSession) -> Result<Statement, Diagnostic> {
+fn parse_while_statement(lexer: &mut ParseSession) -> Statement {
     let start = lexer.range().start;
     lexer.advance(); //WHILE
 
-    let start_condition = lexer.range().start;
-    let condition = match parse_expression(lexer) {
-        Ok(condition) => condition,
-        Err(diagnostic) => {
-            lexer.accept_diagnostic(diagnostic);
-            Statement::EmptyStatement {
-                location: (start_condition..lexer.range().end).into(),
-            }
-        }
-    };
+    let condition = parse_primary_expression(lexer);
     lexer.consume_or_report(KeywordDo);
 
-    let body = parse_body_in_region(lexer, vec![KeywordEndWhile])?;
-    Ok(Statement::WhileLoopStatement {
+    Statement::WhileLoopStatement {
         condition: Box::new(condition),
-        body,
+        body: parse_body_in_region(lexer, vec![KeywordEndWhile]),
         location: SourceRange::new(start..lexer.last_range.end),
-    })
+    }
 }
 
-fn parse_repeat_statement(lexer: &mut ParseSession) -> Result<Statement, Diagnostic> {
+fn parse_repeat_statement(lexer: &mut ParseSession) -> Statement {
     let start = lexer.range().start;
     lexer.advance(); //REPEAT
 
-    let body = parse_body_in_region(lexer, vec![KeywordUntil, KeywordEndRepeat])?; //UNTIL
+    let body = parse_body_in_region(lexer, vec![KeywordUntil, KeywordEndRepeat]); //UNTIL
     let condition = if lexer.last_token == KeywordUntil {
         parse_statement_in_region(lexer, vec![KeywordEndRepeat], |lexer| {
-            parse_expression(lexer)
+            Ok(parse_primary_expression(lexer))
         })
     } else {
         Statement::EmptyStatement {
@@ -126,25 +125,29 @@ fn parse_repeat_statement(lexer: &mut ParseSession) -> Result<Statement, Diagnos
         }
     };
 
-    Ok(Statement::RepeatLoopStatement {
+    Statement::RepeatLoopStatement {
         condition: Box::new(condition),
         body,
         location: SourceRange::new(start..lexer.range().end),
-    })
+    }
 }
 
-fn parse_case_statement(lexer: &mut ParseSession) -> Result<Statement, Diagnostic> {
+fn parse_case_statement(lexer: &mut ParseSession) -> Statement {
     let start = lexer.range().start;
     lexer.advance(); // CASE
 
-    let selector = Box::new(parse_expression(lexer)?);
+    let selector = Box::new(parse_primary_expression(lexer));
 
-    lexer.expect(KeywordOf)?; // OF
+    if !lexer.expect_token(KeywordOf) {
+        return Statement::EmptyStatement {
+            location: lexer.location(),
+        };
+    } // OF
     lexer.advance();
 
     let mut case_blocks = Vec::new();
     if lexer.token != KeywordEndCase && lexer.token != KeywordElse {
-        let body = parse_body_in_region(lexer, vec![KeywordEndCase, KeywordElse])?;
+        let body = parse_body_in_region(lexer, vec![KeywordEndCase, KeywordElse]);
 
         let mut current_condition = None;
         let mut current_body = vec![];
@@ -183,16 +186,16 @@ fn parse_case_statement(lexer: &mut ParseSession) -> Result<Statement, Diagnosti
     }
 
     let else_block = if lexer.last_token == KeywordElse {
-        parse_body_in_region(lexer, vec![KeywordEndCase])?
+        parse_body_in_region(lexer, vec![KeywordEndCase])
     } else {
         vec![]
     };
 
     let end = lexer.last_range.end;
-    Ok(Statement::CaseStatement {
+    Statement::CaseStatement {
         selector,
         case_blocks,
         else_block,
         location: SourceRange::new(start..end),
-    })
+    }
 }
