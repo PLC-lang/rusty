@@ -25,12 +25,15 @@ use codespan_reporting::files::SimpleFiles;
 use codespan_reporting::term::termcolor::{ColorChoice, StandardStream};
 use codespan_reporting::term::{self, Chars, Styles};
 use compile_error::CompileError;
+use encoding_rs::Encoding;
+use encoding_rs_io::DecodeReaderBytesBuilder;
 use index::Index;
 use inkwell::context::Context;
 use inkwell::targets::{
     CodeModel, FileType, InitializationConfig, RelocMode, Target, TargetMachine, TargetTriple,
 };
 use parser::ParsedAst;
+use std::{fs::File, io::Read};
 
 use crate::ast::CompilationUnit;
 mod ast;
@@ -99,15 +102,59 @@ impl Diagnostic {
     }
 }
 
-pub type Sources<'a> = [&'a dyn SourceContainer];
+pub type Sources<'a> = [&'a mut dyn SourceContainer];
 
 /// SourceContainers offer source-code to be compiled via the load_source function.
 /// Furthermore it offers a location-String used when reporting diagnostics.
 pub trait SourceContainer {
     /// loads and returns the SourceEntry that contains the SourceCode and the path it was loaded from
-    fn load_source(&self) -> Result<SourceCode, String>;
+    fn load_source(&mut self, encoding: Option<&'static Encoding>) -> Result<SourceCode, String>;
     /// returns the location of this source-container. Used when reporting diagnostics.
     fn get_location(&self) -> &str;
+}
+
+pub struct FilePath {
+    pub path: String,
+}
+
+impl<T> SourceContainer for T
+where
+    T: Read,
+{
+    fn load_source(&mut self, encoding: Option<&'static Encoding>) -> Result<SourceCode, String> {
+        let mut buffer = String::new();
+        let mut decoder = DecodeReaderBytesBuilder::new()
+            .encoding(encoding)
+            .build(self);
+        decoder
+            .read_to_string(&mut buffer)
+            .map_err(|err| format!("{:}", err))?;
+        Ok(SourceCode {
+            source: buffer,
+            path: "local".into(),
+        })
+    }
+
+    fn get_location(&self) -> &str {
+        "local"
+    }
+}
+
+impl SourceContainer for FilePath {
+    fn load_source(&mut self, encoding: Option<&'static Encoding>) -> Result<SourceCode, String> {
+        let path = self.get_location();
+        let mut file = File::open(path).map_err(|err| format!("{:}", err))?;
+
+        file.load_source(encoding)
+            .map(move |source_code| SourceCode {
+                source: source_code.source,
+                path: path.into(),
+            })
+    }
+
+    fn get_location(&self) -> &str {
+        self.path.as_str()
+    }
 }
 
 /// The SourceCode unit is the smallest unit of compilation that can be passed to the compiler
@@ -121,14 +168,14 @@ pub struct SourceCode {
 
 impl SourceCode {
     /// casts the SourceCode into a SourceContainer
-    pub fn as_source_container(&self) -> &dyn SourceContainer {
+    pub fn as_source_container(&mut self) -> &mut dyn SourceContainer {
         self
     }
 }
 
 /// tests can provide a SourceCode directly
 impl SourceContainer for SourceCode {
-    fn load_source(&self) -> Result<SourceCode, String> {
+    fn load_source(&mut self, _: Option<&'static Encoding>) -> Result<SourceCode, String> {
         Ok(self.clone())
     }
 
@@ -141,7 +188,8 @@ impl SourceContainer for SourceCode {
 /// Compiles the given source into an object file and saves it in output
 ///
 fn compile_to_obj(
-    sources: &Sources,
+    sources: &mut Sources,
+    encoding: Option<&'static Encoding>,
     output: &str,
     reloc: RelocMode,
     triple: Option<String>,
@@ -168,7 +216,7 @@ fn compile_to_obj(
         .unwrap();
 
     let c = Context::create();
-    let code_generator = compile_module(&c, sources)?;
+    let code_generator = compile_module(&c, sources, encoding)?;
     machine
         .write_to_file(&code_generator.module, FileType::Object, Path::new(output))
         .unwrap();
@@ -185,11 +233,12 @@ fn compile_to_obj(
 /// * `target` - an optional llvm target triple
 ///     If not provided, the machine's triple will be used.
 pub fn compile_to_static_obj(
-    sources: &Sources,
+    sources: &mut Sources,
+    encoding: Option<&'static Encoding>,
     output: &str,
     target: Option<String>,
 ) -> Result<(), CompileError> {
-    compile_to_obj(sources, output, RelocMode::Default, target)
+    compile_to_obj(sources, encoding, output, RelocMode::Default, target)
 }
 
 /// Compiles a given source string to a shared position independent object and saves the output.
@@ -201,11 +250,12 @@ pub fn compile_to_static_obj(
 /// * `target` - an optional llvm target triple
 ///     If not provided, the machine's triple will be used.
 pub fn compile_to_shared_pic_object(
-    sources: &Sources,
+    sources: &mut Sources,
+    encoding: Option<&'static Encoding>,
     output: &str,
     target: Option<String>,
 ) -> Result<(), CompileError> {
-    compile_to_obj(sources, output, RelocMode::PIC, target)
+    compile_to_obj(sources, encoding, output, RelocMode::PIC, target)
 }
 
 /// Compiles a given source string to a dynamic non PIC object and saves the output.
@@ -217,11 +267,12 @@ pub fn compile_to_shared_pic_object(
 /// * `target` - an optional llvm target triple
 ///     If not provided, the machine's triple will be used.
 pub fn compile_to_shared_object(
-    sources: &Sources,
+    sources: &mut Sources,
+    encoding: Option<&'static Encoding>,
     output: &str,
     target: Option<String>,
 ) -> Result<(), CompileError> {
-    compile_to_obj(sources, output, RelocMode::DynamicNoPic, target)
+    compile_to_obj(sources, encoding, output, RelocMode::DynamicNoPic, target)
 }
 
 ///
@@ -231,10 +282,14 @@ pub fn compile_to_shared_object(
 ///
 /// * `sources` - the source to be compiled
 /// * `output` - the location on disk to save the output
-pub fn compile_to_bitcode(sources: &Sources, output: &str) -> Result<(), CompileError> {
+pub fn compile_to_bitcode(
+    sources: &mut Sources,
+    encoding: Option<&'static Encoding>,
+    output: &str,
+) -> Result<(), CompileError> {
     let path = Path::new(output);
     let c = Context::create();
-    let code_generator = compile_module(&c, sources)?;
+    let code_generator = compile_module(&c, sources, encoding)?;
     code_generator.module.write_bitcode_to_path(path);
     Ok(())
 }
@@ -245,9 +300,12 @@ pub fn compile_to_bitcode(sources: &Sources, output: &str) -> Result<(), Compile
 /// # Arguments
 ///
 /// * `sources` - the source to be compiled
-pub fn compile_to_ir(sources: &Sources) -> Result<String, CompileError> {
+pub fn compile_to_ir(
+    sources: &mut Sources,
+    encoding: Option<&'static Encoding>,
+) -> Result<String, CompileError> {
     let c = Context::create();
-    let code_gen = compile_module(&c, sources)?;
+    let code_gen = compile_module(&c, sources, encoding)?;
     Ok(code_gen.module.print_to_string().to_string())
 }
 
@@ -260,7 +318,8 @@ pub fn compile_to_ir(sources: &Sources) -> Result<String, CompileError> {
 /// * `sources` - the source to be compiled
 pub fn compile_module<'c>(
     context: &'c Context,
-    sources: &Sources,
+    sources: &mut Sources,
+    encoding: Option<&'static Encoding>,
 ) -> Result<codegen::CodeGen<'c>, CompileError> {
     let mut full_index = Index::new();
     let mut unit = CompilationUnit::default();
@@ -268,7 +327,7 @@ pub fn compile_module<'c>(
     let mut files: SimpleFiles<String, String> = SimpleFiles::new();
     for container in sources {
         let e = container
-            .load_source()
+            .load_source(encoding)
             .map_err(|err| CompileError::io_error(err, container.get_location().to_string()))?;
 
         let (mut parse_result, diagnostics) = parse(e.source.as_str())?;
@@ -316,4 +375,50 @@ fn parse(source: &str) -> Result<ParsedAst, CompileError> {
     //Parse
     //TODO : Parser should also return compile errors with sane locations
     parser::parse(lexer).map_err(|err| err.into())
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::SourceContainer;
+
+    #[test]
+    fn windows_encoded_file_content_read() {
+        let expected = r"PROGRAM ä
+(* Cöment *)
+END_PROGRAM
+";
+        let source = &b"\x50\x52\x4f\x47\x52\x41\x4d\x20\xe4\x0a\x28\x2a\x20\x43\xf6\x6d\x65\x6e\x74\x20\x2a\x29\x0a\x45\x4e\x44\x5f\x50\x52\x4f\x47\x52\x41\x4d\x0a"[..];
+        // let read = std::io::Read()
+        let source = (&mut source.as_ref())
+            .load_source(Some(encoding_rs::WINDOWS_1252))
+            .unwrap()
+            .source;
+
+        assert_eq!(expected, source);
+    }
+
+    #[test]
+    fn utf_16_encoded_file_content_read() {
+        let expected = r"PROGRAM ä
+(* Cömment *)
+END_PROGRAM
+";
+
+        let source = &b"\xff\xfe\x50\x00\x52\x00\x4f\x00\x47\x00\x52\x00\x41\x00\x4d\x00\x20\x00\xe4\x00\x0a\x00\x28\x00\x2a\x00\x20\x00\x43\x00\xf6\x00\x6d\x00\x6d\x00\x65\x00\x6e\x00\x74\x00\x20\x00\x2a\x00\x29\x00\x0a\x00\x45\x00\x4e\x00\x44\x00\x5f\x00\x50\x00\x52\x00\x4f\x00\x47\x00\x52\x00\x41\x00\x4d\x00\x0a\x00" [..];
+
+        let source = (&mut source.as_ref()).load_source(None).unwrap().source;
+        assert_eq!(expected, source);
+    }
+
+    #[test]
+    fn utf_8_encoded_file_content_read() {
+        let expected = r"PROGRAM ä
+(* Cöment *)
+END_PROGRAM
+";
+
+        let source = &b"\x50\x52\x4f\x47\x52\x41\x4d\x20\xc3\xa4\x0a\x28\x2a\x20\x43\xc3\xb6\x6d\x65\x6e\x74\x20\x2a\x29\x0a\x45\x4e\x44\x5f\x50\x52\x4f\x47\x52\x41\x4d\x0a" [..];
+        let source = (&mut source.as_ref()).load_source(None).unwrap().source;
+        assert_eq!(expected, source);
+    }
 }

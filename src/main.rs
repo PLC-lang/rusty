@@ -17,11 +17,12 @@
 //! [`ST`]: https://en.wikipedia.org/wiki/Structured_text
 //! [`IEC61131-3`]: https://en.wikipedia.org/wiki/IEC_61131-3
 //! [`IR`]: https://llvm.org/docs/LangRef.html
+use encoding_rs::Encoding;
 use glob::glob;
 use rusty::{
     cli::{CompileParameters, FormatOption, ParameterError},
     compile_error::CompileError,
-    compile_to_bitcode, compile_to_ir, compile_to_shared_object, compile_to_static_obj, SourceCode,
+    compile_to_bitcode, compile_to_ir, compile_to_shared_object, compile_to_static_obj, FilePath,
     SourceContainer,
 };
 use std::fs;
@@ -34,24 +35,6 @@ fn main() {
     match compile_parameters {
         Ok(cp) => main_compile(cp),
         Err(err) => err.exit(), // prints the nice message to std-out
-    }
-}
-
-struct FilePath {
-    path: String,
-}
-
-impl SourceContainer for FilePath {
-    fn load_source(&self) -> Result<SourceCode, String> {
-        //why do I need to clone here :-( ???
-        let path = self.get_location().to_string();
-        fs::read_to_string(self.path.to_string())
-            .map(move |source| SourceCode { source, path })
-            .map_err(|err| format!("{:}", err))
-    }
-
-    fn get_location(&self) -> &str {
-        self.path.as_str()
     }
 }
 
@@ -72,32 +55,49 @@ fn create_file_paths(inputs: &[String]) -> Result<Vec<FilePath>, String> {
 }
 
 fn main_compile(parameters: CompileParameters) {
-    let file_paths = create_file_paths(&parameters.input).unwrap();
-    let sources: Vec<_> = file_paths
-        .iter()
-        .map(|it| it as &dyn SourceContainer)
+    let mut file_paths = create_file_paths(&parameters.input).unwrap();
+    let mut sources: Vec<_> = file_paths
+        .iter_mut()
+        .map(|it| it as &mut dyn SourceContainer)
         .collect::<Vec<_>>();
 
-    let sources = sources.as_slice();
+    let sources = sources.as_mut_slice();
     let output_filename = parameters.output_name().unwrap();
+    let encoding = parameters.encoding;
 
     match parameters.output_format_or_default() {
         FormatOption::Static => {
-            compile_to_static_obj(sources, output_filename.as_str(), parameters.target).unwrap();
+            compile_to_static_obj(
+                sources,
+                encoding,
+                output_filename.as_str(),
+                parameters.target,
+            )
+            .unwrap();
         }
         FormatOption::Shared | FormatOption::PIC => {
-            compile_to_shared_object(sources, output_filename.as_str(), parameters.target).unwrap();
+            compile_to_shared_object(
+                sources,
+                encoding,
+                output_filename.as_str(),
+                parameters.target,
+            )
+            .unwrap();
         }
         FormatOption::Bitcode => {
-            compile_to_bitcode(sources, output_filename.as_str()).unwrap();
+            compile_to_bitcode(sources, encoding, output_filename.as_str()).unwrap();
         }
         FormatOption::IR => {
-            generate_ir(sources, output_filename.as_str()).unwrap();
+            generate_ir(sources, encoding, output_filename.as_str()).unwrap();
         }
     }
 }
-fn generate_ir(sources: &[&dyn SourceContainer], output: &str) -> Result<(), CompileError> {
-    let ir = compile_to_ir(sources)?;
+fn generate_ir(
+    sources: &mut [&mut dyn SourceContainer],
+    encoding: Option<&'static Encoding>,
+    output: &str,
+) -> Result<(), CompileError> {
+    let ir = compile_to_ir(sources, encoding)?;
     fs::write(output, ir).unwrap();
     Ok(())
 }
