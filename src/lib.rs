@@ -102,27 +102,18 @@ impl Diagnostic {
         }
     }
 }
-pub trait SourceLocation {
+
+/// SourceContainers offer source-code to be compiled via the load_source function.
+/// Furthermore it offers a location-String used when reporting diagnostics.
+pub trait SourceContainer {
+    /// loads and returns the SourceEntry that contains the SourceCode and the path it was loaded from
+    fn load_source(self, encoding: Option<&'static Encoding>) -> Result<SourceCode, String>;
     /// returns the location of this source-container. Used when reporting diagnostics.
     fn get_location(&self) -> &str;
 }
 
-/// SourceContainers offer source-code to be compiled via the load_source function.
-/// Furthermore it offers a location-String used when reporting diagnostics.
-pub trait SourceContainer: SourceLocation {
-    /// loads and returns the SourceEntry that contains the SourceCode and the path it was loaded from
-    fn load_source(self, encoding: Option<&'static Encoding>) -> Result<SourceCode, String>;
-    // fn get_location(&self) -> &str;
-}
-
 pub struct FilePath {
     pub path: String,
-}
-
-impl SourceLocation for FilePath {
-    fn get_location(&self) -> &str {
-        &self.path
-    }
 }
 
 impl SourceContainer for FilePath {
@@ -134,6 +125,10 @@ impl SourceContainer for FilePath {
             source,
             path: self.path,
         })
+    }
+
+    fn get_location(&self) -> &str {
+        &self.path
     }
 }
 
@@ -151,9 +146,7 @@ impl SourceContainer for SourceCode {
     fn load_source(self, _: Option<&'static Encoding>) -> Result<SourceCode, String> {
         Ok(self)
     }
-}
 
-impl SourceLocation for SourceCode {
     fn get_location(&self) -> &str {
         &self.path
     }

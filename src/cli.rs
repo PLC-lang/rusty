@@ -286,6 +286,14 @@ mod cli_tests {
     }
 
     #[test]
+    fn invalid_encoding_resolution() {
+        expect_argument_error(
+            vec_of_strings!("input.st", "--ir", "--encoding", "invalid"),
+            ErrorKind::ValueValidation,
+        );
+    }
+
+    #[test]
     fn valid_output_formats() {
         let parameters = CompileParameters::parse(vec_of_strings!("input.st", "--ir")).unwrap();
         assert_eq!(parameters.output_ir, true);
