@@ -1,7 +1,6 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use crate::{
     ast::*,
-    expect_token,
     lexer::Token::*,
     parser::{parse_any_in_region, parse_body_in_region},
     Diagnostic,
@@ -58,25 +57,14 @@ fn parse_for_statement(lexer: &mut ParseSession) -> Statement {
     let start = lexer.range().start;
     lexer.advance(); // FOR
 
-    let counter_expression = parse_reference(lexer);
-    expect_token!(
-        lexer,
-        KeywordAssignment,
-        Statement::EmptyStatement {
-            location: lexer.location(),
-        }
-    );
-    lexer.advance();
+    let counter_expression = parse_any_in_region(lexer, vec![KeywordAssignment], |lexer| {
+        parse_reference(lexer)
+    });
 
-    let start_expression = parse_primary_expression(lexer);
-    expect_token!(
-        lexer,
-        KeywordTo,
-        Statement::EmptyStatement {
-            location: lexer.location(),
-        }
-    );
-    lexer.advance();
+    let start_expression = parse_any_in_region(lexer, vec![KeywordTo], |lexer| {
+        parse_primary_expression(lexer)
+    });
+
     let end_expression = parse_primary_expression(lexer);
 
     let step = if lexer.token == KeywordBy {
@@ -138,17 +126,9 @@ fn parse_case_statement(lexer: &mut ParseSession) -> Statement {
     let start = lexer.range().start;
     lexer.advance(); // CASE
 
-    let selector = Box::new(parse_primary_expression(lexer));
-
-    expect_token!(
-        lexer,
-        KeywordOf,
-        Statement::EmptyStatement {
-            location: lexer.location(),
-        }
-    );
-
-    lexer.advance();
+    let selector = Box::new(parse_any_in_region(lexer, vec![KeywordOf], |lexer| {
+        parse_primary_expression(lexer)
+    }));
 
     let mut case_blocks = Vec::new();
     if lexer.token != KeywordEndCase && lexer.token != KeywordElse {
