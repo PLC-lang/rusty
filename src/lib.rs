@@ -108,7 +108,7 @@ pub type Sources<'a> = [&'a mut dyn SourceContainer];
 /// Furthermore it offers a location-String used when reporting diagnostics.
 pub trait SourceContainer {
     /// loads and returns the SourceEntry that contains the SourceCode and the path it was loaded from
-    fn load_source(&mut self, encoding: Option<&'static Encoding>) -> Result<SourceCode, String>;
+    fn load_source(self, encoding: Option<&'static Encoding>) -> Result<SourceCode, String>;
     /// returns the location of this source-container. Used when reporting diagnostics.
     fn get_location(&self) -> &str;
 }
@@ -121,7 +121,7 @@ impl<T> SourceContainer for T
 where
     T: Read,
 {
-    fn load_source(&mut self, encoding: Option<&'static Encoding>) -> Result<SourceCode, String> {
+    fn load_source(self, encoding: Option<&'static Encoding>) -> Result<SourceCode, String> {
         let mut buffer = String::new();
         let mut decoder = DecodeReaderBytesBuilder::new()
             .encoding(encoding)
@@ -141,9 +141,9 @@ where
 }
 
 impl SourceContainer for FilePath {
-    fn load_source(&mut self, encoding: Option<&'static Encoding>) -> Result<SourceCode, String> {
+    fn load_source(self, encoding: Option<&'static Encoding>) -> Result<SourceCode, String> {
         let path = self.get_location();
-        let mut file = File::open(path).map_err(|err| format!("{:}", err))?;
+        let file = File::open(path).map_err(|err| format!("{:}", err))?;
 
         file.load_source(encoding)
             .map(move |source_code| SourceCode {
@@ -175,8 +175,8 @@ impl SourceCode {
 
 /// tests can provide a SourceCode directly
 impl SourceContainer for SourceCode {
-    fn load_source(&mut self, _: Option<&'static Encoding>) -> Result<SourceCode, String> {
-        Ok(self.clone())
+    fn load_source(self, _: Option<&'static Encoding>) -> Result<SourceCode, String> {
+        Ok(self)
     }
 
     fn get_location(&self) -> &str {
@@ -187,8 +187,8 @@ impl SourceContainer for SourceCode {
 ///
 /// Compiles the given source into an object file and saves it in output
 ///
-fn compile_to_obj(
-    sources: &mut Sources,
+fn compile_to_obj<T: SourceContainer>(
+    sources: Vec<T>,
     encoding: Option<&'static Encoding>,
     output: &str,
     reloc: RelocMode,
@@ -232,8 +232,8 @@ fn compile_to_obj(
 /// * `output` - the location on disk to save the output
 /// * `target` - an optional llvm target triple
 ///     If not provided, the machine's triple will be used.
-pub fn compile_to_static_obj(
-    sources: &mut Sources,
+pub fn compile_to_static_obj<T: SourceContainer>(
+    sources: Vec<T>,
     encoding: Option<&'static Encoding>,
     output: &str,
     target: Option<String>,
@@ -249,8 +249,8 @@ pub fn compile_to_static_obj(
 /// * `output` - the location on disk to save the output
 /// * `target` - an optional llvm target triple
 ///     If not provided, the machine's triple will be used.
-pub fn compile_to_shared_pic_object(
-    sources: &mut Sources,
+pub fn compile_to_shared_pic_object<T: SourceContainer>(
+    sources: Vec<T>,
     encoding: Option<&'static Encoding>,
     output: &str,
     target: Option<String>,
@@ -266,8 +266,8 @@ pub fn compile_to_shared_pic_object(
 /// * `output` - the location on disk to save the output
 /// * `target` - an optional llvm target triple
 ///     If not provided, the machine's triple will be used.
-pub fn compile_to_shared_object(
-    sources: &mut Sources,
+pub fn compile_to_shared_object<T: SourceContainer>(
+    sources: Vec<T>,
     encoding: Option<&'static Encoding>,
     output: &str,
     target: Option<String>,
@@ -282,8 +282,8 @@ pub fn compile_to_shared_object(
 ///
 /// * `sources` - the source to be compiled
 /// * `output` - the location on disk to save the output
-pub fn compile_to_bitcode(
-    sources: &mut Sources,
+pub fn compile_to_bitcode<T: SourceContainer>(
+    sources: Vec<T>,
     encoding: Option<&'static Encoding>,
     output: &str,
 ) -> Result<(), CompileError> {
@@ -300,8 +300,8 @@ pub fn compile_to_bitcode(
 /// # Arguments
 ///
 /// * `sources` - the source to be compiled
-pub fn compile_to_ir(
-    sources: &mut Sources,
+pub fn compile_to_ir<T: SourceContainer>(
+    sources: Vec<T>,
     encoding: Option<&'static Encoding>,
 ) -> Result<String, CompileError> {
     let c = Context::create();
@@ -316,9 +316,9 @@ pub fn compile_to_ir(
 ///
 /// * `context` - the LLVM Context to be used for the compilation
 /// * `sources` - the source to be compiled
-pub fn compile_module<'c>(
+pub fn compile_module<'c, T: SourceContainer>(
     context: &'c Context,
-    sources: &mut Sources,
+    sources: Vec<T>,
     encoding: Option<&'static Encoding>,
 ) -> Result<codegen::CodeGen<'c>, CompileError> {
     let mut full_index = Index::new();
@@ -326,9 +326,10 @@ pub fn compile_module<'c>(
     // let mut diagnostics : Vec<Diagnostic> = vec![];
     let mut files: SimpleFiles<String, String> = SimpleFiles::new();
     for container in sources {
+        let location = container.get_location().to_string();
         let e = container
             .load_source(encoding)
-            .map_err(|err| CompileError::io_error(err, container.get_location().to_string()))?;
+            .map_err(|err| CompileError::io_error(err, location))?;
 
         let (mut parse_result, diagnostics) = parse(e.source.as_str())?;
         ast::pre_process(&mut parse_result);

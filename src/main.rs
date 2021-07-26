@@ -17,13 +17,10 @@
 //! [`ST`]: https://en.wikipedia.org/wiki/Structured_text
 //! [`IEC61131-3`]: https://en.wikipedia.org/wiki/IEC_61131-3
 //! [`IR`]: https://llvm.org/docs/LangRef.html
-use encoding_rs::Encoding;
 use glob::glob;
 use rusty::{
     cli::{CompileParameters, FormatOption, ParameterError},
-    compile_error::CompileError,
     compile_to_bitcode, compile_to_ir, compile_to_shared_object, compile_to_static_obj, FilePath,
-    SourceContainer,
 };
 use std::fs;
 
@@ -55,13 +52,8 @@ fn create_file_paths(inputs: &[String]) -> Result<Vec<FilePath>, String> {
 }
 
 fn main_compile(parameters: CompileParameters) {
-    let mut file_paths = create_file_paths(&parameters.input).unwrap();
-    let mut sources: Vec<_> = file_paths
-        .iter_mut()
-        .map(|it| it as &mut dyn SourceContainer)
-        .collect::<Vec<_>>();
+    let sources = create_file_paths(&parameters.input).unwrap();
 
-    let sources = sources.as_mut_slice();
     let output_filename = parameters.output_name().unwrap();
     let encoding = parameters.encoding;
 
@@ -88,16 +80,8 @@ fn main_compile(parameters: CompileParameters) {
             compile_to_bitcode(sources, encoding, output_filename.as_str()).unwrap();
         }
         FormatOption::IR => {
-            generate_ir(sources, encoding, output_filename.as_str()).unwrap();
+            let ir = compile_to_ir(sources, encoding).unwrap();
+            fs::write(output_filename.as_str(), ir).unwrap();
         }
     }
-}
-fn generate_ir(
-    sources: &mut [&mut dyn SourceContainer],
-    encoding: Option<&'static Encoding>,
-    output: &str,
-) -> Result<(), CompileError> {
-    let ir = compile_to_ir(sources, encoding)?;
-    fs::write(output, ir).unwrap();
-    Ok(())
 }

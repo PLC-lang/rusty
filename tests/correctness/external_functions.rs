@@ -30,11 +30,11 @@ fn test_external_function_called() {
 
     Target::initialize_native(&InitializationConfig::default()).unwrap();
     let context: Context = Context::create();
-    let source = &mut SourceCode {
+    let source = SourceCode {
         path: "external_test.st".to_string(),
         source: prog.to_string(),
     };
-    let code_gen = compile_module(&context, &mut [source.as_source_container()], None).unwrap();
+    let code_gen = compile_module(&context, vec![source], None).unwrap();
     let exec_engine = code_gen
         .module
         .create_jit_execution_engine(inkwell::OptimizationLevel::None)
