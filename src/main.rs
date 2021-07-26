@@ -22,7 +22,6 @@ use rusty::{
     cli::{CompileParameters, FormatOption, ParameterError},
     compile_to_bitcode, compile_to_ir, compile_to_shared_object, compile_to_static_obj, FilePath,
 };
-use std::fs;
 
 fn main() {
     let args: Vec<String> = std::env::args().collect();
@@ -80,8 +79,7 @@ fn main_compile(parameters: CompileParameters) {
             compile_to_bitcode(sources, encoding, output_filename.as_str()).unwrap();
         }
         FormatOption::IR => {
-            let ir = compile_to_ir(sources, encoding).unwrap();
-            fs::write(output_filename.as_str(), ir).unwrap();
+            compile_to_ir(sources, encoding, &output_filename).unwrap();
         }
     }
 }

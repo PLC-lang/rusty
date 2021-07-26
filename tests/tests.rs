@@ -18,6 +18,10 @@ mod correctness {
     mod sums;
 }
 
+mod integration {
+    mod external_files;
+}
+
 #[macro_export]
 macro_rules! assert_almost_eq {
     ($left:expr, $right:expr, $prec:expr) => {{

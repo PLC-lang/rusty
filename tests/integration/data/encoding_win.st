@@ -1,3 +1,3 @@
-PROGRAM ä
+PROGRAM a
 (* Cömment *)
 END_PROGRAM
