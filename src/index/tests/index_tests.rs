@@ -8,7 +8,7 @@ use crate::{ast::*, index::VariableType, typesystem::DataTypeInformation};
 macro_rules! index {
     ($code:tt) => {{
         let lexer = crate::lexer::lex($code);
-        let (mut ast, ..) = crate::parser::parse(lexer).unwrap();
+        let (mut ast, ..) = crate::parser::parse(lexer);
 
         crate::ast::pre_process(&mut ast);
         crate::index::visitor::visit(&ast)
@@ -563,7 +563,7 @@ fn pre_processing_generates_inline_enums_global() {
             inline_enum : (a,b,c);
         END_VAR
         "#);
-    let (mut ast, ..) = parser::parse(lexer).unwrap();
+    let (mut ast, ..) = parser::parse(lexer);
 
     // WHEN the AST ist pre-processed
     crate::ast::pre_process(&mut ast);
@@ -606,7 +606,7 @@ fn pre_processing_generates_inline_structs_global() {
             inline_struct: STRUCT a: INT; END_STRUCT
         END_VAR
         "#);
-    let (mut ast, ..) = parser::parse(lexer).unwrap();
+    let (mut ast, ..) = parser::parse(lexer);
 
     // WHEN the AST ist pre-processed
     crate::ast::pre_process(&mut ast);
@@ -649,7 +649,7 @@ fn pre_processing_generates_inline_enums() {
         END_VAR
         END_PROGRAM
         "#);
-    let (mut ast, ..) = parser::parse(lexer).unwrap();
+    let (mut ast, ..) = parser::parse(lexer);
 
     // WHEN the AST ist pre-processed
     crate::ast::pre_process(&mut ast);
@@ -685,7 +685,7 @@ fn pre_processing_generates_inline_structs() {
         END_VAR
         END_PROGRAM
         "#);
-    let (mut ast, ..) = parser::parse(lexer).unwrap();
+    let (mut ast, ..) = parser::parse(lexer);
 
     // WHEN the AST ist pre-processed
     crate::ast::pre_process(&mut ast);
@@ -728,7 +728,7 @@ fn pre_processing_generates_inline_arrays() {
         END_VAR
         END_PROGRAM
         "#);
-    let (mut ast, ..) = parser::parse(lexer).unwrap();
+    let (mut ast, ..) = parser::parse(lexer);
 
     // WHEN the AST ist pre-processed
     crate::ast::pre_process(&mut ast);
@@ -778,7 +778,7 @@ fn pre_processing_generates_inline_array_of_array() {
         END_VAR
         END_PROGRAM
         "#);
-    let (mut ast, ..) = parser::parse(lexer).unwrap();
+    let (mut ast, ..) = parser::parse(lexer);
 
     // WHEN the AST ist pre-processed
     crate::ast::pre_process(&mut ast);
@@ -859,7 +859,7 @@ fn pre_processing_nested_array_in_struct() {
         END_PROGRAM
         "#);
 
-    let (mut ast, ..) = parser::parse(lexer).unwrap();
+    let (mut ast, ..) = parser::parse(lexer);
 
     // WHEN the AST ist pre-processed
     crate::ast::pre_process(&mut ast);
@@ -918,7 +918,7 @@ fn pre_processing_generates_inline_array_of_array_of_array() {
         END_VAR
         END_PROGRAM
         "#);
-    let (mut ast, ..) = parser::parse(lexer).unwrap();
+    let (mut ast, ..) = parser::parse(lexer);
 
     // WHEN the AST ist pre-processed
     crate::ast::pre_process(&mut ast);

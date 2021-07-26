@@ -13,11 +13,9 @@ mod expressions_parser;
 
 #[cfg(test)]
 mod tests;
-
-pub type PResult<T> = Result<T, Diagnostic>;
 pub type ParsedAst = (CompilationUnit, Vec<Diagnostic>);
 
-pub fn parse(mut lexer: ParseSession) -> PResult<ParsedAst> {
+pub fn parse(mut lexer: ParseSession) -> ParsedAst {
     let mut unit = CompilationUnit::default();
 
     let mut linkage = LinkageType::Internal;
@@ -68,13 +66,14 @@ pub fn parse(mut lexer: ParseSession) -> PResult<ParsedAst> {
                     unit.types.push(unit_type);
                 }
             }
-            KeywordEndActions | End => return Ok((unit, lexer.diagnostics)),
+            KeywordEndActions | End => return (unit, lexer.diagnostics),
             _ => {
-                return Err(Diagnostic::unexpected_token_found(
+                lexer.accept_diagnostic(Diagnostic::unexpected_token_found(
                     "StartKeyword".to_string(),
                     lexer.slice().to_string(),
                     lexer.location(),
-                ))
+                ));
+                lexer.advance();
             }
         };
         linkage = LinkageType::Internal;

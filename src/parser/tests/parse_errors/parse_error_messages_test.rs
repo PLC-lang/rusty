@@ -10,7 +10,7 @@ fn test_unexpected_token_error_message() {
             END_PROGRAM
     ";
     let lexer = super::super::lex(source);
-    let (_, diagnostics) = parse(lexer).unwrap();
+    let (_, diagnostics) = parse(lexer);
 
     assert_eq!(
         format!("{:?}", diagnostics),
@@ -36,11 +36,11 @@ fn test_unexpected_token_error_message2() {
     );
     let parse_result = parse(lexer);
     assert_eq!(
-        Err(Diagnostic::syntax_error(
+        &Diagnostic::syntax_error(
             "Unexpected token: expected StartKeyword but found SOME".into(),
             (0..4).into()
-        )),
-        parse_result
+        ),
+        parse_result.1.first().unwrap()
     );
 }
 
@@ -53,7 +53,7 @@ fn test_unclosed_body_error_message() {
 
     ",
     );
-    let (_, diagnostics) = parse(lexer).unwrap();
+    let (_, diagnostics) = parse(lexer);
 
     assert_eq!(
         diagnostics,
