@@ -1,8 +1,11 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-use crate::ast::*;
-use crate::lexer::Token::*;
-use crate::parser::{parse_any_in_region, parse_body_in_region};
-use crate::Diagnostic;
+use crate::{
+    ast::*,
+    expect_token,
+    lexer::Token::*,
+    parser::{parse_any_in_region, parse_body_in_region},
+    Diagnostic,
+};
 
 use super::ParseSession;
 use super::{parse_primary_expression, parse_reference, parse_statement};
@@ -25,11 +28,13 @@ fn parse_if_statement(lexer: &mut ParseSession) -> Statement {
 
     while lexer.last_token == KeywordElseIf || lexer.last_token == KeywordIf {
         let condition = parse_primary_expression(lexer);
-        if !lexer.expect_token(KeywordThen) {
-            return Statement::EmptyStatement {
+        expect_token!(
+            lexer,
+            KeywordThen,
+            Statement::EmptyStatement {
                 location: lexer.location(),
-            };
-        }
+            }
+        );
         lexer.advance();
 
         let condition_block = ConditionalBlock {
@@ -60,19 +65,23 @@ fn parse_for_statement(lexer: &mut ParseSession) -> Statement {
     lexer.advance(); // FOR
 
     let counter_expression = parse_reference(lexer);
-    if !lexer.expect_token(KeywordAssignment) {
-        return Statement::EmptyStatement {
+    expect_token!(
+        lexer,
+        KeywordAssignment,
+        Statement::EmptyStatement {
             location: lexer.location(),
-        };
-    }
+        }
+    );
     lexer.advance();
 
     let start_expression = parse_primary_expression(lexer);
-    if !lexer.expect_token(KeywordTo) {
-        return Statement::EmptyStatement {
+    expect_token!(
+        lexer,
+        KeywordTo,
+        Statement::EmptyStatement {
             location: lexer.location(),
-        };
-    }
+        }
+    );
     lexer.advance();
     let end_expression = parse_primary_expression(lexer);
 
@@ -137,11 +146,14 @@ fn parse_case_statement(lexer: &mut ParseSession) -> Statement {
 
     let selector = Box::new(parse_primary_expression(lexer));
 
-    if !lexer.expect_token(KeywordOf) {
-        return Statement::EmptyStatement {
+    expect_token!(
+        lexer,
+        KeywordOf,
+        Statement::EmptyStatement {
             location: lexer.location(),
-        };
-    } // OF
+        }
+    );
+
     lexer.advance();
 
     let mut case_blocks = Vec::new();

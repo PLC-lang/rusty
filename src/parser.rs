@@ -1,7 +1,7 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use crate::{
     ast::*,
-    lexer,
+    expect_token, lexer,
     lexer::{ParseSession, Token, Token::*},
     Diagnostic,
 };
@@ -85,9 +85,7 @@ fn parse_actions(lexer: &mut ParseSession, linkage: LinkageType) -> Vec<Implemen
     parse_any_in_region(lexer, vec![KeywordEndActions], |lexer| {
         lexer.advance();
         let mut impls = vec![];
-        if !lexer.expect_token(Identifier) {
-            return impls;
-        }
+        expect_token!(lexer, Identifier, impls);
 
         let container = lexer.slice_and_advance();
 
@@ -250,15 +248,11 @@ fn parse_action(
         let (container, name) = if let Some(container) = container {
             (container.into(), name_or_container)
         } else {
-            if !lexer.expect_token(KeywordDot) {
-                return None;
-            }
+            expect_token!(lexer, KeywordDot, None);
 
             lexer.advance();
 
-            if !lexer.expect_token(Identifier) {
-                return None;
-            }
+            expect_token!(lexer, Identifier, None);
 
             let name = lexer.slice_and_advance();
             (name_or_container, name)
@@ -385,7 +379,7 @@ fn parse_type_reference_type_definition(
     let bounds = if lexer.allow(&KeywordParensOpen) {
         // INT (..) :=
         let bounds = parse_expression(lexer);
-        lexer.expect_token(KeywordParensClose).then(|| {})?;
+        expect_token!(lexer, KeywordParensClose, None);
         lexer.advance();
         Some(bounds)
     } else {
@@ -449,16 +443,12 @@ fn parse_enum_type_definition(
         // Parse Enum - we expect at least one element
 
         let mut elements = Vec::new();
-        if !lexer.expect_token(Identifier) {
-            return None;
-        }
+        expect_token!(lexer, Identifier, None);
         elements.push(lexer.slice_and_advance());
 
         // parse additional elements separated by ','
         while lexer.allow(&KeywordComma) {
-            if !lexer.expect_token(Identifier) {
-                return None;
-            }
+            expect_token!(lexer, Identifier, None);
             elements.push(lexer.slice_and_advance());
         }
         Some(elements)
@@ -479,18 +469,12 @@ fn parse_array_type_definition(
     let range = parse_any_in_region(lexer, vec![KeywordOf], |lexer| {
         // Parse Array range
 
-        if !lexer.expect_token(KeywordSquareParensOpen) {
-            // array range not opened
-            return None;
-        }
+        expect_token!(lexer, KeywordSquareParensOpen, None);
         lexer.advance();
 
         let range_statement = parse_primary_expression(lexer);
 
-        if !lexer.expect_token(KeywordSquareParensClose) {
-            // array range not closed
-            return None;
-        }
+        expect_token!(lexer, KeywordSquareParensClose, None);
         lexer.advance();
 
         Some(range_statement)

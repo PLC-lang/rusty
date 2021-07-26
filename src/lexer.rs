@@ -22,6 +22,20 @@ pub struct ParseSession<'a> {
     pub parse_progress: usize,
 }
 
+#[macro_export]
+macro_rules! expect_token {
+    ($lexer:expr, $token:expr, $return_value:expr) => {
+        if $lexer.token != $token {
+            $lexer.accept_diagnostic(Diagnostic::unexpected_token_found(
+                format!("{:?}", $token),
+                $lexer.slice().to_string(),
+                $lexer.location(),
+            ));
+            return $return_value;
+        }
+    };
+}
+
 impl<'a> ParseSession<'a> {
     pub fn new(l: Lexer<'a, Token>) -> ParseSession<'a> {
         let mut lexer = ParseSession {
@@ -35,19 +49,6 @@ impl<'a> ParseSession<'a> {
         };
         lexer.advance();
         lexer
-    }
-
-    pub fn expect_token(&mut self, token: Token) -> bool {
-        if self.token != token {
-            self.accept_diagnostic(Diagnostic::unexpected_token_found(
-                format!("{:?}", token),
-                self.slice().to_string(),
-                self.location(),
-            ));
-            false
-        } else {
-            true
-        }
     }
 
     /// this function will be removed soon:
