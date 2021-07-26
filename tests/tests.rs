@@ -49,7 +49,7 @@ macro_rules! assert_almost_eq {
 ///
 pub fn compile(context: &Context, source: String) -> ExecutionEngine {
     let source = SourceCode {
-        path: Some("external_test.st".to_string()),
+        path: "external_test.st".to_string(),
         source,
     };
     let code_gen = compile_module(context, vec![source], None).unwrap();

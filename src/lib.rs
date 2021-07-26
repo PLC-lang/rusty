@@ -104,7 +104,7 @@ impl Diagnostic {
 }
 pub trait SourceLocation {
     /// returns the location of this source-container. Used when reporting diagnostics.
-    fn get_location(&self) -> Option<&str>;
+    fn get_location(&self) -> &str;
 }
 
 /// SourceContainers offer source-code to be compiled via the load_source function.
@@ -120,46 +120,19 @@ pub struct FilePath {
 }
 
 impl SourceLocation for FilePath {
-    fn get_location(&self) -> Option<&str> {
-        Some(&self.path)
-    }
-}
-
-impl<T> SourceLocation for T
-where
-    T: Read,
-{
-    fn get_location(&self) -> Option<&str> {
-        None
-    }
-}
-
-impl<T> SourceContainer for T
-where
-    T: Read,
-{
-    fn load_source(self, encoding: Option<&'static Encoding>) -> Result<SourceCode, String> {
-        let path: Option<String> = self.get_location().map(|it| it.into());
-        let mut buffer = String::new();
-        let mut decoder = DecodeReaderBytesBuilder::new()
-            .encoding(encoding)
-            .build(self);
-        decoder
-            .read_to_string(&mut buffer)
-            .map_err(|err| format!("{:}", err))?;
-        Ok(SourceCode {
-            source: buffer,
-            path,
-        })
+    fn get_location(&self) -> &str {
+        &self.path
     }
 }
 
 impl SourceContainer for FilePath {
     fn load_source(self, encoding: Option<&'static Encoding>) -> Result<SourceCode, String> {
-        let file = File::open(&self.path).map_err(|err| format!("{}", err))?;
-        file.load_source(encoding).map(|result| SourceCode {
-            source: result.source,
-            path: Some(self.path),
+        let mut file = File::open(&self.path).map_err(|err| err.to_string())?;
+        let source = create_source_code(&mut file, encoding)?;
+
+        Ok(SourceCode {
+            source,
+            path: self.path,
         })
     }
 }
@@ -170,7 +143,7 @@ pub struct SourceCode {
     /// the source code to be compiled
     pub source: String,
     /// the location this code was loaded from
-    pub path: Option<String>,
+    pub path: String,
 }
 
 /// tests can provide a SourceCode directly
@@ -181,9 +154,23 @@ impl SourceContainer for SourceCode {
 }
 
 impl SourceLocation for SourceCode {
-    fn get_location(&self) -> Option<&str> {
-        self.path.as_deref()
+    fn get_location(&self) -> &str {
+        &self.path
     }
+}
+
+fn create_source_code<T: Read>(
+    reader: &mut T,
+    encoding: Option<&'static Encoding>,
+) -> Result<String, String> {
+    let mut buffer = String::new();
+    let mut decoder = DecodeReaderBytesBuilder::new()
+        .encoding(encoding)
+        .build(reader);
+    decoder
+        .read_to_string(&mut buffer)
+        .map_err(|err| format!("{:}", err))?;
+    Ok(buffer)
 }
 
 ///
@@ -331,7 +318,7 @@ pub fn compile_module<'c, T: SourceContainer>(
     // let mut diagnostics : Vec<Diagnostic> = vec![];
     let mut files: SimpleFiles<String, String> = SimpleFiles::new();
     for container in sources {
-        let location: String = container.get_location().unwrap_or_default().into();
+        let location: String = container.get_location().into();
         let e = container
             .load_source(encoding)
             .map_err(|err| CompileError::io_read_error(err, location.clone()))?;
@@ -385,7 +372,7 @@ fn parse(source: &str) -> Result<ParsedAst, CompileError> {
 
 #[cfg(test)]
 mod tests {
-    use crate::SourceContainer;
+    use crate::create_source_code;
 
     #[test]
     fn windows_encoded_file_content_read() {
@@ -393,14 +380,11 @@ mod tests {
 (* Cöment *)
 END_PROGRAM
 ";
-        let source = &b"\x50\x52\x4f\x47\x52\x41\x4d\x20\xe4\x0a\x28\x2a\x20\x43\xf6\x6d\x65\x6e\x74\x20\x2a\x29\x0a\x45\x4e\x44\x5f\x50\x52\x4f\x47\x52\x41\x4d\x0a"[..];
+        let mut source = &b"\x50\x52\x4f\x47\x52\x41\x4d\x20\xe4\x0a\x28\x2a\x20\x43\xf6\x6d\x65\x6e\x74\x20\x2a\x29\x0a\x45\x4e\x44\x5f\x50\x52\x4f\x47\x52\x41\x4d\x0a"[..];
         // let read = std::io::Read()
-        let source = (&mut source.as_ref())
-            .load_source(Some(encoding_rs::WINDOWS_1252))
-            .unwrap()
-            .source;
+        let source = create_source_code(&mut source, Some(encoding_rs::WINDOWS_1252)).unwrap();
 
-        assert_eq!(expected, source);
+        assert_eq!(expected, &source);
     }
 
     #[test]
@@ -410,10 +394,10 @@ END_PROGRAM
 END_PROGRAM
 ";
 
-        let source = &b"\xff\xfe\x50\x00\x52\x00\x4f\x00\x47\x00\x52\x00\x41\x00\x4d\x00\x20\x00\xe4\x00\x0a\x00\x28\x00\x2a\x00\x20\x00\x43\x00\xf6\x00\x6d\x00\x6d\x00\x65\x00\x6e\x00\x74\x00\x20\x00\x2a\x00\x29\x00\x0a\x00\x45\x00\x4e\x00\x44\x00\x5f\x00\x50\x00\x52\x00\x4f\x00\x47\x00\x52\x00\x41\x00\x4d\x00\x0a\x00" [..];
+        let mut source = &b"\xff\xfe\x50\x00\x52\x00\x4f\x00\x47\x00\x52\x00\x41\x00\x4d\x00\x20\x00\xe4\x00\x0a\x00\x28\x00\x2a\x00\x20\x00\x43\x00\xf6\x00\x6d\x00\x6d\x00\x65\x00\x6e\x00\x74\x00\x20\x00\x2a\x00\x29\x00\x0a\x00\x45\x00\x4e\x00\x44\x00\x5f\x00\x50\x00\x52\x00\x4f\x00\x47\x00\x52\x00\x41\x00\x4d\x00\x0a\x00" [..];
 
-        let source = (&mut source.as_ref()).load_source(None).unwrap().source;
-        assert_eq!(expected, source);
+        let source = create_source_code(&mut source, None).unwrap();
+        assert_eq!(expected, &source);
     }
 
     #[test]
@@ -423,8 +407,8 @@ END_PROGRAM
 END_PROGRAM
 ";
 
-        let source = &b"\x50\x52\x4f\x47\x52\x41\x4d\x20\xc3\xa4\x0a\x28\x2a\x20\x43\xc3\xb6\x6d\x65\x6e\x74\x20\x2a\x29\x0a\x45\x4e\x44\x5f\x50\x52\x4f\x47\x52\x41\x4d\x0a" [..];
-        let source = (&mut source.as_ref()).load_source(None).unwrap().source;
-        assert_eq!(expected, source);
+        let mut source = &b"\x50\x52\x4f\x47\x52\x41\x4d\x20\xc3\xa4\x0a\x28\x2a\x20\x43\xc3\xb6\x6d\x65\x6e\x74\x20\x2a\x29\x0a\x45\x4e\x44\x5f\x50\x52\x4f\x47\x52\x41\x4d\x0a" [..];
+        let source = create_source_code(&mut source, None).unwrap();
+        assert_eq!(expected, &source);
     }
 }
