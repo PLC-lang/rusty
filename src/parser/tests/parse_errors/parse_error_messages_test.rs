@@ -89,29 +89,6 @@ fn for_with_unexpected_token_2() {
 }
 
 #[test]
-fn if_then_with_unexpected_token() {
-    let lexer = super::super::lex(
-        "
-        PROGRAM exp 
-        IF TRUE CHARLIE
-            x;
-        ELSE
-            y;
-        END_IF
-        END_PROGRAM
-        ",
-    );
-    let parse_result = parse(lexer);
-    assert_eq!(
-        &Diagnostic::syntax_error(
-            "Unexpected token: expected KeywordThen but found CHARLIE".into(),
-            (38..45).into()
-        ),
-        parse_result.1.first().unwrap()
-    );
-}
-
-#[test]
 fn case_with_unexpected_token() {
     let lexer = super::super::lex(
         "

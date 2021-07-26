@@ -27,15 +27,9 @@ fn parse_if_statement(lexer: &mut ParseSession) -> Statement {
     let mut conditional_blocks = vec![];
 
     while lexer.last_token == KeywordElseIf || lexer.last_token == KeywordIf {
-        let condition = parse_primary_expression(lexer);
-        expect_token!(
-            lexer,
-            KeywordThen,
-            Statement::EmptyStatement {
-                location: lexer.location(),
-            }
-        );
-        lexer.advance();
+        let condition = parse_any_in_region(lexer, vec![KeywordThen], |lexer| {
+            parse_primary_expression(lexer)
+        });
 
         let condition_block = ConditionalBlock {
             condition: Box::new(condition),
