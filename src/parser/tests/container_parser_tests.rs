@@ -45,20 +45,20 @@ fn mixed_action_types_parsed() {
 #[test]
 fn actions_with_no_container_error() {
     let lexer = lex("ACTIONS ACTION bar END_ACTION ACTION buz END_ACTION END_ACTIONS");
-    let err = parse(lexer).expect_err("Expecting parser failure");
+    let errors = parse(lexer).unwrap().1;
     assert_eq!(
-        err,
-        Diagnostic::unexpected_token_found("Identifier".into(), "ACTION".into(), (8..14).into())
+        errors.first().unwrap(),
+        &Diagnostic::unexpected_token_found("Identifier".into(), "ACTION".into(), (8..14).into())
     );
 }
 
 #[test]
 fn actions_with_invalid_token() {
     let lexer = lex("ACTIONS LIMA BRAVO END_ACTIONS");
-    let err = parse(lexer).expect_err("Expecting parser failure");
+    let errors = parse(lexer).unwrap().1;
     assert_eq!(
-        err,
-        Diagnostic::unexpected_token_found(
+        errors.first().unwrap(),
+        &Diagnostic::unexpected_token_found(
             "KeywordAction".to_string(),
             "BRAVO".into(),
             (13..18).into()

@@ -2,7 +2,7 @@
 
 use crate::ast::*;
 use crate::lexer::Token::*;
-use crate::parser::parse_statement_in_region;
+use crate::parser::parse_any_in_region;
 use crate::Diagnostic;
 use std::str::FromStr;
 
@@ -205,8 +205,8 @@ fn parse_parenthesized_expression(lexer: &mut ParseSession) -> Statement {
     match lexer.token {
         KeywordParensOpen => {
             lexer.advance();
-            super::parse_statement_in_region(lexer, vec![KeywordParensClose], |lexer| {
-                Ok(parse_primary_expression(lexer))
+            super::parse_any_in_region(lexer, vec![KeywordParensClose], |lexer| {
+                parse_primary_expression(lexer)
             })
         }
         _ => parse_leaf_expression(lexer),
@@ -308,12 +308,12 @@ pub fn parse_qualified_reference(lexer: &mut ParseSession) -> Result<Statement, 
                 location: SourceRange::new(start..lexer.range().end),
             }
         } else {
-            parse_statement_in_region(lexer, vec![KeywordParensClose], |lexer| {
-                Ok(Statement::CallStatement {
+            parse_any_in_region(lexer, vec![KeywordParensClose], |lexer| {
+                Statement::CallStatement {
                     operator: Box::new(reference),
                     parameters: Box::new(Some(parse_expression_list(lexer))),
                     location: SourceRange::new(start..lexer.range().end),
-                })
+                }
             })
         };
         Ok(call_statement)

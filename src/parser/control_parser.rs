@@ -1,8 +1,7 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use crate::ast::*;
 use crate::lexer::Token::*;
-use crate::parser::parse_body_in_region;
-use crate::parser::parse_statement_in_region;
+use crate::parser::{parse_any_in_region, parse_body_in_region};
 use crate::Diagnostic;
 
 use super::ParseSession;
@@ -116,8 +115,8 @@ fn parse_repeat_statement(lexer: &mut ParseSession) -> Statement {
 
     let body = parse_body_in_region(lexer, vec![KeywordUntil, KeywordEndRepeat]); //UNTIL
     let condition = if lexer.last_token == KeywordUntil {
-        parse_statement_in_region(lexer, vec![KeywordEndRepeat], |lexer| {
-            Ok(parse_primary_expression(lexer))
+        parse_any_in_region(lexer, vec![KeywordEndRepeat], |lexer| {
+            parse_primary_expression(lexer)
         })
     } else {
         Statement::EmptyStatement {
