@@ -103,7 +103,7 @@ impl Diagnostic {
 }
 pub trait SourceLocation {
     /// returns the location of this source-container. Used when reporting diagnostics.
-    fn get_location(&self) -> &str;
+    fn get_location(&self) -> Option<&str>;
 }
 
 /// SourceContainers offer source-code to be compiled via the load_source function.
@@ -119,18 +119,27 @@ pub struct FilePath {
 }
 
 impl SourceLocation for FilePath {
-    fn get_location(&self) -> &str {
-        &self.path
+    fn get_location(&self) -> Option<&str> {
+        Some(&self.path)
     }
 }
+
+impl<T> SourceLocation for T 
+where 
+    T : Read
+    {
+        fn get_location(&self) -> Option<&str> {
+            None
+        }
+    }
 
 
 impl<T> SourceContainer for T
 where
-    T: Read + SourceLocation,
+    T: Read,
 {
     fn load_source(self, encoding: Option<&'static Encoding>) -> Result<SourceCode, String> {
-        let path = self.get_location().into();
+        let path : Option<String>= self.get_location().map(|it| it.into());
         let mut buffer = String::new();
         let mut decoder = DecodeReaderBytesBuilder::new()
             .encoding(encoding)
@@ -145,10 +154,13 @@ where
     }
 }
 
-impl Read for FilePath {
-    fn read(&mut self, buf: &mut [u8]) -> std::io::Result<usize> {
-        let mut file   = File::open(&self.path)?;
-        file.read(buf)
+impl SourceContainer for FilePath {
+    fn load_source(self, encoding: Option<&'static Encoding>) -> Result<SourceCode, String> {
+        let file   = File::open(&self.path).map_err(|err| format!("{}", err))?;
+        file.load_source(encoding).map(|result| SourceCode {
+            source: result.source,
+            path: Some(self.path)
+        })
     }
 }
 
@@ -158,7 +170,7 @@ pub struct SourceCode {
     /// the source code to be compiled
     pub source: String,
     /// the location this code was loaded from
-    pub path: String,
+    pub path: Option<String>,
 }
 
 /// tests can provide a SourceCode directly
@@ -169,8 +181,8 @@ impl SourceContainer for SourceCode {
 }
 
 impl SourceLocation for SourceCode  {
-    fn get_location(&self) -> &str {
-        &self.path
+    fn get_location(&self) -> Option<&str> {
+        self.path.as_ref().map(|it| it.as_str())
     }
 }
 
@@ -316,10 +328,10 @@ pub fn compile_module<'c, T: SourceContainer>(
     // let mut diagnostics : Vec<Diagnostic> = vec![];
     let mut files: SimpleFiles<String, String> = SimpleFiles::new();
     for container in sources {
-        let location = container.get_location().to_string();
+        let location : String = container.get_location().unwrap_or_default().into();
         let e = container
             .load_source(encoding)
-            .map_err(|err| CompileError::io_error(err, location))?;
+            .map_err(|err| CompileError::io_error(err, location.clone()))?;
 
         let (mut parse_result, diagnostics) = parse(e.source.as_str())?;
         ast::pre_process(&mut parse_result);
@@ -327,7 +339,7 @@ pub fn compile_module<'c, T: SourceContainer>(
         unit.import(parse_result);
 
         //log errors
-        let file_id = files.add(e.path.clone(), e.source.clone());
+        let file_id = files.add(location, e.source.clone());
         for error in diagnostics {
             let diag = diagnostic::Diagnostic::error()
                 .with_message(error.get_message())
@@ -371,15 +383,7 @@ fn parse(source: &str) -> Result<ParsedAst, CompileError> {
 #[cfg(test)]
 mod tests {
     use crate::SourceContainer;
-    use crate::SourceLocation;
     
-    impl SourceLocation for &[u8] {
-        fn get_location(&self) -> &str {
-            "local_test"
-        }
-    }
-
-
     #[test]
     fn windows_encoded_file_content_read() {
         let expected = r"PROGRAM ä
