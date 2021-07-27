@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/git/checkouts/inkwell-946411d814d2c9f8/f768691/src/values/int_value.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>int_value.rs - source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script id="default-settings"></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/git/checkouts/inkwell-946411d814d2c9f8/41857f9/src/values/int_value.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>int_value.rs - source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script id="default-settings"></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
 <link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png">
 <link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../inkwell/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
                 <a id="settings-menu" href="../../../settings.html"><img src="../../../wheel.svg" width="18" height="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
@@ -398,80 +398,6 @@
 <span id="395">395</span>
 <span id="396">396</span>
 <span id="397">397</span>
-<span id="398">398</span>
-<span id="399">399</span>
-<span id="400">400</span>
-<span id="401">401</span>
-<span id="402">402</span>
-<span id="403">403</span>
-<span id="404">404</span>
-<span id="405">405</span>
-<span id="406">406</span>
-<span id="407">407</span>
-<span id="408">408</span>
-<span id="409">409</span>
-<span id="410">410</span>
-<span id="411">411</span>
-<span id="412">412</span>
-<span id="413">413</span>
-<span id="414">414</span>
-<span id="415">415</span>
-<span id="416">416</span>
-<span id="417">417</span>
-<span id="418">418</span>
-<span id="419">419</span>
-<span id="420">420</span>
-<span id="421">421</span>
-<span id="422">422</span>
-<span id="423">423</span>
-<span id="424">424</span>
-<span id="425">425</span>
-<span id="426">426</span>
-<span id="427">427</span>
-<span id="428">428</span>
-<span id="429">429</span>
-<span id="430">430</span>
-<span id="431">431</span>
-<span id="432">432</span>
-<span id="433">433</span>
-<span id="434">434</span>
-<span id="435">435</span>
-<span id="436">436</span>
-<span id="437">437</span>
-<span id="438">438</span>
-<span id="439">439</span>
-<span id="440">440</span>
-<span id="441">441</span>
-<span id="442">442</span>
-<span id="443">443</span>
-<span id="444">444</span>
-<span id="445">445</span>
-<span id="446">446</span>
-<span id="447">447</span>
-<span id="448">448</span>
-<span id="449">449</span>
-<span id="450">450</span>
-<span id="451">451</span>
-<span id="452">452</span>
-<span id="453">453</span>
-<span id="454">454</span>
-<span id="455">455</span>
-<span id="456">456</span>
-<span id="457">457</span>
-<span id="458">458</span>
-<span id="459">459</span>
-<span id="460">460</span>
-<span id="461">461</span>
-<span id="462">462</span>
-<span id="463">463</span>
-<span id="464">464</span>
-<span id="465">465</span>
-<span id="466">466</span>
-<span id="467">467</span>
-<span id="468">468</span>
-<span id="469">469</span>
-<span id="470">470</span>
-<span id="471">471</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">llvm_sys::core</span>::{<span class="ident">LLVMConstNot</span>, <span class="ident">LLVMConstNeg</span>, <span class="ident">LLVMConstNSWNeg</span>, <span class="ident">LLVMConstNUWNeg</span>, <span class="ident">LLVMConstAdd</span>, <span class="ident">LLVMConstNSWAdd</span>, <span class="ident">LLVMConstNUWAdd</span>, <span class="ident">LLVMConstSub</span>, <span class="ident">LLVMConstNSWSub</span>, <span class="ident">LLVMConstNUWSub</span>, <span class="ident">LLVMConstMul</span>, <span class="ident">LLVMConstNSWMul</span>, <span class="ident">LLVMConstNUWMul</span>, <span class="ident">LLVMConstUDiv</span>, <span class="ident">LLVMConstSDiv</span>, <span class="ident">LLVMConstSRem</span>, <span class="ident">LLVMConstURem</span>, <span class="ident">LLVMConstIntCast</span>, <span class="ident">LLVMConstXor</span>, <span class="ident">LLVMConstOr</span>, <span class="ident">LLVMConstAnd</span>, <span class="ident">LLVMConstExactSDiv</span>, <span class="ident">LLVMConstShl</span>, <span class="ident">LLVMConstLShr</span>, <span class="ident">LLVMConstAShr</span>, <span class="ident">LLVMConstUIToFP</span>, <span class="ident">LLVMConstSIToFP</span>, <span class="ident">LLVMConstIntToPtr</span>, <span class="ident">LLVMConstTrunc</span>, <span class="ident">LLVMConstSExt</span>, <span class="ident">LLVMConstZExt</span>, <span class="ident">LLVMConstTruncOrBitCast</span>, <span class="ident">LLVMConstSExtOrBitCast</span>, <span class="ident">LLVMConstZExtOrBitCast</span>, <span class="ident">LLVMConstBitCast</span>, <span class="ident">LLVMConstICmp</span>, <span class="ident">LLVMConstIntGetZExtValue</span>, <span class="ident">LLVMConstIntGetSExtValue</span>, <span class="ident">LLVMConstSelect</span>, <span class="ident">LLVMIsAConstantInt</span>};
 <span class="attribute">#[<span class="ident">llvm_versions</span>(<span class="number">4.0</span>..<span class="op">=</span><span class="ident">latest</span>)]</span>
@@ -491,7 +417,7 @@
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> <span class="ident">IntValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">value</span>: <span class="ident">LLVMValueRef</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">value</span>: <span class="ident">LLVMValueRef</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">value</span>.<span class="ident">is_null</span>());
 
         <span class="ident">IntValue</span> {
@@ -506,7 +432,9 @@
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_type</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">IntType</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> {
-        <span class="ident">IntType::new</span>(<span class="self">self</span>.<span class="ident">int_value</span>.<span class="ident">get_type</span>())
+        <span class="kw">unsafe</span> {
+            <span class="ident">IntType::new</span>(<span class="self">self</span>.<span class="ident">int_value</span>.<span class="ident">get_type</span>())
+        }
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_null</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
@@ -526,319 +454,243 @@
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">const_not</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="kw">unsafe</span> {
-            <span class="ident">LLVMConstNot</span>(<span class="self">self</span>.<span class="ident">as_value_ref</span>())
-        };
-
-        <span class="ident">IntValue::new</span>(<span class="ident">value</span>)
+        <span class="kw">unsafe</span> {
+            <span class="ident">IntValue::new</span>(<span class="ident">LLVMConstNot</span>(<span class="self">self</span>.<span class="ident">as_value_ref</span>()))
+        }
     }
 
     <span class="comment">// REVIEW: What happens when not using a const value? This and other fns</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">const_neg</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="kw">unsafe</span> {
-            <span class="ident">LLVMConstNeg</span>(<span class="self">self</span>.<span class="ident">as_value_ref</span>())
-        };
-
-        <span class="ident">IntValue::new</span>(<span class="ident">value</span>)
+        <span class="kw">unsafe</span> {
+            <span class="ident">IntValue::new</span>(<span class="ident">LLVMConstNeg</span>(<span class="self">self</span>.<span class="ident">as_value_ref</span>()))
+        }
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">const_nsw_neg</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="kw">unsafe</span> {
-            <span class="ident">LLVMConstNSWNeg</span>(<span class="self">self</span>.<span class="ident">as_value_ref</span>())
-        };
-
-        <span class="ident">IntValue::new</span>(<span class="ident">value</span>)
+        <span class="kw">unsafe</span> {
+            <span class="ident">IntValue::new</span>(<span class="ident">LLVMConstNSWNeg</span>(<span class="self">self</span>.<span class="ident">as_value_ref</span>()))
+        }
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">const_nuw_neg</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="kw">unsafe</span> {
-            <span class="ident">LLVMConstNUWNeg</span>(<span class="self">self</span>.<span class="ident">as_value_ref</span>())
-        };
-
-        <span class="ident">IntValue::new</span>(<span class="ident">value</span>)
+        <span class="kw">unsafe</span> {
+            <span class="ident">IntValue::new</span>(<span class="ident">LLVMConstNUWNeg</span>(<span class="self">self</span>.<span class="ident">as_value_ref</span>()))
+        }
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">const_add</span>(<span class="self">self</span>, <span class="ident">rhs</span>: <span class="ident">IntValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="kw">unsafe</span> {
-            <span class="ident">LLVMConstAdd</span>(<span class="self">self</span>.<span class="ident">as_value_ref</span>(), <span class="ident">rhs</span>.<span class="ident">as_value_ref</span>())
-        };
-
-        <span class="ident">IntValue::new</span>(<span class="ident">value</span>)
+        <span class="kw">unsafe</span> {
+            <span class="ident">IntValue::new</span>(<span class="ident">LLVMConstAdd</span>(<span class="self">self</span>.<span class="ident">as_value_ref</span>(), <span class="ident">rhs</span>.<span class="ident">as_value_ref</span>()))
+        }
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">const_nsw_add</span>(<span class="self">self</span>, <span class="ident">rhs</span>: <span class="ident">IntValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="kw">unsafe</span> {
-            <span class="ident">LLVMConstNSWAdd</span>(<span class="self">self</span>.<span class="ident">as_value_ref</span>(), <span class="ident">rhs</span>.<span class="ident">as_value_ref</span>())
-        };
-
-        <span class="ident">IntValue::new</span>(<span class="ident">value</span>)
+        <span class="kw">unsafe</span> {
+            <span class="ident">IntValue::new</span>(<span class="ident">LLVMConstNSWAdd</span>(<span class="self">self</span>.<span class="ident">as_value_ref</span>(), <span class="ident">rhs</span>.<span class="ident">as_value_ref</span>()))
+        }
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">const_nuw_add</span>(<span class="self">self</span>, <span class="ident">rhs</span>: <span class="ident">IntValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="kw">unsafe</span> {
-            <span class="ident">LLVMConstNUWAdd</span>(<span class="self">self</span>.<span class="ident">as_value_ref</span>(), <span class="ident">rhs</span>.<span class="ident">as_value_ref</span>())
-        };
-
-        <span class="ident">IntValue::new</span>(<span class="ident">value</span>)
+        <span class="kw">unsafe</span> {
+            <span class="ident">IntValue::new</span>(<span class="ident">LLVMConstNUWAdd</span>(<span class="self">self</span>.<span class="ident">as_value_ref</span>(), <span class="ident">rhs</span>.<span class="ident">as_value_ref</span>()))
+        }
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">const_sub</span>(<span class="self">self</span>, <span class="ident">rhs</span>: <span class="ident">IntValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="kw">unsafe</span> {
-            <span class="ident">LLVMConstSub</span>(<span class="self">self</span>.<span class="ident">as_value_ref</span>(), <span class="ident">rhs</span>.<span class="ident">as_value_ref</span>())
-        };
-
-        <span class="ident">IntValue::new</span>(<span class="ident">value</span>)
+        <span class="kw">unsafe</span> {
+            <span class="ident">IntValue::new</span>(<span class="ident">LLVMConstSub</span>(<span class="self">self</span>.<span class="ident">as_value_ref</span>(), <span class="ident">rhs</span>.<span class="ident">as_value_ref</span>()))
+        }
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">const_nsw_sub</span>(<span class="self">self</span>, <span class="ident">rhs</span>: <span class="ident">IntValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="kw">unsafe</span> {
-            <span class="ident">LLVMConstNSWSub</span>(<span class="self">self</span>.<span class="ident">as_value_ref</span>(), <span class="ident">rhs</span>.<span class="ident">as_value_ref</span>())
-        };
-
-        <span class="ident">IntValue::new</span>(<span class="ident">value</span>)
+        <span class="kw">unsafe</span> {
+            <span class="ident">IntValue::new</span>(<span class="ident">LLVMConstNSWSub</span>(<span class="self">self</span>.<span class="ident">as_value_ref</span>(), <span class="ident">rhs</span>.<span class="ident">as_value_ref</span>()))
+        }
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">const_nuw_sub</span>(<span class="self">self</span>, <span class="ident">rhs</span>: <span class="ident">IntValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="kw">unsafe</span> {
-            <span class="ident">LLVMConstNUWSub</span>(<span class="self">self</span>.<span class="ident">as_value_ref</span>(), <span class="ident">rhs</span>.<span class="ident">as_value_ref</span>())
-        };
-
-        <span class="ident">IntValue::new</span>(<span class="ident">value</span>)
+        <span class="kw">unsafe</span> {
+            <span class="ident">IntValue::new</span>(<span class="ident">LLVMConstNUWSub</span>(<span class="self">self</span>.<span class="ident">as_value_ref</span>(), <span class="ident">rhs</span>.<span class="ident">as_value_ref</span>()))
+        }
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">const_mul</span>(<span class="self">self</span>, <span class="ident">rhs</span>: <span class="ident">IntValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="kw">unsafe</span> {
-            <span class="ident">LLVMConstMul</span>(<span class="self">self</span>.<span class="ident">as_value_ref</span>(), <span class="ident">rhs</span>.<span class="ident">as_value_ref</span>())
-        };
-
-        <span class="ident">IntValue::new</span>(<span class="ident">value</span>)
+        <span class="kw">unsafe</span> {
+            <span class="ident">IntValue::new</span>(<span class="ident">LLVMConstMul</span>(<span class="self">self</span>.<span class="ident">as_value_ref</span>(), <span class="ident">rhs</span>.<span class="ident">as_value_ref</span>()))
+        }
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">const_nsw_mul</span>(<span class="self">self</span>, <span class="ident">rhs</span>: <span class="ident">IntValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="kw">unsafe</span> {
-            <span class="ident">LLVMConstNSWMul</span>(<span class="self">self</span>.<span class="ident">as_value_ref</span>(), <span class="ident">rhs</span>.<span class="ident">as_value_ref</span>())
-        };
-
-        <span class="ident">IntValue::new</span>(<span class="ident">value</span>)
+        <span class="kw">unsafe</span> {
+            <span class="ident">IntValue::new</span>(<span class="ident">LLVMConstNSWMul</span>(<span class="self">self</span>.<span class="ident">as_value_ref</span>(), <span class="ident">rhs</span>.<span class="ident">as_value_ref</span>()))
+        }
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">const_nuw_mul</span>(<span class="self">self</span>, <span class="ident">rhs</span>: <span class="ident">IntValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="kw">unsafe</span> {
-            <span class="ident">LLVMConstNUWMul</span>(<span class="self">self</span>.<span class="ident">as_value_ref</span>(), <span class="ident">rhs</span>.<span class="ident">as_value_ref</span>())
-        };
-
-        <span class="ident">IntValue::new</span>(<span class="ident">value</span>)
+        <span class="kw">unsafe</span> {
+            <span class="ident">IntValue::new</span>(<span class="ident">LLVMConstNUWMul</span>(<span class="self">self</span>.<span class="ident">as_value_ref</span>(), <span class="ident">rhs</span>.<span class="ident">as_value_ref</span>()))
+        }
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">const_unsigned_div</span>(<span class="self">self</span>, <span class="ident">rhs</span>: <span class="ident">IntValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="kw">unsafe</span> {
-            <span class="ident">LLVMConstUDiv</span>(<span class="self">self</span>.<span class="ident">as_value_ref</span>(), <span class="ident">rhs</span>.<span class="ident">as_value_ref</span>())
-        };
-
-        <span class="ident">IntValue::new</span>(<span class="ident">value</span>)
+        <span class="kw">unsafe</span> {
+            <span class="ident">IntValue::new</span>(<span class="ident">LLVMConstUDiv</span>(<span class="self">self</span>.<span class="ident">as_value_ref</span>(), <span class="ident">rhs</span>.<span class="ident">as_value_ref</span>()))
+        }
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">const_signed_div</span>(<span class="self">self</span>, <span class="ident">rhs</span>: <span class="ident">IntValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="kw">unsafe</span> {
-            <span class="ident">LLVMConstSDiv</span>(<span class="self">self</span>.<span class="ident">as_value_ref</span>(), <span class="ident">rhs</span>.<span class="ident">as_value_ref</span>())
-        };
-
-        <span class="ident">IntValue::new</span>(<span class="ident">value</span>)
+        <span class="kw">unsafe</span> {
+            <span class="ident">IntValue::new</span>(<span class="ident">LLVMConstSDiv</span>(<span class="self">self</span>.<span class="ident">as_value_ref</span>(), <span class="ident">rhs</span>.<span class="ident">as_value_ref</span>()))
+        }
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">const_exact_signed_div</span>(<span class="self">self</span>, <span class="ident">rhs</span>: <span class="ident">IntValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="kw">unsafe</span> {
-            <span class="ident">LLVMConstExactSDiv</span>(<span class="self">self</span>.<span class="ident">as_value_ref</span>(), <span class="ident">rhs</span>.<span class="ident">as_value_ref</span>())
-        };
-
-        <span class="ident">IntValue::new</span>(<span class="ident">value</span>)
+        <span class="kw">unsafe</span> {
+            <span class="ident">IntValue::new</span>(<span class="ident">LLVMConstExactSDiv</span>(<span class="self">self</span>.<span class="ident">as_value_ref</span>(), <span class="ident">rhs</span>.<span class="ident">as_value_ref</span>()))
+        }
     }
 
     <span class="attribute">#[<span class="ident">llvm_versions</span>(<span class="number">4.0</span>..<span class="op">=</span><span class="ident">latest</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">const_exact_unsigned_div</span>(<span class="self">self</span>, <span class="ident">rhs</span>: <span class="ident">IntValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="kw">unsafe</span> {
-            <span class="ident">LLVMConstExactUDiv</span>(<span class="self">self</span>.<span class="ident">as_value_ref</span>(), <span class="ident">rhs</span>.<span class="ident">as_value_ref</span>())
-        };
-
-        <span class="ident">IntValue::new</span>(<span class="ident">value</span>)
+        <span class="kw">unsafe</span> {
+            <span class="ident">IntValue::new</span>(<span class="ident">LLVMConstExactUDiv</span>(<span class="self">self</span>.<span class="ident">as_value_ref</span>(), <span class="ident">rhs</span>.<span class="ident">as_value_ref</span>()))
+        }
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">const_unsigned_remainder</span>(<span class="self">self</span>, <span class="ident">rhs</span>: <span class="ident">IntValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="kw">unsafe</span> {
-            <span class="ident">LLVMConstURem</span>(<span class="self">self</span>.<span class="ident">as_value_ref</span>(), <span class="ident">rhs</span>.<span class="ident">as_value_ref</span>())
-        };
-
-        <span class="ident">IntValue::new</span>(<span class="ident">value</span>)
+        <span class="kw">unsafe</span> {
+            <span class="ident">IntValue::new</span>(<span class="ident">LLVMConstURem</span>(<span class="self">self</span>.<span class="ident">as_value_ref</span>(), <span class="ident">rhs</span>.<span class="ident">as_value_ref</span>()))
+        }
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">const_signed_remainder</span>(<span class="self">self</span>, <span class="ident">rhs</span>: <span class="ident">IntValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="kw">unsafe</span> {
-            <span class="ident">LLVMConstSRem</span>(<span class="self">self</span>.<span class="ident">as_value_ref</span>(), <span class="ident">rhs</span>.<span class="ident">as_value_ref</span>())
-        };
-
-        <span class="ident">IntValue::new</span>(<span class="ident">value</span>)
+        <span class="kw">unsafe</span> {
+            <span class="ident">IntValue::new</span>(<span class="ident">LLVMConstSRem</span>(<span class="self">self</span>.<span class="ident">as_value_ref</span>(), <span class="ident">rhs</span>.<span class="ident">as_value_ref</span>()))
+        }
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">const_and</span>(<span class="self">self</span>, <span class="ident">rhs</span>: <span class="ident">IntValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="kw">unsafe</span> {
-            <span class="ident">LLVMConstAnd</span>(<span class="self">self</span>.<span class="ident">as_value_ref</span>(), <span class="ident">rhs</span>.<span class="ident">as_value_ref</span>())
-        };
-
-        <span class="ident">IntValue::new</span>(<span class="ident">value</span>)
+        <span class="kw">unsafe</span> {
+            <span class="ident">IntValue::new</span>(<span class="ident">LLVMConstAnd</span>(<span class="self">self</span>.<span class="ident">as_value_ref</span>(), <span class="ident">rhs</span>.<span class="ident">as_value_ref</span>()))
+        }
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">const_or</span>(<span class="self">self</span>, <span class="ident">rhs</span>: <span class="ident">IntValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="kw">unsafe</span> {
-            <span class="ident">LLVMConstOr</span>(<span class="self">self</span>.<span class="ident">as_value_ref</span>(), <span class="ident">rhs</span>.<span class="ident">as_value_ref</span>())
-        };
-
-        <span class="ident">IntValue::new</span>(<span class="ident">value</span>)
+        <span class="kw">unsafe</span> {
+            <span class="ident">IntValue::new</span>(<span class="ident">LLVMConstOr</span>(<span class="self">self</span>.<span class="ident">as_value_ref</span>(), <span class="ident">rhs</span>.<span class="ident">as_value_ref</span>()))
+        }
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">const_xor</span>(<span class="self">self</span>, <span class="ident">rhs</span>: <span class="ident">IntValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="kw">unsafe</span> {
-            <span class="ident">LLVMConstXor</span>(<span class="self">self</span>.<span class="ident">as_value_ref</span>(), <span class="ident">rhs</span>.<span class="ident">as_value_ref</span>())
-        };
-
-        <span class="ident">IntValue::new</span>(<span class="ident">value</span>)
+        <span class="kw">unsafe</span> {
+            <span class="ident">IntValue::new</span>(<span class="ident">LLVMConstXor</span>(<span class="self">self</span>.<span class="ident">as_value_ref</span>(), <span class="ident">rhs</span>.<span class="ident">as_value_ref</span>()))
+        }
     }
 
     <span class="comment">// TODO: Could infer is_signed from type (one day)?</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">const_cast</span>(<span class="self">self</span>, <span class="ident">int_type</span>: <span class="ident">IntType</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span>, <span class="ident">is_signed</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="kw">unsafe</span> {
-            <span class="ident">LLVMConstIntCast</span>(<span class="self">self</span>.<span class="ident">as_value_ref</span>(), <span class="ident">int_type</span>.<span class="ident">as_type_ref</span>(), <span class="ident">is_signed</span> <span class="kw">as</span> <span class="ident">i32</span>)
-        };
-
-        <span class="ident">IntValue::new</span>(<span class="ident">value</span>)
+        <span class="kw">unsafe</span> {
+            <span class="ident">IntValue::new</span>(<span class="ident">LLVMConstIntCast</span>(<span class="self">self</span>.<span class="ident">as_value_ref</span>(), <span class="ident">int_type</span>.<span class="ident">as_type_ref</span>(), <span class="ident">is_signed</span> <span class="kw">as</span> <span class="ident">i32</span>))
+        }
     }
 
     <span class="comment">// TODO: Give shift methods more descriptive names</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">const_shl</span>(<span class="self">self</span>, <span class="ident">rhs</span>: <span class="ident">IntValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="kw">unsafe</span> {
-            <span class="ident">LLVMConstShl</span>(<span class="self">self</span>.<span class="ident">as_value_ref</span>(), <span class="ident">rhs</span>.<span class="ident">as_value_ref</span>())
-        };
-
-        <span class="ident">IntValue::new</span>(<span class="ident">value</span>)
+        <span class="kw">unsafe</span> {
+            <span class="ident">IntValue::new</span>(<span class="ident">LLVMConstShl</span>(<span class="self">self</span>.<span class="ident">as_value_ref</span>(), <span class="ident">rhs</span>.<span class="ident">as_value_ref</span>()))
+        }
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">const_rshr</span>(<span class="self">self</span>, <span class="ident">rhs</span>: <span class="ident">IntValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="kw">unsafe</span> {
-            <span class="ident">LLVMConstLShr</span>(<span class="self">self</span>.<span class="ident">as_value_ref</span>(), <span class="ident">rhs</span>.<span class="ident">as_value_ref</span>())
-        };
-
-        <span class="ident">IntValue::new</span>(<span class="ident">value</span>)
+        <span class="kw">unsafe</span> {
+            <span class="ident">IntValue::new</span>(<span class="ident">LLVMConstLShr</span>(<span class="self">self</span>.<span class="ident">as_value_ref</span>(), <span class="ident">rhs</span>.<span class="ident">as_value_ref</span>()))
+        }
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">const_ashr</span>(<span class="self">self</span>, <span class="ident">rhs</span>: <span class="ident">IntValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="kw">unsafe</span> {
-            <span class="ident">LLVMConstAShr</span>(<span class="self">self</span>.<span class="ident">as_value_ref</span>(), <span class="ident">rhs</span>.<span class="ident">as_value_ref</span>())
-        };
-
-        <span class="ident">IntValue::new</span>(<span class="ident">value</span>)
+        <span class="kw">unsafe</span> {
+            <span class="ident">IntValue::new</span>(<span class="ident">LLVMConstAShr</span>(<span class="self">self</span>.<span class="ident">as_value_ref</span>(), <span class="ident">rhs</span>.<span class="ident">as_value_ref</span>()))
+        }
     }
 
     <span class="comment">// SubType: const_to_float impl only for unsigned types</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">const_unsigned_to_float</span>(<span class="self">self</span>, <span class="ident">float_type</span>: <span class="ident">FloatType</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">FloatValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="kw">unsafe</span> {
-            <span class="ident">LLVMConstUIToFP</span>(<span class="self">self</span>.<span class="ident">as_value_ref</span>(), <span class="ident">float_type</span>.<span class="ident">as_type_ref</span>())
-        };
-
-        <span class="ident">FloatValue::new</span>(<span class="ident">value</span>)
+        <span class="kw">unsafe</span> {
+            <span class="ident">FloatValue::new</span>(<span class="ident">LLVMConstUIToFP</span>(<span class="self">self</span>.<span class="ident">as_value_ref</span>(), <span class="ident">float_type</span>.<span class="ident">as_type_ref</span>()))
+        }
     }
 
     <span class="comment">// SubType: const_to_float impl only for signed types</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">const_signed_to_float</span>(<span class="self">self</span>, <span class="ident">float_type</span>: <span class="ident">FloatType</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">FloatValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="kw">unsafe</span> {
-            <span class="ident">LLVMConstSIToFP</span>(<span class="self">self</span>.<span class="ident">as_value_ref</span>(), <span class="ident">float_type</span>.<span class="ident">as_type_ref</span>())
-        };
-
-        <span class="ident">FloatValue::new</span>(<span class="ident">value</span>)
+        <span class="kw">unsafe</span> {
+            <span class="ident">FloatValue::new</span>(<span class="ident">LLVMConstSIToFP</span>(<span class="self">self</span>.<span class="ident">as_value_ref</span>(), <span class="ident">float_type</span>.<span class="ident">as_type_ref</span>()))
+        }
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">const_to_pointer</span>(<span class="self">self</span>, <span class="ident">ptr_type</span>: <span class="ident">PointerType</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PointerValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="kw">unsafe</span> {
-            <span class="ident">LLVMConstIntToPtr</span>(<span class="self">self</span>.<span class="ident">as_value_ref</span>(), <span class="ident">ptr_type</span>.<span class="ident">as_type_ref</span>())
-        };
-
-        <span class="ident">PointerValue::new</span>(<span class="ident">value</span>)
+        <span class="kw">unsafe</span> {
+            <span class="ident">PointerValue::new</span>(<span class="ident">LLVMConstIntToPtr</span>(<span class="self">self</span>.<span class="ident">as_value_ref</span>(), <span class="ident">ptr_type</span>.<span class="ident">as_type_ref</span>()))
+        }
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">const_truncate</span>(<span class="self">self</span>, <span class="ident">int_type</span>: <span class="ident">IntType</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">IntValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="kw">unsafe</span> {
-            <span class="ident">LLVMConstTrunc</span>(<span class="self">self</span>.<span class="ident">as_value_ref</span>(), <span class="ident">int_type</span>.<span class="ident">as_type_ref</span>())
-        };
-
-        <span class="ident">IntValue::new</span>(<span class="ident">value</span>)
+        <span class="kw">unsafe</span> {
+            <span class="ident">IntValue::new</span>(<span class="ident">LLVMConstTrunc</span>(<span class="self">self</span>.<span class="ident">as_value_ref</span>(), <span class="ident">int_type</span>.<span class="ident">as_type_ref</span>()))
+        }
     }
 
     <span class="comment">// TODO: More descriptive name</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">const_s_extend</span>(<span class="self">self</span>, <span class="ident">int_type</span>: <span class="ident">IntType</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">IntValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="kw">unsafe</span> {
-            <span class="ident">LLVMConstSExt</span>(<span class="self">self</span>.<span class="ident">as_value_ref</span>(), <span class="ident">int_type</span>.<span class="ident">as_type_ref</span>())
-        };
-
-        <span class="ident">IntValue::new</span>(<span class="ident">value</span>)
+        <span class="kw">unsafe</span> {
+            <span class="ident">IntValue::new</span>(<span class="ident">LLVMConstSExt</span>(<span class="self">self</span>.<span class="ident">as_value_ref</span>(), <span class="ident">int_type</span>.<span class="ident">as_type_ref</span>()))
+        }
     }
 
     <span class="comment">// TODO: More descriptive name</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">const_z_ext</span>(<span class="self">self</span>, <span class="ident">int_type</span>: <span class="ident">IntType</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">IntValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="kw">unsafe</span> {
-            <span class="ident">LLVMConstZExt</span>(<span class="self">self</span>.<span class="ident">as_value_ref</span>(), <span class="ident">int_type</span>.<span class="ident">as_type_ref</span>())
-        };
-
-        <span class="ident">IntValue::new</span>(<span class="ident">value</span>)
+        <span class="kw">unsafe</span> {
+            <span class="ident">IntValue::new</span>(<span class="ident">LLVMConstZExt</span>(<span class="self">self</span>.<span class="ident">as_value_ref</span>(), <span class="ident">int_type</span>.<span class="ident">as_type_ref</span>()))
+        }
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">const_truncate_or_bit_cast</span>(<span class="self">self</span>, <span class="ident">int_type</span>: <span class="ident">IntType</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">IntValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="kw">unsafe</span> {
-            <span class="ident">LLVMConstTruncOrBitCast</span>(<span class="self">self</span>.<span class="ident">as_value_ref</span>(), <span class="ident">int_type</span>.<span class="ident">as_type_ref</span>())
-        };
-
-        <span class="ident">IntValue::new</span>(<span class="ident">value</span>)
+        <span class="kw">unsafe</span> {
+            <span class="ident">IntValue::new</span>(<span class="ident">LLVMConstTruncOrBitCast</span>(<span class="self">self</span>.<span class="ident">as_value_ref</span>(), <span class="ident">int_type</span>.<span class="ident">as_type_ref</span>()))
+        }
     }
 
     <span class="comment">// TODO: More descriptive name</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">const_s_extend_or_bit_cast</span>(<span class="self">self</span>, <span class="ident">int_type</span>: <span class="ident">IntType</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">IntValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="kw">unsafe</span> {
-            <span class="ident">LLVMConstSExtOrBitCast</span>(<span class="self">self</span>.<span class="ident">as_value_ref</span>(), <span class="ident">int_type</span>.<span class="ident">as_type_ref</span>())
-        };
-
-        <span class="ident">IntValue::new</span>(<span class="ident">value</span>)
+        <span class="kw">unsafe</span> {
+            <span class="ident">IntValue::new</span>(<span class="ident">LLVMConstSExtOrBitCast</span>(<span class="self">self</span>.<span class="ident">as_value_ref</span>(), <span class="ident">int_type</span>.<span class="ident">as_type_ref</span>()))
+        }
     }
 
     <span class="comment">// TODO: More descriptive name</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">const_z_ext_or_bit_cast</span>(<span class="self">self</span>, <span class="ident">int_type</span>: <span class="ident">IntType</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">IntValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="kw">unsafe</span> {
-            <span class="ident">LLVMConstZExtOrBitCast</span>(<span class="self">self</span>.<span class="ident">as_value_ref</span>(), <span class="ident">int_type</span>.<span class="ident">as_type_ref</span>())
-        };
-
-        <span class="ident">IntValue::new</span>(<span class="ident">value</span>)
+        <span class="kw">unsafe</span> {
+            <span class="ident">IntValue::new</span>(<span class="ident">LLVMConstZExtOrBitCast</span>(<span class="self">self</span>.<span class="ident">as_value_ref</span>(), <span class="ident">int_type</span>.<span class="ident">as_type_ref</span>()))
+        }
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">const_bit_cast</span>(<span class="self">self</span>, <span class="ident">int_type</span>: <span class="ident">IntType</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">IntValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="kw">unsafe</span> {
-            <span class="ident">LLVMConstBitCast</span>(<span class="self">self</span>.<span class="ident">as_value_ref</span>(), <span class="ident">int_type</span>.<span class="ident">as_type_ref</span>())
-        };
-
-        <span class="ident">IntValue::new</span>(<span class="ident">value</span>)
+        <span class="kw">unsafe</span> {
+            <span class="ident">IntValue::new</span>(<span class="ident">LLVMConstBitCast</span>(<span class="self">self</span>.<span class="ident">as_value_ref</span>(), <span class="ident">int_type</span>.<span class="ident">as_type_ref</span>()))
+        }
     }
 
     <span class="comment">// SubType: rhs same as lhs; return IntValue&lt;bool&gt;</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">const_int_compare</span>(<span class="self">self</span>, <span class="ident">op</span>: <span class="ident">IntPredicate</span>, <span class="ident">rhs</span>: <span class="ident">IntValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">IntValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="kw">unsafe</span> {
-            <span class="ident">LLVMConstICmp</span>(<span class="ident">op</span>.<span class="ident">into</span>(), <span class="self">self</span>.<span class="ident">as_value_ref</span>(), <span class="ident">rhs</span>.<span class="ident">as_value_ref</span>())
-        };
-
-        <span class="ident">IntValue::new</span>(<span class="ident">value</span>)
+        <span class="kw">unsafe</span> {
+            <span class="ident">IntValue::new</span>(<span class="ident">LLVMConstICmp</span>(<span class="ident">op</span>.<span class="ident">into</span>(), <span class="self">self</span>.<span class="ident">as_value_ref</span>(), <span class="ident">rhs</span>.<span class="ident">as_value_ref</span>()))
+        }
     }
 
     <span class="comment">// SubTypes: self can only be IntValue&lt;bool&gt;</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">const_select</span><span class="op">&lt;</span><span class="ident">BV</span>: <span class="ident">BasicValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">then</span>: <span class="ident">BV</span>, <span class="ident">else_</span>: <span class="ident">BV</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">BasicValueEnum</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="kw">unsafe</span> {
-            <span class="ident">LLVMConstSelect</span>(<span class="self">self</span>.<span class="ident">as_value_ref</span>(), <span class="ident">then</span>.<span class="ident">as_value_ref</span>(), <span class="ident">else_</span>.<span class="ident">as_value_ref</span>())
-        };
-
-        <span class="ident">BasicValueEnum::new</span>(<span class="ident">value</span>)
+        <span class="kw">unsafe</span> {
+            <span class="ident">BasicValueEnum::new</span>(<span class="ident">LLVMConstSelect</span>(<span class="self">self</span>.<span class="ident">as_value_ref</span>(), <span class="ident">then</span>.<span class="ident">as_value_ref</span>(), <span class="ident">else_</span>.<span class="ident">as_value_ref</span>()))
+        }
     }
 
     <span class="doccomment">/// Determines whether or not an `IntValue` is an `llvm::Constant`.</span>

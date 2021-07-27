@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/git/checkouts/inkwell-946411d814d2c9f8/f768691/src/basic_block.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>basic_block.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings"></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/git/checkouts/inkwell-946411d814d2c9f8/41857f9/src/basic_block.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>basic_block.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings"></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
 <link rel="alternate icon" type="image/png" href="../../favicon-16x16.png">
 <link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../inkwell/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
                 <a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" height="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
@@ -539,8 +539,6 @@
 <span id="536">536</span>
 <span id="537">537</span>
 <span id="538">538</span>
-<span id="539">539</span>
-<span id="540">540</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! A `BasicBlock` is a container of instructions.</span>
 
@@ -570,15 +568,13 @@
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> <span class="ident">BasicBlock</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">basic_block</span>: <span class="ident">LLVMBasicBlockRef</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">basic_block</span>: <span class="ident">LLVMBasicBlockRef</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="ident">basic_block</span>.<span class="ident">is_null</span>() {
             <span class="kw">return</span> <span class="prelude-val">None</span>;
         }
 
-        <span class="kw">unsafe</span> {
-            <span class="comment">// NOTE: There is a LLVMBasicBlockAsValue but it might be the same as casting</span>
-            <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">LLVMIsABasicBlock</span>(<span class="ident">basic_block</span> <span class="kw">as</span> <span class="ident">LLVMValueRef</span>).<span class="ident">is_null</span>())
-        }
+        <span class="comment">// NOTE: There is a LLVMBasicBlockAsValue but it might be the same as casting</span>
+        <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">LLVMIsABasicBlock</span>(<span class="ident">basic_block</span> <span class="kw">as</span> <span class="ident">LLVMValueRef</span>).<span class="ident">is_null</span>());
 
         <span class="prelude-val">Some</span>(<span class="ident">BasicBlock</span> { <span class="ident">basic_block</span>, <span class="ident">_marker</span>: <span class="ident">PhantomData</span> })
     }
@@ -606,11 +602,9 @@
     <span class="doccomment">/// assert!(basic_block.get_parent().is_none());</span>
     <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_parent</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">FunctionValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="kw">unsafe</span> {
-            <span class="ident">LLVMGetBasicBlockParent</span>(<span class="self">self</span>.<span class="ident">basic_block</span>)
-        };
-
-        <span class="ident">FunctionValue::new</span>(<span class="ident">value</span>)
+        <span class="kw">unsafe</span> {
+            <span class="ident">FunctionValue::new</span>(<span class="ident">LLVMGetBasicBlockParent</span>(<span class="self">self</span>.<span class="ident">basic_block</span>))
+        }
     }
 
     <span class="doccomment">/// Gets the `BasicBlock` preceeding the current one, in its own scope, if any.</span>
@@ -642,11 +636,9 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_previous_basic_block</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">BasicBlock</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">get_parent</span>()<span class="question-mark">?</span>;
 
-        <span class="kw">let</span> <span class="ident">bb</span> <span class="op">=</span> <span class="kw">unsafe</span> {
-            <span class="ident">LLVMGetPreviousBasicBlock</span>(<span class="self">self</span>.<span class="ident">basic_block</span>)
-        };
-
-        <span class="ident">BasicBlock::new</span>(<span class="ident">bb</span>)
+        <span class="kw">unsafe</span> {
+            <span class="ident">BasicBlock::new</span>(<span class="ident">LLVMGetPreviousBasicBlock</span>(<span class="self">self</span>.<span class="ident">basic_block</span>))
+        }
     }
 
     <span class="doccomment">/// Gets the `BasicBlock` succeeding the current one, in its own scope, if any.</span>
@@ -679,11 +671,9 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_next_basic_block</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">BasicBlock</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">get_parent</span>()<span class="question-mark">?</span>;
 
-        <span class="kw">let</span> <span class="ident">bb</span> <span class="op">=</span> <span class="kw">unsafe</span> {
-            <span class="ident">LLVMGetNextBasicBlock</span>(<span class="self">self</span>.<span class="ident">basic_block</span>)
-        };
-
-        <span class="ident">BasicBlock::new</span>(<span class="ident">bb</span>)
+        <span class="kw">unsafe</span> {
+            <span class="ident">BasicBlock::new</span>(<span class="ident">LLVMGetNextBasicBlock</span>(<span class="self">self</span>.<span class="ident">basic_block</span>))
+        }
     }
 
     <span class="doccomment">/// Prepends one `BasicBlock` before another.</span>
@@ -791,7 +781,9 @@
             <span class="kw">return</span> <span class="prelude-val">None</span>;
         }
 
-        <span class="prelude-val">Some</span>(<span class="ident">InstructionValue::new</span>(<span class="ident">value</span>))
+        <span class="kw">unsafe</span> {
+            <span class="prelude-val">Some</span>(<span class="ident">InstructionValue::new</span>(<span class="ident">value</span>))
+        }
     }
 
     <span class="doccomment">/// Obtains the last `InstructionValue` in this `BasicBlock`, if any. A `BasicBlock` must have a last instruction to be valid.</span>
@@ -825,7 +817,9 @@
             <span class="kw">return</span> <span class="prelude-val">None</span>;
         }
 
-        <span class="prelude-val">Some</span>(<span class="ident">InstructionValue::new</span>(<span class="ident">value</span>))
+        <span class="kw">unsafe</span> {
+            <span class="prelude-val">Some</span>(<span class="ident">InstructionValue::new</span>(<span class="ident">value</span>))
+        }
     }
 
     <span class="doccomment">/// Obtains the terminating `InstructionValue` in this `BasicBlock`, if any. A `BasicBlock` must have a terminating instruction to be valid.</span>
@@ -863,7 +857,9 @@
             <span class="kw">return</span> <span class="prelude-val">None</span>;
         }
 
-        <span class="prelude-val">Some</span>(<span class="ident">InstructionValue::new</span>(<span class="ident">value</span>))
+        <span class="kw">unsafe</span> {
+            <span class="prelude-val">Some</span>(<span class="ident">InstructionValue::new</span>(<span class="ident">value</span>))
+        }
     }
 
     <span class="doccomment">/// Removes this `BasicBlock` from its parent `FunctionValue`.</span>
@@ -955,11 +951,9 @@
     <span class="doccomment">/// assert_eq!(context, *basic_block.get_context());</span>
     <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_context</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ContextRef</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">context</span> <span class="op">=</span> <span class="kw">unsafe</span> {
-            <span class="ident">LLVMGetTypeContext</span>(<span class="ident">LLVMTypeOf</span>(<span class="ident">LLVMBasicBlockAsValue</span>(<span class="self">self</span>.<span class="ident">basic_block</span>)))
-        };
-
-        <span class="ident">ContextRef::new</span>(<span class="ident">context</span>)
+        <span class="kw">unsafe</span> {
+            <span class="ident">ContextRef::new</span>(<span class="ident">LLVMGetTypeContext</span>(<span class="ident">LLVMTypeOf</span>(<span class="ident">LLVMBasicBlockAsValue</span>(<span class="self">self</span>.<span class="ident">basic_block</span>))))
+        }
     }
 
     <span class="doccomment">/// Gets the name of a `BasicBlock`.</span>
@@ -1058,7 +1052,9 @@
             <span class="kw">return</span> <span class="prelude-val">None</span>;
         }
 
-        <span class="prelude-val">Some</span>(<span class="ident">BasicValueUse::new</span>(<span class="ident">use_</span>))
+        <span class="kw">unsafe</span> {
+            <span class="prelude-val">Some</span>(<span class="ident">BasicValueUse::new</span>(<span class="ident">use_</span>))
+        }
     }
 }
 

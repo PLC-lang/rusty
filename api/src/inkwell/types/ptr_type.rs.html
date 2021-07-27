@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/git/checkouts/inkwell-946411d814d2c9f8/f768691/src/types/ptr_type.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>ptr_type.rs - source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script id="default-settings"></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/git/checkouts/inkwell-946411d814d2c9f8/41857f9/src/types/ptr_type.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>ptr_type.rs - source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script id="default-settings"></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
 <link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png">
 <link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../inkwell/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
                 <a id="settings-menu" href="../../../settings.html"><img src="../../../wheel.svg" width="18" height="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
@@ -294,6 +294,10 @@
 <span id="291">291</span>
 <span id="292">292</span>
 <span id="293">293</span>
+<span id="294">294</span>
+<span id="295">295</span>
+<span id="296">296</span>
+<span id="297">297</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">llvm_sys::core</span>::{<span class="ident">LLVMGetPointerAddressSpace</span>, <span class="ident">LLVMConstArray</span>};
 <span class="kw">use</span> <span class="ident">llvm_sys::prelude</span>::{<span class="ident">LLVMTypeRef</span>, <span class="ident">LLVMValueRef</span>};
@@ -313,7 +317,7 @@
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> <span class="ident">PointerType</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">ptr_type</span>: <span class="ident">LLVMTypeRef</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">ptr_type</span>: <span class="ident">LLVMTypeRef</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">ptr_type</span>.<span class="ident">is_null</span>());
 
         <span class="ident">PointerType</span> {
@@ -476,7 +480,9 @@
     <span class="doccomment">/// assert!(f32_ptr_null.is_null());</span>
     <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">const_null</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PointerValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> {
-        <span class="ident">PointerValue::new</span>(<span class="self">self</span>.<span class="ident">ptr_type</span>.<span class="ident">const_zero</span>())
+        <span class="kw">unsafe</span> {
+            <span class="ident">PointerValue::new</span>(<span class="self">self</span>.<span class="ident">ptr_type</span>.<span class="ident">const_zero</span>())
+        }
     }
 
     <span class="comment">// REVIEW: Unlike the other const_zero functions, this one becomes null instead of a 0 value. Maybe remove?</span>
@@ -496,7 +502,9 @@
     <span class="doccomment">/// let f32_ptr_zero = f32_ptr_type.const_zero();</span>
     <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">const_zero</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PointerValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> {
-        <span class="ident">PointerValue::new</span>(<span class="self">self</span>.<span class="ident">ptr_type</span>.<span class="ident">const_zero</span>())
+        <span class="kw">unsafe</span> {
+            <span class="ident">PointerValue::new</span>(<span class="self">self</span>.<span class="ident">ptr_type</span>.<span class="ident">const_zero</span>())
+        }
     }
 
     <span class="doccomment">/// Creates an undefined instance of a `PointerType`.</span>
@@ -514,7 +522,9 @@
     <span class="doccomment">/// assert!(f32_ptr_undef.is_undef());</span>
     <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_undef</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PointerValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> {
-        <span class="ident">PointerValue::new</span>(<span class="self">self</span>.<span class="ident">ptr_type</span>.<span class="ident">get_undef</span>())
+        <span class="kw">unsafe</span> {
+            <span class="ident">PointerValue::new</span>(<span class="self">self</span>.<span class="ident">ptr_type</span>.<span class="ident">get_undef</span>())
+        }
     }
 
     <span class="doccomment">/// Creates a `VectorType` with this `PointerType` for its element type.</span>
@@ -575,11 +585,9 @@
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">values</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">LLVMValueRef</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">values</span>.<span class="ident">iter</span>()
                                                   .<span class="ident">map</span>(<span class="op">|</span><span class="ident">val</span><span class="op">|</span> <span class="ident">val</span>.<span class="ident">as_value_ref</span>())
                                                   .<span class="ident">collect</span>();
-        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="kw">unsafe</span> {
-            <span class="ident">LLVMConstArray</span>(<span class="self">self</span>.<span class="ident">as_type_ref</span>(), <span class="ident">values</span>.<span class="ident">as_mut_ptr</span>(), <span class="ident">values</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u32</span>)
-        };
-
-        <span class="ident">ArrayValue::new</span>(<span class="ident">value</span>)
+        <span class="kw">unsafe</span> {
+            <span class="ident">ArrayValue::new</span>(<span class="ident">LLVMConstArray</span>(<span class="self">self</span>.<span class="ident">as_type_ref</span>(), <span class="ident">values</span>.<span class="ident">as_mut_ptr</span>(), <span class="ident">values</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u32</span>))
+        }
     }
 }
 

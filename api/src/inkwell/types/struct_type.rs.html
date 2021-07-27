@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/git/checkouts/inkwell-946411d814d2c9f8/f768691/src/types/struct_type.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>struct_type.rs - source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script id="default-settings"></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/git/checkouts/inkwell-946411d814d2c9f8/41857f9/src/types/struct_type.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>struct_type.rs - source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script id="default-settings"></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
 <link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png">
 <link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../inkwell/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
                 <a id="settings-menu" href="../../../settings.html"><img src="../../../wheel.svg" width="18" height="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
@@ -415,8 +415,6 @@
 <span id="412">412</span>
 <span id="413">413</span>
 <span id="414">414</span>
-<span id="415">415</span>
-<span id="416">416</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">llvm_sys::core</span>::{<span class="ident">LLVMConstNamedStruct</span>, <span class="ident">LLVMCountStructElementTypes</span>, <span class="ident">LLVMGetStructElementTypes</span>, <span class="ident">LLVMGetStructName</span>, <span class="ident">LLVMIsPackedStruct</span>, <span class="ident">LLVMIsOpaqueStruct</span>, <span class="ident">LLVMStructSetBody</span>, <span class="ident">LLVMConstArray</span>};
 <span class="attribute">#[<span class="ident">llvm_versions</span>(<span class="number">3.7</span>..<span class="op">=</span><span class="ident">latest</span>)]</span>
@@ -439,7 +437,7 @@
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> <span class="ident">StructType</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">struct_type</span>: <span class="ident">LLVMTypeRef</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">struct_type</span>: <span class="ident">LLVMTypeRef</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">struct_type</span>.<span class="ident">is_null</span>());
 
         <span class="ident">StructType</span> {
@@ -474,11 +472,9 @@
             <span class="kw">return</span> <span class="prelude-val">None</span>;
         }
 
-        <span class="kw">let</span> <span class="ident">type_</span> <span class="op">=</span> <span class="kw">unsafe</span> {
-            <span class="ident">LLVMStructGetTypeAtIndex</span>(<span class="self">self</span>.<span class="ident">as_type_ref</span>(), <span class="ident">index</span>)
-        };
-
-        <span class="prelude-val">Some</span>(<span class="ident">BasicTypeEnum::new</span>(<span class="ident">type_</span>))
+        <span class="kw">unsafe</span> {
+            <span class="prelude-val">Some</span>(<span class="ident">BasicTypeEnum::new</span>(<span class="ident">LLVMStructGetTypeAtIndex</span>(<span class="self">self</span>.<span class="ident">as_type_ref</span>(), <span class="ident">index</span>)))
+        }
     }
 
 
@@ -499,11 +495,9 @@
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">args</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">LLVMValueRef</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">values</span>.<span class="ident">iter</span>()
                                                 .<span class="ident">map</span>(<span class="op">|</span><span class="ident">val</span><span class="op">|</span> <span class="ident">val</span>.<span class="ident">as_value_ref</span>())
                                                 .<span class="ident">collect</span>();
-        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="kw">unsafe</span> {
-            <span class="ident">LLVMConstNamedStruct</span>(<span class="self">self</span>.<span class="ident">as_type_ref</span>(), <span class="ident">args</span>.<span class="ident">as_mut_ptr</span>(), <span class="ident">args</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u32</span>)
-        };
-
-        <span class="ident">StructValue::new</span>(<span class="ident">value</span>)
+        <span class="kw">unsafe</span> {
+            <span class="ident">StructValue::new</span>(<span class="ident">LLVMConstNamedStruct</span>(<span class="self">self</span>.<span class="ident">as_type_ref</span>(), <span class="ident">args</span>.<span class="ident">as_mut_ptr</span>(), <span class="ident">args</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u32</span>))
+        }
     }
 
     <span class="doccomment">/// Creates a constant zero value of this `StructType`.</span>
@@ -519,7 +513,9 @@
     <span class="doccomment">/// let struct_zero = struct_type.const_zero();</span>
     <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">const_zero</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">StructValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> {
-        <span class="ident">StructValue::new</span>(<span class="self">self</span>.<span class="ident">struct_type</span>.<span class="ident">const_zero</span>())
+        <span class="kw">unsafe</span> {
+            <span class="ident">StructValue::new</span>(<span class="self">self</span>.<span class="ident">struct_type</span>.<span class="ident">const_zero</span>())
+        }
     }
 
     <span class="comment">// TODO: impl it only for StructType&lt;T*&gt;?</span>
@@ -740,7 +736,7 @@
             <span class="ident">Vec::from_raw_parts</span>(<span class="ident">ptr</span>, <span class="ident">count</span> <span class="kw">as</span> <span class="ident">usize</span>, <span class="ident">count</span> <span class="kw">as</span> <span class="ident">usize</span>)
         };
 
-        <span class="ident">raw_vec</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">val</span><span class="op">|</span> <span class="ident">BasicTypeEnum::new</span>(<span class="kw-2">*</span><span class="ident">val</span>)).<span class="ident">collect</span>()
+        <span class="ident">raw_vec</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">val</span><span class="op">|</span> <span class="kw">unsafe</span> { <span class="ident">BasicTypeEnum::new</span>(<span class="kw-2">*</span><span class="ident">val</span>) }).<span class="ident">collect</span>()
     }
 
     <span class="comment">// See Type::print_to_stderr note on 5.0+ status</span>
@@ -766,7 +762,9 @@
     <span class="doccomment">/// assert!(struct_type_undef.is_undef());</span>
     <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_undef</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">StructValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> {
-        <span class="ident">StructValue::new</span>(<span class="self">self</span>.<span class="ident">struct_type</span>.<span class="ident">get_undef</span>())
+        <span class="kw">unsafe</span> {
+            <span class="ident">StructValue::new</span>(<span class="self">self</span>.<span class="ident">struct_type</span>.<span class="ident">get_undef</span>())
+        }
     }
 
     <span class="comment">// REVIEW: SubTypes should allow this to only be implemented for StructType&lt;Opaque&gt; one day</span>
@@ -821,11 +819,9 @@
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">values</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">LLVMValueRef</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">values</span>.<span class="ident">iter</span>()
                                                   .<span class="ident">map</span>(<span class="op">|</span><span class="ident">val</span><span class="op">|</span> <span class="ident">val</span>.<span class="ident">as_value_ref</span>())
                                                   .<span class="ident">collect</span>();
-        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="kw">unsafe</span> {
-            <span class="ident">LLVMConstArray</span>(<span class="self">self</span>.<span class="ident">as_type_ref</span>(), <span class="ident">values</span>.<span class="ident">as_mut_ptr</span>(), <span class="ident">values</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u32</span>)
-        };
-
-        <span class="ident">ArrayValue::new</span>(<span class="ident">value</span>)
+        <span class="kw">unsafe</span> {
+            <span class="ident">ArrayValue::new</span>(<span class="ident">LLVMConstArray</span>(<span class="self">self</span>.<span class="ident">as_type_ref</span>(), <span class="ident">values</span>.<span class="ident">as_mut_ptr</span>(), <span class="ident">values</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u32</span>))
+        }
     }
 }
 
