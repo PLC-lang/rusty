@@ -65,7 +65,12 @@ pub fn parse(mut lexer: ParseSession) -> PResult<ParsedAst> {
                 }
             }
             KeywordActions => {
-                let mut actions = parse_actions(&mut lexer, linkage)?;
+                let last_pou = unit
+                    .units
+                    .last()
+                    .map(|it| it.name.as_str())
+                    .unwrap_or("__unknown__");
+                let mut actions = parse_actions(&mut lexer, linkage, last_pou)?;
                 unit.implementations.append(&mut actions);
             }
             KeywordType => {
@@ -90,10 +95,15 @@ pub fn parse(mut lexer: ParseSession) -> PResult<ParsedAst> {
 fn parse_actions(
     mut lexer: &mut ParseSession,
     linkage: LinkageType,
+    default_container: &str,
 ) -> Result<Vec<Implementation>, Diagnostic> {
     lexer.advance(); //Consume ACTIONS
-    lexer.expect(Identifier)?;
-    let container = lexer.slice_and_advance();
+    let container = if lexer.token == Identifier {
+        lexer.slice_and_advance()
+    } else {
+        lexer.accept_diagnostic(Diagnostic::missing_action_container(lexer.location()));
+        default_container.into()
+    };
     let mut result = vec![];
 
     //Go through each action
