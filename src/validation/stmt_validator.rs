@@ -1,5 +1,5 @@
-use crate::{Diagnostic, ast::{Pou, PouType, Statement}, index::Index};
-use super::SemanticDiagnosticAcceptor;
+use crate::{ast::{Statement}, index::Index};
+use super::ValidationContext;
 
 /// validates control-statements, assignments
 
@@ -14,7 +14,7 @@ impl<'i> StatementValidator<'i> {
         }
     }
 
-    pub fn validate_statement(&self, statement: &Statement, da: &mut dyn SemanticDiagnosticAcceptor) {
+    pub fn validate_statement(&self, statement: &Statement, da: &mut ValidationContext) {
         match statement {
             // Statement::LiteralInteger { value, location } => todo!(),
             // Statement::LiteralDate { year, month, day, location } => todo!(),

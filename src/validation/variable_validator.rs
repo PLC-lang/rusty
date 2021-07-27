@@ -1,6 +1,6 @@
-use crate::{Diagnostic, ast::{DataType, DataTypeDeclaration, SourceRange, Variable, VariableBlock}, index::Index};
+use crate::{ast::{DataType, DataTypeDeclaration, Variable, VariableBlock}, index::Index};
 
-use super::SemanticDiagnosticAcceptor;
+use super::ValidationContext;
 
 /// validates variables & datatypes
 
@@ -15,15 +15,16 @@ impl<'i> VariableValidator<'i> {
         }
     }
 
-    pub fn validate_variable_block(&self, _block: &VariableBlock, _da: &mut dyn SemanticDiagnosticAcceptor) {
+    pub fn validate_variable_block(&self, _block: &VariableBlock, _da: &mut ValidationContext) {
     }
 
-    pub fn validate_variable(&self, _variable: &Variable, _da: &mut dyn SemanticDiagnosticAcceptor) {
+    pub fn validate_variable(&self, _variable: &Variable, _da: &mut ValidationContext) {
     }
 
-    pub fn validate_data_type_declaration(&self, _declaration: &DataTypeDeclaration, _da: &mut dyn SemanticDiagnosticAcceptor) {
+    pub fn validate_data_type_declaration(&self, _declaration: &DataTypeDeclaration, _da: &mut ValidationContext) {
     }
 
-    pub fn validate_data_type(&self, _declaration: &DataType, _da: &mut dyn SemanticDiagnosticAcceptor) {
+    pub fn validate_data_type(&self, declaration: &DataType, _da: &mut ValidationContext) {
+
     }
 }

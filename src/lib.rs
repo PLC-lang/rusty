@@ -396,20 +396,18 @@ pub fn compile_module<'c, T: SourceContainer>(
 
         let mut validator = Validator::new(&full_index);
         validator.visit_unit(&parse_result);
-        let syntactic_diagnostics = diagnostics.into_iter();
-        let semantic_diagnostics = validator.diagnostic.into_iter();
-
+        let syntactic_diagnostics = diagnostics.iter();
+        let semantic_diagnostics = validator.diagnostics();
         let diagnostics = syntactic_diagnostics.chain(semantic_diagnostics);
-        unit.import(parse_result);
         //log errors
         let file_id = files.add(location, e.source.clone());
         for error in diagnostics {
             let diag = diagnostic::Diagnostic::error()
-                .with_message(error.get_message())
-                .with_labels(vec![Label::primary(
-                    file_id,
-                    error.get_location().get_start()..error.get_location().get_end(),
-                )]);
+            .with_message(error.get_message())
+            .with_labels(vec![Label::primary(
+                file_id,
+                error.get_location().get_start()..error.get_location().get_end(),
+            )]);
             let writer = StandardStream::stderr(ColorChoice::Always);
             let config = codespan_reporting::term::Config {
                 display_style: term::DisplayStyle::Rich,
@@ -419,7 +417,7 @@ pub fn compile_module<'c, T: SourceContainer>(
                 start_context_lines: 5,
                 end_context_lines: 3,
             };
-
+            
             term::emit(&mut writer.lock(), &config, &files, &diag).map_err(|err| {
                 CompileError::codegen_error(
                     format!("Cannot print errors {:#?}", err),
@@ -427,6 +425,7 @@ pub fn compile_module<'c, T: SourceContainer>(
                 )
             })?;
         }
+        unit.import(parse_result);
     }
 
     //annotate the ASTs

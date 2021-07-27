@@ -1,3 +1,5 @@
+use std::slice::Iter;
+
 use crate::{
     ast::{
         CompilationUnit, DataType, DataTypeDeclaration, Pou, Statement, Variable, VariableBlock,
@@ -23,35 +25,46 @@ macro_rules! visit_all_statements {
      };
    }
 
-pub trait SemanticDiagnosticAcceptor {
-    fn report(&mut self, diagnostic: Diagnostic);
+pub struct ValidationContext<'s> {
+    diagnostic: Vec<Diagnostic>,
+    current_qualifier: Option<&'s str>,
 }
 
-pub struct Validator<'i> {
-    pub diagnostic: Vec<Diagnostic>,
+impl<'s> ValidationContext<'s> {
+    fn report(&mut self, diagnostic: Diagnostic) {
+        self.diagnostic.push(diagnostic);
+    }
 
+    fn get_qualifier(&self) -> Option<&'s str> {
+        self.current_qualifier
+    }
+}
+
+pub struct Validator<'i, 's> {
+    context: ValidationContext<'s>,
     pou_validator: PouValidator,
     variable_validator: VariableValidator<'i>,
     stmt_validator: StatementValidator<'i>,
 }
 
-impl SemanticDiagnosticAcceptor for Vec<Diagnostic> {
-    fn report(&mut self, diagnostic: Diagnostic) {
-        self.push(diagnostic);
-    }
-}
-
-impl<'i> Validator<'i> {
+impl<'i, 's> Validator<'i, 's> {
     pub fn new(idx: &'i Index) -> Validator {
         Validator {
-            diagnostic: Vec::new(),
+            context: ValidationContext{
+                current_qualifier: None,
+                diagnostic: Vec::new(),
+            },
             pou_validator: PouValidator::new(),
             variable_validator: VariableValidator::new(idx),
             stmt_validator: StatementValidator::new(idx),
         }
     }
 
-    pub fn visit_unit(&mut self, unit: &CompilationUnit) {
+    pub fn diagnostics(&self) -> Iter<Diagnostic> {
+        self.context.diagnostic.iter()
+    }
+
+    pub fn visit_unit(&mut self, unit: &'s CompilationUnit) {
         for pou in &unit.units {
             self.visit_pou(pou);
         }
@@ -61,8 +74,9 @@ impl<'i> Validator<'i> {
         }
     }
 
-    pub fn visit_pou(&mut self, pou: &Pou) {
-        self.pou_validator.validate_pou(pou, &mut self.diagnostic);
+    pub fn visit_pou(&mut self, pou: &'s Pou) {
+        self.context.current_qualifier = Some(pou.name.as_str());
+        self.pou_validator.validate_pou(pou, &mut self.context);
 
         for block in &pou.variable_blocks {
             self.visit_variable_container(block);
@@ -71,7 +85,7 @@ impl<'i> Validator<'i> {
 
     pub fn visit_variable_container(&mut self, container: &VariableBlock) {
         self.variable_validator
-            .validate_variable_block(container, &mut self.diagnostic);
+            .validate_variable_block(container, &mut self.context);
 
         for variable in &container.variables {
             self.visit_variable(variable);
@@ -80,14 +94,14 @@ impl<'i> Validator<'i> {
 
     pub fn visit_variable(&mut self, variable: &Variable) {
         self.variable_validator
-            .validate_variable(variable, &mut self.diagnostic);
+            .validate_variable(variable, &mut self.context);
 
         self.visit_data_type_declaration(&variable.data_type);
     }
 
     pub fn visit_data_type_declaration(&mut self, declaration: &DataTypeDeclaration) {
         self.variable_validator
-            .validate_data_type_declaration(declaration, &mut self.diagnostic);
+            .validate_data_type_declaration(declaration, &mut self.context);
 
         if let DataTypeDeclaration::DataTypeDefinition { data_type, .. } = declaration {
             self.visit_data_type(data_type);
@@ -96,7 +110,7 @@ impl<'i> Validator<'i> {
 
     pub fn visit_data_type(&mut self, data_type: &DataType) {
         self.variable_validator
-            .validate_data_type(data_type, &mut self.diagnostic);
+            .validate_data_type(data_type, &mut self.context);
 
         match data_type {
             DataType::StructType { variables, .. } => {
@@ -221,6 +235,6 @@ impl<'i> Validator<'i> {
             _ => {}
         }
 
-        self.stmt_validator.validate_statement(statement, &mut self.diagnostic);
+        self.stmt_validator.validate_statement(statement, &mut self.context);
     }
 }
