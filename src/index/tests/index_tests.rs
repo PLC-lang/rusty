@@ -854,6 +854,7 @@ fn pre_processing_generates_inline_arrays() {
             }),
         },
         initializer: None,
+        location: (59..77).into(),
     };
     assert_eq!(format!("{:?}", expected), format!("{:?}", new_array_type));
 
@@ -910,6 +911,7 @@ fn pre_processing_generates_inline_array_of_array() {
             }),
         },
         initializer: None,
+        location: (59..92).into(),
     };
     assert_eq!(format!("{:?}", expected), format!("{:?}", new_array_type));
 
@@ -937,6 +939,7 @@ fn pre_processing_generates_inline_array_of_array() {
             }),
         },
         initializer: None,
+        location: (59..92).into(),
     };
     assert_eq!(format!("{:?}", expected), format!("{:?}", new_array_type));
 
@@ -991,6 +994,7 @@ fn pre_processing_nested_array_in_struct() {
             }],
         },
         initializer: None,
+        location: (14..97).into(),
     };
     assert_eq!(format!("{:?}", expected), format!("{:?}", new_array_type));
 
@@ -1018,6 +1022,7 @@ fn pre_processing_nested_array_in_struct() {
             }),
         },
         initializer: None,
+        location: (59..77).into(),
     };
     assert_eq!(format!("{:?}", expected), format!("{:?}", new_array_type));
 }
@@ -1064,6 +1069,7 @@ fn pre_processing_generates_inline_array_of_array_of_array() {
             }),
         },
         initializer: None,
+        location: (74..107).into(),
     };
     assert_eq!(format!("{:?}", expected), format!("{:?}", new_array_type));
 
@@ -1091,6 +1097,7 @@ fn pre_processing_generates_inline_array_of_array_of_array() {
             }),
         },
         initializer: None,
+        location: (59..107).into(),
     };
     assert_eq!(format!("{:?}", expected), format!("{:?}", new_array_type));
 
@@ -1118,6 +1125,7 @@ fn pre_processing_generates_inline_array_of_array_of_array() {
             }),
         },
         initializer: None,
+        location: (59..107).into(),
     };
     assert_eq!(format!("{:?}", expected), format!("{:?}", new_array_type));
 

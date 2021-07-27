@@ -212,6 +212,7 @@ fn visit_data_type(index: &mut Index, type_declatation: &UserTypeDeclaration) {
                         &UserTypeDeclaration {
                             data_type: data_type.clone(),
                             initializer: None,
+                            location: SourceRange::undefined()
                         },
                     )
                 }

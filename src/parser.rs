@@ -430,15 +430,19 @@ fn parse_action(
 // TYPE ... END_TYPE
 fn parse_type(lexer: &mut ParseSession) -> Option<UserTypeDeclaration> {
     lexer.advance(); // consume the TYPE
-    let name = lexer.slice_and_advance();
-    lexer.consume_or_report(KeywordColon);
+    let start = lexer.location().get_start();
+    let name = slice_and_advance(lexer);
+    consume_or_report!(KeywordColon, lexer);
 
     let result = parse_full_data_type_definition(lexer, Some(name));
-    if let Some((DataTypeDeclaration::DataTypeDefinition { data_type }, initializer)) = result {
-        lexer.consume_or_report(KeywordEndType);
+
+    if let Some((DataTypeDeclaration::DataTypeDefinition { data_type, .. }, initializer)) = result {
+        let end = lexer.last_range.end;
+        consume_or_report!(KeywordEndType, lexer);
         Some(UserTypeDeclaration {
             data_type,
             initializer,
+            location: (start..end).into(),
         })
     } else {
         None
@@ -625,13 +629,14 @@ fn parse_enum_type_definition(
         // Parse Enum - we expect at least one element
 
         let mut elements = Vec::new();
-        expect_token!(lexer, Identifier, None);
-        elements.push(lexer.slice_and_advance());
-
-        // parse additional elements separated by ','
-        while lexer.allow(&KeywordComma) {
-            expect_token!(lexer, Identifier, None);
-            elements.push(lexer.slice_and_advance());
+        //we expect at least one element
+        if lexer.token == Identifier {
+            elements.push(slice_and_advance(lexer));
+        }
+        //parse additional elements separated by ,
+        while allow(KeywordComma, lexer) {
+            expect!(Identifier, lexer);
+            elements.push(slice_and_advance(lexer));
         }
         Some(elements)
     })?;

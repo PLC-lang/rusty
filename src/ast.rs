@@ -274,6 +274,7 @@ impl DataTypeDeclaration {
 pub struct UserTypeDeclaration {
     pub data_type: DataType,
     pub initializer: Option<Statement>,
+    pub location: SourceRange,
 }
 
 #[derive(Clone, PartialEq)]
@@ -384,6 +385,7 @@ impl DataType {
     pub fn replace_data_type_with_reference_to(
         &mut self,
         type_name: String,
+        location: &SourceRange,
     ) -> Option<DataTypeDeclaration> {
         if let DataType::ArrayType {
             referenced_type, ..
@@ -394,7 +396,7 @@ impl DataType {
             }
             let new_data_type = DataTypeDeclaration::DataTypeReference {
                 referenced_type: type_name,
-                location: SourceRange::undefined(), //TODO
+                location: location.clone(),
             };
             let old_data_type = std::mem::replace(referenced_type, Box::new(new_data_type));
             Some(*old_data_type)

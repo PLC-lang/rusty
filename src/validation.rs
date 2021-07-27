@@ -2,17 +2,21 @@ use std::slice::Iter;
 
 use crate::{
     ast::{
-        CompilationUnit, DataType, DataTypeDeclaration, Pou, Statement, Variable, VariableBlock,
+        CompilationUnit, DataType, DataTypeDeclaration, Pou, SourceRange, Statement,
+        UserTypeDeclaration, Variable, VariableBlock,
     },
     index::Index,
     Diagnostic,
 };
 
-use self::{pou_validator::PouValidator, stmt_validator::StatementValidator, variable_validator::VariableValidator};
+use self::{
+    pou_validator::PouValidator, stmt_validator::StatementValidator,
+    variable_validator::VariableValidator,
+};
 
 mod pou_validator;
-mod variable_validator;
 mod stmt_validator;
+mod variable_validator;
 
 macro_rules! visit_all_statements {
      ($self:expr, $last:expr ) => {
@@ -50,7 +54,7 @@ pub struct Validator<'i, 's> {
 impl<'i, 's> Validator<'i, 's> {
     pub fn new(idx: &'i Index) -> Validator {
         Validator {
-            context: ValidationContext{
+            context: ValidationContext {
                 current_qualifier: None,
                 diagnostic: Vec::new(),
             },
@@ -69,9 +73,21 @@ impl<'i, 's> Validator<'i, 's> {
             self.visit_pou(pou);
         }
 
+        for t in &unit.types {
+            self.visit_user_type_declaration(t);
+        }
+
         for i in &unit.implementations {
             i.statements.iter().for_each(|s| self.visit_statement(s));
         }
+    }
+
+    pub fn visit_user_type_declaration(&mut self, user_data_type: &UserTypeDeclaration) {
+        self.variable_validator.validate_data_type(
+            &user_data_type.data_type,
+            &user_data_type.location,
+            &mut self.context,
+        );
     }
 
     pub fn visit_pou(&mut self, pou: &'s Pou) {
@@ -103,14 +119,18 @@ impl<'i, 's> Validator<'i, 's> {
         self.variable_validator
             .validate_data_type_declaration(declaration, &mut self.context);
 
-        if let DataTypeDeclaration::DataTypeDefinition { data_type, .. } = declaration {
-            self.visit_data_type(data_type);
+        if let DataTypeDeclaration::DataTypeDefinition {
+            data_type,
+            location,
+        } = declaration
+        {
+            self.visit_data_type(data_type, location);
         }
     }
 
-    pub fn visit_data_type(&mut self, data_type: &DataType) {
+    pub fn visit_data_type(&mut self, data_type: &DataType, location: &SourceRange) {
         self.variable_validator
-            .validate_data_type(data_type, &mut self.context);
+            .validate_data_type(data_type, location, &mut self.context);
 
         match data_type {
             DataType::StructType { variables, .. } => {
@@ -134,27 +154,17 @@ impl<'i, 's> Validator<'i, 's> {
                 elements: Some(elements),
                 ..
             } => self.visit_statement(elements.as_ref()),
-            Statement::MultipliedStatement {
-                element,
-                ..
-            } => self.visit_statement(element),
+            Statement::MultipliedStatement { element, .. } => self.visit_statement(element),
             Statement::QualifiedReference { elements } => {
                 elements.iter().for_each(|e| self.visit_statement(e))
             }
             Statement::ArrayAccess { reference, access } => {
                 visit_all_statements!(self, reference, access);
             }
-            Statement::BinaryExpression {
-                left,
-                right,
-                ..
-            } => {
+            Statement::BinaryExpression { left, right, .. } => {
                 visit_all_statements!(self, left, right);
             }
-            Statement::UnaryExpression {
-                value,
-                ..
-            } => self.visit_statement(value),
+            Statement::UnaryExpression { value, .. } => self.visit_statement(value),
             Statement::ExpressionList { expressions } => {
                 expressions.iter().for_each(|e| self.visit_statement(e))
             }
@@ -169,18 +179,13 @@ impl<'i, 's> Validator<'i, 's> {
                 self.visit_statement(left);
                 self.visit_statement(right);
             }
-            Statement::CallStatement {
-                parameters,
-                ..
-            } => {
+            Statement::CallStatement { parameters, .. } => {
                 if let Some(s) = parameters.as_ref() {
                     self.visit_statement(s);
                 }
             }
             Statement::IfStatement {
-                blocks,
-                else_block,
-                ..
+                blocks, else_block, ..
             } => {
                 blocks.iter().for_each(|b| {
                     self.visit_statement(b.condition.as_ref());
@@ -203,17 +208,13 @@ impl<'i, 's> Validator<'i, 's> {
                 body.iter().for_each(|s| self.visit_statement(s));
             }
             Statement::WhileLoopStatement {
-                condition,
-                body,
-                ..
+                condition, body, ..
             } => {
                 self.visit_statement(condition);
                 body.iter().for_each(|s| self.visit_statement(s));
             }
             Statement::RepeatLoopStatement {
-                condition,
-                body,
-                ..
+                condition, body, ..
             } => {
                 self.visit_statement(condition);
                 body.iter().for_each(|s| self.visit_statement(s));
@@ -235,6 +236,7 @@ impl<'i, 's> Validator<'i, 's> {
             _ => {}
         }
 
-        self.stmt_validator.validate_statement(statement, &mut self.context);
+        self.stmt_validator
+            .validate_statement(statement, &mut self.context);
     }
 }

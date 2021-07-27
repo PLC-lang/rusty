@@ -549,6 +549,7 @@ fn simple_struct_type_can_be_parsed() {
                 ),
             },
             initializer: None,
+            location: (14..147).into(),
         }
     );
     assert_eq!(ast_string, expected_ast);
@@ -597,6 +598,9 @@ fn struct_with_inline_array_can_be_parsed() {
         ],
     },
     initializer: None,
+    location: SourceRange {
+        range: 14..111,
+    },
 }"#;
     assert_eq!(ast_string, expected_ast);
 }
@@ -619,6 +623,7 @@ fn simple_enum_type_can_be_parsed() {
             elements: vec!["red".to_string(), "yellow".to_string(), "green".to_string()],
         },
         initializer: None,
+        location: (14..48).into(),
     };
     let expected_string = format!("{:#?}", epxtected_ast);
     assert_eq!(ast_string, expected_string);
@@ -645,6 +650,7 @@ fn type_alias_can_be_parsed() {
                 bounds: None,
             },
             initializer: None,
+            location: (27..39).into(),
         }
     );
 
@@ -683,6 +689,7 @@ fn array_type_can_be_parsed_test() {
                 }),
             },
             initializer: None,
+            location: (18..47).into(),
         }
     );
 
@@ -709,18 +716,19 @@ fn string_type_can_be_parsed_test() {
                     name: Some("MyString".to_string()),
                     size: Some(LiteralInteger {
                         value: "253".to_string(),
-                        location: (10..11).into(),
+                        location: SourceRange::undefined(),
                     }),
                     is_wide: false,
                 },
                 initializer: None,
+                location: (18..41).into(),
             },
             UserTypeDeclaration {
                 data_type: DataType::StringType {
                     name: Some("MyString".to_string()),
                     size: Some(LiteralInteger {
                         value: "253".to_string(),
-                        location: (10..11).into(),
+                        location: SourceRange::undefined(),
                     }),
                     is_wide: false,
                 },
@@ -729,6 +737,7 @@ fn string_type_can_be_parsed_test() {
                     location: SourceRange::undefined(),
                     value: "abc".into(),
                 }),
+                location: (68..100).into(),
             }
         ]
     );
@@ -759,6 +768,7 @@ fn wide_string_type_can_be_parsed_test() {
                 is_wide: true,
             },
             initializer: None,
+            location: (18..42).into(),
         }
     );
 
@@ -1132,6 +1142,9 @@ fn initial_scalar_values_can_be_parsed() {
         ],
     },
     initializer: None,
+    location: SourceRange {
+        range: 92..260,
+    },
 }"#;
     assert_eq!(expected, format!("{:#?}", struct_type).as_str());
 
@@ -1149,6 +1162,9 @@ fn initial_scalar_values_can_be_parsed() {
             value: "789",
         },
     ),
+    location: SourceRange {
+        range: 300..319,
+    },
 }"#;
     assert_eq!(expected, format!("{:#?}", my_int_type).as_str());
 
