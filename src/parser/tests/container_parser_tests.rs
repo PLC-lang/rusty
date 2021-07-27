@@ -1,4 +1,7 @@
-use crate::{Diagnostic, parser::{parse, tests::lex}};
+use crate::{
+    parser::{parse, tests::lex},
+    Diagnostic,
+};
 use pretty_assertions::*;
 
 #[test]
@@ -48,9 +51,10 @@ fn actions_with_no_container_have_unkown_container() {
     assert_eq!(prg.type_name, "__unknown__");
 
     //Expect a diagnostic
-    assert_eq!(diagnostic, [
-       Diagnostic::missing_action_container((8..14).into()) 
-    ]);
+    assert_eq!(
+        diagnostic,
+        [Diagnostic::missing_action_container((8..14).into())]
+    );
 }
 
 #[test]
@@ -66,10 +70,10 @@ fn actions_with_no_container_inherits_previous_pou() {
     assert_eq!(prg.type_name, "foo");
 
     //Expect a diagnostic
-    assert_eq!(diagnostic, [
-       Diagnostic::missing_action_container((32..38).into()) 
-    ]);
-
+    assert_eq!(
+        diagnostic,
+        [Diagnostic::missing_action_container((32..38).into())]
+    );
 }
 
 #[test]

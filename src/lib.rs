@@ -90,7 +90,7 @@ impl Diagnostic {
         }
     }
 
-    pub fn missing_action_container(range : SourceRange) -> Diagnostic{
+    pub fn missing_action_container(range: SourceRange) -> Diagnostic {
         Diagnostic::SyntaxError {
             message: "Missing Actions Container Name".to_string(),
             range,

@@ -65,7 +65,11 @@ pub fn parse(mut lexer: ParseSession) -> PResult<ParsedAst> {
                 }
             }
             KeywordActions => {
-                let last_pou = unit.units.last().map(|it| it.name.as_str()).unwrap_or("__unknown__");
+                let last_pou = unit
+                    .units
+                    .last()
+                    .map(|it| it.name.as_str())
+                    .unwrap_or("__unknown__");
                 let mut actions = parse_actions(&mut lexer, linkage, last_pou)?;
                 unit.implementations.append(&mut actions);
             }
@@ -91,7 +95,7 @@ pub fn parse(mut lexer: ParseSession) -> PResult<ParsedAst> {
 fn parse_actions(
     mut lexer: &mut ParseSession,
     linkage: LinkageType,
-    default_container : &str,
+    default_container: &str,
 ) -> Result<Vec<Implementation>, Diagnostic> {
     lexer.advance(); //Consume ACTIONS
     let container = if lexer.token == Identifier {
