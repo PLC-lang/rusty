@@ -35,7 +35,10 @@ pub enum CompileError {
     },
 
     #[error("Cannot read File {path:}: {reason:}")]
-    IoError { path: String, reason: String },
+    IoReadError { path: String, reason: String },
+
+    #[error("Cannot write File {path:}: {reason:}")]
+    IoWriteError { path: String, reason: String },
 }
 
 impl From<Diagnostic> for CompileError {
@@ -79,9 +82,12 @@ impl CompileError {
         CompileError::CodeGenError { message, location }
     }
 
-    /// creates a CompileError:IoError with the given parameters
-    pub fn io_error(path: String, reason: String) -> CompileError {
-        CompileError::IoError { path, reason }
+    pub fn io_read_error(path: String, reason: String) -> CompileError {
+        CompileError::IoReadError { path, reason }
+    }
+
+    pub fn io_write_error(path: String, reason: String) -> CompileError {
+        CompileError::IoWriteError { path, reason }
     }
 
     pub fn no_type_associated(type_name: &str, location: SourceRange) -> CompileError {
