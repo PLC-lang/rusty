@@ -1,7 +1,4 @@
-use crate::{
-    parser::{parse, tests::lex},
-    Diagnostic,
-};
+use crate::{Diagnostic, parser::{parse, tests::lex}};
 use pretty_assertions::*;
 
 #[test]
@@ -43,13 +40,36 @@ fn mixed_action_types_parsed() {
 }
 
 #[test]
-fn actions_with_no_container_error() {
-    let lexer = lex("ACTIONS ACTION bar END_ACTION ACTION buz END_ACTION END_ACTIONS");
-    let err = parse(lexer).expect_err("Expecting parser failure");
-    assert_eq!(
-        err,
-        Diagnostic::unexpected_token_found("Identifier".into(), "ACTION".into(), (8..14).into())
-    );
+fn actions_with_no_container_have_unkown_container() {
+    let lexer = lex("ACTIONS ACTION bar END_ACTION END_ACTIONS");
+    let (result, diagnostic) = parse(lexer).unwrap();
+    let prg = &result.implementations[0];
+    assert_eq!(prg.name, "__unknown__.bar");
+    assert_eq!(prg.type_name, "__unknown__");
+
+    //Expect a diagnostic
+    assert_eq!(diagnostic, [
+       Diagnostic::missing_action_container((8..14).into()) 
+    ]);
+}
+
+#[test]
+fn actions_with_no_container_inherits_previous_pou() {
+    let lexer = lex("PROGRAM foo END_PROGRAM ACTIONS ACTION bar END_ACTION END_ACTIONS");
+    let (result, diagnostic) = parse(lexer).unwrap();
+    let prg = &result.implementations[0];
+    assert_eq!(prg.name, "foo");
+    assert_eq!(prg.type_name, "foo");
+
+    let prg = &result.implementations[1];
+    assert_eq!(prg.name, "foo.bar");
+    assert_eq!(prg.type_name, "foo");
+
+    //Expect a diagnostic
+    assert_eq!(diagnostic, [
+       Diagnostic::missing_action_container((32..38).into()) 
+    ]);
+
 }
 
 #[test]

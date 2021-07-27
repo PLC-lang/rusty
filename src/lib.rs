@@ -90,6 +90,13 @@ impl Diagnostic {
         }
     }
 
+    pub fn missing_action_container(range : SourceRange) -> Diagnostic{
+        Diagnostic::SyntaxError {
+            message: "Missing Actions Container Name".to_string(),
+            range,
+        }
+    }
+
     pub fn get_message(&self) -> &str {
         match self {
             Diagnostic::SyntaxError { message, .. } => message.as_str(),
