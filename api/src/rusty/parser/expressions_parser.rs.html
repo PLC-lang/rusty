@@ -600,6 +600,26 @@
 <span id="597">597</span>
 <span id="598">598</span>
 <span id="599">599</span>
+<span id="600">600</span>
+<span id="601">601</span>
+<span id="602">602</span>
+<span id="603">603</span>
+<span id="604">604</span>
+<span id="605">605</span>
+<span id="606">606</span>
+<span id="607">607</span>
+<span id="608">608</span>
+<span id="609">609</span>
+<span id="610">610</span>
+<span id="611">611</span>
+<span id="612">612</span>
+<span id="613">613</span>
+<span id="614">614</span>
+<span id="615">615</span>
+<span id="616">616</span>
+<span id="617">617</span>
+<span id="618">618</span>
+<span id="619">619</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::Diagnostic</span>;
 <span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
@@ -821,6 +841,9 @@
     <span class="kw">let</span> <span class="ident">current</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">lexer</span>.<span class="ident">token</span> {
         <span class="ident">Identifier</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">parse_qualified_reference</span>(<span class="ident">lexer</span>),
         <span class="ident">LiteralInteger</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">parse_literal_number</span>(<span class="ident">lexer</span>),
+        <span class="ident">LiteralIntegerBin</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">parse_literal_number_with_modifier</span>(<span class="ident">lexer</span>, <span class="number">2</span>),
+        <span class="ident">LiteralIntegerOct</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">parse_literal_number_with_modifier</span>(<span class="ident">lexer</span>, <span class="number">8</span>),
+        <span class="ident">LiteralIntegerHex</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">parse_literal_number_with_modifier</span>(<span class="ident">lexer</span>, <span class="number">16</span>),
         <span class="ident">LiteralDate</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">parse_literal_date</span>(<span class="ident">lexer</span>),
         <span class="ident">LiteralTimeOfDay</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">parse_literal_time_of_day</span>(<span class="ident">lexer</span>),
         <span class="ident">LiteralTime</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">parse_literal_time</span>(<span class="ident">lexer</span>),
@@ -932,6 +955,22 @@
     <span class="prelude-val">Ok</span>(<span class="ident">reference</span>)
 }
 
+<span class="kw">fn</span> <span class="ident">parse_literal_number_with_modifier</span>(
+    <span class="ident">lexer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ParseSession</span>,
+    <span class="ident">radix</span>: <span class="ident">u32</span>,
+) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Statement</span>, <span class="ident">ParseError</span><span class="op">&gt;</span> {
+    <span class="comment">// we can safely unwrap the number string, since the token has</span>
+    <span class="comment">// been matched using regular expressions</span>
+    <span class="kw">let</span> <span class="ident">location</span> <span class="op">=</span> <span class="ident">lexer</span>.<span class="ident">location</span>();
+    <span class="kw">let</span> <span class="ident">token</span> <span class="op">=</span> <span class="ident">lexer</span>.<span class="ident">slice_and_advance</span>();
+    <span class="kw">let</span> <span class="ident">number_str</span> <span class="op">=</span> <span class="ident">token</span>.<span class="ident">split</span>(<span class="string">&#39;#&#39;</span>).<span class="ident">last</span>().<span class="ident">unwrap</span>();
+
+    <span class="comment">// again, the parsed number can be safely unwrapped.</span>
+    <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">i64::from_str_radix</span>(<span class="ident">number_str</span>, <span class="ident">radix</span>).<span class="ident">unwrap</span>();
+
+    <span class="prelude-val">Ok</span>(<span class="ident">Statement::LiteralInteger</span> { <span class="ident">value</span>, <span class="ident">location</span> })
+}
+
 <span class="kw">fn</span> <span class="ident">parse_literal_number</span>(<span class="ident">lexer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ParseSession</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Statement</span>, <span class="ident">ParseError</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">location</span> <span class="op">=</span> <span class="ident">lexer</span>.<span class="ident">location</span>();
     <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">lexer</span>.<span class="ident">slice_and_advance</span>();
@@ -952,8 +991,9 @@
         });
     }
 
+    <span class="comment">// parsed number value can be safely unwrapped</span>
     <span class="prelude-val">Ok</span>(<span class="ident">Statement::LiteralInteger</span> {
-        <span class="ident">value</span>: <span class="ident">result</span>,
+        <span class="ident">value</span>: <span class="ident">result</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="ident">i64</span><span class="op">&gt;</span>().<span class="ident">unwrap</span>(),
         <span class="ident">location</span>,
     })
 }

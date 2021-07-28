@@ -571,7 +571,7 @@
                     <span class="ident">v</span>,
                     <span class="string">&quot;DINT&quot;</span>,
                     <span class="prelude-val">Some</span>(<span class="ident">ast::Statement::LiteralInteger</span> {
-                        <span class="ident">value</span>: <span class="ident">i</span>.<span class="ident">to_string</span>(),
+                        <span class="ident">value</span>: <span class="ident">i</span> <span class="kw">as</span> <span class="ident">i64</span>,
                         <span class="ident">location</span>: <span class="ident">SourceRange::undefined</span>(),
                     }),
                     <span class="ident">SourceRange::undefined</span>(),

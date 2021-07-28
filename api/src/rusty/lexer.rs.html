@@ -475,6 +475,15 @@
 <span id="472">472</span>
 <span id="473">473</span>
 <span id="474">474</span>
+<span id="475">475</span>
+<span id="476">476</span>
+<span id="477">477</span>
+<span id="478">478</span>
+<span id="479">479</span>
+<span id="480">480</span>
+<span id="481">481</span>
+<span id="482">482</span>
+<span id="483">483</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 <span class="kw">use</span> <span class="ident">core::ops::Range</span>;
@@ -913,6 +922,15 @@
     <span class="ident">Identifier</span>,
 
     <span class="comment">//Literals</span>
+    <span class="attribute">#[<span class="ident">regex</span>(<span class="string">r&quot;16#[0-9a-fA-F]+&quot;</span>)]</span>
+    <span class="ident">LiteralIntegerHex</span>,
+
+    <span class="attribute">#[<span class="ident">regex</span>(<span class="string">r&quot;8#[0-7]+&quot;</span>)]</span>
+    <span class="ident">LiteralIntegerOct</span>,
+
+    <span class="attribute">#[<span class="ident">regex</span>(<span class="string">r&quot;2#[0-1]+&quot;</span>)]</span>
+    <span class="ident">LiteralIntegerBin</span>,
+
     <span class="attribute">#[<span class="ident">regex</span>(<span class="string">r&quot;[0-9]+&quot;</span>)]</span>
     <span class="ident">LiteralInteger</span>,
 
