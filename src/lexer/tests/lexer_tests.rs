@@ -1,7 +1,11 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use pretty_assertions::{assert_eq, assert_ne};
 
-use crate::lexer::{ParseSession, Token::*};
+use crate::{
+    ast::SourceRange,
+    lexer::{ParseSession, Token::*},
+    Diagnostic,
+};
 
 fn lex(source: &str) -> ParseSession {
     crate::lexer::lex(source)
@@ -529,4 +533,33 @@ fn wide_string_parsing() {
     assert_eq!(lexer.token, LiteralWideString);
     assert_eq!(r#""AB$"""#, lexer.slice());
     lexer.advance();
+}
+
+#[test]
+fn multi_named_keywords_without_underscore_test() {
+    let mut lexer = lex(
+        "VARINPUT VARGLOBAL VARINOUT ENDVAR ENDPROGRAM ENDFUNCTION ENDCASE
+        VAROUTPUT FUNCTIONBLOCK ENDFUNCTIONBLOCK ENDSTRUCT ENDACTION
+        ENDACTIONS ENDIF ENDFOR ENDREPEAT",
+    );
+
+    while lexer.token != End {
+        lexer.advance();
+    }
+
+    assert_eq!(lexer.diagnostics.len(), 16);
+    assert_eq!(
+        lexer.diagnostics.first().unwrap(),
+        &Diagnostic::ImprovementSuggestion {
+            message: "the words in VARINPUT should be separated by a '_'".into(),
+            range: SourceRange::new(0..8),
+        }
+    );
+    assert_eq!(
+        lexer.diagnostics.last().unwrap(),
+        &Diagnostic::ImprovementSuggestion {
+            message: "the words in ENDREPEAT should be separated by a '_'".into(),
+            range: SourceRange::new(167..176),
+        }
+    );
 }

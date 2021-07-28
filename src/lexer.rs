@@ -105,7 +105,7 @@ impl<'a> ParseSession<'a> {
             | Token::KeywordEndIf
             | Token::KeywordEndFor
             | Token::KeywordEndRepeat => {
-                if !self.slice().to_string().contains("_") {
+                if !self.slice().to_string().contains('_') {
                     self.accept_diagnostic(Diagnostic::ImprovementSuggestion {
                         message: format!(
                             "the words in {} should be separated by a '_'",
