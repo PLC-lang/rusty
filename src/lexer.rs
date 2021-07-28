@@ -89,20 +89,33 @@ impl<'a> ParseSession<'a> {
         self.parse_progress += 1;
 
         match self.token {
-            Token::KeywordVarInput | Token::KeywordVarOutput | Token::KeywordVarGlobal |
-            Token::KeywordVarInOut | Token::KeywordEndVar | Token::KeywordEndProgram |
-            Token::KeywordEndFunction | Token::KeywordEndCase | Token::KeywordFunctionBlock |
-            Token::KeywordEndFunctionBlock | Token::KeywordEndStruct | Token::KeywordEndAction |
-            Token::KeywordEndActions | Token::KeywordEndIf | Token::KeywordEndFor |
-            Token::KeywordEndRepeat => {
+            Token::KeywordVarInput
+            | Token::KeywordVarOutput
+            | Token::KeywordVarGlobal
+            | Token::KeywordVarInOut
+            | Token::KeywordEndVar
+            | Token::KeywordEndProgram
+            | Token::KeywordEndFunction
+            | Token::KeywordEndCase
+            | Token::KeywordFunctionBlock
+            | Token::KeywordEndFunctionBlock
+            | Token::KeywordEndStruct
+            | Token::KeywordEndAction
+            | Token::KeywordEndActions
+            | Token::KeywordEndIf
+            | Token::KeywordEndFor
+            | Token::KeywordEndRepeat => {
                 if !self.slice().to_string().contains("_") {
-                    self.accept_diagnostic(Diagnostic::DeprecationError {
-                        message: format!("the words in {} should be separated by a '_'", self.slice()),
-                        range: self.location()
+                    self.accept_diagnostic(Diagnostic::ImprovementSuggestion {
+                        message: format!(
+                            "the words in {} should be separated by a '_'",
+                            self.slice()
+                        ),
+                        range: self.location(),
                     });
                 }
             }
-            _ => { }
+            _ => {}
         }
     }
 

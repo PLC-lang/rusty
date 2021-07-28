@@ -52,7 +52,7 @@ extern crate pretty_assertions;
 #[derive(PartialEq, Debug, Clone)]
 pub enum Diagnostic {
     SyntaxError { message: String, range: SourceRange },
-    DeprecationError { message: String, range: SourceRange }
+    ImprovementSuggestion { message: String, range: SourceRange },
 }
 
 impl Diagnostic {
@@ -101,14 +101,14 @@ impl Diagnostic {
     pub fn get_message(&self) -> &str {
         match self {
             Diagnostic::SyntaxError { message, .. } => message.as_str(),
-            Diagnostic::DeprecationError { message, .. } => message.as_str(),
+            Diagnostic::ImprovementSuggestion { message, .. } => message.as_str(),
         }
     }
 
     pub fn get_location(&self) -> SourceRange {
         match self {
             Diagnostic::SyntaxError { range, .. } => range.clone(),
-            Diagnostic::DeprecationError { range, .. } => range.clone(),
+            Diagnostic::ImprovementSuggestion { range, .. } => range.clone(),
         }
     }
 }
