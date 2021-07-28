@@ -742,11 +742,11 @@ fn pre_processing_generates_inline_arrays() {
             name: Some("__foo_inline_array".to_string()),
             bounds: Statement::RangeStatement {
                 start: Box::new(Statement::LiteralInteger {
-                    value: "0".to_string(),
+                    value: 0,
                     location: SourceRange::undefined(),
                 }),
                 end: Box::new(Statement::LiteralInteger {
-                    value: "1".to_string(),
+                    value: 1,
                     location: SourceRange::undefined(),
                 }),
             },
@@ -793,11 +793,11 @@ fn pre_processing_generates_inline_array_of_array() {
             name: Some("__foo_inline_array_".to_string()),
             bounds: Statement::RangeStatement {
                 start: Box::new(Statement::LiteralInteger {
-                    value: "0".to_string(),
+                    value: 0,
                     location: SourceRange::undefined(),
                 }),
                 end: Box::new(Statement::LiteralInteger {
-                    value: "1".to_string(),
+                    value: 1,
                     location: SourceRange::undefined(),
                 }),
             },
@@ -816,11 +816,11 @@ fn pre_processing_generates_inline_array_of_array() {
             name: Some("__foo_inline_array".to_string()),
             bounds: Statement::RangeStatement {
                 start: Box::new(Statement::LiteralInteger {
-                    value: "0".to_string(),
+                    value: 0,
                     location: SourceRange::undefined(),
                 }),
                 end: Box::new(Statement::LiteralInteger {
-                    value: "1".to_string(),
+                    value: 1,
                     location: SourceRange::undefined(),
                 }),
             },
@@ -891,11 +891,11 @@ fn pre_processing_nested_array_in_struct() {
             name: Some("__MyStruct_field1".to_string()),
             bounds: Statement::RangeStatement {
                 start: Box::new(Statement::LiteralInteger {
-                    value: "0".to_string(),
+                    value: 0,
                     location: SourceRange::undefined(),
                 }),
                 end: Box::new(Statement::LiteralInteger {
-                    value: "4".to_string(),
+                    value: 4,
                     location: SourceRange::undefined(),
                 }),
             },
@@ -933,11 +933,11 @@ fn pre_processing_generates_inline_array_of_array_of_array() {
             name: Some("__foo_inline_array__".to_string()),
             bounds: Statement::RangeStatement {
                 start: Box::new(Statement::LiteralInteger {
-                    value: "0".to_string(),
+                    value: 0,
                     location: SourceRange::undefined(),
                 }),
                 end: Box::new(Statement::LiteralInteger {
-                    value: "1".to_string(),
+                    value: 1,
                     location: SourceRange::undefined(),
                 }),
             },
@@ -956,11 +956,11 @@ fn pre_processing_generates_inline_array_of_array_of_array() {
             name: Some("__foo_inline_array_".to_string()),
             bounds: Statement::RangeStatement {
                 start: Box::new(Statement::LiteralInteger {
-                    value: "0".to_string(),
+                    value: 0,
                     location: SourceRange::undefined(),
                 }),
                 end: Box::new(Statement::LiteralInteger {
-                    value: "1".to_string(),
+                    value: 1,
                     location: SourceRange::undefined(),
                 }),
             },
@@ -979,11 +979,11 @@ fn pre_processing_generates_inline_array_of_array_of_array() {
             name: Some("__foo_inline_array".to_string()),
             bounds: Statement::RangeStatement {
                 start: Box::new(Statement::LiteralInteger {
-                    value: "0".to_string(),
+                    value: 0,
                     location: SourceRange::undefined(),
                 }),
                 end: Box::new(Statement::LiteralInteger {
-                    value: "1".to_string(),
+                    value: 1,
                     location: SourceRange::undefined(),
                 }),
             },
@@ -1021,10 +1021,10 @@ fn sub_range_boundaries_are_registered_at_the_index() {
         name: "MyInt".to_string(),
         referenced_type: "INT".to_string(),
         sub_range: Statement::LiteralInteger {
-            value: "7".to_string(),
+            value: 7,
             location: SourceRange::undefined(),
         }..Statement::LiteralInteger {
-            value: "1000".to_string(),
+            value: 1000,
             location: SourceRange::undefined(),
         },
     };

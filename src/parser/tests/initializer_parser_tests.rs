@@ -34,7 +34,7 @@ fn initial_scalar_values_can_be_parsed() {
     },
     initializer: Some(
         LiteralInteger {
-            value: "7",
+            value: 7,
         },
     ),
 }"#;
@@ -54,7 +54,7 @@ fn initial_scalar_values_can_be_parsed() {
                 },
                 initializer: Some(
                     LiteralInteger {
-                        value: "69",
+                        value: 69,
                     },
                 ),
             },
@@ -97,7 +97,7 @@ fn initial_scalar_values_can_be_parsed() {
     },
     initializer: Some(
         LiteralInteger {
-            value: "789",
+            value: 789,
         },
     ),
 }"#;
@@ -135,10 +135,10 @@ fn array_initializer_can_be_parsed() {
             name: None,
             bounds: RangeStatement {
                 start: LiteralInteger {
-                    value: "0",
+                    value: 0,
                 },
                 end: LiteralInteger {
-                    value: "2",
+                    value: 2,
                 },
             },
             referenced_type: DataTypeReference {
@@ -152,13 +152,13 @@ fn array_initializer_can_be_parsed() {
                 ExpressionList {
                     expressions: [
                         LiteralInteger {
-                            value: "7",
+                            value: 7,
                         },
                         LiteralInteger {
-                            value: "8",
+                            value: 8,
                         },
                         LiteralInteger {
-                            value: "9",
+                            value: 9,
                         },
                     ],
                 },
@@ -193,24 +193,10 @@ fn multi_dim_array_initializer_can_be_parsed() {
                                 ExpressionList {
                                     expressions: [
                                         LiteralInteger {
-                                            value: "1",
+                                            value: 1,
                                         },
                                         LiteralInteger {
-                                            value: "2",
-                                        },
-                                    ],
-                                },
-                            ),
-                        },
-                        LiteralArray {
-                            elements: Some(
-                                ExpressionList {
-                                    expressions: [
-                                        LiteralInteger {
-                                            value: "3",
-                                        },
-                                        LiteralInteger {
-                                            value: "4",
+                                            value: 2,
                                         },
                                     ],
                                 },
@@ -221,10 +207,24 @@ fn multi_dim_array_initializer_can_be_parsed() {
                                 ExpressionList {
                                     expressions: [
                                         LiteralInteger {
-                                            value: "5",
+                                            value: 3,
                                         },
                                         LiteralInteger {
-                                            value: "6",
+                                            value: 4,
+                                        },
+                                    ],
+                                },
+                            ),
+                        },
+                        LiteralArray {
+                            elements: Some(
+                                ExpressionList {
+                                    expressions: [
+                                        LiteralInteger {
+                                            value: 5,
+                                        },
+                                        LiteralInteger {
+                                            value: 6,
                                         },
                                     ],
                                 },
@@ -255,10 +255,10 @@ fn array_initializer_multiplier_can_be_parsed() {
             name: None,
             bounds: RangeStatement {
                 start: LiteralInteger {
-                    value: "0",
+                    value: 0,
                 },
                 end: LiteralInteger {
-                    value: "2",
+                    value: 2,
                 },
             },
             referenced_type: DataTypeReference {
@@ -272,7 +272,7 @@ fn array_initializer_multiplier_can_be_parsed() {
                 MultipliedStatement {
                     multiplier: 3,
                     element: LiteralInteger {
-                        value: "7",
+                        value: 7,
                     },
                 },
             ),
@@ -304,7 +304,7 @@ fn struct_initializer_can_be_parsed() {
                         name: "x",
                     },
                     right: LiteralInteger {
-                        value: "1",
+                        value: 1,
                     },
                 },
                 Assignment {
@@ -312,7 +312,7 @@ fn struct_initializer_can_be_parsed() {
                         name: "y",
                     },
                     right: LiteralInteger {
-                        value: "2",
+                        value: 2,
                     },
                 },
             ],
@@ -341,13 +341,13 @@ fn array_initializer_in_pou_can_be_parsed() {
         ExpressionList {
             expressions: [
                 LiteralInteger {
-                    value: "5",
+                    value: 5,
                 },
                 LiteralInteger {
-                    value: "6",
+                    value: 6,
                 },
                 LiteralInteger {
-                    value: "7",
+                    value: 7,
                 },
             ],
         },
@@ -373,13 +373,13 @@ fn array_type_initialization_with_literals_can_be_parsed_test() {
             ExpressionList {
                 expressions: [
                     LiteralInteger {
-                        value: "1",
+                        value: 1,
                     },
                     LiteralInteger {
-                        value: "2",
+                        value: 2,
                     },
                     LiteralInteger {
-                        value: "3",
+                        value: 3,
                     },
                 ],
             },

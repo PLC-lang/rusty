@@ -255,7 +255,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         let (_, step_by_value) = by_step.as_ref().map_or_else(
             || {
                 expression_generator.generate_literal(&Statement::LiteralInteger {
-                    value: "1".to_string(),
+                    value: 1,
                     location: end.get_location(),
                 })
             },
