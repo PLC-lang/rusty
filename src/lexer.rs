@@ -435,6 +435,15 @@ pub enum Token {
     Identifier,
 
     //Literals
+    #[regex(r"16#[0-9a-fA-F]+")]
+    LiteralIntegerHex,
+
+    #[regex(r"8#[0-7]+")]
+    LiteralIntegerOct,
+
+    #[regex(r"2#[0-1]+")]
+    LiteralIntegerBin,
+
     #[regex(r"[0-9]+")]
     LiteralInteger,
 

@@ -92,7 +92,7 @@ fn literal_hex_number_can_be_parsed() {
 
 #[test]
 fn literal_oct_number_can_be_parsed() {
-    let lexer = super::lex("PROGRAM exp 88#77; END_PROGRAM");
+    let lexer = super::lex("PROGRAM exp 8#77; END_PROGRAM");
     let result = parse(lexer).unwrap().0;
 
     let prg = &result.implementations[0];

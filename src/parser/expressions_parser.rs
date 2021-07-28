@@ -218,6 +218,9 @@ fn parse_leaf_expression(lexer: &mut ParseSession) -> Result<Statement, ParseErr
     let current = match lexer.token {
         Identifier => parse_qualified_reference(lexer),
         LiteralInteger => parse_literal_number(lexer),
+        LiteralIntegerBin => parse_literal_number_with_modifier(lexer, 2),
+        LiteralIntegerOct => parse_literal_number_with_modifier(lexer, 8),
+        LiteralIntegerHex => parse_literal_number_with_modifier(lexer, 16),
         LiteralDate => parse_literal_date(lexer),
         LiteralTimeOfDay => parse_literal_time_of_day(lexer),
         LiteralTime => parse_literal_time(lexer),
@@ -327,6 +330,22 @@ pub fn parse_reference_access(lexer: &mut ParseSession) -> Result<Statement, Par
         };
     }
     Ok(reference)
+}
+
+fn parse_literal_number_with_modifier(
+    lexer: &mut ParseSession,
+    radix: u32,
+) -> Result<Statement, ParseError> {
+    // we can safely unwrap the number string, since the token has
+    // been matched using regular expressions
+    let location = lexer.location();
+    let token = lexer.slice_and_advance();
+    let number_str = token.split('#').last().unwrap();
+
+    // again, the parsed number can be safely unwrapped.
+    let value = i64::from_str_radix(number_str, radix).unwrap();
+
+    Ok(Statement::LiteralInteger { value, location })
 }
 
 fn parse_literal_number(lexer: &mut ParseSession) -> Result<Statement, ParseError> {
