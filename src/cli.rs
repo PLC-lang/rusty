@@ -1,4 +1,5 @@
 // Copyright (c) 2021 Ghaith Hachem and Mathias Rieder
+use encoding_rs::Encoding;
 use std::path::Path;
 use structopt::{clap::ArgGroup, StructOpt};
 
@@ -69,6 +70,14 @@ pub struct CompileParameters {
     pub target: Option<String>,
 
     #[structopt(
+        long,
+        name = "encoding",
+        help = "The file encoding used to read the input-files, as defined by the Encoding Standard",
+        parse(try_from_str = parse_encoding),
+    )]
+    pub encoding: Option<&'static Encoding>,
+
+    #[structopt(
         name = "input-files",
         help = "Read input from <input-files>, may be a glob expression like 'src/**/*' or a sequence of files",
         required = true,
@@ -76,6 +85,10 @@ pub struct CompileParameters {
     )]
     // having a vec allows bash to resolve *.st itself
     pub input: Vec<String>,
+}
+
+fn parse_encoding(encoding: &str) -> Result<&'static Encoding, String> {
+    Encoding::for_label(encoding.as_bytes()).ok_or(format!("Unknown encoding {}", encoding))
 }
 
 impl CompileParameters {
@@ -130,6 +143,7 @@ impl CompileParameters {
 #[cfg(test)]
 mod cli_tests {
     use super::{CompileParameters, FormatOption, ParameterError};
+    use pretty_assertions::assert_eq;
     use structopt::clap::ErrorKind;
 
     fn expect_argument_error(args: Vec<String>, expected_error_kind: ErrorKind) {
@@ -253,6 +267,30 @@ mod cli_tests {
         let parameters =
             CompileParameters::parse(vec_of_strings!("examples/test/echo.st")).unwrap();
         assert_eq!(parameters.output_format_or_default(), super::DEFAULT_FORMAT);
+    }
+
+    #[test]
+    fn encoding_resolution() {
+        let parameters =
+            CompileParameters::parse(vec_of_strings!("input.st", "--ir", "--encoding", "cp1252"))
+                .unwrap();
+        assert_eq!(parameters.encoding, Some(encoding_rs::WINDOWS_1252));
+        let parameters = CompileParameters::parse(vec_of_strings!(
+            "input.st",
+            "--ir",
+            "--encoding",
+            "windows-1252"
+        ))
+        .unwrap();
+        assert_eq!(parameters.encoding, Some(encoding_rs::WINDOWS_1252));
+    }
+
+    #[test]
+    fn invalid_encoding_resolution() {
+        expect_argument_error(
+            vec_of_strings!("input.st", "--ir", "--encoding", "invalid"),
+            ErrorKind::ValueValidation,
+        );
     }
 
     #[test]

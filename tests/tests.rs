@@ -18,6 +18,10 @@ mod correctness {
     mod sums;
 }
 
+mod integration {
+    mod external_files;
+}
+
 #[macro_export]
 macro_rules! assert_almost_eq {
     ($left:expr, $right:expr, $prec:expr) => {{
@@ -48,7 +52,7 @@ pub fn compile(context: &Context, source: String) -> ExecutionEngine {
         path: "external_test.st".to_string(),
         source,
     };
-    let code_gen = compile_module(context, &[source.as_source_container()]).unwrap();
+    let code_gen = compile_module(context, vec![source], None).unwrap();
     code_gen
         .module
         .create_jit_execution_engine(inkwell::OptimizationLevel::None)
