@@ -349,8 +349,17 @@ fn parse_literal_number(lexer: &mut ParseSession) -> Result<Statement, ParseErro
         });
     }
 
+    let number = match result.parse::<i64>() {
+        Ok(n) => n,
+        Err(..) => {
+            return Err(Diagnostic::syntax_error(
+                format!("Expected literal integer but found {}", result),
+                location,
+            ));
+        }
+    };
     Ok(Statement::LiteralInteger {
-        value: result,
+        value: number,
         location,
     })
 }

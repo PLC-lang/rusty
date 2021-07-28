@@ -1138,7 +1138,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
             Statement::LiteralBool { value, .. } => self.llvm.create_const_bool(self.index, *value),
             Statement::LiteralInteger { value, .. } => {
                 self.llvm
-                    .create_const_int(self.index, &self.get_type_context(), value)
+                    .create_const_int(self.index, &self.get_type_context(), &value.to_string())
             }
             Statement::LiteralDate {
                 year,

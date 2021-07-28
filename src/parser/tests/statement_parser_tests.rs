@@ -243,7 +243,7 @@ fn string_variable_declaration_can_be_parsed() {
             is_wide: false,
             size: Some(
                 LiteralInteger {
-                    value: "500",
+                    value: 500,
                 },
             ),
         },
@@ -273,7 +273,7 @@ fn string_variable_declaration_can_be_parsed() {
             is_wide: true,
             size: Some(
                 LiteralInteger {
-                    value: "500",
+                    value: 500,
                 },
             ),
         },
