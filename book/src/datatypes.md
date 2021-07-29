@@ -7,13 +7,6 @@ with IEC61131.
 ### Overview
 | Type name | Size   | Properties |
 |-----------|--------|------------|
-| BYTE      | 8 bit  | unsigned   |
-| WORD      | 16 bit | unsigned   |
-| DWORD     | 32 bit | unsigned   |
-| LWORD     | 64 bit | unsigned   |
-
-| Type name | Size   | Properties |
-|-----------|--------|------------|
 | SINT      | 8 bit  | signed     |
 | USINT     | 8 bit  | unsigned   |
 | INT       | 16 bit | signed     |
@@ -24,6 +17,9 @@ with IEC61131.
 | ULINT     | 64 bit | unsigned   |
 | REAL      | 32 bit | float      |
 | LREAL     | 64 bit | float      |
+
+When such a variable is declared without being initialized, it will
+be default-initialized with a value of `0` or `0.0` respectively.
 
 ### A word on integer literals
 Integer literals can be prefixed with either `2#` (binary), `8#` (octal) or
@@ -42,6 +38,9 @@ Examples:
 |-----------|------|----------|
 | STRING    | n+1  | UTF-8    |
 | WSTRING   | 2n+2 | UTF-16   |
+
+When such a variable is declared without being initialized, it will
+be default-initialized with a value of '' or "" respectively (empty strings).
 
 ### STRING
 rusty treats `STRING`s as byte-arrays storing UTF-8 character bytes with a Null-terminator (0-byte) at the end. 
@@ -153,4 +152,11 @@ empty type and has an undefined size.
 |-------------|-----------|------------|
 | BOOL        | 8 bit     | signed     |
 | \_\_VOID    | undefined |            |
+
+| Type name | Size   | Properties |
+|-----------|--------|------------|
+| BYTE      | 8 bit  | unsigned   |
+| WORD      | 16 bit | unsigned   |
+| DWORD     | 32 bit | unsigned   |
+| LWORD     | 64 bit | unsigned   |
 
