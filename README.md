@@ -24,7 +24,8 @@ Structured text compiler written in Rust
                 Expressions
 ```
 
-
+For build and usage instructions, as well as general information check out
+the [documentation](https://ghaith.github.io/rusty/).
 
 
 # Supported Language Concepts
