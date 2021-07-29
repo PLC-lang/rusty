@@ -32,6 +32,7 @@ macro_rules! visit_all_statements {
 pub struct ValidationContext<'s> {
     diagnostic: Vec<Diagnostic>,
     current_qualifier: Option<&'s str>,
+    current_pou: Option<&'s str>,
 }
 
 impl<'s> ValidationContext<'s> {
@@ -56,6 +57,7 @@ impl<'i, 's> Validator<'i, 's> {
         Validator {
             context: ValidationContext {
                 current_qualifier: None,
+                current_pou: None,
                 diagnostic: Vec::new(),
             },
             pou_validator: PouValidator::new(),
@@ -78,7 +80,9 @@ impl<'i, 's> Validator<'i, 's> {
         }
 
         for i in &unit.implementations {
+            let old = std::mem::replace(&mut self.context.current_pou, Some(i.name.as_str()));
             i.statements.iter().for_each(|s| self.visit_statement(s));
+            self.context.current_pou = old;
         }
     }
 
@@ -91,12 +95,13 @@ impl<'i, 's> Validator<'i, 's> {
     }
 
     pub fn visit_pou(&mut self, pou: &'s Pou) {
-        self.context.current_qualifier = Some(pou.name.as_str());
+        let old = std::mem::replace(&mut self.context.current_pou, Some(pou.name.as_str()));
         self.pou_validator.validate_pou(pou, &mut self.context);
-
+        
         for block in &pou.variable_blocks {
             self.visit_variable_container(block);
         }
+        self.context.current_pou = old;
     }
 
     pub fn visit_variable_container(&mut self, container: &VariableBlock) {
@@ -179,7 +184,8 @@ impl<'i, 's> Validator<'i, 's> {
                 self.visit_statement(left);
                 self.visit_statement(right);
             }
-            Statement::CallStatement { parameters, .. } => {
+            Statement::CallStatement { parameters, operator, .. } => {
+                self.visit_statement(operator);
                 if let Some(s) = parameters.as_ref() {
                     self.visit_statement(s);
                 }
@@ -238,5 +244,31 @@ impl<'i, 's> Validator<'i, 's> {
 
         self.stmt_validator
             .validate_statement(statement, &mut self.context);
+    }
+}
+
+#[cfg(test)]
+mod validation_tests {
+    use crate::{
+        ast,
+        index::{self, Index},
+        lexer::lex,
+        parser::{parse, PResult},
+        Diagnostic,
+    };
+
+    use super::Validator;
+
+    pub fn parse_and_validate(src: &str) -> PResult<Vec<Diagnostic>> {
+        let mut idx = Index::new();
+        let (mut ast, _) = parse(lex(src))?;
+        ast::pre_process(&mut ast);
+        idx.import(index::visitor::visit(&ast));
+
+        let mut validator = Validator::new(&idx);
+        validator.visit_unit(&ast);
+
+        let diagnostics = validator.diagnostics().cloned().collect();
+        Ok(diagnostics)
     }
 }

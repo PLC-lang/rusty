@@ -67,27 +67,9 @@ impl<'i> VariableValidator<'i> {
 
 #[cfg(test)]
 mod variable_validator_tests {
-    use crate::{
-        ast,
-        index::{self, Index},
-        lexer::lex,
-        parser::{parse, PResult},
-        validation::Validator,
-        Diagnostic,
-    };
+    use crate::{Diagnostic, validation::{validation_tests::parse_and_validate}};
 
-    fn parse_and_validate(src: &str) -> PResult<Vec<Diagnostic>> {
-        let mut idx = Index::new();
-        let (mut ast, _) = parse(lex(src))?;
-        ast::pre_process(&mut ast);
-        idx.import(index::visitor::visit(&ast));
-
-        let mut validator = Validator::new(&idx);
-        validator.visit_unit(&ast);
-
-        let diagnostics = validator.diagnostics().cloned().collect();
-        Ok(diagnostics)
-    }
+    
 
     #[test]
     fn validate_empty_struct_declaration() {
