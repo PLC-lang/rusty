@@ -88,3 +88,50 @@ Examples
 - `t1 : TIME := TIME#2d4h6m8s10ms;`
 - `t2 : TIME := T#2d4.2h;`
 - `t3 : TIME := T#-10s4ms16ns;`
+
+## Built-in data type reference
+
+### Numeric types
+
+| Type name | Size   | Properties |
+|-----------|--------|------------|
+| BYTE      | 8 bit  | unsigned   |
+| WORD      | 16 bit | unsigned   |
+| DWORD     | 32 bit | unsigned   |
+| LWORD     | 64 bit | unsigned   |
+
+| Type name | Size   | Properties |
+|-----------|--------|------------|
+| SINT      | 8 bit  | signed     |
+| USINT     | 8 bit  | unsigned   |
+| INT       | 16 bit | signed     |
+| UINT      | 16 bit | unsigned   |
+| DINT      | 32 bit | signed     |
+| UDINT     | 32 bit | unsigned   |
+| LINT      | 64 bit | signed     |
+| ULINT     | 64 bit | unsigned   |
+| REAL      | 32 bit | float      |
+| LREAL     | 64 bit | float      |
+
+### Date and Time types
+
+| Type name       | Size   | Internally stored as               |
+|-----------------|--------|------------------------------------|
+| TIME            | 64 bit | Timespan in nanoseconds            |
+| TIME\_OF\_DAY   | 64 bit | Milliseconds since Jan 1, 1970 UTC |
+| DATE            | 64 bit | Milliseconds since Jan 1, 1970 UTC |
+| DATE\_AND\_TIME | 64 bit | Milliseconds since Jan 1, 1970 UTC |
+
+### String types
+
+| Type name | Size | Encoding |
+|-----------|------|----------|
+| STRING    | n+1  | UTF-8    |
+| WSTRING   | 2n+2 | UTF-16   |
+
+### Other types
+
+| Type name   | Size      | Properties |
+|-------------|-----------|------------|
+| BOOL        | 8 bit     | signed     |
+| \_\_VOID    | undefined |            |
