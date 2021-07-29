@@ -1,6 +1,48 @@
 # Datatypes
 
+## Numeric types
+A variety of numeric types exist with different sizes and properties complying
+with IEC61131.
+
+### Overview
+| Type name | Size   | Properties |
+|-----------|--------|------------|
+| BYTE      | 8 bit  | unsigned   |
+| WORD      | 16 bit | unsigned   |
+| DWORD     | 32 bit | unsigned   |
+| LWORD     | 64 bit | unsigned   |
+
+| Type name | Size   | Properties |
+|-----------|--------|------------|
+| SINT      | 8 bit  | signed     |
+| USINT     | 8 bit  | unsigned   |
+| INT       | 16 bit | signed     |
+| UINT      | 16 bit | unsigned   |
+| DINT      | 32 bit | signed     |
+| UDINT     | 32 bit | unsigned   |
+| LINT      | 64 bit | signed     |
+| ULINT     | 64 bit | unsigned   |
+| REAL      | 32 bit | float      |
+| LREAL     | 64 bit | float      |
+
+### A word on integer literals
+Integer literals can be prefixed with either `2#` (binary), `8#` (octal) or
+`16#` (hexadecimal). They will then be treated with regard to the respective number system.
+
+Examples:
+- `i1 : DINT := 34;` - declares and initializes a 32bit signed integer with value 42.
+- `i1 : DINT := 2#101010;` - declares and initializes a 32bit signed integer with value 42.
+- `i1 : DINT := 8#52;` - declares and initializes a 32bit signed integer with value 42.
+- `i1 : DINT := 16#2A;` - declares and initializes a 32bit signed integer with value 42.
+
 ## Strings
+
+### Overview
+| Type name | Size | Encoding |
+|-----------|------|----------|
+| STRING    | n+1  | UTF-8    |
+| WSTRING   | 2n+2 | UTF-16   |
+
 ### STRING
 rusty treats `STRING`s as byte-arrays storing UTF-8 character bytes with a Null-terminator (0-byte) at the end. 
 So a String of size n requres n+1 bytes to account for the Null-terminator.
@@ -30,6 +72,18 @@ Examples
 - `ws4 : WSTRING[55] := "Foo Baz";` - declares and initializes a Wide-String of length 55 and initializes it with the utf8 characters and a utf16-null-terminator at the end.
 
 ## Date and Time
+
+### Overview
+| Type name       | Size   | Internally stored as               |
+|-----------------|--------|------------------------------------|
+| TIME            | 64 bit | Timespan in nanoseconds            |
+| TIME\_OF\_DAY   | 64 bit | Milliseconds since Jan 1, 1970 UTC |
+| DATE            | 64 bit | Milliseconds since Jan 1, 1970 UTC |
+| DATE\_AND\_TIME | 64 bit | Milliseconds since Jan 1, 1970 UTC |
+
+Note that the internal representation and sizes of these types are specific
+to RuSTy and not defined by the IEC61131 standard.
+
 ### DATE
 The `DATE` datatype is used to represent a Date in the Gregorian Calendar. Such a value is 
 stored as an i64 with a precision in milliseconds and denotes the number of milliseconds 
@@ -89,49 +143,14 @@ Examples
 - `t2 : TIME := T#2d4.2h;`
 - `t3 : TIME := T#-10s4ms16ns;`
 
-## Built-in data type reference
 
-### Numeric types
+## Other types
 
-| Type name | Size   | Properties |
-|-----------|--------|------------|
-| BYTE      | 8 bit  | unsigned   |
-| WORD      | 16 bit | unsigned   |
-| DWORD     | 32 bit | unsigned   |
-| LWORD     | 64 bit | unsigned   |
-
-| Type name | Size   | Properties |
-|-----------|--------|------------|
-| SINT      | 8 bit  | signed     |
-| USINT     | 8 bit  | unsigned   |
-| INT       | 16 bit | signed     |
-| UINT      | 16 bit | unsigned   |
-| DINT      | 32 bit | signed     |
-| UDINT     | 32 bit | unsigned   |
-| LINT      | 64 bit | signed     |
-| ULINT     | 64 bit | unsigned   |
-| REAL      | 32 bit | float      |
-| LREAL     | 64 bit | float      |
-
-### Date and Time types
-
-| Type name       | Size   | Internally stored as               |
-|-----------------|--------|------------------------------------|
-| TIME            | 64 bit | Timespan in nanoseconds            |
-| TIME\_OF\_DAY   | 64 bit | Milliseconds since Jan 1, 1970 UTC |
-| DATE            | 64 bit | Milliseconds since Jan 1, 1970 UTC |
-| DATE\_AND\_TIME | 64 bit | Milliseconds since Jan 1, 1970 UTC |
-
-### String types
-
-| Type name | Size | Encoding |
-|-----------|------|----------|
-| STRING    | n+1  | UTF-8    |
-| WSTRING   | 2n+2 | UTF-16   |
-
-### Other types
+The `BOOL` type can either be assigned `TRUE` or `FALSE`. The type `__VOID` is the
+empty type and has an undefined size.
 
 | Type name   | Size      | Properties |
 |-------------|-----------|------------|
 | BOOL        | 8 bit     | signed     |
 | \_\_VOID    | undefined |            |
+
