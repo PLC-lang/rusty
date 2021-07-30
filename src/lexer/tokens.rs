@@ -230,13 +230,13 @@ pub enum Token {
     // oct: r"16#([0-7]+_)*[0-7]+"
     // bin: r"16#([0-1]+_)*[0-1]+"
     // dec: r"16#([0-9]+_)*[0-9]+"
-    #[regex(r"16#[0-9a-fA-F_]+")]
+    #[regex(r"16#[0-9a-fA-F]+[0-9a-fA-F_]*")]
     LiteralIntegerHex,
 
-    #[regex(r"8#[0-7_]+")]
+    #[regex(r"8#[0-7]+[0-7_]*")]
     LiteralIntegerOct,
 
-    #[regex(r"2#[0-1_]+")]
+    #[regex(r"2#[0-1]+[0-1_]*")]
     LiteralIntegerBin,
 
     #[regex(r"[0-9]+[0-9_]*")]
