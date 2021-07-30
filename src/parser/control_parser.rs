@@ -50,6 +50,7 @@ fn parse_if_statement(lexer: &mut ParseSession) -> Result<Statement, Diagnostic>
         blocks: conditional_blocks,
         else_block,
         location: SourceRange::new(start..end),
+        id: lexer.next_id(),
     })
 }
 
@@ -84,6 +85,7 @@ fn parse_for_statement(lexer: &mut ParseSession) -> Result<Statement, Diagnostic
         by_step: step,
         body: body?,
         location: SourceRange::new(start..lexer.last_range.end),
+        id: lexer.next_id(),
     })
 }
 
@@ -98,6 +100,7 @@ fn parse_while_statement(lexer: &mut ParseSession) -> Result<Statement, Diagnost
             lexer.accept_diagnostic(diagnostic);
             Statement::EmptyStatement {
                 location: (start_condition..lexer.range().end).into(),
+                id: lexer.next_id(),
             }
         }
     };
@@ -108,6 +111,7 @@ fn parse_while_statement(lexer: &mut ParseSession) -> Result<Statement, Diagnost
         condition: Box::new(condition),
         body,
         location: SourceRange::new(start..lexer.last_range.end),
+        id: lexer.next_id(),
     })
 }
 
@@ -123,6 +127,7 @@ fn parse_repeat_statement(lexer: &mut ParseSession) -> Result<Statement, Diagnos
     } else {
         Statement::EmptyStatement {
             location: lexer.location(),
+            id: lexer.next_id(),
         }
     };
 
@@ -130,6 +135,7 @@ fn parse_repeat_statement(lexer: &mut ParseSession) -> Result<Statement, Diagnos
         condition: Box::new(condition),
         body,
         location: SourceRange::new(start..lexer.range().end),
+        id: lexer.next_id(),
     })
 }
 
@@ -149,7 +155,7 @@ fn parse_case_statement(lexer: &mut ParseSession) -> Result<Statement, Diagnosti
         let mut current_condition = None;
         let mut current_body = vec![];
         for statement in body {
-            if let Statement::CaseCondition { condition } = statement {
+            if let Statement::CaseCondition { condition, .. } = statement {
                 if let Some(condition) = current_condition {
                     let block = ConditionalBlock {
                         condition,
@@ -168,6 +174,7 @@ fn parse_case_statement(lexer: &mut ParseSession) -> Result<Statement, Diagnosti
                     ));
                     current_condition = Some(Box::new(Statement::EmptyStatement {
                         location: lexer.location(),
+                        id: lexer.next_id(),
                     }));
                 }
                 current_body.push(statement);
@@ -194,5 +201,6 @@ fn parse_case_statement(lexer: &mut ParseSession) -> Result<Statement, Diagnosti
         case_blocks,
         else_block,
         location: SourceRange::new(start..end),
+        id: lexer.next_id(),
     })
 }

@@ -246,6 +246,7 @@ fn visit_data_type(index: &mut Index, type_declatation: &UserTypeDeclaration) {
                     Some(ast::Statement::LiteralInteger {
                         value: i as i64,
                         location: SourceRange::undefined(),
+                        id: 0,
                     }),
                     SourceRange::undefined(),
                 )
@@ -257,7 +258,7 @@ fn visit_data_type(index: &mut Index, type_declatation: &UserTypeDeclaration) {
             referenced_type,
             bounds,
         } => {
-            let information = if let Some(Statement::RangeStatement { start, end }) = bounds {
+            let information = if let Some(Statement::RangeStatement { start, end, .. }) = bounds {
                 DataTypeInformation::SubRange {
                     name: name.as_ref().unwrap().into(),
                     referenced_type: referenced_type.into(),

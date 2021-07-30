@@ -16,16 +16,20 @@ fn empty_statements_are_are_parsed() {
             "{:?}",
             vec![
                 Statement::EmptyStatement {
-                    location: SourceRange::undefined()
+                    location: SourceRange::undefined(),
+                    id: 0
                 },
                 Statement::EmptyStatement {
-                    location: SourceRange::undefined()
+                    location: SourceRange::undefined(),
+                    id: 0
                 },
                 Statement::EmptyStatement {
-                    location: SourceRange::undefined()
+                    location: SourceRange::undefined(),
+                    id: 0
                 },
                 Statement::EmptyStatement {
-                    location: SourceRange::undefined()
+                    location: SourceRange::undefined(),
+                    id: 0
                 },
             ]
         ),
@@ -45,20 +49,25 @@ fn empty_statements_are_parsed_before_a_statement() {
             "{:?}",
             vec![
                 Statement::EmptyStatement {
-                    location: SourceRange::undefined()
+                    location: SourceRange::undefined(),
+                    id: 0
                 },
                 Statement::EmptyStatement {
-                    location: SourceRange::undefined()
+                    location: SourceRange::undefined(),
+                    id: 0
                 },
                 Statement::EmptyStatement {
-                    location: SourceRange::undefined()
+                    location: SourceRange::undefined(),
+                    id: 0
                 },
                 Statement::EmptyStatement {
-                    location: SourceRange::undefined()
+                    location: SourceRange::undefined(),
+                    id: 0
                 },
                 Statement::Reference {
                     name: "x".into(),
-                    location: SourceRange::undefined()
+                    location: SourceRange::undefined(),
+                    id: 0
                 },
             ]
         ),

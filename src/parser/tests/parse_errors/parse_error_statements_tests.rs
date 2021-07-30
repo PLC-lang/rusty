@@ -13,7 +13,7 @@ use pretty_assertions::*;
 /*
  * These tests deal with parsing-behavior in the expressions: ()  expressions: ()  presence of errors.
  * following scenarios will be tested:
- *  - missing semicolons at different locations
+ *  - missing semico id: ()  id: () lons at different locations
  *  - incomplete statements
  *  - incomplete statement-blocks (brackets)
  */
@@ -84,8 +84,10 @@ fn missing_comma_in_call_parameters() {
                 location: SourceRange::undefined(),
                 operator: Box::new(ref_to("buz")),
                 parameters: Box::new(Some(Statement::ExpressionList {
-                    expressions: vec![ref_to("a"), ref_to("b"),]
-                }))
+                    expressions: vec![ref_to("a"), ref_to("b"),],
+                    id: 0
+                })),
+                id: 0
             }]
         )
     );
@@ -131,8 +133,10 @@ fn illegal_semicolon_in_call_parameters() {
                     location: SourceRange::undefined(),
                     operator: Box::new(ref_to("buz")),
                     parameters: Box::new(Some(Statement::ExpressionList {
-                        expressions: vec![ref_to("a"), ref_to("b")]
-                    }))
+                        expressions: vec![ref_to("a"), ref_to("b")],
+                        id: 0
+                    })),
+                    id: 0
                 },
                 ref_to("c")
             ]
@@ -389,31 +393,37 @@ fn test_nested_if_with_missing_end_if() {
                 blocks: vec![ConditionalBlock {
                     condition: Box::new(Statement::LiteralBool {
                         value: false,
-                        location: SourceRange::undefined()
+                        location: SourceRange::undefined(),
+                        id: 0
                     }),
                     body: vec![
                         Statement::IfStatement {
                             blocks: vec![ConditionalBlock {
                                 condition: Box::new(Statement::LiteralBool {
                                     value: true,
-                                    location: SourceRange::undefined()
+                                    location: SourceRange::undefined(),
+                                    id: 0
                                 }),
                                 body: vec![Statement::Assignment {
                                     left: Box::new(ref_to("x")),
-                                    right: Box::new(ref_to("y"))
+                                    right: Box::new(ref_to("y")),
+                                    id: 0
                                 }],
                             }],
                             else_block: vec![],
                             location: SourceRange::undefined(),
+                            id: 0,
                         },
                         Statement::Assignment {
                             left: Box::new(ref_to("y")),
-                            right: Box::new(ref_to("x"))
+                            right: Box::new(ref_to("x")),
+                            id: 0
                         }
                     ]
                 },],
                 else_block: vec![],
                 location: SourceRange::undefined(),
+                id: 0,
             },]
         )
     );
@@ -476,11 +486,13 @@ fn test_nested_for_with_missing_end_for() {
                 counter: Box::new(ref_to("x")),
                 start: Box::new(Statement::LiteralInteger {
                     value: 1,
-                    location: SourceRange::undefined()
+                    location: SourceRange::undefined(),
+                    id: 0
                 }),
                 end: Box::new(Statement::LiteralInteger {
                     value: 2,
-                    location: SourceRange::undefined()
+                    location: SourceRange::undefined(),
+                    id: 0
                 }),
                 by_step: None,
                 body: vec![
@@ -488,26 +500,32 @@ fn test_nested_for_with_missing_end_for() {
                         counter: Box::new(ref_to("x")),
                         start: Box::new(Statement::LiteralInteger {
                             value: 1,
-                            location: SourceRange::undefined()
+                            location: SourceRange::undefined(),
+                            id: 0
                         }),
                         end: Box::new(Statement::LiteralInteger {
                             value: 2,
-                            location: SourceRange::undefined()
+                            location: SourceRange::undefined(),
+                            id: 0
                         }),
 
                         by_step: None,
                         body: vec![Statement::Assignment {
                             left: Box::new(ref_to("y")),
-                            right: Box::new(ref_to("x"))
+                            right: Box::new(ref_to("x")),
+                            id: 0
                         },],
-                        location: SourceRange::undefined()
+                        location: SourceRange::undefined(),
+                        id: 0
                     },
                     Statement::Assignment {
                         left: Box::new(ref_to("x")),
-                        right: Box::new(ref_to("y"))
+                        right: Box::new(ref_to("y")),
+                        id: 0
                     }
                 ],
-                location: SourceRange::undefined()
+                location: SourceRange::undefined(),
+                id: 0
             },]
         )
     );
@@ -547,19 +565,24 @@ fn test_repeat_with_missing_semicolon_in_body() {
                         left: Box::new(ref_to("x")),
                         right: Box::new(Statement::LiteralInteger {
                             value: 3,
-                            location: SourceRange::undefined()
-                        })
+                            location: SourceRange::undefined(),
+                            id: 0
+                        }),
+                        id: 0
                     }],
                     condition: Box::new(Statement::BinaryExpression {
                         left: Box::new(ref_to("x")),
                         right: Box::new(ref_to("y")),
-                        operator: crate::ast::Operator::Equal
+                        operator: crate::ast::Operator::Equal,
+                        id: 0
                     }),
                     location: SourceRange::undefined(),
+                    id: 0
                 },
                 Statement::Assignment {
                     left: Box::new(ref_to("y")),
-                    right: Box::new(ref_to("x"))
+                    right: Box::new(ref_to("x")),
+                    id: 0
                 }
             ]
         )
@@ -602,17 +625,21 @@ fn test_nested_repeat_with_missing_until_end_repeat() {
                         condition: Box::new(Statement::BinaryExpression {
                             left: Box::new(ref_to("x")),
                             right: Box::new(ref_to("y")),
-                            operator: crate::ast::Operator::Equal
+                            operator: crate::ast::Operator::Equal,
+                            id: 0
                         }),
-                        location: SourceRange::undefined()
+                        location: SourceRange::undefined(),
+                        id: 0
                     },
                     Statement::Assignment {
                         left: Box::new(ref_to("y")),
-                        right: Box::new(ref_to("x"))
+                        right: Box::new(ref_to("x")),
+                        id: 0
                     }
                 ],
                 condition: Box::new(empty_stmt()),
                 location: SourceRange::undefined(),
+                id: 0
             },]
         )
     );
@@ -659,17 +686,21 @@ fn test_nested_repeat_with_missing_condition_and_end_repeat() {
                         condition: Box::new(Statement::BinaryExpression {
                             left: Box::new(ref_to("x")),
                             right: Box::new(ref_to("y")),
-                            operator: crate::ast::Operator::Equal
+                            operator: crate::ast::Operator::Equal,
+                            id: 0
                         }),
-                        location: SourceRange::undefined()
+                        location: SourceRange::undefined(),
+                        id: 0
                     },
                     Statement::Assignment {
                         left: Box::new(ref_to("y")),
-                        right: Box::new(ref_to("x"))
+                        right: Box::new(ref_to("x")),
+                        id: 0
                     }
                 ],
                 condition: Box::new(empty_stmt()),
                 location: SourceRange::undefined(),
+                id: 0
             },]
         )
     );
@@ -712,21 +743,26 @@ fn test_nested_repeat_with_missing_end_repeat() {
                         condition: Box::new(Statement::BinaryExpression {
                             left: Box::new(ref_to("x")),
                             right: Box::new(ref_to("y")),
-                            operator: crate::ast::Operator::Equal
+                            operator: crate::ast::Operator::Equal,
+                            id: 0
                         }),
-                        location: SourceRange::undefined()
+                        location: SourceRange::undefined(),
+                        id: 0
                     },
                     Statement::Assignment {
                         left: Box::new(ref_to("y")),
-                        right: Box::new(ref_to("x"))
+                        right: Box::new(ref_to("x")),
+                        id: 0
                     }
                 ],
                 condition: Box::new(Statement::BinaryExpression {
                     left: Box::new(ref_to("x")),
                     right: Box::new(ref_to("y")),
-                    operator: crate::ast::Operator::Equal
+                    operator: crate::ast::Operator::Equal,
+                    id: 0
                 }),
                 location: SourceRange::undefined(),
+                id: 0
             },]
         )
     );
@@ -766,19 +802,24 @@ fn test_while_with_missing_semicolon_in_body() {
                         left: Box::new(ref_to("x")),
                         right: Box::new(Statement::LiteralInteger {
                             value: 3,
-                            location: SourceRange::undefined()
-                        })
+                            location: SourceRange::undefined(),
+                            id: 0
+                        }),
+                        id: 0
                     }],
                     condition: Box::new(Statement::BinaryExpression {
                         left: Box::new(ref_to("x")),
                         right: Box::new(ref_to("y")),
-                        operator: crate::ast::Operator::Equal
+                        operator: crate::ast::Operator::Equal,
+                        id: 0
                     }),
                     location: SourceRange::undefined(),
+                    id: 0
                 },
                 Statement::Assignment {
                     left: Box::new(ref_to("y")),
-                    right: Box::new(ref_to("x"))
+                    right: Box::new(ref_to("x")),
+                    id: 0
                 }
             ]
         )
@@ -821,21 +862,26 @@ fn test_nested_while_with_missing_end_while() {
                         condition: Box::new(Statement::BinaryExpression {
                             left: Box::new(ref_to("x")),
                             right: Box::new(ref_to("y")),
-                            operator: crate::ast::Operator::Equal
+                            operator: crate::ast::Operator::Equal,
+                            id: 0
                         }),
-                        location: SourceRange::undefined()
+                        location: SourceRange::undefined(),
+                        id: 0
                     },
                     Statement::Assignment {
                         left: Box::new(ref_to("y")),
-                        right: Box::new(ref_to("x"))
+                        right: Box::new(ref_to("x")),
+                        id: 0
                     }
                 ],
                 condition: Box::new(Statement::BinaryExpression {
                     left: Box::new(ref_to("x")),
                     right: Box::new(ref_to("y")),
-                    operator: crate::ast::Operator::Equal
+                    operator: crate::ast::Operator::Equal,
+                    id: 0
                 }),
                 location: SourceRange::undefined(),
+                id: 0
             },]
         )
     );
@@ -867,14 +913,17 @@ fn test_while_with_missing_do() {
             vec![Statement::WhileLoopStatement {
                 body: vec![Statement::Assignment {
                     left: Box::new(ref_to("y")),
-                    right: Box::new(ref_to("x"))
+                    right: Box::new(ref_to("x")),
+                    id: 0
                 }],
                 condition: Box::new(Statement::BinaryExpression {
                     left: Box::new(ref_to("x")),
                     right: Box::new(ref_to("y")),
-                    operator: crate::ast::Operator::Equal
+                    operator: crate::ast::Operator::Equal,
+                    id: 0
                 }),
                 location: SourceRange::undefined(),
+                id: 0
             }]
         )
     );
@@ -914,10 +963,12 @@ fn test_case_body_with_missing_semicolon() {
                     body: vec![Statement::Assignment {
                         left: Box::new(ref_to("y")),
                         right: Box::new(ref_to("z")),
+                        id: 0
                     }],
                 },],
                 else_block: vec![],
                 location: SourceRange::undefined(),
+                id: 0
             }]
         )
     );

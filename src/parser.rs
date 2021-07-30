@@ -550,6 +550,7 @@ fn parse_statement(lexer: &mut ParseSession) -> Result<Statement, Diagnostic> {
     if lexer.last_token == KeywordColon {
         Ok(Statement::CaseCondition {
             condition: Box::new(result),
+            id: lexer.next_id(),
         })
     } else {
         Ok(result)
@@ -566,7 +567,10 @@ pub fn parse_statement_in_region<F: FnOnce(&mut ParseSession) -> PResult<Stateme
         let end = lexer.range().end;
         let location = SourceRange::new(start..end);
         //drop the originally parsed statement and replace with an empty-statement
-        Statement::EmptyStatement { location }
+        Statement::EmptyStatement {
+            id: lexer.next_id(),
+            location,
+        }
     })
 }
 

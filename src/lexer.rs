@@ -5,6 +5,7 @@ use logos::Lexer;
 use logos::Logos;
 pub use tokens::Token;
 
+use crate::ast::AstId;
 use crate::ast::SourceRange;
 use crate::Diagnostic;
 
@@ -22,6 +23,7 @@ pub struct ParseSession<'a> {
     /// the range of the `last_token`
     pub last_range: Range<usize>,
     pub parse_progress: usize,
+    current_id: AstId,
 }
 
 impl<'a> ParseSession<'a> {
@@ -34,9 +36,15 @@ impl<'a> ParseSession<'a> {
             last_token: Token::End,
             last_range: 0..0,
             parse_progress: 0,
+            current_id: 0,
         };
         lexer.advance();
         lexer
+    }
+
+    pub fn next_id(&mut self) -> AstId {
+        self.current_id += 1;
+        self.current_id
     }
 
     pub fn expect(&self, token: Token) -> Result<(), Diagnostic> {

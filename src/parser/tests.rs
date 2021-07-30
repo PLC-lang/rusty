@@ -22,6 +22,7 @@ pub fn ref_to(name: &str) -> Statement {
     Statement::Reference {
         location: SourceRange::undefined(),
         name: name.to_string(),
+        id: 0,
     }
 }
 
@@ -29,5 +30,6 @@ pub fn ref_to(name: &str) -> Statement {
 pub fn empty_stmt() -> Statement {
     Statement::EmptyStatement {
         location: SourceRange::undefined(),
+        id: 0,
     }
 }
