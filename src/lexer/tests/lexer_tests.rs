@@ -4,7 +4,6 @@ use pretty_assertions::{assert_eq, assert_ne};
 use crate::{
     ast::SourceRange,
     lexer::{ParseSession, Token::*},
-    Diagnostic,
 };
 
 fn lex(source: &str) -> ParseSession {
@@ -548,18 +547,19 @@ fn multi_named_keywords_without_underscore_test() {
     }
 
     assert_eq!(lexer.diagnostics.len(), 16);
+
+    let d1 = lexer.diagnostics.first().unwrap();
+    let d2 = lexer.diagnostics.last().unwrap();
+
     assert_eq!(
-        lexer.diagnostics.first().unwrap(),
-        &Diagnostic::ImprovementSuggestion {
-            message: "the words in VARINPUT should be separated by a '_'".into(),
-            range: SourceRange::new(0..8),
-        }
+        d1.get_message(),
+        "the words in VARINPUT should be separated by a '_'"
     );
+    assert_eq!(d1.get_location(), SourceRange::new(0..8));
+
     assert_eq!(
-        lexer.diagnostics.last().unwrap(),
-        &Diagnostic::ImprovementSuggestion {
-            message: "the words in ENDREPEAT should be separated by a '_'".into(),
-            range: SourceRange::new(167..176),
-        }
+        d2.get_message(),
+        "the words in ENDREPEAT should be separated by a '_'"
     );
+    assert_eq!(d2.get_location(), SourceRange::new(167..176));
 }
