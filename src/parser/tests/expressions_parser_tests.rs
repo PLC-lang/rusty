@@ -61,8 +61,8 @@ fn literal_can_be_parsed() {
 }
 
 #[test]
-fn literal_binary_number_can_be_parsed() {
-    let lexer = super::lex("PROGRAM exp 2#101101; END_PROGRAM");
+fn literal_binary_with_underscore_number_can_be_parsed() {
+    let lexer = super::lex("PROGRAM exp 2#101_101; END_PROGRAM");
     let result = parse(lexer).unwrap().0;
 
     let prg = &result.implementations[0];
@@ -70,6 +70,21 @@ fn literal_binary_number_can_be_parsed() {
 
     if let Statement::LiteralInteger { value, location: _ } = statement {
         assert_eq!(value, &(45 as i64));
+    } else {
+        panic!("Expected LiteralInteger but found {:?}", statement);
+    }
+}
+
+#[test]
+fn literal_hex_number_with_underscores_can_be_parsed() {
+    let lexer = super::lex("PROGRAM exp 16#DE_AD_be_ef; END_PROGRAM");
+    let result = parse(lexer).unwrap().0;
+
+    let prg = &result.implementations[0];
+    let statement = &prg.statements[0];
+
+    if let Statement::LiteralInteger { value, location: _ } = statement {
+        assert_eq!(value, &(3735928559 as i64));
     } else {
         panic!("Expected LiteralInteger but found {:?}", statement);
     }
@@ -91,8 +106,38 @@ fn literal_hex_number_can_be_parsed() {
 }
 
 #[test]
-fn literal_oct_number_can_be_parsed() {
-    let lexer = super::lex("PROGRAM exp 8#77; END_PROGRAM");
+fn literal_oct_number_with_underscores_can_be_parsed() {
+    let lexer = super::lex("PROGRAM exp 8#7_7; END_PROGRAM");
+    let result = parse(lexer).unwrap().0;
+
+    let prg = &result.implementations[0];
+    let statement = &prg.statements[0];
+
+    if let Statement::LiteralInteger { value, location: _ } = statement {
+        assert_eq!(value, &(63 as i64));
+    } else {
+        panic!("Expected LiteralInteger but found {:?}", statement);
+    }
+}
+
+#[test]
+fn literal_dec_number_with_underscores_can_be_parsed() {
+    let lexer = super::lex("PROGRAM exp 43_000; END_PROGRAM");
+    let result = parse(lexer).unwrap().0;
+
+    let prg = &result.implementations[0];
+    let statement = &prg.statements[0];
+
+    if let Statement::LiteralInteger { value, location: _ } = statement {
+        assert_eq!(value, &(43000 as i64));
+    } else {
+        panic!("Expected LiteralInteger but found {:?}", statement);
+    }
+}
+
+#[test]
+fn literal_oct_number_with_underscore_can_be_parsed() {
+    let lexer = super::lex("PROGRAM exp 8#7_7; END_PROGRAM");
     let result = parse(lexer).unwrap().0;
 
     let prg = &result.implementations[0];
