@@ -160,6 +160,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                 left,
                 right,
                 operator,
+                ..
             } => {
                 //If OR, or AND handle before generating the statements
                 match operator {
@@ -430,7 +431,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
     ) -> Result<Vec<BasicValueEnum<'a>>, CompileError> {
         let mut result = vec![parameter_struct.as_basic_value_enum()];
         match &parameters {
-            Some(Statement::ExpressionList { expressions }) => {
+            Some(Statement::ExpressionList { expressions, .. }) => {
                 for (index, exp) in expressions.iter().enumerate() {
                     let parameter = self.generate_single_parameter(
                         &ParameterContext {
@@ -488,7 +489,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
 
         let parameter_value = match assignment_statement {
             // explicit call parameter: foo(param := value)
-            Statement::Assignment { left, right } => {
+            Statement::Assignment { left, right, .. } => {
                 self.generate_formal_parameter(
                     param_context,
                     left,
@@ -499,7 +500,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                 None
             }
             // foo (param => value)
-            Statement::OutputAssignment { left, right } => {
+            Statement::OutputAssignment { left, right, .. } => {
                 self.generate_output_parameter(param_context, left, right, output_block)?;
                 None
             }
@@ -656,9 +657,9 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                 self.create_llvm_pointer_value_for_reference(None, name, reference_statement)
             }
 
-            Statement::ArrayAccess { reference, access } => {
-                self.generate_element_pointer_for_array(None, reference, access)
-            }
+            Statement::ArrayAccess {
+                reference, access, ..
+            } => self.generate_element_pointer_for_array(None, reference, access),
             Statement::QualifiedReference { .. } => {
                 self.generate_element_pointer_for_rec(None, reference_statement)
             }
@@ -861,7 +862,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
         reference: &Statement,
     ) -> Result<TypeAndPointer<'a, '_>, CompileError> {
         match reference {
-            Statement::QualifiedReference { elements } => {
+            Statement::QualifiedReference { elements, .. } => {
                 let mut element_iter = elements.iter();
                 let current_element = element_iter.next();
                 let mut current_lvalue =
@@ -895,9 +896,9 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                 //Otherwise, load a variable reference
                 self.create_llvm_pointer_value_for_reference(qualifier, name, reference)
             }
-            Statement::ArrayAccess { reference, access } => {
-                self.generate_element_pointer_for_array(qualifier, reference, access)
-            }
+            Statement::ArrayAccess {
+                reference, access, ..
+            } => self.generate_element_pointer_for_array(qualifier, reference, access),
             _ => Err(CompileError::codegen_error(
                 format!("Unsupported Statement {:?}", reference),
                 reference.get_location(),
@@ -1145,6 +1146,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                 month,
                 day,
                 location,
+                ..
             } => self.llvm.create_const_int(
                 self.index,
                 &Some(self.llvm.i64_type().into()),
@@ -1162,6 +1164,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                 sec,
                 milli,
                 location,
+                ..
             } => self.llvm.create_const_int(
                 self.index,
                 &Some(self.llvm.i64_type().into()),
@@ -1176,6 +1179,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                 sec,
                 milli,
                 location,
+                ..
             } => self.llvm.create_const_int(
                 self.index,
                 &Some(self.llvm.i64_type().into()),
@@ -1220,9 +1224,9 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                     self.llvm.create_const_utf8_string(value.as_str())
                 }
             }
-            Statement::LiteralArray { elements, location } => {
-                self.generate_literal_array(elements, location)
-            }
+            Statement::LiteralArray {
+                elements, location, ..
+            } => self.generate_literal_array(elements, location),
             // if there is an expression-list this might be a struct-initialization
             Statement::ExpressionList { .. } => {
                 self.generate_literal_struct(literal_statement, &literal_statement.get_location())
@@ -1256,10 +1260,11 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                     member_names.iter().map(|it| it.as_str()).collect();
                 let mut member_values: Vec<(u32, BasicValueEnum<'a>)> = Vec::new();
                 for assignment in flatten_expression_list(assignments) {
-                    if let Statement::Assignment { left, right } = assignment {
+                    if let Statement::Assignment { left, right, .. } = assignment {
                         if let Statement::Reference {
                             name: variable_name,
                             location,
+                            ..
                         } = &**left
                         {
                             let member = self

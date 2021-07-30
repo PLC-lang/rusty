@@ -827,11 +827,14 @@ fn pre_processing_generates_inline_arrays() {
                 start: Box::new(Statement::LiteralInteger {
                     value: 0,
                     location: SourceRange::undefined(),
+                    id: 0,
                 }),
                 end: Box::new(Statement::LiteralInteger {
                     value: 1,
                     location: SourceRange::undefined(),
+                    id: 0,
                 }),
+                id: 0,
             },
             referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
                 referenced_type: "INT".to_string(),
@@ -878,11 +881,14 @@ fn pre_processing_generates_inline_array_of_array() {
                 start: Box::new(Statement::LiteralInteger {
                     value: 0,
                     location: SourceRange::undefined(),
+                    id: 0,
                 }),
                 end: Box::new(Statement::LiteralInteger {
                     value: 1,
                     location: SourceRange::undefined(),
+                    id: 0,
                 }),
+                id: 0,
             },
             referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
                 referenced_type: "INT".to_string(),
@@ -901,11 +907,14 @@ fn pre_processing_generates_inline_array_of_array() {
                 start: Box::new(Statement::LiteralInteger {
                     value: 0,
                     location: SourceRange::undefined(),
+                    id: 0,
                 }),
                 end: Box::new(Statement::LiteralInteger {
                     value: 1,
                     location: SourceRange::undefined(),
+                    id: 0,
                 }),
+                id: 0,
             },
             referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
                 referenced_type: "__foo_inline_array_".to_string(),
@@ -976,11 +985,14 @@ fn pre_processing_nested_array_in_struct() {
                 start: Box::new(Statement::LiteralInteger {
                     value: 0,
                     location: SourceRange::undefined(),
+                    id: 0,
                 }),
                 end: Box::new(Statement::LiteralInteger {
                     value: 4,
                     location: SourceRange::undefined(),
+                    id: 0,
                 }),
+                id: 0,
             },
             referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
                 referenced_type: "INT".to_string(),
@@ -1018,11 +1030,14 @@ fn pre_processing_generates_inline_array_of_array_of_array() {
                 start: Box::new(Statement::LiteralInteger {
                     value: 0,
                     location: SourceRange::undefined(),
+                    id: 0,
                 }),
                 end: Box::new(Statement::LiteralInteger {
                     value: 1,
                     location: SourceRange::undefined(),
+                    id: 0,
                 }),
+                id: 0,
             },
             referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
                 referenced_type: "INT".to_string(),
@@ -1041,11 +1056,14 @@ fn pre_processing_generates_inline_array_of_array_of_array() {
                 start: Box::new(Statement::LiteralInteger {
                     value: 0,
                     location: SourceRange::undefined(),
+                    id: 0,
                 }),
                 end: Box::new(Statement::LiteralInteger {
                     value: 1,
                     location: SourceRange::undefined(),
+                    id: 0,
                 }),
+                id: 0,
             },
             referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
                 referenced_type: "__foo_inline_array__".to_string(),
@@ -1064,11 +1082,14 @@ fn pre_processing_generates_inline_array_of_array_of_array() {
                 start: Box::new(Statement::LiteralInteger {
                     value: 0,
                     location: SourceRange::undefined(),
+                    id: 0,
                 }),
                 end: Box::new(Statement::LiteralInteger {
                     value: 1,
                     location: SourceRange::undefined(),
+                    id: 0,
                 }),
+                id: 0,
             },
             referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
                 referenced_type: "__foo_inline_array_".to_string(),
@@ -1106,9 +1127,11 @@ fn sub_range_boundaries_are_registered_at_the_index() {
         sub_range: Statement::LiteralInteger {
             value: 7,
             location: SourceRange::undefined(),
+            id: 0,
         }..Statement::LiteralInteger {
             value: 1000,
             location: SourceRange::undefined(),
+            id: 0,
         },
     };
 

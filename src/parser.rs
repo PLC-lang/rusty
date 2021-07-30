@@ -693,6 +693,7 @@ fn parse_statement(lexer: &mut ParseSession) -> Statement {
     if lexer.last_token == KeywordColon {
         Statement::CaseCondition {
             condition: Box::new(result),
+            id: lexer.next_id(),
         }
     } else {
         result
@@ -721,6 +722,7 @@ fn parse_reference(lexer: &mut ParseSession) -> Statement {
         Err(diagnostic) => {
             let statement = Statement::EmptyStatement {
                 location: diagnostic.get_location(),
+                id: lexer.next_id(),
             };
             lexer.accept_diagnostic(diagnostic);
             statement
