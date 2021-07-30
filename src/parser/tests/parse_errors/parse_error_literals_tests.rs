@@ -106,3 +106,31 @@ fn literal_dec_number_with_double_underscores() {
         }
     );
 }
+
+#[test]
+fn literal_bin_number_with_double_underscores() {
+    let lexer = lex("PROGRAM exp 2#01__001_101_01; END_PROGRAM");
+    let result = parse(lexer).unwrap().1;
+
+    assert_eq!(
+        result.first().unwrap(),
+        &Diagnostic::SyntaxError {
+            message: "Unexpected token: expected KeywordSemicolon but found '__001_101_01'".into(),
+            range: SourceRange::new(16..28)
+        }
+    );
+}
+
+#[test]
+fn literal_oct_number_with_double_underscores() {
+    let lexer = lex("PROGRAM exp 8#7__7; END_PROGRAM");
+    let result = parse(lexer).unwrap().1;
+
+    assert_eq!(
+        result.first().unwrap(),
+        &Diagnostic::SyntaxError {
+            message: "Unexpected token: expected KeywordSemicolon but found '__7'".into(),
+            range: SourceRange::new(15..18)
+        }
+    );
+}
