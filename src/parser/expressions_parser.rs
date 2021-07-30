@@ -341,20 +341,12 @@ fn parse_literal_number_with_modifier(
     let location = lexer.location();
     let token = lexer.slice_and_advance();
     let number_str = token.split('#').last().unwrap();
-    let number_str_without_underscores = number_str.replace("_", "");
+    let number_str = number_str.replace("_", "");
 
-    // for now, check for parser errors here. As soon as the logos
-    // bug is fixed, this can be caught by the regexes in the lexer.
-    match i64::from_str_radix(&number_str_without_underscores.as_str(), radix) {
-        Ok(value) => Ok(Statement::LiteralInteger { value, location }),
-        Err(..) => Err(Diagnostic::SyntaxError {
-            message: format!(
-                "Expected base {} integer literal, but got '{}'",
-                radix, number_str
-            ),
-            range: location,
-        }),
-    }
+    // again, the parsed number can be safely unwrapped.
+    let value = i64::from_str_radix(&number_str.as_str(), radix).unwrap();
+
+    Ok(Statement::LiteralInteger { value, location })
 }
 
 fn parse_literal_number(lexer: &mut ParseSession) -> Result<Statement, ParseError> {
@@ -377,16 +369,12 @@ fn parse_literal_number(lexer: &mut ParseSession) -> Result<Statement, ParseErro
         });
     }
 
-    // for now, check for parser errors here. As soon as the logos
-    // bug is fixed, this can be caught by the regexes in the lexer.
-    let result_without_underscores = result.replace("_", "");
-    match result_without_underscores.parse::<i64>() {
-        Ok(value) => Ok(Statement::LiteralInteger { value, location }),
-        Err(..) => Err(Diagnostic::SyntaxError {
-            message: format!("Expected decimal integer literal, but got '{}'", result),
-            range: location,
-        }),
-    }
+    // parsed number value can be safely unwrapped
+    let result = result.replace("_", "");
+    Ok(Statement::LiteralInteger {
+        value: result.parse::<i64>().unwrap(),
+        location,
+    })
 }
 
 fn parse_number<F: FromStr>(text: &str, location: &SourceRange) -> Result<F, Diagnostic> {
