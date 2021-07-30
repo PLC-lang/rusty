@@ -1,7 +1,7 @@
 # Summary
 
 - [RuSTy](./intro_1.md)
-- [Installation]()
+- [Build and Install](./build_and_install.md)
 - [Using RuSTy](./using_rusty.md)
 - [Writing ST Programs]()
     - [Multiple Files]()
