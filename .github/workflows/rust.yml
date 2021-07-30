@@ -174,7 +174,7 @@ jobs:
       
       - name: Generate coverage report
         run:
-          grcov . --binary-path ./target/debug/ -s . -t lcov --branch --ignore "src/main.rs" --ignore "src/parser/tests/*" --ignore-not-existing --ignore "/*" -o lcov.info
+          grcov . --binary-path ./target/debug/ -s . -t lcov --branch --ignore "src/lexer/tokens.rs" --ignore "src/main.rs" --ignore "src/parser/tests/*" --ignore-not-existing --ignore "/*" -o lcov.info
 
 
       - name: Upload to codecov.io
