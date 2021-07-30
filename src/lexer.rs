@@ -435,16 +435,23 @@ pub enum Token {
     Identifier,
 
     //Literals
-    #[regex(r"16#[0-9a-fA-F]+")]
+    // logos regex implementation has a bug and won't match
+    // our literals correctly. As soon as logos/issue#213 is closed
+    // please replace these with:
+    // hex: r"16#([0-9a-fA-F]+_)*[0-9a-fA-F]+"
+    // oct: r"16#([0-7]+_)*[0-7]+"
+    // bin: r"16#([0-1]+_)*[0-1]+"
+    // dec: r"16#([0-9]+_)*[0-9]+"
+    #[regex(r"16#[0-9a-fA-F_]+")]
     LiteralIntegerHex,
 
-    #[regex(r"8#[0-7]+")]
+    #[regex(r"8#[0-7_]+")]
     LiteralIntegerOct,
 
-    #[regex(r"2#[0-1]+")]
+    #[regex(r"2#[0-1_]+")]
     LiteralIntegerBin,
 
-    #[regex(r"[0-9]+")]
+    #[regex(r"[0-9]+[0-9_]*")]
     LiteralInteger,
 
     #[regex("[eE][+-]?[0-9]+")]
