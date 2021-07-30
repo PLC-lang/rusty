@@ -493,16 +493,16 @@
     <span class="ident">Identifier</span>,
 
     <span class="comment">//Literals</span>
-    <span class="attribute">#[<span class="ident">regex</span>(<span class="string">r&quot;16#[0-9a-fA-F]+&quot;</span>)]</span>
+    <span class="attribute">#[<span class="ident">regex</span>(<span class="string">r&quot;16#[0-9a-fA-F]+(_[0-9a-fA-F]+)*&quot;</span>)]</span>
     <span class="ident">LiteralIntegerHex</span>,
 
-    <span class="attribute">#[<span class="ident">regex</span>(<span class="string">r&quot;8#[0-7]+&quot;</span>)]</span>
+    <span class="attribute">#[<span class="ident">regex</span>(<span class="string">r&quot;8#[0-7]+(_[0-7]+)*&quot;</span>)]</span>
     <span class="ident">LiteralIntegerOct</span>,
 
-    <span class="attribute">#[<span class="ident">regex</span>(<span class="string">r&quot;2#[0-1]+&quot;</span>)]</span>
+    <span class="attribute">#[<span class="ident">regex</span>(<span class="string">r&quot;2#[0-1]+(_[0-1]+)*&quot;</span>)]</span>
     <span class="ident">LiteralIntegerBin</span>,
 
-    <span class="attribute">#[<span class="ident">regex</span>(<span class="string">r&quot;[0-9]+&quot;</span>)]</span>
+    <span class="attribute">#[<span class="ident">regex</span>(<span class="string">r&quot;[0-9]+(_[0-9]+)*&quot;</span>)]</span>
     <span class="ident">LiteralInteger</span>,
 
     <span class="attribute">#[<span class="ident">regex</span>(<span class="string">&quot;[eE][+-]?[0-9]+&quot;</span>)]</span>
