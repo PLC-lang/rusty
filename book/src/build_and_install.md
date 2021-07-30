@@ -9,7 +9,7 @@ clone and work on the repository, you'll also need _git_.
 
 ## Cloning the repository
 On your local computer, open up a shell and clone the repository.
-```
+```bash
 git clone https://github.com/ghaith/rusty
 cd rusty
 ```
@@ -18,7 +18,7 @@ cd rusty
 Building is as easy as typing a single command. If you just want to use the
 compiler without doing development, building the release configuration will
 give you a smaller and likely a faster binary.
-```
+```bash
 cargo build --release
 ```
 
