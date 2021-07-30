@@ -341,9 +341,10 @@ fn parse_literal_number_with_modifier(
     let location = lexer.location();
     let token = lexer.slice_and_advance();
     let number_str = token.split('#').last().unwrap();
+    let number_str = number_str.replace("_", "");
 
     // again, the parsed number can be safely unwrapped.
-    let value = i64::from_str_radix(number_str, radix).unwrap();
+    let value = i64::from_str_radix(&number_str.as_str(), radix).unwrap();
 
     Ok(Statement::LiteralInteger { value, location })
 }
@@ -369,6 +370,7 @@ fn parse_literal_number(lexer: &mut ParseSession) -> Result<Statement, ParseErro
     }
 
     // parsed number value can be safely unwrapped
+    let result = result.replace("_", "");
     Ok(Statement::LiteralInteger {
         value: result.parse::<i64>().unwrap(),
         location,
