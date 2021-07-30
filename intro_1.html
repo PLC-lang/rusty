@@ -82,7 +82,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded "><a href="intro_1.html" class="active"><strong aria-hidden="true">1.</strong> RuSTy</a></li><li class="chapter-item expanded "><div><strong aria-hidden="true">2.</strong> Installation</div></li><li class="chapter-item expanded "><a href="using_rusty.html"><strong aria-hidden="true">3.</strong> Using RuSTy</a></li><li class="chapter-item expanded "><div><strong aria-hidden="true">4.</strong> Writing ST Programs</div></li><li><ol class="section"><li class="chapter-item expanded "><div><strong aria-hidden="true">4.1.</strong> Multiple Files</div></li><li class="chapter-item expanded "><a href="libraries.html"><strong aria-hidden="true">4.2.</strong> Libraries</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="libraries/external_functions.html"><strong aria-hidden="true">4.2.1.</strong> External Functions</a></li></ol></li><li class="chapter-item expanded "><div><strong aria-hidden="true">4.3.</strong> Using in external programs</div></li></ol></li><li class="chapter-item expanded "><a href="datatypes.html"><strong aria-hidden="true">5.</strong> Datatypes</a></li></ol>            </div>
+                <ol class="chapter"><li class="chapter-item expanded "><a href="intro_1.html" class="active"><strong aria-hidden="true">1.</strong> RuSTy</a></li><li class="chapter-item expanded "><a href="build_and_install.html"><strong aria-hidden="true">2.</strong> Build and Install</a></li><li class="chapter-item expanded "><a href="using_rusty.html"><strong aria-hidden="true">3.</strong> Using RuSTy</a></li><li class="chapter-item expanded "><div><strong aria-hidden="true">4.</strong> Writing ST Programs</div></li><li><ol class="section"><li class="chapter-item expanded "><div><strong aria-hidden="true">4.1.</strong> Multiple Files</div></li><li class="chapter-item expanded "><a href="libraries.html"><strong aria-hidden="true">4.2.</strong> Libraries</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="libraries/external_functions.html"><strong aria-hidden="true">4.2.1.</strong> External Functions</a></li></ol></li><li class="chapter-item expanded "><div><strong aria-hidden="true">4.3.</strong> Using in external programs</div></li></ol></li><li class="chapter-item expanded "><a href="datatypes.html"><strong aria-hidden="true">5.</strong> Datatypes</a></li></ol>            </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
 
@@ -144,16 +144,22 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="rusty"><a class="header" href="#rusty">RuSTy</a></h1>
-<p>RuSTy is an <a href="https://en.wikipedia.org/wiki/Structured_text">ST</a> Compiler using LLVM</p>
-<h1 id="supported-language-concepts"><a class="header" href="#supported-language-concepts">Supported Language Concepts</a></h1>
-<h2 id="pous"><a class="header" href="#pous">POUs</a></h2>
+<p>RuSTy is a <a href="https://en.wikipedia.org/wiki/Structured_text">structured text (ST)</a>
+compiler written in Rust and based on the
+LLVM compiler backend. We use the <a href="https://crates.io/crates/logos/0.8.0"><em>logos</em></a>
+crate library to perform lexical analysis before the custom parser runs. RuSTy
+puts out static or shared objects as well as LLVM IR or bitcode by the flip of
+a command line flag. We are aiming towards an open-source industry-grade ST compiler
+supporting at least the features in 2nd edition IEC 61131 standard. </p>
+<h2 id="supported-language-concepts"><a class="header" href="#supported-language-concepts">Supported Language Concepts</a></h2>
+<h3 id="pous"><a class="header" href="#pous">POUs</a></h3>
 <ul>
 <li>✔ Program</li>
 <li>✔ Function</li>
 <li>✔ FunctionBlock</li>
 <li>✔ Action</li>
 </ul>
-<h2 id="datatypes"><a class="header" href="#datatypes">Datatypes</a></h2>
+<h3 id="datatypes"><a class="header" href="#datatypes">Datatypes</a></h3>
 <ul>
 <li>✔ IEC 61131-3 numeric types</li>
 <li>✔ Strings</li>
@@ -168,21 +174,21 @@
 <li>✔ Sized Wide String types</li>
 <li>✔ Initial values</li>
 </ul>
-<h2 id="declarations"><a class="header" href="#declarations">Declarations</a></h2>
+<h3 id="declarations"><a class="header" href="#declarations">Declarations</a></h3>
 <ul>
 <li>✔ VAR</li>
 <li>✔ VAR_INPUT</li>
 <li>✔ VAR_OUTPUT</li>
 <li>✔ VAR_IN_OUT</li>
 </ul>
-<h2 id="statements"><a class="header" href="#statements">Statements</a></h2>
+<h3 id="statements"><a class="header" href="#statements">Statements</a></h3>
 <ul>
 <li>✔ Assignments</li>
 <li>✔ Call statements</li>
 <li>✔ Implicit call arguments</li>
 <li>✔ Explicit call arguments</li>
 </ul>
-<h2 id="control-structures"><a class="header" href="#control-structures">Control Structures</a></h2>
+<h3 id="control-structures"><a class="header" href="#control-structures">Control Structures</a></h3>
 <ul>
 <li>✔ IF Statement</li>
 <li>✔ CASE Statement</li>
@@ -190,7 +196,7 @@
 <li>✔ WHILE Loops</li>
 <li>✔ REPEAT Loops</li>
 </ul>
-<h2 id="expressions"><a class="header" href="#expressions">Expressions</a></h2>
+<h3 id="expressions"><a class="header" href="#expressions">Expressions</a></h3>
 <ul>
 <li>✔ Arithmetic Operators</li>
 <li>✔ Relational Operators</li>
@@ -203,7 +209,7 @@
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
                         
-                                                    <a rel="next" href="using_rusty.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                                    <a rel="next" href="build_and_install.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                                 <i class="fa fa-angle-right"></i>
                             </a>
                         
@@ -214,7 +220,7 @@
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
                 
-                                    <a rel="next" href="using_rusty.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                    <a rel="next" href="build_and_install.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                         <i class="fa fa-angle-right"></i>
                     </a>
                             </nav>

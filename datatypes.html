@@ -82,7 +82,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded "><a href="intro_1.html"><strong aria-hidden="true">1.</strong> RuSTy</a></li><li class="chapter-item expanded "><div><strong aria-hidden="true">2.</strong> Installation</div></li><li class="chapter-item expanded "><a href="using_rusty.html"><strong aria-hidden="true">3.</strong> Using RuSTy</a></li><li class="chapter-item expanded "><div><strong aria-hidden="true">4.</strong> Writing ST Programs</div></li><li><ol class="section"><li class="chapter-item expanded "><div><strong aria-hidden="true">4.1.</strong> Multiple Files</div></li><li class="chapter-item expanded "><a href="libraries.html"><strong aria-hidden="true">4.2.</strong> Libraries</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="libraries/external_functions.html"><strong aria-hidden="true">4.2.1.</strong> External Functions</a></li></ol></li><li class="chapter-item expanded "><div><strong aria-hidden="true">4.3.</strong> Using in external programs</div></li></ol></li><li class="chapter-item expanded "><a href="datatypes.html" class="active"><strong aria-hidden="true">5.</strong> Datatypes</a></li></ol>            </div>
+                <ol class="chapter"><li class="chapter-item expanded "><a href="intro_1.html"><strong aria-hidden="true">1.</strong> RuSTy</a></li><li class="chapter-item expanded "><a href="build_and_install.html"><strong aria-hidden="true">2.</strong> Build and Install</a></li><li class="chapter-item expanded "><a href="using_rusty.html"><strong aria-hidden="true">3.</strong> Using RuSTy</a></li><li class="chapter-item expanded "><div><strong aria-hidden="true">4.</strong> Writing ST Programs</div></li><li><ol class="section"><li class="chapter-item expanded "><div><strong aria-hidden="true">4.1.</strong> Multiple Files</div></li><li class="chapter-item expanded "><a href="libraries.html"><strong aria-hidden="true">4.2.</strong> Libraries</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="libraries/external_functions.html"><strong aria-hidden="true">4.2.1.</strong> External Functions</a></li></ol></li><li class="chapter-item expanded "><div><strong aria-hidden="true">4.3.</strong> Using in external programs</div></li></ol></li><li class="chapter-item expanded "><a href="datatypes.html" class="active"><strong aria-hidden="true">5.</strong> Datatypes</a></li></ol>            </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
 
@@ -144,7 +144,42 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="datatypes"><a class="header" href="#datatypes">Datatypes</a></h1>
+<h2 id="numeric-types"><a class="header" href="#numeric-types">Numeric types</a></h2>
+<p>A variety of numeric types exist with different sizes and properties complying
+with IEC61131.</p>
+<h3 id="overview"><a class="header" href="#overview">Overview</a></h3>
+<table><thead><tr><th>Type name</th><th>Size</th><th>Properties</th></tr></thead><tbody>
+<tr><td>SINT</td><td>8 bit</td><td>signed</td></tr>
+<tr><td>USINT</td><td>8 bit</td><td>unsigned</td></tr>
+<tr><td>INT</td><td>16 bit</td><td>signed</td></tr>
+<tr><td>UINT</td><td>16 bit</td><td>unsigned</td></tr>
+<tr><td>DINT</td><td>32 bit</td><td>signed</td></tr>
+<tr><td>UDINT</td><td>32 bit</td><td>unsigned</td></tr>
+<tr><td>LINT</td><td>64 bit</td><td>signed</td></tr>
+<tr><td>ULINT</td><td>64 bit</td><td>unsigned</td></tr>
+<tr><td>REAL</td><td>32 bit</td><td>float</td></tr>
+<tr><td>LREAL</td><td>64 bit</td><td>float</td></tr>
+</tbody></table>
+<p>When such a variable is declared without being initialized, it will
+be default-initialized with a value of <code>0</code> or <code>0.0</code> respectively.</p>
+<h3 id="a-word-on-integer-literals"><a class="header" href="#a-word-on-integer-literals">A word on integer literals</a></h3>
+<p>Integer literals can be prefixed with either <code>2#</code> (binary), <code>8#</code> (octal) or
+<code>16#</code> (hexadecimal). They will then be treated with regard to the respective number system.</p>
+<p>Examples:</p>
+<ul>
+<li><code>i1 : DINT := 34;</code> - declares and initializes a 32bit signed integer with value 42.</li>
+<li><code>i1 : DINT := 2#101010;</code> - declares and initializes a 32bit signed integer with value 42.</li>
+<li><code>i1 : DINT := 8#52;</code> - declares and initializes a 32bit signed integer with value 42.</li>
+<li><code>i1 : DINT := 16#2A;</code> - declares and initializes a 32bit signed integer with value 42.</li>
+</ul>
 <h2 id="strings"><a class="header" href="#strings">Strings</a></h2>
+<h3 id="overview-1"><a class="header" href="#overview-1">Overview</a></h3>
+<table><thead><tr><th>Type name</th><th>Size</th><th>Encoding</th></tr></thead><tbody>
+<tr><td>STRING</td><td>n+1</td><td>UTF-8</td></tr>
+<tr><td>WSTRING</td><td>2n+2</td><td>UTF-16</td></tr>
+</tbody></table>
+<p>When such a variable is declared without being initialized, it will
+be default-initialized with a value of '' or &quot;&quot; respectively (empty strings).</p>
 <h3 id="string"><a class="header" href="#string">STRING</a></h3>
 <p>rusty treats <code>STRING</code>s as byte-arrays storing UTF-8 character bytes with a Null-terminator (0-byte) at the end. 
 So a String of size n requres n+1 bytes to account for the Null-terminator.
@@ -172,6 +207,15 @@ declaring a <code>WSTRING</code>, the length-attribute is optional. The default 
 <li><code>ws4 : WSTRING[55] := &quot;Foo Baz&quot;;</code> - declares and initializes a Wide-String of length 55 and initializes it with the utf8 characters and a utf16-null-terminator at the end.</li>
 </ul>
 <h2 id="date-and-time"><a class="header" href="#date-and-time">Date and Time</a></h2>
+<h3 id="overview-2"><a class="header" href="#overview-2">Overview</a></h3>
+<table><thead><tr><th>Type name</th><th>Size</th><th>Internally stored as</th></tr></thead><tbody>
+<tr><td>TIME</td><td>64 bit</td><td>Timespan in nanoseconds</td></tr>
+<tr><td>TIME_OF_DAY</td><td>64 bit</td><td>Milliseconds since Jan 1, 1970 UTC</td></tr>
+<tr><td>DATE</td><td>64 bit</td><td>Milliseconds since Jan 1, 1970 UTC</td></tr>
+<tr><td>DATE_AND_TIME</td><td>64 bit</td><td>Milliseconds since Jan 1, 1970 UTC</td></tr>
+</tbody></table>
+<p>Note that the internal representation and sizes of these types are specific
+to RuSTy and not defined by the IEC61131 standard.</p>
 <h3 id="date"><a class="header" href="#date">DATE</a></h3>
 <p>The <code>DATE</code> datatype is used to represent a Date in the Gregorian Calendar. Such a value is 
 stored as an i64 with a precision in milliseconds and denotes the number of milliseconds 
@@ -230,6 +274,19 @@ TIME literals start with <code>TIME#</code> or <code>T#</code> followed by the <
 <li><code>t2 : TIME := T#2d4.2h;</code></li>
 <li><code>t3 : TIME := T#-10s4ms16ns;</code></li>
 </ul>
+<h2 id="other-types"><a class="header" href="#other-types">Other types</a></h2>
+<p>The <code>BOOL</code> type can either be assigned <code>TRUE</code> or <code>FALSE</code>. The type <code>__VOID</code> is the
+empty type and has an undefined size.</p>
+<table><thead><tr><th>Type name</th><th>Size</th><th>Properties</th></tr></thead><tbody>
+<tr><td>BOOL</td><td>8 bit</td><td>signed</td></tr>
+<tr><td>__VOID</td><td>undefined</td><td></td></tr>
+</tbody></table>
+<table><thead><tr><th>Type name</th><th>Size</th><th>Properties</th></tr></thead><tbody>
+<tr><td>BYTE</td><td>8 bit</td><td>unsigned</td></tr>
+<tr><td>WORD</td><td>16 bit</td><td>unsigned</td></tr>
+<tr><td>DWORD</td><td>32 bit</td><td>unsigned</td></tr>
+<tr><td>LWORD</td><td>64 bit</td><td>unsigned</td></tr>
+</tbody></table>
 
                     </main>
 
