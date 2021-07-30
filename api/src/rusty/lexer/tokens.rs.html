@@ -267,6 +267,24 @@
 <span id="265">265</span>
 <span id="266">266</span>
 <span id="267">267</span>
+<span id="268">268</span>
+<span id="269">269</span>
+<span id="270">270</span>
+<span id="271">271</span>
+<span id="272">272</span>
+<span id="273">273</span>
+<span id="274">274</span>
+<span id="275">275</span>
+<span id="276">276</span>
+<span id="277">277</span>
+<span id="278">278</span>
+<span id="279">279</span>
+<span id="280">280</span>
+<span id="281">281</span>
+<span id="282">282</span>
+<span id="283">283</span>
+<span id="284">284</span>
+<span id="285">285</span>
 </pre><pre class="rust">
 <span class="kw">use</span> <span class="ident">logos::Logos</span>;
 
@@ -286,36 +304,45 @@
     <span class="ident">KeywordProgram</span>,
 
     <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;VAR_INPUT&quot;</span>)]</span>
+    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;VARINPUT&quot;</span>)]</span>
     <span class="ident">KeywordVarInput</span>,
 
     <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;VAR_OUTPUT&quot;</span>)]</span>
+    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;VAROUTPUT&quot;</span>)]</span>
     <span class="ident">KeywordVarOutput</span>,
 
     <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;VAR&quot;</span>)]</span>
     <span class="ident">KeywordVar</span>,
 
     <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;VAR_GLOBAL&quot;</span>)]</span>
+    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;VARGLOBAL&quot;</span>)]</span>
     <span class="ident">KeywordVarGlobal</span>,
 
     <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;VAR_IN_OUT&quot;</span>)]</span>
+    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;VARINOUT&quot;</span>)]</span>
     <span class="ident">KeywordVarInOut</span>,
 
     <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;END_VAR&quot;</span>)]</span>
+    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;ENDVAR&quot;</span>)]</span>
     <span class="ident">KeywordEndVar</span>,
 
     <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;END_PROGRAM&quot;</span>)]</span>
+    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;ENDPROGRAM&quot;</span>)]</span>
     <span class="ident">KeywordEndProgram</span>,
 
     <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;FUNCTION&quot;</span>)]</span>
     <span class="ident">KeywordFunction</span>,
 
     <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;END_FUNCTION&quot;</span>)]</span>
+    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;ENDFUNCTION&quot;</span>)]</span>
     <span class="ident">KeywordEndFunction</span>,
 
     <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;FUNCTION_BLOCK&quot;</span>)]</span>
+    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;FUNCTIONBLOCK&quot;</span>)]</span>
     <span class="ident">KeywordFunctionBlock</span>,
 
     <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;END_FUNCTION_BLOCK&quot;</span>)]</span>
+    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;ENDFUNCTIONBLOCK&quot;</span>)]</span>
     <span class="ident">KeywordEndFunctionBlock</span>,
 
     <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;TYPE&quot;</span>)]</span>
@@ -325,9 +352,11 @@
     <span class="ident">KeywordStruct</span>,
 
     <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;END_TYPE&quot;</span>)]</span>
+    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;ENDTYPE&quot;</span>)]</span>
     <span class="ident">KeywordEndType</span>,
 
     <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;END_STRUCT&quot;</span>)]</span>
+    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;ENDSTRUCT&quot;</span>)]</span>
     <span class="ident">KeywordEndStruct</span>,
 
     <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;ACTIONS&quot;</span>)]</span>
@@ -337,9 +366,11 @@
     <span class="ident">KeywordAction</span>,
 
     <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;END_ACTION&quot;</span>)]</span>
+    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;ENDACTION&quot;</span>)]</span>
     <span class="ident">KeywordEndAction</span>,
 
     <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;END_ACTIONS&quot;</span>)]</span>
+    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;ENDACTIONS&quot;</span>)]</span>
     <span class="ident">KeywordEndActions</span>,
 
     <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;:&quot;</span>)]</span>
@@ -392,6 +423,7 @@
     <span class="ident">KeywordElse</span>,
 
     <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;END_IF&quot;</span>)]</span>
+    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;ENDIF&quot;</span>)]</span>
     <span class="ident">KeywordEndIf</span>,
 
     <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;FOR&quot;</span>)]</span>
@@ -407,12 +439,14 @@
     <span class="ident">KeywordDo</span>,
 
     <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;END_FOR&quot;</span>)]</span>
+    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;ENDFOR&quot;</span>)]</span>
     <span class="ident">KeywordEndFor</span>,
 
     <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;WHILE&quot;</span>)]</span>
     <span class="ident">KeywordWhile</span>,
 
     <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;END_WHILE&quot;</span>)]</span>
+    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;ENDWHILE&quot;</span>)]</span>
     <span class="ident">KeywordEndWhile</span>,
 
     <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;REPEAT&quot;</span>)]</span>
@@ -422,6 +456,7 @@
     <span class="ident">KeywordUntil</span>,
 
     <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;END_REPEAT&quot;</span>)]</span>
+    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;ENDREPEAT&quot;</span>)]</span>
     <span class="ident">KeywordEndRepeat</span>,
 
     <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;CASE&quot;</span>)]</span>
@@ -440,6 +475,7 @@
     <span class="ident">KeywordOf</span>,
 
     <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;END_CASE&quot;</span>)]</span>
+    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;ENDCASE&quot;</span>)]</span>
     <span class="ident">KeywordEndCase</span>,
 
     <span class="comment">//Operators</span>
