@@ -16,36 +16,45 @@ pub enum Token {
     KeywordProgram,
 
     #[token("VAR_INPUT")]
+    #[token("VARINPUT")]
     KeywordVarInput,
 
     #[token("VAR_OUTPUT")]
+    #[token("VAROUTPUT")]
     KeywordVarOutput,
 
     #[token("VAR")]
     KeywordVar,
 
     #[token("VAR_GLOBAL")]
+    #[token("VARGLOBAL")]
     KeywordVarGlobal,
 
     #[token("VAR_IN_OUT")]
+    #[token("VARINOUT")]
     KeywordVarInOut,
 
     #[token("END_VAR")]
+    #[token("ENDVAR")]
     KeywordEndVar,
 
     #[token("END_PROGRAM")]
+    #[token("ENDPROGRAM")]
     KeywordEndProgram,
 
     #[token("FUNCTION")]
     KeywordFunction,
 
     #[token("END_FUNCTION")]
+    #[token("ENDFUNCTION")]
     KeywordEndFunction,
 
     #[token("FUNCTION_BLOCK")]
+    #[token("FUNCTIONBLOCK")]
     KeywordFunctionBlock,
 
     #[token("END_FUNCTION_BLOCK")]
+    #[token("ENDFUNCTIONBLOCK")]
     KeywordEndFunctionBlock,
 
     #[token("TYPE")]
@@ -55,9 +64,11 @@ pub enum Token {
     KeywordStruct,
 
     #[token("END_TYPE")]
+    #[token("ENDTYPE")]
     KeywordEndType,
 
     #[token("END_STRUCT")]
+    #[token("ENDSTRUCT")]
     KeywordEndStruct,
 
     #[token("ACTIONS")]
@@ -67,9 +78,11 @@ pub enum Token {
     KeywordAction,
 
     #[token("END_ACTION")]
+    #[token("ENDACTION")]
     KeywordEndAction,
 
     #[token("END_ACTIONS")]
+    #[token("ENDACTIONS")]
     KeywordEndActions,
 
     #[token(":")]
@@ -122,6 +135,7 @@ pub enum Token {
     KeywordElse,
 
     #[token("END_IF")]
+    #[token("ENDIF")]
     KeywordEndIf,
 
     #[token("FOR")]
@@ -137,12 +151,14 @@ pub enum Token {
     KeywordDo,
 
     #[token("END_FOR")]
+    #[token("ENDFOR")]
     KeywordEndFor,
 
     #[token("WHILE")]
     KeywordWhile,
 
     #[token("END_WHILE")]
+    #[token("ENDWHILE")]
     KeywordEndWhile,
 
     #[token("REPEAT")]
@@ -152,6 +168,7 @@ pub enum Token {
     KeywordUntil,
 
     #[token("END_REPEAT")]
+    #[token("ENDREPEAT")]
     KeywordEndRepeat,
 
     #[token("CASE")]
@@ -170,6 +187,7 @@ pub enum Token {
     KeywordOf,
 
     #[token("END_CASE")]
+    #[token("ENDCASE")]
     KeywordEndCase,
 
     //Operators
