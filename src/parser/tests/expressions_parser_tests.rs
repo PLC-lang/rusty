@@ -76,23 +76,6 @@ fn literal_binary_number_can_be_parsed() {
 }
 
 #[test]
-#[ignore]
-fn literal_hex_number_with_double_underscores() {
-    let lexer = super::lex("PROGRAM exp 16#DEAD__beef; END_PROGRAM");
-    let result = parse(lexer).unwrap().0;
-
-    let prg = &result.implementations[0];
-    let statement = &prg.statements[0];
-
-    match statement {
-        Statement::EmptyStatement { .. } => {}
-        _ => {
-            assert!(false);
-        }
-    }
-}
-
-#[test]
 fn literal_hex_number_with_underscores_can_be_parsed() {
     let lexer = super::lex("PROGRAM exp 16#DE_AD_be_ef; END_PROGRAM");
     let result = parse(lexer).unwrap().0;
