@@ -34,6 +34,7 @@ use inkwell::targets::{
     CodeModel, FileType, InitializationConfig, RelocMode, Target, TargetMachine, TargetTriple,
 };
 use parser::ParsedAst;
+use resolver::TypeAnnotator;
 use std::{fs::File, io::Read};
 
 use crate::ast::CompilationUnit;
@@ -45,6 +46,7 @@ pub mod index;
 mod lexer;
 mod parser;
 mod typesystem;
+mod resolver;
 
 #[macro_use]
 extern crate pretty_assertions;
@@ -320,6 +322,7 @@ pub fn compile_module<'c, T: SourceContainer>(
     let mut unit = CompilationUnit::default();
     // let mut diagnostics : Vec<Diagnostic> = vec![];
     let mut files: SimpleFiles<String, String> = SimpleFiles::new();
+    let mut all_units = Vec::new();
     for container in sources {
         let location: String = container.get_location().into();
         let e = container
@@ -327,9 +330,11 @@ pub fn compile_module<'c, T: SourceContainer>(
             .map_err(|err| CompileError::io_read_error(err, location.clone()))?;
 
         let (mut parse_result, diagnostics) = parse(e.source.as_str());
+        //pre-process the ast (create inlined types)
         ast::pre_process(&mut parse_result);
+        //index the pou
         full_index.import(index::visitor::visit(&parse_result));
-        unit.import(parse_result);
+        all_units.push(parse_result);
 
         //log errors
         let file_id = files.add(location, e.source.clone());
@@ -357,6 +362,13 @@ pub fn compile_module<'c, T: SourceContainer>(
                 )
             })?;
         }
+    }
+
+    //annotate the ASTs
+    for u in all_units {
+        let mut ta = TypeAnnotator::new(&full_index);
+        ta.visit_unit(&u);
+        unit.import(u);  //TODO this needs to be changed so we have unique AstIds
     }
 
     //and finally codegen

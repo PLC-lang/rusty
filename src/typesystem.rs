@@ -160,6 +160,7 @@ impl DataTypeInformation {
     }
 }
 
+
 pub fn get_builtin_types() -> Vec<DataType> {
     vec![
         DataType {
