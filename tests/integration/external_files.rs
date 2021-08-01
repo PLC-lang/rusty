@@ -35,11 +35,13 @@ fn get_file(name : &str) -> String {
 
 }
 
+#[ignore = "ends in endless build in cargo watch"]
 #[test]
 fn compile_external_file() {
     compile_all("test_file.st", None);
 }
 
+#[ignore = "ends in endless build in cargo watch"]
 #[test]
 fn compile_external_file_with_encoding() {
     compile_all("encoding_utf_16.st", None);
