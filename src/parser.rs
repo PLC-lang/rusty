@@ -36,6 +36,14 @@ pub fn parse(mut lexer: ParseSession) -> ParsedAst {
                 unit.units.push(pou);
                 unit.implementations.push(implementation);
             }
+            KeywordClass => {
+                if let Some((pou, implementation)) =
+                    parse_pou(&mut lexer, PouType::Class, linkage, KeywordEndClass)
+                {
+                    unit.units.push(pou);
+                    unit.implementations.push(implementation);
+                }
+            }
             KeywordFunction => {
                 let (pou, implementation) =
                     parse_pou(&mut lexer, PouType::Function, linkage, KeywordEndFunction);
@@ -187,10 +195,11 @@ fn parse_pou(
 
         //Parse variable declarations
         let mut variable_blocks = vec![];
-        while lexer.token == KeywordVar
-            || lexer.token == KeywordVarInput
-            || lexer.token == KeywordVarOutput
-            || lexer.token == KeywordVarInOut
+        let accepted_var_types = match pou_type {
+            PouType::Class => vec![ KeywordVar ],
+            _ => vec![ KeywordVar, KeywordVarInOut, KeywordVarInput, KeywordVarOutput ]
+        };
+        while accepted_var_types.contains(&lexer.token)
         {
             variable_blocks.push(parse_variable_block(
                 lexer,
