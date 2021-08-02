@@ -472,7 +472,7 @@ fn parse_array_type_definition(
         expect_token!(lexer, KeywordSquareParensOpen, None);
         lexer.advance();
 
-        let range_statement = parse_primary_expression(lexer);
+        let range_statement = parse_expression(lexer);
 
         expect_token!(lexer, KeywordSquareParensClose, None);
         lexer.advance();
@@ -539,7 +539,17 @@ pub fn parse_any_in_region<T, F: FnOnce(&mut ParseSession) -> T>(
 }
 
 fn parse_expression(lexer: &mut ParseSession) -> Statement {
-    parse_primary_expression(lexer)
+    let start = lexer.range().start;
+    match parse_primary_expression(lexer) {
+        Ok(statement) => statement,
+        Err(diagnostic) => {
+            lexer.accept_diagnostic(diagnostic);
+            let end = lexer.range().end;
+            Statement::EmptyStatement {
+                location: SourceRange::new(start..end)
+            }
+        }
+    }
 }
 
 fn parse_reference(lexer: &mut ParseSession) -> Statement {
