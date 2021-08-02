@@ -15,6 +15,13 @@ pub enum Token {
     #[token("PROGRAM")]
     KeywordProgram,
 
+    #[token("CLASS")]
+    KeywordClass,
+
+    #[token("END_CLASS")]
+    #[token("ENDCLASS")]
+    KeywordEndClass,
+
     #[token("VAR_INPUT")]
     #[token("VARINPUT")]
     KeywordVarInput,

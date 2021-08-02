@@ -60,6 +60,7 @@ pub enum PouType {
     Function,
     FunctionBlock,
     Action,
+    Class,
 }
 
 #[derive(Debug, PartialEq)]

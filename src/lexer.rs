@@ -121,7 +121,8 @@ impl<'a> ParseSession<'a> {
             | Token::KeywordEndActions
             | Token::KeywordEndIf
             | Token::KeywordEndFor
-            | Token::KeywordEndRepeat => {
+            | Token::KeywordEndRepeat 
+            | Token::KeywordEndClass => {
                 if !self.slice().to_string().contains('_') {
                     self.accept_diagnostic(Diagnostic::ImprovementSuggestion {
                         message: format!(
