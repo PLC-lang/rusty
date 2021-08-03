@@ -1,7 +1,7 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use std::ops::Range;
 
-use crate::ast::{Dimension, Statement};
+use crate::{ast::{Dimension, Statement}, index::Index};
 
 pub const DEFAULT_STRING_LEN: u32 = 80;
 
@@ -151,10 +151,10 @@ impl DataTypeInformation {
             DataTypeInformation::Float { size, .. } => *size,
             DataTypeInformation::String { size, .. } => *size,
             DataTypeInformation::Struct { .. } => 0, //TODO : Should we fill in the struct members here for size calculation or save the struct size.
-            DataTypeInformation::Array { .. } => unimplemented!(), //Propably length * inner type size
-            DataTypeInformation::Pointer { .. } => unimplemented!(),
-            DataTypeInformation::SubRange { .. } => unimplemented!(),
-            DataTypeInformation::Alias { .. } => unimplemented!(),
+            DataTypeInformation::Array { .. } => unimplemented!("array"), //Propably length * inner type size
+            DataTypeInformation::Pointer { .. } => unimplemented!("pointer"),
+            DataTypeInformation::SubRange { .. } => unimplemented!("subrange"),
+            DataTypeInformation::Alias { .. } => unimplemented!("alias"),
             DataTypeInformation::Void => 0,
         }
     }
@@ -422,4 +422,46 @@ pub fn get_bigger_type(
             real_type
         }
     }
+}
+
+pub fn get_bigger_type_borrow<'t>(
+    ltype: &'t DataTypeInformation,
+    rtype: &'t DataTypeInformation,
+    index: &'t Index,
+) -> &'t DataTypeInformation {
+    if is_same_type_nature(&ltype, &rtype) {
+        if get_rank(&ltype) < get_rank(&rtype) {
+            rtype
+        } else {
+            ltype
+        }
+    } else { 
+        let real_type = index.get_type("REAL").map(|it| it.get_type_information()).unwrap();
+        let real_size = real_type.get_size();
+        if ltype.get_size() > real_size || rtype.get_size() > real_size {
+            index.get_type("LREAL").unwrap().get_type_information()
+        } else {
+            real_type
+        }
+    }
+}
+
+/// returns the signed version of the given data_type if its a signed int-type
+/// returns the original type if it is no signed int-type
+pub fn get_signed_type<'t>(data_type: &'t DataTypeInformation, index: &'t Index) -> Option<&'t DataTypeInformation> {
+    if data_type.is_int() {
+        let signed_type = match data_type.get_name() {
+            "BYTE" => "SINT",
+            "USINT" => "SINT",
+            "WORD" => "INT",
+            "UINT" => "INT",
+            "DWORD" => "DINT",
+            "UDINT" => "DINT", 
+            "ULINT" => "LINT",
+            "LWORD" => "LINT",
+            _ => data_type.get_name()
+        };
+        return index.get_type(signed_type).ok().map(|t| t.get_type_information());
+    }
+    None
 }
