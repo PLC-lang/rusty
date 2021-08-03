@@ -6,7 +6,7 @@ use crate::{
     Diagnostic,
 };
 
-use self::{control_parser::parse_control_statement, expressions_parser::parse_primary_expression};
+use self::{control_parser::parse_control_statement, expressions_parser::parse_expression};
 
 mod control_parser;
 mod expressions_parser;
@@ -472,7 +472,7 @@ fn parse_array_type_definition(
         expect_token!(lexer, KeywordSquareParensOpen, None);
         lexer.advance();
 
-        let range_statement = parse_primary_expression(lexer);
+        let range_statement = parse_expression(lexer);
 
         expect_token!(lexer, KeywordSquareParensClose, None);
         lexer.advance();
@@ -536,10 +536,6 @@ pub fn parse_any_in_region<T, F: FnOnce(&mut ParseSession) -> T>(
     lexer.close_region();
 
     result
-}
-
-fn parse_expression(lexer: &mut ParseSession) -> Statement {
-    parse_primary_expression(lexer)
 }
 
 fn parse_reference(lexer: &mut ParseSession) -> Statement {

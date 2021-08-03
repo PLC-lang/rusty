@@ -1,16 +1,15 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
-use crate::ast::*;
-use crate::lexer::Token::*;
-use crate::parser::parse_any_in_region;
-use crate::Diagnostic;
+use crate::{
+    ast::*, lexer::ParseSession, lexer::Token::*, parser::parse_any_in_region, Diagnostic,
+};
 use std::str::FromStr;
 
-use super::ParseSession;
-
-type ParseError = Diagnostic;
-
-pub fn parse_primary_expression(lexer: &mut ParseSession) -> Statement {
+/// parse_expression(): returns expression as Statement. if a parse error
+/// is encountered, the erroneous part of the AST will consist of an
+/// EmptyStatement and a diagnostic will be logged. That case is different from
+/// only an EmptyStatement returned, which does not denote an error condition.
+pub fn parse_expression(lexer: &mut ParseSession) -> Statement {
     if lexer.token == KeywordSemicolon {
         Statement::EmptyStatement {
             location: lexer.location(),
@@ -206,7 +205,7 @@ fn parse_parenthesized_expression(lexer: &mut ParseSession) -> Statement {
         KeywordParensOpen => {
             lexer.advance();
             super::parse_any_in_region(lexer, vec![KeywordParensClose], |lexer| {
-                parse_primary_expression(lexer)
+                parse_expression(lexer)
             })
         }
         _ => parse_leaf_expression(lexer),
@@ -262,11 +261,11 @@ fn parse_leaf_expression(lexer: &mut ParseSession) -> Statement {
     }
 }
 
-fn parse_array_literal(lexer: &mut ParseSession) -> Result<Statement, ParseError> {
+fn parse_array_literal(lexer: &mut ParseSession) -> Result<Statement, Diagnostic> {
     let start = lexer.range().start;
     lexer.expect(KeywordSquareParensOpen)?;
     lexer.advance();
-    let elements = Some(Box::new(parse_primary_expression(lexer)));
+    let elements = Some(Box::new(parse_expression(lexer)));
     let end = lexer.range().end;
     lexer.expect(KeywordSquareParensClose)?;
     lexer.advance();
@@ -278,13 +277,13 @@ fn parse_array_literal(lexer: &mut ParseSession) -> Result<Statement, ParseError
 
 #[allow(clippy::unnecessary_wraps)]
 //Allowing the unnecessary wrap here because this method is used along other methods that need to return Results
-fn parse_bool_literal(lexer: &mut ParseSession, value: bool) -> Result<Statement, ParseError> {
+fn parse_bool_literal(lexer: &mut ParseSession, value: bool) -> Result<Statement, Diagnostic> {
     let location = lexer.location();
     lexer.advance();
     Ok(Statement::LiteralBool { value, location })
 }
 
-pub fn parse_qualified_reference(lexer: &mut ParseSession) -> Result<Statement, ParseError> {
+pub fn parse_qualified_reference(lexer: &mut ParseSession) -> Result<Statement, Diagnostic> {
     let start = lexer.range().start;
     let mut reference_elements = vec![parse_reference_access(lexer)?];
     while lexer.allow(&KeywordDot) {
@@ -322,7 +321,7 @@ pub fn parse_qualified_reference(lexer: &mut ParseSession) -> Result<Statement, 
     }
 }
 
-pub fn parse_reference_access(lexer: &mut ParseSession) -> Result<Statement, ParseError> {
+pub fn parse_reference_access(lexer: &mut ParseSession) -> Result<Statement, Diagnostic> {
     let location = lexer.location();
     let mut reference = Statement::Reference {
         name: lexer.slice_and_advance(),
@@ -330,7 +329,7 @@ pub fn parse_reference_access(lexer: &mut ParseSession) -> Result<Statement, Par
     };
     //If (while) we hit a dereference, parse and append the dereference to the result
     while lexer.allow(&KeywordSquareParensOpen) {
-        let access = parse_primary_expression(lexer);
+        let access = parse_expression(lexer);
         lexer.expect(KeywordSquareParensClose)?;
         lexer.advance();
         reference = Statement::ArrayAccess {
@@ -341,7 +340,7 @@ pub fn parse_reference_access(lexer: &mut ParseSession) -> Result<Statement, Par
     Ok(reference)
 }
 
-fn parse_literal_number(lexer: &mut ParseSession) -> Result<Statement, ParseError> {
+fn parse_literal_number(lexer: &mut ParseSession) -> Result<Statement, Diagnostic> {
     let location = lexer.location();
     let result = lexer.slice_and_advance();
     if lexer.allow(&KeywordDot) {
@@ -350,7 +349,7 @@ fn parse_literal_number(lexer: &mut ParseSession) -> Result<Statement, ParseErro
         let multiplier = result
             .parse::<u32>()
             .map_err(|e| Diagnostic::syntax_error(format!("{}", e), location.clone()))?;
-        let element = parse_primary_expression(lexer);
+        let element = parse_expression(lexer);
         lexer.expect(KeywordParensClose)?;
         let end = lexer.range().end;
         lexer.advance();
@@ -373,7 +372,7 @@ fn parse_number<F: FromStr>(text: &str, location: &SourceRange) -> Result<F, Dia
     })
 }
 
-fn parse_date_from_string(text: &str, location: SourceRange) -> Result<Statement, ParseError> {
+fn parse_date_from_string(text: &str, location: SourceRange) -> Result<Statement, Diagnostic> {
     let mut segments = text.split('-');
 
     //we can safely expect 3 numbers
@@ -398,7 +397,7 @@ fn parse_date_from_string(text: &str, location: SourceRange) -> Result<Statement
     })
 }
 
-fn parse_literal_date_and_time(lexer: &mut ParseSession) -> Result<Statement, ParseError> {
+fn parse_literal_date_and_time(lexer: &mut ParseSession) -> Result<Statement, Diagnostic> {
     let location = lexer.location();
     //get rid of D# or DATE#
     let slice = lexer.slice_and_advance();
@@ -435,7 +434,7 @@ fn parse_literal_date_and_time(lexer: &mut ParseSession) -> Result<Statement, Pa
     })
 }
 
-fn parse_literal_date(lexer: &mut ParseSession) -> Result<Statement, ParseError> {
+fn parse_literal_date(lexer: &mut ParseSession) -> Result<Statement, Diagnostic> {
     let location = lexer.location();
     //get rid of D# or DATE#
     let slice = lexer.slice_and_advance();
@@ -445,7 +444,7 @@ fn parse_literal_date(lexer: &mut ParseSession) -> Result<Statement, ParseError>
     parse_date_from_string(slice, location)
 }
 
-fn parse_literal_time_of_day(lexer: &mut ParseSession) -> Result<Statement, ParseError> {
+fn parse_literal_time_of_day(lexer: &mut ParseSession) -> Result<Statement, Diagnostic> {
     let location = lexer.location();
     //get rid of TOD# or TIME_OF_DAY#
     let slice = lexer.slice_and_advance();
@@ -467,7 +466,7 @@ fn parse_literal_time_of_day(lexer: &mut ParseSession) -> Result<Statement, Pars
     })
 }
 
-fn parse_literal_time(lexer: &mut ParseSession) -> Result<Statement, ParseError> {
+fn parse_literal_time(lexer: &mut ParseSession) -> Result<Statement, Diagnostic> {
     const POS_D: usize = 0;
     const POS_H: usize = 1;
     const POS_M: usize = 2;
@@ -573,7 +572,7 @@ fn trim_quotes(quoted_string: &str) -> String {
     quoted_string[1..quoted_string.len() - 1].to_string()
 }
 
-fn parse_literal_string(lexer: &mut ParseSession, is_wide: bool) -> Result<Statement, ParseError> {
+fn parse_literal_string(lexer: &mut ParseSession, is_wide: bool) -> Result<Statement, Diagnostic> {
     let result = lexer.slice();
     let location = lexer.location();
     let string_literal = Ok(Statement::LiteralString {
@@ -589,7 +588,7 @@ fn parse_literal_real(
     lexer: &mut ParseSession,
     integer: String,
     integer_range: SourceRange,
-) -> Result<Statement, ParseError> {
+) -> Result<Statement, Diagnostic> {
     lexer.expect(LiteralInteger)?;
     let start = integer_range.get_start();
     let fraction_end = lexer.range().end;
