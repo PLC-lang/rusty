@@ -244,7 +244,7 @@ fn visit_data_type(index: &mut Index, type_declatation: &UserTypeDeclaration) {
                     v,
                     "DINT",
                     Some(ast::Statement::LiteralInteger {
-                        value: i.to_string(),
+                        value: i as i64,
                         location: SourceRange::undefined(),
                     }),
                     SourceRange::undefined(),

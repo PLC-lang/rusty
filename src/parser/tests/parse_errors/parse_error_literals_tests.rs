@@ -78,3 +78,59 @@ fn illegal_literal_time_out_of_order_segments_test() {
         )
     );
 }
+
+#[test]
+fn literal_hex_number_with_double_underscores() {
+    let lexer = lex("PROGRAM exp 16#DEAD__beef; END_PROGRAM");
+    let result = parse(lexer).1;
+
+    assert_eq!(
+        result.first().unwrap(),
+        &Diagnostic::SyntaxError {
+            message: "Unexpected token: expected KeywordSemicolon but found '__beef'".into(),
+            range: SourceRange::new(19..25)
+        }
+    );
+}
+
+#[test]
+fn literal_dec_number_with_double_underscores() {
+    let lexer = lex("PROGRAM exp 43__000; END_PROGRAM");
+    let result = parse(lexer).1;
+
+    assert_eq!(
+        result.first().unwrap(),
+        &Diagnostic::SyntaxError {
+            message: "Unexpected token: expected KeywordSemicolon but found '__000'".into(),
+            range: SourceRange::new(14..19)
+        }
+    );
+}
+
+#[test]
+fn literal_bin_number_with_double_underscores() {
+    let lexer = lex("PROGRAM exp 2#01__001_101_01; END_PROGRAM");
+    let result = parse(lexer).1;
+
+    assert_eq!(
+        result.first().unwrap(),
+        &Diagnostic::SyntaxError {
+            message: "Unexpected token: expected KeywordSemicolon but found '__001_101_01'".into(),
+            range: SourceRange::new(16..28)
+        }
+    );
+}
+
+#[test]
+fn literal_oct_number_with_double_underscores() {
+    let lexer = lex("PROGRAM exp 8#7__7; END_PROGRAM");
+    let result = parse(lexer).1;
+
+    assert_eq!(
+        result.first().unwrap(),
+        &Diagnostic::SyntaxError {
+            message: "Unexpected token: expected KeywordSemicolon but found '__7'".into(),
+            range: SourceRange::new(15..18)
+        }
+    );
+}

@@ -1,15 +1,21 @@
 # RuSTy
 
-RuSTy is an [ST](https://en.wikipedia.org/wiki/Structured_text) Compiler using LLVM
+RuSTy is a [structured text (ST)](https://en.wikipedia.org/wiki/Structured_text)
+compiler written in Rust and based on the
+LLVM compiler backend. We use the [_logos_](https://crates.io/crates/logos/0.8.0)
+crate library to perform lexical analysis before the custom parser runs. RuSTy
+puts out static or shared objects as well as LLVM IR or bitcode by the flip of
+a command line flag. We are aiming towards an open-source industry-grade ST compiler
+supporting at least the features in 2nd edition IEC 61131 standard. 
 
-# Supported Language Concepts
-## POUs
+## Supported Language Concepts
+### POUs
 - ✔ Program
 - ✔ Function
 - ✔ FunctionBlock
 - ✔ Action
 
-## Datatypes
+### Datatypes
 - ✔ IEC 61131-3 numeric types
 - ✔ Strings
 - ✔ Wide Strings
@@ -23,26 +29,26 @@ RuSTy is an [ST](https://en.wikipedia.org/wiki/Structured_text) Compiler using L
 - ✔ Sized Wide String types
 - ✔ Initial values
 
-## Declarations
+### Declarations
 - ✔ VAR
 - ✔ VAR_INPUT
 - ✔ VAR_OUTPUT
 - ✔ VAR_IN_OUT
 
-## Statements
+### Statements
 - ✔ Assignments
 - ✔ Call statements
 - ✔ Implicit call arguments
 - ✔ Explicit call arguments
 
-## Control Structures
+### Control Structures
 - ✔ IF Statement
 - ✔ CASE Statement
 - ✔ FOR Loops
 - ✔ WHILE Loops
 - ✔ REPEAT Loops
 
-## Expressions
+### Expressions
 - ✔ Arithmetic Operators
 - ✔ Relational Operators
 - ✔ Logical Operators

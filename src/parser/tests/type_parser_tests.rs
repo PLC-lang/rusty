@@ -115,11 +115,11 @@ fn array_type_can_be_parsed_test() {
                 name: Some("MyArray".to_string()),
                 bounds: Statement::RangeStatement {
                     start: Box::new(Statement::LiteralInteger {
-                        value: "0".to_string(),
+                        value: 0,
                         location: SourceRange::undefined(),
                     }),
                     end: Box::new(Statement::LiteralInteger {
-                        value: "8".to_string(),
+                        value: 8,
                         location: SourceRange::undefined(),
                     }),
                 },
@@ -150,7 +150,7 @@ fn string_type_can_be_parsed_test() {
                 data_type: DataType::StringType {
                     name: Some("MyString".to_string()),
                     size: Some(LiteralInteger {
-                        value: "253".to_string(),
+                        value: 253,
                         location: (10..11).into(),
                     }),
                     is_wide: false,
@@ -161,7 +161,7 @@ fn string_type_can_be_parsed_test() {
                 data_type: DataType::StringType {
                     name: Some("MyString".to_string()),
                     size: Some(LiteralInteger {
-                        value: "253".to_string(),
+                        value: 253,
                         location: (10..11).into(),
                     }),
                     is_wide: false,
@@ -192,7 +192,7 @@ fn wide_string_type_can_be_parsed_test() {
             data_type: DataType::StringType {
                 name: Some("MyString".to_string()),
                 size: Some(LiteralInteger {
-                    value: "253".to_string(),
+                    value: 253,
                     location: (10..11).into(),
                 }),
                 is_wide: true,
@@ -221,11 +221,11 @@ fn subrangetype_can_be_parsed() {
                 name: None,
                 bounds: Some(Statement::RangeStatement {
                     start: Box::new(LiteralInteger {
-                        value: "0".to_string(),
+                        value: 0,
                         location: SourceRange::undefined(),
                     }),
                     end: Box::new(LiteralInteger {
-                        value: "1000".to_string(),
+                        value: 1000,
                         location: SourceRange::undefined(),
                     }),
                 }),
@@ -263,10 +263,10 @@ fn struct_with_inline_array_can_be_parsed() {
                         name: None,
                         bounds: RangeStatement {
                             start: LiteralInteger {
-                                value: "0",
+                                value: 0,
                             },
                             end: LiteralInteger {
-                                value: "1",
+                                value: 1,
                             },
                         },
                         referenced_type: DataTypeReference {

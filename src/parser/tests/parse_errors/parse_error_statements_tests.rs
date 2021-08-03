@@ -157,12 +157,12 @@ fn incomplete_statement_test() {
     BinaryExpression {
         operator: Plus,
         left: LiteralInteger {
-            value: "1",
+            value: 1,
         },
         right: BinaryExpression {
             operator: Plus,
             left: LiteralInteger {
-                value: "2",
+                value: 2,
             },
             right: EmptyStatement,
         },
@@ -201,18 +201,18 @@ fn incomplete_statement_in_parantheses_recovery_test() {
         left: BinaryExpression {
             operator: Plus,
             left: LiteralInteger {
-                value: "1",
+                value: 1,
             },
             right: BinaryExpression {
                 operator: Minus,
                 left: LiteralInteger {
-                    value: "2",
+                    value: 2,
                 },
                 right: EmptyStatement,
             },
         },
         right: LiteralInteger {
-            value: "3",
+            value: 3,
         },
     },
     Reference {
@@ -247,10 +247,10 @@ fn mismatched_parantheses_recovery_test() {
     BinaryExpression {
         operator: Plus,
         left: LiteralInteger {
-            value: "1",
+            value: 1,
         },
         right: LiteralInteger {
-            value: "2",
+            value: 2,
         },
     },
     Reference {
@@ -499,11 +499,11 @@ fn test_nested_for_with_missing_end_for() {
             vec![Statement::ForLoopStatement {
                 counter: Box::new(ref_to("x")),
                 start: Box::new(Statement::LiteralInteger {
-                    value: "1".into(),
+                    value: 1,
                     location: SourceRange::undefined()
                 }),
                 end: Box::new(Statement::LiteralInteger {
-                    value: "2".into(),
+                    value: 2,
                     location: SourceRange::undefined()
                 }),
                 by_step: None,
@@ -511,11 +511,11 @@ fn test_nested_for_with_missing_end_for() {
                     Statement::ForLoopStatement {
                         counter: Box::new(ref_to("x")),
                         start: Box::new(Statement::LiteralInteger {
-                            value: "1".into(),
+                            value: 1,
                             location: SourceRange::undefined()
                         }),
                         end: Box::new(Statement::LiteralInteger {
-                            value: "2".into(),
+                            value: 2,
                             location: SourceRange::undefined()
                         }),
 
@@ -570,7 +570,7 @@ fn test_repeat_with_missing_semicolon_in_body() {
                     body: vec![Statement::Assignment {
                         left: Box::new(ref_to("x")),
                         right: Box::new(Statement::LiteralInteger {
-                            value: "3".into(),
+                            value: 3,
                             location: SourceRange::undefined()
                         })
                     }],
@@ -789,7 +789,7 @@ fn test_while_with_missing_semicolon_in_body() {
                     body: vec![Statement::Assignment {
                         left: Box::new(ref_to("x")),
                         right: Box::new(Statement::LiteralInteger {
-                            value: "3".into(),
+                            value: 3,
                             location: SourceRange::undefined()
                         })
                     }],
@@ -969,7 +969,7 @@ fn test_case_without_condition() {
         case_blocks: [
             ConditionalBlock {
                 condition: LiteralInteger {
-                    value: "1",
+                    value: 1,
                 },
                 body: [],
             },
@@ -981,7 +981,7 @@ fn test_case_without_condition() {
                             name: "x",
                         },
                         right: LiteralInteger {
-                            value: "3",
+                            value: 3,
                         },
                     },
                 ],

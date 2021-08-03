@@ -54,7 +54,97 @@ fn literal_can_be_parsed() {
     let statement = &prg.statements[0];
 
     if let Statement::LiteralInteger { value, location: _ } = statement {
-        assert_eq!(value, "7");
+        assert_eq!(value, &(7 as i64));
+    } else {
+        panic!("Expected LiteralInteger but found {:?}", statement);
+    }
+}
+
+#[test]
+fn literal_binary_with_underscore_number_can_be_parsed() {
+    let lexer = super::lex("PROGRAM exp 2#101_101; END_PROGRAM");
+    let result = parse(lexer).0;
+
+    let prg = &result.implementations[0];
+    let statement = &prg.statements[0];
+
+    if let Statement::LiteralInteger { value, location: _ } = statement {
+        assert_eq!(value, &(45 as i64));
+    } else {
+        panic!("Expected LiteralInteger but found {:?}", statement);
+    }
+}
+
+#[test]
+fn literal_hex_number_with_underscores_can_be_parsed() {
+    let lexer = super::lex("PROGRAM exp 16#DE_AD_be_ef; END_PROGRAM");
+    let result = parse(lexer).0;
+
+    let prg = &result.implementations[0];
+    let statement = &prg.statements[0];
+
+    if let Statement::LiteralInteger { value, location: _ } = statement {
+        assert_eq!(value, &(3735928559 as i64));
+    } else {
+        panic!("Expected LiteralInteger but found {:?}", statement);
+    }
+}
+
+#[test]
+fn literal_hex_number_can_be_parsed() {
+    let lexer = super::lex("PROGRAM exp 16#DEADbeef; END_PROGRAM");
+    let result = parse(lexer).0;
+
+    let prg = &result.implementations[0];
+    let statement = &prg.statements[0];
+
+    if let Statement::LiteralInteger { value, location: _ } = statement {
+        assert_eq!(value, &(3735928559 as i64));
+    } else {
+        panic!("Expected LiteralInteger but found {:?}", statement);
+    }
+}
+
+#[test]
+fn literal_oct_number_with_underscores_can_be_parsed() {
+    let lexer = super::lex("PROGRAM exp 8#7_7; END_PROGRAM");
+    let result = parse(lexer).0;
+
+    let prg = &result.implementations[0];
+    let statement = &prg.statements[0];
+
+    if let Statement::LiteralInteger { value, location: _ } = statement {
+        assert_eq!(value, &(63 as i64));
+    } else {
+        panic!("Expected LiteralInteger but found {:?}", statement);
+    }
+}
+
+#[test]
+fn literal_dec_number_with_underscores_can_be_parsed() {
+    let lexer = super::lex("PROGRAM exp 43_000; END_PROGRAM");
+    let result = parse(lexer).0;
+
+    let prg = &result.implementations[0];
+    let statement = &prg.statements[0];
+
+    if let Statement::LiteralInteger { value, location: _ } = statement {
+        assert_eq!(value, &(43000 as i64));
+    } else {
+        panic!("Expected LiteralInteger but found {:?}", statement);
+    }
+}
+
+#[test]
+fn literal_oct_number_with_underscore_can_be_parsed() {
+    let lexer = super::lex("PROGRAM exp 8#7_7; END_PROGRAM");
+    let result = parse(lexer).0;
+
+    let prg = &result.implementations[0];
+    let statement = &prg.statements[0];
+
+    if let Statement::LiteralInteger { value, location: _ } = statement {
+        assert_eq!(value, &(63 as i64));
     } else {
         panic!("Expected LiteralInteger but found {:?}", statement);
     }
@@ -163,15 +253,15 @@ fn multiplication_expressions_parse() {
     let expected_ast = r#"BinaryExpression {
     operator: Multiplication,
     left: LiteralInteger {
-        value: "1",
+        value: 1,
     },
     right: BinaryExpression {
         operator: Division,
         left: LiteralInteger {
-            value: "2",
+            value: 2,
         },
         right: LiteralInteger {
-            value: "7",
+            value: 7,
         },
     },
 }"#;
@@ -190,10 +280,10 @@ fn addition_ast_test() {
     let expected_ast = r#"BinaryExpression {
     operator: Plus,
     left: LiteralInteger {
-        value: "1",
+        value: 1,
     },
     right: LiteralInteger {
-        value: "2",
+        value: 2,
     },
 }"#;
     assert_eq!(ast_string, expected_ast);
@@ -211,15 +301,15 @@ fn multiplication_ast_test() {
     let expected_ast = r#"BinaryExpression {
     operator: Plus,
     left: LiteralInteger {
-        value: "1",
+        value: 1,
     },
     right: BinaryExpression {
         operator: Multiplication,
         left: LiteralInteger {
-            value: "2",
+            value: 2,
         },
         right: LiteralInteger {
-            value: "3",
+            value: 3,
         },
     },
 }"#;
@@ -238,21 +328,21 @@ fn term_ast_test() {
     let expected_ast = r#"BinaryExpression {
     operator: Plus,
     left: LiteralInteger {
-        value: "1",
+        value: 1,
     },
     right: BinaryExpression {
         operator: Plus,
         left: BinaryExpression {
             operator: Multiplication,
             left: LiteralInteger {
-                value: "2",
+                value: 2,
             },
             right: LiteralInteger {
-                value: "3",
+                value: 3,
             },
         },
         right: LiteralInteger {
-            value: "4",
+            value: 4,
         },
     },
 }"#;
@@ -272,10 +362,10 @@ fn module_expression_test() {
     let expected_ast = r#"BinaryExpression {
     operator: Modulo,
     left: LiteralInteger {
-        value: "5",
+        value: 5,
     },
     right: LiteralInteger {
-        value: "2",
+        value: 2,
     },
 }"#;
 
@@ -296,19 +386,19 @@ fn parenthesized_term_ast_test() {
     left: BinaryExpression {
         operator: Plus,
         left: LiteralInteger {
-            value: "1",
+            value: 1,
         },
         right: LiteralInteger {
-            value: "2",
+            value: 2,
         },
     },
     right: BinaryExpression {
         operator: Plus,
         left: LiteralInteger {
-            value: "3",
+            value: 3,
         },
         right: LiteralInteger {
-            value: "4",
+            value: 4,
         },
     },
 }"#;
@@ -350,7 +440,7 @@ fn assignment_test() {
         name: "x",
     },
     right: LiteralInteger {
-        value: "3",
+        value: 3,
     },
 }"#;
         assert_eq!(ast_string, expected_ast);
@@ -366,10 +456,10 @@ fn assignment_test() {
     right: BinaryExpression {
         operator: Plus,
         left: LiteralInteger {
-            value: "1",
+            value: 1,
         },
         right: LiteralInteger {
-            value: "2",
+            value: 2,
         },
     },
 }"#;
@@ -392,7 +482,7 @@ fn equality_expression_test() {
         name: "x",
     },
     right: LiteralInteger {
-        value: "3",
+        value: 3,
     },
 }"#;
         assert_eq!(ast_string, expected_ast);
@@ -409,16 +499,16 @@ fn equality_expression_test() {
             name: "x",
         },
         right: LiteralInteger {
-            value: "0",
+            value: 0,
         },
     },
     right: BinaryExpression {
         operator: Plus,
         left: LiteralInteger {
-            value: "1",
+            value: 1,
         },
         right: LiteralInteger {
-            value: "2",
+            value: 2,
         },
     },
 }"#;
@@ -447,7 +537,7 @@ fn comparison_expression_test() {
         name: "a",
     },
     right: LiteralInteger {
-        value: "3",
+        value: 3,
     },
 }"#;
         assert_eq!(format!("{:#?}", statement), expected_ast);
@@ -460,7 +550,7 @@ fn comparison_expression_test() {
         name: "b",
     },
     right: LiteralInteger {
-        value: "0",
+        value: 0,
     },
 }"#;
         assert_eq!(format!("{:#?}", statement), expected_ast);
@@ -473,7 +563,7 @@ fn comparison_expression_test() {
         name: "c",
     },
     right: LiteralInteger {
-        value: "7",
+        value: 7,
     },
 }"#;
         assert_eq!(format!("{:#?}", statement), expected_ast);
@@ -486,7 +576,7 @@ fn comparison_expression_test() {
         name: "d",
     },
     right: LiteralInteger {
-        value: "4",
+        value: 4,
     },
 }"#;
         assert_eq!(format!("{:#?}", statement), expected_ast);
@@ -503,19 +593,19 @@ fn comparison_expression_test() {
         left: BinaryExpression {
             operator: Plus,
             left: LiteralInteger {
-                value: "2",
+                value: 2,
             },
             right: LiteralInteger {
-                value: "1",
+                value: 1,
             },
         },
         right: BinaryExpression {
             operator: Plus,
             left: LiteralInteger {
-                value: "3",
+                value: 3,
             },
             right: LiteralInteger {
-                value: "1",
+                value: 1,
             },
         },
     },
@@ -614,7 +704,7 @@ fn signed_literal_minus_test() {
     let expected_ast = r#"UnaryExpression {
     operator: Minus,
     value: LiteralInteger {
-        value: "1",
+        value: 1,
     },
 }"#;
     assert_eq!(ast_string, expected_ast);
@@ -919,7 +1009,7 @@ fn signed_literal_expression_test() {
     let expected_ast = r#"BinaryExpression {
     operator: Plus,
     left: LiteralInteger {
-        value: "2",
+        value: 2,
     },
     right: UnaryExpression {
         operator: Minus,
@@ -951,11 +1041,11 @@ fn signed_literal_expression_reversed_test() {
     left: UnaryExpression {
         operator: Minus,
         value: LiteralInteger {
-            value: "4",
+            value: 4,
         },
     },
     right: LiteralInteger {
-        value: "5",
+        value: 5,
     },
 }"#;
     assert_eq!(ast_string, expected_ast);
@@ -984,7 +1074,7 @@ fn or_compare_expressions_priority_test() {
             name: "x",
         },
         right: LiteralInteger {
-            value: "1",
+            value: 1,
         },
     },
     right: Reference {
@@ -1019,11 +1109,11 @@ fn addition_compare_or_priority_test() {
                 name: "x",
             },
             right: LiteralInteger {
-                value: "1",
+                value: 1,
             },
         },
         right: LiteralInteger {
-            value: "2",
+            value: 2,
         },
     },
     right: Reference {
@@ -1095,7 +1185,7 @@ fn comparison_priority_test() {
             name: "x",
         },
         right: LiteralInteger {
-            value: "7",
+            value: 7,
         },
     },
     right: BinaryExpression {
@@ -1104,7 +1194,7 @@ fn comparison_priority_test() {
             name: "y",
         },
         right: LiteralInteger {
-            value: "6",
+            value: 6,
         },
     },
 }"#;
@@ -1130,13 +1220,13 @@ fn expression_list() {
     let expected_ast = r#"ExpressionList {
     expressions: [
         LiteralInteger {
-            value: "1",
+            value: 1,
         },
         LiteralInteger {
-            value: "2",
+            value: 2,
         },
         LiteralInteger {
-            value: "3",
+            value: 3,
         },
     ],
 }"#;
@@ -1166,7 +1256,7 @@ fn expression_list_assignments() {
                 name: "x",
             },
             right: LiteralInteger {
-                value: "1",
+                value: 1,
             },
         },
         Assignment {
@@ -1174,7 +1264,7 @@ fn expression_list_assignments() {
                 name: "y",
             },
             right: LiteralInteger {
-                value: "2",
+                value: 2,
             },
         },
         Assignment {
@@ -1182,7 +1272,7 @@ fn expression_list_assignments() {
                 name: "z",
             },
             right: LiteralInteger {
-                value: "3",
+                value: 3,
             },
         },
     ],
@@ -1224,10 +1314,10 @@ fn range_expression() {
     let ast_string = format!("{:#?}", statement);
     let expected_ast = r#"RangeStatement {
     start: LiteralInteger {
-        value: "1",
+        value: 1,
     },
     end: LiteralInteger {
-        value: "2",
+        value: 2,
     },
 }"#;
     assert_eq!(ast_string, expected_ast);
@@ -1240,7 +1330,7 @@ fn range_expression() {
         name: "a",
     },
     end: LiteralInteger {
-        value: "2",
+        value: 2,
     },
 }"#;
     assert_eq!(ast_string, expected_ast);
@@ -1250,7 +1340,7 @@ fn range_expression() {
     let ast_string = format!("{:#?}", statement);
     let expected_ast = r#"RangeStatement {
     start: LiteralInteger {
-        value: "2",
+        value: 2,
     },
     end: Reference {
         name: "a",
@@ -1278,13 +1368,13 @@ fn negative_range_expression() {
     start: UnaryExpression {
         operator: Minus,
         value: LiteralInteger {
-            value: "2",
+            value: 2,
         },
     },
     end: UnaryExpression {
         operator: Minus,
         value: LiteralInteger {
-            value: "1",
+            value: 1,
         },
     },
 }"#;
@@ -1311,13 +1401,13 @@ fn negative_range_expression_space() {
     start: UnaryExpression {
         operator: Minus,
         value: LiteralInteger {
-            value: "2",
+            value: 2,
         },
     },
     end: UnaryExpression {
         operator: Minus,
         value: LiteralInteger {
-            value: "1",
+            value: 1,
         },
     },
 }"#;
@@ -1342,10 +1432,10 @@ fn range_expression2() {
     let ast_string = format!("{:#?}", statement);
     let expected_ast = r#"RangeStatement {
     start: LiteralInteger {
-        value: "1",
+        value: 1,
     },
     end: LiteralInteger {
-        value: "2",
+        value: 2,
     },
 }"#;
     assert_eq!(ast_string, expected_ast);
@@ -1399,13 +1489,13 @@ fn function_call_params() {
         ExpressionList {
             expressions: [
                 LiteralInteger {
-                    value: "1",
+                    value: 1,
                 },
                 LiteralInteger {
-                    value: "2",
+                    value: 2,
                 },
                 LiteralInteger {
-                    value: "3",
+                    value: 3,
                 },
             ],
         },
@@ -1543,10 +1633,10 @@ fn arrays_can_be_parsed() {
                     name: None,
                     bounds: RangeStatement {
                         start: LiteralInteger {
-                            value: "0",
+                            value: 0,
                         },
                         end: LiteralInteger {
-                            value: "9",
+                            value: 9,
                         },
                     },
                     referenced_type: DataTypeDefinition {
@@ -1572,7 +1662,7 @@ fn arrays_can_be_parsed() {
             name: "x",
         },
         access: LiteralInteger {
-            value: "0",
+            value: 0,
         },
     },
     right: LiteralString {
@@ -1620,10 +1710,10 @@ fn nested_arrays_can_be_parsed() {
                     name: None,
                     bounds: RangeStatement {
                         start: LiteralInteger {
-                            value: "0",
+                            value: 0,
                         },
                         end: LiteralInteger {
-                            value: "9",
+                            value: 9,
                         },
                     },
                     referenced_type: DataTypeDefinition {
@@ -1631,10 +1721,10 @@ fn nested_arrays_can_be_parsed() {
                             name: None,
                             bounds: RangeStatement {
                                 start: LiteralInteger {
-                                    value: "0",
+                                    value: 0,
                                 },
                                 end: LiteralInteger {
-                                    value: "9",
+                                    value: 9,
                                 },
                             },
                             referenced_type: DataTypeDefinition {
@@ -1663,11 +1753,11 @@ fn nested_arrays_can_be_parsed() {
                 name: "x",
             },
             access: LiteralInteger {
-                value: "0",
+                value: 0,
             },
         },
         access: LiteralInteger {
-            value: "1",
+            value: 1,
         },
     },
     right: LiteralString {
@@ -1689,7 +1779,7 @@ fn nested_arrays_can_be_parsed() {
             },
         },
         access: LiteralInteger {
-            value: "1",
+            value: 1,
         },
     },
     right: LiteralString {
@@ -1722,18 +1812,18 @@ fn multidim_arrays_can_be_parsed() {
                         expressions: [
                             RangeStatement {
                                 start: LiteralInteger {
-                                    value: "0",
+                                    value: 0,
                                 },
                                 end: LiteralInteger {
-                                    value: "9",
+                                    value: 9,
                                 },
                             },
                             RangeStatement {
                                 start: LiteralInteger {
-                                    value: "1",
+                                    value: 1,
                                 },
                                 end: LiteralInteger {
-                                    value: "2",
+                                    value: 2,
                                 },
                             },
                         ],
@@ -1763,10 +1853,10 @@ fn multidim_arrays_can_be_parsed() {
         access: ExpressionList {
             expressions: [
                 LiteralInteger {
-                    value: "0",
+                    value: 0,
                 },
                 LiteralInteger {
-                    value: "1",
+                    value: 1,
                 },
             ],
         },
@@ -1790,7 +1880,7 @@ fn multidim_arrays_can_be_parsed() {
                     name: "y",
                 },
                 LiteralInteger {
-                    value: "1",
+                    value: 1,
                 },
             ],
         },
@@ -1824,7 +1914,7 @@ fn arrays_in_structs_can_be_parsed() {
                 name: "y",
             },
             access: LiteralInteger {
-                value: "7",
+                value: 7,
             },
         },
     ],
@@ -1851,7 +1941,7 @@ fn arrays_of_structs_can_be_parsed() {
                 name: "x",
             },
             access: LiteralInteger {
-                value: "1",
+                value: 1,
             },
         },
         Reference {
@@ -1890,7 +1980,7 @@ fn function_call_formal_params() {
                         name: "x",
                     },
                     right: LiteralInteger {
-                        value: "1",
+                        value: 1,
                     },
                 },
                 Assignment {
@@ -1898,7 +1988,7 @@ fn function_call_formal_params() {
                         name: "y",
                     },
                     right: LiteralInteger {
-                        value: "2",
+                        value: 2,
                     },
                 },
                 OutputAssignment {
@@ -1944,13 +2034,13 @@ fn function_call_return_params() {
             ExpressionList {
                 expressions: [
                     LiteralInteger {
-                        value: "1",
+                        value: 1,
                     },
                     LiteralInteger {
-                        value: "2",
+                        value: 2,
                     },
                     LiteralInteger {
-                        value: "3",
+                        value: 3,
                     },
                 ],
             },

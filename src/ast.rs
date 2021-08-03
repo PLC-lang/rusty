@@ -362,7 +362,7 @@ pub enum Statement {
     },
     // Literals
     LiteralInteger {
-        value: String,
+        value: i64,
         location: SourceRange,
     },
     LiteralDate {
