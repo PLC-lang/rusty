@@ -54,6 +54,13 @@ pub enum LinkageType {
     External,
 }
 
+pub enum AccessModifier {
+    Private,
+    Public,
+    Protected,  // default
+    Internal
+}
+
 #[derive(Debug, Copy, PartialEq, Clone)]
 pub enum PouType {
     Program,

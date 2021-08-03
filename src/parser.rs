@@ -1,3 +1,5 @@
+use std::thread::AccessError;
+
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use crate::{
     ast::*,
@@ -216,8 +218,7 @@ fn parse_pou(
 
 /// Parse a CLASS..END_CLASS declaration according to IEC61131-3
 fn parse_class_pou(lexer: &mut ParseSession) -> Option<()> {
-    let class_start = lexer.range().start;
-
+    let _class_start = lexer.range().start;
     lexer.advance(); // consume CLASS
     parse_any_in_region(lexer, vec![KeywordEndClass], |lexer| {
         if lexer.token == KeywordFinal || lexer.token == KeywordAbstract {
@@ -225,10 +226,41 @@ fn parse_class_pou(lexer: &mut ParseSession) -> Option<()> {
             lexer.advance();
         }
 
-        let class_name = parse_identifier(lexer)?;
+        let _class_name = parse_identifier(lexer)?;
 
+        // TODO: Parse USING directives
+        // TODO: Parse EXTENDS specifier
+        // TODO: Parse IMPLEMENTS specifier
+
+        // VAR ... END_VAR
+
+        while lexer.token == KeywordMethod {
+            lexer.advance();
+            parse_any_in_region(lexer, vec![ KeywordEndMethod ], |lexer| {
+                parse_method_decl(lexer)
+            })
+        }
         Some(())
     })
+}
+
+fn parse_method_decl(lexer: &mut ParseSession) {
+    let _method_access = if lexer.allow(&KeywordAccessPublic) {
+        AccessModifier::Public
+    } else if lexer.allow(&KeywordAccessPrivate) {
+        AccessModifier::Private
+    } else if lexer.allow(&KeywordAccessProtected) {
+        AccessModifier::Protected
+    } else if lexer.allow(&KeywordAccessInternal) {
+        AccessModifier::Internal
+    } else {
+        AccessModifier::Protected
+    };
+
+    if lexer.token == KeywordFinal || lexer.token == KeywordAbstract {
+        // set method type
+        lexer.advance();
+    }
 }
 
 /// parse identifier and advance if successful

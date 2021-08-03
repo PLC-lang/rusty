@@ -39,6 +39,25 @@ pub enum Token {
     #[token("FINAL")]
     KeywordFinal,
 
+    #[token("METHOD")]
+    KeywordMethod,
+
+    #[token("END_METHOD")]
+    #[token("ENDMETHOD")]
+    KeywordEndMethod,
+
+    #[token("PUBLIC")]
+    KeywordAccessPublic,
+
+    #[token("PRIVATE")]
+    KeywordAccessPrivate,
+
+    #[token("INTERNAL")]
+    KeywordAccessInternal,
+
+    #[token("PROTECTED")]
+    KeywordAccessProtected,
+
     #[token("VAR_GLOBAL")]
     #[token("VARGLOBAL")]
     KeywordVarGlobal,
