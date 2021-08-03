@@ -8,7 +8,7 @@ use crate::{
 };
 
 use super::ParseSession;
-use super::{parse_expression, parse_reference, parse_statement};
+use super::{parse_primary_expression, parse_reference, parse_statement};
 
 pub fn parse_control_statement(lexer: &mut ParseSession) -> Statement {
     match lexer.token {
@@ -27,7 +27,7 @@ fn parse_if_statement(lexer: &mut ParseSession) -> Statement {
     let mut conditional_blocks = vec![];
 
     while lexer.last_token == KeywordElseIf || lexer.last_token == KeywordIf {
-        let condition = parse_expression(lexer);
+        let condition = parse_primary_expression(lexer);
         expect_token!(
             lexer,
             KeywordThen,
@@ -74,7 +74,7 @@ fn parse_for_statement(lexer: &mut ParseSession) -> Statement {
     );
     lexer.advance();
 
-    let start_expression = parse_expression(lexer);
+    let start_expression = parse_primary_expression(lexer);
     expect_token!(
         lexer,
         KeywordTo,
@@ -83,11 +83,11 @@ fn parse_for_statement(lexer: &mut ParseSession) -> Statement {
         }
     );
     lexer.advance();
-    let end_expression = parse_expression(lexer);
+    let end_expression = parse_primary_expression(lexer);
 
     let step = if lexer.token == KeywordBy {
         lexer.advance(); // BY
-        Some(Box::new(parse_expression(lexer)))
+        Some(Box::new(parse_primary_expression(lexer)))
     } else {
         None
     };
@@ -108,7 +108,7 @@ fn parse_while_statement(lexer: &mut ParseSession) -> Statement {
     let start = lexer.range().start;
     lexer.advance(); //WHILE
 
-    let condition = parse_expression(lexer);
+    let condition = parse_primary_expression(lexer);
     lexer.consume_or_report(KeywordDo);
 
     Statement::WhileLoopStatement {
@@ -125,7 +125,7 @@ fn parse_repeat_statement(lexer: &mut ParseSession) -> Statement {
     let body = parse_body_in_region(lexer, vec![KeywordUntil, KeywordEndRepeat]); //UNTIL
     let condition = if lexer.last_token == KeywordUntil {
         parse_any_in_region(lexer, vec![KeywordEndRepeat], |lexer| {
-            parse_expression(lexer)
+            parse_primary_expression(lexer)
         })
     } else {
         Statement::EmptyStatement {
@@ -144,7 +144,7 @@ fn parse_case_statement(lexer: &mut ParseSession) -> Statement {
     let start = lexer.range().start;
     lexer.advance(); // CASE
 
-    let selector = Box::new(parse_expression(lexer));
+    let selector = Box::new(parse_primary_expression(lexer));
 
     expect_token!(
         lexer,
