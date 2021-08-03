@@ -37,12 +37,7 @@ pub fn parse(mut lexer: ParseSession) -> ParsedAst {
                 unit.implementations.push(implementation);
             }
             KeywordClass => {
-                if let Some((pou, implementation)) =
-                    parse_pou(&mut lexer, PouType::Class, linkage, KeywordEndClass)
-                {
-                    unit.units.push(pou);
-                    unit.implementations.push(implementation);
-                }
+                parse_class_pou(&mut lexer);
             }
             KeywordFunction => {
                 let (pou, implementation) =
@@ -155,18 +150,7 @@ fn parse_pou(
         KeywordEndFunctionBlock,
     ];
     let pou = parse_any_in_region(lexer, closing_tokens.clone(), |lexer| {
-        //Parse pou name
-        let name = if lexer.token == Identifier {
-            lexer.slice_and_advance()
-        } else {
-            //missing pou name
-            lexer.accept_diagnostic(Diagnostic::unexpected_token_found(
-                "Identifier".to_string(),
-                lexer.slice().to_string(),
-                SourceRange::new(lexer.range()),
-            ));
-            "".to_string()
-        };
+        let name = parse_identifier(lexer).unwrap_or("".to_string()); // parse POU name
 
         //optional return type
         let start_return_type = lexer.range().start;
@@ -195,11 +179,10 @@ fn parse_pou(
 
         //Parse variable declarations
         let mut variable_blocks = vec![];
-        let accepted_var_types = match pou_type {
-            PouType::Class => vec![ KeywordVar ],
-            _ => vec![ KeywordVar, KeywordVarInOut, KeywordVarInput, KeywordVarOutput ]
-        };
-        while accepted_var_types.contains(&lexer.token)
+        while lexer.token == KeywordVar
+            || lexer.token == KeywordVarInput
+            || lexer.token == KeywordVarOutput
+            || lexer.token == KeywordVarInOut
         {
             variable_blocks.push(parse_variable_block(
                 lexer,
@@ -229,6 +212,39 @@ fn parse_pou(
         ));
     }
     pou
+}
+
+/// Parse a CLASS..END_CLASS declaration according to IEC61131-3
+fn parse_class_pou(lexer: &mut ParseSession) -> Option<()> {
+    let class_start = lexer.range().start;
+
+    lexer.advance(); // consume CLASS
+    parse_any_in_region(lexer, vec![KeywordEndClass], |lexer| {
+        if lexer.token == KeywordFinal || lexer.token == KeywordAbstract {
+            // set class type
+            lexer.advance();
+        }
+
+        let class_name = parse_identifier(lexer)?;
+
+        Some(())
+    })
+}
+
+/// parse identifier and advance if successful
+fn parse_identifier(lexer: &mut ParseSession) -> Option<String> {
+    let pou_name = lexer.slice().to_string();
+    if lexer.token == Identifier {
+        lexer.advance();
+        Some(pou_name)
+    } else {
+        lexer.accept_diagnostic(Diagnostic::unexpected_token_found(
+            "Identifier".into(),
+            pou_name,
+            lexer.location(),
+        ));
+        None
+    }
 }
 
 fn parse_implementation(

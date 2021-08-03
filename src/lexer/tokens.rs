@@ -33,6 +33,12 @@ pub enum Token {
     #[token("VAR")]
     KeywordVar,
 
+    #[token("ABSTRACT")]
+    KeywordAbstract,
+
+    #[token("FINAL")]
+    KeywordFinal,
+
     #[token("VAR_GLOBAL")]
     #[token("VARGLOBAL")]
     KeywordVarGlobal,
