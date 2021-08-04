@@ -223,10 +223,15 @@ fn parse_class_pou(lexer: &mut ParseSession, linkage: LinkageType) -> Option<Cla
     let _class_start = lexer.range().start;
     lexer.advance(); // consume CLASS
     parse_any_in_region(lexer, vec![KeywordEndClass], |lexer| {
-        if lexer.token == KeywordFinal || lexer.token == KeywordAbstract {
-            // set class type
-            lexer.advance();
-        }
+
+        // See if the method was declared FINAL or ABSTRACT
+        let poly_mode = if lexer.allow(&KeywordFinal) {
+            PolymorphisMode::Final
+        } else if lexer.allow(&KeywordAbstract) {
+            PolymorphisMode::Abstract
+        } else {
+            PolymorphisMode::None
+        };
 
         let name = parse_identifier(lexer)?;
 
@@ -243,7 +248,7 @@ fn parse_class_pou(lexer: &mut ParseSession, linkage: LinkageType) -> Option<Cla
                 methods.push(method);
             }
         }
-        Some(ClassPou { name, methods })
+        Some(ClassPou { name, poly_mode, methods })
     })
 }
 

@@ -30,6 +30,7 @@ pub struct Pou {
 #[derive(Debug, PartialEq)]
 pub struct ClassPou {
     pub name: String,
+    pub poly_mode: PolymorphisMode,
     pub methods: Vec<ClassMethod>,
 }
 
