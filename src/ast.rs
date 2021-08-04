@@ -27,6 +27,24 @@ pub struct Pou {
     pub location: SourceRange,
 }
 
+pub struct ClassPou {
+    pub methods: Vec<ClassMethod>,
+}
+
+pub enum PolymorphisMode {
+    None,
+    Abstract,
+    Final,
+}
+
+pub struct ClassMethod {
+    pub name: String,
+    pub return_type: Option<DataTypeDeclaration>,
+    pub implementation: Implementation,
+    pub overriding: bool,
+    pub poly_mode: PolymorphisMode,
+}
+
 impl Debug for Pou {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
         f.debug_struct("POU")
@@ -57,8 +75,8 @@ pub enum LinkageType {
 pub enum AccessModifier {
     Private,
     Public,
-    Protected,  // default
-    Internal
+    Protected, // default
+    Internal,
 }
 
 #[derive(Debug, Copy, PartialEq, Clone)]

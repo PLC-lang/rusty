@@ -1,5 +1,3 @@
-use std::thread::AccessError;
-
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use crate::{
     ast::*,
@@ -39,7 +37,7 @@ pub fn parse(mut lexer: ParseSession) -> ParsedAst {
                 unit.implementations.push(implementation);
             }
             KeywordClass => {
-                parse_class_pou(&mut lexer);
+                parse_class_pou(&mut lexer, linkage);
             }
             KeywordFunction => {
                 let (pou, implementation) =
@@ -152,32 +150,8 @@ fn parse_pou(
         KeywordEndFunctionBlock,
     ];
     let pou = parse_any_in_region(lexer, closing_tokens.clone(), |lexer| {
-        let name = parse_identifier(lexer).unwrap_or("".to_string()); // parse POU name
-
-        //optional return type
-        let start_return_type = lexer.range().start;
-        let return_type = if lexer.allow(&KeywordColon) {
-            if lexer.token == Identifier || lexer.token == KeywordString {
-                if pou_type != PouType::Function {
-                    lexer.accept_diagnostic(Diagnostic::return_type_not_supported(
-                        &pou_type,
-                        SourceRange::new(start_return_type..lexer.range().end),
-                    ));
-                }
-                let referenced_type = lexer.slice_and_advance();
-                Some(DataTypeDeclaration::DataTypeReference { referenced_type })
-            } else {
-                //missing return type
-                lexer.accept_diagnostic(Diagnostic::unexpected_token_found(
-                    "Datatype".to_string(),
-                    lexer.slice().to_string(),
-                    SourceRange::new(lexer.range()),
-                ));
-                None
-            }
-        } else {
-            None
-        };
+        let name = parse_identifier(lexer).unwrap_or_else(|| "".to_string()); // parse POU name
+        let return_type = parse_return_type(lexer, pou_type); // parse optional return type
 
         //Parse variable declarations
         let mut variable_blocks = vec![];
@@ -216,8 +190,34 @@ fn parse_pou(
     pou
 }
 
+fn parse_return_type(lexer: &mut ParseSession, pou_type: PouType) -> Option<DataTypeDeclaration> {
+    let start_return_type = lexer.range().start;
+    if lexer.allow(&KeywordColon) {
+        if lexer.token == Identifier || lexer.token == KeywordString {
+            if pou_type != PouType::Function && pou_type != PouType::Class {
+                lexer.accept_diagnostic(Diagnostic::return_type_not_supported(
+                    &pou_type,
+                    SourceRange::new(start_return_type..lexer.range().end),
+                ));
+            }
+            let referenced_type = lexer.slice_and_advance();
+            Some(DataTypeDeclaration::DataTypeReference { referenced_type })
+        } else {
+            //missing return type
+            lexer.accept_diagnostic(Diagnostic::unexpected_token_found(
+                "Datatype".to_string(),
+                lexer.slice().to_string(),
+                SourceRange::new(lexer.range()),
+            ));
+            None
+        }
+    } else {
+        None
+    }
+}
+
 /// Parse a CLASS..END_CLASS declaration according to IEC61131-3
-fn parse_class_pou(lexer: &mut ParseSession) -> Option<()> {
+fn parse_class_pou(lexer: &mut ParseSession, linkage: LinkageType) -> Option<ClassPou> {
     let _class_start = lexer.range().start;
     lexer.advance(); // consume CLASS
     parse_any_in_region(lexer, vec![KeywordEndClass], |lexer| {
@@ -226,7 +226,7 @@ fn parse_class_pou(lexer: &mut ParseSession) -> Option<()> {
             lexer.advance();
         }
 
-        let _class_name = parse_identifier(lexer)?;
+        let class_name = parse_identifier(lexer)?;
 
         // TODO: Parse USING directives
         // TODO: Parse EXTENDS specifier
@@ -234,33 +234,73 @@ fn parse_class_pou(lexer: &mut ParseSession) -> Option<()> {
 
         // VAR ... END_VAR
 
+        let mut methods: Vec<ClassMethod> = vec![];
         while lexer.token == KeywordMethod {
             lexer.advance();
-            parse_any_in_region(lexer, vec![ KeywordEndMethod ], |lexer| {
-                parse_method_decl(lexer)
-            })
+            if let Some(method) = parse_method(lexer, &class_name, linkage) {
+                methods.push(method);
+            }
         }
-        Some(())
+        Some(ClassPou { methods })
     })
 }
 
-fn parse_method_decl(lexer: &mut ParseSession) {
-    let _method_access = if lexer.allow(&KeywordAccessPublic) {
-        AccessModifier::Public
-    } else if lexer.allow(&KeywordAccessPrivate) {
-        AccessModifier::Private
-    } else if lexer.allow(&KeywordAccessProtected) {
-        AccessModifier::Protected
-    } else if lexer.allow(&KeywordAccessInternal) {
-        AccessModifier::Internal
-    } else {
-        AccessModifier::Protected
-    };
+fn parse_method(
+    lexer: &mut ParseSession,
+    class_name: &str,
+    linkage: LinkageType,
+) -> Option<ClassMethod> {
+    parse_any_in_region(lexer, vec![KeywordEndMethod], |lexer| {
+        // METHOD [AccessModifier] [ABSTRACT|FINAL] [OVERRIDE] [: return_type]
+        //    ...
+        // END_METHOD
 
-    if lexer.token == KeywordFinal || lexer.token == KeywordAbstract {
-        // set method type
-        lexer.advance();
-    }
+        let _method_access = if lexer.allow(&KeywordAccessPublic) {
+            AccessModifier::Public
+        } else if lexer.allow(&KeywordAccessPrivate) {
+            AccessModifier::Private
+        } else if lexer.allow(&KeywordAccessProtected) {
+            AccessModifier::Protected
+        } else if lexer.allow(&KeywordAccessInternal) {
+            AccessModifier::Internal
+        } else {
+            AccessModifier::Protected
+        };
+
+        // See if the method was declared FINAL or ABSTRACT
+        let poly_mode = if lexer.allow(&KeywordFinal) {
+            PolymorphisMode::Final
+        } else if lexer.allow(&KeywordAbstract) {
+            PolymorphisMode::Abstract
+        } else {
+            PolymorphisMode::None
+        };
+
+        // Does the method OVERRIDE?
+        let overriding = if lexer.token == KeywordOverride {
+            lexer.advance();
+            true
+        } else {
+            false
+        };
+
+        let name = parse_identifier(lexer)?;
+        let return_type = parse_return_type(lexer, PouType::Class);
+
+        // TODO  parse VAR blocks
+
+        let call_name = format!("{}.{}", class_name, name);
+        let implementation =
+            parse_implementation(lexer, linkage, PouType::Class, &call_name, class_name);
+
+        Some(ClassMethod {
+            name,
+            return_type,
+            implementation,
+            overriding,
+            poly_mode,
+        })
+    })
 }
 
 /// parse identifier and advance if successful

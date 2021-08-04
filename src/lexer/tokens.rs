@@ -58,6 +58,9 @@ pub enum Token {
     #[token("PROTECTED")]
     KeywordAccessProtected,
 
+    #[token("OVERRIDE")]
+    KeywordOverride,
+
     #[token("VAR_GLOBAL")]
     #[token("VARGLOBAL")]
     KeywordVarGlobal,
