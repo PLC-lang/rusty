@@ -27,18 +27,23 @@ pub struct Pou {
     pub location: SourceRange,
 }
 
+#[derive(Debug, PartialEq)]
 pub struct ClassPou {
+    pub name: String,
     pub methods: Vec<ClassMethod>,
 }
 
+#[derive(Debug, PartialEq)]
 pub enum PolymorphisMode {
     None,
     Abstract,
     Final,
 }
 
+#[derive(Debug, PartialEq)]
 pub struct ClassMethod {
     pub name: String,
+    pub access: AccessModifier,
     pub return_type: Option<DataTypeDeclaration>,
     pub implementation: Implementation,
     pub overriding: bool,
@@ -72,6 +77,7 @@ pub enum LinkageType {
     External,
 }
 
+#[derive(Debug, PartialEq)]
 pub enum AccessModifier {
     Private,
     Public,
@@ -92,6 +98,7 @@ pub enum PouType {
 pub struct CompilationUnit {
     pub global_vars: Vec<VariableBlock>,
     pub units: Vec<Pou>,
+    pub classes: Vec<ClassPou>,
     pub implementations: Vec<Implementation>,
     pub types: Vec<UserTypeDeclaration>,
 }
@@ -116,6 +123,7 @@ impl Default for CompilationUnit {
         CompilationUnit {
             global_vars: Vec::new(),
             units: Vec::new(),
+            classes: Vec::new(),
             implementations: Vec::new(),
             types: Vec::new(),
         }

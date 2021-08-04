@@ -37,7 +37,9 @@ pub fn parse(mut lexer: ParseSession) -> ParsedAst {
                 unit.implementations.push(implementation);
             }
             KeywordClass => {
-                parse_class_pou(&mut lexer, linkage);
+                if let Some(class) = parse_class_pou(&mut lexer, linkage) {
+                    unit.classes.push(class);
+                }
             }
             KeywordFunction => {
                 let (pou, implementation) =
@@ -226,7 +228,7 @@ fn parse_class_pou(lexer: &mut ParseSession, linkage: LinkageType) -> Option<Cla
             lexer.advance();
         }
 
-        let class_name = parse_identifier(lexer)?;
+        let name = parse_identifier(lexer)?;
 
         // TODO: Parse USING directives
         // TODO: Parse EXTENDS specifier
@@ -237,11 +239,11 @@ fn parse_class_pou(lexer: &mut ParseSession, linkage: LinkageType) -> Option<Cla
         let mut methods: Vec<ClassMethod> = vec![];
         while lexer.token == KeywordMethod {
             lexer.advance();
-            if let Some(method) = parse_method(lexer, &class_name, linkage) {
+            if let Some(method) = parse_method(lexer, &name, linkage) {
                 methods.push(method);
             }
         }
-        Some(ClassPou { methods })
+        Some(ClassPou { name, methods })
     })
 }
 
@@ -255,7 +257,7 @@ fn parse_method(
         //    ...
         // END_METHOD
 
-        let _method_access = if lexer.allow(&KeywordAccessPublic) {
+        let access = if lexer.allow(&KeywordAccessPublic) {
             AccessModifier::Public
         } else if lexer.allow(&KeywordAccessPrivate) {
             AccessModifier::Private
@@ -295,6 +297,7 @@ fn parse_method(
 
         Some(ClassMethod {
             name,
+            access,
             return_type,
             implementation,
             overriding,
