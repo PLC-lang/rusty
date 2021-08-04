@@ -12,6 +12,7 @@ mod program_parser_tests;
 mod statement_parser_tests;
 mod type_parser_tests;
 mod variable_parser_tests;
+mod class_parser_tests;
 
 pub fn lex(source: &str) -> crate::lexer::ParseSession {
     crate::lexer::lex(source)
