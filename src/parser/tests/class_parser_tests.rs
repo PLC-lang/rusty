@@ -55,7 +55,8 @@ fn method_with_defaults_can_be_parsed() {
 
 #[test]
 fn method_can_be_parsed() {
-    let lexer = lex("CLASS MyClass METHOD INTERNAL FINAL OVERRIDE testMethod2 END_METHOD END_CLASS");
+    let lexer =
+        lex("CLASS MyClass METHOD INTERNAL FINAL OVERRIDE testMethod2 END_METHOD END_CLASS");
     let unit = parse(lexer).0;
 
     let class = unit.classes.first().unwrap();
@@ -72,7 +73,9 @@ fn method_can_be_parsed() {
 
 #[test]
 fn method_with_return_type_can_be_parsed() {
-    let lexer = lex("CLASS MyClass METHOD PRIVATE ABSTRACT OVERRIDE testMethod3 : SINT END_METHOD END_CLASS");
+    let lexer = lex(
+        "CLASS MyClass METHOD PRIVATE ABSTRACT OVERRIDE testMethod3 : SINT END_METHOD END_CLASS",
+    );
     let unit = parse(lexer).0;
 
     let class = unit.classes.first().unwrap();
