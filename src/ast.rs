@@ -31,6 +31,7 @@ pub struct Pou {
 pub struct ClassPou {
     pub name: String,
     pub poly_mode: PolymorphisMode,
+    pub variable_blocks: Vec<VariableBlock>,
     pub methods: Vec<ClassMethod>,
 }
 
@@ -142,6 +143,9 @@ pub enum VariableBlockType {
 
 #[derive(PartialEq)]
 pub struct VariableBlock {
+    pub access: AccessModifier,
+    pub constant: bool,
+    pub retain: bool,
     pub variables: Vec<Variable>,
     pub variable_block_type: VariableBlockType,
 }

@@ -1,10 +1,5 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-use crate::{
-    ast::{PouType, SourceRange, Statement, Variable, VariableBlock, VariableBlockType},
-    lexer::Token,
-    parser::{parse, tests::lex},
-    Diagnostic,
-};
+use crate::{Diagnostic, ast::*, lexer::Token, parser::{parse, tests::lex}};
 use pretty_assertions::*;
 
 /*
@@ -239,6 +234,9 @@ fn unclosed_var_container() {
         format!(
             "{:#?}",
             VariableBlock {
+                constant: false,
+                access: AccessModifier::Protected,
+                retain: false,
                 variable_block_type: VariableBlockType::Local,
                 variables: vec![Variable {
                     name: "a".into(),

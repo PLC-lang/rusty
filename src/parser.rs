@@ -237,8 +237,14 @@ fn parse_class_pou(lexer: &mut ParseSession, linkage: LinkageType) -> Option<Cla
         // TODO: Parse USING directives
         // TODO: Parse EXTENDS specifier
         // TODO: Parse IMPLEMENTS specifier
-
-        // VAR ... END_VAR
+        
+        let mut variable_blocks = vec![];
+        while lexer.token == KeywordVar {
+            variable_blocks.push(parse_variable_block(
+                lexer,
+                parse_variable_block_type(&lexer.token),
+            ));
+        }
 
         let mut methods: Vec<ClassMethod> = vec![];
         while lexer.token == KeywordMethod {
@@ -250,6 +256,7 @@ fn parse_class_pou(lexer: &mut ParseSession, linkage: LinkageType) -> Option<Cla
         Some(ClassPou {
             name,
             poly_mode,
+            variable_blocks,
             methods,
         })
     })
@@ -265,17 +272,7 @@ fn parse_method(
         //    ...
         // END_METHOD
 
-        let access = if lexer.allow(&KeywordAccessPublic) {
-            AccessModifier::Public
-        } else if lexer.allow(&KeywordAccessPrivate) {
-            AccessModifier::Private
-        } else if lexer.allow(&KeywordAccessProtected) {
-            AccessModifier::Protected
-        } else if lexer.allow(&KeywordAccessInternal) {
-            AccessModifier::Internal
-        } else {
-            AccessModifier::Protected
-        };
+        let access = parse_access_modifier(lexer);
 
         // See if the method was declared FINAL or ABSTRACT
         let poly_mode = if lexer.allow(&KeywordFinal) {
@@ -312,6 +309,20 @@ fn parse_method(
             poly_mode,
         })
     })
+}
+
+fn parse_access_modifier(lexer: &mut ParseSession) -> AccessModifier {
+    if lexer.allow(&KeywordAccessPublic) {
+        AccessModifier::Public
+    } else if lexer.allow(&KeywordAccessPrivate) {
+        AccessModifier::Private
+    } else if lexer.allow(&KeywordAccessProtected) {
+        AccessModifier::Protected
+    } else if lexer.allow(&KeywordAccessInternal) {
+        AccessModifier::Internal
+    } else {
+        AccessModifier::Protected
+    }
 }
 
 /// parse identifier and advance if successful
@@ -692,6 +703,26 @@ fn parse_variable_block(
 ) -> VariableBlock {
     //Consume the type keyword
     lexer.advance();
+
+    let constant = if lexer.allow(&KeywordConstant) {
+        lexer.advance();
+        true
+    } else {
+        false
+    };
+
+    let retain = if lexer.allow(&KeywordRetain) {
+        lexer.advance();
+        true
+    } else if lexer.allow(&KeywordNonRetain) {
+        lexer.advance();
+        false
+    } else {
+        false
+    };
+
+    let access = parse_access_modifier(lexer);
+
     let variables = parse_any_in_region(lexer, vec![KeywordEndVar], |lexer| {
         let mut variables = vec![];
         while lexer.token == Identifier {
@@ -703,6 +734,9 @@ fn parse_variable_block(
     });
     VariableBlock {
         variables,
+        constant,
+        retain,
+        access,
         variable_block_type,
     }
 }

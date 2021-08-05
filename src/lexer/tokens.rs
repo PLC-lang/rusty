@@ -42,6 +42,15 @@ pub enum Token {
     #[token("METHOD")]
     KeywordMethod,
 
+    #[token("CONSTANT")]
+    KeywordConstant,
+
+    #[token("RETAIN")]
+    KeywordRetain,
+
+    #[token("NON_RETAIN")]
+    KeywordNonRetain,
+
     #[token("END_METHOD")]
     #[token("ENDMETHOD")]
     KeywordEndMethod,

@@ -121,6 +121,9 @@ fn varargs_parameters_can_be_parsed() {
             referenced_type: "DINT".into(),
         }),
         variable_blocks: vec![VariableBlock {
+            constant: false,
+            access: AccessModifier::Protected,
+            retain: false,
             variable_block_type: VariableBlockType::Input,
             variables: vec![
                 Variable {
