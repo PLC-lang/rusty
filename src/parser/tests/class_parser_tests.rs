@@ -89,3 +89,60 @@ fn method_with_return_type_can_be_parsed() {
     assert_ne!(method.return_type, None);
     assert_eq!(method.overriding, true);
 }
+
+#[test]
+fn class_with_var_default_block() {
+    let lexer = lex(
+        "CLASS MyClass VAR END_VAR END_CLASS",
+    );
+    let unit = parse(lexer).0;
+
+    let class = unit.classes.first().unwrap();
+    assert_eq!(class.methods.len(), 0);
+
+    let vblock = class.variable_blocks.first().unwrap();
+    assert_eq!(vblock.variables.len(), 0);
+
+    assert_eq!(vblock.retain, false);
+    assert_eq!(vblock.constant, false);
+    assert_eq!(vblock.access, AccessModifier::Protected);
+    assert_eq!(vblock.variable_block_type, VariableBlockType::Local);
+}
+
+#[test]
+fn class_with_var_non_retain_block() {
+    let lexer = lex(
+        "CLASS MyClass VAR CONSTANT NON_RETAIN PUBLIC END_VAR END_CLASS",
+    );
+    let unit = parse(lexer).0;
+
+    let class = unit.classes.first().unwrap();
+    assert_eq!(class.methods.len(), 0);
+
+    let vblock = class.variable_blocks.first().unwrap();
+    assert_eq!(vblock.variables.len(), 0);
+
+    assert_eq!(vblock.retain, false);
+    assert_eq!(vblock.constant, true);
+    assert_eq!(vblock.access, AccessModifier::Public);
+    assert_eq!(vblock.variable_block_type, VariableBlockType::Local);
+}
+
+#[test]
+fn class_with_var_retain_block() {
+    let lexer = lex(
+        "CLASS MyClass VAR RETAIN INTERNAL END_VAR END_CLASS",
+    );
+    let unit = parse(lexer).0;
+
+    let class = unit.classes.first().unwrap();
+    assert_eq!(class.methods.len(), 0);
+
+    let vblock = class.variable_blocks.first().unwrap();
+    assert_eq!(vblock.variables.len(), 0);
+
+    assert_eq!(vblock.retain, true);
+    assert_eq!(vblock.constant, false);
+    assert_eq!(vblock.access, AccessModifier::Internal);
+    assert_eq!(vblock.variable_block_type, VariableBlockType::Local);
+}

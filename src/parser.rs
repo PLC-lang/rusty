@@ -284,12 +284,7 @@ fn parse_method(
         };
 
         // Does the method OVERRIDE?
-        let overriding = if lexer.token == KeywordOverride {
-            lexer.advance();
-            true
-        } else {
-            false
-        };
+        let overriding = lexer.allow(&KeywordOverride);
 
         let name = parse_identifier(lexer)?;
         let return_type = parse_return_type(lexer, PouType::Class);
@@ -705,21 +700,13 @@ fn parse_variable_block(
     lexer.advance();
 
     let constant = if lexer.allow(&KeywordConstant) {
-        lexer.advance();
         true
     } else {
         false
     };
 
-    let retain = if lexer.allow(&KeywordRetain) {
-        lexer.advance();
-        true
-    } else if lexer.allow(&KeywordNonRetain) {
-        lexer.advance();
-        false
-    } else {
-        false
-    };
+    let retain = lexer.allow(&KeywordRetain);
+    lexer.allow(&KeywordNonRetain);
 
     let access = parse_access_modifier(lexer);
 
