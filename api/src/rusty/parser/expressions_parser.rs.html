@@ -621,185 +621,197 @@
 <span id="619">619</span>
 <span id="620">620</span>
 <span id="621">621</span>
+<span id="622">622</span>
+<span id="623">623</span>
+<span id="624">624</span>
+<span id="625">625</span>
+<span id="626">626</span>
+<span id="627">627</span>
+<span id="628">628</span>
+<span id="629">629</span>
+<span id="630">630</span>
+<span id="631">631</span>
+<span id="632">632</span>
 </pre><pre class="rust">
-<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::Diagnostic</span>;
 <span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
-<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::ast</span>::<span class="kw-2">*</span>;
-<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::lexer::Token</span>::<span class="kw-2">*</span>;
-<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::parser::parse_statement_in_region</span>;
+
+<span class="kw">use</span> <span class="kw">crate</span>::{
+    <span class="ident">ast</span>::<span class="kw-2">*</span>, <span class="ident">lexer::ParseSession</span>, <span class="ident">lexer::Token</span>::<span class="kw-2">*</span>, <span class="ident">parser::parse_any_in_region</span>, <span class="ident">Diagnostic</span>,
+};
 <span class="kw">use</span> <span class="ident">std::str::FromStr</span>;
 
-<span class="kw">use</span> <span class="kw">super</span><span class="ident">::ParseSession</span>;
-
-<span class="kw">type</span> <span class="ident">ParseError</span> <span class="op">=</span> <span class="ident">Diagnostic</span>;
-
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">parse_primary_expression</span>(<span class="ident">lexer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ParseSession</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Statement</span>, <span class="ident">ParseError</span><span class="op">&gt;</span> {
+<span class="doccomment">/// parse_expression(): returns expression as Statement. if a parse error</span>
+<span class="doccomment">/// is encountered, the erroneous part of the AST will consist of an</span>
+<span class="doccomment">/// EmptyStatement and a diagnostic will be logged. That case is different from</span>
+<span class="doccomment">/// only an EmptyStatement returned, which does not denote an error condition.</span>
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">parse_expression</span>(<span class="ident">lexer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ParseSession</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Statement</span> {
     <span class="kw">if</span> <span class="ident">lexer</span>.<span class="ident">token</span> <span class="op">=</span><span class="op">=</span> <span class="ident">KeywordSemicolon</span> {
-        <span class="prelude-val">Ok</span>(<span class="ident">Statement::EmptyStatement</span> {
+        <span class="ident">Statement::EmptyStatement</span> {
             <span class="ident">location</span>: <span class="ident">lexer</span>.<span class="ident">location</span>(),
-        })
+        }
     } <span class="kw">else</span> {
         <span class="ident">parse_expression_list</span>(<span class="ident">lexer</span>)
     }
 }
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">parse_expression_list</span>(<span class="ident">lexer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ParseSession</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Statement</span>, <span class="ident">ParseError</span><span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">parse_expression_list</span>(<span class="ident">lexer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ParseSession</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Statement</span> {
     <span class="kw">let</span> <span class="ident">left</span> <span class="op">=</span> <span class="ident">parse_range_statement</span>(<span class="ident">lexer</span>);
     <span class="kw">if</span> <span class="ident">lexer</span>.<span class="ident">token</span> <span class="op">=</span><span class="op">=</span> <span class="ident">KeywordComma</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">expressions</span> <span class="op">=</span> <span class="macro">vec!</span>[<span class="ident">left</span><span class="question-mark">?</span>];
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">expressions</span> <span class="op">=</span> <span class="macro">vec!</span>[<span class="ident">left</span>];
         <span class="comment">// this starts an expression list</span>
         <span class="kw">while</span> <span class="ident">lexer</span>.<span class="ident">token</span> <span class="op">=</span><span class="op">=</span> <span class="ident">KeywordComma</span> {
             <span class="ident">lexer</span>.<span class="ident">advance</span>();
-            <span class="ident">expressions</span>.<span class="ident">push</span>(<span class="ident">parse_range_statement</span>(<span class="ident">lexer</span>)<span class="question-mark">?</span>);
+            <span class="ident">expressions</span>.<span class="ident">push</span>(<span class="ident">parse_range_statement</span>(<span class="ident">lexer</span>));
         }
-        <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Statement::ExpressionList</span> { <span class="ident">expressions</span> });
+        <span class="kw">return</span> <span class="ident">Statement::ExpressionList</span> { <span class="ident">expressions</span> };
     }
     <span class="ident">left</span>
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">parse_range_statement</span>(<span class="ident">lexer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ParseSession</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Statement</span>, <span class="ident">ParseError</span><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="ident">start</span> <span class="op">=</span> <span class="ident">parse_or_expression</span>(<span class="ident">lexer</span>)<span class="question-mark">?</span>;
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">parse_range_statement</span>(<span class="ident">lexer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ParseSession</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Statement</span> {
+    <span class="kw">let</span> <span class="ident">start</span> <span class="op">=</span> <span class="ident">parse_or_expression</span>(<span class="ident">lexer</span>);
 
     <span class="kw">if</span> <span class="ident">lexer</span>.<span class="ident">token</span> <span class="op">=</span><span class="op">=</span> <span class="ident">KeywordDotDot</span> {
         <span class="ident">lexer</span>.<span class="ident">advance</span>();
-        <span class="kw">let</span> <span class="ident">end</span> <span class="op">=</span> <span class="ident">parse_or_expression</span>(<span class="ident">lexer</span>)<span class="question-mark">?</span>;
-        <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Statement::RangeStatement</span> {
+        <span class="kw">let</span> <span class="ident">end</span> <span class="op">=</span> <span class="ident">parse_or_expression</span>(<span class="ident">lexer</span>);
+        <span class="kw">return</span> <span class="ident">Statement::RangeStatement</span> {
             <span class="ident">start</span>: <span class="ident">Box::new</span>(<span class="ident">start</span>),
             <span class="ident">end</span>: <span class="ident">Box::new</span>(<span class="ident">end</span>),
-        });
+        };
     }
-    <span class="prelude-val">Ok</span>(<span class="ident">start</span>)
+    <span class="ident">start</span>
 }
 
 <span class="comment">// OR</span>
-<span class="kw">fn</span> <span class="ident">parse_or_expression</span>(<span class="ident">lexer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ParseSession</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Statement</span>, <span class="ident">ParseError</span><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="ident">left</span> <span class="op">=</span> <span class="ident">parse_xor_expression</span>(<span class="ident">lexer</span>)<span class="question-mark">?</span>;
+<span class="kw">fn</span> <span class="ident">parse_or_expression</span>(<span class="ident">lexer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ParseSession</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Statement</span> {
+    <span class="kw">let</span> <span class="ident">left</span> <span class="op">=</span> <span class="ident">parse_xor_expression</span>(<span class="ident">lexer</span>);
 
     <span class="kw">let</span> <span class="ident">operator</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">lexer</span>.<span class="ident">token</span> {
         <span class="ident">OperatorOr</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Operator::Or</span>,
-        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">left</span>),
+        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="ident">left</span>,
     };
 
     <span class="ident">lexer</span>.<span class="ident">advance</span>();
 
-    <span class="kw">let</span> <span class="ident">right</span> <span class="op">=</span> <span class="ident">parse_or_expression</span>(<span class="ident">lexer</span>)<span class="question-mark">?</span>;
-    <span class="prelude-val">Ok</span>(<span class="ident">Statement::BinaryExpression</span> {
+    <span class="kw">let</span> <span class="ident">right</span> <span class="op">=</span> <span class="ident">parse_or_expression</span>(<span class="ident">lexer</span>);
+    <span class="ident">Statement::BinaryExpression</span> {
         <span class="ident">operator</span>,
         <span class="ident">left</span>: <span class="ident">Box::new</span>(<span class="ident">left</span>),
         <span class="ident">right</span>: <span class="ident">Box::new</span>(<span class="ident">right</span>),
-    })
+    }
 }
 
 <span class="comment">// XOR</span>
-<span class="kw">fn</span> <span class="ident">parse_xor_expression</span>(<span class="ident">lexer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ParseSession</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Statement</span>, <span class="ident">ParseError</span><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="ident">left</span> <span class="op">=</span> <span class="ident">parse_and_expression</span>(<span class="ident">lexer</span>)<span class="question-mark">?</span>;
+<span class="kw">fn</span> <span class="ident">parse_xor_expression</span>(<span class="ident">lexer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ParseSession</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Statement</span> {
+    <span class="kw">let</span> <span class="ident">left</span> <span class="op">=</span> <span class="ident">parse_and_expression</span>(<span class="ident">lexer</span>);
 
     <span class="kw">let</span> <span class="ident">operator</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">lexer</span>.<span class="ident">token</span> {
         <span class="ident">OperatorXor</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Operator::Xor</span>,
-        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">left</span>),
+        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="ident">left</span>,
     };
 
     <span class="ident">lexer</span>.<span class="ident">advance</span>();
 
-    <span class="kw">let</span> <span class="ident">right</span> <span class="op">=</span> <span class="ident">parse_xor_expression</span>(<span class="ident">lexer</span>)<span class="question-mark">?</span>;
-    <span class="prelude-val">Ok</span>(<span class="ident">Statement::BinaryExpression</span> {
+    <span class="kw">let</span> <span class="ident">right</span> <span class="op">=</span> <span class="ident">parse_xor_expression</span>(<span class="ident">lexer</span>);
+    <span class="ident">Statement::BinaryExpression</span> {
         <span class="ident">operator</span>,
         <span class="ident">left</span>: <span class="ident">Box::new</span>(<span class="ident">left</span>),
         <span class="ident">right</span>: <span class="ident">Box::new</span>(<span class="ident">right</span>),
-    })
+    }
 }
 
 <span class="comment">// AND</span>
-<span class="kw">fn</span> <span class="ident">parse_and_expression</span>(<span class="ident">lexer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ParseSession</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Statement</span>, <span class="ident">ParseError</span><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="ident">left</span> <span class="op">=</span> <span class="ident">parse_equality_expression</span>(<span class="ident">lexer</span>)<span class="question-mark">?</span>;
+<span class="kw">fn</span> <span class="ident">parse_and_expression</span>(<span class="ident">lexer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ParseSession</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Statement</span> {
+    <span class="kw">let</span> <span class="ident">left</span> <span class="op">=</span> <span class="ident">parse_equality_expression</span>(<span class="ident">lexer</span>);
 
     <span class="kw">let</span> <span class="ident">operator</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">lexer</span>.<span class="ident">token</span> {
         <span class="ident">OperatorAnd</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Operator::And</span>,
-        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">left</span>),
+        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="ident">left</span>,
     };
 
     <span class="ident">lexer</span>.<span class="ident">advance</span>();
 
-    <span class="kw">let</span> <span class="ident">right</span> <span class="op">=</span> <span class="ident">parse_and_expression</span>(<span class="ident">lexer</span>)<span class="question-mark">?</span>;
-    <span class="prelude-val">Ok</span>(<span class="ident">Statement::BinaryExpression</span> {
+    <span class="kw">let</span> <span class="ident">right</span> <span class="op">=</span> <span class="ident">parse_and_expression</span>(<span class="ident">lexer</span>);
+    <span class="ident">Statement::BinaryExpression</span> {
         <span class="ident">operator</span>,
         <span class="ident">left</span>: <span class="ident">Box::new</span>(<span class="ident">left</span>),
         <span class="ident">right</span>: <span class="ident">Box::new</span>(<span class="ident">right</span>),
-    })
+    }
 }
 
 <span class="comment">//EQUALITY  =, &lt;&gt;</span>
-<span class="kw">fn</span> <span class="ident">parse_equality_expression</span>(<span class="ident">lexer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ParseSession</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Statement</span>, <span class="ident">ParseError</span><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="ident">left</span> <span class="op">=</span> <span class="ident">parse_compare_expression</span>(<span class="ident">lexer</span>)<span class="question-mark">?</span>;
+<span class="kw">fn</span> <span class="ident">parse_equality_expression</span>(<span class="ident">lexer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ParseSession</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Statement</span> {
+    <span class="kw">let</span> <span class="ident">left</span> <span class="op">=</span> <span class="ident">parse_compare_expression</span>(<span class="ident">lexer</span>);
     <span class="kw">let</span> <span class="ident">operator</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">lexer</span>.<span class="ident">token</span> {
         <span class="ident">OperatorEqual</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Operator::Equal</span>,
         <span class="ident">OperatorNotEqual</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Operator::NotEqual</span>,
-        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">left</span>),
+        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="ident">left</span>,
     };
     <span class="ident">lexer</span>.<span class="ident">advance</span>();
-    <span class="kw">let</span> <span class="ident">right</span> <span class="op">=</span> <span class="ident">parse_equality_expression</span>(<span class="ident">lexer</span>)<span class="question-mark">?</span>;
-    <span class="prelude-val">Ok</span>(<span class="ident">Statement::BinaryExpression</span> {
+    <span class="kw">let</span> <span class="ident">right</span> <span class="op">=</span> <span class="ident">parse_equality_expression</span>(<span class="ident">lexer</span>);
+    <span class="ident">Statement::BinaryExpression</span> {
         <span class="ident">operator</span>,
         <span class="ident">left</span>: <span class="ident">Box::new</span>(<span class="ident">left</span>),
         <span class="ident">right</span>: <span class="ident">Box::new</span>(<span class="ident">right</span>),
-    })
+    }
 }
 
 <span class="comment">//COMPARE &lt;, &gt;, &lt;=, &gt;=</span>
-<span class="kw">fn</span> <span class="ident">parse_compare_expression</span>(<span class="ident">lexer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ParseSession</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Statement</span>, <span class="ident">ParseError</span><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="ident">left</span> <span class="op">=</span> <span class="ident">parse_additive_expression</span>(<span class="ident">lexer</span>)<span class="question-mark">?</span>;
+<span class="kw">fn</span> <span class="ident">parse_compare_expression</span>(<span class="ident">lexer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ParseSession</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Statement</span> {
+    <span class="kw">let</span> <span class="ident">left</span> <span class="op">=</span> <span class="ident">parse_additive_expression</span>(<span class="ident">lexer</span>);
     <span class="kw">let</span> <span class="ident">operator</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">lexer</span>.<span class="ident">token</span> {
         <span class="ident">OperatorLess</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Operator::Less</span>,
         <span class="ident">OperatorGreater</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Operator::Greater</span>,
         <span class="ident">OperatorLessOrEqual</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Operator::LessOrEqual</span>,
         <span class="ident">OperatorGreaterOrEqual</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Operator::GreaterOrEqual</span>,
-        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">left</span>),
+        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="ident">left</span>,
     };
     <span class="ident">lexer</span>.<span class="ident">advance</span>();
-    <span class="kw">let</span> <span class="ident">right</span> <span class="op">=</span> <span class="ident">parse_compare_expression</span>(<span class="ident">lexer</span>)<span class="question-mark">?</span>;
-    <span class="prelude-val">Ok</span>(<span class="ident">Statement::BinaryExpression</span> {
+    <span class="kw">let</span> <span class="ident">right</span> <span class="op">=</span> <span class="ident">parse_compare_expression</span>(<span class="ident">lexer</span>);
+    <span class="ident">Statement::BinaryExpression</span> {
         <span class="ident">operator</span>,
         <span class="ident">left</span>: <span class="ident">Box::new</span>(<span class="ident">left</span>),
         <span class="ident">right</span>: <span class="ident">Box::new</span>(<span class="ident">right</span>),
-    })
+    }
 }
 
 <span class="comment">// Addition +, -</span>
-<span class="kw">fn</span> <span class="ident">parse_additive_expression</span>(<span class="ident">lexer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ParseSession</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Statement</span>, <span class="ident">ParseError</span><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="ident">left</span> <span class="op">=</span> <span class="ident">parse_multiplication_expression</span>(<span class="ident">lexer</span>)<span class="question-mark">?</span>;
+<span class="kw">fn</span> <span class="ident">parse_additive_expression</span>(<span class="ident">lexer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ParseSession</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Statement</span> {
+    <span class="kw">let</span> <span class="ident">left</span> <span class="op">=</span> <span class="ident">parse_multiplication_expression</span>(<span class="ident">lexer</span>);
     <span class="kw">let</span> <span class="ident">operator</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">lexer</span>.<span class="ident">token</span> {
         <span class="ident">OperatorPlus</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Operator::Plus</span>,
         <span class="ident">OperatorMinus</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Operator::Minus</span>,
-        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">left</span>),
+        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="ident">left</span>,
     };
     <span class="ident">lexer</span>.<span class="ident">advance</span>();
-    <span class="kw">let</span> <span class="ident">right</span> <span class="op">=</span> <span class="ident">parse_additive_expression</span>(<span class="ident">lexer</span>)<span class="question-mark">?</span>;
-    <span class="prelude-val">Ok</span>(<span class="ident">Statement::BinaryExpression</span> {
+    <span class="kw">let</span> <span class="ident">right</span> <span class="op">=</span> <span class="ident">parse_additive_expression</span>(<span class="ident">lexer</span>);
+    <span class="ident">Statement::BinaryExpression</span> {
         <span class="ident">operator</span>,
         <span class="ident">left</span>: <span class="ident">Box::new</span>(<span class="ident">left</span>),
         <span class="ident">right</span>: <span class="ident">Box::new</span>(<span class="ident">right</span>),
-    })
+    }
 }
 
 <span class="comment">// Multiplication *, /, MOD</span>
-<span class="kw">fn</span> <span class="ident">parse_multiplication_expression</span>(<span class="ident">lexer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ParseSession</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Statement</span>, <span class="ident">ParseError</span><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="ident">left</span> <span class="op">=</span> <span class="ident">parse_unary_expression</span>(<span class="ident">lexer</span>)<span class="question-mark">?</span>;
+<span class="kw">fn</span> <span class="ident">parse_multiplication_expression</span>(<span class="ident">lexer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ParseSession</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Statement</span> {
+    <span class="kw">let</span> <span class="ident">left</span> <span class="op">=</span> <span class="ident">parse_unary_expression</span>(<span class="ident">lexer</span>);
     <span class="kw">let</span> <span class="ident">operator</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">lexer</span>.<span class="ident">token</span> {
         <span class="ident">OperatorMultiplication</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Operator::Multiplication</span>,
         <span class="ident">OperatorDivision</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Operator::Division</span>,
         <span class="ident">OperatorModulo</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Operator::Modulo</span>,
-        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">left</span>),
+        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="ident">left</span>,
     };
     <span class="ident">lexer</span>.<span class="ident">advance</span>();
-    <span class="kw">let</span> <span class="ident">right</span> <span class="op">=</span> <span class="ident">parse_multiplication_expression</span>(<span class="ident">lexer</span>)<span class="question-mark">?</span>;
-    <span class="prelude-val">Ok</span>(<span class="ident">Statement::BinaryExpression</span> {
+    <span class="kw">let</span> <span class="ident">right</span> <span class="op">=</span> <span class="ident">parse_multiplication_expression</span>(<span class="ident">lexer</span>);
+    <span class="ident">Statement::BinaryExpression</span> {
         <span class="ident">operator</span>,
         <span class="ident">left</span>: <span class="ident">Box::new</span>(<span class="ident">left</span>),
         <span class="ident">right</span>: <span class="ident">Box::new</span>(<span class="ident">right</span>),
-    })
+    }
 }
+
 <span class="comment">// UNARY -x, NOT x</span>
-<span class="kw">fn</span> <span class="ident">parse_unary_expression</span>(<span class="ident">lexer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ParseSession</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Statement</span>, <span class="ident">ParseError</span><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">parse_unary_expression</span>(<span class="ident">lexer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ParseSession</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Statement</span> {
     <span class="kw">let</span> <span class="ident">operator</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">lexer</span>.<span class="ident">token</span> {
         <span class="ident">OperatorNot</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">Operator::Not</span>),
         <span class="ident">OperatorMinus</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">Operator::Minus</span>),
@@ -809,37 +821,35 @@
     <span class="kw">let</span> <span class="ident">start</span> <span class="op">=</span> <span class="ident">lexer</span>.<span class="ident">range</span>().<span class="ident">start</span>;
     <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">operator</span>) <span class="op">=</span> <span class="ident">operator</span> {
         <span class="ident">lexer</span>.<span class="ident">advance</span>();
-        <span class="kw">let</span> <span class="ident">expression</span> <span class="op">=</span> <span class="ident">parse_parenthesized_expression</span>(<span class="ident">lexer</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">expression</span> <span class="op">=</span> <span class="ident">parse_parenthesized_expression</span>(<span class="ident">lexer</span>);
         <span class="kw">let</span> <span class="ident">expression_location</span> <span class="op">=</span> <span class="ident">expression</span>.<span class="ident">get_location</span>();
         <span class="kw">let</span> <span class="ident">location</span> <span class="op">=</span> <span class="ident">SourceRange::new</span>(<span class="ident">start</span>..<span class="ident">expression_location</span>.<span class="ident">get_end</span>());
-        <span class="prelude-val">Ok</span>(<span class="ident">Statement::UnaryExpression</span> {
+        <span class="ident">Statement::UnaryExpression</span> {
             <span class="ident">operator</span>,
             <span class="ident">value</span>: <span class="ident">Box::new</span>(<span class="ident">expression</span>),
             <span class="ident">location</span>,
-        })
+        }
     } <span class="kw">else</span> {
         <span class="ident">parse_parenthesized_expression</span>(<span class="ident">lexer</span>)
     }
 }
 
 <span class="comment">// PARENTHESIZED (...)</span>
-<span class="kw">fn</span> <span class="ident">parse_parenthesized_expression</span>(<span class="ident">lexer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ParseSession</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Statement</span>, <span class="ident">ParseError</span><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">parse_parenthesized_expression</span>(<span class="ident">lexer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ParseSession</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Statement</span> {
     <span class="kw">match</span> <span class="ident">lexer</span>.<span class="ident">token</span> {
         <span class="ident">KeywordParensOpen</span> <span class="op">=</span><span class="op">&gt;</span> {
             <span class="ident">lexer</span>.<span class="ident">advance</span>();
-            <span class="prelude-val">Ok</span>(<span class="kw">super</span><span class="ident">::parse_statement_in_region</span>(
-                <span class="ident">lexer</span>,
-                <span class="macro">vec!</span>[<span class="ident">KeywordParensClose</span>],
-                <span class="op">|</span><span class="ident">lexer</span><span class="op">|</span> <span class="ident">parse_primary_expression</span>(<span class="ident">lexer</span>),
-            ))
+            <span class="kw">super</span><span class="ident">::parse_any_in_region</span>(<span class="ident">lexer</span>, <span class="macro">vec!</span>[<span class="ident">KeywordParensClose</span>], <span class="op">|</span><span class="ident">lexer</span><span class="op">|</span> {
+                <span class="ident">parse_expression</span>(<span class="ident">lexer</span>)
+            })
         }
         <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">parse_leaf_expression</span>(<span class="ident">lexer</span>),
     }
 }
 
 <span class="comment">// Literals, Identifiers, etc.</span>
-<span class="kw">fn</span> <span class="ident">parse_leaf_expression</span>(<span class="ident">lexer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ParseSession</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Statement</span>, <span class="ident">ParseError</span><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="ident">current</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">lexer</span>.<span class="ident">token</span> {
+<span class="kw">fn</span> <span class="ident">parse_leaf_expression</span>(<span class="ident">lexer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ParseSession</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Statement</span> {
+    <span class="kw">let</span> <span class="ident">literal_parse_result</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">lexer</span>.<span class="ident">token</span> {
         <span class="ident">Identifier</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">parse_qualified_reference</span>(<span class="ident">lexer</span>),
         <span class="ident">LiteralInteger</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">parse_literal_number</span>(<span class="ident">lexer</span>),
         <span class="ident">LiteralIntegerBin</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">parse_literal_number_with_modifier</span>(<span class="ident">lexer</span>, <span class="number">2</span>),
@@ -855,33 +865,45 @@
         <span class="ident">LiteralFalse</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">parse_bool_literal</span>(<span class="ident">lexer</span>, <span class="bool-val">false</span>),
         <span class="ident">KeywordSquareParensOpen</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">parse_array_literal</span>(<span class="ident">lexer</span>),
         <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">Diagnostic::unexpected_token_found</span>(
-            <span class="string">&quot;Value&quot;</span>.<span class="ident">to_string</span>(),
+            <span class="string">&quot;Literal&quot;</span>.<span class="ident">to_string</span>(),
             <span class="ident">lexer</span>.<span class="ident">slice</span>().<span class="ident">to_string</span>(),
             <span class="ident">lexer</span>.<span class="ident">location</span>(),
         )),
     };
 
-    <span class="kw">if</span> <span class="ident">current</span>.<span class="ident">is_ok</span>() <span class="op">&amp;&amp;</span> <span class="ident">lexer</span>.<span class="ident">token</span> <span class="op">=</span><span class="op">=</span> <span class="ident">KeywordAssignment</span> {
-        <span class="ident">lexer</span>.<span class="ident">advance</span>();
-        <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Statement::Assignment</span> {
-            <span class="ident">left</span>: <span class="ident">Box::new</span>(<span class="ident">current</span><span class="question-mark">?</span>),
-            <span class="ident">right</span>: <span class="ident">Box::new</span>(<span class="ident">parse_range_statement</span>(<span class="ident">lexer</span>)<span class="question-mark">?</span>),
-        });
-    } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">current</span>.<span class="ident">is_ok</span>() <span class="op">&amp;&amp;</span> <span class="ident">lexer</span>.<span class="ident">token</span> <span class="op">=</span><span class="op">=</span> <span class="ident">KeywordOutputAssignment</span> {
-        <span class="ident">lexer</span>.<span class="ident">advance</span>();
-        <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Statement::OutputAssignment</span> {
-            <span class="ident">left</span>: <span class="ident">Box::new</span>(<span class="ident">current</span><span class="question-mark">?</span>),
-            <span class="ident">right</span>: <span class="ident">Box::new</span>(<span class="ident">parse_range_statement</span>(<span class="ident">lexer</span>)<span class="question-mark">?</span>),
-        });
-    };
-    <span class="ident">current</span>
+    <span class="kw">match</span> <span class="ident">literal_parse_result</span> {
+        <span class="prelude-val">Ok</span>(<span class="ident">statement</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="kw">if</span> <span class="ident">lexer</span>.<span class="ident">token</span> <span class="op">=</span><span class="op">=</span> <span class="ident">KeywordAssignment</span> {
+                <span class="ident">lexer</span>.<span class="ident">advance</span>();
+                <span class="ident">Statement::Assignment</span> {
+                    <span class="ident">left</span>: <span class="ident">Box::new</span>(<span class="ident">statement</span>),
+                    <span class="ident">right</span>: <span class="ident">Box::new</span>(<span class="ident">parse_range_statement</span>(<span class="ident">lexer</span>)),
+                }
+            } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">lexer</span>.<span class="ident">token</span> <span class="op">=</span><span class="op">=</span> <span class="ident">KeywordOutputAssignment</span> {
+                <span class="ident">lexer</span>.<span class="ident">advance</span>();
+                <span class="ident">Statement::OutputAssignment</span> {
+                    <span class="ident">left</span>: <span class="ident">Box::new</span>(<span class="ident">statement</span>),
+                    <span class="ident">right</span>: <span class="ident">Box::new</span>(<span class="ident">parse_range_statement</span>(<span class="ident">lexer</span>)),
+                }
+            } <span class="kw">else</span> {
+                <span class="ident">statement</span>
+            }
+        }
+        <span class="prelude-val">Err</span>(<span class="ident">diagnostic</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="kw">let</span> <span class="ident">statement</span> <span class="op">=</span> <span class="ident">Statement::EmptyStatement</span> {
+                <span class="ident">location</span>: <span class="ident">diagnostic</span>.<span class="ident">get_location</span>(),
+            };
+            <span class="ident">lexer</span>.<span class="ident">accept_diagnostic</span>(<span class="ident">diagnostic</span>);
+            <span class="ident">statement</span>
+        }
+    }
 }
 
-<span class="kw">fn</span> <span class="ident">parse_array_literal</span>(<span class="ident">lexer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ParseSession</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Statement</span>, <span class="ident">ParseError</span><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">parse_array_literal</span>(<span class="ident">lexer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ParseSession</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Statement</span>, <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">start</span> <span class="op">=</span> <span class="ident">lexer</span>.<span class="ident">range</span>().<span class="ident">start</span>;
     <span class="ident">lexer</span>.<span class="ident">expect</span>(<span class="ident">KeywordSquareParensOpen</span>)<span class="question-mark">?</span>;
     <span class="ident">lexer</span>.<span class="ident">advance</span>();
-    <span class="kw">let</span> <span class="ident">elements</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">Box::new</span>(<span class="ident">parse_primary_expression</span>(<span class="ident">lexer</span>)<span class="question-mark">?</span>));
+    <span class="kw">let</span> <span class="ident">elements</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">Box::new</span>(<span class="ident">parse_expression</span>(<span class="ident">lexer</span>)));
     <span class="kw">let</span> <span class="ident">end</span> <span class="op">=</span> <span class="ident">lexer</span>.<span class="ident">range</span>().<span class="ident">end</span>;
     <span class="ident">lexer</span>.<span class="ident">expect</span>(<span class="ident">KeywordSquareParensClose</span>)<span class="question-mark">?</span>;
     <span class="ident">lexer</span>.<span class="ident">advance</span>();
@@ -893,13 +915,13 @@
 
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::unnecessary_wraps</span>)]</span>
 <span class="comment">//Allowing the unnecessary wrap here because this method is used along other methods that need to return Results</span>
-<span class="kw">fn</span> <span class="ident">parse_bool_literal</span>(<span class="ident">lexer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ParseSession</span>, <span class="ident">value</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Statement</span>, <span class="ident">ParseError</span><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">parse_bool_literal</span>(<span class="ident">lexer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ParseSession</span>, <span class="ident">value</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Statement</span>, <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">location</span> <span class="op">=</span> <span class="ident">lexer</span>.<span class="ident">location</span>();
     <span class="ident">lexer</span>.<span class="ident">advance</span>();
     <span class="prelude-val">Ok</span>(<span class="ident">Statement::LiteralBool</span> { <span class="ident">value</span>, <span class="ident">location</span> })
 }
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">parse_qualified_reference</span>(<span class="ident">lexer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ParseSession</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Statement</span>, <span class="ident">ParseError</span><span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">parse_qualified_reference</span>(<span class="ident">lexer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ParseSession</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Statement</span>, <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">start</span> <span class="op">=</span> <span class="ident">lexer</span>.<span class="ident">range</span>().<span class="ident">start</span>;
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">reference_elements</span> <span class="op">=</span> <span class="macro">vec!</span>[<span class="ident">parse_reference_access</span>(<span class="ident">lexer</span>)<span class="question-mark">?</span>];
     <span class="kw">while</span> <span class="ident">lexer</span>.<span class="ident">allow</span>(<span class="kw-2">&amp;</span><span class="ident">KeywordDot</span>) {
@@ -923,12 +945,12 @@
                 <span class="ident">location</span>: <span class="ident">SourceRange::new</span>(<span class="ident">start</span>..<span class="ident">lexer</span>.<span class="ident">range</span>().<span class="ident">end</span>),
             }
         } <span class="kw">else</span> {
-            <span class="ident">parse_statement_in_region</span>(<span class="ident">lexer</span>, <span class="macro">vec!</span>[<span class="ident">KeywordParensClose</span>], <span class="op">|</span><span class="ident">lexer</span><span class="op">|</span> {
-                <span class="prelude-val">Ok</span>(<span class="ident">Statement::CallStatement</span> {
+            <span class="ident">parse_any_in_region</span>(<span class="ident">lexer</span>, <span class="macro">vec!</span>[<span class="ident">KeywordParensClose</span>], <span class="op">|</span><span class="ident">lexer</span><span class="op">|</span> {
+                <span class="ident">Statement::CallStatement</span> {
                     <span class="ident">operator</span>: <span class="ident">Box::new</span>(<span class="ident">reference</span>),
-                    <span class="ident">parameters</span>: <span class="ident">Box::new</span>(<span class="prelude-val">Some</span>(<span class="ident">parse_expression_list</span>(<span class="ident">lexer</span>)<span class="question-mark">?</span>)),
+                    <span class="ident">parameters</span>: <span class="ident">Box::new</span>(<span class="prelude-val">Some</span>(<span class="ident">parse_expression_list</span>(<span class="ident">lexer</span>))),
                     <span class="ident">location</span>: <span class="ident">SourceRange::new</span>(<span class="ident">start</span>..<span class="ident">lexer</span>.<span class="ident">range</span>().<span class="ident">end</span>),
-                })
+                }
             })
         };
         <span class="prelude-val">Ok</span>(<span class="ident">call_statement</span>)
@@ -937,7 +959,7 @@
     }
 }
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">parse_reference_access</span>(<span class="ident">lexer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ParseSession</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Statement</span>, <span class="ident">ParseError</span><span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">parse_reference_access</span>(<span class="ident">lexer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ParseSession</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Statement</span>, <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">location</span> <span class="op">=</span> <span class="ident">lexer</span>.<span class="ident">location</span>();
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">reference</span> <span class="op">=</span> <span class="ident">Statement::Reference</span> {
         <span class="ident">name</span>: <span class="ident">lexer</span>.<span class="ident">slice_and_advance</span>(),
@@ -945,7 +967,7 @@
     };
     <span class="comment">//If (while) we hit a dereference, parse and append the dereference to the result</span>
     <span class="kw">while</span> <span class="ident">lexer</span>.<span class="ident">allow</span>(<span class="kw-2">&amp;</span><span class="ident">KeywordSquareParensOpen</span>) {
-        <span class="kw">let</span> <span class="ident">access</span> <span class="op">=</span> <span class="ident">parse_primary_expression</span>(<span class="ident">lexer</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">access</span> <span class="op">=</span> <span class="ident">parse_expression</span>(<span class="ident">lexer</span>);
         <span class="ident">lexer</span>.<span class="ident">expect</span>(<span class="ident">KeywordSquareParensClose</span>)<span class="question-mark">?</span>;
         <span class="ident">lexer</span>.<span class="ident">advance</span>();
         <span class="ident">reference</span> <span class="op">=</span> <span class="ident">Statement::ArrayAccess</span> {
@@ -959,7 +981,7 @@
 <span class="kw">fn</span> <span class="ident">parse_literal_number_with_modifier</span>(
     <span class="ident">lexer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ParseSession</span>,
     <span class="ident">radix</span>: <span class="ident">u32</span>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Statement</span>, <span class="ident">ParseError</span><span class="op">&gt;</span> {
+) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Statement</span>, <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
     <span class="comment">// we can safely unwrap the number string, since the token has</span>
     <span class="comment">// been matched using regular expressions</span>
     <span class="kw">let</span> <span class="ident">location</span> <span class="op">=</span> <span class="ident">lexer</span>.<span class="ident">location</span>();
@@ -973,7 +995,7 @@
     <span class="prelude-val">Ok</span>(<span class="ident">Statement::LiteralInteger</span> { <span class="ident">value</span>, <span class="ident">location</span> })
 }
 
-<span class="kw">fn</span> <span class="ident">parse_literal_number</span>(<span class="ident">lexer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ParseSession</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Statement</span>, <span class="ident">ParseError</span><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">parse_literal_number</span>(<span class="ident">lexer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ParseSession</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Statement</span>, <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">location</span> <span class="op">=</span> <span class="ident">lexer</span>.<span class="ident">location</span>();
     <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">lexer</span>.<span class="ident">slice_and_advance</span>();
     <span class="kw">if</span> <span class="ident">lexer</span>.<span class="ident">allow</span>(<span class="kw-2">&amp;</span><span class="ident">KeywordDot</span>) {
@@ -982,7 +1004,7 @@
         <span class="kw">let</span> <span class="ident">multiplier</span> <span class="op">=</span> <span class="ident">result</span>
             .<span class="ident">parse</span>::<span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>()
             .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">Diagnostic::syntax_error</span>(<span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">e</span>), <span class="ident">location</span>.<span class="ident">clone</span>()))<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">element</span> <span class="op">=</span> <span class="ident">parse_primary_expression</span>(<span class="ident">lexer</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">element</span> <span class="op">=</span> <span class="ident">parse_expression</span>(<span class="ident">lexer</span>);
         <span class="ident">lexer</span>.<span class="ident">expect</span>(<span class="ident">KeywordParensClose</span>)<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">end</span> <span class="op">=</span> <span class="ident">lexer</span>.<span class="ident">range</span>().<span class="ident">end</span>;
         <span class="ident">lexer</span>.<span class="ident">advance</span>();
@@ -1007,7 +1029,7 @@
     })
 }
 
-<span class="kw">fn</span> <span class="ident">parse_date_from_string</span>(<span class="ident">text</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">location</span>: <span class="ident">SourceRange</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Statement</span>, <span class="ident">ParseError</span><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">parse_date_from_string</span>(<span class="ident">text</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">location</span>: <span class="ident">SourceRange</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Statement</span>, <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">segments</span> <span class="op">=</span> <span class="ident">text</span>.<span class="ident">split</span>(<span class="string">&#39;-&#39;</span>);
 
     <span class="comment">//we can safely expect 3 numbers</span>
@@ -1032,7 +1054,7 @@
     })
 }
 
-<span class="kw">fn</span> <span class="ident">parse_literal_date_and_time</span>(<span class="ident">lexer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ParseSession</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Statement</span>, <span class="ident">ParseError</span><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">parse_literal_date_and_time</span>(<span class="ident">lexer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ParseSession</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Statement</span>, <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">location</span> <span class="op">=</span> <span class="ident">lexer</span>.<span class="ident">location</span>();
     <span class="comment">//get rid of D# or DATE#</span>
     <span class="kw">let</span> <span class="ident">slice</span> <span class="op">=</span> <span class="ident">lexer</span>.<span class="ident">slice_and_advance</span>();
@@ -1069,7 +1091,7 @@
     })
 }
 
-<span class="kw">fn</span> <span class="ident">parse_literal_date</span>(<span class="ident">lexer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ParseSession</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Statement</span>, <span class="ident">ParseError</span><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">parse_literal_date</span>(<span class="ident">lexer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ParseSession</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Statement</span>, <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">location</span> <span class="op">=</span> <span class="ident">lexer</span>.<span class="ident">location</span>();
     <span class="comment">//get rid of D# or DATE#</span>
     <span class="kw">let</span> <span class="ident">slice</span> <span class="op">=</span> <span class="ident">lexer</span>.<span class="ident">slice_and_advance</span>();
@@ -1079,7 +1101,7 @@
     <span class="ident">parse_date_from_string</span>(<span class="ident">slice</span>, <span class="ident">location</span>)
 }
 
-<span class="kw">fn</span> <span class="ident">parse_literal_time_of_day</span>(<span class="ident">lexer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ParseSession</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Statement</span>, <span class="ident">ParseError</span><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">parse_literal_time_of_day</span>(<span class="ident">lexer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ParseSession</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Statement</span>, <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">location</span> <span class="op">=</span> <span class="ident">lexer</span>.<span class="ident">location</span>();
     <span class="comment">//get rid of TOD# or TIME_OF_DAY#</span>
     <span class="kw">let</span> <span class="ident">slice</span> <span class="op">=</span> <span class="ident">lexer</span>.<span class="ident">slice_and_advance</span>();
@@ -1101,7 +1123,7 @@
     })
 }
 
-<span class="kw">fn</span> <span class="ident">parse_literal_time</span>(<span class="ident">lexer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ParseSession</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Statement</span>, <span class="ident">ParseError</span><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">parse_literal_time</span>(<span class="ident">lexer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ParseSession</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Statement</span>, <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
     <span class="kw">const</span> <span class="ident">POS_D</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">0</span>;
     <span class="kw">const</span> <span class="ident">POS_H</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">1</span>;
     <span class="kw">const</span> <span class="ident">POS_M</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">2</span>;
@@ -1207,7 +1229,7 @@
     <span class="ident">quoted_string</span>[<span class="number">1</span>..<span class="ident">quoted_string</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="number">1</span>].<span class="ident">to_string</span>()
 }
 
-<span class="kw">fn</span> <span class="ident">parse_literal_string</span>(<span class="ident">lexer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ParseSession</span>, <span class="ident">is_wide</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Statement</span>, <span class="ident">ParseError</span><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">parse_literal_string</span>(<span class="ident">lexer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ParseSession</span>, <span class="ident">is_wide</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Statement</span>, <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">lexer</span>.<span class="ident">slice</span>();
     <span class="kw">let</span> <span class="ident">location</span> <span class="op">=</span> <span class="ident">lexer</span>.<span class="ident">location</span>();
     <span class="kw">let</span> <span class="ident">string_literal</span> <span class="op">=</span> <span class="prelude-val">Ok</span>(<span class="ident">Statement::LiteralString</span> {
@@ -1223,7 +1245,7 @@
     <span class="ident">lexer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ParseSession</span>,
     <span class="ident">integer</span>: <span class="ident">String</span>,
     <span class="ident">integer_range</span>: <span class="ident">SourceRange</span>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Statement</span>, <span class="ident">ParseError</span><span class="op">&gt;</span> {
+) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Statement</span>, <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
     <span class="ident">lexer</span>.<span class="ident">expect</span>(<span class="ident">LiteralInteger</span>)<span class="question-mark">?</span>;
     <span class="kw">let</span> <span class="ident">start</span> <span class="op">=</span> <span class="ident">integer_range</span>.<span class="ident">get_start</span>();
     <span class="kw">let</span> <span class="ident">fraction_end</span> <span class="op">=</span> <span class="ident">lexer</span>.<span class="ident">range</span>().<span class="ident">end</span>;

@@ -249,6 +249,21 @@
 <span id="247">247</span>
 <span id="248">248</span>
 <span id="249">249</span>
+<span id="250">250</span>
+<span id="251">251</span>
+<span id="252">252</span>
+<span id="253">253</span>
+<span id="254">254</span>
+<span id="255">255</span>
+<span id="256">256</span>
+<span id="257">257</span>
+<span id="258">258</span>
+<span id="259">259</span>
+<span id="260">260</span>
+<span id="261">261</span>
+<span id="262">262</span>
+<span id="263">263</span>
+<span id="264">264</span>
 </pre><pre class="rust">
 <span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 <span class="kw">use</span> <span class="ident">core::ops::Range</span>;
@@ -276,6 +291,20 @@
     <span class="kw">pub</span> <span class="ident">parse_progress</span>: <span class="ident">usize</span>,
 }
 
+<span class="attribute">#[<span class="ident">macro_export</span>]</span>
+<span class="macro">macro_rules!</span> <span class="ident">expect_token</span> {
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">lexer</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">token</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">return_value</span>:<span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="kw">if</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">lexer</span>.<span class="ident">token</span> <span class="op">!</span><span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">token</span> {
+            <span class="macro-nonterminal">$</span><span class="macro-nonterminal">lexer</span>.<span class="ident">accept_diagnostic</span>(<span class="ident">Diagnostic::unexpected_token_found</span>(
+                <span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">token</span>),
+                <span class="macro-nonterminal">$</span><span class="macro-nonterminal">lexer</span>.<span class="ident">slice</span>().<span class="ident">to_string</span>(),
+                <span class="macro-nonterminal">$</span><span class="macro-nonterminal">lexer</span>.<span class="ident">location</span>(),
+            ));
+            <span class="kw">return</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">return_value</span>;
+        }
+    };
+}
+
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">ParseSession</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">l</span>: <span class="ident">Lexer</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Token</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ParseSession</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">lexer</span> <span class="op">=</span> <span class="ident">ParseSession</span> {
@@ -291,6 +320,7 @@
         <span class="ident">lexer</span>
     }
 
+    <span class="doccomment">/// this function will be removed soon:</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">expect</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">token</span>: <span class="ident">Token</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">token</span> <span class="op">!</span><span class="op">=</span> <span class="ident">token</span> {
             <span class="prelude-val">Err</span>(<span class="ident">Diagnostic::unexpected_token_found</span>(
