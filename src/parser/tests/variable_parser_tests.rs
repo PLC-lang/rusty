@@ -92,7 +92,6 @@ fn global_single_line_vars_can_be_parsed() {
     assert_eq!(ast_string, expected_ast)
 }
 
-
 #[test]
 fn two_global_vars_can_be_parsed() {
     let lexer = lex("VAR_GLOBAL a: INT; END_VAR VAR_GLOBAL x : INT; y : BOOL; END_VAR");

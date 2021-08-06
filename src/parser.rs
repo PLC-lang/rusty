@@ -359,12 +359,7 @@ fn parse_data_type_definition(
 ) -> Result<DataTypeWithInitializer, Diagnostic> {
     let result = if lexer.allow(&KeywordStruct) {
         //STRUCT
-        let mut variables = Vec::new();
-        while lexer.token == Identifier {
-            if let Some(variable) = parse_variable(lexer) {
-                variables.push(variable);
-            }
-        }
+        let variables = parse_variable_list(lexer);
         Ok((
             DataTypeDeclaration::DataTypeDefinition {
                 data_type: DataType::StructType { name, variables },
@@ -617,13 +612,7 @@ fn parse_variable_block(
     //Consume the type keyword
     lexer.advance();
     let variables = parse_any_in_region(lexer, vec![KeywordEndVar], |lexer| {
-        let mut variables = vec![];
-        while lexer.token == Identifier {
-            if let Some(variable) = parse_variable(lexer) {
-                variables.push(variable);
-            }
-        }
-        Ok(variables)
+        Ok(parse_variable_list(lexer))
     })
     .unwrap_or_default();
     VariableBlock {
@@ -632,11 +621,27 @@ fn parse_variable_block(
     }
 }
 
-fn parse_variable(lexer: &mut ParseSession) -> Option<Variable> {
-    let variable_location = lexer.location();
-    let name = lexer.slice_and_advance();
+fn parse_variable_list(lexer: &mut ParseSession) -> Vec<Variable> {
+    let mut variables = vec![];
+    while lexer.token == Identifier {
+        let mut line_vars = parse_variable_line(lexer);
+        variables.append(&mut line_vars);
+    }
+    variables
+}
 
-    //parse or recover until the colon
+fn parse_variable_line(lexer: &mut ParseSession) -> Vec<Variable> {
+    // read in a comma separated list of variable names
+    let mut var_names: Vec<(String, SourceRange)> = vec![];
+    while lexer.token == Identifier {
+        var_names.push((lexer.slice_and_advance(), lexer.location()));
+
+        if !lexer.allow(&KeywordComma) {
+            break;
+        }
+    }
+
+    // colon has to come before the data type
     if !lexer.allow(&KeywordColon) {
         lexer.accept_diagnostic(Diagnostic::missing_token(
             format!("{:?}", KeywordColon),
@@ -644,10 +649,17 @@ fn parse_variable(lexer: &mut ParseSession) -> Option<Variable> {
         ));
     }
 
-    parse_full_data_type_definition(lexer, None).map(|(data_type, initializer)| Variable {
-        name,
-        data_type,
-        location: variable_location,
-        initializer,
-    })
+    // create variables with the same data type for each of the names
+    let mut variables = vec![];
+    if let Some((data_type, initializer)) = parse_full_data_type_definition(lexer, None) {
+        for (name, location) in var_names {
+            variables.push(Variable {
+                name,
+                data_type: data_type.clone(),
+                location,
+                initializer: initializer.clone(),
+            });
+        }
+    }
+    variables
 }
