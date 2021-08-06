@@ -51,6 +51,9 @@ pub enum Token {
     #[token("NON_RETAIN")]
     KeywordNonRetain,
 
+    #[token("VAR_TEMP")]
+    KeywordVarTemp,
+
     #[token("END_METHOD")]
     #[token("ENDMETHOD")]
     KeywordEndMethod,

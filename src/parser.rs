@@ -237,7 +237,7 @@ fn parse_class_pou(lexer: &mut ParseSession, linkage: LinkageType) -> Option<Cla
         // TODO: Parse USING directives
         // TODO: Parse EXTENDS specifier
         // TODO: Parse IMPLEMENTS specifier
-        
+
         let mut variable_blocks = vec![];
         while lexer.token == KeywordVar {
             variable_blocks.push(parse_variable_block(
@@ -289,7 +289,18 @@ fn parse_method(
         let name = parse_identifier(lexer)?;
         let return_type = parse_return_type(lexer, PouType::Class);
 
-        // TODO  parse VAR blocks
+        let mut variable_blocks = vec![];
+        while lexer.token == KeywordVar
+            || lexer.token == KeywordVarInput
+            || lexer.token == KeywordVarOutput
+            || lexer.token == KeywordVarInOut
+            || lexer.token == KeywordVarTemp
+        {
+            variable_blocks.push(parse_variable_block(
+                lexer,
+                parse_variable_block_type(&lexer.token),
+            ));
+        }
 
         let call_name = format!("{}.{}", class_name, name);
         let implementation =
@@ -298,6 +309,7 @@ fn parse_method(
         Some(ClassMethod {
             name,
             access,
+            variable_blocks,
             return_type,
             implementation,
             overriding,
@@ -684,6 +696,7 @@ fn parse_control(lexer: &mut ParseSession) -> Statement {
 fn parse_variable_block_type(block_type: &Token) -> VariableBlockType {
     match block_type {
         KeywordVar => VariableBlockType::Local,
+        KeywordVarTemp => VariableBlockType::Temp,
         KeywordVarInput => VariableBlockType::Input,
         KeywordVarOutput => VariableBlockType::Output,
         KeywordVarGlobal => VariableBlockType::Global,
@@ -699,11 +712,7 @@ fn parse_variable_block(
     //Consume the type keyword
     lexer.advance();
 
-    let constant = if lexer.allow(&KeywordConstant) {
-        true
-    } else {
-        false
-    };
+    let constant = lexer.allow(&KeywordConstant);
 
     let retain = lexer.allow(&KeywordRetain);
     lexer.allow(&KeywordNonRetain);
@@ -720,10 +729,10 @@ fn parse_variable_block(
         variables
     });
     VariableBlock {
-        variables,
+        access,
         constant,
         retain,
-        access,
+        variables,
         variable_block_type,
     }
 }

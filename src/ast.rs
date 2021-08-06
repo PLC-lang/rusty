@@ -46,6 +46,7 @@ pub enum PolymorphisMode {
 pub struct ClassMethod {
     pub name: String,
     pub access: AccessModifier,
+    pub variable_blocks: Vec<VariableBlock>,
     pub return_type: Option<DataTypeDeclaration>,
     pub implementation: Implementation,
     pub overriding: bool,
@@ -135,6 +136,7 @@ impl Default for CompilationUnit {
 #[derive(Debug, Copy, PartialEq, Clone)]
 pub enum VariableBlockType {
     Local,
+    Temp,
     Input,
     Output,
     Global,
