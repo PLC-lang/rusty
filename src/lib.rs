@@ -326,7 +326,7 @@ pub fn compile_module<'c, T: SourceContainer>(
             .load_source(encoding)
             .map_err(|err| CompileError::io_read_error(err, location.clone()))?;
 
-        let (mut parse_result, diagnostics) = parse(e.source.as_str())?;
+        let (mut parse_result, diagnostics) = parse(e.source.as_str());
         ast::pre_process(&mut parse_result);
         full_index.import(index::visitor::visit(&parse_result));
         unit.import(parse_result);
@@ -365,12 +365,9 @@ pub fn compile_module<'c, T: SourceContainer>(
     Ok(code_generator)
 }
 
-fn parse(source: &str) -> Result<ParsedAst, CompileError> {
-    //Start lexing
+fn parse(source: &str) -> ParsedAst {
     let lexer = lexer::lex(source);
-    //Parse
-    //TODO : Parser should also return compile errors with sane locations
-    parser::parse(lexer).map_err(|err| err.into())
+    parser::parse(lexer)
 }
 
 #[cfg(test)]

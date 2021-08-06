@@ -3,7 +3,7 @@ use crate::parser::{parse, tests::lex};
 #[test]
 fn empty_global_vars_can_be_parsed() {
     let lexer = lex("VAR_GLOBAL END_VAR");
-    let result = parse(lexer).unwrap().0;
+    let result = parse(lexer).0;
 
     let vars = &result.global_vars[0]; //globar_vars
     let ast_string = format!("{:#?}", vars);
@@ -17,7 +17,7 @@ fn empty_global_vars_can_be_parsed() {
 #[test]
 fn global_vars_can_be_parsed() {
     let lexer = lex("VAR_GLOBAL x : INT; y : BOOL; END_VAR");
-    let result = parse(lexer).unwrap().0;
+    let result = parse(lexer).0;
 
     let vars = &result.global_vars[0]; //globar_vars
     let ast_string = format!("{:#?}", vars);
@@ -44,7 +44,7 @@ fn global_vars_can_be_parsed() {
 #[test]
 fn global_single_line_vars_can_be_parsed() {
     let lexer = lex("VAR_GLOBAL x, y,z : INT; f : BOOL; b, c : SINT; END_VAR");
-    let result = parse(lexer).unwrap().0;
+    let result = parse(lexer).0;
 
     let vars = &result.global_vars[0]; //globar_vars
     let ast_string = format!("{:#?}", vars);
@@ -95,7 +95,7 @@ fn global_single_line_vars_can_be_parsed() {
 #[test]
 fn two_global_vars_can_be_parsed() {
     let lexer = lex("VAR_GLOBAL a: INT; END_VAR VAR_GLOBAL x : INT; y : BOOL; END_VAR");
-    let result = parse(lexer).unwrap().0;
+    let result = parse(lexer).0;
 
     let vars = &result.global_vars; //global_vars
     let ast_string = format!("{:#?}", vars);
