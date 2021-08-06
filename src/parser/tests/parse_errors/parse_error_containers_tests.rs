@@ -1,5 +1,10 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-use crate::{Diagnostic, ast::*, lexer::Token, parser::{parse, tests::lex}};
+use crate::{
+    ast::*,
+    lexer::Token,
+    parser::{parse, tests::lex},
+    Diagnostic,
+};
 use pretty_assertions::*;
 
 /*
