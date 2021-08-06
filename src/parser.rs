@@ -601,7 +601,8 @@ fn parse_variable_line(lexer: &mut ParseSession) -> Vec<Variable> {
     // read in a comma separated list of variable names
     let mut var_names: Vec<(String, SourceRange)> = vec![];
     while lexer.token == Identifier {
-        var_names.push((lexer.slice_and_advance(), lexer.location()));
+        let location = lexer.location();
+        var_names.push((lexer.slice_and_advance(), location));
 
         if !lexer.allow(&KeywordComma) {
             break;
