@@ -14,8 +14,7 @@ fn simple_struct_type_can_be_parsed() {
                 Three:INT;
             END_STRUCT
         END_TYPE 
-        "#))
-    .unwrap();
+        "#));
 
     let ast_string = format!("{:#?}", &result.types[0]);
 
@@ -62,8 +61,7 @@ fn simple_enum_type_can_be_parsed() {
     let (result, ..) = parse(lex(r#"
         TYPE SampleEnum : (red, yellow, green);
         END_TYPE 
-        "#))
-    .unwrap();
+        "#));
 
     let ast_string = format!("{:#?}", &result.types[0]);
 
@@ -84,8 +82,7 @@ fn type_alias_can_be_parsed() {
         TYPE 
             MyInt : INT;
         END_TYPE
-        "#))
-    .unwrap();
+        "#));
 
     let ast_string = format!("{:#?}", &result.types[0]);
     let exptected_ast = format!(
@@ -107,8 +104,7 @@ fn type_alias_can_be_parsed() {
 fn array_type_can_be_parsed_test() {
     let (result, ..) = parse(lex(r#"
             TYPE MyArray : ARRAY[0..8] OF INT; END_TYPE
-            "#))
-    .unwrap();
+            "#));
 
     let ast_string = format!("{:#?}", &result.types[0]);
 
@@ -143,8 +139,7 @@ fn string_type_can_be_parsed_test() {
     let (result, ..) = parse(lex(r#"
             TYPE MyString : STRING[253]; END_TYPE
             TYPE MyString : STRING[253] := 'abc'; END_TYPE
-            "#))
-    .unwrap();
+            "#));
 
     let ast_string = format!("{:#?}", &result.types);
 
@@ -187,8 +182,7 @@ fn string_type_can_be_parsed_test() {
 fn wide_string_type_can_be_parsed_test() {
     let (result, ..) = parse(lex(r#"
             TYPE MyString : WSTRING[253]; END_TYPE
-            "#))
-    .unwrap();
+            "#));
 
     let ast_string = format!("{:#?}", &result.types[0]);
 
@@ -217,7 +211,7 @@ fn subrangetype_can_be_parsed() {
                 x : UINT(0..1000);
             END_VAR
            ");
-    let (parse_result, ..) = parse(lexer).unwrap();
+    let (parse_result, ..) = parse(lexer);
 
     let x = &parse_result.global_vars[0].variables[0];
     let expected = Variable {
@@ -252,8 +246,7 @@ fn struct_with_inline_array_can_be_parsed() {
                 One: ARRAY[0..1] OF INT;
             END_STRUCT
         END_TYPE 
-        "#))
-    .unwrap();
+        "#));
 
     let ast_string = format!("{:#?}", &result.types[0]);
 

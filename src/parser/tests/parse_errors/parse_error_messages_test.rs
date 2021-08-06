@@ -10,7 +10,7 @@ fn test_unexpected_token_error_message() {
             END_PROGRAM
     ";
     let lexer = super::super::lex(source);
-    let (_, diagnostics) = parse(lexer).unwrap();
+    let (_, diagnostics) = parse(lexer);
 
     assert_eq!(
         format!("{:?}", diagnostics),
@@ -36,11 +36,99 @@ fn test_unexpected_token_error_message2() {
     );
     let parse_result = parse(lexer);
     assert_eq!(
-        Err(Diagnostic::syntax_error(
+        &Diagnostic::syntax_error(
             "Unexpected token: expected StartKeyword but found SOME".into(),
             (0..4).into()
-        )),
-        parse_result
+        ),
+        parse_result.1.first().unwrap()
+    );
+}
+
+#[test]
+fn for_with_unexpected_token_1() {
+    let lexer = super::super::lex(
+        "
+        PROGRAM exp 
+        FOR z ALPHA x TO y DO
+            x;
+            y;
+        END_FOR
+        END_PROGRAM
+        ",
+    );
+    let parse_result = parse(lexer);
+    assert_eq!(
+        &Diagnostic::syntax_error(
+            "Unexpected token: expected KeywordAssignment but found ALPHA".into(),
+            (36..41).into()
+        ),
+        parse_result.1.first().unwrap()
+    );
+}
+
+#[test]
+fn for_with_unexpected_token_2() {
+    let lexer = super::super::lex(
+        "
+        PROGRAM exp 
+        FOR z := x BRAVO y DO
+            x;
+            y;
+        END_FOR
+        END_PROGRAM
+        ",
+    );
+    let parse_result = parse(lexer);
+    assert_eq!(
+        &Diagnostic::syntax_error(
+            "Unexpected token: expected KeywordTo but found BRAVO".into(),
+            (41..46).into()
+        ),
+        parse_result.1.first().unwrap()
+    );
+}
+
+#[test]
+fn if_then_with_unexpected_token() {
+    let lexer = super::super::lex(
+        "
+        PROGRAM exp 
+        IF TRUE CHARLIE
+            x;
+        ELSE
+            y;
+        END_IF
+        END_PROGRAM
+        ",
+    );
+    let parse_result = parse(lexer);
+    assert_eq!(
+        &Diagnostic::syntax_error(
+            "Unexpected token: expected KeywordThen but found CHARLIE".into(),
+            (38..45).into()
+        ),
+        parse_result.1.first().unwrap()
+    );
+}
+
+#[test]
+fn case_with_unexpected_token() {
+    let lexer = super::super::lex(
+        "
+        PROGRAM exp 
+        CASE StateMachine DELTA
+        1: x;
+        END_CASE
+        END_PROGRAM
+        ",
+    );
+    let parse_result = parse(lexer);
+    assert_eq!(
+        &Diagnostic::syntax_error(
+            "Unexpected token: expected KeywordOf but found DELTA".into(),
+            (48..53).into()
+        ),
+        parse_result.1.first().unwrap()
     );
 }
 
@@ -53,7 +141,7 @@ fn test_unclosed_body_error_message() {
 
     ",
     );
-    let (_, diagnostics) = parse(lexer).unwrap();
+    let (_, diagnostics) = parse(lexer);
 
     assert_eq!(
         diagnostics,

@@ -7,7 +7,7 @@ mod typesystem_test;
 macro_rules! codegen_wihout_unwrap {
     ($code:tt) => {{
         let lexer = crate::lexer::lex($code);
-        let (mut ast, ..) = crate::parser::parse(lexer).unwrap();
+        let (mut ast, ..) = crate::parser::parse(lexer);
 
         let context = inkwell::context::Context::create();
         crate::ast::pre_process(&mut ast);
@@ -21,7 +21,7 @@ macro_rules! codegen_wihout_unwrap {
 macro_rules! codegen {
     ($code:tt) => {{
         let lexer = crate::lexer::lex($code);
-        let (mut ast, ..) = crate::parser::parse(lexer).unwrap();
+        let (mut ast, ..) = crate::parser::parse(lexer);
 
         let context = inkwell::context::Context::create();
         crate::ast::pre_process(&mut ast);
