@@ -7,7 +7,7 @@ use pretty_assertions::*;
 #[test]
 fn empty_statements_are_are_parsed() {
     let lexer = lex("PROGRAM buz ;;;; END_PROGRAM ");
-    let result = parse(lexer).unwrap().0;
+    let result = parse(lexer).0;
 
     let prg = &result.implementations[0];
     assert_eq!(
@@ -39,7 +39,7 @@ fn empty_statements_are_are_parsed() {
 #[test]
 fn empty_statements_are_parsed_before_a_statement() {
     let lexer = lex("PROGRAM buz ;;;;x; END_PROGRAM ");
-    let result = parse(lexer).unwrap().0;
+    let result = parse(lexer).0;
 
     let prg = &result.implementations[0];
 
@@ -77,7 +77,7 @@ fn empty_statements_are_parsed_before_a_statement() {
 #[test]
 fn empty_statements_are_ignored_after_a_statement() {
     let lexer = lex("PROGRAM buz x;;;; END_PROGRAM ");
-    let result = parse(lexer).unwrap().0;
+    let result = parse(lexer).0;
 
     let prg = &result.implementations[0];
     let statement = &prg.statements[0];
@@ -99,8 +99,7 @@ fn inline_struct_declaration_can_be_parsed() {
                 Three:INT;
             END_STRUCT
         END_VAR
-        "#))
-    .unwrap();
+        "#));
 
     let ast_string = format!("{:#?}", &result.global_vars[0].variables[0]);
     let expected_ast = r#"Variable {
@@ -141,8 +140,7 @@ fn inline_enum_declaration_can_be_parsed() {
         VAR_GLOBAL
             my_enum : (red, yellow, green);
         END_VAR
-        "#))
-    .unwrap();
+        "#));
 
     let ast_string = format!("{:#?}", &result.global_vars[0].variables[0]);
 
@@ -172,8 +170,7 @@ fn multilevel_inline_struct_and_enum_declaration_can_be_parsed() {
                     END_STRUCT
                 END_STRUCT
         END_VAR
-        "#))
-    .unwrap();
+        "#));
 
     let ast_string = format!("{:#?}", &result.global_vars[0].variables[0]);
     let expected_ast = r#"Variable {
@@ -229,7 +226,7 @@ fn string_variable_declaration_can_be_parsed() {
                 wy : WSTRING[500];
             END_VAR
            ");
-    let (parse_result, ..) = parse(lexer).unwrap();
+    let (parse_result, ..) = parse(lexer);
     let x = &parse_result.global_vars[0].variables[0];
     let expected = r#"Variable {
     name: "x",

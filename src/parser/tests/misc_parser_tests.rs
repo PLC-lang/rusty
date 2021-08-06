@@ -13,14 +13,14 @@ use pretty_assertions::*;
 
 #[test]
 fn empty_returns_empty_compilation_unit() {
-    let (result, ..) = parse(lex("")).unwrap();
+    let (result, ..) = parse(lex(""));
     assert_eq!(result.units.len(), 0);
 }
 
 #[test]
 fn programs_can_be_external() {
     let lexer = lex("@EXTERNAL PROGRAM foo END_PROGRAM");
-    let parse_result = parse(lexer).unwrap().0;
+    let parse_result = parse(lexer).0;
     let implementation = &parse_result.implementations[0];
     assert_eq!(LinkageType::External, implementation.linkage);
 }
@@ -42,7 +42,7 @@ fn ids_are_assigned_to_parsed_literals() {
         [1,2,3];
     END_PROGRAM
     ");
-    let parse_result = parse(lexer).unwrap().0;
+    let parse_result = parse(lexer).0;
     let implementation = &parse_result.implementations[0];
 
     assert_eq!(implementation.statements[0].get_id(), 1);
@@ -63,7 +63,7 @@ fn ids_are_assigned_to_parsed_assignments() {
         a := b;
     END_PROGRAM
     ");
-    let parse_result = parse(lexer).unwrap().0;
+    let parse_result = parse(lexer).0;
     let implementation = &parse_result.implementations[0];
 
     if let Statement::Assignment { id, left, right } = &implementation.statements[0] {
@@ -84,7 +84,7 @@ fn ids_are_assigned_to_callstatements() {
         foo(a := 1, b => c, d);
     END_PROGRAM
     ");
-    let parse_result = parse(lexer).unwrap().0;
+    let parse_result = parse(lexer).0;
     let implementation = &parse_result.implementations[0];
 
     if let Statement::CallStatement { id, operator, .. } = &implementation.statements[0] {
@@ -165,7 +165,7 @@ fn ids_are_assigned_to_expressions() {
         5(a);
     END_PROGRAM
     ");
-    let parse_result = parse(lexer).unwrap().0;
+    let parse_result = parse(lexer).0;
     let implementation = &parse_result.implementations[0];
 
     if let Statement::BinaryExpression {
@@ -252,7 +252,7 @@ fn ids_are_assigned_to_if_statements() {
         END_IF
     END_PROGRAM
     ");
-    let parse_result = parse(lexer).unwrap().0;
+    let parse_result = parse(lexer).0;
     let implementation = &parse_result.implementations[0];
 
     match &implementation.statements[0] {
@@ -279,7 +279,7 @@ fn ids_are_assigned_to_for_statements() {
         END_FOR;
     END_PROGRAM
     ");
-    let parse_result = parse(lexer).unwrap().0;
+    let parse_result = parse(lexer).0;
     let implementation = &parse_result.implementations[0];
 
     match &implementation.statements[0] {
@@ -314,7 +314,7 @@ fn ids_are_assigned_to_while_statements() {
         END_WHILE
     END_PROGRAM
     ");
-    let parse_result = parse(lexer).unwrap().0;
+    let parse_result = parse(lexer).0;
     let implementation = &parse_result.implementations[0];
 
     match &implementation.statements[0] {
@@ -339,7 +339,7 @@ fn ids_are_assigned_to_repeat_statements() {
        UNTIL TRUE END_REPEAT
     END_PROGRAM
     ");
-    let parse_result = parse(lexer).unwrap().0;
+    let parse_result = parse(lexer).0;
     let implementation = &parse_result.implementations[0];
 
     match &implementation.statements[0] {
@@ -369,7 +369,7 @@ fn ids_are_assigned_to_case_statements() {
     END_CASE;
     END_PROGRAM
     ");
-    let parse_result = parse(lexer).unwrap().0;
+    let parse_result = parse(lexer).0;
     let implementation = &parse_result.implementations[0];
 
     match &implementation.statements[0] {

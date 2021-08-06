@@ -31,7 +31,7 @@ fn missing_semicolon_after_call() {
                 END_PROGRAM
     ");
 
-    let (compilation_unit, diagnostics) = parse(lexer).unwrap();
+    let (compilation_unit, diagnostics) = parse(lexer);
     //expected end of statement (e.g. ;), but found KeywordEndProgram at line: 1 offset: 14..25"
     //Expecting a missing semicolon message
     let expected = Diagnostic::unexpected_token_found(
@@ -67,7 +67,7 @@ fn missing_comma_in_call_parameters() {
                 END_PROGRAM
     ");
 
-    let (compilation_unit, diagnostics) = parse(lexer).unwrap();
+    let (compilation_unit, diagnostics) = parse(lexer);
     let expected = Diagnostic::unexpected_token_found(
         "KeywordParensClose".into(),
         "'c'".into(),
@@ -105,7 +105,7 @@ fn illegal_semicolon_in_call_parameters() {
                 END_PROGRAM
     ");
 
-    let (compilation_unit, diagnostics) = parse(lexer).unwrap();
+    let (compilation_unit, diagnostics) = parse(lexer);
     assert_eq!(
         diagnostics,
         vec![
@@ -153,12 +153,24 @@ fn incomplete_statement_test() {
         END_PROGRAM
         ");
 
-    let (cu, diagnostics) = parse(lexer).unwrap();
+    let (cu, diagnostics) = parse(lexer);
     let pou = &cu.implementations[0];
     assert_eq!(
         format!("{:#?}", pou.statements),
         r#"[
-    EmptyStatement,
+    BinaryExpression {
+        operator: Plus,
+        left: LiteralInteger {
+            value: 1,
+        },
+        right: BinaryExpression {
+            operator: Plus,
+            left: LiteralInteger {
+                value: 2,
+            },
+            right: EmptyStatement,
+        },
+    },
     Reference {
         name: "x",
     },
@@ -168,7 +180,7 @@ fn incomplete_statement_test() {
     assert_eq!(
         diagnostics[0],
         Diagnostic::syntax_error(
-            "Unexpected token: expected Value but found ;".into(),
+            "Unexpected token: expected Literal but found ;".into(),
             SourceRange::new(41..42)
         )
     );
@@ -183,14 +195,26 @@ fn incomplete_statement_in_parantheses_recovery_test() {
         END_PROGRAM
         ");
 
-    let (cu, diagnostics) = parse(lexer).unwrap();
+    let (cu, diagnostics) = parse(lexer);
     let pou = &cu.implementations[0];
     assert_eq!(
         format!("{:#?}", pou.statements),
         r#"[
     BinaryExpression {
         operator: Plus,
-        left: EmptyStatement,
+        left: BinaryExpression {
+            operator: Plus,
+            left: LiteralInteger {
+                value: 1,
+            },
+            right: BinaryExpression {
+                operator: Minus,
+                left: LiteralInteger {
+                    value: 2,
+                },
+                right: EmptyStatement,
+            },
+        },
         right: LiteralInteger {
             value: 3,
         },
@@ -204,7 +228,7 @@ fn incomplete_statement_in_parantheses_recovery_test() {
     assert_eq!(
         diagnostics[0],
         Diagnostic::syntax_error(
-            "Unexpected token: expected Value but found )".into(),
+            "Unexpected token: expected Literal but found )".into(),
             SourceRange::new(43..44)
         )
     );
@@ -219,7 +243,7 @@ fn mismatched_parantheses_recovery_test() {
         END_PROGRAM
         ");
 
-    let (cu, diagnostics) = parse(lexer).unwrap();
+    let (cu, diagnostics) = parse(lexer);
     let pou = &cu.implementations[0];
     assert_eq!(
         format!("{:#?}", pou.statements),
@@ -256,7 +280,7 @@ fn invalid_variable_name_error_recovery() {
         END_PROGRAM
         ");
 
-    let (cu, diagnostics) = parse(lexer).unwrap();
+    let (cu, diagnostics) = parse(lexer);
     let pou = &cu.units[0];
     assert_eq!(
         format!("{:#?}", pou.variable_blocks[0]),
@@ -297,7 +321,7 @@ fn invalid_variable_data_type_error_recovery() {
         END_PROGRAM
         ");
 
-    let (cu, diagnostics) = parse(lexer).unwrap();
+    let (cu, diagnostics) = parse(lexer);
     let pou = &cu.units[0];
     assert_eq!(
         format!("{:#?}", pou.variable_blocks[0]),
@@ -342,7 +366,7 @@ fn test_if_with_missing_semicolon_in_body() {
             END_IF
         END_PROGRAM
     ");
-    let (_, diagnostics) = parse(lexer).unwrap();
+    let (_, diagnostics) = parse(lexer);
 
     assert_eq!(
         diagnostics,
@@ -368,7 +392,7 @@ fn test_nested_if_with_missing_end_if() {
             y := x;
         END_PROGRAM
     ");
-    let (unit, diagnostics) = parse(lexer).unwrap();
+    let (unit, diagnostics) = parse(lexer);
 
     assert_eq!(
         diagnostics,
@@ -438,7 +462,7 @@ fn test_for_with_missing_semicolon_in_body() {
             END_FOR
         END_PROGRAM
     ");
-    let (_, diagnostics) = parse(lexer).unwrap();
+    let (_, diagnostics) = parse(lexer);
 
     assert_eq!(
         diagnostics,
@@ -464,7 +488,7 @@ fn test_nested_for_with_missing_end_for() {
             x := y;
         END_PROGRAM
     ");
-    let (unit, diagnostics) = parse(lexer).unwrap();
+    let (unit, diagnostics) = parse(lexer);
 
     assert_eq!(
         diagnostics,
@@ -541,7 +565,7 @@ fn test_repeat_with_missing_semicolon_in_body() {
             y := x;     
            END_PROGRAM
     ");
-    let (unit, diagnostics) = parse(lexer).unwrap();
+    let (unit, diagnostics) = parse(lexer);
 
     assert_eq!(
         diagnostics,
@@ -600,7 +624,7 @@ fn test_nested_repeat_with_missing_until_end_repeat() {
                 y := x;     
            END_PROGRAM
     ");
-    let (unit, diagnostics) = parse(lexer).unwrap();
+    let (unit, diagnostics) = parse(lexer);
 
     assert_eq!(
         diagnostics,
@@ -657,13 +681,13 @@ fn test_nested_repeat_with_missing_condition_and_end_repeat() {
             UNTIL
            END_PROGRAM
     ");
-    let (unit, diagnostics) = parse(lexer).unwrap();
+    let (unit, diagnostics) = parse(lexer);
 
     assert_eq!(
         diagnostics,
         vec![
             Diagnostic::syntax_error(
-                "Unexpected token: expected Value but found END_PROGRAM".into(),
+                "Unexpected token: expected Literal but found END_PROGRAM".into(),
                 (171..182).into()
             ),
             Diagnostic::missing_token("[KeywordEndRepeat]".into(), (171..182).into()),
@@ -718,7 +742,7 @@ fn test_nested_repeat_with_missing_end_repeat() {
             UNTIL x = y
            END_PROGRAM
     ");
-    let (unit, diagnostics) = parse(lexer).unwrap();
+    let (unit, diagnostics) = parse(lexer);
 
     assert_eq!(
         diagnostics,
@@ -778,7 +802,7 @@ fn test_while_with_missing_semicolon_in_body() {
             y := x;     
            END_PROGRAM
     ");
-    let (unit, diagnostics) = parse(lexer).unwrap();
+    let (unit, diagnostics) = parse(lexer);
 
     assert_eq!(
         diagnostics,
@@ -837,7 +861,7 @@ fn test_nested_while_with_missing_end_while() {
                 y := x;
            END_PROGRAM
     ");
-    let (unit, diagnostics) = parse(lexer).unwrap();
+    let (unit, diagnostics) = parse(lexer);
 
     assert_eq!(
         diagnostics,
@@ -896,7 +920,7 @@ fn test_while_with_missing_do() {
             END_WHILE
            END_PROGRAM
     ");
-    let (unit, diagnostics) = parse(lexer).unwrap();
+    let (unit, diagnostics) = parse(lexer);
 
     assert_eq!(
         diagnostics,
@@ -938,7 +962,7 @@ fn test_case_body_with_missing_semicolon() {
            END_CASE
            END_PROGRAM
     ");
-    let (unit, diagnostics) = parse(lexer).unwrap();
+    let (unit, diagnostics) = parse(lexer);
 
     assert_eq!(
         diagnostics,
@@ -984,7 +1008,7 @@ fn test_case_without_condition() {
             END_PROGRAM
 
     ");
-    let (cu, diagnostics) = parse(lexer).unwrap();
+    let (cu, diagnostics) = parse(lexer);
 
     assert_eq!(
         format!("{:#?}", cu.implementations[0].statements),
@@ -1022,7 +1046,7 @@ fn test_case_without_condition() {
     assert_eq!(
         diagnostics,
         vec![Diagnostic::syntax_error(
-            "Unexpected token: expected Value but found :".into(),
+            "Unexpected token: expected Literal but found :".into(),
             (85..86).into()
         ),]
     );
