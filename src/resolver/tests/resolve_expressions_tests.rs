@@ -250,9 +250,9 @@ fn qualified_expressions_resolve_types() {
         END_PROGRAM",
     );
     let annotations = annotate(&unit, index);
-    let statements = &unit.implementations[0].statements;
+    let statements = &unit.implementations[1].statements;
 
-    let expected_types = vec!["BYTE", "WORD", "DWORD", "LWORD", "BYTE", "WORD", "DWORD", "LWORD"];
+    let expected_types = vec!["BYTE", "WORD", "DWORD", "LWORD", "WORD", "DWORD", "LWORD"];
     let nothing = "-".to_string();
     let type_names : Vec<&String> = statements.iter().map(|s| 
             annotations.type_map.get(&s.get_id()).unwrap_or(&nothing)).collect();

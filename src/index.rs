@@ -1,11 +1,7 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use indexmap::IndexMap;
 
-use crate::{
-    ast::{Implementation, SourceRange, Statement},
-    compile_error::CompileError,
-    typesystem::*,
-};
+use crate::{ast::{Implementation, SourceRange, Statement}, compile_error::CompileError, typesystem::*};
 
 #[cfg(test)]
 mod tests;
@@ -239,9 +235,32 @@ impl Index {
             .ok_or_else(|| CompileError::unknown_type(type_name, SourceRange::undefined()))
     }
 
+
     /// Retrieves the "Effective" type behind this datatype
     /// An effective type will be any end type i.e. Structs, Integers, Floats, String and Array
     pub fn find_effective_type<'ret>(
+        &'ret self,
+        data_type: &'ret DataType,
+    ) -> Option<&'ret DataType> {
+        match data_type.get_type_information() {
+            DataTypeInformation::SubRange {
+                referenced_type, ..
+            } => self
+                .find_type(&referenced_type)
+                .and_then(|it| self.find_effective_type(it)),
+            DataTypeInformation::Alias {
+                referenced_type, ..
+            } => self
+                .find_type(&referenced_type)
+                .and_then(|it| self.find_effective_type(it)),
+            _ => Some(data_type),
+        }
+    }
+
+
+    /// Retrieves the "Effective" type-information behind this datatype
+    /// An effective type will be any end type i.e. Structs, Integers, Floats, String and Array
+    pub fn find_effective_type_information<'ret>(
         &'ret self,
         data_type: &'ret DataTypeInformation,
     ) -> Option<&'ret DataTypeInformation> {
@@ -250,12 +269,12 @@ impl Index {
                 referenced_type, ..
             } => self
                 .find_type(&referenced_type)
-                .and_then(|it| self.find_effective_type(it.get_type_information())),
+                .and_then(|it| self.find_effective_type_information(it.get_type_information())),
             DataTypeInformation::Alias {
                 referenced_type, ..
             } => self
                 .find_type(&referenced_type)
-                .and_then(|it| self.find_effective_type(it.get_type_information())),
+                .and_then(|it| self.find_effective_type_information(it.get_type_information())),
             _ => Some(data_type),
         }
     }

@@ -7,14 +7,10 @@
 
 use indexmap::IndexMap;
 
-use crate::{
-    ast::{
+use crate::{ast::{
         AstId, CompilationUnit, DataType, DataTypeDeclaration, Operator, Pou, Statement,
         UserTypeDeclaration, Variable,
-    },
-    index::Index,
-    typesystem::{self, get_bigger_type, get_bigger_type_borrow, DataTypeInformation},
-};
+    }, index::Index, typesystem::{self, DataTypeInformation, get_bigger_type_borrow}};
 
 #[cfg(test)]
 mod tests;
@@ -23,9 +19,9 @@ pub struct VisitorContext<'s> {
     current_qualifier: Option<&'s str>,
     current_pou: Option<&'s str>,
 }
-pub struct TypeAnnotator<'i, 's> {
+pub struct TypeAnnotator<'i> {
     index: &'i Index,
-    context: VisitorContext<'s>,
+    //context: VisitorContext<'i>,
 }
 
 pub struct AnnotationMap {
@@ -46,34 +42,33 @@ impl AnnotationMap {
         self.type_map.insert(s.get_id(), type_name.to_string());
     }
 
-    pub fn get_type<'i>(&self, s: &Statement, index: &'i Index) -> &'i DataTypeInformation {
+    pub fn get_type<'i>(&self, s: &Statement, index: &'i Index) -> &'i typesystem::DataType {
         self.type_map
             .get(&s.get_id())
             .and_then(|name| index.get_type(name).ok())
-            .map(|data_type| data_type.get_type_information())
-            .unwrap_or_else(|| index.get_void_type().get_type_information())
+            .unwrap_or_else(|| index.get_void_type())
     }
 }
 
 macro_rules! visit_all_statements {
-     ($self:expr, $annotation:expr, $last:expr ) => {
-         $self.visit_statement($annotation, $last);
+     ($self:expr, $annotation:expr, $ctx:expr, $last:expr ) => {
+         $self.visit_statement($annotation, $ctx, $last);
      };
 
-     ($self:expr, $annotation:expr, $head:expr, $($tail:expr), +) => {
-       $self.visit_statement($annotation, $head);
-       visit_all_statements!($self, $annotation, $($tail),+)
+     ($self:expr, $annotation:expr, $ctx:expr, $head:expr, $($tail:expr), +) => {
+       $self.visit_statement($annotation, $ctx, $head);
+       visit_all_statements!($self, $annotation, $ctx, $($tail),+)
      };
    }
 
-impl<'i, 's> TypeAnnotator<'i, 's> {
+impl<'i> TypeAnnotator<'i> {
     /// constructs a new TypeAnnotater that works with the given index for type-lookups
-    pub fn new(index: &'i Index) -> TypeAnnotator<'i, 's> {
+    pub fn new(index: &'i Index) -> TypeAnnotator<'i> {
         TypeAnnotator {
-            context: VisitorContext {
+            /*context: VisitorContext {
                 current_pou: None,
                 current_qualifier: None,
-            },
+            },*/
             index,
         }
     }
@@ -81,23 +76,29 @@ impl<'i, 's> TypeAnnotator<'i, 's> {
     /// annotates the given AST elements with the type-name resulting for the statements/expressions.
     ///
     /// Returns an AnnotationMap with the resulting types for all visited Statements. See `AnnotationMap`
-    pub fn visit_unit(&mut self, unit: &'s CompilationUnit) -> AnnotationMap {
+    pub fn visit_unit(&mut self, unit: &'i CompilationUnit) -> AnnotationMap {
         let mut annotation_map = AnnotationMap::new();
+        let ctx = &VisitorContext{
+            current_pou: None,
+            current_qualifier: None,
+        };
 
         for pou in &unit.units {
-            self.visit_pou(pou, &mut annotation_map);
+            self.visit_pou(&mut annotation_map, ctx, pou);
         }
 
         for t in &unit.types {
-            self.visit_user_type_declaration(t, &mut annotation_map);
+            self.visit_user_type_declaration(t, ctx, &mut annotation_map);
         }
 
         for i in &unit.implementations {
-            let old = std::mem::replace(&mut self.context.current_pou, Some(i.name.as_str()));
+            let pou_ctx = VisitorContext {
+                current_pou: ctx.current_pou,
+                current_qualifier: Some(i.name.as_str()),
+            };
             i.statements
                 .iter()
-                .for_each(|s| self.visit_statement(&mut annotation_map, s));
-            self.context.current_qualifier = old;
+                .for_each(|s| self.visit_statement(&mut annotation_map, &pou_ctx, s));
         }
         annotation_map
     }
@@ -105,56 +106,61 @@ impl<'i, 's> TypeAnnotator<'i, 's> {
     fn visit_user_type_declaration(
         &mut self,
         user_data_type: &UserTypeDeclaration,
+        ctx: &VisitorContext,
         annotation_map: &mut AnnotationMap,
     ) {
-        self.visit_data_type(&user_data_type.data_type, annotation_map);
+        self.visit_data_type(ctx, annotation_map, &user_data_type.data_type);
         if let Some(initializer) = &user_data_type.initializer {
-            self.visit_statement(annotation_map, &initializer);
+            self.visit_statement(annotation_map, ctx, &initializer);
         }
     }
 
-    fn visit_pou(&mut self, pou: &'s Pou, annotation_map: &mut AnnotationMap) {
-        let old = std::mem::replace(&mut self.context.current_pou, Some(pou.name.as_str()));
+    fn visit_pou(&mut self, annotation_map: &mut AnnotationMap, ctx: &VisitorContext, pou: &'i Pou) {
+        let pou_ctx = VisitorContext{
+            current_pou: Some(pou.name.as_str()),
+            current_qualifier: ctx.current_qualifier
+        };
+
         for block in &pou.variable_blocks {
             for variable in &block.variables {
-                self.visit_variable(variable, annotation_map);
+                self.visit_variable(&pou_ctx, annotation_map, variable);
             }
         }
-        self.context.current_pou = old;
     }
 
-    fn visit_variable(&mut self, variable: &Variable, annotation_map: &mut AnnotationMap) {
-        self.visit_data_type_declaration(&variable.data_type, annotation_map);
+    fn visit_variable(&mut self, ctx: &VisitorContext, annotation_map: &mut AnnotationMap, variable: &Variable) {
+        self.visit_data_type_declaration(ctx, annotation_map, &variable.data_type);
     }
 
     fn visit_data_type_declaration(
         &mut self,
-        declaration: &DataTypeDeclaration,
+        ctx: &VisitorContext,
         annotation_map: &mut AnnotationMap,
+        declaration: &DataTypeDeclaration,
     ) {
         if let DataTypeDeclaration::DataTypeDefinition { data_type } = declaration {
-            self.visit_data_type(data_type, annotation_map);
+            self.visit_data_type(ctx, annotation_map, data_type);
         }
     }
 
-    fn visit_data_type(&mut self, data_type: &DataType, annotation_map: &mut AnnotationMap) {
+    fn visit_data_type(&mut self, ctx: &VisitorContext, annotation_map: &mut AnnotationMap, data_type: &DataType) {
         match data_type {
             DataType::StructType { variables, .. } => variables
                 .iter()
-                .for_each(|v| self.visit_variable(v, annotation_map)),
+                .for_each(|v| self.visit_variable(ctx, annotation_map, v)),
             DataType::ArrayType {
                 referenced_type, ..
-            } => self.visit_data_type_declaration(referenced_type, annotation_map),
+            } => self.visit_data_type_declaration(ctx, annotation_map, referenced_type),
             DataType::VarArgs {
                 referenced_type: Some(referenced_type),
             } => {
-                self.visit_data_type_declaration(referenced_type.as_ref(), annotation_map);
+                self.visit_data_type_declaration(ctx, annotation_map, referenced_type.as_ref());
             }
             _ => {}
         }
     }
 
-    fn visit_statement(&mut self, annotation_map: &mut AnnotationMap, statement: &Statement) {
+    fn visit_statement(&mut self, annotation_map: &mut AnnotationMap, ctx: &VisitorContext, statement: &Statement) {
         match statement {
             Statement::LiteralBool { .. } => annotation_map.annotate_type(statement, "BOOL"),
             Statement::LiteralString { .. } => {
@@ -180,37 +186,38 @@ impl<'i, 's> TypeAnnotator<'i, 's> {
                 elements: Some(elements),
                 ..
             } => {
-                self.visit_statement(annotation_map, elements.as_ref());
+                self.visit_statement(annotation_map, ctx, elements.as_ref());
                 //TODO
             }
             Statement::MultipliedStatement { element, .. } => {
-                self.visit_statement(annotation_map, element)
+                self.visit_statement(annotation_map, ctx, element)
                 //TODO
             }
             Statement::QualifiedReference { elements, .. } => {
-                let elements = elements.iter();
+                let mut ctx = VisitorContext{
+                    current_qualifier: ctx.current_pou,
+                    current_pou: ctx.current_pou
+                };
+                for s in elements.iter() {
+                    self.visit_statement(annotation_map, &ctx, s);
+                    ctx.current_qualifier = Some(annotation_map.get_type(s, self.index).get_name());
+                }
 
-                if let Some(qualifier) = elements.next() {
-                    self.visit_statement(annotation_map, qualifier);
-                    let context = annotation_map.get_type(qualifier, self.index).get_name();
-                    self.context.current_qualifier = Some(context);
-                    elements.for_each(|s| {
-                        self.visit_statement(annotation_map, qualifier);
-                        let context = annotation_map.get_type(s, self.index).get_name();
-                        self.context.current_qualifier = Some(context);
-                    });
+                //the last guy represents the type of the whole qualified expression
+                if let Some(t) = ctx.current_qualifier {
+                    annotation_map.annotate_type(statement, t);
                 }
             }
             Statement::ArrayAccess {
                 reference, access, ..
             } => {
-                visit_all_statements!(self, annotation_map, reference, access);
+                visit_all_statements!(self, annotation_map, ctx, reference, access);
                 //TODO
             }
             Statement::BinaryExpression { left, right, .. } => {
-                visit_all_statements!(self, annotation_map, left, right);
-                let left = &annotation_map.get_type(left, self.index);
-                let right = &annotation_map.get_type(right, self.index);
+                visit_all_statements!(self, annotation_map, ctx, left, right);
+                let left = &annotation_map.get_type(left, self.index).get_type_information();
+                let right = &annotation_map.get_type(right, self.index).get_type_information();
 
                 if left.is_numerical() && right.is_numerical() {
                     let bigger_name = get_bigger_type_borrow(left, right, self.index).get_name();
@@ -220,8 +227,8 @@ impl<'i, 's> TypeAnnotator<'i, 's> {
             Statement::UnaryExpression {
                 value, operator, ..
             } => {
-                self.visit_statement(annotation_map, value);
-                let inner_type = annotation_map.get_type(value, self.index);
+                self.visit_statement(annotation_map, ctx, value);
+                let inner_type = annotation_map.get_type(value, self.index).get_type_information();
                 if operator == &Operator::Minus {
                     //keep the same type but switch to signed
                     if let Some(target) = typesystem::get_signed_type(inner_type, self.index) {
@@ -232,24 +239,24 @@ impl<'i, 's> TypeAnnotator<'i, 's> {
                 }
             }
             Statement::Reference { name, .. } => {
-                let qualifier = self.context.current_qualifier.or(self.context.current_pou);
+                let qualifier = ctx.current_qualifier.or(ctx.current_pou);
 
                 let type_name = qualifier
                     .and_then(|pou| self.index.find_member(pou, name).map(|v| v.get_type_name()))
                     .or_else(|| {
-                        self.index
-                            .find_global_variable(name)
-                            .map(|v| v.get_type_name())
+                        let x = self.index
+                        .find_implementation(name)
+                        .map(|_it| name.as_str() /* this is a pou */);
+                        x
                     })
                     .or_else(|| {
                         self.index
-                            .find_implementation(name)
-                            .map(|it| name.as_str() /* this is a pou */)
+                        .find_global_variable(name)
+                        .map(|v| v.get_type_name())
                     });
 
                 let effective_type = type_name
                     .and_then(|dt| self.index.get_type(dt).ok())
-                    .map(|it| it.get_type_information())
                     .and_then(|it| self.index.find_effective_type(it));
 
                 if let Some(data_type) = effective_type {
@@ -258,40 +265,38 @@ impl<'i, 's> TypeAnnotator<'i, 's> {
             }
             Statement::ExpressionList { expressions, .. } => expressions
                 .iter()
-                .for_each(|e| self.visit_statement(annotation_map, e)),
+                .for_each(|e| self.visit_statement(annotation_map, ctx, e)),
             Statement::RangeStatement { start, end, .. } => {
-                visit_all_statements!(self, annotation_map, start, end);
+                visit_all_statements!(self, annotation_map, ctx, start, end);
             }
             Statement::Assignment { left, right, .. } => {
-                self.visit_statement(annotation_map, left);
-                self.visit_statement(annotation_map, right);
+                visit_all_statements!(self, annotation_map, ctx, left, right);
             }
             Statement::OutputAssignment { left, right, .. } => {
-                self.visit_statement(annotation_map, left);
-                self.visit_statement(annotation_map, right);
+                visit_all_statements!(self, annotation_map, ctx, left, right);
             }
             Statement::CallStatement {
                 parameters,
                 operator,
                 ..
             } => {
-                self.visit_statement(annotation_map, operator);
+                self.visit_statement(annotation_map, ctx, operator);
                 if let Some(s) = parameters.as_ref() {
-                    self.visit_statement(annotation_map, s);
+                    self.visit_statement(annotation_map, ctx, s);
                 }
             }
             Statement::IfStatement {
                 blocks, else_block, ..
             } => {
                 blocks.iter().for_each(|b| {
-                    self.visit_statement(annotation_map, b.condition.as_ref());
+                    self.visit_statement(annotation_map, ctx, b.condition.as_ref());
                     b.body
                         .iter()
-                        .for_each(|s| self.visit_statement(annotation_map, s));
+                        .for_each(|s| self.visit_statement(annotation_map, ctx,  s));
                 });
                 else_block
                     .iter()
-                    .for_each(|e| self.visit_statement(annotation_map, e));
+                    .for_each(|e| self.visit_statement(annotation_map, ctx, e));
             }
             Statement::ForLoopStatement {
                 counter,
@@ -301,26 +306,26 @@ impl<'i, 's> TypeAnnotator<'i, 's> {
                 body,
                 ..
             } => {
-                visit_all_statements!(self, annotation_map, counter, start, end);
+                visit_all_statements!(self, annotation_map, ctx, counter, start, end);
                 if let Some(by_step) = by_step {
-                    self.visit_statement(annotation_map, by_step);
+                    self.visit_statement(annotation_map, ctx, by_step);
                 }
                 body.iter()
-                    .for_each(|s| self.visit_statement(annotation_map, s));
+                    .for_each(|s| self.visit_statement(annotation_map, ctx, s));
             }
             Statement::WhileLoopStatement {
                 condition, body, ..
             } => {
-                self.visit_statement(annotation_map, condition);
+                self.visit_statement(annotation_map, ctx, condition);
                 body.iter()
-                    .for_each(|s| self.visit_statement(annotation_map, s));
+                    .for_each(|s| self.visit_statement(annotation_map, ctx, s));
             }
             Statement::RepeatLoopStatement {
                 condition, body, ..
             } => {
-                self.visit_statement(annotation_map, condition);
+                self.visit_statement(annotation_map, ctx, condition);
                 body.iter()
-                    .for_each(|s| self.visit_statement(annotation_map, s));
+                    .for_each(|s| self.visit_statement(annotation_map, ctx, s));
             }
             Statement::CaseStatement {
                 selector,
@@ -328,19 +333,19 @@ impl<'i, 's> TypeAnnotator<'i, 's> {
                 else_block,
                 ..
             } => {
-                self.visit_statement(annotation_map, selector);
+                self.visit_statement(annotation_map, ctx, selector);
                 case_blocks.iter().for_each(|b| {
-                    self.visit_statement(annotation_map, b.condition.as_ref());
+                    self.visit_statement(annotation_map, ctx, b.condition.as_ref());
                     b.body
                         .iter()
-                        .for_each(|s| self.visit_statement(annotation_map, s));
+                        .for_each(|s| self.visit_statement(annotation_map, ctx, s));
                 });
                 else_block
                     .iter()
-                    .for_each(|s| self.visit_statement(annotation_map, s));
+                    .for_each(|s| self.visit_statement(annotation_map, ctx, s));
             }
             Statement::CaseCondition { condition, .. } => {
-                self.visit_statement(annotation_map, condition)
+                self.visit_statement(annotation_map, ctx, condition)
             }
             _ => {}
         }
