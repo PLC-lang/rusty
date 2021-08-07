@@ -187,7 +187,7 @@ impl<'i> TypeAnnotator<'i> {
                 ..
             } => {
                 self.visit_statement(annotation_map, ctx, elements.as_ref());
-                //TODO
+                //TODO 
             }
             Statement::MultipliedStatement { element, .. } => {
                 self.visit_statement(annotation_map, ctx, element)
@@ -212,7 +212,14 @@ impl<'i> TypeAnnotator<'i> {
                 reference, access, ..
             } => {
                 visit_all_statements!(self, annotation_map, ctx, reference, access);
-                //TODO
+                let array_type = annotation_map.get_type(reference, self.index).get_type_information();
+                if let DataTypeInformation::Array { inner_type_name, ..} = array_type {
+                    let t = self.index.find_type(inner_type_name)
+                        .and_then(|t| self.index.find_effective_type(t))
+                        .map(|t| t.get_name())
+                        .unwrap_or("VOID");
+                    annotation_map.annotate_type(statement, t);
+                }
             }
             Statement::BinaryExpression { left, right, .. } => {
                 visit_all_statements!(self, annotation_map, ctx, left, right);
