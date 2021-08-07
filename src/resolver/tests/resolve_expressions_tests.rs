@@ -225,6 +225,50 @@ fn complex_expressions_resolve_types() {
                 format!("{:?}", type_names));
 }
 
+#[test]
+fn array_expressions_resolve_types() {
+    let (unit, index) = parse(
+        "PROGRAM PRG
+            VAR
+                i : ARRAY[0..10] OF INT;
+                y : ARRAY[0..10] OF MyInt;
+                a : MyIntArray;
+                b : MyAliasArray;
+            END_VAR
+
+            i;
+            i[2];
+
+            y;
+            y[2];
+
+            a;
+            a[2];
+
+            b;
+            b[2];
+        END_PROGRAM
+        
+        TYPE MyInt: INT := 7; END_TYPE 
+        TYPE MyIntArray: ARRAY[0..10] OF INT := 7; END_TYPE 
+        TYPE MyAliasArray: ARRAY[0..10] OF MyInt := 7; END_TYPE 
+
+        ",
+    );
+    let annotations = annotate(&unit, index);
+    let statements = &unit.implementations[0].statements;
+
+    let expected_types = vec!["__PRG_i", "INT", "__PRG_y", "INT", "MyIntArray", "INT", "MyAliasArray", "INT"];
+    let nothing = "-".to_string();
+    let type_names : Vec<&String> = statements.iter().map(|s| 
+            annotations.type_map.get(&s.get_id()).unwrap_or(&nothing)).collect();
+
+    assert_eq!(format!("{:?}", expected_types),
+                format!("{:?}", type_names));
+}
+
+
+
 
 #[test]
 fn qualified_expressions_resolve_types() {
