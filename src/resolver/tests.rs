@@ -9,7 +9,7 @@ mod resolve_expressions_tests;
 
 
 fn parse(src: &str) -> (CompilationUnit, Index) {
-    let mut unit = crate::parser::parse(lex(src)).unwrap().0;
+    let mut unit = crate::parser::parse(lex(src)).0;
     ast::pre_process(&mut unit);
     let index = index::visitor::visit(&unit);
     (unit, index)

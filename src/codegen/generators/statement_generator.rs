@@ -179,7 +179,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         &self,
         data_type: &DataTypeInformation,
     ) -> Option<&ImplementationIndexEntry> {
-        let effective_type = self.index.find_effective_type(data_type);
+        let effective_type = self.index.find_effective_type_information(data_type);
         match effective_type {
             Some(DataTypeInformation::Integer { signed, size, .. }) if *signed && *size <= 32 => {
                 self.index.find_implementation(RANGE_CHECK_S_FN)
