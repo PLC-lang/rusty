@@ -19,10 +19,42 @@ use crate::{
 #[cfg(test)]
 mod tests;
 
+#[derive(Clone)]
 pub struct VisitorContext<'s> {
+    /// context for a reference (e.g. 'CONTEXT' when handling 'x' for 'CONTEXT.x')
     current_qualifier: Option<&'s str>,
+    /// optional context for references (e.g. 'x' may mean 'CONTEXT.x')
     current_pou: Option<&'s str>,
+    /// special context of the left-hand-side of an assignment
+    lhs_pou: Option<&'s str>,
 }
+
+impl<'s> VisitorContext<'s> {
+    pub fn qualifier(&self, qualifier: &'s str) -> VisitorContext<'s> {
+        VisitorContext {
+            current_pou: self.current_pou,
+            current_qualifier: Some(qualifier),
+            lhs_pou: self.lhs_pou,
+        }
+    }
+
+    pub fn current_pou(&self, pou: &'s str) -> VisitorContext<'s> {
+        VisitorContext {
+            current_pou: Some(pou),
+            current_qualifier: self.current_qualifier,
+            lhs_pou: self.lhs_pou,
+        }
+    }
+
+    pub fn lhs_pou(&self, lhs_pou: &'s str) -> VisitorContext<'s> {
+        VisitorContext {
+            current_pou: self.current_pou,
+            current_qualifier: self.current_qualifier,
+            lhs_pou: Some(lhs_pou),
+        }
+    }
+}
+
 pub struct TypeAnnotator<'i> {
     index: &'i Index,
     //context: VisitorContext<'i>,
@@ -85,6 +117,7 @@ impl<'i> TypeAnnotator<'i> {
         let ctx = &VisitorContext {
             current_pou: None,
             current_qualifier: None,
+            lhs_pou: None,
         };
 
         for pou in &unit.units {
@@ -96,13 +129,9 @@ impl<'i> TypeAnnotator<'i> {
         }
 
         for i in &unit.implementations {
-            let pou_ctx = VisitorContext {
-                current_pou: Some(i.name.as_str()),
-                current_qualifier: ctx.current_qualifier,
-            };
-            i.statements
-                .iter()
-                .for_each(|s| self.visit_statement(&mut annotation_map, &pou_ctx, s));
+            i.statements.iter().for_each(|s| {
+                self.visit_statement(&mut annotation_map, &ctx.current_pou(i.name.as_str()), s)
+            });
         }
         annotation_map
     }
@@ -125,11 +154,7 @@ impl<'i> TypeAnnotator<'i> {
         ctx: &VisitorContext,
         pou: &'i Pou,
     ) {
-        let pou_ctx = VisitorContext {
-            current_pou: Some(pou.name.as_str()),
-            current_qualifier: ctx.current_qualifier,
-        };
-
+        let pou_ctx = ctx.current_pou(pou.name.as_str());
         for block in &pou.variable_blocks {
             for variable in &block.variables {
                 self.visit_variable(&pou_ctx, annotation_map, variable);
@@ -294,13 +319,10 @@ impl<'i> TypeAnnotator<'i> {
                 }
             }
             Statement::QualifiedReference { elements, .. } => {
-                let mut ctx = VisitorContext {
-                    current_qualifier: ctx.current_pou,
-                    current_pou: ctx.current_pou,
-                };
+                let mut ctx = ctx.clone();
                 for s in elements.iter() {
                     self.visit_statement(annotation_map, &ctx, s);
-                    ctx.current_qualifier = Some(annotation_map.get_type(s, self.index).get_name());
+                    ctx = ctx.qualifier(annotation_map.get_type(s, self.index).get_name());
                 }
 
                 //the last guy represents the type of the whole qualified expression
@@ -315,7 +337,13 @@ impl<'i> TypeAnnotator<'i> {
                 visit_all_statements!(self, annotation_map, ctx, start, end);
             }
             Statement::Assignment { left, right, .. } => {
-                visit_all_statements!(self, annotation_map, ctx, left, right);
+                self.visit_statement(annotation_map, ctx, right);
+                if let Some(lhs) = ctx.lhs_pou {
+                    //special context for left hand side
+                    self.visit_statement(annotation_map, &ctx.current_pou(lhs), left);
+                } else {
+                    self.visit_statement(annotation_map, ctx, left);
+                }
             }
             Statement::OutputAssignment { left, right, .. } => {
                 visit_all_statements!(self, annotation_map, ctx, left, right);
@@ -326,8 +354,18 @@ impl<'i> TypeAnnotator<'i> {
                 ..
             } => {
                 self.visit_statement(annotation_map, ctx, operator);
+                let operator_type_name = annotation_map.get_type(operator, self.index).get_name();
                 if let Some(s) = parameters.as_ref() {
-                    self.visit_statement(annotation_map, ctx, s);
+                    let ctx = ctx.lhs_pou(operator_type_name);
+                    self.visit_statement(annotation_map, &ctx, s);
+                }
+
+                if let Some(return_type) = self
+                    .index
+                    .find_return_type(operator_type_name)
+                    .and_then(|it| self.index.find_effective_type(it))
+                {
+                    annotation_map.annotate_type(statement, return_type.get_name());
                 }
             }
             Statement::IfStatement {
