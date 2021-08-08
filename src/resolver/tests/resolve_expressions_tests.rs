@@ -1,5 +1,7 @@
-use crate::{resolver::{tests::{annotate, parse}}};
-
+use crate::{
+    ast::Statement,
+    resolver::tests::{annotate, parse},
+};
 
 #[test]
 fn binary_expressions_resolves_types() {
@@ -47,8 +49,6 @@ fn binary_expressions_resolves_types_with_floats() {
     }
 }
 
-
-
 #[test]
 fn local_variables_resolves_types() {
     let (unit, index) = parse(
@@ -85,13 +85,17 @@ fn local_variables_resolves_types() {
     let annotations = annotate(&unit, index);
     let statements = &unit.implementations[0].statements;
 
-    let expected_types = vec!["BYTE", "WORD", "DWORD", "LWORD", "SINT", "USINT", "INT", "UINT", "DINT", "UDINT", "LINT", "ULINT"];
+    let expected_types = vec![
+        "BYTE", "WORD", "DWORD", "LWORD", "SINT", "USINT", "INT", "UINT", "DINT", "UDINT", "LINT",
+        "ULINT",
+    ];
     let nothing = "-".to_string();
-    let type_names : Vec<&String> = statements.iter().map(|s| 
-            annotations.type_map.get(&s.get_id()).unwrap_or(&nothing)).collect();
+    let type_names: Vec<&String> = statements
+        .iter()
+        .map(|s| annotations.type_map.get(&s.get_id()).unwrap_or(&nothing))
+        .collect();
 
-    assert_eq!(format!("{:?}", expected_types),
-                format!("{:?}", type_names));
+    assert_eq!(format!("{:?}", expected_types), format!("{:?}", type_names));
 }
 
 #[test]
@@ -131,15 +135,18 @@ fn global_resolves_types() {
     let annotations = annotate(&unit, index);
     let statements = &unit.implementations[0].statements;
 
-    let expected_types = vec!["BYTE", "WORD", "DWORD", "LWORD", "SINT", "USINT", "INT", "UINT", "DINT", "UDINT", "LINT", "ULINT"];
+    let expected_types = vec![
+        "BYTE", "WORD", "DWORD", "LWORD", "SINT", "USINT", "INT", "UINT", "DINT", "UDINT", "LINT",
+        "ULINT",
+    ];
     let nothing = "-".to_string();
-    let type_names : Vec<&String> = statements.iter().map(|s| 
-            annotations.type_map.get(&s.get_id()).unwrap_or(&nothing)).collect();
+    let type_names: Vec<&String> = statements
+        .iter()
+        .map(|s| annotations.type_map.get(&s.get_id()).unwrap_or(&nothing))
+        .collect();
 
-    assert_eq!(format!("{:?}", expected_types),
-                format!("{:?}", type_names));
+    assert_eq!(format!("{:?}", expected_types), format!("{:?}", type_names));
 }
-
 
 #[test]
 fn resolve_binary_expressions() {
@@ -178,15 +185,18 @@ fn resolve_binary_expressions() {
     let annotations = annotate(&unit, index);
     let statements = &unit.implementations[0].statements;
 
-    let expected_types = vec!["BYTE", "WORD", "DWORD", "LWORD", "SINT", "BYTE", "INT", "UINT", "DINT", "UDINT", "LINT", "ULINT"];
+    let expected_types = vec![
+        "BYTE", "WORD", "DWORD", "LWORD", "SINT", "BYTE", "INT", "UINT", "DINT", "UDINT", "LINT",
+        "ULINT",
+    ];
     let nothing = "-".to_string();
-    let type_names : Vec<&String> = statements.iter().map(|s| 
-            annotations.type_map.get(&s.get_id()).unwrap_or(&nothing)).collect();
+    let type_names: Vec<&String> = statements
+        .iter()
+        .map(|s| annotations.type_map.get(&s.get_id()).unwrap_or(&nothing))
+        .collect();
 
-    assert_eq!(format!("{:?}", expected_types),
-                format!("{:?}", type_names));
+    assert_eq!(format!("{:?}", expected_types), format!("{:?}", type_names));
 }
-
 
 #[test]
 fn complex_expressions_resolve_types() {
@@ -218,11 +228,12 @@ fn complex_expressions_resolve_types() {
 
     let expected_types = vec!["LINT", "DINT", "REAL"];
     let nothing = "-".to_string();
-    let type_names : Vec<&String> = statements.iter().map(|s| 
-            annotations.type_map.get(&s.get_id()).unwrap_or(&nothing)).collect();
+    let type_names: Vec<&String> = statements
+        .iter()
+        .map(|s| annotations.type_map.get(&s.get_id()).unwrap_or(&nothing))
+        .collect();
 
-    assert_eq!(format!("{:?}", expected_types),
-                format!("{:?}", type_names));
+    assert_eq!(format!("{:?}", expected_types), format!("{:?}", type_names));
 }
 
 #[test]
@@ -258,17 +269,24 @@ fn array_expressions_resolve_types() {
     let annotations = annotate(&unit, index);
     let statements = &unit.implementations[0].statements;
 
-    let expected_types = vec!["__PRG_i", "INT", "__PRG_y", "INT", "MyIntArray", "INT", "MyAliasArray", "INT"];
+    let expected_types = vec![
+        "__PRG_i",
+        "INT",
+        "__PRG_y",
+        "INT",
+        "MyIntArray",
+        "INT",
+        "MyAliasArray",
+        "INT",
+    ];
     let nothing = "-".to_string();
-    let type_names : Vec<&String> = statements.iter().map(|s| 
-            annotations.type_map.get(&s.get_id()).unwrap_or(&nothing)).collect();
+    let type_names: Vec<&String> = statements
+        .iter()
+        .map(|s| annotations.type_map.get(&s.get_id()).unwrap_or(&nothing))
+        .collect();
 
-    assert_eq!(format!("{:?}", expected_types),
-                format!("{:?}", type_names));
+    assert_eq!(format!("{:?}", expected_types), format!("{:?}", type_names));
 }
-
-
-
 
 #[test]
 fn qualified_expressions_resolve_types() {
@@ -298,13 +316,13 @@ fn qualified_expressions_resolve_types() {
 
     let expected_types = vec!["BYTE", "WORD", "DWORD", "LWORD", "WORD", "DWORD", "LWORD"];
     let nothing = "-".to_string();
-    let type_names : Vec<&String> = statements.iter().map(|s| 
-            annotations.type_map.get(&s.get_id()).unwrap_or(&nothing)).collect();
+    let type_names: Vec<&String> = statements
+        .iter()
+        .map(|s| annotations.type_map.get(&s.get_id()).unwrap_or(&nothing))
+        .collect();
 
-    assert_eq!(format!("{:?}", expected_types),
-                format!("{:?}", type_names));
+    assert_eq!(format!("{:?}", expected_types), format!("{:?}", type_names));
 }
-
 
 #[test]
 fn pou_expressions_resolve_types() {
@@ -330,11 +348,126 @@ fn pou_expressions_resolve_types() {
 
     let expected_types = vec!["OtherPrg", "OtherFunc", "OtherFuncBlock"];
     let nothing = "-".to_string();
-    let type_names : Vec<&String> = statements.iter().map(|s| 
-            annotations.type_map.get(&s.get_id()).unwrap_or(&nothing)).collect();
+    let type_names: Vec<&String> = statements
+        .iter()
+        .map(|s| annotations.type_map.get(&s.get_id()).unwrap_or(&nothing))
+        .collect();
 
-    assert_eq!(format!("{:?}", expected_types),
-                format!("{:?}", type_names));
+    assert_eq!(format!("{:?}", expected_types), format!("{:?}", type_names));
 }
 
+#[test]
+fn assignment_expressions_resolve_types() {
+    let (unit, index) = parse(
+        "
+        PROGRAM PRG
+            VAR
+                x : INT;
+                y : BYTE;
+                z : LWORD;
+            END_VAR
 
+            x := y;
+            z := x;
+        END_PROGRAM",
+    );
+    let annotations = annotate(&unit, index);
+    let statements = &unit.implementations[0].statements;
+
+    let nothing = "-".to_string();
+    let expected_types = vec![&nothing, &nothing];
+    let type_names: Vec<&String> = statements
+        .iter()
+        .map(|s| annotations.type_map.get(&s.get_id()).unwrap_or(&nothing))
+        .collect();
+
+    assert_eq!(format!("{:?}", expected_types), format!("{:?}", type_names));
+
+    if let Statement::Assignment { left, right, .. } = &statements[0] {
+        assert_eq!(
+            annotations.type_map.get(&left.get_id()),
+            Some(&"INT".to_string())
+        );
+        assert_eq!(
+            annotations.type_map.get(&right.get_id()),
+            Some(&"BYTE".to_string())
+        );
+    } else {
+        panic!("expected assignment")
+    }
+    if let Statement::Assignment { left, right, .. } = &statements[1] {
+        assert_eq!(
+            annotations.type_map.get(&left.get_id()),
+            Some(&"LWORD".to_string())
+        );
+        assert_eq!(
+            annotations.type_map.get(&right.get_id()),
+            Some(&"INT".to_string())
+        );
+    } else {
+        panic!("expected assignment")
+    }
+}
+
+#[test]
+fn qualified_expressions_to_structs_resolve_types() {
+    let (unit, index) = parse(
+        "
+        TYPE NextStruct: STRUCT
+            b : BYTE;
+            w : WORD;
+            dw : DWORD;
+            lw : LWORD;
+        END_STRUCT
+        END_TYPE
+ 
+        TYPE MyStruct: STRUCT
+            b : BYTE;
+            w : WORD;
+            dw : DWORD;
+            lw : LWORD;
+            next : NextStruct;
+        END_STRUCT
+        END_TYPE
+
+        PROGRAM PRG
+            VAR 
+                mys : MyStruct;
+            END_VAR
+            mys;
+            mys.b;
+            mys.w;
+            mys.dw;
+            mys.lw;
+            mys.next;
+            mys.next.b;
+            mys.next.w;
+            mys.next.dw;
+            mys.next.lw;
+        END_PROGRAM",
+    );
+
+    println!("{:#?}", unit);
+    let annotations = annotate(&unit, index);
+    let statements = &unit.implementations[0].statements;
+
+    let expected_types = vec![
+        "MyStruct",
+        "BYTE",
+        "WORD",
+        "DWORD",
+        "LWORD",
+        "NextStruct",
+        "BYTE",
+        "WORD",
+        "DWORD",
+        "LWORD",
+    ];
+    let nothing = "-".to_string();
+    let type_names: Vec<&String> = statements
+        .iter()
+        .map(|s| annotations.type_map.get(&s.get_id()).unwrap_or(&nothing))
+        .collect();
+
+    assert_eq!(format!("{:?}", expected_types), format!("{:?}", type_names));
+}

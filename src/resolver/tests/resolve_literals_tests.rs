@@ -1,5 +1,4 @@
-use crate::{resolver::{tests::{annotate, parse}}};
-
+use crate::resolver::tests::{annotate, parse};
 
 #[test]
 fn bool_literals_are_annotated() {
@@ -33,7 +32,6 @@ fn string_literals_are_annotated() {
     let annotations = annotate(&unit, index);
     let statements = &unit.implementations[0].statements;
 
-
     for s in statements.iter() {
         assert_eq!(
             Some(&"STRING".to_string()),
@@ -54,8 +52,17 @@ fn int_literals_are_annotated() {
     );
     let annotations = annotate(&unit, index);
     let statements = &unit.implementations[0].statements;
-    
-    let expected_types = vec!["BYTE", "UINT", "UDINT", "ULINT", "DATE_AND_TIME", "DATE_AND_TIME", "DATE", "DATE"];
+
+    let expected_types = vec![
+        "BYTE",
+        "UINT",
+        "UDINT",
+        "ULINT",
+        "DATE_AND_TIME",
+        "DATE_AND_TIME",
+        "DATE",
+        "DATE",
+    ];
     for (i, s) in statements.iter().enumerate() {
         assert_eq!(
             Some(&expected_types[i].to_string()),
@@ -83,7 +90,16 @@ fn date_literals_are_annotated() {
     let annotations = annotate(&unit, index);
     let statements = &unit.implementations[0].statements;
 
-    let expected_types = vec!["TIME", "TIME", "TIME_OF_DAY", "TIME_OF_DAY", "DATE_AND_TIME", "DATE_AND_TIME", "DATE", "DATE"];
+    let expected_types = vec![
+        "TIME",
+        "TIME",
+        "TIME_OF_DAY",
+        "TIME_OF_DAY",
+        "DATE_AND_TIME",
+        "DATE_AND_TIME",
+        "DATE",
+        "DATE",
+    ];
     for (i, s) in statements.iter().enumerate() {
         assert_eq!(
             Some(&expected_types[i].to_string()),

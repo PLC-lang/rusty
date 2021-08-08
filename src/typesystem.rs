@@ -1,7 +1,10 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use std::ops::Range;
 
-use crate::{ast::{Dimension, Statement}, index::Index};
+use crate::{
+    ast::{Dimension, Statement},
+    index::Index,
+};
 
 pub const DEFAULT_STRING_LEN: u32 = 80;
 
@@ -159,7 +162,6 @@ impl DataTypeInformation {
         }
     }
 }
-
 
 pub fn get_builtin_types() -> Vec<DataType> {
     vec![
@@ -435,8 +437,11 @@ pub fn get_bigger_type_borrow<'t>(
         } else {
             ltype
         }
-    } else { 
-        let real_type = index.get_type("REAL").map(|it| it.get_type_information()).unwrap();
+    } else {
+        let real_type = index
+            .get_type("REAL")
+            .map(|it| it.get_type_information())
+            .unwrap();
         let real_size = real_type.get_size();
         if ltype.get_size() > real_size || rtype.get_size() > real_size {
             index.get_type("LREAL").unwrap().get_type_information()
@@ -448,7 +453,10 @@ pub fn get_bigger_type_borrow<'t>(
 
 /// returns the signed version of the given data_type if its a signed int-type
 /// returns the original type if it is no signed int-type
-pub fn get_signed_type<'t>(data_type: &'t DataTypeInformation, index: &'t Index) -> Option<&'t DataTypeInformation> {
+pub fn get_signed_type<'t>(
+    data_type: &'t DataTypeInformation,
+    index: &'t Index,
+) -> Option<&'t DataTypeInformation> {
     if data_type.is_int() {
         let signed_type = match data_type.get_name() {
             "BYTE" => "SINT",
@@ -456,12 +464,15 @@ pub fn get_signed_type<'t>(data_type: &'t DataTypeInformation, index: &'t Index)
             "WORD" => "INT",
             "UINT" => "INT",
             "DWORD" => "DINT",
-            "UDINT" => "DINT", 
+            "UDINT" => "DINT",
             "ULINT" => "LINT",
             "LWORD" => "LINT",
-            _ => data_type.get_name()
+            _ => data_type.get_name(),
         };
-        return index.get_type(signed_type).ok().map(|t| t.get_type_information());
+        return index
+            .get_type(signed_type)
+            .ok()
+            .map(|t| t.get_type_information());
     }
     None
 }
