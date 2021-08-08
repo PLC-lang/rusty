@@ -18,7 +18,6 @@ fn parse(src: &str) -> (CompilationUnit, Index) {
     (unit, index)
 }
 
-fn annotate(parse_result: &CompilationUnit, index: Index) -> AnnotationMap {
-    let mut annotator = TypeAnnotator::new(&index);
-    annotator.visit_unit(parse_result)
+fn annotate(parse_result: &CompilationUnit, index: &Index) -> AnnotationMap {
+    TypeAnnotator::visit_unit(index, parse_result)
 }
