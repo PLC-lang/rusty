@@ -17,7 +17,7 @@ fn binary_expressions_resolves_types() {
             2000 + 1;
         END_PROGRAM",
     );
-    let annotations = annotate(&unit, index);
+    let annotations = annotate(&unit, &index);
     let statements = &unit.implementations[0].statements;
 
     let expected_types = vec!["BYTE", "UINT", "UINT"];
@@ -40,7 +40,7 @@ fn binary_expressions_resolves_types_with_floats() {
             2000.0 + 1.0;
         END_PROGRAM",
     );
-    let annotations = annotate(&unit, index);
+    let annotations = annotate(&unit, &index);
     let statements = &unit.implementations[0].statements;
 
     let expected_types = vec!["REAL", "REAL", "REAL"];
@@ -87,7 +87,7 @@ fn local_variables_resolves_types() {
             uli;
         END_PROGRAM",
     );
-    let annotations = annotate(&unit, index);
+    let annotations = annotate(&unit, &index);
     let statements = &unit.implementations[0].statements;
 
     let expected_types = vec![
@@ -137,7 +137,7 @@ fn global_resolves_types() {
             uli;
         END_PROGRAM",
     );
-    let annotations = annotate(&unit, index);
+    let annotations = annotate(&unit, &index);
     let statements = &unit.implementations[0].statements;
 
     let expected_types = vec![
@@ -187,7 +187,7 @@ fn resolve_binary_expressions() {
             b + uli;
         END_PROGRAM",
     );
-    let annotations = annotate(&unit, index);
+    let annotations = annotate(&unit, &index);
     let statements = &unit.implementations[0].statements;
 
     let expected_types = vec![
@@ -228,7 +228,7 @@ fn complex_expressions_resolve_types() {
             b + w * di + r;
         END_PROGRAM",
     );
-    let annotations = annotate(&unit, index);
+    let annotations = annotate(&unit, &index);
     let statements = &unit.implementations[0].statements;
 
     let expected_types = vec!["LINT", "DINT", "REAL"];
@@ -271,7 +271,7 @@ fn array_expressions_resolve_types() {
 
         ",
     );
-    let annotations = annotate(&unit, index);
+    let annotations = annotate(&unit, &index);
     let statements = &unit.implementations[0].statements;
 
     let expected_types = vec![
@@ -316,7 +316,7 @@ fn qualified_expressions_resolve_types() {
             Other.b + Other.w + Other.dw + Other.lw;
         END_PROGRAM",
     );
-    let annotations = annotate(&unit, index);
+    let annotations = annotate(&unit, &index);
     let statements = &unit.implementations[1].statements;
 
     let expected_types = vec!["BYTE", "WORD", "DWORD", "LWORD", "WORD", "DWORD", "LWORD"];
@@ -348,7 +348,7 @@ fn pou_expressions_resolve_types() {
             OtherFuncBlock;
         END_PROGRAM",
     );
-    let annotations = annotate(&unit, index);
+    let annotations = annotate(&unit, &index);
     let statements = &unit.implementations[3].statements;
 
     let expected_types = vec!["OtherPrg", "OtherFunc", "OtherFuncBlock"];
@@ -376,7 +376,7 @@ fn assignment_expressions_resolve_types() {
             z := x;
         END_PROGRAM",
     );
-    let annotations = annotate(&unit, index);
+    let annotations = annotate(&unit, &index);
     let statements = &unit.implementations[0].statements;
 
     let nothing = "-".to_string();
@@ -452,7 +452,7 @@ fn qualified_expressions_to_structs_resolve_types() {
         END_PROGRAM",
     );
 
-    let annotations = annotate(&unit, index);
+    let annotations = annotate(&unit, &index);
     let statements = &unit.implementations[0].statements;
 
     let expected_types = vec![
@@ -497,7 +497,7 @@ fn qualified_expressions_to_inlined_structs_resolve_types() {
         END_PROGRAM",
     );
 
-    let annotations = annotate(&unit, index);
+    let annotations = annotate(&unit, &index);
     let statements = &unit.implementations[0].statements;
 
     let expected_types = vec!["__PRG_mys", "BYTE", "WORD", "DWORD", "LWORD"];
@@ -551,7 +551,7 @@ fn qualified_expressions_to_aliased_structs_resolve_types() {
         END_PROGRAM",
     );
 
-    let annotations = annotate(&unit, index);
+    let annotations = annotate(&unit, &index);
     let statements = &unit.implementations[0].statements;
 
     let expected_types = vec![
@@ -594,7 +594,7 @@ fn function_parameter_assignments_resolve_types() {
         ",
     );
 
-    let annotations = annotate(&unit, index);
+    let annotations = annotate(&unit, &index);
     let statements = &unit.implementations[1].statements;
 
     assert_eq!(
@@ -658,7 +658,7 @@ fn nested_function_parameter_assignments_resolve_types() {
         END_PROGRAM",
     );
 
-    let annotations = annotate(&unit, index);
+    let annotations = annotate(&unit, &index);
     let statements = &unit.implementations[2].statements;
     if let Statement::CallStatement { parameters, .. } = &statements[0] {
         //check the two parameters

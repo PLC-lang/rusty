@@ -366,8 +366,8 @@ pub fn compile_module<'c, T: SourceContainer>(
 
     //annotate the ASTs
     for u in all_units {
-        let mut ta = TypeAnnotator::new(&full_index);
-        ta.visit_unit(&u);
+        let _type_map = TypeAnnotator::visit_unit(&full_index, &u);
+        //TODO validate and find solution for type_map
         unit.import(u); //TODO this needs to be changed so we have unique AstIds
     }
 

@@ -8,7 +8,7 @@ fn bool_literals_are_annotated() {
                 FALSE;
             END_PROGRAM",
     );
-    let annotations = annotate(&unit, index);
+    let annotations = annotate(&unit, &index);
     let statements = &unit.implementations[0].statements;
 
     assert_eq!(
@@ -29,7 +29,7 @@ fn string_literals_are_annotated() {
                 "xyz";
             END_PROGRAM"#,
     );
-    let annotations = annotate(&unit, index);
+    let annotations = annotate(&unit, &index);
     let statements = &unit.implementations[0].statements;
 
     for s in statements.iter() {
@@ -50,7 +50,7 @@ fn int_literals_are_annotated() {
                 10000000000;
             END_PROGRAM",
     );
-    let annotations = annotate(&unit, index);
+    let annotations = annotate(&unit, &index);
     let statements = &unit.implementations[0].statements;
 
     let expected_types = vec![
@@ -87,7 +87,7 @@ fn date_literals_are_annotated() {
                 D#2021-04-20; 
             END_PROGRAM",
     );
-    let annotations = annotate(&unit, index);
+    let annotations = annotate(&unit, &index);
     let statements = &unit.implementations[0].statements;
 
     let expected_types = vec![
@@ -118,7 +118,7 @@ fn real_literals_are_annotated() {
                 1.0;
             END_PROGRAM",
     );
-    let annotations = annotate(&unit, index);
+    let annotations = annotate(&unit, &index);
     let statements = &unit.implementations[0].statements;
 
     let expected_types = vec!["REAL", "REAL"];

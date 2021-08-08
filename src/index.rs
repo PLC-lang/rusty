@@ -233,6 +233,17 @@ impl Index {
         self.types.get(type_name)
     }
 
+    pub fn find_effective_type_by_name(&self, type_name: &str) -> Option<&DataType> {
+        self.find_type(type_name)
+            .and_then(|it| self.find_effective_type(it))
+    }
+
+    pub fn get_effective_type_by_name(&self, type_name: &str) -> &DataType {
+        self.find_type(type_name)
+            .and_then(|it| self.find_effective_type(it))
+            .unwrap_or(&self.void_type)
+    }
+
     pub fn get_type(&self, type_name: &str) -> Result<&DataType, CompileError> {
         self.find_type(type_name)
             .ok_or_else(|| CompileError::unknown_type(type_name, SourceRange::undefined()))
