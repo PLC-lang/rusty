@@ -7,10 +7,14 @@
 
 use indexmap::IndexMap;
 
-use crate::{ast::{
+use crate::{
+    ast::{
         AstId, CompilationUnit, DataType, DataTypeDeclaration, Operator, Pou, Statement,
         UserTypeDeclaration, Variable,
-    }, index::Index, typesystem::{self, DataTypeInformation, get_bigger_type_borrow}};
+    },
+    index::Index,
+    typesystem::{self, get_bigger_type_borrow, DataTypeInformation},
+};
 
 #[cfg(test)]
 mod tests;
@@ -78,7 +82,7 @@ impl<'i> TypeAnnotator<'i> {
     /// Returns an AnnotationMap with the resulting types for all visited Statements. See `AnnotationMap`
     pub fn visit_unit(&mut self, unit: &'i CompilationUnit) -> AnnotationMap {
         let mut annotation_map = AnnotationMap::new();
-        let ctx = &VisitorContext{
+        let ctx = &VisitorContext {
             current_pou: None,
             current_qualifier: None,
         };
@@ -93,8 +97,8 @@ impl<'i> TypeAnnotator<'i> {
 
         for i in &unit.implementations {
             let pou_ctx = VisitorContext {
-                current_pou: ctx.current_pou,
-                current_qualifier: Some(i.name.as_str()),
+                current_pou: Some(i.name.as_str()),
+                current_qualifier: ctx.current_qualifier,
             };
             i.statements
                 .iter()
@@ -115,10 +119,15 @@ impl<'i> TypeAnnotator<'i> {
         }
     }
 
-    fn visit_pou(&mut self, annotation_map: &mut AnnotationMap, ctx: &VisitorContext, pou: &'i Pou) {
-        let pou_ctx = VisitorContext{
+    fn visit_pou(
+        &mut self,
+        annotation_map: &mut AnnotationMap,
+        ctx: &VisitorContext,
+        pou: &'i Pou,
+    ) {
+        let pou_ctx = VisitorContext {
             current_pou: Some(pou.name.as_str()),
-            current_qualifier: ctx.current_qualifier
+            current_qualifier: ctx.current_qualifier,
         };
 
         for block in &pou.variable_blocks {
@@ -128,7 +137,12 @@ impl<'i> TypeAnnotator<'i> {
         }
     }
 
-    fn visit_variable(&mut self, ctx: &VisitorContext, annotation_map: &mut AnnotationMap, variable: &Variable) {
+    fn visit_variable(
+        &mut self,
+        ctx: &VisitorContext,
+        annotation_map: &mut AnnotationMap,
+        variable: &Variable,
+    ) {
         self.visit_data_type_declaration(ctx, annotation_map, &variable.data_type);
     }
 
@@ -143,7 +157,12 @@ impl<'i> TypeAnnotator<'i> {
         }
     }
 
-    fn visit_data_type(&mut self, ctx: &VisitorContext, annotation_map: &mut AnnotationMap, data_type: &DataType) {
+    fn visit_data_type(
+        &mut self,
+        ctx: &VisitorContext,
+        annotation_map: &mut AnnotationMap,
+        data_type: &DataType,
+    ) {
         match data_type {
             DataType::StructType { variables, .. } => variables
                 .iter()
@@ -160,7 +179,12 @@ impl<'i> TypeAnnotator<'i> {
         }
     }
 
-    fn visit_statement(&mut self, annotation_map: &mut AnnotationMap, ctx: &VisitorContext, statement: &Statement) {
+    fn visit_statement(
+        &mut self,
+        annotation_map: &mut AnnotationMap,
+        ctx: &VisitorContext,
+        statement: &Statement,
+    ) {
         match statement {
             Statement::LiteralBool { .. } => annotation_map.annotate_type(statement, "BOOL"),
             Statement::LiteralString { .. } => {
@@ -187,34 +211,26 @@ impl<'i> TypeAnnotator<'i> {
                 ..
             } => {
                 self.visit_statement(annotation_map, ctx, elements.as_ref());
-                //TODO 
+                //TODO
             }
             Statement::MultipliedStatement { element, .. } => {
                 self.visit_statement(annotation_map, ctx, element)
                 //TODO
             }
-            Statement::QualifiedReference { elements, .. } => {
-                let mut ctx = VisitorContext{
-                    current_qualifier: ctx.current_pou,
-                    current_pou: ctx.current_pou
-                };
-                for s in elements.iter() {
-                    self.visit_statement(annotation_map, &ctx, s);
-                    ctx.current_qualifier = Some(annotation_map.get_type(s, self.index).get_name());
-                }
-
-                //the last guy represents the type of the whole qualified expression
-                if let Some(t) = ctx.current_qualifier {
-                    annotation_map.annotate_type(statement, t);
-                }
-            }
             Statement::ArrayAccess {
                 reference, access, ..
             } => {
                 visit_all_statements!(self, annotation_map, ctx, reference, access);
-                let array_type = annotation_map.get_type(reference, self.index).get_type_information();
-                if let DataTypeInformation::Array { inner_type_name, ..} = array_type {
-                    let t = self.index.find_type(inner_type_name)
+                let array_type = annotation_map
+                    .get_type(reference, self.index)
+                    .get_type_information();
+                if let DataTypeInformation::Array {
+                    inner_type_name, ..
+                } = array_type
+                {
+                    let t = self
+                        .index
+                        .find_type(inner_type_name)
                         .and_then(|t| self.index.find_effective_type(t))
                         .map(|t| t.get_name())
                         .unwrap_or("VOID");
@@ -223,8 +239,12 @@ impl<'i> TypeAnnotator<'i> {
             }
             Statement::BinaryExpression { left, right, .. } => {
                 visit_all_statements!(self, annotation_map, ctx, left, right);
-                let left = &annotation_map.get_type(left, self.index).get_type_information();
-                let right = &annotation_map.get_type(right, self.index).get_type_information();
+                let left = &annotation_map
+                    .get_type(left, self.index)
+                    .get_type_information();
+                let right = &annotation_map
+                    .get_type(right, self.index)
+                    .get_type_information();
 
                 if left.is_numerical() && right.is_numerical() {
                     let bigger_name = get_bigger_type_borrow(left, right, self.index).get_name();
@@ -235,7 +255,9 @@ impl<'i> TypeAnnotator<'i> {
                 value, operator, ..
             } => {
                 self.visit_statement(annotation_map, ctx, value);
-                let inner_type = annotation_map.get_type(value, self.index).get_type_information();
+                let inner_type = annotation_map
+                    .get_type(value, self.index)
+                    .get_type_information();
                 if operator == &Operator::Minus {
                     //keep the same type but switch to signed
                     if let Some(target) = typesystem::get_signed_type(inner_type, self.index) {
@@ -251,15 +273,16 @@ impl<'i> TypeAnnotator<'i> {
                 let type_name = qualifier
                     .and_then(|pou| self.index.find_member(pou, name).map(|v| v.get_type_name()))
                     .or_else(|| {
-                        let x = self.index
-                        .find_implementation(name)
-                        .map(|_it| name.as_str() /* this is a pou */);
+                        let x = self
+                            .index
+                            .find_implementation(name)
+                            .map(|_it| name.as_str() /* this is a pou */);
                         x
                     })
                     .or_else(|| {
                         self.index
-                        .find_global_variable(name)
-                        .map(|v| v.get_type_name())
+                            .find_global_variable(name)
+                            .map(|v| v.get_type_name())
                     });
 
                 let effective_type = type_name
@@ -268,6 +291,21 @@ impl<'i> TypeAnnotator<'i> {
 
                 if let Some(data_type) = effective_type {
                     annotation_map.annotate_type(statement, data_type.get_name());
+                }
+            }
+            Statement::QualifiedReference { elements, .. } => {
+                let mut ctx = VisitorContext {
+                    current_qualifier: ctx.current_pou,
+                    current_pou: ctx.current_pou,
+                };
+                for s in elements.iter() {
+                    self.visit_statement(annotation_map, &ctx, s);
+                    ctx.current_qualifier = Some(annotation_map.get_type(s, self.index).get_name());
+                }
+
+                //the last guy represents the type of the whole qualified expression
+                if let Some(t) = ctx.current_qualifier {
+                    annotation_map.annotate_type(statement, t);
                 }
             }
             Statement::ExpressionList { expressions, .. } => expressions
@@ -299,7 +337,7 @@ impl<'i> TypeAnnotator<'i> {
                     self.visit_statement(annotation_map, ctx, b.condition.as_ref());
                     b.body
                         .iter()
-                        .for_each(|s| self.visit_statement(annotation_map, ctx,  s));
+                        .for_each(|s| self.visit_statement(annotation_map, ctx, s));
                 });
                 else_block
                     .iter()

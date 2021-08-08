@@ -45,8 +45,8 @@ pub mod compile_error;
 pub mod index;
 mod lexer;
 mod parser;
-mod typesystem;
 mod resolver;
+mod typesystem;
 
 #[macro_use]
 extern crate pretty_assertions;
@@ -368,7 +368,7 @@ pub fn compile_module<'c, T: SourceContainer>(
     for u in all_units {
         let mut ta = TypeAnnotator::new(&full_index);
         ta.visit_unit(&u);
-        unit.import(u);  //TODO this needs to be changed so we have unique AstIds
+        unit.import(u); //TODO this needs to be changed so we have unique AstIds
     }
 
     //and finally codegen

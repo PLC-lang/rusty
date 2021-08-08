@@ -159,18 +159,22 @@ pub fn cast_if_needed<'ctx>(
     location_context: &Statement,
 ) -> Result<BasicValueEnum<'ctx>, CompileError> {
     let builder = &llvm.builder;
-    let target_type = index.find_effective_type_information(target_type).ok_or_else(|| {
-        CompileError::codegen_error(
-            format!("Could not find primitive type for {:?}", target_type),
-            SourceRange::undefined(),
-        )
-    })?;
-    let value_type = index.find_effective_type_information(value_type).ok_or_else(|| {
-        CompileError::codegen_error(
-            format!("Could not find primitive type for {:?}", value_type),
-            SourceRange::undefined(),
-        )
-    })?;
+    let target_type = index
+        .find_effective_type_information(target_type)
+        .ok_or_else(|| {
+            CompileError::codegen_error(
+                format!("Could not find primitive type for {:?}", target_type),
+                SourceRange::undefined(),
+            )
+        })?;
+    let value_type = index
+        .find_effective_type_information(value_type)
+        .ok_or_else(|| {
+            CompileError::codegen_error(
+                format!("Could not find primitive type for {:?}", value_type),
+                SourceRange::undefined(),
+            )
+        })?;
     match target_type {
         DataTypeInformation::Integer {
             signed,

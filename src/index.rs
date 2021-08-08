@@ -1,7 +1,11 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use indexmap::IndexMap;
 
-use crate::{ast::{Implementation, SourceRange, Statement}, compile_error::CompileError, typesystem::*};
+use crate::{
+    ast::{Implementation, SourceRange, Statement},
+    compile_error::CompileError,
+    typesystem::*,
+};
 
 #[cfg(test)]
 mod tests;
@@ -234,7 +238,6 @@ impl Index {
             .ok_or_else(|| CompileError::unknown_type(type_name, SourceRange::undefined()))
     }
 
-
     /// Retrieves the "Effective" type behind this datatype
     /// An effective type will be any end type i.e. Structs, Integers, Floats, String and Array
     pub fn find_effective_type<'ret>(
@@ -255,7 +258,6 @@ impl Index {
             _ => Some(data_type),
         }
     }
-
 
     /// Retrieves the "Effective" type-information behind this datatype
     /// An effective type will be any end type i.e. Structs, Integers, Floats, String and Array
