@@ -313,6 +313,8 @@ fn invalid_variable_data_type_error_recovery() {
             VAR 
                 a DINT : ;
                 c : INT;
+                h , , : INT;
+                f , INT : ;
             END_VAR
         END_PROGRAM
         ");
@@ -345,7 +347,23 @@ fn invalid_variable_data_type_error_recovery() {
                 "DataTypeDefinition".into(),
                 "KeywordSemicolon".into(),
                 SourceRange::new(61..62)
-            )
+            ),
+            Diagnostic::missing_token("KeywordColon".into(), SourceRange::new(108..109)),
+            Diagnostic::unexpected_token_found(
+                "DataTypeDefinition".into(),
+                "KeywordComma".into(),
+                SourceRange::new(108..109)
+            ),
+            Diagnostic::unexpected_token_found(
+                "KeywordSemicolon".into(),
+                "', : INT'".into(),
+                SourceRange::new(108..115)
+            ),
+            Diagnostic::unexpected_token_found(
+                "DataTypeDefinition".into(),
+                "KeywordSemicolon".into(),
+                SourceRange::new(143..144)
+            ),
         ]
     );
 }
