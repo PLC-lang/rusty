@@ -602,10 +602,19 @@ fn parse_variable_line(lexer: &mut ParseSession) -> Vec<Variable> {
     let mut var_names: Vec<(String, SourceRange)> = vec![];
     while lexer.token == Identifier {
         let location = lexer.location();
+        let identifier_end = location.get_end();
         var_names.push((lexer.slice_and_advance(), location));
 
-        if !lexer.allow(&KeywordComma) {
+        if lexer.token == KeywordColon {
             break;
+        }
+
+        if !lexer.allow(&KeywordComma) {
+            let next_token_start = lexer.location().get_start();
+            lexer.accept_diagnostic(Diagnostic::missing_token(
+                format!("{:?} or {:?}", KeywordColon, KeywordComma),
+                SourceRange::new(identifier_end..next_token_start),
+            ));
         }
     }
 

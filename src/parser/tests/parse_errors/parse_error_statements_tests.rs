@@ -324,12 +324,6 @@ fn invalid_variable_data_type_error_recovery() {
         r#"VariableBlock {
     variables: [
         Variable {
-            name: "a",
-            data_type: DataTypeReference {
-                referenced_type: "DINT",
-            },
-        },
-        Variable {
             name: "c",
             data_type: DataTypeReference {
                 referenced_type: "INT",
@@ -343,11 +337,14 @@ fn invalid_variable_data_type_error_recovery() {
     assert_eq!(
         diagnostics,
         vec![
-            Diagnostic::missing_token("KeywordColon".into(), SourceRange::new(54..58)),
+            Diagnostic::missing_token(
+                "KeywordColon or KeywordComma".into(),
+                SourceRange::new(53..54)
+            ),
             Diagnostic::unexpected_token_found(
+                "DataTypeDefinition".into(),
                 "KeywordSemicolon".into(),
-                "':'".into(),
-                SourceRange::new(59..60)
+                SourceRange::new(61..62)
             )
         ]
     );
