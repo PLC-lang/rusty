@@ -582,12 +582,14 @@ fn function_parameter_assignments_resolve_types() {
         FUNCTION foo : MyType
             VAR_INPUT
                 x : INT;
-                y : INT;
+            END_VAR
+            VAR_OUTPUT
+                y : SINT;
             END_VAR
         END_FUNCTION
 
         PROGRAM PRG
-            foo(x := 3, y := 6);
+            foo(x := 3, y => 6);
         END_PROGRAM
         
         TYPE MyType: INT; END_TYPE
@@ -617,6 +619,18 @@ fn function_parameter_assignments_resolve_types() {
                 assert_eq!(
                     annotations.type_map.get(&left.get_id()),
                     Some(&"INT".to_string())
+                );
+                assert_eq!(
+                    annotations.type_map.get(&right.get_id()),
+                    Some(&"BYTE".to_string())
+                );
+            } else {
+                panic!("assignment expected")
+            }
+            if let Statement::OutputAssignment { left, right, .. } = &expressions[1] {
+                assert_eq!(
+                    annotations.type_map.get(&left.get_id()),
+                    Some(&"SINT".to_string())
                 );
                 assert_eq!(
                     annotations.type_map.get(&right.get_id()),
