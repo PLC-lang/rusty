@@ -48,20 +48,17 @@ fn int_literals_are_annotated() {
                 1000;
                 1000000;
                 10000000000;
+                -1;
+                -1000;
+                -1000000;
+                -10000000000;
             END_PROGRAM",
     );
     let annotations = annotate(&unit, &index);
     let statements = &unit.implementations[0].statements;
 
     let expected_types = vec![
-        "BYTE",
-        "UINT",
-        "UDINT",
-        "ULINT",
-        "DATE_AND_TIME",
-        "DATE_AND_TIME",
-        "DATE",
-        "DATE",
+        "BYTE", "UINT", "UDINT", "ULINT", "SINT", "INT", "DINT", "LINT",
     ];
     for (i, s) in statements.iter().enumerate() {
         assert_eq!(

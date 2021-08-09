@@ -313,11 +313,12 @@ impl<'i> TypeAnnotator<'i> {
                 if operator == &Operator::Minus {
                     //keep the same type but switch to signed
                     if let Some(target) = typesystem::get_signed_type(inner_type, self.index) {
-                        self.annotation_map.annotate_type(value, target.get_name());
+                        self.annotation_map
+                            .annotate_type(statement, target.get_name());
                     }
                 } else {
                     self.annotation_map
-                        .annotate_type(value, inner_type.get_name());
+                        .annotate_type(statement, inner_type.get_name());
                 }
             }
             Statement::Reference { name, .. } => {
@@ -374,6 +375,12 @@ impl<'i> TypeAnnotator<'i> {
             }
             Statement::OutputAssignment { left, right, .. } => {
                 visit_all_statements!(self, ctx, left, right);
+                if let Some(lhs) = ctx.call {
+                    //special context for left hand side
+                    self.visit_statement(&ctx.with_pou(lhs), left);
+                } else {
+                    self.visit_statement(ctx, left);
+                }
             }
             Statement::CallStatement {
                 parameters,
