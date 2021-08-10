@@ -198,8 +198,16 @@ fn method_with_var_block() {
 
 #[test]
 fn method_with_var_inout_blocks() {
-    let lexer = lex(
-        "CLASS MyClass METHOD testMethod3 VAR_INPUT CONSTANT x:SINT := 3; END_VAR VAR_IN_OUT END_VAR VAR_OUTPUT END_VAR END_METHOD END_CLASS",
+    let lexer = lex(r#"
+            CLASS MyClass
+                METHOD testMethod3
+                    VAR_INPUT CONSTANT
+                        x:SINT := 3;
+                    END_VAR
+                    VAR_IN_OUT END_VAR
+                    VAR_OUTPUT END_VAR
+                END_METHOD
+            END_CLASS"#,
     );
     let unit = parse(lexer).0;
 
