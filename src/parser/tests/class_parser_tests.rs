@@ -207,8 +207,7 @@ fn method_with_var_inout_blocks() {
                     VAR_IN_OUT END_VAR
                     VAR_OUTPUT END_VAR
                 END_METHOD
-            END_CLASS"#,
-    );
+            END_CLASS"#);
     let unit = parse(lexer).0;
 
     let class = &unit.units[0];

@@ -183,18 +183,21 @@ fn parse_pou(
 
         let mut impl_pous = vec![];
         let mut implementations = vec![];
-        if pou_type == PouType::Class {
+        if pou_type == PouType::Class || pou_type == PouType::FunctionBlock {
             // classes and function blocks can have methods. methods consist of a Pou part
             // and an implementation part. That's why we get another (Pou, Implementation)
             // tuple out of parse_method() that has to be added to the list of Pous and
-            // implementations.
+            // implementations. Note that function blocks have to start with the method
+            // declarations before their implementation.
             while lexer.token == KeywordMethod {
                 if let Some((pou, implementation)) = parse_method(lexer, &name, linkage) {
                     impl_pous.push(pou);
                     implementations.push(implementation);
                 }
             }
-        } else {
+        }
+        if pou_type != PouType::Class {
+            // a class may not contain an implementation
             implementations.push(parse_implementation(lexer, linkage, pou_type, &name, &name));
         }
 
