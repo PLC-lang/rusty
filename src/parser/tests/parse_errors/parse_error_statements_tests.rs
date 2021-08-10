@@ -313,6 +313,8 @@ fn invalid_variable_data_type_error_recovery() {
             VAR 
                 a DINT : ;
                 c : INT;
+                h , , : INT;
+                f , INT : ;
             END_VAR
         END_PROGRAM
         ");
@@ -323,12 +325,6 @@ fn invalid_variable_data_type_error_recovery() {
         format!("{:#?}", pou.variable_blocks[0]),
         r#"VariableBlock {
     variables: [
-        Variable {
-            name: "a",
-            data_type: DataTypeReference {
-                referenced_type: "DINT",
-            },
-        },
         Variable {
             name: "c",
             data_type: DataTypeReference {
@@ -343,12 +339,31 @@ fn invalid_variable_data_type_error_recovery() {
     assert_eq!(
         diagnostics,
         vec![
-            Diagnostic::missing_token("KeywordColon".into(), SourceRange::new(54..58)),
+            Diagnostic::missing_token(
+                "KeywordColon or KeywordComma".into(),
+                SourceRange::new(53..54)
+            ),
+            Diagnostic::unexpected_token_found(
+                "DataTypeDefinition".into(),
+                "KeywordSemicolon".into(),
+                SourceRange::new(61..62)
+            ),
+            Diagnostic::missing_token("KeywordColon".into(), SourceRange::new(108..109)),
+            Diagnostic::unexpected_token_found(
+                "DataTypeDefinition".into(),
+                "KeywordComma".into(),
+                SourceRange::new(108..109)
+            ),
             Diagnostic::unexpected_token_found(
                 "KeywordSemicolon".into(),
-                "':'".into(),
-                SourceRange::new(59..60)
-            )
+                "', : INT'".into(),
+                SourceRange::new(108..115)
+            ),
+            Diagnostic::unexpected_token_found(
+                "DataTypeDefinition".into(),
+                "KeywordSemicolon".into(),
+                SourceRange::new(143..144)
+            ),
         ]
     );
 }
