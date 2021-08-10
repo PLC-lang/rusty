@@ -14,9 +14,8 @@ use crate::{
     },
     index::Index,
     typesystem::{
-        self, get_bigger_type_borrow, DataTypeInformation, BOOL_TYPE, BYTE_TYPE,
-        DATE_AND_TIME_TYPE, DATE_TYPE, REAL_TYPE, STRING_TYPE, TIME_OF_DAY_TYPE, TIME_TYPE,
-        UDINT_TYPE, UINT_TYPE, ULINT_TYPE,
+        self, get_bigger_type_borrow, DataTypeInformation, BOOL_TYPE, DATE_AND_TIME_TYPE,
+        DATE_TYPE, DINT_TYPE, LINT_TYPE, REAL_TYPE, STRING_TYPE, TIME_OF_DAY_TYPE, TIME_TYPE,
     },
 };
 
@@ -460,15 +459,10 @@ impl<'i> TypeAnnotator<'i> {
 }
 
 fn get_int_type_name_for(value: i64) -> &'static str {
-    //TODO how will this ever be a negative number?
-    if value <= u8::MAX.into() {
-        BYTE_TYPE
-    } else if value <= u16::MAX.into() {
-        UINT_TYPE
-    } else if value <= u32::MAX.into() {
-        UDINT_TYPE
+    if i32::MIN as i64 <= value && i32::MAX as i64 >= value {
+        DINT_TYPE
     } else {
-        ULINT_TYPE
+        LINT_TYPE
     }
 }
 
@@ -478,13 +472,14 @@ mod resolver_tests {
 
     #[test]
     fn correct_int_types_name_for_numbers() {
-        assert_eq!(get_int_type_name_for(0), "BYTE");
-        assert_eq!(get_int_type_name_for(i64::pow(2, 8) - 1), "BYTE");
-        assert_eq!(get_int_type_name_for(i64::pow(2, 8)), "UINT");
-        assert_eq!(get_int_type_name_for(i64::pow(2, 16) - 1), "UINT");
-        assert_eq!(get_int_type_name_for(i64::pow(2, 16)), "UDINT");
-        assert_eq!(get_int_type_name_for(i64::pow(2, 32) - 1), "UDINT");
-        assert_eq!(get_int_type_name_for(i64::pow(2, 32)), "ULINT");
-        assert_eq!(get_int_type_name_for(i64::MAX), "ULINT");
+        assert_eq!(get_int_type_name_for(0), "DINT");
+        assert_eq!(get_int_type_name_for(i64::pow(2, 8) - 1), "DINT");
+        assert_eq!(get_int_type_name_for(i64::pow(2, 8)), "DINT");
+        assert_eq!(get_int_type_name_for(i64::pow(2, 16) - 1), "DINT");
+        assert_eq!(get_int_type_name_for(i64::pow(2, 16)), "DINT");
+        assert_eq!(get_int_type_name_for(i64::pow(2, 31) - 1), "DINT");
+        assert_eq!(get_int_type_name_for(i64::pow(2, 31)), "LINT");
+        assert_eq!(get_int_type_name_for(i64::pow(2, 32)), "LINT");
+        assert_eq!(get_int_type_name_for(i64::MAX), "LINT");
     }
 }

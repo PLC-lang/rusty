@@ -14,21 +14,21 @@ fn binary_expressions_resolves_types() {
         "PROGRAM PRG
             1 + 2;
             1 + 2000;
-            2000 + 1;
+            2147483648 + 1;
         END_PROGRAM",
     );
     let annotations = annotate(&unit, &index);
     let statements = &unit.implementations[0].statements;
 
-    let expected_types = vec!["BYTE", "UINT", "UINT"];
-    for (i, s) in statements.iter().enumerate() {
-        assert_eq!(
-            Some(&expected_types[i].to_string()),
-            annotations.type_map.get(&s.get_id()),
-            "{:#?}",
-            s
-        );
-    }
+    let expected_types = vec!["DINT", "DINT", "LINT"];
+
+    let none = "-".to_string();
+    let types: Vec<&String> = statements
+        .iter()
+        .map(|s| annotations.type_map.get(&s.get_id()).unwrap_or(&none))
+        .collect();
+
+    assert_eq!(expected_types, types);
 }
 
 #[test]
@@ -622,7 +622,7 @@ fn function_parameter_assignments_resolve_types() {
                 );
                 assert_eq!(
                     annotations.type_map.get(&right.get_id()),
-                    Some(&"BYTE".to_string())
+                    Some(&"DINT".to_string())
                 );
             } else {
                 panic!("assignment expected")
@@ -634,7 +634,7 @@ fn function_parameter_assignments_resolve_types() {
                 );
                 assert_eq!(
                     annotations.type_map.get(&right.get_id()),
-                    Some(&"BYTE".to_string())
+                    Some(&"DINT".to_string())
                 );
             } else {
                 panic!("assignment expected")
@@ -683,7 +683,7 @@ fn nested_function_parameter_assignments_resolve_types() {
         if let Statement::Assignment { right, .. } = get_expression_from_list(parameters, 0) {
             if let Statement::CallStatement { parameters, .. } = right.as_ref() {
                 // the left side here should be `x` - so lets see if it got mixed up with the outer call's `x`
-                assert_parameter_assignment(parameters, 0, "DINT", "BYTE", &annotations);
+                assert_parameter_assignment(parameters, 0, "DINT", "DINT", &annotations);
             } else {
                 panic!("inner call")
             }
@@ -718,7 +718,7 @@ fn assert_parameter_assignment(
             );
             assert_eq!(
                 annotations.type_map.get(&right.get_id()),
-                Some(&right_type.to_string())
+                Some(&right_type.to_string()),
             );
         } else {
             panic!("assignment expected")

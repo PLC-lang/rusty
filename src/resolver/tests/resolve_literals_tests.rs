@@ -44,30 +44,27 @@ fn string_literals_are_annotated() {
 fn int_literals_are_annotated() {
     let (unit, index) = parse(
         "PROGRAM PRG
-                1;
-                1000;
-                1000000;
-                10000000000;
-                -1;
-                -1000;
-                -1000000;
-                -10000000000;
+                0;
+                127;
+                128;
+                32767;
+                32768;
+                2147483647;
+                2147483648;
             END_PROGRAM",
     );
     let annotations = annotate(&unit, &index);
     let statements = &unit.implementations[0].statements;
 
-    let expected_types = vec![
-        "BYTE", "UINT", "UDINT", "ULINT", "SINT", "INT", "DINT", "LINT",
-    ];
-    for (i, s) in statements.iter().enumerate() {
-        assert_eq!(
-            Some(&expected_types[i].to_string()),
-            annotations.type_map.get(&s.get_id()),
-            "{:#?}",
-            s
-        );
-    }
+    let expected_types = vec!["DINT", "DINT", "DINT", "DINT", "DINT", "DINT", "LINT"];
+
+    let none = "-".to_string();
+    let types: Vec<&String> = statements
+        .iter()
+        .map(|s| annotations.type_map.get(&s.get_id()).unwrap_or(&none))
+        .collect();
+
+    assert_eq!(expected_types, types);
 }
 
 #[test]
