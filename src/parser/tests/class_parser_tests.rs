@@ -230,3 +230,74 @@ fn method_with_var_inout_blocks() {
     assert_eq!(vblock3.constant, false);
     assert_eq!(vblock3.variable_block_type, VariableBlockType::Output);
 }
+
+#[test]
+fn fb_method_can_be_parsed() {
+    let lexer = lex(r#"
+            FUNCTION_BLOCK MyFb
+                METHOD INTERNAL FINAL OVERRIDE testMethod2 END_METHOD
+            END_FUNCTION_BLOCK
+        "#);
+    let unit = parse(lexer).0;
+
+    let class = &unit.units[0];
+    assert_eq!(class.pou_type, PouType::FunctionBlock);
+    assert_eq!(unit.implementations.len(), 2);
+
+    let method_pou = &unit.units[1];
+    assert_eq!(method_pou.pou_type, PouType::Method);
+    let method = &unit.implementations[0];
+
+    assert_eq!(method_pou.name, "testMethod2");
+    assert_eq!(method.access, Some(AccessModifier::Internal));
+    assert_eq!(method_pou.poly_mode, Some(PolymorphismMode::Final));
+    assert_eq!(method_pou.return_type, None);
+    assert_eq!(method.overriding, true);
+}
+
+#[test]
+fn fb_two_methods_can_be_parsed() {
+    let lexer = lex(r#"
+            FUNCTION_BLOCK MyNewFb
+                METHOD INTERNAL testMethod2 END_METHOD
+                METHOD otherMethod VAR_TEMP END_VAR END_METHOD
+            END_FUNCTION_BLOCK
+        "#);
+    let unit = parse(lexer).0;
+
+    let class = &unit.units[0];
+    assert_eq!(class.pou_type, PouType::FunctionBlock);
+    assert_eq!(unit.implementations.len(), 3);
+
+    let method1 = &unit.implementations[0];
+    assert_eq!(method1.name, "MyNewFb.testMethod2");
+    assert_eq!(method1.access, Some(AccessModifier::Internal));
+
+    let method2 = &unit.implementations[1];
+    assert_eq!(method2.name, "MyNewFb.otherMethod");
+    assert_eq!(method2.access, Some(AccessModifier::Protected));
+}
+
+#[test]
+fn fb_method_with_return_type_can_be_parsed() {
+    let lexer = lex(r#"
+        FUNCTION_BLOCK MyShinyFb
+            METHOD PRIVATE ABSTRACT OVERRIDE testMethod3 : SINT END_METHOD
+        END_FUNCTION_BLOCK
+    "#);
+    let unit = parse(lexer).0;
+
+    let class = &unit.units[0];
+    assert_eq!(class.pou_type, PouType::FunctionBlock);
+
+    let method_pou = &unit.units[1];
+    assert_eq!(method_pou.pou_type, PouType::Method);
+    let method = &unit.implementations[0];
+    assert_eq!(unit.implementations.len(), 2);
+
+    assert_eq!(method_pou.name, "testMethod3");
+    assert_eq!(method.access, Some(AccessModifier::Private));
+    assert_eq!(method_pou.poly_mode, Some(PolymorphismMode::Abstract));
+    assert_ne!(method_pou.return_type, None);
+    assert_eq!(method.overriding, true);
+}
