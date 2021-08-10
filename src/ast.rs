@@ -25,32 +25,14 @@ pub struct Pou {
     pub pou_type: PouType,
     pub return_type: Option<DataTypeDeclaration>,
     pub location: SourceRange,
+    pub poly_mode: Option<PolymorphismMode>,
 }
 
 #[derive(Debug, PartialEq)]
-pub struct ClassPou {
-    pub name: String,
-    pub poly_mode: PolymorphisMode,
-    pub variable_blocks: Vec<VariableBlock>,
-    pub methods: Vec<ClassMethod>,
-}
-
-#[derive(Debug, PartialEq)]
-pub enum PolymorphisMode {
+pub enum PolymorphismMode {
     None,
     Abstract,
     Final,
-}
-
-#[derive(Debug, PartialEq)]
-pub struct ClassMethod {
-    pub name: String,
-    pub access: AccessModifier,
-    pub variable_blocks: Vec<VariableBlock>,
-    pub return_type: Option<DataTypeDeclaration>,
-    pub implementation: Implementation,
-    pub overriding: bool,
-    pub poly_mode: PolymorphisMode,
 }
 
 impl Debug for Pou {
@@ -72,6 +54,8 @@ pub struct Implementation {
     pub pou_type: PouType,
     pub statements: Vec<Statement>,
     pub location: SourceRange,
+    pub overriding: bool,
+    pub access: Option<AccessModifier>,
 }
 
 #[derive(Debug, Copy, PartialEq, Clone)]
@@ -95,13 +79,13 @@ pub enum PouType {
     FunctionBlock,
     Action,
     Class,
+    Method,
 }
 
 #[derive(Debug, PartialEq)]
 pub struct CompilationUnit {
     pub global_vars: Vec<VariableBlock>,
     pub units: Vec<Pou>,
-    pub classes: Vec<ClassPou>,
     pub implementations: Vec<Implementation>,
     pub types: Vec<UserTypeDeclaration>,
 }
@@ -126,7 +110,6 @@ impl Default for CompilationUnit {
         CompilationUnit {
             global_vars: Vec::new(),
             units: Vec::new(),
-            classes: Vec::new(),
             implementations: Vec::new(),
             types: Vec::new(),
         }

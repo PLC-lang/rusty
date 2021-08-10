@@ -8,10 +8,12 @@ fn simple_class_with_defaults_can_be_parsed() {
     let lexer = lex("CLASS MyClass END_CLASS");
     let unit = parse(lexer).0;
 
-    let class = unit.classes.first().unwrap();
+    let class = &unit.units[0];
+    assert_eq!(class.pou_type, PouType::Class);
+
     assert_eq!(class.name, "MyClass");
-    assert_eq!(class.poly_mode, PolymorphisMode::None);
-    assert_eq!(class.methods.len(), 0);
+    assert_eq!(class.poly_mode, Some(PolymorphismMode::None));
+    assert_eq!(unit.implementations.len(), 0);
 }
 
 #[test]
@@ -19,10 +21,12 @@ fn simple_class_can_be_parsed() {
     let lexer = lex("CLASS ABSTRACT MyClass END_CLASS");
     let unit = parse(lexer).0;
 
-    let class = unit.classes.first().unwrap();
+    let class = &unit.units[0];
+    assert_eq!(class.pou_type, PouType::Class);
+
     assert_eq!(class.name, "MyClass");
-    assert_eq!(class.poly_mode, PolymorphisMode::Abstract);
-    assert_eq!(class.methods.len(), 0);
+    assert_eq!(class.poly_mode, Some(PolymorphismMode::Abstract));
+    assert_eq!(unit.implementations.len(), 0);
 }
 
 #[test]
@@ -30,10 +34,12 @@ fn simple_class2_can_be_parsed() {
     let lexer = lex("CLASS FINAL MyClass2 END_CLASS");
     let unit = parse(lexer).0;
 
-    let class = unit.classes.first().unwrap();
+    let class = &unit.units[0];
+    assert_eq!(class.pou_type, PouType::Class);
+
     assert_eq!(class.name, "MyClass2");
-    assert_eq!(class.poly_mode, PolymorphisMode::Final);
-    assert_eq!(class.methods.len(), 0);
+    assert_eq!(class.poly_mode, Some(PolymorphismMode::Final));
+    assert_eq!(unit.implementations.len(), 0);
 }
 
 #[test]
@@ -41,15 +47,18 @@ fn method_with_defaults_can_be_parsed() {
     let lexer = lex("CLASS MyClass METHOD testMethod END_METHOD END_CLASS");
     let unit = parse(lexer).0;
 
-    let class = unit.classes.first().unwrap();
-    assert_eq!(class.methods.len(), 1);
+    let class = &unit.units[0];
+    assert_eq!(class.pou_type, PouType::Class);
+    assert_eq!(unit.implementations.len(), 1);
 
-    let method = class.methods.first().unwrap();
+    let method_pou = &unit.units[1];
+    assert_eq!(method_pou.pou_type, PouType::Method);
+    let method = &unit.implementations[0];
 
-    assert_eq!(method.name, "testMethod");
-    assert_eq!(method.access, AccessModifier::Protected);
-    assert_eq!(method.poly_mode, PolymorphisMode::None);
-    assert_eq!(method.return_type, None);
+    assert_eq!(method_pou.name, "testMethod");
+    assert_eq!(method.access, Some(AccessModifier::Protected));
+    assert_eq!(method_pou.poly_mode, Some(PolymorphismMode::None));
+    assert_eq!(method_pou.return_type, None);
     assert_eq!(method.overriding, false);
 }
 
@@ -59,15 +68,18 @@ fn method_can_be_parsed() {
         lex("CLASS MyClass METHOD INTERNAL FINAL OVERRIDE testMethod2 END_METHOD END_CLASS");
     let unit = parse(lexer).0;
 
-    let class = unit.classes.first().unwrap();
-    assert_eq!(class.methods.len(), 1);
+    let class = &unit.units[0];
+    assert_eq!(class.pou_type, PouType::Class);
+    assert_eq!(unit.implementations.len(), 1);
 
-    let method = class.methods.first().unwrap();
+    let method_pou = &unit.units[1];
+    assert_eq!(method_pou.pou_type, PouType::Method);
+    let method = &unit.implementations[0];
 
-    assert_eq!(method.name, "testMethod2");
-    assert_eq!(method.access, AccessModifier::Internal);
-    assert_eq!(method.poly_mode, PolymorphisMode::Final);
-    assert_eq!(method.return_type, None);
+    assert_eq!(method_pou.name, "testMethod2");
+    assert_eq!(method.access, Some(AccessModifier::Internal));
+    assert_eq!(method_pou.poly_mode, Some(PolymorphismMode::Final));
+    assert_eq!(method_pou.return_type, None);
     assert_eq!(method.overriding, true);
 }
 
@@ -77,16 +89,17 @@ fn two_methods_can_be_parsed() {
         lex("CLASS MyClass METHOD INTERNAL testMethod2 END_METHOD METHOD otherMethod VAR_TEMP END_VAR END_METHOD END_CLASS");
     let unit = parse(lexer).0;
 
-    let class = unit.classes.first().unwrap();
-    assert_eq!(class.methods.len(), 2);
+    let class = &unit.units[0];
+    assert_eq!(class.pou_type, PouType::Class);
+    assert_eq!(unit.implementations.len(), 2);
 
-    let method1 = &class.methods[0];
-    assert_eq!(method1.name, "testMethod2");
-    assert_eq!(method1.access, AccessModifier::Internal);
+    let method1 = &unit.implementations[0];
+    assert_eq!(method1.name, "MyClass.testMethod2");
+    assert_eq!(method1.access, Some(AccessModifier::Internal));
 
-    let method2 = &class.methods[1];
-    assert_eq!(method2.name, "otherMethod");
-    assert_eq!(method2.access, AccessModifier::Protected);
+    let method2 = &unit.implementations[1];
+    assert_eq!(method2.name, "MyClass.otherMethod");
+    assert_eq!(method2.access, Some(AccessModifier::Protected));
 }
 
 #[test]
@@ -96,15 +109,18 @@ fn method_with_return_type_can_be_parsed() {
     );
     let unit = parse(lexer).0;
 
-    let class = unit.classes.first().unwrap();
-    assert_eq!(class.methods.len(), 1);
+    let class = &unit.units[0];
+    assert_eq!(class.pou_type, PouType::Class);
 
-    let method = class.methods.first().unwrap();
+    let method_pou = &unit.units[1];
+    assert_eq!(method_pou.pou_type, PouType::Method);
+    let method = &unit.implementations[0];
+    assert_eq!(unit.implementations.len(), 1);
 
-    assert_eq!(method.name, "testMethod3");
-    assert_eq!(method.access, AccessModifier::Private);
-    assert_eq!(method.poly_mode, PolymorphisMode::Abstract);
-    assert_ne!(method.return_type, None);
+    assert_eq!(method_pou.name, "testMethod3");
+    assert_eq!(method.access, Some(AccessModifier::Private));
+    assert_eq!(method_pou.poly_mode, Some(PolymorphismMode::Abstract));
+    assert_ne!(method_pou.return_type, None);
     assert_eq!(method.overriding, true);
 }
 
@@ -113,10 +129,11 @@ fn class_with_var_default_block() {
     let lexer = lex("CLASS MyClass VAR END_VAR END_CLASS");
     let unit = parse(lexer).0;
 
-    let class = unit.classes.first().unwrap();
-    assert_eq!(class.methods.len(), 0);
+    let class = &unit.units[0];
+    assert_eq!(class.pou_type, PouType::Class);
+    assert_eq!(unit.implementations.len(), 0);
 
-    let vblock = class.variable_blocks.first().unwrap();
+    let vblock = &class.variable_blocks[0];
     assert_eq!(vblock.variables.len(), 0);
 
     assert_eq!(vblock.retain, false);
@@ -130,10 +147,11 @@ fn class_with_var_non_retain_block() {
     let lexer = lex("CLASS MyClass VAR CONSTANT NON_RETAIN PUBLIC END_VAR END_CLASS");
     let unit = parse(lexer).0;
 
-    let class = unit.classes.first().unwrap();
-    assert_eq!(class.methods.len(), 0);
+    let class = &unit.units[0];
+    assert_eq!(class.pou_type, PouType::Class);
+    assert_eq!(unit.implementations.len(), 0);
 
-    let vblock = class.variable_blocks.first().unwrap();
+    let vblock = &class.variable_blocks[0];
     assert_eq!(vblock.variables.len(), 0);
 
     assert_eq!(vblock.retain, false);
@@ -147,10 +165,11 @@ fn class_with_var_retain_block() {
     let lexer = lex("CLASS MyClass VAR RETAIN INTERNAL END_VAR END_CLASS");
     let unit = parse(lexer).0;
 
-    let class = unit.classes.first().unwrap();
-    assert_eq!(class.methods.len(), 0);
+    let class = &unit.units[0];
+    assert_eq!(class.pou_type, PouType::Class);
+    assert_eq!(unit.implementations.len(), 0);
 
-    let vblock = class.variable_blocks.first().unwrap();
+    let vblock = &class.variable_blocks[0];
     assert_eq!(vblock.variables.len(), 0);
 
     assert_eq!(vblock.retain, true);
@@ -164,11 +183,12 @@ fn method_with_var_block() {
     let lexer = lex("CLASS MyClass METHOD testMethod3 VAR END_VAR END_METHOD END_CLASS");
     let unit = parse(lexer).0;
 
-    let class = unit.classes.first().unwrap();
-    assert_eq!(class.methods.len(), 1);
+    let class = &unit.units[0];
+    assert_eq!(class.pou_type, PouType::Class);
+    assert_eq!(unit.implementations.len(), 1);
 
-    let method = class.methods.first().unwrap();
-    let vblock = method.variable_blocks.first().unwrap();
+    let method_pou = &unit.units[1];
+    let vblock = &method_pou.variable_blocks[0];
 
     assert_eq!(vblock.retain, false);
     assert_eq!(vblock.constant, false);
@@ -183,15 +203,16 @@ fn method_with_var_inout_blocks() {
     );
     let unit = parse(lexer).0;
 
-    let class = unit.classes.first().unwrap();
-    assert_eq!(class.methods.len(), 1);
+    let class = &unit.units[0];
+    assert_eq!(class.pou_type, PouType::Class);
 
-    let method = class.methods.first().unwrap();
+    let method_pou = &unit.units[1];
+    assert_eq!(unit.implementations.len(), 1);
 
-    assert_eq!(method.variable_blocks.len(), 3);
-    let vblock1 = &method.variable_blocks[0];
-    let vblock2 = &method.variable_blocks[1];
-    let vblock3 = &method.variable_blocks[2];
+    assert_eq!(method_pou.variable_blocks.len(), 3);
+    let vblock1 = &method_pou.variable_blocks[0];
+    let vblock2 = &method_pou.variable_blocks[1];
+    let vblock3 = &method_pou.variable_blocks[2];
 
     assert_eq!(vblock1.constant, true);
     assert_eq!(vblock1.variable_block_type, VariableBlockType::Input);
