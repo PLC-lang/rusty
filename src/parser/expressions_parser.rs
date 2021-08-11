@@ -201,11 +201,23 @@ fn parse_unary_expression(lexer: &mut ParseSession) -> Statement {
         let expression = parse_parenthesized_expression(lexer);
         let expression_location = expression.get_location();
         let location = SourceRange::new(start..expression_location.get_end());
-        Statement::UnaryExpression {
-            operator,
-            value: Box::new(expression),
-            location,
-            id: lexer.next_id(),
+
+        if let (Statement::LiteralInteger { value, .. }, Operator::Minus) = (&expression, &operator)
+        {
+            //if this turns out to be a negative number, we want to have a negative literal integer
+            //instead of a Unary-Not-Expression
+            Statement::LiteralInteger {
+                value: -value,
+                location,
+                id: lexer.next_id(),
+            }
+        } else {
+            Statement::UnaryExpression {
+                operator,
+                value: Box::new(expression),
+                location,
+                id: lexer.next_id(),
+            }
         }
     } else {
         parse_parenthesized_expression(lexer)
