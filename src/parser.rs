@@ -416,6 +416,37 @@ fn parse_type_reference_type_definition(
     }
 }
 
+fn parse_string_size_expression(lexer: &mut ParseSession) -> Option<Statement> {
+    let opening_token = lexer.token.clone();
+    if lexer.allow(&KeywordSquareParensOpen) || lexer.allow(&KeywordParensOpen) {
+        let opening_location = lexer.location().get_start();
+        let closing_tokens = vec![KeywordSquareParensClose, KeywordParensClose];
+        parse_any_in_region(lexer, closing_tokens, |lexer| {
+            let size_expr = parse_expression(lexer);
+            let error_range = SourceRange::new(opening_location..lexer.location().get_end());
+
+            if (opening_token == KeywordParensOpen && lexer.token == KeywordSquareParensClose)
+                || (opening_token == KeywordSquareParensOpen && lexer.token == KeywordParensClose)
+            {
+                lexer.accept_diagnostic(Diagnostic::ImprovementSuggestion {
+                    message: "Mismatched types of parentheses around string size expression".into(),
+                    range: error_range,
+                });
+            } else if opening_token == KeywordParensOpen || lexer.token == KeywordParensClose {
+                lexer.accept_diagnostic(Diagnostic::ImprovementSuggestion {
+                    message: "Unusual type of parentheses around string size expression, consider using square parentheses '[]'"
+                        .into(),
+                    range: error_range,
+                });
+            }
+
+            Some(size_expr)
+        })
+    } else {
+        None
+    }
+}
+
 fn parse_string_type_definition(
     lexer: &mut ParseSession,
     name: Option<String>,
@@ -423,11 +454,8 @@ fn parse_string_type_definition(
     let is_wide = lexer.token == KeywordWideString;
     lexer.advance();
 
-    let size = lexer.allow(&KeywordSquareParensOpen).then(|| {
-        parse_any_in_region(lexer, vec![KeywordSquareParensClose], |lexer| {
-            parse_expression(lexer)
-        })
-    });
+    let size = parse_string_size_expression(lexer);
+
     Some((
         DataTypeDeclaration::DataTypeDefinition {
             data_type: DataType::StringType {
