@@ -684,6 +684,13 @@ fn pre_processing_generates_inline_structs_global() {
     //STRUCT
     //THEN an implicit datatype should have been generated for the struct
     let new_struct_type = &ast.types[0].data_type;
+
+    if let DataType::StructType { variables, .. } = new_struct_type {
+        assert_eq!(variables[0].location, SourceRange::new(54..55));
+    } else {
+        panic!("expected struct")
+    }
+
     assert_eq!(
         &DataType::StructType {
             name: Some("__global_inline_struct".to_string()),
@@ -763,6 +770,12 @@ fn pre_processing_generates_inline_structs() {
     //STRUCT
     //THEN an implicit datatype should have been generated for the struct
     let new_struct_type = &ast.types[0].data_type;
+    if let DataType::StructType { variables, .. } = new_struct_type {
+        assert_eq!(variables[0].location, SourceRange::new(67..68));
+    } else {
+        panic!("expected struct")
+    }
+
     assert_eq!(
         &DataType::StructType {
             name: Some("__foo_inline_struct".to_string()),

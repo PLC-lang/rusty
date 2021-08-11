@@ -1,5 +1,6 @@
 use crate::{
-    ast::SourceRange,
+    ast::Statement::LiteralInteger,
+    ast::*,
     parser::{parse, tests::lex},
     Diagnostic,
 };
@@ -133,4 +134,79 @@ fn literal_oct_number_with_double_underscores() {
             range: SourceRange::new(15..18)
         }
     );
+}
+
+#[test]
+fn string_with_round_parens_can_be_parsed() {
+    let (result, diagnostics) = parse(lex(r#"
+            TYPE MyString1 : STRING(253); END_TYPE
+            TYPE MyString2 : STRING[254) := 'abc'; END_TYPE
+            TYPE MyString3 : STRING(255]; END_TYPE
+            "#));
+
+    assert_eq!(
+        diagnostics,
+        vec! [
+            Diagnostic::ImprovementSuggestion {
+                message: "Unusual type of parentheses around string size expression, consider using square parentheses '[]'"
+                    .into(),
+                range: SourceRange::new(37..41),
+            },
+            Diagnostic::ImprovementSuggestion {
+                message: "Mismatched types of parentheses around string size expression".into(),
+                range: SourceRange::new(88..92),
+            },
+            Diagnostic::ImprovementSuggestion {
+                message: "Mismatched types of parentheses around string size expression".into(),
+                range: SourceRange::new(148..152),
+            }
+        ]
+    );
+
+    let ast_string = format!("{:#?}", &result.types);
+
+    let expected_ast = format!(
+        "{:#?}",
+        vec![
+            UserTypeDeclaration {
+                data_type: DataType::StringType {
+                    name: Some("MyString1".to_string()),
+                    size: Some(LiteralInteger {
+                        value: 253,
+                        location: (10..11).into(),
+                    }),
+                    is_wide: false,
+                },
+                initializer: None,
+            },
+            UserTypeDeclaration {
+                data_type: DataType::StringType {
+                    name: Some("MyString2".to_string()),
+                    size: Some(LiteralInteger {
+                        value: 254,
+                        location: (10..11).into(),
+                    }),
+                    is_wide: false,
+                },
+                initializer: Some(Statement::LiteralString {
+                    is_wide: false,
+                    location: SourceRange::undefined(),
+                    value: "abc".into(),
+                }),
+            },
+            UserTypeDeclaration {
+                data_type: DataType::StringType {
+                    name: Some("MyString3".to_string()),
+                    size: Some(LiteralInteger {
+                        value: 255,
+                        location: (10..11).into(),
+                    }),
+                    is_wide: false,
+                },
+                initializer: None,
+            }
+        ]
+    );
+
+    assert_eq!(ast_string, expected_ast);
 }

@@ -492,12 +492,7 @@ fn parse_data_type_definition(
 ) -> Option<DataTypeWithInitializer> {
     if lexer.allow(&KeywordStruct) {
         // Parse struct
-        let mut variables = Vec::new();
-        while lexer.token == Identifier {
-            if let Some(variable) = parse_variable(lexer) {
-                variables.push(variable);
-            }
-        }
+        let variables = parse_variable_list(lexer);
         Some((
             DataTypeDeclaration::DataTypeDefinition {
                 data_type: DataType::StructType { name, variables },
@@ -563,6 +558,37 @@ fn parse_type_reference_type_definition(
     }
 }
 
+fn parse_string_size_expression(lexer: &mut ParseSession) -> Option<Statement> {
+    let opening_token = lexer.token.clone();
+    if lexer.allow(&KeywordSquareParensOpen) || lexer.allow(&KeywordParensOpen) {
+        let opening_location = lexer.location().get_start();
+        let closing_tokens = vec![KeywordSquareParensClose, KeywordParensClose];
+        parse_any_in_region(lexer, closing_tokens, |lexer| {
+            let size_expr = parse_expression(lexer);
+            let error_range = SourceRange::new(opening_location..lexer.location().get_end());
+
+            if (opening_token == KeywordParensOpen && lexer.token == KeywordSquareParensClose)
+                || (opening_token == KeywordSquareParensOpen && lexer.token == KeywordParensClose)
+            {
+                lexer.accept_diagnostic(Diagnostic::ImprovementSuggestion {
+                    message: "Mismatched types of parentheses around string size expression".into(),
+                    range: error_range,
+                });
+            } else if opening_token == KeywordParensOpen || lexer.token == KeywordParensClose {
+                lexer.accept_diagnostic(Diagnostic::ImprovementSuggestion {
+                    message: "Unusual type of parentheses around string size expression, consider using square parentheses '[]'"
+                        .into(),
+                    range: error_range,
+                });
+            }
+
+            Some(size_expr)
+        })
+    } else {
+        None
+    }
+}
+
 fn parse_string_type_definition(
     lexer: &mut ParseSession,
     name: Option<String>,
@@ -570,11 +596,8 @@ fn parse_string_type_definition(
     let is_wide = lexer.token == KeywordWideString;
     lexer.advance();
 
-    let size = lexer.allow(&KeywordSquareParensOpen).then(|| {
-        parse_any_in_region(lexer, vec![KeywordSquareParensClose], |lexer| {
-            parse_expression(lexer)
-        })
-    });
+    let size = parse_string_size_expression(lexer);
+
     Some((
         DataTypeDeclaration::DataTypeDefinition {
             data_type: DataType::StringType {
@@ -736,13 +759,7 @@ fn parse_variable_block(
     let access = parse_access_modifier(lexer);
 
     let variables = parse_any_in_region(lexer, vec![KeywordEndVar], |lexer| {
-        let mut variables = vec![];
-        while lexer.token == Identifier {
-            if let Some(variable) = parse_variable(lexer) {
-                variables.push(variable);
-            }
-        }
-        variables
+        parse_variable_list(lexer)
     });
     VariableBlock {
         access,
@@ -753,11 +770,37 @@ fn parse_variable_block(
     }
 }
 
-fn parse_variable(lexer: &mut ParseSession) -> Option<Variable> {
-    let variable_location = lexer.location();
-    let name = lexer.slice_and_advance();
+fn parse_variable_list(lexer: &mut ParseSession) -> Vec<Variable> {
+    let mut variables = vec![];
+    while lexer.token == Identifier {
+        let mut line_vars = parse_variable_line(lexer);
+        variables.append(&mut line_vars);
+    }
+    variables
+}
 
-    //parse or recover until the colon
+fn parse_variable_line(lexer: &mut ParseSession) -> Vec<Variable> {
+    // read in a comma separated list of variable names
+    let mut var_names: Vec<(String, SourceRange)> = vec![];
+    while lexer.token == Identifier {
+        let location = lexer.location();
+        let identifier_end = location.get_end();
+        var_names.push((lexer.slice_and_advance(), location));
+
+        if lexer.token == KeywordColon {
+            break;
+        }
+
+        if !lexer.allow(&KeywordComma) {
+            let next_token_start = lexer.location().get_start();
+            lexer.accept_diagnostic(Diagnostic::missing_token(
+                format!("{:?} or {:?}", KeywordColon, KeywordComma),
+                SourceRange::new(identifier_end..next_token_start),
+            ));
+        }
+    }
+
+    // colon has to come before the data type
     if !lexer.allow(&KeywordColon) {
         lexer.accept_diagnostic(Diagnostic::missing_token(
             format!("{:?}", KeywordColon),
@@ -765,10 +808,17 @@ fn parse_variable(lexer: &mut ParseSession) -> Option<Variable> {
         ));
     }
 
-    parse_full_data_type_definition(lexer, None).map(|(data_type, initializer)| Variable {
-        name,
-        data_type,
-        location: variable_location,
-        initializer,
-    })
+    // create variables with the same data type for each of the names
+    let mut variables = vec![];
+    if let Some((data_type, initializer)) = parse_full_data_type_definition(lexer, None) {
+        for (name, location) in var_names {
+            variables.push(Variable {
+                name,
+                data_type: data_type.clone(),
+                location,
+                initializer: initializer.clone(),
+            });
+        }
+    }
+    variables
 }
