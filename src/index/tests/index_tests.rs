@@ -122,6 +122,70 @@ fn actions_are_indexed() {
 }
 
 #[test]
+fn fb_methods_are_indexed() {
+    let index = index!(
+        r#"
+        FUNCTION_BLOCK myFuncBlock
+            METHOD foo
+                VAR x : SINT; END_VAR
+            END_METHOD
+        END_FUNCTION_BLOCK
+    "#
+    );
+
+    let foo_impl = index.find_implementation("myFuncBlock.foo").unwrap();
+    assert_eq!("myFuncBlock.foo", foo_impl.call_name);
+    assert_eq!("myFuncBlock", foo_impl.type_name);
+    let info = index
+        .get_type("myFuncBlock.foo")
+        .unwrap()
+        .get_type_information();
+    if let crate::typesystem::DataTypeInformation::Struct {
+        name,
+        member_names,
+        varargs: _,
+    } = info
+    {
+        assert_eq!("myFuncBlock.foo_interface", name);
+        assert_eq!(&vec!["x"], member_names);
+    } else {
+        panic!("Wrong variant : {:#?}", info);
+    }
+}
+
+#[test]
+fn class_methods_are_indexed() {
+    let index = index!(
+        r#"
+        CLASS myClass
+            METHOD foo
+                VAR y : DINT; END_VAR
+            END_METHOD
+        END_CLASS
+    "#
+    );
+
+    let foo_impl = index.find_implementation("myClass.foo").unwrap();
+    assert_eq!("myClass.foo", foo_impl.call_name);
+    assert_eq!("myClass", foo_impl.type_name);
+    let info = index
+        .get_type("myClass.foo")
+        .unwrap()
+        .get_type_information();
+    if let crate::typesystem::DataTypeInformation::Struct {
+        name,
+        member_names,
+        varargs: _,
+    } = info
+    {
+        assert_eq!("myClass.foo_interface", name);
+        assert_eq!(&vec!["y"], member_names);
+    } else {
+        panic!("Wrong variant : {:#?}", info);
+    }
+}
+
+#[test]
 fn function_is_indexed() {
     let index = index!(
         r#"
@@ -190,11 +254,17 @@ fn pous_are_indexed() {
         END_PROGRAM
         FUNCTION myFunction : INT
         END_FUNCTION
+        FUNCTION_BLOCK myFunctionBlock : INT
+        END_FUNCTION_BLOCK
+        CLASS myClass
+        END_CLASS
     "#
     );
 
     index.find_type("myFunction").unwrap();
     index.find_type("myProgram").unwrap();
+    index.find_type("myFunctionBlock").unwrap();
+    index.find_type("myClass").unwrap();
 }
 
 #[test]

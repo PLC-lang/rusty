@@ -55,7 +55,7 @@ fn method_with_defaults_can_be_parsed() {
     assert_eq!(method_pou.pou_type, PouType::Method);
     let method = &unit.implementations[0];
 
-    assert_eq!(method_pou.name, "testMethod");
+    assert_eq!(method_pou.name, "MyClass.testMethod");
     assert_eq!(method.access, Some(AccessModifier::Protected));
     assert_eq!(method_pou.poly_mode, Some(PolymorphismMode::None));
     assert_eq!(method_pou.return_type, None);
@@ -76,7 +76,7 @@ fn method_can_be_parsed() {
     assert_eq!(method_pou.pou_type, PouType::Method);
     let method = &unit.implementations[0];
 
-    assert_eq!(method_pou.name, "testMethod2");
+    assert_eq!(method_pou.name, "MyClass.testMethod2");
     assert_eq!(method.access, Some(AccessModifier::Internal));
     assert_eq!(method_pou.poly_mode, Some(PolymorphismMode::Final));
     assert_eq!(method_pou.return_type, None);
@@ -117,7 +117,7 @@ fn method_with_return_type_can_be_parsed() {
     let method = &unit.implementations[0];
     assert_eq!(unit.implementations.len(), 1);
 
-    assert_eq!(method_pou.name, "testMethod3");
+    assert_eq!(method_pou.name, "MyClass.testMethod3");
     assert_eq!(method.access, Some(AccessModifier::Private));
     assert_eq!(method_pou.poly_mode, Some(PolymorphismMode::Abstract));
     assert_ne!(method_pou.return_type, None);
@@ -248,7 +248,7 @@ fn fb_method_can_be_parsed() {
     assert_eq!(method_pou.pou_type, PouType::Method);
     let method = &unit.implementations[0];
 
-    assert_eq!(method_pou.name, "testMethod2");
+    assert_eq!(method_pou.name, "MyFb.testMethod2");
     assert_eq!(method.access, Some(AccessModifier::Internal));
     assert_eq!(method_pou.poly_mode, Some(PolymorphismMode::Final));
     assert_eq!(method_pou.return_type, None);
@@ -295,7 +295,7 @@ fn fb_method_with_return_type_can_be_parsed() {
     let method = &unit.implementations[0];
     assert_eq!(unit.implementations.len(), 2);
 
-    assert_eq!(method_pou.name, "testMethod3");
+    assert_eq!(method_pou.name, "MyShinyFb.testMethod3");
     assert_eq!(method.access, Some(AccessModifier::Private));
     assert_eq!(method_pou.poly_mode, Some(PolymorphismMode::Abstract));
     assert_ne!(method_pou.return_type, None);

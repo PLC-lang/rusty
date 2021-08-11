@@ -320,7 +320,7 @@ fn parse_method(
         let method_end = lexer.location().get_end();
         Some((
             Pou {
-                name,
+                name: call_name,
                 pou_type: PouType::Method,
                 variable_blocks,
                 return_type,
