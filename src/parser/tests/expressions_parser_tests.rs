@@ -710,11 +710,8 @@ fn signed_literal_minus_test() {
     let statement = &prg.statements[0];
 
     let ast_string = format!("{:#?}", statement);
-    let expected_ast = r#"UnaryExpression {
-    operator: Minus,
-    value: LiteralInteger {
-        value: 1,
-    },
+    let expected_ast = r#"LiteralInteger {
+    value: -1,
 }"#;
     assert_eq!(ast_string, expected_ast);
 }
@@ -1047,11 +1044,8 @@ fn signed_literal_expression_reversed_test() {
     let ast_string = format!("{:#?}", statement);
     let expected_ast = r#"BinaryExpression {
     operator: Plus,
-    left: UnaryExpression {
-        operator: Minus,
-        value: LiteralInteger {
-            value: 4,
-        },
+    left: LiteralInteger {
+        value: -4,
     },
     right: LiteralInteger {
         value: 5,
@@ -1374,17 +1368,11 @@ fn negative_range_expression() {
 
     let ast_string = format!("{:#?}", statement);
     let expected_ast = r#"RangeStatement {
-    start: UnaryExpression {
-        operator: Minus,
-        value: LiteralInteger {
-            value: 2,
-        },
+    start: LiteralInteger {
+        value: -2,
     },
-    end: UnaryExpression {
-        operator: Minus,
-        value: LiteralInteger {
-            value: 1,
-        },
+    end: LiteralInteger {
+        value: -1,
     },
 }"#;
 
@@ -1407,17 +1395,11 @@ fn negative_range_expression_space() {
 
     let ast_string = format!("{:#?}", statement);
     let expected_ast = r#"RangeStatement {
-    start: UnaryExpression {
-        operator: Minus,
-        value: LiteralInteger {
-            value: 2,
-        },
+    start: LiteralInteger {
+        value: -2,
     },
-    end: UnaryExpression {
-        operator: Minus,
-        value: LiteralInteger {
-            value: 1,
-        },
+    end: LiteralInteger {
+        value: -1,
     },
 }"#;
 
