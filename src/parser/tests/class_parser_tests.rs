@@ -86,7 +86,7 @@ fn method_can_be_parsed() {
 #[test]
 fn two_methods_can_be_parsed() {
     let lexer =
-        lex("CLASS MyClass METHOD INTERNAL testMethod2 END_METHOD METHOD otherMethod VAR_TEMP END_VAR END_METHOD END_CLASS");
+        lex("CLASS MyClass METHOD INTERNAL testMethod2 END_METHOD METHOD PROTECTED otherMethod VAR_TEMP END_VAR END_METHOD END_CLASS");
     let unit = parse(lexer).0;
 
     let class = &unit.units[0];
@@ -180,7 +180,7 @@ fn class_with_var_retain_block() {
 
 #[test]
 fn method_with_var_block() {
-    let lexer = lex("CLASS MyClass METHOD testMethod3 VAR END_VAR END_METHOD END_CLASS");
+    let lexer = lex("CLASS MyClass METHOD testMethod3 VAR_TEMP END_VAR END_METHOD END_CLASS");
     let unit = parse(lexer).0;
 
     let class = &unit.units[0];
@@ -193,7 +193,7 @@ fn method_with_var_block() {
     assert_eq!(vblock.retain, false);
     assert_eq!(vblock.constant, false);
     assert_eq!(vblock.access, AccessModifier::Protected);
-    assert_eq!(vblock.variable_block_type, VariableBlockType::Local);
+    assert_eq!(vblock.variable_block_type, VariableBlockType::Temp);
 }
 
 #[test]
