@@ -283,6 +283,9 @@ fn invalid_variable_name_error_recovery() {
         format!(
             "{:#?}",
             VariableBlock {
+                constant: false,
+                access: AccessModifier::Protected,
+                retain: false,
                 variables: vec![Variable {
                     name: "c".into(),
                     data_type: DataTypeDeclaration::DataTypeReference {

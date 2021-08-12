@@ -1,3 +1,4 @@
+mod parse_error_classes_tests;
 mod parse_error_containers_tests;
 mod parse_error_literals_tests;
 mod parse_error_messages_test;

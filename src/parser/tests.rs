@@ -1,6 +1,7 @@
 use crate::ast::{SourceRange, Statement};
 
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
+mod class_parser_tests;
 mod container_parser_tests;
 mod control_parser_tests;
 mod expressions_parser_tests;
