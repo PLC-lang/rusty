@@ -34,6 +34,16 @@ fn if_statement() {
 }
 
 #[test]
+fn test_return_statement() {
+    let lexer = super::lex("PROGRAM ret RETURN END_PROGRAM");
+    let result = parse(lexer).0;
+    let prg = &result.implementations[0];
+    let stmt = &prg.statements[0];
+
+    assert_eq!(format!("{:?}", stmt), "ReturnStatement");
+}
+
+#[test]
 fn if_else_statement_with_expressions() {
     let lexer = super::lex(
         "

@@ -1,7 +1,9 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use std::ops::Range;
 
+use super::pou_generator::PouGenerator;
 use super::{expression_generator::ExpressionCodeGenerator, llvm::Llvm};
+use crate::ast::PouType;
 use crate::codegen::LlvmTypedIndex;
 use crate::typesystem::{RANGE_CHECK_LS_FN, RANGE_CHECK_LU_FN, RANGE_CHECK_S_FN, RANGE_CHECK_U_FN};
 use crate::{ast::SourceRange, codegen::llvm_typesystem::cast_if_needed};
@@ -31,6 +33,8 @@ pub struct FunctionContext<'a> {
 pub struct StatementCodeGenerator<'a, 'b> {
     llvm: &'b Llvm<'a>,
     index: &'b Index,
+    pou_generator: &'b PouGenerator<'a, 'b>,
+    pou_type: PouType,
     llvm_index: &'b LlvmTypedIndex<'a>,
     function_context: &'b FunctionContext<'a>,
 
@@ -43,12 +47,16 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
     pub fn new(
         llvm: &'b Llvm<'a>,
         index: &'b Index,
+        pou_generator: &'b PouGenerator<'a, 'b>,
+        pou_type: PouType,
         llvm_index: &'b LlvmTypedIndex<'a>,
         linking_context: &'b FunctionContext<'a>,
     ) -> StatementCodeGenerator<'a, 'b> {
         StatementCodeGenerator {
             llvm,
             index,
+            pou_generator,
+            pou_type,
             llvm_index,
             function_context: linking_context,
             load_prefix: "load_".to_string(),
@@ -118,6 +126,14 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
                 ..
             } => {
                 self.generate_case_statement(selector, case_blocks, else_block)?;
+            }
+            Statement::ReturnStatement { location } => {
+                self.pou_generator.generate_return_statement(
+                    self.function_context,
+                    self.llvm_index,
+                    self.pou_type,
+                    Some(location.clone()),
+                )?;
             }
             _ => {
                 self.create_expr_generator()

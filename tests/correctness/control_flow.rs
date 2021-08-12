@@ -101,6 +101,30 @@ fn adding_through_conditions_to_function_return() {
 }
 
 #[test]
+fn early_return_test() {
+    #[allow(dead_code)]
+    #[repr(C)]
+    struct MainType {
+        ret: i32,
+    }
+
+    let function = r#"
+    FUNCTION main : DINT
+    main := 100;
+    // Windows does not like multiple returns in a
+    // row. That's why we wrap it inside a dummy IF.
+    IF TRUE THEN
+        RETURN
+    END_IF;
+    main := 200;
+    END_FUNCTION
+    "#;
+
+    let (res, _) = compile_and_run(function.to_string(), &mut MainType { ret: 0 });
+    assert_eq!(res, 100);
+}
+
+#[test]
 fn for_loop_and_increment_10_times() {
     #[allow(dead_code)]
     #[repr(C)]

@@ -221,6 +221,9 @@ pub enum Token {
     #[token("CASE")]
     KeywordCase,
 
+    #[token("RETURN")]
+    KeywordReturn,
+
     #[token("ARRAY")]
     KeywordArray,
 
