@@ -138,6 +138,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
             let statement_gen = StatementCodeGenerator::new(
                 &self.llvm,
                 self.index,
+                self,
                 &local_index,
                 &function_context,
             );
@@ -254,7 +255,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
     /// generates the function's return statement only if the given pou_type is a `PouType::Function`
     ///
     /// a function returns the value of the local variable that has the function's name
-    fn generate_return_statement(
+    pub fn generate_return_statement(
         &self,
         function_context: &FunctionContext<'ink>,
         local_index: &LlvmTypedIndex<'ink>,

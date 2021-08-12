@@ -499,6 +499,9 @@ pub enum Statement {
     CaseCondition {
         condition: Box<Statement>,
     },
+    ReturnStatement {
+        location: SourceRange,
+    },
 }
 
 impl Debug for Statement {
@@ -705,6 +708,7 @@ impl Debug for Statement {
                 .debug_struct("CaseCondition")
                 .field("condition", condition)
                 .finish(),
+            Statement::ReturnStatement { .. } => f.debug_struct("ReturnStatement").finish(),
         }
     }
 }
@@ -783,6 +787,7 @@ impl Statement {
             }
             Statement::MultipliedStatement { location, .. } => location.clone(),
             Statement::CaseCondition { condition } => condition.get_location(),
+            Statement::ReturnStatement { location } => location.clone(),
         }
     }
 }
