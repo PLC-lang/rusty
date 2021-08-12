@@ -264,6 +264,8 @@
 <span id="262">262</span>
 <span id="263">263</span>
 <span id="264">264</span>
+<span id="265">265</span>
+<span id="266">266</span>
 </pre><pre class="rust">
 <span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 <span class="kw">use</span> <span class="ident">core::ops::Range</span>;
@@ -388,7 +390,9 @@
             <span class="op">|</span> <span class="ident">Token::KeywordEndActions</span>
             <span class="op">|</span> <span class="ident">Token::KeywordEndIf</span>
             <span class="op">|</span> <span class="ident">Token::KeywordEndFor</span>
-            <span class="op">|</span> <span class="ident">Token::KeywordEndRepeat</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="op">|</span> <span class="ident">Token::KeywordEndRepeat</span>
+            <span class="op">|</span> <span class="ident">Token::KeywordEndMethod</span>
+            <span class="op">|</span> <span class="ident">Token::KeywordEndClass</span> <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">slice</span>().<span class="ident">to_string</span>().<span class="ident">contains</span>(<span class="string">&#39;_&#39;</span>) {
                     <span class="self">self</span>.<span class="ident">accept_diagnostic</span>(<span class="ident">Diagnostic::ImprovementSuggestion</span> {
                         <span class="ident">message</span>: <span class="macro">format!</span>(
