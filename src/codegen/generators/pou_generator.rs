@@ -139,6 +139,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                 &self.llvm,
                 self.index,
                 self,
+                implementation.pou_type,
                 &local_index,
                 &function_context,
             );

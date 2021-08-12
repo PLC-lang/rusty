@@ -34,6 +34,7 @@ pub struct StatementCodeGenerator<'a, 'b> {
     llvm: &'b Llvm<'a>,
     index: &'b Index,
     pou_generator: &'b PouGenerator<'a, 'b>,
+    pou_type: PouType,
     llvm_index: &'b LlvmTypedIndex<'a>,
     function_context: &'b FunctionContext<'a>,
 
@@ -47,6 +48,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         llvm: &'b Llvm<'a>,
         index: &'b Index,
         pou_generator: &'b PouGenerator<'a, 'b>,
+        pou_type: PouType,
         llvm_index: &'b LlvmTypedIndex<'a>,
         linking_context: &'b FunctionContext<'a>,
     ) -> StatementCodeGenerator<'a, 'b> {
@@ -54,6 +56,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
             llvm,
             index,
             pou_generator,
+            pou_type,
             llvm_index,
             function_context: linking_context,
             load_prefix: "load_".to_string(),
@@ -128,7 +131,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
                 self.pou_generator.generate_return_statement(
                     self.function_context,
                     self.llvm_index,
-                    PouType::Function,
+                    self.pou_type,
                     Some(location.clone()),
                 )?;
             }
