@@ -111,7 +111,11 @@ fn early_return_test() {
     let function = r#"
     FUNCTION main : DINT
     main := 100;
-    RETURN
+    // Windows does not like multiple returns in a
+    // row. That's why we wrap it inside a dummy IF.
+    IF TRUE THEN
+        RETURN
+    END_IF;
     main := 200;
     END_FUNCTION
     "#;
