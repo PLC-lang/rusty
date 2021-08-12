@@ -920,6 +920,11 @@
 <span id="918">918</span>
 <span id="919">919</span>
 <span id="920">920</span>
+<span id="921">921</span>
+<span id="922">922</span>
+<span id="923">923</span>
+<span id="924">924</span>
+<span id="925">925</span>
 </pre><pre class="rust">
 <span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::compile_error::CompileError</span>;
@@ -1446,6 +1451,9 @@
     <span class="ident">CaseCondition</span> {
         <span class="ident">condition</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Statement</span><span class="op">&gt;</span>,
     },
+    <span class="ident">ReturnStatement</span> {
+        <span class="ident">location</span>: <span class="ident">SourceRange</span>,
+    },
 }
 
 <span class="kw">impl</span> <span class="ident">Debug</span> <span class="kw">for</span> <span class="ident">Statement</span> {
@@ -1652,6 +1660,7 @@
                 .<span class="ident">debug_struct</span>(<span class="string">&quot;CaseCondition&quot;</span>)
                 .<span class="ident">field</span>(<span class="string">&quot;condition&quot;</span>, <span class="ident">condition</span>)
                 .<span class="ident">finish</span>(),
+            <span class="ident">Statement::ReturnStatement</span> { .. } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">f</span>.<span class="ident">debug_struct</span>(<span class="string">&quot;ReturnStatement&quot;</span>).<span class="ident">finish</span>(),
         }
     }
 }
@@ -1730,6 +1739,7 @@
             }
             <span class="ident">Statement::MultipliedStatement</span> { <span class="ident">location</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">location</span>.<span class="ident">clone</span>(),
             <span class="ident">Statement::CaseCondition</span> { <span class="ident">condition</span> } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">condition</span>.<span class="ident">get_location</span>(),
+            <span class="ident">Statement::ReturnStatement</span> { <span class="ident">location</span> } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">location</span>.<span class="ident">clone</span>(),
         }
     }
 }
