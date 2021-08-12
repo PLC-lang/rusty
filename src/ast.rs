@@ -25,6 +25,14 @@ pub struct Pou {
     pub pou_type: PouType,
     pub return_type: Option<DataTypeDeclaration>,
     pub location: SourceRange,
+    pub poly_mode: Option<PolymorphismMode>,
+}
+
+#[derive(Debug, PartialEq)]
+pub enum PolymorphismMode {
+    None,
+    Abstract,
+    Final,
 }
 
 impl Debug for Pou {
@@ -46,6 +54,8 @@ pub struct Implementation {
     pub pou_type: PouType,
     pub statements: Vec<Statement>,
     pub location: SourceRange,
+    pub overriding: bool,
+    pub access: Option<AccessModifier>,
 }
 
 #[derive(Debug, Copy, PartialEq, Clone)]
@@ -54,12 +64,22 @@ pub enum LinkageType {
     External,
 }
 
+#[derive(Debug, PartialEq)]
+pub enum AccessModifier {
+    Private,
+    Public,
+    Protected, // default
+    Internal,
+}
+
 #[derive(Debug, Copy, PartialEq, Clone)]
 pub enum PouType {
     Program,
     Function,
     FunctionBlock,
     Action,
+    Class,
+    Method,
 }
 
 #[derive(Debug, PartialEq)]
@@ -99,6 +119,7 @@ impl Default for CompilationUnit {
 #[derive(Debug, Copy, PartialEq, Clone)]
 pub enum VariableBlockType {
     Local,
+    Temp,
     Input,
     Output,
     Global,
@@ -107,6 +128,9 @@ pub enum VariableBlockType {
 
 #[derive(PartialEq)]
 pub struct VariableBlock {
+    pub access: AccessModifier,
+    pub constant: bool,
+    pub retain: bool,
     pub variables: Vec<Variable>,
     pub variable_block_type: VariableBlockType,
 }

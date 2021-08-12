@@ -175,6 +175,7 @@ fn visit_global_var_block(index: &mut Index, block: &VariableBlock) {
 fn get_variable_type_from_block(block: &VariableBlock) -> VariableType {
     match block.variable_block_type {
         VariableBlockType::Local => VariableType::Local,
+        VariableBlockType::Temp => VariableType::Temp,
         VariableBlockType::Input => VariableType::Input,
         VariableBlockType::Output => VariableType::Output,
         VariableBlockType::Global => VariableType::Global,

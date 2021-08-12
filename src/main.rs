@@ -29,7 +29,12 @@ fn main() {
     let compile_parameters: Result<CompileParameters, ParameterError> =
         CompileParameters::parse(args);
     match compile_parameters {
-        Ok(cp) => main_compile(cp),
+        Ok(cp) => {
+            if let Err(msg) = main_compile(cp) {
+                println!("Error: {}", msg);
+                std::process::exit(1);
+            }
+        }
         Err(err) => err.exit(), // prints the nice message to std-out
     }
 }
@@ -40,18 +45,23 @@ fn create_file_paths(inputs: &[String]) -> Result<Vec<FilePath>, String> {
         let paths =
             glob(input).map_err(|e| format!("Failed to read glob pattern: {}, ({})", input, e))?;
 
+        let source_count_before = sources.len();
         for p in paths {
             let path = p.map_err(|err| format!("Illegal path: {:}", err))?;
             sources.push(FilePath {
                 path: path.to_string_lossy().to_string(),
             });
         }
+
+        if sources.len() <= source_count_before {
+            return Err(format!("No such file(s): {}", input));
+        }
     }
     Ok(sources)
 }
 
-fn main_compile(parameters: CompileParameters) {
-    let sources = create_file_paths(&parameters.input).unwrap();
+fn main_compile(parameters: CompileParameters) -> Result<(), String> {
+    let sources = create_file_paths(&parameters.input)?;
 
     let output_filename = parameters.output_name().unwrap();
     let encoding = parameters.encoding;
@@ -82,4 +92,5 @@ fn main_compile(parameters: CompileParameters) {
             compile_to_ir(sources, encoding, &output_filename).unwrap();
         }
     }
+    Ok(())
 }
