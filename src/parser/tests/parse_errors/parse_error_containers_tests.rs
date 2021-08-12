@@ -1,6 +1,6 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use crate::{
-    ast::{PouType, SourceRange, Statement, Variable, VariableBlock, VariableBlockType},
+    ast::*,
     lexer::Token,
     parser::{parse, tests::lex},
     Diagnostic,
@@ -239,6 +239,9 @@ fn unclosed_var_container() {
         format!(
             "{:#?}",
             VariableBlock {
+                constant: false,
+                access: AccessModifier::Protected,
+                retain: false,
                 variable_block_type: VariableBlockType::Local,
                 variables: vec![Variable {
                     name: "a".into(),

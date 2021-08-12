@@ -15,6 +15,13 @@ pub enum Token {
     #[token("PROGRAM")]
     KeywordProgram,
 
+    #[token("CLASS")]
+    KeywordClass,
+
+    #[token("END_CLASS")]
+    #[token("ENDCLASS")]
+    KeywordEndClass,
+
     #[token("VAR_INPUT")]
     #[token("VARINPUT")]
     KeywordVarInput,
@@ -25,6 +32,46 @@ pub enum Token {
 
     #[token("VAR")]
     KeywordVar,
+
+    #[token("ABSTRACT")]
+    KeywordAbstract,
+
+    #[token("FINAL")]
+    KeywordFinal,
+
+    #[token("METHOD")]
+    KeywordMethod,
+
+    #[token("CONSTANT")]
+    KeywordConstant,
+
+    #[token("RETAIN")]
+    KeywordRetain,
+
+    #[token("NON_RETAIN")]
+    KeywordNonRetain,
+
+    #[token("VAR_TEMP")]
+    KeywordVarTemp,
+
+    #[token("END_METHOD")]
+    #[token("ENDMETHOD")]
+    KeywordEndMethod,
+
+    #[token("PUBLIC")]
+    KeywordAccessPublic,
+
+    #[token("PRIVATE")]
+    KeywordAccessPrivate,
+
+    #[token("INTERNAL")]
+    KeywordAccessInternal,
+
+    #[token("PROTECTED")]
+    KeywordAccessProtected,
+
+    #[token("OVERRIDE")]
+    KeywordOverride,
 
     #[token("VAR_GLOBAL")]
     #[token("VARGLOBAL")]
