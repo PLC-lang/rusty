@@ -85,6 +85,17 @@
 <span id="83">83</span>
 <span id="84">84</span>
 <span id="85">85</span>
+<span id="86">86</span>
+<span id="87">87</span>
+<span id="88">88</span>
+<span id="89">89</span>
+<span id="90">90</span>
+<span id="91">91</span>
+<span id="92">92</span>
+<span id="93">93</span>
+<span id="94">94</span>
+<span id="95">95</span>
+<span id="96">96</span>
 </pre><pre class="rust">
 <span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 <span class="doccomment">//! A Structured Text LLVM Frontent</span>
@@ -117,7 +128,12 @@
     <span class="kw">let</span> <span class="ident">compile_parameters</span>: <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">CompileParameters</span>, <span class="ident">ParameterError</span><span class="op">&gt;</span> <span class="op">=</span>
         <span class="ident">CompileParameters::parse</span>(<span class="ident">args</span>);
     <span class="kw">match</span> <span class="ident">compile_parameters</span> {
-        <span class="prelude-val">Ok</span>(<span class="ident">cp</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">main_compile</span>(<span class="ident">cp</span>),
+        <span class="prelude-val">Ok</span>(<span class="ident">cp</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">msg</span>) <span class="op">=</span> <span class="ident">main_compile</span>(<span class="ident">cp</span>) {
+                <span class="macro">println!</span>(<span class="string">&quot;Error: {}&quot;</span>, <span class="ident">msg</span>);
+                <span class="ident">std::process::exit</span>(<span class="number">1</span>);
+            }
+        }
         <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">err</span>.<span class="ident">exit</span>(), <span class="comment">// prints the nice message to std-out</span>
     }
 }
@@ -128,18 +144,23 @@
         <span class="kw">let</span> <span class="ident">paths</span> <span class="op">=</span>
             <span class="ident">glob</span>(<span class="ident">input</span>).<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="macro">format!</span>(<span class="string">&quot;Failed to read glob pattern: {}, ({})&quot;</span>, <span class="ident">input</span>, <span class="ident">e</span>))<span class="question-mark">?</span>;
 
+        <span class="kw">let</span> <span class="ident">source_count_before</span> <span class="op">=</span> <span class="ident">sources</span>.<span class="ident">len</span>();
         <span class="kw">for</span> <span class="ident">p</span> <span class="kw">in</span> <span class="ident">paths</span> {
             <span class="kw">let</span> <span class="ident">path</span> <span class="op">=</span> <span class="ident">p</span>.<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">err</span><span class="op">|</span> <span class="macro">format!</span>(<span class="string">&quot;Illegal path: {:}&quot;</span>, <span class="ident">err</span>))<span class="question-mark">?</span>;
             <span class="ident">sources</span>.<span class="ident">push</span>(<span class="ident">FilePath</span> {
                 <span class="ident">path</span>: <span class="ident">path</span>.<span class="ident">to_string_lossy</span>().<span class="ident">to_string</span>(),
             });
         }
+
+        <span class="kw">if</span> <span class="ident">sources</span>.<span class="ident">len</span>() <span class="op">&lt;</span><span class="op">=</span> <span class="ident">source_count_before</span> {
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="macro">format!</span>(<span class="string">&quot;No such file(s): {}&quot;</span>, <span class="ident">input</span>));
+        }
     }
     <span class="prelude-val">Ok</span>(<span class="ident">sources</span>)
 }
 
-<span class="kw">fn</span> <span class="ident">main_compile</span>(<span class="ident">parameters</span>: <span class="ident">CompileParameters</span>) {
-    <span class="kw">let</span> <span class="ident">sources</span> <span class="op">=</span> <span class="ident">create_file_paths</span>(<span class="kw-2">&amp;</span><span class="ident">parameters</span>.<span class="ident">input</span>).<span class="ident">unwrap</span>();
+<span class="kw">fn</span> <span class="ident">main_compile</span>(<span class="ident">parameters</span>: <span class="ident">CompileParameters</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">String</span><span class="op">&gt;</span> {
+    <span class="kw">let</span> <span class="ident">sources</span> <span class="op">=</span> <span class="ident">create_file_paths</span>(<span class="kw-2">&amp;</span><span class="ident">parameters</span>.<span class="ident">input</span>)<span class="question-mark">?</span>;
 
     <span class="kw">let</span> <span class="ident">output_filename</span> <span class="op">=</span> <span class="ident">parameters</span>.<span class="ident">output_name</span>().<span class="ident">unwrap</span>();
     <span class="kw">let</span> <span class="ident">encoding</span> <span class="op">=</span> <span class="ident">parameters</span>.<span class="ident">encoding</span>;
@@ -170,6 +191,7 @@
             <span class="ident">compile_to_ir</span>(<span class="ident">sources</span>, <span class="ident">encoding</span>, <span class="kw-2">&amp;</span><span class="ident">output_filename</span>).<span class="ident">unwrap</span>();
         }
     }
+    <span class="prelude-val">Ok</span>(())
 }
 </pre></div>
 </section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="rustyc" data-search-index-js="../../search-index.js" data-search-js="../../search.js"></div><script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script></body></html>
