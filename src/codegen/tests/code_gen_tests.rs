@@ -3839,6 +3839,44 @@ continue:                                         ; preds = %condition_body, %en
 }
 
 #[test]
+fn returning_early_in_function_block() {
+    let result = codegen!(
+        "
+        FUNCTION_BLOCK abcdef
+          VAR_INPUT n : SINT; END_VAR
+          IF n < 10 THEN
+                  RETURN;
+          END_IF;
+        END_FUNCTION_BLOCK
+        "
+    );
+
+    let expected = r#"; ModuleID = 'main'
+source_filename = "main"
+
+%abcdef_interface = type { i8 }
+
+define void @abcdef(%abcdef_interface* %0) {
+entry:
+  %n = getelementptr inbounds %abcdef_interface, %abcdef_interface* %0, i32 0, i32 0
+  %load_n = load i8, i8* %n, align 1
+  %1 = sext i8 %load_n to i32
+  %tmpVar = icmp slt i32 %1, 10
+  br i1 %tmpVar, label %condition_body, label %continue
+
+condition_body:                                   ; preds = %entry
+  ret void
+  br label %continue
+
+continue:                                         ; preds = %condition_body, %entry
+  ret void
+}
+"#;
+
+    assert_eq!(result, expected);
+}
+
+#[test]
 fn accessing_nested_array_in_struct() {
     let result = codegen!(
         "
