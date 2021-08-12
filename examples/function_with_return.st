@@ -3,9 +3,9 @@ FUNCTION smaller_than_ten: BOOL
 		n : INT;
 	END_VAR
 
-	smaller_than_ten := FALSE;
 	IF n < 10 THEN
 		smaller_than_ten := TRUE;
 		RETURN;
 	END_IF;
+	smaller_than_ten := FALSE;
 END_FUNCTION
