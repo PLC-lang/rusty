@@ -1,0 +1,9 @@
+FUNCTION smaller_than_ten: INT
+	VAR_INPUT
+		n : SINT;
+	END_VAR
+
+	IF n < 10 THEN
+		RETURN;
+	END_IF;
+END_FUNCTION
