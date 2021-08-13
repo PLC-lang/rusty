@@ -1,25 +1,23 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-use std::ops::Range;
-
-use super::pou_generator::PouGenerator;
-use super::{expression_generator::ExpressionCodeGenerator, llvm::Llvm};
-use crate::ast::PouType;
-use crate::codegen::LlvmTypedIndex;
-use crate::typesystem::{RANGE_CHECK_LS_FN, RANGE_CHECK_LU_FN, RANGE_CHECK_S_FN, RANGE_CHECK_U_FN};
-use crate::{ast::SourceRange, codegen::llvm_typesystem::cast_if_needed};
-use crate::{
-    ast::{flatten_expression_list, ConditionalBlock, Operator, Statement},
-    compile_error::CompileError,
+use super::{
+    expression_generator::ExpressionCodeGenerator, llvm::Llvm, pou_generator::PouGenerator,
 };
 use crate::{
+    ast::{flatten_expression_list, ConditionalBlock, Operator, PouType, SourceRange, Statement},
+    codegen::{llvm_typesystem::cast_if_needed, LlvmTypedIndex},
+    compile_error::CompileError,
     index::{ImplementationIndexEntry, Index},
-    typesystem::DataTypeInformation,
+    typesystem::{
+        DataTypeInformation, RANGE_CHECK_LS_FN, RANGE_CHECK_LU_FN, RANGE_CHECK_S_FN,
+        RANGE_CHECK_U_FN,
+    },
 };
 use inkwell::{
     basic_block::BasicBlock,
     values::{BasicValueEnum, FunctionValue},
     IntPredicate,
 };
+use std::ops::Range;
 
 /// the full context when generating statements inside a POU
 pub struct FunctionContext<'a> {
