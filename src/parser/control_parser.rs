@@ -18,6 +18,8 @@ pub fn parse_control_statement(lexer: &mut ParseSession) -> Statement {
         KeywordRepeat => parse_repeat_statement(lexer),
         KeywordCase => parse_case_statement(lexer),
         KeywordReturn => parse_return_statement(lexer),
+        KeywordContinue => parse_continue_statement(lexer),
+        KeywordExit => parse_exit_statement(lexer),
         _ => parse_statement(lexer),
     }
 }
@@ -26,6 +28,18 @@ fn parse_return_statement(lexer: &mut ParseSession) -> Statement {
     let location = lexer.location();
     lexer.advance();
     Statement::ReturnStatement { location }
+}
+
+fn parse_exit_statement(lexer: &mut ParseSession) -> Statement {
+    let location = lexer.location();
+    lexer.advance();
+    Statement::ExitStatement { location }
+}
+
+fn parse_continue_statement(lexer: &mut ParseSession) -> Statement {
+    let location = lexer.location();
+    lexer.advance();
+    Statement::ContinueStatement { location }
 }
 
 fn parse_if_statement(lexer: &mut ParseSession) -> Statement {
