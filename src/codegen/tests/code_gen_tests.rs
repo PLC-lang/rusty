@@ -1321,12 +1321,14 @@ for_body:                                         ; preds = %condition_check
   %tmpVar2 = add i32 %load_x1, 1
   store i32 %tmpVar2, i32* %x, align 4
   br label %increment
+
+buffer_block:                                     ; No predecessors!
   %load_x3 = load i32, i32* %x, align 4
   %tmpVar4 = sub i32 %load_x3, 1
   store i32 %tmpVar4, i32* %x, align 4
   br label %increment
 
-increment:                                        ; preds = %for_body, %for_body
+increment:                                        ; preds = %buffer_block, %for_body
   %tmpVar5 = add i32 %load_x, 7
   store i32 %tmpVar5, i32* %x, align 4
   br label %condition_check
@@ -1375,12 +1377,14 @@ for_body:                                         ; preds = %condition_check
   %tmpVar2 = add i32 %load_x1, 2
   store i32 %tmpVar2, i32* %x, align 4
   br label %continue
+
+buffer_block:                                     ; No predecessors!
   %load_x3 = load i32, i32* %x, align 4
   %tmpVar4 = add i32 %load_x3, 5
   store i32 %tmpVar4, i32* %x, align 4
   br label %increment
 
-increment:                                        ; preds = %for_body
+increment:                                        ; preds = %buffer_block
   %tmpVar5 = add i32 %load_x, 7
   store i32 %tmpVar5, i32* %x, align 4
   br label %condition_check
@@ -3947,9 +3951,11 @@ entry:
 condition_body:                                   ; preds = %entry
   %smaller_than_ten_ret = load i16, i16* %smaller_than_ten, align 2
   ret i16 %smaller_than_ten_ret
+
+buffer_block:                                     ; No predecessors!
   br label %continue
 
-continue:                                         ; preds = %condition_body, %entry
+continue:                                         ; preds = %buffer_block, %entry
   %smaller_than_ten_ret1 = load i16, i16* %smaller_than_ten, align 2
   ret i16 %smaller_than_ten_ret1
 }
@@ -3986,9 +3992,11 @@ entry:
 
 condition_body:                                   ; preds = %entry
   ret void
+
+buffer_block:                                     ; No predecessors!
   br label %continue
 
-continue:                                         ; preds = %condition_body, %entry
+continue:                                         ; preds = %buffer_block, %entry
   ret void
 }
 "#;

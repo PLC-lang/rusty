@@ -88,6 +88,19 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         Ok(())
     }
 
+    /// some versions of llvm will crash on two consecutive return or
+    /// unconditional jump statements. the solution is to insert another
+    /// building block before the second one, so the don't directly
+    /// follow each other. this is what we call a buffer block.
+    fn generate_buffer_block(&self) {
+        let builder = &self.llvm.builder;
+        let buffer_block = self
+            .llvm
+            .context
+            .insert_basic_block_after(builder.get_insert_block().unwrap(), "buffer_block");
+        builder.position_at_end(buffer_block);
+    }
+
     /// genertes a single statement
     ///
     /// - `statement` the statement to be generated
@@ -139,11 +152,12 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
                     self.pou_type,
                     Some(location.clone()),
                 )?;
+                self.generate_buffer_block();
             }
             Statement::ExitStatement { location } => {
-                if let Some(exit_block) = self.current_loop_exit {
-                    let builder = &self.llvm.builder;
-                    builder.build_unconditional_branch(exit_block);
+                if let Some(exit_block) = &self.current_loop_exit {
+                    self.llvm.builder.build_unconditional_branch(*exit_block);
+                    self.generate_buffer_block();
                 } else {
                     return Err(CompileError::CodeGenError {
                         message: "Cannot break out of loop when not inside a loop".into(),
@@ -152,9 +166,9 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
                 }
             }
             Statement::ContinueStatement { location } => {
-                if let Some(cont_block) = self.current_loop_continue {
-                    let builder = &self.llvm.builder;
-                    builder.build_unconditional_branch(cont_block);
+                if let Some(cont_block) = &self.current_loop_continue {
+                    self.llvm.builder.build_unconditional_branch(*cont_block);
+                    self.generate_buffer_block();
                 } else {
                     return Err(CompileError::CodeGenError {
                         message: "Cannot continue loop when not inside a loop".into(),
