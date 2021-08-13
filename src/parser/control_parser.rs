@@ -43,7 +43,7 @@ fn parse_if_statement(lexer: &mut ParseSession) -> Statement {
             KeywordThen,
             Statement::EmptyStatement {
                 location: lexer.location(),
-                id: lexer.next_id()
+                id: lexer.next_id(),
             }
         );
         lexer.advance();
