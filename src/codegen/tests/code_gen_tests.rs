@@ -1398,6 +1398,61 @@ continue:                                         ; preds = %for_body, %conditio
 }
 
 #[test]
+fn while_loop_with_if_exit() {
+    let result = codegen!(
+        "
+        PROGRAM prg 
+        VAR
+            x : DINT;
+        END_VAR
+        WHILE x < 20 DO
+          x := x + 1;
+          IF x >= 10 THEN
+            EXIT;
+          END_IF
+        END_PROGRAM
+        "
+    );
+
+    let expected = generate_program_boiler_plate(
+        "prg",
+        &[("i32", "x")],
+        "void",
+        "",
+        "",
+        r#"br label %condition_check
+
+condition_check:                                  ; preds = %entry, %continue3
+  %load_x = load i32, i32* %x, align 4
+  %tmpVar = icmp slt i32 %load_x, 20
+  br i1 %tmpVar, label %while_body, label %continue
+
+while_body:                                       ; preds = %condition_check
+  %load_x1 = load i32, i32* %x, align 4
+  %tmpVar2 = add i32 %load_x1, 1
+  store i32 %tmpVar2, i32* %x, align 4
+  %load_x4 = load i32, i32* %x, align 4
+  %tmpVar5 = icmp sge i32 %load_x4, 10
+  br i1 %tmpVar5, label %condition_body, label %continue3
+
+continue:                                         ; preds = %condition_body, %condition_check
+  ret void
+
+condition_body:                                   ; preds = %while_body
+  br label %continue
+
+buffer_block:                                     ; No predecessors!
+  br label %continue3
+
+continue3:                                        ; preds = %buffer_block, %while_body
+  br label %condition_check
+"#,
+    );
+
+    assert_eq!(result, expected);
+}
+
+#[test]
 fn for_statement_without_steps_test() {
     let result = codegen!(
         "

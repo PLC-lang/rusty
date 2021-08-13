@@ -268,6 +268,94 @@ fn while_loop_no_entry() {
 }
 
 #[test]
+fn exit_in_if_in_while_loop() {
+    #[allow(dead_code)]
+    #[repr(C)]
+    struct MainType {
+        i: i16,
+        ret: i32,
+    }
+
+    let function = r#"
+    FUNCTION main : DINT
+    VAR
+        i : INT;
+    END_VAR
+    i := 0;
+    WHILE i < 20 DO
+        i := i+1;
+        IF i >= 10 THEN
+            EXIT;
+        END_IF
+    END_WHILE
+    main := i;
+    END_FUNCTION
+    "#;
+
+    let (res, _) = compile_and_run(function.to_string(), &mut MainType { i: 0, ret: 0 });
+    assert_eq!(res, 10);
+}
+
+#[test]
+fn exit_in_for_loop_in_while_loop() {
+    #[allow(dead_code)]
+    #[repr(C)]
+    struct MainType {
+        i: i16,
+        ret: i32,
+    }
+
+    let function = r#"
+    FUNCTION main : DINT
+    VAR
+        i : INT;
+    END_VAR
+    main := 0;
+    WHILE main < 20 DO
+        main := main+1;
+        FOR i := 0 TO 10 BY 1 DO
+            EXIT;
+        END_FOR 
+    END_WHILE
+    main := i + main;
+    END_FUNCTION
+    "#;
+
+    let (res, _) = compile_and_run(function.to_string(), &mut MainType { i: 0, ret: 0 });
+    assert_eq!(res, 20);
+}
+
+#[test]
+fn continue_in_for_loop_in_while_loop() {
+    #[allow(dead_code)]
+    #[repr(C)]
+    struct MainType {
+        i: i16,
+        ret: i32,
+    }
+
+    let function = r#"
+    FUNCTION main : DINT
+    VAR
+        i : INT;
+    END_VAR
+    main := 0;
+    WHILE main < 20 DO
+        main := main+1;
+        FOR i := 0 TO 10 BY 1 DO
+            CONTINUE;
+            main := 200;
+        END_FOR 
+    END_WHILE
+    main := i + main;
+    END_FUNCTION
+    "#;
+
+    let (res, _) = compile_and_run(function.to_string(), &mut MainType { i: 0, ret: 0 });
+    assert_eq!(res, 31);
+}
+
+#[test]
 fn repeat_loop_no_entry() {
     #[allow(dead_code)]
     #[repr(C)]
