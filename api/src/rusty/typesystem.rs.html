@@ -424,19 +424,164 @@
 <span id="422">422</span>
 <span id="423">423</span>
 <span id="424">424</span>
+<span id="425">425</span>
+<span id="426">426</span>
+<span id="427">427</span>
+<span id="428">428</span>
+<span id="429">429</span>
+<span id="430">430</span>
+<span id="431">431</span>
+<span id="432">432</span>
+<span id="433">433</span>
+<span id="434">434</span>
+<span id="435">435</span>
+<span id="436">436</span>
+<span id="437">437</span>
+<span id="438">438</span>
+<span id="439">439</span>
+<span id="440">440</span>
+<span id="441">441</span>
+<span id="442">442</span>
+<span id="443">443</span>
+<span id="444">444</span>
+<span id="445">445</span>
+<span id="446">446</span>
+<span id="447">447</span>
+<span id="448">448</span>
+<span id="449">449</span>
+<span id="450">450</span>
+<span id="451">451</span>
+<span id="452">452</span>
+<span id="453">453</span>
+<span id="454">454</span>
+<span id="455">455</span>
+<span id="456">456</span>
+<span id="457">457</span>
+<span id="458">458</span>
+<span id="459">459</span>
+<span id="460">460</span>
+<span id="461">461</span>
+<span id="462">462</span>
+<span id="463">463</span>
+<span id="464">464</span>
+<span id="465">465</span>
+<span id="466">466</span>
+<span id="467">467</span>
+<span id="468">468</span>
+<span id="469">469</span>
+<span id="470">470</span>
+<span id="471">471</span>
+<span id="472">472</span>
+<span id="473">473</span>
+<span id="474">474</span>
+<span id="475">475</span>
+<span id="476">476</span>
+<span id="477">477</span>
+<span id="478">478</span>
+<span id="479">479</span>
+<span id="480">480</span>
+<span id="481">481</span>
+<span id="482">482</span>
+<span id="483">483</span>
+<span id="484">484</span>
+<span id="485">485</span>
+<span id="486">486</span>
+<span id="487">487</span>
+<span id="488">488</span>
+<span id="489">489</span>
+<span id="490">490</span>
+<span id="491">491</span>
+<span id="492">492</span>
+<span id="493">493</span>
+<span id="494">494</span>
+<span id="495">495</span>
+<span id="496">496</span>
+<span id="497">497</span>
+<span id="498">498</span>
+<span id="499">499</span>
+<span id="500">500</span>
+<span id="501">501</span>
+<span id="502">502</span>
+<span id="503">503</span>
+<span id="504">504</span>
+<span id="505">505</span>
+<span id="506">506</span>
+<span id="507">507</span>
+<span id="508">508</span>
+<span id="509">509</span>
+<span id="510">510</span>
+<span id="511">511</span>
+<span id="512">512</span>
+<span id="513">513</span>
+<span id="514">514</span>
+<span id="515">515</span>
+<span id="516">516</span>
+<span id="517">517</span>
+<span id="518">518</span>
+<span id="519">519</span>
+<span id="520">520</span>
+<span id="521">521</span>
+<span id="522">522</span>
+<span id="523">523</span>
+<span id="524">524</span>
+<span id="525">525</span>
+<span id="526">526</span>
+<span id="527">527</span>
+<span id="528">528</span>
+<span id="529">529</span>
+<span id="530">530</span>
+<span id="531">531</span>
+<span id="532">532</span>
+<span id="533">533</span>
+<span id="534">534</span>
+<span id="535">535</span>
+<span id="536">536</span>
+<span id="537">537</span>
+<span id="538">538</span>
+<span id="539">539</span>
+<span id="540">540</span>
+<span id="541">541</span>
+<span id="542">542</span>
+<span id="543">543</span>
+<span id="544">544</span>
+<span id="545">545</span>
 </pre><pre class="rust">
 <span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 <span class="kw">use</span> <span class="ident">std::ops::Range</span>;
 
-<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::ast</span>::{<span class="ident">Dimension</span>, <span class="ident">Statement</span>};
+<span class="kw">use</span> <span class="kw">crate</span>::{
+    <span class="ident">ast</span>::{<span class="ident">Dimension</span>, <span class="ident">Statement</span>},
+    <span class="ident">index::Index</span>,
+};
 
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">DEFAULT_STRING_LEN</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">80</span>;
 
-<span class="comment">//CheckRan­geSigned, CheckLRangeSigned or CheckRangeUnsigned, CheckLRangeUnsigned</span>
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">RANGE_CHECK_S_FN</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;CheckRangeSigned&quot;</span>;
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">RANGE_CHECK_LS_FN</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;CheckLRangeSigned&quot;</span>;
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">RANGE_CHECK_U_FN</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;CheckRangeUnsigned&quot;</span>;
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">RANGE_CHECK_LU_FN</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;CheckLRangeUnsigned&quot;</span>;
+
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">BOOL_TYPE</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;BOOL&quot;</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">BYTE_TYPE</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;BYTE&quot;</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SINT_TYPE</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;SINT&quot;</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">USINT_TYPE</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;USINT&quot;</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">WORD_TYPE</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;WORD&quot;</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">INT_TYPE</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;INT&quot;</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">UINT_TYPE</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;UINT&quot;</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">DWORD_TYPE</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;DWORD&quot;</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">DINT_TYPE</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;DINT&quot;</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">UDINT_TYPE</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;UDINT&quot;</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">LWORD_TYPE</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;LWORD&quot;</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">LINT_TYPE</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;LINT&quot;</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">DATE_TYPE</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;DATE&quot;</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TIME_TYPE</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;TIME&quot;</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">DATE_AND_TIME_TYPE</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;DATE_AND_TIME&quot;</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TIME_OF_DAY_TYPE</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;TIME_OF_DAY&quot;</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">ULINT_TYPE</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;ULINT&quot;</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">REAL_TYPE</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;REAL&quot;</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">LREAL_TYPE</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;LREAL&quot;</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">STRING_TYPE</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;STRING&quot;</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">WSTRING_TYPE</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;WSTRING&quot;</span>;
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">DataType</span> {
@@ -578,10 +723,10 @@
             <span class="ident">DataTypeInformation::Float</span> { <span class="ident">size</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="ident">size</span>,
             <span class="ident">DataTypeInformation::String</span> { <span class="ident">size</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="ident">size</span>,
             <span class="ident">DataTypeInformation::Struct</span> { .. } <span class="op">=</span><span class="op">&gt;</span> <span class="number">0</span>, <span class="comment">//TODO : Should we fill in the struct members here for size calculation or save the struct size.</span>
-            <span class="ident">DataTypeInformation::Array</span> { .. } <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unimplemented!</span>(), <span class="comment">//Propably length * inner type size</span>
-            <span class="ident">DataTypeInformation::Pointer</span> { .. } <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unimplemented!</span>(),
-            <span class="ident">DataTypeInformation::SubRange</span> { .. } <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unimplemented!</span>(),
-            <span class="ident">DataTypeInformation::Alias</span> { .. } <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unimplemented!</span>(),
+            <span class="ident">DataTypeInformation::Array</span> { .. } <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unimplemented!</span>(<span class="string">&quot;array&quot;</span>), <span class="comment">//Propably length * inner type size</span>
+            <span class="ident">DataTypeInformation::Pointer</span> { .. } <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unimplemented!</span>(<span class="string">&quot;pointer&quot;</span>),
+            <span class="ident">DataTypeInformation::SubRange</span> { .. } <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unimplemented!</span>(<span class="string">&quot;subrange&quot;</span>),
+            <span class="ident">DataTypeInformation::Alias</span> { .. } <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unimplemented!</span>(<span class="string">&quot;alias&quot;</span>),
             <span class="ident">DataTypeInformation::Void</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">0</span>,
         }
     }
@@ -595,176 +740,176 @@
             <span class="ident">information</span>: <span class="ident">DataTypeInformation::Void</span>,
         },
         <span class="ident">DataType</span> {
-            <span class="ident">name</span>: <span class="string">&quot;BOOL&quot;</span>.<span class="ident">into</span>(),
+            <span class="ident">name</span>: <span class="ident">BOOL_TYPE</span>.<span class="ident">into</span>(),
             <span class="ident">initial_value</span>: <span class="prelude-val">None</span>,
             <span class="ident">information</span>: <span class="ident">DataTypeInformation::Integer</span> {
-                <span class="ident">name</span>: <span class="string">&quot;BOOL&quot;</span>.<span class="ident">into</span>(),
+                <span class="ident">name</span>: <span class="ident">BOOL_TYPE</span>.<span class="ident">into</span>(),
                 <span class="ident">signed</span>: <span class="bool-val">true</span>,
                 <span class="ident">size</span>: <span class="number">1</span>,
             },
         },
         <span class="ident">DataType</span> {
-            <span class="ident">name</span>: <span class="string">&quot;BYTE&quot;</span>.<span class="ident">into</span>(),
+            <span class="ident">name</span>: <span class="ident">BYTE_TYPE</span>.<span class="ident">into</span>(),
             <span class="ident">initial_value</span>: <span class="prelude-val">None</span>,
             <span class="ident">information</span>: <span class="ident">DataTypeInformation::Integer</span> {
-                <span class="ident">name</span>: <span class="string">&quot;BYTE&quot;</span>.<span class="ident">into</span>(),
+                <span class="ident">name</span>: <span class="ident">BYTE_TYPE</span>.<span class="ident">into</span>(),
                 <span class="ident">signed</span>: <span class="bool-val">false</span>,
                 <span class="ident">size</span>: <span class="number">8</span>,
             },
         },
         <span class="ident">DataType</span> {
-            <span class="ident">name</span>: <span class="string">&quot;SINT&quot;</span>.<span class="ident">into</span>(),
+            <span class="ident">name</span>: <span class="ident">SINT_TYPE</span>.<span class="ident">into</span>(),
             <span class="ident">initial_value</span>: <span class="prelude-val">None</span>,
             <span class="ident">information</span>: <span class="ident">DataTypeInformation::Integer</span> {
-                <span class="ident">name</span>: <span class="string">&quot;SINT&quot;</span>.<span class="ident">into</span>(),
+                <span class="ident">name</span>: <span class="ident">SINT_TYPE</span>.<span class="ident">into</span>(),
                 <span class="ident">signed</span>: <span class="bool-val">true</span>,
                 <span class="ident">size</span>: <span class="number">8</span>,
             },
         },
         <span class="ident">DataType</span> {
-            <span class="ident">name</span>: <span class="string">&quot;USINT&quot;</span>.<span class="ident">into</span>(),
+            <span class="ident">name</span>: <span class="ident">USINT_TYPE</span>.<span class="ident">into</span>(),
             <span class="ident">initial_value</span>: <span class="prelude-val">None</span>,
             <span class="ident">information</span>: <span class="ident">DataTypeInformation::Integer</span> {
-                <span class="ident">name</span>: <span class="string">&quot;USINT&quot;</span>.<span class="ident">into</span>(),
+                <span class="ident">name</span>: <span class="ident">USINT_TYPE</span>.<span class="ident">into</span>(),
                 <span class="ident">signed</span>: <span class="bool-val">false</span>,
                 <span class="ident">size</span>: <span class="number">8</span>,
             },
         },
         <span class="ident">DataType</span> {
-            <span class="ident">name</span>: <span class="string">&quot;WORD&quot;</span>.<span class="ident">into</span>(),
+            <span class="ident">name</span>: <span class="ident">WORD_TYPE</span>.<span class="ident">into</span>(),
             <span class="ident">initial_value</span>: <span class="prelude-val">None</span>,
             <span class="ident">information</span>: <span class="ident">DataTypeInformation::Integer</span> {
-                <span class="ident">name</span>: <span class="string">&quot;WORD&quot;</span>.<span class="ident">into</span>(),
+                <span class="ident">name</span>: <span class="ident">WORD_TYPE</span>.<span class="ident">into</span>(),
                 <span class="ident">signed</span>: <span class="bool-val">false</span>,
                 <span class="ident">size</span>: <span class="number">16</span>,
             },
         },
         <span class="ident">DataType</span> {
-            <span class="ident">name</span>: <span class="string">&quot;INT&quot;</span>.<span class="ident">into</span>(),
+            <span class="ident">name</span>: <span class="ident">INT_TYPE</span>.<span class="ident">into</span>(),
             <span class="ident">initial_value</span>: <span class="prelude-val">None</span>,
             <span class="ident">information</span>: <span class="ident">DataTypeInformation::Integer</span> {
-                <span class="ident">name</span>: <span class="string">&quot;INT&quot;</span>.<span class="ident">into</span>(),
+                <span class="ident">name</span>: <span class="ident">INT_TYPE</span>.<span class="ident">into</span>(),
                 <span class="ident">signed</span>: <span class="bool-val">true</span>,
                 <span class="ident">size</span>: <span class="number">16</span>,
             },
         },
         <span class="ident">DataType</span> {
-            <span class="ident">name</span>: <span class="string">&quot;UINT&quot;</span>.<span class="ident">into</span>(),
+            <span class="ident">name</span>: <span class="ident">UINT_TYPE</span>.<span class="ident">into</span>(),
             <span class="ident">initial_value</span>: <span class="prelude-val">None</span>,
             <span class="ident">information</span>: <span class="ident">DataTypeInformation::Integer</span> {
-                <span class="ident">name</span>: <span class="string">&quot;UINT&quot;</span>.<span class="ident">into</span>(),
+                <span class="ident">name</span>: <span class="ident">UINT_TYPE</span>.<span class="ident">into</span>(),
                 <span class="ident">signed</span>: <span class="bool-val">false</span>,
                 <span class="ident">size</span>: <span class="number">16</span>,
             },
         },
         <span class="ident">DataType</span> {
-            <span class="ident">name</span>: <span class="string">&quot;DWORD&quot;</span>.<span class="ident">into</span>(),
+            <span class="ident">name</span>: <span class="ident">DWORD_TYPE</span>.<span class="ident">into</span>(),
             <span class="ident">initial_value</span>: <span class="prelude-val">None</span>,
             <span class="ident">information</span>: <span class="ident">DataTypeInformation::Integer</span> {
-                <span class="ident">name</span>: <span class="string">&quot;DWORD&quot;</span>.<span class="ident">into</span>(),
+                <span class="ident">name</span>: <span class="ident">DWORD_TYPE</span>.<span class="ident">into</span>(),
                 <span class="ident">signed</span>: <span class="bool-val">false</span>,
                 <span class="ident">size</span>: <span class="number">32</span>,
             },
         },
         <span class="ident">DataType</span> {
-            <span class="ident">name</span>: <span class="string">&quot;DINT&quot;</span>.<span class="ident">into</span>(),
+            <span class="ident">name</span>: <span class="ident">DINT_TYPE</span>.<span class="ident">into</span>(),
             <span class="ident">initial_value</span>: <span class="prelude-val">None</span>,
             <span class="ident">information</span>: <span class="ident">DataTypeInformation::Integer</span> {
-                <span class="ident">name</span>: <span class="string">&quot;DINT&quot;</span>.<span class="ident">into</span>(),
+                <span class="ident">name</span>: <span class="ident">DINT_TYPE</span>.<span class="ident">into</span>(),
                 <span class="ident">signed</span>: <span class="bool-val">true</span>,
                 <span class="ident">size</span>: <span class="number">32</span>,
             },
         },
         <span class="ident">DataType</span> {
-            <span class="ident">name</span>: <span class="string">&quot;UDINT&quot;</span>.<span class="ident">into</span>(),
+            <span class="ident">name</span>: <span class="ident">UDINT_TYPE</span>.<span class="ident">into</span>(),
             <span class="ident">initial_value</span>: <span class="prelude-val">None</span>,
             <span class="ident">information</span>: <span class="ident">DataTypeInformation::Integer</span> {
-                <span class="ident">name</span>: <span class="string">&quot;UDINT&quot;</span>.<span class="ident">into</span>(),
+                <span class="ident">name</span>: <span class="ident">UDINT_TYPE</span>.<span class="ident">into</span>(),
                 <span class="ident">signed</span>: <span class="bool-val">false</span>,
                 <span class="ident">size</span>: <span class="number">32</span>,
             },
         },
         <span class="ident">DataType</span> {
-            <span class="ident">name</span>: <span class="string">&quot;LWORD&quot;</span>.<span class="ident">into</span>(),
+            <span class="ident">name</span>: <span class="ident">LWORD_TYPE</span>.<span class="ident">into</span>(),
             <span class="ident">initial_value</span>: <span class="prelude-val">None</span>,
             <span class="ident">information</span>: <span class="ident">DataTypeInformation::Integer</span> {
-                <span class="ident">name</span>: <span class="string">&quot;LWORD&quot;</span>.<span class="ident">into</span>(),
+                <span class="ident">name</span>: <span class="ident">LWORD_TYPE</span>.<span class="ident">into</span>(),
                 <span class="ident">signed</span>: <span class="bool-val">false</span>,
                 <span class="ident">size</span>: <span class="number">64</span>,
             },
         },
         <span class="ident">DataType</span> {
-            <span class="ident">name</span>: <span class="string">&quot;LINT&quot;</span>.<span class="ident">into</span>(),
+            <span class="ident">name</span>: <span class="ident">LINT_TYPE</span>.<span class="ident">into</span>(),
             <span class="ident">initial_value</span>: <span class="prelude-val">None</span>,
             <span class="ident">information</span>: <span class="ident">DataTypeInformation::Integer</span> {
-                <span class="ident">name</span>: <span class="string">&quot;LINT&quot;</span>.<span class="ident">into</span>(),
+                <span class="ident">name</span>: <span class="ident">LINT_TYPE</span>.<span class="ident">into</span>(),
                 <span class="ident">signed</span>: <span class="bool-val">true</span>,
                 <span class="ident">size</span>: <span class="number">64</span>,
             },
         },
         <span class="ident">DataType</span> {
-            <span class="ident">name</span>: <span class="string">&quot;DATE&quot;</span>.<span class="ident">into</span>(),
+            <span class="ident">name</span>: <span class="ident">DATE_TYPE</span>.<span class="ident">into</span>(),
             <span class="ident">initial_value</span>: <span class="prelude-val">None</span>,
             <span class="ident">information</span>: <span class="ident">DataTypeInformation::Integer</span> {
-                <span class="ident">name</span>: <span class="string">&quot;DATE&quot;</span>.<span class="ident">into</span>(),
+                <span class="ident">name</span>: <span class="ident">DATE_TYPE</span>.<span class="ident">into</span>(),
                 <span class="ident">signed</span>: <span class="bool-val">true</span>,
                 <span class="ident">size</span>: <span class="number">64</span>,
             },
         },
         <span class="ident">DataType</span> {
-            <span class="ident">name</span>: <span class="string">&quot;TIME&quot;</span>.<span class="ident">into</span>(),
+            <span class="ident">name</span>: <span class="ident">TIME_TYPE</span>.<span class="ident">into</span>(),
             <span class="ident">initial_value</span>: <span class="prelude-val">None</span>,
             <span class="ident">information</span>: <span class="ident">DataTypeInformation::Integer</span> {
-                <span class="ident">name</span>: <span class="string">&quot;TIME&quot;</span>.<span class="ident">into</span>(),
+                <span class="ident">name</span>: <span class="ident">TIME_TYPE</span>.<span class="ident">into</span>(),
                 <span class="ident">signed</span>: <span class="bool-val">true</span>,
                 <span class="ident">size</span>: <span class="number">64</span>,
             },
         },
         <span class="ident">DataType</span> {
-            <span class="ident">name</span>: <span class="string">&quot;DATE_AND_TIME&quot;</span>.<span class="ident">into</span>(),
+            <span class="ident">name</span>: <span class="ident">DATE_AND_TIME_TYPE</span>.<span class="ident">into</span>(),
             <span class="ident">initial_value</span>: <span class="prelude-val">None</span>,
             <span class="ident">information</span>: <span class="ident">DataTypeInformation::Integer</span> {
-                <span class="ident">name</span>: <span class="string">&quot;DATE_AND_TIME&quot;</span>.<span class="ident">into</span>(),
+                <span class="ident">name</span>: <span class="ident">DATE_AND_TIME_TYPE</span>.<span class="ident">into</span>(),
                 <span class="ident">signed</span>: <span class="bool-val">true</span>,
                 <span class="ident">size</span>: <span class="number">64</span>,
             },
         },
         <span class="ident">DataType</span> {
-            <span class="ident">name</span>: <span class="string">&quot;TIME_OF_DAY&quot;</span>.<span class="ident">into</span>(),
+            <span class="ident">name</span>: <span class="ident">TIME_OF_DAY_TYPE</span>.<span class="ident">into</span>(),
             <span class="ident">initial_value</span>: <span class="prelude-val">None</span>,
             <span class="ident">information</span>: <span class="ident">DataTypeInformation::Integer</span> {
-                <span class="ident">name</span>: <span class="string">&quot;TIME_OF_DAY&quot;</span>.<span class="ident">into</span>(),
+                <span class="ident">name</span>: <span class="ident">TIME_OF_DAY_TYPE</span>.<span class="ident">into</span>(),
                 <span class="ident">signed</span>: <span class="bool-val">true</span>,
                 <span class="ident">size</span>: <span class="number">64</span>,
             },
         },
         <span class="ident">DataType</span> {
-            <span class="ident">name</span>: <span class="string">&quot;ULINT&quot;</span>.<span class="ident">into</span>(),
+            <span class="ident">name</span>: <span class="ident">ULINT_TYPE</span>.<span class="ident">into</span>(),
             <span class="ident">initial_value</span>: <span class="prelude-val">None</span>,
             <span class="ident">information</span>: <span class="ident">DataTypeInformation::Integer</span> {
-                <span class="ident">name</span>: <span class="string">&quot;ULINT&quot;</span>.<span class="ident">into</span>(),
+                <span class="ident">name</span>: <span class="ident">ULINT_TYPE</span>.<span class="ident">into</span>(),
                 <span class="ident">signed</span>: <span class="bool-val">false</span>,
                 <span class="ident">size</span>: <span class="number">64</span>,
             },
         },
         <span class="ident">DataType</span> {
-            <span class="ident">name</span>: <span class="string">&quot;REAL&quot;</span>.<span class="ident">into</span>(),
+            <span class="ident">name</span>: <span class="ident">REAL_TYPE</span>.<span class="ident">into</span>(),
             <span class="ident">initial_value</span>: <span class="prelude-val">None</span>,
             <span class="ident">information</span>: <span class="ident">DataTypeInformation::Float</span> {
-                <span class="ident">name</span>: <span class="string">&quot;REAL&quot;</span>.<span class="ident">into</span>(),
+                <span class="ident">name</span>: <span class="ident">REAL_TYPE</span>.<span class="ident">into</span>(),
                 <span class="ident">size</span>: <span class="number">32</span>,
             },
         },
         <span class="ident">DataType</span> {
-            <span class="ident">name</span>: <span class="string">&quot;LREAL&quot;</span>.<span class="ident">into</span>(),
+            <span class="ident">name</span>: <span class="ident">LREAL_TYPE</span>.<span class="ident">into</span>(),
             <span class="ident">initial_value</span>: <span class="prelude-val">None</span>,
             <span class="ident">information</span>: <span class="ident">DataTypeInformation::Float</span> {
-                <span class="ident">name</span>: <span class="string">&quot;LREAL&quot;</span>.<span class="ident">into</span>(),
+                <span class="ident">name</span>: <span class="ident">LREAL_TYPE</span>.<span class="ident">into</span>(),
                 <span class="ident">size</span>: <span class="number">64</span>,
             },
         },
         <span class="ident">DataType</span> {
-            <span class="ident">name</span>: <span class="string">&quot;STRING&quot;</span>.<span class="ident">into</span>(),
+            <span class="ident">name</span>: <span class="ident">STRING_TYPE</span>.<span class="ident">into</span>(),
             <span class="ident">initial_value</span>: <span class="prelude-val">None</span>,
             <span class="ident">information</span>: <span class="ident">DataTypeInformation::String</span> {
                 <span class="ident">size</span>: <span class="ident">DEFAULT_STRING_LEN</span> <span class="op">+</span> <span class="number">1</span>,
@@ -772,7 +917,7 @@
             },
         },
         <span class="ident">DataType</span> {
-            <span class="ident">name</span>: <span class="string">&quot;WSTRING&quot;</span>.<span class="ident">into</span>(),
+            <span class="ident">name</span>: <span class="ident">WSTRING_TYPE</span>.<span class="ident">into</span>(),
             <span class="ident">initial_value</span>: <span class="prelude-val">None</span>,
             <span class="ident">information</span>: <span class="ident">DataTypeInformation::String</span> {
                 <span class="ident">size</span>: <span class="ident">DEFAULT_STRING_LEN</span> <span class="op">+</span> <span class="number">1</span>,
@@ -817,14 +962,14 @@
 
 <span class="kw">fn</span> <span class="ident">get_real_type</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">DataTypeInformation</span> {
     <span class="ident">DataTypeInformation::Float</span> {
-        <span class="ident">name</span>: <span class="string">&quot;REAL&quot;</span>.<span class="ident">into</span>(),
+        <span class="ident">name</span>: <span class="ident">REAL_TYPE</span>.<span class="ident">into</span>(),
         <span class="ident">size</span>: <span class="number">32</span>,
     }
 }
 
 <span class="kw">fn</span> <span class="ident">get_lreal_type</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">DataTypeInformation</span> {
     <span class="ident">DataTypeInformation::Float</span> {
-        <span class="ident">name</span>: <span class="string">&quot;LREAL&quot;</span>.<span class="ident">into</span>(),
+        <span class="ident">name</span>: <span class="ident">LREAL_TYPE</span>.<span class="ident">into</span>(),
         <span class="ident">size</span>: <span class="number">64</span>,
     }
 }
@@ -847,6 +992,103 @@
         } <span class="kw">else</span> {
             <span class="ident">real_type</span>
         }
+    }
+}
+
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_bigger_type_borrow</span><span class="op">&lt;</span><span class="lifetime">&#39;t</span><span class="op">&gt;</span>(
+    <span class="ident">ltype</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;t</span> <span class="ident">DataTypeInformation</span>,
+    <span class="ident">rtype</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;t</span> <span class="ident">DataTypeInformation</span>,
+    <span class="ident">index</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;t</span> <span class="ident">Index</span>,
+) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;t</span> <span class="ident">DataTypeInformation</span> {
+    <span class="kw">if</span> <span class="ident">is_same_type_nature</span>(<span class="kw-2">&amp;</span><span class="ident">ltype</span>, <span class="kw-2">&amp;</span><span class="ident">rtype</span>) {
+        <span class="kw">if</span> <span class="ident">get_rank</span>(<span class="kw-2">&amp;</span><span class="ident">ltype</span>) <span class="op">&lt;</span> <span class="ident">get_rank</span>(<span class="kw-2">&amp;</span><span class="ident">rtype</span>) {
+            <span class="ident">rtype</span>
+        } <span class="kw">else</span> {
+            <span class="ident">ltype</span>
+        }
+    } <span class="kw">else</span> {
+        <span class="kw">let</span> <span class="ident">real_type</span> <span class="op">=</span> <span class="ident">index</span>
+            .<span class="ident">get_type</span>(<span class="ident">REAL_TYPE</span>)
+            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">it</span><span class="op">|</span> <span class="ident">it</span>.<span class="ident">get_type_information</span>())
+            .<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="ident">real_size</span> <span class="op">=</span> <span class="ident">real_type</span>.<span class="ident">get_size</span>();
+        <span class="kw">if</span> <span class="ident">ltype</span>.<span class="ident">get_size</span>() <span class="op">&gt;</span> <span class="ident">real_size</span> <span class="op">|</span><span class="op">|</span> <span class="ident">rtype</span>.<span class="ident">get_size</span>() <span class="op">&gt;</span> <span class="ident">real_size</span> {
+            <span class="ident">index</span>.<span class="ident">get_type</span>(<span class="ident">LREAL_TYPE</span>).<span class="ident">unwrap</span>().<span class="ident">get_type_information</span>()
+        } <span class="kw">else</span> {
+            <span class="ident">real_type</span>
+        }
+    }
+}
+
+<span class="doccomment">/// returns the signed version of the given data_type if its a signed int-type</span>
+<span class="doccomment">/// returns the original type if it is no signed int-type</span>
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_signed_type</span><span class="op">&lt;</span><span class="lifetime">&#39;t</span><span class="op">&gt;</span>(
+    <span class="ident">data_type</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;t</span> <span class="ident">DataTypeInformation</span>,
+    <span class="ident">index</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;t</span> <span class="ident">Index</span>,
+) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;t</span> <span class="ident">DataTypeInformation</span><span class="op">&gt;</span> {
+    <span class="kw">if</span> <span class="ident">data_type</span>.<span class="ident">is_int</span>() {
+        <span class="kw">let</span> <span class="ident">signed_type</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">data_type</span>.<span class="ident">get_name</span>() {
+            <span class="ident">BYTE_TYPE</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">SINT_TYPE</span>,
+            <span class="ident">USINT_TYPE</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">SINT_TYPE</span>,
+            <span class="ident">WORD_TYPE</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">INT_TYPE</span>,
+            <span class="ident">UINT_TYPE</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">INT_TYPE</span>,
+            <span class="ident">DWORD_TYPE</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">DINT_TYPE</span>,
+            <span class="ident">UDINT_TYPE</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">DINT_TYPE</span>,
+            <span class="ident">ULINT_TYPE</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">LINT_TYPE</span>,
+            <span class="ident">LWORD_TYPE</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">LINT_TYPE</span>,
+            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">data_type</span>.<span class="ident">get_name</span>(),
+        };
+        <span class="kw">return</span> <span class="ident">index</span>
+            .<span class="ident">get_type</span>(<span class="ident">signed_type</span>)
+            .<span class="ident">ok</span>()
+            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">t</span><span class="op">|</span> <span class="ident">t</span>.<span class="ident">get_type_information</span>());
+    }
+    <span class="prelude-val">None</span>
+}
+
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
+<span class="kw">mod</span> <span class="ident">tests</span> {
+    <span class="kw">use</span> <span class="kw">crate</span>::{
+        <span class="ident">ast::CompilationUnit</span>,
+        <span class="ident">index::visitor::visit</span>,
+        <span class="ident">typesystem</span>::{
+            <span class="ident">get_signed_type</span>, <span class="ident">BYTE_TYPE</span>, <span class="ident">DINT_TYPE</span>, <span class="ident">DWORD_TYPE</span>, <span class="ident">INT_TYPE</span>, <span class="ident">LINT_TYPE</span>, <span class="ident">LWORD_TYPE</span>,
+            <span class="ident">SINT_TYPE</span>, <span class="ident">UDINT_TYPE</span>, <span class="ident">UINT_TYPE</span>, <span class="ident">ULINT_TYPE</span>, <span class="ident">USINT_TYPE</span>, <span class="ident">WORD_TYPE</span>,
+        },
+    };
+
+    <span class="macro">macro_rules!</span> <span class="ident">assert_signed_type</span> {
+        (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">expected</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">actual</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">index</span>:<span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="macro">assert_eq!</span>(
+                <span class="macro-nonterminal">$</span><span class="macro-nonterminal">index</span>.<span class="ident">find_type_information</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">expected</span>).<span class="ident">as_ref</span>(),
+                <span class="ident">get_signed_type</span>(
+                    <span class="macro-nonterminal">$</span><span class="macro-nonterminal">index</span>.<span class="ident">find_type_information</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">actual</span>).<span class="ident">as_ref</span>().<span class="ident">unwrap</span>(),
+                    <span class="kw-2">&amp;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">index</span>
+                )
+            );
+        };
+    }
+
+    <span class="attribute">#[<span class="ident">test</span>]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">signed_types_tests</span>() {
+        <span class="comment">// Given an initialized index</span>
+        <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="ident">visit</span>(<span class="kw-2">&amp;</span><span class="ident">CompilationUnit::default</span>());
+        <span class="macro">assert_signed_type!</span>(<span class="ident">SINT_TYPE</span>, <span class="ident">BYTE_TYPE</span>, <span class="ident">index</span>);
+        <span class="macro">assert_signed_type!</span>(<span class="ident">SINT_TYPE</span>, <span class="ident">USINT_TYPE</span>, <span class="ident">index</span>);
+        <span class="macro">assert_signed_type!</span>(<span class="ident">INT_TYPE</span>, <span class="ident">WORD_TYPE</span>, <span class="ident">index</span>);
+        <span class="macro">assert_signed_type!</span>(<span class="ident">INT_TYPE</span>, <span class="ident">UINT_TYPE</span>, <span class="ident">index</span>);
+        <span class="macro">assert_signed_type!</span>(<span class="ident">DINT_TYPE</span>, <span class="ident">DWORD_TYPE</span>, <span class="ident">index</span>);
+        <span class="macro">assert_signed_type!</span>(<span class="ident">DINT_TYPE</span>, <span class="ident">UDINT_TYPE</span>, <span class="ident">index</span>);
+        <span class="macro">assert_signed_type!</span>(<span class="ident">LINT_TYPE</span>, <span class="ident">ULINT_TYPE</span>, <span class="ident">index</span>);
+        <span class="macro">assert_signed_type!</span>(<span class="ident">LINT_TYPE</span>, <span class="ident">LWORD_TYPE</span>, <span class="ident">index</span>);
+
+        <span class="macro">assert_eq!</span>(
+            <span class="prelude-val">None</span>,
+            <span class="ident">get_signed_type</span>(
+                <span class="ident">index</span>.<span class="ident">find_type_information</span>(<span class="string">&quot;STRING&quot;</span>).<span class="ident">as_ref</span>().<span class="ident">unwrap</span>(),
+                <span class="kw-2">&amp;</span><span class="ident">index</span>
+            )
+        );
     }
 }
 </pre></div>

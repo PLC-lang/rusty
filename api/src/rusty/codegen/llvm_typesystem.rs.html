@@ -344,6 +344,10 @@
 <span id="342">342</span>
 <span id="343">343</span>
 <span id="344">344</span>
+<span id="345">345</span>
+<span id="346">346</span>
+<span id="347">347</span>
+<span id="348">348</span>
 </pre><pre class="rust">
 <span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 <span class="kw">use</span> <span class="ident">inkwell</span>::{
@@ -375,8 +379,8 @@
     <span class="kw">let</span> (<span class="ident">rtype</span>, <span class="ident">rvalue</span>) <span class="op">=</span> <span class="ident">rvalue</span>;
 
     <span class="comment">//TODO : We need better error handling here</span>
-    <span class="kw">let</span> <span class="ident">ltype</span> <span class="op">=</span> <span class="ident">index</span>.<span class="ident">find_effective_type</span>(<span class="ident">ltype</span>).<span class="ident">unwrap</span>();
-    <span class="kw">let</span> <span class="ident">rtype</span> <span class="op">=</span> <span class="ident">index</span>.<span class="ident">find_effective_type</span>(<span class="ident">rtype</span>).<span class="ident">unwrap</span>();
+    <span class="kw">let</span> <span class="ident">ltype</span> <span class="op">=</span> <span class="ident">index</span>.<span class="ident">find_effective_type_information</span>(<span class="ident">ltype</span>).<span class="ident">unwrap</span>();
+    <span class="kw">let</span> <span class="ident">rtype</span> <span class="op">=</span> <span class="ident">index</span>.<span class="ident">find_effective_type_information</span>(<span class="ident">rtype</span>).<span class="ident">unwrap</span>();
 
     <span class="kw">let</span> <span class="ident">ltype_llvm</span> <span class="op">=</span> <span class="ident">llvm_index</span>.<span class="ident">find_associated_type</span>(<span class="ident">ltype</span>.<span class="ident">get_name</span>()).<span class="ident">unwrap</span>();
     <span class="kw">let</span> <span class="ident">rtype_llvm</span> <span class="op">=</span> <span class="ident">llvm_index</span>.<span class="ident">find_associated_type</span>(<span class="ident">rtype</span>.<span class="ident">get_name</span>()).<span class="ident">unwrap</span>();
@@ -506,18 +510,22 @@
     <span class="ident">location_context</span>: <span class="kw-2">&amp;</span><span class="ident">Statement</span>,
 ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">BasicValueEnum</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span>, <span class="ident">CompileError</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">builder</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">llvm</span>.<span class="ident">builder</span>;
-    <span class="kw">let</span> <span class="ident">target_type</span> <span class="op">=</span> <span class="ident">index</span>.<span class="ident">find_effective_type</span>(<span class="ident">target_type</span>).<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
-        <span class="ident">CompileError::codegen_error</span>(
-            <span class="macro">format!</span>(<span class="string">&quot;Could not find primitive type for {:?}&quot;</span>, <span class="ident">target_type</span>),
-            <span class="ident">SourceRange::undefined</span>(),
-        )
-    })<span class="question-mark">?</span>;
-    <span class="kw">let</span> <span class="ident">value_type</span> <span class="op">=</span> <span class="ident">index</span>.<span class="ident">find_effective_type</span>(<span class="ident">value_type</span>).<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
-        <span class="ident">CompileError::codegen_error</span>(
-            <span class="macro">format!</span>(<span class="string">&quot;Could not find primitive type for {:?}&quot;</span>, <span class="ident">value_type</span>),
-            <span class="ident">SourceRange::undefined</span>(),
-        )
-    })<span class="question-mark">?</span>;
+    <span class="kw">let</span> <span class="ident">target_type</span> <span class="op">=</span> <span class="ident">index</span>
+        .<span class="ident">find_effective_type_information</span>(<span class="ident">target_type</span>)
+        .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
+            <span class="ident">CompileError::codegen_error</span>(
+                <span class="macro">format!</span>(<span class="string">&quot;Could not find primitive type for {:?}&quot;</span>, <span class="ident">target_type</span>),
+                <span class="ident">SourceRange::undefined</span>(),
+            )
+        })<span class="question-mark">?</span>;
+    <span class="kw">let</span> <span class="ident">value_type</span> <span class="op">=</span> <span class="ident">index</span>
+        .<span class="ident">find_effective_type_information</span>(<span class="ident">value_type</span>)
+        .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
+            <span class="ident">CompileError::codegen_error</span>(
+                <span class="macro">format!</span>(<span class="string">&quot;Could not find primitive type for {:?}&quot;</span>, <span class="ident">value_type</span>),
+                <span class="ident">SourceRange::undefined</span>(),
+            )
+        })<span class="question-mark">?</span>;
     <span class="kw">match</span> <span class="ident">target_type</span> {
         <span class="ident">DataTypeInformation::Integer</span> {
             <span class="ident">signed</span>,

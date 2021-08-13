@@ -266,6 +266,14 @@
 <span id="264">264</span>
 <span id="265">265</span>
 <span id="266">266</span>
+<span id="267">267</span>
+<span id="268">268</span>
+<span id="269">269</span>
+<span id="270">270</span>
+<span id="271">271</span>
+<span id="272">272</span>
+<span id="273">273</span>
+<span id="274">274</span>
 </pre><pre class="rust">
 <span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 <span class="kw">use</span> <span class="ident">core::ops::Range</span>;
@@ -274,6 +282,7 @@
 <span class="kw">use</span> <span class="ident">logos::Logos</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">tokens::Token</span>;
 
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::ast::AstId</span>;
 <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::ast::SourceRange</span>;
 <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::Diagnostic</span>;
 
@@ -291,6 +300,7 @@
     <span class="doccomment">/// the range of the `last_token`</span>
     <span class="kw">pub</span> <span class="ident">last_range</span>: <span class="ident">Range</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>,
     <span class="kw">pub</span> <span class="ident">parse_progress</span>: <span class="ident">usize</span>,
+    <span class="ident">current_id</span>: <span class="ident">AstId</span>,
 }
 
 <span class="attribute">#[<span class="ident">macro_export</span>]</span>
@@ -317,9 +327,15 @@
             <span class="ident">last_token</span>: <span class="ident">Token::End</span>,
             <span class="ident">last_range</span>: <span class="number">0</span>..<span class="number">0</span>,
             <span class="ident">parse_progress</span>: <span class="number">0</span>,
+            <span class="ident">current_id</span>: <span class="number">0</span>,
         };
         <span class="ident">lexer</span>.<span class="ident">advance</span>();
         <span class="ident">lexer</span>
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">next_id</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">AstId</span> {
+        <span class="self">self</span>.<span class="ident">current_id</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+        <span class="self">self</span>.<span class="ident">current_id</span>
     }
 
     <span class="doccomment">/// this function will be removed soon:</span>

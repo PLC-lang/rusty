@@ -824,6 +824,8 @@
 <span id="822">822</span>
 <span id="823">823</span>
 <span id="824">824</span>
+<span id="825">825</span>
+<span id="826">826</span>
 </pre><pre class="rust">
 <span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 <span class="kw">use</span> <span class="kw">crate</span>::{
@@ -1520,6 +1522,7 @@
     <span class="kw">if</span> <span class="ident">lexer</span>.<span class="ident">last_token</span> <span class="op">=</span><span class="op">=</span> <span class="ident">KeywordColon</span> {
         <span class="ident">Statement::CaseCondition</span> {
             <span class="ident">condition</span>: <span class="ident">Box::new</span>(<span class="ident">result</span>),
+            <span class="ident">id</span>: <span class="ident">lexer</span>.<span class="ident">next_id</span>(),
         }
     } <span class="kw">else</span> {
         <span class="ident">result</span>
@@ -1548,6 +1551,7 @@
         <span class="prelude-val">Err</span>(<span class="ident">diagnostic</span>) <span class="op">=</span><span class="op">&gt;</span> {
             <span class="kw">let</span> <span class="ident">statement</span> <span class="op">=</span> <span class="ident">Statement::EmptyStatement</span> {
                 <span class="ident">location</span>: <span class="ident">diagnostic</span>.<span class="ident">get_location</span>(),
+                <span class="ident">id</span>: <span class="ident">lexer</span>.<span class="ident">next_id</span>(),
             };
             <span class="ident">lexer</span>.<span class="ident">accept_diagnostic</span>(<span class="ident">diagnostic</span>);
             <span class="ident">statement</span>

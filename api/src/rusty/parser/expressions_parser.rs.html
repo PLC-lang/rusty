@@ -632,6 +632,62 @@
 <span id="630">630</span>
 <span id="631">631</span>
 <span id="632">632</span>
+<span id="633">633</span>
+<span id="634">634</span>
+<span id="635">635</span>
+<span id="636">636</span>
+<span id="637">637</span>
+<span id="638">638</span>
+<span id="639">639</span>
+<span id="640">640</span>
+<span id="641">641</span>
+<span id="642">642</span>
+<span id="643">643</span>
+<span id="644">644</span>
+<span id="645">645</span>
+<span id="646">646</span>
+<span id="647">647</span>
+<span id="648">648</span>
+<span id="649">649</span>
+<span id="650">650</span>
+<span id="651">651</span>
+<span id="652">652</span>
+<span id="653">653</span>
+<span id="654">654</span>
+<span id="655">655</span>
+<span id="656">656</span>
+<span id="657">657</span>
+<span id="658">658</span>
+<span id="659">659</span>
+<span id="660">660</span>
+<span id="661">661</span>
+<span id="662">662</span>
+<span id="663">663</span>
+<span id="664">664</span>
+<span id="665">665</span>
+<span id="666">666</span>
+<span id="667">667</span>
+<span id="668">668</span>
+<span id="669">669</span>
+<span id="670">670</span>
+<span id="671">671</span>
+<span id="672">672</span>
+<span id="673">673</span>
+<span id="674">674</span>
+<span id="675">675</span>
+<span id="676">676</span>
+<span id="677">677</span>
+<span id="678">678</span>
+<span id="679">679</span>
+<span id="680">680</span>
+<span id="681">681</span>
+<span id="682">682</span>
+<span id="683">683</span>
+<span id="684">684</span>
+<span id="685">685</span>
+<span id="686">686</span>
+<span id="687">687</span>
+<span id="688">688</span>
 </pre><pre class="rust">
 <span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 
@@ -648,6 +704,7 @@
     <span class="kw">if</span> <span class="ident">lexer</span>.<span class="ident">token</span> <span class="op">=</span><span class="op">=</span> <span class="ident">KeywordSemicolon</span> {
         <span class="ident">Statement::EmptyStatement</span> {
             <span class="ident">location</span>: <span class="ident">lexer</span>.<span class="ident">location</span>(),
+            <span class="ident">id</span>: <span class="ident">lexer</span>.<span class="ident">next_id</span>(),
         }
     } <span class="kw">else</span> {
         <span class="ident">parse_expression_list</span>(<span class="ident">lexer</span>)
@@ -663,7 +720,10 @@
             <span class="ident">lexer</span>.<span class="ident">advance</span>();
             <span class="ident">expressions</span>.<span class="ident">push</span>(<span class="ident">parse_range_statement</span>(<span class="ident">lexer</span>));
         }
-        <span class="kw">return</span> <span class="ident">Statement::ExpressionList</span> { <span class="ident">expressions</span> };
+        <span class="kw">return</span> <span class="ident">Statement::ExpressionList</span> {
+            <span class="ident">expressions</span>,
+            <span class="ident">id</span>: <span class="ident">lexer</span>.<span class="ident">next_id</span>(),
+        };
     }
     <span class="ident">left</span>
 }
@@ -677,6 +737,7 @@
         <span class="kw">return</span> <span class="ident">Statement::RangeStatement</span> {
             <span class="ident">start</span>: <span class="ident">Box::new</span>(<span class="ident">start</span>),
             <span class="ident">end</span>: <span class="ident">Box::new</span>(<span class="ident">end</span>),
+            <span class="ident">id</span>: <span class="ident">lexer</span>.<span class="ident">next_id</span>(),
         };
     }
     <span class="ident">start</span>
@@ -698,6 +759,7 @@
         <span class="ident">operator</span>,
         <span class="ident">left</span>: <span class="ident">Box::new</span>(<span class="ident">left</span>),
         <span class="ident">right</span>: <span class="ident">Box::new</span>(<span class="ident">right</span>),
+        <span class="ident">id</span>: <span class="ident">lexer</span>.<span class="ident">next_id</span>(),
     }
 }
 
@@ -717,6 +779,7 @@
         <span class="ident">operator</span>,
         <span class="ident">left</span>: <span class="ident">Box::new</span>(<span class="ident">left</span>),
         <span class="ident">right</span>: <span class="ident">Box::new</span>(<span class="ident">right</span>),
+        <span class="ident">id</span>: <span class="ident">lexer</span>.<span class="ident">next_id</span>(),
     }
 }
 
@@ -736,6 +799,7 @@
         <span class="ident">operator</span>,
         <span class="ident">left</span>: <span class="ident">Box::new</span>(<span class="ident">left</span>),
         <span class="ident">right</span>: <span class="ident">Box::new</span>(<span class="ident">right</span>),
+        <span class="ident">id</span>: <span class="ident">lexer</span>.<span class="ident">next_id</span>(),
     }
 }
 
@@ -753,6 +817,7 @@
         <span class="ident">operator</span>,
         <span class="ident">left</span>: <span class="ident">Box::new</span>(<span class="ident">left</span>),
         <span class="ident">right</span>: <span class="ident">Box::new</span>(<span class="ident">right</span>),
+        <span class="ident">id</span>: <span class="ident">lexer</span>.<span class="ident">next_id</span>(),
     }
 }
 
@@ -772,6 +837,7 @@
         <span class="ident">operator</span>,
         <span class="ident">left</span>: <span class="ident">Box::new</span>(<span class="ident">left</span>),
         <span class="ident">right</span>: <span class="ident">Box::new</span>(<span class="ident">right</span>),
+        <span class="ident">id</span>: <span class="ident">lexer</span>.<span class="ident">next_id</span>(),
     }
 }
 
@@ -789,6 +855,7 @@
         <span class="ident">operator</span>,
         <span class="ident">left</span>: <span class="ident">Box::new</span>(<span class="ident">left</span>),
         <span class="ident">right</span>: <span class="ident">Box::new</span>(<span class="ident">right</span>),
+        <span class="ident">id</span>: <span class="ident">lexer</span>.<span class="ident">next_id</span>(),
     }
 }
 
@@ -807,6 +874,7 @@
         <span class="ident">operator</span>,
         <span class="ident">left</span>: <span class="ident">Box::new</span>(<span class="ident">left</span>),
         <span class="ident">right</span>: <span class="ident">Box::new</span>(<span class="ident">right</span>),
+        <span class="ident">id</span>: <span class="ident">lexer</span>.<span class="ident">next_id</span>(),
     }
 }
 
@@ -824,10 +892,23 @@
         <span class="kw">let</span> <span class="ident">expression</span> <span class="op">=</span> <span class="ident">parse_parenthesized_expression</span>(<span class="ident">lexer</span>);
         <span class="kw">let</span> <span class="ident">expression_location</span> <span class="op">=</span> <span class="ident">expression</span>.<span class="ident">get_location</span>();
         <span class="kw">let</span> <span class="ident">location</span> <span class="op">=</span> <span class="ident">SourceRange::new</span>(<span class="ident">start</span>..<span class="ident">expression_location</span>.<span class="ident">get_end</span>());
-        <span class="ident">Statement::UnaryExpression</span> {
-            <span class="ident">operator</span>,
-            <span class="ident">value</span>: <span class="ident">Box::new</span>(<span class="ident">expression</span>),
-            <span class="ident">location</span>,
+
+        <span class="kw">if</span> <span class="kw">let</span> (<span class="ident">Statement::LiteralInteger</span> { <span class="ident">value</span>, .. }, <span class="ident">Operator::Minus</span>) <span class="op">=</span> (<span class="kw-2">&amp;</span><span class="ident">expression</span>, <span class="kw-2">&amp;</span><span class="ident">operator</span>)
+        {
+            <span class="comment">//if this turns out to be a negative number, we want to have a negative literal integer</span>
+            <span class="comment">//instead of a Unary-Not-Expression</span>
+            <span class="ident">Statement::LiteralInteger</span> {
+                <span class="ident">value</span>: <span class="op">-</span><span class="ident">value</span>,
+                <span class="ident">location</span>,
+                <span class="ident">id</span>: <span class="ident">lexer</span>.<span class="ident">next_id</span>(),
+            }
+        } <span class="kw">else</span> {
+            <span class="ident">Statement::UnaryExpression</span> {
+                <span class="ident">operator</span>,
+                <span class="ident">value</span>: <span class="ident">Box::new</span>(<span class="ident">expression</span>),
+                <span class="ident">location</span>,
+                <span class="ident">id</span>: <span class="ident">lexer</span>.<span class="ident">next_id</span>(),
+            }
         }
     } <span class="kw">else</span> {
         <span class="ident">parse_parenthesized_expression</span>(<span class="ident">lexer</span>)
@@ -878,12 +959,14 @@
                 <span class="ident">Statement::Assignment</span> {
                     <span class="ident">left</span>: <span class="ident">Box::new</span>(<span class="ident">statement</span>),
                     <span class="ident">right</span>: <span class="ident">Box::new</span>(<span class="ident">parse_range_statement</span>(<span class="ident">lexer</span>)),
+                    <span class="ident">id</span>: <span class="ident">lexer</span>.<span class="ident">next_id</span>(),
                 }
             } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">lexer</span>.<span class="ident">token</span> <span class="op">=</span><span class="op">=</span> <span class="ident">KeywordOutputAssignment</span> {
                 <span class="ident">lexer</span>.<span class="ident">advance</span>();
                 <span class="ident">Statement::OutputAssignment</span> {
                     <span class="ident">left</span>: <span class="ident">Box::new</span>(<span class="ident">statement</span>),
                     <span class="ident">right</span>: <span class="ident">Box::new</span>(<span class="ident">parse_range_statement</span>(<span class="ident">lexer</span>)),
+                    <span class="ident">id</span>: <span class="ident">lexer</span>.<span class="ident">next_id</span>(),
                 }
             } <span class="kw">else</span> {
                 <span class="ident">statement</span>
@@ -892,6 +975,7 @@
         <span class="prelude-val">Err</span>(<span class="ident">diagnostic</span>) <span class="op">=</span><span class="op">&gt;</span> {
             <span class="kw">let</span> <span class="ident">statement</span> <span class="op">=</span> <span class="ident">Statement::EmptyStatement</span> {
                 <span class="ident">location</span>: <span class="ident">diagnostic</span>.<span class="ident">get_location</span>(),
+                <span class="ident">id</span>: <span class="ident">lexer</span>.<span class="ident">next_id</span>(),
             };
             <span class="ident">lexer</span>.<span class="ident">accept_diagnostic</span>(<span class="ident">diagnostic</span>);
             <span class="ident">statement</span>
@@ -910,6 +994,7 @@
     <span class="prelude-val">Ok</span>(<span class="ident">Statement::LiteralArray</span> {
         <span class="ident">elements</span>,
         <span class="ident">location</span>: <span class="ident">SourceRange::new</span>(<span class="ident">start</span>..<span class="ident">end</span>),
+        <span class="ident">id</span>: <span class="ident">lexer</span>.<span class="ident">next_id</span>(),
     })
 }
 
@@ -918,7 +1003,12 @@
 <span class="kw">fn</span> <span class="ident">parse_bool_literal</span>(<span class="ident">lexer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ParseSession</span>, <span class="ident">value</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Statement</span>, <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">location</span> <span class="op">=</span> <span class="ident">lexer</span>.<span class="ident">location</span>();
     <span class="ident">lexer</span>.<span class="ident">advance</span>();
-    <span class="prelude-val">Ok</span>(<span class="ident">Statement::LiteralBool</span> { <span class="ident">value</span>, <span class="ident">location</span> })
+    <span class="prelude-val">Ok</span>(<span class="ident">Statement::LiteralBool</span> {
+        <span class="ident">value</span>,
+        <span class="ident">location</span>,
+
+        <span class="ident">id</span>: <span class="ident">lexer</span>.<span class="ident">next_id</span>(),
+    })
 }
 
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">parse_qualified_reference</span>(<span class="ident">lexer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ParseSession</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Statement</span>, <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
@@ -933,6 +1023,7 @@
     } <span class="kw">else</span> {
         <span class="ident">Statement::QualifiedReference</span> {
             <span class="ident">elements</span>: <span class="ident">reference_elements</span>,
+            <span class="ident">id</span>: <span class="ident">lexer</span>.<span class="ident">next_id</span>(),
         }
     };
 
@@ -943,6 +1034,7 @@
                 <span class="ident">operator</span>: <span class="ident">Box::new</span>(<span class="ident">reference</span>),
                 <span class="ident">parameters</span>: <span class="ident">Box::new</span>(<span class="prelude-val">None</span>),
                 <span class="ident">location</span>: <span class="ident">SourceRange::new</span>(<span class="ident">start</span>..<span class="ident">lexer</span>.<span class="ident">range</span>().<span class="ident">end</span>),
+                <span class="ident">id</span>: <span class="ident">lexer</span>.<span class="ident">next_id</span>(),
             }
         } <span class="kw">else</span> {
             <span class="ident">parse_any_in_region</span>(<span class="ident">lexer</span>, <span class="macro">vec!</span>[<span class="ident">KeywordParensClose</span>], <span class="op">|</span><span class="ident">lexer</span><span class="op">|</span> {
@@ -950,6 +1042,7 @@
                     <span class="ident">operator</span>: <span class="ident">Box::new</span>(<span class="ident">reference</span>),
                     <span class="ident">parameters</span>: <span class="ident">Box::new</span>(<span class="prelude-val">Some</span>(<span class="ident">parse_expression_list</span>(<span class="ident">lexer</span>))),
                     <span class="ident">location</span>: <span class="ident">SourceRange::new</span>(<span class="ident">start</span>..<span class="ident">lexer</span>.<span class="ident">range</span>().<span class="ident">end</span>),
+                    <span class="ident">id</span>: <span class="ident">lexer</span>.<span class="ident">next_id</span>(),
                 }
             })
         };
@@ -964,6 +1057,7 @@
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">reference</span> <span class="op">=</span> <span class="ident">Statement::Reference</span> {
         <span class="ident">name</span>: <span class="ident">lexer</span>.<span class="ident">slice_and_advance</span>(),
         <span class="ident">location</span>,
+        <span class="ident">id</span>: <span class="ident">lexer</span>.<span class="ident">next_id</span>(),
     };
     <span class="comment">//If (while) we hit a dereference, parse and append the dereference to the result</span>
     <span class="kw">while</span> <span class="ident">lexer</span>.<span class="ident">allow</span>(<span class="kw-2">&amp;</span><span class="ident">KeywordSquareParensOpen</span>) {
@@ -973,6 +1067,7 @@
         <span class="ident">reference</span> <span class="op">=</span> <span class="ident">Statement::ArrayAccess</span> {
             <span class="ident">reference</span>: <span class="ident">Box::new</span>(<span class="ident">reference</span>),
             <span class="ident">access</span>: <span class="ident">Box::new</span>(<span class="ident">access</span>),
+            <span class="ident">id</span>: <span class="ident">lexer</span>.<span class="ident">next_id</span>(),
         };
     }
     <span class="prelude-val">Ok</span>(<span class="ident">reference</span>)
@@ -992,7 +1087,12 @@
     <span class="comment">// again, the parsed number can be safely unwrapped.</span>
     <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">i64::from_str_radix</span>(<span class="kw-2">&amp;</span><span class="ident">number_str</span>.<span class="ident">as_str</span>(), <span class="ident">radix</span>).<span class="ident">unwrap</span>();
 
-    <span class="prelude-val">Ok</span>(<span class="ident">Statement::LiteralInteger</span> { <span class="ident">value</span>, <span class="ident">location</span> })
+    <span class="prelude-val">Ok</span>(<span class="ident">Statement::LiteralInteger</span> {
+        <span class="ident">value</span>,
+        <span class="ident">location</span>,
+
+        <span class="ident">id</span>: <span class="ident">lexer</span>.<span class="ident">next_id</span>(),
+    })
 }
 
 <span class="kw">fn</span> <span class="ident">parse_literal_number</span>(<span class="ident">lexer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ParseSession</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Statement</span>, <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
@@ -1012,6 +1112,7 @@
             <span class="ident">multiplier</span>,
             <span class="ident">element</span>: <span class="ident">Box::new</span>(<span class="ident">element</span>),
             <span class="ident">location</span>: <span class="ident">SourceRange::new</span>(<span class="ident">location</span>.<span class="ident">get_start</span>()..<span class="ident">end</span>),
+            <span class="ident">id</span>: <span class="ident">lexer</span>.<span class="ident">next_id</span>(),
         });
     }
 
@@ -1020,6 +1121,7 @@
     <span class="prelude-val">Ok</span>(<span class="ident">Statement::LiteralInteger</span> {
         <span class="ident">value</span>: <span class="ident">result</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="ident">i64</span><span class="op">&gt;</span>().<span class="ident">unwrap</span>(),
         <span class="ident">location</span>,
+        <span class="ident">id</span>: <span class="ident">lexer</span>.<span class="ident">next_id</span>(),
     })
 }
 
@@ -1029,7 +1131,11 @@
     })
 }
 
-<span class="kw">fn</span> <span class="ident">parse_date_from_string</span>(<span class="ident">text</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">location</span>: <span class="ident">SourceRange</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Statement</span>, <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">parse_date_from_string</span>(
+    <span class="ident">text</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
+    <span class="ident">location</span>: <span class="ident">SourceRange</span>,
+    <span class="ident">id</span>: <span class="ident">AstId</span>,
+) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Statement</span>, <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">segments</span> <span class="op">=</span> <span class="ident">text</span>.<span class="ident">split</span>(<span class="string">&#39;-&#39;</span>);
 
     <span class="comment">//we can safely expect 3 numbers</span>
@@ -1051,6 +1157,7 @@
         <span class="ident">month</span>,
         <span class="ident">day</span>,
         <span class="ident">location</span>,
+        <span class="ident">id</span>,
     })
 }
 
@@ -1088,6 +1195,7 @@
         <span class="ident">min</span>,
         <span class="ident">sec</span>,
         <span class="ident">milli</span>,
+        <span class="ident">id</span>: <span class="ident">lexer</span>.<span class="ident">next_id</span>(),
     })
 }
 
@@ -1098,7 +1206,7 @@
     <span class="kw">let</span> <span class="ident">hash_location</span> <span class="op">=</span> <span class="ident">slice</span>.<span class="ident">find</span>(<span class="string">&#39;#&#39;</span>).<span class="ident">unwrap_or_default</span>();
     <span class="kw">let</span> (<span class="kw">_</span>, <span class="ident">slice</span>) <span class="op">=</span> <span class="ident">slice</span>.<span class="ident">split_at</span>(<span class="ident">hash_location</span> <span class="op">+</span> <span class="number">1</span>); <span class="comment">//get rid of the prefix</span>
 
-    <span class="ident">parse_date_from_string</span>(<span class="ident">slice</span>, <span class="ident">location</span>)
+    <span class="ident">parse_date_from_string</span>(<span class="ident">slice</span>, <span class="ident">location</span>, <span class="ident">lexer</span>.<span class="ident">next_id</span>())
 }
 
 <span class="kw">fn</span> <span class="ident">parse_literal_time_of_day</span>(<span class="ident">lexer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ParseSession</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Statement</span>, <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
@@ -1120,6 +1228,7 @@
         <span class="ident">sec</span>: <span class="ident">sec</span>.<span class="ident">floor</span>() <span class="kw">as</span> <span class="ident">u32</span>,
         <span class="ident">milli</span>,
         <span class="ident">location</span>,
+        <span class="ident">id</span>: <span class="ident">lexer</span>.<span class="ident">next_id</span>(),
     })
 }
 
@@ -1222,6 +1331,7 @@
         <span class="ident">nano</span>: <span class="ident">values</span>[<span class="ident">POS_NS</span>].<span class="ident">map</span>(<span class="op">|</span><span class="ident">it</span><span class="op">|</span> <span class="ident">it</span> <span class="kw">as</span> <span class="ident">u32</span>).<span class="ident">unwrap_or</span>(<span class="number">0u32</span>),
         <span class="ident">negative</span>: <span class="ident">is_negative</span>,
         <span class="ident">location</span>,
+        <span class="ident">id</span>: <span class="ident">lexer</span>.<span class="ident">next_id</span>(),
     })
 }
 
@@ -1236,6 +1346,7 @@
         <span class="ident">value</span>: <span class="ident">trim_quotes</span>(<span class="ident">result</span>),
         <span class="ident">is_wide</span>,
         <span class="ident">location</span>,
+        <span class="ident">id</span>: <span class="ident">lexer</span>.<span class="ident">next_id</span>(),
     });
     <span class="ident">lexer</span>.<span class="ident">advance</span>();
     <span class="ident">string_literal</span>
@@ -1263,6 +1374,7 @@
     <span class="prelude-val">Ok</span>(<span class="ident">Statement::LiteralReal</span> {
         <span class="ident">value</span>: <span class="ident">result</span>,
         <span class="ident">location</span>: <span class="ident">new_location</span>,
+        <span class="ident">id</span>: <span class="ident">lexer</span>.<span class="ident">next_id</span>(),
     })
 }
 </pre></div>

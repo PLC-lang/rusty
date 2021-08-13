@@ -1554,6 +1554,11 @@
 <span id="1552">1552</span>
 <span id="1553">1553</span>
 <span id="1554">1554</span>
+<span id="1555">1555</span>
+<span id="1556">1556</span>
+<span id="1557">1557</span>
+<span id="1558">1558</span>
+<span id="1559">1559</span>
 </pre><pre class="rust">
 <span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 <span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">ast::SourceRange</span>, <span class="ident">index::Index</span>};
@@ -1717,6 +1722,7 @@
                 <span class="ident">left</span>,
                 <span class="ident">right</span>,
                 <span class="ident">operator</span>,
+                ..
             } <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="comment">//If OR, or AND handle before generating the statements</span>
                 <span class="kw">match</span> <span class="ident">operator</span> {
@@ -1987,7 +1993,7 @@
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">BasicValueEnum</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span>, <span class="ident">CompileError</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">result</span> <span class="op">=</span> <span class="macro">vec!</span>[<span class="ident">parameter_struct</span>.<span class="ident">as_basic_value_enum</span>()];
         <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="ident">parameters</span> {
-            <span class="prelude-val">Some</span>(<span class="ident">Statement::ExpressionList</span> { <span class="ident">expressions</span> }) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="prelude-val">Some</span>(<span class="ident">Statement::ExpressionList</span> { <span class="ident">expressions</span>, .. }) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">for</span> (<span class="ident">index</span>, <span class="ident">exp</span>) <span class="kw">in</span> <span class="ident">expressions</span>.<span class="ident">iter</span>().<span class="ident">enumerate</span>() {
                     <span class="kw">let</span> <span class="ident">parameter</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">generate_single_parameter</span>(
                         <span class="kw-2">&amp;</span><span class="ident">ParameterContext</span> {
@@ -2045,7 +2051,7 @@
 
         <span class="kw">let</span> <span class="ident">parameter_value</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">assignment_statement</span> {
             <span class="comment">// explicit call parameter: foo(param := value)</span>
-            <span class="ident">Statement::Assignment</span> { <span class="ident">left</span>, <span class="ident">right</span> } <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Statement::Assignment</span> { <span class="ident">left</span>, <span class="ident">right</span>, .. } <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="self">self</span>.<span class="ident">generate_formal_parameter</span>(
                     <span class="ident">param_context</span>,
                     <span class="ident">left</span>,
@@ -2056,7 +2062,7 @@
                 <span class="prelude-val">None</span>
             }
             <span class="comment">// foo (param =&gt; value)</span>
-            <span class="ident">Statement::OutputAssignment</span> { <span class="ident">left</span>, <span class="ident">right</span> } <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Statement::OutputAssignment</span> { <span class="ident">left</span>, <span class="ident">right</span>, .. } <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="self">self</span>.<span class="ident">generate_output_parameter</span>(<span class="ident">param_context</span>, <span class="ident">left</span>, <span class="ident">right</span>, <span class="ident">output_block</span>)<span class="question-mark">?</span>;
                 <span class="prelude-val">None</span>
             }
@@ -2213,9 +2219,9 @@
                 <span class="self">self</span>.<span class="ident">create_llvm_pointer_value_for_reference</span>(<span class="prelude-val">None</span>, <span class="ident">name</span>, <span class="ident">reference_statement</span>)
             }
 
-            <span class="ident">Statement::ArrayAccess</span> { <span class="ident">reference</span>, <span class="ident">access</span> } <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="self">self</span>.<span class="ident">generate_element_pointer_for_array</span>(<span class="prelude-val">None</span>, <span class="ident">reference</span>, <span class="ident">access</span>)
-            }
+            <span class="ident">Statement::ArrayAccess</span> {
+                <span class="ident">reference</span>, <span class="ident">access</span>, ..
+            } <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">generate_element_pointer_for_array</span>(<span class="prelude-val">None</span>, <span class="ident">reference</span>, <span class="ident">access</span>),
             <span class="ident">Statement::QualifiedReference</span> { .. } <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="self">self</span>.<span class="ident">generate_element_pointer_for_rec</span>(<span class="prelude-val">None</span>, <span class="ident">reference_statement</span>)
             }
@@ -2418,7 +2424,7 @@
         <span class="ident">reference</span>: <span class="kw-2">&amp;</span><span class="ident">Statement</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">TypeAndPointer</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;_</span><span class="op">&gt;</span>, <span class="ident">CompileError</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="ident">reference</span> {
-            <span class="ident">Statement::QualifiedReference</span> { <span class="ident">elements</span> } <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Statement::QualifiedReference</span> { <span class="ident">elements</span>, .. } <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">element_iter</span> <span class="op">=</span> <span class="ident">elements</span>.<span class="ident">iter</span>();
                 <span class="kw">let</span> <span class="ident">current_element</span> <span class="op">=</span> <span class="ident">element_iter</span>.<span class="ident">next</span>();
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">current_lvalue</span> <span class="op">=</span>
@@ -2452,9 +2458,9 @@
                 <span class="comment">//Otherwise, load a variable reference</span>
                 <span class="self">self</span>.<span class="ident">create_llvm_pointer_value_for_reference</span>(<span class="ident">qualifier</span>, <span class="ident">name</span>, <span class="ident">reference</span>)
             }
-            <span class="ident">Statement::ArrayAccess</span> { <span class="ident">reference</span>, <span class="ident">access</span> } <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="self">self</span>.<span class="ident">generate_element_pointer_for_array</span>(<span class="ident">qualifier</span>, <span class="ident">reference</span>, <span class="ident">access</span>)
-            }
+            <span class="ident">Statement::ArrayAccess</span> {
+                <span class="ident">reference</span>, <span class="ident">access</span>, ..
+            } <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">generate_element_pointer_for_array</span>(<span class="ident">qualifier</span>, <span class="ident">reference</span>, <span class="ident">access</span>),
             <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">CompileError::codegen_error</span>(
                 <span class="macro">format!</span>(<span class="string">&quot;Unsupported Statement {:?}&quot;</span>, <span class="ident">reference</span>),
                 <span class="ident">reference</span>.<span class="ident">get_location</span>(),
@@ -2702,6 +2708,7 @@
                 <span class="ident">month</span>,
                 <span class="ident">day</span>,
                 <span class="ident">location</span>,
+                ..
             } <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">llvm</span>.<span class="ident">create_const_int</span>(
                 <span class="self">self</span>.<span class="ident">index</span>,
                 <span class="kw-2">&amp;</span><span class="prelude-val">Some</span>(<span class="self">self</span>.<span class="ident">llvm</span>.<span class="ident">i64_type</span>().<span class="ident">into</span>()),
@@ -2719,6 +2726,7 @@
                 <span class="ident">sec</span>,
                 <span class="ident">milli</span>,
                 <span class="ident">location</span>,
+                ..
             } <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">llvm</span>.<span class="ident">create_const_int</span>(
                 <span class="self">self</span>.<span class="ident">index</span>,
                 <span class="kw-2">&amp;</span><span class="prelude-val">Some</span>(<span class="self">self</span>.<span class="ident">llvm</span>.<span class="ident">i64_type</span>().<span class="ident">into</span>()),
@@ -2733,6 +2741,7 @@
                 <span class="ident">sec</span>,
                 <span class="ident">milli</span>,
                 <span class="ident">location</span>,
+                ..
             } <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">llvm</span>.<span class="ident">create_const_int</span>(
                 <span class="self">self</span>.<span class="ident">index</span>,
                 <span class="kw-2">&amp;</span><span class="prelude-val">Some</span>(<span class="self">self</span>.<span class="ident">llvm</span>.<span class="ident">i64_type</span>().<span class="ident">into</span>()),
@@ -2777,9 +2786,9 @@
                     <span class="self">self</span>.<span class="ident">llvm</span>.<span class="ident">create_const_utf8_string</span>(<span class="ident">value</span>.<span class="ident">as_str</span>())
                 }
             }
-            <span class="ident">Statement::LiteralArray</span> { <span class="ident">elements</span>, <span class="ident">location</span> } <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="self">self</span>.<span class="ident">generate_literal_array</span>(<span class="ident">elements</span>, <span class="ident">location</span>)
-            }
+            <span class="ident">Statement::LiteralArray</span> {
+                <span class="ident">elements</span>, <span class="ident">location</span>, ..
+            } <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">generate_literal_array</span>(<span class="ident">elements</span>, <span class="ident">location</span>),
             <span class="comment">// if there is an expression-list this might be a struct-initialization</span>
             <span class="ident">Statement::ExpressionList</span> { .. } <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="self">self</span>.<span class="ident">generate_literal_struct</span>(<span class="ident">literal_statement</span>, <span class="kw-2">&amp;</span><span class="ident">literal_statement</span>.<span class="ident">get_location</span>())
@@ -2813,10 +2822,11 @@
                     <span class="ident">member_names</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">it</span><span class="op">|</span> <span class="ident">it</span>.<span class="ident">as_str</span>()).<span class="ident">collect</span>();
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">member_values</span>: <span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">u32</span>, <span class="ident">BasicValueEnum</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>)<span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
                 <span class="kw">for</span> <span class="ident">assignment</span> <span class="kw">in</span> <span class="ident">flatten_expression_list</span>(<span class="ident">assignments</span>) {
-                    <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Statement::Assignment</span> { <span class="ident">left</span>, <span class="ident">right</span> } <span class="op">=</span> <span class="ident">assignment</span> {
+                    <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Statement::Assignment</span> { <span class="ident">left</span>, <span class="ident">right</span>, .. } <span class="op">=</span> <span class="ident">assignment</span> {
                         <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Statement::Reference</span> {
                             <span class="ident">name</span>: <span class="ident">variable_name</span>,
                             <span class="ident">location</span>,
+                            ..
                         } <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="kw-2">*</span><span class="ident">left</span>
                         {
                             <span class="kw">let</span> <span class="ident">member</span> <span class="op">=</span> <span class="self">self</span>

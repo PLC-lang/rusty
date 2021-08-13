@@ -925,6 +925,71 @@
 <span id="923">923</span>
 <span id="924">924</span>
 <span id="925">925</span>
+<span id="926">926</span>
+<span id="927">927</span>
+<span id="928">928</span>
+<span id="929">929</span>
+<span id="930">930</span>
+<span id="931">931</span>
+<span id="932">932</span>
+<span id="933">933</span>
+<span id="934">934</span>
+<span id="935">935</span>
+<span id="936">936</span>
+<span id="937">937</span>
+<span id="938">938</span>
+<span id="939">939</span>
+<span id="940">940</span>
+<span id="941">941</span>
+<span id="942">942</span>
+<span id="943">943</span>
+<span id="944">944</span>
+<span id="945">945</span>
+<span id="946">946</span>
+<span id="947">947</span>
+<span id="948">948</span>
+<span id="949">949</span>
+<span id="950">950</span>
+<span id="951">951</span>
+<span id="952">952</span>
+<span id="953">953</span>
+<span id="954">954</span>
+<span id="955">955</span>
+<span id="956">956</span>
+<span id="957">957</span>
+<span id="958">958</span>
+<span id="959">959</span>
+<span id="960">960</span>
+<span id="961">961</span>
+<span id="962">962</span>
+<span id="963">963</span>
+<span id="964">964</span>
+<span id="965">965</span>
+<span id="966">966</span>
+<span id="967">967</span>
+<span id="968">968</span>
+<span id="969">969</span>
+<span id="970">970</span>
+<span id="971">971</span>
+<span id="972">972</span>
+<span id="973">973</span>
+<span id="974">974</span>
+<span id="975">975</span>
+<span id="976">976</span>
+<span id="977">977</span>
+<span id="978">978</span>
+<span id="979">979</span>
+<span id="980">980</span>
+<span id="981">981</span>
+<span id="982">982</span>
+<span id="983">983</span>
+<span id="984">984</span>
+<span id="985">985</span>
+<span id="986">986</span>
+<span id="987">987</span>
+<span id="988">988</span>
+<span id="989">989</span>
+<span id="990">990</span>
 </pre><pre class="rust">
 <span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::compile_error::CompileError</span>;
@@ -945,6 +1010,8 @@
         (<span class="self">self</span>.<span class="ident">end_offset</span> <span class="op">-</span> <span class="self">self</span>.<span class="ident">start_offset</span> <span class="op">+</span> <span class="number">1</span>) <span class="kw">as</span> <span class="ident">u32</span>
     }
 }
+
+<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">AstId</span> <span class="op">=</span> <span class="ident">usize</span>;
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">PartialEq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Pou</span> {
@@ -1311,17 +1378,20 @@
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Statement</span> {
     <span class="ident">EmptyStatement</span> {
         <span class="ident">location</span>: <span class="ident">SourceRange</span>,
+        <span class="ident">id</span>: <span class="ident">AstId</span>,
     },
     <span class="comment">// Literals</span>
     <span class="ident">LiteralInteger</span> {
         <span class="ident">value</span>: <span class="ident">i64</span>,
         <span class="ident">location</span>: <span class="ident">SourceRange</span>,
+        <span class="ident">id</span>: <span class="ident">AstId</span>,
     },
     <span class="ident">LiteralDate</span> {
         <span class="ident">year</span>: <span class="ident">i32</span>,
         <span class="ident">month</span>: <span class="ident">u32</span>,
         <span class="ident">day</span>: <span class="ident">u32</span>,
         <span class="ident">location</span>: <span class="ident">SourceRange</span>,
+        <span class="ident">id</span>: <span class="ident">AstId</span>,
     },
     <span class="ident">LiteralDateAndTime</span> {
         <span class="ident">year</span>: <span class="ident">i32</span>,
@@ -1332,6 +1402,7 @@
         <span class="ident">sec</span>: <span class="ident">u32</span>,
         <span class="ident">milli</span>: <span class="ident">u32</span>,
         <span class="ident">location</span>: <span class="ident">SourceRange</span>,
+        <span class="ident">id</span>: <span class="ident">AstId</span>,
     },
     <span class="ident">LiteralTimeOfDay</span> {
         <span class="ident">hour</span>: <span class="ident">u32</span>,
@@ -1339,6 +1410,7 @@
         <span class="ident">sec</span>: <span class="ident">u32</span>,
         <span class="ident">milli</span>: <span class="ident">u32</span>,
         <span class="ident">location</span>: <span class="ident">SourceRange</span>,
+        <span class="ident">id</span>: <span class="ident">AstId</span>,
     },
     <span class="ident">LiteralTime</span> {
         <span class="ident">day</span>: <span class="ident">f64</span>,
@@ -1350,79 +1422,96 @@
         <span class="ident">nano</span>: <span class="ident">u32</span>,
         <span class="ident">negative</span>: <span class="ident">bool</span>,
         <span class="ident">location</span>: <span class="ident">SourceRange</span>,
+        <span class="ident">id</span>: <span class="ident">AstId</span>,
     },
     <span class="ident">LiteralReal</span> {
         <span class="ident">value</span>: <span class="ident">String</span>,
         <span class="ident">location</span>: <span class="ident">SourceRange</span>,
+        <span class="ident">id</span>: <span class="ident">AstId</span>,
     },
     <span class="ident">LiteralBool</span> {
         <span class="ident">value</span>: <span class="ident">bool</span>,
         <span class="ident">location</span>: <span class="ident">SourceRange</span>,
+        <span class="ident">id</span>: <span class="ident">AstId</span>,
     },
     <span class="ident">LiteralString</span> {
         <span class="ident">value</span>: <span class="ident">String</span>,
         <span class="ident">is_wide</span>: <span class="ident">bool</span>,
         <span class="ident">location</span>: <span class="ident">SourceRange</span>,
+        <span class="ident">id</span>: <span class="ident">AstId</span>,
     },
     <span class="ident">LiteralArray</span> {
         <span class="ident">elements</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Statement</span><span class="op">&gt;</span><span class="op">&gt;</span>, <span class="comment">// expression-list</span>
         <span class="ident">location</span>: <span class="ident">SourceRange</span>,
+        <span class="ident">id</span>: <span class="ident">AstId</span>,
     },
     <span class="ident">MultipliedStatement</span> {
         <span class="ident">multiplier</span>: <span class="ident">u32</span>,
         <span class="ident">element</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Statement</span><span class="op">&gt;</span>,
         <span class="ident">location</span>: <span class="ident">SourceRange</span>,
+        <span class="ident">id</span>: <span class="ident">AstId</span>,
     },
     <span class="comment">// Expressions</span>
     <span class="ident">QualifiedReference</span> {
         <span class="ident">elements</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Statement</span><span class="op">&gt;</span>,
+        <span class="ident">id</span>: <span class="ident">AstId</span>,
     },
     <span class="ident">Reference</span> {
         <span class="ident">name</span>: <span class="ident">String</span>,
         <span class="ident">location</span>: <span class="ident">SourceRange</span>,
+        <span class="ident">id</span>: <span class="ident">AstId</span>,
     },
     <span class="ident">ArrayAccess</span> {
         <span class="ident">reference</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Statement</span><span class="op">&gt;</span>,
         <span class="ident">access</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Statement</span><span class="op">&gt;</span>,
+        <span class="ident">id</span>: <span class="ident">AstId</span>,
     },
     <span class="ident">BinaryExpression</span> {
         <span class="ident">operator</span>: <span class="ident">Operator</span>,
         <span class="ident">left</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Statement</span><span class="op">&gt;</span>,
         <span class="ident">right</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Statement</span><span class="op">&gt;</span>,
+        <span class="ident">id</span>: <span class="ident">AstId</span>,
     },
     <span class="ident">UnaryExpression</span> {
         <span class="ident">operator</span>: <span class="ident">Operator</span>,
         <span class="ident">value</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Statement</span><span class="op">&gt;</span>,
         <span class="ident">location</span>: <span class="ident">SourceRange</span>,
+        <span class="ident">id</span>: <span class="ident">AstId</span>,
     },
     <span class="ident">ExpressionList</span> {
         <span class="ident">expressions</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Statement</span><span class="op">&gt;</span>,
+        <span class="ident">id</span>: <span class="ident">AstId</span>,
     },
     <span class="ident">RangeStatement</span> {
         <span class="ident">start</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Statement</span><span class="op">&gt;</span>,
         <span class="ident">end</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Statement</span><span class="op">&gt;</span>,
+        <span class="ident">id</span>: <span class="ident">AstId</span>,
     },
     <span class="comment">// Assignment</span>
     <span class="ident">Assignment</span> {
         <span class="ident">left</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Statement</span><span class="op">&gt;</span>,
         <span class="ident">right</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Statement</span><span class="op">&gt;</span>,
+        <span class="ident">id</span>: <span class="ident">AstId</span>,
     },
     <span class="comment">// OutputAssignment</span>
     <span class="ident">OutputAssignment</span> {
         <span class="ident">left</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Statement</span><span class="op">&gt;</span>,
         <span class="ident">right</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Statement</span><span class="op">&gt;</span>,
+        <span class="ident">id</span>: <span class="ident">AstId</span>,
     },
     <span class="comment">//Call Statement</span>
     <span class="ident">CallStatement</span> {
         <span class="ident">operator</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Statement</span><span class="op">&gt;</span>,
         <span class="ident">parameters</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Statement</span><span class="op">&gt;</span><span class="op">&gt;</span>,
         <span class="ident">location</span>: <span class="ident">SourceRange</span>,
+        <span class="ident">id</span>: <span class="ident">AstId</span>,
     },
     <span class="comment">// Control Statements</span>
     <span class="ident">IfStatement</span> {
         <span class="ident">blocks</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">ConditionalBlock</span><span class="op">&gt;</span>,
         <span class="ident">else_block</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Statement</span><span class="op">&gt;</span>,
         <span class="ident">location</span>: <span class="ident">SourceRange</span>,
+        <span class="ident">id</span>: <span class="ident">AstId</span>,
     },
     <span class="ident">ForLoopStatement</span> {
         <span class="ident">counter</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Statement</span><span class="op">&gt;</span>,
@@ -1431,28 +1520,34 @@
         <span class="ident">by_step</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Statement</span><span class="op">&gt;</span><span class="op">&gt;</span>,
         <span class="ident">body</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Statement</span><span class="op">&gt;</span>,
         <span class="ident">location</span>: <span class="ident">SourceRange</span>,
+        <span class="ident">id</span>: <span class="ident">AstId</span>,
     },
     <span class="ident">WhileLoopStatement</span> {
         <span class="ident">condition</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Statement</span><span class="op">&gt;</span>,
         <span class="ident">body</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Statement</span><span class="op">&gt;</span>,
         <span class="ident">location</span>: <span class="ident">SourceRange</span>,
+        <span class="ident">id</span>: <span class="ident">AstId</span>,
     },
     <span class="ident">RepeatLoopStatement</span> {
         <span class="ident">condition</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Statement</span><span class="op">&gt;</span>,
         <span class="ident">body</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Statement</span><span class="op">&gt;</span>,
         <span class="ident">location</span>: <span class="ident">SourceRange</span>,
+        <span class="ident">id</span>: <span class="ident">AstId</span>,
     },
     <span class="ident">CaseStatement</span> {
         <span class="ident">selector</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Statement</span><span class="op">&gt;</span>,
         <span class="ident">case_blocks</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">ConditionalBlock</span><span class="op">&gt;</span>,
         <span class="ident">else_block</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Statement</span><span class="op">&gt;</span>,
         <span class="ident">location</span>: <span class="ident">SourceRange</span>,
+        <span class="ident">id</span>: <span class="ident">AstId</span>,
     },
     <span class="ident">CaseCondition</span> {
         <span class="ident">condition</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Statement</span><span class="op">&gt;</span>,
+        <span class="ident">id</span>: <span class="ident">AstId</span>,
     },
     <span class="ident">ReturnStatement</span> {
         <span class="ident">location</span>: <span class="ident">SourceRange</span>,
+        <span class="ident">id</span>: <span class="ident">AstId</span>,
     },
 }
 
@@ -1565,21 +1660,21 @@
                 .<span class="ident">field</span>(<span class="string">&quot;operator&quot;</span>, <span class="ident">operator</span>)
                 .<span class="ident">field</span>(<span class="string">&quot;value&quot;</span>, <span class="ident">value</span>)
                 .<span class="ident">finish</span>(),
-            <span class="ident">Statement::ExpressionList</span> { <span class="ident">expressions</span> } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">f</span>
+            <span class="ident">Statement::ExpressionList</span> { <span class="ident">expressions</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">f</span>
                 .<span class="ident">debug_struct</span>(<span class="string">&quot;ExpressionList&quot;</span>)
                 .<span class="ident">field</span>(<span class="string">&quot;expressions&quot;</span>, <span class="ident">expressions</span>)
                 .<span class="ident">finish</span>(),
-            <span class="ident">Statement::RangeStatement</span> { <span class="ident">start</span>, <span class="ident">end</span> } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">f</span>
+            <span class="ident">Statement::RangeStatement</span> { <span class="ident">start</span>, <span class="ident">end</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">f</span>
                 .<span class="ident">debug_struct</span>(<span class="string">&quot;RangeStatement&quot;</span>)
                 .<span class="ident">field</span>(<span class="string">&quot;start&quot;</span>, <span class="ident">start</span>)
                 .<span class="ident">field</span>(<span class="string">&quot;end&quot;</span>, <span class="ident">end</span>)
                 .<span class="ident">finish</span>(),
-            <span class="ident">Statement::Assignment</span> { <span class="ident">left</span>, <span class="ident">right</span> } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">f</span>
+            <span class="ident">Statement::Assignment</span> { <span class="ident">left</span>, <span class="ident">right</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">f</span>
                 .<span class="ident">debug_struct</span>(<span class="string">&quot;Assignment&quot;</span>)
                 .<span class="ident">field</span>(<span class="string">&quot;left&quot;</span>, <span class="ident">left</span>)
                 .<span class="ident">field</span>(<span class="string">&quot;right&quot;</span>, <span class="ident">right</span>)
                 .<span class="ident">finish</span>(),
-            <span class="ident">Statement::OutputAssignment</span> { <span class="ident">left</span>, <span class="ident">right</span> } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">f</span>
+            <span class="ident">Statement::OutputAssignment</span> { <span class="ident">left</span>, <span class="ident">right</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">f</span>
                 .<span class="ident">debug_struct</span>(<span class="string">&quot;OutputAssignment&quot;</span>)
                 .<span class="ident">field</span>(<span class="string">&quot;left&quot;</span>, <span class="ident">left</span>)
                 .<span class="ident">field</span>(<span class="string">&quot;right&quot;</span>, <span class="ident">right</span>)
@@ -1656,7 +1751,7 @@
                 .<span class="ident">field</span>(<span class="string">&quot;multiplier&quot;</span>, <span class="ident">multiplier</span>)
                 .<span class="ident">field</span>(<span class="string">&quot;element&quot;</span>, <span class="ident">element</span>)
                 .<span class="ident">finish</span>(),
-            <span class="ident">Statement::CaseCondition</span> { <span class="ident">condition</span> } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">f</span>
+            <span class="ident">Statement::CaseCondition</span> { <span class="ident">condition</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">f</span>
                 .<span class="ident">debug_struct</span>(<span class="string">&quot;CaseCondition&quot;</span>)
                 .<span class="ident">field</span>(<span class="string">&quot;condition&quot;</span>, <span class="ident">condition</span>)
                 .<span class="ident">finish</span>(),
@@ -1668,7 +1763,7 @@
 <span class="kw">impl</span> <span class="ident">Statement</span> {
     <span class="doccomment">///Returns the statement in a singleton list, or the contained statements if the statement is already a list</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_as_list</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">Statement</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Statement::ExpressionList</span> { <span class="ident">expressions</span> } <span class="op">=</span> <span class="self">self</span> {
+        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Statement::ExpressionList</span> { <span class="ident">expressions</span>, .. } <span class="op">=</span> <span class="self">self</span> {
             <span class="ident">expressions</span>.<span class="ident">iter</span>().<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">Statement</span><span class="op">&gt;</span><span class="op">&gt;</span>()
         } <span class="kw">else</span> {
             <span class="macro">vec!</span>[<span class="self">self</span>]
@@ -1702,7 +1797,7 @@
                 <span class="ident">SourceRange::new</span>(<span class="ident">left_loc</span>.<span class="ident">range</span>.<span class="ident">start</span>..<span class="ident">right_loc</span>.<span class="ident">range</span>.<span class="ident">end</span>)
             }
             <span class="ident">Statement::UnaryExpression</span> { <span class="ident">location</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">location</span>.<span class="ident">clone</span>(),
-            <span class="ident">Statement::ExpressionList</span> { <span class="ident">expressions</span> } <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Statement::ExpressionList</span> { <span class="ident">expressions</span>, .. } <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">let</span> <span class="ident">first</span> <span class="op">=</span> <span class="ident">expressions</span>
                     .<span class="ident">first</span>()
                     .<span class="ident">map_or_else</span>(<span class="ident">SourceRange::undefined</span>, <span class="op">|</span><span class="ident">it</span><span class="op">|</span> <span class="ident">it</span>.<span class="ident">get_location</span>());
@@ -1711,17 +1806,17 @@
                     .<span class="ident">map_or_else</span>(<span class="ident">SourceRange::undefined</span>, <span class="op">|</span><span class="ident">it</span><span class="op">|</span> <span class="ident">it</span>.<span class="ident">get_location</span>());
                 <span class="ident">SourceRange::new</span>(<span class="ident">first</span>.<span class="ident">get_start</span>()..<span class="ident">last</span>.<span class="ident">get_end</span>())
             }
-            <span class="ident">Statement::RangeStatement</span> { <span class="ident">start</span>, <span class="ident">end</span> } <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Statement::RangeStatement</span> { <span class="ident">start</span>, <span class="ident">end</span>, .. } <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">let</span> <span class="ident">start_loc</span> <span class="op">=</span> <span class="ident">start</span>.<span class="ident">get_location</span>();
                 <span class="kw">let</span> <span class="ident">end_loc</span> <span class="op">=</span> <span class="ident">end</span>.<span class="ident">get_location</span>();
                 <span class="ident">SourceRange::new</span>(<span class="ident">start_loc</span>.<span class="ident">range</span>.<span class="ident">start</span>..<span class="ident">end_loc</span>.<span class="ident">range</span>.<span class="ident">end</span>)
             }
-            <span class="ident">Statement::Assignment</span> { <span class="ident">left</span>, <span class="ident">right</span> } <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Statement::Assignment</span> { <span class="ident">left</span>, <span class="ident">right</span>, .. } <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">let</span> <span class="ident">left_loc</span> <span class="op">=</span> <span class="ident">left</span>.<span class="ident">get_location</span>();
                 <span class="kw">let</span> <span class="ident">right_loc</span> <span class="op">=</span> <span class="ident">right</span>.<span class="ident">get_location</span>();
                 <span class="ident">SourceRange::new</span>(<span class="ident">left_loc</span>.<span class="ident">range</span>.<span class="ident">start</span>..<span class="ident">right_loc</span>.<span class="ident">range</span>.<span class="ident">end</span>)
             }
-            <span class="ident">Statement::OutputAssignment</span> { <span class="ident">left</span>, <span class="ident">right</span> } <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Statement::OutputAssignment</span> { <span class="ident">left</span>, <span class="ident">right</span>, .. } <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">let</span> <span class="ident">left_loc</span> <span class="op">=</span> <span class="ident">left</span>.<span class="ident">get_location</span>();
                 <span class="kw">let</span> <span class="ident">right_loc</span> <span class="op">=</span> <span class="ident">right</span>.<span class="ident">get_location</span>();
                 <span class="ident">SourceRange::new</span>(<span class="ident">left_loc</span>.<span class="ident">range</span>.<span class="ident">start</span>..<span class="ident">right_loc</span>.<span class="ident">range</span>.<span class="ident">end</span>)
@@ -1732,14 +1827,49 @@
             <span class="ident">Statement::WhileLoopStatement</span> { <span class="ident">location</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">location</span>.<span class="ident">clone</span>(),
             <span class="ident">Statement::RepeatLoopStatement</span> { <span class="ident">location</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">location</span>.<span class="ident">clone</span>(),
             <span class="ident">Statement::CaseStatement</span> { <span class="ident">location</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">location</span>.<span class="ident">clone</span>(),
-            <span class="ident">Statement::ArrayAccess</span> { <span class="ident">reference</span>, <span class="ident">access</span> } <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Statement::ArrayAccess</span> {
+                <span class="ident">reference</span>, <span class="ident">access</span>, ..
+            } <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">let</span> <span class="ident">reference_loc</span> <span class="op">=</span> <span class="ident">reference</span>.<span class="ident">get_location</span>();
                 <span class="kw">let</span> <span class="ident">access_loc</span> <span class="op">=</span> <span class="ident">access</span>.<span class="ident">get_location</span>();
                 <span class="ident">SourceRange::new</span>(<span class="ident">reference_loc</span>.<span class="ident">range</span>.<span class="ident">start</span>..<span class="ident">access_loc</span>.<span class="ident">range</span>.<span class="ident">end</span>)
             }
             <span class="ident">Statement::MultipliedStatement</span> { <span class="ident">location</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">location</span>.<span class="ident">clone</span>(),
-            <span class="ident">Statement::CaseCondition</span> { <span class="ident">condition</span> } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">condition</span>.<span class="ident">get_location</span>(),
-            <span class="ident">Statement::ReturnStatement</span> { <span class="ident">location</span> } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">location</span>.<span class="ident">clone</span>(),
+            <span class="ident">Statement::CaseCondition</span> { <span class="ident">condition</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">condition</span>.<span class="ident">get_location</span>(),
+            <span class="ident">Statement::ReturnStatement</span> { <span class="ident">location</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">location</span>.<span class="ident">clone</span>(),
+        }
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_id</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">AstId</span> {
+        <span class="kw">match</span> <span class="self">self</span> {
+            <span class="ident">Statement::EmptyStatement</span> { <span class="ident">id</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="ident">id</span>,
+            <span class="ident">Statement::LiteralInteger</span> { <span class="ident">id</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="ident">id</span>,
+            <span class="ident">Statement::LiteralDate</span> { <span class="ident">id</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="ident">id</span>,
+            <span class="ident">Statement::LiteralDateAndTime</span> { <span class="ident">id</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="ident">id</span>,
+            <span class="ident">Statement::LiteralTimeOfDay</span> { <span class="ident">id</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="ident">id</span>,
+            <span class="ident">Statement::LiteralTime</span> { <span class="ident">id</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="ident">id</span>,
+            <span class="ident">Statement::LiteralReal</span> { <span class="ident">id</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="ident">id</span>,
+            <span class="ident">Statement::LiteralBool</span> { <span class="ident">id</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="ident">id</span>,
+            <span class="ident">Statement::LiteralString</span> { <span class="ident">id</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="ident">id</span>,
+            <span class="ident">Statement::LiteralArray</span> { <span class="ident">id</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="ident">id</span>,
+            <span class="ident">Statement::MultipliedStatement</span> { <span class="ident">id</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="ident">id</span>,
+            <span class="ident">Statement::QualifiedReference</span> { <span class="ident">id</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="ident">id</span>,
+            <span class="ident">Statement::Reference</span> { <span class="ident">id</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="ident">id</span>,
+            <span class="ident">Statement::ArrayAccess</span> { <span class="ident">id</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="ident">id</span>,
+            <span class="ident">Statement::BinaryExpression</span> { <span class="ident">id</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="ident">id</span>,
+            <span class="ident">Statement::UnaryExpression</span> { <span class="ident">id</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="ident">id</span>,
+            <span class="ident">Statement::ExpressionList</span> { <span class="ident">id</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="ident">id</span>,
+            <span class="ident">Statement::RangeStatement</span> { <span class="ident">id</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="ident">id</span>,
+            <span class="ident">Statement::Assignment</span> { <span class="ident">id</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="ident">id</span>,
+            <span class="ident">Statement::OutputAssignment</span> { <span class="ident">id</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="ident">id</span>,
+            <span class="ident">Statement::CallStatement</span> { <span class="ident">id</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="ident">id</span>,
+            <span class="ident">Statement::IfStatement</span> { <span class="ident">id</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="ident">id</span>,
+            <span class="ident">Statement::ForLoopStatement</span> { <span class="ident">id</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="ident">id</span>,
+            <span class="ident">Statement::WhileLoopStatement</span> { <span class="ident">id</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="ident">id</span>,
+            <span class="ident">Statement::RepeatLoopStatement</span> { <span class="ident">id</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="ident">id</span>,
+            <span class="ident">Statement::CaseStatement</span> { <span class="ident">id</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="ident">id</span>,
+            <span class="ident">Statement::CaseCondition</span> { <span class="ident">id</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="ident">id</span>,
+            <span class="ident">Statement::ReturnStatement</span> { <span class="ident">id</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="ident">id</span>,
         }
     }
 }
@@ -1781,7 +1911,7 @@
 <span class="doccomment">/// It can also handle nested structures like 2(3(4,5))</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">flatten_expression_list</span>(<span class="ident">condition</span>: <span class="kw-2">&amp;</span><span class="ident">Statement</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">Statement</span><span class="op">&gt;</span> {
     <span class="kw">match</span> <span class="ident">condition</span> {
-        <span class="ident">Statement::ExpressionList</span> { <span class="ident">expressions</span> } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">expressions</span>
+        <span class="ident">Statement::ExpressionList</span> { <span class="ident">expressions</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">expressions</span>
             .<span class="ident">iter</span>()
             .<span class="ident">by_ref</span>()
             .<span class="ident">flat_map</span>(<span class="op">|</span><span class="ident">statement</span><span class="op">|</span> <span class="ident">flatten_expression_list</span>(<span class="ident">statement</span>))
@@ -1815,7 +1945,7 @@
 <span class="doccomment">/// constructs a Dimension for the given RangeStatement</span>
 <span class="doccomment">/// throws an error if the given statement is no RangeStatement</span>
 <span class="kw">fn</span> <span class="ident">get_single_array_dimension</span>(<span class="ident">bounds</span>: <span class="kw-2">&amp;</span><span class="ident">Statement</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">result::Result</span><span class="op">&lt;</span><span class="ident">Dimension</span>, <span class="ident">CompileError</span><span class="op">&gt;</span> {
-    <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Statement::RangeStatement</span> { <span class="ident">start</span>, <span class="ident">end</span> } <span class="op">=</span> <span class="ident">bounds</span> {
+    <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Statement::RangeStatement</span> { <span class="ident">start</span>, <span class="ident">end</span>, .. } <span class="op">=</span> <span class="ident">bounds</span> {
         <span class="kw">let</span> <span class="ident">start_offset</span> <span class="op">=</span> <span class="ident">evaluate_constant_int</span>(<span class="ident">start</span>).<span class="ident">unwrap_or</span>(<span class="number">0</span>);
         <span class="kw">let</span> <span class="ident">end_offset</span> <span class="op">=</span> <span class="ident">evaluate_constant_int</span>(<span class="ident">end</span>).<span class="ident">unwrap_or</span>(<span class="number">0</span>);
         <span class="prelude-val">Ok</span>(<span class="ident">Dimension</span> {
