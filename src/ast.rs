@@ -18,6 +18,8 @@ impl Dimension {
     }
 }
 
+pub type AstId = usize;
+
 #[derive(PartialEq)]
 pub struct Pou {
     pub name: String,
@@ -383,17 +385,20 @@ impl Debug for ConditionalBlock {
 pub enum Statement {
     EmptyStatement {
         location: SourceRange,
+        id: AstId,
     },
     // Literals
     LiteralInteger {
         value: i64,
         location: SourceRange,
+        id: AstId,
     },
     LiteralDate {
         year: i32,
         month: u32,
         day: u32,
         location: SourceRange,
+        id: AstId,
     },
     LiteralDateAndTime {
         year: i32,
@@ -404,6 +409,7 @@ pub enum Statement {
         sec: u32,
         milli: u32,
         location: SourceRange,
+        id: AstId,
     },
     LiteralTimeOfDay {
         hour: u32,
@@ -411,6 +417,7 @@ pub enum Statement {
         sec: u32,
         milli: u32,
         location: SourceRange,
+        id: AstId,
     },
     LiteralTime {
         day: f64,
@@ -422,79 +429,96 @@ pub enum Statement {
         nano: u32,
         negative: bool,
         location: SourceRange,
+        id: AstId,
     },
     LiteralReal {
         value: String,
         location: SourceRange,
+        id: AstId,
     },
     LiteralBool {
         value: bool,
         location: SourceRange,
+        id: AstId,
     },
     LiteralString {
         value: String,
         is_wide: bool,
         location: SourceRange,
+        id: AstId,
     },
     LiteralArray {
         elements: Option<Box<Statement>>, // expression-list
         location: SourceRange,
+        id: AstId,
     },
     MultipliedStatement {
         multiplier: u32,
         element: Box<Statement>,
         location: SourceRange,
+        id: AstId,
     },
     // Expressions
     QualifiedReference {
         elements: Vec<Statement>,
+        id: AstId,
     },
     Reference {
         name: String,
         location: SourceRange,
+        id: AstId,
     },
     ArrayAccess {
         reference: Box<Statement>,
         access: Box<Statement>,
+        id: AstId,
     },
     BinaryExpression {
         operator: Operator,
         left: Box<Statement>,
         right: Box<Statement>,
+        id: AstId,
     },
     UnaryExpression {
         operator: Operator,
         value: Box<Statement>,
         location: SourceRange,
+        id: AstId,
     },
     ExpressionList {
         expressions: Vec<Statement>,
+        id: AstId,
     },
     RangeStatement {
         start: Box<Statement>,
         end: Box<Statement>,
+        id: AstId,
     },
     // Assignment
     Assignment {
         left: Box<Statement>,
         right: Box<Statement>,
+        id: AstId,
     },
     // OutputAssignment
     OutputAssignment {
         left: Box<Statement>,
         right: Box<Statement>,
+        id: AstId,
     },
     //Call Statement
     CallStatement {
         operator: Box<Statement>,
         parameters: Box<Option<Statement>>,
         location: SourceRange,
+        id: AstId,
     },
     // Control Statements
     IfStatement {
         blocks: Vec<ConditionalBlock>,
         else_block: Vec<Statement>,
         location: SourceRange,
+        id: AstId,
     },
     ForLoopStatement {
         counter: Box<Statement>,
@@ -503,28 +527,34 @@ pub enum Statement {
         by_step: Option<Box<Statement>>,
         body: Vec<Statement>,
         location: SourceRange,
+        id: AstId,
     },
     WhileLoopStatement {
         condition: Box<Statement>,
         body: Vec<Statement>,
         location: SourceRange,
+        id: AstId,
     },
     RepeatLoopStatement {
         condition: Box<Statement>,
         body: Vec<Statement>,
         location: SourceRange,
+        id: AstId,
     },
     CaseStatement {
         selector: Box<Statement>,
         case_blocks: Vec<ConditionalBlock>,
         else_block: Vec<Statement>,
         location: SourceRange,
+        id: AstId,
     },
     CaseCondition {
         condition: Box<Statement>,
+        id: AstId,
     },
     ReturnStatement {
         location: SourceRange,
+        id: AstId,
     },
 }
 
@@ -637,21 +667,21 @@ impl Debug for Statement {
                 .field("operator", operator)
                 .field("value", value)
                 .finish(),
-            Statement::ExpressionList { expressions } => f
+            Statement::ExpressionList { expressions, .. } => f
                 .debug_struct("ExpressionList")
                 .field("expressions", expressions)
                 .finish(),
-            Statement::RangeStatement { start, end } => f
+            Statement::RangeStatement { start, end, .. } => f
                 .debug_struct("RangeStatement")
                 .field("start", start)
                 .field("end", end)
                 .finish(),
-            Statement::Assignment { left, right } => f
+            Statement::Assignment { left, right, .. } => f
                 .debug_struct("Assignment")
                 .field("left", left)
                 .field("right", right)
                 .finish(),
-            Statement::OutputAssignment { left, right } => f
+            Statement::OutputAssignment { left, right, .. } => f
                 .debug_struct("OutputAssignment")
                 .field("left", left)
                 .field("right", right)
@@ -728,7 +758,7 @@ impl Debug for Statement {
                 .field("multiplier", multiplier)
                 .field("element", element)
                 .finish(),
-            Statement::CaseCondition { condition } => f
+            Statement::CaseCondition { condition, .. } => f
                 .debug_struct("CaseCondition")
                 .field("condition", condition)
                 .finish(),
@@ -740,7 +770,7 @@ impl Debug for Statement {
 impl Statement {
     ///Returns the statement in a singleton list, or the contained statements if the statement is already a list
     pub fn get_as_list(&self) -> Vec<&Statement> {
-        if let Statement::ExpressionList { expressions } = self {
+        if let Statement::ExpressionList { expressions, .. } = self {
             expressions.iter().collect::<Vec<&Statement>>()
         } else {
             vec![self]
@@ -774,7 +804,7 @@ impl Statement {
                 SourceRange::new(left_loc.range.start..right_loc.range.end)
             }
             Statement::UnaryExpression { location, .. } => location.clone(),
-            Statement::ExpressionList { expressions } => {
+            Statement::ExpressionList { expressions, .. } => {
                 let first = expressions
                     .first()
                     .map_or_else(SourceRange::undefined, |it| it.get_location());
@@ -783,17 +813,17 @@ impl Statement {
                     .map_or_else(SourceRange::undefined, |it| it.get_location());
                 SourceRange::new(first.get_start()..last.get_end())
             }
-            Statement::RangeStatement { start, end } => {
+            Statement::RangeStatement { start, end, .. } => {
                 let start_loc = start.get_location();
                 let end_loc = end.get_location();
                 SourceRange::new(start_loc.range.start..end_loc.range.end)
             }
-            Statement::Assignment { left, right } => {
+            Statement::Assignment { left, right, .. } => {
                 let left_loc = left.get_location();
                 let right_loc = right.get_location();
                 SourceRange::new(left_loc.range.start..right_loc.range.end)
             }
-            Statement::OutputAssignment { left, right } => {
+            Statement::OutputAssignment { left, right, .. } => {
                 let left_loc = left.get_location();
                 let right_loc = right.get_location();
                 SourceRange::new(left_loc.range.start..right_loc.range.end)
@@ -804,14 +834,49 @@ impl Statement {
             Statement::WhileLoopStatement { location, .. } => location.clone(),
             Statement::RepeatLoopStatement { location, .. } => location.clone(),
             Statement::CaseStatement { location, .. } => location.clone(),
-            Statement::ArrayAccess { reference, access } => {
+            Statement::ArrayAccess {
+                reference, access, ..
+            } => {
                 let reference_loc = reference.get_location();
                 let access_loc = access.get_location();
                 SourceRange::new(reference_loc.range.start..access_loc.range.end)
             }
             Statement::MultipliedStatement { location, .. } => location.clone(),
-            Statement::CaseCondition { condition } => condition.get_location(),
-            Statement::ReturnStatement { location } => location.clone(),
+            Statement::CaseCondition { condition, .. } => condition.get_location(),
+            Statement::ReturnStatement { location, .. } => location.clone(),
+        }
+    }
+
+    pub fn get_id(&self) -> AstId {
+        match self {
+            Statement::EmptyStatement { id, .. } => *id,
+            Statement::LiteralInteger { id, .. } => *id,
+            Statement::LiteralDate { id, .. } => *id,
+            Statement::LiteralDateAndTime { id, .. } => *id,
+            Statement::LiteralTimeOfDay { id, .. } => *id,
+            Statement::LiteralTime { id, .. } => *id,
+            Statement::LiteralReal { id, .. } => *id,
+            Statement::LiteralBool { id, .. } => *id,
+            Statement::LiteralString { id, .. } => *id,
+            Statement::LiteralArray { id, .. } => *id,
+            Statement::MultipliedStatement { id, .. } => *id,
+            Statement::QualifiedReference { id, .. } => *id,
+            Statement::Reference { id, .. } => *id,
+            Statement::ArrayAccess { id, .. } => *id,
+            Statement::BinaryExpression { id, .. } => *id,
+            Statement::UnaryExpression { id, .. } => *id,
+            Statement::ExpressionList { id, .. } => *id,
+            Statement::RangeStatement { id, .. } => *id,
+            Statement::Assignment { id, .. } => *id,
+            Statement::OutputAssignment { id, .. } => *id,
+            Statement::CallStatement { id, .. } => *id,
+            Statement::IfStatement { id, .. } => *id,
+            Statement::ForLoopStatement { id, .. } => *id,
+            Statement::WhileLoopStatement { id, .. } => *id,
+            Statement::RepeatLoopStatement { id, .. } => *id,
+            Statement::CaseStatement { id, .. } => *id,
+            Statement::CaseCondition { id, .. } => *id,
+            Statement::ReturnStatement { id, .. } => *id,
         }
     }
 }
@@ -853,7 +918,7 @@ impl Display for Operator {
 /// It can also handle nested structures like 2(3(4,5))
 pub fn flatten_expression_list(condition: &Statement) -> Vec<&Statement> {
     match condition {
-        Statement::ExpressionList { expressions } => expressions
+        Statement::ExpressionList { expressions, .. } => expressions
             .iter()
             .by_ref()
             .flat_map(|statement| flatten_expression_list(statement))
@@ -887,7 +952,7 @@ pub fn get_array_dimensions(bounds: &Statement) -> result::Result<Vec<Dimension>
 /// constructs a Dimension for the given RangeStatement
 /// throws an error if the given statement is no RangeStatement
 fn get_single_array_dimension(bounds: &Statement) -> result::Result<Dimension, CompileError> {
-    if let Statement::RangeStatement { start, end } = bounds {
+    if let Statement::RangeStatement { start, end, .. } = bounds {
         let start_offset = evaluate_constant_int(start).unwrap_or(0);
         let end_offset = evaluate_constant_int(end).unwrap_or(0);
         Ok(Dimension {

@@ -246,6 +246,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
             let left = Statement::Reference {
                 name: variable.get_name().into(),
                 location: variable.source_location.clone(),
+                id: 0, //TODO
             };
             let right = variable.initial_value.as_ref().unwrap();
             statement_generator.generate_assignment_statement(&left, right)?;
@@ -268,6 +269,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                 let reference = Statement::Reference {
                     name: function_context.linking_context.get_call_name().into(),
                     location: location.unwrap_or_else(SourceRange::undefined),
+                    id: 0, //TODO
                 };
                 let mut exp_gen = ExpressionCodeGenerator::new(
                     &self.llvm,

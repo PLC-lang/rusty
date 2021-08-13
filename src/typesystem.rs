@@ -1,15 +1,39 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use std::ops::Range;
 
-use crate::ast::{Dimension, Statement};
+use crate::{
+    ast::{Dimension, Statement},
+    index::Index,
+};
 
 pub const DEFAULT_STRING_LEN: u32 = 80;
 
-//CheckRan­geSigned, CheckLRangeSigned or CheckRangeUnsigned, CheckLRangeUnsigned
 pub const RANGE_CHECK_S_FN: &str = "CheckRangeSigned";
 pub const RANGE_CHECK_LS_FN: &str = "CheckLRangeSigned";
 pub const RANGE_CHECK_U_FN: &str = "CheckRangeUnsigned";
 pub const RANGE_CHECK_LU_FN: &str = "CheckLRangeUnsigned";
+
+pub const BOOL_TYPE: &str = "BOOL";
+pub const BYTE_TYPE: &str = "BYTE";
+pub const SINT_TYPE: &str = "SINT";
+pub const USINT_TYPE: &str = "USINT";
+pub const WORD_TYPE: &str = "WORD";
+pub const INT_TYPE: &str = "INT";
+pub const UINT_TYPE: &str = "UINT";
+pub const DWORD_TYPE: &str = "DWORD";
+pub const DINT_TYPE: &str = "DINT";
+pub const UDINT_TYPE: &str = "UDINT";
+pub const LWORD_TYPE: &str = "LWORD";
+pub const LINT_TYPE: &str = "LINT";
+pub const DATE_TYPE: &str = "DATE";
+pub const TIME_TYPE: &str = "TIME";
+pub const DATE_AND_TIME_TYPE: &str = "DATE_AND_TIME";
+pub const TIME_OF_DAY_TYPE: &str = "TIME_OF_DAY";
+pub const ULINT_TYPE: &str = "ULINT";
+pub const REAL_TYPE: &str = "REAL";
+pub const LREAL_TYPE: &str = "LREAL";
+pub const STRING_TYPE: &str = "STRING";
+pub const WSTRING_TYPE: &str = "WSTRING";
 
 #[derive(Debug, PartialEq)]
 pub struct DataType {
@@ -151,10 +175,10 @@ impl DataTypeInformation {
             DataTypeInformation::Float { size, .. } => *size,
             DataTypeInformation::String { size, .. } => *size,
             DataTypeInformation::Struct { .. } => 0, //TODO : Should we fill in the struct members here for size calculation or save the struct size.
-            DataTypeInformation::Array { .. } => unimplemented!(), //Propably length * inner type size
-            DataTypeInformation::Pointer { .. } => unimplemented!(),
-            DataTypeInformation::SubRange { .. } => unimplemented!(),
-            DataTypeInformation::Alias { .. } => unimplemented!(),
+            DataTypeInformation::Array { .. } => unimplemented!("array"), //Propably length * inner type size
+            DataTypeInformation::Pointer { .. } => unimplemented!("pointer"),
+            DataTypeInformation::SubRange { .. } => unimplemented!("subrange"),
+            DataTypeInformation::Alias { .. } => unimplemented!("alias"),
             DataTypeInformation::Void => 0,
         }
     }
@@ -168,176 +192,176 @@ pub fn get_builtin_types() -> Vec<DataType> {
             information: DataTypeInformation::Void,
         },
         DataType {
-            name: "BOOL".into(),
+            name: BOOL_TYPE.into(),
             initial_value: None,
             information: DataTypeInformation::Integer {
-                name: "BOOL".into(),
+                name: BOOL_TYPE.into(),
                 signed: true,
                 size: 1,
             },
         },
         DataType {
-            name: "BYTE".into(),
+            name: BYTE_TYPE.into(),
             initial_value: None,
             information: DataTypeInformation::Integer {
-                name: "BYTE".into(),
+                name: BYTE_TYPE.into(),
                 signed: false,
                 size: 8,
             },
         },
         DataType {
-            name: "SINT".into(),
+            name: SINT_TYPE.into(),
             initial_value: None,
             information: DataTypeInformation::Integer {
-                name: "SINT".into(),
+                name: SINT_TYPE.into(),
                 signed: true,
                 size: 8,
             },
         },
         DataType {
-            name: "USINT".into(),
+            name: USINT_TYPE.into(),
             initial_value: None,
             information: DataTypeInformation::Integer {
-                name: "USINT".into(),
+                name: USINT_TYPE.into(),
                 signed: false,
                 size: 8,
             },
         },
         DataType {
-            name: "WORD".into(),
+            name: WORD_TYPE.into(),
             initial_value: None,
             information: DataTypeInformation::Integer {
-                name: "WORD".into(),
+                name: WORD_TYPE.into(),
                 signed: false,
                 size: 16,
             },
         },
         DataType {
-            name: "INT".into(),
+            name: INT_TYPE.into(),
             initial_value: None,
             information: DataTypeInformation::Integer {
-                name: "INT".into(),
+                name: INT_TYPE.into(),
                 signed: true,
                 size: 16,
             },
         },
         DataType {
-            name: "UINT".into(),
+            name: UINT_TYPE.into(),
             initial_value: None,
             information: DataTypeInformation::Integer {
-                name: "UINT".into(),
+                name: UINT_TYPE.into(),
                 signed: false,
                 size: 16,
             },
         },
         DataType {
-            name: "DWORD".into(),
+            name: DWORD_TYPE.into(),
             initial_value: None,
             information: DataTypeInformation::Integer {
-                name: "DWORD".into(),
+                name: DWORD_TYPE.into(),
                 signed: false,
                 size: 32,
             },
         },
         DataType {
-            name: "DINT".into(),
+            name: DINT_TYPE.into(),
             initial_value: None,
             information: DataTypeInformation::Integer {
-                name: "DINT".into(),
+                name: DINT_TYPE.into(),
                 signed: true,
                 size: 32,
             },
         },
         DataType {
-            name: "UDINT".into(),
+            name: UDINT_TYPE.into(),
             initial_value: None,
             information: DataTypeInformation::Integer {
-                name: "UDINT".into(),
+                name: UDINT_TYPE.into(),
                 signed: false,
                 size: 32,
             },
         },
         DataType {
-            name: "LWORD".into(),
+            name: LWORD_TYPE.into(),
             initial_value: None,
             information: DataTypeInformation::Integer {
-                name: "LWORD".into(),
+                name: LWORD_TYPE.into(),
                 signed: false,
                 size: 64,
             },
         },
         DataType {
-            name: "LINT".into(),
+            name: LINT_TYPE.into(),
             initial_value: None,
             information: DataTypeInformation::Integer {
-                name: "LINT".into(),
+                name: LINT_TYPE.into(),
                 signed: true,
                 size: 64,
             },
         },
         DataType {
-            name: "DATE".into(),
+            name: DATE_TYPE.into(),
             initial_value: None,
             information: DataTypeInformation::Integer {
-                name: "DATE".into(),
+                name: DATE_TYPE.into(),
                 signed: true,
                 size: 64,
             },
         },
         DataType {
-            name: "TIME".into(),
+            name: TIME_TYPE.into(),
             initial_value: None,
             information: DataTypeInformation::Integer {
-                name: "TIME".into(),
+                name: TIME_TYPE.into(),
                 signed: true,
                 size: 64,
             },
         },
         DataType {
-            name: "DATE_AND_TIME".into(),
+            name: DATE_AND_TIME_TYPE.into(),
             initial_value: None,
             information: DataTypeInformation::Integer {
-                name: "DATE_AND_TIME".into(),
+                name: DATE_AND_TIME_TYPE.into(),
                 signed: true,
                 size: 64,
             },
         },
         DataType {
-            name: "TIME_OF_DAY".into(),
+            name: TIME_OF_DAY_TYPE.into(),
             initial_value: None,
             information: DataTypeInformation::Integer {
-                name: "TIME_OF_DAY".into(),
+                name: TIME_OF_DAY_TYPE.into(),
                 signed: true,
                 size: 64,
             },
         },
         DataType {
-            name: "ULINT".into(),
+            name: ULINT_TYPE.into(),
             initial_value: None,
             information: DataTypeInformation::Integer {
-                name: "ULINT".into(),
+                name: ULINT_TYPE.into(),
                 signed: false,
                 size: 64,
             },
         },
         DataType {
-            name: "REAL".into(),
+            name: REAL_TYPE.into(),
             initial_value: None,
             information: DataTypeInformation::Float {
-                name: "REAL".into(),
+                name: REAL_TYPE.into(),
                 size: 32,
             },
         },
         DataType {
-            name: "LREAL".into(),
+            name: LREAL_TYPE.into(),
             initial_value: None,
             information: DataTypeInformation::Float {
-                name: "LREAL".into(),
+                name: LREAL_TYPE.into(),
                 size: 64,
             },
         },
         DataType {
-            name: "STRING".into(),
+            name: STRING_TYPE.into(),
             initial_value: None,
             information: DataTypeInformation::String {
                 size: DEFAULT_STRING_LEN + 1,
@@ -345,7 +369,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
             },
         },
         DataType {
-            name: "WSTRING".into(),
+            name: WSTRING_TYPE.into(),
             initial_value: None,
             information: DataTypeInformation::String {
                 size: DEFAULT_STRING_LEN + 1,
@@ -390,14 +414,14 @@ fn is_same_type_nature(ltype: &DataTypeInformation, rtype: &DataTypeInformation)
 
 fn get_real_type() -> DataTypeInformation {
     DataTypeInformation::Float {
-        name: "REAL".into(),
+        name: REAL_TYPE.into(),
         size: 32,
     }
 }
 
 fn get_lreal_type() -> DataTypeInformation {
     DataTypeInformation::Float {
-        name: "LREAL".into(),
+        name: LREAL_TYPE.into(),
         size: 64,
     }
 }
@@ -420,5 +444,102 @@ pub fn get_bigger_type(
         } else {
             real_type
         }
+    }
+}
+
+pub fn get_bigger_type_borrow<'t>(
+    ltype: &'t DataTypeInformation,
+    rtype: &'t DataTypeInformation,
+    index: &'t Index,
+) -> &'t DataTypeInformation {
+    if is_same_type_nature(&ltype, &rtype) {
+        if get_rank(&ltype) < get_rank(&rtype) {
+            rtype
+        } else {
+            ltype
+        }
+    } else {
+        let real_type = index
+            .get_type(REAL_TYPE)
+            .map(|it| it.get_type_information())
+            .unwrap();
+        let real_size = real_type.get_size();
+        if ltype.get_size() > real_size || rtype.get_size() > real_size {
+            index.get_type(LREAL_TYPE).unwrap().get_type_information()
+        } else {
+            real_type
+        }
+    }
+}
+
+/// returns the signed version of the given data_type if its a signed int-type
+/// returns the original type if it is no signed int-type
+pub fn get_signed_type<'t>(
+    data_type: &'t DataTypeInformation,
+    index: &'t Index,
+) -> Option<&'t DataTypeInformation> {
+    if data_type.is_int() {
+        let signed_type = match data_type.get_name() {
+            BYTE_TYPE => SINT_TYPE,
+            USINT_TYPE => SINT_TYPE,
+            WORD_TYPE => INT_TYPE,
+            UINT_TYPE => INT_TYPE,
+            DWORD_TYPE => DINT_TYPE,
+            UDINT_TYPE => DINT_TYPE,
+            ULINT_TYPE => LINT_TYPE,
+            LWORD_TYPE => LINT_TYPE,
+            _ => data_type.get_name(),
+        };
+        return index
+            .get_type(signed_type)
+            .ok()
+            .map(|t| t.get_type_information());
+    }
+    None
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::{
+        ast::CompilationUnit,
+        index::visitor::visit,
+        typesystem::{
+            get_signed_type, BYTE_TYPE, DINT_TYPE, DWORD_TYPE, INT_TYPE, LINT_TYPE, LWORD_TYPE,
+            SINT_TYPE, UDINT_TYPE, UINT_TYPE, ULINT_TYPE, USINT_TYPE, WORD_TYPE,
+        },
+    };
+
+    macro_rules! assert_signed_type {
+        ($expected:expr, $actual:expr, $index:expr) => {
+            assert_eq!(
+                $index.find_type_information($expected).as_ref(),
+                get_signed_type(
+                    $index.find_type_information($actual).as_ref().unwrap(),
+                    &$index
+                )
+            );
+        };
+    }
+
+    #[test]
+    pub fn signed_types_tests() {
+        // Given an initialized index
+        let index = visit(&CompilationUnit::default());
+        assert_signed_type!(SINT_TYPE, BYTE_TYPE, index);
+        assert_signed_type!(SINT_TYPE, USINT_TYPE, index);
+        assert_signed_type!(INT_TYPE, WORD_TYPE, index);
+        assert_signed_type!(INT_TYPE, UINT_TYPE, index);
+        assert_signed_type!(DINT_TYPE, DWORD_TYPE, index);
+        assert_signed_type!(DINT_TYPE, UDINT_TYPE, index);
+        assert_signed_type!(LINT_TYPE, ULINT_TYPE, index);
+        assert_signed_type!(LINT_TYPE, LWORD_TYPE, index);
+
+        assert_eq!(
+            None,
+            get_signed_type(
+                index.find_type_information("STRING").as_ref().unwrap(),
+                &index
+            )
+        );
     }
 }
