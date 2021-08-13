@@ -140,6 +140,28 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
                     Some(location.clone()),
                 )?;
             }
+            Statement::ExitStatement { location } => {
+                if let Some(exit_block) = self.current_loop_exit {
+                    let builder = &self.llvm.builder;
+                    builder.build_unconditional_branch(exit_block);
+                } else {
+                    return Err(CompileError::CodeGenError {
+                        message: "Cannot break out of loop when not inside a loop".into(),
+                        location: location.clone(),
+                    });
+                }
+            }
+            Statement::ContinueStatement { location } => {
+                if let Some(cont_block) = self.current_loop_continue {
+                    let builder = &self.llvm.builder;
+                    builder.build_unconditional_branch(cont_block);
+                } else {
+                    return Err(CompileError::CodeGenError {
+                        message: "Cannot continue loop when not inside a loop".into(),
+                        location: location.clone(),
+                    });
+                }
+            }
             _ => {
                 self.create_expr_generator()
                     .generate_expression(statement)?;
