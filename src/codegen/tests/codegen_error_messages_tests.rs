@@ -34,10 +34,13 @@ fn exit_not_in_loop() {
         "
     );
     if let Err(msg) = result {
-        assert_eq!(CompileError::CodeGenError {
-            message: "Cannot break out of loop when not inside a loop".into(),
-            location: crate::ast::SourceRange::new(95..99),
-        }, msg);
+        assert_eq!(
+            CompileError::CodeGenError {
+                message: "Cannot break out of loop when not inside a loop".into(),
+                location: crate::ast::SourceRange::new(95..99),
+            },
+            msg
+        );
     } else {
         panic!("expected code-gen error but got none")
     }
@@ -56,10 +59,13 @@ fn continue_not_in_loop() {
         "
     );
     if let Err(msg) = result {
-        assert_eq!(CompileError::CodeGenError {
-            message: "Cannot continue loop when not inside a loop".into(),
-            location: crate::ast::SourceRange::new(95..103),
-        }, msg);
+        assert_eq!(
+            CompileError::CodeGenError {
+                message: "Cannot continue loop when not inside a loop".into(),
+                location: crate::ast::SourceRange::new(95..103),
+            },
+            msg
+        );
     } else {
         panic!("expected code-gen error but got none")
     }
