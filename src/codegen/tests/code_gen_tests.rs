@@ -1263,13 +1263,16 @@ fn for_statement_with_steps_test() {
         r#"store i32 3, i32* %x, align 4
   br label %condition_check
 
-condition_check:                                  ; preds = %for_body, %entry
+condition_check:                                  ; preds = %increment, %entry
   %load_x = load i32, i32* %x, align 4
   %tmpVar = icmp sle i32 %load_x, 10
   br i1 %tmpVar, label %for_body, label %continue
 
 for_body:                                         ; preds = %condition_check
   %load_x1 = load i32, i32* %x, align 4
+  br label %increment
+
+increment:                                        ; preds = %for_body
   %tmpVar2 = add i32 %load_x, 7
   store i32 %tmpVar2, i32* %x, align 4
   br label %condition_check
@@ -1306,13 +1309,16 @@ fn for_statement_without_steps_test() {
         r#"store i32 3, i32* %x, align 4
   br label %condition_check
 
-condition_check:                                  ; preds = %for_body, %entry
+condition_check:                                  ; preds = %increment, %entry
   %load_x = load i32, i32* %x, align 4
   %tmpVar = icmp sle i32 %load_x, 10
   br i1 %tmpVar, label %for_body, label %continue
 
 for_body:                                         ; preds = %condition_check
   %load_x1 = load i32, i32* %x, align 4
+  br label %increment
+
+increment:                                        ; preds = %for_body
   %tmpVar2 = add i32 %load_x, 1
   store i32 %tmpVar2, i32* %x, align 4
   br label %condition_check
@@ -1349,12 +1355,15 @@ fn for_statement_continue() {
         r#"store i32 3, i32* %x, align 4
   br label %condition_check
 
-condition_check:                                  ; preds = %for_body, %entry
+condition_check:                                  ; preds = %increment, %entry
   %load_x = load i32, i32* %x, align 4
   %tmpVar = icmp sle i32 %load_x, 10
   br i1 %tmpVar, label %for_body, label %continue
 
 for_body:                                         ; preds = %condition_check
+  br label %increment
+
+increment:                                        ; preds = %for_body
   %tmpVar1 = add i32 %load_x, 1
   store i32 %tmpVar1, i32* %x, align 4
   br label %condition_check
@@ -1396,7 +1405,7 @@ fn for_statement_with_references_steps_test() {
   store i32 %load_y, i32* %x, align 4
   br label %condition_check
 
-condition_check:                                  ; preds = %for_body, %entry
+condition_check:                                  ; preds = %increment, %entry
   %load_x = load i32, i32* %x, align 4
   %load_z = load i32, i32* %z, align 4
   %tmpVar = icmp sle i32 %load_x, %load_z
@@ -1404,6 +1413,9 @@ condition_check:                                  ; preds = %for_body, %entry
 
 for_body:                                         ; preds = %condition_check
   %load_x1 = load i32, i32* %x, align 4
+  br label %increment
+
+increment:                                        ; preds = %for_body
   %load_step = load i32, i32* %step, align 4
   %tmpVar2 = add i32 %load_x, %load_step
   store i32 %tmpVar2, i32* %x, align 4

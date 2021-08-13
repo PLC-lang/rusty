@@ -38,6 +38,11 @@ pub struct StatementCodeGenerator<'a, 'b> {
 
     pub load_prefix: String,
     pub load_suffix: String,
+
+    /// the block to jump to when you want to exit the loop
+    pub current_loop_exit: Option<BasicBlock<'a>>,
+    /// the block to jump to when you want to continue the loop
+    pub current_loop_continue: Option<BasicBlock<'a>>,
 }
 
 impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
@@ -59,6 +64,8 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
             function_context: linking_context,
             load_prefix: "load_".to_string(),
             load_suffix: "".to_string(),
+            current_loop_exit: None,
+            current_loop_continue: None,
         }
     }
 
@@ -239,10 +246,15 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
             .llvm
             .context
             .append_basic_block(current_function, "for_body");
+        let increment_block = self
+            .llvm
+            .context
+            .append_basic_block(current_function, "increment");
         let continue_block = self
             .llvm
             .context
             .append_basic_block(current_function, "continue");
+
         //Generate an initial jump to the for condition
         builder.build_unconditional_branch(condition_check);
 
@@ -262,9 +274,18 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
 
         //Enter the for loop
         builder.position_at_end(for_body);
-        self.generate_body(body)?;
+        let body_generator = StatementCodeGenerator {
+            current_loop_exit: Some(continue_block),
+            current_loop_continue: Some(increment_block),
+            load_prefix: self.load_prefix.clone(),
+            load_suffix: self.load_suffix.clone(),
+            ..*self
+        };
+        body_generator.generate_body(body)?;
+        builder.build_unconditional_branch(increment_block);
 
         //Increment
+        builder.position_at_end(increment_block);
         let expression_generator = self.create_expr_generator();
         let (_, step_by_value) = by_step.as_ref().map_or_else(
             || {
@@ -528,7 +549,14 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
 
         //Enter the for loop
         builder.position_at_end(while_body);
-        self.generate_body(&body)?;
+        let body_generator = StatementCodeGenerator {
+            current_loop_exit: Some(continue_block),
+            current_loop_continue: Some(condition_check),
+            load_prefix: self.load_prefix.clone(),
+            load_suffix: self.load_suffix.clone(),
+            ..*self
+        };
+        body_generator.generate_body(&body)?;
         //Loop back
         builder.build_unconditional_branch(condition_check);
 

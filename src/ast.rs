@@ -523,6 +523,12 @@ pub enum Statement {
     CaseCondition {
         condition: Box<Statement>,
     },
+    ExitStatement {
+        location: SourceRange,
+    },
+    ContinueStatement {
+        location: SourceRange,
+    },
     ReturnStatement {
         location: SourceRange,
     },
@@ -733,6 +739,8 @@ impl Debug for Statement {
                 .field("condition", condition)
                 .finish(),
             Statement::ReturnStatement { .. } => f.debug_struct("ReturnStatement").finish(),
+            Statement::ContinueStatement { .. } => f.debug_struct("ContinueStatement").finish(),
+            Statement::ExitStatement { .. } => f.debug_struct("ExitStatement").finish(),
         }
     }
 }
@@ -812,6 +820,8 @@ impl Statement {
             Statement::MultipliedStatement { location, .. } => location.clone(),
             Statement::CaseCondition { condition } => condition.get_location(),
             Statement::ReturnStatement { location } => location.clone(),
+            Statement::ContinueStatement { location } => location.clone(),
+            Statement::ExitStatement { location } => location.clone(),
         }
     }
 }
