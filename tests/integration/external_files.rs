@@ -8,7 +8,10 @@ use rusty::{FilePath, compile_to_bitcode, compile_to_ir, compile_to_shared_objec
 
 fn compile_all(name : &str, encoding : Option<&'static Encoding>) {
     let path = get_file(name);
-    let out = format!("{}.out", &path);
+    let mut out = env::temp_dir();
+    let out_name = format!("{}.out", &name);
+    out.push(out_name);
+    let out = out.into_os_string().into_string().unwrap();
     compile_to_ir(vec![FilePath{path : path.clone()}], encoding, &out).unwrap();
     fs::remove_file(&out).unwrap();
     compile_to_bitcode(vec![FilePath{path : path.clone()}], encoding, &out).unwrap();
@@ -35,13 +38,11 @@ fn get_file(name : &str) -> String {
 
 }
 
-#[ignore = "ends in endless build in cargo watch"]
 #[test]
 fn compile_external_file() {
     compile_all("test_file.st", None);
 }
 
-#[ignore = "ends in endless build in cargo watch"]
 #[test]
 fn compile_external_file_with_encoding() {
     compile_all("encoding_utf_16.st", None);
