@@ -11,14 +11,15 @@ use crate::{
 
 pub struct StatementValidator<'i> {
     index: &'i Index,
+    pub diagnostics: Vec<Diagnostic>,
 }
 
 impl<'i> StatementValidator<'i> {
     pub fn new(index: &'i Index) -> StatementValidator {
-        StatementValidator { index }
+        StatementValidator { index , diagnostics: Vec::new() }
     }
 
-    pub fn validate_statement(&self, statement: &Statement, context: &mut ValidationContext) {
+    pub fn validate_statement(&mut self, statement: &Statement, context: &ValidationContext) {
         match statement {
             // Statement::LiteralInteger { value, location } => todo!(),
             // Statement::LiteralDate { year, month, day, location } => todo!(),
@@ -31,8 +32,8 @@ impl<'i> StatementValidator<'i> {
             // Statement::LiteralArray { elements, location } => todo!(),
             // Statement::MultipliedStatement { multiplier, element, location } => todo!(),
             // Statement::QualifiedReference { elements } => todo!(),
-            Statement::Reference { name, location } => {
-                self.validate_reference(name, location, context)
+            Statement::Reference { name, location, id, .. } => {
+                self.validate_reference(id, name, location, context);
             }
             // Statement::ArrayAccess { reference, access } => todo!(),
             // Statement::BinaryExpression { operator, left, right } => todo!(),
@@ -54,29 +55,14 @@ impl<'i> StatementValidator<'i> {
     }
 
     fn validate_reference(
-        &self,
+        &mut self,
+        id: &usize,
         ref_name: &str,
         location: &SourceRange,
-        context: &mut ValidationContext,
+        context: &ValidationContext,
     ) {
-        if let Some(qualifier) = context.current_qualifier {
-            if self.index.find_member(qualifier, ref_name).is_none() {
-                context.report(Diagnostic::unrseolved_reference(
-                    format!("{}.{}", qualifier, ref_name).as_str(),
-                    location.clone(),
-                ));
-            }
-        } else if let Some(pou_name) = context.current_pou {
-            if self.index.find_member(pou_name, ref_name).is_none()
-                && self.index.find_global_variable(ref_name).is_none()
-                && self.index.find_implementation(ref_name).is_none()
-                && self
-                    .index
-                    .find_implementation(format!("{}.{}", pou_name, ref_name).as_str())
-                    .is_none()
-            {
-                context.report(Diagnostic::unrseolved_reference(ref_name, location.clone()));
-            }
+        if !context.ast_annotation.has_type_annotation(id) {
+            self.diagnostics.push(Diagnostic::unrseolved_reference(ref_name, location.clone()));
         }
     }
 }
@@ -102,6 +88,9 @@ mod statement_validation_tests {
                 gb;
                 foo(a);
                 boo(c);
+                foo(x := a);
+                foo(x := c);
+                foo(y := a);
 
             END_PROGRAM
 
@@ -109,8 +98,7 @@ mod statement_validation_tests {
                 VAR_INPUT x : INT; END_VAR
             END_FUNCTION
         ",
-        )
-        .unwrap();
+        );
 
         assert_eq!(
             diagnostics,
@@ -119,6 +107,8 @@ mod statement_validation_tests {
                 Diagnostic::unrseolved_reference("gb", (207..209).into()),
                 Diagnostic::unrseolved_reference("boo", (251..254).into()),
                 Diagnostic::unrseolved_reference("c", (255..256).into()),
+                Diagnostic::unrseolved_reference("c", (313..314).into()),
+                Diagnostic::unrseolved_reference("y", (337..338).into()),
             ]
         );
     }

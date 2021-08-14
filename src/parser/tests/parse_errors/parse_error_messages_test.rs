@@ -36,10 +36,7 @@ fn test_unexpected_token_error_message2() {
     );
     let parse_result = parse(lexer);
     assert_eq!(
-        &Diagnostic::syntax_error(
-            "Unexpected token: expected StartKeyword but found SOME".into(),
-            (0..4).into()
-        ),
+        &Diagnostic::unexpected_token_found("StartKeyword", "SOME", (0..4).into()),
         parse_result.1.first().unwrap()
     );
 }
@@ -58,10 +55,7 @@ fn for_with_unexpected_token_1() {
     );
     let parse_result = parse(lexer);
     assert_eq!(
-        &Diagnostic::syntax_error(
-            "Unexpected token: expected KeywordAssignment but found ALPHA".into(),
-            (36..41).into()
-        ),
+        &Diagnostic::unexpected_token_found("KeywordAssignment", "ALPHA", (36..41).into()),
         parse_result.1.first().unwrap()
     );
 }
@@ -80,10 +74,7 @@ fn for_with_unexpected_token_2() {
     );
     let parse_result = parse(lexer);
     assert_eq!(
-        &Diagnostic::syntax_error(
-            "Unexpected token: expected KeywordTo but found BRAVO".into(),
-            (41..46).into()
-        ),
+        &Diagnostic::unexpected_token_found("KeywordTo", "BRAVO", (41..46).into()),
         parse_result.1.first().unwrap()
     );
 }
@@ -102,11 +93,9 @@ fn if_then_with_unexpected_token() {
         ",
     );
     let parse_result = parse(lexer);
+
     assert_eq!(
-        &Diagnostic::syntax_error(
-            "Unexpected token: expected KeywordThen but found CHARLIE".into(),
-            (38..45).into()
-        ),
+        &Diagnostic::unexpected_token_found("KeywordThen", "CHARLIE", (38..45).into()),
         parse_result.1.first().unwrap()
     );
 }
@@ -124,10 +113,7 @@ fn case_with_unexpected_token() {
     );
     let parse_result = parse(lexer);
     assert_eq!(
-        &Diagnostic::syntax_error(
-            "Unexpected token: expected KeywordOf but found DELTA".into(),
-            (48..53).into()
-        ),
+        &Diagnostic::unexpected_token_found("KeywordOf", "DELTA", (48..53).into()),
         parse_result.1.first().unwrap()
     );
 }

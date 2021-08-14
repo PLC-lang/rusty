@@ -2,7 +2,10 @@ use crate::ast::UserTypeDeclaration;
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use std::vec;
 
-use super::{super::ast::{CompilationUnit, DataType, DataTypeDeclaration, Variable}, SourceRange};
+use super::{
+    super::ast::{CompilationUnit, DataType, DataTypeDeclaration, Variable},
+    SourceRange,
+};
 
 pub fn pre_process(unit: &mut CompilationUnit) {
     //process all local variables from POUs
@@ -65,8 +68,10 @@ fn pre_process_variable_data_type(
     types: &mut Vec<UserTypeDeclaration>,
 ) {
     let new_type_name = format!("__{}_{}", container_name, variable.name);
-    if let DataTypeDeclaration::DataTypeDefinition { mut data_type, location } =
-        variable.replace_data_type_with_reference_to(new_type_name.clone())
+    if let DataTypeDeclaration::DataTypeDefinition {
+        mut data_type,
+        location,
+    } = variable.replace_data_type_with_reference_to(new_type_name.clone())
     {
         // create index entry
         add_nested_datatypes(new_type_name.as_str(), &mut data_type, types, &location);
@@ -74,7 +79,7 @@ fn pre_process_variable_data_type(
         types.push(UserTypeDeclaration {
             data_type,
             initializer: None,
-            location: location.clone()
+            location,
         });
     }
     //make sure it gets generated
@@ -87,15 +92,22 @@ fn add_nested_datatypes(
     location: &SourceRange,
 ) {
     let new_type_name = format!("{}_", container_name);
-    if let Some(DataTypeDeclaration::DataTypeDefinition { mut data_type, location: inner_location }) =
-        datatype.replace_data_type_with_reference_to(new_type_name.clone(), location)
+    if let Some(DataTypeDeclaration::DataTypeDefinition {
+        mut data_type,
+        location: inner_location,
+    }) = datatype.replace_data_type_with_reference_to(new_type_name.clone(), location)
     {
         data_type.set_name(new_type_name.clone());
-        add_nested_datatypes(new_type_name.as_str(), &mut data_type, types, &inner_location);
+        add_nested_datatypes(
+            new_type_name.as_str(),
+            &mut data_type,
+            types,
+            &inner_location,
+        );
         types.push(UserTypeDeclaration {
             data_type,
             initializer: None,
-            location: location.clone()
+            location: location.clone(),
         });
     }
 }

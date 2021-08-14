@@ -66,8 +66,8 @@ pub fn parse(mut lexer: ParseSession) -> ParsedAst {
             KeywordEndActions | End => return (unit, lexer.diagnostics),
             _ => {
                 lexer.accept_diagnostic(Diagnostic::unexpected_token_found(
-                    "StartKeyword".to_string(),
-                    lexer.slice().to_string(),
+                    "StartKeyword",
+                    lexer.slice(),
                     lexer.location(),
                 ));
                 lexer.advance();
@@ -103,8 +103,8 @@ fn parse_actions(
                 }
                 _ => {
                     lexer.accept_diagnostic(Diagnostic::unexpected_token_found(
-                        "KeywordAction".to_string(),
-                        lexer.slice().to_string(),
+                        "KeywordAction",
+                        lexer.slice(),
                         lexer.location(),
                     ));
                     return impls;
@@ -217,7 +217,7 @@ fn parse_pou(
     //check if we ended on the right end-keyword
     if closing_tokens.contains(&lexer.last_token) && lexer.last_token != expected_end_token {
         lexer.accept_diagnostic(Diagnostic::unexpected_token_found(
-            format!("{:?}", expected_end_token),
+            format!("{:?}", expected_end_token).as_str(),
             lexer.slice_region(lexer.last_range.clone()).into(),
             SourceRange::new(lexer.last_range.clone()),
         ));
@@ -256,13 +256,17 @@ fn parse_return_type(lexer: &mut ParseSession, pou_type: PouType) -> Option<Data
                     SourceRange::new(start_return_type..lexer.range().end),
                 ));
             }
+            let location = lexer.location();
             let referenced_type = lexer.slice_and_advance();
-            Some(DataTypeDeclaration::DataTypeReference { referenced_type })
+            Some(DataTypeDeclaration::DataTypeReference {
+                referenced_type,
+                location,
+            })
         } else {
             //missing return type
             lexer.accept_diagnostic(Diagnostic::unexpected_token_found(
-                "Datatype".to_string(),
-                lexer.slice().to_string(),
+                "Datatype",
+                lexer.slice(),
                 SourceRange::new(lexer.range()),
             ));
             None
@@ -354,8 +358,8 @@ fn parse_identifier(lexer: &mut ParseSession) -> Option<String> {
         Some(pou_name)
     } else {
         lexer.accept_diagnostic(Diagnostic::unexpected_token_found(
-            "Identifier".into(),
-            pou_name,
+            "Identifier",
+            pou_name.as_str(),
             lexer.location(),
         ));
         None
@@ -418,7 +422,7 @@ fn parse_action(
         //lets see if we ended on the right END_ keyword
         if closing_tokens.contains(&lexer.last_token) && lexer.last_token != KeywordEndAction {
             lexer.accept_diagnostic(Diagnostic::unexpected_token_found(
-                format!("{:?}", KeywordEndAction),
+                format!("{:?}", KeywordEndAction).as_str(),
                 lexer.slice().into(),
                 lexer.location(),
             ))
@@ -431,14 +435,14 @@ fn parse_action(
 fn parse_type(lexer: &mut ParseSession) -> Option<UserTypeDeclaration> {
     lexer.advance(); // consume the TYPE
     let start = lexer.location().get_start();
-    let name = slice_and_advance(lexer);
-    consume_or_report!(KeywordColon, lexer);
+    let name = lexer.slice_and_advance();
+    lexer.consume_or_report(KeywordColon);
 
     let result = parse_full_data_type_definition(lexer, Some(name));
 
     if let Some((DataTypeDeclaration::DataTypeDefinition { data_type, .. }, initializer)) = result {
         let end = lexer.last_range.end;
-        consume_or_report!(KeywordEndType, lexer);
+        lexer.consume_or_report(KeywordEndType);
         Some(UserTypeDeclaration {
             data_type,
             initializer,
@@ -496,6 +500,7 @@ fn parse_data_type_definition(
     lexer: &mut ParseSession,
     name: Option<String>,
 ) -> Option<DataTypeWithInitializer> {
+    let start = lexer.location().get_start();
     if lexer.allow(&KeywordStruct) {
         // Parse struct
         let variables = parse_variable_list(lexer);
@@ -517,8 +522,8 @@ fn parse_data_type_definition(
     } else {
         //no datatype?
         lexer.accept_diagnostic(Diagnostic::unexpected_token_found(
-            "DataTypeDefinition".into(),
-            format!("{:?}", lexer.token),
+            "DataTypeDefinition",
+            format!("{:?}", lexer.token).as_str(),
             lexer.location(),
         ));
         None
@@ -529,6 +534,7 @@ fn parse_type_reference_type_definition(
     lexer: &mut ParseSession,
     name: Option<String>,
 ) -> Option<(DataTypeDeclaration, Option<Statement>)> {
+    let start = lexer.location().get_start();
     //Subrange
     let referenced_type = lexer.slice_and_advance();
 
@@ -548,6 +554,7 @@ fn parse_type_reference_type_definition(
         None
     };
 
+    let end = lexer.last_range.end;
     if name.is_some() || bounds.is_some() {
         let data_type = DataTypeDeclaration::DataTypeDefinition {
             data_type: DataType::SubRangeType {
@@ -560,7 +567,10 @@ fn parse_type_reference_type_definition(
         Some((data_type, initial_value))
     } else {
         Some((
-            DataTypeDeclaration::DataTypeReference { referenced_type },
+            DataTypeDeclaration::DataTypeReference {
+                referenced_type,
+                location: (start..end).into(),
+            },
             initial_value,
         ))
     }
@@ -601,10 +611,12 @@ fn parse_string_type_definition(
     lexer: &mut ParseSession,
     name: Option<String>,
 ) -> Option<(DataTypeDeclaration, Option<Statement>)> {
+    let start = lexer.location().get_start();
     let is_wide = lexer.token == KeywordWideString;
     lexer.advance();
 
     let size = parse_string_size_expression(lexer);
+    let end = lexer.last_range.end;
 
     Some((
         DataTypeDeclaration::DataTypeDefinition {
@@ -625,18 +637,19 @@ fn parse_enum_type_definition(
     lexer: &mut ParseSession,
     name: Option<String>,
 ) -> Option<(DataTypeDeclaration, Option<Statement>)> {
+    let start = lexer.last_range.start;
     let elements = parse_any_in_region(lexer, vec![KeywordParensClose], |lexer| {
         // Parse Enum - we expect at least one element
 
         let mut elements = Vec::new();
         //we expect at least one element
         if lexer.token == Identifier {
-            elements.push(slice_and_advance(lexer));
+            elements.push(lexer.slice_and_advance());
         }
         //parse additional elements separated by ,
-        while allow(KeywordComma, lexer) {
-            expect!(Identifier, lexer);
-            elements.push(slice_and_advance(lexer));
+        while lexer.allow(&KeywordComma) {
+            lexer.expect(Identifier);
+            elements.push(lexer.slice_and_advance());
         }
         Some(elements)
     })?;
@@ -654,6 +667,7 @@ fn parse_array_type_definition(
     lexer: &mut ParseSession,
     name: Option<String>,
 ) -> Option<(DataTypeDeclaration, Option<Statement>)> {
+    let start = lexer.last_range.start;
     let range = parse_any_in_region(lexer, vec![KeywordOf], |lexer| {
         // Parse Array range
 
@@ -670,7 +684,7 @@ fn parse_array_type_definition(
 
     let inner_type_defintion = parse_data_type_definition(lexer, None);
     inner_type_defintion.map(|(reference, initializer)| {
-        let end = reference.get_location().get_end();
+        let location = SourceRange::new(start..reference.get_location().get_end());
         (
             DataTypeDeclaration::DataTypeDefinition {
                 data_type: DataType::ArrayType {
@@ -678,7 +692,7 @@ fn parse_array_type_definition(
                     bounds: range,
                     referenced_type: Box::new(reference),
                 },
-                location: (start..end).into(),
+                location,
             },
             initializer,
         )
@@ -809,7 +823,7 @@ fn parse_variable_line(lexer: &mut ParseSession) -> Vec<Variable> {
         if !lexer.allow(&KeywordComma) {
             let next_token_start = lexer.location().get_start();
             lexer.accept_diagnostic(Diagnostic::missing_token(
-                format!("{:?} or {:?}", KeywordColon, KeywordComma),
+                format!("{:?} or {:?}", KeywordColon, KeywordComma).as_str(),
                 SourceRange::new(identifier_end..next_token_start),
             ));
         }
@@ -818,7 +832,7 @@ fn parse_variable_line(lexer: &mut ParseSession) -> Vec<Variable> {
     // colon has to come before the data type
     if !lexer.allow(&KeywordColon) {
         lexer.accept_diagnostic(Diagnostic::missing_token(
-            format!("{:?}", KeywordColon),
+            format!("{:?}", KeywordColon).as_str(),
             lexer.location(),
         ));
     }

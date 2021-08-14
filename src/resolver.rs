@@ -107,10 +107,20 @@ impl AnnotationMap {
 
     /// returns the annotated type or void if none was annotated
     pub fn get_type<'i>(&self, s: &Statement, index: &'i Index) -> &'i typesystem::DataType {
+        self.get_type_by_id(&s.get_id(), index)
+    }
+
+
+    /// returns the annotated type or void if none was annotated
+    pub fn get_type_by_id<'i>(&self, id: &usize, index: &'i Index) -> &'i typesystem::DataType {
         self.type_map
-            .get(&s.get_id())
+            .get(id)
             .and_then(|name| index.get_type(name).ok())
             .unwrap_or_else(|| index.get_void_type())
+    }
+
+    pub fn has_type_annotation(&self, id: &usize) -> bool {
+        self.type_map.contains_key(id)
     }
 }
 
@@ -179,7 +189,7 @@ impl<'i> TypeAnnotator<'i> {
         ctx: &VisitorContext,
         declaration: &DataTypeDeclaration,
     ) {
-        if let DataTypeDeclaration::DataTypeDefinition { data_type } = declaration {
+        if let DataTypeDeclaration::DataTypeDefinition { data_type, .. } = declaration {
             self.visit_data_type(ctx, data_type);
         }
     }

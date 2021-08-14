@@ -89,7 +89,7 @@ fn actions_with_invalid_token() {
     assert_eq!(
         errors.first().unwrap(),
         &Diagnostic::unexpected_token_found(
-            "KeywordAction".to_string(),
+            "KeywordAction",
             "BRAVO".into(),
             (13..18).into()
         )

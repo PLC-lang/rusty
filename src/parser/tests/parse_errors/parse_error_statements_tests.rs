@@ -179,10 +179,7 @@ fn incomplete_statement_test() {
 
     assert_eq!(
         diagnostics[0],
-        Diagnostic::syntax_error(
-            "Unexpected token: expected Literal but found ;".into(),
-            SourceRange::new(41..42)
-        )
+        Diagnostic::unexpected_token_found("Literal", ";", (41..42).into())
     );
 }
 
@@ -227,10 +224,7 @@ fn incomplete_statement_in_parantheses_recovery_test() {
 
     assert_eq!(
         diagnostics[0],
-        Diagnostic::syntax_error(
-            "Unexpected token: expected Literal but found )".into(),
-            SourceRange::new(43..44)
-        )
+        Diagnostic::unexpected_token_found("Literal", ")", (43..44).into())
     );
 }
 
@@ -307,7 +301,7 @@ fn invalid_variable_name_error_recovery() {
     assert_eq!(
         diagnostics[0],
         Diagnostic::unexpected_token_found(
-            format!("{:?}", Token::KeywordEndVar),
+            format!("{:?}", Token::KeywordEndVar).as_str(),
             "'4 : INT;'".into(),
             SourceRange::new(77..85)
         )
@@ -705,8 +699,9 @@ fn test_nested_repeat_with_missing_condition_and_end_repeat() {
     assert_eq!(
         diagnostics,
         vec![
-            Diagnostic::syntax_error(
-                "Unexpected token: expected Literal but found END_PROGRAM".into(),
+            Diagnostic::unexpected_token_found(
+                "Literal".into(),
+                "END_PROGRAM".into(),
                 (171..182).into()
             ),
             Diagnostic::missing_token("[KeywordEndRepeat]".into(), (171..182).into()),
@@ -1064,9 +1059,10 @@ fn test_case_without_condition() {
 
     assert_eq!(
         diagnostics,
-        vec![Diagnostic::syntax_error(
-            "Unexpected token: expected Literal but found :".into(),
+        vec![Diagnostic::unexpected_token_found(
+            "Literal",
+            ":",
             (85..86).into()
-        ),]
+        )]
     );
 }

@@ -10,66 +10,63 @@ use super::ValidationContext;
 
 pub struct VariableValidator<'i> {
     index: &'i Index,
+    pub diagnostics: Vec<Diagnostic>,
 }
 
 impl<'i> VariableValidator<'i> {
     pub fn new(index: &'i Index) -> VariableValidator {
-        VariableValidator { index }
+        VariableValidator { index, diagnostics: Vec::new() }
     }
 
-    pub fn validate_variable_block(&self, _block: &VariableBlock, _da: &mut ValidationContext) {}
+    pub fn validate_variable_block(&self, _block: &VariableBlock) {}
 
-    pub fn validate_variable(&self, _variable: &Variable, _da: &mut ValidationContext) {}
+    pub fn validate_variable(&self, _variable: &Variable) {}
 
     pub fn validate_data_type_declaration(
         &self,
         _declaration: &DataTypeDeclaration,
-        _da: &mut ValidationContext,
     ) {
     }
 
     pub fn validate_data_type(
-        &self,
+        &mut self,
         declaration: &DataType,
-        location: &SourceRange,
-        context: &mut ValidationContext,
+        location: &SourceRange
     ) {
         match declaration {
             DataType::StructType { variables, .. } => {
                 if variables.is_empty() {
-                    context.report(Diagnostic::empty_variable_block(location.clone()));
+                    self.diagnostics.push(Diagnostic::empty_variable_block(location.clone()));
                 }
             }
             DataType::EnumType { elements, .. } => {
                 if elements.is_empty() {
-                    context.report(Diagnostic::empty_variable_block(location.clone()));
+                    self.diagnostics.push(Diagnostic::empty_variable_block(location.clone()));
                 }
             }
             DataType::SubRangeType {
                 name,
                 referenced_type,
                 bounds,
-            } => todo!(),
+            } => {},
             DataType::ArrayType {
                 name,
                 bounds,
                 referenced_type,
-            } => todo!(),
+            } => {},
             DataType::StringType {
                 name,
                 is_wide,
                 size,
-            } => todo!(),
-            DataType::VarArgs { referenced_type } => todo!(),
+            } => {},
+            DataType::VarArgs { referenced_type } => {},
         }
     }
 }
 
 #[cfg(test)]
 mod variable_validator_tests {
-    use crate::{Diagnostic, validation::{validation_tests::parse_and_validate}};
-
-    
+    use crate::{validation::validation_tests::parse_and_validate, Diagnostic};
 
     #[test]
     fn validate_empty_struct_declaration() {
@@ -84,8 +81,7 @@ mod variable_validator_tests {
             END_VAR
         END_PROGRAM
         ",
-        )
-        .unwrap();
+        );
 
         assert_eq!(
             diagnostics,
@@ -108,8 +104,7 @@ mod variable_validator_tests {
             END_VAR
         END_PROGRAM
         ",
-        )
-        .unwrap();
+        );
 
         assert_eq!(
             diagnostics,

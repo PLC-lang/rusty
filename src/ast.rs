@@ -270,11 +270,20 @@ impl DataTypeDeclaration {
     }
 }
 
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq)]
 pub struct UserTypeDeclaration {
     pub data_type: DataType,
     pub initializer: Option<Statement>,
     pub location: SourceRange,
+}
+
+impl Debug for UserTypeDeclaration {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+        f.debug_struct("UserTypeDeclaration")
+            .field("data_type", &self.data_type)
+            .field("initializer", &self.initializer)
+            .finish()
+    }
 }
 
 #[derive(Clone, PartialEq)]
