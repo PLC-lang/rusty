@@ -501,6 +501,19 @@ fn parse_data_type_definition(
         ))
     } else if lexer.allow(&KeywordArray) {
         parse_array_type_definition(lexer, name)
+    } else if lexer.allow(&KeywordPointer) {
+        //Report wrong keyword
+        lexer.accept_diagnostic(Diagnostic::ImprovementSuggestion {
+            message: "'POINTER TO' is not a standard keyword, use REF_TO instead".to_string(),
+            range: lexer.last_location(),
+        });
+        if let Err(diag) = lexer.expect(KeywordTo) {
+            lexer.accept_diagnostic(diag);
+        }
+        lexer.advance();
+        parse_pointer_definition(lexer, name)
+    } else if lexer.allow(&KeywordRef) {
+        parse_pointer_definition(lexer, name)
     } else if lexer.allow(&KeywordParensOpen) {
         parse_enum_type_definition(lexer, name)
     } else if lexer.token == KeywordString || lexer.token == KeywordWideString {
@@ -516,6 +529,23 @@ fn parse_data_type_definition(
         ));
         None
     }
+}
+
+fn parse_pointer_definition(
+    lexer: &mut ParseSession,
+    name: Option<String>,
+) -> Option<(DataTypeDeclaration, Option<Statement>)> {
+    parse_type_reference_type_definition(lexer, None).map(|(decl, initializer)| {
+        (
+            DataTypeDeclaration::DataTypeDefinition {
+                data_type: DataType::PointerType {
+                    name,
+                    referenced_type: Box::new(decl),
+                },
+            },
+            initializer,
+        )
+    })
 }
 
 fn parse_type_reference_type_definition(

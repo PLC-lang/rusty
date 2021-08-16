@@ -295,6 +295,7 @@ fn visit_data_type(index: &mut Index, type_declatation: &UserTypeDeclaration) {
                 information,
             )
         }
+        DataType::PointerType { .. } => todo!(),
         DataType::StringType {
             name,
             size,

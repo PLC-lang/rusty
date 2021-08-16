@@ -539,13 +539,19 @@ fn pointers_and_references_keyword() {
     let mut lexer = lex(r#"
     POINTER TO x 
     REF_TO x
+    REFTO x
     &x
     x^
+    NULL
     "#);
 
     assert_eq!(lexer.token, KeywordPointer);
     lexer.advance();
     assert_eq!(lexer.token, KeywordTo);
+    lexer.advance();
+    assert_eq!(lexer.slice(), "x");
+    lexer.advance();
+    assert_eq!(lexer.token, KeywordRef);
     lexer.advance();
     assert_eq!(lexer.slice(), "x");
     lexer.advance();
@@ -561,12 +567,14 @@ fn pointers_and_references_keyword() {
     lexer.advance();
     assert_eq!(lexer.token, OperatorDeref);
     lexer.advance();
+    assert_eq!(lexer.token, LiteralNull);
+    lexer.advance();
 }
 
 #[test]
 fn multi_named_keywords_without_underscore_test() {
     let mut lexer = lex(
-        "VARINPUT VARGLOBAL VARINOUT ENDVAR ENDPROGRAM ENDFUNCTION ENDCASE
+        "VARINPUT VARGLOBAL VARINOUT REFTO ENDVAR ENDPROGRAM ENDFUNCTION ENDCASE
         VAROUTPUT FUNCTIONBLOCK ENDFUNCTIONBLOCK ENDSTRUCT ENDACTION
         ENDACTIONS ENDIF ENDFOR ENDREPEAT",
     );
@@ -575,7 +583,7 @@ fn multi_named_keywords_without_underscore_test() {
         lexer.advance();
     }
 
-    assert_eq!(lexer.diagnostics.len(), 16);
+    assert_eq!(lexer.diagnostics.len(), 17);
 
     let d1 = lexer.diagnostics.first().unwrap();
     let d2 = lexer.diagnostics.last().unwrap();
@@ -590,5 +598,5 @@ fn multi_named_keywords_without_underscore_test() {
         d2.get_message(),
         "the words in ENDREPEAT should be separated by a '_'"
     );
-    assert_eq!(d2.get_location(), SourceRange::new(167..176));
+    assert_eq!(d2.get_location(), SourceRange::new(173..182));
 }

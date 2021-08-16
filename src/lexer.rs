@@ -118,6 +118,7 @@ impl<'a> ParseSession<'a> {
             | Token::KeywordVarOutput
             | Token::KeywordVarGlobal
             | Token::KeywordVarInOut
+            | Token::KeywordRef
             | Token::KeywordEndVar
             | Token::KeywordEndProgram
             | Token::KeywordEndFunction
@@ -152,6 +153,10 @@ impl<'a> ParseSession<'a> {
 
     pub fn location(&self) -> SourceRange {
         SourceRange::new(self.range())
+    }
+
+    pub fn last_location(&self) -> SourceRange {
+        SourceRange::new(self.last_range.clone())
     }
 
     pub fn range(&self) -> Range<usize> {

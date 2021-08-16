@@ -259,6 +259,10 @@ pub enum DataType {
         bounds: Statement,
         referenced_type: Box<DataTypeDeclaration>,
     },
+    PointerType {
+        name: Option<String>,
+        referenced_type: Box<DataTypeDeclaration>,
+    },
     StringType {
         name: Option<String>,
         is_wide: bool, //WSTRING
@@ -302,6 +306,14 @@ impl Debug for DataType {
                 .field("bounds", bounds)
                 .field("referenced_type", referenced_type)
                 .finish(),
+            DataType::PointerType {
+                name,
+                referenced_type,
+            } => f
+                .debug_struct("PointerType")
+                .field("name", name)
+                .field("referenced_type", referenced_type)
+                .finish(),
             DataType::StringType {
                 name,
                 is_wide,
@@ -327,6 +339,7 @@ impl DataType {
             DataType::EnumType { name, elements: _ } => *name = Some(new_name),
             DataType::SubRangeType { name, .. } => *name = Some(new_name),
             DataType::ArrayType { name, .. } => *name = Some(new_name),
+            DataType::PointerType { name, .. } => *name = Some(new_name),
             DataType::StringType { name, .. } => *name = Some(new_name),
             DataType::VarArgs { .. } => {} //No names on varargs
         }
@@ -337,6 +350,7 @@ impl DataType {
             DataType::StructType { name, variables: _ } => name.as_ref().map(|x| x.as_str()),
             DataType::EnumType { name, elements: _ } => name.as_ref().map(|x| x.as_str()),
             DataType::ArrayType { name, .. } => name.as_ref().map(|x| x.as_str()),
+            DataType::PointerType { name, .. } => name.as_ref().map(|x| x.as_str()),
             DataType::StringType { name, .. } => name.as_ref().map(|x| x.as_str()),
             DataType::SubRangeType { name, .. } => name.as_ref().map(|x| x.as_str()),
             DataType::VarArgs { .. } => None,
@@ -564,12 +578,17 @@ pub enum Statement {
         location: SourceRange,
         id: AstId,
     },
+    NullStatement {
+        location: SourceRange,
+        id: AstId,
+    },
 }
 
 impl Debug for Statement {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
         match self {
             Statement::EmptyStatement { .. } => f.debug_struct("EmptyStatement").finish(),
+            Statement::NullStatement { .. } => f.debug_struct("NullStatement").finish(),
             Statement::LiteralInteger { value, .. } => f
                 .debug_struct("LiteralInteger")
                 .field("value", value)
@@ -789,6 +808,7 @@ impl Statement {
     pub fn get_location(&self) -> SourceRange {
         match self {
             Statement::EmptyStatement { location, .. } => location.clone(),
+            Statement::NullStatement { location, .. } => location.clone(),
             Statement::LiteralInteger { location, .. } => location.clone(),
             Statement::LiteralDate { location, .. } => location.clone(),
             Statement::LiteralDateAndTime { location, .. } => location.clone(),
@@ -862,6 +882,7 @@ impl Statement {
     pub fn get_id(&self) -> AstId {
         match self {
             Statement::EmptyStatement { id, .. } => *id,
+            Statement::NullStatement { id, .. } => *id,
             Statement::LiteralInteger { id, .. } => *id,
             Statement::LiteralDate { id, .. } => *id,
             Statement::LiteralDateAndTime { id, .. } => *id,
@@ -912,6 +933,8 @@ pub enum Operator {
     And,
     Or,
     Xor,
+    Address,
+    Deref,
 }
 
 impl Display for Operator {

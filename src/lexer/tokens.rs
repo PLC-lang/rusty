@@ -234,6 +234,7 @@ pub enum Token {
     KeywordPointer,
 
     #[token("REF_TO")]
+    #[token("REFTO")]
     KeywordRef,
 
     #[token("ARRAY")]
@@ -322,6 +323,9 @@ pub enum Token {
 
     #[regex("[eE][+-]?[0-9]+")]
     LiteralExponent,
+
+    #[token("NULL")]
+    LiteralNull,
 
     #[token("TRUE")]
     LiteralTrue,
