@@ -295,7 +295,23 @@ fn visit_data_type(index: &mut Index, type_declatation: &UserTypeDeclaration) {
                 information,
             )
         }
-        DataType::PointerType { .. } => todo!(),
+        DataType::PointerType {
+            name,
+            referenced_type,
+            ..
+        } => {
+            let inner_type_name = referenced_type.get_name().unwrap();
+            let information = DataTypeInformation::Pointer {
+                name: name.as_ref().unwrap().clone(),
+                inner_type_name: inner_type_name.into(),
+                auto_deref: false,
+            };
+            index.register_type(
+                name.as_ref().unwrap(),
+                type_declatation.initializer.clone(),
+                information,
+            )
+        }
         DataType::StringType {
             name,
             size,

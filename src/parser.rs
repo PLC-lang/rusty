@@ -535,7 +535,7 @@ fn parse_pointer_definition(
     lexer: &mut ParseSession,
     name: Option<String>,
 ) -> Option<(DataTypeDeclaration, Option<Statement>)> {
-    parse_type_reference_type_definition(lexer, None).map(|(decl, initializer)| {
+    parse_data_type_definition(lexer, None).map(|(decl, initializer)| {
         (
             DataTypeDeclaration::DataTypeDefinition {
                 data_type: DataType::PointerType {

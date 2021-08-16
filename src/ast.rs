@@ -362,22 +362,30 @@ impl DataType {
         &mut self,
         type_name: String,
     ) -> Option<DataTypeDeclaration> {
-        if let DataType::ArrayType {
-            referenced_type, ..
-        } = self
-        {
-            if let DataTypeDeclaration::DataTypeReference { .. } = **referenced_type {
-                return None;
-            }
-            let new_data_type = DataTypeDeclaration::DataTypeReference {
-                referenced_type: type_name,
-            };
-            let old_data_type = std::mem::replace(referenced_type, Box::new(new_data_type));
-            Some(*old_data_type)
-        } else {
-            None
+        match self {
+            DataType::ArrayType {
+                referenced_type, ..
+            } => replace_reference(referenced_type, type_name),
+            DataType::PointerType {
+                referenced_type, ..
+            } => replace_reference(referenced_type, type_name),
+            _ => None,
         }
     }
+}
+
+fn replace_reference(
+    referenced_type: &mut Box<DataTypeDeclaration>,
+    type_name: String,
+) -> Option<DataTypeDeclaration> {
+    if let DataTypeDeclaration::DataTypeReference { .. } = **referenced_type {
+        return None;
+    }
+    let new_data_type = DataTypeDeclaration::DataTypeReference {
+        referenced_type: type_name,
+    };
+    let old_data_type = std::mem::replace(referenced_type, Box::new(new_data_type));
+    Some(*old_data_type)
 }
 
 #[derive(Clone, PartialEq)]
