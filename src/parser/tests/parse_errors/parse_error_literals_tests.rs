@@ -174,6 +174,7 @@ fn string_with_round_parens_can_be_parsed() {
                     size: Some(LiteralInteger {
                         value: 253,
                         location: (10..11).into(),
+                        id: 0,
                     }),
                     is_wide: false,
                 },
@@ -185,6 +186,7 @@ fn string_with_round_parens_can_be_parsed() {
                     size: Some(LiteralInteger {
                         value: 254,
                         location: (10..11).into(),
+                        id: 0,
                     }),
                     is_wide: false,
                 },
@@ -192,6 +194,7 @@ fn string_with_round_parens_can_be_parsed() {
                     is_wide: false,
                     location: SourceRange::undefined(),
                     value: "abc".into(),
+                    id: 0,
                 }),
             },
             UserTypeDeclaration {
@@ -200,6 +203,7 @@ fn string_with_round_parens_can_be_parsed() {
                     size: Some(LiteralInteger {
                         value: 255,
                         location: (10..11).into(),
+                        id: 0,
                     }),
                     is_wide: false,
                 },

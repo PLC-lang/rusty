@@ -109,7 +109,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
             Statement::EmptyStatement { .. } => {
                 //nothing to generate
             }
-            Statement::Assignment { left, right } => {
+            Statement::Assignment { left, right, .. } => {
                 self.generate_assignment_statement(left, right)?;
             }
             Statement::ForLoopStatement {
@@ -145,7 +145,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
             } => {
                 self.generate_case_statement(selector, case_blocks, else_block)?;
             }
-            Statement::ReturnStatement { location } => {
+            Statement::ReturnStatement { location, .. } => {
                 self.pou_generator.generate_return_statement(
                     self.function_context,
                     self.llvm_index,
@@ -154,7 +154,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
                 )?;
                 self.generate_buffer_block();
             }
-            Statement::ExitStatement { location } => {
+            Statement::ExitStatement { location, .. } => {
                 if let Some(exit_block) = &self.current_loop_exit {
                     self.llvm.builder.build_unconditional_branch(*exit_block);
                     self.generate_buffer_block();
@@ -165,7 +165,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
                     });
                 }
             }
-            Statement::ContinueStatement { location } => {
+            Statement::ContinueStatement { location, .. } => {
                 if let Some(cont_block) = &self.current_loop_continue {
                     self.llvm.builder.build_unconditional_branch(*cont_block);
                     self.generate_buffer_block();
@@ -236,7 +236,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         &self,
         data_type: &DataTypeInformation,
     ) -> Option<&ImplementationIndexEntry> {
-        let effective_type = self.index.find_effective_type(data_type);
+        let effective_type = self.index.find_effective_type_information(data_type);
         match effective_type {
             Some(DataTypeInformation::Integer { signed, size, .. }) if *signed && *size <= 32 => {
                 self.index.find_implementation(RANGE_CHECK_S_FN)
@@ -328,6 +328,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
                 expression_generator.generate_literal(&Statement::LiteralInteger {
                     value: 1,
                     location: end.get_location(),
+                    id: 0, //TODO
                 })
             },
             |step| expression_generator.generate_expression(&step),
@@ -403,7 +404,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
             //flatten the expression list into a vector of expressions
             let expressions = flatten_expression_list(&*conditional_block.condition);
             for s in expressions {
-                if let Statement::RangeStatement { start, end } = s {
+                if let Statement::RangeStatement { start, end, .. } = s {
                     //if this is a range statement, we generate an if (x >= start && x <= end) then the else-section
                     builder.position_at_end(current_else_block);
                     // since the if's generate additional blocks, we use the last one as the else-section
@@ -688,10 +689,13 @@ fn create_call_to_check_function_ast(
         operator: Box::new(Statement::Reference {
             name: check_function_name,
             location: location.clone(),
+            id: 0, //TODO
         }),
         parameters: Box::new(Some(Statement::ExpressionList {
             expressions: vec![parameter, sub_range.start, sub_range.end],
+            id: 0, //TODO
         })),
         location: location.clone(),
+        id: 0, //TODO
     }
 }

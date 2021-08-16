@@ -234,6 +234,17 @@ impl Index {
         self.types.get(type_name)
     }
 
+    pub fn find_effective_type_by_name(&self, type_name: &str) -> Option<&DataType> {
+        self.find_type(type_name)
+            .and_then(|it| self.find_effective_type(it))
+    }
+
+    pub fn get_effective_type_by_name(&self, type_name: &str) -> &DataType {
+        self.find_type(type_name)
+            .and_then(|it| self.find_effective_type(it))
+            .unwrap_or(&self.void_type)
+    }
+
     pub fn get_type(&self, type_name: &str) -> Result<&DataType, CompileError> {
         self.find_type(type_name)
             .ok_or_else(|| CompileError::unknown_type(type_name, SourceRange::undefined()))
@@ -243,6 +254,27 @@ impl Index {
     /// An effective type will be any end type i.e. Structs, Integers, Floats, String and Array
     pub fn find_effective_type<'ret>(
         &'ret self,
+        data_type: &'ret DataType,
+    ) -> Option<&'ret DataType> {
+        match data_type.get_type_information() {
+            DataTypeInformation::SubRange {
+                referenced_type, ..
+            } => self
+                .find_type(&referenced_type)
+                .and_then(|it| self.find_effective_type(it)),
+            DataTypeInformation::Alias {
+                referenced_type, ..
+            } => self
+                .find_type(&referenced_type)
+                .and_then(|it| self.find_effective_type(it)),
+            _ => Some(data_type),
+        }
+    }
+
+    /// Retrieves the "Effective" type-information behind this datatype
+    /// An effective type will be any end type i.e. Structs, Integers, Floats, String and Array
+    pub fn find_effective_type_information<'ret>(
+        &'ret self,
         data_type: &'ret DataTypeInformation,
     ) -> Option<&'ret DataTypeInformation> {
         match data_type {
@@ -250,12 +282,12 @@ impl Index {
                 referenced_type, ..
             } => self
                 .find_type(&referenced_type)
-                .and_then(|it| self.find_effective_type(it.get_type_information())),
+                .and_then(|it| self.find_effective_type_information(it.get_type_information())),
             DataTypeInformation::Alias {
                 referenced_type, ..
             } => self
                 .find_type(&referenced_type)
-                .and_then(|it| self.find_effective_type(it.get_type_information())),
+                .and_then(|it| self.find_effective_type_information(it.get_type_information())),
             _ => Some(data_type),
         }
     }

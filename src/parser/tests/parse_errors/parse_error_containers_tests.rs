@@ -42,7 +42,8 @@ fn missing_pou_name() {
             "{:#?}",
             Statement::Reference {
                 name: "a".into(),
-                location: SourceRange::undefined()
+                location: SourceRange::undefined(),
+                id: 0
             }
         )
     );
@@ -81,7 +82,8 @@ fn missing_pou_name_2() {
             "{:#?}",
             Statement::Reference {
                 name: "x".into(),
-                location: SourceRange::undefined()
+                location: SourceRange::undefined(),
+                id: 0
             }
         )
     );
@@ -114,7 +116,8 @@ fn illegal_end_pou_keyword() {
             "{:#?}",
             vec![Statement::Reference {
                 name: "b".into(),
-                location: SourceRange::undefined()
+                location: SourceRange::undefined(),
+                id: 0
             }]
         )
     );
@@ -208,7 +211,8 @@ fn program_with_illegal_return_variable_declaration() {
             "{:#?}",
             vec![Statement::Reference {
                 name: "a".into(),
-                location: SourceRange::undefined()
+                location: SourceRange::undefined(),
+                id: 0
             }]
         )
     );

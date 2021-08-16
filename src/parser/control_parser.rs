@@ -27,19 +27,28 @@ pub fn parse_control_statement(lexer: &mut ParseSession) -> Statement {
 fn parse_return_statement(lexer: &mut ParseSession) -> Statement {
     let location = lexer.location();
     lexer.advance();
-    Statement::ReturnStatement { location }
+    Statement::ReturnStatement {
+        location,
+        id: lexer.next_id(),
+    }
 }
 
 fn parse_exit_statement(lexer: &mut ParseSession) -> Statement {
     let location = lexer.location();
     lexer.advance();
-    Statement::ExitStatement { location }
+    Statement::ExitStatement {
+        location,
+        id: lexer.next_id(),
+    }
 }
 
 fn parse_continue_statement(lexer: &mut ParseSession) -> Statement {
     let location = lexer.location();
     lexer.advance();
-    Statement::ContinueStatement { location }
+    Statement::ContinueStatement {
+        location,
+        id: lexer.next_id(),
+    }
 }
 
 fn parse_if_statement(lexer: &mut ParseSession) -> Statement {
@@ -54,6 +63,7 @@ fn parse_if_statement(lexer: &mut ParseSession) -> Statement {
             KeywordThen,
             Statement::EmptyStatement {
                 location: lexer.location(),
+                id: lexer.next_id(),
             }
         );
         lexer.advance();
@@ -78,6 +88,7 @@ fn parse_if_statement(lexer: &mut ParseSession) -> Statement {
         blocks: conditional_blocks,
         else_block,
         location: SourceRange::new(start..end),
+        id: lexer.next_id(),
     }
 }
 
@@ -91,6 +102,7 @@ fn parse_for_statement(lexer: &mut ParseSession) -> Statement {
         KeywordAssignment,
         Statement::EmptyStatement {
             location: lexer.location(),
+            id: lexer.next_id()
         }
     );
     lexer.advance();
@@ -101,6 +113,7 @@ fn parse_for_statement(lexer: &mut ParseSession) -> Statement {
         KeywordTo,
         Statement::EmptyStatement {
             location: lexer.location(),
+            id: lexer.next_id(),
         }
     );
     lexer.advance();
@@ -122,6 +135,7 @@ fn parse_for_statement(lexer: &mut ParseSession) -> Statement {
         by_step: step,
         body: parse_body_in_region(lexer, vec![KeywordEndFor]),
         location: SourceRange::new(start..lexer.last_range.end),
+        id: lexer.next_id(),
     }
 }
 
@@ -136,6 +150,7 @@ fn parse_while_statement(lexer: &mut ParseSession) -> Statement {
         condition: Box::new(condition),
         body: parse_body_in_region(lexer, vec![KeywordEndWhile]),
         location: SourceRange::new(start..lexer.last_range.end),
+        id: lexer.next_id(),
     }
 }
 
@@ -151,6 +166,7 @@ fn parse_repeat_statement(lexer: &mut ParseSession) -> Statement {
     } else {
         Statement::EmptyStatement {
             location: lexer.location(),
+            id: lexer.next_id(),
         }
     };
 
@@ -158,6 +174,7 @@ fn parse_repeat_statement(lexer: &mut ParseSession) -> Statement {
         condition: Box::new(condition),
         body,
         location: SourceRange::new(start..lexer.range().end),
+        id: lexer.next_id(),
     }
 }
 
@@ -172,6 +189,7 @@ fn parse_case_statement(lexer: &mut ParseSession) -> Statement {
         KeywordOf,
         Statement::EmptyStatement {
             location: lexer.location(),
+            id: lexer.next_id()
         }
     );
 
@@ -184,7 +202,7 @@ fn parse_case_statement(lexer: &mut ParseSession) -> Statement {
         let mut current_condition = None;
         let mut current_body = vec![];
         for statement in body {
-            if let Statement::CaseCondition { condition } = statement {
+            if let Statement::CaseCondition { condition, .. } = statement {
                 if let Some(condition) = current_condition {
                     let block = ConditionalBlock {
                         condition,
@@ -203,6 +221,7 @@ fn parse_case_statement(lexer: &mut ParseSession) -> Statement {
                     ));
                     current_condition = Some(Box::new(Statement::EmptyStatement {
                         location: lexer.location(),
+                        id: lexer.next_id(),
                     }));
                 }
                 current_body.push(statement);
@@ -229,5 +248,6 @@ fn parse_case_statement(lexer: &mut ParseSession) -> Statement {
         case_blocks,
         else_block,
         location: SourceRange::new(start..end),
+        id: lexer.next_id(),
     }
 }

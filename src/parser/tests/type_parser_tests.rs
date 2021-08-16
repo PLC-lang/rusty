@@ -117,11 +117,14 @@ fn array_type_can_be_parsed_test() {
                     start: Box::new(Statement::LiteralInteger {
                         value: 0,
                         location: SourceRange::undefined(),
+                        id: 0,
                     }),
                     end: Box::new(Statement::LiteralInteger {
                         value: 8,
                         location: SourceRange::undefined(),
+                        id: 0,
                     }),
+                    id: 0,
                 },
                 referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
                     referenced_type: "INT".to_string(),
@@ -152,6 +155,7 @@ fn string_type_can_be_parsed_test() {
                     size: Some(LiteralInteger {
                         value: 253,
                         location: (10..11).into(),
+                        id: 0,
                     }),
                     is_wide: false,
                 },
@@ -163,6 +167,7 @@ fn string_type_can_be_parsed_test() {
                     size: Some(LiteralInteger {
                         value: 253,
                         location: (10..11).into(),
+                        id: 0,
                     }),
                     is_wide: false,
                 },
@@ -170,6 +175,7 @@ fn string_type_can_be_parsed_test() {
                     is_wide: false,
                     location: SourceRange::undefined(),
                     value: "abc".into(),
+                    id: 0,
                 }),
             }
         ]
@@ -194,6 +200,7 @@ fn wide_string_type_can_be_parsed_test() {
                 size: Some(LiteralInteger {
                     value: 253,
                     location: (10..11).into(),
+                    id: 0,
                 }),
                 is_wide: true,
             },
@@ -223,11 +230,14 @@ fn subrangetype_can_be_parsed() {
                     start: Box::new(LiteralInteger {
                         value: 0,
                         location: SourceRange::undefined(),
+                        id: 0,
                     }),
                     end: Box::new(LiteralInteger {
                         value: 1000,
                         location: SourceRange::undefined(),
+                        id: 0,
                     }),
+                    id: 0,
                 }),
                 referenced_type: "UINT".to_string(),
             },
