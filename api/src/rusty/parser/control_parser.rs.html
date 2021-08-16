@@ -233,6 +233,26 @@
 <span id="231">231</span>
 <span id="232">232</span>
 <span id="233">233</span>
+<span id="234">234</span>
+<span id="235">235</span>
+<span id="236">236</span>
+<span id="237">237</span>
+<span id="238">238</span>
+<span id="239">239</span>
+<span id="240">240</span>
+<span id="241">241</span>
+<span id="242">242</span>
+<span id="243">243</span>
+<span id="244">244</span>
+<span id="245">245</span>
+<span id="246">246</span>
+<span id="247">247</span>
+<span id="248">248</span>
+<span id="249">249</span>
+<span id="250">250</span>
+<span id="251">251</span>
+<span id="252">252</span>
+<span id="253">253</span>
 </pre><pre class="rust">
 <span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 <span class="kw">use</span> <span class="kw">crate</span>::{
@@ -254,6 +274,8 @@
         <span class="ident">KeywordRepeat</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">parse_repeat_statement</span>(<span class="ident">lexer</span>),
         <span class="ident">KeywordCase</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">parse_case_statement</span>(<span class="ident">lexer</span>),
         <span class="ident">KeywordReturn</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">parse_return_statement</span>(<span class="ident">lexer</span>),
+        <span class="ident">KeywordContinue</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">parse_continue_statement</span>(<span class="ident">lexer</span>),
+        <span class="ident">KeywordExit</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">parse_exit_statement</span>(<span class="ident">lexer</span>),
         <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">parse_statement</span>(<span class="ident">lexer</span>),
     }
 }
@@ -262,6 +284,24 @@
     <span class="kw">let</span> <span class="ident">location</span> <span class="op">=</span> <span class="ident">lexer</span>.<span class="ident">location</span>();
     <span class="ident">lexer</span>.<span class="ident">advance</span>();
     <span class="ident">Statement::ReturnStatement</span> {
+        <span class="ident">location</span>,
+        <span class="ident">id</span>: <span class="ident">lexer</span>.<span class="ident">next_id</span>(),
+    }
+}
+
+<span class="kw">fn</span> <span class="ident">parse_exit_statement</span>(<span class="ident">lexer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ParseSession</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Statement</span> {
+    <span class="kw">let</span> <span class="ident">location</span> <span class="op">=</span> <span class="ident">lexer</span>.<span class="ident">location</span>();
+    <span class="ident">lexer</span>.<span class="ident">advance</span>();
+    <span class="ident">Statement::ExitStatement</span> {
+        <span class="ident">location</span>,
+        <span class="ident">id</span>: <span class="ident">lexer</span>.<span class="ident">next_id</span>(),
+    }
+}
+
+<span class="kw">fn</span> <span class="ident">parse_continue_statement</span>(<span class="ident">lexer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ParseSession</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Statement</span> {
+    <span class="kw">let</span> <span class="ident">location</span> <span class="op">=</span> <span class="ident">lexer</span>.<span class="ident">location</span>();
+    <span class="ident">lexer</span>.<span class="ident">advance</span>();
+    <span class="ident">Statement::ContinueStatement</span> {
         <span class="ident">location</span>,
         <span class="ident">id</span>: <span class="ident">lexer</span>.<span class="ident">next_id</span>(),
     }
