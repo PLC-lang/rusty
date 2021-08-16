@@ -254,6 +254,7 @@ fn parse_leaf_expression(lexer: &mut ParseSession) -> Statement {
         LiteralWideString => parse_literal_string(lexer, true),
         LiteralTrue => parse_bool_literal(lexer, true),
         LiteralFalse => parse_bool_literal(lexer, false),
+        LiteralNull => parse_null_literal(lexer),
         KeywordSquareParensOpen => parse_array_literal(lexer),
         _ => Err(Diagnostic::unexpected_token_found(
             "Literal".to_string(),
@@ -317,6 +318,17 @@ fn parse_bool_literal(lexer: &mut ParseSession, value: bool) -> Result<Statement
         value,
         location,
 
+        id: lexer.next_id(),
+    })
+}
+
+#[allow(clippy::unnecessary_wraps)]
+//Allowing the unnecessary wrap here because this method is used along other methods that need to return Results
+fn parse_null_literal(lexer: &mut ParseSession) -> Result<Statement, Diagnostic> {
+    let location = lexer.location();
+    lexer.advance();
+    Ok(Statement::LiteralNull {
+        location,
         id: lexer.next_id(),
     })
 }

@@ -582,7 +582,7 @@ pub enum Statement {
         location: SourceRange,
         id: AstId,
     },
-    NullStatement {
+    LiteralNull {
         location: SourceRange,
         id: AstId,
     },
@@ -592,7 +592,7 @@ impl Debug for Statement {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
         match self {
             Statement::EmptyStatement { .. } => f.debug_struct("EmptyStatement").finish(),
-            Statement::NullStatement { .. } => f.debug_struct("NullStatement").finish(),
+            Statement::LiteralNull { .. } => f.debug_struct("LiteralNull").finish(),
             Statement::LiteralInteger { value, .. } => f
                 .debug_struct("LiteralInteger")
                 .field("value", value)
@@ -816,7 +816,7 @@ impl Statement {
     pub fn get_location(&self) -> SourceRange {
         match self {
             Statement::EmptyStatement { location, .. } => location.clone(),
-            Statement::NullStatement { location, .. } => location.clone(),
+            Statement::LiteralNull { location, .. } => location.clone(),
             Statement::LiteralInteger { location, .. } => location.clone(),
             Statement::LiteralDate { location, .. } => location.clone(),
             Statement::LiteralDateAndTime { location, .. } => location.clone(),
@@ -891,7 +891,7 @@ impl Statement {
     pub fn get_id(&self) -> AstId {
         match self {
             Statement::EmptyStatement { id, .. } => *id,
-            Statement::NullStatement { id, .. } => *id,
+            Statement::LiteralNull { id, .. } => *id,
             Statement::LiteralInteger { id, .. } => *id,
             Statement::LiteralDate { id, .. } => *id,
             Statement::LiteralDateAndTime { id, .. } => *id,

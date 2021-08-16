@@ -1026,6 +1026,31 @@ fn signed_literal_expression_test() {
 }"#;
     assert_eq!(ast_string, expected_ast);
 }
+
+#[test]
+fn assignment_to_null() {
+    let lexer = super::lex(
+        "
+        PROGRAM exp 
+        x := NULL;
+        END_PROGRAM
+        ",
+    );
+    let result = parse(lexer).0;
+
+    let prg = &result.implementations[0];
+    let statement = &prg.statements[0];
+
+    let ast_string = format!("{:#?}", statement);
+    let expected_ast = r#"Assignment {
+    left: Reference {
+        name: "x",
+    },
+    right: LiteralNull,
+}"#;
+    assert_eq!(ast_string, expected_ast);
+}
+
 #[test]
 fn pointer_address_test() {
     let lexer = super::lex(
