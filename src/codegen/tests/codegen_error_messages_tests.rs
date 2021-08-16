@@ -22,6 +22,56 @@ fn unknown_reference_should_be_reported_with_line_number() {
 }
 
 #[test]
+fn exit_not_in_loop() {
+    let result = codegen_wihout_unwrap!(
+        "
+        PROGRAM prg 
+            VAR
+                x : INT;
+            END_VAR
+            EXIT;
+        END_PROGRAM
+        "
+    );
+    if let Err(msg) = result {
+        assert_eq!(
+            CompileError::CodeGenError {
+                message: "Cannot break out of loop when not inside a loop".into(),
+                location: crate::ast::SourceRange::new(95..99),
+            },
+            msg
+        );
+    } else {
+        panic!("expected code-gen error but got none")
+    }
+}
+
+#[test]
+fn continue_not_in_loop() {
+    let result = codegen_wihout_unwrap!(
+        "
+        PROGRAM prg 
+            VAR
+                x : INT;
+            END_VAR
+            CONTINUE;
+        END_PROGRAM
+        "
+    );
+    if let Err(msg) = result {
+        assert_eq!(
+            CompileError::CodeGenError {
+                message: "Cannot continue loop when not inside a loop".into(),
+                location: crate::ast::SourceRange::new(95..103),
+            },
+            msg
+        );
+    } else {
+        panic!("expected code-gen error but got none")
+    }
+}
+
+#[test]
 #[ignore]
 fn unknown_type_should_be_reported_with_line_number() {
     let result = codegen_wihout_unwrap!(

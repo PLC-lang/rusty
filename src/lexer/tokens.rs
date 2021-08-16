@@ -224,6 +224,12 @@ pub enum Token {
     #[token("RETURN")]
     KeywordReturn,
 
+    #[token("EXIT")]
+    KeywordExit,
+
+    #[token("CONTINUE")]
+    KeywordContinue,
+
     #[token("ARRAY")]
     KeywordArray,
 

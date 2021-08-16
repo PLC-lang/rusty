@@ -1,25 +1,23 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-use std::ops::Range;
-
-use super::pou_generator::PouGenerator;
-use super::{expression_generator::ExpressionCodeGenerator, llvm::Llvm};
-use crate::ast::PouType;
-use crate::codegen::LlvmTypedIndex;
-use crate::typesystem::{RANGE_CHECK_LS_FN, RANGE_CHECK_LU_FN, RANGE_CHECK_S_FN, RANGE_CHECK_U_FN};
-use crate::{ast::SourceRange, codegen::llvm_typesystem::cast_if_needed};
-use crate::{
-    ast::{flatten_expression_list, ConditionalBlock, Operator, Statement},
-    compile_error::CompileError,
+use super::{
+    expression_generator::ExpressionCodeGenerator, llvm::Llvm, pou_generator::PouGenerator,
 };
 use crate::{
+    ast::{flatten_expression_list, ConditionalBlock, Operator, PouType, SourceRange, Statement},
+    codegen::{llvm_typesystem::cast_if_needed, LlvmTypedIndex},
+    compile_error::CompileError,
     index::{ImplementationIndexEntry, Index},
-    typesystem::DataTypeInformation,
+    typesystem::{
+        DataTypeInformation, RANGE_CHECK_LS_FN, RANGE_CHECK_LU_FN, RANGE_CHECK_S_FN,
+        RANGE_CHECK_U_FN,
+    },
 };
 use inkwell::{
     basic_block::BasicBlock,
     values::{BasicValueEnum, FunctionValue},
     IntPredicate,
 };
+use std::ops::Range;
 
 /// the full context when generating statements inside a POU
 pub struct FunctionContext<'a> {
@@ -40,6 +38,11 @@ pub struct StatementCodeGenerator<'a, 'b> {
 
     pub load_prefix: String,
     pub load_suffix: String,
+
+    /// the block to jump to when you want to exit the loop
+    pub current_loop_exit: Option<BasicBlock<'a>>,
+    /// the block to jump to when you want to continue the loop
+    pub current_loop_continue: Option<BasicBlock<'a>>,
 }
 
 impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
@@ -61,6 +64,8 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
             function_context: linking_context,
             load_prefix: "load_".to_string(),
             load_suffix: "".to_string(),
+            current_loop_exit: None,
+            current_loop_continue: None,
         }
     }
 
@@ -81,6 +86,19 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
             self.generate_statement(s)?;
         }
         Ok(())
+    }
+
+    /// some versions of llvm will crash on two consecutive return or
+    /// unconditional jump statements. the solution is to insert another
+    /// building block before the second one, so the don't directly
+    /// follow each other. this is what we call a buffer block.
+    fn generate_buffer_block(&self) {
+        let builder = &self.llvm.builder;
+        let buffer_block = self
+            .llvm
+            .context
+            .insert_basic_block_after(builder.get_insert_block().unwrap(), "buffer_block");
+        builder.position_at_end(buffer_block);
     }
 
     /// genertes a single statement
@@ -134,6 +152,29 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
                     self.pou_type,
                     Some(location.clone()),
                 )?;
+                self.generate_buffer_block();
+            }
+            Statement::ExitStatement { location, .. } => {
+                if let Some(exit_block) = &self.current_loop_exit {
+                    self.llvm.builder.build_unconditional_branch(*exit_block);
+                    self.generate_buffer_block();
+                } else {
+                    return Err(CompileError::CodeGenError {
+                        message: "Cannot break out of loop when not inside a loop".into(),
+                        location: location.clone(),
+                    });
+                }
+            }
+            Statement::ContinueStatement { location, .. } => {
+                if let Some(cont_block) = &self.current_loop_continue {
+                    self.llvm.builder.build_unconditional_branch(*cont_block);
+                    self.generate_buffer_block();
+                } else {
+                    return Err(CompileError::CodeGenError {
+                        message: "Cannot continue loop when not inside a loop".into(),
+                        location: location.clone(),
+                    });
+                }
             }
             _ => {
                 self.create_expr_generator()
@@ -241,10 +282,15 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
             .llvm
             .context
             .append_basic_block(current_function, "for_body");
+        let increment_block = self
+            .llvm
+            .context
+            .append_basic_block(current_function, "increment");
         let continue_block = self
             .llvm
             .context
             .append_basic_block(current_function, "continue");
+
         //Generate an initial jump to the for condition
         builder.build_unconditional_branch(condition_check);
 
@@ -264,9 +310,18 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
 
         //Enter the for loop
         builder.position_at_end(for_body);
-        self.generate_body(body)?;
+        let body_generator = StatementCodeGenerator {
+            current_loop_exit: Some(continue_block),
+            current_loop_continue: Some(increment_block),
+            load_prefix: self.load_prefix.clone(),
+            load_suffix: self.load_suffix.clone(),
+            ..*self
+        };
+        body_generator.generate_body(body)?;
+        builder.build_unconditional_branch(increment_block);
 
         //Increment
+        builder.position_at_end(increment_block);
         let expression_generator = self.create_expr_generator();
         let (_, step_by_value) = by_step.as_ref().map_or_else(
             || {
@@ -531,7 +586,14 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
 
         //Enter the for loop
         builder.position_at_end(while_body);
-        self.generate_body(&body)?;
+        let body_generator = StatementCodeGenerator {
+            current_loop_exit: Some(continue_block),
+            current_loop_continue: Some(condition_check),
+            load_prefix: self.load_prefix.clone(),
+            load_suffix: self.load_suffix.clone(),
+            ..*self
+        };
+        body_generator.generate_body(&body)?;
         //Loop back
         builder.build_unconditional_branch(condition_check);
 
