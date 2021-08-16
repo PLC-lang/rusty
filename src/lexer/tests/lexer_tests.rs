@@ -535,6 +535,35 @@ fn wide_string_parsing() {
 }
 
 #[test]
+fn pointers_and_references_keyword() {
+    let mut lexer = lex(r#"
+    POINTER TO x 
+    REF_TO x
+    &x
+    x^
+    "#);
+
+    assert_eq!(lexer.token, KeywordPointer);
+    lexer.advance();
+    assert_eq!(lexer.token, KeywordTo);
+    lexer.advance();
+    assert_eq!(lexer.slice(), "x");
+    lexer.advance();
+    assert_eq!(lexer.token, KeywordRef);
+    lexer.advance();
+    assert_eq!(lexer.slice(), "x");
+    lexer.advance();
+    assert_eq!(lexer.token, OperatorAmp);
+    lexer.advance();
+    assert_eq!(lexer.slice(), "x");
+    lexer.advance();
+    assert_eq!(lexer.slice(), "x");
+    lexer.advance();
+    assert_eq!(lexer.token, OperatorDeref);
+    lexer.advance();
+}
+
+#[test]
 fn multi_named_keywords_without_underscore_test() {
     let mut lexer = lex(
         "VARINPUT VARGLOBAL VARINOUT ENDVAR ENDPROGRAM ENDFUNCTION ENDCASE

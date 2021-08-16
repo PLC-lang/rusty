@@ -230,6 +230,12 @@ pub enum Token {
     #[token("CONTINUE")]
     KeywordContinue,
 
+    #[token("POINTER")]
+    KeywordPointer,
+
+    #[token("REF_TO")]
+    KeywordRef,
+
     #[token("ARRAY")]
     KeywordArray,
 
@@ -276,6 +282,11 @@ pub enum Token {
 
     #[token(">=")]
     OperatorGreaterOrEqual,
+
+    #[token("&")]
+    OperatorAmp,
+    #[token("^")]
+    OperatorDeref,
 
     #[token("MOD")]
     OperatorModulo,
