@@ -192,6 +192,7 @@ fn parse_unary_expression(lexer: &mut ParseSession) -> Statement {
     let operator = match lexer.token {
         OperatorNot => Some(Operator::Not),
         OperatorMinus => Some(Operator::Minus),
+        OperatorAmp => Some(Operator::Address),
         _ => None,
     };
 
@@ -363,21 +364,36 @@ pub fn parse_qualified_reference(lexer: &mut ParseSession) -> Result<Statement, 
 
 pub fn parse_reference_access(lexer: &mut ParseSession) -> Result<Statement, Diagnostic> {
     let location = lexer.location();
-    let mut reference = Statement::Reference {
+    let reference = Statement::Reference {
         name: lexer.slice_and_advance(),
         location,
         id: lexer.next_id(),
     };
+    parse_access_modifiers(lexer, reference)
+}
+
+fn parse_access_modifiers(
+    lexer: &mut ParseSession,
+    original_reference: Statement,
+) -> Result<Statement, Diagnostic> {
+    let mut reference = original_reference;
     //If (while) we hit a dereference, parse and append the dereference to the result
-    while lexer.allow(&KeywordSquareParensOpen) {
-        let access = parse_expression(lexer);
-        lexer.expect(KeywordSquareParensClose)?;
-        lexer.advance();
-        reference = Statement::ArrayAccess {
-            reference: Box::new(reference),
-            access: Box::new(access),
-            id: lexer.next_id(),
-        };
+    while lexer.token == KeywordSquareParensOpen || lexer.token == OperatorDeref {
+        if lexer.allow(&KeywordSquareParensOpen) {
+            let access = parse_expression(lexer);
+            lexer.expect(KeywordSquareParensClose)?;
+            lexer.advance();
+            reference = Statement::ArrayAccess {
+                reference: Box::new(reference),
+                access: Box::new(access),
+                id: lexer.next_id(),
+            };
+        } else if lexer.allow(&OperatorDeref) {
+            reference = Statement::PointerAccess {
+                reference: Box::new(reference),
+                id: lexer.next_id(),
+            }
+        }
     }
     Ok(reference)
 }

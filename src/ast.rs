@@ -487,6 +487,10 @@ pub enum Statement {
         access: Box<Statement>,
         id: AstId,
     },
+    PointerAccess {
+        reference: Box<Statement>,
+        id: AstId,
+    },
     BinaryExpression {
         operator: Operator,
         left: Box<Statement>,
@@ -776,6 +780,10 @@ impl Debug for Statement {
                 .field("reference", reference)
                 .field("access", access)
                 .finish(),
+            Statement::PointerAccess { reference, .. } => f
+                .debug_struct("PointerAccess")
+                .field("reference", reference)
+                .finish(),
             Statement::MultipliedStatement {
                 multiplier,
                 element,
@@ -871,6 +879,7 @@ impl Statement {
                 let access_loc = access.get_location();
                 SourceRange::new(reference_loc.range.start..access_loc.range.end)
             }
+            Statement::PointerAccess { reference, .. } => reference.get_location(),
             Statement::MultipliedStatement { location, .. } => location.clone(),
             Statement::CaseCondition { condition, .. } => condition.get_location(),
             Statement::ReturnStatement { location, .. } => location.clone(),
@@ -896,6 +905,7 @@ impl Statement {
             Statement::QualifiedReference { id, .. } => *id,
             Statement::Reference { id, .. } => *id,
             Statement::ArrayAccess { id, .. } => *id,
+            Statement::PointerAccess { id, .. } => *id,
             Statement::BinaryExpression { id, .. } => *id,
             Statement::UnaryExpression { id, .. } => *id,
             Statement::ExpressionList { id, .. } => *id,
@@ -934,7 +944,6 @@ pub enum Operator {
     Or,
     Xor,
     Address,
-    Deref,
 }
 
 impl Display for Operator {
