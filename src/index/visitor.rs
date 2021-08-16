@@ -129,9 +129,14 @@ pub fn visit_pou(index: &mut Index, pou: &Pou) {
 }
 
 fn visit_implementation(index: &mut Index, implementation: &Implementation) {
-    index.register_implementation(&implementation.name, &implementation.type_name);
+    let pou_type = &implementation.pou_type;
+    index.register_implementation(
+        &implementation.name,
+        &implementation.type_name,
+        pou_type.into(),
+    );
     //if we are registing an action, also register a datatype for it
-    if implementation.pou_type == PouType::Action {
+    if pou_type == &PouType::Action {
         index.register_type(
             &implementation.name,
             None,

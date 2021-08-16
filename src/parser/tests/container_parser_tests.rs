@@ -88,11 +88,7 @@ fn actions_with_invalid_token() {
     let errors = parse(lexer).1;
     assert_eq!(
         errors.first().unwrap(),
-        &Diagnostic::unexpected_token_found(
-            "KeywordAction",
-            "BRAVO".into(),
-            (13..18).into()
-        )
+        &Diagnostic::unexpected_token_found("KeywordAction", "BRAVO".into(), (13..18).into())
     );
 }
 

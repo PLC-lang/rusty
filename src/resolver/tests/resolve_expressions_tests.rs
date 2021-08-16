@@ -2,10 +2,12 @@ use core::panic;
 
 use crate::{
     ast::Statement,
+    index::Index,
     resolver::{
         tests::{annotate, parse},
-        AnnotationMap,
+        AnnotationMap, StatementAnnotation,
     },
+    typesystem::VOID_TYPE,
 };
 
 #[test]
@@ -22,10 +24,9 @@ fn binary_expressions_resolves_types() {
 
     let expected_types = vec!["DINT", "DINT", "LINT"];
 
-    let none = "-".to_string();
-    let types: Vec<&String> = statements
+    let types: Vec<&str> = statements
         .iter()
-        .map(|s| annotations.type_map.get(&s.get_id()).unwrap_or(&none))
+        .map(|s| annotations.get_type_name(s, &index))
         .collect();
 
     assert_eq!(expected_types, types);
@@ -46,8 +47,8 @@ fn binary_expressions_resolves_types_with_floats() {
     let expected_types = vec!["REAL", "REAL", "REAL"];
     for (i, s) in statements.iter().enumerate() {
         assert_eq!(
-            Some(&expected_types[i].to_string()),
-            annotations.type_map.get(&s.get_id()),
+            expected_types[i],
+            annotations.get_type_name(s, &index),
             "{:#?}",
             s
         );
@@ -94,10 +95,9 @@ fn local_variables_resolves_types() {
         "BYTE", "WORD", "DWORD", "LWORD", "SINT", "USINT", "INT", "UINT", "DINT", "UDINT", "LINT",
         "ULINT",
     ];
-    let nothing = "-".to_string();
-    let type_names: Vec<&String> = statements
+    let type_names: Vec<&str> = statements
         .iter()
-        .map(|s| annotations.type_map.get(&s.get_id()).unwrap_or(&nothing))
+        .map(|s| annotations.get_type_name(s, &index))
         .collect();
 
     assert_eq!(format!("{:?}", expected_types), format!("{:?}", type_names));
@@ -144,10 +144,9 @@ fn global_resolves_types() {
         "BYTE", "WORD", "DWORD", "LWORD", "SINT", "USINT", "INT", "UINT", "DINT", "UDINT", "LINT",
         "ULINT",
     ];
-    let nothing = "-".to_string();
-    let type_names: Vec<&String> = statements
+    let type_names: Vec<&str> = statements
         .iter()
-        .map(|s| annotations.type_map.get(&s.get_id()).unwrap_or(&nothing))
+        .map(|s| annotations.get_type_name(s, &index))
         .collect();
 
     assert_eq!(format!("{:?}", expected_types), format!("{:?}", type_names));
@@ -194,10 +193,9 @@ fn resolve_binary_expressions() {
         "BYTE", "WORD", "DWORD", "LWORD", "SINT", "BYTE", "INT", "UINT", "DINT", "UDINT", "LINT",
         "ULINT",
     ];
-    let nothing = "-".to_string();
-    let type_names: Vec<&String> = statements
+    let type_names: Vec<&str> = statements
         .iter()
-        .map(|s| annotations.type_map.get(&s.get_id()).unwrap_or(&nothing))
+        .map(|s| annotations.get_type_name(s, &index))
         .collect();
 
     assert_eq!(format!("{:?}", expected_types), format!("{:?}", type_names));
@@ -232,10 +230,9 @@ fn complex_expressions_resolve_types() {
     let statements = &unit.implementations[0].statements;
 
     let expected_types = vec!["LINT", "DINT", "REAL"];
-    let nothing = "-".to_string();
-    let type_names: Vec<&String> = statements
+    let type_names: Vec<&str> = statements
         .iter()
-        .map(|s| annotations.type_map.get(&s.get_id()).unwrap_or(&nothing))
+        .map(|s| annotations.get_type_name(s, &index))
         .collect();
 
     assert_eq!(format!("{:?}", expected_types), format!("{:?}", type_names));
@@ -284,10 +281,9 @@ fn array_expressions_resolve_types() {
         "MyAliasArray",
         "INT",
     ];
-    let nothing = "-".to_string();
-    let type_names: Vec<&String> = statements
+    let type_names: Vec<&str> = statements
         .iter()
-        .map(|s| annotations.type_map.get(&s.get_id()).unwrap_or(&nothing))
+        .map(|s| annotations.get_type_name(s, &index))
         .collect();
 
     assert_eq!(format!("{:?}", expected_types), format!("{:?}", type_names));
@@ -320,10 +316,9 @@ fn qualified_expressions_resolve_types() {
     let statements = &unit.implementations[1].statements;
 
     let expected_types = vec!["BYTE", "WORD", "DWORD", "LWORD", "WORD", "DWORD", "LWORD"];
-    let nothing = "-".to_string();
-    let type_names: Vec<&String> = statements
+    let type_names: Vec<&str> = statements
         .iter()
-        .map(|s| annotations.type_map.get(&s.get_id()).unwrap_or(&nothing))
+        .map(|s| annotations.get_type_name(s, &index))
         .collect();
 
     assert_eq!(format!("{:?}", expected_types), format!("{:?}", type_names));
@@ -336,7 +331,7 @@ fn pou_expressions_resolve_types() {
         PROGRAM OtherPrg
         END_PROGRAM   
 
-        FUNCTION OtherFunc
+        FUNCTION OtherFunc : INT
         END_FUNCTION
 
         FUNCTION_BLOCK OtherFuncBlock
@@ -351,14 +346,32 @@ fn pou_expressions_resolve_types() {
     let annotations = annotate(&unit, &index);
     let statements = &unit.implementations[3].statements;
 
-    let expected_types = vec!["OtherPrg", "OtherFunc", "OtherFuncBlock"];
-    let nothing = "-".to_string();
-    let type_names: Vec<&String> = statements
+    let expected_types = vec![VOID_TYPE, VOID_TYPE, VOID_TYPE];
+    let type_names: Vec<&str> = statements
         .iter()
-        .map(|s| annotations.type_map.get(&s.get_id()).unwrap_or(&nothing))
+        .map(|s| annotations.get_type_name(s, &index))
         .collect();
-
     assert_eq!(format!("{:?}", expected_types), format!("{:?}", type_names));
+
+    assert_eq!(
+        Some(&StatementAnnotation::ProgramAnnotation {
+            qualified_name: "OtherPrg".into()
+        }),
+        annotations.get_annotation(&statements[0])
+    );
+    assert_eq!(
+        Some(&StatementAnnotation::FunctionAnnotation {
+            qualified_name: "OtherFunc".into(),
+            return_type: "INT".into()
+        }),
+        annotations.get_annotation(&statements[1])
+    );
+    assert_eq!(
+        Some(&StatementAnnotation::TypeAnnotation {
+            type_name: "OtherFuncBlock".into()
+        }),
+        annotations.get_annotation(&statements[2])
+    );
 }
 
 #[test]
@@ -379,36 +392,23 @@ fn assignment_expressions_resolve_types() {
     let annotations = annotate(&unit, &index);
     let statements = &unit.implementations[0].statements;
 
-    let nothing = "-".to_string();
-    let expected_types = vec![&nothing, &nothing];
-    let type_names: Vec<&String> = statements
+    let expected_types = vec![VOID_TYPE, VOID_TYPE];
+    let type_names: Vec<&str> = statements
         .iter()
-        .map(|s| annotations.type_map.get(&s.get_id()).unwrap_or(&nothing))
+        .map(|s| annotations.get_type_name(s, &index))
         .collect();
 
     assert_eq!(format!("{:?}", expected_types), format!("{:?}", type_names));
 
     if let Statement::Assignment { left, right, .. } = &statements[0] {
-        assert_eq!(
-            annotations.type_map.get(&left.get_id()),
-            Some(&"INT".to_string())
-        );
-        assert_eq!(
-            annotations.type_map.get(&right.get_id()),
-            Some(&"BYTE".to_string())
-        );
+        assert_eq!(annotations.get_type_name(&left, &index), "INT");
+        assert_eq!(annotations.get_type_name(&right, &index), "BYTE");
     } else {
         panic!("expected assignment")
     }
     if let Statement::Assignment { left, right, .. } = &statements[1] {
-        assert_eq!(
-            annotations.type_map.get(&left.get_id()),
-            Some(&"LWORD".to_string())
-        );
-        assert_eq!(
-            annotations.type_map.get(&right.get_id()),
-            Some(&"INT".to_string())
-        );
+        assert_eq!(annotations.get_type_name(&left, &index), "LWORD");
+        assert_eq!(annotations.get_type_name(&right, &index), "INT");
     } else {
         panic!("expected assignment")
     }
@@ -467,10 +467,9 @@ fn qualified_expressions_to_structs_resolve_types() {
         "DWORD",
         "LWORD",
     ];
-    let nothing = "-".to_string();
-    let type_names: Vec<&String> = statements
+    let type_names: Vec<&str> = statements
         .iter()
-        .map(|s| annotations.type_map.get(&s.get_id()).unwrap_or(&nothing))
+        .map(|s| annotations.get_type_name(s, &index))
         .collect();
 
     assert_eq!(format!("{:?}", expected_types), format!("{:?}", type_names));
@@ -501,13 +500,77 @@ fn qualified_expressions_to_inlined_structs_resolve_types() {
     let statements = &unit.implementations[0].statements;
 
     let expected_types = vec!["__PRG_mys", "BYTE", "WORD", "DWORD", "LWORD"];
-    let nothing = "-".to_string();
-    let type_names: Vec<&String> = statements
+    let type_names: Vec<&str> = statements
         .iter()
-        .map(|s| annotations.type_map.get(&s.get_id()).unwrap_or(&nothing))
+        .map(|s| annotations.get_type_name(s, &index))
         .collect();
 
     assert_eq!(format!("{:?}", expected_types), format!("{:?}", type_names));
+}
+
+#[test]
+fn function_expression_resolves_to_the_function_itself_not_its_return_type() {
+    //GIVEN a reference to a function
+    let (unit, index) = parse(
+        "
+        FUNCTION foo : INT
+        END_FUNCTION
+
+        PROGRAM PRG
+            foo;
+        END_PROGRAM
+        ",
+    );
+
+    //WHEN the AST is annotated
+    let annotations = annotate(&unit, &index);
+    let statements = &unit.implementations[1].statements;
+
+    // THEN we expect it to be annotated with the function itself
+    let foo_annotation = annotations.get_annotation(&statements[0]);
+    assert_eq!(
+        Some(&StatementAnnotation::FunctionAnnotation {
+            qualified_name: "foo".into(),
+            return_type: "INT".into()
+        }),
+        foo_annotation
+    );
+
+    // AND we expect no type to be associated with the expression
+    let associated_type = annotations.get_type(&statements[0], &index);
+    assert_eq!(None, associated_type);
+}
+
+#[test]
+fn function_call_expression_resolves_to_the_function_itself_not_its_return_type() {
+    //GIVEN a reference to a function
+    let (unit, index) = parse(
+        "
+        FUNCTION foo : INT
+        END_FUNCTION
+
+        PROGRAM PRG
+            foo();
+        END_PROGRAM
+        ",
+    );
+
+    //WHEN the AST is annotated
+    let annotations = annotate(&unit, &index);
+    let statements = &unit.implementations[1].statements;
+
+    // THEN we expect it to be annotated with the function itself
+    let foo_annotation = annotations.get_annotation(&statements[0]);
+    assert_eq!(
+        Some(&StatementAnnotation::ExpressionAnnotation {
+            resulting_type: "INT".into()
+        }),
+        foo_annotation
+    );
+
+    // AND we expect no type to be associated with the expression
+    let associated_type = annotations.get_type(&statements[0], &index);
+    assert_eq!(index.find_type("INT"), associated_type);
 }
 
 #[test]
@@ -566,10 +629,44 @@ fn qualified_expressions_to_aliased_structs_resolve_types() {
         "DWORD",
         "LWORD",
     ];
-    let nothing = "-".to_string();
-    let type_names: Vec<&String> = statements
+    let type_names: Vec<&str> = statements
         .iter()
-        .map(|s| annotations.type_map.get(&s.get_id()).unwrap_or(&nothing))
+        .map(|s| annotations.get_type_name(s, &index))
+        .collect();
+
+    assert_eq!(format!("{:?}", expected_types), format!("{:?}", type_names));
+}
+
+#[test]
+fn qualified_expressions_to_fbs_resolve_types() {
+    let (unit, index) = parse(
+        "
+        FUNCTION_BLOCK MyFb
+            VAR_INPUT
+                fb_b : SINT;
+                fb_i : INT;
+                fb_d : DINT;
+            END_VAR
+        END_FUNCTION_BLOCK
+
+        PROGRAM PRG
+            VAR 
+                fb : MyFb;
+            END_VAR
+            fb;
+            fb.fb_b;
+            fb.fb_i;
+            fb.fb_d;
+       END_PROGRAM",
+    );
+
+    let annotations = annotate(&unit, &index);
+    let statements = &unit.implementations[1].statements;
+
+    let expected_types = vec!["MyFb", "SINT", "INT", "DINT"];
+    let type_names: Vec<&str> = statements
+        .iter()
+        .map(|s| annotations.get_type_name(s, &index))
         .collect();
 
     assert_eq!(format!("{:?}", expected_types), format!("{:?}", type_names));
@@ -599,9 +696,10 @@ fn function_parameter_assignments_resolve_types() {
     let annotations = annotate(&unit, &index);
     let statements = &unit.implementations[1].statements;
 
+    assert_eq!(annotations.get_type_name(&statements[0], &index), "INT");
     assert_eq!(
-        annotations.type_map.get(&statements[0].get_id()),
-        Some(&"INT".to_string())
+        annotations.get_annotation(&statements[0]),
+        Some(&StatementAnnotation::expression("INT"))
     );
     if let Statement::CallStatement {
         operator,
@@ -609,33 +707,26 @@ fn function_parameter_assignments_resolve_types() {
         ..
     } = &statements[0]
     {
+        //make sure the call's operator resolved correctly
+        assert_eq!(annotations.get_type_name(operator, &index), VOID_TYPE);
         assert_eq!(
-            annotations.type_map.get(&operator.get_id()),
-            Some(&"foo".to_string())
+            annotations.get_annotation(operator),
+            Some(&StatementAnnotation::FunctionAnnotation {
+                qualified_name: "foo".into(),
+                return_type: "MyType".into()
+            })
         );
 
         if let Some(Statement::ExpressionList { expressions, .. }) = &**parameters {
             if let Statement::Assignment { left, right, .. } = &expressions[0] {
-                assert_eq!(
-                    annotations.type_map.get(&left.get_id()),
-                    Some(&"INT".to_string())
-                );
-                assert_eq!(
-                    annotations.type_map.get(&right.get_id()),
-                    Some(&"DINT".to_string())
-                );
+                assert_eq!(annotations.get_type_name(left, &index), "INT");
+                assert_eq!(annotations.get_type_name(right, &index), "DINT");
             } else {
                 panic!("assignment expected")
             }
             if let Statement::OutputAssignment { left, right, .. } = &expressions[1] {
-                assert_eq!(
-                    annotations.type_map.get(&left.get_id()),
-                    Some(&"SINT".to_string())
-                );
-                assert_eq!(
-                    annotations.type_map.get(&right.get_id()),
-                    Some(&"DINT".to_string())
-                );
+                assert_eq!(annotations.get_type_name(left, &index), "SINT");
+                assert_eq!(annotations.get_type_name(right, &index), "DINT");
             } else {
                 panic!("assignment expected")
             }
@@ -676,14 +767,14 @@ fn nested_function_parameter_assignments_resolve_types() {
     let statements = &unit.implementations[2].statements;
     if let Statement::CallStatement { parameters, .. } = &statements[0] {
         //check the two parameters
-        assert_parameter_assignment(parameters, 0, "INT", "DINT", &annotations);
-        assert_parameter_assignment(parameters, 1, "BOOL", "REAL", &annotations);
+        assert_parameter_assignment(parameters, 0, "INT", "DINT", &annotations, &index);
+        assert_parameter_assignment(parameters, 1, "BOOL", "REAL", &annotations, &index);
 
         //check the inner call in the first parameter assignment of the outer call `x := baz(...)`
         if let Statement::Assignment { right, .. } = get_expression_from_list(parameters, 0) {
             if let Statement::CallStatement { parameters, .. } = right.as_ref() {
                 // the left side here should be `x` - so lets see if it got mixed up with the outer call's `x`
-                assert_parameter_assignment(parameters, 0, "DINT", "DINT", &annotations);
+                assert_parameter_assignment(parameters, 0, "DINT", "DINT", &annotations, &index);
             } else {
                 panic!("inner call")
             }
@@ -709,17 +800,12 @@ fn assert_parameter_assignment(
     left_type: &str,
     right_type: &str,
     annotations: &AnnotationMap,
+    index: &Index,
 ) {
     if let Some(Statement::ExpressionList { expressions, .. }) = parameters {
         if let Statement::Assignment { left, right, .. } = &expressions[param_index] {
-            assert_eq!(
-                annotations.type_map.get(&left.get_id()),
-                Some(&left_type.to_string())
-            );
-            assert_eq!(
-                annotations.type_map.get(&right.get_id()),
-                Some(&right_type.to_string()),
-            );
+            assert_eq!(annotations.get_type_name(left, index), left_type);
+            assert_eq!(annotations.get_type_name(right, index), right_type);
         } else {
             panic!("assignment expected")
         }

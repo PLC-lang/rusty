@@ -2,7 +2,7 @@
 use indexmap::IndexMap;
 
 use crate::{
-    ast::{Implementation, SourceRange, Statement},
+    ast::{Implementation, PouType, SourceRange, Statement},
     compile_error::CompileError,
     typesystem::*,
 };
@@ -86,9 +86,20 @@ pub enum DataTypeType {
 }
 
 #[derive(Debug, Clone)]
+pub enum ImplementationType {
+    Program,
+    Function,
+    FunctionBlock,
+    Action,
+    Class,
+    Method,
+}
+
+#[derive(Debug, Clone)]
 pub struct ImplementationIndexEntry {
     call_name: String,
     type_name: String,
+    implementation_type: ImplementationType,
 }
 
 impl ImplementationIndexEntry {
@@ -98,13 +109,31 @@ impl ImplementationIndexEntry {
     pub fn get_type_name(&self) -> &str {
         &self.type_name
     }
+    pub fn get_implementation_type(&self) -> &ImplementationType {
+        &self.implementation_type
+    }
 }
 
 impl From<&Implementation> for ImplementationIndexEntry {
     fn from(implementation: &Implementation) -> Self {
+        let pou_type = &implementation.pou_type;
         ImplementationIndexEntry {
             call_name: implementation.name.clone(),
             type_name: implementation.type_name.clone(),
+            implementation_type: pou_type.into(),
+        }
+    }
+}
+
+impl From<&PouType> for ImplementationType {
+    fn from(it: &PouType) -> Self {
+        match it {
+            PouType::Program => ImplementationType::Program,
+            PouType::Function => ImplementationType::Function,
+            PouType::FunctionBlock => ImplementationType::FunctionBlock,
+            PouType::Action => ImplementationType::Action,
+            PouType::Class => ImplementationType::Class,
+            PouType::Method => ImplementationType::Method,
         }
     }
 }
@@ -139,7 +168,7 @@ impl Index {
             types: IndexMap::new(),
             implementations: IndexMap::new(),
             void_type: DataType {
-                name: "void".to_string(),
+                name: VOID_TYPE.into(),
                 initial_value: None,
                 information: DataTypeInformation::Void,
             },
@@ -334,12 +363,18 @@ impl Index {
         &self.implementations
     }
 
-    pub fn register_implementation(&mut self, call_name: &str, type_name: &str) {
+    pub fn register_implementation(
+        &mut self,
+        call_name: &str,
+        type_name: &str,
+        impl_type: ImplementationType,
+    ) {
         self.implementations.insert(
             call_name.into(),
             ImplementationIndexEntry {
                 call_name: call_name.into(),
                 type_name: type_name.into(),
+                implementation_type: impl_type,
             },
         );
     }

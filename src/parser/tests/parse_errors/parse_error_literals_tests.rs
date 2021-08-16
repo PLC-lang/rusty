@@ -2,7 +2,7 @@ use crate::{
     ast::Statement::LiteralInteger,
     ast::*,
     parser::{parse, tests::lex},
-    Diagnostic, ErrNo,
+    Diagnostic,
 };
 
 #[test]
@@ -16,8 +16,8 @@ fn illegal_literal_time_missing_segments_test() {
     assert_eq!(
         diagnostics,
         vec![Diagnostic::unexpected_token_found(
-            "KeywordSemicolon".into(),
-            "'#'".into(),
+            "KeywordSemicolon",
+            "'#'",
             SourceRange::new(35..36)
         )]
     );
@@ -38,7 +38,7 @@ fn time_literal_problems_can_be_recovered_from_during_parsing() {
     assert_eq!(
         diagnostics,
         vec![Diagnostic::syntax_error(
-            "Invalid TIME Literal: segments must be unique".into(),
+            "Invalid TIME Literal: segments must be unique",
             (34..44).into()
         )]
     );
@@ -56,7 +56,7 @@ fn illegal_literal_time_double_segments_test() {
     assert_eq!(
         diagnostics[0],
         Diagnostic::syntax_error(
-            "Invalid TIME Literal: segments must be unique".into(),
+            "Invalid TIME Literal: segments must be unique",
             SourceRange::new(34..44)
         )
     );
@@ -74,7 +74,7 @@ fn illegal_literal_time_out_of_order_segments_test() {
     assert_eq!(
         diagnostics[0],
         Diagnostic::syntax_error(
-            "Invalid TIME Literal: segments out of order, use d-h-m-s-ms".into(),
+            "Invalid TIME Literal: segments out of order, use d-h-m-s-ms",
             SourceRange::new(34..42),
         )
     );

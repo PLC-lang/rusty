@@ -10,12 +10,15 @@ pub struct PouValidator {
 
 impl PouValidator {
     pub fn new() -> PouValidator {
-        PouValidator { diagnostics: Vec::new()}
+        PouValidator {
+            diagnostics: Vec::new(),
+        }
     }
 
     pub fn validate_pou(&mut self, pou: &Pou) {
         if pou.pou_type == PouType::Function && pou.return_type.is_none() {
-            self.diagnostics.push(Diagnostic::function_return_missing(pou.location.clone()));
+            self.diagnostics
+                .push(Diagnostic::function_return_missing(pou.location.clone()));
         } else if pou.pou_type != PouType::Function && pou.return_type.is_some() {
             self.diagnostics.push(Diagnostic::return_type_not_supported(
                 &pou.pou_type,

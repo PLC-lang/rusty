@@ -35,6 +35,8 @@ pub const LREAL_TYPE: &str = "LREAL";
 pub const STRING_TYPE: &str = "STRING";
 pub const WSTRING_TYPE: &str = "WSTRING";
 
+pub const VOID_TYPE: &str = "VOID";
+
 #[derive(Debug, PartialEq)]
 pub struct DataType {
     pub name: String,

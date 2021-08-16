@@ -381,7 +381,6 @@ pub fn compile_module<'c, T: SourceContainer>(
     let mut full_index = Index::new();
     let mut files: SimpleFiles<String, String> = SimpleFiles::new();
 
-    type SourceAndLocation = (String, CompilationUnit);
     let mut all_units = Vec::new();
 
     // ### PHASE 1 ###
@@ -402,12 +401,11 @@ pub fn compile_module<'c, T: SourceContainer>(
     }
 
     // ### PHASE 2 ###
-    // - type annotation
-    // - validation
+    // annotation & validation everything
     for (file_id, syntax_errors, container) in all_units.iter() {
         let annotations = TypeAnnotator::visit_unit(&full_index, container);
 
-        let mut validator = Validator::new(&full_index);
+        let mut validator = Validator::new();
         validator.visit_unit(&annotations, &container);
         //log errors
         report_diagnostics(*file_id, syntax_errors.iter(), &files)?;
@@ -416,8 +414,8 @@ pub fn compile_module<'c, T: SourceContainer>(
 
     // ### PHASE 3 ###
     // - codegen
-    let mut code_gen_unit = CompilationUnit::default(); 
-    for(_, _, u) in all_units {
+    let mut code_gen_unit = CompilationUnit::default();
+    for (_, _, u) in all_units {
         code_gen_unit.import(u);
     }
 
@@ -431,7 +429,7 @@ fn report_diagnostics(
     semantic_diagnostics: std::slice::Iter<Diagnostic>,
     files: &SimpleFiles<String, String>,
 ) -> Result<(), CompileError> {
-    Ok(for error in semantic_diagnostics {
+    for error in semantic_diagnostics {
         let diag = diagnostic::Diagnostic::error()
             .with_message(error.get_message())
             .with_labels(vec![Label::primary(
@@ -454,7 +452,8 @@ fn report_diagnostics(
                 SourceRange::undefined(),
             )
         })?;
-    })
+    }
+    Ok(())
 }
 
 fn parse(source: &str) -> ParsedAst {

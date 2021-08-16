@@ -216,7 +216,8 @@ impl<'a> ParseSession<'a> {
                         .last()
                         .and_then(|it| it.first())
                         .unwrap_or(&Token::End) //only show first expected token
-                ).as_str(),
+                )
+                .as_str(),
                 format!("'{}'", self.slice_region(range.clone())).as_str(),
                 SourceRange::new(range),
             ));
@@ -226,7 +227,10 @@ impl<'a> ParseSession<'a> {
             if self.closing_keywords.len() > hit + 1 {
                 let closing = self.closing_keywords.last().unwrap();
                 let expected_tokens = format!("{:?}", closing);
-                self.accept_diagnostic(Diagnostic::missing_token(expected_tokens.as_str(), self.location()));
+                self.accept_diagnostic(Diagnostic::missing_token(
+                    expected_tokens.as_str(),
+                    self.location(),
+                ));
             }
         }
     }

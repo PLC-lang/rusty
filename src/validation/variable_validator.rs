@@ -1,72 +1,49 @@
 use crate::{
     ast::{DataType, DataTypeDeclaration, SourceRange, Variable, VariableBlock},
-    index::Index,
     Diagnostic,
 };
 
-use super::ValidationContext;
-
 /// validates variables & datatypes
 
-pub struct VariableValidator<'i> {
-    index: &'i Index,
+pub struct VariableValidator {
     pub diagnostics: Vec<Diagnostic>,
 }
 
-impl<'i> VariableValidator<'i> {
-    pub fn new(index: &'i Index) -> VariableValidator {
-        VariableValidator { index, diagnostics: Vec::new() }
+impl VariableValidator {
+    pub fn new() -> VariableValidator {
+        VariableValidator {
+            diagnostics: Vec::new(),
+        }
     }
 
     pub fn validate_variable_block(&self, _block: &VariableBlock) {}
 
     pub fn validate_variable(&self, _variable: &Variable) {}
 
-    pub fn validate_data_type_declaration(
-        &self,
-        _declaration: &DataTypeDeclaration,
-    ) {
-    }
+    pub fn validate_data_type_declaration(&self, _declaration: &DataTypeDeclaration) {}
 
-    pub fn validate_data_type(
-        &mut self,
-        declaration: &DataType,
-        location: &SourceRange
-    ) {
+    pub fn validate_data_type(&mut self, declaration: &DataType, location: &SourceRange) {
         match declaration {
             DataType::StructType { variables, .. } => {
                 if variables.is_empty() {
-                    self.diagnostics.push(Diagnostic::empty_variable_block(location.clone()));
+                    self.diagnostics
+                        .push(Diagnostic::empty_variable_block(location.clone()));
                 }
             }
             DataType::EnumType { elements, .. } => {
                 if elements.is_empty() {
-                    self.diagnostics.push(Diagnostic::empty_variable_block(location.clone()));
+                    self.diagnostics
+                        .push(Diagnostic::empty_variable_block(location.clone()));
                 }
             }
-            DataType::SubRangeType {
-                name,
-                referenced_type,
-                bounds,
-            } => {},
-            DataType::ArrayType {
-                name,
-                bounds,
-                referenced_type,
-            } => {},
-            DataType::StringType {
-                name,
-                is_wide,
-                size,
-            } => {},
-            DataType::VarArgs { referenced_type } => {},
+            _ => {}
         }
     }
 }
 
 #[cfg(test)]
 mod variable_validator_tests {
-    use crate::{validation::validation_tests::parse_and_validate, Diagnostic};
+    use crate::{validation::tests::parse_and_validate, Diagnostic};
 
     #[test]
     fn validate_empty_struct_declaration() {

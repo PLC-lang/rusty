@@ -218,7 +218,7 @@ fn parse_pou(
     if closing_tokens.contains(&lexer.last_token) && lexer.last_token != expected_end_token {
         lexer.accept_diagnostic(Diagnostic::unexpected_token_found(
             format!("{:?}", expected_end_token).as_str(),
-            lexer.slice_region(lexer.last_range.clone()).into(),
+            lexer.slice_region(lexer.last_range.clone()),
             SourceRange::new(lexer.last_range.clone()),
         ));
     }
@@ -423,7 +423,7 @@ fn parse_action(
         if closing_tokens.contains(&lexer.last_token) && lexer.last_token != KeywordEndAction {
             lexer.accept_diagnostic(Diagnostic::unexpected_token_found(
                 format!("{:?}", KeywordEndAction).as_str(),
-                lexer.slice().into(),
+                lexer.slice(),
                 lexer.location(),
             ))
         }
@@ -648,7 +648,7 @@ fn parse_enum_type_definition(
         }
         //parse additional elements separated by ,
         while lexer.allow(&KeywordComma) {
-            lexer.expect(Identifier);
+            expect_token!(lexer, Identifier, None);
             elements.push(lexer.slice_and_advance());
         }
         Some(elements)
