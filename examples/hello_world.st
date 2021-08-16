@@ -1,0 +1,17 @@
+@EXTERNAL FUNCTION puts : DINT
+VAR_INPUT
+    text : STRING;
+END_VAR
+END_FUNCTION
+
+@EXTERNAL FUNCTION exit : __VOID
+    VAR_INPUT status : DINT; END_VAR
+END_FUNCTION
+
+FUNCTION main : DINT
+	puts('hello, world');
+END_FUNCTION
+
+FUNCTION _start : DINT
+    exit(main(0));
+END_FUNCTION 

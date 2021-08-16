@@ -135,7 +135,7 @@ fn fb_methods_are_indexed() {
 
     let foo_impl = index.find_implementation("myFuncBlock.foo").unwrap();
     assert_eq!("myFuncBlock.foo", foo_impl.call_name);
-    assert_eq!("myFuncBlock", foo_impl.type_name);
+    assert_eq!("myFuncBlock.foo", foo_impl.type_name);
     let info = index
         .get_type("myFuncBlock.foo")
         .unwrap()
@@ -167,7 +167,7 @@ fn class_methods_are_indexed() {
 
     let foo_impl = index.find_implementation("myClass.foo").unwrap();
     assert_eq!("myClass.foo", foo_impl.call_name);
-    assert_eq!("myClass", foo_impl.type_name);
+    assert_eq!("myClass.foo", foo_impl.type_name);
     let info = index
         .get_type("myClass.foo")
         .unwrap()

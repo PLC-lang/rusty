@@ -2,7 +2,7 @@
 use indexmap::IndexMap;
 
 use crate::{
-    ast::{Implementation, SourceRange, Statement},
+    ast::{Implementation, PouType, SourceRange, Statement},
     compile_error::CompileError,
     typesystem::*,
 };
@@ -89,6 +89,7 @@ pub enum DataTypeType {
 pub struct ImplementationIndexEntry {
     call_name: String,
     type_name: String,
+    pou_type: PouType,
 }
 
 impl ImplementationIndexEntry {
@@ -98,6 +99,9 @@ impl ImplementationIndexEntry {
     pub fn get_type_name(&self) -> &str {
         &self.type_name
     }
+    pub fn get_pou_type(&self) -> PouType {
+        self.pou_type
+    }
 }
 
 impl From<&Implementation> for ImplementationIndexEntry {
@@ -105,6 +109,7 @@ impl From<&Implementation> for ImplementationIndexEntry {
         ImplementationIndexEntry {
             call_name: implementation.name.clone(),
             type_name: implementation.type_name.clone(),
+            pou_type: implementation.pou_type,
         }
     }
 }
@@ -334,12 +339,13 @@ impl Index {
         &self.implementations
     }
 
-    pub fn register_implementation(&mut self, call_name: &str, type_name: &str) {
+    pub fn register_implementation(&mut self, call_name: &str, type_name: &str, pou_type: PouType) {
         self.implementations.insert(
             call_name.into(),
             ImplementationIndexEntry {
                 call_name: call_name.into(),
                 type_name: type_name.into(),
+                pou_type,
             },
         );
     }

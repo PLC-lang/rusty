@@ -74,16 +74,33 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         let global_index = self.index;
         //generate a function that takes a instance-struct parameter
         let pou_name = implementation.get_call_name();
+
         let instance_struct_type: StructType = self
             .llvm_index
             .get_associated_type(implementation.get_type_name())
             .map(|it| it.into_struct_type())?;
+        let mut parameters = vec![instance_struct_type.ptr_type(AddressSpace::Generic).into()];
+        if implementation.get_pou_type() == PouType::Method {
+            let class_name = implementation
+                .get_type_name()
+                .split('.')
+                .collect::<Vec<&str>>()[0];
+            let instance_members_struct_type: StructType = self
+                .llvm_index
+                .get_associated_type(class_name)
+                .map(|it| it.into_struct_type())?;
+            parameters.push(
+                instance_members_struct_type
+                    .ptr_type(AddressSpace::Generic)
+                    .into(),
+            );
+        }
+
         let return_type: Option<&DataType> =
             global_index.find_return_type(implementation.get_type_name());
         let return_type = return_type
             .map(DataType::get_name)
             .map(|it| self.llvm_index.get_associated_type(it).unwrap());
-        let parameters = vec![instance_struct_type.ptr_type(AddressSpace::Generic).into()];
         let variadic = global_index
             .find_type_information(implementation.get_type_name())
             .map(|it| it.is_variadic())
@@ -106,8 +123,6 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
 
         let pou_name = &implementation.name;
 
-        let pou_members = self.index.find_local_members(&implementation.type_name);
-
         let current_function = self
             .llvm_index
             .find_associated_implementation(pou_name)
@@ -123,12 +138,26 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         self.llvm.builder.position_at_end(block);
 
         // generate loads for all the parameters
+        let pou_members = self.index.find_local_members(&implementation.type_name);
         self.generate_local_variable_accessors(
+            0,
             &mut local_index,
             &implementation.type_name,
             current_function,
             &pou_members,
         )?;
+
+        if implementation.pou_type == PouType::Method {
+            let class_name = implementation.type_name.split('.').collect::<Vec<&str>>()[0];
+            let class_members = self.index.find_local_members(&class_name);
+            self.generate_local_variable_accessors(
+                1,
+                &mut local_index,
+                &class_name,
+                current_function,
+                &class_members,
+            )?;
+        }
 
         let function_context = FunctionContext {
             linking_context: implementation.into(),
@@ -144,7 +173,9 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                 &function_context,
             );
             //if this is a function, we need to initilialize the VAR-variables
-            if implementation.pou_type == PouType::Function {
+            if implementation.pou_type == PouType::Function
+                || implementation.pou_type == PouType::Method
+            {
                 self.generate_initialization_of_local_vars(pou_members, &statement_gen)?;
             }
             statement_gen.generate_body(&implementation.statements)?
@@ -192,6 +223,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
     /// generates a load-statement for the given member
     fn generate_local_variable_accessors(
         &self,
+        arg_index: u32,
         index: &mut LlvmTypedIndex<'ink>,
         type_name: &str,
         current_function: FunctionValue<'ink>,
@@ -209,7 +241,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                 )
             } else {
                 let ptr_value = current_function
-                    .get_first_param()
+                    .get_nth_param(arg_index)
                     .map(BasicValueEnum::into_pointer_value)
                     .ok_or_else(|| CompileError::MissingFunctionError {
                         location: m.source_location.clone(),

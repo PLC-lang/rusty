@@ -307,7 +307,7 @@ fn parse_method(
 
         let call_name = format!("{}.{}", class_name, name);
         let implementation =
-            parse_implementation(lexer, linkage, PouType::Class, &call_name, class_name);
+            parse_implementation(lexer, linkage, PouType::Method, &call_name, &call_name);
 
         // parse_implementation() will default-initialize the fields it
         // doesn't know. thus, we have to complete the information.
