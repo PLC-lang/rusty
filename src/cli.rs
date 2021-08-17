@@ -136,7 +136,7 @@ impl CompileParameters {
                 FormatOption::PIC => ".so",
                 FormatOption::IR => ".ir",
             };
-            
+
             if !skip_linking && out_format == FormatOption::Static {
                 ending = "";
             }

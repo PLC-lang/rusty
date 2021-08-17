@@ -249,7 +249,7 @@ pub fn compile_to_static_obj<T: SourceContainer>(
         encoding,
         &obj_output,
         RelocMode::Default,
-        get_target_triple(target.clone())
+        get_target_triple(target.clone()),
     )?;
 
     // link as an executable if "-c" was not passed on the command line
@@ -290,7 +290,7 @@ pub fn compile_to_shared_pic_object<T: SourceContainer>(
         encoding,
         &obj_output,
         RelocMode::PIC,
-        get_target_triple(target.clone())
+        get_target_triple(target.clone()),
     )?;
 
     if linking_enabled {
