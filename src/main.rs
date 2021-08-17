@@ -20,7 +20,8 @@
 use glob::glob;
 use rusty::{
     cli::{CompileParameters, FormatOption, ParameterError},
-    compile_to_bitcode, compile_to_ir, compile_to_shared_object, compile_to_static_obj, FilePath,
+    compile_to_bitcode, compile_to_ir, compile_to_shared_object, compile_to_shared_pic_object,
+    compile_to_static_obj, FilePath,
 };
 
 fn main() {
@@ -73,15 +74,27 @@ fn main_compile(parameters: CompileParameters) -> Result<(), String> {
                 encoding,
                 output_filename.as_str(),
                 parameters.target,
+                !parameters.skip_linking,
             )
             .unwrap();
         }
-        FormatOption::Shared | FormatOption::PIC => {
+        FormatOption::Shared => {
             compile_to_shared_object(
                 sources,
                 encoding,
                 output_filename.as_str(),
                 parameters.target,
+                !parameters.skip_linking,
+            )
+            .unwrap();
+        }
+        FormatOption::PIC => {
+            compile_to_shared_pic_object(
+                sources,
+                encoding,
+                output_filename.as_str(),
+                parameters.target,
+                !parameters.skip_linking,
             )
             .unwrap();
         }

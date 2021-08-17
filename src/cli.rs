@@ -62,6 +62,9 @@ pub struct CompileParameters {
     )]
     pub output_bit_code: bool,
 
+    #[structopt(short = "c", help = "Do not link after compiling object code")]
+    pub skip_linking: bool,
+
     #[structopt(
         long,
         name = "target-triple",

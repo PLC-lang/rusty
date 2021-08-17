@@ -180,6 +180,13 @@ fn create_source_code<T: Read>(
     Ok(buffer)
 }
 
+fn get_target_triple(triple: Option<String>) -> TargetTriple {
+    triple
+        .map(|it| TargetTriple::create(it.as_str()))
+        .or_else(|| Some(TargetMachine::get_default_triple()))
+        .unwrap()
+}
+
 ///
 /// Compiles the given source into an object file and saves it in output
 ///
@@ -188,15 +195,11 @@ fn compile_to_obj<T: SourceContainer>(
     encoding: Option<&'static Encoding>,
     output: &str,
     reloc: RelocMode,
-    triple: Option<String>,
+    triple: TargetTriple,
 ) -> Result<(), CompileError> {
     let initialization_config = &InitializationConfig::default();
     Target::initialize_all(initialization_config);
 
-    let triple = triple
-        .map(|it| TargetTriple::create(it.as_str()))
-        .or_else(|| Some(TargetMachine::get_default_triple()))
-        .unwrap();
     let target = Target::from_triple(&triple).unwrap();
     let machine = target
         .create_target_machine(
@@ -217,12 +220,6 @@ fn compile_to_obj<T: SourceContainer>(
         .write_to_file(&code_generator.module, FileType::Object, Path::new(output))
         .unwrap();
 
-    // link as an executable
-    let mut linker = linker::create_with_target(triple.as_str().to_str().unwrap())?;
-    linker.link_with_libc();
-    linker.add_object(Path::new(output))?;
-    linker.build_exectuable(Path::new(&format!("{}.elf", &output)))?;
-
     Ok(())
 }
 
@@ -239,8 +236,32 @@ pub fn compile_to_static_obj<T: SourceContainer>(
     encoding: Option<&'static Encoding>,
     output: &str,
     target: Option<String>,
+    linking_enabled: bool,
 ) -> Result<(), CompileError> {
-    compile_to_obj(sources, encoding, output, RelocMode::Default, target)
+    let obj_output = if linking_enabled {
+        format!("{}.o", output)
+    } else {
+        output.into()
+    };
+
+    compile_to_obj(
+        sources,
+        encoding,
+        &obj_output,
+        RelocMode::Default,
+        get_target_triple(target.clone())
+    )?;
+
+    // link as an executable if "-c" was not passed on the command line
+    if linking_enabled {
+        let triple = get_target_triple(target);
+        let mut linker = linker::create_with_target(triple.as_str().to_str().unwrap())?;
+        linker.link_with_libc();
+        linker.add_object(Path::new(&obj_output))?;
+        linker.build_exectuable(Path::new(output))?;
+    }
+
+    Ok(())
 }
 
 /// Compiles a given source string to a shared position independent object and saves the output.
@@ -256,8 +277,31 @@ pub fn compile_to_shared_pic_object<T: SourceContainer>(
     encoding: Option<&'static Encoding>,
     output: &str,
     target: Option<String>,
+    linking_enabled: bool,
 ) -> Result<(), CompileError> {
-    compile_to_obj(sources, encoding, output, RelocMode::PIC, target)
+    let obj_output = if linking_enabled {
+        format!("{}.o", output)
+    } else {
+        output.into()
+    };
+
+    compile_to_obj(
+        sources,
+        encoding,
+        &obj_output,
+        RelocMode::PIC,
+        get_target_triple(target.clone())
+    )?;
+
+    if linking_enabled {
+        let triple = get_target_triple(target);
+        let mut linker = linker::create_with_target(triple.as_str().to_str().unwrap())?;
+        linker.link_with_libc();
+        linker.add_object(Path::new(&obj_output))?;
+        linker.build_shared_object(Path::new(output))?;
+    }
+
+    Ok(())
 }
 
 /// Compiles a given source string to a dynamic non PIC object and saves the output.
@@ -273,8 +317,31 @@ pub fn compile_to_shared_object<T: SourceContainer>(
     encoding: Option<&'static Encoding>,
     output: &str,
     target: Option<String>,
+    linking_enabled: bool,
 ) -> Result<(), CompileError> {
-    compile_to_obj(sources, encoding, output, RelocMode::DynamicNoPic, target)
+    let obj_output = if linking_enabled {
+        format!("{}.o", output)
+    } else {
+        output.into()
+    };
+    compile_to_obj(
+        sources,
+        encoding,
+        &obj_output,
+        RelocMode::DynamicNoPic,
+        get_target_triple(target.clone()),
+    )?;
+
+    // link as an executable if "-c" was not passed on the command line
+    if linking_enabled {
+        let triple = get_target_triple(target);
+        let mut linker = linker::create_with_target(triple.as_str().to_str().unwrap())?;
+        linker.link_with_libc();
+        linker.add_object(Path::new(&obj_output))?;
+        linker.build_shared_object(Path::new(&format!("{}.so", &output)))?;
+    }
+
+    Ok(())
 }
 
 ///

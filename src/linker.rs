@@ -1,10 +1,10 @@
 // This file is based on code from the Mun Programming Language
 // https://github.com/mun-lang/mun
 
+use crate::compile_error::CompileError;
 use std::fmt;
 use std::path::{Path, PathBuf};
 use thiserror::Error;
-use crate::compile_error::CompileError;
 
 #[derive(Error, Debug)]
 pub enum LinkerError {
@@ -18,7 +18,7 @@ pub enum LinkerError {
 impl LinkerError {
     fn to_compile_error(&self) -> CompileError {
         CompileError::LinkerError {
-            reason: format!("{}", self)
+            reason: format!("{}", self),
         }
     }
 }
@@ -42,8 +42,8 @@ pub fn create_with_target(target: &str) -> Result<Box<dyn Linker>, CompileError>
         "linux" => Ok(Box::new(LdLinker::new())),
         //"win32" => Ok(Box::new(MsvcLinker::new())),
         _ => Err(CompileError::LinkerError {
-            reason: format!("invalid target platform: {}", target_os)
-        })
+            reason: format!("invalid target platform: {}", target_os),
+        }),
     }
 }
 
