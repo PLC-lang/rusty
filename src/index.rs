@@ -85,7 +85,7 @@ pub enum DataTypeType {
     AliasType,     // a Custom-Alias-dataType
 }
 
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub enum ImplementationType {
     Program,
     Function,
@@ -95,7 +95,7 @@ pub enum ImplementationType {
     Method,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub struct ImplementationIndexEntry {
     call_name: String,
     type_name: String,
@@ -143,7 +143,7 @@ impl From<&PouType> for ImplementationType {
 /// The index contains information about all referencable elements.
 ///
 ///
-#[derive(Debug)]
+#[derive()]
 pub struct Index {
     /// all global variables
     global_variables: IndexMap<String, VariableIndexEntry>,

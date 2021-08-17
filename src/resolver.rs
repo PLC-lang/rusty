@@ -144,35 +144,17 @@ impl AnnotationMap {
         s: &Statement,
         index: &'i Index,
     ) -> &'i typesystem::DataType {
-        self.get_type_or_void_by_id(&s.get_id(), index)
+        self.get_type(s, index)
+            .unwrap_or_else(|| index.get_void_type())
     }
 
-    /// returns the annotated type
+    /// returns the annotated type - for now only used by test
     pub fn get_type<'i>(
         &self,
         s: &Statement,
         index: &'i Index,
     ) -> Option<&'i typesystem::DataType> {
-        self.get_type_by_id(&s.get_id(), index)
-    }
-
-    pub fn get_type_name<'i>(&self, s: &Statement, index: &'i Index) -> &'i str {
-        self.get_type_or_void(s, index).get_name()
-    }
-
-    /// returns the annotation of the given statement or none if it was not annotated
-    pub fn get_annotation(&self, s: &Statement) -> Option<&StatementAnnotation> {
-        self.type_map.get(&s.get_id())
-    }
-
-    /// returns the annotated type
-    pub fn get_type_by_id<'i>(
-        &self,
-        id: &usize,
-        index: &'i Index,
-    ) -> Option<&'i typesystem::DataType> {
-        self.type_map
-            .get(id)
+        self.get_annotation(s)
             .and_then(|annotation| match annotation {
                 StatementAnnotation::ExpressionAnnotation { resulting_type } => {
                     Some(resulting_type.as_str())
@@ -187,14 +169,9 @@ impl AnnotationMap {
             .and_then(|type_name| index.get_type(type_name).ok())
     }
 
-    /// returns the annotated type o rvoid if none was annotate
-    pub fn get_type_or_void_by_id<'i>(
-        &self,
-        id: &usize,
-        index: &'i Index,
-    ) -> &'i typesystem::DataType {
-        self.get_type_by_id(id, index)
-            .unwrap_or_else(|| index.get_void_type())
+    /// returns the annotation of the given statement or none if it was not annotated
+    pub fn get_annotation(&self, s: &Statement) -> Option<&StatementAnnotation> {
+        self.type_map.get(&s.get_id())
     }
 
     pub fn has_type_annotation(&self, id: &usize) -> bool {
