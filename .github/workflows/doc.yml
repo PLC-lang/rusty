@@ -19,6 +19,11 @@ jobs:
         uses: peaceiris/actions-mdbook@v1
         with:
           mdbook-version: 'latest'
+      - name: Install LLVM
+        uses: ghaith/install-llvm-action@latest
+        with:
+          version: ${{ env.llvm-version }}
+          directory: "./llvm"
       - name: Build API documentation
         uses: actions-rs/cargo@v1
         with:
