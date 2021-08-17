@@ -1263,19 +1263,189 @@ fn for_statement_with_steps_test() {
         r#"store i32 3, i32* %x, align 4
   br label %condition_check
 
-condition_check:                                  ; preds = %for_body, %entry
+condition_check:                                  ; preds = %increment, %entry
   %load_x = load i32, i32* %x, align 4
   %tmpVar = icmp sle i32 %load_x, 10
   br i1 %tmpVar, label %for_body, label %continue
 
 for_body:                                         ; preds = %condition_check
   %load_x1 = load i32, i32* %x, align 4
+  br label %increment
+
+increment:                                        ; preds = %for_body
   %tmpVar2 = add i32 %load_x, 7
   store i32 %tmpVar2, i32* %x, align 4
   br label %condition_check
 
 continue:                                         ; preds = %condition_check
   ret void
+"#,
+    );
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn for_statement_with_continue() {
+    let result = codegen!(
+        "
+        PROGRAM prg 
+        VAR
+            x : DINT;
+        END_VAR
+        FOR x := 3 TO 10 BY 7 DO
+            x := x + 1;
+            CONTINUE;
+            x := x - 1;
+        END_FOR
+        END_PROGRAM
+        "
+    );
+
+    let expected = generate_program_boiler_plate(
+        "prg",
+        &[("i32", "x")],
+        "void",
+        "",
+        "",
+        r#"store i32 3, i32* %x, align 4
+  br label %condition_check
+
+condition_check:                                  ; preds = %increment, %entry
+  %load_x = load i32, i32* %x, align 4
+  %tmpVar = icmp sle i32 %load_x, 10
+  br i1 %tmpVar, label %for_body, label %continue
+
+for_body:                                         ; preds = %condition_check
+  %load_x1 = load i32, i32* %x, align 4
+  %tmpVar2 = add i32 %load_x1, 1
+  store i32 %tmpVar2, i32* %x, align 4
+  br label %increment
+
+buffer_block:                                     ; No predecessors!
+  %load_x3 = load i32, i32* %x, align 4
+  %tmpVar4 = sub i32 %load_x3, 1
+  store i32 %tmpVar4, i32* %x, align 4
+  br label %increment
+
+increment:                                        ; preds = %buffer_block, %for_body
+  %tmpVar5 = add i32 %load_x, 7
+  store i32 %tmpVar5, i32* %x, align 4
+  br label %condition_check
+
+continue:                                         ; preds = %condition_check
+  ret void
+"#,
+    );
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn for_statement_with_exit() {
+    let result = codegen!(
+        "
+        PROGRAM prg 
+        VAR
+            x : DINT;
+        END_VAR
+        FOR x := 3 TO 10 BY 7 DO 
+            x := x + 2;
+            EXIT;
+            x := x + 5;
+        END_FOR
+        END_PROGRAM
+        "
+    );
+
+    let expected = generate_program_boiler_plate(
+        "prg",
+        &[("i32", "x")],
+        "void",
+        "",
+        "",
+        r#"store i32 3, i32* %x, align 4
+  br label %condition_check
+
+condition_check:                                  ; preds = %increment, %entry
+  %load_x = load i32, i32* %x, align 4
+  %tmpVar = icmp sle i32 %load_x, 10
+  br i1 %tmpVar, label %for_body, label %continue
+
+for_body:                                         ; preds = %condition_check
+  %load_x1 = load i32, i32* %x, align 4
+  %tmpVar2 = add i32 %load_x1, 2
+  store i32 %tmpVar2, i32* %x, align 4
+  br label %continue
+
+buffer_block:                                     ; No predecessors!
+  %load_x3 = load i32, i32* %x, align 4
+  %tmpVar4 = add i32 %load_x3, 5
+  store i32 %tmpVar4, i32* %x, align 4
+  br label %increment
+
+increment:                                        ; preds = %buffer_block
+  %tmpVar5 = add i32 %load_x, 7
+  store i32 %tmpVar5, i32* %x, align 4
+  br label %condition_check
+
+continue:                                         ; preds = %for_body, %condition_check
+  ret void
+"#,
+    );
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn while_loop_with_if_exit() {
+    let result = codegen!(
+        "
+        PROGRAM prg 
+        VAR
+            x : DINT;
+        END_VAR
+        WHILE x < 20 DO
+          x := x + 1;
+          IF x >= 10 THEN
+            EXIT;
+          END_IF
+        END_PROGRAM
+        "
+    );
+
+    let expected = generate_program_boiler_plate(
+        "prg",
+        &[("i32", "x")],
+        "void",
+        "",
+        "",
+        r#"br label %condition_check
+
+condition_check:                                  ; preds = %entry, %continue3
+  %load_x = load i32, i32* %x, align 4
+  %tmpVar = icmp slt i32 %load_x, 20
+  br i1 %tmpVar, label %while_body, label %continue
+
+while_body:                                       ; preds = %condition_check
+  %load_x1 = load i32, i32* %x, align 4
+  %tmpVar2 = add i32 %load_x1, 1
+  store i32 %tmpVar2, i32* %x, align 4
+  %load_x4 = load i32, i32* %x, align 4
+  %tmpVar5 = icmp sge i32 %load_x4, 10
+  br i1 %tmpVar5, label %condition_body, label %continue3
+
+continue:                                         ; preds = %condition_body, %condition_check
+  ret void
+
+condition_body:                                   ; preds = %while_body
+  br label %continue
+
+buffer_block:                                     ; No predecessors!
+  br label %continue3
+
+continue3:                                        ; preds = %buffer_block, %while_body
+  br label %condition_check
 "#,
     );
 
@@ -1306,13 +1476,16 @@ fn for_statement_without_steps_test() {
         r#"store i32 3, i32* %x, align 4
   br label %condition_check
 
-condition_check:                                  ; preds = %for_body, %entry
+condition_check:                                  ; preds = %increment, %entry
   %load_x = load i32, i32* %x, align 4
   %tmpVar = icmp sle i32 %load_x, 10
   br i1 %tmpVar, label %for_body, label %continue
 
 for_body:                                         ; preds = %condition_check
   %load_x1 = load i32, i32* %x, align 4
+  br label %increment
+
+increment:                                        ; preds = %for_body
   %tmpVar2 = add i32 %load_x, 1
   store i32 %tmpVar2, i32* %x, align 4
   br label %condition_check
@@ -1349,12 +1522,15 @@ fn for_statement_continue() {
         r#"store i32 3, i32* %x, align 4
   br label %condition_check
 
-condition_check:                                  ; preds = %for_body, %entry
+condition_check:                                  ; preds = %increment, %entry
   %load_x = load i32, i32* %x, align 4
   %tmpVar = icmp sle i32 %load_x, 10
   br i1 %tmpVar, label %for_body, label %continue
 
 for_body:                                         ; preds = %condition_check
+  br label %increment
+
+increment:                                        ; preds = %for_body
   %tmpVar1 = add i32 %load_x, 1
   store i32 %tmpVar1, i32* %x, align 4
   br label %condition_check
@@ -1396,7 +1572,7 @@ fn for_statement_with_references_steps_test() {
   store i32 %load_y, i32* %x, align 4
   br label %condition_check
 
-condition_check:                                  ; preds = %for_body, %entry
+condition_check:                                  ; preds = %increment, %entry
   %load_x = load i32, i32* %x, align 4
   %load_z = load i32, i32* %z, align 4
   %tmpVar = icmp sle i32 %load_x, %load_z
@@ -1404,6 +1580,9 @@ condition_check:                                  ; preds = %for_body, %entry
 
 for_body:                                         ; preds = %condition_check
   %load_x1 = load i32, i32* %x, align 4
+  br label %increment
+
+increment:                                        ; preds = %for_body
   %load_step = load i32, i32* %step, align 4
   %tmpVar2 = add i32 %load_x, %load_step
   store i32 %tmpVar2, i32* %x, align 4
@@ -3827,9 +4006,11 @@ entry:
 condition_body:                                   ; preds = %entry
   %smaller_than_ten_ret = load i16, i16* %smaller_than_ten, align 2
   ret i16 %smaller_than_ten_ret
+
+buffer_block:                                     ; No predecessors!
   br label %continue
 
-continue:                                         ; preds = %condition_body, %entry
+continue:                                         ; preds = %buffer_block, %entry
   %smaller_than_ten_ret1 = load i16, i16* %smaller_than_ten, align 2
   ret i16 %smaller_than_ten_ret1
 }
@@ -3866,9 +4047,11 @@ entry:
 
 condition_body:                                   ; preds = %entry
   ret void
+
+buffer_block:                                     ; No predecessors!
   br label %continue
 
-continue:                                         ; preds = %condition_body, %entry
+continue:                                         ; preds = %buffer_block, %entry
   ret void
 }
 "#;

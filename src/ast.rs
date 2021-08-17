@@ -601,6 +601,14 @@ pub enum Statement {
         condition: Box<Statement>,
         id: AstId,
     },
+    ExitStatement {
+        location: SourceRange,
+        id: AstId,
+    },
+    ContinueStatement {
+        location: SourceRange,
+        id: AstId,
+    },
     ReturnStatement {
         location: SourceRange,
         id: AstId,
@@ -812,6 +820,8 @@ impl Debug for Statement {
                 .field("condition", condition)
                 .finish(),
             Statement::ReturnStatement { .. } => f.debug_struct("ReturnStatement").finish(),
+            Statement::ContinueStatement { .. } => f.debug_struct("ContinueStatement").finish(),
+            Statement::ExitStatement { .. } => f.debug_struct("ExitStatement").finish(),
         }
     }
 }
@@ -893,6 +903,8 @@ impl Statement {
             Statement::MultipliedStatement { location, .. } => location.clone(),
             Statement::CaseCondition { condition, .. } => condition.get_location(),
             Statement::ReturnStatement { location, .. } => location.clone(),
+            Statement::ContinueStatement { location, .. } => location.clone(),
+            Statement::ExitStatement { location, .. } => location.clone(),
         }
     }
 
@@ -926,6 +938,8 @@ impl Statement {
             Statement::CaseStatement { id, .. } => *id,
             Statement::CaseCondition { id, .. } => *id,
             Statement::ReturnStatement { id, .. } => *id,
+            Statement::ContinueStatement { id, .. } => *id,
+            Statement::ExitStatement { id, .. } => *id,
         }
     }
 }
