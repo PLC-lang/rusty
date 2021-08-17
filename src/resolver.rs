@@ -12,7 +12,7 @@ use crate::{
         AstId, CompilationUnit, DataType, DataTypeDeclaration, Operator, Pou, Statement,
         UserTypeDeclaration, Variable,
     },
-    index::{ImplementationType, Index},
+    index::{ImplementationIndexEntry, ImplementationType, Index, VariableIndexEntry},
     typesystem::{
         self, get_bigger_type_borrow, DataTypeInformation, BOOL_TYPE, DATE_AND_TIME_TYPE,
         DATE_TYPE, DINT_TYPE, LINT_TYPE, REAL_TYPE, STRING_TYPE, TIME_OF_DAY_TYPE, TIME_TYPE,
@@ -237,6 +237,9 @@ impl<'i> TypeAnnotator<'i> {
 
     fn visit_variable(&mut self, ctx: &VisitorContext, variable: &Variable) {
         self.visit_data_type_declaration(ctx, &variable.data_type);
+        if let Some(initializer) = variable.initializer.as_ref() {
+            self.visit_statement(ctx, initializer);
+        }
     }
 
     fn visit_data_type_declaration(
@@ -393,64 +396,44 @@ impl<'i> TypeAnnotator<'i> {
                 }
             }
             Statement::Reference { name, .. } => {
-                let qualifier = ctx.qualifier.as_deref().or(ctx.pou);
-
-                let annotation = qualifier
-                    .and_then(|pou| {
-                        self.index.find_member(pou, name).map(|v| {
-                            StatementAnnotation::VariableAnnotation {
-                                qualified_name: v.get_qualified_name().into(),
-                                resulting_type: self
-                                    .index
-                                    .get_effective_type_by_name(v.get_type_name())
-                                    .get_name()
-                                    .into(),
-                            }
+                let annotation = if let Some(qualifier) = ctx.qualifier.as_deref() {
+                    // if we see a qualifier, we only consider [qualifier].[name] as candidates
+                    self.index
+                        .find_member(qualifier, name)
+                        .map(|v| to_variable_annotation(v, self.index))
+                } else {
+                    // if we see no qualifier, we try some strategies ...
+                    ctx.pou
+                        .and_then(|qualifier| {
+                            // ... first look at POU-local variables
+                            self.index
+                                .find_member(qualifier, name)
+                                .map(|v| to_variable_annotation(v, self.index))
                         })
-                    })
-                    .or_else(|| {
-                        self.index.find_implementation(name).and_then(|it| {
-                            match it.get_implementation_type() {
-                                crate::index::ImplementationType::Program => {
-                                    Some(StatementAnnotation::ProgramAnnotation {
-                                        qualified_name: it.get_call_name().into(),
-                                    })
+                        .or_else(|| {
+                            // ... then try if we find a pou with that name (maybe it's a call?)
+                            self.index.find_implementation(name).and_then(|it| {
+                                match it.get_implementation_type() {
+                                    crate::index::ImplementationType::Program => {
+                                        Some(to_programm_annotation(it))
+                                    }
+                                    crate::index::ImplementationType::Function => {
+                                        Some(to_function_annotation(it, self.index))
+                                    }
+                                    crate::index::ImplementationType::FunctionBlock => {
+                                        Some(to_type_annotation(name))
+                                    }
+                                    _ => None,
                                 }
-                                crate::index::ImplementationType::Function => {
-                                    Some(StatementAnnotation::FunctionAnnotation {
-                                        qualified_name: it.get_call_name().into(),
-                                        return_type: self
-                                            .index
-                                            .find_return_type(it.get_call_name())
-                                            //.and_then(|it|
-                                            //    self.index.find_effective_type_by_name(it.get_name()))
-                                            .map(|it| it.get_name())
-                                            .unwrap_or(VOID_TYPE)
-                                            .into(),
-                                    })
-                                }
-                                crate::index::ImplementationType::FunctionBlock => {
-                                    Some(StatementAnnotation::TypeAnnotation {
-                                        type_name: name.into(),
-                                    })
-                                }
-                                _ => None,
-                            }
+                            })
                         })
-                    })
-                    .or_else(|| {
-                        self.index.find_global_variable(name).map(|v| {
-                            StatementAnnotation::VariableAnnotation {
-                                qualified_name: name.into(),
-                                resulting_type: self
-                                    .index
-                                    .get_effective_type_by_name(v.get_type_name())
-                                    .get_name()
-                                    .into(),
-                            }
+                        .or_else(|| {
+                            // ... last option is a global variable, where we ignore the current pou's name as a qualifier
+                            self.index
+                                .find_global_variable(name)
+                                .map(|v| to_variable_annotation(v, self.index))
                         })
-                    });
-
+                };
                 if let Some(annotation) = annotation {
                     self.annotation_map.annotate(statement, annotation)
                 }
@@ -626,6 +609,42 @@ impl<'i> TypeAnnotator<'i> {
             }
             _ => {}
         }
+    }
+}
+
+fn to_type_annotation(name: &str) -> StatementAnnotation {
+    StatementAnnotation::TypeAnnotation {
+        type_name: name.into(),
+    }
+}
+
+fn to_programm_annotation(it: &ImplementationIndexEntry) -> StatementAnnotation {
+    StatementAnnotation::ProgramAnnotation {
+        qualified_name: it.get_call_name().into(),
+    }
+}
+
+fn to_variable_annotation(v: &VariableIndexEntry, index: &Index) -> StatementAnnotation {
+    StatementAnnotation::VariableAnnotation {
+        qualified_name: v.get_qualified_name().into(),
+        resulting_type: index
+            .get_effective_type_by_name(v.get_type_name())
+            .get_name()
+            .into(),
+    }
+}
+
+fn to_function_annotation(
+    it: &crate::index::ImplementationIndexEntry,
+    index: &Index,
+) -> StatementAnnotation {
+    StatementAnnotation::FunctionAnnotation {
+        qualified_name: it.get_call_name().into(),
+        return_type: index
+            .find_return_type(it.get_call_name())
+            .map(|it| it.get_name())
+            .unwrap_or(VOID_TYPE)
+            .into(),
     }
 }
 

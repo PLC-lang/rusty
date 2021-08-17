@@ -1,7 +1,7 @@
 use core::panic;
 
 use crate::{
-    ast::Statement,
+    ast::{DataType, Statement, UserTypeDeclaration},
     index::Index,
     resolver::{
         tests::{annotate, parse},
@@ -367,6 +367,7 @@ fn pou_expressions_resolve_types() {
     let annotations = annotate(&unit, &index);
     let statements = &unit.implementations[3].statements;
 
+    //none of these pou's should really resolve to a type
     let expected_types = vec![VOID_TYPE, VOID_TYPE, VOID_TYPE];
     let type_names: Vec<&str> = statements
         .iter()
@@ -670,8 +671,6 @@ fn qualified_expressions_to_aliased_structs_resolve_types() {
     assert_eq!(format!("{:?}", expected_types), format!("{:?}", type_names));
 }
 
-
-
 #[test]
 fn qualified_expressions_to_fbs_resolve_types() {
     let (unit, index) = parse(
@@ -730,14 +729,7 @@ fn qualified_expressions_dont_fallback_to_globals() {
     let annotations = annotate(&unit, &index);
     let statements = &unit.implementations[0].statements;
 
-    assert_eq!(
-        /*Some(&StatementAnnotation::VariableAnnotation {
-            qualified_name: "x".into(), //wrong!
-            resulting_type: "DINT".into()
-        }),*/
-        None,
-        annotations.get_annotation(&statements[0])
-    );
+    assert_eq!(None, annotations.get_annotation(&statements[0]));
     assert_eq!(
         Some(&StatementAnnotation::VariableAnnotation {
             qualified_name: "MyStruct.y".into(),
@@ -746,7 +738,6 @@ fn qualified_expressions_dont_fallback_to_globals() {
         annotations.get_annotation(&statements[1])
     );
 }
-
 
 #[test]
 fn function_parameter_assignments_resolve_types() {
@@ -876,6 +867,40 @@ fn nested_function_parameter_assignments_resolve_types() {
         }
     } else {
         panic!("call statement")
+    }
+}
+
+#[test]
+fn type_initial_values_are_resolved() {
+    let (unit, index) = parse(
+        "
+        TYPE MyStruct : STRUCT
+            x : INT := 20;
+            y : BOOL := TRUE;
+            z : STRING := 'abc';
+        END_STRUCT
+        END_TYPE
+        ",
+    );
+
+    let annotations = annotate(&unit, &index);
+    let UserTypeDeclaration { data_type, .. } = &unit.types[0];
+
+    if let DataType::StructType { variables, .. } = data_type {
+        assert_eq!(
+            Some(&StatementAnnotation::expression("DINT")),
+            annotations.get(variables[0].initializer.as_ref().unwrap())
+        );
+        assert_eq!(
+            Some(&StatementAnnotation::expression("BOOL")),
+            annotations.get(variables[1].initializer.as_ref().unwrap())
+        );
+        assert_eq!(
+            Some(&StatementAnnotation::expression("STRING")),
+            annotations.get(variables[2].initializer.as_ref().unwrap())
+        );
+    } else {
+        panic!("no datatype: {:#?}", data_type)
     }
 }
 
