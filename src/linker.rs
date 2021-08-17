@@ -40,7 +40,7 @@ pub fn create_with_target(target: &str) -> Result<Box<dyn Linker>, CompileError>
     let target_os = target.split('-').collect::<Vec<&str>>()[2];
     match target_os {
         "linux" => Ok(Box::new(LdLinker::new())),
-        //"win32" => Ok(Box::new(MsvcLinker::new())),
+        "win32" => Ok(Box::new(MsvcLinker::new())),
         _ => Err(CompileError::LinkerError {
             reason: format!("invalid target platform: {}", target_os),
         }),
@@ -111,6 +111,68 @@ impl Linker for LdLinker {
 
     fn finalize(&mut self) -> Result<(), CompileError> {
         mun_lld::link(mun_lld::LldFlavor::Elf, &self.args)
+            .ok()
+            .map_err(LinkerError::LinkError)
+            .map_err(|error| error.to_compile_error())
+    }
+}
+struct MsvcLinker {
+    args: Vec<String>,
+}
+
+impl MsvcLinker {
+    fn new() -> Self {
+        MsvcLinker {
+            args: Vec::default(),
+        }
+    }
+}
+
+impl Linker for MsvcLinker {
+    fn link_with_libc(&mut self) {
+        // Not sure how this is called?
+        //self.args.push("libc.lib".into());
+    }
+
+    fn add_object(&mut self, path: &Path) -> Result<(), CompileError> {
+        let path_str = path
+            .to_str()
+            .ok_or_else(|| LinkerError::PathError(path.to_owned()).to_compile_error())?
+            .to_owned();
+        self.args.push(path_str);
+        Ok(())
+    }
+
+    fn build_shared_object(&mut self, path: &Path) -> Result<(), CompileError> {
+        let dll_path_str = path
+            .to_str()
+            .ok_or_else(|| LinkerError::PathError(path.to_owned()).to_compile_error())?;
+
+        let dll_lib_path_str = path
+            .to_str()
+            .ok_or_else(|| LinkerError::PathError(path.to_owned()).to_compile_error())?;
+
+        self.args.push("/DLL".to_owned());
+        self.args.push("/NOENTRY".to_owned());
+        self.args.push(format!("/IMPLIB:{}", dll_lib_path_str));
+        self.args.push(format!("/OUT:{}", dll_path_str));
+
+        self.finalize()
+    }
+
+    fn build_exectuable(&mut self, path: &Path) -> Result<(), CompileError> {
+        let path_str = path
+            .to_str()
+            .ok_or_else(|| LinkerError::PathError(path.to_owned()).to_compile_error())?;
+
+        // Specify output path
+        self.args.push(format!("/OUT:{}", path_str.to_owned()));
+
+        self.finalize()
+    }
+
+    fn finalize(&mut self) -> Result<(), CompileError> {
+        mun_lld::link(mun_lld::LldFlavor::Coff, &self.args)
             .ok()
             .map_err(LinkerError::LinkError)
             .map_err(|error| error.to_compile_error())
