@@ -132,7 +132,7 @@ impl Linker for LdLinker {
         self.args.push("-o".to_owned());
         self.args.push(path_str.to_owned());
 
-        self.finalize()
+        Ok(())
     }
 
     fn build_exectuable(&mut self, path: &Path) -> Result<(), CompileError> {
@@ -144,7 +144,7 @@ impl Linker for LdLinker {
         self.args.push("-o".to_owned());
         self.args.push(path_str.to_owned());
 
-        self.finalize()
+        Ok(())
     }
 
     fn finalize(&mut self) -> Result<(), CompileError> {
@@ -153,20 +153,6 @@ impl Linker for LdLinker {
             .map_err(LinkerError::LinkError)
             .map_err(|error| error.to_compile_error())
     }
-}
-
-#[test]
-fn linux_linker_test() {
-    let mut linker = LdLinker::new();
-    let mut ms_linker = MsvcLinker::new();
-
-    linker.add_object(Path::new("test.o")).unwrap();
-    ms_linker.add_object(Path::new("test.obj")).unwrap();
-    assert_eq!(linker.args[0], "test.o");
-    assert_eq!(ms_linker.args[0], "test.obj");
-
-    linker.link_with_libc();
-    assert_eq!(linker.args.len(), 3);
 }
 
 struct MsvcLinker {
@@ -214,7 +200,7 @@ impl Linker for MsvcLinker {
         self.args.push(format!("/IMPLIB:{}", dll_lib_path_str));
         self.args.push(format!("/OUT:{}", dll_path_str));
 
-        self.finalize()
+        Ok(())
     }
 
     fn build_exectuable(&mut self, path: &Path) -> Result<(), CompileError> {
@@ -225,7 +211,7 @@ impl Linker for MsvcLinker {
         // Specify output path
         self.args.push(format!("/OUT:{}", path_str.to_owned()));
 
-        self.finalize()
+        Ok(())
     }
 
     fn finalize(&mut self) -> Result<(), CompileError> {
@@ -234,4 +220,48 @@ impl Linker for MsvcLinker {
             .map_err(LinkerError::LinkError)
             .map_err(|error| error.to_compile_error())
     }
+}
+
+#[test]
+fn linux_linker_test() {
+    let mut linker = LdLinker::new();
+    linker.link_with_libc();
+    linker.add_object(Path::new("test.o")).unwrap();
+    linker
+        .build_shared_object(Path::new("test.so"))
+        .unwrap_or(());
+    assert_eq!(
+        linker.args,
+        vec!["-L.", "-lc", "test.o", "--shared", "-o", "test.so"]
+    );
+
+    let mut linker = LdLinker::new();
+    linker.add_object(Path::new("test.o")).unwrap();
+    linker.build_exectuable(Path::new("test")).unwrap_or(());
+    assert_eq!(linker.args, vec!["test.o", "-o", "test"]);
+}
+
+#[test]
+fn windows_linker_test() {
+    let mut linker = MsvcLinker::new();
+    linker.link_with_libc();
+    linker.add_object(Path::new("test.obj")).unwrap();
+    linker
+        .build_shared_object(Path::new("test.dll"))
+        .unwrap_or(());
+    assert_eq!(
+        linker.args,
+        vec![
+            "test.obj",
+            "/DLL",
+            "/NOENTRY",
+            "/IMPLIB:test.dll",
+            "/OUT:test.dll"
+        ]
+    );
+
+    let mut linker = MsvcLinker::new();
+    linker.add_object(Path::new("test.obj")).unwrap();
+    linker.build_exectuable(Path::new("test.exe")).unwrap_or(());
+    assert_eq!(linker.args, vec!["test.obj", "/OUT:test.exe"]);
 }

@@ -253,6 +253,7 @@ pub fn compile_to_static_obj<T: SourceContainer>(
         linker.link_with_libc();
         linker.add_object(Path::new(&output))?;
         linker.build_exectuable(Path::new(output))?;
+        linker.finalize()?;
     }
 
     Ok(())
@@ -287,6 +288,7 @@ pub fn compile_to_shared_pic_object<T: SourceContainer>(
         linker.link_with_libc();
         linker.add_object(Path::new(&output))?;
         linker.build_shared_object(Path::new(output))?;
+        linker.finalize()?;
     }
 
     Ok(())
@@ -322,6 +324,7 @@ pub fn compile_to_shared_object<T: SourceContainer>(
         linker.link_with_libc();
         linker.add_object(Path::new(&output))?;
         linker.build_shared_object(Path::new(&output))?;
+        linker.finalize()?;
     }
 
     Ok(())
