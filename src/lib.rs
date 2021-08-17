@@ -238,16 +238,10 @@ pub fn compile_to_static_obj<T: SourceContainer>(
     target: Option<String>,
     linking_enabled: bool,
 ) -> Result<(), CompileError> {
-    let obj_output = if linking_enabled {
-        format!("{}.o", output)
-    } else {
-        output.into()
-    };
-
     compile_to_obj(
         sources,
         encoding,
-        &obj_output,
+        &output,
         RelocMode::Default,
         get_target_triple(target.clone()),
     )?;
@@ -257,7 +251,7 @@ pub fn compile_to_static_obj<T: SourceContainer>(
         let triple = get_target_triple(target);
         let mut linker = linker::create_with_target(triple.as_str().to_str().unwrap())?;
         linker.link_with_libc();
-        linker.add_object(Path::new(&obj_output))?;
+        linker.add_object(Path::new(&output))?;
         linker.build_exectuable(Path::new(output))?;
     }
 
@@ -279,16 +273,10 @@ pub fn compile_to_shared_pic_object<T: SourceContainer>(
     target: Option<String>,
     linking_enabled: bool,
 ) -> Result<(), CompileError> {
-    let obj_output = if linking_enabled {
-        format!("{}.o", output)
-    } else {
-        output.into()
-    };
-
     compile_to_obj(
         sources,
         encoding,
-        &obj_output,
+        &output,
         RelocMode::PIC,
         get_target_triple(target.clone()),
     )?;
@@ -297,7 +285,7 @@ pub fn compile_to_shared_pic_object<T: SourceContainer>(
         let triple = get_target_triple(target);
         let mut linker = linker::create_with_target(triple.as_str().to_str().unwrap())?;
         linker.link_with_libc();
-        linker.add_object(Path::new(&obj_output))?;
+        linker.add_object(Path::new(&output))?;
         linker.build_shared_object(Path::new(output))?;
     }
 
@@ -319,15 +307,10 @@ pub fn compile_to_shared_object<T: SourceContainer>(
     target: Option<String>,
     linking_enabled: bool,
 ) -> Result<(), CompileError> {
-    let obj_output = if linking_enabled {
-        format!("{}.o", output)
-    } else {
-        output.into()
-    };
     compile_to_obj(
         sources,
         encoding,
-        &obj_output,
+        &output,
         RelocMode::DynamicNoPic,
         get_target_triple(target.clone()),
     )?;
@@ -337,8 +320,8 @@ pub fn compile_to_shared_object<T: SourceContainer>(
         let triple = get_target_triple(target);
         let mut linker = linker::create_with_target(triple.as_str().to_str().unwrap())?;
         linker.link_with_libc();
-        linker.add_object(Path::new(&obj_output))?;
-        linker.build_shared_object(Path::new(&format!("{}.so", &output)))?;
+        linker.add_object(Path::new(&output))?;
+        linker.build_shared_object(Path::new(&output))?;
     }
 
     Ok(())
