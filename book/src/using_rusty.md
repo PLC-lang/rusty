@@ -22,12 +22,54 @@ More examples:
 - `rustyc --ir src/*.st` will compile all st files in the src-folder.
 - `rustyc --ir "**/*.st"` will compile all st-files in the current folder and its subfolders recursively.
 
-## Compiling a static object
+## Example: Building a hello world program
+### Writing the code
+We want to print something to the terminal, so we're going to declare external functions
+for that and link with libc when we're done. This program can also be found at
+`examples/hello_world.st` in the source tree of Rusty. 
 
-## Compiling a linkable object
+* `_start` is our entry point to the program, because most linker scripts define it this way. You could
+just as well link with your own `crt0.o` or edit the linker script to change this (for example if
+you want to handle command line arguments). Future releases of RuSTy might provide this one day.
+* Since we don't have a `crt0` right now, we have to call the `exit()` function by ourselves after we're
+done. Otherwise, the program will most likely crash (because it tries to return to a function that never
+existed).
 
-## Creating a shared library 
+```st
+@EXTERNAL FUNCTION puts : DINT
+VAR_INPUT
+    text : STRING;
+END_VAR
+END_FUNCTION
 
-## Linking with an external application
+@EXTERNAL FUNCTION exit : DINT
+VAR_INPUT
+    status : DINT;
+END_VAR
+END_FUNCTION
 
-## Writing a main
+FUNCTION _start : DINT
+    puts('hello, world!');
+    exit(0);
+END_FUNCTION
+```
+
+### Compiling with rusty
+Compiling with rusty is very easy. If you just want to build an object file, then do this:
+```bash
+rustyc -c hello_world.st -o hello_world.o
+```
+
+### Linking an executable
+Instead, you can also compile this into an executable and run it:
+```bash
+rustyc hello_world.st -o hello_world
+./hello_world
+```
+
+Please note that RuSTy will attempt to link the generated object file by default to generate
+an executable if you didn't specify something else (option `-c`). By default, also the C library will be linked.
+However, for this to work you'll have to provide a file called `libc.a` in the library searh path.
+* You can disable linking with the C library by providing the option `--nolibc`
+* You set the library search path by providing the option `-L /path/...`. By default, this will be
+the current directory.
