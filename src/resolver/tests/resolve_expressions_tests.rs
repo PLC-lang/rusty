@@ -670,6 +670,8 @@ fn qualified_expressions_to_aliased_structs_resolve_types() {
     assert_eq!(format!("{:?}", expected_types), format!("{:?}", type_names));
 }
 
+
+
 #[test]
 fn qualified_expressions_to_fbs_resolve_types() {
     let (unit, index) = parse(
@@ -704,6 +706,47 @@ fn qualified_expressions_to_fbs_resolve_types() {
 
     assert_eq!(format!("{:?}", expected_types), format!("{:?}", type_names));
 }
+
+#[test]
+fn qualified_expressions_dont_fallback_to_globals() {
+    let (unit, index) = parse(
+        "
+        VAR_GLOBAL
+            x : DINT;
+        END_VAR 
+
+        TYPE MyStruct: STRUCT
+            y : INT;
+        END_STRUCT
+        END_TYPE
+
+        PROGRAM PRG
+            VAR P : MyStruct; END_VAR
+            P.x;
+            P.y;
+        END_PROGRAM",
+    );
+
+    let annotations = annotate(&unit, &index);
+    let statements = &unit.implementations[0].statements;
+
+    assert_eq!(
+        /*Some(&StatementAnnotation::VariableAnnotation {
+            qualified_name: "x".into(), //wrong!
+            resulting_type: "DINT".into()
+        }),*/
+        None,
+        annotations.get_annotation(&statements[0])
+    );
+    assert_eq!(
+        Some(&StatementAnnotation::VariableAnnotation {
+            qualified_name: "MyStruct.y".into(),
+            resulting_type: "INT".into()
+        }),
+        annotations.get_annotation(&statements[1])
+    );
+}
+
 
 #[test]
 fn function_parameter_assignments_resolve_types() {
