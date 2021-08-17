@@ -64,7 +64,7 @@ fn create_file_paths(inputs: &[String]) -> Result<Vec<FilePath>, String> {
 fn main_compile(parameters: CompileParameters) -> Result<(), String> {
     let sources = create_file_paths(&parameters.input)?;
 
-    let output_filename = parameters.output_name().unwrap();
+    let output_filename = parameters.output_name(parameters.skip_linking).unwrap();
     let encoding = parameters.encoding;
 
     match parameters.output_format_or_default() {

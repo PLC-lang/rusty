@@ -124,21 +124,26 @@ impl CompileParameters {
     }
 
     /// return the output filename with the correct ending
-    pub fn output_name(&self) -> Option<String> {
+    pub fn output_name(&self, skip_linking: bool) -> Option<String> {
+        let out_format = self.output_format_or_default();
         if let Some(n) = &self.output {
             Some(n.to_string())
         } else {
-            let ending = match self.output_format_or_default() {
-                FormatOption::Bitcode => "bc",
-                FormatOption::Static => "o",
-                FormatOption::Shared => "so",
-                FormatOption::PIC => "so",
-                FormatOption::IR => "ir",
+            let mut ending = match out_format {
+                FormatOption::Bitcode => ".bc",
+                FormatOption::Static => ".o",
+                FormatOption::Shared => ".so",
+                FormatOption::PIC => ".so",
+                FormatOption::IR => ".ir",
             };
+            
+            if !skip_linking && out_format == FormatOption::Static {
+                ending = "";
+            }
 
             let output_name = self.input.first().unwrap();
             let basename = Path::new(output_name).file_stem()?.to_str()?;
-            Some(format!("{}.{}", basename, ending))
+            Some(format!("{}{}", basename, ending))
         }
     }
 }
