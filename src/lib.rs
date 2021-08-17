@@ -459,7 +459,33 @@ fn parse(source: &str) -> ParsedAst {
 
 #[cfg(test)]
 mod tests {
-    use crate::create_source_code;
+    use inkwell::targets::TargetMachine;
+
+    use crate::{create_source_code, get_target_triple};
+
+    #[test]
+    fn test_get_target_triple() {
+        let triple = get_target_triple(None);
+        assert_eq!(
+            triple.as_str().to_str().unwrap(),
+            TargetMachine::get_default_triple()
+                .as_str()
+                .to_str()
+                .unwrap()
+        );
+
+        // let triple = get_target_triple(Some("abcdef".into()));
+        // assert_eq!(
+        //     triple.as_str().to_str().unwrap(),
+        //     TargetMachine::get_default_triple()
+        //         .as_str()
+        //         .to_str()
+        //         .unwrap()
+        // );
+
+        let triple = get_target_triple(Some("x86_64-pc-linux-gnu".into()));
+        assert_eq!(triple.as_str().to_str().unwrap(), "x86_64-pc-linux-gnu");
+    }
 
     #[test]
     fn windows_encoded_file_content_read() {
