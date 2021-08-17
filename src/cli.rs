@@ -216,7 +216,7 @@ mod cli_tests {
         let parameters =
             CompileParameters::parse(vec_of_strings!("input.st", "--ir", "-o", "myout.out"))
                 .unwrap();
-        assert_eq!(parameters.output_name().unwrap(), "myout.out".to_string());
+        assert_eq!(parameters.output_name(true).unwrap(), "myout.out".to_string());
 
         //long --output
         let parameters = CompileParameters::parse(vec_of_strings!(
@@ -226,29 +226,33 @@ mod cli_tests {
             "myout2.out"
         ))
         .unwrap();
-        assert_eq!(parameters.output_name().unwrap(), "myout2.out".to_string());
+        assert_eq!(parameters.output_name(true).unwrap(), "myout2.out".to_string());
     }
 
     #[test]
     fn test_default_output_names() {
         let parameters = CompileParameters::parse(vec_of_strings!("alpha.st", "--ir")).unwrap();
-        assert_eq!(parameters.output_name().unwrap(), "alpha.ir".to_string());
+        assert_eq!(parameters.output_name(true).unwrap(), "alpha.ir".to_string());
 
         let parameters = CompileParameters::parse(vec_of_strings!("bravo", "--shared")).unwrap();
-        assert_eq!(parameters.output_name().unwrap(), "bravo.so".to_string());
+        assert_eq!(parameters.output_name(true).unwrap(), "bravo.so".to_string());
 
         let parameters =
             CompileParameters::parse(vec_of_strings!("examples/charlie.st", "--pic")).unwrap();
-        assert_eq!(parameters.output_name().unwrap(), "charlie.so".to_string());
+        assert_eq!(parameters.output_name(true).unwrap(), "charlie.so".to_string());
 
         let parameters =
             CompileParameters::parse(vec_of_strings!("examples/test/delta.st", "--static"))
                 .unwrap();
-        assert_eq!(parameters.output_name().unwrap(), "delta.o".to_string());
+        assert_eq!(parameters.output_name(true).unwrap(), "delta.o".to_string());
 
         let parameters =
             CompileParameters::parse(vec_of_strings!("examples/test/echo", "--bc")).unwrap();
-        assert_eq!(parameters.output_name().unwrap(), "echo.bc".to_string());
+        assert_eq!(parameters.output_name(true).unwrap(), "echo.bc".to_string());
+
+        let parameters =
+            CompileParameters::parse(vec_of_strings!("examples/test/echo.st")).unwrap();
+        assert_eq!(parameters.output_name(false).unwrap(), "echo".to_string());
     }
 
     #[test]

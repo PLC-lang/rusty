@@ -16,11 +16,11 @@ fn compile_all(name : &str, encoding : Option<&'static Encoding>) {
     fs::remove_file(&out).unwrap();
     compile_to_bitcode(vec![FilePath{path : path.clone()}], encoding, &out).unwrap();
     fs::remove_file(&out).unwrap();
-    compile_to_shared_object(vec![FilePath{path : path.clone()}], encoding, &out, None).unwrap();
+    compile_to_shared_object(vec![FilePath{path : path.clone()}], encoding, &out, None, false).unwrap();
     fs::remove_file(&out).unwrap();
-    compile_to_shared_pic_object(vec![FilePath{path : path.clone()}], encoding, &out, None).unwrap();
+    compile_to_shared_pic_object(vec![FilePath{path : path.clone()}], encoding, &out, None, false).unwrap();
     fs::remove_file(&out).unwrap();
-    compile_to_static_obj(vec![FilePath{path : path.clone()}], encoding, &out, None).unwrap();
+    compile_to_static_obj(vec![FilePath{path : path.clone()}], encoding, &out, None, false).unwrap();
     fs::remove_file(&out).unwrap();
     
 }
