@@ -36,6 +36,25 @@ impl fmt::Display for LinkerError {
     }
 }
 
+#[test]
+fn linker_error_test() {
+    let msg = "error message";
+    let link_err = LinkerError::LinkError(msg.into());
+    assert_eq!(
+        link_err.to_compile_error(),
+        CompileError::LinkerError { reason: msg.into() }
+    );
+
+    let path = "/abc/def";
+    let link_err = LinkerError::PathError(path.into());
+    assert_eq!(
+        link_err.to_compile_error(),
+        CompileError::LinkerError {
+            reason: format!("path contains invalid UTF-8 characters: {}", path)
+        }
+    );
+}
+
 pub fn create_with_target(target: &str) -> Result<Box<dyn Linker>, CompileError> {
     let target_os = target.split('-').collect::<Vec<&str>>()[2];
     match target_os {
@@ -47,8 +66,23 @@ pub fn create_with_target(target: &str) -> Result<Box<dyn Linker>, CompileError>
     }
 }
 
+#[test]
+fn creation_test() {
+    let linker = create_with_target("x86_64-pc-linux-gnu");
+    assert_eq!(linker.unwrap().get_platform(), "linux".to_string());
+
+    let linker = create_with_target("x86_64-pc-win32-gnu");
+    assert_eq!(linker.unwrap().get_platform(), "win32".to_string());
+
+    let linker = create_with_target("x86_64-pc-foo-gnu");
+    if let Ok(..) = linker {
+        panic!("Expected create_with_target() to fail");
+    }
+}
+
 pub trait Linker {
     fn link_with_libc(&mut self);
+    fn get_platform(&self) -> String;
     fn add_object(&mut self, path: &Path) -> Result<(), CompileError>;
     fn build_shared_object(&mut self, path: &Path) -> Result<(), CompileError>;
     fn build_exectuable(&mut self, path: &Path) -> Result<(), CompileError>;
@@ -68,6 +102,10 @@ impl LdLinker {
 }
 
 impl Linker for LdLinker {
+    fn get_platform(&self) -> String {
+        "linux".into()
+    }
+
     fn link_with_libc(&mut self) {
         self.args.push("-L.".into());
         self.args.push("-lc".into());
@@ -116,6 +154,21 @@ impl Linker for LdLinker {
             .map_err(|error| error.to_compile_error())
     }
 }
+
+#[test]
+fn linux_linker_test() {
+    let mut linker = LdLinker::new();
+    let mut ms_linker = MsvcLinker::new();
+
+    linker.add_object(Path::new("test.o")).unwrap();
+    ms_linker.add_object(Path::new("test.obj")).unwrap();
+    assert_eq!(linker.args[0], "test.o");
+    assert_eq!(ms_linker.args[0], "test.obj");
+
+    linker.link_with_libc();
+    assert_eq!(linker.args.len(), 3);
+}
+
 struct MsvcLinker {
     args: Vec<String>,
 }
@@ -129,6 +182,10 @@ impl MsvcLinker {
 }
 
 impl Linker for MsvcLinker {
+    fn get_platform(&self) -> String {
+        "win32".into()
+    }
+
     fn link_with_libc(&mut self) {
         // Not sure how this is called?
         //self.args.push("libc.lib".into());
