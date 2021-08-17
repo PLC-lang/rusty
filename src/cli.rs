@@ -216,7 +216,10 @@ mod cli_tests {
         let parameters =
             CompileParameters::parse(vec_of_strings!("input.st", "--ir", "-o", "myout.out"))
                 .unwrap();
-        assert_eq!(parameters.output_name(true).unwrap(), "myout.out".to_string());
+        assert_eq!(
+            parameters.output_name(true).unwrap(),
+            "myout.out".to_string()
+        );
 
         //long --output
         let parameters = CompileParameters::parse(vec_of_strings!(
@@ -226,20 +229,32 @@ mod cli_tests {
             "myout2.out"
         ))
         .unwrap();
-        assert_eq!(parameters.output_name(true).unwrap(), "myout2.out".to_string());
+        assert_eq!(
+            parameters.output_name(true).unwrap(),
+            "myout2.out".to_string()
+        );
     }
 
     #[test]
     fn test_default_output_names() {
         let parameters = CompileParameters::parse(vec_of_strings!("alpha.st", "--ir")).unwrap();
-        assert_eq!(parameters.output_name(true).unwrap(), "alpha.ir".to_string());
+        assert_eq!(
+            parameters.output_name(true).unwrap(),
+            "alpha.ir".to_string()
+        );
 
         let parameters = CompileParameters::parse(vec_of_strings!("bravo", "--shared")).unwrap();
-        assert_eq!(parameters.output_name(true).unwrap(), "bravo.so".to_string());
+        assert_eq!(
+            parameters.output_name(true).unwrap(),
+            "bravo.so".to_string()
+        );
 
         let parameters =
             CompileParameters::parse(vec_of_strings!("examples/charlie.st", "--pic")).unwrap();
-        assert_eq!(parameters.output_name(true).unwrap(), "charlie.so".to_string());
+        assert_eq!(
+            parameters.output_name(true).unwrap(),
+            "charlie.so".to_string()
+        );
 
         let parameters =
             CompileParameters::parse(vec_of_strings!("examples/test/delta.st", "--static"))
