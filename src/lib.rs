@@ -48,6 +48,8 @@ mod parser;
 mod resolver;
 mod typesystem;
 
+mod linker;
+
 #[macro_use]
 extern crate pretty_assertions;
 
@@ -214,6 +216,12 @@ fn compile_to_obj<T: SourceContainer>(
     machine
         .write_to_file(&code_generator.module, FileType::Object, Path::new(output))
         .unwrap();
+
+    // link as an executable
+    let mut linker = linker::create_with_target(triple.as_str().to_str().unwrap())?;
+    linker.link_with_libc();
+    linker.add_object(Path::new(output))?;
+    linker.build_exectuable(Path::new(&format!("{}.elf", &output)))?;
 
     Ok(())
 }
