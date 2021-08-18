@@ -318,8 +318,10 @@ fn pointer_type_test() {
             name: Some("SamplePointer".into()),
             referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
                 referenced_type: "INT".to_string(),
+                location: SourceRange::undefined(),
             }),
         },
+        location: SourceRange::undefined(),
         initializer: None,
     };
     assert_eq!(
@@ -347,8 +349,10 @@ fn ref_type_test() {
             name: Some("SampleReference".into()),
             referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
                 referenced_type: "INT".to_string(),
+                location: SourceRange::undefined(),
             }),
         },
+        location: SourceRange::undefined(),
         initializer: None,
     };
     assert_eq!(
@@ -374,8 +378,10 @@ fn global_pointer_declaration() {
                 name: None,
                 referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
                     referenced_type: "INT".to_string(),
+                    location: SourceRange::undefined(),
                 }),
             },
+            location: SourceRange::undefined(),
         },
         initializer: None,
         location: (0..0).into(),
@@ -392,8 +398,10 @@ fn global_pointer_declaration() {
                 name: None,
                 referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
                     referenced_type: "INT".to_string(),
+                    location: SourceRange::undefined(),
                 }),
             },
+            location: SourceRange::undefined(),
         },
         initializer: None,
         location: (0..0).into(),
