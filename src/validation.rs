@@ -1,6 +1,6 @@
 use crate::{
     ast::{
-        CompilationUnit, DataType, DataTypeDeclaration, Pou, SourceRange, Statement,
+        AstStatement, CompilationUnit, DataType, DataTypeDeclaration, Pou, SourceRange,
         UserTypeDeclaration, Variable, VariableBlock,
     },
     resolver::AnnotationMap,
@@ -155,42 +155,42 @@ impl Validator {
         }
     }
 
-    pub fn visit_statement(&mut self, context: &ValidationContext, statement: &Statement) {
+    pub fn visit_statement(&mut self, context: &ValidationContext, statement: &AstStatement) {
         match statement {
-            Statement::LiteralArray {
+            AstStatement::LiteralArray {
                 elements: Some(elements),
                 ..
             } => self.visit_statement(context, elements.as_ref()),
-            Statement::MultipliedStatement { element, .. } => {
+            AstStatement::MultipliedStatement { element, .. } => {
                 self.visit_statement(context, element)
             }
-            Statement::QualifiedReference { elements, .. } => elements
+            AstStatement::QualifiedReference { elements, .. } => elements
                 .iter()
                 .for_each(|e| self.visit_statement(context, e)),
-            Statement::ArrayAccess {
+            AstStatement::ArrayAccess {
                 reference, access, ..
             } => {
                 visit_all_statements!(self, context, reference, access);
             }
-            Statement::BinaryExpression { left, right, .. } => {
+            AstStatement::BinaryExpression { left, right, .. } => {
                 visit_all_statements!(self, context, left, right);
             }
-            Statement::UnaryExpression { value, .. } => self.visit_statement(context, value),
-            Statement::ExpressionList { expressions, .. } => expressions
+            AstStatement::UnaryExpression { value, .. } => self.visit_statement(context, value),
+            AstStatement::ExpressionList { expressions, .. } => expressions
                 .iter()
                 .for_each(|e| self.visit_statement(context, e)),
-            Statement::RangeStatement { start, end, .. } => {
+            AstStatement::RangeStatement { start, end, .. } => {
                 visit_all_statements!(self, context, start, end);
             }
-            Statement::Assignment { left, right, .. } => {
+            AstStatement::Assignment { left, right, .. } => {
                 self.visit_statement(context, left);
                 self.visit_statement(context, right);
             }
-            Statement::OutputAssignment { left, right, .. } => {
+            AstStatement::OutputAssignment { left, right, .. } => {
                 self.visit_statement(context, left);
                 self.visit_statement(context, right);
             }
-            Statement::CallStatement {
+            AstStatement::CallStatement {
                 parameters,
                 operator,
                 ..
@@ -200,7 +200,7 @@ impl Validator {
                     self.visit_statement(context, s);
                 }
             }
-            Statement::IfStatement {
+            AstStatement::IfStatement {
                 blocks, else_block, ..
             } => {
                 blocks.iter().for_each(|b| {
@@ -211,7 +211,7 @@ impl Validator {
                     .iter()
                     .for_each(|e| self.visit_statement(context, e));
             }
-            Statement::ForLoopStatement {
+            AstStatement::ForLoopStatement {
                 counter,
                 start,
                 end,
@@ -225,19 +225,19 @@ impl Validator {
                 }
                 body.iter().for_each(|s| self.visit_statement(context, s));
             }
-            Statement::WhileLoopStatement {
+            AstStatement::WhileLoopStatement {
                 condition, body, ..
             } => {
                 self.visit_statement(context, condition);
                 body.iter().for_each(|s| self.visit_statement(context, s));
             }
-            Statement::RepeatLoopStatement {
+            AstStatement::RepeatLoopStatement {
                 condition, body, ..
             } => {
                 self.visit_statement(context, condition);
                 body.iter().for_each(|s| self.visit_statement(context, s));
             }
-            Statement::CaseStatement {
+            AstStatement::CaseStatement {
                 selector,
                 case_blocks,
                 else_block,
@@ -252,7 +252,9 @@ impl Validator {
                     .iter()
                     .for_each(|s| self.visit_statement(context, s));
             }
-            Statement::CaseCondition { condition, .. } => self.visit_statement(context, condition),
+            AstStatement::CaseCondition { condition, .. } => {
+                self.visit_statement(context, condition)
+            }
             _ => {}
         }
 

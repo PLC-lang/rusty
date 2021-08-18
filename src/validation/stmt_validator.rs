@@ -1,6 +1,6 @@
 use super::ValidationContext;
 use crate::{
-    ast::{SourceRange, Statement},
+    ast::{AstStatement, SourceRange},
     Diagnostic,
 };
 
@@ -17,8 +17,8 @@ impl StatementValidator {
         }
     }
 
-    pub fn validate_statement(&mut self, statement: &Statement, context: &ValidationContext) {
-        if let Statement::Reference {
+    pub fn validate_statement(&mut self, statement: &AstStatement, context: &ValidationContext) {
+        if let AstStatement::Reference {
             name, location, id, ..
         } = statement
         {

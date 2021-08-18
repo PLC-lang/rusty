@@ -56,7 +56,7 @@ pub struct Implementation {
     pub type_name: String,
     pub linkage: LinkageType,
     pub pou_type: PouType,
-    pub statements: Vec<Statement>,
+    pub statements: Vec<AstStatement>,
     pub location: SourceRange,
     pub overriding: bool,
     pub access: Option<AccessModifier>,
@@ -152,7 +152,7 @@ impl Debug for VariableBlock {
 pub struct Variable {
     pub name: String,
     pub data_type: DataTypeDeclaration,
-    pub initializer: Option<Statement>,
+    pub initializer: Option<AstStatement>,
     pub location: SourceRange,
 }
 
@@ -273,7 +273,7 @@ impl DataTypeDeclaration {
 #[derive(PartialEq)]
 pub struct UserTypeDeclaration {
     pub data_type: DataType,
-    pub initializer: Option<Statement>,
+    pub initializer: Option<AstStatement>,
     pub location: SourceRange,
 }
 
@@ -299,17 +299,17 @@ pub enum DataType {
     SubRangeType {
         name: Option<String>,
         referenced_type: String,
-        bounds: Option<Statement>,
+        bounds: Option<AstStatement>,
     },
     ArrayType {
         name: Option<String>,
-        bounds: Statement,
+        bounds: AstStatement,
         referenced_type: Box<DataTypeDeclaration>,
     },
     StringType {
         name: Option<String>,
         is_wide: bool, //WSTRING
-        size: Option<Statement>,
+        size: Option<AstStatement>,
     },
     VarArgs {
         referenced_type: Option<Box<DataTypeDeclaration>>,
@@ -417,8 +417,8 @@ impl DataType {
 
 #[derive(Clone, PartialEq)]
 pub struct ConditionalBlock {
-    pub condition: Box<Statement>,
-    pub body: Vec<Statement>,
+    pub condition: Box<AstStatement>,
+    pub body: Vec<AstStatement>,
 }
 
 impl Debug for ConditionalBlock {
@@ -431,7 +431,7 @@ impl Debug for ConditionalBlock {
 }
 
 #[derive(Clone, PartialEq)]
-pub enum Statement {
+pub enum AstStatement {
     EmptyStatement {
         location: SourceRange,
         id: AstId,
@@ -497,19 +497,19 @@ pub enum Statement {
         id: AstId,
     },
     LiteralArray {
-        elements: Option<Box<Statement>>, // expression-list
+        elements: Option<Box<AstStatement>>, // expression-list
         location: SourceRange,
         id: AstId,
     },
     MultipliedStatement {
         multiplier: u32,
-        element: Box<Statement>,
+        element: Box<AstStatement>,
         location: SourceRange,
         id: AstId,
     },
     // Expressions
     QualifiedReference {
-        elements: Vec<Statement>,
+        elements: Vec<AstStatement>,
         id: AstId,
     },
     Reference {
@@ -518,87 +518,87 @@ pub enum Statement {
         id: AstId,
     },
     ArrayAccess {
-        reference: Box<Statement>,
-        access: Box<Statement>,
+        reference: Box<AstStatement>,
+        access: Box<AstStatement>,
         id: AstId,
     },
     BinaryExpression {
         operator: Operator,
-        left: Box<Statement>,
-        right: Box<Statement>,
+        left: Box<AstStatement>,
+        right: Box<AstStatement>,
         id: AstId,
     },
     UnaryExpression {
         operator: Operator,
-        value: Box<Statement>,
+        value: Box<AstStatement>,
         location: SourceRange,
         id: AstId,
     },
     ExpressionList {
-        expressions: Vec<Statement>,
+        expressions: Vec<AstStatement>,
         id: AstId,
     },
     RangeStatement {
-        start: Box<Statement>,
-        end: Box<Statement>,
+        start: Box<AstStatement>,
+        end: Box<AstStatement>,
         id: AstId,
     },
     // Assignment
     Assignment {
-        left: Box<Statement>,
-        right: Box<Statement>,
+        left: Box<AstStatement>,
+        right: Box<AstStatement>,
         id: AstId,
     },
     // OutputAssignment
     OutputAssignment {
-        left: Box<Statement>,
-        right: Box<Statement>,
+        left: Box<AstStatement>,
+        right: Box<AstStatement>,
         id: AstId,
     },
     //Call Statement
     CallStatement {
-        operator: Box<Statement>,
-        parameters: Box<Option<Statement>>,
+        operator: Box<AstStatement>,
+        parameters: Box<Option<AstStatement>>,
         location: SourceRange,
         id: AstId,
     },
     // Control Statements
     IfStatement {
         blocks: Vec<ConditionalBlock>,
-        else_block: Vec<Statement>,
+        else_block: Vec<AstStatement>,
         location: SourceRange,
         id: AstId,
     },
     ForLoopStatement {
-        counter: Box<Statement>,
-        start: Box<Statement>,
-        end: Box<Statement>,
-        by_step: Option<Box<Statement>>,
-        body: Vec<Statement>,
+        counter: Box<AstStatement>,
+        start: Box<AstStatement>,
+        end: Box<AstStatement>,
+        by_step: Option<Box<AstStatement>>,
+        body: Vec<AstStatement>,
         location: SourceRange,
         id: AstId,
     },
     WhileLoopStatement {
-        condition: Box<Statement>,
-        body: Vec<Statement>,
+        condition: Box<AstStatement>,
+        body: Vec<AstStatement>,
         location: SourceRange,
         id: AstId,
     },
     RepeatLoopStatement {
-        condition: Box<Statement>,
-        body: Vec<Statement>,
+        condition: Box<AstStatement>,
+        body: Vec<AstStatement>,
         location: SourceRange,
         id: AstId,
     },
     CaseStatement {
-        selector: Box<Statement>,
+        selector: Box<AstStatement>,
         case_blocks: Vec<ConditionalBlock>,
-        else_block: Vec<Statement>,
+        else_block: Vec<AstStatement>,
         location: SourceRange,
         id: AstId,
     },
     CaseCondition {
-        condition: Box<Statement>,
+        condition: Box<AstStatement>,
         id: AstId,
     },
     ExitStatement {
@@ -615,15 +615,15 @@ pub enum Statement {
     },
 }
 
-impl Debug for Statement {
+impl Debug for AstStatement {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
         match self {
-            Statement::EmptyStatement { .. } => f.debug_struct("EmptyStatement").finish(),
-            Statement::LiteralInteger { value, .. } => f
+            AstStatement::EmptyStatement { .. } => f.debug_struct("EmptyStatement").finish(),
+            AstStatement::LiteralInteger { value, .. } => f
                 .debug_struct("LiteralInteger")
                 .field("value", value)
                 .finish(),
-            Statement::LiteralDate {
+            AstStatement::LiteralDate {
                 year, month, day, ..
             } => f
                 .debug_struct("LiteralDate")
@@ -631,7 +631,7 @@ impl Debug for Statement {
                 .field("month", month)
                 .field("day", day)
                 .finish(),
-            Statement::LiteralDateAndTime {
+            AstStatement::LiteralDateAndTime {
                 year,
                 month,
                 day,
@@ -650,7 +650,7 @@ impl Debug for Statement {
                 .field("sec", sec)
                 .field("milli", milli)
                 .finish(),
-            Statement::LiteralTimeOfDay {
+            AstStatement::LiteralTimeOfDay {
                 hour,
                 min,
                 sec,
@@ -663,7 +663,7 @@ impl Debug for Statement {
                 .field("sec", sec)
                 .field("milli", milli)
                 .finish(),
-            Statement::LiteralTime {
+            AstStatement::LiteralTime {
                 day,
                 hour,
                 min,
@@ -684,29 +684,29 @@ impl Debug for Statement {
                 .field("nano", nano)
                 .field("negative", negative)
                 .finish(),
-            Statement::LiteralReal { value, .. } => {
+            AstStatement::LiteralReal { value, .. } => {
                 f.debug_struct("LiteralReal").field("value", value).finish()
             }
-            Statement::LiteralBool { value, .. } => {
+            AstStatement::LiteralBool { value, .. } => {
                 f.debug_struct("LiteralBool").field("value", value).finish()
             }
-            Statement::LiteralString { value, is_wide, .. } => f
+            AstStatement::LiteralString { value, is_wide, .. } => f
                 .debug_struct("LiteralString")
                 .field("value", value)
                 .field("is_wide", is_wide)
                 .finish(),
-            Statement::LiteralArray { elements, .. } => f
+            AstStatement::LiteralArray { elements, .. } => f
                 .debug_struct("LiteralArray")
                 .field("elements", elements)
                 .finish(),
-            Statement::Reference { name, .. } => {
+            AstStatement::Reference { name, .. } => {
                 f.debug_struct("Reference").field("name", name).finish()
             }
-            Statement::QualifiedReference { elements, .. } => f
+            AstStatement::QualifiedReference { elements, .. } => f
                 .debug_struct("QualifiedReference")
                 .field("elements", elements)
                 .finish(),
-            Statement::BinaryExpression {
+            AstStatement::BinaryExpression {
                 operator,
                 left,
                 right,
@@ -717,33 +717,33 @@ impl Debug for Statement {
                 .field("left", left)
                 .field("right", right)
                 .finish(),
-            Statement::UnaryExpression {
+            AstStatement::UnaryExpression {
                 operator, value, ..
             } => f
                 .debug_struct("UnaryExpression")
                 .field("operator", operator)
                 .field("value", value)
                 .finish(),
-            Statement::ExpressionList { expressions, .. } => f
+            AstStatement::ExpressionList { expressions, .. } => f
                 .debug_struct("ExpressionList")
                 .field("expressions", expressions)
                 .finish(),
-            Statement::RangeStatement { start, end, .. } => f
+            AstStatement::RangeStatement { start, end, .. } => f
                 .debug_struct("RangeStatement")
                 .field("start", start)
                 .field("end", end)
                 .finish(),
-            Statement::Assignment { left, right, .. } => f
+            AstStatement::Assignment { left, right, .. } => f
                 .debug_struct("Assignment")
                 .field("left", left)
                 .field("right", right)
                 .finish(),
-            Statement::OutputAssignment { left, right, .. } => f
+            AstStatement::OutputAssignment { left, right, .. } => f
                 .debug_struct("OutputAssignment")
                 .field("left", left)
                 .field("right", right)
                 .finish(),
-            Statement::CallStatement {
+            AstStatement::CallStatement {
                 operator,
                 parameters,
                 ..
@@ -752,14 +752,14 @@ impl Debug for Statement {
                 .field("operator", operator)
                 .field("parameters", parameters)
                 .finish(),
-            Statement::IfStatement {
+            AstStatement::IfStatement {
                 blocks, else_block, ..
             } => f
                 .debug_struct("IfStatement")
                 .field("blocks", blocks)
                 .field("else_block", else_block)
                 .finish(),
-            Statement::ForLoopStatement {
+            AstStatement::ForLoopStatement {
                 counter,
                 start,
                 end,
@@ -774,21 +774,21 @@ impl Debug for Statement {
                 .field("by_step", by_step)
                 .field("body", body)
                 .finish(),
-            Statement::WhileLoopStatement {
+            AstStatement::WhileLoopStatement {
                 condition, body, ..
             } => f
                 .debug_struct("WhileLoopStatement")
                 .field("condition", condition)
                 .field("body", body)
                 .finish(),
-            Statement::RepeatLoopStatement {
+            AstStatement::RepeatLoopStatement {
                 condition, body, ..
             } => f
                 .debug_struct("RepeatLoopStatement")
                 .field("condition", condition)
                 .field("body", body)
                 .finish(),
-            Statement::CaseStatement {
+            AstStatement::CaseStatement {
                 selector,
                 case_blocks,
                 else_block,
@@ -799,14 +799,14 @@ impl Debug for Statement {
                 .field("case_blocks", case_blocks)
                 .field("else_block", else_block)
                 .finish(),
-            Statement::ArrayAccess {
+            AstStatement::ArrayAccess {
                 reference, access, ..
             } => f
                 .debug_struct("ArrayAccess")
                 .field("reference", reference)
                 .field("access", access)
                 .finish(),
-            Statement::MultipliedStatement {
+            AstStatement::MultipliedStatement {
                 multiplier,
                 element,
                 ..
@@ -815,40 +815,40 @@ impl Debug for Statement {
                 .field("multiplier", multiplier)
                 .field("element", element)
                 .finish(),
-            Statement::CaseCondition { condition, .. } => f
+            AstStatement::CaseCondition { condition, .. } => f
                 .debug_struct("CaseCondition")
                 .field("condition", condition)
                 .finish(),
-            Statement::ReturnStatement { .. } => f.debug_struct("ReturnStatement").finish(),
-            Statement::ContinueStatement { .. } => f.debug_struct("ContinueStatement").finish(),
-            Statement::ExitStatement { .. } => f.debug_struct("ExitStatement").finish(),
+            AstStatement::ReturnStatement { .. } => f.debug_struct("ReturnStatement").finish(),
+            AstStatement::ContinueStatement { .. } => f.debug_struct("ContinueStatement").finish(),
+            AstStatement::ExitStatement { .. } => f.debug_struct("ExitStatement").finish(),
         }
     }
 }
 
-impl Statement {
+impl AstStatement {
     ///Returns the statement in a singleton list, or the contained statements if the statement is already a list
-    pub fn get_as_list(&self) -> Vec<&Statement> {
-        if let Statement::ExpressionList { expressions, .. } = self {
-            expressions.iter().collect::<Vec<&Statement>>()
+    pub fn get_as_list(&self) -> Vec<&AstStatement> {
+        if let AstStatement::ExpressionList { expressions, .. } = self {
+            expressions.iter().collect::<Vec<&AstStatement>>()
         } else {
             vec![self]
         }
     }
     pub fn get_location(&self) -> SourceRange {
         match self {
-            Statement::EmptyStatement { location, .. } => location.clone(),
-            Statement::LiteralInteger { location, .. } => location.clone(),
-            Statement::LiteralDate { location, .. } => location.clone(),
-            Statement::LiteralDateAndTime { location, .. } => location.clone(),
-            Statement::LiteralTimeOfDay { location, .. } => location.clone(),
-            Statement::LiteralTime { location, .. } => location.clone(),
-            Statement::LiteralReal { location, .. } => location.clone(),
-            Statement::LiteralBool { location, .. } => location.clone(),
-            Statement::LiteralString { location, .. } => location.clone(),
-            Statement::LiteralArray { location, .. } => location.clone(),
-            Statement::Reference { location, .. } => location.clone(),
-            Statement::QualifiedReference { elements, .. } => {
+            AstStatement::EmptyStatement { location, .. } => location.clone(),
+            AstStatement::LiteralInteger { location, .. } => location.clone(),
+            AstStatement::LiteralDate { location, .. } => location.clone(),
+            AstStatement::LiteralDateAndTime { location, .. } => location.clone(),
+            AstStatement::LiteralTimeOfDay { location, .. } => location.clone(),
+            AstStatement::LiteralTime { location, .. } => location.clone(),
+            AstStatement::LiteralReal { location, .. } => location.clone(),
+            AstStatement::LiteralBool { location, .. } => location.clone(),
+            AstStatement::LiteralString { location, .. } => location.clone(),
+            AstStatement::LiteralArray { location, .. } => location.clone(),
+            AstStatement::Reference { location, .. } => location.clone(),
+            AstStatement::QualifiedReference { elements, .. } => {
                 let first = elements
                     .first()
                     .map_or_else(SourceRange::undefined, |it| it.get_location());
@@ -857,13 +857,13 @@ impl Statement {
                     .map_or_else(SourceRange::undefined, |it| it.get_location());
                 SourceRange::new(first.get_start()..last.get_end())
             }
-            Statement::BinaryExpression { left, right, .. } => {
+            AstStatement::BinaryExpression { left, right, .. } => {
                 let left_loc = left.get_location();
                 let right_loc = right.get_location();
                 SourceRange::new(left_loc.range.start..right_loc.range.end)
             }
-            Statement::UnaryExpression { location, .. } => location.clone(),
-            Statement::ExpressionList { expressions, .. } => {
+            AstStatement::UnaryExpression { location, .. } => location.clone(),
+            AstStatement::ExpressionList { expressions, .. } => {
                 let first = expressions
                     .first()
                     .map_or_else(SourceRange::undefined, |it| it.get_location());
@@ -872,74 +872,74 @@ impl Statement {
                     .map_or_else(SourceRange::undefined, |it| it.get_location());
                 SourceRange::new(first.get_start()..last.get_end())
             }
-            Statement::RangeStatement { start, end, .. } => {
+            AstStatement::RangeStatement { start, end, .. } => {
                 let start_loc = start.get_location();
                 let end_loc = end.get_location();
                 SourceRange::new(start_loc.range.start..end_loc.range.end)
             }
-            Statement::Assignment { left, right, .. } => {
+            AstStatement::Assignment { left, right, .. } => {
                 let left_loc = left.get_location();
                 let right_loc = right.get_location();
                 SourceRange::new(left_loc.range.start..right_loc.range.end)
             }
-            Statement::OutputAssignment { left, right, .. } => {
+            AstStatement::OutputAssignment { left, right, .. } => {
                 let left_loc = left.get_location();
                 let right_loc = right.get_location();
                 SourceRange::new(left_loc.range.start..right_loc.range.end)
             }
-            Statement::CallStatement { location, .. } => location.clone(),
-            Statement::IfStatement { location, .. } => location.clone(),
-            Statement::ForLoopStatement { location, .. } => location.clone(),
-            Statement::WhileLoopStatement { location, .. } => location.clone(),
-            Statement::RepeatLoopStatement { location, .. } => location.clone(),
-            Statement::CaseStatement { location, .. } => location.clone(),
-            Statement::ArrayAccess {
+            AstStatement::CallStatement { location, .. } => location.clone(),
+            AstStatement::IfStatement { location, .. } => location.clone(),
+            AstStatement::ForLoopStatement { location, .. } => location.clone(),
+            AstStatement::WhileLoopStatement { location, .. } => location.clone(),
+            AstStatement::RepeatLoopStatement { location, .. } => location.clone(),
+            AstStatement::CaseStatement { location, .. } => location.clone(),
+            AstStatement::ArrayAccess {
                 reference, access, ..
             } => {
                 let reference_loc = reference.get_location();
                 let access_loc = access.get_location();
                 SourceRange::new(reference_loc.range.start..access_loc.range.end)
             }
-            Statement::MultipliedStatement { location, .. } => location.clone(),
-            Statement::CaseCondition { condition, .. } => condition.get_location(),
-            Statement::ReturnStatement { location, .. } => location.clone(),
-            Statement::ContinueStatement { location, .. } => location.clone(),
-            Statement::ExitStatement { location, .. } => location.clone(),
+            AstStatement::MultipliedStatement { location, .. } => location.clone(),
+            AstStatement::CaseCondition { condition, .. } => condition.get_location(),
+            AstStatement::ReturnStatement { location, .. } => location.clone(),
+            AstStatement::ContinueStatement { location, .. } => location.clone(),
+            AstStatement::ExitStatement { location, .. } => location.clone(),
         }
     }
 
     pub fn get_id(&self) -> AstId {
         match self {
-            Statement::EmptyStatement { id, .. } => *id,
-            Statement::LiteralInteger { id, .. } => *id,
-            Statement::LiteralDate { id, .. } => *id,
-            Statement::LiteralDateAndTime { id, .. } => *id,
-            Statement::LiteralTimeOfDay { id, .. } => *id,
-            Statement::LiteralTime { id, .. } => *id,
-            Statement::LiteralReal { id, .. } => *id,
-            Statement::LiteralBool { id, .. } => *id,
-            Statement::LiteralString { id, .. } => *id,
-            Statement::LiteralArray { id, .. } => *id,
-            Statement::MultipliedStatement { id, .. } => *id,
-            Statement::QualifiedReference { id, .. } => *id,
-            Statement::Reference { id, .. } => *id,
-            Statement::ArrayAccess { id, .. } => *id,
-            Statement::BinaryExpression { id, .. } => *id,
-            Statement::UnaryExpression { id, .. } => *id,
-            Statement::ExpressionList { id, .. } => *id,
-            Statement::RangeStatement { id, .. } => *id,
-            Statement::Assignment { id, .. } => *id,
-            Statement::OutputAssignment { id, .. } => *id,
-            Statement::CallStatement { id, .. } => *id,
-            Statement::IfStatement { id, .. } => *id,
-            Statement::ForLoopStatement { id, .. } => *id,
-            Statement::WhileLoopStatement { id, .. } => *id,
-            Statement::RepeatLoopStatement { id, .. } => *id,
-            Statement::CaseStatement { id, .. } => *id,
-            Statement::CaseCondition { id, .. } => *id,
-            Statement::ReturnStatement { id, .. } => *id,
-            Statement::ContinueStatement { id, .. } => *id,
-            Statement::ExitStatement { id, .. } => *id,
+            AstStatement::EmptyStatement { id, .. } => *id,
+            AstStatement::LiteralInteger { id, .. } => *id,
+            AstStatement::LiteralDate { id, .. } => *id,
+            AstStatement::LiteralDateAndTime { id, .. } => *id,
+            AstStatement::LiteralTimeOfDay { id, .. } => *id,
+            AstStatement::LiteralTime { id, .. } => *id,
+            AstStatement::LiteralReal { id, .. } => *id,
+            AstStatement::LiteralBool { id, .. } => *id,
+            AstStatement::LiteralString { id, .. } => *id,
+            AstStatement::LiteralArray { id, .. } => *id,
+            AstStatement::MultipliedStatement { id, .. } => *id,
+            AstStatement::QualifiedReference { id, .. } => *id,
+            AstStatement::Reference { id, .. } => *id,
+            AstStatement::ArrayAccess { id, .. } => *id,
+            AstStatement::BinaryExpression { id, .. } => *id,
+            AstStatement::UnaryExpression { id, .. } => *id,
+            AstStatement::ExpressionList { id, .. } => *id,
+            AstStatement::RangeStatement { id, .. } => *id,
+            AstStatement::Assignment { id, .. } => *id,
+            AstStatement::OutputAssignment { id, .. } => *id,
+            AstStatement::CallStatement { id, .. } => *id,
+            AstStatement::IfStatement { id, .. } => *id,
+            AstStatement::ForLoopStatement { id, .. } => *id,
+            AstStatement::WhileLoopStatement { id, .. } => *id,
+            AstStatement::RepeatLoopStatement { id, .. } => *id,
+            AstStatement::CaseStatement { id, .. } => *id,
+            AstStatement::CaseCondition { id, .. } => *id,
+            AstStatement::ReturnStatement { id, .. } => *id,
+            AstStatement::ContinueStatement { id, .. } => *id,
+            AstStatement::ExitStatement { id, .. } => *id,
         }
     }
 }
@@ -979,14 +979,14 @@ impl Display for Operator {
 
 /// flattens expression-lists and MultipliedStatements into a vec of statements.
 /// It can also handle nested structures like 2(3(4,5))
-pub fn flatten_expression_list(condition: &Statement) -> Vec<&Statement> {
+pub fn flatten_expression_list(condition: &AstStatement) -> Vec<&AstStatement> {
     match condition {
-        Statement::ExpressionList { expressions, .. } => expressions
+        AstStatement::ExpressionList { expressions, .. } => expressions
             .iter()
             .by_ref()
             .flat_map(|statement| flatten_expression_list(statement))
             .collect(),
-        Statement::MultipliedStatement {
+        AstStatement::MultipliedStatement {
             multiplier,
             element,
             ..
@@ -1004,7 +1004,7 @@ pub fn pre_process(unit: &mut CompilationUnit) {
 
 /// constructs a vector with all dimensions for the given bounds-statement
 /// e.g. [0..10, 0..5]
-pub fn get_array_dimensions(bounds: &Statement) -> result::Result<Vec<Dimension>, CompileError> {
+pub fn get_array_dimensions(bounds: &AstStatement) -> result::Result<Vec<Dimension>, CompileError> {
     let mut result = vec![];
     for statement in bounds.get_as_list() {
         result.push(get_single_array_dimension(statement)?);
@@ -1014,8 +1014,8 @@ pub fn get_array_dimensions(bounds: &Statement) -> result::Result<Vec<Dimension>
 
 /// constructs a Dimension for the given RangeStatement
 /// throws an error if the given statement is no RangeStatement
-fn get_single_array_dimension(bounds: &Statement) -> result::Result<Dimension, CompileError> {
-    if let Statement::RangeStatement { start, end, .. } = bounds {
+fn get_single_array_dimension(bounds: &AstStatement) -> result::Result<Dimension, CompileError> {
+    if let AstStatement::RangeStatement { start, end, .. } = bounds {
         let start_offset = evaluate_constant_int(start).unwrap_or(0);
         let end_offset = evaluate_constant_int(end).unwrap_or(0);
         Ok(Dimension {
@@ -1032,12 +1032,12 @@ fn get_single_array_dimension(bounds: &Statement) -> result::Result<Dimension, C
 
 /// extracts the compile-time value of the given statement.
 /// returns an error if no value can be derived at compile-time
-fn extract_value(s: &Statement) -> result::Result<String, CompileError> {
+fn extract_value(s: &AstStatement) -> result::Result<String, CompileError> {
     match s {
-        Statement::UnaryExpression {
+        AstStatement::UnaryExpression {
             operator, value, ..
         } => extract_value(value).map(|result| format!("{}{}", operator, result)),
-        Statement::LiteralInteger { value, .. } => Ok(value.to_string()),
+        AstStatement::LiteralInteger { value, .. } => Ok(value.to_string()),
         //TODO constants
         _ => Err(CompileError::codegen_error(
             "Unsupported Statement. Cannot evaluate expression.".to_string(),
@@ -1047,7 +1047,7 @@ fn extract_value(s: &Statement) -> result::Result<String, CompileError> {
 }
 
 /// evaluate the given statemetn as i32
-pub fn evaluate_constant_int(s: &Statement) -> result::Result<i32, CompileError> {
+pub fn evaluate_constant_int(s: &AstStatement) -> result::Result<i32, CompileError> {
     let value = extract_value(s);
     value.map(|v| v.parse().unwrap_or(0))
 }

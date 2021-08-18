@@ -1,5 +1,5 @@
 use crate::{
-    ast::Statement::LiteralInteger,
+    ast::AstStatement::LiteralInteger,
     ast::*,
     parser::{parse, tests::lex},
     Diagnostic,
@@ -179,7 +179,7 @@ fn string_with_round_parens_can_be_parsed() {
                     }),
                     is_wide: false,
                 },
-                initializer: Some(Statement::LiteralString {
+                initializer: Some(AstStatement::LiteralString {
                     is_wide: false,
                     location: (69..102).into(),
                     value: "abc".into(),
