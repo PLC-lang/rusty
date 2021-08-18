@@ -1,7 +1,7 @@
 use core::panic;
 
 use crate::{
-    ast::{DataType, Statement, UserTypeDeclaration},
+    ast::{AstStatement, DataType, UserTypeDeclaration},
     index::Index,
     resolver::{
         tests::{annotate, parse},
@@ -376,20 +376,20 @@ fn pou_expressions_resolve_types() {
     assert_eq!(format!("{:?}", expected_types), format!("{:?}", type_names));
 
     assert_eq!(
-        Some(&StatementAnnotation::ProgramAnnotation {
+        Some(&StatementAnnotation::Program {
             qualified_name: "OtherPrg".into()
         }),
         annotations.get_annotation(&statements[0])
     );
     assert_eq!(
-        Some(&StatementAnnotation::FunctionAnnotation {
+        Some(&StatementAnnotation::Function {
             qualified_name: "OtherFunc".into(),
             return_type: "INT".into()
         }),
         annotations.get_annotation(&statements[1])
     );
     assert_eq!(
-        Some(&StatementAnnotation::TypeAnnotation {
+        Some(&StatementAnnotation::Type {
             type_name: "OtherFuncBlock".into()
         }),
         annotations.get_annotation(&statements[2])
@@ -422,7 +422,7 @@ fn assignment_expressions_resolve_types() {
 
     assert_eq!(format!("{:?}", expected_types), format!("{:?}", type_names));
 
-    if let Statement::Assignment { left, right, .. } = &statements[0] {
+    if let AstStatement::Assignment { left, right, .. } = &statements[0] {
         assert_eq!(annotations.get_type_or_void(left, &index).get_name(), "INT");
         assert_eq!(
             annotations.get_type_or_void(right, &index).get_name(),
@@ -431,7 +431,7 @@ fn assignment_expressions_resolve_types() {
     } else {
         panic!("expected assignment")
     }
-    if let Statement::Assignment { left, right, .. } = &statements[1] {
+    if let AstStatement::Assignment { left, right, .. } = &statements[1] {
         assert_eq!(
             annotations.get_type_or_void(left, &index).get_name(),
             "LWORD"
@@ -560,7 +560,7 @@ fn function_expression_resolves_to_the_function_itself_not_its_return_type() {
     // THEN we expect it to be annotated with the function itself
     let foo_annotation = annotations.get_annotation(&statements[0]);
     assert_eq!(
-        Some(&StatementAnnotation::FunctionAnnotation {
+        Some(&StatementAnnotation::Function {
             qualified_name: "foo".into(),
             return_type: "INT".into()
         }),
@@ -593,7 +593,7 @@ fn function_call_expression_resolves_to_the_function_itself_not_its_return_type(
     // THEN we expect it to be annotated with the function itself
     let foo_annotation = annotations.get_annotation(&statements[0]);
     assert_eq!(
-        Some(&StatementAnnotation::ExpressionAnnotation {
+        Some(&StatementAnnotation::Value {
             resulting_type: "INT".into()
         }),
         foo_annotation
@@ -728,7 +728,7 @@ fn qualified_expressions_dont_fallback_to_globals() {
 
     assert_eq!(None, annotations.get_annotation(&statements[0]));
     assert_eq!(
-        Some(&StatementAnnotation::VariableAnnotation {
+        Some(&StatementAnnotation::Variable {
             qualified_name: "MyStruct.y".into(),
             resulting_type: "INT".into()
         }),
@@ -770,7 +770,7 @@ fn function_parameter_assignments_resolve_types() {
         annotations.get_annotation(&statements[0]),
         Some(&StatementAnnotation::expression("INT"))
     );
-    if let Statement::CallStatement {
+    if let AstStatement::CallStatement {
         operator,
         parameters,
         ..
@@ -783,14 +783,14 @@ fn function_parameter_assignments_resolve_types() {
         );
         assert_eq!(
             annotations.get_annotation(operator),
-            Some(&StatementAnnotation::FunctionAnnotation {
+            Some(&StatementAnnotation::Function {
                 qualified_name: "foo".into(),
                 return_type: "MyType".into()
             })
         );
 
-        if let Some(Statement::ExpressionList { expressions, .. }) = &**parameters {
-            if let Statement::Assignment { left, right, .. } = &expressions[0] {
+        if let Some(AstStatement::ExpressionList { expressions, .. }) = &**parameters {
+            if let AstStatement::Assignment { left, right, .. } = &expressions[0] {
                 assert_eq!(annotations.get_type_or_void(left, &index).get_name(), "INT");
                 assert_eq!(
                     annotations.get_type_or_void(right, &index).get_name(),
@@ -799,7 +799,7 @@ fn function_parameter_assignments_resolve_types() {
             } else {
                 panic!("assignment expected")
             }
-            if let Statement::OutputAssignment { left, right, .. } = &expressions[1] {
+            if let AstStatement::OutputAssignment { left, right, .. } = &expressions[1] {
                 assert_eq!(
                     annotations.get_type_or_void(left, &index).get_name(),
                     "SINT"
@@ -846,14 +846,14 @@ fn nested_function_parameter_assignments_resolve_types() {
 
     let annotations = annotate(&unit, &index);
     let statements = &unit.implementations[2].statements;
-    if let Statement::CallStatement { parameters, .. } = &statements[0] {
+    if let AstStatement::CallStatement { parameters, .. } = &statements[0] {
         //check the two parameters
         assert_parameter_assignment(parameters, 0, "INT", "DINT", &annotations, &index);
         assert_parameter_assignment(parameters, 1, "BOOL", "REAL", &annotations, &index);
 
         //check the inner call in the first parameter assignment of the outer call `x := baz(...)`
-        if let Statement::Assignment { right, .. } = get_expression_from_list(parameters, 0) {
-            if let Statement::CallStatement { parameters, .. } = right.as_ref() {
+        if let AstStatement::Assignment { right, .. } = get_expression_from_list(parameters, 0) {
+            if let AstStatement::CallStatement { parameters, .. } = right.as_ref() {
                 // the left side here should be `x` - so lets see if it got mixed up with the outer call's `x`
                 assert_parameter_assignment(parameters, 0, "DINT", "DINT", &annotations, &index);
             } else {
@@ -901,8 +901,8 @@ fn type_initial_values_are_resolved() {
     }
 }
 
-fn get_expression_from_list(stmt: &Option<Statement>, index: usize) -> &Statement {
-    if let Some(Statement::ExpressionList { expressions, .. }) = stmt {
+fn get_expression_from_list(stmt: &Option<AstStatement>, index: usize) -> &AstStatement {
+    if let Some(AstStatement::ExpressionList { expressions, .. }) = stmt {
         &expressions[index]
     } else {
         panic!("no expression_list, found {:#?}", stmt)
@@ -910,15 +910,15 @@ fn get_expression_from_list(stmt: &Option<Statement>, index: usize) -> &Statemen
 }
 
 fn assert_parameter_assignment(
-    parameters: &Option<Statement>,
+    parameters: &Option<AstStatement>,
     param_index: usize,
     left_type: &str,
     right_type: &str,
     annotations: &AnnotationMap,
     index: &Index,
 ) {
-    if let Some(Statement::ExpressionList { expressions, .. }) = parameters {
-        if let Statement::Assignment { left, right, .. } = &expressions[param_index] {
+    if let Some(AstStatement::ExpressionList { expressions, .. }) = parameters {
+        if let AstStatement::Assignment { left, right, .. } = &expressions[param_index] {
             assert_eq!(
                 annotations.get_type_or_void(left, index).get_name(),
                 left_type

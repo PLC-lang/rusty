@@ -12,7 +12,7 @@ use inkwell::{
 use std::collections::HashSet;
 
 use crate::{
-    ast::{flatten_expression_list, Dimension, Operator, Statement},
+    ast::{flatten_expression_list, AstStatement, Dimension, Operator},
     codegen::{
         llvm_index::LlvmTypedIndex,
         llvm_typesystem::{cast_if_needed, get_llvm_int_type, promote_if_needed},
@@ -45,7 +45,7 @@ pub struct ExpressionCodeGenerator<'a, 'b> {
 
 /// context information to generate a parameter
 struct ParameterContext<'a, 'b> {
-    assignment_statement: &'b Statement,
+    assignment_statement: &'b AstStatement,
     function_name: &'b str,
     parameter_type: Option<&'b DataType>,
     index: u32,
@@ -119,7 +119,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
     /// returns the function context or returns a Compile-Error
     fn get_function_context(
         &self,
-        statement: &Statement,
+        statement: &AstStatement,
     ) -> Result<&'b FunctionContext<'a>, CompileError> {
         self.function_context
             .ok_or_else(|| CompileError::missing_function(statement.get_location()))
@@ -136,11 +136,11 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
     /// given epxression
     pub fn generate_expression(
         &self,
-        expression: &Statement,
+        expression: &AstStatement,
     ) -> Result<TypeAndValue<'a>, CompileError> {
         let builder = &self.llvm.builder;
         match expression {
-            Statement::Reference { name, .. } => {
+            AstStatement::Reference { name, .. } => {
                 let load_name = format!(
                     "{}{}{}",
                     self.temp_variable_prefix, name, self.temp_variable_suffix
@@ -148,15 +148,15 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                 let l_value = self.generate_element_pointer(expression)?;
                 Ok(self.llvm.load_pointer(&l_value, load_name.as_str()))
             }
-            Statement::QualifiedReference { .. } => {
+            AstStatement::QualifiedReference { .. } => {
                 let l_value = self.generate_element_pointer(expression)?;
                 Ok(self.llvm.load_pointer(&l_value, &self.temp_variable_prefix))
             }
-            Statement::ArrayAccess { .. } => {
+            AstStatement::ArrayAccess { .. } => {
                 let l_value = self.generate_element_pointer(expression)?;
                 Ok(self.llvm.load_pointer(&l_value, "load_tmpVar"))
             }
-            Statement::BinaryExpression {
+            AstStatement::BinaryExpression {
                 left,
                 right,
                 operator,
@@ -205,12 +205,12 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                     Err(CompileError::codegen_error(message, left.get_location()))
                 }
             }
-            Statement::CallStatement {
+            AstStatement::CallStatement {
                 operator,
                 parameters,
                 ..
             } => self.generate_call_statement(operator, parameters),
-            Statement::UnaryExpression {
+            AstStatement::UnaryExpression {
                 operator, value, ..
             } => self.generate_unary_expression(operator, value),
             //fallback
@@ -222,7 +222,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
     fn generate_unary_expression(
         &self,
         unary_operator: &Operator,
-        expression: &Statement,
+        expression: &AstStatement,
     ) -> Result<TypeAndValue<'a>, CompileError> {
         let (data_type, loaded_value) = self.generate_expression(expression)?;
         let (data_type, value) = match unary_operator {
@@ -250,12 +250,12 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
     /// - `parameters` - an optional StatementList of parameters
     fn generate_call_statement(
         &self,
-        operator: &Statement,
-        parameters: &Option<Statement>,
+        operator: &AstStatement,
+        parameters: &Option<AstStatement>,
     ) -> Result<TypeAndValue<'a>, CompileError> {
         let function_context = self.get_function_context(operator)?;
         let instance_and_index_entry = match operator {
-            Statement::Reference { name, .. } => {
+            AstStatement::Reference { name, .. } => {
                 //Get associated Variable or generate a variable for the type with the same name
                 let variable = self.index.find_callable_instance_variable(
                     Some(function_context.linking_context.get_type_name()),
@@ -307,7 +307,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
 
                 Ok((callable_reference, implementation))
             }
-            Statement::QualifiedReference { .. } => {
+            AstStatement::QualifiedReference { .. } => {
                 let loaded_value = self.generate_element_pointer_for_rec(None, operator);
                 loaded_value.map(
                     |TypeAndPointer {
@@ -399,7 +399,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
     fn allocate_function_struct_instance(
         &self,
         function_name: &str,
-        context: &Statement,
+        context: &AstStatement,
     ) -> Result<PointerValue<'a>, CompileError> {
         let instance_name = struct_generator::get_pou_instance_variable_name(function_name);
         let function_type = self
@@ -425,13 +425,13 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
         &self,
         function_name: &str,
         parameter_struct: PointerValue<'a>,
-        parameters: &Option<Statement>,
+        parameters: &Option<AstStatement>,
         input_block: &BasicBlock,
         output_block: &BasicBlock,
     ) -> Result<Vec<BasicValueEnum<'a>>, CompileError> {
         let mut result = vec![parameter_struct.as_basic_value_enum()];
         match &parameters {
-            Some(Statement::ExpressionList { expressions, .. }) => {
+            Some(AstStatement::ExpressionList { expressions, .. }) => {
                 for (index, exp) in expressions.iter().enumerate() {
                     let parameter = self.generate_single_parameter(
                         &ParameterContext {
@@ -489,7 +489,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
 
         let parameter_value = match assignment_statement {
             // explicit call parameter: foo(param := value)
-            Statement::Assignment { left, right, .. } => {
+            AstStatement::Assignment { left, right, .. } => {
                 self.generate_formal_parameter(
                     param_context,
                     left,
@@ -500,7 +500,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                 None
             }
             // foo (param => value)
-            Statement::OutputAssignment { left, right, .. } => {
+            AstStatement::OutputAssignment { left, right, .. } => {
                 self.generate_output_parameter(param_context, left, right, output_block)?;
                 None
             }
@@ -514,7 +514,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
     fn generate_nameless_parameter(
         &self,
         param_context: &ParameterContext,
-        assignment_statement: &Statement,
+        assignment_statement: &AstStatement,
     ) -> Result<Option<BasicValueEnum<'a>>, CompileError> {
         let builder = &self.llvm.builder;
         let function_name = param_context.function_name;
@@ -571,8 +571,8 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
     fn generate_output_parameter(
         &self,
         param_context: &ParameterContext,
-        left: &Statement,
-        right: &Statement,
+        left: &AstStatement,
+        right: &AstStatement,
         output_block: &BasicBlock,
     ) -> Result<(), CompileError> {
         let builder = &self.llvm.builder;
@@ -580,7 +580,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
         let parameter_struct = param_context.parameter_struct;
         let current_block = builder.get_insert_block().unwrap();
         builder.position_at_end(*output_block);
-        if let Statement::Reference { name, .. } = &*left {
+        if let AstStatement::Reference { name, .. } = &*left {
             let parameter = self.index.find_member(function_name, name).unwrap();
             let index = parameter.get_location_in_parent();
             let param_type = self
@@ -617,8 +617,8 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
     fn generate_formal_parameter(
         &self,
         param_context: &ParameterContext,
-        left: &Statement,
-        right: &Statement,
+        left: &AstStatement,
+        right: &AstStatement,
         input_block: &BasicBlock,
         output_block: &BasicBlock,
     ) -> Result<(), CompileError> {
@@ -626,7 +626,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
         let function_name = param_context.function_name;
         let parameter_struct = param_context.parameter_struct;
         builder.position_at_end(*input_block);
-        if let Statement::Reference { name, .. } = &*left {
+        if let AstStatement::Reference { name, .. } = &*left {
             let parameter = self.index.find_member(function_name, name).unwrap();
             let index = parameter.get_location_in_parent();
             let param_type = self.index.find_type(parameter.get_type_name());
@@ -650,17 +650,17 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
     /// - `reference_statement` - the statement to load (either a reference, an arrayAccess or a qualifiedReference)
     pub fn generate_element_pointer(
         &self,
-        reference_statement: &Statement,
+        reference_statement: &AstStatement,
     ) -> Result<TypeAndPointer<'a, '_>, CompileError> {
         let result = match reference_statement {
-            Statement::Reference { name, .. } => {
+            AstStatement::Reference { name, .. } => {
                 self.create_llvm_pointer_value_for_reference(None, name, reference_statement)
             }
 
-            Statement::ArrayAccess {
+            AstStatement::ArrayAccess {
                 reference, access, ..
             } => self.generate_element_pointer_for_array(None, reference, access),
-            Statement::QualifiedReference { .. } => {
+            AstStatement::QualifiedReference { .. } => {
                 self.generate_element_pointer_for_rec(None, reference_statement)
             }
             _ => Err(CompileError::codegen_error(
@@ -681,7 +681,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
         &self,
         qualifier: Option<&TypeAndPointer<'a, '_>>,
         name: &str,
-        context: &Statement,
+        context: &AstStatement,
     ) -> Result<TypeAndPointer<'a, '_>, CompileError> {
         //let (data_type, ptr) = if let Some((qualifier_name, qualifier)) = type_with_context {
         let offset = &context.get_location();
@@ -781,7 +781,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
     fn generate_access_for_dimension(
         &self,
         dimension: &Dimension,
-        access_expression: &Statement,
+        access_expression: &AstStatement,
     ) -> Result<IntValue<'a>, CompileError> {
         let start_offset = dimension.start_offset;
         let (_, access_value) = self.generate_expression(access_expression)?;
@@ -805,8 +805,8 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
     fn generate_element_pointer_for_array(
         &self,
         qualifier: Option<&TypeAndPointer<'a, '_>>,
-        reference: &Statement,
-        access: &Statement,
+        reference: &AstStatement,
+        access: &AstStatement,
     ) -> Result<TypeAndPointer<'a, '_>, CompileError> {
         //Load the reference
         self.generate_element_pointer_for_rec(qualifier, reference)
@@ -859,10 +859,10 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
     fn generate_element_pointer_for_rec(
         &self,
         qualifier: Option<&TypeAndPointer<'a, '_>>,
-        reference: &Statement,
+        reference: &AstStatement,
     ) -> Result<TypeAndPointer<'a, '_>, CompileError> {
         match reference {
-            Statement::QualifiedReference { elements, .. } => {
+            AstStatement::QualifiedReference { elements, .. } => {
                 let mut element_iter = elements.iter();
                 let current_element = element_iter.next();
                 let mut current_lvalue =
@@ -880,7 +880,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                 }
                 current_lvalue
             }
-            Statement::Reference { name, .. } => {
+            AstStatement::Reference { name, .. } => {
                 if let Some(qualifier) = qualifier {
                     //Find if there is an action with the current name
                     let qualified_name = format!("{}.{}", qualifier.type_entry.get_name(), name);
@@ -896,7 +896,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                 //Otherwise, load a variable reference
                 self.create_llvm_pointer_value_for_reference(qualifier, name, reference)
             }
-            Statement::ArrayAccess {
+            AstStatement::ArrayAccess {
                 reference, access, ..
             } => self.generate_element_pointer_for_array(qualifier, reference, access),
             _ => Err(CompileError::codegen_error(
@@ -1133,15 +1133,17 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
     /// - `literal_statement` one of LiteralBool, LiteralInteger, LiteralReal, LiteralString
     pub fn generate_literal(
         &self,
-        literal_statement: &Statement,
+        literal_statement: &AstStatement,
     ) -> Result<TypeAndValue<'a>, CompileError> {
         match literal_statement {
-            Statement::LiteralBool { value, .. } => self.llvm.create_const_bool(self.index, *value),
-            Statement::LiteralInteger { value, .. } => {
+            AstStatement::LiteralBool { value, .. } => {
+                self.llvm.create_const_bool(self.index, *value)
+            }
+            AstStatement::LiteralInteger { value, .. } => {
                 self.llvm
                     .create_const_int(self.index, &self.get_type_context(), &value.to_string())
             }
-            Statement::LiteralDate {
+            AstStatement::LiteralDate {
                 year,
                 month,
                 day,
@@ -1155,7 +1157,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                     .map(|millis| format!("{}", millis))?
                     .as_str(),
             ),
-            Statement::LiteralDateAndTime {
+            AstStatement::LiteralDateAndTime {
                 year,
                 month,
                 day,
@@ -1173,7 +1175,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                     .map(|millis| format!("{}", millis))?
                     .as_str(),
             ),
-            Statement::LiteralTimeOfDay {
+            AstStatement::LiteralTimeOfDay {
                 hour,
                 min,
                 sec,
@@ -1188,7 +1190,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                     .map(|millis| format!("{}", millis))?
                     .as_str(),
             ),
-            Statement::LiteralTime {
+            AstStatement::LiteralTime {
                 day,
                 hour,
                 min,
@@ -1213,26 +1215,26 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                 )
                 .as_str(),
             ),
-            Statement::LiteralReal { value, .. } => {
+            AstStatement::LiteralReal { value, .. } => {
                 self.llvm
                     .create_const_real(self.index, &self.get_type_context(), value)
             }
-            Statement::LiteralString { value, is_wide, .. } => {
+            AstStatement::LiteralString { value, is_wide, .. } => {
                 if *is_wide {
                     self.llvm.create_const_utf16_string(value.as_str())
                 } else {
                     self.llvm.create_const_utf8_string(value.as_str())
                 }
             }
-            Statement::LiteralArray {
+            AstStatement::LiteralArray {
                 elements, location, ..
             } => self.generate_literal_array(elements, location),
             // if there is an expression-list this might be a struct-initialization
-            Statement::ExpressionList { .. } => {
+            AstStatement::ExpressionList { .. } => {
                 self.generate_literal_struct(literal_statement, &literal_statement.get_location())
             }
             // if there is just one assignment, this may be an struct-initialization (TODO this is not very elegant :-/ )
-            Statement::Assignment { .. } => {
+            AstStatement::Assignment { .. } => {
                 self.generate_literal_struct(literal_statement, &literal_statement.get_location())
             }
             _ => Err(CompileError::codegen_error(
@@ -1245,7 +1247,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
     /// generates a struct literal value with the given value assignments (ExpressionList)
     fn generate_literal_struct(
         &self,
-        assignments: &Statement,
+        assignments: &AstStatement,
         declaration_location: &SourceRange,
     ) -> Result<TypeAndValue<'a>, CompileError> {
         if let Some(type_info) = &self.type_hint {
@@ -1260,8 +1262,8 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                     member_names.iter().map(|it| it.as_str()).collect();
                 let mut member_values: Vec<(u32, BasicValueEnum<'a>)> = Vec::new();
                 for assignment in flatten_expression_list(assignments) {
-                    if let Statement::Assignment { left, right, .. } = assignment {
-                        if let Statement::Reference {
+                    if let AstStatement::Assignment { left, right, .. } = assignment {
+                        if let AstStatement::Reference {
                             name: variable_name,
                             location,
                             ..
@@ -1361,7 +1363,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
     /// generates an array literal with the given optional elements (represented as an ExpressionList)
     fn generate_literal_array(
         &self,
-        elements: &Option<Box<Statement>>,
+        elements: &Option<Box<AstStatement>>,
         location: &SourceRange,
     ) -> Result<TypeAndValue<'a>, CompileError> {
         if let Some(type_info) = &self.type_hint {
@@ -1392,7 +1394,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
     /// i16-array-value
     fn generate_literal_array_value(
         &self,
-        elements: Vec<&Statement>,
+        elements: Vec<&AstStatement>,
         inner_array_type: &DataTypeInformation,
     ) -> Result<BasicValueEnum<'a>, CompileError> {
         let element_expression_gen = self.morph_to_typed(inner_array_type);
@@ -1457,8 +1459,8 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
     pub fn generate_short_circuit_boolean_expression(
         &self,
         operator: &Operator,
-        left: &Statement,
-        right: &Statement,
+        left: &AstStatement,
+        right: &AstStatement,
     ) -> Result<TypeAndValue<'a>, CompileError> {
         let builder = &self.llvm.builder;
         let function = self.get_function_context(left)?.function;

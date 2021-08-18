@@ -2,7 +2,7 @@
 use std::ops::Range;
 
 use crate::{
-    ast::{Dimension, Statement},
+    ast::{AstStatement, Dimension},
     index::Index,
 };
 
@@ -41,7 +41,7 @@ pub const VOID_TYPE: &str = "VOID";
 pub struct DataType {
     pub name: String,
     /// the initial value defined on the TYPE-declration
-    pub initial_value: Option<Statement>,
+    pub initial_value: Option<AstStatement>,
     pub information: DataTypeInformation,
     //TODO : Add location information
 }
@@ -110,7 +110,7 @@ pub enum DataTypeInformation {
     SubRange {
         name: String,
         referenced_type: String,
-        sub_range: Range<Statement>,
+        sub_range: Range<AstStatement>,
     },
     Alias {
         name: String,

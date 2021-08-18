@@ -37,7 +37,7 @@ fn missing_pou_name() {
         format!("{:#?}", pou.statements[0]),
         format!(
             "{:#?}",
-            Statement::Reference {
+            AstStatement::Reference {
                 name: "a".into(),
                 location: SourceRange::undefined(),
                 id: 0
@@ -70,7 +70,7 @@ fn missing_pou_name_2() {
         format!("{:#?}", pou.statements[1]),
         format!(
             "{:#?}",
-            Statement::Reference {
+            AstStatement::Reference {
                 name: "x".into(),
                 location: SourceRange::undefined(),
                 id: 0
@@ -104,7 +104,7 @@ fn illegal_end_pou_keyword() {
         format!("{:#?}", pou.statements),
         format!(
             "{:#?}",
-            vec![Statement::Reference {
+            vec![AstStatement::Reference {
                 name: "b".into(),
                 location: SourceRange::undefined(),
                 id: 0
@@ -192,7 +192,7 @@ fn program_with_illegal_return_variable_declaration() {
         format!("{:#?}", pou.statements),
         format!(
             "{:#?}",
-            vec![Statement::Reference {
+            vec![AstStatement::Reference {
                 name: "a".into(),
                 location: SourceRange::undefined(),
                 id: 0

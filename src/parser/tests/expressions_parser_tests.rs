@@ -1,5 +1,5 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-use crate::ast::{Operator, Statement};
+use crate::ast::{AstStatement, Operator};
 use crate::parser::parse;
 use pretty_assertions::*;
 
@@ -11,7 +11,7 @@ fn single_statement_parsed() {
     let prg = &result.implementations[0];
     let statement = &prg.statements[0];
 
-    if let Statement::Reference { name, .. } = statement {
+    if let AstStatement::Reference { name, .. } = statement {
         assert_eq!(name, "x");
     } else {
         panic!("Expected Reference but found {:?}", statement);
@@ -26,18 +26,18 @@ fn qualified_reference_statement_parsed() {
     let prg = &result.implementations[0];
     let statement = &prg.statements[0];
 
-    if let Statement::QualifiedReference { elements, .. } = statement {
+    if let AstStatement::QualifiedReference { elements, .. } = statement {
         assert_eq!(
             format!("{:?}", elements),
             format!(
                 "{:?}",
                 &[
-                    Statement::Reference {
+                    AstStatement::Reference {
                         name: "a".to_string(),
                         location: (12..13).into(),
                         id: 0
                     },
-                    Statement::Reference {
+                    AstStatement::Reference {
                         name: "x".to_string(),
                         location: (14..15).into(),
                         id: 0
@@ -58,7 +58,7 @@ fn literal_can_be_parsed() {
     let prg = &result.implementations[0];
     let statement = &prg.statements[0];
 
-    if let Statement::LiteralInteger { value, .. } = statement {
+    if let AstStatement::LiteralInteger { value, .. } = statement {
         assert_eq!(value, &7_i64);
     } else {
         panic!("Expected LiteralInteger but found {:?}", statement);
@@ -73,7 +73,7 @@ fn literal_binary_with_underscore_number_can_be_parsed() {
     let prg = &result.implementations[0];
     let statement = &prg.statements[0];
 
-    if let Statement::LiteralInteger { value, .. } = statement {
+    if let AstStatement::LiteralInteger { value, .. } = statement {
         assert_eq!(value, &45_i64);
     } else {
         panic!("Expected LiteralInteger but found {:?}", statement);
@@ -88,7 +88,7 @@ fn literal_hex_number_with_underscores_can_be_parsed() {
     let prg = &result.implementations[0];
     let statement = &prg.statements[0];
 
-    if let Statement::LiteralInteger { value, .. } = statement {
+    if let AstStatement::LiteralInteger { value, .. } = statement {
         assert_eq!(value, &3735928559_i64);
     } else {
         panic!("Expected LiteralInteger but found {:?}", statement);
@@ -103,7 +103,7 @@ fn literal_hex_number_can_be_parsed() {
     let prg = &result.implementations[0];
     let statement = &prg.statements[0];
 
-    if let Statement::LiteralInteger { value, .. } = statement {
+    if let AstStatement::LiteralInteger { value, .. } = statement {
         assert_eq!(value, &3735928559_i64);
     } else {
         panic!("Expected LiteralInteger but found {:?}", statement);
@@ -118,7 +118,7 @@ fn literal_oct_number_with_underscores_can_be_parsed() {
     let prg = &result.implementations[0];
     let statement = &prg.statements[0];
 
-    if let Statement::LiteralInteger { value, .. } = statement {
+    if let AstStatement::LiteralInteger { value, .. } = statement {
         assert_eq!(value, &63_i64);
     } else {
         panic!("Expected LiteralInteger but found {:?}", statement);
@@ -133,7 +133,7 @@ fn literal_dec_number_with_underscores_can_be_parsed() {
     let prg = &result.implementations[0];
     let statement = &prg.statements[0];
 
-    if let Statement::LiteralInteger { value, .. } = statement {
+    if let AstStatement::LiteralInteger { value, .. } = statement {
         assert_eq!(value, &43000_i64);
     } else {
         panic!("Expected LiteralInteger but found {:?}", statement);
@@ -148,7 +148,7 @@ fn literal_oct_number_with_underscore_can_be_parsed() {
     let prg = &result.implementations[0];
     let statement = &prg.statements[0];
 
-    if let Statement::LiteralInteger { value, .. } = statement {
+    if let AstStatement::LiteralInteger { value, .. } = statement {
         assert_eq!(value, &63_i64);
     } else {
         panic!("Expected LiteralInteger but found {:?}", statement);
@@ -163,17 +163,17 @@ fn additon_of_two_variables_parsed() {
     let prg = &result.implementations[0];
     let statement = &prg.statements[0];
 
-    if let Statement::BinaryExpression {
+    if let AstStatement::BinaryExpression {
         operator,
         left,  //Box<Reference> {name : left}),
         right, //Box<Reference> {name : right}),
         ..
     } = statement
     {
-        if let Statement::Reference { name, .. } = &**left {
+        if let AstStatement::Reference { name, .. } = &**left {
             assert_eq!(name, "x");
         }
-        if let Statement::Reference { name, .. } = &**right {
+        if let AstStatement::Reference { name, .. } = &**right {
             assert_eq!(name, "y");
         }
         assert_eq!(operator, &Operator::Plus);
@@ -190,7 +190,7 @@ fn additon_of_three_variables_parsed() {
     let prg = &result.implementations[0];
     let statement = &prg.statements[0];
 
-    if let Statement::BinaryExpression {
+    if let AstStatement::BinaryExpression {
         operator,
         left,  //Box<Reference> {name : left}),
         right, //Box<Reference> {name : right}),
@@ -198,20 +198,20 @@ fn additon_of_three_variables_parsed() {
     } = statement
     {
         assert_eq!(operator, &Operator::Plus);
-        if let Statement::Reference { name, .. } = &**left {
+        if let AstStatement::Reference { name, .. } = &**left {
             assert_eq!(name, "x");
         }
-        if let Statement::BinaryExpression {
+        if let AstStatement::BinaryExpression {
             operator,
             left,
             right,
             ..
         } = &**right
         {
-            if let Statement::Reference { name, .. } = &**left {
+            if let AstStatement::Reference { name, .. } = &**left {
                 assert_eq!(name, "y");
             }
-            if let Statement::Reference { name, .. } = &**right {
+            if let AstStatement::Reference { name, .. } = &**right {
                 assert_eq!(name, "z");
             }
             assert_eq!(operator, &Operator::Minus);
@@ -231,17 +231,17 @@ fn parenthesis_expressions_should_not_change_the_ast() {
     let prg = &result.implementations[0];
     let statement = &prg.statements[0];
 
-    if let Statement::BinaryExpression {
+    if let AstStatement::BinaryExpression {
         operator,
         left,
         right,
         ..
     } = statement
     {
-        if let Statement::Reference { name, .. } = &**left {
+        if let AstStatement::Reference { name, .. } = &**left {
             assert_eq!(name, "x");
         }
-        if let Statement::Reference { name, .. } = &**right {
+        if let AstStatement::Reference { name, .. } = &**right {
             assert_eq!(name, "y");
         }
         assert_eq!(operator, &Operator::Plus);

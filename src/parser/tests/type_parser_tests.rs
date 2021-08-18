@@ -1,6 +1,6 @@
 use crate::{
     ast::*,
-    parser::{parse, tests::lex, Statement::LiteralInteger},
+    parser::{parse, tests::lex, AstStatement::LiteralInteger},
 };
 use pretty_assertions::*;
 
@@ -119,13 +119,13 @@ fn array_type_can_be_parsed_test() {
         &UserTypeDeclaration {
             data_type: DataType::ArrayType {
                 name: Some("MyArray".to_string()),
-                bounds: Statement::RangeStatement {
-                    start: Box::new(Statement::LiteralInteger {
+                bounds: AstStatement::RangeStatement {
+                    start: Box::new(AstStatement::LiteralInteger {
                         value: 0,
                         location: SourceRange::undefined(),
                         id: 0,
                     }),
-                    end: Box::new(Statement::LiteralInteger {
+                    end: Box::new(AstStatement::LiteralInteger {
                         value: 8,
                         location: SourceRange::undefined(),
                         id: 0,
@@ -180,7 +180,7 @@ fn string_type_can_be_parsed_test() {
                     }),
                     is_wide: false,
                 },
-                initializer: Some(Statement::LiteralString {
+                initializer: Some(AstStatement::LiteralString {
                     is_wide: false,
                     location: SourceRange::undefined(),
                     value: "abc".into(),
@@ -237,7 +237,7 @@ fn subrangetype_can_be_parsed() {
         data_type: DataTypeDeclaration::DataTypeDefinition {
             data_type: DataType::SubRangeType {
                 name: None,
-                bounds: Some(Statement::RangeStatement {
+                bounds: Some(AstStatement::RangeStatement {
                     start: Box::new(LiteralInteger {
                         value: 0,
                         location: SourceRange::undefined(),

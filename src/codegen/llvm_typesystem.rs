@@ -7,8 +7,8 @@ use inkwell::{
 };
 
 use crate::{
+    ast::AstStatement,
     ast::SourceRange,
-    ast::Statement,
     compile_error::CompileError,
     index::Index,
     typesystem::{get_bigger_type, DataTypeInformation},
@@ -156,7 +156,7 @@ pub fn cast_if_needed<'ctx>(
     target_type: &DataTypeInformation,
     value: BasicValueEnum<'ctx>,
     value_type: &DataTypeInformation,
-    location_context: &Statement,
+    location_context: &AstStatement,
 ) -> Result<BasicValueEnum<'ctx>, CompileError> {
     let builder = &llvm.builder;
     let target_type = index

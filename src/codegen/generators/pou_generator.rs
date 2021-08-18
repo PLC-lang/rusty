@@ -14,7 +14,7 @@ use crate::codegen::llvm_index::LlvmTypedIndex;
 use crate::index::{ImplementationIndexEntry, VariableIndexEntry};
 use crate::typesystem::*;
 use crate::{
-    ast::{Implementation, PouType, SourceRange, Statement},
+    ast::{AstStatement, Implementation, PouType, SourceRange},
     compile_error::CompileError,
     index::Index,
 };
@@ -243,7 +243,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
             .filter(|it| it.initial_value.is_some());
 
         for variable in variables_with_initializers {
-            let left = Statement::Reference {
+            let left = AstStatement::Reference {
                 name: variable.get_name().into(),
                 location: variable.source_location.clone(),
                 id: 0, //TODO
@@ -266,7 +266,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
     ) -> Result<(), CompileError> {
         match pou_type {
             PouType::Function => {
-                let reference = Statement::Reference {
+                let reference = AstStatement::Reference {
                     name: function_context.linking_context.get_call_name().into(),
                     location: location.unwrap_or_else(SourceRange::undefined),
                     id: 0, //TODO

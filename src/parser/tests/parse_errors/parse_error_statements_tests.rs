@@ -74,10 +74,10 @@ fn missing_comma_in_call_parameters() {
         format!("{:#?}", pou.statements),
         format!(
             "{:#?}",
-            vec![Statement::CallStatement {
+            vec![AstStatement::CallStatement {
                 location: SourceRange::undefined(),
                 operator: Box::new(ref_to("buz")),
-                parameters: Box::new(Some(Statement::ExpressionList {
+                parameters: Box::new(Some(AstStatement::ExpressionList {
                     expressions: vec![ref_to("a"), ref_to("b"),],
                     id: 0
                 })),
@@ -119,10 +119,10 @@ fn illegal_semicolon_in_call_parameters() {
         format!(
             "{:#?}",
             vec![
-                Statement::CallStatement {
+                AstStatement::CallStatement {
                     location: SourceRange::undefined(),
                     operator: Box::new(ref_to("buz")),
-                    parameters: Box::new(Some(Statement::ExpressionList {
+                    parameters: Box::new(Some(AstStatement::ExpressionList {
                         expressions: vec![ref_to("a"), ref_to("b")],
                         id: 0
                     })),
@@ -405,22 +405,22 @@ fn test_nested_if_with_missing_end_if() {
         format!("{:#?}", unit.implementations[0].statements),
         format!(
             "{:#?}",
-            vec![Statement::IfStatement {
+            vec![AstStatement::IfStatement {
                 blocks: vec![ConditionalBlock {
-                    condition: Box::new(Statement::LiteralBool {
+                    condition: Box::new(AstStatement::LiteralBool {
                         value: false,
                         location: SourceRange::undefined(),
                         id: 0
                     }),
                     body: vec![
-                        Statement::IfStatement {
+                        AstStatement::IfStatement {
                             blocks: vec![ConditionalBlock {
-                                condition: Box::new(Statement::LiteralBool {
+                                condition: Box::new(AstStatement::LiteralBool {
                                     value: true,
                                     location: SourceRange::undefined(),
                                     id: 0
                                 }),
-                                body: vec![Statement::Assignment {
+                                body: vec![AstStatement::Assignment {
                                     left: Box::new(ref_to("x")),
                                     right: Box::new(ref_to("y")),
                                     id: 0
@@ -430,7 +430,7 @@ fn test_nested_if_with_missing_end_if() {
                             location: SourceRange::undefined(),
                             id: 0,
                         },
-                        Statement::Assignment {
+                        AstStatement::Assignment {
                             left: Box::new(ref_to("y")),
                             right: Box::new(ref_to("x")),
                             id: 0
@@ -490,35 +490,35 @@ fn test_nested_for_with_missing_end_for() {
         format!("{:#?}", unit.implementations[0].statements),
         format!(
             "{:#?}",
-            vec![Statement::ForLoopStatement {
+            vec![AstStatement::ForLoopStatement {
                 counter: Box::new(ref_to("x")),
-                start: Box::new(Statement::LiteralInteger {
+                start: Box::new(AstStatement::LiteralInteger {
                     value: 1,
                     location: SourceRange::undefined(),
                     id: 0
                 }),
-                end: Box::new(Statement::LiteralInteger {
+                end: Box::new(AstStatement::LiteralInteger {
                     value: 2,
                     location: SourceRange::undefined(),
                     id: 0
                 }),
                 by_step: None,
                 body: vec![
-                    Statement::ForLoopStatement {
+                    AstStatement::ForLoopStatement {
                         counter: Box::new(ref_to("x")),
-                        start: Box::new(Statement::LiteralInteger {
+                        start: Box::new(AstStatement::LiteralInteger {
                             value: 1,
                             location: SourceRange::undefined(),
                             id: 0
                         }),
-                        end: Box::new(Statement::LiteralInteger {
+                        end: Box::new(AstStatement::LiteralInteger {
                             value: 2,
                             location: SourceRange::undefined(),
                             id: 0
                         }),
 
                         by_step: None,
-                        body: vec![Statement::Assignment {
+                        body: vec![AstStatement::Assignment {
                             left: Box::new(ref_to("y")),
                             right: Box::new(ref_to("x")),
                             id: 0
@@ -526,7 +526,7 @@ fn test_nested_for_with_missing_end_for() {
                         location: SourceRange::undefined(),
                         id: 0
                     },
-                    Statement::Assignment {
+                    AstStatement::Assignment {
                         left: Box::new(ref_to("x")),
                         right: Box::new(ref_to("y")),
                         id: 0
@@ -564,17 +564,17 @@ fn test_repeat_with_missing_semicolon_in_body() {
         format!(
             "{:#?}",
             vec![
-                Statement::RepeatLoopStatement {
-                    body: vec![Statement::Assignment {
+                AstStatement::RepeatLoopStatement {
+                    body: vec![AstStatement::Assignment {
                         left: Box::new(ref_to("x")),
-                        right: Box::new(Statement::LiteralInteger {
+                        right: Box::new(AstStatement::LiteralInteger {
                             value: 3,
                             location: SourceRange::undefined(),
                             id: 0
                         }),
                         id: 0
                     }],
-                    condition: Box::new(Statement::BinaryExpression {
+                    condition: Box::new(AstStatement::BinaryExpression {
                         left: Box::new(ref_to("x")),
                         right: Box::new(ref_to("y")),
                         operator: crate::ast::Operator::Equal,
@@ -583,7 +583,7 @@ fn test_repeat_with_missing_semicolon_in_body() {
                     location: SourceRange::undefined(),
                     id: 0
                 },
-                Statement::Assignment {
+                AstStatement::Assignment {
                     left: Box::new(ref_to("y")),
                     right: Box::new(ref_to("x")),
                     id: 0
@@ -618,11 +618,11 @@ fn test_nested_repeat_with_missing_until_end_repeat() {
         format!("{:#?}", unit.implementations[0].statements),
         format!(
             "{:#?}",
-            vec![Statement::RepeatLoopStatement {
+            vec![AstStatement::RepeatLoopStatement {
                 body: vec![
-                    Statement::RepeatLoopStatement {
+                    AstStatement::RepeatLoopStatement {
                         body: vec![empty_stmt()],
-                        condition: Box::new(Statement::BinaryExpression {
+                        condition: Box::new(AstStatement::BinaryExpression {
                             left: Box::new(ref_to("x")),
                             right: Box::new(ref_to("y")),
                             operator: crate::ast::Operator::Equal,
@@ -631,7 +631,7 @@ fn test_nested_repeat_with_missing_until_end_repeat() {
                         location: SourceRange::undefined(),
                         id: 0
                     },
-                    Statement::Assignment {
+                    AstStatement::Assignment {
                         left: Box::new(ref_to("y")),
                         right: Box::new(ref_to("x")),
                         id: 0
@@ -676,11 +676,11 @@ fn test_nested_repeat_with_missing_condition_and_end_repeat() {
         format!("{:#?}", unit.implementations[0].statements),
         format!(
             "{:#?}",
-            vec![Statement::RepeatLoopStatement {
+            vec![AstStatement::RepeatLoopStatement {
                 body: vec![
-                    Statement::RepeatLoopStatement {
+                    AstStatement::RepeatLoopStatement {
                         body: vec![empty_stmt()],
-                        condition: Box::new(Statement::BinaryExpression {
+                        condition: Box::new(AstStatement::BinaryExpression {
                             left: Box::new(ref_to("x")),
                             right: Box::new(ref_to("y")),
                             operator: crate::ast::Operator::Equal,
@@ -689,7 +689,7 @@ fn test_nested_repeat_with_missing_condition_and_end_repeat() {
                         location: SourceRange::undefined(),
                         id: 0
                     },
-                    Statement::Assignment {
+                    AstStatement::Assignment {
                         left: Box::new(ref_to("y")),
                         right: Box::new(ref_to("x")),
                         id: 0
@@ -733,11 +733,11 @@ fn test_nested_repeat_with_missing_end_repeat() {
         format!("{:#?}", unit.implementations[0].statements),
         format!(
             "{:#?}",
-            vec![Statement::RepeatLoopStatement {
+            vec![AstStatement::RepeatLoopStatement {
                 body: vec![
-                    Statement::RepeatLoopStatement {
+                    AstStatement::RepeatLoopStatement {
                         body: vec![empty_stmt()],
-                        condition: Box::new(Statement::BinaryExpression {
+                        condition: Box::new(AstStatement::BinaryExpression {
                             left: Box::new(ref_to("x")),
                             right: Box::new(ref_to("y")),
                             operator: crate::ast::Operator::Equal,
@@ -746,13 +746,13 @@ fn test_nested_repeat_with_missing_end_repeat() {
                         location: SourceRange::undefined(),
                         id: 0
                     },
-                    Statement::Assignment {
+                    AstStatement::Assignment {
                         left: Box::new(ref_to("y")),
                         right: Box::new(ref_to("x")),
                         id: 0
                     }
                 ],
-                condition: Box::new(Statement::BinaryExpression {
+                condition: Box::new(AstStatement::BinaryExpression {
                     left: Box::new(ref_to("x")),
                     right: Box::new(ref_to("y")),
                     operator: crate::ast::Operator::Equal,
@@ -790,17 +790,17 @@ fn test_while_with_missing_semicolon_in_body() {
         format!(
             "{:#?}",
             vec![
-                Statement::WhileLoopStatement {
-                    body: vec![Statement::Assignment {
+                AstStatement::WhileLoopStatement {
+                    body: vec![AstStatement::Assignment {
                         left: Box::new(ref_to("x")),
-                        right: Box::new(Statement::LiteralInteger {
+                        right: Box::new(AstStatement::LiteralInteger {
                             value: 3,
                             location: SourceRange::undefined(),
                             id: 0
                         }),
                         id: 0
                     }],
-                    condition: Box::new(Statement::BinaryExpression {
+                    condition: Box::new(AstStatement::BinaryExpression {
                         left: Box::new(ref_to("x")),
                         right: Box::new(ref_to("y")),
                         operator: crate::ast::Operator::Equal,
@@ -809,7 +809,7 @@ fn test_while_with_missing_semicolon_in_body() {
                     location: SourceRange::undefined(),
                     id: 0
                 },
-                Statement::Assignment {
+                AstStatement::Assignment {
                     left: Box::new(ref_to("y")),
                     right: Box::new(ref_to("x")),
                     id: 0
@@ -848,11 +848,11 @@ fn test_nested_while_with_missing_end_while() {
         format!("{:#?}", unit.implementations[0].statements),
         format!(
             "{:#?}",
-            vec![Statement::WhileLoopStatement {
+            vec![AstStatement::WhileLoopStatement {
                 body: vec![
-                    Statement::WhileLoopStatement {
+                    AstStatement::WhileLoopStatement {
                         body: vec![empty_stmt()],
-                        condition: Box::new(Statement::BinaryExpression {
+                        condition: Box::new(AstStatement::BinaryExpression {
                             left: Box::new(ref_to("x")),
                             right: Box::new(ref_to("y")),
                             operator: crate::ast::Operator::Equal,
@@ -861,13 +861,13 @@ fn test_nested_while_with_missing_end_while() {
                         location: SourceRange::undefined(),
                         id: 0
                     },
-                    Statement::Assignment {
+                    AstStatement::Assignment {
                         left: Box::new(ref_to("y")),
                         right: Box::new(ref_to("x")),
                         id: 0
                     }
                 ],
-                condition: Box::new(Statement::BinaryExpression {
+                condition: Box::new(AstStatement::BinaryExpression {
                     left: Box::new(ref_to("x")),
                     right: Box::new(ref_to("y")),
                     operator: crate::ast::Operator::Equal,
@@ -900,13 +900,13 @@ fn test_while_with_missing_do() {
         format!("{:#?}", unit.implementations[0].statements),
         format!(
             "{:#?}",
-            vec![Statement::WhileLoopStatement {
-                body: vec![Statement::Assignment {
+            vec![AstStatement::WhileLoopStatement {
+                body: vec![AstStatement::Assignment {
                     left: Box::new(ref_to("y")),
                     right: Box::new(ref_to("x")),
                     id: 0
                 }],
-                condition: Box::new(Statement::BinaryExpression {
+                condition: Box::new(AstStatement::BinaryExpression {
                     left: Box::new(ref_to("x")),
                     right: Box::new(ref_to("y")),
                     operator: crate::ast::Operator::Equal,
@@ -942,11 +942,11 @@ fn test_case_body_with_missing_semicolon() {
         format!("{:#?}", unit.implementations[0].statements),
         format!(
             "{:#?}",
-            vec![Statement::CaseStatement {
+            vec![AstStatement::CaseStatement {
                 selector: Box::new(ref_to("x")),
                 case_blocks: vec![ConditionalBlock {
                     condition: Box::new(ref_to("y")),
-                    body: vec![Statement::Assignment {
+                    body: vec![AstStatement::Assignment {
                         left: Box::new(ref_to("y")),
                         right: Box::new(ref_to("z")),
                         id: 0
