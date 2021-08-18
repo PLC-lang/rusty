@@ -255,8 +255,8 @@ fn parse_leaf_expression(lexer: &mut ParseSession) -> Statement {
         LiteralFalse => parse_bool_literal(lexer, false),
         KeywordSquareParensOpen => parse_array_literal(lexer),
         _ => Err(Diagnostic::unexpected_token_found(
-            "Literal".to_string(),
-            lexer.slice().to_string(),
+            "Literal",
+            lexer.slice(),
             lexer.location(),
         )),
     };
@@ -412,7 +412,7 @@ fn parse_literal_number(lexer: &mut ParseSession) -> Result<Statement, Diagnosti
     } else if lexer.allow(&KeywordParensOpen) {
         let multiplier = result
             .parse::<u32>()
-            .map_err(|e| Diagnostic::syntax_error(format!("{}", e), location.clone()))?;
+            .map_err(|e| Diagnostic::syntax_error(format!("{}", e).as_str(), location.clone()))?;
         let element = parse_expression(lexer);
         lexer.expect(KeywordParensClose)?;
         let end = lexer.range().end;
@@ -436,7 +436,10 @@ fn parse_literal_number(lexer: &mut ParseSession) -> Result<Statement, Diagnosti
 
 fn parse_number<F: FromStr>(text: &str, location: &SourceRange) -> Result<F, Diagnostic> {
     text.parse::<F>().map_err(|_| {
-        Diagnostic::syntax_error(format!("Failed parsing number {}", text), location.clone())
+        Diagnostic::syntax_error(
+            format!("Failed parsing number {}", text).as_str(),
+            location.clone(),
+        )
     })
 }
 
@@ -573,7 +576,7 @@ fn parse_literal_time(lexer: &mut ParseSession) -> Result<Statement, Diagnostic>
             char = chars.find(|(_, ch)| !ch.is_digit(10) && !ch.eq(&'.'));
             char.ok_or_else(|| {
                 Diagnostic::syntax_error(
-                    "Invalid TIME Literal: Cannot parse segment.".to_string(),
+                    "Invalid TIME Literal: Cannot parse segment.",
                     location.clone(),
                 )
             })
@@ -584,7 +587,7 @@ fn parse_literal_time(lexer: &mut ParseSession) -> Result<Statement, Diagnostic>
         let unit = {
             let start = char.map(|(index, _)| index).ok_or_else(|| {
                 Diagnostic::syntax_error(
-                    "Invalid TIME Literal: Missing unit (d|h|m|s|ms|us|ns)".to_string(),
+                    "Invalid TIME Literal: Missing unit (d|h|m|s|ms|us|ns)",
                     location.clone(),
                 )
             })?;
@@ -609,7 +612,7 @@ fn parse_literal_time(lexer: &mut ParseSession) -> Result<Statement, Diagnostic>
             //check if we assign out of order - every assignment before must have been a smaller position
             if prev_pos > position {
                 return Err(Diagnostic::syntax_error(
-                    "Invalid TIME Literal: segments out of order, use d-h-m-s-ms".to_string(),
+                    "Invalid TIME Literal: segments out of order, use d-h-m-s-ms",
                     location,
                 ));
             }
@@ -617,14 +620,14 @@ fn parse_literal_time(lexer: &mut ParseSession) -> Result<Statement, Diagnostic>
 
             if values[position].is_some() {
                 return Err(Diagnostic::syntax_error(
-                    "Invalid TIME Literal: segments must be unique".to_string(),
+                    "Invalid TIME Literal: segments must be unique",
                     location,
                 ));
             }
             values[position] = Some(number); //store the number
         } else {
             return Err(Diagnostic::syntax_error(
-                format!("Invalid TIME Literal: illegal unit '{}'", unit),
+                format!("Invalid TIME Literal: illegal unit '{}'", unit).as_str(),
                 location,
             ));
         }
