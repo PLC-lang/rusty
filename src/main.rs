@@ -17,12 +17,15 @@
 //! [`ST`]: https://en.wikipedia.org/wiki/Structured_text
 //! [`IEC61131-3`]: https://en.wikipedia.org/wiki/IEC_61131-3
 //! [`IR`]: https://llvm.org/docs/LangRef.html
+use std::path::Path;
+
 use glob::glob;
 use rusty::{
     cli::{CompileParameters, FormatOption, ParameterError},
     compile_to_bitcode, compile_to_ir, compile_to_shared_object, compile_to_shared_pic_object,
-    compile_to_static_obj, FilePath,
+    compile_to_static_obj, FilePath, get_target_triple,
 };
+mod linker;
 
 fn main() {
     let args: Vec<String> = std::env::args().collect();
@@ -67,14 +70,14 @@ fn main_compile(parameters: CompileParameters) -> Result<(), String> {
     let output_filename = parameters.output_name(parameters.skip_linking).unwrap();
     let encoding = parameters.encoding;
 
-    match parameters.output_format_or_default() {
+    let out_format = parameters.output_format_or_default(); 
+    match out_format {
         FormatOption::Static => {
             compile_to_static_obj(
                 sources,
                 encoding,
                 output_filename.as_str(),
-                parameters.target,
-                !parameters.skip_linking,
+                parameters.target.clone(),
             )
             .unwrap();
         }
@@ -83,8 +86,7 @@ fn main_compile(parameters: CompileParameters) -> Result<(), String> {
                 sources,
                 encoding,
                 output_filename.as_str(),
-                parameters.target,
-                !parameters.skip_linking,
+                parameters.target.clone(),
             )
             .unwrap();
         }
@@ -93,8 +95,7 @@ fn main_compile(parameters: CompileParameters) -> Result<(), String> {
                 sources,
                 encoding,
                 output_filename.as_str(),
-                parameters.target,
-                !parameters.skip_linking,
+                parameters.target.clone(),
             )
             .unwrap();
         }
@@ -105,5 +106,24 @@ fn main_compile(parameters: CompileParameters) -> Result<(), String> {
             compile_to_ir(sources, encoding, &output_filename).unwrap();
         }
     }
+
+    let linkable_formats = vec![
+        FormatOption::Static,
+        FormatOption::Shared,
+        FormatOption::PIC
+    ];
+    if linkable_formats.contains(&out_format) && !parameters.skip_linking {
+        let triple = get_target_triple(parameters.target);
+        let mut linker = linker::create_with_target(triple.as_str().to_str().unwrap())?;
+        linker.link_with_libc();
+        linker.add_object(Path::new(&output_filename));
+        if out_format == FormatOption::Static {
+            linker.build_exectuable(Path::new(&output_filename));
+        } else {
+            linker.build_shared_object(Path::new(&output_filename));
+        }
+        linker.finalize()?;
+    }
+
     Ok(())
 }

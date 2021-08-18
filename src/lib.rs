@@ -48,8 +48,6 @@ mod parser;
 mod resolver;
 mod typesystem;
 
-mod linker;
-
 #[macro_use]
 extern crate pretty_assertions;
 
@@ -180,7 +178,7 @@ fn create_source_code<T: Read>(
     Ok(buffer)
 }
 
-fn get_target_triple(triple: Option<String>) -> TargetTriple {
+pub fn get_target_triple(triple: Option<String>) -> TargetTriple {
     triple
         .map(|it| TargetTriple::create(it.as_str()))
         .or_else(|| Some(TargetMachine::get_default_triple()))
@@ -236,7 +234,6 @@ pub fn compile_to_static_obj<T: SourceContainer>(
     encoding: Option<&'static Encoding>,
     output: &str,
     target: Option<String>,
-    linking_enabled: bool,
 ) -> Result<(), CompileError> {
     compile_to_obj(
         sources,
@@ -244,19 +241,7 @@ pub fn compile_to_static_obj<T: SourceContainer>(
         &output,
         RelocMode::Default,
         get_target_triple(target.clone()),
-    )?;
-
-    // link as an executable if "-c" was not passed on the command line
-    if linking_enabled {
-        let triple = get_target_triple(target);
-        let mut linker = linker::create_with_target(triple.as_str().to_str().unwrap())?;
-        linker.link_with_libc();
-        linker.add_object(Path::new(&output))?;
-        linker.build_exectuable(Path::new(output))?;
-        linker.finalize()?;
-    }
-
-    Ok(())
+    )
 }
 
 /// Compiles a given source string to a shared position independent object and saves the output.
@@ -272,7 +257,6 @@ pub fn compile_to_shared_pic_object<T: SourceContainer>(
     encoding: Option<&'static Encoding>,
     output: &str,
     target: Option<String>,
-    linking_enabled: bool,
 ) -> Result<(), CompileError> {
     compile_to_obj(
         sources,
@@ -280,18 +264,7 @@ pub fn compile_to_shared_pic_object<T: SourceContainer>(
         &output,
         RelocMode::PIC,
         get_target_triple(target.clone()),
-    )?;
-
-    if linking_enabled {
-        let triple = get_target_triple(target);
-        let mut linker = linker::create_with_target(triple.as_str().to_str().unwrap())?;
-        linker.link_with_libc();
-        linker.add_object(Path::new(&output))?;
-        linker.build_shared_object(Path::new(output))?;
-        linker.finalize()?;
-    }
-
-    Ok(())
+    )
 }
 
 /// Compiles a given source string to a dynamic non PIC object and saves the output.
@@ -307,7 +280,6 @@ pub fn compile_to_shared_object<T: SourceContainer>(
     encoding: Option<&'static Encoding>,
     output: &str,
     target: Option<String>,
-    linking_enabled: bool,
 ) -> Result<(), CompileError> {
     compile_to_obj(
         sources,
@@ -315,19 +287,7 @@ pub fn compile_to_shared_object<T: SourceContainer>(
         &output,
         RelocMode::DynamicNoPic,
         get_target_triple(target.clone()),
-    )?;
-
-    // link as an executable if "-c" was not passed on the command line
-    if linking_enabled {
-        let triple = get_target_triple(target);
-        let mut linker = linker::create_with_target(triple.as_str().to_str().unwrap())?;
-        linker.link_with_libc();
-        linker.add_object(Path::new(&output))?;
-        linker.build_shared_object(Path::new(&output))?;
-        linker.finalize()?;
-    }
-
-    Ok(())
+    )
 }
 
 ///
