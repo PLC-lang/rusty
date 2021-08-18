@@ -200,7 +200,7 @@ pub fn cast_if_needed<'ctx>(
                             &llvm.builder,
                             value,
                             value_type,
-                            &target_type,
+                            target_type,
                         ))
                     }
                 }
@@ -225,8 +225,8 @@ pub fn cast_if_needed<'ctx>(
                     }
                 }
                 _ => Err(CompileError::casting_error(
-                    &value_type.get_name(),
-                    &target_type.get_name(),
+                    value_type.get_name(),
+                    target_type.get_name(),
                     location_context.get_location(),
                 )),
             }
@@ -266,17 +266,17 @@ pub fn cast_if_needed<'ctx>(
                         .into())
                 } else {
                     Ok(promote_value_if_needed(
-                        &llvm.context,
+                        llvm.context,
                         &llvm.builder,
                         value,
                         value_type,
-                        &target_type,
+                        target_type,
                     ))
                 }
             }
             _ => Err(CompileError::casting_error(
-                &value_type.get_name(),
-                &target_type.get_name(),
+                value_type.get_name(),
+                target_type.get_name(),
                 location_context.get_location(),
             )),
         },
@@ -294,8 +294,8 @@ pub fn cast_if_needed<'ctx>(
                         Ok(value)
                     } else {
                         Err(CompileError::casting_error(
-                            &value_type.get_name(),
-                            &target_type.get_name(),
+                            value_type.get_name(),
+                            target_type.get_name(),
                             location_context.get_location(),
                         ))
                     }
@@ -304,8 +304,8 @@ pub fn cast_if_needed<'ctx>(
                 }
             }
             _ => Err(CompileError::casting_error(
-                &value_type.get_name(),
-                &target_type.get_name(),
+                value_type.get_name(),
+                target_type.get_name(),
                 location_context.get_location(),
             )),
         },

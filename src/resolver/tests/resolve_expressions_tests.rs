@@ -423,12 +423,9 @@ fn assignment_expressions_resolve_types() {
     assert_eq!(format!("{:?}", expected_types), format!("{:?}", type_names));
 
     if let Statement::Assignment { left, right, .. } = &statements[0] {
+        assert_eq!(annotations.get_type_or_void(left, &index).get_name(), "INT");
         assert_eq!(
-            annotations.get_type_or_void(&left, &index).get_name(),
-            "INT"
-        );
-        assert_eq!(
-            annotations.get_type_or_void(&right, &index).get_name(),
+            annotations.get_type_or_void(right, &index).get_name(),
             "BYTE"
         );
     } else {
@@ -436,11 +433,11 @@ fn assignment_expressions_resolve_types() {
     }
     if let Statement::Assignment { left, right, .. } = &statements[1] {
         assert_eq!(
-            annotations.get_type_or_void(&left, &index).get_name(),
+            annotations.get_type_or_void(left, &index).get_name(),
             "LWORD"
         );
         assert_eq!(
-            annotations.get_type_or_void(&right, &index).get_name(),
+            annotations.get_type_or_void(right, &index).get_name(),
             "INT"
         );
     } else {

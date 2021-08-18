@@ -222,7 +222,7 @@ impl<'i> TypeAnnotator<'i> {
     ) {
         self.visit_data_type(ctx, &user_data_type.data_type);
         if let Some(initializer) = &user_data_type.initializer {
-            self.visit_statement(ctx, &initializer);
+            self.visit_statement(ctx, initializer);
         }
     }
 

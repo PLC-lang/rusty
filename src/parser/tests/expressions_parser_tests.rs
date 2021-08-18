@@ -59,7 +59,7 @@ fn literal_can_be_parsed() {
     let statement = &prg.statements[0];
 
     if let Statement::LiteralInteger { value, .. } = statement {
-        assert_eq!(value, &(7 as i64));
+        assert_eq!(value, &7_i64);
     } else {
         panic!("Expected LiteralInteger but found {:?}", statement);
     }
@@ -74,7 +74,7 @@ fn literal_binary_with_underscore_number_can_be_parsed() {
     let statement = &prg.statements[0];
 
     if let Statement::LiteralInteger { value, .. } = statement {
-        assert_eq!(value, &(45 as i64));
+        assert_eq!(value, &45_i64);
     } else {
         panic!("Expected LiteralInteger but found {:?}", statement);
     }
@@ -89,7 +89,7 @@ fn literal_hex_number_with_underscores_can_be_parsed() {
     let statement = &prg.statements[0];
 
     if let Statement::LiteralInteger { value, .. } = statement {
-        assert_eq!(value, &(3735928559 as i64));
+        assert_eq!(value, &3735928559_i64);
     } else {
         panic!("Expected LiteralInteger but found {:?}", statement);
     }
@@ -104,7 +104,7 @@ fn literal_hex_number_can_be_parsed() {
     let statement = &prg.statements[0];
 
     if let Statement::LiteralInteger { value, .. } = statement {
-        assert_eq!(value, &(3735928559 as i64));
+        assert_eq!(value, &3735928559_i64);
     } else {
         panic!("Expected LiteralInteger but found {:?}", statement);
     }
@@ -119,7 +119,7 @@ fn literal_oct_number_with_underscores_can_be_parsed() {
     let statement = &prg.statements[0];
 
     if let Statement::LiteralInteger { value, .. } = statement {
-        assert_eq!(value, &(63 as i64));
+        assert_eq!(value, &63_i64);
     } else {
         panic!("Expected LiteralInteger but found {:?}", statement);
     }
@@ -134,7 +134,7 @@ fn literal_dec_number_with_underscores_can_be_parsed() {
     let statement = &prg.statements[0];
 
     if let Statement::LiteralInteger { value, .. } = statement {
-        assert_eq!(value, &(43000 as i64));
+        assert_eq!(value, &43000_i64);
     } else {
         panic!("Expected LiteralInteger but found {:?}", statement);
     }
@@ -149,7 +149,7 @@ fn literal_oct_number_with_underscore_can_be_parsed() {
     let statement = &prg.statements[0];
 
     if let Statement::LiteralInteger { value, .. } = statement {
-        assert_eq!(value, &(63 as i64));
+        assert_eq!(value, &63_i64);
     } else {
         panic!("Expected LiteralInteger but found {:?}", statement);
     }

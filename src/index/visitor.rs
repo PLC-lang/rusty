@@ -19,7 +19,7 @@ pub fn visit(unit: &CompilationUnit) -> Index {
 
     //Create user defined datatypes
     for user_type in &unit.types {
-        visit_data_type(&mut index, &user_type);
+        visit_data_type(&mut index, user_type);
     }
 
     //Create defined global variables
@@ -224,7 +224,7 @@ fn visit_data_type(index: &mut Index, type_declatation: &UserTypeDeclaration) {
 
                 index.register_member_variable(
                     &MemberInfo {
-                        container_name: &struct_name,
+                        container_name: struct_name,
                         variable_name: &var.name,
                         variable_linkage: VariableType::Local,
                         variable_type_name: var.data_type.get_name().unwrap(),
@@ -289,7 +289,7 @@ fn visit_data_type(index: &mut Index, type_declatation: &UserTypeDeclaration) {
             referenced_type,
             bounds,
         } => {
-            let dimensions = get_array_dimensions(&bounds).unwrap();
+            let dimensions = get_array_dimensions(bounds).unwrap();
             let referenced_type_name = referenced_type.get_name().unwrap();
             let information = DataTypeInformation::Array {
                 name: name.as_ref().unwrap().clone(),
@@ -309,7 +309,7 @@ fn visit_data_type(index: &mut Index, type_declatation: &UserTypeDeclaration) {
             ..
         } => {
             let size = if let Some(statement) = size {
-                evaluate_constant_int(&statement).unwrap() as u32
+                evaluate_constant_int(statement).unwrap() as u32
             } else {
                 crate::typesystem::DEFAULT_STRING_LEN // DEFAULT STRING LEN
             } + 1;

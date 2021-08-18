@@ -603,25 +603,25 @@ fn find_effective_type_finds_the_inner_effective_type() {
     );
 
     let my_alias = index.find_type("MyAlias").unwrap().get_type_information();
-    let int = index.find_effective_type_information(&my_alias).unwrap();
+    let int = index.find_effective_type_information(my_alias).unwrap();
     assert_eq!("INT", int.get_name());
 
     let my_alias = index
         .find_type("MySecondAlias")
         .unwrap()
         .get_type_information();
-    let int = index.find_effective_type_information(&my_alias).unwrap();
+    let int = index.find_effective_type_information(my_alias).unwrap();
     assert_eq!("INT", int.get_name());
 
     let my_alias = index
         .find_type("MyArrayAlias")
         .unwrap()
         .get_type_information();
-    let array = index.find_effective_type_information(&my_alias).unwrap();
+    let array = index.find_effective_type_information(my_alias).unwrap();
     assert_eq!("MyArray", array.get_name());
 
     let my_alias = index.find_type("MyArray").unwrap().get_type_information();
-    let array = index.find_effective_type_information(&my_alias).unwrap();
+    let array = index.find_effective_type_information(my_alias).unwrap();
     assert_eq!("MyArray", array.get_name());
 }
 

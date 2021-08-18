@@ -41,7 +41,7 @@ pub fn generate_implementation_stubs<'ink>(
     types_index: &LlvmTypedIndex<'ink>,
 ) -> Result<LlvmTypedIndex<'ink>, CompileError> {
     let mut llvm_index = LlvmTypedIndex::new();
-    let pou_generator = PouGenerator::new(llvm, index, &types_index);
+    let pou_generator = PouGenerator::new(llvm, index, types_index);
     for (name, implementation) in index.get_implementations() {
         let curr_f = pou_generator.generate_implementation_stub(implementation, module)?;
         llvm_index.associate_implementation(name, curr_f)?;
@@ -219,7 +219,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                     parameter_name,
                     self.llvm
                         .builder
-                        .build_struct_gep(ptr_value, i as u32, &parameter_name)
+                        .build_struct_gep(ptr_value, i as u32, parameter_name)
                         .unwrap(),
                 )
             };
@@ -276,7 +276,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                     self.index,
                     local_index,
                     None,
-                    &function_context,
+                    function_context,
                 );
                 exp_gen.temp_variable_prefix = "".to_string();
                 exp_gen.temp_variable_suffix = "_ret".to_string();

@@ -406,7 +406,7 @@ pub fn compile_module<'c, T: SourceContainer>(
         let annotations = TypeAnnotator::visit_unit(&full_index, container);
 
         let mut validator = Validator::new();
-        validator.visit_unit(&annotations, &container);
+        validator.visit_unit(&annotations, container);
         //log errors
         report_diagnostics(*file_id, syntax_errors.iter(), &files)?;
         report_diagnostics(*file_id, validator.diagnostics().iter(), &files)?;

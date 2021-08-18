@@ -272,7 +272,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                         implementation,
                         self.llvm_index
                             .find_loaded_associated_variable_value(
-                                &variable_instance.get_qualified_name(),
+                                variable_instance.get_qualified_name(),
                             )
                             .ok_or_else(|| CompileError::CodeGenError {
                                 message: format!("cannot find callable type for {:?}", operator),
@@ -581,7 +581,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
         let current_block = builder.get_insert_block().unwrap();
         builder.position_at_end(*output_block);
         if let Statement::Reference { name, .. } = &*left {
-            let parameter = self.index.find_member(function_name, &name).unwrap();
+            let parameter = self.index.find_member(function_name, name).unwrap();
             let index = parameter.get_location_in_parent();
             let param_type = self
                 .index
@@ -627,7 +627,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
         let parameter_struct = param_context.parameter_struct;
         builder.position_at_end(*input_block);
         if let Statement::Reference { name, .. } = &*left {
-            let parameter = self.index.find_member(function_name, &name).unwrap();
+            let parameter = self.index.find_member(function_name, name).unwrap();
             let index = parameter.get_location_in_parent();
             let param_type = self.index.find_type(parameter.get_type_name());
             self.generate_single_parameter(
@@ -726,7 +726,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                 })?;
             let accessor_ptr = self
                 .llvm_index
-                .find_loaded_associated_variable_value(&variable_index_entry.get_qualified_name())
+                .find_loaded_associated_variable_value(variable_index_entry.get_qualified_name())
                 .ok_or_else(|| {
                     CompileError::codegen_error(
                         format!("Cannot generate reference for {:}", name),
@@ -765,7 +765,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                 let (_, value) = self
                     .llvm
                     .load_pointer(&TypeAndPointer::new(variable_type, accessor_ptr), "deref");
-                let inner_type = self.index.get_type(&inner_type_name)?;
+                let inner_type = self.index.get_type(inner_type_name)?;
                 TypeAndPointer::new(inner_type, value.into_pointer_value())
             } else {
                 TypeAndPointer::new(variable_type, accessor_ptr)
@@ -866,7 +866,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                 let mut element_iter = elements.iter();
                 let current_element = element_iter.next();
                 let mut current_lvalue =
-                    self.generate_element_pointer_for_rec(qualifier, &current_element.unwrap());
+                    self.generate_element_pointer_for_rec(qualifier, current_element.unwrap());
 
                 for it in element_iter {
                     let ctx = current_lvalue?;
@@ -1269,7 +1269,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                         {
                             let member = self
                                 .index
-                                .find_member(struct_name, &variable_name)
+                                .find_member(struct_name, variable_name)
                                 .ok_or_else(|| {
                                     CompileError::invalid_reference(
                                         format!("{}.{}", struct_name, variable_name).as_str(),
@@ -1315,7 +1315,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
 
                     let initial_value = self
                         .llvm_index
-                        .find_associated_variable_value(&member.get_qualified_name())
+                        .find_associated_variable_value(member.get_qualified_name())
                         // .or_else(|| self.index.find_associated_variable_value(name))
                         .or_else(|| {
                             self.llvm_index

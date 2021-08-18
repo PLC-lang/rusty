@@ -222,7 +222,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         let cast_value = cast_if_needed(
             self.llvm,
             self.index,
-            &left.get_type_information(),
+            left.get_type_information(),
             right,
             &right_type,
             right_statement,
@@ -331,7 +331,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
                     id: 0, //TODO
                 })
             },
-            |step| expression_generator.generate_expression(&step),
+            |step| expression_generator.generate_expression(step),
         )?;
 
         let next = builder.build_int_add(
@@ -593,7 +593,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
             load_suffix: self.load_suffix.clone(),
             ..*self
         };
-        body_generator.generate_body(&body)?;
+        body_generator.generate_body(body)?;
         //Loop back
         builder.build_unconditional_branch(condition_check);
 
@@ -670,7 +670,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
 
         if let Some(else_block) = else_block {
             builder.position_at_end(else_block);
-            self.generate_body(&else_body)?;
+            self.generate_body(else_body)?;
             builder.build_unconditional_branch(continue_block);
         }
         //Continue

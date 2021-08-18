@@ -252,7 +252,7 @@ impl Index {
         };
         for segment in segments.iter().skip(1) {
             result = match result {
-                Some(context) => self.find_member(&context.information.data_type_name, &segment),
+                Some(context) => self.find_member(&context.information.data_type_name, segment),
                 None => None,
             };
         }
@@ -289,12 +289,12 @@ impl Index {
             DataTypeInformation::SubRange {
                 referenced_type, ..
             } => self
-                .find_type(&referenced_type)
+                .find_type(referenced_type)
                 .and_then(|it| self.find_effective_type(it)),
             DataTypeInformation::Alias {
                 referenced_type, ..
             } => self
-                .find_type(&referenced_type)
+                .find_type(referenced_type)
                 .and_then(|it| self.find_effective_type(it)),
             _ => Some(data_type),
         }
@@ -310,12 +310,12 @@ impl Index {
             DataTypeInformation::SubRange {
                 referenced_type, ..
             } => self
-                .find_type(&referenced_type)
+                .find_type(referenced_type)
                 .and_then(|it| self.find_effective_type_information(it.get_type_information())),
             DataTypeInformation::Alias {
                 referenced_type, ..
             } => self
-                .find_type(&referenced_type)
+                .find_type(referenced_type)
                 .and_then(|it| self.find_effective_type_information(it.get_type_information())),
             _ => Some(data_type),
         }

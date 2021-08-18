@@ -394,7 +394,7 @@ fn parse_literal_number_with_modifier(
     let number_str = number_str.replace("_", "");
 
     // again, the parsed number can be safely unwrapped.
-    let value = i64::from_str_radix(&number_str.as_str(), radix).unwrap();
+    let value = i64::from_str_radix(number_str.as_str(), radix).unwrap();
 
     Ok(Statement::LiteralInteger {
         value,

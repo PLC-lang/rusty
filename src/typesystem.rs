@@ -432,8 +432,8 @@ pub fn get_bigger_type(
     ltype: &DataTypeInformation,
     rtype: &DataTypeInformation,
 ) -> DataTypeInformation {
-    if is_same_type_nature(&ltype, &rtype) {
-        if get_rank(&ltype) < get_rank(&rtype) {
+    if is_same_type_nature(ltype, rtype) {
+        if get_rank(ltype) < get_rank(rtype) {
             rtype.clone()
         } else {
             ltype.clone()
@@ -454,8 +454,8 @@ pub fn get_bigger_type_borrow<'t>(
     rtype: &'t DataTypeInformation,
     index: &'t Index,
 ) -> &'t DataTypeInformation {
-    if is_same_type_nature(&ltype, &rtype) {
-        if get_rank(&ltype) < get_rank(&rtype) {
+    if is_same_type_nature(ltype, rtype) {
+        if get_rank(ltype) < get_rank(rtype) {
             rtype
         } else {
             ltype
