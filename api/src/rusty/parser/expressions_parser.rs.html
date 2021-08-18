@@ -688,6 +688,9 @@
 <span id="686">686</span>
 <span id="687">687</span>
 <span id="688">688</span>
+<span id="689">689</span>
+<span id="690">690</span>
+<span id="691">691</span>
 </pre><pre class="rust">
 <span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 
@@ -946,8 +949,8 @@
         <span class="ident">LiteralFalse</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">parse_bool_literal</span>(<span class="ident">lexer</span>, <span class="bool-val">false</span>),
         <span class="ident">KeywordSquareParensOpen</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">parse_array_literal</span>(<span class="ident">lexer</span>),
         <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">Diagnostic::unexpected_token_found</span>(
-            <span class="string">&quot;Literal&quot;</span>.<span class="ident">to_string</span>(),
-            <span class="ident">lexer</span>.<span class="ident">slice</span>().<span class="ident">to_string</span>(),
+            <span class="string">&quot;Literal&quot;</span>,
+            <span class="ident">lexer</span>.<span class="ident">slice</span>(),
             <span class="ident">lexer</span>.<span class="ident">location</span>(),
         )),
     };
@@ -1103,7 +1106,7 @@
     } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">lexer</span>.<span class="ident">allow</span>(<span class="kw-2">&amp;</span><span class="ident">KeywordParensOpen</span>) {
         <span class="kw">let</span> <span class="ident">multiplier</span> <span class="op">=</span> <span class="ident">result</span>
             .<span class="ident">parse</span>::<span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>()
-            .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">Diagnostic::syntax_error</span>(<span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">e</span>), <span class="ident">location</span>.<span class="ident">clone</span>()))<span class="question-mark">?</span>;
+            .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">Diagnostic::syntax_error</span>(<span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">e</span>).<span class="ident">as_str</span>(), <span class="ident">location</span>.<span class="ident">clone</span>()))<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">element</span> <span class="op">=</span> <span class="ident">parse_expression</span>(<span class="ident">lexer</span>);
         <span class="ident">lexer</span>.<span class="ident">expect</span>(<span class="ident">KeywordParensClose</span>)<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">end</span> <span class="op">=</span> <span class="ident">lexer</span>.<span class="ident">range</span>().<span class="ident">end</span>;
@@ -1127,7 +1130,10 @@
 
 <span class="kw">fn</span> <span class="ident">parse_number</span><span class="op">&lt;</span><span class="ident">F</span>: <span class="ident">FromStr</span><span class="op">&gt;</span>(<span class="ident">text</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">location</span>: <span class="kw-2">&amp;</span><span class="ident">SourceRange</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
     <span class="ident">text</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>().<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> {
-        <span class="ident">Diagnostic::syntax_error</span>(<span class="macro">format!</span>(<span class="string">&quot;Failed parsing number {}&quot;</span>, <span class="ident">text</span>), <span class="ident">location</span>.<span class="ident">clone</span>())
+        <span class="ident">Diagnostic::syntax_error</span>(
+            <span class="macro">format!</span>(<span class="string">&quot;Failed parsing number {}&quot;</span>, <span class="ident">text</span>).<span class="ident">as_str</span>(),
+            <span class="ident">location</span>.<span class="ident">clone</span>(),
+        )
     })
 }
 
@@ -1264,7 +1270,7 @@
             <span class="ident">char</span> <span class="op">=</span> <span class="ident">chars</span>.<span class="ident">find</span>(<span class="op">|</span>(<span class="kw">_</span>, <span class="ident">ch</span>)<span class="op">|</span> <span class="op">!</span><span class="ident">ch</span>.<span class="ident">is_digit</span>(<span class="number">10</span>) <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">ch</span>.<span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="string">&#39;.&#39;</span>));
             <span class="ident">char</span>.<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
                 <span class="ident">Diagnostic::syntax_error</span>(
-                    <span class="string">&quot;Invalid TIME Literal: Cannot parse segment.&quot;</span>.<span class="ident">to_string</span>(),
+                    <span class="string">&quot;Invalid TIME Literal: Cannot parse segment.&quot;</span>,
                     <span class="ident">location</span>.<span class="ident">clone</span>(),
                 )
             })
@@ -1275,7 +1281,7 @@
         <span class="kw">let</span> <span class="ident">unit</span> <span class="op">=</span> {
             <span class="kw">let</span> <span class="ident">start</span> <span class="op">=</span> <span class="ident">char</span>.<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">index</span>, <span class="kw">_</span>)<span class="op">|</span> <span class="ident">index</span>).<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
                 <span class="ident">Diagnostic::syntax_error</span>(
-                    <span class="string">&quot;Invalid TIME Literal: Missing unit (d|h|m|s|ms|us|ns)&quot;</span>.<span class="ident">to_string</span>(),
+                    <span class="string">&quot;Invalid TIME Literal: Missing unit (d|h|m|s|ms|us|ns)&quot;</span>,
                     <span class="ident">location</span>.<span class="ident">clone</span>(),
                 )
             })<span class="question-mark">?</span>;
@@ -1300,7 +1306,7 @@
             <span class="comment">//check if we assign out of order - every assignment before must have been a smaller position</span>
             <span class="kw">if</span> <span class="ident">prev_pos</span> <span class="op">&gt;</span> <span class="ident">position</span> {
                 <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Diagnostic::syntax_error</span>(
-                    <span class="string">&quot;Invalid TIME Literal: segments out of order, use d-h-m-s-ms&quot;</span>.<span class="ident">to_string</span>(),
+                    <span class="string">&quot;Invalid TIME Literal: segments out of order, use d-h-m-s-ms&quot;</span>,
                     <span class="ident">location</span>,
                 ));
             }
@@ -1308,14 +1314,14 @@
 
             <span class="kw">if</span> <span class="ident">values</span>[<span class="ident">position</span>].<span class="ident">is_some</span>() {
                 <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Diagnostic::syntax_error</span>(
-                    <span class="string">&quot;Invalid TIME Literal: segments must be unique&quot;</span>.<span class="ident">to_string</span>(),
+                    <span class="string">&quot;Invalid TIME Literal: segments must be unique&quot;</span>,
                     <span class="ident">location</span>,
                 ));
             }
             <span class="ident">values</span>[<span class="ident">position</span>] <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">number</span>); <span class="comment">//store the number</span>
         } <span class="kw">else</span> {
             <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Diagnostic::syntax_error</span>(
-                <span class="macro">format!</span>(<span class="string">&quot;Invalid TIME Literal: illegal unit &#39;{}&#39;&quot;</span>, <span class="ident">unit</span>),
+                <span class="macro">format!</span>(<span class="string">&quot;Invalid TIME Literal: illegal unit &#39;{}&#39;&quot;</span>, <span class="ident">unit</span>).<span class="ident">as_str</span>(),
                 <span class="ident">location</span>,
             ));
         }

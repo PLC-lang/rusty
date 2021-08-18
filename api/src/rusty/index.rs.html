@@ -473,12 +473,47 @@
 <span id="471">471</span>
 <span id="472">472</span>
 <span id="473">473</span>
+<span id="474">474</span>
+<span id="475">475</span>
+<span id="476">476</span>
+<span id="477">477</span>
+<span id="478">478</span>
+<span id="479">479</span>
+<span id="480">480</span>
+<span id="481">481</span>
+<span id="482">482</span>
+<span id="483">483</span>
+<span id="484">484</span>
+<span id="485">485</span>
+<span id="486">486</span>
+<span id="487">487</span>
+<span id="488">488</span>
+<span id="489">489</span>
+<span id="490">490</span>
+<span id="491">491</span>
+<span id="492">492</span>
+<span id="493">493</span>
+<span id="494">494</span>
+<span id="495">495</span>
+<span id="496">496</span>
+<span id="497">497</span>
+<span id="498">498</span>
+<span id="499">499</span>
+<span id="500">500</span>
+<span id="501">501</span>
+<span id="502">502</span>
+<span id="503">503</span>
+<span id="504">504</span>
+<span id="505">505</span>
+<span id="506">506</span>
+<span id="507">507</span>
+<span id="508">508</span>
 </pre><pre class="rust">
 <span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 <span class="kw">use</span> <span class="ident">indexmap::IndexMap</span>;
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">ast</span>::{<span class="ident">Implementation</span>, <span class="ident">SourceRange</span>, <span class="ident">Statement</span>},
+    <span class="ident">ast</span>::{<span class="ident">Implementation</span>, <span class="ident">PouType</span>, <span class="ident">SourceRange</span>, <span class="ident">Statement</span>},
     <span class="ident">compile_error::CompileError</span>,
     <span class="ident">typesystem</span>::<span class="kw-2">*</span>,
 };
@@ -561,10 +596,21 @@
     <span class="ident">AliasType</span>,     <span class="comment">// a Custom-Alias-dataType</span>
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>)]</span>
+<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">ImplementationType</span> {
+    <span class="ident">Program</span>,
+    <span class="ident">Function</span>,
+    <span class="ident">FunctionBlock</span>,
+    <span class="ident">Action</span>,
+    <span class="ident">Class</span>,
+    <span class="ident">Method</span>,
+}
+
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ImplementationIndexEntry</span> {
     <span class="ident">call_name</span>: <span class="ident">String</span>,
     <span class="ident">type_name</span>: <span class="ident">String</span>,
+    <span class="ident">implementation_type</span>: <span class="ident">ImplementationType</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">ImplementationIndexEntry</span> {
@@ -574,13 +620,31 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_type_name</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">str</span> {
         <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">type_name</span>
     }
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_implementation_type</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">ImplementationType</span> {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">implementation_type</span>
+    }
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">Implementation</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">ImplementationIndexEntry</span> {
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">implementation</span>: <span class="kw-2">&amp;</span><span class="ident">Implementation</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+        <span class="kw">let</span> <span class="ident">pou_type</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">implementation</span>.<span class="ident">pou_type</span>;
         <span class="ident">ImplementationIndexEntry</span> {
             <span class="ident">call_name</span>: <span class="ident">implementation</span>.<span class="ident">name</span>.<span class="ident">clone</span>(),
             <span class="ident">type_name</span>: <span class="ident">implementation</span>.<span class="ident">type_name</span>.<span class="ident">clone</span>(),
+            <span class="ident">implementation_type</span>: <span class="ident">pou_type</span>.<span class="ident">into</span>(),
+        }
+    }
+}
+
+<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">PouType</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">ImplementationType</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">it</span>: <span class="kw-2">&amp;</span><span class="ident">PouType</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+        <span class="kw">match</span> <span class="ident">it</span> {
+            <span class="ident">PouType::Program</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ImplementationType::Program</span>,
+            <span class="ident">PouType::Function</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ImplementationType::Function</span>,
+            <span class="ident">PouType::FunctionBlock</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ImplementationType::FunctionBlock</span>,
+            <span class="ident">PouType::Action</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ImplementationType::Action</span>,
+            <span class="ident">PouType::Class</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ImplementationType::Class</span>,
+            <span class="ident">PouType::Method</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ImplementationType::Method</span>,
         }
     }
 }
@@ -590,7 +654,7 @@
 <span class="doccomment">/// The index contains information about all referencable elements.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">///</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>()]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Index</span> {
     <span class="doccomment">/// all global variables</span>
     <span class="ident">global_variables</span>: <span class="ident">IndexMap</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">VariableIndexEntry</span><span class="op">&gt;</span>,
@@ -615,7 +679,7 @@
             <span class="ident">types</span>: <span class="ident">IndexMap::new</span>(),
             <span class="ident">implementations</span>: <span class="ident">IndexMap::new</span>(),
             <span class="ident">void_type</span>: <span class="ident">DataType</span> {
-                <span class="ident">name</span>: <span class="string">&quot;void&quot;</span>.<span class="ident">to_string</span>(),
+                <span class="ident">name</span>: <span class="ident">VOID_TYPE</span>.<span class="ident">into</span>(),
                 <span class="ident">initial_value</span>: <span class="prelude-val">None</span>,
                 <span class="ident">information</span>: <span class="ident">DataTypeInformation::Void</span>,
             },
@@ -810,12 +874,18 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">implementations</span>
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">register_implementation</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">call_name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">type_name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">register_implementation</span>(
+        <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
+        <span class="ident">call_name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
+        <span class="ident">type_name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
+        <span class="ident">impl_type</span>: <span class="ident">ImplementationType</span>,
+    ) {
         <span class="self">self</span>.<span class="ident">implementations</span>.<span class="ident">insert</span>(
             <span class="ident">call_name</span>.<span class="ident">into</span>(),
             <span class="ident">ImplementationIndexEntry</span> {
                 <span class="ident">call_name</span>: <span class="ident">call_name</span>.<span class="ident">into</span>(),
                 <span class="ident">type_name</span>: <span class="ident">type_name</span>.<span class="ident">into</span>(),
+                <span class="ident">implementation_type</span>: <span class="ident">impl_type</span>,
             },
         );
     }

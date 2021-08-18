@@ -325,6 +325,13 @@
 <span id="323">323</span>
 <span id="324">324</span>
 <span id="325">325</span>
+<span id="326">326</span>
+<span id="327">327</span>
+<span id="328">328</span>
+<span id="329">329</span>
+<span id="330">330</span>
+<span id="331">331</span>
+<span id="332">332</span>
 </pre><pre class="rust">
 <span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 <span class="kw">use</span> <span class="kw">super</span><span class="ident">::VariableType</span>;
@@ -392,6 +399,7 @@
         <span class="kw">for</span> <span class="ident">var</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">block</span>.<span class="ident">variables</span> {
             <span class="kw">if</span> <span class="kw">let</span> <span class="ident">DataTypeDeclaration::DataTypeDefinition</span> {
                 <span class="ident">data_type</span>: <span class="ident">ast::DataType::VarArgs</span> { <span class="ident">referenced_type</span> },
+                ..
             } <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">var</span>.<span class="ident">data_type</span>
             {
                 <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="ident">referenced_type</span>
@@ -456,9 +464,14 @@
 }
 
 <span class="kw">fn</span> <span class="ident">visit_implementation</span>(<span class="ident">index</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Index</span>, <span class="ident">implementation</span>: <span class="kw-2">&amp;</span><span class="ident">Implementation</span>) {
-    <span class="ident">index</span>.<span class="ident">register_implementation</span>(<span class="kw-2">&amp;</span><span class="ident">implementation</span>.<span class="ident">name</span>, <span class="kw-2">&amp;</span><span class="ident">implementation</span>.<span class="ident">type_name</span>);
+    <span class="kw">let</span> <span class="ident">pou_type</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">implementation</span>.<span class="ident">pou_type</span>;
+    <span class="ident">index</span>.<span class="ident">register_implementation</span>(
+        <span class="kw-2">&amp;</span><span class="ident">implementation</span>.<span class="ident">name</span>,
+        <span class="kw-2">&amp;</span><span class="ident">implementation</span>.<span class="ident">type_name</span>,
+        <span class="ident">pou_type</span>.<span class="ident">into</span>(),
+    );
     <span class="comment">//if we are registing an action, also register a datatype for it</span>
-    <span class="kw">if</span> <span class="ident">implementation</span>.<span class="ident">pou_type</span> <span class="op">=</span><span class="op">=</span> <span class="ident">PouType::Action</span> {
+    <span class="kw">if</span> <span class="ident">pou_type</span> <span class="op">=</span><span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">PouType::Action</span> {
         <span class="ident">index</span>.<span class="ident">register_type</span>(
             <span class="kw-2">&amp;</span><span class="ident">implementation</span>.<span class="ident">name</span>,
             <span class="prelude-val">None</span>,
@@ -532,13 +545,14 @@
                 <span class="ident">information</span>,
             );
             <span class="kw">for</span> (<span class="ident">count</span>, <span class="ident">var</span>) <span class="kw">in</span> <span class="ident">variables</span>.<span class="ident">iter</span>().<span class="ident">enumerate</span>() {
-                <span class="kw">if</span> <span class="kw">let</span> <span class="ident">DataTypeDeclaration::DataTypeDefinition</span> { <span class="ident">data_type</span> } <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">var</span>.<span class="ident">data_type</span> {
+                <span class="kw">if</span> <span class="kw">let</span> <span class="ident">DataTypeDeclaration::DataTypeDefinition</span> { <span class="ident">data_type</span>, .. } <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">var</span>.<span class="ident">data_type</span> {
                     <span class="comment">//first we need to handle the inner type</span>
                     <span class="ident">visit_data_type</span>(
                         <span class="ident">index</span>,
                         <span class="kw-2">&amp;</span><span class="ident">UserTypeDeclaration</span> {
                             <span class="ident">data_type</span>: <span class="ident">data_type</span>.<span class="ident">clone</span>(),
                             <span class="ident">initializer</span>: <span class="prelude-val">None</span>,
+                            <span class="ident">location</span>: <span class="ident">SourceRange::undefined</span>(),
                         },
                     )
                 }
