@@ -1,5 +1,5 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-use crate::{ast::SourceRange, index::Index};
+use crate::{ast::SourceRange, index::Index, resolver::AnnotationMap};
 use inkwell::{
     basic_block::BasicBlock,
     types::BasicTypeEnum,
@@ -31,6 +31,7 @@ use chrono::{LocalResult, TimeZone, Utc};
 pub struct ExpressionCodeGenerator<'a, 'b> {
     llvm: &'b Llvm<'a>,
     index: &'b Index,
+    annotations: &'b AnnotationMap,
     llvm_index: &'b LlvmTypedIndex<'a>,
     /// an optional type hint for generating literals
     type_hint: Option<DataTypeInformation>,
@@ -62,6 +63,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
     pub fn new(
         llvm: &'b Llvm<'a>,
         index: &'b Index,
+        annotations: &'b AnnotationMap,
         llvm_index: &'b LlvmTypedIndex<'a>,
         type_hint: Option<DataTypeInformation>,
         function_context: &'b FunctionContext<'a>,
@@ -71,6 +73,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
             index,
             llvm_index,
             type_hint,
+            annotations,
             function_context: Some(function_context),
             temp_variable_prefix: "load_".to_string(),
             temp_variable_suffix: "".to_string(),
@@ -87,6 +90,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
     pub fn new_context_free(
         llvm: &'b Llvm<'a>,
         index: &'b Index,
+        annotations: &'b AnnotationMap,
         llvm_index: &'b LlvmTypedIndex<'a>,
         type_hint: Option<DataTypeInformation>,
     ) -> ExpressionCodeGenerator<'a, 'b> {
@@ -95,6 +99,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
             index,
             llvm_index,
             type_hint,
+            annotations,
             function_context: None,
             temp_variable_prefix: "load_".to_string(),
             temp_variable_suffix: "".to_string(),
@@ -106,13 +111,10 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
         type_hint: &DataTypeInformation,
     ) -> ExpressionCodeGenerator<'a, 'b> {
         ExpressionCodeGenerator {
-            llvm: self.llvm,
-            index: self.index,
-            llvm_index: self.llvm_index,
             type_hint: Some(type_hint.clone()),
-            function_context: self.function_context,
             temp_variable_prefix: self.temp_variable_prefix.clone(),
             temp_variable_suffix: self.temp_variable_suffix.clone(),
+            ..*self
         }
     }
 

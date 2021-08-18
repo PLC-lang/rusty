@@ -7,6 +7,7 @@
 /// - Alias types
 /// - sized Strings
 use crate::index::{Index, VariableIndexEntry};
+use crate::resolver::AnnotationMap;
 use crate::{
     ast::{AstStatement, Dimension},
     compile_error::CompileError,
@@ -39,6 +40,7 @@ use super::{
 pub fn generate_data_types<'ink>(
     llvm: &Llvm<'ink>,
     index: &Index,
+    annotations: &AnnotationMap,
 ) -> Result<LlvmTypedIndex<'ink>, CompileError> {
     let mut types_index = LlvmTypedIndex::new();
     let types = index.get_types();
@@ -55,8 +57,8 @@ pub fn generate_data_types<'ink>(
         types_index.associate_type(name, gen_type)?
     }
     for (name, user_type) in types {
-        expand_opaque_types(llvm, index, &mut types_index, user_type)?;
-        if let Some(initial_value) = generate_initial_value(index, &types_index, llvm, user_type) {
+        expand_opaque_types(llvm, index, annotations, &mut types_index, user_type)?;
+        if let Some(initial_value) = generate_initial_value(index, annotations, &types_index, llvm, user_type) {
             types_index.associate_initial_value(name, initial_value)?
         }
     }
@@ -67,12 +69,13 @@ pub fn generate_data_types<'ink>(
 fn expand_opaque_types<'ink>(
     llvm: &Llvm<'ink>,
     index: &Index,
+    annotations: &AnnotationMap,
     types_index: &mut LlvmTypedIndex<'ink>,
     data_type: &DataType,
 ) -> Result<(), CompileError> {
     let information = data_type.get_type_information();
     if let DataTypeInformation::Struct { member_names, .. } = information {
-        let mut struct_generator = StructGenerator::new(llvm, index, types_index);
+        let mut struct_generator = StructGenerator::new(llvm, index, annotations, types_index);
         let members: Vec<&VariableIndexEntry> = member_names
             .iter()
             .map(|variable_name| {
@@ -176,6 +179,7 @@ fn create_type<'ink>(
 
 fn generate_initial_value<'ink>(
     index: &Index,
+    annotations: &AnnotationMap,
     types_index: &LlvmTypedIndex<'ink>,
     llvm: &Llvm<'ink>,
     data_type: &DataType,
@@ -187,6 +191,7 @@ fn generate_initial_value<'ink>(
             data_type,
             data_type.get_name(),
             index,
+            annotations,
             types_index,
             llvm,
             |stmt| matches!(stmt, AstStatement::LiteralArray { .. }),
@@ -199,6 +204,7 @@ fn generate_initial_value<'ink>(
             data_type,
             data_type.get_name(),
             index,
+            annotations,
             types_index,
             llvm,
             |stmt| matches!(stmt, AstStatement::LiteralString { .. }),
@@ -207,10 +213,10 @@ fn generate_initial_value<'ink>(
         .unwrap(),
         DataTypeInformation::SubRange {
             referenced_type, ..
-        } => register_aliased_initial_value(index, types_index, llvm, data_type, referenced_type),
+        } => register_aliased_initial_value(index, annotations, types_index, llvm, data_type, referenced_type),
         DataTypeInformation::Alias {
             referenced_type, ..
-        } => register_aliased_initial_value(index, types_index, llvm, data_type, referenced_type),
+        } => register_aliased_initial_value(index, annotations, types_index, llvm, data_type, referenced_type),
         // Void types are not basic type enums, so we return an int here
         DataTypeInformation::Void => None, //get_llvm_int_type(llvm.context, 32, "Void").map(Into::into),
         DataTypeInformation::Pointer { .. } => None,
@@ -222,13 +228,14 @@ fn generate_initial_value<'ink>(
 /// the aliased type (referenced_type)
 fn register_aliased_initial_value<'ink>(
     index: &Index,
+    annotations: &AnnotationMap,
     types_index: &LlvmTypedIndex<'ink>,
     llvm: &Llvm<'ink>,
     data_type: &DataType,
     referenced_type: &str,
 ) -> Option<BasicValueEnum<'ink>> {
     if let Some(initializer) = &data_type.initial_value {
-        let generator = ExpressionCodeGenerator::new_context_free(llvm, index, types_index, None);
+        let generator = ExpressionCodeGenerator::new_context_free(llvm, index, annotations, types_index, None);
         let (_, initial_value) = generator.generate_expression(initializer).unwrap();
         Some(initial_value)
     } else {
@@ -237,7 +244,7 @@ fn register_aliased_initial_value<'ink>(
             .get_types()
             .get(referenced_type)
             .and_then(|referenced_data_type| {
-                generate_initial_value(index, types_index, llvm, referenced_data_type)
+                generate_initial_value(index, annotations, types_index, llvm, referenced_data_type)
             })
     }
 }
@@ -247,6 +254,7 @@ fn generate_array_initializer<'ink>(
     data_type: &DataType,
     name: &str,
     index: &Index,
+    annotations: &AnnotationMap,
     types_index: &LlvmTypedIndex<'ink>,
     llvm: &Llvm<'ink>,
     predicate: fn(&AstStatement) -> bool,
@@ -258,6 +266,7 @@ fn generate_array_initializer<'ink>(
             let generator = ExpressionCodeGenerator::new_context_free(
                 llvm,
                 index,
+                annotations,
                 types_index,
                 Some(array_type),
             );

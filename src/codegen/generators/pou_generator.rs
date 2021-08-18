@@ -4,7 +4,7 @@ use super::{
     llvm::Llvm,
     statement_generator::{FunctionContext, StatementCodeGenerator},
 };
-use crate::{codegen::llvm_index::LlvmTypedIndex, index::ImplementationType};
+use crate::{codegen::llvm_index::LlvmTypedIndex, index::ImplementationType, resolver::AnnotationMap};
 
 /// The pou_generator contains functions to generate the code for POUs (PROGRAM, FUNCTION, FUNCTION_BLOCK)
 /// # responsibilities
@@ -29,6 +29,7 @@ use inkwell::{
 pub struct PouGenerator<'ink, 'cg> {
     llvm: Llvm<'ink>,
     index: &'cg Index,
+    annotations: &'cg AnnotationMap,
     llvm_index: &'cg LlvmTypedIndex<'ink>,
 }
 
@@ -38,10 +39,11 @@ pub fn generate_implementation_stubs<'ink>(
     module: &Module<'ink>,
     llvm: Llvm<'ink>,
     index: &Index,
+    annotations: &AnnotationMap,
     types_index: &LlvmTypedIndex<'ink>,
 ) -> Result<LlvmTypedIndex<'ink>, CompileError> {
     let mut llvm_index = LlvmTypedIndex::new();
-    let pou_generator = PouGenerator::new(llvm, index, types_index);
+    let pou_generator = PouGenerator::new(llvm, index, annotations, types_index);
     for (name, implementation) in index.get_implementations() {
         let curr_f = pou_generator.generate_implementation_stub(implementation, module)?;
         llvm_index.associate_implementation(name, curr_f)?;
@@ -57,11 +59,13 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
     pub fn new(
         llvm: Llvm<'ink>,
         index: &'cg Index,
+        annotations: &'cg AnnotationMap,
         llvm_index: &'cg LlvmTypedIndex<'ink>,
     ) -> PouGenerator<'ink, 'cg> {
         PouGenerator {
             llvm,
             index,
+            annotations,
             llvm_index,
         }
     }
@@ -167,6 +171,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
             let statement_gen = StatementCodeGenerator::new(
                 &self.llvm,
                 self.index,
+                self.annotations,
                 self,
                 implementation.pou_type,
                 &local_index,
@@ -306,6 +311,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                 let mut exp_gen = ExpressionCodeGenerator::new(
                     &self.llvm,
                     self.index,
+                    self.annotations,
                     local_index,
                     None,
                     function_context,

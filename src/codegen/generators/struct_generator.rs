@@ -1,6 +1,7 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use super::{expression_generator::ExpressionCodeGenerator, llvm::Llvm};
 use crate::index::Index;
+use crate::resolver::AnnotationMap;
 use crate::{
     codegen::llvm_index::LlvmTypedIndex, compile_error::CompileError, index::VariableIndexEntry,
 };
@@ -13,6 +14,7 @@ use inkwell::{
 pub struct StructGenerator<'a, 'b> {
     llvm: &'b Llvm<'a>,
     index: &'b Index,
+    annotations: &'b AnnotationMap,
     llvm_index: &'b LlvmTypedIndex<'a>,
 }
 
@@ -27,11 +29,13 @@ impl<'a, 'b> StructGenerator<'a, 'b> {
     pub fn new(
         llvm: &'b Llvm<'a>,
         index: &'b Index,
+        annotations: &'b AnnotationMap,
         llvm_index: &'b LlvmTypedIndex<'a>,
     ) -> StructGenerator<'a, 'b> {
         StructGenerator {
             llvm,
             index,
+            annotations,
             llvm_index,
         }
     }
@@ -101,6 +105,7 @@ impl<'a, 'b> StructGenerator<'a, 'b> {
                 let exp_gen = ExpressionCodeGenerator::new_context_free(
                     self.llvm,
                     self.index,
+                    self.annotations,
                     self.llvm_index,
                     Some(variable_type),
                 );

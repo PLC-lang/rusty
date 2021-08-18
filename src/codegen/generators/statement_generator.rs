@@ -2,18 +2,12 @@
 use super::{
     expression_generator::ExpressionCodeGenerator, llvm::Llvm, pou_generator::PouGenerator,
 };
-use crate::{
-    ast::{
+use crate::{ast::{
         flatten_expression_list, AstStatement, ConditionalBlock, Operator, PouType, SourceRange,
-    },
-    codegen::{llvm_typesystem::cast_if_needed, LlvmTypedIndex},
-    compile_error::CompileError,
-    index::{ImplementationIndexEntry, Index},
-    typesystem::{
+    }, codegen::{llvm_typesystem::cast_if_needed, LlvmTypedIndex}, compile_error::CompileError, index::{ImplementationIndexEntry, Index}, resolver::AnnotationMap, typesystem::{
         DataTypeInformation, RANGE_CHECK_LS_FN, RANGE_CHECK_LU_FN, RANGE_CHECK_S_FN,
         RANGE_CHECK_U_FN,
-    },
-};
+    }};
 use inkwell::{
     basic_block::BasicBlock,
     values::{BasicValueEnum, FunctionValue},
@@ -33,6 +27,7 @@ pub struct FunctionContext<'a> {
 pub struct StatementCodeGenerator<'a, 'b> {
     llvm: &'b Llvm<'a>,
     index: &'b Index,
+    annotations: &'b AnnotationMap,
     pou_generator: &'b PouGenerator<'a, 'b>,
     pou_type: PouType,
     llvm_index: &'b LlvmTypedIndex<'a>,
@@ -52,6 +47,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
     pub fn new(
         llvm: &'b Llvm<'a>,
         index: &'b Index,
+        annotations: &'b AnnotationMap,
         pou_generator: &'b PouGenerator<'a, 'b>,
         pou_type: PouType,
         llvm_index: &'b LlvmTypedIndex<'a>,
@@ -60,6 +56,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         StatementCodeGenerator {
             llvm,
             index,
+            annotations,
             pou_generator,
             pou_type,
             llvm_index,
@@ -76,6 +73,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         ExpressionCodeGenerator::new(
             self.llvm,
             self.index,
+            self.annotations,
             self.llvm_index,
             None,
             self.function_context,
@@ -387,6 +385,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         let exp_gen = ExpressionCodeGenerator::new(
             self.llvm,
             self.index,
+            self.annotations,
             self.llvm_index,
             Some(selector_type),
             self.function_context,
