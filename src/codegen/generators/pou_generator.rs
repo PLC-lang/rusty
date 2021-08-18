@@ -149,11 +149,11 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
 
         if implementation.pou_type == PouType::Method {
             let class_name = implementation.type_name.split('.').collect::<Vec<&str>>()[0];
-            let class_members = self.index.find_local_members(&class_name);
+            let class_members = self.index.find_local_members(class_name);
             self.generate_local_variable_accessors(
                 1,
                 &mut local_index,
-                &class_name,
+                class_name,
                 current_function,
                 &class_members,
             )?;
