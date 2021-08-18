@@ -63,15 +63,8 @@ fn missing_pou_name_2() {
     assert_eq!(
         diagnostics,
         vec![
-            Diagnostic::syntax_error(
-                "Unexpected token: expected Literal but found :=".into(),
-                (36..38).into()
-            ),
-            Diagnostic::unexpected_token_found(
-                "KeywordSemicolon".into(),
-                "':= 2'".into(),
-                (36..40).into()
-            )
+            Diagnostic::unexpected_token_found("Literal", ":=", (36..38).into()),
+            Diagnostic::unexpected_token_found("KeywordSemicolon", "':= 2'", (36..40).into())
         ]
     );
 
@@ -102,7 +95,7 @@ fn illegal_end_pou_keyword() {
 
     let (compilation_unit, diagnostics) = parse(lexer);
     let expected = Diagnostic::unexpected_token_found(
-        format!("{:?}", Token::KeywordEndProgram),
+        format!("{:?}", Token::KeywordEndProgram).as_str(),
         "END_FUNCTION".into(),
         SourceRange::new(52..64),
     );
@@ -251,6 +244,7 @@ fn unclosed_var_container() {
                     name: "a".into(),
                     data_type: crate::ast::DataTypeDeclaration::DataTypeReference {
                         referenced_type: "INT".into(),
+                        location: SourceRange::undefined(),
                     },
                     initializer: None,
                     location: SourceRange::undefined(),

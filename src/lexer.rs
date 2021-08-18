@@ -31,8 +31,8 @@ macro_rules! expect_token {
     ($lexer:expr, $token:expr, $return_value:expr) => {
         if $lexer.token != $token {
             $lexer.accept_diagnostic(Diagnostic::unexpected_token_found(
-                format!("{:?}", $token),
-                $lexer.slice().to_string(),
+                format!("{:?}", $token).as_str(),
+                $lexer.slice(),
                 $lexer.location(),
             ));
             return $return_value;
@@ -65,8 +65,8 @@ impl<'a> ParseSession<'a> {
     pub fn expect(&self, token: Token) -> Result<(), Diagnostic> {
         if self.token != token {
             Err(Diagnostic::unexpected_token_found(
-                format!("{:?}", token),
-                self.slice().to_string(),
+                format!("{:?}", token).as_str(),
+                self.slice(),
                 self.location(),
             ))
         } else {
@@ -87,7 +87,7 @@ impl<'a> ParseSession<'a> {
     pub fn consume_or_report(&mut self, token: Token) {
         if !self.allow(&token) {
             self.accept_diagnostic(Diagnostic::missing_token(
-                format!("{:?}", token),
+                format!("{:?}", token).as_str(),
                 self.location(),
             ));
         }
@@ -175,8 +175,8 @@ impl<'a> ParseSession<'a> {
         if let Some(expected_token) = self.closing_keywords.pop() {
             if !expected_token.contains(&self.token) {
                 self.accept_diagnostic(Diagnostic::unexpected_token_found(
-                    format!("{:?}", expected_token[0]),
-                    format!("'{}'", self.slice()),
+                    format!("{:?}", expected_token[0]).as_str(),
+                    format!("'{}'", self.slice()).as_str(),
                     self.location(),
                 ));
             } else {
@@ -221,8 +221,9 @@ impl<'a> ParseSession<'a> {
                         .last()
                         .and_then(|it| it.first())
                         .unwrap_or(&Token::End) //only show first expected token
-                ),
-                format!("'{}'", self.slice_region(range.clone())),
+                )
+                .as_str(),
+                format!("'{}'", self.slice_region(range.clone())).as_str(),
                 SourceRange::new(range),
             ));
         }
@@ -231,7 +232,10 @@ impl<'a> ParseSession<'a> {
             if self.closing_keywords.len() > hit + 1 {
                 let closing = self.closing_keywords.last().unwrap();
                 let expected_tokens = format!("{:?}", closing);
-                self.accept_diagnostic(Diagnostic::missing_token(expected_tokens, self.location()));
+                self.accept_diagnostic(Diagnostic::missing_token(
+                    expected_tokens.as_str(),
+                    self.location(),
+                ));
             }
         }
     }

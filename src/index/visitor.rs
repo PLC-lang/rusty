@@ -64,6 +64,7 @@ pub fn visit_pou(index: &mut Index, pou: &Pou) {
         for var in &block.variables {
             if let DataTypeDeclaration::DataTypeDefinition {
                 data_type: ast::DataType::VarArgs { referenced_type },
+                ..
             } = &var.data_type
             {
                 let name = referenced_type
@@ -128,9 +129,14 @@ pub fn visit_pou(index: &mut Index, pou: &Pou) {
 }
 
 fn visit_implementation(index: &mut Index, implementation: &Implementation) {
-    index.register_implementation(&implementation.name, &implementation.type_name);
+    let pou_type = &implementation.pou_type;
+    index.register_implementation(
+        &implementation.name,
+        &implementation.type_name,
+        pou_type.into(),
+    );
     //if we are registing an action, also register a datatype for it
-    if implementation.pou_type == PouType::Action {
+    if pou_type == &PouType::Action {
         index.register_type(
             &implementation.name,
             None,
@@ -204,13 +210,14 @@ fn visit_data_type(index: &mut Index, type_declatation: &UserTypeDeclaration) {
                 information,
             );
             for (count, var) in variables.iter().enumerate() {
-                if let DataTypeDeclaration::DataTypeDefinition { data_type } = &var.data_type {
+                if let DataTypeDeclaration::DataTypeDefinition { data_type, .. } = &var.data_type {
                     //first we need to handle the inner type
                     visit_data_type(
                         index,
                         &UserTypeDeclaration {
                             data_type: data_type.clone(),
                             initializer: None,
+                            location: SourceRange::undefined(),
                         },
                     )
                 }
