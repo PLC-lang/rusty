@@ -177,6 +177,12 @@ impl AnnotationMap {
     }
 }
 
+impl Default for AnnotationMap {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl<'i> TypeAnnotator<'i> {
     /// constructs a new TypeAnnotater that works with the given index for type-lookups
     fn new(index: &'i Index) -> TypeAnnotator<'i> {

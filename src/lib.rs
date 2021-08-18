@@ -39,6 +39,7 @@ use std::{fs::File, io::Read};
 use validation::Validator;
 
 use crate::ast::CompilationUnit;
+use crate::resolver::AnnotationMap;
 mod ast;
 pub mod cli;
 mod codegen;
@@ -402,25 +403,26 @@ pub fn compile_module<'c, T: SourceContainer>(
 
     // ### PHASE 2 ###
     // annotation & validation everything
-    for (file_id, syntax_errors, container) in all_units.iter() {
-        let annotations = TypeAnnotator::visit_unit(&full_index, container);
+    type AnnotatedAst<'a> = (&'a CompilationUnit, AnnotationMap);
+    let mut annotated_units: Vec<AnnotatedAst> = Vec::new();
+    for (file_id, syntax_errors, unit) in all_units.iter() {
+        let annotations = TypeAnnotator::visit_unit(&full_index, unit);
 
         let mut validator = Validator::new();
-        validator.visit_unit(&annotations, container);
+        validator.visit_unit(&annotations, unit);
         //log errors
         report_diagnostics(*file_id, syntax_errors.iter(), &files)?;
         report_diagnostics(*file_id, validator.diagnostics().iter(), &files)?;
+
+        annotated_units.push((unit, annotations));
     }
 
     // ### PHASE 3 ###
     // - codegen
-    let mut code_gen_unit = CompilationUnit::default();
-    for (_, _, u) in all_units {
-        code_gen_unit.import(u);
-    }
-
     let code_generator = codegen::CodeGen::new(context, "main");
-    code_generator.generate(code_gen_unit, &full_index)?;
+    for (unit, annotations) in annotated_units {
+        code_generator.generate(unit, &annotations, &full_index)?;
+    }
     Ok(code_generator)
 }
 
