@@ -58,7 +58,9 @@ pub fn generate_data_types<'ink>(
     }
     for (name, user_type) in types {
         expand_opaque_types(llvm, index, annotations, &mut types_index, user_type)?;
-        if let Some(initial_value) = generate_initial_value(index, annotations, &types_index, llvm, user_type) {
+        if let Some(initial_value) =
+            generate_initial_value(index, annotations, &types_index, llvm, user_type)
+        {
             types_index.associate_initial_value(name, initial_value)?
         }
     }
@@ -213,10 +215,24 @@ fn generate_initial_value<'ink>(
         .unwrap(),
         DataTypeInformation::SubRange {
             referenced_type, ..
-        } => register_aliased_initial_value(index, annotations, types_index, llvm, data_type, referenced_type),
+        } => register_aliased_initial_value(
+            index,
+            annotations,
+            types_index,
+            llvm,
+            data_type,
+            referenced_type,
+        ),
         DataTypeInformation::Alias {
             referenced_type, ..
-        } => register_aliased_initial_value(index, annotations, types_index, llvm, data_type, referenced_type),
+        } => register_aliased_initial_value(
+            index,
+            annotations,
+            types_index,
+            llvm,
+            data_type,
+            referenced_type,
+        ),
         // Void types are not basic type enums, so we return an int here
         DataTypeInformation::Void => None, //get_llvm_int_type(llvm.context, 32, "Void").map(Into::into),
         DataTypeInformation::Pointer { .. } => None,
@@ -235,7 +251,8 @@ fn register_aliased_initial_value<'ink>(
     referenced_type: &str,
 ) -> Option<BasicValueEnum<'ink>> {
     if let Some(initializer) = &data_type.initial_value {
-        let generator = ExpressionCodeGenerator::new_context_free(llvm, index, annotations, types_index, None);
+        let generator =
+            ExpressionCodeGenerator::new_context_free(llvm, index, annotations, types_index, None);
         let (_, initial_value) = generator.generate_expression(initializer).unwrap();
         Some(initial_value)
     } else {

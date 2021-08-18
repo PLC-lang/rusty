@@ -77,16 +77,27 @@ impl<'ink> CodeGen<'ink> {
         let llvm = Llvm::new(self.context, self.context.create_builder());
         let mut index = LlvmTypedIndex::new();
         //Generate types index, and any global variables associated with them.
-        let llvm_type_index = data_type_generator::generate_data_types(&llvm, global_index, annotations)?;
+        let llvm_type_index =
+            data_type_generator::generate_data_types(&llvm, global_index, annotations)?;
         index.merge(llvm_type_index);
         //Generate global variables
-        let llvm_gv_index =
-            variable_generator::generate_global_variables(module, &llvm, global_index, annotations, &index)?;
+        let llvm_gv_index = variable_generator::generate_global_variables(
+            module,
+            &llvm,
+            global_index,
+            annotations,
+            &index,
+        )?;
         index.merge(llvm_gv_index);
         //Generate opaque functions for implementations and associate them with their types
         let llvm = Llvm::new(self.context, self.context.create_builder());
-        let llvm_impl_index =
-            pou_generator::generate_implementation_stubs(module, llvm, global_index, annotations, &index)?;
+        let llvm_impl_index = pou_generator::generate_implementation_stubs(
+            module,
+            llvm,
+            global_index,
+            annotations,
+            &index,
+        )?;
         index.merge(llvm_impl_index);
         Ok(index)
     }

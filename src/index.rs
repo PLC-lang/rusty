@@ -198,8 +198,15 @@ impl Index {
 
     pub fn find_member(&self, pou_name: &str, variable_name: &str) -> Option<&VariableIndexEntry> {
         self.member_variables
-            .get(pou_name)
-            .and_then(|map| map.get(variable_name))
+            .get(pou_name)?
+            .get(variable_name)
+            .or_else(|| {
+                let pou_name = pou_name.to_string();
+                let parent_pou_name = pou_name.split('.').collect::<Vec<&str>>()[0];
+                self.member_variables
+                    .get(parent_pou_name)?
+                    .get(variable_name)
+            })
     }
 
     pub fn find_local_members(&self, container_name: &str) -> Vec<&VariableIndexEntry> {

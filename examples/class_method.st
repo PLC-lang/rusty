@@ -13,6 +13,6 @@ CLASS MyClass
             myMethodLocalVar : INT;
         END_VAR
 
-        //x := myMethodArg;
+        x := myMethodArg;
     END_METHOD
 END_CLASS

@@ -20,8 +20,14 @@ pub fn generate_global_variables<'ctx, 'b>(
     let mut index = LlvmTypedIndex::new();
     let globals = global_index.get_globals();
     for (name, variable) in globals {
-        let global_variable =
-            generate_global_variable(module, llvm, global_index, annotations, types_index, variable)?;
+        let global_variable = generate_global_variable(
+            module,
+            llvm,
+            global_index,
+            annotations,
+            types_index,
+            variable,
+        )?;
         index.associate_global(name, global_variable)?
     }
     Ok(index)

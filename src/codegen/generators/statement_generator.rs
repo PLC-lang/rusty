@@ -2,12 +2,19 @@
 use super::{
     expression_generator::ExpressionCodeGenerator, llvm::Llvm, pou_generator::PouGenerator,
 };
-use crate::{ast::{
+use crate::{
+    ast::{
         flatten_expression_list, AstStatement, ConditionalBlock, Operator, PouType, SourceRange,
-    }, codegen::{llvm_typesystem::cast_if_needed, LlvmTypedIndex}, compile_error::CompileError, index::{ImplementationIndexEntry, Index}, resolver::AnnotationMap, typesystem::{
+    },
+    codegen::{llvm_typesystem::cast_if_needed, LlvmTypedIndex},
+    compile_error::CompileError,
+    index::{ImplementationIndexEntry, Index},
+    resolver::AnnotationMap,
+    typesystem::{
         DataTypeInformation, RANGE_CHECK_LS_FN, RANGE_CHECK_LU_FN, RANGE_CHECK_S_FN,
         RANGE_CHECK_U_FN,
-    }};
+    },
+};
 use inkwell::{
     basic_block::BasicBlock,
     values::{BasicValueEnum, FunctionValue},
