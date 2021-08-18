@@ -115,8 +115,8 @@ fn main_compile(parameters: CompileParameters) -> Result<(), String> {
     if linkable_formats.contains(&out_format) && !parameters.skip_linking {
         let triple = get_target_triple(parameters.target);
         let mut linker = linker::create_with_target(triple.as_str().to_str().unwrap())?;
-        linker.link_with_libc();
-        linker.add_object(Path::new(&output_filename));
+        linker.add_lib();
+        linker.add_obj(Path::new(&output_filename));
         if out_format == FormatOption::Static {
             linker.build_exectuable(Path::new(&output_filename));
         } else {

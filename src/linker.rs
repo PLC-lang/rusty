@@ -72,9 +72,9 @@ fn creation_test() {
 }
 
 pub trait Linker {
-    fn link_with_libc(&mut self);
+    fn add_lib(&mut self);
     fn get_platform(&self) -> String;
-    fn add_object(&mut self, path: &Path);
+    fn add_obj(&mut self, path: &Path);
     fn build_shared_object(&mut self, path: &Path);
     fn build_exectuable(&mut self, path: &Path);
     fn finalize(&mut self) -> Result<(), LinkerError>;
@@ -97,12 +97,12 @@ impl Linker for LdLinker {
         "linux".into()
     }
 
-    fn link_with_libc(&mut self) {
+    fn add_lib(&mut self) {
         self.args.push("-L.".into());
         self.args.push("-lc".into());
     }
 
-    fn add_object(&mut self, path: &Path) {
+    fn add_obj(&mut self, path: &Path) {
         let path_str = path.to_str().unwrap();
         self.args.push(path_str.to_owned());
 
@@ -154,12 +154,12 @@ impl Linker for MsvcLinker {
         "win32".into()
     }
 
-    fn link_with_libc(&mut self) {
+    fn add_lib(&mut self) {
         // Not sure how this is called?
         //self.args.push("libc.lib".into());
     }
 
-    fn add_object(&mut self, path: &Path) {
+    fn add_obj(&mut self, path: &Path) {
         let path_str = path.to_str().unwrap();
         self.args.push(path_str.to_owned());
 
@@ -193,8 +193,8 @@ impl Linker for MsvcLinker {
 // #[test]
 // fn linux_linker_test() {
 //     let mut linker = LdLinker::new();
-//     linker.link_with_libc();
-//     linker.add_object(Path::new("test.o")).unwrap();
+//     linker.add_lib();
+//     linker.add_obj(Path::new("test.o")).unwrap();
 //     // linker
 //     //     .build_shared_object(Path::new("test.so"))
 //     //     .unwrap_or(());
@@ -204,7 +204,7 @@ impl Linker for MsvcLinker {
 //     );
 
 //     let mut linker = LdLinker::new();
-//     linker.add_object(Path::new("test.o")).unwrap();
+//     linker.add_obj(Path::new("test.o")).unwrap();
 //     // linker.build_exectuable(Path::new("test")).unwrap_or(());
 //     assert_eq!(linker.args, vec!["test.o", /* "-o", "test" */ ]);
 // }
@@ -212,8 +212,8 @@ impl Linker for MsvcLinker {
 // #[test]
 // fn windows_linker_test() {
 //     let mut linker = MsvcLinker::new();
-//     linker.link_with_libc();
-//     linker.add_object(Path::new("test.obj")).unwrap();
+//     linker.add_lib();
+//     linker.add_obj(Path::new("test.obj")).unwrap();
 //     // linker
 //     //     .build_shared_object(Path::new("test.dll"))
 //     //     .unwrap_or(());
@@ -229,7 +229,7 @@ impl Linker for MsvcLinker {
 //     );
 
 //     let mut linker = MsvcLinker::new();
-//     linker.add_object(Path::new("test.obj")).unwrap();
+//     linker.add_obj(Path::new("test.obj")).unwrap();
 //     //linker.build_exectuable(Path::new("test.exe")).unwrap_or(());
 //     assert_eq!(linker.args, vec!["test.obj", /* "/OUT:test.exe" */]);
 // }
