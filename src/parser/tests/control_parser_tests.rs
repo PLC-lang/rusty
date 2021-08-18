@@ -1,5 +1,5 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-use crate::ast::Statement;
+use crate::ast::AstStatement;
 use crate::parser::parse;
 use pretty_assertions::*;
 
@@ -41,6 +41,26 @@ fn test_return_statement() {
     let stmt = &prg.statements[0];
 
     assert_eq!(format!("{:?}", stmt), "ReturnStatement");
+}
+
+#[test]
+fn test_continue_statement() {
+    let lexer = super::lex("PROGRAM ret CONTINUE END_PROGRAM");
+    let result = parse(lexer).0;
+    let prg = &result.implementations[0];
+    let stmt = &prg.statements[0];
+
+    assert_eq!(format!("{:?}", stmt), "ContinueStatement");
+}
+
+#[test]
+fn test_exit_statement() {
+    let lexer = super::lex("PROGRAM ret EXIT END_PROGRAM");
+    let result = parse(lexer).0;
+    let prg = &result.implementations[0];
+    let stmt = &prg.statements[0];
+
+    assert_eq!(format!("{:?}", stmt), "ExitStatement");
 }
 
 #[test]
@@ -820,7 +840,7 @@ fn if_stmnt_location_test() {
     END_IF"
     );
 
-    if let Statement::IfStatement { blocks, .. } = &unit.statements[0] {
+    if let AstStatement::IfStatement { blocks, .. } = &unit.statements[0] {
         let if_location = blocks[0].condition.as_ref().get_location();
         assert_eq!(
             source[if_location.get_start()..if_location.get_end()].to_string(),
@@ -857,7 +877,7 @@ fn for_stmnt_location_test() {
     END_FOR"
     );
 
-    if let Statement::ForLoopStatement {
+    if let AstStatement::ForLoopStatement {
         counter,
         start,
         end,
@@ -966,7 +986,7 @@ fn call_stmnt_location_test() {
         "foo(a:=3, b:=4)"
     );
 
-    if let Statement::CallStatement {
+    if let AstStatement::CallStatement {
         operator,
         parameters,
         ..

@@ -1,9 +1,9 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use super::VariableType;
 use crate::ast::{
-    self, evaluate_constant_int, get_array_dimensions, CompilationUnit, DataType,
-    DataTypeDeclaration, Implementation, Pou, PouType, SourceRange, Statement, UserTypeDeclaration,
-    Variable, VariableBlock, VariableBlockType,
+    self, evaluate_constant_int, get_array_dimensions, AstStatement, CompilationUnit, DataType,
+    DataTypeDeclaration, Implementation, Pou, PouType, SourceRange, UserTypeDeclaration, Variable,
+    VariableBlock, VariableBlockType,
 };
 use crate::index::{Index, MemberInfo};
 use crate::typesystem::*;
@@ -19,7 +19,7 @@ pub fn visit(unit: &CompilationUnit) -> Index {
 
     //Create user defined datatypes
     for user_type in &unit.types {
-        visit_data_type(&mut index, &user_type);
+        visit_data_type(&mut index, user_type);
     }
 
     //Create defined global variables
@@ -64,6 +64,7 @@ pub fn visit_pou(index: &mut Index, pou: &Pou) {
         for var in &block.variables {
             if let DataTypeDeclaration::DataTypeDefinition {
                 data_type: ast::DataType::VarArgs { referenced_type },
+                ..
             } = &var.data_type
             {
                 let name = referenced_type
@@ -128,13 +129,14 @@ pub fn visit_pou(index: &mut Index, pou: &Pou) {
 }
 
 fn visit_implementation(index: &mut Index, implementation: &Implementation) {
+    let pou_type = &implementation.pou_type;
     index.register_implementation(
         &implementation.name,
         &implementation.type_name,
-        implementation.pou_type,
+        pou_type.into(),
     );
     //if we are registing an action, also register a datatype for it
-    if implementation.pou_type == PouType::Action {
+    if pou_type == &PouType::Action {
         index.register_type(
             &implementation.name,
             None,
@@ -208,20 +210,21 @@ fn visit_data_type(index: &mut Index, type_declatation: &UserTypeDeclaration) {
                 information,
             );
             for (count, var) in variables.iter().enumerate() {
-                if let DataTypeDeclaration::DataTypeDefinition { data_type } = &var.data_type {
+                if let DataTypeDeclaration::DataTypeDefinition { data_type, .. } = &var.data_type {
                     //first we need to handle the inner type
                     visit_data_type(
                         index,
                         &UserTypeDeclaration {
                             data_type: data_type.clone(),
                             initializer: None,
+                            location: SourceRange::undefined(),
                         },
                     )
                 }
 
                 index.register_member_variable(
                     &MemberInfo {
-                        container_name: &struct_name,
+                        container_name: struct_name,
                         variable_name: &var.name,
                         variable_linkage: VariableType::Local,
                         variable_type_name: var.data_type.get_name().unwrap(),
@@ -248,7 +251,7 @@ fn visit_data_type(index: &mut Index, type_declatation: &UserTypeDeclaration) {
                 index.register_global_variable(
                     v,
                     "DINT",
-                    Some(ast::Statement::LiteralInteger {
+                    Some(ast::AstStatement::LiteralInteger {
                         value: i as i64,
                         location: SourceRange::undefined(),
                         id: 0,
@@ -263,7 +266,8 @@ fn visit_data_type(index: &mut Index, type_declatation: &UserTypeDeclaration) {
             referenced_type,
             bounds,
         } => {
-            let information = if let Some(Statement::RangeStatement { start, end, .. }) = bounds {
+            let information = if let Some(AstStatement::RangeStatement { start, end, .. }) = bounds
+            {
                 DataTypeInformation::SubRange {
                     name: name.as_ref().unwrap().into(),
                     referenced_type: referenced_type.into(),
@@ -286,7 +290,7 @@ fn visit_data_type(index: &mut Index, type_declatation: &UserTypeDeclaration) {
             referenced_type,
             bounds,
         } => {
-            let dimensions = get_array_dimensions(&bounds).unwrap();
+            let dimensions = get_array_dimensions(bounds).unwrap();
             let referenced_type_name = referenced_type.get_name().unwrap();
             let information = DataTypeInformation::Array {
                 name: name.as_ref().unwrap().clone(),
@@ -306,7 +310,7 @@ fn visit_data_type(index: &mut Index, type_declatation: &UserTypeDeclaration) {
             ..
         } => {
             let size = if let Some(statement) = size {
-                evaluate_constant_int(&statement).unwrap() as u32
+                evaluate_constant_int(statement).unwrap() as u32
             } else {
                 crate::typesystem::DEFAULT_STRING_LEN // DEFAULT STRING LEN
             } + 1;

@@ -1,4 +1,8 @@
-TYPE MyType:
-                PROGRAM
-                END_PROGRAM
-            END_TYPE
+TYPE the_struct : STRUCT END_STRUCT END_TYPE
+
+PROGRAM prg
+    VAR
+        my_struct : STRUCT
+        END_STRUCT
+    END_VAR
+END_PROGRAM

@@ -111,12 +111,78 @@ fn early_return_test() {
     let function = r#"
     FUNCTION main : DINT
     main := 100;
-    // Windows does not like multiple returns in a
-    // row. That's why we wrap it inside a dummy IF.
-    IF TRUE THEN
-        RETURN
-    END_IF;
+    RETURN
     main := 200;
+    END_FUNCTION
+    "#;
+
+    let (res, _) = compile_and_run(function.to_string(), &mut MainType { ret: 0 });
+    assert_eq!(res, 100);
+}
+
+#[test]
+fn for_continue_test() {
+    #[allow(dead_code)]
+    #[repr(C)]
+    struct MainType {
+        ret: i32,
+    }
+
+    let function = r#"
+    FUNCTION main : DINT
+    FOR main := 1 TO 10 BY 1 DO
+        main := 10;
+        CONTINUE;
+        main := 200; 
+    END_FOR
+    END_FUNCTION
+    "#;
+
+    let (res, _) = compile_and_run(function.to_string(), &mut MainType { ret: 0 });
+    assert_eq!(res, 11);
+}
+
+#[test]
+fn while_continue_test() {
+    #[allow(dead_code)]
+    #[repr(C)]
+    struct MainType {
+        ret: i32,
+    }
+
+    let function = r#"
+    FUNCTION main : DINT
+    main := 1;
+    WHILE main < 10 DO
+        main := main + 1;
+        CONTINUE;
+        main := 200;
+    END_WHILE
+    END_FUNCTION
+    "#;
+
+    let (res, _) = compile_and_run(function.to_string(), &mut MainType { ret: 0 });
+    assert_eq!(res, 10);
+}
+
+#[test]
+fn loop_exit_test() {
+    #[allow(dead_code)]
+    #[repr(C)]
+    struct MainType {
+        ret: i32,
+    }
+
+    let function = r#"
+    FUNCTION main : DINT
+    FOR main := 100 TO 1000 BY 7 DO
+        EXIT;
+        main := 200; 
+    END_FOR
+    WHILE main > 50 DO
+        EXIT;
+        main := 200;
+    END_WHILE
     END_FUNCTION
     "#;
 
@@ -199,6 +265,94 @@ fn while_loop_no_entry() {
 
     let (res, _) = compile_and_run(function.to_string(), &mut MainType { i: 0, ret: 0 });
     assert_eq!(res, 5);
+}
+
+#[test]
+fn exit_in_if_in_while_loop() {
+    #[allow(dead_code)]
+    #[repr(C)]
+    struct MainType {
+        i: i16,
+        ret: i32,
+    }
+
+    let function = r#"
+    FUNCTION main : DINT
+    VAR
+        i : INT;
+    END_VAR
+    i := 0;
+    WHILE i < 20 DO
+        i := i+1;
+        IF i >= 10 THEN
+            EXIT;
+        END_IF
+    END_WHILE
+    main := i;
+    END_FUNCTION
+    "#;
+
+    let (res, _) = compile_and_run(function.to_string(), &mut MainType { i: 0, ret: 0 });
+    assert_eq!(res, 10);
+}
+
+#[test]
+fn exit_in_for_loop_in_while_loop() {
+    #[allow(dead_code)]
+    #[repr(C)]
+    struct MainType {
+        i: i16,
+        ret: i32,
+    }
+
+    let function = r#"
+    FUNCTION main : DINT
+    VAR
+        i : INT;
+    END_VAR
+    main := 0;
+    WHILE main < 20 DO
+        main := main+1;
+        FOR i := 0 TO 10 BY 1 DO
+            EXIT;
+        END_FOR 
+    END_WHILE
+    main := i + main;
+    END_FUNCTION
+    "#;
+
+    let (res, _) = compile_and_run(function.to_string(), &mut MainType { i: 0, ret: 0 });
+    assert_eq!(res, 20);
+}
+
+#[test]
+fn continue_in_for_loop_in_while_loop() {
+    #[allow(dead_code)]
+    #[repr(C)]
+    struct MainType {
+        i: i16,
+        ret: i32,
+    }
+
+    let function = r#"
+    FUNCTION main : DINT
+    VAR
+        i : INT;
+    END_VAR
+    main := 0;
+    WHILE main < 20 DO
+        main := main+1;
+        FOR i := 0 TO 10 BY 1 DO
+            CONTINUE;
+            main := 200;
+        END_FOR 
+    END_WHILE
+    main := i + main;
+    END_FUNCTION
+    "#;
+
+    let (res, _) = compile_and_run(function.to_string(), &mut MainType { i: 0, ret: 0 });
+    assert_eq!(res, 31);
 }
 
 #[test]

@@ -66,7 +66,7 @@ fn ids_are_assigned_to_parsed_assignments() {
     let parse_result = parse(lexer).0;
     let implementation = &parse_result.implementations[0];
 
-    if let Statement::Assignment { id, left, right } = &implementation.statements[0] {
+    if let AstStatement::Assignment { id, left, right } = &implementation.statements[0] {
         assert_eq!(left.get_id(), 1);
         assert_eq!(right.get_id(), 2);
         assert_eq!(*id, 3);
@@ -87,14 +87,14 @@ fn ids_are_assigned_to_callstatements() {
     let parse_result = parse(lexer).0;
     let implementation = &parse_result.implementations[0];
 
-    if let Statement::CallStatement { id, operator, .. } = &implementation.statements[0] {
+    if let AstStatement::CallStatement { id, operator, .. } = &implementation.statements[0] {
         assert_eq!(operator.get_id(), 1);
         assert_eq!(*id, 2);
     } else {
         panic!("unexpected statement");
     }
 
-    if let Statement::CallStatement {
+    if let AstStatement::CallStatement {
         id,
         operator,
         parameters,
@@ -102,7 +102,7 @@ fn ids_are_assigned_to_callstatements() {
     } = &implementation.statements[1]
     {
         assert_eq!(operator.get_id(), 3);
-        if let Some(Statement::ExpressionList { expressions, id }) = &**parameters {
+        if let Some(AstStatement::ExpressionList { expressions, id }) = &**parameters {
             assert_eq!(expressions[0].get_id(), 4);
             assert_eq!(expressions[1].get_id(), 5);
             assert_eq!(expressions[2].get_id(), 6);
@@ -113,7 +113,7 @@ fn ids_are_assigned_to_callstatements() {
         panic!("unexpected statement");
     }
 
-    if let Statement::CallStatement {
+    if let AstStatement::CallStatement {
         id,
         operator,
         parameters,
@@ -121,8 +121,8 @@ fn ids_are_assigned_to_callstatements() {
     } = &implementation.statements[2]
     {
         assert_eq!(operator.get_id(), 9);
-        if let Some(Statement::ExpressionList { expressions, id }) = &**parameters {
-            if let Statement::Assignment {
+        if let Some(AstStatement::ExpressionList { expressions, id }) = &**parameters {
+            if let AstStatement::Assignment {
                 left, right, id, ..
             } = &expressions[0]
             {
@@ -132,7 +132,7 @@ fn ids_are_assigned_to_callstatements() {
             } else {
                 panic!("unexpected statement");
             }
-            if let Statement::OutputAssignment {
+            if let AstStatement::OutputAssignment {
                 left, right, id, ..
             } = &expressions[1]
             {
@@ -168,7 +168,7 @@ fn ids_are_assigned_to_expressions() {
     let parse_result = parse(lexer).0;
     let implementation = &parse_result.implementations[0];
 
-    if let Statement::BinaryExpression {
+    if let AstStatement::BinaryExpression {
         id, left, right, ..
     } = &implementation.statements[0]
     {
@@ -179,7 +179,7 @@ fn ids_are_assigned_to_expressions() {
         panic!("unexpected statement");
     }
 
-    if let Statement::QualifiedReference { id, elements, .. } = &implementation.statements[1] {
+    if let AstStatement::QualifiedReference { id, elements, .. } = &implementation.statements[1] {
         assert_eq!(elements[0].get_id(), 4);
         assert_eq!(elements[1].get_id(), 5);
         assert_eq!(*id, 6);
@@ -187,13 +187,13 @@ fn ids_are_assigned_to_expressions() {
         panic!("unexpected statement");
     }
 
-    if let Statement::Reference { id, .. } = &implementation.statements[2] {
+    if let AstStatement::Reference { id, .. } = &implementation.statements[2] {
         assert_eq!(*id, 7);
     } else {
         panic!("unexpected statement");
     }
 
-    if let Statement::ArrayAccess {
+    if let AstStatement::ArrayAccess {
         id,
         reference,
         access,
@@ -207,14 +207,14 @@ fn ids_are_assigned_to_expressions() {
         panic!("unexpected statement");
     }
 
-    if let Statement::UnaryExpression { id, value, .. } = &implementation.statements[4] {
+    if let AstStatement::UnaryExpression { id, value, .. } = &implementation.statements[4] {
         assert_eq!(value.get_id(), 11);
         assert_eq!(*id, 12);
     } else {
         panic!("unexpected statement");
     }
 
-    if let Statement::ExpressionList {
+    if let AstStatement::ExpressionList {
         id, expressions, ..
     } = &implementation.statements[5]
     {
@@ -225,7 +225,7 @@ fn ids_are_assigned_to_expressions() {
         panic!("unexpected statement");
     }
 
-    if let Statement::RangeStatement { id, start, end, .. } = &implementation.statements[6] {
+    if let AstStatement::RangeStatement { id, start, end, .. } = &implementation.statements[6] {
         assert_eq!(start.get_id(), 16);
         assert_eq!(end.get_id(), 17);
         assert_eq!(*id, 18);
@@ -233,7 +233,7 @@ fn ids_are_assigned_to_expressions() {
         panic!("unexpected statement");
     }
 
-    if let Statement::MultipliedStatement { id, element, .. } = &implementation.statements[7] {
+    if let AstStatement::MultipliedStatement { id, element, .. } = &implementation.statements[7] {
         assert_eq!(element.get_id(), 19);
         assert_eq!(*id, 20);
     } else {
@@ -256,7 +256,7 @@ fn ids_are_assigned_to_if_statements() {
     let implementation = &parse_result.implementations[0];
 
     match &implementation.statements[0] {
-        Statement::IfStatement {
+        AstStatement::IfStatement {
             blocks, else_block, ..
         } => {
             assert_eq!(blocks[0].condition.get_id(), 1);
@@ -283,7 +283,7 @@ fn ids_are_assigned_to_for_statements() {
     let implementation = &parse_result.implementations[0];
 
     match &implementation.statements[0] {
-        Statement::ForLoopStatement {
+        AstStatement::ForLoopStatement {
             counter,
             start,
             end,
@@ -318,7 +318,7 @@ fn ids_are_assigned_to_while_statements() {
     let implementation = &parse_result.implementations[0];
 
     match &implementation.statements[0] {
-        Statement::WhileLoopStatement {
+        AstStatement::WhileLoopStatement {
             condition, body, ..
         } => {
             assert_eq!(condition.get_id(), 1);
@@ -343,7 +343,7 @@ fn ids_are_assigned_to_repeat_statements() {
     let implementation = &parse_result.implementations[0];
 
     match &implementation.statements[0] {
-        Statement::RepeatLoopStatement {
+        AstStatement::RepeatLoopStatement {
             condition, body, ..
         } => {
             assert_eq!(body[0].get_id(), 1);
@@ -373,7 +373,7 @@ fn ids_are_assigned_to_case_statements() {
     let implementation = &parse_result.implementations[0];
 
     match &implementation.statements[0] {
-        Statement::CaseStatement {
+        AstStatement::CaseStatement {
             case_blocks,
             else_block,
             selector,
@@ -385,7 +385,7 @@ fn ids_are_assigned_to_case_statements() {
             assert_eq!(case_blocks[0].body[0].get_id(), 4);
 
             //2nd case block
-            if let Statement::ExpressionList {
+            if let AstStatement::ExpressionList {
                 expressions, id, ..
             } = case_blocks[1].condition.as_ref()
             {
@@ -408,7 +408,7 @@ fn ids_are_assigned_to_case_statements() {
 #[test]
 fn id_implementation_for_all_statements() {
     assert_eq!(
-        Statement::ArrayAccess {
+        AstStatement::ArrayAccess {
             access: Box::new(empty_stmt()),
             reference: Box::new(empty_stmt()),
             id: 7
@@ -417,7 +417,7 @@ fn id_implementation_for_all_statements() {
         7
     );
     assert_eq!(
-        Statement::Assignment {
+        AstStatement::Assignment {
             left: Box::new(empty_stmt()),
             right: Box::new(empty_stmt()),
             id: 7
@@ -426,17 +426,7 @@ fn id_implementation_for_all_statements() {
         7
     );
     assert_eq!(
-        Statement::BinaryExpression {
-            left: Box::new(empty_stmt()),
-            right: Box::new(empty_stmt()),
-            operator: Operator::And,
-            id: 7
-        }
-        .get_id(),
-        7
-    );
-    assert_eq!(
-        Statement::BinaryExpression {
+        AstStatement::BinaryExpression {
             left: Box::new(empty_stmt()),
             right: Box::new(empty_stmt()),
             operator: Operator::And,
@@ -446,7 +436,17 @@ fn id_implementation_for_all_statements() {
         7
     );
     assert_eq!(
-        Statement::CallStatement {
+        AstStatement::BinaryExpression {
+            left: Box::new(empty_stmt()),
+            right: Box::new(empty_stmt()),
+            operator: Operator::And,
+            id: 7
+        }
+        .get_id(),
+        7
+    );
+    assert_eq!(
+        AstStatement::CallStatement {
             operator: Box::new(empty_stmt()),
             parameters: Box::new(None),
             id: 7,
@@ -456,7 +456,7 @@ fn id_implementation_for_all_statements() {
         7
     );
     assert_eq!(
-        Statement::CaseCondition {
+        AstStatement::CaseCondition {
             condition: Box::new(empty_stmt()),
             id: 7
         }
@@ -464,7 +464,7 @@ fn id_implementation_for_all_statements() {
         7
     );
     assert_eq!(
-        Statement::CaseStatement {
+        AstStatement::CaseStatement {
             selector: Box::new(empty_stmt()),
             case_blocks: vec![],
             else_block: vec![],
@@ -475,7 +475,7 @@ fn id_implementation_for_all_statements() {
         7
     );
     assert_eq!(
-        Statement::EmptyStatement {
+        AstStatement::EmptyStatement {
             location: (1..5).into(),
             id: 7
         }
@@ -483,7 +483,7 @@ fn id_implementation_for_all_statements() {
         7
     );
     assert_eq!(
-        Statement::ExpressionList {
+        AstStatement::ExpressionList {
             expressions: vec![],
             id: 7
         }
@@ -491,7 +491,7 @@ fn id_implementation_for_all_statements() {
         7
     );
     assert_eq!(
-        Statement::ForLoopStatement {
+        AstStatement::ForLoopStatement {
             body: vec![],
             by_step: None,
             counter: Box::new(empty_stmt()),
@@ -504,7 +504,7 @@ fn id_implementation_for_all_statements() {
         7
     );
     assert_eq!(
-        Statement::IfStatement {
+        AstStatement::IfStatement {
             blocks: vec![],
             else_block: vec![],
             location: (1..5).into(),
@@ -514,7 +514,7 @@ fn id_implementation_for_all_statements() {
         7
     );
     assert_eq!(
-        Statement::LiteralArray {
+        AstStatement::LiteralArray {
             elements: None,
             location: (1..5).into(),
             id: 7,
@@ -523,7 +523,7 @@ fn id_implementation_for_all_statements() {
         7
     );
     assert_eq!(
-        Statement::LiteralBool {
+        AstStatement::LiteralBool {
             value: true,
             location: (1..5).into(),
             id: 7
@@ -532,7 +532,7 @@ fn id_implementation_for_all_statements() {
         7
     );
     assert_eq!(
-        Statement::LiteralInteger {
+        AstStatement::LiteralInteger {
             value: 7,
             location: (1..5).into(),
             id: 7
@@ -541,7 +541,7 @@ fn id_implementation_for_all_statements() {
         7
     );
     assert_eq!(
-        Statement::LiteralDate {
+        AstStatement::LiteralDate {
             day: 0,
             month: 0,
             year: 0,
@@ -552,7 +552,7 @@ fn id_implementation_for_all_statements() {
         7
     );
     assert_eq!(
-        Statement::LiteralDateAndTime {
+        AstStatement::LiteralDateAndTime {
             day: 0,
             month: 0,
             year: 0,
@@ -567,7 +567,7 @@ fn id_implementation_for_all_statements() {
         7
     );
     assert_eq!(
-        Statement::LiteralReal {
+        AstStatement::LiteralReal {
             value: "2.3".to_string(),
             location: (1..5).into(),
             id: 7
@@ -576,7 +576,7 @@ fn id_implementation_for_all_statements() {
         7
     );
     assert_eq!(
-        Statement::LiteralString {
+        AstStatement::LiteralString {
             is_wide: false,
             value: "2.3".to_string(),
             location: (1..5).into(),
@@ -586,7 +586,7 @@ fn id_implementation_for_all_statements() {
         7
     );
     assert_eq!(
-        Statement::LiteralTime {
+        AstStatement::LiteralTime {
             day: 0.0,
             hour: 0.0,
             milli: 0.0,
@@ -602,7 +602,7 @@ fn id_implementation_for_all_statements() {
         7
     );
     assert_eq!(
-        Statement::LiteralTimeOfDay {
+        AstStatement::LiteralTimeOfDay {
             hour: 0,
             min: 0,
             sec: 0,
@@ -614,7 +614,7 @@ fn id_implementation_for_all_statements() {
         7
     );
     assert_eq!(
-        Statement::MultipliedStatement {
+        AstStatement::MultipliedStatement {
             element: Box::new(empty_stmt()),
             multiplier: 9,
             location: (1..5).into(),
@@ -624,7 +624,7 @@ fn id_implementation_for_all_statements() {
         7
     );
     assert_eq!(
-        Statement::OutputAssignment {
+        AstStatement::OutputAssignment {
             left: Box::new(empty_stmt()),
             right: Box::new(empty_stmt()),
             id: 7
@@ -633,7 +633,7 @@ fn id_implementation_for_all_statements() {
         7
     );
     assert_eq!(
-        Statement::QualifiedReference {
+        AstStatement::QualifiedReference {
             elements: vec![],
             id: 7
         }
@@ -641,7 +641,7 @@ fn id_implementation_for_all_statements() {
         7
     );
     assert_eq!(
-        Statement::RangeStatement {
+        AstStatement::RangeStatement {
             start: Box::new(empty_stmt()),
             end: Box::new(empty_stmt()),
             id: 7
@@ -650,7 +650,7 @@ fn id_implementation_for_all_statements() {
         7
     );
     assert_eq!(
-        Statement::Reference {
+        AstStatement::Reference {
             name: "ab".to_string(),
             location: (1..5).into(),
             id: 7
@@ -659,7 +659,7 @@ fn id_implementation_for_all_statements() {
         7
     );
     assert_eq!(
-        Statement::RepeatLoopStatement {
+        AstStatement::RepeatLoopStatement {
             body: vec![],
             condition: Box::new(empty_stmt()),
             location: (1..5).into(),
@@ -669,7 +669,7 @@ fn id_implementation_for_all_statements() {
         7
     );
     assert_eq!(
-        Statement::UnaryExpression {
+        AstStatement::UnaryExpression {
             operator: Operator::Minus,
             value: Box::new(empty_stmt()),
             location: (1..5).into(),
@@ -679,7 +679,7 @@ fn id_implementation_for_all_statements() {
         7
     );
     assert_eq!(
-        Statement::WhileLoopStatement {
+        AstStatement::WhileLoopStatement {
             body: vec![],
             condition: Box::new(empty_stmt()),
             location: (1..5).into(),
@@ -690,8 +690,8 @@ fn id_implementation_for_all_statements() {
     );
 }
 
-fn at(location: Range<usize>) -> Statement {
-    Statement::EmptyStatement {
+fn at(location: Range<usize>) -> AstStatement {
+    AstStatement::EmptyStatement {
         id: 7,
         location: location.into(),
     }
@@ -700,7 +700,7 @@ fn at(location: Range<usize>) -> Statement {
 #[test]
 fn location_implementation_for_all_statements() {
     assert_eq!(
-        Statement::ArrayAccess {
+        AstStatement::ArrayAccess {
             reference: Box::new(at(0..1)),
             access: Box::new(at(2..4)),
             id: 7
@@ -709,7 +709,7 @@ fn location_implementation_for_all_statements() {
         (0..4).into()
     );
     assert_eq!(
-        Statement::Assignment {
+        AstStatement::Assignment {
             left: Box::new(at(0..2)),
             right: Box::new(at(3..8)),
             id: 7
@@ -718,7 +718,7 @@ fn location_implementation_for_all_statements() {
         (0..8).into()
     );
     assert_eq!(
-        Statement::BinaryExpression {
+        AstStatement::BinaryExpression {
             left: Box::new(at(0..2)),
             right: Box::new(at(3..8)),
             operator: Operator::And,
@@ -728,7 +728,7 @@ fn location_implementation_for_all_statements() {
         (0..8).into()
     );
     assert_eq!(
-        Statement::CallStatement {
+        AstStatement::CallStatement {
             operator: Box::new(empty_stmt()),
             parameters: Box::new(None),
             id: 7,
@@ -738,7 +738,7 @@ fn location_implementation_for_all_statements() {
         (1..5).into()
     );
     assert_eq!(
-        Statement::CaseCondition {
+        AstStatement::CaseCondition {
             condition: Box::new(at(2..4)),
             id: 7
         }
@@ -746,7 +746,7 @@ fn location_implementation_for_all_statements() {
         (2..4).into()
     );
     assert_eq!(
-        Statement::CaseStatement {
+        AstStatement::CaseStatement {
             selector: Box::new(empty_stmt()),
             case_blocks: vec![],
             else_block: vec![],
@@ -757,7 +757,7 @@ fn location_implementation_for_all_statements() {
         (1..5).into()
     );
     assert_eq!(
-        Statement::EmptyStatement {
+        AstStatement::EmptyStatement {
             location: (1..5).into(),
             id: 7
         }
@@ -765,7 +765,7 @@ fn location_implementation_for_all_statements() {
         (1..5).into()
     );
     assert_eq!(
-        Statement::ExpressionList {
+        AstStatement::ExpressionList {
             expressions: vec![at(0..3), at(4..8)],
             id: 7
         }
@@ -773,7 +773,7 @@ fn location_implementation_for_all_statements() {
         (0..8).into()
     );
     assert_eq!(
-        Statement::ForLoopStatement {
+        AstStatement::ForLoopStatement {
             body: vec![],
             by_step: None,
             counter: Box::new(empty_stmt()),
@@ -786,7 +786,7 @@ fn location_implementation_for_all_statements() {
         (1..5).into()
     );
     assert_eq!(
-        Statement::IfStatement {
+        AstStatement::IfStatement {
             blocks: vec![],
             else_block: vec![],
             location: (1..5).into(),
@@ -796,7 +796,7 @@ fn location_implementation_for_all_statements() {
         (1..5).into()
     );
     assert_eq!(
-        Statement::LiteralArray {
+        AstStatement::LiteralArray {
             elements: None,
             location: (1..5).into(),
             id: 7,
@@ -805,7 +805,7 @@ fn location_implementation_for_all_statements() {
         (1..5).into()
     );
     assert_eq!(
-        Statement::LiteralBool {
+        AstStatement::LiteralBool {
             value: true,
             location: (1..5).into(),
             id: 7
@@ -814,7 +814,7 @@ fn location_implementation_for_all_statements() {
         (1..5).into()
     );
     assert_eq!(
-        Statement::LiteralInteger {
+        AstStatement::LiteralInteger {
             value: 7,
             location: (1..5).into(),
             id: 7
@@ -823,7 +823,7 @@ fn location_implementation_for_all_statements() {
         (1..5).into()
     );
     assert_eq!(
-        Statement::LiteralDate {
+        AstStatement::LiteralDate {
             day: 0,
             month: 0,
             year: 0,
@@ -834,7 +834,7 @@ fn location_implementation_for_all_statements() {
         (1..5).into()
     );
     assert_eq!(
-        Statement::LiteralDateAndTime {
+        AstStatement::LiteralDateAndTime {
             day: 0,
             month: 0,
             year: 0,
@@ -849,7 +849,7 @@ fn location_implementation_for_all_statements() {
         (1..5).into()
     );
     assert_eq!(
-        Statement::LiteralReal {
+        AstStatement::LiteralReal {
             value: "2.3".to_string(),
             location: (1..5).into(),
             id: 7
@@ -858,7 +858,7 @@ fn location_implementation_for_all_statements() {
         (1..5).into()
     );
     assert_eq!(
-        Statement::LiteralString {
+        AstStatement::LiteralString {
             is_wide: false,
             value: "2.3".to_string(),
             location: (1..5).into(),
@@ -868,7 +868,7 @@ fn location_implementation_for_all_statements() {
         (1..5).into()
     );
     assert_eq!(
-        Statement::LiteralTime {
+        AstStatement::LiteralTime {
             day: 0.0,
             hour: 0.0,
             milli: 0.0,
@@ -884,7 +884,7 @@ fn location_implementation_for_all_statements() {
         (1..5).into()
     );
     assert_eq!(
-        Statement::LiteralTimeOfDay {
+        AstStatement::LiteralTimeOfDay {
             hour: 0,
             min: 0,
             sec: 0,
@@ -896,7 +896,7 @@ fn location_implementation_for_all_statements() {
         (1..5).into()
     );
     assert_eq!(
-        Statement::MultipliedStatement {
+        AstStatement::MultipliedStatement {
             element: Box::new(empty_stmt()),
             multiplier: 9,
             location: (1..5).into(),
@@ -906,7 +906,7 @@ fn location_implementation_for_all_statements() {
         (1..5).into()
     );
     assert_eq!(
-        Statement::OutputAssignment {
+        AstStatement::OutputAssignment {
             left: Box::new(at(0..3)),
             right: Box::new(at(4..9)),
             id: 7
@@ -915,7 +915,7 @@ fn location_implementation_for_all_statements() {
         (0..9).into()
     );
     assert_eq!(
-        Statement::QualifiedReference {
+        AstStatement::QualifiedReference {
             elements: vec![at(0..3), at(4..5)],
             id: 7
         }
@@ -923,7 +923,7 @@ fn location_implementation_for_all_statements() {
         (0..5).into()
     );
     assert_eq!(
-        Statement::RangeStatement {
+        AstStatement::RangeStatement {
             start: Box::new(at(0..3)),
             end: Box::new(at(6..9)),
             id: 7
@@ -932,7 +932,7 @@ fn location_implementation_for_all_statements() {
         (0..9).into()
     );
     assert_eq!(
-        Statement::Reference {
+        AstStatement::Reference {
             name: "ab".to_string(),
             location: (1..5).into(),
             id: 7
@@ -941,7 +941,7 @@ fn location_implementation_for_all_statements() {
         (1..5).into()
     );
     assert_eq!(
-        Statement::RepeatLoopStatement {
+        AstStatement::RepeatLoopStatement {
             body: vec![],
             condition: Box::new(empty_stmt()),
             location: (1..5).into(),
@@ -951,7 +951,7 @@ fn location_implementation_for_all_statements() {
         (1..5).into()
     );
     assert_eq!(
-        Statement::UnaryExpression {
+        AstStatement::UnaryExpression {
             operator: Operator::Minus,
             value: Box::new(empty_stmt()),
             location: (1..5).into(),
@@ -961,7 +961,7 @@ fn location_implementation_for_all_statements() {
         (1..5).into()
     );
     assert_eq!(
-        Statement::WhileLoopStatement {
+        AstStatement::WhileLoopStatement {
             body: vec![],
             condition: Box::new(empty_stmt()),
             location: (1..5).into(),

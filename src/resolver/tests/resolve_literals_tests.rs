@@ -12,12 +12,16 @@ fn bool_literals_are_annotated() {
     let statements = &unit.implementations[0].statements;
 
     assert_eq!(
-        Some(&"BOOL".to_string()),
-        annotations.type_map.get(&statements[0].get_id())
+        "BOOL",
+        annotations
+            .get_type_or_void(&statements[0], &index)
+            .get_name()
     );
     assert_eq!(
-        Some(&"BOOL".to_string()),
-        annotations.type_map.get(&statements[1].get_id())
+        "BOOL",
+        annotations
+            .get_type_or_void(&statements[1], &index)
+            .get_name()
     );
 }
 
@@ -33,10 +37,7 @@ fn string_literals_are_annotated() {
     let statements = &unit.implementations[0].statements;
 
     for s in statements.iter() {
-        assert_eq!(
-            Some(&"STRING".to_string()),
-            annotations.type_map.get(&s.get_id())
-        );
+        assert_eq!("STRING", annotations.get_type_or_void(s, &index).get_name());
     }
 }
 
@@ -58,10 +59,9 @@ fn int_literals_are_annotated() {
 
     let expected_types = vec!["DINT", "DINT", "DINT", "DINT", "DINT", "DINT", "LINT"];
 
-    let none = "-".to_string();
-    let types: Vec<&String> = statements
+    let types: Vec<&str> = statements
         .iter()
-        .map(|s| annotations.type_map.get(&s.get_id()).unwrap_or(&none))
+        .map(|s| annotations.get_type_or_void(s, &index).get_name())
         .collect();
 
     assert_eq!(expected_types, types);
@@ -96,8 +96,8 @@ fn date_literals_are_annotated() {
     ];
     for (i, s) in statements.iter().enumerate() {
         assert_eq!(
-            Some(&expected_types[i].to_string()),
-            annotations.type_map.get(&s.get_id()),
+            expected_types[i],
+            annotations.get_type_or_void(s, &index).get_name(),
             "{:#?}",
             s
         );
@@ -118,8 +118,8 @@ fn real_literals_are_annotated() {
     let expected_types = vec!["REAL", "REAL"];
     for (i, s) in statements.iter().enumerate() {
         assert_eq!(
-            Some(&expected_types[i].to_string()),
-            annotations.type_map.get(&s.get_id()),
+            expected_types[i].to_string(),
+            annotations.get_type_or_void(s, &index).get_name(),
             "{:#?}",
             s
         );

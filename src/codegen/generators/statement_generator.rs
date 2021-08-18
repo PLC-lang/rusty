@@ -1,25 +1,25 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-use std::ops::Range;
-
-use super::pou_generator::PouGenerator;
-use super::{expression_generator::ExpressionCodeGenerator, llvm::Llvm};
-use crate::ast::PouType;
-use crate::codegen::LlvmTypedIndex;
-use crate::typesystem::{RANGE_CHECK_LS_FN, RANGE_CHECK_LU_FN, RANGE_CHECK_S_FN, RANGE_CHECK_U_FN};
-use crate::{ast::SourceRange, codegen::llvm_typesystem::cast_if_needed};
-use crate::{
-    ast::{flatten_expression_list, ConditionalBlock, Operator, Statement},
-    compile_error::CompileError,
+use super::{
+    expression_generator::ExpressionCodeGenerator, llvm::Llvm, pou_generator::PouGenerator,
 };
 use crate::{
+    ast::{
+        flatten_expression_list, AstStatement, ConditionalBlock, Operator, PouType, SourceRange,
+    },
+    codegen::{llvm_typesystem::cast_if_needed, LlvmTypedIndex},
+    compile_error::CompileError,
     index::{ImplementationIndexEntry, Index},
-    typesystem::DataTypeInformation,
+    typesystem::{
+        DataTypeInformation, RANGE_CHECK_LS_FN, RANGE_CHECK_LU_FN, RANGE_CHECK_S_FN,
+        RANGE_CHECK_U_FN,
+    },
 };
 use inkwell::{
     basic_block::BasicBlock,
     values::{BasicValueEnum, FunctionValue},
     IntPredicate,
 };
+use std::ops::Range;
 
 /// the full context when generating statements inside a POU
 pub struct FunctionContext<'a> {
@@ -40,6 +40,11 @@ pub struct StatementCodeGenerator<'a, 'b> {
 
     pub load_prefix: String,
     pub load_suffix: String,
+
+    /// the block to jump to when you want to exit the loop
+    pub current_loop_exit: Option<BasicBlock<'a>>,
+    /// the block to jump to when you want to continue the loop
+    pub current_loop_continue: Option<BasicBlock<'a>>,
 }
 
 impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
@@ -61,6 +66,8 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
             function_context: linking_context,
             load_prefix: "load_".to_string(),
             load_suffix: "".to_string(),
+            current_loop_exit: None,
+            current_loop_continue: None,
         }
     }
 
@@ -76,25 +83,38 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
     }
 
     /// generates a list of statements
-    pub fn generate_body(&self, statements: &[Statement]) -> Result<(), CompileError> {
+    pub fn generate_body(&self, statements: &[AstStatement]) -> Result<(), CompileError> {
         for s in statements {
             self.generate_statement(s)?;
         }
         Ok(())
     }
 
+    /// some versions of llvm will crash on two consecutive return or
+    /// unconditional jump statements. the solution is to insert another
+    /// building block before the second one, so the don't directly
+    /// follow each other. this is what we call a buffer block.
+    fn generate_buffer_block(&self) {
+        let builder = &self.llvm.builder;
+        let buffer_block = self
+            .llvm
+            .context
+            .insert_basic_block_after(builder.get_insert_block().unwrap(), "buffer_block");
+        builder.position_at_end(buffer_block);
+    }
+
     /// genertes a single statement
     ///
     /// - `statement` the statement to be generated
-    pub fn generate_statement(&self, statement: &Statement) -> Result<(), CompileError> {
+    pub fn generate_statement(&self, statement: &AstStatement) -> Result<(), CompileError> {
         match statement {
-            Statement::EmptyStatement { .. } => {
+            AstStatement::EmptyStatement { .. } => {
                 //nothing to generate
             }
-            Statement::Assignment { left, right, .. } => {
+            AstStatement::Assignment { left, right, .. } => {
                 self.generate_assignment_statement(left, right)?;
             }
-            Statement::ForLoopStatement {
+            AstStatement::ForLoopStatement {
                 start,
                 end,
                 counter,
@@ -104,22 +124,22 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
             } => {
                 self.generate_for_statement(counter, start, end, by_step, body)?;
             }
-            Statement::RepeatLoopStatement {
+            AstStatement::RepeatLoopStatement {
                 condition, body, ..
             } => {
                 self.generate_repeat_statement(condition, body)?;
             }
-            Statement::WhileLoopStatement {
+            AstStatement::WhileLoopStatement {
                 condition, body, ..
             } => {
                 self.generate_while_statement(condition, body)?;
             }
-            Statement::IfStatement {
+            AstStatement::IfStatement {
                 blocks, else_block, ..
             } => {
                 self.generate_if_statement(blocks, else_block)?;
             }
-            Statement::CaseStatement {
+            AstStatement::CaseStatement {
                 selector,
                 case_blocks,
                 else_block,
@@ -127,13 +147,36 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
             } => {
                 self.generate_case_statement(selector, case_blocks, else_block)?;
             }
-            Statement::ReturnStatement { location, .. } => {
+            AstStatement::ReturnStatement { location, .. } => {
                 self.pou_generator.generate_return_statement(
                     self.function_context,
                     self.llvm_index,
                     self.pou_type,
                     Some(location.clone()),
                 )?;
+                self.generate_buffer_block();
+            }
+            AstStatement::ExitStatement { location, .. } => {
+                if let Some(exit_block) = &self.current_loop_exit {
+                    self.llvm.builder.build_unconditional_branch(*exit_block);
+                    self.generate_buffer_block();
+                } else {
+                    return Err(CompileError::CodeGenError {
+                        message: "Cannot break out of loop when not inside a loop".into(),
+                        location: location.clone(),
+                    });
+                }
+            }
+            AstStatement::ContinueStatement { location, .. } => {
+                if let Some(cont_block) = &self.current_loop_continue {
+                    self.llvm.builder.build_unconditional_branch(*cont_block);
+                    self.generate_buffer_block();
+                } else {
+                    return Err(CompileError::CodeGenError {
+                        message: "Cannot continue loop when not inside a loop".into(),
+                        location: location.clone(),
+                    });
+                }
             }
             _ => {
                 self.create_expr_generator()
@@ -149,8 +192,8 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
     /// `right_statement` the right side of the assignment
     pub fn generate_assignment_statement(
         &self,
-        left_statement: &Statement,
-        right_statement: &Statement,
+        left_statement: &AstStatement,
+        right_statement: &AstStatement,
     ) -> Result<(), CompileError> {
         let exp_gen = self.create_expr_generator();
         let left = exp_gen.generate_element_pointer(left_statement)?;
@@ -181,7 +224,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         let cast_value = cast_if_needed(
             self.llvm,
             self.index,
-            &left.get_type_information(),
+            left.get_type_information(),
             right,
             &right_type,
             right_statement,
@@ -224,11 +267,11 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
     /// - `body` the statements inside the for-loop
     fn generate_for_statement(
         &self,
-        counter: &Statement,
-        start: &Statement,
-        end: &Statement,
-        by_step: &Option<Box<Statement>>,
-        body: &[Statement],
+        counter: &AstStatement,
+        start: &AstStatement,
+        end: &AstStatement,
+        by_step: &Option<Box<AstStatement>>,
+        body: &[AstStatement],
     ) -> Result<(), CompileError> {
         let builder = &self.llvm.builder;
         let current_function = self.function_context.function;
@@ -241,10 +284,15 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
             .llvm
             .context
             .append_basic_block(current_function, "for_body");
+        let increment_block = self
+            .llvm
+            .context
+            .append_basic_block(current_function, "increment");
         let continue_block = self
             .llvm
             .context
             .append_basic_block(current_function, "continue");
+
         //Generate an initial jump to the for condition
         builder.build_unconditional_branch(condition_check);
 
@@ -264,19 +312,28 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
 
         //Enter the for loop
         builder.position_at_end(for_body);
-        self.generate_body(body)?;
+        let body_generator = StatementCodeGenerator {
+            current_loop_exit: Some(continue_block),
+            current_loop_continue: Some(increment_block),
+            load_prefix: self.load_prefix.clone(),
+            load_suffix: self.load_suffix.clone(),
+            ..*self
+        };
+        body_generator.generate_body(body)?;
+        builder.build_unconditional_branch(increment_block);
 
         //Increment
+        builder.position_at_end(increment_block);
         let expression_generator = self.create_expr_generator();
         let (_, step_by_value) = by_step.as_ref().map_or_else(
             || {
-                expression_generator.generate_literal(&Statement::LiteralInteger {
+                expression_generator.generate_literal(&AstStatement::LiteralInteger {
                     value: 1,
                     location: end.get_location(),
                     id: 0, //TODO
                 })
             },
-            |step| expression_generator.generate_expression(&step),
+            |step| expression_generator.generate_expression(step),
         )?;
 
         let next = builder.build_int_add(
@@ -311,9 +368,9 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
     /// - `else_body` the statements in the else-block
     fn generate_case_statement(
         &self,
-        selector: &Statement,
+        selector: &AstStatement,
         conditional_blocks: &[ConditionalBlock],
-        else_body: &[Statement],
+        else_body: &[AstStatement],
     ) -> Result<Option<BasicValueEnum<'a>>, CompileError> {
         let builder = &self.llvm.builder;
         let current_function = self.function_context.function;
@@ -349,7 +406,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
             //flatten the expression list into a vector of expressions
             let expressions = flatten_expression_list(&*conditional_block.condition);
             for s in expressions {
-                if let Statement::RangeStatement { start, end, .. } = s {
+                if let AstStatement::RangeStatement { start, end, .. } = s {
                     //if this is a range statement, we generate an if (x >= start && x <= end) then the else-section
                     builder.position_at_end(current_else_block);
                     // since the if's generate additional blocks, we use the last one as the else-section
@@ -392,9 +449,9 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
     ///
     fn generate_case_range_condition(
         &self,
-        selector: &Statement,
-        start: &Statement,
-        end: &Statement,
+        selector: &AstStatement,
+        start: &AstStatement,
+        end: &AstStatement,
         match_block: BasicBlock,
     ) -> Result<BasicBlock, CompileError> {
         let builder = &self.llvm.builder;
@@ -452,8 +509,8 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
     /// - `body` the while's body statements
     fn generate_while_statement(
         &self,
-        condition: &Statement,
-        body: &[Statement],
+        condition: &AstStatement,
+        body: &[AstStatement],
     ) -> Result<Option<BasicValueEnum<'a>>, CompileError> {
         let builder = &self.llvm.builder;
         let basic_block = builder.get_insert_block().unwrap();
@@ -480,8 +537,8 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
     /// - `body` the repeat's body statements
     fn generate_repeat_statement(
         &self,
-        condition: &Statement,
-        body: &[Statement],
+        condition: &AstStatement,
+        body: &[AstStatement],
     ) -> Result<Option<BasicValueEnum<'a>>, CompileError> {
         let builder = &self.llvm.builder;
         let basic_block = builder.get_insert_block().unwrap();
@@ -500,8 +557,8 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
     /// utility method for while and repeat loops
     fn generate_base_while_statement(
         &self,
-        condition: &Statement,
-        body: &[Statement],
+        condition: &AstStatement,
+        body: &[AstStatement],
     ) -> Result<Option<BasicValueEnum>, CompileError> {
         let builder = &self.llvm.builder;
         let current_function = self.function_context.function;
@@ -531,7 +588,14 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
 
         //Enter the for loop
         builder.position_at_end(while_body);
-        self.generate_body(&body)?;
+        let body_generator = StatementCodeGenerator {
+            current_loop_exit: Some(continue_block),
+            current_loop_continue: Some(condition_check),
+            load_prefix: self.load_prefix.clone(),
+            load_suffix: self.load_suffix.clone(),
+            ..*self
+        };
+        body_generator.generate_body(body)?;
         //Loop back
         builder.build_unconditional_branch(condition_check);
 
@@ -547,7 +611,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
     fn generate_if_statement(
         &self,
         conditional_blocks: &[ConditionalBlock],
-        else_body: &[Statement],
+        else_body: &[AstStatement],
     ) -> Result<(), CompileError> {
         let builder = &self.llvm.builder;
         let mut blocks = vec![builder.get_insert_block().unwrap()];
@@ -608,7 +672,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
 
         if let Some(else_block) = else_block {
             builder.position_at_end(else_block);
-            self.generate_body(&else_body)?;
+            self.generate_body(else_body)?;
             builder.build_unconditional_branch(continue_block);
         }
         //Continue
@@ -619,17 +683,17 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
 
 fn create_call_to_check_function_ast(
     check_function_name: String,
-    parameter: Statement,
-    sub_range: Range<Statement>,
+    parameter: AstStatement,
+    sub_range: Range<AstStatement>,
     location: &SourceRange,
-) -> Statement {
-    Statement::CallStatement {
-        operator: Box::new(Statement::Reference {
+) -> AstStatement {
+    AstStatement::CallStatement {
+        operator: Box::new(AstStatement::Reference {
             name: check_function_name,
             location: location.clone(),
             id: 0, //TODO
         }),
-        parameters: Box::new(Some(Statement::ExpressionList {
+        parameters: Box::new(Some(AstStatement::ExpressionList {
             expressions: vec![parameter, sub_range.start, sub_range.end],
             id: 0, //TODO
         })),

@@ -1,6 +1,6 @@
 use crate::{
     ast::*,
-    parser::{parse, tests::lex, Statement::LiteralInteger},
+    parser::{parse, tests::lex, AstStatement::LiteralInteger},
 };
 use pretty_assertions::*;
 
@@ -28,6 +28,7 @@ fn simple_struct_type_can_be_parsed() {
                         name: "One".to_string(),
                         data_type: DataTypeDeclaration::DataTypeReference {
                             referenced_type: "INT".to_string(),
+                            location: SourceRange::undefined(),
                         },
                         initializer: None,
                         location: SourceRange::undefined(),
@@ -36,6 +37,7 @@ fn simple_struct_type_can_be_parsed() {
                         name: "Two".to_string(),
                         data_type: DataTypeDeclaration::DataTypeReference {
                             referenced_type: "INT".to_string(),
+                            location: SourceRange::undefined(),
                         },
                         initializer: None,
                         location: SourceRange::undefined(),
@@ -44,6 +46,7 @@ fn simple_struct_type_can_be_parsed() {
                         name: "Three".to_string(),
                         data_type: DataTypeDeclaration::DataTypeReference {
                             referenced_type: "INT".to_string(),
+                            location: SourceRange::undefined(),
                         },
                         initializer: None,
                         location: SourceRange::undefined(),
@@ -51,6 +54,7 @@ fn simple_struct_type_can_be_parsed() {
                 ),
             },
             initializer: None,
+            location: SourceRange::undefined(),
         }
     );
     assert_eq!(ast_string, expected_ast);
@@ -71,6 +75,7 @@ fn simple_enum_type_can_be_parsed() {
             elements: vec!["red".to_string(), "yellow".to_string(), "green".to_string()],
         },
         initializer: None,
+        location: SourceRange::undefined(),
     };
     let expected_string = format!("{:#?}", epxtected_ast);
     assert_eq!(ast_string, expected_string);
@@ -94,6 +99,7 @@ fn type_alias_can_be_parsed() {
                 bounds: None,
             },
             initializer: None,
+            location: SourceRange::undefined(),
         }
     );
 
@@ -113,13 +119,13 @@ fn array_type_can_be_parsed_test() {
         &UserTypeDeclaration {
             data_type: DataType::ArrayType {
                 name: Some("MyArray".to_string()),
-                bounds: Statement::RangeStatement {
-                    start: Box::new(Statement::LiteralInteger {
+                bounds: AstStatement::RangeStatement {
+                    start: Box::new(AstStatement::LiteralInteger {
                         value: 0,
                         location: SourceRange::undefined(),
                         id: 0,
                     }),
-                    end: Box::new(Statement::LiteralInteger {
+                    end: Box::new(AstStatement::LiteralInteger {
                         value: 8,
                         location: SourceRange::undefined(),
                         id: 0,
@@ -128,9 +134,11 @@ fn array_type_can_be_parsed_test() {
                 },
                 referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
                     referenced_type: "INT".to_string(),
+                    location: SourceRange::undefined(),
                 }),
             },
             initializer: None,
+            location: SourceRange::undefined(),
         }
     );
 
@@ -160,6 +168,7 @@ fn string_type_can_be_parsed_test() {
                     is_wide: false,
                 },
                 initializer: None,
+                location: SourceRange::undefined(),
             },
             UserTypeDeclaration {
                 data_type: DataType::StringType {
@@ -171,12 +180,13 @@ fn string_type_can_be_parsed_test() {
                     }),
                     is_wide: false,
                 },
-                initializer: Some(Statement::LiteralString {
+                initializer: Some(AstStatement::LiteralString {
                     is_wide: false,
                     location: SourceRange::undefined(),
                     value: "abc".into(),
                     id: 0,
                 }),
+                location: SourceRange::undefined(),
             }
         ]
     );
@@ -205,6 +215,7 @@ fn wide_string_type_can_be_parsed_test() {
                 is_wide: true,
             },
             initializer: None,
+            location: SourceRange::undefined(),
         }
     );
 
@@ -226,7 +237,7 @@ fn subrangetype_can_be_parsed() {
         data_type: DataTypeDeclaration::DataTypeDefinition {
             data_type: DataType::SubRangeType {
                 name: None,
-                bounds: Some(Statement::RangeStatement {
+                bounds: Some(AstStatement::RangeStatement {
                     start: Box::new(LiteralInteger {
                         value: 0,
                         location: SourceRange::undefined(),
@@ -241,6 +252,7 @@ fn subrangetype_can_be_parsed() {
                 }),
                 referenced_type: "UINT".to_string(),
             },
+            location: SourceRange::undefined(),
         },
         initializer: None,
         location: (0..0).into(),

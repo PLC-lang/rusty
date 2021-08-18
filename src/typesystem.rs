@@ -2,7 +2,7 @@
 use std::ops::Range;
 
 use crate::{
-    ast::{Dimension, Statement},
+    ast::{AstStatement, Dimension},
     index::Index,
 };
 
@@ -35,11 +35,13 @@ pub const LREAL_TYPE: &str = "LREAL";
 pub const STRING_TYPE: &str = "STRING";
 pub const WSTRING_TYPE: &str = "WSTRING";
 
+pub const VOID_TYPE: &str = "VOID";
+
 #[derive(Debug, PartialEq)]
 pub struct DataType {
     pub name: String,
     /// the initial value defined on the TYPE-declration
-    pub initial_value: Option<Statement>,
+    pub initial_value: Option<AstStatement>,
     pub information: DataTypeInformation,
     //TODO : Add location information
 }
@@ -108,7 +110,7 @@ pub enum DataTypeInformation {
     SubRange {
         name: String,
         referenced_type: String,
-        sub_range: Range<Statement>,
+        sub_range: Range<AstStatement>,
     },
     Alias {
         name: String,
@@ -430,8 +432,8 @@ pub fn get_bigger_type(
     ltype: &DataTypeInformation,
     rtype: &DataTypeInformation,
 ) -> DataTypeInformation {
-    if is_same_type_nature(&ltype, &rtype) {
-        if get_rank(&ltype) < get_rank(&rtype) {
+    if is_same_type_nature(ltype, rtype) {
+        if get_rank(ltype) < get_rank(rtype) {
             rtype.clone()
         } else {
             ltype.clone()
@@ -452,8 +454,8 @@ pub fn get_bigger_type_borrow<'t>(
     rtype: &'t DataTypeInformation,
     index: &'t Index,
 ) -> &'t DataTypeInformation {
-    if is_same_type_nature(&ltype, &rtype) {
-        if get_rank(&ltype) < get_rank(&rtype) {
+    if is_same_type_nature(ltype, rtype) {
+        if get_rank(ltype) < get_rank(rtype) {
             rtype
         } else {
             ltype

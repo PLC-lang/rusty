@@ -1,5 +1,5 @@
 use crate::{
-    ast::{DataType, DataTypeDeclaration, SourceRange, Statement, Variable},
+    ast::{AstStatement, DataType, DataTypeDeclaration, SourceRange, Variable},
     parser::{parse, tests::lex},
 };
 use pretty_assertions::*;
@@ -15,19 +15,19 @@ fn empty_statements_are_are_parsed() {
         format!(
             "{:?}",
             vec![
-                Statement::EmptyStatement {
+                AstStatement::EmptyStatement {
                     location: SourceRange::undefined(),
                     id: 0
                 },
-                Statement::EmptyStatement {
+                AstStatement::EmptyStatement {
                     location: SourceRange::undefined(),
                     id: 0
                 },
-                Statement::EmptyStatement {
+                AstStatement::EmptyStatement {
                     location: SourceRange::undefined(),
                     id: 0
                 },
-                Statement::EmptyStatement {
+                AstStatement::EmptyStatement {
                     location: SourceRange::undefined(),
                     id: 0
                 },
@@ -48,23 +48,23 @@ fn empty_statements_are_parsed_before_a_statement() {
         format!(
             "{:?}",
             vec![
-                Statement::EmptyStatement {
+                AstStatement::EmptyStatement {
                     location: SourceRange::undefined(),
                     id: 0
                 },
-                Statement::EmptyStatement {
+                AstStatement::EmptyStatement {
                     location: SourceRange::undefined(),
                     id: 0
                 },
-                Statement::EmptyStatement {
+                AstStatement::EmptyStatement {
                     location: SourceRange::undefined(),
                     id: 0
                 },
-                Statement::EmptyStatement {
+                AstStatement::EmptyStatement {
                     location: SourceRange::undefined(),
                     id: 0
                 },
-                Statement::Reference {
+                AstStatement::Reference {
                     name: "x".into(),
                     location: SourceRange::undefined(),
                     id: 0
@@ -151,6 +151,7 @@ fn inline_enum_declaration_can_be_parsed() {
                 name: None,
                 elements: vec!["red".to_string(), "yellow".to_string(), "green".to_string()],
             },
+            location: SourceRange::undefined(),
         },
         initializer: None,
         location: SourceRange::undefined(),

@@ -4,7 +4,7 @@ use super::{
     llvm::Llvm,
     statement_generator::{FunctionContext, StatementCodeGenerator},
 };
-use crate::codegen::llvm_index::LlvmTypedIndex;
+use crate::{codegen::llvm_index::LlvmTypedIndex, index::ImplementationType};
 
 /// The pou_generator contains functions to generate the code for POUs (PROGRAM, FUNCTION, FUNCTION_BLOCK)
 /// # responsibilities
@@ -14,7 +14,7 @@ use crate::codegen::llvm_index::LlvmTypedIndex;
 use crate::index::{ImplementationIndexEntry, VariableIndexEntry};
 use crate::typesystem::*;
 use crate::{
-    ast::{Implementation, PouType, SourceRange, Statement},
+    ast::{AstStatement, Implementation, PouType, SourceRange},
     compile_error::CompileError,
     index::Index,
 };
@@ -41,7 +41,7 @@ pub fn generate_implementation_stubs<'ink>(
     types_index: &LlvmTypedIndex<'ink>,
 ) -> Result<LlvmTypedIndex<'ink>, CompileError> {
     let mut llvm_index = LlvmTypedIndex::new();
-    let pou_generator = PouGenerator::new(llvm, index, &types_index);
+    let pou_generator = PouGenerator::new(llvm, index, types_index);
     for (name, implementation) in index.get_implementations() {
         let curr_f = pou_generator.generate_implementation_stub(implementation, module)?;
         llvm_index.associate_implementation(name, curr_f)?;
@@ -80,7 +80,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
             .get_associated_type(implementation.get_type_name())
             .map(|it| it.into_struct_type())?;
         let mut parameters = vec![instance_struct_type.ptr_type(AddressSpace::Generic).into()];
-        if implementation.get_pou_type() == PouType::Method {
+        if implementation.get_implementation_type() == &ImplementationType::Method {
             let class_name = implementation
                 .get_type_name()
                 .split('.')
@@ -251,7 +251,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                     parameter_name,
                     self.llvm
                         .builder
-                        .build_struct_gep(ptr_value, i as u32, &parameter_name)
+                        .build_struct_gep(ptr_value, i as u32, parameter_name)
                         .unwrap(),
                 )
             };
@@ -275,7 +275,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
             .filter(|it| it.initial_value.is_some());
 
         for variable in variables_with_initializers {
-            let left = Statement::Reference {
+            let left = AstStatement::Reference {
                 name: variable.get_name().into(),
                 location: variable.source_location.clone(),
                 id: 0, //TODO
@@ -298,7 +298,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
     ) -> Result<(), CompileError> {
         match pou_type {
             PouType::Function => {
-                let reference = Statement::Reference {
+                let reference = AstStatement::Reference {
                     name: function_context.linking_context.get_call_name().into(),
                     location: location.unwrap_or_else(SourceRange::undefined),
                     id: 0, //TODO
@@ -308,7 +308,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                     self.index,
                     local_index,
                     None,
-                    &function_context,
+                    function_context,
                 );
                 exp_gen.temp_variable_prefix = "".to_string();
                 exp_gen.temp_variable_suffix = "_ret".to_string();
