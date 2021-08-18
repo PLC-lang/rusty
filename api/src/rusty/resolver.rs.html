@@ -673,8 +673,6 @@
 <span id="671">671</span>
 <span id="672">672</span>
 <span id="673">673</span>
-<span id="674">674</span>
-<span id="675">675</span>
 </pre><pre class="rust">
 <span class="comment">// Copyright (c) 2021 Ghaith Hachem and Mathias Rieder</span>
 
@@ -687,7 +685,7 @@
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">ast</span>::{
-        <span class="ident">AstId</span>, <span class="ident">CompilationUnit</span>, <span class="ident">DataType</span>, <span class="ident">DataTypeDeclaration</span>, <span class="ident">Operator</span>, <span class="ident">Pou</span>, <span class="ident">Statement</span>,
+        <span class="ident">AstId</span>, <span class="ident">AstStatement</span>, <span class="ident">CompilationUnit</span>, <span class="ident">DataType</span>, <span class="ident">DataTypeDeclaration</span>, <span class="ident">Operator</span>, <span class="ident">Pou</span>,
         <span class="ident">UserTypeDeclaration</span>, <span class="ident">Variable</span>,
     },
     <span class="ident">index</span>::{<span class="ident">ImplementationIndexEntry</span>, <span class="ident">ImplementationType</span>, <span class="ident">Index</span>, <span class="ident">VariableIndexEntry</span>},
@@ -769,26 +767,26 @@
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">StatementAnnotation</span> {
     <span class="doccomment">/// an expression that resolves to a certain type (e.g. `a + b` --&gt; `INT`)</span>
-    <span class="ident">ExpressionAnnotation</span> { <span class="ident">resulting_type</span>: <span class="ident">String</span> },
+    <span class="ident">Value</span> { <span class="ident">resulting_type</span>: <span class="ident">String</span> },
     <span class="doccomment">/// a reference that resolves to a declared variable (e.g. `a` --&gt; `PLC_PROGRAM.a`)</span>
-    <span class="ident">VariableAnnotation</span> {
+    <span class="ident">Variable</span> {
         <span class="ident">resulting_type</span>: <span class="ident">String</span>,
         <span class="ident">qualified_name</span>: <span class="ident">String</span>,
     },
     <span class="doccomment">/// a reference to a function</span>
-    <span class="ident">FunctionAnnotation</span> {
+    <span class="ident">Function</span> {
         <span class="ident">return_type</span>: <span class="ident">String</span>,
         <span class="ident">qualified_name</span>: <span class="ident">String</span>,
     },
     <span class="doccomment">/// a reference to a type (e.g. `INT`)</span>
-    <span class="ident">TypeAnnotation</span> { <span class="ident">type_name</span>: <span class="ident">String</span> },
+    <span class="ident">Type</span> { <span class="ident">type_name</span>: <span class="ident">String</span> },
     <span class="doccomment">/// a reference to a program call or reference (e.g. `PLC_PRG`)</span>
-    <span class="ident">ProgramAnnotation</span> { <span class="ident">qualified_name</span>: <span class="ident">String</span> },
+    <span class="ident">Program</span> { <span class="ident">qualified_name</span>: <span class="ident">String</span> },
 }
 
 <span class="kw">impl</span> <span class="ident">StatementAnnotation</span> {
     <span class="kw">fn</span> <span class="ident">expression</span>(<span class="ident">type_name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">StatementAnnotation</span> {
-        <span class="ident">StatementAnnotation::ExpressionAnnotation</span> {
+        <span class="ident">StatementAnnotation::Value</span> {
             <span class="ident">resulting_type</span>: <span class="ident">type_name</span>.<span class="ident">to_string</span>(),
         }
     }
@@ -808,18 +806,18 @@
     }
 
     <span class="doccomment">/// annotates the given statement (using it&#39;s `get_id()`) with the given type-name</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">annotate</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">Statement</span>, <span class="ident">annotation</span>: <span class="ident">StatementAnnotation</span>) {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">annotate</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">AstStatement</span>, <span class="ident">annotation</span>: <span class="ident">StatementAnnotation</span>) {
         <span class="self">self</span>.<span class="ident">type_map</span>.<span class="ident">insert</span>(<span class="ident">s</span>.<span class="ident">get_id</span>(), <span class="ident">annotation</span>);
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">Statement</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">StatementAnnotation</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">AstStatement</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">StatementAnnotation</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">type_map</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">s</span>.<span class="ident">get_id</span>())
     }
 
     <span class="doccomment">/// returns the annotated type or void if none was annotated</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_type_or_void</span><span class="op">&lt;</span><span class="lifetime">&#39;i</span><span class="op">&gt;</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">Statement</span>,
+        <span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">AstStatement</span>,
         <span class="ident">index</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;i</span> <span class="ident">Index</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;i</span> <span class="ident">typesystem::DataType</span> {
         <span class="self">self</span>.<span class="ident">get_type</span>(<span class="ident">s</span>, <span class="ident">index</span>)
@@ -829,26 +827,24 @@
     <span class="doccomment">/// returns the annotated type - for now only used by test</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_type</span><span class="op">&lt;</span><span class="lifetime">&#39;i</span><span class="op">&gt;</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">Statement</span>,
+        <span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">AstStatement</span>,
         <span class="ident">index</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;i</span> <span class="ident">Index</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;i</span> <span class="ident">typesystem::DataType</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">get_annotation</span>(<span class="ident">s</span>)
             .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">annotation</span><span class="op">|</span> <span class="kw">match</span> <span class="ident">annotation</span> {
-                <span class="ident">StatementAnnotation::ExpressionAnnotation</span> { <span class="ident">resulting_type</span> } <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">StatementAnnotation::Value</span> { <span class="ident">resulting_type</span> } <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">resulting_type</span>.<span class="ident">as_str</span>()),
+                <span class="ident">StatementAnnotation::Variable</span> { <span class="ident">resulting_type</span>, .. } <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="prelude-val">Some</span>(<span class="ident">resulting_type</span>.<span class="ident">as_str</span>())
                 }
-                <span class="ident">StatementAnnotation::VariableAnnotation</span> { <span class="ident">resulting_type</span>, .. } <span class="op">=</span><span class="op">&gt;</span> {
-                    <span class="prelude-val">Some</span>(<span class="ident">resulting_type</span>.<span class="ident">as_str</span>())
-                }
-                <span class="ident">StatementAnnotation::FunctionAnnotation</span> { .. } <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
-                <span class="ident">StatementAnnotation::TypeAnnotation</span> { .. } <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
-                <span class="ident">StatementAnnotation::ProgramAnnotation</span> { .. } <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
+                <span class="ident">StatementAnnotation::Function</span> { .. } <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
+                <span class="ident">StatementAnnotation::Type</span> { .. } <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
+                <span class="ident">StatementAnnotation::Program</span> { .. } <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
             })
             .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">type_name</span><span class="op">|</span> <span class="ident">index</span>.<span class="ident">get_type</span>(<span class="ident">type_name</span>).<span class="ident">ok</span>())
     }
 
     <span class="doccomment">/// returns the annotation of the given statement or none if it was not annotated</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_annotation</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">Statement</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">StatementAnnotation</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_annotation</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">AstStatement</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">StatementAnnotation</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">type_map</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">s</span>.<span class="ident">get_id</span>())
     }
 
@@ -900,7 +896,7 @@
     ) {
         <span class="self">self</span>.<span class="ident">visit_data_type</span>(<span class="ident">ctx</span>, <span class="kw-2">&amp;</span><span class="ident">user_data_type</span>.<span class="ident">data_type</span>);
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">initializer</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">user_data_type</span>.<span class="ident">initializer</span> {
-            <span class="self">self</span>.<span class="ident">visit_statement</span>(<span class="ident">ctx</span>, <span class="kw-2">&amp;</span><span class="ident">initializer</span>);
+            <span class="self">self</span>.<span class="ident">visit_statement</span>(<span class="ident">ctx</span>, <span class="ident">initializer</span>);
         }
     }
 
@@ -947,14 +943,14 @@
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">visit_statement</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="ident">VisitorContext</span>, <span class="ident">statement</span>: <span class="kw-2">&amp;</span><span class="ident">Statement</span>) {
+    <span class="kw">fn</span> <span class="ident">visit_statement</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="ident">VisitorContext</span>, <span class="ident">statement</span>: <span class="kw-2">&amp;</span><span class="ident">AstStatement</span>) {
         <span class="self">self</span>.<span class="ident">visit_statement_control</span>(<span class="ident">ctx</span>, <span class="ident">statement</span>);
     }
 
     <span class="doccomment">/// annotate a control statement</span>
-    <span class="kw">fn</span> <span class="ident">visit_statement_control</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="ident">VisitorContext</span>, <span class="ident">statement</span>: <span class="kw-2">&amp;</span><span class="ident">Statement</span>) {
+    <span class="kw">fn</span> <span class="ident">visit_statement_control</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="ident">VisitorContext</span>, <span class="ident">statement</span>: <span class="kw-2">&amp;</span><span class="ident">AstStatement</span>) {
         <span class="kw">match</span> <span class="ident">statement</span> {
-            <span class="ident">Statement::IfStatement</span> {
+            <span class="ident">AstStatement::IfStatement</span> {
                 <span class="ident">blocks</span>, <span class="ident">else_block</span>, ..
             } <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="ident">blocks</span>.<span class="ident">iter</span>().<span class="ident">for_each</span>(<span class="op">|</span><span class="ident">b</span><span class="op">|</span> {
@@ -963,7 +959,7 @@
                 });
                 <span class="ident">else_block</span>.<span class="ident">iter</span>().<span class="ident">for_each</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">visit_statement</span>(<span class="ident">ctx</span>, <span class="ident">e</span>));
             }
-            <span class="ident">Statement::ForLoopStatement</span> {
+            <span class="ident">AstStatement::ForLoopStatement</span> {
                 <span class="ident">counter</span>,
                 <span class="ident">start</span>,
                 <span class="ident">end</span>,
@@ -977,19 +973,19 @@
                 }
                 <span class="ident">body</span>.<span class="ident">iter</span>().<span class="ident">for_each</span>(<span class="op">|</span><span class="ident">s</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">visit_statement</span>(<span class="ident">ctx</span>, <span class="ident">s</span>));
             }
-            <span class="ident">Statement::WhileLoopStatement</span> {
+            <span class="ident">AstStatement::WhileLoopStatement</span> {
                 <span class="ident">condition</span>, <span class="ident">body</span>, ..
             } <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="self">self</span>.<span class="ident">visit_statement</span>(<span class="ident">ctx</span>, <span class="ident">condition</span>);
                 <span class="ident">body</span>.<span class="ident">iter</span>().<span class="ident">for_each</span>(<span class="op">|</span><span class="ident">s</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">visit_statement</span>(<span class="ident">ctx</span>, <span class="ident">s</span>));
             }
-            <span class="ident">Statement::RepeatLoopStatement</span> {
+            <span class="ident">AstStatement::RepeatLoopStatement</span> {
                 <span class="ident">condition</span>, <span class="ident">body</span>, ..
             } <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="self">self</span>.<span class="ident">visit_statement</span>(<span class="ident">ctx</span>, <span class="ident">condition</span>);
                 <span class="ident">body</span>.<span class="ident">iter</span>().<span class="ident">for_each</span>(<span class="op">|</span><span class="ident">s</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">visit_statement</span>(<span class="ident">ctx</span>, <span class="ident">s</span>));
             }
-            <span class="ident">Statement::CaseStatement</span> {
+            <span class="ident">AstStatement::CaseStatement</span> {
                 <span class="ident">selector</span>,
                 <span class="ident">case_blocks</span>,
                 <span class="ident">else_block</span>,
@@ -1002,7 +998,7 @@
                 });
                 <span class="ident">else_block</span>.<span class="ident">iter</span>().<span class="ident">for_each</span>(<span class="op">|</span><span class="ident">s</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">visit_statement</span>(<span class="ident">ctx</span>, <span class="ident">s</span>));
             }
-            <span class="ident">Statement::CaseCondition</span> { <span class="ident">condition</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">visit_statement</span>(<span class="ident">ctx</span>, <span class="ident">condition</span>),
+            <span class="ident">AstStatement::CaseCondition</span> { <span class="ident">condition</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">visit_statement</span>(<span class="ident">ctx</span>, <span class="ident">condition</span>),
             <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="self">self</span>.<span class="ident">visit_statement_expression</span>(<span class="ident">ctx</span>, <span class="ident">statement</span>);
             }
@@ -1010,9 +1006,9 @@
     }
 
     <span class="doccomment">/// annotate an expression statement</span>
-    <span class="kw">fn</span> <span class="ident">visit_statement_expression</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="ident">VisitorContext</span>, <span class="ident">statement</span>: <span class="kw-2">&amp;</span><span class="ident">Statement</span>) {
+    <span class="kw">fn</span> <span class="ident">visit_statement_expression</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="ident">VisitorContext</span>, <span class="ident">statement</span>: <span class="kw-2">&amp;</span><span class="ident">AstStatement</span>) {
         <span class="kw">match</span> <span class="ident">statement</span> {
-            <span class="ident">Statement::ArrayAccess</span> {
+            <span class="ident">AstStatement::ArrayAccess</span> {
                 <span class="ident">reference</span>, <span class="ident">access</span>, ..
             } <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="macro">visit_all_statements!</span>(<span class="self">self</span>, <span class="ident">ctx</span>, <span class="ident">reference</span>, <span class="ident">access</span>);
@@ -1033,7 +1029,7 @@
                         .<span class="ident">annotate</span>(<span class="ident">statement</span>, <span class="ident">StatementAnnotation::expression</span>(<span class="ident">t</span>));
                 }
             }
-            <span class="ident">Statement::BinaryExpression</span> { <span class="ident">left</span>, <span class="ident">right</span>, .. } <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">AstStatement::BinaryExpression</span> { <span class="ident">left</span>, <span class="ident">right</span>, .. } <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="macro">visit_all_statements!</span>(<span class="self">self</span>, <span class="ident">ctx</span>, <span class="ident">left</span>, <span class="ident">right</span>);
                 <span class="kw">let</span> <span class="ident">left</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>
                     .<span class="ident">annotation_map</span>
@@ -1050,7 +1046,7 @@
                         .<span class="ident">annotate</span>(<span class="ident">statement</span>, <span class="ident">StatementAnnotation::expression</span>(<span class="ident">bigger_name</span>));
                 }
             }
-            <span class="ident">Statement::UnaryExpression</span> {
+            <span class="ident">AstStatement::UnaryExpression</span> {
                 <span class="ident">value</span>, <span class="ident">operator</span>, ..
             } <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="self">self</span>.<span class="ident">visit_statement</span>(<span class="ident">ctx</span>, <span class="ident">value</span>);
@@ -1073,7 +1069,7 @@
                     );
                 }
             }
-            <span class="ident">Statement::Reference</span> { <span class="ident">name</span>, .. } <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">AstStatement::Reference</span> { <span class="ident">name</span>, .. } <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">let</span> <span class="ident">annotation</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">qualifier</span>) <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">qualifier</span>.<span class="ident">as_deref</span>() {
                     <span class="comment">// if we see a qualifier, we only consider [qualifier].[name] as candidates</span>
                     <span class="self">self</span>.<span class="ident">index</span>
@@ -1116,7 +1112,7 @@
                     <span class="self">self</span>.<span class="ident">annotation_map</span>.<span class="ident">annotate</span>(<span class="ident">statement</span>, <span class="ident">annotation</span>)
                 }
             }
-            <span class="ident">Statement::QualifiedReference</span> { <span class="ident">elements</span>, .. } <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">AstStatement::QualifiedReference</span> { <span class="ident">elements</span>, .. } <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">ctx</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">clone</span>();
                 <span class="kw">for</span> <span class="ident">s</span> <span class="kw">in</span> <span class="ident">elements</span>.<span class="ident">iter</span>() {
                     <span class="self">self</span>.<span class="ident">visit_statement</span>(<span class="kw-2">&amp;</span><span class="ident">ctx</span>, <span class="ident">s</span>);
@@ -1125,15 +1121,15 @@
                         .<span class="ident">annotation_map</span>
                         .<span class="ident">get_annotation</span>(<span class="ident">s</span>)
                         .<span class="ident">map</span>(<span class="op">|</span><span class="ident">it</span><span class="op">|</span> <span class="kw">match</span> <span class="ident">it</span> {
-                            <span class="ident">StatementAnnotation::ExpressionAnnotation</span> { <span class="ident">resulting_type</span> } <span class="op">=</span><span class="op">&gt;</span> {
+                            <span class="ident">StatementAnnotation::Value</span> { <span class="ident">resulting_type</span> } <span class="op">=</span><span class="op">&gt;</span> {
                                 <span class="ident">resulting_type</span>.<span class="ident">as_str</span>()
                             }
-                            <span class="ident">StatementAnnotation::VariableAnnotation</span> { <span class="ident">resulting_type</span>, .. } <span class="op">=</span><span class="op">&gt;</span> {
+                            <span class="ident">StatementAnnotation::Variable</span> { <span class="ident">resulting_type</span>, .. } <span class="op">=</span><span class="op">&gt;</span> {
                                 <span class="ident">resulting_type</span>.<span class="ident">as_str</span>()
                             }
-                            <span class="ident">StatementAnnotation::FunctionAnnotation</span> { .. } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">VOID_TYPE</span>,
-                            <span class="ident">StatementAnnotation::TypeAnnotation</span> { <span class="ident">type_name</span> } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">type_name</span>.<span class="ident">as_str</span>(),
-                            <span class="ident">StatementAnnotation::ProgramAnnotation</span> { <span class="ident">qualified_name</span> } <span class="op">=</span><span class="op">&gt;</span> {
+                            <span class="ident">StatementAnnotation::Function</span> { .. } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">VOID_TYPE</span>,
+                            <span class="ident">StatementAnnotation::Type</span> { <span class="ident">type_name</span> } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">type_name</span>.<span class="ident">as_str</span>(),
+                            <span class="ident">StatementAnnotation::Program</span> { <span class="ident">qualified_name</span> } <span class="op">=</span><span class="op">&gt;</span> {
                                 <span class="ident">qualified_name</span>.<span class="ident">as_str</span>()
                             }
                         })
@@ -1149,13 +1145,13 @@
                     }
                 }
             }
-            <span class="ident">Statement::ExpressionList</span> { <span class="ident">expressions</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">expressions</span>
+            <span class="ident">AstStatement::ExpressionList</span> { <span class="ident">expressions</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">expressions</span>
                 .<span class="ident">iter</span>()
                 .<span class="ident">for_each</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">visit_statement</span>(<span class="ident">ctx</span>, <span class="ident">e</span>)),
-            <span class="ident">Statement::RangeStatement</span> { <span class="ident">start</span>, <span class="ident">end</span>, .. } <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">AstStatement::RangeStatement</span> { <span class="ident">start</span>, <span class="ident">end</span>, .. } <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="macro">visit_all_statements!</span>(<span class="self">self</span>, <span class="ident">ctx</span>, <span class="ident">start</span>, <span class="ident">end</span>);
             }
-            <span class="ident">Statement::Assignment</span> { <span class="ident">left</span>, <span class="ident">right</span>, .. } <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">AstStatement::Assignment</span> { <span class="ident">left</span>, <span class="ident">right</span>, .. } <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="self">self</span>.<span class="ident">visit_statement</span>(<span class="ident">ctx</span>, <span class="ident">right</span>);
                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">lhs</span>) <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">call</span> {
                     <span class="comment">//special context for left hand side</span>
@@ -1164,7 +1160,7 @@
                     <span class="self">self</span>.<span class="ident">visit_statement</span>(<span class="ident">ctx</span>, <span class="ident">left</span>);
                 }
             }
-            <span class="ident">Statement::OutputAssignment</span> { <span class="ident">left</span>, <span class="ident">right</span>, .. } <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">AstStatement::OutputAssignment</span> { <span class="ident">left</span>, <span class="ident">right</span>, .. } <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="macro">visit_all_statements!</span>(<span class="self">self</span>, <span class="ident">ctx</span>, <span class="ident">left</span>, <span class="ident">right</span>);
                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">lhs</span>) <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">call</span> {
                     <span class="comment">//special context for left hand side</span>
@@ -1173,7 +1169,7 @@
                     <span class="self">self</span>.<span class="ident">visit_statement</span>(<span class="ident">ctx</span>, <span class="ident">left</span>);
                 }
             }
-            <span class="ident">Statement::CallStatement</span> {
+            <span class="ident">AstStatement::CallStatement</span> {
                 <span class="ident">parameters</span>,
                 <span class="ident">operator</span>,
                 ..
@@ -1184,13 +1180,13 @@
                         .<span class="ident">annotation_map</span>
                         .<span class="ident">get_annotation</span>(<span class="ident">operator</span>)
                         .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">it</span><span class="op">|</span> <span class="kw">match</span> <span class="ident">it</span> {
-                            <span class="ident">StatementAnnotation::FunctionAnnotation</span> { <span class="ident">qualified_name</span>, .. } <span class="op">=</span><span class="op">&gt;</span> {
+                            <span class="ident">StatementAnnotation::Function</span> { <span class="ident">qualified_name</span>, .. } <span class="op">=</span><span class="op">&gt;</span> {
                                 <span class="prelude-val">Some</span>(<span class="ident">qualified_name</span>.<span class="ident">clone</span>())
                             }
-                            <span class="ident">StatementAnnotation::ProgramAnnotation</span> { <span class="ident">qualified_name</span> } <span class="op">=</span><span class="op">&gt;</span> {
+                            <span class="ident">StatementAnnotation::Program</span> { <span class="ident">qualified_name</span> } <span class="op">=</span><span class="op">&gt;</span> {
                                 <span class="prelude-val">Some</span>(<span class="ident">qualified_name</span>.<span class="ident">clone</span>())
                             }
-                            <span class="ident">StatementAnnotation::VariableAnnotation</span> { <span class="ident">resulting_type</span>, .. } <span class="op">=</span><span class="op">&gt;</span> {
+                            <span class="ident">StatementAnnotation::Variable</span> { <span class="ident">resulting_type</span>, .. } <span class="op">=</span><span class="op">&gt;</span> {
                                 <span class="comment">//lets see if this is a FB</span>
                                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">implementation</span>) <span class="op">=</span>
                                     <span class="self">self</span>.<span class="ident">index</span>.<span class="ident">find_implementation</span>(<span class="ident">resulting_type</span>.<span class="ident">as_str</span>())
@@ -1214,7 +1210,7 @@
                     <span class="self">self</span>.<span class="ident">visit_statement</span>(<span class="kw-2">&amp;</span><span class="ident">ctx</span>, <span class="ident">s</span>);
                 }
 
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">StatementAnnotation::FunctionAnnotation</span> { <span class="ident">return_type</span>, .. }) <span class="op">=</span>
+                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">StatementAnnotation::Function</span> { <span class="ident">return_type</span>, .. }) <span class="op">=</span>
                     <span class="self">self</span>.<span class="ident">annotation_map</span>.<span class="ident">get</span>(<span class="ident">operator</span>)
                 {
                     <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">return_type</span>) <span class="op">=</span> <span class="self">self</span>
@@ -1235,53 +1231,53 @@
     }
 
     <span class="doccomment">/// annotate a literal statement</span>
-    <span class="kw">fn</span> <span class="ident">visit_statement_literals</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="ident">VisitorContext</span>, <span class="ident">statement</span>: <span class="kw-2">&amp;</span><span class="ident">Statement</span>) {
+    <span class="kw">fn</span> <span class="ident">visit_statement_literals</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="ident">VisitorContext</span>, <span class="ident">statement</span>: <span class="kw-2">&amp;</span><span class="ident">AstStatement</span>) {
         <span class="kw">match</span> <span class="ident">statement</span> {
-            <span class="ident">Statement::LiteralBool</span> { .. } <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">AstStatement::LiteralBool</span> { .. } <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="self">self</span>.<span class="ident">annotation_map</span>
                     .<span class="ident">annotate</span>(<span class="ident">statement</span>, <span class="ident">StatementAnnotation::expression</span>(<span class="ident">BOOL_TYPE</span>));
             }
 
-            <span class="ident">Statement::LiteralString</span> { .. } <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">AstStatement::LiteralString</span> { .. } <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="self">self</span>.<span class="ident">annotation_map</span>
                     .<span class="ident">annotate</span>(<span class="ident">statement</span>, <span class="ident">StatementAnnotation::expression</span>(<span class="ident">STRING_TYPE</span>));
             }
-            <span class="ident">Statement::LiteralInteger</span> { <span class="ident">value</span>, .. } <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">AstStatement::LiteralInteger</span> { <span class="ident">value</span>, .. } <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="self">self</span>.<span class="ident">annotation_map</span>.<span class="ident">annotate</span>(
                     <span class="ident">statement</span>,
                     <span class="ident">StatementAnnotation::expression</span>(<span class="ident">get_int_type_name_for</span>(<span class="kw-2">*</span><span class="ident">value</span>)),
                 );
             }
-            <span class="ident">Statement::LiteralTime</span> { .. } <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>
+            <span class="ident">AstStatement::LiteralTime</span> { .. } <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>
                 .<span class="ident">annotation_map</span>
                 .<span class="ident">annotate</span>(<span class="ident">statement</span>, <span class="ident">StatementAnnotation::expression</span>(<span class="ident">TIME_TYPE</span>)),
-            <span class="ident">Statement::LiteralTimeOfDay</span> { .. } <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">AstStatement::LiteralTimeOfDay</span> { .. } <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="self">self</span>.<span class="ident">annotation_map</span>
                     .<span class="ident">annotate</span>(<span class="ident">statement</span>, <span class="ident">StatementAnnotation::expression</span>(<span class="ident">TIME_OF_DAY_TYPE</span>));
             }
-            <span class="ident">Statement::LiteralDate</span> { .. } <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">AstStatement::LiteralDate</span> { .. } <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="self">self</span>.<span class="ident">annotation_map</span>
                     .<span class="ident">annotate</span>(<span class="ident">statement</span>, <span class="ident">StatementAnnotation::expression</span>(<span class="ident">DATE_TYPE</span>));
             }
-            <span class="ident">Statement::LiteralDateAndTime</span> { .. } <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">AstStatement::LiteralDateAndTime</span> { .. } <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="self">self</span>.<span class="ident">annotation_map</span>.<span class="ident">annotate</span>(
                     <span class="ident">statement</span>,
                     <span class="ident">StatementAnnotation::expression</span>(<span class="ident">DATE_AND_TIME_TYPE</span>),
                 );
             }
-            <span class="ident">Statement::LiteralReal</span> { .. } <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">AstStatement::LiteralReal</span> { .. } <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="comment">//TODO when do we need a LREAL literal?</span>
                 <span class="self">self</span>.<span class="ident">annotation_map</span>
                     .<span class="ident">annotate</span>(<span class="ident">statement</span>, <span class="ident">StatementAnnotation::expression</span>(<span class="ident">REAL_TYPE</span>));
             }
-            <span class="ident">Statement::LiteralArray</span> {
+            <span class="ident">AstStatement::LiteralArray</span> {
                 <span class="ident">elements</span>: <span class="prelude-val">Some</span>(<span class="ident">elements</span>),
                 ..
             } <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="self">self</span>.<span class="ident">visit_statement</span>(<span class="ident">ctx</span>, <span class="ident">elements</span>.<span class="ident">as_ref</span>());
                 <span class="comment">//TODO as of yet we have no way to derive a name that reflects a fixed size array</span>
             }
-            <span class="ident">Statement::MultipliedStatement</span> { <span class="ident">element</span>, .. } <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">AstStatement::MultipliedStatement</span> { <span class="ident">element</span>, .. } <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="self">self</span>.<span class="ident">visit_statement</span>(<span class="ident">ctx</span>, <span class="ident">element</span>)
                 <span class="comment">//TODO as of yet we have no way to derive a name that reflects a fixed size array</span>
             }
@@ -1291,19 +1287,19 @@
 }
 
 <span class="kw">fn</span> <span class="ident">to_type_annotation</span>(<span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">StatementAnnotation</span> {
-    <span class="ident">StatementAnnotation::TypeAnnotation</span> {
+    <span class="ident">StatementAnnotation::Type</span> {
         <span class="ident">type_name</span>: <span class="ident">name</span>.<span class="ident">into</span>(),
     }
 }
 
 <span class="kw">fn</span> <span class="ident">to_programm_annotation</span>(<span class="ident">it</span>: <span class="kw-2">&amp;</span><span class="ident">ImplementationIndexEntry</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">StatementAnnotation</span> {
-    <span class="ident">StatementAnnotation::ProgramAnnotation</span> {
+    <span class="ident">StatementAnnotation::Program</span> {
         <span class="ident">qualified_name</span>: <span class="ident">it</span>.<span class="ident">get_call_name</span>().<span class="ident">into</span>(),
     }
 }
 
 <span class="kw">fn</span> <span class="ident">to_variable_annotation</span>(<span class="ident">v</span>: <span class="kw-2">&amp;</span><span class="ident">VariableIndexEntry</span>, <span class="ident">index</span>: <span class="kw-2">&amp;</span><span class="ident">Index</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">StatementAnnotation</span> {
-    <span class="ident">StatementAnnotation::VariableAnnotation</span> {
+    <span class="ident">StatementAnnotation::Variable</span> {
         <span class="ident">qualified_name</span>: <span class="ident">v</span>.<span class="ident">get_qualified_name</span>().<span class="ident">into</span>(),
         <span class="ident">resulting_type</span>: <span class="ident">index</span>
             .<span class="ident">get_effective_type_by_name</span>(<span class="ident">v</span>.<span class="ident">get_type_name</span>())
@@ -1316,7 +1312,7 @@
     <span class="ident">it</span>: <span class="kw-2">&amp;</span><span class="kw">crate</span><span class="ident">::index::ImplementationIndexEntry</span>,
     <span class="ident">index</span>: <span class="kw-2">&amp;</span><span class="ident">Index</span>,
 ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">StatementAnnotation</span> {
-    <span class="ident">StatementAnnotation::FunctionAnnotation</span> {
+    <span class="ident">StatementAnnotation::Function</span> {
         <span class="ident">qualified_name</span>: <span class="ident">it</span>.<span class="ident">get_call_name</span>().<span class="ident">into</span>(),
         <span class="ident">return_type</span>: <span class="ident">index</span>
             .<span class="ident">find_return_type</span>(<span class="ident">it</span>.<span class="ident">get_call_name</span>())

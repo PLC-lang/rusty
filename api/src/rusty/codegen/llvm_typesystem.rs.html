@@ -358,8 +358,8 @@
 };
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
+    <span class="ident">ast::AstStatement</span>,
     <span class="ident">ast::SourceRange</span>,
-    <span class="ident">ast::Statement</span>,
     <span class="ident">compile_error::CompileError</span>,
     <span class="ident">index::Index</span>,
     <span class="ident">typesystem</span>::{<span class="ident">get_bigger_type</span>, <span class="ident">DataTypeInformation</span>},
@@ -507,7 +507,7 @@
     <span class="ident">target_type</span>: <span class="kw-2">&amp;</span><span class="ident">DataTypeInformation</span>,
     <span class="ident">value</span>: <span class="ident">BasicValueEnum</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span>,
     <span class="ident">value_type</span>: <span class="kw-2">&amp;</span><span class="ident">DataTypeInformation</span>,
-    <span class="ident">location_context</span>: <span class="kw-2">&amp;</span><span class="ident">Statement</span>,
+    <span class="ident">location_context</span>: <span class="kw-2">&amp;</span><span class="ident">AstStatement</span>,
 ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">BasicValueEnum</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span>, <span class="ident">CompileError</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">builder</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">llvm</span>.<span class="ident">builder</span>;
     <span class="kw">let</span> <span class="ident">target_type</span> <span class="op">=</span> <span class="ident">index</span>
@@ -551,7 +551,7 @@
                             <span class="kw-2">&amp;</span><span class="ident">llvm</span>.<span class="ident">builder</span>,
                             <span class="ident">value</span>,
                             <span class="ident">value_type</span>,
-                            <span class="kw-2">&amp;</span><span class="ident">target_type</span>,
+                            <span class="ident">target_type</span>,
                         ))
                     }
                 }
@@ -576,8 +576,8 @@
                     }
                 }
                 <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">CompileError::casting_error</span>(
-                    <span class="kw-2">&amp;</span><span class="ident">value_type</span>.<span class="ident">get_name</span>(),
-                    <span class="kw-2">&amp;</span><span class="ident">target_type</span>.<span class="ident">get_name</span>(),
+                    <span class="ident">value_type</span>.<span class="ident">get_name</span>(),
+                    <span class="ident">target_type</span>.<span class="ident">get_name</span>(),
                     <span class="ident">location_context</span>.<span class="ident">get_location</span>(),
                 )),
             }
@@ -617,17 +617,17 @@
                         .<span class="ident">into</span>())
                 } <span class="kw">else</span> {
                     <span class="prelude-val">Ok</span>(<span class="ident">promote_value_if_needed</span>(
-                        <span class="kw-2">&amp;</span><span class="ident">llvm</span>.<span class="ident">context</span>,
+                        <span class="ident">llvm</span>.<span class="ident">context</span>,
                         <span class="kw-2">&amp;</span><span class="ident">llvm</span>.<span class="ident">builder</span>,
                         <span class="ident">value</span>,
                         <span class="ident">value_type</span>,
-                        <span class="kw-2">&amp;</span><span class="ident">target_type</span>,
+                        <span class="ident">target_type</span>,
                     ))
                 }
             }
             <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">CompileError::casting_error</span>(
-                <span class="kw-2">&amp;</span><span class="ident">value_type</span>.<span class="ident">get_name</span>(),
-                <span class="kw-2">&amp;</span><span class="ident">target_type</span>.<span class="ident">get_name</span>(),
+                <span class="ident">value_type</span>.<span class="ident">get_name</span>(),
+                <span class="ident">target_type</span>.<span class="ident">get_name</span>(),
                 <span class="ident">location_context</span>.<span class="ident">get_location</span>(),
             )),
         },
@@ -645,8 +645,8 @@
                         <span class="prelude-val">Ok</span>(<span class="ident">value</span>)
                     } <span class="kw">else</span> {
                         <span class="prelude-val">Err</span>(<span class="ident">CompileError::casting_error</span>(
-                            <span class="kw-2">&amp;</span><span class="ident">value_type</span>.<span class="ident">get_name</span>(),
-                            <span class="kw-2">&amp;</span><span class="ident">target_type</span>.<span class="ident">get_name</span>(),
+                            <span class="ident">value_type</span>.<span class="ident">get_name</span>(),
+                            <span class="ident">target_type</span>.<span class="ident">get_name</span>(),
                             <span class="ident">location_context</span>.<span class="ident">get_location</span>(),
                         ))
                     }
@@ -655,8 +655,8 @@
                 }
             }
             <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">CompileError::casting_error</span>(
-                <span class="kw-2">&amp;</span><span class="ident">value_type</span>.<span class="ident">get_name</span>(),
-                <span class="kw-2">&amp;</span><span class="ident">target_type</span>.<span class="ident">get_name</span>(),
+                <span class="ident">value_type</span>.<span class="ident">get_name</span>(),
+                <span class="ident">target_type</span>.<span class="ident">get_name</span>(),
                 <span class="ident">location_context</span>.<span class="ident">get_location</span>(),
             )),
         },

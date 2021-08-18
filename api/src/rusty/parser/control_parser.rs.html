@@ -266,7 +266,7 @@
 <span class="kw">use</span> <span class="kw">super</span><span class="ident">::ParseSession</span>;
 <span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">parse_expression</span>, <span class="ident">parse_reference</span>, <span class="ident">parse_statement</span>};
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">parse_control_statement</span>(<span class="ident">lexer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ParseSession</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Statement</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">parse_control_statement</span>(<span class="ident">lexer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ParseSession</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">AstStatement</span> {
     <span class="kw">match</span> <span class="ident">lexer</span>.<span class="ident">token</span> {
         <span class="ident">KeywordIf</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">parse_if_statement</span>(<span class="ident">lexer</span>),
         <span class="ident">KeywordFor</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">parse_for_statement</span>(<span class="ident">lexer</span>),
@@ -280,34 +280,34 @@
     }
 }
 
-<span class="kw">fn</span> <span class="ident">parse_return_statement</span>(<span class="ident">lexer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ParseSession</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Statement</span> {
+<span class="kw">fn</span> <span class="ident">parse_return_statement</span>(<span class="ident">lexer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ParseSession</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">AstStatement</span> {
     <span class="kw">let</span> <span class="ident">location</span> <span class="op">=</span> <span class="ident">lexer</span>.<span class="ident">location</span>();
     <span class="ident">lexer</span>.<span class="ident">advance</span>();
-    <span class="ident">Statement::ReturnStatement</span> {
+    <span class="ident">AstStatement::ReturnStatement</span> {
         <span class="ident">location</span>,
         <span class="ident">id</span>: <span class="ident">lexer</span>.<span class="ident">next_id</span>(),
     }
 }
 
-<span class="kw">fn</span> <span class="ident">parse_exit_statement</span>(<span class="ident">lexer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ParseSession</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Statement</span> {
+<span class="kw">fn</span> <span class="ident">parse_exit_statement</span>(<span class="ident">lexer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ParseSession</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">AstStatement</span> {
     <span class="kw">let</span> <span class="ident">location</span> <span class="op">=</span> <span class="ident">lexer</span>.<span class="ident">location</span>();
     <span class="ident">lexer</span>.<span class="ident">advance</span>();
-    <span class="ident">Statement::ExitStatement</span> {
+    <span class="ident">AstStatement::ExitStatement</span> {
         <span class="ident">location</span>,
         <span class="ident">id</span>: <span class="ident">lexer</span>.<span class="ident">next_id</span>(),
     }
 }
 
-<span class="kw">fn</span> <span class="ident">parse_continue_statement</span>(<span class="ident">lexer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ParseSession</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Statement</span> {
+<span class="kw">fn</span> <span class="ident">parse_continue_statement</span>(<span class="ident">lexer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ParseSession</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">AstStatement</span> {
     <span class="kw">let</span> <span class="ident">location</span> <span class="op">=</span> <span class="ident">lexer</span>.<span class="ident">location</span>();
     <span class="ident">lexer</span>.<span class="ident">advance</span>();
-    <span class="ident">Statement::ContinueStatement</span> {
+    <span class="ident">AstStatement::ContinueStatement</span> {
         <span class="ident">location</span>,
         <span class="ident">id</span>: <span class="ident">lexer</span>.<span class="ident">next_id</span>(),
     }
 }
 
-<span class="kw">fn</span> <span class="ident">parse_if_statement</span>(<span class="ident">lexer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ParseSession</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Statement</span> {
+<span class="kw">fn</span> <span class="ident">parse_if_statement</span>(<span class="ident">lexer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ParseSession</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">AstStatement</span> {
     <span class="kw">let</span> <span class="ident">start</span> <span class="op">=</span> <span class="ident">lexer</span>.<span class="ident">range</span>().<span class="ident">start</span>;
     <span class="ident">lexer</span>.<span class="ident">advance</span>(); <span class="comment">//If</span>
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">conditional_blocks</span> <span class="op">=</span> <span class="macro">vec!</span>[];
@@ -317,7 +317,7 @@
         <span class="macro">expect_token!</span>(
             <span class="ident">lexer</span>,
             <span class="ident">KeywordThen</span>,
-            <span class="ident">Statement::EmptyStatement</span> {
+            <span class="ident">AstStatement::EmptyStatement</span> {
                 <span class="ident">location</span>: <span class="ident">lexer</span>.<span class="ident">location</span>(),
                 <span class="ident">id</span>: <span class="ident">lexer</span>.<span class="ident">next_id</span>(),
             }
@@ -340,7 +340,7 @@
 
     <span class="kw">let</span> <span class="ident">end</span> <span class="op">=</span> <span class="ident">lexer</span>.<span class="ident">last_range</span>.<span class="ident">end</span>;
 
-    <span class="ident">Statement::IfStatement</span> {
+    <span class="ident">AstStatement::IfStatement</span> {
         <span class="ident">blocks</span>: <span class="ident">conditional_blocks</span>,
         <span class="ident">else_block</span>,
         <span class="ident">location</span>: <span class="ident">SourceRange::new</span>(<span class="ident">start</span>..<span class="ident">end</span>),
@@ -348,7 +348,7 @@
     }
 }
 
-<span class="kw">fn</span> <span class="ident">parse_for_statement</span>(<span class="ident">lexer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ParseSession</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Statement</span> {
+<span class="kw">fn</span> <span class="ident">parse_for_statement</span>(<span class="ident">lexer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ParseSession</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">AstStatement</span> {
     <span class="kw">let</span> <span class="ident">start</span> <span class="op">=</span> <span class="ident">lexer</span>.<span class="ident">range</span>().<span class="ident">start</span>;
     <span class="ident">lexer</span>.<span class="ident">advance</span>(); <span class="comment">// FOR</span>
 
@@ -356,7 +356,7 @@
     <span class="macro">expect_token!</span>(
         <span class="ident">lexer</span>,
         <span class="ident">KeywordAssignment</span>,
-        <span class="ident">Statement::EmptyStatement</span> {
+        <span class="ident">AstStatement::EmptyStatement</span> {
             <span class="ident">location</span>: <span class="ident">lexer</span>.<span class="ident">location</span>(),
             <span class="ident">id</span>: <span class="ident">lexer</span>.<span class="ident">next_id</span>()
         }
@@ -367,7 +367,7 @@
     <span class="macro">expect_token!</span>(
         <span class="ident">lexer</span>,
         <span class="ident">KeywordTo</span>,
-        <span class="ident">Statement::EmptyStatement</span> {
+        <span class="ident">AstStatement::EmptyStatement</span> {
             <span class="ident">location</span>: <span class="ident">lexer</span>.<span class="ident">location</span>(),
             <span class="ident">id</span>: <span class="ident">lexer</span>.<span class="ident">next_id</span>(),
         }
@@ -384,7 +384,7 @@
 
     <span class="ident">lexer</span>.<span class="ident">consume_or_report</span>(<span class="ident">KeywordDo</span>); <span class="comment">// DO</span>
 
-    <span class="ident">Statement::ForLoopStatement</span> {
+    <span class="ident">AstStatement::ForLoopStatement</span> {
         <span class="ident">counter</span>: <span class="ident">Box::new</span>(<span class="ident">counter_expression</span>),
         <span class="ident">start</span>: <span class="ident">Box::new</span>(<span class="ident">start_expression</span>),
         <span class="ident">end</span>: <span class="ident">Box::new</span>(<span class="ident">end_expression</span>),
@@ -395,14 +395,14 @@
     }
 }
 
-<span class="kw">fn</span> <span class="ident">parse_while_statement</span>(<span class="ident">lexer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ParseSession</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Statement</span> {
+<span class="kw">fn</span> <span class="ident">parse_while_statement</span>(<span class="ident">lexer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ParseSession</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">AstStatement</span> {
     <span class="kw">let</span> <span class="ident">start</span> <span class="op">=</span> <span class="ident">lexer</span>.<span class="ident">range</span>().<span class="ident">start</span>;
     <span class="ident">lexer</span>.<span class="ident">advance</span>(); <span class="comment">//WHILE</span>
 
     <span class="kw">let</span> <span class="ident">condition</span> <span class="op">=</span> <span class="ident">parse_expression</span>(<span class="ident">lexer</span>);
     <span class="ident">lexer</span>.<span class="ident">consume_or_report</span>(<span class="ident">KeywordDo</span>);
 
-    <span class="ident">Statement::WhileLoopStatement</span> {
+    <span class="ident">AstStatement::WhileLoopStatement</span> {
         <span class="ident">condition</span>: <span class="ident">Box::new</span>(<span class="ident">condition</span>),
         <span class="ident">body</span>: <span class="ident">parse_body_in_region</span>(<span class="ident">lexer</span>, <span class="macro">vec!</span>[<span class="ident">KeywordEndWhile</span>]),
         <span class="ident">location</span>: <span class="ident">SourceRange::new</span>(<span class="ident">start</span>..<span class="ident">lexer</span>.<span class="ident">last_range</span>.<span class="ident">end</span>),
@@ -410,7 +410,7 @@
     }
 }
 
-<span class="kw">fn</span> <span class="ident">parse_repeat_statement</span>(<span class="ident">lexer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ParseSession</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Statement</span> {
+<span class="kw">fn</span> <span class="ident">parse_repeat_statement</span>(<span class="ident">lexer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ParseSession</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">AstStatement</span> {
     <span class="kw">let</span> <span class="ident">start</span> <span class="op">=</span> <span class="ident">lexer</span>.<span class="ident">range</span>().<span class="ident">start</span>;
     <span class="ident">lexer</span>.<span class="ident">advance</span>(); <span class="comment">//REPEAT</span>
 
@@ -420,13 +420,13 @@
             <span class="ident">parse_expression</span>(<span class="ident">lexer</span>)
         })
     } <span class="kw">else</span> {
-        <span class="ident">Statement::EmptyStatement</span> {
+        <span class="ident">AstStatement::EmptyStatement</span> {
             <span class="ident">location</span>: <span class="ident">lexer</span>.<span class="ident">location</span>(),
             <span class="ident">id</span>: <span class="ident">lexer</span>.<span class="ident">next_id</span>(),
         }
     };
 
-    <span class="ident">Statement::RepeatLoopStatement</span> {
+    <span class="ident">AstStatement::RepeatLoopStatement</span> {
         <span class="ident">condition</span>: <span class="ident">Box::new</span>(<span class="ident">condition</span>),
         <span class="ident">body</span>,
         <span class="ident">location</span>: <span class="ident">SourceRange::new</span>(<span class="ident">start</span>..<span class="ident">lexer</span>.<span class="ident">range</span>().<span class="ident">end</span>),
@@ -434,7 +434,7 @@
     }
 }
 
-<span class="kw">fn</span> <span class="ident">parse_case_statement</span>(<span class="ident">lexer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ParseSession</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Statement</span> {
+<span class="kw">fn</span> <span class="ident">parse_case_statement</span>(<span class="ident">lexer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ParseSession</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">AstStatement</span> {
     <span class="kw">let</span> <span class="ident">start</span> <span class="op">=</span> <span class="ident">lexer</span>.<span class="ident">range</span>().<span class="ident">start</span>;
     <span class="ident">lexer</span>.<span class="ident">advance</span>(); <span class="comment">// CASE</span>
 
@@ -443,7 +443,7 @@
     <span class="macro">expect_token!</span>(
         <span class="ident">lexer</span>,
         <span class="ident">KeywordOf</span>,
-        <span class="ident">Statement::EmptyStatement</span> {
+        <span class="ident">AstStatement::EmptyStatement</span> {
             <span class="ident">location</span>: <span class="ident">lexer</span>.<span class="ident">location</span>(),
             <span class="ident">id</span>: <span class="ident">lexer</span>.<span class="ident">next_id</span>()
         }
@@ -458,7 +458,7 @@
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">current_condition</span> <span class="op">=</span> <span class="prelude-val">None</span>;
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">current_body</span> <span class="op">=</span> <span class="macro">vec!</span>[];
         <span class="kw">for</span> <span class="ident">statement</span> <span class="kw">in</span> <span class="ident">body</span> {
-            <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Statement::CaseCondition</span> { <span class="ident">condition</span>, .. } <span class="op">=</span> <span class="ident">statement</span> {
+            <span class="kw">if</span> <span class="kw">let</span> <span class="ident">AstStatement::CaseCondition</span> { <span class="ident">condition</span>, .. } <span class="op">=</span> <span class="ident">statement</span> {
                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">condition</span>) <span class="op">=</span> <span class="ident">current_condition</span> {
                     <span class="kw">let</span> <span class="ident">block</span> <span class="op">=</span> <span class="ident">ConditionalBlock</span> {
                         <span class="ident">condition</span>,
@@ -475,7 +475,7 @@
                         <span class="string">&quot;Missing Case-Condition&quot;</span>,
                         <span class="ident">lexer</span>.<span class="ident">location</span>(),
                     ));
-                    <span class="ident">current_condition</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">Box::new</span>(<span class="ident">Statement::EmptyStatement</span> {
+                    <span class="ident">current_condition</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">Box::new</span>(<span class="ident">AstStatement::EmptyStatement</span> {
                         <span class="ident">location</span>: <span class="ident">lexer</span>.<span class="ident">location</span>(),
                         <span class="ident">id</span>: <span class="ident">lexer</span>.<span class="ident">next_id</span>(),
                     }));
@@ -499,7 +499,7 @@
     };
 
     <span class="kw">let</span> <span class="ident">end</span> <span class="op">=</span> <span class="ident">lexer</span>.<span class="ident">last_range</span>.<span class="ident">end</span>;
-    <span class="ident">Statement::CaseStatement</span> {
+    <span class="ident">AstStatement::CaseStatement</span> {
         <span class="ident">selector</span>,
         <span class="ident">case_blocks</span>,
         <span class="ident">else_block</span>,
