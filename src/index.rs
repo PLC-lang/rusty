@@ -2,7 +2,7 @@
 use indexmap::IndexMap;
 
 use crate::{
-    ast::{Implementation, PouType, SourceRange, Statement},
+    ast::{AstStatement, Implementation, PouType, SourceRange},
     compile_error::CompileError,
     typesystem::*,
 };
@@ -15,7 +15,7 @@ pub mod visitor;
 pub struct VariableIndexEntry {
     name: String,
     qualified_name: String,
-    pub initial_value: Option<Statement>,
+    pub initial_value: Option<AstStatement>,
     information: VariableInformation,
     pub source_location: SourceRange,
 }
@@ -252,7 +252,7 @@ impl Index {
         };
         for segment in segments.iter().skip(1) {
             result = match result {
-                Some(context) => self.find_member(&context.information.data_type_name, &segment),
+                Some(context) => self.find_member(&context.information.data_type_name, segment),
                 None => None,
             };
         }
@@ -289,12 +289,12 @@ impl Index {
             DataTypeInformation::SubRange {
                 referenced_type, ..
             } => self
-                .find_type(&referenced_type)
+                .find_type(referenced_type)
                 .and_then(|it| self.find_effective_type(it)),
             DataTypeInformation::Alias {
                 referenced_type, ..
             } => self
-                .find_type(&referenced_type)
+                .find_type(referenced_type)
                 .and_then(|it| self.find_effective_type(it)),
             _ => Some(data_type),
         }
@@ -310,12 +310,12 @@ impl Index {
             DataTypeInformation::SubRange {
                 referenced_type, ..
             } => self
-                .find_type(&referenced_type)
+                .find_type(referenced_type)
                 .and_then(|it| self.find_effective_type_information(it.get_type_information())),
             DataTypeInformation::Alias {
                 referenced_type, ..
             } => self
-                .find_type(&referenced_type)
+                .find_type(referenced_type)
                 .and_then(|it| self.find_effective_type_information(it.get_type_information())),
             _ => Some(data_type),
         }
@@ -396,7 +396,7 @@ impl Index {
     pub fn register_member_variable(
         &mut self,
         member_info: &MemberInfo,
-        initial_value: Option<Statement>,
+        initial_value: Option<AstStatement>,
         source_location: SourceRange,
         location: u32,
     ) {
@@ -431,7 +431,7 @@ impl Index {
         &mut self,
         name: &str,
         type_name: &str,
-        initial_value: Option<Statement>,
+        initial_value: Option<AstStatement>,
         source_location: SourceRange,
     ) {
         self.register_global_variable_with_name(
@@ -448,7 +448,7 @@ impl Index {
         association_name: &str,
         variable_name: &str,
         type_name: &str,
-        initial_value: Option<Statement>,
+        initial_value: Option<AstStatement>,
         source_location: SourceRange,
     ) {
         //REVIEW, this seems like a misuse of the qualified name to store the association name. Any other ideas?
@@ -476,7 +476,7 @@ impl Index {
     pub fn register_type(
         &mut self,
         type_name: &str,
-        initial_value: Option<Statement>,
+        initial_value: Option<AstStatement>,
         information: DataTypeInformation,
     ) {
         let index_entry = DataType {

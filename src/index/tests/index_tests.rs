@@ -603,25 +603,25 @@ fn find_effective_type_finds_the_inner_effective_type() {
     );
 
     let my_alias = index.find_type("MyAlias").unwrap().get_type_information();
-    let int = index.find_effective_type_information(&my_alias).unwrap();
+    let int = index.find_effective_type_information(my_alias).unwrap();
     assert_eq!("INT", int.get_name());
 
     let my_alias = index
         .find_type("MySecondAlias")
         .unwrap()
         .get_type_information();
-    let int = index.find_effective_type_information(&my_alias).unwrap();
+    let int = index.find_effective_type_information(my_alias).unwrap();
     assert_eq!("INT", int.get_name());
 
     let my_alias = index
         .find_type("MyArrayAlias")
         .unwrap()
         .get_type_information();
-    let array = index.find_effective_type_information(&my_alias).unwrap();
+    let array = index.find_effective_type_information(my_alias).unwrap();
     assert_eq!("MyArray", array.get_name());
 
     let my_alias = index.find_type("MyArray").unwrap().get_type_information();
-    let array = index.find_effective_type_information(&my_alias).unwrap();
+    let array = index.find_effective_type_information(my_alias).unwrap();
     assert_eq!("MyArray", array.get_name());
 }
 
@@ -937,13 +937,13 @@ fn pre_processing_generates_inline_arrays() {
     let expected = &UserTypeDeclaration {
         data_type: DataType::ArrayType {
             name: Some("__foo_inline_array".to_string()),
-            bounds: Statement::RangeStatement {
-                start: Box::new(Statement::LiteralInteger {
+            bounds: AstStatement::RangeStatement {
+                start: Box::new(AstStatement::LiteralInteger {
                     value: 0,
                     location: SourceRange::undefined(),
                     id: 0,
                 }),
-                end: Box::new(Statement::LiteralInteger {
+                end: Box::new(AstStatement::LiteralInteger {
                     value: 1,
                     location: SourceRange::undefined(),
                     id: 0,
@@ -994,13 +994,13 @@ fn pre_processing_generates_inline_array_of_array() {
     let expected = &UserTypeDeclaration {
         data_type: DataType::ArrayType {
             name: Some("__foo_inline_array_".to_string()),
-            bounds: Statement::RangeStatement {
-                start: Box::new(Statement::LiteralInteger {
+            bounds: AstStatement::RangeStatement {
+                start: Box::new(AstStatement::LiteralInteger {
                     value: 0,
                     location: SourceRange::undefined(),
                     id: 0,
                 }),
-                end: Box::new(Statement::LiteralInteger {
+                end: Box::new(AstStatement::LiteralInteger {
                     value: 1,
                     location: SourceRange::undefined(),
                     id: 0,
@@ -1022,13 +1022,13 @@ fn pre_processing_generates_inline_array_of_array() {
     let expected = &UserTypeDeclaration {
         data_type: DataType::ArrayType {
             name: Some("__foo_inline_array".to_string()),
-            bounds: Statement::RangeStatement {
-                start: Box::new(Statement::LiteralInteger {
+            bounds: AstStatement::RangeStatement {
+                start: Box::new(AstStatement::LiteralInteger {
                     value: 0,
                     location: SourceRange::undefined(),
                     id: 0,
                 }),
-                end: Box::new(Statement::LiteralInteger {
+                end: Box::new(AstStatement::LiteralInteger {
                     value: 1,
                     location: SourceRange::undefined(),
                     id: 0,
@@ -1106,13 +1106,13 @@ fn pre_processing_nested_array_in_struct() {
     let expected = &UserTypeDeclaration {
         data_type: DataType::ArrayType {
             name: Some("__MyStruct_field1".to_string()),
-            bounds: Statement::RangeStatement {
-                start: Box::new(Statement::LiteralInteger {
+            bounds: AstStatement::RangeStatement {
+                start: Box::new(AstStatement::LiteralInteger {
                     value: 0,
                     location: SourceRange::undefined(),
                     id: 0,
                 }),
-                end: Box::new(Statement::LiteralInteger {
+                end: Box::new(AstStatement::LiteralInteger {
                     value: 4,
                     location: SourceRange::undefined(),
                     id: 0,
@@ -1153,13 +1153,13 @@ fn pre_processing_generates_inline_array_of_array_of_array() {
     let expected = &UserTypeDeclaration {
         data_type: DataType::ArrayType {
             name: Some("__foo_inline_array__".to_string()),
-            bounds: Statement::RangeStatement {
-                start: Box::new(Statement::LiteralInteger {
+            bounds: AstStatement::RangeStatement {
+                start: Box::new(AstStatement::LiteralInteger {
                     value: 0,
                     location: SourceRange::undefined(),
                     id: 0,
                 }),
-                end: Box::new(Statement::LiteralInteger {
+                end: Box::new(AstStatement::LiteralInteger {
                     value: 1,
                     location: SourceRange::undefined(),
                     id: 0,
@@ -1181,13 +1181,13 @@ fn pre_processing_generates_inline_array_of_array_of_array() {
     let expected = UserTypeDeclaration {
         data_type: DataType::ArrayType {
             name: Some("__foo_inline_array_".to_string()),
-            bounds: Statement::RangeStatement {
-                start: Box::new(Statement::LiteralInteger {
+            bounds: AstStatement::RangeStatement {
+                start: Box::new(AstStatement::LiteralInteger {
                     value: 0,
                     location: SourceRange::undefined(),
                     id: 0,
                 }),
-                end: Box::new(Statement::LiteralInteger {
+                end: Box::new(AstStatement::LiteralInteger {
                     value: 1,
                     location: SourceRange::undefined(),
                     id: 0,
@@ -1209,13 +1209,13 @@ fn pre_processing_generates_inline_array_of_array_of_array() {
     let expected = UserTypeDeclaration {
         data_type: DataType::ArrayType {
             name: Some("__foo_inline_array".to_string()),
-            bounds: Statement::RangeStatement {
-                start: Box::new(Statement::LiteralInteger {
+            bounds: AstStatement::RangeStatement {
+                start: Box::new(AstStatement::LiteralInteger {
                     value: 0,
                     location: SourceRange::undefined(),
                     id: 0,
                 }),
-                end: Box::new(Statement::LiteralInteger {
+                end: Box::new(AstStatement::LiteralInteger {
                     value: 1,
                     location: SourceRange::undefined(),
                     id: 0,
@@ -1258,11 +1258,11 @@ fn sub_range_boundaries_are_registered_at_the_index() {
     let expected = &DataTypeInformation::SubRange {
         name: "MyInt".to_string(),
         referenced_type: "INT".to_string(),
-        sub_range: Statement::LiteralInteger {
+        sub_range: AstStatement::LiteralInteger {
             value: 7,
             location: SourceRange::undefined(),
             id: 0,
-        }..Statement::LiteralInteger {
+        }..AstStatement::LiteralInteger {
             value: 1000,
             location: SourceRange::undefined(),
             id: 0,

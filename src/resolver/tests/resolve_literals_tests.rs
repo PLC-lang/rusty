@@ -37,10 +37,7 @@ fn string_literals_are_annotated() {
     let statements = &unit.implementations[0].statements;
 
     for s in statements.iter() {
-        assert_eq!(
-            "STRING",
-            annotations.get_type_or_void(&s, &index).get_name()
-        );
+        assert_eq!("STRING", annotations.get_type_or_void(s, &index).get_name());
     }
 }
 
@@ -64,7 +61,7 @@ fn int_literals_are_annotated() {
 
     let types: Vec<&str> = statements
         .iter()
-        .map(|s| annotations.get_type_or_void(&s, &index).get_name())
+        .map(|s| annotations.get_type_or_void(s, &index).get_name())
         .collect();
 
     assert_eq!(expected_types, types);
@@ -100,7 +97,7 @@ fn date_literals_are_annotated() {
     for (i, s) in statements.iter().enumerate() {
         assert_eq!(
             expected_types[i],
-            annotations.get_type_or_void(&s, &index).get_name(),
+            annotations.get_type_or_void(s, &index).get_name(),
             "{:#?}",
             s
         );
@@ -122,7 +119,7 @@ fn real_literals_are_annotated() {
     for (i, s) in statements.iter().enumerate() {
         assert_eq!(
             expected_types[i].to_string(),
-            annotations.get_type_or_void(&s, &index).get_name(),
+            annotations.get_type_or_void(s, &index).get_name(),
             "{:#?}",
             s
         );

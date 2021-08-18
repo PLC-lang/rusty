@@ -10,11 +10,7 @@ fn simple_class_without_name() {
 
     assert_eq!(
         diagnostics.first().unwrap(),
-        &Diagnostic::unexpected_token_found(
-            "Identifier".into(),
-            "END_CLASS".into(),
-            SourceRange::new(6..15)
-        )
+        &Diagnostic::unexpected_token_found("Identifier", "END_CLASS", SourceRange::new(6..15))
     );
 }
 
@@ -25,10 +21,6 @@ fn method_with_invalid_return_type() {
 
     assert_eq!(
         diagnostics.first().unwrap(),
-        &Diagnostic::unexpected_token_found(
-            "Datatype".into(),
-            "ABSTRACT".into(),
-            SourceRange::new(29..37),
-        )
+        &Diagnostic::unexpected_token_found("Datatype", "ABSTRACT", SourceRange::new(29..37),)
     );
 }

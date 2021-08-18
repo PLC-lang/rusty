@@ -1,4 +1,4 @@
-use crate::ast::{SourceRange, Statement};
+use crate::ast::{AstStatement, SourceRange};
 
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 mod class_parser_tests;
@@ -19,8 +19,8 @@ pub fn lex(source: &str) -> crate::lexer::ParseSession {
 }
 
 /// helper function to create references
-pub fn ref_to(name: &str) -> Statement {
-    Statement::Reference {
+pub fn ref_to(name: &str) -> AstStatement {
+    AstStatement::Reference {
         location: SourceRange::undefined(),
         name: name.to_string(),
         id: 0,
@@ -28,8 +28,8 @@ pub fn ref_to(name: &str) -> Statement {
 }
 
 /// helper function to create empty statements
-pub fn empty_stmt() -> Statement {
-    Statement::EmptyStatement {
+pub fn empty_stmt() -> AstStatement {
+    AstStatement::EmptyStatement {
         location: SourceRange::undefined(),
         id: 0,
     }
