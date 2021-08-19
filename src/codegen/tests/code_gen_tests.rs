@@ -1398,6 +1398,53 @@ continue:                                         ; preds = %for_body, %conditio
 }
 
 #[test]
+fn class_member_access_from_method() {
+    let result = codegen!(
+        "
+    CLASS MyClass
+        VAR
+            x, y : INT;
+        END_VAR
+    
+        METHOD testMethod
+            VAR_INPUT myMethodArg : INT; END_VAR
+            VAR myMethodLocalVar : INT; END_VAR
+    
+            x := myMethodArg;
+            y := x;
+            myMethodLocalVar = y;
+        END_METHOD
+    END_CLASS
+        "
+    );
+
+    let expected = r#"; ModuleID = 'main'
+source_filename = "main"
+
+%MyClass.testMethod_interface = type { i16, i16 }
+%MyClass_interface = type { i16, i16 }
+
+define void @MyClass.testMethod(%MyClass.testMethod_interface* %0, %MyClass_interface* %1) {
+entry:
+  %myMethodArg = getelementptr inbounds %MyClass.testMethod_interface, %MyClass.testMethod_interface* %0, i32 0, i32 0
+  %myMethodLocalVar = getelementptr inbounds %MyClass.testMethod_interface, %MyClass.testMethod_interface* %0, i32 0, i32 1
+  %x = getelementptr inbounds %MyClass_interface, %MyClass_interface* %1, i32 0, i32 0
+  %y = getelementptr inbounds %MyClass_interface, %MyClass_interface* %1, i32 0, i32 1
+  %load_myMethodArg = load i16, i16* %myMethodArg, align 2
+  store i16 %load_myMethodArg, i16* %x, align 2
+  %load_x = load i16, i16* %x, align 2
+  store i16 %load_x, i16* %y, align 2
+  %load_myMethodLocalVar = load i16, i16* %myMethodLocalVar, align 2
+  %load_y = load i16, i16* %y, align 2
+  %tmpVar = icmp eq i16 %load_myMethodLocalVar, %load_y
+  ret void
+}
+"#;
+
+    assert_eq!(result, expected.to_string());
+}
+
+#[test]
 fn while_loop_with_if_exit() {
     let result = codegen!(
         "
