@@ -512,6 +512,27 @@ fn string_parsing() {
 }
 
 #[test]
+fn type_cast_prefixes_parsing() {
+    let mut lexer = lex("
+    INT#123
+    BOOL#TRUE
+    ");
+
+    assert_eq!(lexer.token, TypeCastPrefix);
+    assert_eq!("INT#", lexer.slice());
+    lexer.advance();
+    assert_eq!(lexer.token, LiteralInteger);
+    assert_eq!("123", lexer.slice());
+    lexer.advance();
+    assert_eq!(lexer.token, TypeCastPrefix);
+    assert_eq!("BOOL#", lexer.slice());
+    lexer.advance();
+    assert_eq!(lexer.token, LiteralTrue);
+    assert_eq!("TRUE", lexer.slice());
+    lexer.advance();
+}
+
+#[test]
 fn wide_string_parsing() {
     let mut lexer = lex(r#"
     WSTRING 

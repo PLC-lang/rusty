@@ -241,6 +241,16 @@ fn parse_parenthesized_expression(lexer: &mut ParseSession) -> AstStatement {
 
 // Literals, Identifiers, etc.
 fn parse_leaf_expression(lexer: &mut ParseSession) -> AstStatement {
+    //see if there's a cast
+    let literal_cast = if lexer.token == TypeCastPrefix {
+        let location = lexer.location();
+        let mut a = lexer.slice_and_advance();
+        a.pop(); //drop last char '#' - the lexer made sure it ends with a '#'
+        Some((a, location)) 
+    } else {
+        None
+    };
+
     let literal_parse_result = match lexer.token {
         Identifier => parse_qualified_reference(lexer),
         LiteralInteger => parse_literal_number(lexer),
@@ -263,6 +273,19 @@ fn parse_leaf_expression(lexer: &mut ParseSession) -> AstStatement {
             lexer.location(),
         )),
     };
+
+    let literal_parse_result = literal_parse_result.map(|statement|{
+        if let Some((cast, location)) = literal_cast {
+            AstStatement::CastStatement {
+                id: lexer.next_id(),
+                location: (location.get_start() .. statement.get_location().get_end()).into(),
+                target: Box::new(statement),
+                type_name: cast,
+            }
+        } else {
+            statement
+        }
+    });
 
     match literal_parse_result {
         Ok(statement) => {

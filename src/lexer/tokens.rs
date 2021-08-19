@@ -357,6 +357,9 @@ pub enum Token {
     #[regex("\"((\\$.)|[^$\"])*\"")]
     LiteralWideString,
 
+    #[regex("[a-zA-Z_][a-zA-Z_0-9]*#")]
+    TypeCastPrefix,
+
     #[regex(r"[ \t\n\f]+", logos::skip)]
     End,
 }
