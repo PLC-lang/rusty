@@ -1,5 +1,9 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-use crate::{ast::SourceRange, index::Index, resolver::AnnotationMap};
+use crate::{
+    ast::SourceRange,
+    index::Index,
+    resolver::{AnnotationMap, StatementAnnotation},
+};
 use inkwell::{
     basic_block::BasicBlock,
     types::BasicTypeEnum,
@@ -722,6 +726,20 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
             let variable_index_entry = self
                 .index
                 .find_variable(Some(type_name), &[name.to_string()])
+                .or_else(|| {
+                    let annotation = self.annotations.get(context)?;
+                    match annotation {
+                        StatementAnnotation::Variable {
+                            resulting_type: _,
+                            qualified_name,
+                        } => {
+                            let qualifier = &qualified_name[..qualified_name.rfind('.')?];
+                            self.index
+                                .find_variable(Some(qualifier), &[name.to_string()])
+                        }
+                        _ => None,
+                    }
+                })
                 .ok_or_else(|| CompileError::InvalidReference {
                     reference: name.to_string(),
                     location: offset.clone(),

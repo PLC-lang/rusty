@@ -412,16 +412,17 @@ impl<'i> TypeAnnotator<'i> {
                             // ... first look at POU-local variables
                             self.index
                                 .find_member(qualifier, name)
+                                .or_else(|| {
+                                    // ... then check if we're in a method and we're referencing
+                                    // a member variable of the corresponding class
+                                    let class_name = self
+                                        .index
+                                        .find_implementation(ctx.pou.unwrap())?
+                                        .get_associated_class_name()?;
+                                    self.index.find_member(class_name, name)
+                                })
                                 .map(|v| to_variable_annotation(v, self.index))
                         })
-                        // .or_else(|| {
-                        //     ... then check if we're in a method and we're referencing
-                        //     a member variable of the corresponding class
-                        //     let class_name = ctx. my parent pou
-                        //     self.index
-                        //         .find_member(&class_name, name)
-                        //         .map(|v| to_variable_annotation(v, self.index))
-                        // })
                         .or_else(|| {
                             // ... then try if we find a pou with that name (maybe it's a call?)
                             self.index.find_implementation(name).and_then(|it| {

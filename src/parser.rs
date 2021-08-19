@@ -318,6 +318,7 @@ fn parse_method(
         let implementation = Implementation {
             overriding,
             access,
+            associated_class: Some(class_name.into()),
             ..implementation
         };
 
@@ -384,6 +385,7 @@ fn parse_implementation(
         location: SourceRange::new(start..lexer.range().end),
         overriding: false,
         access: None,
+        associated_class: None,
     }
 }
 

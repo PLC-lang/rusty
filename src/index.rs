@@ -99,6 +99,7 @@ pub enum ImplementationType {
 pub struct ImplementationIndexEntry {
     call_name: String,
     type_name: String,
+    associated_class: Option<String>,
     implementation_type: ImplementationType,
 }
 
@@ -108,6 +109,9 @@ impl ImplementationIndexEntry {
     }
     pub fn get_type_name(&self) -> &str {
         &self.type_name
+    }
+    pub fn get_associated_class_name(&self) -> Option<&String> {
+        self.associated_class.as_ref()
     }
     pub fn get_implementation_type(&self) -> &ImplementationType {
         &self.implementation_type
@@ -120,6 +124,7 @@ impl From<&Implementation> for ImplementationIndexEntry {
         ImplementationIndexEntry {
             call_name: implementation.name.clone(),
             type_name: implementation.type_name.clone(),
+            associated_class: implementation.associated_class.clone(),
             implementation_type: pou_type.into(),
         }
     }
@@ -198,15 +203,8 @@ impl Index {
 
     pub fn find_member(&self, pou_name: &str, variable_name: &str) -> Option<&VariableIndexEntry> {
         self.member_variables
-            .get(pou_name)?
-            .get(variable_name)
-            .or_else(|| {
-                let pou_name = pou_name.to_string();
-                let parent_pou_name = pou_name.split('.').collect::<Vec<&str>>()[0];
-                self.member_variables
-                    .get(parent_pou_name)?
-                    .get(variable_name)
-            })
+            .get(pou_name)
+            .and_then(|map| map.get(variable_name))
     }
 
     pub fn find_local_members(&self, container_name: &str) -> Vec<&VariableIndexEntry> {
@@ -374,6 +372,7 @@ impl Index {
         &mut self,
         call_name: &str,
         type_name: &str,
+        associated_class_name: Option<&String>,
         impl_type: ImplementationType,
     ) {
         self.implementations.insert(
@@ -381,6 +380,7 @@ impl Index {
             ImplementationIndexEntry {
                 call_name: call_name.into(),
                 type_name: type_name.into(),
+                associated_class: associated_class_name.map(|str| str.into()),
                 implementation_type: impl_type,
             },
         );

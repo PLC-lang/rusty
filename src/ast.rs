@@ -60,6 +60,7 @@ pub struct Implementation {
     pub location: SourceRange,
     pub overriding: bool,
     pub access: Option<AccessModifier>,
+    pub associated_class: Option<String>,
 }
 
 #[derive(Debug, Copy, PartialEq, Clone)]
