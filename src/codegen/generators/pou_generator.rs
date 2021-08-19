@@ -87,10 +87,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
             .map(|it| it.into_struct_type())?;
         let mut parameters = vec![instance_struct_type.ptr_type(AddressSpace::Generic).into()];
         if implementation.get_implementation_type() == &ImplementationType::Method {
-            let class_name = implementation
-                .get_type_name()
-                .split('.')
-                .collect::<Vec<&str>>()[0];
+            let class_name = implementation.get_associated_class_name().unwrap();
             let instance_members_struct_type: StructType = self
                 .llvm_index
                 .get_associated_type(class_name)
