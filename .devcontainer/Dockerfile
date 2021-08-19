@@ -9,5 +9,5 @@ RUN apt-get install -y clang-$LLVM_VER lldb-$LLVM_VER lld-$LLVM_VER clangd-$LLVM
 RUN apt-get install -y vim
 
 USER vscode
-RUN rustup update stable && rustup component add rustfmt && rustup component add clippy && rustup default stable
+RUN rustup update stable && rustup default stable && rustup component add rustfmt && rustup component add clippy 
 RUN cargo install cargo-watch 
