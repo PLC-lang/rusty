@@ -10,7 +10,7 @@ on:
   workflow_dispatch:
 
 env:
-  toolchain-version: 1.53.0
+  toolchain-version: 1.54.0
   llvm-version: "11.0.1"
 
 jobs:

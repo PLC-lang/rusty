@@ -9,9 +9,9 @@ use std::str::FromStr;
 /// is encountered, the erroneous part of the AST will consist of an
 /// EmptyStatement and a diagnostic will be logged. That case is different from
 /// only an EmptyStatement returned, which does not denote an error condition.
-pub fn parse_expression(lexer: &mut ParseSession) -> Statement {
+pub fn parse_expression(lexer: &mut ParseSession) -> AstStatement {
     if lexer.token == KeywordSemicolon {
-        Statement::EmptyStatement {
+        AstStatement::EmptyStatement {
             location: lexer.location(),
             id: lexer.next_id(),
         }
@@ -20,7 +20,7 @@ pub fn parse_expression(lexer: &mut ParseSession) -> Statement {
     }
 }
 
-pub fn parse_expression_list(lexer: &mut ParseSession) -> Statement {
+pub fn parse_expression_list(lexer: &mut ParseSession) -> AstStatement {
     let left = parse_range_statement(lexer);
     if lexer.token == KeywordComma {
         let mut expressions = vec![left];
@@ -29,7 +29,7 @@ pub fn parse_expression_list(lexer: &mut ParseSession) -> Statement {
             lexer.advance();
             expressions.push(parse_range_statement(lexer));
         }
-        return Statement::ExpressionList {
+        return AstStatement::ExpressionList {
             expressions,
             id: lexer.next_id(),
         };
@@ -37,13 +37,13 @@ pub fn parse_expression_list(lexer: &mut ParseSession) -> Statement {
     left
 }
 
-pub(crate) fn parse_range_statement(lexer: &mut ParseSession) -> Statement {
+pub(crate) fn parse_range_statement(lexer: &mut ParseSession) -> AstStatement {
     let start = parse_or_expression(lexer);
 
     if lexer.token == KeywordDotDot {
         lexer.advance();
         let end = parse_or_expression(lexer);
-        return Statement::RangeStatement {
+        return AstStatement::RangeStatement {
             start: Box::new(start),
             end: Box::new(end),
             id: lexer.next_id(),
@@ -53,7 +53,7 @@ pub(crate) fn parse_range_statement(lexer: &mut ParseSession) -> Statement {
 }
 
 // OR
-fn parse_or_expression(lexer: &mut ParseSession) -> Statement {
+fn parse_or_expression(lexer: &mut ParseSession) -> AstStatement {
     let left = parse_xor_expression(lexer);
 
     let operator = match lexer.token {
@@ -64,7 +64,7 @@ fn parse_or_expression(lexer: &mut ParseSession) -> Statement {
     lexer.advance();
 
     let right = parse_or_expression(lexer);
-    Statement::BinaryExpression {
+    AstStatement::BinaryExpression {
         operator,
         left: Box::new(left),
         right: Box::new(right),
@@ -73,7 +73,7 @@ fn parse_or_expression(lexer: &mut ParseSession) -> Statement {
 }
 
 // XOR
-fn parse_xor_expression(lexer: &mut ParseSession) -> Statement {
+fn parse_xor_expression(lexer: &mut ParseSession) -> AstStatement {
     let left = parse_and_expression(lexer);
 
     let operator = match lexer.token {
@@ -84,7 +84,7 @@ fn parse_xor_expression(lexer: &mut ParseSession) -> Statement {
     lexer.advance();
 
     let right = parse_xor_expression(lexer);
-    Statement::BinaryExpression {
+    AstStatement::BinaryExpression {
         operator,
         left: Box::new(left),
         right: Box::new(right),
@@ -93,7 +93,7 @@ fn parse_xor_expression(lexer: &mut ParseSession) -> Statement {
 }
 
 // AND
-fn parse_and_expression(lexer: &mut ParseSession) -> Statement {
+fn parse_and_expression(lexer: &mut ParseSession) -> AstStatement {
     let left = parse_equality_expression(lexer);
 
     let operator = match lexer.token {
@@ -104,7 +104,7 @@ fn parse_and_expression(lexer: &mut ParseSession) -> Statement {
     lexer.advance();
 
     let right = parse_and_expression(lexer);
-    Statement::BinaryExpression {
+    AstStatement::BinaryExpression {
         operator,
         left: Box::new(left),
         right: Box::new(right),
@@ -113,7 +113,7 @@ fn parse_and_expression(lexer: &mut ParseSession) -> Statement {
 }
 
 //EQUALITY  =, <>
-fn parse_equality_expression(lexer: &mut ParseSession) -> Statement {
+fn parse_equality_expression(lexer: &mut ParseSession) -> AstStatement {
     let left = parse_compare_expression(lexer);
     let operator = match lexer.token {
         OperatorEqual => Operator::Equal,
@@ -122,7 +122,7 @@ fn parse_equality_expression(lexer: &mut ParseSession) -> Statement {
     };
     lexer.advance();
     let right = parse_equality_expression(lexer);
-    Statement::BinaryExpression {
+    AstStatement::BinaryExpression {
         operator,
         left: Box::new(left),
         right: Box::new(right),
@@ -131,7 +131,7 @@ fn parse_equality_expression(lexer: &mut ParseSession) -> Statement {
 }
 
 //COMPARE <, >, <=, >=
-fn parse_compare_expression(lexer: &mut ParseSession) -> Statement {
+fn parse_compare_expression(lexer: &mut ParseSession) -> AstStatement {
     let left = parse_additive_expression(lexer);
     let operator = match lexer.token {
         OperatorLess => Operator::Less,
@@ -142,7 +142,7 @@ fn parse_compare_expression(lexer: &mut ParseSession) -> Statement {
     };
     lexer.advance();
     let right = parse_compare_expression(lexer);
-    Statement::BinaryExpression {
+    AstStatement::BinaryExpression {
         operator,
         left: Box::new(left),
         right: Box::new(right),
@@ -151,7 +151,7 @@ fn parse_compare_expression(lexer: &mut ParseSession) -> Statement {
 }
 
 // Addition +, -
-fn parse_additive_expression(lexer: &mut ParseSession) -> Statement {
+fn parse_additive_expression(lexer: &mut ParseSession) -> AstStatement {
     let left = parse_multiplication_expression(lexer);
     let operator = match lexer.token {
         OperatorPlus => Operator::Plus,
@@ -160,7 +160,7 @@ fn parse_additive_expression(lexer: &mut ParseSession) -> Statement {
     };
     lexer.advance();
     let right = parse_additive_expression(lexer);
-    Statement::BinaryExpression {
+    AstStatement::BinaryExpression {
         operator,
         left: Box::new(left),
         right: Box::new(right),
@@ -169,7 +169,7 @@ fn parse_additive_expression(lexer: &mut ParseSession) -> Statement {
 }
 
 // Multiplication *, /, MOD
-fn parse_multiplication_expression(lexer: &mut ParseSession) -> Statement {
+fn parse_multiplication_expression(lexer: &mut ParseSession) -> AstStatement {
     let left = parse_unary_expression(lexer);
     let operator = match lexer.token {
         OperatorMultiplication => Operator::Multiplication,
@@ -179,7 +179,7 @@ fn parse_multiplication_expression(lexer: &mut ParseSession) -> Statement {
     };
     lexer.advance();
     let right = parse_multiplication_expression(lexer);
-    Statement::BinaryExpression {
+    AstStatement::BinaryExpression {
         operator,
         left: Box::new(left),
         right: Box::new(right),
@@ -188,7 +188,7 @@ fn parse_multiplication_expression(lexer: &mut ParseSession) -> Statement {
 }
 
 // UNARY -x, NOT x
-fn parse_unary_expression(lexer: &mut ParseSession) -> Statement {
+fn parse_unary_expression(lexer: &mut ParseSession) -> AstStatement {
     let operator = match lexer.token {
         OperatorNot => Some(Operator::Not),
         OperatorMinus => Some(Operator::Minus),
@@ -202,17 +202,18 @@ fn parse_unary_expression(lexer: &mut ParseSession) -> Statement {
         let expression_location = expression.get_location();
         let location = SourceRange::new(start..expression_location.get_end());
 
-        if let (Statement::LiteralInteger { value, .. }, Operator::Minus) = (&expression, &operator)
+        if let (AstStatement::LiteralInteger { value, .. }, Operator::Minus) =
+            (&expression, &operator)
         {
             //if this turns out to be a negative number, we want to have a negative literal integer
             //instead of a Unary-Not-Expression
-            Statement::LiteralInteger {
+            AstStatement::LiteralInteger {
                 value: -value,
                 location,
                 id: lexer.next_id(),
             }
         } else {
-            Statement::UnaryExpression {
+            AstStatement::UnaryExpression {
                 operator,
                 value: Box::new(expression),
                 location,
@@ -225,7 +226,7 @@ fn parse_unary_expression(lexer: &mut ParseSession) -> Statement {
 }
 
 // PARENTHESIZED (...)
-fn parse_parenthesized_expression(lexer: &mut ParseSession) -> Statement {
+fn parse_parenthesized_expression(lexer: &mut ParseSession) -> AstStatement {
     match lexer.token {
         KeywordParensOpen => {
             lexer.advance();
@@ -238,7 +239,7 @@ fn parse_parenthesized_expression(lexer: &mut ParseSession) -> Statement {
 }
 
 // Literals, Identifiers, etc.
-fn parse_leaf_expression(lexer: &mut ParseSession) -> Statement {
+fn parse_leaf_expression(lexer: &mut ParseSession) -> AstStatement {
     let literal_parse_result = match lexer.token {
         Identifier => parse_qualified_reference(lexer),
         LiteralInteger => parse_literal_number(lexer),
@@ -255,8 +256,8 @@ fn parse_leaf_expression(lexer: &mut ParseSession) -> Statement {
         LiteralFalse => parse_bool_literal(lexer, false),
         KeywordSquareParensOpen => parse_array_literal(lexer),
         _ => Err(Diagnostic::unexpected_token_found(
-            "Literal".to_string(),
-            lexer.slice().to_string(),
+            "Literal",
+            lexer.slice(),
             lexer.location(),
         )),
     };
@@ -265,14 +266,14 @@ fn parse_leaf_expression(lexer: &mut ParseSession) -> Statement {
         Ok(statement) => {
             if lexer.token == KeywordAssignment {
                 lexer.advance();
-                Statement::Assignment {
+                AstStatement::Assignment {
                     left: Box::new(statement),
                     right: Box::new(parse_range_statement(lexer)),
                     id: lexer.next_id(),
                 }
             } else if lexer.token == KeywordOutputAssignment {
                 lexer.advance();
-                Statement::OutputAssignment {
+                AstStatement::OutputAssignment {
                     left: Box::new(statement),
                     right: Box::new(parse_range_statement(lexer)),
                     id: lexer.next_id(),
@@ -282,7 +283,7 @@ fn parse_leaf_expression(lexer: &mut ParseSession) -> Statement {
             }
         }
         Err(diagnostic) => {
-            let statement = Statement::EmptyStatement {
+            let statement = AstStatement::EmptyStatement {
                 location: diagnostic.get_location(),
                 id: lexer.next_id(),
             };
@@ -292,7 +293,7 @@ fn parse_leaf_expression(lexer: &mut ParseSession) -> Statement {
     }
 }
 
-fn parse_array_literal(lexer: &mut ParseSession) -> Result<Statement, Diagnostic> {
+fn parse_array_literal(lexer: &mut ParseSession) -> Result<AstStatement, Diagnostic> {
     let start = lexer.range().start;
     lexer.expect(KeywordSquareParensOpen)?;
     lexer.advance();
@@ -300,7 +301,7 @@ fn parse_array_literal(lexer: &mut ParseSession) -> Result<Statement, Diagnostic
     let end = lexer.range().end;
     lexer.expect(KeywordSquareParensClose)?;
     lexer.advance();
-    Ok(Statement::LiteralArray {
+    Ok(AstStatement::LiteralArray {
         elements,
         location: SourceRange::new(start..end),
         id: lexer.next_id(),
@@ -309,10 +310,10 @@ fn parse_array_literal(lexer: &mut ParseSession) -> Result<Statement, Diagnostic
 
 #[allow(clippy::unnecessary_wraps)]
 //Allowing the unnecessary wrap here because this method is used along other methods that need to return Results
-fn parse_bool_literal(lexer: &mut ParseSession, value: bool) -> Result<Statement, Diagnostic> {
+fn parse_bool_literal(lexer: &mut ParseSession, value: bool) -> Result<AstStatement, Diagnostic> {
     let location = lexer.location();
     lexer.advance();
-    Ok(Statement::LiteralBool {
+    Ok(AstStatement::LiteralBool {
         value,
         location,
 
@@ -320,7 +321,7 @@ fn parse_bool_literal(lexer: &mut ParseSession, value: bool) -> Result<Statement
     })
 }
 
-pub fn parse_qualified_reference(lexer: &mut ParseSession) -> Result<Statement, Diagnostic> {
+pub fn parse_qualified_reference(lexer: &mut ParseSession) -> Result<AstStatement, Diagnostic> {
     let start = lexer.range().start;
     let mut reference_elements = vec![parse_reference_access(lexer)?];
     while lexer.allow(&KeywordDot) {
@@ -330,7 +331,7 @@ pub fn parse_qualified_reference(lexer: &mut ParseSession) -> Result<Statement, 
     let reference = if reference_elements.len() == 1 {
         reference_elements.pop().unwrap()
     } else {
-        Statement::QualifiedReference {
+        AstStatement::QualifiedReference {
             elements: reference_elements,
             id: lexer.next_id(),
         }
@@ -339,7 +340,7 @@ pub fn parse_qualified_reference(lexer: &mut ParseSession) -> Result<Statement, 
     if lexer.allow(&KeywordParensOpen) {
         // Call Statement
         let call_statement = if lexer.allow(&KeywordParensClose) {
-            Statement::CallStatement {
+            AstStatement::CallStatement {
                 operator: Box::new(reference),
                 parameters: Box::new(None),
                 location: SourceRange::new(start..lexer.range().end),
@@ -347,7 +348,7 @@ pub fn parse_qualified_reference(lexer: &mut ParseSession) -> Result<Statement, 
             }
         } else {
             parse_any_in_region(lexer, vec![KeywordParensClose], |lexer| {
-                Statement::CallStatement {
+                AstStatement::CallStatement {
                     operator: Box::new(reference),
                     parameters: Box::new(Some(parse_expression_list(lexer))),
                     location: SourceRange::new(start..lexer.range().end),
@@ -361,9 +362,9 @@ pub fn parse_qualified_reference(lexer: &mut ParseSession) -> Result<Statement, 
     }
 }
 
-pub fn parse_reference_access(lexer: &mut ParseSession) -> Result<Statement, Diagnostic> {
+pub fn parse_reference_access(lexer: &mut ParseSession) -> Result<AstStatement, Diagnostic> {
     let location = lexer.location();
-    let mut reference = Statement::Reference {
+    let mut reference = AstStatement::Reference {
         name: lexer.slice_and_advance(),
         location,
         id: lexer.next_id(),
@@ -373,7 +374,7 @@ pub fn parse_reference_access(lexer: &mut ParseSession) -> Result<Statement, Dia
         let access = parse_expression(lexer);
         lexer.expect(KeywordSquareParensClose)?;
         lexer.advance();
-        reference = Statement::ArrayAccess {
+        reference = AstStatement::ArrayAccess {
             reference: Box::new(reference),
             access: Box::new(access),
             id: lexer.next_id(),
@@ -385,7 +386,7 @@ pub fn parse_reference_access(lexer: &mut ParseSession) -> Result<Statement, Dia
 fn parse_literal_number_with_modifier(
     lexer: &mut ParseSession,
     radix: u32,
-) -> Result<Statement, Diagnostic> {
+) -> Result<AstStatement, Diagnostic> {
     // we can safely unwrap the number string, since the token has
     // been matched using regular expressions
     let location = lexer.location();
@@ -394,9 +395,9 @@ fn parse_literal_number_with_modifier(
     let number_str = number_str.replace("_", "");
 
     // again, the parsed number can be safely unwrapped.
-    let value = i64::from_str_radix(&number_str.as_str(), radix).unwrap();
+    let value = i64::from_str_radix(number_str.as_str(), radix).unwrap();
 
-    Ok(Statement::LiteralInteger {
+    Ok(AstStatement::LiteralInteger {
         value,
         location,
 
@@ -404,7 +405,7 @@ fn parse_literal_number_with_modifier(
     })
 }
 
-fn parse_literal_number(lexer: &mut ParseSession) -> Result<Statement, Diagnostic> {
+fn parse_literal_number(lexer: &mut ParseSession) -> Result<AstStatement, Diagnostic> {
     let location = lexer.location();
     let result = lexer.slice_and_advance();
     if lexer.allow(&KeywordDot) {
@@ -412,12 +413,12 @@ fn parse_literal_number(lexer: &mut ParseSession) -> Result<Statement, Diagnosti
     } else if lexer.allow(&KeywordParensOpen) {
         let multiplier = result
             .parse::<u32>()
-            .map_err(|e| Diagnostic::syntax_error(format!("{}", e), location.clone()))?;
+            .map_err(|e| Diagnostic::syntax_error(format!("{}", e).as_str(), location.clone()))?;
         let element = parse_expression(lexer);
         lexer.expect(KeywordParensClose)?;
         let end = lexer.range().end;
         lexer.advance();
-        return Ok(Statement::MultipliedStatement {
+        return Ok(AstStatement::MultipliedStatement {
             multiplier,
             element: Box::new(element),
             location: SourceRange::new(location.get_start()..end),
@@ -427,7 +428,7 @@ fn parse_literal_number(lexer: &mut ParseSession) -> Result<Statement, Diagnosti
 
     // parsed number value can be safely unwrapped
     let result = result.replace("_", "");
-    Ok(Statement::LiteralInteger {
+    Ok(AstStatement::LiteralInteger {
         value: result.parse::<i64>().unwrap(),
         location,
         id: lexer.next_id(),
@@ -436,7 +437,10 @@ fn parse_literal_number(lexer: &mut ParseSession) -> Result<Statement, Diagnosti
 
 fn parse_number<F: FromStr>(text: &str, location: &SourceRange) -> Result<F, Diagnostic> {
     text.parse::<F>().map_err(|_| {
-        Diagnostic::syntax_error(format!("Failed parsing number {}", text), location.clone())
+        Diagnostic::syntax_error(
+            format!("Failed parsing number {}", text).as_str(),
+            location.clone(),
+        )
     })
 }
 
@@ -444,7 +448,7 @@ fn parse_date_from_string(
     text: &str,
     location: SourceRange,
     id: AstId,
-) -> Result<Statement, Diagnostic> {
+) -> Result<AstStatement, Diagnostic> {
     let mut segments = text.split('-');
 
     //we can safely expect 3 numbers
@@ -461,7 +465,7 @@ fn parse_date_from_string(
         .map(|s| parse_number::<u32>(s, &location))
         .unwrap()?;
 
-    Ok(Statement::LiteralDate {
+    Ok(AstStatement::LiteralDate {
         year,
         month,
         day,
@@ -470,7 +474,7 @@ fn parse_date_from_string(
     })
 }
 
-fn parse_literal_date_and_time(lexer: &mut ParseSession) -> Result<Statement, Diagnostic> {
+fn parse_literal_date_and_time(lexer: &mut ParseSession) -> Result<AstStatement, Diagnostic> {
     let location = lexer.location();
     //get rid of D# or DATE#
     let slice = lexer.slice_and_advance();
@@ -495,7 +499,7 @@ fn parse_literal_date_and_time(lexer: &mut ParseSession) -> Result<Statement, Di
     let sec = sec_fraction as u32;
     let milli = ((sec_fraction - sec as f64) * 1000_f64) as u32;
 
-    Ok(Statement::LiteralDateAndTime {
+    Ok(AstStatement::LiteralDateAndTime {
         location,
         year,
         month,
@@ -508,7 +512,7 @@ fn parse_literal_date_and_time(lexer: &mut ParseSession) -> Result<Statement, Di
     })
 }
 
-fn parse_literal_date(lexer: &mut ParseSession) -> Result<Statement, Diagnostic> {
+fn parse_literal_date(lexer: &mut ParseSession) -> Result<AstStatement, Diagnostic> {
     let location = lexer.location();
     //get rid of D# or DATE#
     let slice = lexer.slice_and_advance();
@@ -518,7 +522,7 @@ fn parse_literal_date(lexer: &mut ParseSession) -> Result<Statement, Diagnostic>
     parse_date_from_string(slice, location, lexer.next_id())
 }
 
-fn parse_literal_time_of_day(lexer: &mut ParseSession) -> Result<Statement, Diagnostic> {
+fn parse_literal_time_of_day(lexer: &mut ParseSession) -> Result<AstStatement, Diagnostic> {
     let location = lexer.location();
     //get rid of TOD# or TIME_OF_DAY#
     let slice = lexer.slice_and_advance();
@@ -531,7 +535,7 @@ fn parse_literal_time_of_day(lexer: &mut ParseSession) -> Result<Statement, Diag
 
     let sec = parse_number::<f64>(segments.next().unwrap(), &location)?;
     let milli = (sec.fract() * 1000_f64) as u32;
-    Ok(Statement::LiteralTimeOfDay {
+    Ok(AstStatement::LiteralTimeOfDay {
         hour,
         min,
         sec: sec.floor() as u32,
@@ -541,7 +545,7 @@ fn parse_literal_time_of_day(lexer: &mut ParseSession) -> Result<Statement, Diag
     })
 }
 
-fn parse_literal_time(lexer: &mut ParseSession) -> Result<Statement, Diagnostic> {
+fn parse_literal_time(lexer: &mut ParseSession) -> Result<AstStatement, Diagnostic> {
     const POS_D: usize = 0;
     const POS_H: usize = 1;
     const POS_M: usize = 2;
@@ -573,7 +577,7 @@ fn parse_literal_time(lexer: &mut ParseSession) -> Result<Statement, Diagnostic>
             char = chars.find(|(_, ch)| !ch.is_digit(10) && !ch.eq(&'.'));
             char.ok_or_else(|| {
                 Diagnostic::syntax_error(
-                    "Invalid TIME Literal: Cannot parse segment.".to_string(),
+                    "Invalid TIME Literal: Cannot parse segment.",
                     location.clone(),
                 )
             })
@@ -584,7 +588,7 @@ fn parse_literal_time(lexer: &mut ParseSession) -> Result<Statement, Diagnostic>
         let unit = {
             let start = char.map(|(index, _)| index).ok_or_else(|| {
                 Diagnostic::syntax_error(
-                    "Invalid TIME Literal: Missing unit (d|h|m|s|ms|us|ns)".to_string(),
+                    "Invalid TIME Literal: Missing unit (d|h|m|s|ms|us|ns)",
                     location.clone(),
                 )
             })?;
@@ -609,7 +613,7 @@ fn parse_literal_time(lexer: &mut ParseSession) -> Result<Statement, Diagnostic>
             //check if we assign out of order - every assignment before must have been a smaller position
             if prev_pos > position {
                 return Err(Diagnostic::syntax_error(
-                    "Invalid TIME Literal: segments out of order, use d-h-m-s-ms".to_string(),
+                    "Invalid TIME Literal: segments out of order, use d-h-m-s-ms",
                     location,
                 ));
             }
@@ -617,20 +621,20 @@ fn parse_literal_time(lexer: &mut ParseSession) -> Result<Statement, Diagnostic>
 
             if values[position].is_some() {
                 return Err(Diagnostic::syntax_error(
-                    "Invalid TIME Literal: segments must be unique".to_string(),
+                    "Invalid TIME Literal: segments must be unique",
                     location,
                 ));
             }
             values[position] = Some(number); //store the number
         } else {
             return Err(Diagnostic::syntax_error(
-                format!("Invalid TIME Literal: illegal unit '{}'", unit),
+                format!("Invalid TIME Literal: illegal unit '{}'", unit).as_str(),
                 location,
             ));
         }
     }
 
-    Ok(Statement::LiteralTime {
+    Ok(AstStatement::LiteralTime {
         day: values[POS_D].unwrap_or_default(),
         hour: values[POS_H].unwrap_or_default(),
         min: values[POS_M].unwrap_or_default(),
@@ -648,10 +652,13 @@ fn trim_quotes(quoted_string: &str) -> String {
     quoted_string[1..quoted_string.len() - 1].to_string()
 }
 
-fn parse_literal_string(lexer: &mut ParseSession, is_wide: bool) -> Result<Statement, Diagnostic> {
+fn parse_literal_string(
+    lexer: &mut ParseSession,
+    is_wide: bool,
+) -> Result<AstStatement, Diagnostic> {
     let result = lexer.slice();
     let location = lexer.location();
-    let string_literal = Ok(Statement::LiteralString {
+    let string_literal = Ok(AstStatement::LiteralString {
         value: trim_quotes(result),
         is_wide,
         location,
@@ -665,7 +672,7 @@ fn parse_literal_real(
     lexer: &mut ParseSession,
     integer: String,
     integer_range: SourceRange,
-) -> Result<Statement, Diagnostic> {
+) -> Result<AstStatement, Diagnostic> {
     lexer.expect(LiteralInteger)?;
     let start = integer_range.get_start();
     let fraction_end = lexer.range().end;
@@ -680,7 +687,7 @@ fn parse_literal_real(
 
     let result = format!("{}.{}{}", integer, fractional, exponent);
     let new_location = SourceRange::new(start..end);
-    Ok(Statement::LiteralReal {
+    Ok(AstStatement::LiteralReal {
         value: result,
         location: new_location,
         id: lexer.next_id(),

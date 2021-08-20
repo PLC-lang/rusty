@@ -1,5 +1,5 @@
 use crate::{
-    ast::Statement::LiteralInteger,
+    ast::AstStatement::LiteralInteger,
     ast::*,
     parser::{parse, tests::lex},
     Diagnostic,
@@ -16,8 +16,8 @@ fn illegal_literal_time_missing_segments_test() {
     assert_eq!(
         diagnostics,
         vec![Diagnostic::unexpected_token_found(
-            "KeywordSemicolon".into(),
-            "'#'".into(),
+            "KeywordSemicolon",
+            "'#'",
             SourceRange::new(35..36)
         )]
     );
@@ -38,7 +38,7 @@ fn time_literal_problems_can_be_recovered_from_during_parsing() {
     assert_eq!(
         diagnostics,
         vec![Diagnostic::syntax_error(
-            "Invalid TIME Literal: segments must be unique".into(),
+            "Invalid TIME Literal: segments must be unique",
             (34..44).into()
         )]
     );
@@ -56,7 +56,7 @@ fn illegal_literal_time_double_segments_test() {
     assert_eq!(
         diagnostics[0],
         Diagnostic::syntax_error(
-            "Invalid TIME Literal: segments must be unique".into(),
+            "Invalid TIME Literal: segments must be unique",
             SourceRange::new(34..44)
         )
     );
@@ -74,8 +74,8 @@ fn illegal_literal_time_out_of_order_segments_test() {
     assert_eq!(
         diagnostics[0],
         Diagnostic::syntax_error(
-            "Invalid TIME Literal: segments out of order, use d-h-m-s-ms".into(),
-            SourceRange::new(34..42)
+            "Invalid TIME Literal: segments out of order, use d-h-m-s-ms",
+            SourceRange::new(34..42),
         )
     );
 }
@@ -87,10 +87,7 @@ fn literal_hex_number_with_double_underscores() {
 
     assert_eq!(
         result.first().unwrap(),
-        &Diagnostic::SyntaxError {
-            message: "Unexpected token: expected KeywordSemicolon but found '__beef'".into(),
-            range: SourceRange::new(19..25)
-        }
+        &Diagnostic::unexpected_token_found("KeywordSemicolon", "'__beef'", (19..25).into())
     );
 }
 
@@ -101,10 +98,7 @@ fn literal_dec_number_with_double_underscores() {
 
     assert_eq!(
         result.first().unwrap(),
-        &Diagnostic::SyntaxError {
-            message: "Unexpected token: expected KeywordSemicolon but found '__000'".into(),
-            range: SourceRange::new(14..19)
-        }
+        &Diagnostic::unexpected_token_found("KeywordSemicolon", "'__000'", (14..19).into())
     );
 }
 
@@ -115,10 +109,7 @@ fn literal_bin_number_with_double_underscores() {
 
     assert_eq!(
         result.first().unwrap(),
-        &Diagnostic::SyntaxError {
-            message: "Unexpected token: expected KeywordSemicolon but found '__001_101_01'".into(),
-            range: SourceRange::new(16..28)
-        }
+        &Diagnostic::unexpected_token_found("KeywordSemicolon", "'__001_101_01'", (16..28).into())
     );
 }
 
@@ -129,10 +120,7 @@ fn literal_oct_number_with_double_underscores() {
 
     assert_eq!(
         result.first().unwrap(),
-        &Diagnostic::SyntaxError {
-            message: "Unexpected token: expected KeywordSemicolon but found '__7'".into(),
-            range: SourceRange::new(15..18)
-        }
+        &Diagnostic::unexpected_token_found("KeywordSemicolon", "'__7'", (15..18).into())
     );
 }
 
@@ -179,6 +167,7 @@ fn string_with_round_parens_can_be_parsed() {
                     is_wide: false,
                 },
                 initializer: None,
+                location: (18..42).into(),
             },
             UserTypeDeclaration {
                 data_type: DataType::StringType {
@@ -190,12 +179,13 @@ fn string_with_round_parens_can_be_parsed() {
                     }),
                     is_wide: false,
                 },
-                initializer: Some(Statement::LiteralString {
+                initializer: Some(AstStatement::LiteralString {
                     is_wide: false,
-                    location: SourceRange::undefined(),
+                    location: (69..102).into(),
                     value: "abc".into(),
                     id: 0,
                 }),
+                location: SourceRange::undefined(),
             },
             UserTypeDeclaration {
                 data_type: DataType::StringType {
@@ -208,6 +198,7 @@ fn string_with_round_parens_can_be_parsed() {
                     is_wide: false,
                 },
                 initializer: None,
+                location: SourceRange::undefined(),
             }
         ]
     );

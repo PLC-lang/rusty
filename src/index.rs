@@ -2,7 +2,7 @@
 use indexmap::IndexMap;
 
 use crate::{
-    ast::{Implementation, SourceRange, Statement},
+    ast::{AstStatement, Implementation, PouType, SourceRange},
     compile_error::CompileError,
     typesystem::*,
 };
@@ -15,7 +15,7 @@ pub mod visitor;
 pub struct VariableIndexEntry {
     name: String,
     qualified_name: String,
-    pub initial_value: Option<Statement>,
+    pub initial_value: Option<AstStatement>,
     information: VariableInformation,
     pub source_location: SourceRange,
 }
@@ -85,10 +85,21 @@ pub enum DataTypeType {
     AliasType,     // a Custom-Alias-dataType
 }
 
-#[derive(Debug, Clone)]
+#[derive(Clone)]
+pub enum ImplementationType {
+    Program,
+    Function,
+    FunctionBlock,
+    Action,
+    Class,
+    Method,
+}
+
+#[derive(Clone)]
 pub struct ImplementationIndexEntry {
     call_name: String,
     type_name: String,
+    implementation_type: ImplementationType,
 }
 
 impl ImplementationIndexEntry {
@@ -98,13 +109,31 @@ impl ImplementationIndexEntry {
     pub fn get_type_name(&self) -> &str {
         &self.type_name
     }
+    pub fn get_implementation_type(&self) -> &ImplementationType {
+        &self.implementation_type
+    }
 }
 
 impl From<&Implementation> for ImplementationIndexEntry {
     fn from(implementation: &Implementation) -> Self {
+        let pou_type = &implementation.pou_type;
         ImplementationIndexEntry {
             call_name: implementation.name.clone(),
             type_name: implementation.type_name.clone(),
+            implementation_type: pou_type.into(),
+        }
+    }
+}
+
+impl From<&PouType> for ImplementationType {
+    fn from(it: &PouType) -> Self {
+        match it {
+            PouType::Program => ImplementationType::Program,
+            PouType::Function => ImplementationType::Function,
+            PouType::FunctionBlock => ImplementationType::FunctionBlock,
+            PouType::Action => ImplementationType::Action,
+            PouType::Class => ImplementationType::Class,
+            PouType::Method => ImplementationType::Method,
         }
     }
 }
@@ -114,7 +143,7 @@ impl From<&Implementation> for ImplementationIndexEntry {
 /// The index contains information about all referencable elements.
 ///
 ///
-#[derive(Debug)]
+#[derive()]
 pub struct Index {
     /// all global variables
     global_variables: IndexMap<String, VariableIndexEntry>,
@@ -139,7 +168,7 @@ impl Index {
             types: IndexMap::new(),
             implementations: IndexMap::new(),
             void_type: DataType {
-                name: "void".to_string(),
+                name: VOID_TYPE.into(),
                 initial_value: None,
                 information: DataTypeInformation::Void,
             },
@@ -223,7 +252,7 @@ impl Index {
         };
         for segment in segments.iter().skip(1) {
             result = match result {
-                Some(context) => self.find_member(&context.information.data_type_name, &segment),
+                Some(context) => self.find_member(&context.information.data_type_name, segment),
                 None => None,
             };
         }
@@ -260,12 +289,12 @@ impl Index {
             DataTypeInformation::SubRange {
                 referenced_type, ..
             } => self
-                .find_type(&referenced_type)
+                .find_type(referenced_type)
                 .and_then(|it| self.find_effective_type(it)),
             DataTypeInformation::Alias {
                 referenced_type, ..
             } => self
-                .find_type(&referenced_type)
+                .find_type(referenced_type)
                 .and_then(|it| self.find_effective_type(it)),
             _ => Some(data_type),
         }
@@ -281,12 +310,12 @@ impl Index {
             DataTypeInformation::SubRange {
                 referenced_type, ..
             } => self
-                .find_type(&referenced_type)
+                .find_type(referenced_type)
                 .and_then(|it| self.find_effective_type_information(it.get_type_information())),
             DataTypeInformation::Alias {
                 referenced_type, ..
             } => self
-                .find_type(&referenced_type)
+                .find_type(referenced_type)
                 .and_then(|it| self.find_effective_type_information(it.get_type_information())),
             _ => Some(data_type),
         }
@@ -334,12 +363,18 @@ impl Index {
         &self.implementations
     }
 
-    pub fn register_implementation(&mut self, call_name: &str, type_name: &str) {
+    pub fn register_implementation(
+        &mut self,
+        call_name: &str,
+        type_name: &str,
+        impl_type: ImplementationType,
+    ) {
         self.implementations.insert(
             call_name.into(),
             ImplementationIndexEntry {
                 call_name: call_name.into(),
                 type_name: type_name.into(),
+                implementation_type: impl_type,
             },
         );
     }
@@ -361,7 +396,7 @@ impl Index {
     pub fn register_member_variable(
         &mut self,
         member_info: &MemberInfo,
-        initial_value: Option<Statement>,
+        initial_value: Option<AstStatement>,
         source_location: SourceRange,
         location: u32,
     ) {
@@ -396,7 +431,7 @@ impl Index {
         &mut self,
         name: &str,
         type_name: &str,
-        initial_value: Option<Statement>,
+        initial_value: Option<AstStatement>,
         source_location: SourceRange,
     ) {
         self.register_global_variable_with_name(
@@ -413,7 +448,7 @@ impl Index {
         association_name: &str,
         variable_name: &str,
         type_name: &str,
-        initial_value: Option<Statement>,
+        initial_value: Option<AstStatement>,
         source_location: SourceRange,
     ) {
         //REVIEW, this seems like a misuse of the qualified name to store the association name. Any other ideas?
@@ -441,7 +476,7 @@ impl Index {
     pub fn register_type(
         &mut self,
         type_name: &str,
-        initial_value: Option<Statement>,
+        initial_value: Option<AstStatement>,
         information: DataTypeInformation,
     ) {
         let index_entry = DataType {

@@ -36,8 +36,10 @@ use inkwell::targets::{
 use parser::ParsedAst;
 use resolver::TypeAnnotator;
 use std::{fs::File, io::Read};
+use validation::Validator;
 
 use crate::ast::CompilationUnit;
+use crate::resolver::AnnotationMap;
 mod ast;
 pub mod cli;
 mod codegen;
@@ -47,49 +49,91 @@ mod lexer;
 mod parser;
 mod resolver;
 mod typesystem;
+mod validation;
 
 #[macro_use]
 extern crate pretty_assertions;
 
 #[derive(PartialEq, Debug, Clone)]
 pub enum Diagnostic {
-    SyntaxError { message: String, range: SourceRange },
-    ImprovementSuggestion { message: String, range: SourceRange },
+    SyntaxError {
+        message: String,
+        range: SourceRange,
+        err_no: ErrNo,
+    },
+    ImprovementSuggestion {
+        message: String,
+        range: SourceRange,
+    },
+}
+
+#[allow(non_camel_case_types)]
+#[derive(PartialEq, Debug, Clone)]
+pub enum ErrNo {
+    undefined,
+
+    //syntax
+    syntax__generic_error,
+    syntax__missing_token,
+    syntax__unexpected_token,
+
+    //semantic
+    // pou related
+    pou__missing_return_type,
+    pou__unexpected_return_type,
+    pou__empty_variable_block,
+
+    //reference related
+    reference__unresolved,
+    //variable related
+
+    //type related
 }
 
 impl Diagnostic {
-    pub fn syntax_error(message: String, range: SourceRange) -> Diagnostic {
-        Diagnostic::SyntaxError { message, range }
+    pub fn syntax_error(message: &str, range: SourceRange) -> Diagnostic {
+        Diagnostic::SyntaxError {
+            message: message.to_string(),
+            range,
+            err_no: ErrNo::syntax__generic_error,
+        }
     }
 
-    pub fn unexpected_token_found(
-        expected: String,
-        found: String,
-        range: SourceRange,
-    ) -> Diagnostic {
-        Diagnostic::syntax_error(
-            format!(
+    pub fn unexpected_token_found(expected: &str, found: &str, range: SourceRange) -> Diagnostic {
+        Diagnostic::SyntaxError {
+            message: format!(
                 "Unexpected token: expected {} but found {}",
                 expected, found
             ),
             range,
-        )
+            err_no: ErrNo::syntax__unexpected_token,
+        }
     }
 
     pub fn return_type_not_supported(pou_type: &PouType, range: SourceRange) -> Diagnostic {
-        Diagnostic::syntax_error(
-            format!(
+        Diagnostic::SyntaxError {
+            message: format!(
                 "POU Type {:?} does not support a return type. Did you mean Function?",
                 pou_type
             ),
             range,
-        )
+            err_no: ErrNo::pou__unexpected_return_type,
+        }
     }
 
-    pub fn missing_token(epxected_token: String, range: SourceRange) -> Diagnostic {
+    pub fn function_return_missing(range: SourceRange) -> Diagnostic {
+        Diagnostic::SyntaxError {
+            message: "Function Return type missing".into(),
+            range,
+            err_no: ErrNo::pou__missing_return_type,
+        }
+    }
+
+    pub fn missing_token(epxected_token: &str, range: SourceRange) -> Diagnostic {
         Diagnostic::SyntaxError {
             message: format!("Missing expected Token {}", epxected_token),
             range,
+            err_no: ErrNo::syntax__missing_token,
         }
     }
 
@@ -97,6 +141,23 @@ impl Diagnostic {
         Diagnostic::SyntaxError {
             message: "Missing Actions Container Name".to_string(),
             range,
+            err_no: ErrNo::undefined,
+        }
+    }
+
+    pub fn unrseolved_reference(reference: &str, location: SourceRange) -> Diagnostic {
+        Diagnostic::SyntaxError {
+            message: format!("Could not resolve reference to '{:}", reference),
+            range: location,
+            err_no: ErrNo::reference__unresolved,
+        }
+    }
+
+    pub fn empty_variable_block(location: SourceRange) -> Diagnostic {
+        Diagnostic::SyntaxError {
+            message: "Variable block is empty".into(),
+            range: location,
+            err_no: ErrNo::pou__empty_variable_block,
         }
     }
 
@@ -340,62 +401,82 @@ pub fn compile_module<'c, T: SourceContainer>(
     encoding: Option<&'static Encoding>,
 ) -> Result<codegen::CodeGen<'c>, CompileError> {
     let mut full_index = Index::new();
-    let mut unit = CompilationUnit::default();
-    // let mut diagnostics : Vec<Diagnostic> = vec![];
     let mut files: SimpleFiles<String, String> = SimpleFiles::new();
+
     let mut all_units = Vec::new();
+
+    // ### PHASE 1 ###
+    // parse & index everything
     for container in sources {
         let location: String = container.get_location().into();
         let e = container
             .load_source(encoding)
             .map_err(|err| CompileError::io_read_error(err, location.clone()))?;
+        let file_id = files.add(location.clone(), e.source.clone());
 
         let (mut parse_result, diagnostics) = parse(e.source.as_str());
         //pre-process the ast (create inlined types)
         ast::pre_process(&mut parse_result);
         //index the pou
         full_index.import(index::visitor::visit(&parse_result));
-        all_units.push(parse_result);
+        all_units.push((file_id, diagnostics, parse_result));
+    }
 
+    // ### PHASE 2 ###
+    // annotation & validation everything
+    type AnnotatedAst<'a> = (&'a CompilationUnit, AnnotationMap);
+    let mut annotated_units: Vec<AnnotatedAst> = Vec::new();
+    for (file_id, syntax_errors, unit) in all_units.iter() {
+        let annotations = TypeAnnotator::visit_unit(&full_index, unit);
+
+        let mut validator = Validator::new();
+        validator.visit_unit(&annotations, unit);
         //log errors
-        let file_id = files.add(location, e.source.clone());
-        for error in diagnostics {
-            let diag = diagnostic::Diagnostic::error()
-                .with_message(error.get_message())
-                .with_labels(vec![Label::primary(
-                    file_id,
-                    error.get_location().get_start()..error.get_location().get_end(),
-                )]);
-            let writer = StandardStream::stderr(ColorChoice::Always);
-            let config = codespan_reporting::term::Config {
-                display_style: term::DisplayStyle::Rich,
-                tab_width: 2,
-                styles: Styles::default(),
-                chars: Chars::default(),
-                start_context_lines: 5,
-                end_context_lines: 3,
-            };
+        report_diagnostics(*file_id, syntax_errors.iter(), &files)?;
+        report_diagnostics(*file_id, validator.diagnostics().iter(), &files)?;
 
-            term::emit(&mut writer.lock(), &config, &files, &diag).map_err(|err| {
-                CompileError::codegen_error(
-                    format!("Cannot print errors {:#?}", err),
-                    SourceRange::undefined(),
-                )
-            })?;
-        }
+        annotated_units.push((unit, annotations));
     }
 
-    //annotate the ASTs
-    for u in all_units {
-        let _type_map = TypeAnnotator::visit_unit(&full_index, &u);
-        //TODO validate and find solution for type_map
-        unit.import(u); //TODO this needs to be changed so we have unique AstIds
-    }
-
-    //and finally codegen
+    // ### PHASE 3 ###
+    // - codegen
     let code_generator = codegen::CodeGen::new(context, "main");
-    code_generator.generate(unit, &full_index)?;
+    for (unit, annotations) in annotated_units {
+        code_generator.generate(unit, &annotations, &full_index)?;
+    }
     Ok(code_generator)
+}
+
+fn report_diagnostics(
+    file_id: usize,
+    semantic_diagnostics: std::slice::Iter<Diagnostic>,
+    files: &SimpleFiles<String, String>,
+) -> Result<(), CompileError> {
+    for error in semantic_diagnostics {
+        let diag = diagnostic::Diagnostic::error()
+            .with_message(error.get_message())
+            .with_labels(vec![Label::primary(
+                file_id,
+                error.get_location().get_start()..error.get_location().get_end(),
+            )]);
+        let writer = StandardStream::stderr(ColorChoice::Always);
+        let config = codespan_reporting::term::Config {
+            display_style: term::DisplayStyle::Rich,
+            tab_width: 2,
+            styles: Styles::default(),
+            chars: Chars::default(),
+            start_context_lines: 5,
+            end_context_lines: 3,
+        };
+
+        term::emit(&mut writer.lock(), &config, files, &diag).map_err(|err| {
+            CompileError::codegen_error(
+                format!("Cannot print errors {:#?}", err),
+                SourceRange::undefined(),
+            )
+        })?;
+    }
+    Ok(())
 }
 
 fn parse(source: &str) -> ParsedAst {

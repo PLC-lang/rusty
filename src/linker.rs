@@ -23,7 +23,7 @@ impl Linker {
         let linker = match target_os {
             "linux" => Ok(Box::new(LdLinker::new())),
             //"win32" | "windows" => Ok(Box::new(MsvcLinker::new())),
-            _ => Err(LinkerError::TargetError(target_os.into())),
+            _ => Err(LinkerError::Target(target_os.into())),
         }?;
         Ok(Linker {
             errors: Vec::default(),
@@ -66,8 +66,8 @@ impl Linker {
     /// Check if the path is valid, log an error if it wasn't
     fn get_str_from_path<'a>(&mut self, path: &'a Path) -> Option<&'a str> {
         let filepath = path.to_str();
-        if let None = filepath {
-            self.errors.push(LinkerError::PathError(path.into()));
+        if filepath.is_none() {
+            self.errors.push(LinkerError::Path(path.into()));
         }
         filepath
     }
@@ -112,7 +112,7 @@ impl LinkerInterface for LdLinker {
     fn finalize(&mut self) -> Result<(), LinkerError> {
         mun_lld::link(mun_lld::LldFlavor::Elf, &self.args)
             .ok()
-            .map_err(LinkerError::LinkError)
+            .map_err(LinkerError::Link)
     }
 }
 
@@ -151,23 +151,23 @@ impl LinkerInterface for MsvcLinker {
 #[derive(Debug, PartialEq)]
 pub enum LinkerError {
     /// Error emitted by the linker
-    LinkError(String),
+    Link(String),
 
     /// Invalid target
-    TargetError(String),
+    Target(String),
 
     /// Error in path conversion
-    PathError(PathBuf),
+    Path(PathBuf),
 }
 
 impl From<LinkerError> for String {
     fn from(error: LinkerError) -> Self {
         match error {
-            LinkerError::LinkError(e) => format!("{}", e),
-            LinkerError::PathError(path) => {
+            LinkerError::Link(e) => e,
+            LinkerError::Path(path) => {
                 format!("path contains invalid UTF-8 characters: {}", path.display())
             }
-            LinkerError::TargetError(tgt) => {
+            LinkerError::Target(tgt) => {
                 format!("linker not available for target platform: {}", tgt)
             }
         }
@@ -180,7 +180,7 @@ fn creation_test() {
     assert_eq!(linker.linker.get_platform(), "Linux");
 
     if let Err(tgt) = Linker::new("x86_64-pc-redox-abc") {
-        assert_eq!(tgt, LinkerError::TargetError("redox".into()));
+        assert_eq!(tgt, LinkerError::Target("redox".into()));
     } else {
         panic!("Linker target should have returned an error!");
     }
@@ -189,18 +189,18 @@ fn creation_test() {
 #[test]
 fn linker_error_test() {
     let msg = "error message";
-    let link_err = LinkerError::LinkError(msg.into());
+    let link_err = LinkerError::Link(msg.into());
     assert_eq!(String::from(link_err), msg.to_string());
 
     let path = "/abc/def";
-    let link_err = LinkerError::PathError(path.into());
+    let link_err = LinkerError::Path(path.into());
     assert_eq!(
         String::from(link_err),
         format!("path contains invalid UTF-8 characters: {}", path)
     );
 
     let target = "redox";
-    let link_err = LinkerError::TargetError(target.into());
+    let link_err = LinkerError::Target(target.into());
     assert_eq!(
         String::from(link_err),
         format!("linker not available for target platform: {}", target)

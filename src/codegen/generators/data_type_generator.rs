@@ -8,7 +8,7 @@
 /// - sized Strings
 use crate::index::{Index, VariableIndexEntry};
 use crate::{
-    ast::{Dimension, Statement},
+    ast::{AstStatement, Dimension},
     compile_error::CompileError,
     typesystem::DataTypeInformation,
 };
@@ -189,7 +189,7 @@ fn generate_initial_value<'ink>(
             index,
             types_index,
             llvm,
-            |stmt| matches!(stmt, Statement::LiteralArray { .. }),
+            |stmt| matches!(stmt, AstStatement::LiteralArray { .. }),
             "LiteralArray",
         )
         .unwrap(),
@@ -201,7 +201,7 @@ fn generate_initial_value<'ink>(
             index,
             types_index,
             llvm,
-            |stmt| matches!(stmt, Statement::LiteralString { .. }),
+            |stmt| matches!(stmt, AstStatement::LiteralString { .. }),
             "LiteralString",
         )
         .unwrap(),
@@ -249,7 +249,7 @@ fn generate_array_initializer<'ink>(
     index: &Index,
     types_index: &LlvmTypedIndex<'ink>,
     llvm: &Llvm<'ink>,
-    predicate: fn(&Statement) -> bool,
+    predicate: fn(&AstStatement) -> bool,
     expected_ast: &str,
 ) -> Result<Option<BasicValueEnum<'ink>>, CompileError> {
     if let Some(initializer) = &data_type.initial_value {

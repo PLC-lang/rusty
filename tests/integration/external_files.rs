@@ -3,29 +3,31 @@
 use std::{env, fs, path::PathBuf};
 
 use encoding_rs::Encoding;
-use rusty::{FilePath, compile_to_bitcode, compile_to_ir, compile_to_shared_object, compile_to_shared_pic_object, compile_to_static_obj};
+use rusty::{
+    compile_to_bitcode, compile_to_ir, compile_to_shared_object, compile_to_shared_pic_object,
+    compile_to_static_obj, FilePath,
+};
 
-
-fn compile_all(name : &str, encoding : Option<&'static Encoding>) {
+fn compile_all(name: &str, encoding: Option<&'static Encoding>) {
     let path = get_file(name);
     let mut out = env::temp_dir();
     let out_name = format!("{}.out", &name);
     out.push(out_name);
     let out = out.into_os_string().into_string().unwrap();
-    compile_to_ir(vec![FilePath{path : path.clone()}], encoding, &out).unwrap();
+    compile_to_ir(vec![FilePath { path: path.clone() }], encoding, &out).unwrap();
     fs::remove_file(&out).unwrap();
-    compile_to_bitcode(vec![FilePath{path : path.clone()}], encoding, &out).unwrap();
+    compile_to_bitcode(vec![FilePath { path: path.clone() }], encoding, &out).unwrap();
     fs::remove_file(&out).unwrap();
-    compile_to_shared_object(vec![FilePath{path : path.clone()}], encoding, &out, None, false).unwrap();
+    compile_to_shared_object(vec![FilePath { path: path.clone() }], encoding, &out, None).unwrap();
     fs::remove_file(&out).unwrap();
-    compile_to_shared_pic_object(vec![FilePath{path : path.clone()}], encoding, &out, None, false).unwrap();
+    compile_to_shared_pic_object(vec![FilePath { path: path.clone() }], encoding, &out, None)
+        .unwrap();
     fs::remove_file(&out).unwrap();
-    compile_to_static_obj(vec![FilePath{path : path.clone()}], encoding, &out, None, false).unwrap();
+    compile_to_static_obj(vec![FilePath { path: path }], encoding, &out, None).unwrap();
     fs::remove_file(&out).unwrap();
-    
 }
 
-fn get_file(name : &str) -> String {
+fn get_file(name: &str) -> String {
     let mut data_path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
     data_path.push("tests");
     data_path.push("integration");
@@ -35,7 +37,6 @@ fn get_file(name : &str) -> String {
     assert!(data_path.exists());
 
     data_path.display().to_string()
-
 }
 
 #[test]
