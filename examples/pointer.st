@@ -12,6 +12,7 @@ VAR
 				z : REF_TO REF_TO DINT;
 
 END_VAR
+u := NULL;
 u := &s.x;
 y := u;
 z := &y;

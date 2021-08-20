@@ -3063,6 +3063,8 @@ fn pointers_generated() {
         END_VAR
         
         //Assign address
+        pX := NULL;
+        rX := NULL;
         pX := &X;
         rX := &X;
 
@@ -3090,6 +3092,8 @@ entry:
   %X = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 0
   %pX = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 1
   %rX = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 2
+  store i32* null, i1** %pX, align 8
+  store i32* null, i1** %rX, align 8
   %load_X = load i1, i1* %X, align 1
   store i1* %X, i1** %pX, align 8
   %load_X1 = load i1, i1* %X, align 1

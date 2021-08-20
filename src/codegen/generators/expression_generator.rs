@@ -1278,6 +1278,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
             AstStatement::LiteralArray {
                 elements, location, ..
             } => self.generate_literal_array(elements, location),
+            &AstStatement::LiteralNull { .. } => self.llvm.create_null_ptr(),
             // if there is an expression-list this might be a struct-initialization
             AstStatement::ExpressionList { .. } => {
                 self.generate_literal_struct(literal_statement, &literal_statement.get_location())
