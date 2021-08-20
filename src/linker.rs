@@ -146,22 +146,6 @@ impl LinkerInterface for MsvcLinker {
     }
 }*/
 
-
-
-/*#[test]
-fn creation_test() {
-    let linker = create_with_target("x86_64-pc-linux-gnu");
-    assert_eq!(linker.unwrap().get_platform(), "linux".to_string());
-
-    let linker = create_with_target("x86_64-pc-win32-gnu");
-    assert_eq!(linker.unwrap().get_platform(), "win32".to_string());
-
-    let linker = create_with_target("x86_64-pc-foo-gnu");
-    if let Ok(..) = linker {
-        panic!("Expected create_with_target() to fail");
-    }
-}*/
-
 pub enum LinkerError {
     /// Error emitted by the linker
     LinkError(String),
@@ -182,7 +166,7 @@ impl From<LinkerError> for String {
                 path.display()
             ),
             LinkerError::TargetError(tgt) => format!(
-                "invalid target: {}", tgt
+                "linker not available for target platform: {}", tgt
             )
         }
     }
@@ -194,7 +178,7 @@ fn linker_error_test() {
     let link_err = LinkerError::LinkError(msg.into());
     assert_eq!(
         String::from(link_err),
-        msg.into()
+        msg.to_string()
     );
 
     let path = "/abc/def";
@@ -202,5 +186,12 @@ fn linker_error_test() {
     assert_eq!(
         String::from(link_err),
         format!("path contains invalid UTF-8 characters: {}", path)
+    );
+    
+    let target = "redox";
+    let link_err = LinkerError::TargetError(target.into());
+    assert_eq!(
+        String::from(link_err),
+        format!("linker not available for target platform: {}", target)
     );
 }
