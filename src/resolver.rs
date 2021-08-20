@@ -359,6 +359,20 @@ impl<'i> TypeAnnotator<'i> {
                         .annotate(statement, StatementAnnotation::expression(t));
                 }
             }
+            AstStatement::PointerAccess {
+                reference, ..
+            } => {
+                visit_all_statements!(self, ctx, reference);
+                let pointer_type = self.annotation_map.get_type_or_void(reference, self.index)
+                .get_type_information();
+                if let DataTypeInformation::Pointer {
+                    inner_type_name, ..
+                } = pointer_type
+                {
+                    let t = self.index.get_effective_type_by_name(inner_type_name).get_name();
+                    self.annotation_map.annotate(statement, StatementAnnotation::expression(t));
+                }
+            }
             AstStatement::BinaryExpression { left, right, .. } => {
                 visit_all_statements!(self, ctx, left, right);
                 let left = &self
@@ -393,6 +407,7 @@ impl<'i> TypeAnnotator<'i> {
                         );
                     }
                 } else {
+                    //TODO: The adderss operator should report a correct pointer type. We need to have reproducable type names for that first.
                     self.annotation_map.annotate(
                         statement,
                         StatementAnnotation::expression(inner_type.get_name()),
