@@ -239,7 +239,7 @@ impl Debug for DataTypeDeclaration {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
         match self {
             DataTypeDeclaration::DataTypeReference {
-                referenced_type, ..  
+                referenced_type, ..
             } => f
                 .debug_struct("DataTypeReference")
                 .field("referenced_type", referenced_type)

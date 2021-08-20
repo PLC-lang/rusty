@@ -3,12 +3,11 @@ use crate::compile_and_run;
 
 #[allow(dead_code)]
 #[repr(C)]
-struct MainType {
-}
+struct MainType {}
 
 #[test]
 fn pointer_test() {
- let function = r"
+    let function = r"
 TYPE MyStruct: STRUCT  x: DINT; y: DINT; END_STRUCT END_TYPE
 
 FUNCTION main : DINT
@@ -34,8 +33,7 @@ foo := y^;
 END_FUNCTION
  ";
 
-
-    let mut maintype = MainType{};
+    let mut maintype = MainType {};
 
     let (res, _) = compile_and_run(function.to_string(), &mut maintype);
 
