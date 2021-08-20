@@ -238,9 +238,9 @@ pub fn compile_to_static_obj<T: SourceContainer>(
     compile_to_obj(
         sources,
         encoding,
-        &output,
+        output,
         RelocMode::Default,
-        get_target_triple(target.clone()),
+        get_target_triple(target),
     )
 }
 
@@ -261,9 +261,9 @@ pub fn compile_to_shared_pic_object<T: SourceContainer>(
     compile_to_obj(
         sources,
         encoding,
-        &output,
+        output,
         RelocMode::PIC,
-        get_target_triple(target.clone()),
+        get_target_triple(target),
     )
 }
 
@@ -284,9 +284,9 @@ pub fn compile_to_shared_object<T: SourceContainer>(
     compile_to_obj(
         sources,
         encoding,
-        &output,
+        output,
         RelocMode::DynamicNoPic,
-        get_target_triple(target.clone()),
+        get_target_triple(target),
     )
 }
 

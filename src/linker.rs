@@ -79,7 +79,9 @@ struct LdLinker {
 
 impl LdLinker {
     fn new() -> LdLinker {
-        LdLinker { args: Vec::default() }
+        LdLinker {
+            args: Vec::default(),
+        }
     }
 }
 
@@ -146,6 +148,7 @@ impl LinkerInterface for MsvcLinker {
     }
 }*/
 
+#[derive(Debug, PartialEq)]
 pub enum LinkerError {
     /// Error emitted by the linker
     LinkError(String),
@@ -161,14 +164,25 @@ impl From<LinkerError> for String {
     fn from(error: LinkerError) -> Self {
         match error {
             LinkerError::LinkError(e) => format!("{}", e),
-            LinkerError::PathError(path) => format!(
-                "path contains invalid UTF-8 characters: {}",
-                path.display()
-            ),
-            LinkerError::TargetError(tgt) => format!(
-                "linker not available for target platform: {}", tgt
-            )
+            LinkerError::PathError(path) => {
+                format!("path contains invalid UTF-8 characters: {}", path.display())
+            }
+            LinkerError::TargetError(tgt) => {
+                format!("linker not available for target platform: {}", tgt)
+            }
         }
+    }
+}
+
+#[test]
+fn creation_test() {
+    let linker = Linker::new("x86_64-pc-linux-gnu").unwrap();
+    assert_eq!(linker.linker.get_platform(), "Linux");
+
+    if let Err(tgt) = Linker::new("x86_64-pc-redox-abc") {
+        assert_eq!(tgt, LinkerError::TargetError("redox".into()));
+    } else {
+        panic!("Linker target should have returned an error!");
     }
 }
 
@@ -176,10 +190,7 @@ impl From<LinkerError> for String {
 fn linker_error_test() {
     let msg = "error message";
     let link_err = LinkerError::LinkError(msg.into());
-    assert_eq!(
-        String::from(link_err),
-        msg.to_string()
-    );
+    assert_eq!(String::from(link_err), msg.to_string());
 
     let path = "/abc/def";
     let link_err = LinkerError::PathError(path.into());
@@ -187,7 +198,7 @@ fn linker_error_test() {
         String::from(link_err),
         format!("path contains invalid UTF-8 characters: {}", path)
     );
-    
+
     let target = "redox";
     let link_err = LinkerError::TargetError(target.into());
     assert_eq!(
