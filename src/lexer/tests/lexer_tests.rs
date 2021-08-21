@@ -538,7 +538,7 @@ fn wide_string_parsing() {
 fn multi_named_keywords_without_underscore_test() {
     let mut lexer = lex(
         "VARINPUT VARGLOBAL VARINOUT ENDVAR ENDPROGRAM ENDFUNCTION ENDCASE
-        VAROUTPUT FUNCTIONBLOCK ENDFUNCTIONBLOCK ENDSTRUCT ENDACTION
+        NONRETAIN VARTEMP VAROUTPUT FUNCTIONBLOCK ENDFUNCTIONBLOCK ENDSTRUCT ENDACTION
         ENDACTIONS ENDIF ENDFOR ENDREPEAT",
     );
 
@@ -546,7 +546,7 @@ fn multi_named_keywords_without_underscore_test() {
         lexer.advance();
     }
 
-    assert_eq!(lexer.diagnostics.len(), 16);
+    assert_eq!(lexer.diagnostics.len(), 18);
 
     let d1 = lexer.diagnostics.first().unwrap();
     let d2 = lexer.diagnostics.last().unwrap();
@@ -561,5 +561,32 @@ fn multi_named_keywords_without_underscore_test() {
         d2.get_message(),
         "the words in ENDREPEAT should be separated by a '_'"
     );
-    assert_eq!(d2.get_location(), SourceRange::new(167..176));
+    assert_eq!(d2.get_location(), SourceRange::new(185..194));
+}
+
+#[test]
+fn lowercase_keywords_accepted() {
+    let mut result = lex(r###"
+        program class end_class endclass var_input varinput var_output
+        varoutput var abstract final method constant retain non_retain 
+        nonretain var_temp vartemp end_method endmethod
+        public private internal protected override
+        var_global varglobal var_in_out varinout end_var endvar
+        end_program endprogram end_function endfunction end_function_block endfunctionblock
+        type struct end_type endtype end_struct endstruct 
+        actions action end_action endaction end_actions endactions 
+        if then elsif else endif end_if
+        for to by do end_for endfor
+        while end_while endwhile repeat until endrepeat end_repeat
+        case return exit continue array string wstring 
+        of endcase end_case mod and or xor not true false 
+        d#1-2-3 date#1-2-3 dt#1-2-3-1:2:3 date_and_time#1-2-3-1:2:3 tod#1:2:3 time_of_day#1:2:3 time#1s t#1s
+        "###);
+
+    while result.token != End {
+        if result.token == Identifier || result.token == Error {
+            panic!("Unextected token {} : {:?}", result.slice(), result.token);
+        }
+        result.advance();
+    }
 }
