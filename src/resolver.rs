@@ -595,6 +595,19 @@ impl<'i> TypeAnnotator<'i> {
                     }
                 }
             }
+            AstStatement::CastStatement {
+                target, type_name, ..
+            } => {
+                self.visit_statement(ctx, target);
+                //see if this type really exists
+                if let Some(t) = self.index.find_type(type_name) {
+                    self.annotation_map
+                        .annotate(statement, StatementAnnotation::expression(t.get_name()));
+                    //overwrite the existing annotation
+                    self.annotation_map
+                        .annotate(target, StatementAnnotation::expression(t.get_name()))
+                }
+            }
             _ => {
                 self.visit_statement_literals(ctx, statement);
             }

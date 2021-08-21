@@ -10,7 +10,7 @@ use inkwell::{
     builder::Builder,
     context::Context,
     module::{Linkage, Module},
-    types::{BasicType, BasicTypeEnum, StringRadix},
+    types::{BasicTypeEnum, StringRadix},
     values::{BasicValue, BasicValueEnum, GlobalValue, IntValue, PointerValue},
     AddressSpace,
 };
@@ -147,11 +147,6 @@ impl<'a> Llvm<'a> {
         self.context.i32_type()
     }
 
-    /// returns the i64_type
-    pub fn i64_type(&self) -> inkwell::types::IntType<'a> {
-        self.context.i64_type()
-    }
-
     /// create a constant bool with the given value
     ///
     /// - `index` the index to obtain the datatypeinformation for BOOL
@@ -168,56 +163,29 @@ impl<'a> Llvm<'a> {
         Ok((data_type, BasicValueEnum::IntValue(value)))
     }
 
-    /// create a constant int with the given value
+    /// create a constant int or float with the given value and the given type
     ///
-    /// - `index` the index to obtain the datatypeinformation for INT
+    /// - `llvm_index` the index to obtain the BasicTypeEnum for the given target_type
     /// - `expected_type` the target int_type
     /// - `value` the value of the constant int value
-    pub fn create_const_int(
+    pub fn create_const_numeric(
         &self,
-        index: &Index,
-        target_type: &Option<BasicTypeEnum<'a>>,
+        target_type: &BasicTypeEnum<'a>,
         value: &str,
-    ) -> Result<TypeAndValue<'a>, CompileError> {
-        let i32_type = self.context.i32_type().as_basic_type_enum();
-        let data_type = target_type.unwrap_or(i32_type);
-
-        if let BasicTypeEnum::IntType { 0: int_type } = data_type {
-            let value = int_type.const_int_from_string(value, StringRadix::Decimal);
-            let data_type = index.get_type_information("DINT")?;
-
-            Ok((data_type, BasicValueEnum::IntValue(value.unwrap())))
-        } else {
-            Err(CompileError::codegen_error(
-                "error expected inttype".into(),
+    ) -> Result<BasicValueEnum<'a>, CompileError> {
+        match target_type {
+            BasicTypeEnum::IntType { 0: int_type } => {
+                let value = int_type.const_int_from_string(value, StringRadix::Decimal);
+                Ok(BasicValueEnum::IntValue(value.unwrap()))
+            }
+            BasicTypeEnum::FloatType { 0: float_type } => {
+                let value = float_type.const_float_from_string(value);
+                Ok(BasicValueEnum::FloatValue(value))
+            }
+            _ => Err(CompileError::codegen_error(
+                "expected numeric type".into(),
                 SourceRange::undefined(),
-            ))
-        }
-    }
-
-    /// create a constant float-value with the given value
-    ///
-    /// - `index` the index to obtain the datatypeinformation for REAL
-    /// - `target_type` the target float_type
-    /// - `value` the value of the constant float value
-    pub fn create_const_real(
-        &self,
-        index: &Index,
-        target_type: &Option<BasicTypeEnum<'a>>,
-        value: &str,
-    ) -> Result<TypeAndValue<'a>, CompileError> {
-        let double_type = self.context.f32_type().as_basic_type_enum();
-        let data_type = target_type.unwrap_or(double_type);
-
-        if let BasicTypeEnum::FloatType { 0: float_type } = data_type {
-            let value = float_type.const_float_from_string(value);
-            let data_type = index.get_type_information("REAL")?;
-            Ok((data_type, BasicValueEnum::FloatValue(value)))
-        } else {
-            Err(CompileError::codegen_error(
-                "error expected floattype".into(),
-                SourceRange::undefined(),
-            ))
+            )),
         }
     }
 

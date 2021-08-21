@@ -271,6 +271,179 @@ END_PROGRAM
 }
 
 #[test]
+fn casted_literals_code_gen_test() {
+    let result = codegen!(
+        r#"PROGRAM prg
+VAR
+x : INT;
+z : INT;
+END_VAR
+
+      // the INT# should prevent this addition
+      // to result in an DINT (i32) and then truncated back
+      // to i16 again
+
+      z := x + INT#7; 
+
+END_PROGRAM
+"#
+    );
+    let expected = generate_program_boiler_plate(
+        "prg",
+        &[("i16", "x"), ("i16", "z")],
+        "void",
+        "",
+        "",
+        r#"%load_x = load i16, i16* %x, align 2
+  %tmpVar = add i16 %load_x, 7
+  store i16 %tmpVar, i16* %z, align 2
+  ret void
+"#,
+    );
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn casted_literals_lreal_code_gen_test() {
+    let result = codegen!(
+        r#"PROGRAM prg
+VAR
+x : REAL;
+z : REAL;
+END_VAR
+
+      // the LREAL# should fource a double addition
+      z := x + LREAL#7.7; 
+
+END_PROGRAM
+"#
+    );
+    let expected = generate_program_boiler_plate(
+        "prg",
+        &[("float", "x"), ("float", "z")],
+        "void",
+        "",
+        "",
+        r#"%load_x = load float, float* %x, align 4
+  %1 = fpext float %load_x to double
+  %tmpVar = fadd double %1, 7.700000e+00
+  %2 = fptrunc double %tmpVar to float
+  store float %2, float* %z, align 4
+  ret void
+"#,
+    );
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn casted_literals_real_code_gen_test() {
+    let result = codegen!(
+        r#"PROGRAM prg
+VAR
+x : INT;
+z : REAL;
+END_VAR
+
+      // the REAL# should prevent this addition
+      // to result in an DINT (i32) and then result 
+      // in an i32 devision
+
+      z := x / REAL#7; 
+
+END_PROGRAM
+"#
+    );
+    let expected = generate_program_boiler_plate(
+        "prg",
+        &[("i16", "x"), ("float", "z")],
+        "void",
+        "",
+        "",
+        r#"%load_x = load i16, i16* %x, align 2
+  %1 = sitofp i16 %load_x to float
+  %tmpVar = fdiv float %1, 7.000000e+00
+  store float %tmpVar, float* %z, align 4
+  ret void
+"#,
+    );
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn casted_literals_hex_code_gen_test() {
+    let result = codegen!(
+        r#"PROGRAM prg
+VAR
+x : INT;
+z : INT;
+END_VAR
+
+      // the INT# should prevent this addition
+      // to result in an DINT (i32) and then  
+      // truncated back to i16
+
+      z := x +  INT#16#D; 
+
+END_PROGRAM
+"#
+    );
+    let expected = generate_program_boiler_plate(
+        "prg",
+        &[("i16", "x"), ("i16", "z")],
+        "void",
+        "",
+        "",
+        r#"%load_x = load i16, i16* %x, align 2
+  %tmpVar = add i16 %load_x, 13
+  store i16 %tmpVar, i16* %z, align 2
+  ret void
+"#,
+    );
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn casted_literals_bool_code_gen_test() {
+    let result = codegen!(
+        r#"PROGRAM prg
+VAR
+z : BOOL;
+END_VAR
+
+      // the REAL# should prevent this addition
+      // to result in an DINT (i32) and then result 
+      // in an i32 devision
+
+      z := BOOL#TRUE; 
+      z := BOOL#FALSE; 
+      z := BOOL#1; 
+      z := BOOL#0; 
+
+END_PROGRAM
+"#
+    );
+    let expected = generate_program_boiler_plate(
+        "prg",
+        &[("i1", "z")],
+        "void",
+        "",
+        "",
+        r#"store i1 true, i1* %z, align 1
+  store i1 false, i1* %z, align 1
+  store i1 true, i1* %z, align 1
+  store i1 false, i1* %z, align 1
+  ret void
+"#,
+    );
+
+    assert_eq!(result, expected);
+}
+
+#[test]
 fn program_with_variable_assignment_generates_void_function_and_struct_and_body() {
     let result = codegen!(
         r#"PROGRAM prg

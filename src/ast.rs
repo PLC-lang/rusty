@@ -1005,7 +1005,7 @@ impl AstStatement {
             AstStatement::ReturnStatement { id, .. } => *id,
             AstStatement::ContinueStatement { id, .. } => *id,
             AstStatement::ExitStatement { id, .. } => *id,
-            AstStatement::CastStatement {id, .. } => *id,
+            AstStatement::CastStatement { id, .. } => *id,
         }
     }
 }

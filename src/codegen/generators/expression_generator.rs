@@ -3,6 +3,7 @@ use crate::{
     ast::{Pou, SourceRange},
     index::{ImplementationType, Index},
     resolver::{AnnotationMap, StatementAnnotation},
+    typesystem::{DINT_TYPE, LINT_TYPE, LREAL_TYPE},
 };
 use inkwell::{
     basic_block::BasicBlock,
@@ -131,11 +132,8 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
             .ok_or_else(|| CompileError::missing_function(statement.get_location()))
     }
 
-    /// returns an option with the current type_hint as a BasicTypeEnum
-    fn get_type_context(&self) -> Option<BasicTypeEnum<'a>> {
-        self.type_hint
-            .as_ref()
-            .and_then(|it| self.llvm_index.get_associated_type(it.get_name()).ok())
+    fn get_type_hint(&self) -> Option<&DataTypeInformation> {
+        self.type_hint.as_ref()
     }
 
     /// generates the given expression and returns a TypeAndValue as a result of the
@@ -1244,8 +1242,14 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                 self.llvm.create_const_bool(self.index, *value)
             }
             AstStatement::LiteralInteger { value, .. } => {
-                self.llvm
-                    .create_const_int(self.index, &self.get_type_context(), &value.to_string())
+                let type_context = self.get_type_hint_for(literal_statement, DINT_TYPE)?;
+                let value = self.llvm.create_const_numeric(
+                    &self
+                        .llvm_index
+                        .get_associated_type(type_context.get_name())?,
+                    value.to_string().as_str(),
+                )?;
+                Ok((type_context.clone(), value))
             }
             AstStatement::LiteralDate {
                 year,
@@ -1253,13 +1257,9 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                 day,
                 location,
                 ..
-            } => self.llvm.create_const_int(
-                self.index,
-                &Some(self.llvm.i64_type().into()),
+            } => self.create_const_int(
                 calculate_date_time(*year, *month, *day, 0, 0, 0, 0)
-                    .map_err(|op| CompileError::codegen_error(op, location.clone()))
-                    .map(|millis| format!("{}", millis))?
-                    .as_str(),
+                    .map_err(|op| CompileError::codegen_error(op, location.clone()))?,
             ),
             AstStatement::LiteralDateAndTime {
                 year,
@@ -1271,13 +1271,9 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                 milli,
                 location,
                 ..
-            } => self.llvm.create_const_int(
-                self.index,
-                &Some(self.llvm.i64_type().into()),
+            } => self.create_const_int(
                 calculate_date_time(*year, *month, *day, *hour, *min, *sec, *milli)
-                    .map_err(|op| CompileError::codegen_error(op, location.clone()))
-                    .map(|millis| format!("{}", millis))?
-                    .as_str(),
+                    .map_err(|op| CompileError::codegen_error(op, location.clone()))?,
             ),
             AstStatement::LiteralTimeOfDay {
                 hour,
@@ -1286,13 +1282,9 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                 milli,
                 location,
                 ..
-            } => self.llvm.create_const_int(
-                self.index,
-                &Some(self.llvm.i64_type().into()),
+            } => self.create_const_int(
                 calculate_date_time(1970, 1, 1, *hour, *min, *sec, *milli)
-                    .map_err(|op| CompileError::codegen_error(op, location.clone()))
-                    .map(|millis| format!("{}", millis))?
-                    .as_str(),
+                    .map_err(|op| CompileError::codegen_error(op, location.clone()))?,
             ),
             AstStatement::LiteralTime {
                 day,
@@ -1304,24 +1296,25 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                 nano,
                 negative,
                 ..
-            } => self.llvm.create_const_int(
-                self.index,
-                &Some(self.llvm.i64_type().into()),
-                format!(
-                    "{}",
-                    calculate_time_nano(
-                        *negative,
-                        calculate_dhm_time_seconds(*day, *hour, *min, *sec),
-                        *milli,
-                        *micro,
-                        *nano
-                    )
-                )
-                .as_str(),
-            ),
+            } => self.create_const_int(calculate_time_nano(
+                *negative,
+                calculate_dhm_time_seconds(*day, *hour, *min, *sec),
+                *milli,
+                *micro,
+                *nano,
+            )),
             AstStatement::LiteralReal { value, .. } => {
-                self.llvm
-                    .create_const_real(self.index, &self.get_type_context(), value)
+                let type_context = self.get_type_hint_for(literal_statement, LREAL_TYPE)?;
+                let value = self.llvm.create_const_numeric(
+                    &self
+                        .llvm_index
+                        .get_associated_type(type_context.get_name())?,
+                    value.to_string().as_str(),
+                )?;
+                Ok((type_context.clone(), value))
+
+                // self.llvm
+                //     .create_const_real(self.index, &self.get_type_context(), value)
             }
             AstStatement::LiteralString { value, is_wide, .. } => {
                 if *is_wide {
@@ -1342,11 +1335,40 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
             AstStatement::Assignment { .. } => {
                 self.generate_literal_struct(literal_statement, &literal_statement.get_location())
             }
+            AstStatement::CastStatement { target, .. } => self.generate_expression(target),
             _ => Err(CompileError::codegen_error(
                 format!("Cannot generate Literal for {:?}", literal_statement),
                 literal_statement.get_location(),
             )),
         }
+    }
+
+    /// returns the data type associated to the given statement using the following strategy:
+    /// - 1st try: fetch the type associated via the `self.annotations`
+    /// - 2nd try: fetch the type associated with the given `default_type_name`
+    /// - else return an `Err`
+    fn get_type_hint_for(
+        &self,
+        statement: &AstStatement,
+        default_type_name: &str,
+    ) -> Result<&DataTypeInformation, CompileError> {
+        self.get_type_hint()
+            .or_else(|| {
+                self.annotations
+                    .get_type(statement, self.index)
+                    .map(|it| it.get_type_information())
+            })
+            .or_else(|| {
+                self.index
+                    .find_type(default_type_name)
+                    .map(|it| it.get_type_information())
+            })
+            .ok_or_else(|| {
+                CompileError::codegen_error(
+                    "no defualt type for literal integerers available".to_string(),
+                    statement.get_location(),
+                )
+            })
     }
 
     /// generates a struct literal value with the given value assignments (ExpressionList)
@@ -1617,6 +1639,15 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
         ]);
 
         Ok((target_type, phi_value.as_basic_value()))
+    }
+
+    fn create_const_int(&self, value: i64) -> Result<TypeAndValue<'a>, CompileError> {
+        let type_info = self.index.get_type_information(LINT_TYPE)?;
+        let value = self.llvm.create_const_numeric(
+            &self.llvm_index.get_associated_type(LINT_TYPE)?,
+            value.to_string().as_str(),
+        )?;
+        Ok((type_info, value))
     }
 }
 

@@ -1,4 +1,7 @@
-use crate::resolver::tests::{annotate, parse};
+use crate::{
+    ast::AstStatement,
+    resolver::tests::{annotate, parse},
+};
 
 #[test]
 fn bool_literals_are_annotated() {
@@ -124,4 +127,73 @@ fn real_literals_are_annotated() {
             s
         );
     }
+}
+
+#[test]
+fn casted_literals_are_annotated() {
+    let (unit, index) = parse(
+        "PROGRAM PRG
+                SINT#7;
+                INT#7;
+                DINT#7;
+                LINT#7;
+                REAL#7.7;
+                LREAL#7.7;
+                BOOL#1;
+                BOOL#FALSE;
+            END_PROGRAM",
+    );
+    let annotations = annotate(&unit, &index);
+    let statements = &unit.implementations[0].statements;
+
+    let expected_types = vec![
+        "SINT", "INT", "DINT", "LINT", "REAL", "LREAL", "BOOL", "BOOL",
+    ];
+    let actual_types: Vec<&str> = statements
+        .iter()
+        .map(|it| annotations.get_type_or_void(it, &index).get_name())
+        .collect();
+
+    assert_eq!(
+        format!("{:#?}", expected_types),
+        format!("{:#?}", actual_types),
+    )
+}
+
+#[test]
+fn casted_inner_literals_are_annotated() {
+    let (unit, index) = parse(
+        "PROGRAM PRG
+                SINT#7;
+                INT#7;
+                DINT#7;
+                LINT#7;
+                REAL#7.7;
+                LREAL#7.7;
+                BOOL#1;
+                BOOL#FALSE;
+            END_PROGRAM",
+    );
+    let annotations = annotate(&unit, &index);
+    let statements = &unit.implementations[0].statements;
+
+    let expected_types = vec![
+        "SINT", "INT", "DINT", "LINT", "REAL", "LREAL", "BOOL", "BOOL",
+    ];
+    let actual_types: Vec<&str> = statements
+        .iter()
+        .map(|it| {
+            if let AstStatement::CastStatement { target, .. } = it {
+                target
+            } else {
+                panic!("no cast")
+            }
+        })
+        .map(|it| annotations.get_type_or_void(it, &index).get_name())
+        .collect();
+
+    assert_eq!(
+        format!("{:#?}", expected_types),
+        format!("{:#?}", actual_types),
+    )
 }

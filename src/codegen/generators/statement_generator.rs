@@ -9,7 +9,7 @@ use crate::{
     index::{ImplementationIndexEntry, Index},
     resolver::AnnotationMap,
     typesystem::{
-        DataTypeInformation, RANGE_CHECK_LS_FN, RANGE_CHECK_LU_FN, RANGE_CHECK_S_FN,
+        DataTypeInformation, DINT_TYPE, RANGE_CHECK_LS_FN, RANGE_CHECK_LU_FN, RANGE_CHECK_S_FN,
         RANGE_CHECK_U_FN,
     },
 };
@@ -326,11 +326,10 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         let expression_generator = self.create_expr_generator();
         let (_, step_by_value) = by_step.as_ref().map_or_else(
             || {
-                expression_generator.generate_literal(&AstStatement::LiteralInteger {
-                    value: 1,
-                    location: end.get_location(),
-                    id: 0, //TODO
-                })
+                let value = self
+                    .llvm
+                    .create_const_numeric(&self.llvm_index.get_associated_type(DINT_TYPE)?, "1")?;
+                Ok((self.index.get_type_information(DINT_TYPE)?, value))
             },
             |step| expression_generator.generate_expression(step),
         )?;
@@ -687,6 +686,7 @@ fn create_call_to_check_function_ast(
     sub_range: Range<AstStatement>,
     location: &SourceRange,
 ) -> AstStatement {
+    let range_type_id = sub_range.start.get_id();
     AstStatement::CallStatement {
         operator: Box::new(AstStatement::Reference {
             name: check_function_name,
@@ -695,7 +695,7 @@ fn create_call_to_check_function_ast(
         }),
         parameters: Box::new(Some(AstStatement::ExpressionList {
             expressions: vec![parameter, sub_range.start, sub_range.end],
-            id: 0, //TODO
+            id: range_type_id, //use the id so we end up with the same datatype
         })),
         location: location.clone(),
         id: 0, //TODO
