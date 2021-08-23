@@ -163,6 +163,7 @@ entry:
 
     assert_eq!(result, expected);
 }
+
 #[test]
 fn program_with_variables_generates_void_function_and_struct() {
     let result = codegen!(
@@ -573,6 +574,42 @@ entry:
   %z = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 1
   store [12 x i8] c"im a genius\00", [81 x i8]* %y, align 1
   store [36 x i8] c"i\00m\00 \00a\00 \00u\00t\00f\001\006\00 \00g\00e\00n\00i\00u\00s\00\00\00", [162 x i8]* %z, align 1
+  ret void
+}
+"#;
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn different_case_references() {
+    let result = codegen!(
+        r#"
+TYPE MyInt: INT := 1; END_TYPE
+TYPE MyDInt: DINT := 2; END_TYPE
+
+PROGRAM prg
+VAR
+y : int;
+z : MyInt;
+zz : Mydint;
+END_VAR
+END_PROGRAM
+"#
+    );
+
+    let expected = r#"; ModuleID = 'main'
+source_filename = "main"
+
+%prg_interface = type { i16, i16, i32 }
+
+@prg_instance = global %prg_interface { i16 0, i32 1, i32 2 }
+
+define void @prg(%prg_interface* %0) {
+entry:
+  %y = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 0
+  %z = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 1
+  %zz = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 2
   ret void
 }
 "#;

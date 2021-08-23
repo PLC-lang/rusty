@@ -234,8 +234,8 @@ fn register_aliased_initial_value<'ink>(
     } else {
         // if there's no initializer defined for this alias, we go and check the aliased type for an initial value
         index
-            .get_types()
-            .get(referenced_type)
+            .get_type(referenced_type)
+            .ok()
             .and_then(|referenced_data_type| {
                 generate_initial_value(index, types_index, llvm, referenced_data_type)
             })

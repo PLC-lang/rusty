@@ -60,7 +60,8 @@ impl<'ink> LlvmTypedIndex<'ink> {
         type_name: &str,
         target_type: BasicTypeEnum<'ink>,
     ) -> Result<(), CompileError> {
-        self.type_associations.insert(type_name.into(), target_type);
+        self.type_associations
+            .insert(type_name.to_lowercase(), target_type);
         Ok(())
     }
 
@@ -70,7 +71,7 @@ impl<'ink> LlvmTypedIndex<'ink> {
         initial_value: BasicValueEnum<'ink>,
     ) -> Result<(), CompileError> {
         self.initial_value_associations
-            .insert(type_name.into(), initial_value);
+            .insert(type_name.to_lowercase(), initial_value);
         Ok(())
     }
 
@@ -82,16 +83,19 @@ impl<'ink> LlvmTypedIndex<'ink> {
     ) -> Result<(), CompileError> {
         let qualified_name = format!("{}.{}", container_name, variable_name);
         self.loaded_variable_associations
-            .insert(qualified_name, target_value);
+            .insert(qualified_name.to_lowercase(), target_value);
         Ok(())
     }
 
     pub fn find_associated_type(&self, type_name: &str) -> Option<BasicTypeEnum<'ink>> {
-        self.type_associations.get(type_name).copied().or_else(|| {
-            self.parent_index
-                .map(|it| it.find_associated_type(type_name))
-                .flatten()
-        })
+        self.type_associations
+            .get(&type_name.to_lowercase())
+            .copied()
+            .or_else(|| {
+                self.parent_index
+                    .map(|it| it.find_associated_type(type_name))
+                    .flatten()
+            })
     }
 
     pub fn get_associated_type(
@@ -104,7 +108,7 @@ impl<'ink> LlvmTypedIndex<'ink> {
 
     pub fn find_associated_initial_value(&self, type_name: &str) -> Option<BasicValueEnum<'ink>> {
         self.initial_value_associations
-            .get(type_name)
+            .get(&type_name.to_lowercase())
             .copied()
             .or_else(|| {
                 self.parent_index
@@ -119,7 +123,7 @@ impl<'ink> LlvmTypedIndex<'ink> {
         global_variable: GlobalValue<'ink>,
     ) -> Result<(), CompileError> {
         self.initial_value_associations.insert(
-            variable_name.into(),
+            variable_name.to_lowercase(),
             global_variable.as_pointer_value().into(),
         );
         Ok(())
@@ -131,7 +135,7 @@ impl<'ink> LlvmTypedIndex<'ink> {
         function_value: FunctionValue<'ink>,
     ) -> Result<(), CompileError> {
         self.implementations
-            .insert(callable_name.into(), function_value);
+            .insert(callable_name.to_lowercase(), function_value);
         Ok(())
     }
 
@@ -140,7 +144,7 @@ impl<'ink> LlvmTypedIndex<'ink> {
         callable_name: &str,
     ) -> Option<FunctionValue<'ink>> {
         self.implementations
-            .get(callable_name)
+            .get(&callable_name.to_lowercase())
             .copied()
             .or_else(|| {
                 self.parent_index
@@ -154,7 +158,7 @@ impl<'ink> LlvmTypedIndex<'ink> {
         qualified_name: &str,
     ) -> Option<BasicValueEnum<'ink>> {
         self.initial_value_associations
-            .get(qualified_name)
+            .get(&qualified_name.to_lowercase())
             .copied()
             .or_else(|| {
                 self.parent_index
@@ -169,7 +173,7 @@ impl<'ink> LlvmTypedIndex<'ink> {
     ) -> Option<PointerValue<'ink>> {
         let result = self
             .loaded_variable_associations
-            .get(qualified_name)
+            .get(&qualified_name.to_lowercase())
             .copied()
             .or_else(|| {
                 self.parent_index
