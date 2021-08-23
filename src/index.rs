@@ -198,18 +198,18 @@ impl Index {
     }
 
     pub fn find_global_variable(&self, name: &str) -> Option<&VariableIndexEntry> {
-        self.global_variables.get(name)
+        self.global_variables.get(&name.to_lowercase())
     }
 
     pub fn find_member(&self, pou_name: &str, variable_name: &str) -> Option<&VariableIndexEntry> {
         self.member_variables
-            .get(pou_name)
-            .and_then(|map| map.get(variable_name))
+            .get(&pou_name.to_lowercase())
+            .and_then(|map| map.get(&variable_name.to_lowercase()))
     }
 
     pub fn find_local_members(&self, container_name: &str) -> Vec<&VariableIndexEntry> {
         self.member_variables
-            .get(container_name)
+            .get(&container_name.to_lowercase())
             .map(|it| it.values().collect())
             .unwrap_or_else(Vec::new)
     }
@@ -217,7 +217,7 @@ impl Index {
     /// Returns true if the current index is a VAR_INPUT, VAR_IN_OUT or VAR_OUTPUT that is not a variadic argument
     pub fn is_declared_parameter(&self, pou_name: &str, index: u32) -> bool {
         self.member_variables
-            .get(pou_name)
+            .get(&pou_name.to_lowercase())
             .and_then(|map| {
                 map.values()
                     .filter(|item| {
@@ -231,11 +231,13 @@ impl Index {
     }
 
     pub fn find_input_parameter(&self, pou_name: &str, index: u32) -> Option<&VariableIndexEntry> {
-        self.member_variables.get(pou_name).and_then(|map| {
-            map.values()
-                .filter(|item| item.information.variable_type == VariableType::Input)
-                .find(|item| item.information.location == index)
-        })
+        self.member_variables
+            .get(&pou_name.to_lowercase())
+            .and_then(|map| {
+                map.values()
+                    .filter(|item| item.information.variable_type == VariableType::Input)
+                    .find(|item| item.information.location == index)
+            })
     }
 
     pub fn find_variable(
@@ -265,7 +267,7 @@ impl Index {
     }
 
     pub fn find_type(&self, type_name: &str) -> Option<&DataType> {
-        self.types.get(type_name)
+        self.types.get(&type_name.to_lowercase())
     }
 
     pub fn find_effective_type_by_name(&self, type_name: &str) -> Option<&DataType> {
@@ -327,7 +329,7 @@ impl Index {
     }
 
     pub fn find_return_variable(&self, pou_name: &str) -> Option<&VariableIndexEntry> {
-        let members = self.member_variables.get(pou_name); //.ok_or_else(||CompileError::unknown_type(pou_name, 0..0))?;
+        let members = self.member_variables.get(&pou_name.to_lowercase()); //.ok_or_else(||CompileError::unknown_type(pou_name, 0..0))?;
         if let Some(members) = members {
             for (_, variable) in members {
                 if variable.information.variable_type == VariableType::Return {
@@ -356,7 +358,8 @@ impl Index {
             .ok_or_else(|| CompileError::unknown_type(type_name, SourceRange::undefined()))
     }
 
-    pub fn get_types(&self) -> &IndexMap<String, DataType> {
+    /// Returns a list of types, should not be used to search for types, just to react on them
+    pub(crate) fn get_types(&self) -> &IndexMap<String, DataType> {
         &self.types
     }
 
@@ -376,7 +379,7 @@ impl Index {
         impl_type: ImplementationType,
     ) {
         self.implementations.insert(
-            call_name.into(),
+            call_name.to_lowercase(),
             ImplementationIndexEntry {
                 call_name: call_name.into(),
                 type_name: type_name.into(),
@@ -387,7 +390,7 @@ impl Index {
     }
 
     pub fn find_implementation(&self, call_name: &str) -> Option<&ImplementationIndexEntry> {
-        self.implementations.get(call_name)
+        self.implementations.get(&call_name.to_lowercase())
     }
 
     /// registers a member-variable of a container to be accessed in a qualified name.
@@ -414,7 +417,7 @@ impl Index {
 
         let members = self
             .member_variables
-            .entry(container_name.into())
+            .entry(container_name.to_lowercase())
             .or_insert_with(IndexMap::new);
 
         let qualified_name = format!("{}.{}", container_name, variable_name);
@@ -431,7 +434,7 @@ impl Index {
                 location,
             },
         };
-        members.insert(variable_name.into(), entry);
+        members.insert(variable_name.to_lowercase(), entry);
     }
 
     pub fn register_global_variable(
@@ -473,7 +476,8 @@ impl Index {
                 location: 0,
             },
         };
-        self.global_variables.insert(association_name.into(), entry);
+        self.global_variables
+            .insert(association_name.to_lowercase(), entry);
     }
 
     pub fn print_global_variables(&self) {
@@ -491,7 +495,7 @@ impl Index {
             initial_value,
             information,
         };
-        self.types.insert(type_name.into(), index_entry);
+        self.types.insert(type_name.to_lowercase(), index_entry);
     }
 
     pub fn find_callable_instance_variable(

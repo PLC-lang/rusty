@@ -20,6 +20,47 @@ fn lex(source: &str) -> lexer::ParseSession {
 }
 
 #[test]
+fn index_not_case_sensitive() {
+    let index = index!(
+        r#"
+        TYPE st : STRUCT
+            x : INT;
+            y : DINT;
+        END_STRUCT
+        END_TYPE
+
+        VAR_GLOBAL
+            a: INT;
+            x : ST; 
+        END_VAR
+        FUNCTION foo : INT
+        END_FUNCTION
+
+        PROGRAM aProgram
+            VAR
+                c,d : INT;
+            END_VAR
+        END_PROGRAM
+    "#
+    );
+
+    let entry = index.find_global_variable("A").unwrap();
+    assert_eq!("a", entry.name);
+    assert_eq!("INT", entry.information.data_type_name);
+    let entry = index.find_global_variable("X").unwrap();
+    assert_eq!("x", entry.name);
+    assert_eq!("ST", entry.information.data_type_name);
+    let entry = index.find_member("ST", "X").unwrap();
+    assert_eq!("x", entry.name);
+    assert_eq!("INT", entry.information.data_type_name);
+    let entry = index.find_type("APROGRAM").unwrap();
+    assert_eq!("aProgram", entry.name);
+    let entry = index.find_implementation("Foo").unwrap();
+    assert_eq!("foo", entry.call_name);
+    assert_eq!("foo", entry.type_name);
+}
+
+#[test]
 fn global_variables_are_indexed() {
     let index = index!(
         r#"
@@ -1152,7 +1193,7 @@ fn sub_range_boundaries_are_registered_at_the_index() {
     let index = index!(src);
 
     // THEN I expect the index to contain the defined range-information for the given type
-    let my_int = &index.get_types().get("MyInt").unwrap().information;
+    let my_int = &index.get_type("MyInt").unwrap().information;
     let expected = &DataTypeInformation::SubRange {
         name: "MyInt".to_string(),
         referenced_type: "INT".to_string(),
@@ -1170,7 +1211,7 @@ fn sub_range_boundaries_are_registered_at_the_index() {
     assert_eq!(format!("{:?}", expected), format!("{:?}", my_int));
 
     // THEN I expect the index to contain the defined range-information for the given type
-    let my_int = &index.get_types().get("MyAliasInt").unwrap().information;
+    let my_int = &index.get_type("MyAliasInt").unwrap().information;
     let expected = &DataTypeInformation::Alias {
         name: "MyAliasInt".to_string(),
         referenced_type: "MyInt".to_string(),

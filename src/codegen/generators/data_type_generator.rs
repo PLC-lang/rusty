@@ -235,8 +235,8 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
         } else {
             // if there's no initializer defined for this alias, we go and check the aliased type for an initial value
             self.index
-                .get_types()
-                .get(referenced_type)
+                .get_type(referenced_type)
+                .ok()
                 .and_then(|referenced_data_type| self.generate_initial_value(referenced_data_type))
         }
     }
