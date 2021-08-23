@@ -341,6 +341,11 @@
 <span id="339">339</span>
 <span id="340">340</span>
 <span id="341">341</span>
+<span id="342">342</span>
+<span id="343">343</span>
+<span id="344">344</span>
+<span id="345">345</span>
+<span id="346">346</span>
 </pre><pre class="rust">
 <span class="kw">use</span> <span class="ident">logos::Logos</span>;
 
@@ -356,124 +361,126 @@
     <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;@EXTERNAL&quot;</span>)]</span>
     <span class="ident">PropertyExternal</span>,
 
-    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;PROGRAM&quot;</span>)]</span>
+    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;PROGRAM&quot;</span>, <span class="ident">ignore</span>(<span class="ident">case</span>))]</span>
     <span class="ident">KeywordProgram</span>,
 
-    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;CLASS&quot;</span>)]</span>
+    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;CLASS&quot;</span>, <span class="ident">ignore</span>(<span class="ident">case</span>))]</span>
     <span class="ident">KeywordClass</span>,
 
-    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;END_CLASS&quot;</span>)]</span>
-    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;ENDCLASS&quot;</span>)]</span>
+    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;END_CLASS&quot;</span>, <span class="ident">ignore</span>(<span class="ident">case</span>))]</span>
+    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;ENDCLASS&quot;</span>, <span class="ident">ignore</span>(<span class="ident">case</span>))]</span>
     <span class="ident">KeywordEndClass</span>,
 
-    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;VAR_INPUT&quot;</span>)]</span>
-    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;VARINPUT&quot;</span>)]</span>
+    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;VAR_INPUT&quot;</span>, <span class="ident">ignore</span>(<span class="ident">case</span>))]</span>
+    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;VARINPUT&quot;</span>, <span class="ident">ignore</span>(<span class="ident">case</span>))]</span>
     <span class="ident">KeywordVarInput</span>,
 
-    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;VAR_OUTPUT&quot;</span>)]</span>
-    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;VAROUTPUT&quot;</span>)]</span>
+    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;VAR_OUTPUT&quot;</span>, <span class="ident">ignore</span>(<span class="ident">case</span>))]</span>
+    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;VAROUTPUT&quot;</span>, <span class="ident">ignore</span>(<span class="ident">case</span>))]</span>
     <span class="ident">KeywordVarOutput</span>,
 
-    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;VAR&quot;</span>)]</span>
+    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;VAR&quot;</span>, <span class="ident">ignore</span>(<span class="ident">case</span>))]</span>
     <span class="ident">KeywordVar</span>,
 
-    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;ABSTRACT&quot;</span>)]</span>
+    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;ABSTRACT&quot;</span>, <span class="ident">ignore</span>(<span class="ident">case</span>))]</span>
     <span class="ident">KeywordAbstract</span>,
 
-    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;FINAL&quot;</span>)]</span>
+    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;FINAL&quot;</span>, <span class="ident">ignore</span>(<span class="ident">case</span>))]</span>
     <span class="ident">KeywordFinal</span>,
 
-    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;METHOD&quot;</span>)]</span>
+    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;METHOD&quot;</span>, <span class="ident">ignore</span>(<span class="ident">case</span>))]</span>
     <span class="ident">KeywordMethod</span>,
 
-    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;CONSTANT&quot;</span>)]</span>
+    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;CONSTANT&quot;</span>, <span class="ident">ignore</span>(<span class="ident">case</span>))]</span>
     <span class="ident">KeywordConstant</span>,
 
-    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;RETAIN&quot;</span>)]</span>
+    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;RETAIN&quot;</span>, <span class="ident">ignore</span>(<span class="ident">case</span>))]</span>
     <span class="ident">KeywordRetain</span>,
 
-    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;NON_RETAIN&quot;</span>)]</span>
+    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;NON_RETAIN&quot;</span>, <span class="ident">ignore</span>(<span class="ident">case</span>))]</span>
+    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;NONRETAIN&quot;</span>, <span class="ident">ignore</span>(<span class="ident">case</span>))]</span>
     <span class="ident">KeywordNonRetain</span>,
 
-    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;VAR_TEMP&quot;</span>)]</span>
+    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;VAR_TEMP&quot;</span>, <span class="ident">ignore</span>(<span class="ident">case</span>))]</span>
+    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;VARTEMP&quot;</span>, <span class="ident">ignore</span>(<span class="ident">case</span>))]</span>
     <span class="ident">KeywordVarTemp</span>,
 
-    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;END_METHOD&quot;</span>)]</span>
-    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;ENDMETHOD&quot;</span>)]</span>
+    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;END_METHOD&quot;</span>, <span class="ident">ignore</span>(<span class="ident">case</span>))]</span>
+    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;ENDMETHOD&quot;</span>, <span class="ident">ignore</span>(<span class="ident">case</span>))]</span>
     <span class="ident">KeywordEndMethod</span>,
 
-    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;PUBLIC&quot;</span>)]</span>
+    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;PUBLIC&quot;</span>, <span class="ident">ignore</span>(<span class="ident">case</span>))]</span>
     <span class="ident">KeywordAccessPublic</span>,
 
-    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;PRIVATE&quot;</span>)]</span>
+    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;PRIVATE&quot;</span>, <span class="ident">ignore</span>(<span class="ident">case</span>))]</span>
     <span class="ident">KeywordAccessPrivate</span>,
 
-    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;INTERNAL&quot;</span>)]</span>
+    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;INTERNAL&quot;</span>, <span class="ident">ignore</span>(<span class="ident">case</span>))]</span>
     <span class="ident">KeywordAccessInternal</span>,
 
-    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;PROTECTED&quot;</span>)]</span>
+    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;PROTECTED&quot;</span>, <span class="ident">ignore</span>(<span class="ident">case</span>))]</span>
     <span class="ident">KeywordAccessProtected</span>,
 
-    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;OVERRIDE&quot;</span>)]</span>
+    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;OVERRIDE&quot;</span>, <span class="ident">ignore</span>(<span class="ident">case</span>))]</span>
     <span class="ident">KeywordOverride</span>,
 
-    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;VAR_GLOBAL&quot;</span>)]</span>
-    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;VARGLOBAL&quot;</span>)]</span>
+    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;VAR_GLOBAL&quot;</span>, <span class="ident">ignore</span>(<span class="ident">case</span>))]</span>
+    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;VARGLOBAL&quot;</span>, <span class="ident">ignore</span>(<span class="ident">case</span>))]</span>
     <span class="ident">KeywordVarGlobal</span>,
 
-    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;VAR_IN_OUT&quot;</span>)]</span>
-    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;VARINOUT&quot;</span>)]</span>
+    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;VAR_IN_OUT&quot;</span>, <span class="ident">ignore</span>(<span class="ident">case</span>))]</span>
+    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;VARINOUT&quot;</span>, <span class="ident">ignore</span>(<span class="ident">case</span>))]</span>
     <span class="ident">KeywordVarInOut</span>,
 
-    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;END_VAR&quot;</span>)]</span>
-    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;ENDVAR&quot;</span>)]</span>
+    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;END_VAR&quot;</span>, <span class="ident">ignore</span>(<span class="ident">case</span>))]</span>
+    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;ENDVAR&quot;</span>, <span class="ident">ignore</span>(<span class="ident">case</span>))]</span>
     <span class="ident">KeywordEndVar</span>,
 
-    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;END_PROGRAM&quot;</span>)]</span>
-    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;ENDPROGRAM&quot;</span>)]</span>
+    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;END_PROGRAM&quot;</span>, <span class="ident">ignore</span>(<span class="ident">case</span>))]</span>
+    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;ENDPROGRAM&quot;</span>, <span class="ident">ignore</span>(<span class="ident">case</span>))]</span>
     <span class="ident">KeywordEndProgram</span>,
 
-    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;FUNCTION&quot;</span>)]</span>
+    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;FUNCTION&quot;</span>, <span class="ident">ignore</span>(<span class="ident">case</span>))]</span>
     <span class="ident">KeywordFunction</span>,
 
-    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;END_FUNCTION&quot;</span>)]</span>
-    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;ENDFUNCTION&quot;</span>)]</span>
+    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;END_FUNCTION&quot;</span>, <span class="ident">ignore</span>(<span class="ident">case</span>))]</span>
+    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;ENDFUNCTION&quot;</span>, <span class="ident">ignore</span>(<span class="ident">case</span>))]</span>
     <span class="ident">KeywordEndFunction</span>,
 
-    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;FUNCTION_BLOCK&quot;</span>)]</span>
-    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;FUNCTIONBLOCK&quot;</span>)]</span>
+    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;FUNCTION_BLOCK&quot;</span>, <span class="ident">ignore</span>(<span class="ident">case</span>))]</span>
+    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;FUNCTIONBLOCK&quot;</span>, <span class="ident">ignore</span>(<span class="ident">case</span>))]</span>
     <span class="ident">KeywordFunctionBlock</span>,
 
-    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;END_FUNCTION_BLOCK&quot;</span>)]</span>
-    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;ENDFUNCTIONBLOCK&quot;</span>)]</span>
+    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;END_FUNCTION_BLOCK&quot;</span>, <span class="ident">ignore</span>(<span class="ident">case</span>))]</span>
+    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;ENDFUNCTIONBLOCK&quot;</span>, <span class="ident">ignore</span>(<span class="ident">case</span>))]</span>
     <span class="ident">KeywordEndFunctionBlock</span>,
 
-    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;TYPE&quot;</span>)]</span>
+    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;TYPE&quot;</span>, <span class="ident">ignore</span>(<span class="ident">case</span>))]</span>
     <span class="ident">KeywordType</span>,
 
-    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;STRUCT&quot;</span>)]</span>
+    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;STRUCT&quot;</span>, <span class="ident">ignore</span>(<span class="ident">case</span>))]</span>
     <span class="ident">KeywordStruct</span>,
 
-    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;END_TYPE&quot;</span>)]</span>
-    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;ENDTYPE&quot;</span>)]</span>
+    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;END_TYPE&quot;</span>, <span class="ident">ignore</span>(<span class="ident">case</span>))]</span>
+    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;ENDTYPE&quot;</span>, <span class="ident">ignore</span>(<span class="ident">case</span>))]</span>
     <span class="ident">KeywordEndType</span>,
 
-    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;END_STRUCT&quot;</span>)]</span>
-    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;ENDSTRUCT&quot;</span>)]</span>
+    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;END_STRUCT&quot;</span>, <span class="ident">ignore</span>(<span class="ident">case</span>))]</span>
+    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;ENDSTRUCT&quot;</span>, <span class="ident">ignore</span>(<span class="ident">case</span>))]</span>
     <span class="ident">KeywordEndStruct</span>,
 
-    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;ACTIONS&quot;</span>)]</span>
+    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;ACTIONS&quot;</span>, <span class="ident">ignore</span>(<span class="ident">case</span>))]</span>
     <span class="ident">KeywordActions</span>,
 
-    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;ACTION&quot;</span>)]</span>
+    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;ACTION&quot;</span>, <span class="ident">ignore</span>(<span class="ident">case</span>))]</span>
     <span class="ident">KeywordAction</span>,
 
-    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;END_ACTION&quot;</span>)]</span>
-    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;ENDACTION&quot;</span>)]</span>
+    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;END_ACTION&quot;</span>, <span class="ident">ignore</span>(<span class="ident">case</span>))]</span>
+    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;ENDACTION&quot;</span>, <span class="ident">ignore</span>(<span class="ident">case</span>))]</span>
     <span class="ident">KeywordEndAction</span>,
 
-    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;END_ACTIONS&quot;</span>)]</span>
-    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;ENDACTIONS&quot;</span>)]</span>
+    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;END_ACTIONS&quot;</span>, <span class="ident">ignore</span>(<span class="ident">case</span>))]</span>
+    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;ENDACTIONS&quot;</span>, <span class="ident">ignore</span>(<span class="ident">case</span>))]</span>
     <span class="ident">KeywordEndActions</span>,
 
     <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;:&quot;</span>)]</span>
@@ -513,81 +520,81 @@
     <span class="ident">KeywordDot</span>,
 
     <span class="comment">//Control Structures</span>
-    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;IF&quot;</span>)]</span>
+    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;IF&quot;</span>, <span class="ident">ignore</span>(<span class="ident">case</span>))]</span>
     <span class="ident">KeywordIf</span>,
 
-    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;THEN&quot;</span>)]</span>
+    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;THEN&quot;</span>, <span class="ident">ignore</span>(<span class="ident">case</span>))]</span>
     <span class="ident">KeywordThen</span>,
 
-    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;ELSIF&quot;</span>)]</span>
+    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;ELSIF&quot;</span>, <span class="ident">ignore</span>(<span class="ident">case</span>))]</span>
     <span class="ident">KeywordElseIf</span>,
 
-    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;ELSE&quot;</span>)]</span>
+    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;ELSE&quot;</span>, <span class="ident">ignore</span>(<span class="ident">case</span>))]</span>
     <span class="ident">KeywordElse</span>,
 
-    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;END_IF&quot;</span>)]</span>
-    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;ENDIF&quot;</span>)]</span>
+    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;END_IF&quot;</span>, <span class="ident">ignore</span>(<span class="ident">case</span>))]</span>
+    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;ENDIF&quot;</span>, <span class="ident">ignore</span>(<span class="ident">case</span>))]</span>
     <span class="ident">KeywordEndIf</span>,
 
-    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;FOR&quot;</span>)]</span>
+    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;FOR&quot;</span>, <span class="ident">ignore</span>(<span class="ident">case</span>))]</span>
     <span class="ident">KeywordFor</span>,
 
-    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;TO&quot;</span>)]</span>
+    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;TO&quot;</span>, <span class="ident">ignore</span>(<span class="ident">case</span>))]</span>
     <span class="ident">KeywordTo</span>,
 
-    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;BY&quot;</span>)]</span>
+    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;BY&quot;</span>, <span class="ident">ignore</span>(<span class="ident">case</span>))]</span>
     <span class="ident">KeywordBy</span>,
 
-    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;DO&quot;</span>)]</span>
+    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;DO&quot;</span>, <span class="ident">ignore</span>(<span class="ident">case</span>))]</span>
     <span class="ident">KeywordDo</span>,
 
-    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;END_FOR&quot;</span>)]</span>
-    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;ENDFOR&quot;</span>)]</span>
+    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;END_FOR&quot;</span>, <span class="ident">ignore</span>(<span class="ident">case</span>))]</span>
+    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;ENDFOR&quot;</span>, <span class="ident">ignore</span>(<span class="ident">case</span>))]</span>
     <span class="ident">KeywordEndFor</span>,
 
-    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;WHILE&quot;</span>)]</span>
+    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;WHILE&quot;</span>, <span class="ident">ignore</span>(<span class="ident">case</span>))]</span>
     <span class="ident">KeywordWhile</span>,
 
-    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;END_WHILE&quot;</span>)]</span>
-    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;ENDWHILE&quot;</span>)]</span>
+    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;END_WHILE&quot;</span>, <span class="ident">ignore</span>(<span class="ident">case</span>))]</span>
+    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;ENDWHILE&quot;</span>, <span class="ident">ignore</span>(<span class="ident">case</span>))]</span>
     <span class="ident">KeywordEndWhile</span>,
 
-    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;REPEAT&quot;</span>)]</span>
+    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;REPEAT&quot;</span>, <span class="ident">ignore</span>(<span class="ident">case</span>))]</span>
     <span class="ident">KeywordRepeat</span>,
 
-    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;UNTIL&quot;</span>)]</span>
+    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;UNTIL&quot;</span>, <span class="ident">ignore</span>(<span class="ident">case</span>))]</span>
     <span class="ident">KeywordUntil</span>,
 
-    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;END_REPEAT&quot;</span>)]</span>
-    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;ENDREPEAT&quot;</span>)]</span>
+    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;END_REPEAT&quot;</span>, <span class="ident">ignore</span>(<span class="ident">case</span>))]</span>
+    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;ENDREPEAT&quot;</span>, <span class="ident">ignore</span>(<span class="ident">case</span>))]</span>
     <span class="ident">KeywordEndRepeat</span>,
 
-    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;CASE&quot;</span>)]</span>
+    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;CASE&quot;</span>, <span class="ident">ignore</span>(<span class="ident">case</span>))]</span>
     <span class="ident">KeywordCase</span>,
 
-    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;RETURN&quot;</span>)]</span>
+    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;RETURN&quot;</span>, <span class="ident">ignore</span>(<span class="ident">case</span>))]</span>
     <span class="ident">KeywordReturn</span>,
 
-    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;EXIT&quot;</span>)]</span>
+    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;EXIT&quot;</span>, <span class="ident">ignore</span>(<span class="ident">case</span>))]</span>
     <span class="ident">KeywordExit</span>,
 
-    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;CONTINUE&quot;</span>)]</span>
+    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;CONTINUE&quot;</span>, <span class="ident">ignore</span>(<span class="ident">case</span>))]</span>
     <span class="ident">KeywordContinue</span>,
 
-    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;ARRAY&quot;</span>)]</span>
+    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;ARRAY&quot;</span>, <span class="ident">ignore</span>(<span class="ident">case</span>))]</span>
     <span class="ident">KeywordArray</span>,
 
-    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;STRING&quot;</span>)]</span>
+    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;STRING&quot;</span>, <span class="ident">ignore</span>(<span class="ident">case</span>))]</span>
     <span class="ident">KeywordString</span>,
 
-    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;WSTRING&quot;</span>)]</span>
+    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;WSTRING&quot;</span>, <span class="ident">ignore</span>(<span class="ident">case</span>))]</span>
     <span class="ident">KeywordWideString</span>,
 
-    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;OF&quot;</span>)]</span>
+    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;OF&quot;</span>, <span class="ident">ignore</span>(<span class="ident">case</span>))]</span>
     <span class="ident">KeywordOf</span>,
 
-    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;END_CASE&quot;</span>)]</span>
-    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;ENDCASE&quot;</span>)]</span>
+    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;END_CASE&quot;</span>, <span class="ident">ignore</span>(<span class="ident">case</span>))]</span>
+    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;ENDCASE&quot;</span>, <span class="ident">ignore</span>(<span class="ident">case</span>))]</span>
     <span class="ident">KeywordEndCase</span>,
 
     <span class="comment">//Operators</span>
@@ -621,19 +628,19 @@
     <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;&gt;=&quot;</span>)]</span>
     <span class="ident">OperatorGreaterOrEqual</span>,
 
-    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;MOD&quot;</span>)]</span>
+    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;MOD&quot;</span>, <span class="ident">ignore</span>(<span class="ident">case</span>))]</span>
     <span class="ident">OperatorModulo</span>,
 
-    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;AND&quot;</span>)]</span>
+    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;AND&quot;</span>, <span class="ident">ignore</span>(<span class="ident">case</span>))]</span>
     <span class="ident">OperatorAnd</span>,
 
-    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;OR&quot;</span>)]</span>
+    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;OR&quot;</span>, <span class="ident">ignore</span>(<span class="ident">case</span>))]</span>
     <span class="ident">OperatorOr</span>,
 
-    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;XOR&quot;</span>)]</span>
+    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;XOR&quot;</span>, <span class="ident">ignore</span>(<span class="ident">case</span>))]</span>
     <span class="ident">OperatorXor</span>,
 
-    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;NOT&quot;</span>)]</span>
+    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;NOT&quot;</span>, <span class="ident">ignore</span>(<span class="ident">case</span>))]</span>
     <span class="ident">OperatorNot</span>,
 
     <span class="comment">//Identifiers</span>
@@ -656,22 +663,25 @@
     <span class="attribute">#[<span class="ident">regex</span>(<span class="string">&quot;[eE][+-]?[0-9]+&quot;</span>)]</span>
     <span class="ident">LiteralExponent</span>,
 
-    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;TRUE&quot;</span>)]</span>
+    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;TRUE&quot;</span>, <span class="ident">ignore</span>(<span class="ident">case</span>))]</span>
     <span class="ident">LiteralTrue</span>,
 
-    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;FALSE&quot;</span>)]</span>
+    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;FALSE&quot;</span>, <span class="ident">ignore</span>(<span class="ident">case</span>))]</span>
     <span class="ident">LiteralFalse</span>,
 
-    <span class="attribute">#[<span class="ident">regex</span>(<span class="string">&quot;D(ATE)?#\\d+-\\d+-\\d+&quot;</span>)]</span>
+    <span class="attribute">#[<span class="ident">regex</span>(<span class="string">&quot;D(ATE)?#\\d+-\\d+-\\d+&quot;</span>, <span class="ident">ignore</span>(<span class="ident">case</span>))]</span>
     <span class="ident">LiteralDate</span>,
 
-    <span class="attribute">#[<span class="ident">regex</span>(<span class="string">&quot;(DATE_AND_TIME|DT)#\\d+-\\d+-\\d+-\\d+:\\d+:\\d+(\\.\\d+)?&quot;</span>)]</span>
+    <span class="attribute">#[<span class="ident">regex</span>(
+        <span class="string">&quot;(DATE_AND_TIME|DT)#\\d+-\\d+-\\d+-\\d+:\\d+:\\d+(\\.\\d+)?&quot;</span>,
+        <span class="ident">ignore</span>(<span class="ident">case</span>)
+    )]</span>
     <span class="ident">LiteralDateAndTime</span>,
 
-    <span class="attribute">#[<span class="ident">regex</span>(<span class="string">&quot;(TIME_OF_DAY|TOD)#\\d+:\\d+:\\d+(\\.\\d+)?&quot;</span>)]</span>
+    <span class="attribute">#[<span class="ident">regex</span>(<span class="string">&quot;(TIME_OF_DAY|TOD)#\\d+:\\d+:\\d+(\\.\\d+)?&quot;</span>, <span class="ident">ignore</span>(<span class="ident">case</span>))]</span>
     <span class="ident">LiteralTimeOfDay</span>,
 
-    <span class="attribute">#[<span class="ident">regex</span>(<span class="string">&quot;T(IME)?#-?(\\d+(\\.\\d+)?(d|h|ms|m|s|us|ns))+&quot;</span>)]</span>
+    <span class="attribute">#[<span class="ident">regex</span>(<span class="string">&quot;T(IME)?#-?(\\d+(\\.\\d+)?(d|h|ms|m|s|us|ns))+&quot;</span>, <span class="ident">ignore</span>(<span class="ident">case</span>))]</span>
     <span class="ident">LiteralTime</span>,
 
     <span class="attribute">#[<span class="ident">regex</span>(<span class="string">&quot;&#39;((\\$.)|[^$&#39;])*&#39;&quot;</span>)]</span>
