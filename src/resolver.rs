@@ -16,7 +16,7 @@ use crate::{
     typesystem::{
         self, get_bigger_type_borrow, DataTypeInformation, BOOL_TYPE, DATE_AND_TIME_TYPE,
         DATE_TYPE, DINT_TYPE, LINT_TYPE, REAL_TYPE, STRING_TYPE, TIME_OF_DAY_TYPE, TIME_TYPE,
-        VOID_TYPE,
+        VOID_TYPE, WSTRING_TYPE,
     },
 };
 
@@ -622,9 +622,10 @@ impl<'i> TypeAnnotator<'i> {
                     .annotate(statement, StatementAnnotation::expression(BOOL_TYPE));
             }
 
-            AstStatement::LiteralString { .. } => {
+            AstStatement::LiteralString { is_wide, .. } => {
+                let string_type_name = if *is_wide { WSTRING_TYPE } else { STRING_TYPE };
                 self.annotation_map
-                    .annotate(statement, StatementAnnotation::expression(STRING_TYPE));
+                    .annotate(statement, StatementAnnotation::expression(string_type_name));
             }
             AstStatement::LiteralInteger { value, .. } => {
                 self.annotation_map.annotate(

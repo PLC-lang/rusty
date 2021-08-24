@@ -33,15 +33,20 @@ fn string_literals_are_annotated() {
     let (unit, index) = parse(
         r#"PROGRAM PRG
                 "abc";
-                "xyz";
+                'xyz';
             END_PROGRAM"#,
     );
     let annotations = annotate(&unit, &index);
     let statements = &unit.implementations[0].statements;
 
-    for s in statements.iter() {
-        assert_eq!("STRING", annotations.get_type_or_void(s, &index).get_name());
-    }
+    let expected_types = vec!["WSTRING", "STRING"];
+
+    let types: Vec<&str> = statements
+        .iter()
+        .map(|s| annotations.get_type_or_void(s, &index).get_name())
+        .collect();
+
+    assert_eq!(expected_types, types);
 }
 
 #[test]

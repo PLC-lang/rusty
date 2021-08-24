@@ -791,6 +791,64 @@ entry:
 }
 
 #[test]
+fn program_with_casted_string_assignment() {
+    let result = codegen!(
+        r#"PROGRAM prg
+VAR
+  y : STRING;
+  z : WSTRING;
+END_VAR
+
+// cast a WSTRING to a STRING
+y := STRING#"im a genius"; 
+// cast a STRING to a WSTRING
+z := WSTRING#'im a utf16 genius'; 
+END_PROGRAM
+"#
+    );
+
+    let expected = r#"; ModuleID = 'main'
+source_filename = "main"
+
+%prg_interface = type { [81 x i8], [162 x i8] }
+
+@prg_instance = global %prg_interface zeroinitializer
+
+define void @prg(%prg_interface* %0) {
+entry:
+  %y = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 0
+  %z = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 1
+  store [12 x i8] c"im a genius\00", [81 x i8]* %y, align 1
+  store [36 x i8] c"i\00m\00 \00a\00 \00u\00t\00f\001\006\00 \00g\00e\00n\00i\00u\00s\00\00\00", [162 x i8]* %z, align 1
+  ret void
+}
+"#;
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn generate_with_invalid_casted_string_assignment() {
+    let result = codegen_wihout_unwrap!(
+        r#"PROGRAM prg
+VAR
+  y : INT;
+END_VAR
+y := INT#"seven"; 
+END_PROGRAM
+"#
+    );
+
+    assert_eq!(
+        result,
+        Err(CompileError::codegen_error(
+            "Cannot generate String-Literal for type INT".to_string(),
+            (44..51).into()
+        ))
+    );
+}
+
+#[test]
 fn program_with_string_type_assignment() {
     let result = codegen!(
         r#"

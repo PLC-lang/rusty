@@ -1,5 +1,5 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-use crate::ast::{AstStatement, Operator};
+use crate::ast::{AstStatement, Operator, SourceRange};
 use crate::parser::parse;
 use pretty_assertions::*;
 
@@ -997,10 +997,23 @@ fn literal_real_test() {
     assert_eq!(ast_string, expected_ast);
 }
 
+fn literal_int_cast(data_type: &str, value: i64) -> AstStatement {
+    AstStatement::CastStatement {
+        id: 0,
+        location: SourceRange::undefined(),
+        target: Box::new(AstStatement::LiteralInteger {
+            id: 0,
+            location: (0..0).into(),
+            value,
+        }),
+        type_name: data_type.to_string(),
+    }
+}
+
 #[test]
 fn literal_cast_parse_test() {
     let lexer = super::lex(
-        "
+        r#"
         PROGRAM exp 
             SINT#100;
             DINT#16#AFFE;
@@ -1009,8 +1022,12 @@ fn literal_cast_parse_test() {
             INT#100;
             DINT#-100;
             REAL#-3.1415;
+            BOOL#1;
+            BOOL#FALSE;
+            STRING#"abc";
+            WSTRING#'xyz';
         END_PROGRAM
-        ",
+        "#,
     );
     let result = parse(lexer).0;
 
@@ -1023,66 +1040,12 @@ fn literal_cast_parse_test() {
         format!(
             "{:#?}",
             vec![
-                AstStatement::CastStatement {
-                    id: 0,
-                    location: (0..0).into(),
-                    type_name: "SINT".into(),
-                    target: Box::new(AstStatement::LiteralInteger {
-                        id: 0,
-                        location: (0..0).into(),
-                        value: 100
-                    })
-                },
-                AstStatement::CastStatement {
-                    id: 0,
-                    location: (0..0).into(),
-                    type_name: "DINT".into(),
-                    target: Box::new(AstStatement::LiteralInteger {
-                        id: 0,
-                        location: (0..0).into(),
-                        value: 45054
-                    })
-                },
-                AstStatement::CastStatement {
-                    id: 0,
-                    location: (0..0).into(),
-                    type_name: "BYTE".into(),
-                    target: Box::new(AstStatement::LiteralInteger {
-                        id: 0,
-                        location: (0..0).into(),
-                        value: 63
-                    })
-                },
-                AstStatement::CastStatement {
-                    id: 0,
-                    location: (0..0).into(),
-                    type_name: "WORD".into(),
-                    target: Box::new(AstStatement::LiteralInteger {
-                        id: 0,
-                        location: (0..0).into(),
-                        value: 10
-                    })
-                },
-                AstStatement::CastStatement {
-                    id: 0,
-                    location: (0..0).into(),
-                    type_name: "INT".into(),
-                    target: Box::new(AstStatement::LiteralInteger {
-                        id: 0,
-                        location: (0..0).into(),
-                        value: 100
-                    })
-                },
-                AstStatement::CastStatement {
-                    id: 0,
-                    location: (0..0).into(),
-                    type_name: "DINT".into(),
-                    target: Box::new(AstStatement::LiteralInteger {
-                        id: 0,
-                        location: (0..0).into(),
-                        value: -100
-                    })
-                },
+                literal_int_cast("SINT", 100),
+                literal_int_cast("DINT", 45054),
+                literal_int_cast("BYTE", 63),
+                literal_int_cast("WORD", 10),
+                literal_int_cast("INT", 100),
+                literal_int_cast("DINT", -100),
                 AstStatement::CastStatement {
                     id: 0,
                     location: (0..0).into(),
@@ -1092,7 +1055,49 @@ fn literal_cast_parse_test() {
                         location: (0..0).into(),
                         value: "-3.1415".to_string()
                     })
-                }
+                },
+                AstStatement::CastStatement {
+                    id: 0,
+                    location: (0..0).into(),
+                    type_name: "BOOL".into(),
+                    target: Box::new(AstStatement::LiteralInteger {
+                        id: 0,
+                        location: (0..0).into(),
+                        value: 1,
+                    })
+                },
+                AstStatement::CastStatement {
+                    id: 0,
+                    location: (0..0).into(),
+                    type_name: "BOOL".into(),
+                    target: Box::new(AstStatement::LiteralBool {
+                        id: 0,
+                        location: (0..0).into(),
+                        value: false
+                    })
+                },
+                AstStatement::CastStatement {
+                    id: 0,
+                    location: (0..0).into(),
+                    type_name: "STRING".into(),
+                    target: Box::new(AstStatement::LiteralString {
+                        id: 0,
+                        location: (0..0).into(),
+                        value: "abc".to_string(),
+                        is_wide: true,
+                    })
+                },
+                AstStatement::CastStatement {
+                    id: 0,
+                    location: (0..0).into(),
+                    type_name: "WSTRING".into(),
+                    target: Box::new(AstStatement::LiteralString {
+                        id: 0,
+                        location: (0..0).into(),
+                        value: "xyz".to_string(),
+                        is_wide: false,
+                    })
+                },
             ]
         )
     );

@@ -3,7 +3,7 @@ use crate::{
     ast::{Pou, SourceRange},
     index::{ImplementationType, Index},
     resolver::{AnnotationMap, StatementAnnotation},
-    typesystem::{DINT_TYPE, LINT_TYPE, LREAL_TYPE},
+    typesystem::{StringEncoding, DINT_TYPE, LINT_TYPE, LREAL_TYPE},
 };
 use inkwell::{
     basic_block::BasicBlock,
@@ -1312,15 +1312,29 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                     value.to_string().as_str(),
                 )?;
                 Ok((type_context.clone(), value))
-
-                // self.llvm
-                //     .create_const_real(self.index, &self.get_type_context(), value)
             }
-            AstStatement::LiteralString { value, is_wide, .. } => {
-                if *is_wide {
-                    self.llvm.create_const_utf16_string(value.as_str())
+            AstStatement::LiteralString {
+                value, location, ..
+            } => {
+                let expected_type = self
+                    .annotations
+                    .get_type_or_void(literal_statement, self.index)
+                    .get_type_information();
+                if let DataTypeInformation::String { encoding, .. } = expected_type {
+                    match encoding {
+                        StringEncoding::Utf8 => self.llvm.create_const_utf8_string(value.as_str()),
+                        StringEncoding::Utf16 => {
+                            self.llvm.create_const_utf16_string(value.as_str())
+                        }
+                    }
                 } else {
-                    self.llvm.create_const_utf8_string(value.as_str())
+                    Err(CompileError::codegen_error(
+                        format!(
+                            "Cannot generate String-Literal for type {}",
+                            expected_type.get_name()
+                        ),
+                        location.clone(),
+                    ))
                 }
             }
             AstStatement::LiteralArray {
