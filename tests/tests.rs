@@ -16,6 +16,7 @@ mod correctness {
     mod initial_values;
     mod sub_range_types;
     mod sums;
+    mod classes;
 }
 
 mod integration {
