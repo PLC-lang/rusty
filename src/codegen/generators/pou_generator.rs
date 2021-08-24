@@ -4,9 +4,7 @@ use super::{
     llvm::Llvm,
     statement_generator::{FunctionContext, StatementCodeGenerator},
 };
-use crate::{
-    codegen::llvm_index::LlvmTypedIndex, index::ImplementationType, resolver::AnnotationMap,
-};
+use crate::{ast::Pou, codegen::llvm_index::LlvmTypedIndex, index::ImplementationType, resolver::AnnotationMap};
 
 /// The pou_generator contains functions to generate the code for POUs (PROGRAM, FUNCTION, FUNCTION_BLOCK)
 /// # responsibilities
@@ -81,11 +79,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         //generate a function that takes a instance-struct parameter
         let pou_name = implementation.get_call_name();
 
-        let instance_struct_type: StructType = self
-            .llvm_index
-            .get_associated_type(implementation.get_type_name())
-            .map(|it| it.into_struct_type())?;
-        let mut parameters = vec![instance_struct_type.ptr_type(AddressSpace::Generic).into()];
+        let mut parameters = vec![];
         if implementation.get_implementation_type() == &ImplementationType::Method {
             let class_name = implementation.get_associated_class_name().unwrap();
             let instance_members_struct_type: StructType = self
@@ -98,6 +92,12 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                     .into(),
             );
         }
+
+        let instance_struct_type: StructType = self
+            .llvm_index
+            .get_associated_type(implementation.get_type_name())
+            .map(|it| it.into_struct_type())?;
+        parameters.push(instance_struct_type.ptr_type(AddressSpace::Generic).into());
 
         let return_type: Option<&DataType> =
             global_index.find_return_type(implementation.get_type_name());
@@ -140,27 +140,31 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         let block = context.append_basic_block(current_function, "entry");
         self.llvm.builder.position_at_end(block);
 
-        // generate loads for all the parameters
-        let pou_members = self.index.find_local_members(&implementation.type_name);
-        self.generate_local_variable_accessors(
-            0,
-            &mut local_index,
-            &implementation.type_name,
-            current_function,
-            &pou_members,
-        )?;
+        let mut param_index = 0;
 
         if implementation.pou_type == PouType::Method {
             let class_name = implementation.type_name.split('.').collect::<Vec<&str>>()[0];
             let class_members = self.index.find_local_members(class_name);
             self.generate_local_variable_accessors(
-                1,
+                param_index,
                 &mut local_index,
                 class_name,
                 current_function,
                 &class_members,
             )?;
+            param_index += 1;
         }
+
+
+        // generate loads for all the parameters
+        let pou_members = self.index.find_local_members(&implementation.type_name);
+        self.generate_local_variable_accessors(
+            param_index,
+            &mut local_index,
+            &implementation.type_name,
+            current_function,
+            &pou_members,
+        )?;
 
         let function_context = FunctionContext {
             linking_context: implementation.into(),
@@ -172,7 +176,6 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                 self.index,
                 self.annotations,
                 self,
-                implementation.pou_type,
                 &local_index,
                 &function_context,
             );
@@ -189,7 +192,6 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         self.generate_return_statement(
             &function_context,
             &local_index,
-            implementation.pou_type,
             None,
         )?; //TODO location
 
@@ -240,7 +242,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
             let (name, variable) = if m.is_return() {
                 let return_type = index.get_associated_type(m.get_type_name())?;
                 (
-                    type_name,
+                    Pou::calc_return_name(type_name),
                     self.llvm.create_local_variable(type_name, &return_type),
                 )
             } else {
@@ -297,13 +299,11 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         &self,
         function_context: &FunctionContext<'ink>,
         local_index: &LlvmTypedIndex<'ink>,
-        pou_type: PouType,
         location: Option<SourceRange>,
     ) -> Result<(), CompileError> {
-        match pou_type {
-            PouType::Function => {
+        if self.index.find_return_variable(function_context.linking_context.get_type_name()).is_some() {
                 let reference = AstStatement::Reference {
-                    name: function_context.linking_context.get_call_name().into(),
+                    name: Pou::calc_return_name(function_context.linking_context.get_call_name()).into(),
                     location: location.unwrap_or_else(SourceRange::undefined),
                     id: 0, //TODO
                 };
@@ -319,10 +319,9 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                 exp_gen.temp_variable_suffix = "_ret".to_string();
                 let (_, value) = exp_gen.generate_expression(&reference)?;
                 self.llvm.builder.build_return(Some(&value));
-            }
-            _ => {
+
+        } else {
                 self.llvm.builder.build_return(None);
-            }
         }
         Ok(())
     }

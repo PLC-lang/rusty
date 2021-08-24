@@ -35,7 +35,7 @@ fn class_reference_in_pou() {
             END_METHOD
         END_CLASS
 
-        FUNCTION func : DINT
+        FUNCTION main : DINT
         VAR
           cl : MyClass;
           x : INT := 0;
@@ -44,7 +44,7 @@ fn class_reference_in_pou() {
         x := x + cl.x;
         x := x + cl.testMethod(x);
         x := cl.testMethod(myMethodArg:= x);
-        END_PROGRAM
+        END_FUNCTION
         ".into();
 
         let (res, _) = compile_and_run(source, &mut MainType{cl: MyClass{x: 0, y: 0}, x : 0});

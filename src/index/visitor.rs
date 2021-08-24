@@ -104,14 +104,14 @@ pub fn visit_pou(index: &mut Index, pou: &Pou) {
 
     //register a function's return type as a member variable
     if let Some(return_type) = &pou.return_type {
-        member_names.push(pou.name.clone());
+        member_names.push(pou.get_return_name().into());
         let source_location = SourceRange::new(pou.location.get_end()..pou.location.get_end());
         index.register_member_variable(
             &MemberInfo {
                 container_name: &pou.name,
-                variable_name: &pou.name,
+                variable_name: &pou.get_return_name(),
                 variable_linkage: VariableType::Return,
-                variable_type_name: return_type.get_name().unwrap(),
+                variable_type_name: return_type.get_name().unwrap_or_default(),
             },
             None,
             source_location,

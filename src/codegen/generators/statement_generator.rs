@@ -4,7 +4,7 @@ use super::{
 };
 use crate::{
     ast::{
-        flatten_expression_list, AstStatement, ConditionalBlock, Operator, PouType, SourceRange,
+        flatten_expression_list, AstStatement, ConditionalBlock, Operator, SourceRange,
     },
     codegen::{llvm_typesystem::cast_if_needed, LlvmTypedIndex},
     compile_error::CompileError,
@@ -36,7 +36,6 @@ pub struct StatementCodeGenerator<'a, 'b> {
     index: &'b Index,
     annotations: &'b AnnotationMap,
     pou_generator: &'b PouGenerator<'a, 'b>,
-    pou_type: PouType,
     llvm_index: &'b LlvmTypedIndex<'a>,
     function_context: &'b FunctionContext<'a>,
 
@@ -56,7 +55,6 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         index: &'b Index,
         annotations: &'b AnnotationMap,
         pou_generator: &'b PouGenerator<'a, 'b>,
-        pou_type: PouType,
         llvm_index: &'b LlvmTypedIndex<'a>,
         linking_context: &'b FunctionContext<'a>,
     ) -> StatementCodeGenerator<'a, 'b> {
@@ -65,7 +63,6 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
             index,
             annotations,
             pou_generator,
-            pou_type,
             llvm_index,
             function_context: linking_context,
             load_prefix: "load_".to_string(),
@@ -156,7 +153,6 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
                 self.pou_generator.generate_return_statement(
                     self.function_context,
                     self.llvm_index,
-                    self.pou_type,
                     Some(location.clone()),
                 )?;
                 self.generate_buffer_block();

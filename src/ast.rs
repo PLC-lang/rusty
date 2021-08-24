@@ -50,6 +50,16 @@ impl Debug for Pou {
     }
 }
 
+impl Pou {
+    pub fn get_return_name(&self) -> &str {
+        Pou::calc_return_name(&self.name)
+    }
+
+    pub fn calc_return_name(pou_name : &str) -> &str {
+        pou_name.split('.').last().unwrap_or_default()
+    }
+}
+
 #[derive(Debug, PartialEq)]
 pub struct Implementation {
     pub name: String,

@@ -1435,7 +1435,7 @@ continue:                                         ; preds = %for_body, %conditio
 }
 
 #[test]
-fn class_reference_in_pou() {
+fn class_method_in_pou() {
     let result = codegen!(
         "
         CLASS MyClass
@@ -1651,6 +1651,72 @@ continue5:                                        ; preds = %output4
 
 }
 
+
+#[test]
+fn method_codegen_return() {
+    let result = codegen!(
+        "
+    CLASS MyClass
+        METHOD testMethod : INT
+            VAR_INPUT myMethodArg : INT; END_VAR
+            testMethod := 1;
+        END_METHOD
+    END_CLASS
+        "
+    );
+
+    let expected = r#"; ModuleID = 'main'
+source_filename = "main"
+
+%MyClass_interface = type {}
+%MyClass.testMethod_interface = type { i16 }
+
+define i16 @MyClass.testMethod(%MyClass_interface* %0, %MyClass.testMethod_interface* %1) {
+entry:
+  %myMethodArg = getelementptr inbounds %MyClass.testMethod_interface, %MyClass.testMethod_interface* %1, i32 0, i32 0
+  %MyClass.testMethod = alloca i16, align 2
+  store i16 1, i16* %MyClass.testMethod, align 2
+  %testMethod_ret = load i16, i16* %MyClass.testMethod, align 2
+  ret i16 %testMethod_ret
+}
+"#;
+
+    assert_eq!(result, expected.to_string());
+}
+
+#[test]
+fn method_codegen_void() {
+    let result = codegen!(
+        "
+    CLASS MyClass
+        METHOD testMethod
+            VAR_INPUT myMethodArg : INT; END_VAR
+            VAR myMethodLocalVar : INT; END_VAR
+
+            myMethodLocalVar := 1;
+        END_METHOD
+    END_CLASS
+        "
+    );
+
+    let expected = r#"; ModuleID = 'main'
+source_filename = "main"
+
+%MyClass_interface = type {}
+%MyClass.testMethod_interface = type { i16, i16 }
+
+define void @MyClass.testMethod(%MyClass_interface* %0, %MyClass.testMethod_interface* %1) {
+entry:
+  %myMethodArg = getelementptr inbounds %MyClass.testMethod_interface, %MyClass.testMethod_interface* %1, i32 0, i32 0
+  %myMethodLocalVar = getelementptr inbounds %MyClass.testMethod_interface, %MyClass.testMethod_interface* %1, i32 0, i32 1
+  store i16 1, i16* %myMethodLocalVar, align 2
+  ret void
+}
+"#;
+
+    assert_eq!(result, expected.to_string());
+}
+
 #[test]
 fn class_member_access_from_method() {
     let result = codegen!(
@@ -1675,15 +1741,15 @@ fn class_member_access_from_method() {
     let expected = r#"; ModuleID = 'main'
 source_filename = "main"
 
-%MyClass.testMethod_interface = type { i16, i16 }
 %MyClass_interface = type { i16, i16 }
+%MyClass.testMethod_interface = type { i16, i16 }
 
-define void @MyClass.testMethod(%MyClass.testMethod_interface* %0, %MyClass_interface* %1) {
+define void @MyClass.testMethod(%MyClass_interface* %0, %MyClass.testMethod_interface* %1) {
 entry:
-  %myMethodArg = getelementptr inbounds %MyClass.testMethod_interface, %MyClass.testMethod_interface* %0, i32 0, i32 0
-  %myMethodLocalVar = getelementptr inbounds %MyClass.testMethod_interface, %MyClass.testMethod_interface* %0, i32 0, i32 1
-  %x = getelementptr inbounds %MyClass_interface, %MyClass_interface* %1, i32 0, i32 0
-  %y = getelementptr inbounds %MyClass_interface, %MyClass_interface* %1, i32 0, i32 1
+  %x = getelementptr inbounds %MyClass_interface, %MyClass_interface* %0, i32 0, i32 0
+  %y = getelementptr inbounds %MyClass_interface, %MyClass_interface* %0, i32 0, i32 1
+  %myMethodArg = getelementptr inbounds %MyClass.testMethod_interface, %MyClass.testMethod_interface* %1, i32 0, i32 0
+  %myMethodLocalVar = getelementptr inbounds %MyClass.testMethod_interface, %MyClass.testMethod_interface* %1, i32 0, i32 1
   %load_myMethodArg = load i16, i16* %myMethodArg, align 2
   store i16 %load_myMethodArg, i16* %x, align 2
   %load_x = load i16, i16* %x, align 2
