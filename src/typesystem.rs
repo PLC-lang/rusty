@@ -127,15 +127,26 @@ impl DataTypeInformation {
             DataTypeInformation::Pointer { name, .. } => name,
             DataTypeInformation::Integer { name, .. } => name,
             DataTypeInformation::Float { name, .. } => name,
-            DataTypeInformation::String { .. } => "String",
+            DataTypeInformation::String {
+                encoding: StringEncoding::Utf8,
+                ..
+            } => "STRING",
+            DataTypeInformation::String {
+                encoding: StringEncoding::Utf16,
+                ..
+            } => "WSTRING",
             DataTypeInformation::SubRange { name, .. } => name,
-            DataTypeInformation::Void => "Void",
+            DataTypeInformation::Void => "VOID",
             DataTypeInformation::Alias { name, .. } => name,
         }
     }
 
     pub fn is_int(&self) -> bool {
         matches!(self, DataTypeInformation::Integer { .. })
+    }
+
+    pub fn is_unsigned_int(&self) -> bool {
+        matches!(self, DataTypeInformation::Integer { signed: false, .. })
     }
 
     pub fn is_float(&self) -> bool {

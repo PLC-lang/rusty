@@ -88,6 +88,9 @@ pub enum ErrNo {
     //variable related
 
     //type related
+    type__literal_out_of_range,
+    type__inompatible_literal_cast,
+    type__expected_literal,
 }
 
 impl Diagnostic {
@@ -150,6 +153,41 @@ impl Diagnostic {
             message: format!("Could not resolve reference to '{:}", reference),
             range: location,
             err_no: ErrNo::reference__unresolved,
+        }
+    }
+
+    pub fn incompatible_literal_cast(
+        cast_type: &str,
+        literal_type: &str,
+        location: SourceRange,
+    ) -> Diagnostic {
+        Diagnostic::SyntaxError {
+            message: format!(
+                "Literal {:} is not campatible to {:}",
+                literal_type, cast_type
+            ),
+            range: location,
+            err_no: ErrNo::type__inompatible_literal_cast,
+        }
+    }
+
+    pub fn literal_expected(location: SourceRange) -> Diagnostic {
+        Diagnostic::SyntaxError {
+            message: "Expected literal".into(),
+            range: location,
+            err_no: ErrNo::type__expected_literal,
+        }
+    }
+
+    pub fn literal_out_of_range(
+        literal: &str,
+        range_hint: &str,
+        location: SourceRange,
+    ) -> Diagnostic {
+        Diagnostic::SyntaxError {
+            message: format!("Literal {:} out of range ({})", literal, range_hint),
+            range: location,
+            err_no: ErrNo::type__literal_out_of_range,
         }
     }
 
@@ -409,7 +447,7 @@ pub fn compile_module<'c, T: SourceContainer>(
         let annotations = TypeAnnotator::visit_unit(&full_index, unit);
 
         let mut validator = Validator::new();
-        validator.visit_unit(&annotations, unit);
+        validator.visit_unit(&annotations, &full_index, unit);
         //log errors
         report_diagnostics(*file_id, syntax_errors.iter(), &files)?;
         report_diagnostics(*file_id, validator.diagnostics().iter(), &files)?;

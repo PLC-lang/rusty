@@ -358,6 +358,12 @@ impl Index {
             .ok_or_else(|| CompileError::unknown_type(type_name, SourceRange::undefined()))
     }
 
+    pub fn get_type_information_or_void(&self, type_name: &str) -> &DataTypeInformation {
+        self.find_type(type_name)
+            .map(|it| it.get_type_information())
+            .unwrap_or_else(|| self.get_void_type().get_type_information())
+    }
+
     /// Returns a list of types, should not be used to search for types, just to react on them
     pub(crate) fn get_types(&self) -> &IndexMap<String, DataType> {
         &self.types

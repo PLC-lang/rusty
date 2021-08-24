@@ -205,3 +205,17 @@ fn string_with_round_parens_can_be_parsed() {
 
     assert_eq!(ast_string, expected_ast);
 }
+
+#[test]
+fn literal_cast_with_space() {
+    let lexer = lex("PROGRAM exp INT# 123; END_PROGRAM");
+    let (_, diagnostics) = parse(lexer);
+
+    assert_eq!(
+        vec![Diagnostic::syntax_error(
+            "Incomplete statement",
+            (12..16).into()
+        )],
+        diagnostics
+    );
+}

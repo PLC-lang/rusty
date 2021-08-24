@@ -288,16 +288,21 @@ fn parse_leaf_expression(lexer: &mut ParseSession) -> AstStatement {
             )),
         }
     };
-    let literal_parse_result = literal_parse_result.map(|statement| {
+    let literal_parse_result = literal_parse_result.and_then(|statement| {
         if let Some((cast, location)) = literal_cast {
-            AstStatement::CastStatement {
+            //check if there is something between the literal-type and the literal itself
+            if location.get_end() != statement.get_location().get_start() {
+                return Err(Diagnostic::syntax_error("Incomplete statement", location));
+            }
+
+            Ok(AstStatement::CastStatement {
                 id: lexer.next_id(),
                 location: (location.get_start()..statement.get_location().get_end()).into(),
                 target: Box::new(statement),
                 type_name: cast,
-            }
+            })
         } else {
-            statement
+            Ok(statement)
         }
     });
 
@@ -461,6 +466,7 @@ fn parse_literal_number_with_modifier(
     let number_str = number_str.replace("_", "");
 
     // again, the parsed number can be safely unwrapped.
+
     let value = i64::from_str_radix(number_str.as_str(), radix).unwrap();
     let value = if is_negative { -value } else { value };
     Ok(AstStatement::LiteralInteger {
@@ -475,7 +481,12 @@ fn parse_literal_number(
     lexer: &mut ParseSession,
     is_negative: bool,
 ) -> Result<AstStatement, Diagnostic> {
-    let location = lexer.location();
+    //correct the location if we just parsed a minus before
+    let location = if is_negative {
+        (lexer.last_range.start..lexer.location().get_end()).into()
+    } else {
+        lexer.location()
+    };
     let result = lexer.slice_and_advance();
     if lexer.allow(&KeywordDot) {
         return parse_literal_real(lexer, result, location, is_negative);
