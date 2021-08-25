@@ -3,7 +3,6 @@ use super::super::*;
 
 #[test]
 fn class_reference_in_pou() {
-
     #[allow(dead_code)]
     #[repr(C)]
     struct MyClass {
@@ -14,7 +13,7 @@ fn class_reference_in_pou() {
     #[allow(dead_code)]
     #[repr(C)]
     struct MainType {
-        cl : MyClass,
+        cl: MyClass,
         x: i16,
     }
 
@@ -47,8 +46,15 @@ fn class_reference_in_pou() {
         x := cl.testMethod(myMethodArg:= x);
         main := x;
         END_FUNCTION
-        ".into();
+        "
+    .into();
 
-        let (res, _) = compile_and_run(source, &mut MainType{cl: MyClass{x: 0, y: 0}, x : 0});
-        assert_eq!(res, 10);
+    let (res, _) = compile_and_run(
+        source,
+        &mut MainType {
+            cl: MyClass { x: 0, y: 0 },
+            x: 0,
+        },
+    );
+    assert_eq!(res, 10);
 }

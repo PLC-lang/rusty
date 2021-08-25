@@ -1,5 +1,9 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-use crate::{ast::{Pou, SourceRange}, index::{ImplementationType, Index}, resolver::{AnnotationMap, StatementAnnotation}};
+use crate::{
+    ast::{Pou, SourceRange},
+    index::{ImplementationType, Index},
+    resolver::{AnnotationMap, StatementAnnotation},
+};
 use inkwell::{
     basic_block::BasicBlock,
     types::BasicTypeEnum,
@@ -323,25 +327,25 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                                     implementation.get_implementation_type(),
                                     &ImplementationType::Method
                                 ) {
-                                    (Some(ptr_value),
-                                    self.allocate_function_struct_instance(
-                                        implementation.get_call_name(),
-                                        operator,
-                                    ).unwrap())
+                                    (
+                                        Some(ptr_value),
+                                        self.allocate_function_struct_instance(
+                                            implementation.get_call_name(),
+                                            operator,
+                                        )
+                                        .unwrap(),
+                                    )
                                 } else {
-                                    (None,
-                                    ptr_value)
+                                    (None, ptr_value)
                                 };
                                 (class_struct, method_struct, implementation)
                             })
-                            .ok_or_else(|| {
-                                CompileError::CodeGenError {
-                                    message: format!(
-                                        "cannot generate call statement for {:?}",
-                                        operator
-                                    ),
-                                    location: operator.get_location(),
-                                }
+                            .ok_or_else(|| CompileError::CodeGenError {
+                                message: format!(
+                                    "cannot generate call statement for {:?}",
+                                    operator
+                                ),
+                                location: operator.get_location(),
                             })
                     },
                 )?
@@ -454,9 +458,11 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
         input_block: &BasicBlock,
         output_block: &BasicBlock,
     ) -> Result<Vec<BasicValueEnum<'a>>, CompileError> {
-        let mut result = 
-        if let Some(class_struct) = class_struct {
-            vec![class_struct.as_basic_value_enum(), parameter_struct.as_basic_value_enum()]
+        let mut result = if let Some(class_struct) = class_struct {
+            vec![
+                class_struct.as_basic_value_enum(),
+                parameter_struct.as_basic_value_enum(),
+            ]
         } else {
             vec![parameter_struct.as_basic_value_enum()]
         };

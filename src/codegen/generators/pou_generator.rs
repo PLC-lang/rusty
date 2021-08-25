@@ -4,7 +4,10 @@ use super::{
     llvm::Llvm,
     statement_generator::{FunctionContext, StatementCodeGenerator},
 };
-use crate::{ast::Pou, codegen::llvm_index::LlvmTypedIndex, index::ImplementationType, resolver::AnnotationMap};
+use crate::{
+    ast::Pou, codegen::llvm_index::LlvmTypedIndex, index::ImplementationType,
+    resolver::AnnotationMap,
+};
 
 /// The pou_generator contains functions to generate the code for POUs (PROGRAM, FUNCTION, FUNCTION_BLOCK)
 /// # responsibilities
@@ -155,7 +158,6 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
             param_index += 1;
         }
 
-
         // generate loads for all the parameters
         let pou_members = self.index.find_local_members(&implementation.type_name);
         self.generate_local_variable_accessors(
@@ -189,11 +191,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         }
 
         // generate return statement
-        self.generate_return_statement(
-            &function_context,
-            &local_index,
-            None,
-        )?; //TODO location
+        self.generate_return_statement(&function_context, &local_index, None)?; //TODO location
 
         Ok(())
     }
@@ -301,27 +299,31 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         local_index: &LlvmTypedIndex<'ink>,
         location: Option<SourceRange>,
     ) -> Result<(), CompileError> {
-        if self.index.find_return_variable(function_context.linking_context.get_type_name()).is_some() {
-                let reference = AstStatement::Reference {
-                    name: Pou::calc_return_name(function_context.linking_context.get_call_name()).into(),
-                    location: location.unwrap_or_else(SourceRange::undefined),
-                    id: 0, //TODO
-                };
-                let mut exp_gen = ExpressionCodeGenerator::new(
-                    &self.llvm,
-                    self.index,
-                    self.annotations,
-                    local_index,
-                    None,
-                    function_context,
-                );
-                exp_gen.temp_variable_prefix = "".to_string();
-                exp_gen.temp_variable_suffix = "_ret".to_string();
-                let (_, value) = exp_gen.generate_expression(&reference)?;
-                self.llvm.builder.build_return(Some(&value));
-
+        if self
+            .index
+            .find_return_variable(function_context.linking_context.get_type_name())
+            .is_some()
+        {
+            let reference = AstStatement::Reference {
+                name: Pou::calc_return_name(function_context.linking_context.get_call_name())
+                    .into(),
+                location: location.unwrap_or_else(SourceRange::undefined),
+                id: 0, //TODO
+            };
+            let mut exp_gen = ExpressionCodeGenerator::new(
+                &self.llvm,
+                self.index,
+                self.annotations,
+                local_index,
+                None,
+                function_context,
+            );
+            exp_gen.temp_variable_prefix = "".to_string();
+            exp_gen.temp_variable_suffix = "_ret".to_string();
+            let (_, value) = exp_gen.generate_expression(&reference)?;
+            self.llvm.builder.build_return(Some(&value));
         } else {
-                self.llvm.builder.build_return(None);
+            self.llvm.builder.build_return(None);
         }
         Ok(())
     }

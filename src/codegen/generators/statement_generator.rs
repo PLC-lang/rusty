@@ -3,9 +3,7 @@ use super::{
     expression_generator::ExpressionCodeGenerator, llvm::Llvm, pou_generator::PouGenerator,
 };
 use crate::{
-    ast::{
-        flatten_expression_list, AstStatement, ConditionalBlock, Operator, SourceRange,
-    },
+    ast::{flatten_expression_list, AstStatement, ConditionalBlock, Operator, SourceRange},
     codegen::{llvm_typesystem::cast_if_needed, LlvmTypedIndex},
     compile_error::CompileError,
     index::{ImplementationIndexEntry, Index},

@@ -7,6 +7,7 @@ type MainFunction<T> = unsafe extern "C" fn(*mut T) -> i32;
 
 mod correctness {
     mod arrays;
+    mod classes;
     mod control_flow;
     mod custom_datatypes;
     mod datatypes;
@@ -16,7 +17,6 @@ mod correctness {
     mod initial_values;
     mod sub_range_types;
     mod sums;
-    mod classes;
 }
 
 mod integration {

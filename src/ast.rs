@@ -55,7 +55,7 @@ impl Pou {
         Pou::calc_return_name(&self.name)
     }
 
-    pub fn calc_return_name(pou_name : &str) -> &str {
+    pub fn calc_return_name(pou_name: &str) -> &str {
         pou_name.split('.').last().unwrap_or_default()
     }
 }

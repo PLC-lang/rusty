@@ -1464,7 +1464,7 @@ fn class_method_in_pou() {
         END_PROGRAM
         "
     );
-    
+
     let expected = r#"; ModuleID = 'main'
 source_filename = "main"
 
@@ -1536,7 +1536,6 @@ continue6:                                        ; preds = %output5
 "#;
 
     assert_eq!(result, expected.to_string());
-
 }
 
 #[test]
@@ -1569,7 +1568,7 @@ fn fb_method_in_pou() {
         END_PROGRAM
         "
     );
-    
+
     let expected = r#"; ModuleID = 'main'
 source_filename = "main"
 
@@ -1649,7 +1648,6 @@ continue6:                                        ; preds = %output5
 
     assert_eq!(result, expected.to_string());
 }
-
 
 #[test]
 fn method_codegen_return() {

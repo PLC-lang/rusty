@@ -574,7 +574,7 @@ fn function_expression_resolves_to_the_function_itself_not_its_return_type() {
     let statements = &unit.implementations[0].statements;
     let foo_annotation = annotations.get_annotation(&statements[0]);
     assert_eq!(
-        Some(&StatementAnnotation::Variable{
+        Some(&StatementAnnotation::Variable {
             qualified_name: "foo.foo".into(),
             resulting_type: "INT".into(),
         }),
@@ -934,14 +934,20 @@ fn actions_are_resolved() {
     let annotations = annotate(&unit, &index);
     let foo_reference = &unit.implementations[0].statements[0];
     let annotation = annotations.get_annotation(foo_reference);
-    assert_eq!(Some(&StatementAnnotation::Program{
-        qualified_name: "prg.foo".into(),
-    }), annotation);
+    assert_eq!(
+        Some(&StatementAnnotation::Program {
+            qualified_name: "prg.foo".into(),
+        }),
+        annotation
+    );
     let foo_reference = &unit.implementations[0].statements[1];
     let annotation = annotations.get_annotation(foo_reference);
-    assert_eq!(Some(&StatementAnnotation::Program{
-        qualified_name: "prg.foo".into(),
-    }), annotation);
+    assert_eq!(
+        Some(&StatementAnnotation::Program {
+            qualified_name: "prg.foo".into(),
+        }),
+        annotation
+    );
     let method_call = &unit.implementations[2].statements[0];
     if let AstStatement::CallStatement { operator, .. } = method_call {
         assert_eq!(
@@ -950,10 +956,7 @@ fn actions_are_resolved() {
             }),
             annotations.get(operator)
         );
-        assert_eq!(
-            None,
-            annotations.get(method_call)
-        );
+        assert_eq!(None, annotations.get(method_call));
     } else {
         panic!("Unexpcted statemet : {:?}", method_call);
     }
@@ -978,10 +981,13 @@ fn method_references_are_resolved() {
     let annotations = annotate(&unit, &index);
     let foo_reference = &unit.implementations[0].statements[0];
     let annotation = annotations.get_annotation(foo_reference);
-    assert_eq!(Some(&StatementAnnotation::Variable{
-        qualified_name: "cls.foo.foo".into(),
-        resulting_type: "INT".into(),
-    }), annotation);
+    assert_eq!(
+        Some(&StatementAnnotation::Variable {
+            qualified_name: "cls.foo.foo".into(),
+            resulting_type: "INT".into(),
+        }),
+        annotation
+    );
     let method_call = &unit.implementations[1].statements[0];
     if let AstStatement::CallStatement { operator, .. } = method_call {
         assert_eq!(

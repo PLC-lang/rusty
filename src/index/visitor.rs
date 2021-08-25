@@ -109,7 +109,7 @@ pub fn visit_pou(index: &mut Index, pou: &Pou) {
         index.register_member_variable(
             &MemberInfo {
                 container_name: &pou.name,
-                variable_name: &pou.get_return_name(),
+                variable_name: pou.get_return_name(),
                 variable_linkage: VariableType::Return,
                 variable_type_name: return_type.get_name().unwrap_or_default(),
             },
