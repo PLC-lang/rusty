@@ -421,13 +421,19 @@ impl<'i> TypeAnnotator<'i> {
                                 .or_else(|| {
                                     // ... then check if we're in a method and we're referencing
                                     // a member variable of the corresponding class
-                                    let class_name = self
-                                        .index
-                                        .find_implementation(ctx.pou.unwrap())?
-                                        .get_associated_class_name()?;
-                                    self.index.find_member(class_name, name)
+                                    self .index
+                                        .find_implementation(ctx.pou.unwrap()).and_then(ImplementationIndexEntry::get_associated_class_name)
+                                        .and_then(|it| self.index.find_member(it, name))
                                 })
                                 .map(|v| to_variable_annotation(v, self.index))
+                                .or_else(|| {
+                                    //Try to find an action with this name
+                                    let action_call_name = format!("{}.{}", qualifier, name);
+                                    self.index.find_implementation(&action_call_name).and_then(|entry| {
+                                        try_to_implementation_annotation(entry.get_call_name(), self.index)
+                                    })
+
+                                })
                         })
                         .or_else(|| {
                             // ... then try if we find a pou with that name (maybe it's a call?)
@@ -624,7 +630,7 @@ fn try_to_implementation_annotation(name: &str, index: &Index) -> Option<Stateme
     index
         .find_implementation(name)
         .and_then(|it| match it.get_implementation_type() {
-            ImplementationType::Program => Some(to_programm_annotation(it)),
+            ImplementationType::Program | &ImplementationType::Action => Some(to_programm_annotation(it)),
             ImplementationType::Function | ImplementationType::Method => {
                 Some(to_function_annotation(it, index))
             }

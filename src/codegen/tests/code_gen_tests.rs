@@ -1474,12 +1474,12 @@ source_filename = "main"
 
 @prg_instance = global %prg_interface zeroinitializer
 
-define void @MyClass.testMethod(%MyClass.testMethod_interface* %0, %MyClass_interface* %1) {
+define void @MyClass.testMethod(%MyClass_interface* %0, %MyClass.testMethod_interface* %1) {
 entry:
-  %myMethodArg = getelementptr inbounds %MyClass.testMethod_interface, %MyClass.testMethod_interface* %0, i32 0, i32 0
-  %myMethodLocalVar = getelementptr inbounds %MyClass.testMethod_interface, %MyClass.testMethod_interface* %0, i32 0, i32 1
-  %x = getelementptr inbounds %MyClass_interface, %MyClass_interface* %1, i32 0, i32 0
-  %y = getelementptr inbounds %MyClass_interface, %MyClass_interface* %1, i32 0, i32 1
+  %x = getelementptr inbounds %MyClass_interface, %MyClass_interface* %0, i32 0, i32 0
+  %y = getelementptr inbounds %MyClass_interface, %MyClass_interface* %0, i32 0, i32 1
+  %myMethodArg = getelementptr inbounds %MyClass.testMethod_interface, %MyClass.testMethod_interface* %1, i32 0, i32 0
+  %myMethodLocalVar = getelementptr inbounds %MyClass.testMethod_interface, %MyClass.testMethod_interface* %1, i32 0, i32 1
   %load_myMethodArg = load i16, i16* %myMethodArg, align 2
   store i16 %load_myMethodArg, i16* %x, align 2
   %load_x = load i16, i16* %x, align 2
@@ -1507,30 +1507,30 @@ input:                                            ; preds = %entry
   br label %call
 
 call:                                             ; preds = %input
-  call void @MyClass.testMethod(%MyClass.testMethod_interface* %MyClass.testMethod_instance, %MyClass_interface* %cl)
+  call void @MyClass.testMethod(%MyClass_interface* %cl, %MyClass.testMethod_interface* %MyClass.testMethod_instance)
   br label %output
 
 output:                                           ; preds = %call
   br label %continue
 
 continue:                                         ; preds = %output
- 
- br label %input2
+  %MyClass.testMethod_instance2 = alloca %MyClass.testMethod_interface, align 8
+  br label %input3
 
-input2:                                           ; preds = %continue
-  %2 = getelementptr inbounds %MyClass.testMethod_interface, %MyClass.testMethod_interface* %MyClass.testMethod_instance, i32 0, i32 0
-  %load_x6 = load i16, i16* %x, align 2
-  store i16 %load_x6, i16* %2, align 2
-  br label %call3
+input3:                                           ; preds = %continue
+  %2 = getelementptr inbounds %MyClass.testMethod_interface, %MyClass.testMethod_interface* %MyClass.testMethod_instance2, i32 0, i32 0
+  %load_x7 = load i16, i16* %x, align 2
+  store i16 %load_x7, i16* %2, align 2
+  br label %call4
 
-call3:                                            ; preds = %input2
-  call void @MyClass.testMethod(%MyClass.testMethod_interface* %MyClass.testMethod_instance, %MyClass_interface* %cl)
-  br label %output4
+call4:                                            ; preds = %input3
+  call void @MyClass.testMethod(%MyClass_interface* %cl, %MyClass.testMethod_interface* %MyClass.testMethod_instance2)
+  br label %output5
 
-output4:                                          ; preds = %call3
-  br label %continue5
+output5:                                          ; preds = %call4
+  br label %continue6
 
-continue5:                                        ; preds = %output4
+continue6:                                        ; preds = %output5
   ret void
 }
 "#;
@@ -1579,12 +1579,12 @@ source_filename = "main"
 
 @prg_instance = global %prg_interface zeroinitializer
 
-define void @MyClass.testMethod(%MyClass.testMethod_interface* %0, %MyClass_interface* %1) {
+define void @MyClass.testMethod(%MyClass_interface* %0, %MyClass.testMethod_interface* %1) {
 entry:
-  %myMethodArg = getelementptr inbounds %MyClass.testMethod_interface, %MyClass.testMethod_interface* %0, i32 0, i32 0
-  %myMethodLocalVar = getelementptr inbounds %MyClass.testMethod_interface, %MyClass.testMethod_interface* %0, i32 0, i32 1
-  %x = getelementptr inbounds %MyClass_interface, %MyClass_interface* %1, i32 0, i32 0
-  %y = getelementptr inbounds %MyClass_interface, %MyClass_interface* %1, i32 0, i32 1
+  %x = getelementptr inbounds %MyClass_interface, %MyClass_interface* %0, i32 0, i32 0
+  %y = getelementptr inbounds %MyClass_interface, %MyClass_interface* %0, i32 0, i32 1
+  %myMethodArg = getelementptr inbounds %MyClass.testMethod_interface, %MyClass.testMethod_interface* %1, i32 0, i32 0
+  %myMethodLocalVar = getelementptr inbounds %MyClass.testMethod_interface, %MyClass.testMethod_interface* %1, i32 0, i32 1
   %load_myMethodArg = load i16, i16* %myMethodArg, align 2
   store i16 %load_myMethodArg, i16* %x, align 2
   %load_x = load i16, i16* %x, align 2
@@ -1600,6 +1600,7 @@ entry:
   %x = getelementptr inbounds %MyClass_interface, %MyClass_interface* %0, i32 0, i32 0
   %y = getelementptr inbounds %MyClass_interface, %MyClass_interface* %0, i32 0, i32 1
   ret void
+}
 
 define void @prg(%prg_interface* %0) {
 entry:
@@ -1618,37 +1619,35 @@ input:                                            ; preds = %entry
   br label %call
 
 call:                                             ; preds = %input
-  call void @MyClass.testMethod(%MyClass.testMethod_interface* %MyClass.testMethod_instance, %MyClass_interface* %cl)
+  call void @MyClass.testMethod(%MyClass_interface* %cl, %MyClass.testMethod_interface* %MyClass.testMethod_instance)
   br label %output
 
 output:                                           ; preds = %call
   br label %continue
 
 continue:                                         ; preds = %output
- 
- br label %input2
+  %MyClass.testMethod_instance2 = alloca %MyClass.testMethod_interface, align 8
+  br label %input3
 
-input2:                                           ; preds = %continue
-  %2 = getelementptr inbounds %MyClass.testMethod_interface, %MyClass.testMethod_interface* %MyClass.testMethod_instance, i32 0, i32 0
-  %load_x6 = load i16, i16* %x, align 2
-  store i16 %load_x6, i16* %2, align 2
-  br label %call3
+input3:                                           ; preds = %continue
+  %2 = getelementptr inbounds %MyClass.testMethod_interface, %MyClass.testMethod_interface* %MyClass.testMethod_instance2, i32 0, i32 0
+  %load_x7 = load i16, i16* %x, align 2
+  store i16 %load_x7, i16* %2, align 2
+  br label %call4
 
-call3:                                            ; preds = %input2
-  call void @MyClass.testMethod(%MyClass.testMethod_interface* %MyClass.testMethod_instance, %MyClass_interface* %cl)
-  br label %output4
+call4:                                            ; preds = %input3
+  call void @MyClass.testMethod(%MyClass_interface* %cl, %MyClass.testMethod_interface* %MyClass.testMethod_instance2)
+  br label %output5
 
-output4:                                          ; preds = %call3
-  br label %continue5
+output5:                                          ; preds = %call4
+  br label %continue6
 
-continue5:                                        ; preds = %output4
+continue6:                                        ; preds = %output5
   ret void
 }
 "#;
 
     assert_eq!(result, expected.to_string());
-
-
 }
 
 

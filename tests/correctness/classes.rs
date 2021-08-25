@@ -29,9 +29,9 @@ fn class_reference_in_pou() {
                 VAR myMethodLocalVar : INT; END_VAR
         
                 x := myMethodArg;
-                y := x;
-                myMethodLocalVar = y;
-                testMethod := myMethodLocalVar;
+                y := x + 1;
+                myMethodLocalVar := y + 1;
+                testMethod := myMethodLocalVar + 1;
             END_METHOD
         END_CLASS
 
@@ -40,13 +40,15 @@ fn class_reference_in_pou() {
           cl : MyClass;
           x : INT := 0;
         END_VAR
+        x := 1;
         cl.x := 1;
         x := x + cl.x;
         x := x + cl.testMethod(x);
         x := cl.testMethod(myMethodArg:= x);
+        main := x;
         END_FUNCTION
         ".into();
 
         let (res, _) = compile_and_run(source, &mut MainType{cl: MyClass{x: 0, y: 0}, x : 0});
-        assert_eq!(res, 4);
+        assert_eq!(res, 10);
 }

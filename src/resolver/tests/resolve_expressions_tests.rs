@@ -912,6 +912,53 @@ fn type_initial_values_are_resolved() {
 }
 
 #[test]
+fn actions_are_resolved() {
+    let (unit, index) = parse(
+        "
+        PROGRAM prg
+            foo;
+            prg.foo;
+        END_PROGRAM
+        ACTIONS prg
+        ACTION foo 
+        END_ACTION
+        END_ACTIONS
+
+        FUNCTION buz : INT
+        prg.foo();
+        prg.foo;
+        END_FUNCTION
+        ",
+    );
+
+    let annotations = annotate(&unit, &index);
+    let foo_reference = &unit.implementations[0].statements[0];
+    let annotation = annotations.get_annotation(foo_reference);
+    assert_eq!(Some(&StatementAnnotation::Program{
+        qualified_name: "prg.foo".into(),
+    }), annotation);
+    let foo_reference = &unit.implementations[0].statements[1];
+    let annotation = annotations.get_annotation(foo_reference);
+    assert_eq!(Some(&StatementAnnotation::Program{
+        qualified_name: "prg.foo".into(),
+    }), annotation);
+    let method_call = &unit.implementations[2].statements[0];
+    if let AstStatement::CallStatement { operator, .. } = method_call {
+        assert_eq!(
+            Some(&StatementAnnotation::Program {
+                qualified_name: "prg.foo".into(),
+            }),
+            annotations.get(operator)
+        );
+        assert_eq!(
+            None,
+            annotations.get(method_call)
+        );
+    } else {
+        panic!("Unexpcted statemet : {:?}", method_call);
+    }
+}
+#[test]
 fn method_references_are_resolved() {
     let (unit, index) = parse(
         "

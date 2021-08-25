@@ -1,9 +1,5 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-use crate::{
-    ast::SourceRange,
-    index::Index,
-    resolver::{AnnotationMap, StatementAnnotation},
-};
+use crate::{ast::{Pou, SourceRange}, index::{ImplementationType, Index}, resolver::{AnnotationMap, StatementAnnotation}};
 use inkwell::{
     basic_block::BasicBlock,
     types::BasicTypeEnum,
@@ -311,7 +307,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                     }
                 };
 
-                Ok((callable_reference, implementation))
+                Ok((None, callable_reference, implementation))
             }
             AstStatement::QualifiedReference { .. } => {
                 let loaded_value = self.generate_element_pointer_for_rec(None, operator);
@@ -320,12 +316,33 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                          type_entry,
                          ptr_value,
                      }| {
-                        Ok((
-                            ptr_value,
-                            self.index
-                                .find_implementation(type_entry.get_name())
-                                .unwrap(),
-                        ))
+                        self.index
+                            .find_implementation(type_entry.get_name())
+                            .map(|implementation| {
+                                let (class_struct, method_struct) = if matches!(
+                                    implementation.get_implementation_type(),
+                                    &ImplementationType::Method
+                                ) {
+                                    (Some(ptr_value),
+                                    self.allocate_function_struct_instance(
+                                        implementation.get_call_name(),
+                                        operator,
+                                    ).unwrap())
+                                } else {
+                                    (None,
+                                    ptr_value)
+                                };
+                                (class_struct, method_struct, implementation)
+                            })
+                            .ok_or_else(|| {
+                                CompileError::CodeGenError {
+                                    message: format!(
+                                        "cannot generate call statement for {:?}",
+                                        operator
+                                    ),
+                                    location: operator.get_location(),
+                                }
+                            })
                     },
                 )?
             }
@@ -335,7 +352,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
             }),
         };
 
-        let (instance, index_entry) = instance_and_index_entry?;
+        let (class_struct, instance, index_entry) = instance_and_index_entry?;
         let function_name = index_entry.get_call_name();
         //Create parameters for input and output blocks
         let current_f = function_context.function;
@@ -350,6 +367,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
         //Generate all parameters, this function may jump to the output block
         let parameters = self.generate_function_parameters(
             function_name,
+            class_struct,
             instance,
             parameters,
             &input_block,
@@ -362,7 +380,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
         builder.position_at_end(call_block);
         let return_type = self
             .index
-            .find_member(function_name, function_name)
+            .find_member(function_name, Pou::calc_return_name(function_name))
             .map(VariableIndexEntry::get_type_name)
             .or(Some("__VOID"))
             .and_then(|it| self.index.find_type_information(it));
@@ -430,12 +448,18 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
     fn generate_function_parameters(
         &self,
         function_name: &str,
+        class_struct: Option<PointerValue<'a>>,
         parameter_struct: PointerValue<'a>,
         parameters: &Option<AstStatement>,
         input_block: &BasicBlock,
         output_block: &BasicBlock,
     ) -> Result<Vec<BasicValueEnum<'a>>, CompileError> {
-        let mut result = vec![parameter_struct.as_basic_value_enum()];
+        let mut result = 
+        if let Some(class_struct) = class_struct {
+            vec![class_struct.as_basic_value_enum(), parameter_struct.as_basic_value_enum()]
+        } else {
+            vec![parameter_struct.as_basic_value_enum()]
+        };
         match &parameters {
             Some(AstStatement::ExpressionList { expressions, .. }) => {
                 for (index, exp) in expressions.iter().enumerate() {
