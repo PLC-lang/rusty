@@ -119,6 +119,8 @@ impl<'a> ParseSession<'a> {
             | Token::KeywordVarGlobal
             | Token::KeywordVarInOut
             | Token::KeywordRef
+            | Token::KeywordVarTemp
+            | Token::KeywordNonRetain
             | Token::KeywordEndVar
             | Token::KeywordEndProgram
             | Token::KeywordEndFunction

@@ -14,7 +14,9 @@ pub fn visit(unit: &CompilationUnit) -> Index {
     //Create the typesystem
     let builtins = get_builtin_types();
     for data_type in builtins {
-        index.types.insert(data_type.get_name().into(), data_type);
+        index
+            .types
+            .insert(data_type.get_name().to_lowercase(), data_type);
     }
 
     //Create user defined datatypes
