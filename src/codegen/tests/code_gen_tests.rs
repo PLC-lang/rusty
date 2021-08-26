@@ -3094,22 +3094,20 @@ entry:
   %rX = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 2
   store i32* null, i1** %pX, align 8
   store i32* null, i1** %rX, align 8
-  %load_X = load i1, i1* %X, align 1
   store i1* %X, i1** %pX, align 8
-  %load_X1 = load i1, i1* %X, align 1
   store i1* %X, i1** %rX, align 8
   %deref = load i1*, i1** %pX, align 8
   %load_tmpVar = load i1, i1* %deref, align 1
   store i1 %load_tmpVar, i1* %X, align 1
-  %deref2 = load i1*, i1** %rX, align 8
-  %load_tmpVar3 = load i1, i1* %deref2, align 1
-  store i1 %load_tmpVar3, i1* %X, align 1
-  %deref4 = load i1*, i1** %pX, align 8
+  %deref1 = load i1*, i1** %rX, align 8
+  %load_tmpVar2 = load i1, i1* %deref1, align 1
+  store i1 %load_tmpVar2, i1* %X, align 1
+  %deref3 = load i1*, i1** %pX, align 8
+  %load_X = load i1, i1* %X, align 1
+  store i1 %load_X, i1* %deref3, align 1
+  %deref4 = load i1*, i1** %rX, align 8
   %load_X5 = load i1, i1* %X, align 1
   store i1 %load_X5, i1* %deref4, align 1
-  %deref6 = load i1*, i1** %rX, align 8
-  %load_X7 = load i1, i1* %X, align 1
-  store i1 %load_X7, i1* %deref6, align 1
   ret void
 }
 "#;
@@ -3164,29 +3162,26 @@ entry:
   store i16 %load_X, i16* %tmpVar, align 2
   %tmpVar1 = getelementptr inbounds [10 x i16*], [10 x i16*]* %arrrX, i32 0, i32 1
   %tmpVar2 = getelementptr inbounds [10 x i16], [10 x i16]* %arrX, i32 0, i32 2
-  %load_tmpVar = load i16, i16* %tmpVar2, align 2
-  %tmpVar3 = getelementptr inbounds [10 x i16], [10 x i16]* %arrX, i32 0, i32 2
-  store i16* %tmpVar3, i16** %tmpVar1, align 8
-  %load_arrX = load [10 x i16], [10 x i16]* %arrX, align 2
+  store i16* %tmpVar2, i16** %tmpVar1, align 8
   store [10 x i16]* %arrX, [10 x i16]** %rarrX, align 8
-  %tmpVar4 = getelementptr inbounds [10 x i16*], [10 x i16*]* %arrrX, i32 0, i32 3
-  %deref = load i16*, i16** %tmpVar4, align 8
-  %load_tmpVar5 = load i16, i16* %deref, align 2
-  store i16 %load_tmpVar5, i16* %X, align 2
-  %deref6 = load [10 x i16]*, [10 x i16]** %rarrX, align 8
-  %tmpVar7 = getelementptr inbounds [10 x i16], [10 x i16]* %deref6, i32 0, i32 4
-  %load_tmpVar8 = load i16, i16* %tmpVar7, align 2
-  store i16 %load_tmpVar8, i16* %X, align 2
-  %tmpVar9 = getelementptr inbounds [10 x i16*], [10 x i16*]* %arrrX, i32 0, i32 5
-  %deref10 = load i16*, i16** %tmpVar9, align 8
-  %load_X11 = load i16, i16* %X, align 2
-  store i16 %load_X11, i16* %deref10, align 2
-  %deref12 = load [10 x i16]*, [10 x i16]** %rarrX, align 8
-  %tmpVar13 = getelementptr inbounds [10 x i16], [10 x i16]* %deref12, i32 0, i32 6
-  %tmpVar14 = getelementptr inbounds [10 x i16*], [10 x i16*]* %arrrX, i32 0, i32 7
-  %deref15 = load i16*, i16** %tmpVar14, align 8
-  %load_tmpVar16 = load i16, i16* %deref15, align 2
-  store i16 %load_tmpVar16, i16* %tmpVar13, align 2
+  %tmpVar3 = getelementptr inbounds [10 x i16*], [10 x i16*]* %arrrX, i32 0, i32 3
+  %deref = load i16*, i16** %tmpVar3, align 8
+  %load_tmpVar = load i16, i16* %deref, align 2
+  store i16 %load_tmpVar, i16* %X, align 2
+  %deref4 = load [10 x i16]*, [10 x i16]** %rarrX, align 8
+  %tmpVar5 = getelementptr inbounds [10 x i16], [10 x i16]* %deref4, i32 0, i32 4
+  %load_tmpVar6 = load i16, i16* %tmpVar5, align 2
+  store i16 %load_tmpVar6, i16* %X, align 2
+  %tmpVar7 = getelementptr inbounds [10 x i16*], [10 x i16*]* %arrrX, i32 0, i32 5
+  %deref8 = load i16*, i16** %tmpVar7, align 8
+  %load_X9 = load i16, i16* %X, align 2
+  store i16 %load_X9, i16* %deref8, align 2
+  %deref10 = load [10 x i16]*, [10 x i16]** %rarrX, align 8
+  %tmpVar11 = getelementptr inbounds [10 x i16], [10 x i16]* %deref10, i32 0, i32 6
+  %tmpVar12 = getelementptr inbounds [10 x i16*], [10 x i16*]* %arrrX, i32 0, i32 7
+  %deref13 = load i16*, i16** %tmpVar12, align 8
+  %load_tmpVar14 = load i16, i16* %deref13, align 2
+  store i16 %load_tmpVar14, i16* %tmpVar11, align 2
   ret void
 }
 "#;

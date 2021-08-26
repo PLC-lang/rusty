@@ -228,20 +228,25 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
         unary_operator: &Operator,
         expression: &AstStatement,
     ) -> Result<TypeAndValue<'a>, CompileError> {
-        let (data_type, loaded_value) = self.generate_expression(expression)?;
         let (data_type, value) = match unary_operator {
-            Operator::Not => (
-                data_type,
-                self.llvm
-                    .builder
-                    .build_not(loaded_value.into_int_value(), "tmpVar"),
-            ),
-            Operator::Minus => (
-                data_type,
-                self.llvm
-                    .builder
-                    .build_int_neg(loaded_value.into_int_value(), "tmpVar"),
-            ),
+            Operator::Not => {
+                let (data_type, loaded_value) = self.generate_expression(expression)?;
+                (
+                    data_type,
+                    self.llvm
+                        .builder
+                        .build_not(loaded_value.into_int_value(), "tmpVar"),
+                )
+            }
+            Operator::Minus => {
+                let (data_type, loaded_value) = self.generate_expression(expression)?;
+                (
+                    data_type,
+                    self.llvm
+                        .builder
+                        .build_int_neg(loaded_value.into_int_value(), "tmpVar"),
+                )
+            }
             Operator::Address => {
                 //datatype is a pointer to the address
                 //value is the address
