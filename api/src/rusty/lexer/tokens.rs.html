@@ -346,6 +346,22 @@
 <span id="344">344</span>
 <span id="345">345</span>
 <span id="346">346</span>
+<span id="347">347</span>
+<span id="348">348</span>
+<span id="349">349</span>
+<span id="350">350</span>
+<span id="351">351</span>
+<span id="352">352</span>
+<span id="353">353</span>
+<span id="354">354</span>
+<span id="355">355</span>
+<span id="356">356</span>
+<span id="357">357</span>
+<span id="358">358</span>
+<span id="359">359</span>
+<span id="360">360</span>
+<span id="361">361</span>
+<span id="362">362</span>
 </pre><pre class="rust">
 <span class="kw">use</span> <span class="ident">logos::Logos</span>;
 
@@ -581,6 +597,13 @@
     <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;CONTINUE&quot;</span>, <span class="ident">ignore</span>(<span class="ident">case</span>))]</span>
     <span class="ident">KeywordContinue</span>,
 
+    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;POINTER&quot;</span>, <span class="ident">ignore</span>(<span class="ident">case</span>))]</span>
+    <span class="ident">KeywordPointer</span>,
+
+    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;REF_TO&quot;</span>, <span class="ident">ignore</span>(<span class="ident">case</span>))]</span>
+    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;REFTO&quot;</span>, <span class="ident">ignore</span>(<span class="ident">case</span>))]</span>
+    <span class="ident">KeywordRef</span>,
+
     <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;ARRAY&quot;</span>, <span class="ident">ignore</span>(<span class="ident">case</span>))]</span>
     <span class="ident">KeywordArray</span>,
 
@@ -628,6 +651,12 @@
     <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;&gt;=&quot;</span>)]</span>
     <span class="ident">OperatorGreaterOrEqual</span>,
 
+    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;&amp;&quot;</span>)]</span>
+    <span class="ident">OperatorAmp</span>,
+
+    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;^&quot;</span>)]</span>
+    <span class="ident">OperatorDeref</span>,
+
     <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;MOD&quot;</span>, <span class="ident">ignore</span>(<span class="ident">case</span>))]</span>
     <span class="ident">OperatorModulo</span>,
 
@@ -662,6 +691,9 @@
 
     <span class="attribute">#[<span class="ident">regex</span>(<span class="string">&quot;[eE][+-]?[0-9]+&quot;</span>)]</span>
     <span class="ident">LiteralExponent</span>,
+
+    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;NULL&quot;</span>, <span class="ident">ignore</span>(<span class="ident">case</span>))]</span>
+    <span class="ident">LiteralNull</span>,
 
     <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;TRUE&quot;</span>, <span class="ident">ignore</span>(<span class="ident">case</span>))]</span>
     <span class="ident">LiteralTrue</span>,

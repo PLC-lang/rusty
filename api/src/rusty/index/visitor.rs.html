@@ -335,6 +335,23 @@
 <span id="333">333</span>
 <span id="334">334</span>
 <span id="335">335</span>
+<span id="336">336</span>
+<span id="337">337</span>
+<span id="338">338</span>
+<span id="339">339</span>
+<span id="340">340</span>
+<span id="341">341</span>
+<span id="342">342</span>
+<span id="343">343</span>
+<span id="344">344</span>
+<span id="345">345</span>
+<span id="346">346</span>
+<span id="347">347</span>
+<span id="348">348</span>
+<span id="349">349</span>
+<span id="350">350</span>
+<span id="351">351</span>
+<span id="352">352</span>
 </pre><pre class="rust">
 <span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 <span class="kw">use</span> <span class="kw">super</span><span class="ident">::VariableType</span>;
@@ -636,6 +653,23 @@
                 <span class="ident">name</span>: <span class="ident">name</span>.<span class="ident">as_ref</span>().<span class="ident">unwrap</span>().<span class="ident">clone</span>(),
                 <span class="ident">inner_type_name</span>: <span class="ident">referenced_type_name</span>.<span class="ident">to_string</span>(),
                 <span class="ident">dimensions</span>,
+            };
+            <span class="ident">index</span>.<span class="ident">register_type</span>(
+                <span class="ident">name</span>.<span class="ident">as_ref</span>().<span class="ident">unwrap</span>(),
+                <span class="ident">type_declatation</span>.<span class="ident">initializer</span>.<span class="ident">clone</span>(),
+                <span class="ident">information</span>,
+            )
+        }
+        <span class="ident">DataType::PointerType</span> {
+            <span class="ident">name</span>,
+            <span class="ident">referenced_type</span>,
+            ..
+        } <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="kw">let</span> <span class="ident">inner_type_name</span> <span class="op">=</span> <span class="ident">referenced_type</span>.<span class="ident">get_name</span>().<span class="ident">unwrap</span>();
+            <span class="kw">let</span> <span class="ident">information</span> <span class="op">=</span> <span class="ident">DataTypeInformation::Pointer</span> {
+                <span class="ident">name</span>: <span class="ident">name</span>.<span class="ident">as_ref</span>().<span class="ident">unwrap</span>().<span class="ident">clone</span>(),
+                <span class="ident">inner_type_name</span>: <span class="ident">inner_type_name</span>.<span class="ident">into</span>(),
+                <span class="ident">auto_deref</span>: <span class="bool-val">false</span>,
             };
             <span class="ident">index</span>.<span class="ident">register_type</span>(
                 <span class="ident">name</span>.<span class="ident">as_ref</span>().<span class="ident">unwrap</span>(),

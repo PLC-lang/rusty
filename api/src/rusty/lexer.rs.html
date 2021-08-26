@@ -280,6 +280,11 @@
 <span id="278">278</span>
 <span id="279">279</span>
 <span id="280">280</span>
+<span id="281">281</span>
+<span id="282">282</span>
+<span id="283">283</span>
+<span id="284">284</span>
+<span id="285">285</span>
 </pre><pre class="rust">
 <span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 <span class="kw">use</span> <span class="ident">core::ops::Range</span>;
@@ -401,6 +406,7 @@
             <span class="op">|</span> <span class="ident">Token::KeywordVarOutput</span>
             <span class="op">|</span> <span class="ident">Token::KeywordVarGlobal</span>
             <span class="op">|</span> <span class="ident">Token::KeywordVarInOut</span>
+            <span class="op">|</span> <span class="ident">Token::KeywordRef</span>
             <span class="op">|</span> <span class="ident">Token::KeywordVarTemp</span>
             <span class="op">|</span> <span class="ident">Token::KeywordNonRetain</span>
             <span class="op">|</span> <span class="ident">Token::KeywordEndVar</span>
@@ -437,6 +443,10 @@
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">location</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">SourceRange</span> {
         <span class="ident">SourceRange::new</span>(<span class="self">self</span>.<span class="ident">range</span>())
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">last_location</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">SourceRange</span> {
+        <span class="ident">SourceRange::new</span>(<span class="self">self</span>.<span class="ident">last_range</span>.<span class="ident">clone</span>())
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">range</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Range</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {

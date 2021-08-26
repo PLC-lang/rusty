@@ -275,6 +275,19 @@
 <span id="273">273</span>
 <span id="274">274</span>
 <span id="275">275</span>
+<span id="276">276</span>
+<span id="277">277</span>
+<span id="278">278</span>
+<span id="279">279</span>
+<span id="280">280</span>
+<span id="281">281</span>
+<span id="282">282</span>
+<span id="283">283</span>
+<span id="284">284</span>
+<span id="285">285</span>
+<span id="286">286</span>
+<span id="287">287</span>
+<span id="288">288</span>
 </pre><pre class="rust">
 <span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 <span class="kw">use</span> <span class="kw">crate</span>::{
@@ -282,7 +295,7 @@
     <span class="ident">codegen</span>::{<span class="ident">TypeAndPointer</span>, <span class="ident">TypeAndValue</span>},
     <span class="ident">compile_error::CompileError</span>,
     <span class="ident">index::Index</span>,
-    <span class="ident">typesystem</span>,
+    <span class="ident">typesystem</span>::{<span class="self">self</span>, <span class="ident">VOID_TYPE</span>},
 };
 <span class="kw">use</span> <span class="ident">inkwell</span>::{
     <span class="ident">builder::Builder</span>,
@@ -497,6 +510,19 @@
                 <span class="ident">SourceRange::undefined</span>(),
             ))
         }
+    }
+
+    <span class="doccomment">/// create a null pointer</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">create_null_ptr</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">TypeAndValue</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>, <span class="ident">CompileError</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="ident">itype</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">context</span>.<span class="ident">i32_type</span>().<span class="ident">ptr_type</span>(<span class="ident">AddressSpace::Generic</span>);
+        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">itype</span>.<span class="ident">const_null</span>();
+
+        <span class="kw">let</span> <span class="ident">data_type</span> <span class="op">=</span> <span class="ident">typesystem::DataTypeInformation::Pointer</span> {
+            <span class="ident">name</span>: <span class="string">&quot;VOIDPtr&quot;</span>.<span class="ident">into</span>(),
+            <span class="ident">inner_type_name</span>: <span class="ident">VOID_TYPE</span>.<span class="ident">into</span>(),
+            <span class="ident">auto_deref</span>: <span class="bool-val">false</span>,
+        };
+        <span class="prelude-val">Ok</span>((<span class="ident">data_type</span>, <span class="ident">value</span>.<span class="ident">into</span>()))
     }
 
     <span class="doccomment">/// create a constant utf8 string-value with the given value</span>

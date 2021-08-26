@@ -695,6 +695,34 @@
 <span id="693">693</span>
 <span id="694">694</span>
 <span id="695">695</span>
+<span id="696">696</span>
+<span id="697">697</span>
+<span id="698">698</span>
+<span id="699">699</span>
+<span id="700">700</span>
+<span id="701">701</span>
+<span id="702">702</span>
+<span id="703">703</span>
+<span id="704">704</span>
+<span id="705">705</span>
+<span id="706">706</span>
+<span id="707">707</span>
+<span id="708">708</span>
+<span id="709">709</span>
+<span id="710">710</span>
+<span id="711">711</span>
+<span id="712">712</span>
+<span id="713">713</span>
+<span id="714">714</span>
+<span id="715">715</span>
+<span id="716">716</span>
+<span id="717">717</span>
+<span id="718">718</span>
+<span id="719">719</span>
+<span id="720">720</span>
+<span id="721">721</span>
+<span id="722">722</span>
+<span id="723">723</span>
 </pre><pre class="rust">
 <span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 
@@ -890,6 +918,7 @@
     <span class="kw">let</span> <span class="ident">operator</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">lexer</span>.<span class="ident">token</span> {
         <span class="ident">OperatorNot</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">Operator::Not</span>),
         <span class="ident">OperatorMinus</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">Operator::Minus</span>),
+        <span class="ident">OperatorAmp</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">Operator::Address</span>),
         <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
     };
 
@@ -952,6 +981,7 @@
         <span class="ident">LiteralWideString</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">parse_literal_string</span>(<span class="ident">lexer</span>, <span class="bool-val">true</span>),
         <span class="ident">LiteralTrue</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">parse_bool_literal</span>(<span class="ident">lexer</span>, <span class="bool-val">true</span>),
         <span class="ident">LiteralFalse</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">parse_bool_literal</span>(<span class="ident">lexer</span>, <span class="bool-val">false</span>),
+        <span class="ident">LiteralNull</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">parse_null_literal</span>(<span class="ident">lexer</span>),
         <span class="ident">KeywordSquareParensOpen</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">parse_array_literal</span>(<span class="ident">lexer</span>),
         <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">Diagnostic::unexpected_token_found</span>(
             <span class="string">&quot;Literal&quot;</span>,
@@ -1019,6 +1049,17 @@
     })
 }
 
+<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::unnecessary_wraps</span>)]</span>
+<span class="comment">//Allowing the unnecessary wrap here because this method is used along other methods that need to return Results</span>
+<span class="kw">fn</span> <span class="ident">parse_null_literal</span>(<span class="ident">lexer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ParseSession</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">AstStatement</span>, <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
+    <span class="kw">let</span> <span class="ident">location</span> <span class="op">=</span> <span class="ident">lexer</span>.<span class="ident">location</span>();
+    <span class="ident">lexer</span>.<span class="ident">advance</span>();
+    <span class="prelude-val">Ok</span>(<span class="ident">AstStatement::LiteralNull</span> {
+        <span class="ident">location</span>,
+        <span class="ident">id</span>: <span class="ident">lexer</span>.<span class="ident">next_id</span>(),
+    })
+}
+
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">parse_qualified_reference</span>(<span class="ident">lexer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ParseSession</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">AstStatement</span>, <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">start</span> <span class="op">=</span> <span class="ident">lexer</span>.<span class="ident">range</span>().<span class="ident">start</span>;
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">reference_elements</span> <span class="op">=</span> <span class="macro">vec!</span>[<span class="ident">parse_reference_access</span>(<span class="ident">lexer</span>)<span class="question-mark">?</span>];
@@ -1062,21 +1103,36 @@
 
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">parse_reference_access</span>(<span class="ident">lexer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ParseSession</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">AstStatement</span>, <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">location</span> <span class="op">=</span> <span class="ident">lexer</span>.<span class="ident">location</span>();
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">reference</span> <span class="op">=</span> <span class="ident">AstStatement::Reference</span> {
+    <span class="kw">let</span> <span class="ident">reference</span> <span class="op">=</span> <span class="ident">AstStatement::Reference</span> {
         <span class="ident">name</span>: <span class="ident">lexer</span>.<span class="ident">slice_and_advance</span>(),
         <span class="ident">location</span>,
         <span class="ident">id</span>: <span class="ident">lexer</span>.<span class="ident">next_id</span>(),
     };
+    <span class="ident">parse_access_modifiers</span>(<span class="ident">lexer</span>, <span class="ident">reference</span>)
+}
+
+<span class="kw">fn</span> <span class="ident">parse_access_modifiers</span>(
+    <span class="ident">lexer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ParseSession</span>,
+    <span class="ident">original_reference</span>: <span class="ident">AstStatement</span>,
+) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">AstStatement</span>, <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">reference</span> <span class="op">=</span> <span class="ident">original_reference</span>;
     <span class="comment">//If (while) we hit a dereference, parse and append the dereference to the result</span>
-    <span class="kw">while</span> <span class="ident">lexer</span>.<span class="ident">allow</span>(<span class="kw-2">&amp;</span><span class="ident">KeywordSquareParensOpen</span>) {
-        <span class="kw">let</span> <span class="ident">access</span> <span class="op">=</span> <span class="ident">parse_expression</span>(<span class="ident">lexer</span>);
-        <span class="ident">lexer</span>.<span class="ident">expect</span>(<span class="ident">KeywordSquareParensClose</span>)<span class="question-mark">?</span>;
-        <span class="ident">lexer</span>.<span class="ident">advance</span>();
-        <span class="ident">reference</span> <span class="op">=</span> <span class="ident">AstStatement::ArrayAccess</span> {
-            <span class="ident">reference</span>: <span class="ident">Box::new</span>(<span class="ident">reference</span>),
-            <span class="ident">access</span>: <span class="ident">Box::new</span>(<span class="ident">access</span>),
-            <span class="ident">id</span>: <span class="ident">lexer</span>.<span class="ident">next_id</span>(),
-        };
+    <span class="kw">while</span> <span class="ident">lexer</span>.<span class="ident">token</span> <span class="op">=</span><span class="op">=</span> <span class="ident">KeywordSquareParensOpen</span> <span class="op">|</span><span class="op">|</span> <span class="ident">lexer</span>.<span class="ident">token</span> <span class="op">=</span><span class="op">=</span> <span class="ident">OperatorDeref</span> {
+        <span class="kw">if</span> <span class="ident">lexer</span>.<span class="ident">allow</span>(<span class="kw-2">&amp;</span><span class="ident">KeywordSquareParensOpen</span>) {
+            <span class="kw">let</span> <span class="ident">access</span> <span class="op">=</span> <span class="ident">parse_expression</span>(<span class="ident">lexer</span>);
+            <span class="ident">lexer</span>.<span class="ident">expect</span>(<span class="ident">KeywordSquareParensClose</span>)<span class="question-mark">?</span>;
+            <span class="ident">lexer</span>.<span class="ident">advance</span>();
+            <span class="ident">reference</span> <span class="op">=</span> <span class="ident">AstStatement::ArrayAccess</span> {
+                <span class="ident">reference</span>: <span class="ident">Box::new</span>(<span class="ident">reference</span>),
+                <span class="ident">access</span>: <span class="ident">Box::new</span>(<span class="ident">access</span>),
+                <span class="ident">id</span>: <span class="ident">lexer</span>.<span class="ident">next_id</span>(),
+            };
+        } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">lexer</span>.<span class="ident">allow</span>(<span class="kw-2">&amp;</span><span class="ident">OperatorDeref</span>) {
+            <span class="ident">reference</span> <span class="op">=</span> <span class="ident">AstStatement::PointerAccess</span> {
+                <span class="ident">reference</span>: <span class="ident">Box::new</span>(<span class="ident">reference</span>),
+                <span class="ident">id</span>: <span class="ident">lexer</span>.<span class="ident">next_id</span>(),
+            }
+        }
     }
     <span class="prelude-val">Ok</span>(<span class="ident">reference</span>)
 }

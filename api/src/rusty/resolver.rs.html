@@ -679,6 +679,25 @@
 <span id="677">677</span>
 <span id="678">678</span>
 <span id="679">679</span>
+<span id="680">680</span>
+<span id="681">681</span>
+<span id="682">682</span>
+<span id="683">683</span>
+<span id="684">684</span>
+<span id="685">685</span>
+<span id="686">686</span>
+<span id="687">687</span>
+<span id="688">688</span>
+<span id="689">689</span>
+<span id="690">690</span>
+<span id="691">691</span>
+<span id="692">692</span>
+<span id="693">693</span>
+<span id="694">694</span>
+<span id="695">695</span>
+<span id="696">696</span>
+<span id="697">697</span>
+<span id="698">698</span>
 </pre><pre class="rust">
 <span class="comment">// Copyright (c) 2021 Ghaith Hachem and Mathias Rieder</span>
 
@@ -1041,6 +1060,24 @@
                         .<span class="ident">annotate</span>(<span class="ident">statement</span>, <span class="ident">StatementAnnotation::expression</span>(<span class="ident">t</span>));
                 }
             }
+            <span class="ident">AstStatement::PointerAccess</span> { <span class="ident">reference</span>, .. } <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="macro">visit_all_statements!</span>(<span class="self">self</span>, <span class="ident">ctx</span>, <span class="ident">reference</span>);
+                <span class="kw">let</span> <span class="ident">pointer_type</span> <span class="op">=</span> <span class="self">self</span>
+                    .<span class="ident">annotation_map</span>
+                    .<span class="ident">get_type_or_void</span>(<span class="ident">reference</span>, <span class="self">self</span>.<span class="ident">index</span>)
+                    .<span class="ident">get_type_information</span>();
+                <span class="kw">if</span> <span class="kw">let</span> <span class="ident">DataTypeInformation::Pointer</span> {
+                    <span class="ident">inner_type_name</span>, ..
+                } <span class="op">=</span> <span class="ident">pointer_type</span>
+                {
+                    <span class="kw">let</span> <span class="ident">t</span> <span class="op">=</span> <span class="self">self</span>
+                        .<span class="ident">index</span>
+                        .<span class="ident">get_effective_type_by_name</span>(<span class="ident">inner_type_name</span>)
+                        .<span class="ident">get_name</span>();
+                    <span class="self">self</span>.<span class="ident">annotation_map</span>
+                        .<span class="ident">annotate</span>(<span class="ident">statement</span>, <span class="ident">StatementAnnotation::expression</span>(<span class="ident">t</span>));
+                }
+            }
             <span class="ident">AstStatement::BinaryExpression</span> { <span class="ident">left</span>, <span class="ident">right</span>, .. } <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="macro">visit_all_statements!</span>(<span class="self">self</span>, <span class="ident">ctx</span>, <span class="ident">left</span>, <span class="ident">right</span>);
                 <span class="kw">let</span> <span class="ident">left</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>
@@ -1075,6 +1112,7 @@
                         );
                     }
                 } <span class="kw">else</span> {
+                    <span class="comment">//TODO: The adderss operator should report a correct pointer type. We need to have reproducable type names for that first.</span>
                     <span class="self">self</span>.<span class="ident">annotation_map</span>.<span class="ident">annotate</span>(
                         <span class="ident">statement</span>,
                         <span class="ident">StatementAnnotation::expression</span>(<span class="ident">inner_type</span>.<span class="ident">get_name</span>()),
