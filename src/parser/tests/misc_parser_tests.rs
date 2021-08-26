@@ -1,7 +1,8 @@
+// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
+
 use core::panic;
 use std::ops::Range;
 
-// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use crate::{
     ast::*,
     parser::{

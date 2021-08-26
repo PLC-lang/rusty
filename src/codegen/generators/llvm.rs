@@ -4,7 +4,7 @@ use crate::{
     codegen::{TypeAndPointer, TypeAndValue},
     compile_error::CompileError,
     index::Index,
-    typesystem,
+    typesystem::{self, VOID_TYPE},
 };
 use inkwell::{
     builder::Builder,
@@ -219,6 +219,19 @@ impl<'a> Llvm<'a> {
                 SourceRange::undefined(),
             ))
         }
+    }
+
+    /// create a null pointer
+    pub fn create_null_ptr(&self) -> Result<TypeAndValue<'a>, CompileError> {
+        let itype = self.context.i32_type().ptr_type(AddressSpace::Generic);
+        let value = itype.const_null();
+
+        let data_type = typesystem::DataTypeInformation::Pointer {
+            name: "VOIDPtr".into(),
+            inner_type_name: VOID_TYPE.into(),
+            auto_deref: false,
+        };
+        Ok((data_type, value.into()))
     }
 
     /// create a constant utf8 string-value with the given value
