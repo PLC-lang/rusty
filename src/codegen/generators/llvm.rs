@@ -4,7 +4,7 @@ use crate::{
     codegen::{TypeAndPointer, TypeAndValue},
     compile_error::CompileError,
     index::Index,
-    typesystem,
+    typesystem::{self, VOID_TYPE},
 };
 use inkwell::{
     builder::Builder,
@@ -227,8 +227,8 @@ impl<'a> Llvm<'a> {
         let value = itype.const_null();
 
         let data_type = typesystem::DataTypeInformation::Pointer {
-            name: "NULLPtr".into(),
-            inner_type_name: "NULL".into(),
+            name: "VOIDPtr".into(),
+            inner_type_name: VOID_TYPE.into(),
             auto_deref: false,
         };
         Ok((data_type, value.into()))

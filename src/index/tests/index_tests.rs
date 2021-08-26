@@ -878,7 +878,7 @@ fn pre_processing_generates_inline_pointers() {
             name: Some("__foo_inline_pointer".to_string()),
             referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
                 referenced_type: "INT".to_string(),
-                location: (68..71).into(),
+                location: SourceRange::undefined(),
             }),
         },
         location: SourceRange::undefined(),
@@ -888,13 +888,12 @@ fn pre_processing_generates_inline_pointers() {
 
     // AND the original variable should now point to the new DataType
     let var_data_type = &ast.units[0].variable_blocks[0].variables[0].data_type;
-    assert_eq!(
-        &DataTypeDeclaration::DataTypeReference {
-            referenced_type: "__foo_inline_pointer".to_string(),
-            location: (71..72).into(),
-        },
-        var_data_type
-    );
+    let expected = &DataTypeDeclaration::DataTypeReference {
+        referenced_type: "__foo_inline_pointer".to_string(),
+        location: SourceRange::undefined(),
+    };
+
+    assert_eq!(format!("{:?}", expected), format!("{:?}", var_data_type));
 }
 
 #[test]
@@ -922,10 +921,10 @@ fn pre_processing_generates_inline_pointer_to_pointer() {
             name: Some("__foo_inline_pointer_".to_string()),
             referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
                 referenced_type: "INT".to_string(),
-                location: (75..78).into(),
+                location: SourceRange::undefined(),
             }),
         },
-        location: (75..78).into(),
+        location: SourceRange::undefined(),
         initializer: None,
     };
     assert_eq!(format!("{:?}", expected), format!("{:?}", new_pointer_type));
@@ -937,23 +936,22 @@ fn pre_processing_generates_inline_pointer_to_pointer() {
             name: Some("__foo_inline_pointer".to_string()),
             referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
                 referenced_type: "__foo_inline_pointer_".to_string(),
-                location: (78..79).into(),
+                location: SourceRange::undefined(),
             }),
         },
-        location: (78..79).into(),
+        location: SourceRange::undefined(),
         initializer: None,
     };
     assert_eq!(format!("{:?}", expected), format!("{:?}", new_pointer_type));
 
     // AND the original variable should now point to the new DataType
     let var_data_type = &ast.units[0].variable_blocks[0].variables[0].data_type;
-    assert_eq!(
-        &DataTypeDeclaration::DataTypeReference {
-            referenced_type: "__foo_inline_pointer".to_string(),
-            location: (78..79).into(),
-        },
-        var_data_type
-    );
+
+    let expected = &DataTypeDeclaration::DataTypeReference {
+        referenced_type: "__foo_inline_pointer".to_string(),
+        location: SourceRange::undefined(),
+    };
+    assert_eq!(format!("{:?}", expected), format!("{:?}", var_data_type));
 }
 
 #[test]

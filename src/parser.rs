@@ -514,6 +514,7 @@ fn parse_data_type_definition(
     } else if lexer.allow(&KeywordArray) {
         parse_array_type_definition(lexer, name)
     } else if lexer.allow(&KeywordPointer) {
+        let start_pos = lexer.last_range.start;
         //Report wrong keyword
         lexer.accept_diagnostic(Diagnostic::ImprovementSuggestion {
             message: "'POINTER TO' is not a standard keyword, use REF_TO instead".to_string(),
@@ -521,11 +522,12 @@ fn parse_data_type_definition(
         });
         if let Err(diag) = lexer.expect(KeywordTo) {
             lexer.accept_diagnostic(diag);
+        } else {
+            lexer.advance();
         }
-        lexer.advance();
-        parse_pointer_definition(lexer, name)
+        parse_pointer_definition(lexer, name, start_pos)
     } else if lexer.allow(&KeywordRef) {
-        parse_pointer_definition(lexer, name)
+        parse_pointer_definition(lexer, name, lexer.last_range.start)
     } else if lexer.allow(&KeywordParensOpen) {
         parse_enum_type_definition(lexer, name)
     } else if lexer.token == KeywordString || lexer.token == KeywordWideString {
@@ -546,6 +548,7 @@ fn parse_data_type_definition(
 fn parse_pointer_definition(
     lexer: &mut ParseSession,
     name: Option<String>,
+    start_pos: usize,
 ) -> Option<(DataTypeDeclaration, Option<AstStatement>)> {
     parse_data_type_definition(lexer, None).map(|(decl, initializer)| {
         (
@@ -554,7 +557,7 @@ fn parse_pointer_definition(
                     name,
                     referenced_type: Box::new(decl),
                 },
-                location: lexer.location(),
+                location: (start_pos..lexer.last_range.end).into(),
             },
             initializer,
         )

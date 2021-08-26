@@ -288,6 +288,7 @@ pub enum Token {
 
     #[token("&")]
     OperatorAmp,
+
     #[token("^")]
     OperatorDeref,
 
