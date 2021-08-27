@@ -1,3 +1,4 @@
+use crate::Diagnostic;
 use core::panic;
 use std::ops::Range;
 
@@ -23,6 +24,82 @@ fn programs_can_be_external() {
     let parse_result = parse(lexer).0;
     let implementation = &parse_result.implementations[0];
     assert_eq!(LinkageType::External, implementation.linkage);
+}
+
+#[test]
+fn exponent_literals_parsed_as_variables() {
+    let lexer = super::lex(
+        "
+            FUNCTION E1 : E2
+            VAR_INPUT
+            E3 : E4;
+            END_VAR
+            E5 := 1.0E6;
+            END_FUNCTION
+           ",
+    );
+
+    let (parse_result, diagnostics) = parse(lexer);
+
+    let pou = &parse_result.units[0];
+    let expected = Pou {
+        name: "E1".into(),
+        pou_type: PouType::Function,
+        poly_mode: None,
+        return_type: Some(DataTypeDeclaration::DataTypeReference {
+            referenced_type: "E2".into(),
+            location: SourceRange::undefined(),
+        }),
+        variable_blocks: vec![VariableBlock {
+            variable_block_type: VariableBlockType::Input,
+            access: AccessModifier::Internal,
+            constant: false,
+            retain: false,
+
+            variables: vec![Variable {
+                name: "E3".into(),
+                data_type: DataTypeDeclaration::DataTypeReference {
+                    referenced_type: "E4".into(),
+                    location: SourceRange::undefined(),
+                },
+                initializer: None,
+                location: SourceRange::undefined(),
+            }],
+        }],
+        location: SourceRange::undefined(),
+    };
+    assert_eq!(format!("{:#?}", expected), format!("{:#?}", pou).as_str());
+    let implementation = &parse_result.implementations[0];
+    let expected = Implementation {
+        name: "E1".into(),
+        type_name: "E1".into(),
+        linkage: LinkageType::Internal,
+        pou_type: PouType::Function,
+        statements: vec![AstStatement::Assignment {
+            left: Box::new(AstStatement::Reference {
+                name: "E5".into(),
+                id: 0,
+                location: SourceRange::undefined(),
+            }),
+            right: Box::new(AstStatement::LiteralReal {
+                value: "1.0E6".into(),
+                id: 0,
+                location: SourceRange::undefined(),
+            }),
+            id: 0,
+        }],
+        access: None,
+        overriding: false,
+        location: (105..142).into(),
+    };
+    assert_eq!(
+        format!("{:#?}", expected),
+        format!("{:#?}", implementation).as_str()
+    );
+    assert_eq!(
+        format!("{:#?}", diagnostics),
+        format!("{:#?}", Vec::<Diagnostic>::new()).as_str()
+    );
 }
 
 #[test]

@@ -408,7 +408,15 @@ fn parse_literal_number_with_modifier(
 fn parse_literal_number(lexer: &mut ParseSession) -> Result<AstStatement, Diagnostic> {
     let location = lexer.location();
     let result = lexer.slice_and_advance();
-    if lexer.allow(&KeywordDot) {
+    if result.to_lowercase().contains('e') {
+        let result = result.replace('_', "");
+        //Treat exponents as reals
+        return Ok(AstStatement::LiteralReal {
+            value: result,
+            location,
+            id: lexer.next_id(),
+        });
+    } else if lexer.allow(&KeywordDot) {
         return parse_literal_real(lexer, result, location);
     } else if lexer.allow(&KeywordParensOpen) {
         let multiplier = result
@@ -673,23 +681,22 @@ fn parse_literal_real(
     integer: String,
     integer_range: SourceRange,
 ) -> Result<AstStatement, Diagnostic> {
-    lexer.expect(LiteralInteger)?;
-    let start = integer_range.get_start();
-    let fraction_end = lexer.range().end;
-    let fractional = lexer.slice_and_advance();
-
-    let (exponent, end) = if lexer.token == LiteralExponent {
-        //this spans everything, [integer].[integer]
-        (lexer.slice_and_advance(), lexer.range().end)
+    if lexer.token == LiteralInteger {
+        let start = integer_range.get_start();
+        let end = lexer.range().end;
+        let exponent = lexer.slice_and_advance();
+        let result = format!("{}.{}", integer, exponent);
+        let new_location = SourceRange::new(start..end);
+        Ok(AstStatement::LiteralReal {
+            value: result,
+            location: new_location,
+            id: lexer.next_id(),
+        })
     } else {
-        ("".to_string(), fraction_end)
-    };
-
-    let result = format!("{}.{}{}", integer, fractional, exponent);
-    let new_location = SourceRange::new(start..end);
-    Ok(AstStatement::LiteralReal {
-        value: result,
-        location: new_location,
-        id: lexer.next_id(),
-    })
+        Err(Diagnostic::unexpected_token_found(
+            "LiteralInteger or LiteralExponent",
+            lexer.slice(),
+            lexer.location(),
+        ))
+    }
 }

@@ -303,6 +303,8 @@ VAR
 y : REAL;
 END_VAR
 y := 0.15625;
+y := 0.1e3;
+y := 1e3;
 END_PROGRAM
 "#
     );
@@ -313,6 +315,8 @@ END_PROGRAM
         "",
         "",
         r#"store float 1.562500e-01, float* %y, align 4
+  store float 1.000000e+02, float* %y, align 4
+  store float 1.000000e+03, float* %y, align 4
   ret void
 "#,
     );
