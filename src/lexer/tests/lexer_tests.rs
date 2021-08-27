@@ -548,10 +548,47 @@ fn wide_string_parsing() {
 }
 
 #[test]
+fn pointers_and_references_keyword() {
+    let mut lexer = lex(r#"
+    POINTER TO x 
+    REF_TO x
+    REFTO x
+    &x
+    x^
+    NULL
+    "#);
+
+    assert_eq!(lexer.token, KeywordPointer);
+    lexer.advance();
+    assert_eq!(lexer.token, KeywordTo);
+    lexer.advance();
+    assert_eq!(lexer.slice(), "x");
+    lexer.advance();
+    assert_eq!(lexer.token, KeywordRef);
+    lexer.advance();
+    assert_eq!(lexer.slice(), "x");
+    lexer.advance();
+    assert_eq!(lexer.token, KeywordRef);
+    lexer.advance();
+    assert_eq!(lexer.slice(), "x");
+    lexer.advance();
+    assert_eq!(lexer.token, OperatorAmp);
+    lexer.advance();
+    assert_eq!(lexer.slice(), "x");
+    lexer.advance();
+    assert_eq!(lexer.slice(), "x");
+    lexer.advance();
+    assert_eq!(lexer.token, OperatorDeref);
+    lexer.advance();
+    assert_eq!(lexer.token, LiteralNull);
+    lexer.advance();
+}
+
+#[test]
 fn multi_named_keywords_without_underscore_test() {
     let mut lexer = lex(
-        "VARINPUT VARGLOBAL VARINOUT ENDVAR ENDPROGRAM ENDFUNCTION ENDCASE
-        NONRETAIN VARTEMP VAROUTPUT FUNCTIONBLOCK ENDFUNCTIONBLOCK ENDSTRUCT ENDACTION
+        "VARINPUT VARGLOBAL VARINOUT REFTO ENDVAR ENDPROGRAM ENDFUNCTION ENDCASE
+        VARRETAIN VARTEMP VAROUTPUT FUNCTIONBLOCK ENDFUNCTIONBLOCK ENDSTRUCT ENDACTION
         ENDACTIONS ENDIF ENDFOR ENDREPEAT",
     );
 
@@ -574,7 +611,7 @@ fn multi_named_keywords_without_underscore_test() {
         d2.get_message(),
         "the words in ENDREPEAT should be separated by a '_'"
     );
-    assert_eq!(d2.get_location(), SourceRange::new(185..194));
+    assert_eq!(d2.get_location(), SourceRange::new(191..200));
 }
 
 #[test]
@@ -593,7 +630,7 @@ fn lowercase_keywords_accepted() {
         while end_while endwhile repeat until endrepeat end_repeat
         case return exit continue array string wstring 
         of endcase end_case mod and or xor not true false 
-        d#1-2-3 date#1-2-3 dt#1-2-3-1:2:3 date_and_time#1-2-3-1:2:3 tod#1:2:3 time_of_day#1:2:3 time#1s t#1s
+        d#1-2-3 date#1-2-3 dt#1-2-3-1:2:3 date_and_time#1-2-3-1:2:3 tod#1:2:3 time_of_day#1:2:3 time#1s t#1s null refto pointer ref_to
         "###);
 
     while result.token != End {

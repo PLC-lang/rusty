@@ -192,6 +192,7 @@ fn parse_unary_expression(lexer: &mut ParseSession) -> AstStatement {
     let operator = match lexer.token {
         OperatorNot => Some(Operator::Not),
         OperatorMinus => Some(Operator::Minus),
+        OperatorAmp => Some(Operator::Address),
         _ => None,
     };
 
@@ -254,6 +255,7 @@ fn parse_leaf_expression(lexer: &mut ParseSession) -> AstStatement {
         LiteralWideString => parse_literal_string(lexer, true),
         LiteralTrue => parse_bool_literal(lexer, true),
         LiteralFalse => parse_bool_literal(lexer, false),
+        LiteralNull => parse_null_literal(lexer),
         KeywordSquareParensOpen => parse_array_literal(lexer),
         _ => Err(Diagnostic::unexpected_token_found(
             "Literal",
@@ -321,6 +323,17 @@ fn parse_bool_literal(lexer: &mut ParseSession, value: bool) -> Result<AstStatem
     })
 }
 
+#[allow(clippy::unnecessary_wraps)]
+//Allowing the unnecessary wrap here because this method is used along other methods that need to return Results
+fn parse_null_literal(lexer: &mut ParseSession) -> Result<AstStatement, Diagnostic> {
+    let location = lexer.location();
+    lexer.advance();
+    Ok(AstStatement::LiteralNull {
+        location,
+        id: lexer.next_id(),
+    })
+}
+
 pub fn parse_qualified_reference(lexer: &mut ParseSession) -> Result<AstStatement, Diagnostic> {
     let start = lexer.range().start;
     let mut reference_elements = vec![parse_reference_access(lexer)?];
@@ -364,21 +377,36 @@ pub fn parse_qualified_reference(lexer: &mut ParseSession) -> Result<AstStatemen
 
 pub fn parse_reference_access(lexer: &mut ParseSession) -> Result<AstStatement, Diagnostic> {
     let location = lexer.location();
-    let mut reference = AstStatement::Reference {
+    let reference = AstStatement::Reference {
         name: lexer.slice_and_advance(),
         location,
         id: lexer.next_id(),
     };
+    parse_access_modifiers(lexer, reference)
+}
+
+fn parse_access_modifiers(
+    lexer: &mut ParseSession,
+    original_reference: AstStatement,
+) -> Result<AstStatement, Diagnostic> {
+    let mut reference = original_reference;
     //If (while) we hit a dereference, parse and append the dereference to the result
-    while lexer.allow(&KeywordSquareParensOpen) {
-        let access = parse_expression(lexer);
-        lexer.expect(KeywordSquareParensClose)?;
-        lexer.advance();
-        reference = AstStatement::ArrayAccess {
-            reference: Box::new(reference),
-            access: Box::new(access),
-            id: lexer.next_id(),
-        };
+    while lexer.token == KeywordSquareParensOpen || lexer.token == OperatorDeref {
+        if lexer.allow(&KeywordSquareParensOpen) {
+            let access = parse_expression(lexer);
+            lexer.expect(KeywordSquareParensClose)?;
+            lexer.advance();
+            reference = AstStatement::ArrayAccess {
+                reference: Box::new(reference),
+                access: Box::new(access),
+                id: lexer.next_id(),
+            };
+        } else if lexer.allow(&OperatorDeref) {
+            reference = AstStatement::PointerAccess {
+                reference: Box::new(reference),
+                id: lexer.next_id(),
+            }
+        }
     }
     Ok(reference)
 }

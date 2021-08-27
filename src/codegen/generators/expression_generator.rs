@@ -156,6 +156,10 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                 let l_value = self.generate_element_pointer(expression)?;
                 Ok(self.llvm.load_pointer(&l_value, "load_tmpVar"))
             }
+            AstStatement::PointerAccess { .. } => {
+                let l_value = self.generate_element_pointer(expression)?;
+                Ok(self.llvm.load_pointer(&l_value, "load_tmpVar"))
+            }
             AstStatement::BinaryExpression {
                 left,
                 right,
@@ -224,20 +228,37 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
         unary_operator: &Operator,
         expression: &AstStatement,
     ) -> Result<TypeAndValue<'a>, CompileError> {
-        let (data_type, loaded_value) = self.generate_expression(expression)?;
         let (data_type, value) = match unary_operator {
-            Operator::Not => (
-                data_type,
-                self.llvm
-                    .builder
-                    .build_not(loaded_value.into_int_value(), "tmpVar"),
-            ),
-            Operator::Minus => (
-                data_type,
-                self.llvm
-                    .builder
-                    .build_int_neg(loaded_value.into_int_value(), "tmpVar"),
-            ),
+            Operator::Not => {
+                let (data_type, loaded_value) = self.generate_expression(expression)?;
+                (
+                    data_type,
+                    self.llvm
+                        .builder
+                        .build_not(loaded_value.into_int_value(), "tmpVar"),
+                )
+            }
+            Operator::Minus => {
+                let (data_type, loaded_value) = self.generate_expression(expression)?;
+                (
+                    data_type,
+                    self.llvm
+                        .builder
+                        .build_int_neg(loaded_value.into_int_value(), "tmpVar"),
+                )
+            }
+            Operator::Address => {
+                //datatype is a pointer to the address
+                //value is the address
+                return self
+                    .generate_element_pointer_for_rec(None, expression)
+                    .map(|result| {
+                        (
+                            result.get_type_information().clone(),
+                            result.ptr_value.as_basic_value_enum(),
+                        )
+                    });
+            }
             _ => unimplemented!(),
         };
         Ok((data_type, BasicValueEnum::IntValue(value)))
@@ -541,7 +562,13 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                 //this is VAR_IN_OUT assignemt, so don't load the value, assign the pointer
                 self.generate_element_pointer_for_rec(None, assignment_statement)
                     //get a pointer for that variable
-                    .and_then(|tp| self.auto_deref_if_necessary(tp.type_entry, tp.ptr_value))
+                    .and_then(|tp| {
+                        self.auto_deref_if_necessary(
+                            tp.type_entry,
+                            tp.ptr_value,
+                            assignment_statement,
+                        )
+                    })
                     // auto-deref, if it is a var_in_out itself
                     .map(|v| {
                         (
@@ -663,13 +690,18 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
             AstStatement::QualifiedReference { .. } => {
                 self.generate_element_pointer_for_rec(None, reference_statement)
             }
+            AstStatement::PointerAccess { .. } => {
+                self.generate_element_pointer_for_rec(None, reference_statement)
+            }
             _ => Err(CompileError::codegen_error(
                 format!("Cannot generate a LValue for {:?}", reference_statement),
                 reference_statement.get_location(),
             )),
         };
 
-        result.and_then(|it| self.auto_deref_if_necessary(it.type_entry, it.ptr_value))
+        result.and_then(|it| {
+            self.auto_deref_if_necessary(it.type_entry, it.ptr_value, reference_statement)
+        })
     }
 
     /// geneartes a gep for the given reference with an optional qualifier
@@ -744,6 +776,30 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
         Ok(l_value)
     }
 
+    fn deref(
+        &self,
+        variable_type: &'b DataType,
+        accessor_ptr: PointerValue<'a>,
+        statement: &AstStatement,
+    ) -> Result<TypeAndPointer<'a, 'b>, CompileError> {
+        if let DataTypeInformation::Pointer {
+            inner_type_name, ..
+        } = &variable_type.information
+        {
+            // auto_deref the pointer
+            let (_, value) = self
+                .llvm
+                .load_pointer(&TypeAndPointer::new(variable_type, accessor_ptr), "deref");
+            let inner_type = self.index.get_type(inner_type_name)?;
+            Ok(TypeAndPointer::new(inner_type, value.into_pointer_value()))
+        } else {
+            Err(CompileError::codegen_error(
+                format!("Cannot derefence non pointer type : {:?}", variable_type),
+                statement.get_location(),
+            ))
+        }
+    }
+
     /// automatically derefs an inout variable pointer so it can be used like a normal variable
     ///
     /// # Arguments
@@ -753,20 +809,14 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
         &self,
         variable_type: &'b DataType,
         accessor_ptr: PointerValue<'a>,
+        statement: &AstStatement,
     ) -> Result<TypeAndPointer<'a, 'b>, CompileError> {
         Ok(
             if let DataTypeInformation::Pointer {
-                auto_deref: true,
-                inner_type_name,
-                ..
+                auto_deref: true, ..
             } = &variable_type.information
             {
-                // auto_deref the pointer
-                let (_, value) = self
-                    .llvm
-                    .load_pointer(&TypeAndPointer::new(variable_type, accessor_ptr), "deref");
-                let inner_type = self.index.get_type(inner_type_name)?;
-                TypeAndPointer::new(inner_type, value.into_pointer_value())
+                self.deref(variable_type, accessor_ptr, statement)?
             } else {
                 TypeAndPointer::new(variable_type, accessor_ptr)
             },
@@ -899,6 +949,10 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
             AstStatement::ArrayAccess {
                 reference, access, ..
             } => self.generate_element_pointer_for_array(qualifier, reference, access),
+            AstStatement::PointerAccess { reference, .. } => {
+                let pointer = self.generate_element_pointer_for_rec(qualifier, reference)?;
+                self.deref(pointer.type_entry, pointer.ptr_value, reference)
+            }
             _ => Err(CompileError::codegen_error(
                 format!("Unsupported Statement {:?}", reference),
                 reference.get_location(),
@@ -1229,6 +1283,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
             AstStatement::LiteralArray {
                 elements, location, ..
             } => self.generate_literal_array(elements, location),
+            &AstStatement::LiteralNull { .. } => self.llvm.create_null_ptr(),
             // if there is an expression-list this might be a struct-initialization
             AstStatement::ExpressionList { .. } => {
                 self.generate_literal_struct(literal_statement, &literal_statement.get_location())

@@ -232,6 +232,13 @@ pub enum Token {
     #[token("CONTINUE", ignore(case))]
     KeywordContinue,
 
+    #[token("POINTER", ignore(case))]
+    KeywordPointer,
+
+    #[token("REF_TO", ignore(case))]
+    #[token("REFTO", ignore(case))]
+    KeywordRef,
+
     #[token("ARRAY", ignore(case))]
     KeywordArray,
 
@@ -279,6 +286,12 @@ pub enum Token {
     #[token(">=")]
     OperatorGreaterOrEqual,
 
+    #[token("&")]
+    OperatorAmp,
+
+    #[token("^")]
+    OperatorDeref,
+
     #[token("MOD", ignore(case))]
     OperatorModulo,
 
@@ -310,6 +323,9 @@ pub enum Token {
 
     #[regex(r"[0-9]+(_[0-9]+)*([eE][+-]?[0-9]+)?")]
     LiteralInteger,
+
+    #[token("NULL", ignore(case))]
+    LiteralNull,
 
     #[token("TRUE", ignore(case))]
     LiteralTrue,

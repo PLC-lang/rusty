@@ -1014,3 +1014,75 @@ fn test_case_without_condition() {
         )]
     );
 }
+
+#[test]
+fn pointer_type_without_to_test() {
+    let (result, diagnostics) = parse(lex(r#"
+        TYPE SamplePointer :
+            POINTER INT;
+        END_TYPE 
+        "#));
+    let pointer_type = &result.types[0];
+    let expected = UserTypeDeclaration {
+        data_type: DataType::PointerType {
+            name: Some("SamplePointer".into()),
+            referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
+                referenced_type: "INT".to_string(),
+                location: SourceRange::undefined(),
+            }),
+        },
+        location: SourceRange::undefined(),
+        initializer: None,
+    };
+    assert_eq!(
+        format!("{:#?}", expected),
+        format!("{:#?}", pointer_type).as_str()
+    );
+
+    assert_eq!(
+        vec![
+            Diagnostic::ImprovementSuggestion {
+                message: "'POINTER TO' is not a standard keyword, use REF_TO instead".to_string(),
+                range: SourceRange::new(42..49)
+            },
+            Diagnostic::unexpected_token_found("KeywordTo", "INT", (50..53).into())
+        ],
+        diagnostics
+    )
+}
+
+#[test]
+fn pointer_type_with_wrong_keyword_to_test() {
+    let (result, diagnostics) = parse(lex(r#"
+        TYPE SamplePointer :
+            POINTER tu INT;
+        END_TYPE 
+        "#));
+    let pointer_type = &result.types[0];
+    let expected = UserTypeDeclaration {
+        data_type: DataType::PointerType {
+            name: Some("SamplePointer".into()),
+            referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
+                referenced_type: "tu".to_string(),
+                location: SourceRange::undefined(),
+            }),
+        },
+        location: SourceRange::undefined(),
+        initializer: None,
+    };
+    assert_eq!(
+        format!("{:#?}", expected),
+        format!("{:#?}", pointer_type).as_str()
+    );
+    assert_eq!(
+        vec![
+            Diagnostic::ImprovementSuggestion {
+                message: "'POINTER TO' is not a standard keyword, use REF_TO instead".to_string(),
+                range: SourceRange::new(42..49)
+            },
+            Diagnostic::unexpected_token_found("KeywordTo", "tu", (50..52).into()),
+            Diagnostic::unexpected_token_found("KeywordSemicolon", "'INT'", (53..56).into())
+        ],
+        diagnostics
+    )
+}

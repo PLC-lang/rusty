@@ -1071,6 +1071,123 @@ fn signed_literal_expression_test() {
 }
 
 #[test]
+fn assignment_to_null() {
+    let lexer = super::lex(
+        "
+        PROGRAM exp 
+        x := NULL;
+        END_PROGRAM
+        ",
+    );
+    let result = parse(lexer).0;
+
+    let prg = &result.implementations[0];
+    let statement = &prg.statements[0];
+
+    let ast_string = format!("{:#?}", statement);
+    let expected_ast = r#"Assignment {
+    left: Reference {
+        name: "x",
+    },
+    right: LiteralNull,
+}"#;
+    assert_eq!(ast_string, expected_ast);
+}
+
+#[test]
+fn pointer_address_test() {
+    let lexer = super::lex(
+        "
+        PROGRAM exp 
+        &x;
+        END_PROGRAM
+        ",
+    );
+    let result = parse(lexer).0;
+
+    let prg = &result.implementations[0];
+    let statement = &prg.statements[0];
+
+    let ast_string = format!("{:#?}", statement);
+    let expected_ast = r#"UnaryExpression {
+    operator: Address,
+    value: Reference {
+        name: "x",
+    },
+}"#;
+    assert_eq!(ast_string, expected_ast);
+}
+
+#[test]
+fn pointer_dereference_test() {
+    let lexer = super::lex(
+        "
+        PROGRAM exp 
+        x^;
+        END_PROGRAM
+        ",
+    );
+    let result = parse(lexer).0;
+
+    let prg = &result.implementations[0];
+    let statement = &prg.statements[0];
+
+    let ast_string = format!("{:#?}", statement);
+    let expected_ast = r#"PointerAccess {
+    reference: Reference {
+        name: "x",
+    },
+}"#;
+    assert_eq!(ast_string, expected_ast);
+}
+
+#[test]
+fn pointer_dereference_test_nested() {
+    let lexer = super::lex(
+        "
+        PROGRAM exp 
+        x^^[0][1]^[2]^^;
+        END_PROGRAM
+        ",
+    );
+    let result = parse(lexer).0;
+
+    let prg = &result.implementations[0];
+    let statement = &prg.statements[0];
+
+    let ast_string = format!("{:#?}", statement);
+    let expected_ast = r#"PointerAccess {
+    reference: PointerAccess {
+        reference: ArrayAccess {
+            reference: PointerAccess {
+                reference: ArrayAccess {
+                    reference: ArrayAccess {
+                        reference: PointerAccess {
+                            reference: PointerAccess {
+                                reference: Reference {
+                                    name: "x",
+                                },
+                            },
+                        },
+                        access: LiteralInteger {
+                            value: 0,
+                        },
+                    },
+                    access: LiteralInteger {
+                        value: 1,
+                    },
+                },
+            },
+            access: LiteralInteger {
+                value: 2,
+            },
+        },
+    },
+}"#;
+    assert_eq!(ast_string, expected_ast);
+}
+
+#[test]
 fn signed_literal_expression_reversed_test() {
     let lexer = super::lex(
         "

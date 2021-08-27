@@ -3093,6 +3093,143 @@ continue:                                         ; preds = %output
 }
 
 #[test]
+fn pointers_generated() {
+    let result = codegen!(
+        "
+        PROGRAM prg 
+        VAR
+            X : BOOL;
+            pX : POINTER TO BOOL;
+            rX : REF_TO BOOL;
+        END_VAR
+        
+        //Assign address
+        pX := NULL;
+        rX := NULL;
+        pX := &X;
+        rX := &X;
+
+        //Read from pointer 
+        X := pX^;
+        X := rX^;
+
+        //Write in pointer 
+        pX^ := X;
+        rX^ := X;
+            
+        END_PROGRAM
+        "
+    );
+
+    let expected = r#"; ModuleID = 'main'
+source_filename = "main"
+
+%prg_interface = type { i1, i1*, i1* }
+
+@prg_instance = global %prg_interface zeroinitializer
+
+define void @prg(%prg_interface* %0) {
+entry:
+  %X = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 0
+  %pX = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 1
+  %rX = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 2
+  store i32* null, i1** %pX, align 8
+  store i32* null, i1** %rX, align 8
+  store i1* %X, i1** %pX, align 8
+  store i1* %X, i1** %rX, align 8
+  %deref = load i1*, i1** %pX, align 8
+  %load_tmpVar = load i1, i1* %deref, align 1
+  store i1 %load_tmpVar, i1* %X, align 1
+  %deref1 = load i1*, i1** %rX, align 8
+  %load_tmpVar2 = load i1, i1* %deref1, align 1
+  store i1 %load_tmpVar2, i1* %X, align 1
+  %deref3 = load i1*, i1** %pX, align 8
+  %load_X = load i1, i1* %X, align 1
+  store i1 %load_X, i1* %deref3, align 1
+  %deref4 = load i1*, i1** %rX, align 8
+  %load_X5 = load i1, i1* %X, align 1
+  store i1 %load_X5, i1* %deref4, align 1
+  ret void
+}
+"#;
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn complex_pointers() {
+    let result = codegen!(
+        "
+        PROGRAM prg 
+        VAR
+            X : INT;
+            arrX : ARRAY[1..10] OF INT;
+            arrrX : ARRAY[1..10] OF REF_TO INT;
+            rarrX : REF_TO ARRAY[1..10] OF INT;
+        END_VAR
+
+        //Assign address
+        arrX[1] := X;
+        arrrX[2] := &arrX[3];
+        rarrX := &arrX;
+
+        //Read from pointer 
+        X := arrrX[4]^;
+        X := rarrX^[5];
+
+        //Write in pointer 
+        arrrX[6]^ := X;
+        rarrX^[7] := arrrX[8]^;
+            
+        END_PROGRAM
+        "
+    );
+
+    let expected = r#"; ModuleID = 'main'
+source_filename = "main"
+
+%prg_interface = type { i16, [10 x i16], [10 x i16*], [10 x i16]* }
+
+@prg_instance = global %prg_interface zeroinitializer
+
+define void @prg(%prg_interface* %0) {
+entry:
+  %X = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 0
+  %arrX = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 1
+  %arrrX = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 2
+  %rarrX = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 3
+  %tmpVar = getelementptr inbounds [10 x i16], [10 x i16]* %arrX, i32 0, i32 0
+  %load_X = load i16, i16* %X, align 2
+  store i16 %load_X, i16* %tmpVar, align 2
+  %tmpVar1 = getelementptr inbounds [10 x i16*], [10 x i16*]* %arrrX, i32 0, i32 1
+  %tmpVar2 = getelementptr inbounds [10 x i16], [10 x i16]* %arrX, i32 0, i32 2
+  store i16* %tmpVar2, i16** %tmpVar1, align 8
+  store [10 x i16]* %arrX, [10 x i16]** %rarrX, align 8
+  %tmpVar3 = getelementptr inbounds [10 x i16*], [10 x i16*]* %arrrX, i32 0, i32 3
+  %deref = load i16*, i16** %tmpVar3, align 8
+  %load_tmpVar = load i16, i16* %deref, align 2
+  store i16 %load_tmpVar, i16* %X, align 2
+  %deref4 = load [10 x i16]*, [10 x i16]** %rarrX, align 8
+  %tmpVar5 = getelementptr inbounds [10 x i16], [10 x i16]* %deref4, i32 0, i32 4
+  %load_tmpVar6 = load i16, i16* %tmpVar5, align 2
+  store i16 %load_tmpVar6, i16* %X, align 2
+  %tmpVar7 = getelementptr inbounds [10 x i16*], [10 x i16*]* %arrrX, i32 0, i32 5
+  %deref8 = load i16*, i16** %tmpVar7, align 8
+  %load_X9 = load i16, i16* %X, align 2
+  store i16 %load_X9, i16* %deref8, align 2
+  %deref10 = load [10 x i16]*, [10 x i16]** %rarrX, align 8
+  %tmpVar11 = getelementptr inbounds [10 x i16], [10 x i16]* %deref10, i32 0, i32 6
+  %tmpVar12 = getelementptr inbounds [10 x i16*], [10 x i16*]* %arrrX, i32 0, i32 7
+  %deref13 = load i16*, i16** %tmpVar12, align 8
+  %load_tmpVar14 = load i16, i16* %deref13, align 2
+  store i16 %load_tmpVar14, i16* %tmpVar11, align 2
+  ret void
+}
+"#;
+    assert_eq!(result, expected);
+}
+
+#[test]
 fn program_with_var_out_called_mixed_in_program() {
     let result = codegen!(
         "
