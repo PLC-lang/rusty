@@ -4224,10 +4224,10 @@ fn enums_are_generated() {
     let expected = r#"; ModuleID = 'main'
 source_filename = "main"
 
+@x = global i32 0
 @red = global i32 0
 @yellow = global i32 1
 @green = global i32 2
-@x = global i32 0
 "#;
 
     assert_eq!(result, expected);
@@ -4256,10 +4256,10 @@ source_filename = "main"
 
 %main_interface = type { i32 }
 
+@main_instance = global %main_interface zeroinitializer
 @red = global i32 0
 @yellow = global i32 1
 @green = global i32 2
-@main_instance = global %main_interface zeroinitializer
 
 define void @main(%main_interface* %0) {
 entry:
@@ -4369,10 +4369,10 @@ fn inline_enums_are_generated() {
     let expected = r#"; ModuleID = 'main'
 source_filename = "main"
 
+@x = global i32 0
 @red = global i32 0
 @yellow = global i32 1
 @green = global i32 2
-@x = global i32 0
 "#;
 
     assert_eq!(result, expected);

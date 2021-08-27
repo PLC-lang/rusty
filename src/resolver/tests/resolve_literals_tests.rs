@@ -166,6 +166,54 @@ fn casted_literals_are_annotated() {
 }
 
 #[test]
+fn enum_literals_are_annotated() {
+    let (unit, index) = parse(
+        "
+            TYPE Color: (Green, Yellow, Red); END_TYPE
+            TYPE Animal: (Dog, Cat, Horse); END_TYPE
+
+            VAR_GLOBAL 
+                Cat : BOOL;
+            END_VAR
+        
+            PROGRAM PRG
+                VAR Yellow: BYTE; END_VAR
+
+                Green;  //Color
+                Dog;    //Animal
+
+                Yellow;     // local variable
+                Color#Yellow;  //Animal
+
+                Cat;   //global variable
+                Animal#Cat;  //Animal
+
+                // make sure these dont accidentally resolve to wrong enum
+                Animal#Green;   //invalid (VOID)
+                Color#Dog;      //invalid (VOID)
+                invalid#Dog;    //invalid (VOID)
+                Animal.Dog;     //invalid (VOID)
+                PRG.Cat;        //invalid (VOID)
+
+            END_PROGRAM",
+    );
+    let annotations = annotate(&unit, &index);
+    let statements = &unit.implementations[0].statements;
+
+    let actual_resolves: Vec<&str> = statements
+        .iter()
+        .map(|it| annotations.get_type_or_void(it, &index).get_name())
+        .collect();
+    assert_eq!(
+        vec![
+            "Color", "Animal", "BYTE", "Color", "BOOL", "Animal", "VOID", "VOID", "VOID", "VOID",
+            "VOID"
+        ],
+        actual_resolves
+    )
+}
+
+#[test]
 fn casted_inner_literals_are_annotated() {
     let (unit, index) = parse(
         "PROGRAM PRG

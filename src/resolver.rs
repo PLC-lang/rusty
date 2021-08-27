@@ -421,15 +421,21 @@ impl<'i> TypeAnnotator<'i> {
             AstStatement::Reference { name, .. } => {
                 let annotation = if let Some(qualifier) = ctx.qualifier.as_deref() {
                     // if we see a qualifier, we only consider [qualifier].[name] as candidates
-                    self.index.find_member(qualifier, name).map_or_else(
-                        || {
-                            try_to_implementation_annotation(
-                                format!("{}.{}", qualifier, name).as_str(),
-                                self.index,
-                            )
-                        },
-                        |v| Some(to_variable_annotation(v, self.index)),
-                    )
+                    self.index
+                        // 1st try a qualified member variable qualifier.name
+                        .find_member(qualifier, name)
+                        // 2nd try an enum-element qualifier#name
+                        .or_else(|| self.index.find_enum_element(qualifier, name.as_str()))
+                        // 3rd try - look for a method qualifier.name
+                        .map_or_else(
+                            || {
+                                try_to_implementation_annotation(
+                                    format!("{}.{}", qualifier, name).as_str(),
+                                    self.index,
+                                )
+                            },
+                            |v| Some(to_variable_annotation(v, self.index)),
+                        )
                 } else {
                     // if we see no qualifier, we try some strategies ...
                     ctx.pou
@@ -598,14 +604,29 @@ impl<'i> TypeAnnotator<'i> {
             AstStatement::CastStatement {
                 target, type_name, ..
             } => {
-                self.visit_statement(ctx, target);
                 //see if this type really exists
-                if let Some(t) = self.index.find_type(type_name) {
+                let data_type = self.index.find_type_information(type_name);
+
+                if let Some(DataTypeInformation::Enum { name, .. }) = data_type {
+                    //enum cast
+                    self.visit_statement(&ctx.with_qualifier(name), target);
+                    //use the type of the target
+                    let type_name = self
+                        .annotation_map
+                        .get_type_or_void(target, self.index)
+                        .get_name();
+                    self.annotation_map
+                        .annotate(statement, StatementAnnotation::expression(type_name));
+                } else if let Some(t) = data_type {
+                    //different cast
                     self.annotation_map
                         .annotate(statement, StatementAnnotation::expression(t.get_name()));
                     //overwrite the existing annotation
                     self.annotation_map
                         .annotate(target, StatementAnnotation::expression(t.get_name()))
+                } else {
+                    //unknown type? what should we do here?
+                    self.visit_statement(ctx, target);
                 }
             }
             _ => {

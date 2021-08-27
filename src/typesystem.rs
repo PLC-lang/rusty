@@ -13,6 +13,9 @@ pub const RANGE_CHECK_LS_FN: &str = "CheckLRangeSigned";
 pub const RANGE_CHECK_U_FN: &str = "CheckRangeUnsigned";
 pub const RANGE_CHECK_LU_FN: &str = "CheckLRangeUnsigned";
 
+pub const INT_SIZE: u32 = 16;
+pub const DINT_SIZE: u32 = 2 * INT_SIZE;
+
 pub const BOOL_TYPE: &str = "BOOL";
 pub const BYTE_TYPE: &str = "BYTE";
 pub const SINT_TYPE: &str = "SINT";
@@ -99,6 +102,10 @@ pub enum DataTypeInformation {
         signed: bool,
         size: u32,
     },
+    Enum {
+        name: String,
+        elements: Vec<String>,
+    },
     Float {
         name: String,
         size: u32,
@@ -138,11 +145,16 @@ impl DataTypeInformation {
             DataTypeInformation::SubRange { name, .. } => name,
             DataTypeInformation::Void => "VOID",
             DataTypeInformation::Alias { name, .. } => name,
+            DataTypeInformation::Enum { name, .. } => name,
         }
     }
 
     pub fn is_int(&self) -> bool {
-        matches!(self, DataTypeInformation::Integer { .. })
+        // internally an enum is represented as a DINT
+        matches!(
+            self,
+            DataTypeInformation::Integer { .. } | DataTypeInformation::Enum { .. }
+        )
     }
 
     pub fn is_unsigned_int(&self) -> bool {
@@ -156,7 +168,9 @@ impl DataTypeInformation {
     pub fn is_numerical(&self) -> bool {
         matches!(
             self,
-            DataTypeInformation::Integer { .. } | DataTypeInformation::Float { .. }
+            DataTypeInformation::Integer { .. }
+                | DataTypeInformation::Float { .. }
+                | &DataTypeInformation::Enum { .. } // internally an enum is represented as a DINT
         )
     }
 
@@ -193,6 +207,7 @@ impl DataTypeInformation {
             DataTypeInformation::SubRange { .. } => unimplemented!("subrange"),
             DataTypeInformation::Alias { .. } => unimplemented!("alias"),
             DataTypeInformation::Void => 0,
+            DataTypeInformation::Enum { .. } => DINT_SIZE,
         }
     }
 }
@@ -273,7 +288,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
             information: DataTypeInformation::Integer {
                 name: DWORD_TYPE.into(),
                 signed: false,
-                size: 32,
+                size: DINT_SIZE,
             },
         },
         DataType {
@@ -282,7 +297,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
             information: DataTypeInformation::Integer {
                 name: DINT_TYPE.into(),
                 signed: true,
-                size: 32,
+                size: DINT_SIZE,
             },
         },
         DataType {
@@ -291,7 +306,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
             information: DataTypeInformation::Integer {
                 name: UDINT_TYPE.into(),
                 signed: false,
-                size: 32,
+                size: DINT_SIZE,
             },
         },
         DataType {

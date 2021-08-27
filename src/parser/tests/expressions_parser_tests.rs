@@ -1,6 +1,7 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use crate::ast::{AstStatement, Operator, SourceRange};
 use crate::parser::parse;
+use crate::parser::tests::ref_to;
 use pretty_assertions::*;
 
 #[test]
@@ -1008,6 +1009,51 @@ fn literal_int_cast(data_type: &str, value: i64) -> AstStatement {
         }),
         type_name: data_type.to_string(),
     }
+}
+
+#[test]
+fn literal_enum_parse_test() {
+    let lexer = super::lex(
+        r#"
+        PROGRAM exp 
+            MyEnum#Val1;
+            MyEnum#Val2;
+            MyEnum#Val3;
+        END_PROGRAM
+        "#,
+    );
+    let result = parse(lexer).0;
+
+    let prg = &result.implementations[0];
+    let statement = &prg.statements;
+
+    let ast_string = format!("{:#?}", statement);
+    assert_eq!(
+        ast_string,
+        format!(
+            "{:#?}",
+            vec![
+                AstStatement::CastStatement {
+                    id: 0,
+                    location: (0..0).into(),
+                    type_name: "MyEnum".into(),
+                    target: Box::new(ref_to("Val1"))
+                },
+                AstStatement::CastStatement {
+                    id: 0,
+                    location: (0..0).into(),
+                    type_name: "MyEnum".into(),
+                    target: Box::new(ref_to("Val2"))
+                },
+                AstStatement::CastStatement {
+                    id: 0,
+                    location: (0..0).into(),
+                    type_name: "MyEnum".into(),
+                    target: Box::new(ref_to("Val3"))
+                }
+            ]
+        )
+    );
 }
 
 #[test]
