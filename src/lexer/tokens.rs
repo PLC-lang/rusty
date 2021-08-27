@@ -308,8 +308,7 @@ pub enum Token {
     #[regex(r"2#[0-1]+(_[0-1]+)*")]
     LiteralIntegerBin,
 
-    #[regex(r"[0-9]+(_[0-9]+)*")]
-    #[regex(r"[0-9]+(_[0-9]+)*[eE][+-]?[0-9]+", priority = 4)]
+    #[regex(r"[0-9]+(_[0-9]+)*([eE][+-]?[0-9]+)?")]
     LiteralInteger,
 
     #[token("TRUE", ignore(case))]

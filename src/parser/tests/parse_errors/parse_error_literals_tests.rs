@@ -98,7 +98,7 @@ fn literal_dec_number_with_double_underscores() {
 
     assert_eq!(
         result.first().unwrap(),
-        &Diagnostic::unexpected_token_found("KeywordSemicolon", "'_000'", (15..19).into())
+        &Diagnostic::unexpected_token_found("KeywordSemicolon", "'__000'", (14..19).into())
     );
 }
 

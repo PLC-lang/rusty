@@ -253,9 +253,9 @@ fn int_literals_test() {
     assert_eq!(lexer.token, LiteralInteger);
     assert_eq!(lexer.slice_and_advance(), "43_000");
     assert_eq!(lexer.token, LiteralInteger);
-    assert_eq!(lexer.slice_and_advance(), "43_");
+    assert_eq!(lexer.slice_and_advance(), "43");
     assert_eq!(lexer.token, Identifier);
-    assert_eq!(lexer.slice_and_advance(), "_000");
+    assert_eq!(lexer.slice_and_advance(), "__000");
     assert_eq!(lexer.token, LiteralInteger);
     assert_eq!(lexer.slice_and_advance(), "12_00E5");
     assert_eq!(lexer.token, LiteralInteger);
