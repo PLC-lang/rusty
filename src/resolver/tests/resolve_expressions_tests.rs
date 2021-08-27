@@ -260,6 +260,56 @@ fn complex_expressions_resolve_types() {
 }
 
 #[test]
+fn pointer_expressions_resolve_types() {
+    let (unit, index) = parse(
+        "PROGRAM PRG
+            VAR
+                i : REF_TO INT;
+                y : REF_TO MyInt;
+                a : MyIntRef;
+                b : MyAliasRef;
+            END_VAR
+
+            i;
+            i^;
+
+            y;
+            y^;
+
+            a;
+            a^;
+
+            b;
+            b^;
+        END_PROGRAM
+        
+        TYPE MyInt: INT := 7; END_TYPE 
+        TYPE MyIntRef: REF_TO INT; END_TYPE 
+        TYPE MyAliasRef: REF_TO MyInt; END_TYPE 
+
+        ",
+    );
+    let annotations = annotate(&unit, &index);
+    let statements = &unit.implementations[0].statements;
+
+    let expected_types = vec![
+        "__PRG_i",
+        "INT",
+        "__PRG_y",
+        "INT",
+        "MyIntRef",
+        "INT",
+        "MyAliasRef",
+        "INT",
+    ];
+    let type_names: Vec<&str> = statements
+        .iter()
+        .map(|s| annotations.get_type_or_void(s, &index).get_name())
+        .collect();
+
+    assert_eq!(format!("{:?}", expected_types), format!("{:?}", type_names));
+}
+#[test]
 fn array_expressions_resolve_types() {
     let (unit, index) = parse(
         "PROGRAM PRG
