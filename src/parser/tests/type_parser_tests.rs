@@ -1,6 +1,7 @@
 use crate::{
     ast::*,
     parser::{parse, tests::lex, AstStatement::LiteralInteger},
+    Diagnostic,
 };
 use pretty_assertions::*;
 
@@ -302,4 +303,117 @@ fn struct_with_inline_array_can_be_parsed() {
     initializer: None,
 }"#;
     assert_eq!(ast_string, expected_ast);
+}
+
+#[test]
+fn pointer_type_test() {
+    let (result, diagnostics) = parse(lex(r#"
+        TYPE SamplePointer :
+            POINTER TO INT;
+        END_TYPE 
+        "#));
+    let pointer_type = &result.types[0];
+    let expected = UserTypeDeclaration {
+        data_type: DataType::PointerType {
+            name: Some("SamplePointer".into()),
+            referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
+                referenced_type: "INT".to_string(),
+                location: SourceRange::undefined(),
+            }),
+        },
+        location: SourceRange::undefined(),
+        initializer: None,
+    };
+    assert_eq!(
+        format!("{:#?}", expected),
+        format!("{:#?}", pointer_type).as_str()
+    );
+    assert_eq!(diagnostics.len(), 1);
+    let diagnostic = Diagnostic::ImprovementSuggestion {
+        message: "'POINTER TO' is not a standard keyword, use REF_TO instead".to_string(),
+        range: SourceRange::new(42..49),
+    };
+    assert_eq!(diagnostics[0], diagnostic);
+}
+
+#[test]
+fn ref_type_test() {
+    let (result, diagnostics) = parse(lex(r#"
+        TYPE SampleReference :
+            REF_TO INT;
+        END_TYPE 
+        "#));
+    let reference_type = &result.types[0];
+    let expected = UserTypeDeclaration {
+        data_type: DataType::PointerType {
+            name: Some("SampleReference".into()),
+            referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
+                referenced_type: "INT".to_string(),
+                location: SourceRange::undefined(),
+            }),
+        },
+        location: SourceRange::undefined(),
+        initializer: None,
+    };
+    assert_eq!(
+        format!("{:#?}", expected),
+        format!("{:#?}", reference_type).as_str()
+    );
+    assert_eq!(diagnostics.len(), 0)
+}
+
+#[test]
+fn global_pointer_declaration() {
+    let (result, diagnostics) = parse(lex(r#"
+        VAR_GLOBAL 
+            SampleReference : REF_TO INT;
+            SamplePointer : POINTER TO INT;
+        END_VAR 
+        "#));
+    let reference_type = &result.global_vars[0].variables[0];
+    let expected = Variable {
+        name: "SampleReference".into(),
+        data_type: DataTypeDeclaration::DataTypeDefinition {
+            data_type: DataType::PointerType {
+                name: None,
+                referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
+                    referenced_type: "INT".to_string(),
+                    location: SourceRange::undefined(),
+                }),
+            },
+            location: SourceRange::undefined(),
+        },
+        initializer: None,
+        location: (0..0).into(),
+    };
+    assert_eq!(
+        format!("{:#?}", expected),
+        format!("{:#?}", reference_type).as_str()
+    );
+    let pointer_type = &result.global_vars[0].variables[1];
+    let expected = Variable {
+        name: "SamplePointer".into(),
+        data_type: DataTypeDeclaration::DataTypeDefinition {
+            data_type: DataType::PointerType {
+                name: None,
+                referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
+                    referenced_type: "INT".to_string(),
+                    location: SourceRange::undefined(),
+                }),
+            },
+            location: SourceRange::undefined(),
+        },
+        initializer: None,
+        location: (0..0).into(),
+    };
+    assert_eq!(
+        format!("{:#?}", expected),
+        format!("{:#?}", pointer_type).as_str()
+    );
+    assert_eq!(diagnostics.len(), 1);
+    let diagnostic = Diagnostic::ImprovementSuggestion {
+        message: "'POINTER TO' is not a standard keyword, use REF_TO instead".to_string(),
+        range: SourceRange::new(91..98),
+    };
+    assert_eq!(diagnostics[0], diagnostic);
 }

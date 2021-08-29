@@ -20,6 +20,47 @@ fn lex(source: &str) -> lexer::ParseSession {
 }
 
 #[test]
+fn index_not_case_sensitive() {
+    let index = index!(
+        r#"
+        TYPE st : STRUCT
+            x : INT;
+            y : DINT;
+        END_STRUCT
+        END_TYPE
+
+        VAR_GLOBAL
+            a: INT;
+            x : ST; 
+        END_VAR
+        FUNCTION foo : INT
+        END_FUNCTION
+
+        PROGRAM aProgram
+            VAR
+                c,d : INT;
+            END_VAR
+        END_PROGRAM
+    "#
+    );
+
+    let entry = index.find_global_variable("A").unwrap();
+    assert_eq!("a", entry.name);
+    assert_eq!("INT", entry.information.data_type_name);
+    let entry = index.find_global_variable("X").unwrap();
+    assert_eq!("x", entry.name);
+    assert_eq!("ST", entry.information.data_type_name);
+    let entry = index.find_member("ST", "X").unwrap();
+    assert_eq!("x", entry.name);
+    assert_eq!("INT", entry.information.data_type_name);
+    let entry = index.find_type("APROGRAM").unwrap();
+    assert_eq!("aProgram", entry.name);
+    let entry = index.find_implementation("Foo").unwrap();
+    assert_eq!("foo", entry.call_name);
+    assert_eq!("foo", entry.type_name);
+}
+
+#[test]
 fn global_variables_are_indexed() {
     let index = index!(
         r#"
@@ -814,6 +855,106 @@ fn pre_processing_generates_inline_structs() {
 }
 
 #[test]
+fn pre_processing_generates_inline_pointers() {
+    // GIVEN an inline pointer is declared
+    let lexer = lex(r#"
+        PROGRAM foo
+        VAR
+            inline_pointer: REF_TO INT;
+        END_VAR
+        END_PROGRAM
+        "#);
+    let (mut ast, ..) = parser::parse(lexer);
+
+    // WHEN the AST ist pre-processed
+    crate::ast::pre_process(&mut ast);
+
+    //Pointer
+    //THEN an implicit datatype should have been generated for the array
+    let new_pointer_type = &ast.types[0];
+
+    let expected = &UserTypeDeclaration {
+        data_type: DataType::PointerType {
+            name: Some("__foo_inline_pointer".to_string()),
+            referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
+                referenced_type: "INT".to_string(),
+                location: SourceRange::undefined(),
+            }),
+        },
+        location: SourceRange::undefined(),
+        initializer: None,
+    };
+    assert_eq!(format!("{:?}", expected), format!("{:?}", new_pointer_type));
+
+    // AND the original variable should now point to the new DataType
+    let var_data_type = &ast.units[0].variable_blocks[0].variables[0].data_type;
+    let expected = &DataTypeDeclaration::DataTypeReference {
+        referenced_type: "__foo_inline_pointer".to_string(),
+        location: SourceRange::undefined(),
+    };
+
+    assert_eq!(format!("{:?}", expected), format!("{:?}", var_data_type));
+}
+
+#[test]
+fn pre_processing_generates_inline_pointer_to_pointer() {
+    // GIVEN an inline pointer is declared
+    let lexer = lex(r#"
+        PROGRAM foo
+        VAR
+            inline_pointer: REF_TO REF_TO INT;
+        END_VAR
+        END_PROGRAM
+        "#);
+    let (mut ast, ..) = parser::parse(lexer);
+
+    // WHEN the AST ist pre-processed
+    crate::ast::pre_process(&mut ast);
+
+    //Pointer
+    //THEN an implicit datatype should have been generated for the pointer
+
+    // POINTER TO INT
+    let new_pointer_type = &ast.types[0];
+    let expected = &UserTypeDeclaration {
+        data_type: DataType::PointerType {
+            name: Some("__foo_inline_pointer_".to_string()),
+            referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
+                referenced_type: "INT".to_string(),
+                location: SourceRange::undefined(),
+            }),
+        },
+        location: SourceRange::undefined(),
+        initializer: None,
+    };
+    assert_eq!(format!("{:?}", expected), format!("{:?}", new_pointer_type));
+
+    // Pointer OF Pointer
+    let new_pointer_type = &ast.types[1];
+    let expected = &UserTypeDeclaration {
+        data_type: DataType::PointerType {
+            name: Some("__foo_inline_pointer".to_string()),
+            referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
+                referenced_type: "__foo_inline_pointer_".to_string(),
+                location: SourceRange::undefined(),
+            }),
+        },
+        location: SourceRange::undefined(),
+        initializer: None,
+    };
+    assert_eq!(format!("{:?}", expected), format!("{:?}", new_pointer_type));
+
+    // AND the original variable should now point to the new DataType
+    let var_data_type = &ast.units[0].variable_blocks[0].variables[0].data_type;
+
+    let expected = &DataTypeDeclaration::DataTypeReference {
+        referenced_type: "__foo_inline_pointer".to_string(),
+        location: SourceRange::undefined(),
+    };
+    assert_eq!(format!("{:?}", expected), format!("{:?}", var_data_type));
+}
+
+#[test]
 fn pre_processing_generates_inline_arrays() {
     // GIVEN an inline array is declared
     let lexer = lex(r#"
@@ -1152,7 +1293,7 @@ fn sub_range_boundaries_are_registered_at_the_index() {
     let index = index!(src);
 
     // THEN I expect the index to contain the defined range-information for the given type
-    let my_int = &index.get_types().get("MyInt").unwrap().information;
+    let my_int = &index.get_type("MyInt").unwrap().information;
     let expected = &DataTypeInformation::SubRange {
         name: "MyInt".to_string(),
         referenced_type: "INT".to_string(),
@@ -1170,7 +1311,7 @@ fn sub_range_boundaries_are_registered_at_the_index() {
     assert_eq!(format!("{:?}", expected), format!("{:?}", my_int));
 
     // THEN I expect the index to contain the defined range-information for the given type
-    let my_int = &index.get_types().get("MyAliasInt").unwrap().information;
+    let my_int = &index.get_type("MyAliasInt").unwrap().information;
     let expected = &DataTypeInformation::Alias {
         name: "MyAliasInt".to_string(),
         referenced_type: "MyInt".to_string(),

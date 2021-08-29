@@ -306,6 +306,10 @@ pub enum DataType {
         bounds: AstStatement,
         referenced_type: Box<DataTypeDeclaration>,
     },
+    PointerType {
+        name: Option<String>,
+        referenced_type: Box<DataTypeDeclaration>,
+    },
     StringType {
         name: Option<String>,
         is_wide: bool, //WSTRING
@@ -349,6 +353,14 @@ impl Debug for DataType {
                 .field("bounds", bounds)
                 .field("referenced_type", referenced_type)
                 .finish(),
+            DataType::PointerType {
+                name,
+                referenced_type,
+            } => f
+                .debug_struct("PointerType")
+                .field("name", name)
+                .field("referenced_type", referenced_type)
+                .finish(),
             DataType::StringType {
                 name,
                 is_wide,
@@ -374,6 +386,7 @@ impl DataType {
             DataType::EnumType { name, elements: _ } => *name = Some(new_name),
             DataType::SubRangeType { name, .. } => *name = Some(new_name),
             DataType::ArrayType { name, .. } => *name = Some(new_name),
+            DataType::PointerType { name, .. } => *name = Some(new_name),
             DataType::StringType { name, .. } => *name = Some(new_name),
             DataType::VarArgs { .. } => {} //No names on varargs
         }
@@ -384,6 +397,7 @@ impl DataType {
             DataType::StructType { name, variables: _ } => name.as_ref().map(|x| x.as_str()),
             DataType::EnumType { name, elements: _ } => name.as_ref().map(|x| x.as_str()),
             DataType::ArrayType { name, .. } => name.as_ref().map(|x| x.as_str()),
+            DataType::PointerType { name, .. } => name.as_ref().map(|x| x.as_str()),
             DataType::StringType { name, .. } => name.as_ref().map(|x| x.as_str()),
             DataType::SubRangeType { name, .. } => name.as_ref().map(|x| x.as_str()),
             DataType::VarArgs { .. } => None,
@@ -396,23 +410,32 @@ impl DataType {
         type_name: String,
         location: &SourceRange,
     ) -> Option<DataTypeDeclaration> {
-        if let DataType::ArrayType {
-            referenced_type, ..
-        } = self
-        {
-            if let DataTypeDeclaration::DataTypeReference { .. } = **referenced_type {
-                return None;
-            }
-            let new_data_type = DataTypeDeclaration::DataTypeReference {
-                referenced_type: type_name,
-                location: location.clone(),
-            };
-            let old_data_type = std::mem::replace(referenced_type, Box::new(new_data_type));
-            Some(*old_data_type)
-        } else {
-            None
+        match self {
+            DataType::ArrayType {
+                referenced_type, ..
+            } => replace_reference(referenced_type, type_name, location),
+            DataType::PointerType {
+                referenced_type, ..
+            } => replace_reference(referenced_type, type_name, location),
+            _ => None,
         }
     }
+}
+
+fn replace_reference(
+    referenced_type: &mut Box<DataTypeDeclaration>,
+    type_name: String,
+    location: &SourceRange,
+) -> Option<DataTypeDeclaration> {
+    if let DataTypeDeclaration::DataTypeReference { .. } = **referenced_type {
+        return None;
+    }
+    let new_data_type = DataTypeDeclaration::DataTypeReference {
+        referenced_type: type_name,
+        location: location.clone(),
+    };
+    let old_data_type = std::mem::replace(referenced_type, Box::new(new_data_type));
+    Some(*old_data_type)
 }
 
 #[derive(Clone, PartialEq)]
@@ -522,6 +545,10 @@ pub enum AstStatement {
         access: Box<AstStatement>,
         id: AstId,
     },
+    PointerAccess {
+        reference: Box<AstStatement>,
+        id: AstId,
+    },
     BinaryExpression {
         operator: Operator,
         left: Box<AstStatement>,
@@ -613,12 +640,17 @@ pub enum AstStatement {
         location: SourceRange,
         id: AstId,
     },
+    LiteralNull {
+        location: SourceRange,
+        id: AstId,
+    },
 }
 
 impl Debug for AstStatement {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
         match self {
             AstStatement::EmptyStatement { .. } => f.debug_struct("EmptyStatement").finish(),
+            AstStatement::LiteralNull { .. } => f.debug_struct("LiteralNull").finish(),
             AstStatement::LiteralInteger { value, .. } => f
                 .debug_struct("LiteralInteger")
                 .field("value", value)
@@ -806,6 +838,10 @@ impl Debug for AstStatement {
                 .field("reference", reference)
                 .field("access", access)
                 .finish(),
+            AstStatement::PointerAccess { reference, .. } => f
+                .debug_struct("PointerAccess")
+                .field("reference", reference)
+                .finish(),
             AstStatement::MultipliedStatement {
                 multiplier,
                 element,
@@ -838,6 +874,7 @@ impl AstStatement {
     pub fn get_location(&self) -> SourceRange {
         match self {
             AstStatement::EmptyStatement { location, .. } => location.clone(),
+            AstStatement::LiteralNull { location, .. } => location.clone(),
             AstStatement::LiteralInteger { location, .. } => location.clone(),
             AstStatement::LiteralDate { location, .. } => location.clone(),
             AstStatement::LiteralDateAndTime { location, .. } => location.clone(),
@@ -900,6 +937,7 @@ impl AstStatement {
                 let access_loc = access.get_location();
                 SourceRange::new(reference_loc.range.start..access_loc.range.end)
             }
+            AstStatement::PointerAccess { reference, .. } => reference.get_location(),
             AstStatement::MultipliedStatement { location, .. } => location.clone(),
             AstStatement::CaseCondition { condition, .. } => condition.get_location(),
             AstStatement::ReturnStatement { location, .. } => location.clone(),
@@ -911,6 +949,7 @@ impl AstStatement {
     pub fn get_id(&self) -> AstId {
         match self {
             AstStatement::EmptyStatement { id, .. } => *id,
+            AstStatement::LiteralNull { id, .. } => *id,
             AstStatement::LiteralInteger { id, .. } => *id,
             AstStatement::LiteralDate { id, .. } => *id,
             AstStatement::LiteralDateAndTime { id, .. } => *id,
@@ -924,6 +963,7 @@ impl AstStatement {
             AstStatement::QualifiedReference { id, .. } => *id,
             AstStatement::Reference { id, .. } => *id,
             AstStatement::ArrayAccess { id, .. } => *id,
+            AstStatement::PointerAccess { id, .. } => *id,
             AstStatement::BinaryExpression { id, .. } => *id,
             AstStatement::UnaryExpression { id, .. } => *id,
             AstStatement::ExpressionList { id, .. } => *id,
@@ -961,6 +1001,7 @@ pub enum Operator {
     And,
     Or,
     Xor,
+    Address,
 }
 
 impl Display for Operator {

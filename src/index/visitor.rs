@@ -14,7 +14,9 @@ pub fn visit(unit: &CompilationUnit) -> Index {
     //Create the typesystem
     let builtins = get_builtin_types();
     for data_type in builtins {
-        index.types.insert(data_type.get_name().into(), data_type);
+        index
+            .types
+            .insert(data_type.get_name().to_lowercase(), data_type);
     }
 
     //Create user defined datatypes
@@ -296,6 +298,23 @@ fn visit_data_type(index: &mut Index, type_declatation: &UserTypeDeclaration) {
                 name: name.as_ref().unwrap().clone(),
                 inner_type_name: referenced_type_name.to_string(),
                 dimensions,
+            };
+            index.register_type(
+                name.as_ref().unwrap(),
+                type_declatation.initializer.clone(),
+                information,
+            )
+        }
+        DataType::PointerType {
+            name,
+            referenced_type,
+            ..
+        } => {
+            let inner_type_name = referenced_type.get_name().unwrap();
+            let information = DataTypeInformation::Pointer {
+                name: name.as_ref().unwrap().clone(),
+                inner_type_name: inner_type_name.into(),
+                auto_deref: false,
             };
             index.register_type(
                 name.as_ref().unwrap(),

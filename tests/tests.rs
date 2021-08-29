@@ -14,6 +14,7 @@ mod correctness {
     mod functions;
     mod global_variables;
     mod initial_values;
+    mod pointers;
     mod sub_range_types;
     mod sums;
 }
