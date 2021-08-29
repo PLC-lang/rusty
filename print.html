@@ -152,6 +152,7 @@ crate library to perform lexical analysis before the custom parser runs. RuSTy
 puts out static or shared objects as well as LLVM IR or bitcode by the flip of
 a command line flag. We are aiming towards an open-source industry-grade ST compiler
 supporting at least the features in 2nd edition IEC 61131 standard. </p>
+<p>You might also want to refer to the <a href="https://ghaith.github.io/rusty/api/rusty/">API documentation</a>.</p>
 <h2 id="supported-language-concepts"><a class="header" href="#supported-language-concepts">Supported Language Concepts</a></h2>
 <h3 id="pous"><a class="header" href="#pous">POUs</a></h3>
 <ul>
@@ -188,6 +189,7 @@ supporting at least the features in 2nd edition IEC 61131 standard. </p>
 <li>✔ Call statements</li>
 <li>✔ Implicit call arguments</li>
 <li>✔ Explicit call arguments</li>
+<li>✔ EXIT, CONTINUE statements</li>
 </ul>
 <h3 id="control-structures"><a class="header" href="#control-structures">Control Structures</a></h3>
 <ul>
@@ -196,6 +198,7 @@ supporting at least the features in 2nd edition IEC 61131 standard. </p>
 <li>✔ FOR Loops</li>
 <li>✔ WHILE Loops</li>
 <li>✔ REPEAT Loops</li>
+<li>✔ RETURN statement</li>
 </ul>
 <h3 id="expressions"><a class="header" href="#expressions">Expressions</a></h3>
 <ul>
@@ -208,7 +211,7 @@ supporting at least the features in 2nd edition IEC 61131 standard. </p>
 <h2 id="prerequisites"><a class="header" href="#prerequisites">Prerequisites</a></h2>
 <p>To be able to build the source code, you will need to <a href="https://www.rust-lang.org/tools/install">install Rust</a>
 and LLVM 11, along with the standard build tools (<code>build-essential</code>) and <code>libz-dev</code> on your machine.
-For Linux the package manager version of LLVM (e.g. <code>llvm-11-dev</code> for apt) will work fine, for Windows, you need a
+For Linux the package manager version of LLVM (e.g. <code>llvm-11-dev</code>, <code>liblld-11-dev</code> for apt) will work fine, for Windows, you need a
 <a href="https://github.com/ghaith/llvm-package-windows/releases/tag/v11.0.1">special build</a>. If you want to
 clone and work on the repository, you'll also need <em>git</em>.</p>
 <h3 id="tips-for-troubleshooting"><a class="header" href="#tips-for-troubleshooting">Tips for troubleshooting</a></h3>
@@ -257,11 +260,55 @@ that will be written to a file named input.o.</p>
 <li><code>rustyc --ir src/*.st</code> will compile all st files in the src-folder.</li>
 <li><code>rustyc --ir &quot;**/*.st&quot;</code> will compile all st-files in the current folder and its subfolders recursively.</li>
 </ul>
-<h2 id="compiling-a-static-object"><a class="header" href="#compiling-a-static-object">Compiling a static object</a></h2>
-<h2 id="compiling-a-linkable-object"><a class="header" href="#compiling-a-linkable-object">Compiling a linkable object</a></h2>
-<h2 id="creating-a-shared-library"><a class="header" href="#creating-a-shared-library">Creating a shared library</a></h2>
-<h2 id="linking-with-an-external-application"><a class="header" href="#linking-with-an-external-application">Linking with an external application</a></h2>
-<h2 id="writing-a-main"><a class="header" href="#writing-a-main">Writing a main</a></h2>
+<h2 id="example-building-a-hello-world-program"><a class="header" href="#example-building-a-hello-world-program">Example: Building a hello world program</a></h2>
+<h3 id="writing-the-code"><a class="header" href="#writing-the-code">Writing the code</a></h3>
+<p>We want to print something to the terminal, so we're going to declare external functions
+for that and link with libc when we're done. This program can also be found at
+<code>examples/hello_world.st</code> in the source tree of Rusty. </p>
+<ul>
+<li>
+<p><code>_start</code> is our entry point to the program, because most linker scripts define it this way. </p>
+</li>
+<li>
+<p>Since we don't have a <code>crt0</code> right now, we have to call the <code>exit()</code> function by ourselves after we're
+done. Otherwise, the program will most likely crash (because it tries to return to a function that never
+existed).</p>
+</li>
+</ul>
+<pre><code class="language-st">@EXTERNAL FUNCTION puts : DINT
+VAR_INPUT
+    text : STRING;
+END_VAR
+END_FUNCTION
+
+@EXTERNAL FUNCTION exit : DINT
+VAR_INPUT
+    status : DINT;
+END_VAR
+END_FUNCTION
+
+FUNCTION _start : DINT
+    puts('hello, world!');
+    exit(0);
+END_FUNCTION
+</code></pre>
+<h3 id="compiling-with-rusty"><a class="header" href="#compiling-with-rusty">Compiling with rusty</a></h3>
+<p>Compiling with rusty is very easy. If you just want to build an object file, then do this:</p>
+<pre><code class="language-bash">rustyc -c hello_world.st -o hello_world.o
+</code></pre>
+<h3 id="linking-an-executable"><a class="header" href="#linking-an-executable">Linking an executable</a></h3>
+<p>Instead, you can also compile this into an executable and run it:</p>
+<pre><code class="language-bash">rustyc hello_world.st -o hello_world -L/path/to/libs -lc
+./hello_world
+</code></pre>
+<p>Please note that RuSTy will attempt to link the generated object file by default to generate
+an executable if you didn't specify something else (option <code>-c</code>).</p>
+<ul>
+<li>The <code>-lc</code> flag tells the linker it should link against <code>libc</code>. Depending on the available libraries on your system,
+the linker will prefer a dynamically linked library if available, and revert to a static one otherwise.</li>
+<li>You add library search pathes by providing additional <code>-L /path/...</code> options. By default, this will be
+the current directory.</li>
+</ul>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="libraries"><a class="header" href="#libraries">Libraries</a></h1>
 <p>RuSTy does not currently have support for separate libraries.
 Libraries can be compiled together with the application as a normal files.</p>

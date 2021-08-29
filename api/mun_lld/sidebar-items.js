@@ -1,0 +1,1 @@
+initSidebarItems({"enum":[["LldError",""],["LldFlavor",""]],"fn":[["link","Invokes LLD of the given flavor with the specified arguments."]],"struct":[["LldResult",""]]});

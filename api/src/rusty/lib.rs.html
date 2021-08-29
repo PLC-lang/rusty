@@ -507,6 +507,53 @@
 <span id="505">505</span>
 <span id="506">506</span>
 <span id="507">507</span>
+<span id="508">508</span>
+<span id="509">509</span>
+<span id="510">510</span>
+<span id="511">511</span>
+<span id="512">512</span>
+<span id="513">513</span>
+<span id="514">514</span>
+<span id="515">515</span>
+<span id="516">516</span>
+<span id="517">517</span>
+<span id="518">518</span>
+<span id="519">519</span>
+<span id="520">520</span>
+<span id="521">521</span>
+<span id="522">522</span>
+<span id="523">523</span>
+<span id="524">524</span>
+<span id="525">525</span>
+<span id="526">526</span>
+<span id="527">527</span>
+<span id="528">528</span>
+<span id="529">529</span>
+<span id="530">530</span>
+<span id="531">531</span>
+<span id="532">532</span>
+<span id="533">533</span>
+<span id="534">534</span>
+<span id="535">535</span>
+<span id="536">536</span>
+<span id="537">537</span>
+<span id="538">538</span>
+<span id="539">539</span>
+<span id="540">540</span>
+<span id="541">541</span>
+<span id="542">542</span>
+<span id="543">543</span>
+<span id="544">544</span>
+<span id="545">545</span>
+<span id="546">546</span>
+<span id="547">547</span>
+<span id="548">548</span>
+<span id="549">549</span>
+<span id="550">550</span>
+<span id="551">551</span>
+<span id="552">552</span>
+<span id="553">553</span>
+<span id="554">554</span>
 </pre><pre class="rust">
 <span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 <span class="doccomment">//! A Structured Text LLVM Frontent</span>
@@ -749,6 +796,13 @@
     <span class="prelude-val">Ok</span>(<span class="ident">buffer</span>)
 }
 
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_target_triple</span>(<span class="ident">triple</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TargetTriple</span> {
+    <span class="ident">triple</span>
+        .<span class="ident">map</span>(<span class="op">|</span><span class="ident">it</span><span class="op">|</span> <span class="ident">TargetTriple::create</span>(<span class="ident">it</span>.<span class="ident">as_str</span>()))
+        .<span class="ident">or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="prelude-val">Some</span>(<span class="ident">TargetMachine::get_default_triple</span>()))
+        .<span class="ident">unwrap</span>()
+}
+
 <span class="doccomment">///</span>
 <span class="doccomment">/// Compiles the given source into an object file and saves it in output</span>
 <span class="doccomment">///</span>
@@ -757,15 +811,11 @@
     <span class="ident">encoding</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">Encoding</span><span class="op">&gt;</span>,
     <span class="ident">output</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
     <span class="ident">reloc</span>: <span class="ident">RelocMode</span>,
-    <span class="ident">triple</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
+    <span class="ident">triple</span>: <span class="ident">TargetTriple</span>,
 ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">CompileError</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">initialization_config</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">InitializationConfig::default</span>();
     <span class="ident">Target::initialize_all</span>(<span class="ident">initialization_config</span>);
 
-    <span class="kw">let</span> <span class="ident">triple</span> <span class="op">=</span> <span class="ident">triple</span>
-        .<span class="ident">map</span>(<span class="op">|</span><span class="ident">it</span><span class="op">|</span> <span class="ident">TargetTriple::create</span>(<span class="ident">it</span>.<span class="ident">as_str</span>()))
-        .<span class="ident">or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="prelude-val">Some</span>(<span class="ident">TargetMachine::get_default_triple</span>()))
-        .<span class="ident">unwrap</span>();
     <span class="kw">let</span> <span class="ident">target</span> <span class="op">=</span> <span class="ident">Target::from_triple</span>(<span class="kw-2">&amp;</span><span class="ident">triple</span>).<span class="ident">unwrap</span>();
     <span class="kw">let</span> <span class="ident">machine</span> <span class="op">=</span> <span class="ident">target</span>
         .<span class="ident">create_target_machine</span>(
@@ -803,7 +853,13 @@
     <span class="ident">output</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
     <span class="ident">target</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
 ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">CompileError</span><span class="op">&gt;</span> {
-    <span class="ident">compile_to_obj</span>(<span class="ident">sources</span>, <span class="ident">encoding</span>, <span class="ident">output</span>, <span class="ident">RelocMode::Default</span>, <span class="ident">target</span>)
+    <span class="ident">compile_to_obj</span>(
+        <span class="ident">sources</span>,
+        <span class="ident">encoding</span>,
+        <span class="ident">output</span>,
+        <span class="ident">RelocMode::Default</span>,
+        <span class="ident">get_target_triple</span>(<span class="ident">target</span>),
+    )
 }
 
 <span class="doccomment">/// Compiles a given source string to a shared position independent object and saves the output.</span>
@@ -820,7 +876,13 @@
     <span class="ident">output</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
     <span class="ident">target</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
 ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">CompileError</span><span class="op">&gt;</span> {
-    <span class="ident">compile_to_obj</span>(<span class="ident">sources</span>, <span class="ident">encoding</span>, <span class="ident">output</span>, <span class="ident">RelocMode::PIC</span>, <span class="ident">target</span>)
+    <span class="ident">compile_to_obj</span>(
+        <span class="ident">sources</span>,
+        <span class="ident">encoding</span>,
+        <span class="ident">output</span>,
+        <span class="ident">RelocMode::PIC</span>,
+        <span class="ident">get_target_triple</span>(<span class="ident">target</span>),
+    )
 }
 
 <span class="doccomment">/// Compiles a given source string to a dynamic non PIC object and saves the output.</span>
@@ -837,7 +899,13 @@
     <span class="ident">output</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
     <span class="ident">target</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
 ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">CompileError</span><span class="op">&gt;</span> {
-    <span class="ident">compile_to_obj</span>(<span class="ident">sources</span>, <span class="ident">encoding</span>, <span class="ident">output</span>, <span class="ident">RelocMode::DynamicNoPic</span>, <span class="ident">target</span>)
+    <span class="ident">compile_to_obj</span>(
+        <span class="ident">sources</span>,
+        <span class="ident">encoding</span>,
+        <span class="ident">output</span>,
+        <span class="ident">RelocMode::DynamicNoPic</span>,
+        <span class="ident">get_target_triple</span>(<span class="ident">target</span>),
+    )
 }
 
 <span class="doccomment">///</span>
@@ -975,7 +1043,33 @@
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">tests</span> {
-    <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::create_source_code</span>;
+    <span class="kw">use</span> <span class="ident">inkwell::targets::TargetMachine</span>;
+
+    <span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">create_source_code</span>, <span class="ident">get_target_triple</span>};
+
+    <span class="attribute">#[<span class="ident">test</span>]</span>
+    <span class="kw">fn</span> <span class="ident">test_get_target_triple</span>() {
+        <span class="kw">let</span> <span class="ident">triple</span> <span class="op">=</span> <span class="ident">get_target_triple</span>(<span class="prelude-val">None</span>);
+        <span class="macro">assert_eq!</span>(
+            <span class="ident">triple</span>.<span class="ident">as_str</span>().<span class="ident">to_str</span>().<span class="ident">unwrap</span>(),
+            <span class="ident">TargetMachine::get_default_triple</span>()
+                .<span class="ident">as_str</span>()
+                .<span class="ident">to_str</span>()
+                .<span class="ident">unwrap</span>()
+        );
+
+        <span class="comment">// let triple = get_target_triple(Some(&quot;abcdef&quot;.into()));</span>
+        <span class="comment">// assert_eq!(</span>
+        <span class="comment">//     triple.as_str().to_str().unwrap(),</span>
+        <span class="comment">//     TargetMachine::get_default_triple()</span>
+        <span class="comment">//         .as_str()</span>
+        <span class="comment">//         .to_str()</span>
+        <span class="comment">//         .unwrap()</span>
+        <span class="comment">// );</span>
+
+        <span class="kw">let</span> <span class="ident">triple</span> <span class="op">=</span> <span class="ident">get_target_triple</span>(<span class="prelude-val">Some</span>(<span class="string">&quot;x86_64-pc-linux-gnu&quot;</span>.<span class="ident">into</span>()));
+        <span class="macro">assert_eq!</span>(<span class="ident">triple</span>.<span class="ident">as_str</span>().<span class="ident">to_str</span>().<span class="ident">unwrap</span>(), <span class="string">&quot;x86_64-pc-linux-gnu&quot;</span>);
+    }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">windows_encoded_file_content_read</span>() {

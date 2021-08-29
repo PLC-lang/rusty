@@ -1,1 +1,1 @@
-initSidebarItems({"fn":[["create_file_paths",""],["main",""],["main_compile",""]]});
+initSidebarItems({"fn":[["create_file_paths",""],["main",""],["main_compile",""]],"mod":[["linker",""]]});
