@@ -95,15 +95,10 @@ pub struct CompileParameters {
         short = "L",
         help = "Search path for libraries, used for linking"
     )]
-    pub library_pathes : Vec<String>, 
+    pub library_pathes: Vec<String>,
 
-    #[structopt(
-        name = "library",
-        long,
-        short = "l",
-        help = "Library name to link"
-    )]
-    pub libraries : Vec<String>, 
+    #[structopt(name = "library", long, short = "l", help = "Library name to link")]
+    pub libraries: Vec<String>,
 }
 
 fn parse_encoding(encoding: &str) -> Result<&'static Encoding, String> {
@@ -228,10 +223,7 @@ mod cli_tests {
         let parameters =
             CompileParameters::parse(vec_of_strings!("input.st", "--ir", "-o", "myout.out"))
                 .unwrap();
-        assert_eq!(
-            parameters.output_name().unwrap(),
-            "myout.out".to_string()
-        );
+        assert_eq!(parameters.output_name().unwrap(), "myout.out".to_string());
 
         //long --output
         let parameters = CompileParameters::parse(vec_of_strings!(
@@ -241,32 +233,20 @@ mod cli_tests {
             "myout2.out"
         ))
         .unwrap();
-        assert_eq!(
-            parameters.output_name().unwrap(),
-            "myout2.out".to_string()
-        );
+        assert_eq!(parameters.output_name().unwrap(), "myout2.out".to_string());
     }
 
     #[test]
     fn test_default_output_names() {
         let parameters = CompileParameters::parse(vec_of_strings!("alpha.st", "--ir")).unwrap();
-        assert_eq!(
-            parameters.output_name().unwrap(),
-            "alpha.ir".to_string()
-        );
+        assert_eq!(parameters.output_name().unwrap(), "alpha.ir".to_string());
 
         let parameters = CompileParameters::parse(vec_of_strings!("bravo", "--shared")).unwrap();
-        assert_eq!(
-            parameters.output_name().unwrap(),
-            "bravo.so".to_string()
-        );
+        assert_eq!(parameters.output_name().unwrap(), "bravo.so".to_string());
 
         let parameters =
             CompileParameters::parse(vec_of_strings!("examples/charlie.st", "--pic")).unwrap();
-        assert_eq!(
-            parameters.output_name().unwrap(),
-            "charlie.so".to_string()
-        );
+        assert_eq!(parameters.output_name().unwrap(), "charlie.so".to_string());
 
         let parameters =
             CompileParameters::parse(vec_of_strings!("examples/test/delta.st", "--static", "-c"))
@@ -379,13 +359,30 @@ mod cli_tests {
 
     #[test]
     fn library_path_added() {
-        let parameters =  CompileParameters::parse(vec_of_strings!("input.st", "--library-path", "xxx", "-L", "test", "-L.", "-L/tmp")).unwrap();
+        let parameters = CompileParameters::parse(vec_of_strings!(
+            "input.st",
+            "--library-path",
+            "xxx",
+            "-L",
+            "test",
+            "-L.",
+            "-L/tmp"
+        ))
+        .unwrap();
         assert_eq!(parameters.library_pathes, vec!["xxx", "test", ".", "/tmp"]);
     }
 
     #[test]
     fn libraries_added() {
-        let parameters =  CompileParameters::parse(vec_of_strings!("input.st", "-l","test", "-lc", "--library", "xx")).unwrap();
+        let parameters = CompileParameters::parse(vec_of_strings!(
+            "input.st",
+            "-l",
+            "test",
+            "-lc",
+            "--library",
+            "xx"
+        ))
+        .unwrap();
         assert_eq!(parameters.libraries, vec!["test", "c", "xx"]);
     }
 

@@ -45,7 +45,7 @@ impl Linker {
         self.linker.add_lib_path(path);
         self
     }
-    
+
     /// Add a library seaBoxh path to look in for libraries
     pub fn add_lib<'a>(&'a mut self, path: &str) -> &'a mut Self {
         self.linker.add_lib(path);
