@@ -28,9 +28,8 @@ We want to print something to the terminal, so we're going to declare external f
 for that and link with libc when we're done. This program can also be found at
 `examples/hello_world.st` in the source tree of Rusty. 
 
-* `_start` is our entry point to the program, because most linker scripts define it this way. You could
-just as well link with your own `crt0.o` or edit the linker script to change this (for example if
-you want to handle command line arguments). Future releases of RuSTy might provide this one day.
+* `_start` is our entry point to the program, because most linker scripts define it this way. 
+
 * Since we don't have a `crt0` right now, we have to call the `exit()` function by ourselves after we're
 done. Otherwise, the program will most likely crash (because it tries to return to a function that never
 existed).
@@ -63,13 +62,13 @@ rustyc -c hello_world.st -o hello_world.o
 ### Linking an executable
 Instead, you can also compile this into an executable and run it:
 ```bash
-rustyc hello_world.st -o hello_world
+rustyc hello_world.st -o hello_world -L/path/to/libs -lc
 ./hello_world
 ```
 
 Please note that RuSTy will attempt to link the generated object file by default to generate
-an executable if you didn't specify something else (option `-c`). By default, also the C library will be linked.
-However, for this to work you'll have to provide a file called `libc.a` in the library searh path.
-* You can disable linking with the C library by providing the option `--nolibc`
-* You set the library search path by providing the option `-L /path/...`. By default, this will be
+an executable if you didn't specify something else (option `-c`).
+* The `-lc` flag tells the linker it should link against `libc`. Depending on the available libraries on your system,
+the linker will prefer a dynamically linked library if available, and revert to a static one otherwise.
+* You add library search pathes by providing additional `-L /path/...` options. By default, this will be
 the current directory.
