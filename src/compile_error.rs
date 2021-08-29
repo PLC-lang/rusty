@@ -40,7 +40,6 @@ pub enum CompileError {
     IoWriteError { path: String, reason: String },
 }
 
-
 impl CompileError {
     pub fn missing_function(location: SourceRange) -> CompileError {
         CompileError::MissingFunctionError { location }

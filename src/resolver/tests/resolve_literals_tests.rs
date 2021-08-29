@@ -1,6 +1,7 @@
 use crate::{
     ast::AstStatement,
     resolver::tests::{annotate, parse},
+    typesystem::DataTypeInformation,
 };
 
 #[test]
@@ -211,6 +212,44 @@ fn enum_literals_are_annotated() {
         ],
         actual_resolves
     )
+}
+
+#[test]
+fn enum_literals_target_are_annotated() {
+    let (unit, index) = parse(
+        "
+            TYPE Color: (Green, Yellow, Red); END_TYPE
+
+            PROGRAM PRG
+                Color#Red;
+            END_PROGRAM",
+    );
+    let annotations = annotate(&unit, &index);
+    let color_red = &unit.implementations[0].statements[0];
+
+    assert_eq!(
+        &DataTypeInformation::Enum {
+            name: "Color".into(),
+            elements: vec!["Green".into(), "Yellow".into(), "Red".into()]
+        },
+        annotations
+            .get_type_or_void(color_red, &index)
+            .get_type_information()
+    );
+
+    if let AstStatement::CastStatement { target, .. } = color_red {
+        assert_eq!(
+            &DataTypeInformation::Enum {
+                name: "Color".into(),
+                elements: vec!["Green".into(), "Yellow".into(), "Red".into()]
+            },
+            annotations
+                .get_type_or_void(target, &index)
+                .get_type_information()
+        );
+    } else {
+        panic!("no cast statement")
+    }
 }
 
 #[test]

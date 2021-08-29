@@ -243,11 +243,12 @@ mod cli_tests {
         assert_eq!(parameters.output_name().unwrap(), "echo.bc".to_string());
     }
 
-
     #[test]
     fn test_target_triple() {
-        let parameters = CompileParameters::parse(vec_of_strings!("alpha.st", "--target", "x86_64-linux-gnu")).unwrap();
-        
+        let parameters =
+            CompileParameters::parse(vec_of_strings!("alpha.st", "--target", "x86_64-linux-gnu"))
+                .unwrap();
+
         assert_eq!(parameters.target, Some("x86_64-linux-gnu".to_string()));
     }
 
@@ -344,7 +345,6 @@ mod cli_tests {
         assert_eq!(parameters.output_obj_code, false);
         assert_eq!(parameters.output_pic_obj, false);
         assert_eq!(parameters.output_shared_obj, false);
-
     }
 
     #[test]

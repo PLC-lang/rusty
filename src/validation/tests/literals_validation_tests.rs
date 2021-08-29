@@ -54,8 +54,8 @@ fn bool_literal_casts_are_validated() {
         diagnostics,
         vec![
             Diagnostic::literal_out_of_range("2", "BOOL", (120..126).into()),
-            Diagnostic::literal_out_of_range("2.3", "BOOL", (140..148).into()),
-            Diagnostic::literal_out_of_range("abc", "BOOL", (162..172).into()),
+            Diagnostic::incompatible_literal_cast("BOOL", "2.3", (140..148).into()),
+            Diagnostic::incompatible_literal_cast("BOOL", "'abc'", (162..172).into()),
         ]
     );
 }
@@ -86,12 +86,12 @@ fn string_literal_casts_are_validated() {
     assert_eq!(
         diagnostics,
         vec![
-            Diagnostic::incompatible_literal_cast("STRING", "BOOL", (102..113).into()),
-            Diagnostic::incompatible_literal_cast("WSTRING", "BOOL", (127..140).into()),
-            Diagnostic::incompatible_literal_cast("STRING", "SINT", (155..164).into()),
-            Diagnostic::incompatible_literal_cast("WSTRING", "SINT", (178..188).into()),
-            Diagnostic::incompatible_literal_cast("STRING", "LREAL", (203..214).into()),
-            Diagnostic::incompatible_literal_cast("WSTRING", "LREAL", (228..239).into()),
+            Diagnostic::incompatible_literal_cast("STRING", "true", (102..113).into()),
+            Diagnostic::incompatible_literal_cast("WSTRING", "false", (127..140).into()),
+            Diagnostic::incompatible_literal_cast("STRING", "22", (155..164).into()),
+            Diagnostic::incompatible_literal_cast("WSTRING", "33", (178..188).into()),
+            Diagnostic::incompatible_literal_cast("STRING", "3.14", (203..214).into()),
+            Diagnostic::incompatible_literal_cast("WSTRING", "1.0", (228..239).into()),
         ]
     );
 }
@@ -121,19 +121,40 @@ fn real_literal_casts_are_validated() {
     assert_eq!(
         diagnostics,
         vec![
-            Diagnostic::incompatible_literal_cast("REAL", "STRING", (180..191).into()),
-            Diagnostic::incompatible_literal_cast("LREAL", "WSTRING", (252..264).into())
+            Diagnostic::incompatible_literal_cast("REAL", "'3.14'", (180..191).into()),
+            Diagnostic::incompatible_literal_cast("LREAL", r#""3.14""#, (252..264).into())
         ]
     );
 }
 
 #[test]
 fn literal_cast_with_non_literal() {
-    let diagnostics = parse_and_validate("PROGRAM exp INT#x; END_PROGRAM");
+    let diagnostics = parse_and_validate(
+        "PROGRAM exp 
+            INT#[x]; 
+        END_PROGRAM",
+    );
     assert_eq!(
-        vec![Diagnostic::literal_expected((12..17).into())],
+        vec![Diagnostic::literal_expected((25..32).into())],
         diagnostics
     );
+}
+
+#[test]
+fn literal_enum_elements_validate_without_errors() {
+    let diagnostics = parse_and_validate(
+        "
+        TYPE Animal: (Dog, Cat, Horse); END_TYPE
+        TYPE Color: (Red, Yellow, Green); END_TYPE
+        
+        PROGRAM exp 
+            Animal#Dog; 
+            Color#Yellow; 
+        END_PROGRAM",
+    );
+
+    let empty: Vec<Diagnostic> = Vec::new();
+    assert_eq!(empty, diagnostics);
 }
 
 #[test]

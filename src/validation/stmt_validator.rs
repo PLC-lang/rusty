@@ -63,6 +63,10 @@ impl StatementValidator {
         }
     }
 
+    /// validates a literal statement with a dedicated type-prefix (e.g. INT#3)
+    ///
+    /// checks whether ...
+    /// - the type-prefix is valid
     fn validate_cast_literal(
         &mut self,
         literal: &AstStatement,
@@ -79,9 +83,14 @@ impl StatementValidator {
             StatementValidator::get_literal_actual_signed_type_name(
                 literal,
                 !cast_type.is_unsigned_int(),
-            ),
+            )
+            .unwrap_or_else(|| {
+                context
+                    .ast_annotation
+                    .get_type_or_void(literal, context.index)
+                    .get_name()
+            }),
         );
-        //see if target and cast_type are compatible
         if !is_typable_literal(literal) {
             self.diagnostics
                 .push(Diagnostic::literal_expected(location.clone()))
@@ -91,6 +100,7 @@ impl StatementValidator {
                 literal_type.get_name(),
                 location.clone(),
             ));
+            //see if target and cast_type are compatible
         } else if cast_type.is_int() && literal_type.is_int() {
             //INTs with INTs
             if cast_type.get_size() < literal_type.get_size() {
@@ -100,20 +110,13 @@ impl StatementValidator {
                     location.clone(),
                 ));
             }
-        } else if cast_type.is_int() && !literal_type.is_int() {
-            // INTs with non-INTs
-            self.diagnostics.push(Diagnostic::literal_out_of_range(
-                StatementValidator::get_literal_value(literal).as_str(),
-                cast_type.get_name(),
-                location.clone(),
-            ));
         } else if discriminant(cast_type) != discriminant(literal_type) {
             // different types
             // REAL#100 is fine, other differences are not
             if !(cast_type.is_float() && literal_type.is_int()) {
                 self.diagnostics.push(Diagnostic::incompatible_literal_cast(
                     cast_type.get_name(),
-                    literal_type.get_name(),
+                    StatementValidator::get_literal_value(literal).as_str(),
                     location.clone(),
                 ));
             }
@@ -122,7 +125,16 @@ impl StatementValidator {
 
     fn get_literal_value(literal: &AstStatement) -> String {
         match literal {
-            AstStatement::LiteralString { value, .. } => value.clone(),
+            AstStatement::LiteralString {
+                value,
+                is_wide: true,
+                ..
+            } => format!(r#""{:}""#, value),
+            AstStatement::LiteralString {
+                value,
+                is_wide: false,
+                ..
+            } => format!(r#"'{:}'"#, value),
             AstStatement::LiteralBool { value, .. } => {
                 format!("{}", value)
             }
@@ -136,30 +148,30 @@ impl StatementValidator {
         }
     }
 
-    fn get_literal_actual_signed_type_name(target: &AstStatement, signed: bool) -> &str {
+    fn get_literal_actual_signed_type_name(target: &AstStatement, signed: bool) -> Option<&str> {
         match target {
             AstStatement::LiteralInteger { value, .. } => match signed {
-                _ if *value == 0_i64 || *value == 1_i64 => BOOL_TYPE,
-                true if is_covered_by!(i8, *value) => SINT_TYPE,
-                true if is_covered_by!(i16, *value) => INT_TYPE,
-                true if is_covered_by!(i32, *value) => DINT_TYPE,
-                true if is_covered_by!(i64, *value) => LINT_TYPE,
+                _ if *value == 0_i64 || *value == 1_i64 => Some(BOOL_TYPE),
+                true if is_covered_by!(i8, *value) => Some(SINT_TYPE),
+                true if is_covered_by!(i16, *value) => Some(INT_TYPE),
+                true if is_covered_by!(i32, *value) => Some(DINT_TYPE),
+                true if is_covered_by!(i64, *value) => Some(LINT_TYPE),
 
-                false if is_covered_by!(u8, *value) => USINT_TYPE,
-                false if is_covered_by!(u16, *value) => UINT_TYPE,
-                false if is_covered_by!(u32, *value) => UDINT_TYPE,
-                false if is_covered_by!(u64, *value) => ULINT_TYPE,
-                _ => VOID_TYPE,
+                false if is_covered_by!(u8, *value) => Some(USINT_TYPE),
+                false if is_covered_by!(u16, *value) => Some(UINT_TYPE),
+                false if is_covered_by!(u32, *value) => Some(UDINT_TYPE),
+                false if is_covered_by!(u64, *value) => Some(ULINT_TYPE),
+                _ => Some(VOID_TYPE),
             },
-            AstStatement::LiteralBool { .. } => BOOL_TYPE,
-            AstStatement::LiteralString { is_wide: true, .. } => WSTRING_TYPE,
-            AstStatement::LiteralString { is_wide: false, .. } => STRING_TYPE,
-            AstStatement::LiteralReal { .. } => LREAL_TYPE,
-            AstStatement::LiteralDate { .. } => DATE_TYPE,
-            AstStatement::LiteralDateAndTime { .. } => DATE_AND_TIME_TYPE,
-            AstStatement::LiteralTime { .. } => TIME_TYPE,
-            AstStatement::LiteralTimeOfDay { .. } => TIME_OF_DAY_TYPE,
-            _ => VOID_TYPE,
+            AstStatement::LiteralBool { .. } => Some(BOOL_TYPE),
+            AstStatement::LiteralString { is_wide: true, .. } => Some(WSTRING_TYPE),
+            AstStatement::LiteralString { is_wide: false, .. } => Some(STRING_TYPE),
+            AstStatement::LiteralReal { .. } => Some(LREAL_TYPE),
+            AstStatement::LiteralDate { .. } => Some(DATE_TYPE),
+            AstStatement::LiteralDateAndTime { .. } => Some(DATE_AND_TIME_TYPE),
+            AstStatement::LiteralTime { .. } => Some(TIME_TYPE),
+            AstStatement::LiteralTimeOfDay { .. } => Some(TIME_OF_DAY_TYPE),
+            _ => None,
         }
     }
 }
@@ -184,5 +196,6 @@ fn is_typable_literal(literal: &AstStatement) -> bool {
             | AstStatement::LiteralDate { .. }
             | AstStatement::LiteralTimeOfDay { .. }
             | AstStatement::LiteralDateAndTime { .. }
+            | AstStatement::Reference { .. }
     )
 }
