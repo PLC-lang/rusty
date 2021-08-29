@@ -67,7 +67,7 @@ fn create_file_paths(inputs: &[String]) -> Result<Vec<FilePath>, String> {
 fn main_compile(parameters: CompileParameters) -> Result<(), String> {
     let sources = create_file_paths(&parameters.input)?;
 
-    let output_filename = parameters.output_name(parameters.skip_linking).unwrap();
+    let output_filename = parameters.output_name().unwrap();
     let encoding = parameters.encoding;
 
     let out_format = parameters.output_format_or_default();
@@ -118,6 +118,14 @@ fn main_compile(parameters: CompileParameters) -> Result<(), String> {
         linker
             .add_lib_path(".")
             .add_obj(Path::new(&output_filename));
+
+        for path in &parameters.library_pathes {
+            linker.add_lib_path(path);
+        }
+        for library in &parameters.libraries {
+            linker.add_lib(library);
+        }
+
         if out_format == FormatOption::Static {
             linker.build_exectuable(Path::new(&output_filename))?;
         } else {

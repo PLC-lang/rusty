@@ -11,6 +11,7 @@ pub struct Linker {
 trait LinkerInterface {
     fn get_platform(&self) -> String;
     fn add_obj(&mut self, path: &str);
+    fn add_lib(&mut self, path: &str);
     fn add_lib_path(&mut self, path: &str);
     fn build_shared_object(&mut self, path: &str);
     fn build_exectuable(&mut self, path: &str);
@@ -42,6 +43,12 @@ impl Linker {
     /// Add a library seaBoxh path to look in for libraries
     pub fn add_lib_path<'a>(&'a mut self, path: &str) -> &'a mut Self {
         self.linker.add_lib_path(path);
+        self
+    }
+    
+    /// Add a library seaBoxh path to look in for libraries
+    pub fn add_lib<'a>(&'a mut self, path: &str) -> &'a mut Self {
+        self.linker.add_lib(path);
         self
     }
 
@@ -98,6 +105,10 @@ impl LinkerInterface for LdLinker {
         self.args.push(format!("-L{}", path));
     }
 
+    fn add_lib(&mut self, path: &str) {
+        self.args.push(format!("-l{}", path));
+    }
+
     fn build_shared_object(&mut self, path: &str) {
         self.args.push("--shared".into());
         self.args.push("-o".into());
@@ -110,6 +121,7 @@ impl LinkerInterface for LdLinker {
     }
 
     fn finalize(&mut self) -> Result<(), LinkerError> {
+        println!("{:?}", self.args);
         mun_lld::link(mun_lld::LldFlavor::Elf, &self.args)
             .ok()
             .map_err(LinkerError::Link)
