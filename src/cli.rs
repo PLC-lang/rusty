@@ -62,6 +62,9 @@ pub struct CompileParameters {
     )]
     pub output_bit_code: bool,
 
+    #[structopt(short = "c", help = "Do not link after compiling object code")]
+    pub skip_linking: bool,
+
     #[structopt(
         long,
         name = "target-triple",
@@ -85,6 +88,17 @@ pub struct CompileParameters {
     )]
     // having a vec allows bash to resolve *.st itself
     pub input: Vec<String>,
+
+    #[structopt(
+        name = "library-path",
+        long,
+        short = "L",
+        help = "Search path for libraries, used for linking"
+    )]
+    pub library_pathes: Vec<String>,
+
+    #[structopt(name = "library", long, short = "l", help = "Library name to link")]
+    pub libraries: Vec<String>,
 }
 
 fn parse_encoding(encoding: &str) -> Result<&'static Encoding, String> {
@@ -122,20 +136,21 @@ impl CompileParameters {
 
     /// return the output filename with the correct ending
     pub fn output_name(&self) -> Option<String> {
+        let out_format = self.output_format_or_default();
         if let Some(n) = &self.output {
             Some(n.to_string())
         } else {
-            let ending = match self.output_format_or_default() {
-                FormatOption::Bitcode => "bc",
-                FormatOption::Static => "o",
-                FormatOption::Shared => "so",
-                FormatOption::PIC => "so",
-                FormatOption::IR => "ir",
+            let ending = match out_format {
+                FormatOption::Bitcode => ".bc",
+                FormatOption::Static if self.skip_linking => ".o",
+                FormatOption::Static => "",
+                FormatOption::Shared | FormatOption::PIC => ".so",
+                FormatOption::IR => ".ir",
             };
 
             let output_name = self.input.first().unwrap();
             let basename = Path::new(output_name).file_stem()?.to_str()?;
-            Some(format!("{}.{}", basename, ending))
+            Some(format!("{}{}", basename, ending))
         }
     }
 }
@@ -234,13 +249,17 @@ mod cli_tests {
         assert_eq!(parameters.output_name().unwrap(), "charlie.so".to_string());
 
         let parameters =
-            CompileParameters::parse(vec_of_strings!("examples/test/delta.st", "--static"))
+            CompileParameters::parse(vec_of_strings!("examples/test/delta.st", "--static", "-c"))
                 .unwrap();
         assert_eq!(parameters.output_name().unwrap(), "delta.o".to_string());
 
         let parameters =
             CompileParameters::parse(vec_of_strings!("examples/test/echo", "--bc")).unwrap();
         assert_eq!(parameters.output_name().unwrap(), "echo.bc".to_string());
+
+        let parameters =
+            CompileParameters::parse(vec_of_strings!("examples/test/echo.st")).unwrap();
+        assert_eq!(parameters.output_name().unwrap(), "echo".to_string());
     }
 
     #[test]
@@ -336,6 +355,35 @@ mod cli_tests {
         assert_eq!(parameters.output_obj_code, false);
         assert_eq!(parameters.output_pic_obj, false);
         assert_eq!(parameters.output_shared_obj, false);
+    }
+
+    #[test]
+    fn library_path_added() {
+        let parameters = CompileParameters::parse(vec_of_strings!(
+            "input.st",
+            "--library-path",
+            "xxx",
+            "-L",
+            "test",
+            "-L.",
+            "-L/tmp"
+        ))
+        .unwrap();
+        assert_eq!(parameters.library_pathes, vec!["xxx", "test", ".", "/tmp"]);
+    }
+
+    #[test]
+    fn libraries_added() {
+        let parameters = CompileParameters::parse(vec_of_strings!(
+            "input.st",
+            "-l",
+            "test",
+            "-lc",
+            "--library",
+            "xx"
+        ))
+        .unwrap();
+        assert_eq!(parameters.libraries, vec!["test", "c", "xx"]);
     }
 
     #[test]
