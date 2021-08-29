@@ -280,6 +280,7 @@ fn parse_leaf_expression(lexer: &mut ParseSession) -> AstStatement {
             LiteralWideString => parse_literal_string(lexer, true),
             LiteralTrue => parse_bool_literal(lexer, true),
             LiteralFalse => parse_bool_literal(lexer, false),
+            LiteralNull => parse_null_literal(lexer),
             KeywordSquareParensOpen => parse_array_literal(lexer),
             _ => Err(Diagnostic::unexpected_token_found(
                 "Literal",
