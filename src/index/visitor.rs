@@ -135,7 +135,7 @@ fn visit_implementation(index: &mut Index, implementation: &Implementation) {
     index.register_implementation(
         &implementation.name,
         &implementation.type_name,
-        implementation.associated_class.as_ref(),
+        pou_type.get_optional_owner_class().as_ref(),
         pou_type.into(),
     );
     //if we are registing an action, also register a datatype for it

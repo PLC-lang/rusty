@@ -70,7 +70,6 @@ pub struct Implementation {
     pub location: SourceRange,
     pub overriding: bool,
     pub access: Option<AccessModifier>,
-    pub associated_class: Option<String>,
 }
 
 #[derive(Debug, Copy, PartialEq, Clone)]
@@ -87,14 +86,25 @@ pub enum AccessModifier {
     Internal,
 }
 
-#[derive(Debug, Copy, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum PouType {
     Program,
     Function,
     FunctionBlock,
     Action,
     Class,
-    Method,
+    Method { owner_class: String },
+}
+
+impl PouType {
+    /// returns Some(owner_class) if this is a `Method` or otherwhise `None`
+    pub fn get_optional_owner_class(&self) -> Option<String> {
+        if let PouType::Method { owner_class } = self {
+            Some(owner_class.clone())
+        } else {
+            None
+        }
+    }
 }
 
 #[derive(Debug, PartialEq)]

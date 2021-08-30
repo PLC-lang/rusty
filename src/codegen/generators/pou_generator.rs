@@ -145,7 +145,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
 
         let mut param_index = 0;
 
-        if implementation.pou_type == PouType::Method {
+        if let PouType::Method { .. } = implementation.pou_type {
             let class_name = implementation.type_name.split('.').collect::<Vec<&str>>()[0];
             let class_members = self.index.find_local_members(class_name);
             self.generate_local_variable_accessors(
@@ -182,9 +182,10 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                 &function_context,
             );
             //if this is a function, we need to initilialize the VAR-variables
-            if implementation.pou_type == PouType::Function
-                || implementation.pou_type == PouType::Method
-            {
+            if matches!(
+                implementation.pou_type,
+                PouType::Function | PouType::Method { .. }
+            ) {
                 self.generate_initialization_of_local_vars(pou_members, &statement_gen)?;
             }
             statement_gen.generate_body(&implementation.statements)?
