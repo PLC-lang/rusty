@@ -595,6 +595,7 @@ fn function_expression_resolves_to_the_function_itself_not_its_return_type() {
     let (unit, index) = parse(
         "
         FUNCTION foo : INT
+        foo;
         END_FUNCTION
 
         PROGRAM PRG
@@ -616,10 +617,19 @@ fn function_expression_resolves_to_the_function_itself_not_its_return_type() {
         }),
         foo_annotation
     );
-
     // AND we expect no type to be associated with the expression
     let associated_type = annotations.get_type(&statements[0], &index);
     assert_eq!(None, associated_type);
+
+    let statements = &unit.implementations[0].statements;
+    let foo_annotation = annotations.get_annotation(&statements[0]);
+    assert_eq!(
+        Some(&StatementAnnotation::Variable {
+            qualified_name: "foo.foo".into(),
+            resulting_type: "INT".into(),
+        }),
+        foo_annotation
+    );
 }
 
 #[test]
@@ -948,6 +958,101 @@ fn type_initial_values_are_resolved() {
         );
     } else {
         panic!("no datatype: {:#?}", data_type)
+    }
+}
+
+#[test]
+fn actions_are_resolved() {
+    let (unit, index) = parse(
+        "
+        PROGRAM prg
+            foo;
+            prg.foo;
+        END_PROGRAM
+        ACTIONS prg
+        ACTION foo 
+        END_ACTION
+        END_ACTIONS
+
+        FUNCTION buz : INT
+        prg.foo();
+        prg.foo;
+        END_FUNCTION
+        ",
+    );
+
+    let annotations = annotate(&unit, &index);
+    let foo_reference = &unit.implementations[0].statements[0];
+    let annotation = annotations.get_annotation(foo_reference);
+    assert_eq!(
+        Some(&StatementAnnotation::Program {
+            qualified_name: "prg.foo".into(),
+        }),
+        annotation
+    );
+    let foo_reference = &unit.implementations[0].statements[1];
+    let annotation = annotations.get_annotation(foo_reference);
+    assert_eq!(
+        Some(&StatementAnnotation::Program {
+            qualified_name: "prg.foo".into(),
+        }),
+        annotation
+    );
+    let method_call = &unit.implementations[2].statements[0];
+    if let AstStatement::CallStatement { operator, .. } = method_call {
+        assert_eq!(
+            Some(&StatementAnnotation::Program {
+                qualified_name: "prg.foo".into(),
+            }),
+            annotations.get(operator)
+        );
+        assert_eq!(None, annotations.get(method_call));
+    } else {
+        panic!("Unexpcted statemet : {:?}", method_call);
+    }
+}
+#[test]
+fn method_references_are_resolved() {
+    let (unit, index) = parse(
+        "
+        CLASS cls
+        METHOD foo : INT
+            foo;
+        END_METHOD
+        END_CLASS
+
+        FUNCTION buz : INT
+        VAR cl : cls; END_VAR
+        cl.foo();
+        END_FUNCTION
+        ",
+    );
+
+    let annotations = annotate(&unit, &index);
+    let foo_reference = &unit.implementations[0].statements[0];
+    let annotation = annotations.get_annotation(foo_reference);
+    assert_eq!(
+        Some(&StatementAnnotation::Variable {
+            qualified_name: "cls.foo.foo".into(),
+            resulting_type: "INT".into(),
+        }),
+        annotation
+    );
+    let method_call = &unit.implementations[1].statements[0];
+    if let AstStatement::CallStatement { operator, .. } = method_call {
+        assert_eq!(
+            Some(&StatementAnnotation::Function {
+                return_type: "INT".into(),
+                qualified_name: "cls.foo".into(),
+            }),
+            annotations.get(operator)
+        );
+        assert_eq!(
+            Some(&StatementAnnotation::expression("INT")),
+            annotations.get(method_call)
+        );
+    } else {
+        panic!("Unexpcted statemet : {:?}", method_call);
     }
 }
 

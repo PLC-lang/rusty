@@ -1,7 +1,7 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
 /// offers operations to generate global variables
-use crate::index::Index;
+use crate::{index::Index, resolver::AnnotationMap};
 use inkwell::{module::Module, values::GlobalValue};
 
 use crate::{
@@ -14,13 +14,20 @@ pub fn generate_global_variables<'ctx, 'b>(
     module: &'b Module<'ctx>,
     llvm: &'b Llvm<'ctx>,
     global_index: &'b Index,
+    annotations: &'b AnnotationMap,
     types_index: &'b LlvmTypedIndex<'ctx>,
 ) -> Result<LlvmTypedIndex<'ctx>, CompileError> {
     let mut index = LlvmTypedIndex::new();
     let globals = global_index.get_globals();
     for (name, variable) in globals {
-        let global_variable =
-            generate_global_variable(module, llvm, global_index, types_index, variable)?;
+        let global_variable = generate_global_variable(
+            module,
+            llvm,
+            global_index,
+            annotations,
+            types_index,
+            variable,
+        )?;
         index.associate_global(name, global_variable)?
     }
     Ok(index)
@@ -36,6 +43,7 @@ pub fn generate_global_variable<'ctx, 'b>(
     module: &'b Module<'ctx>,
     llvm: &'b Llvm<'ctx>,
     global_index: &'b Index,
+    annotations: &'b AnnotationMap,
     index: &'b LlvmTypedIndex<'ctx>,
     global_variable: &VariableIndexEntry,
 ) -> Result<GlobalValue<'ctx>, CompileError> {
@@ -46,6 +54,7 @@ pub fn generate_global_variable<'ctx, 'b>(
         let expr_generator = ExpressionCodeGenerator::new_context_free(
             llvm,
             global_index,
+            annotations,
             index,
             Some(global_index.get_type_information(type_name).unwrap()),
         );

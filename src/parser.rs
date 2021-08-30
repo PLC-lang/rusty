@@ -141,9 +141,9 @@ fn parse_pou(
     ];
     let pou = parse_any_in_region(lexer, closing_tokens.clone(), |lexer| {
         let poly_mode = match pou_type {
-            PouType::Class | PouType::FunctionBlock | PouType::Method => {
+            PouType::Class | PouType::FunctionBlock | PouType::Method { .. } => {
                 // classes and function blocks can be ABSTRACT, FINAL or neither.
-                parse_polymorphism_mode(lexer, pou_type)
+                parse_polymorphism_mode(lexer, &pou_type)
             }
             _ => None,
         };
@@ -156,7 +156,7 @@ fn parse_pou(
 
         let return_type = if pou_type != PouType::Class {
             // parse an optional return type
-            parse_return_type(lexer, pou_type)
+            parse_return_type(lexer, &pou_type)
         } else {
             // classes do not have a return type
             None
@@ -198,7 +198,13 @@ fn parse_pou(
         }
         if pou_type != PouType::Class {
             // a class may not contain an implementation
-            implementations.push(parse_implementation(lexer, linkage, pou_type, &name, &name));
+            implementations.push(parse_implementation(
+                lexer,
+                linkage,
+                pou_type.clone(),
+                &name,
+                &name,
+            ));
         }
 
         let mut pous = vec![Pou {
@@ -227,10 +233,10 @@ fn parse_pou(
 
 fn parse_polymorphism_mode(
     lexer: &mut ParseSession,
-    pou_type: PouType,
+    pou_type: &PouType,
 ) -> Option<PolymorphismMode> {
     match pou_type {
-        PouType::Class | PouType::FunctionBlock | PouType::Method => {
+        PouType::Class | PouType::FunctionBlock | PouType::Method { .. } => {
             Some(
                 // See if the method/pou was declared FINAL or ABSTRACT
                 if lexer.allow(&KeywordFinal) {
@@ -246,13 +252,13 @@ fn parse_polymorphism_mode(
     }
 }
 
-fn parse_return_type(lexer: &mut ParseSession, pou_type: PouType) -> Option<DataTypeDeclaration> {
+fn parse_return_type(lexer: &mut ParseSession, pou_type: &PouType) -> Option<DataTypeDeclaration> {
     let start_return_type = lexer.range().start;
     if lexer.allow(&KeywordColon) {
         if lexer.token == Identifier || lexer.token == KeywordString {
-            if pou_type != PouType::Function && pou_type != PouType::Method {
+            if !matches!(pou_type, PouType::Function | PouType::Method { .. }) {
                 lexer.accept_diagnostic(Diagnostic::return_type_not_supported(
-                    &pou_type,
+                    pou_type,
                     SourceRange::new(start_return_type..lexer.range().end),
                 ));
             }
@@ -291,10 +297,13 @@ fn parse_method(
         lexer.advance(); // eat METHOD keyword
 
         let access = Some(parse_access_modifier(lexer));
-        let poly_mode = parse_polymorphism_mode(lexer, PouType::Method);
+        let pou_type = PouType::Method {
+            owner_class: class_name.into(),
+        };
+        let poly_mode = parse_polymorphism_mode(lexer, &pou_type);
         let overriding = lexer.allow(&KeywordOverride);
         let name = parse_identifier(lexer)?;
-        let return_type = parse_return_type(lexer, PouType::Method);
+        let return_type = parse_return_type(lexer, &pou_type);
 
         let mut variable_blocks = vec![];
         while lexer.token == KeywordVar
@@ -310,8 +319,15 @@ fn parse_method(
         }
 
         let call_name = format!("{}.{}", class_name, name);
-        let implementation =
-            parse_implementation(lexer, linkage, PouType::Class, &call_name, class_name);
+        let implementation = parse_implementation(
+            lexer,
+            linkage,
+            PouType::Method {
+                owner_class: class_name.into(),
+            },
+            &call_name,
+            &call_name,
+        );
 
         // parse_implementation() will default-initialize the fields it
         // doesn't know. thus, we have to complete the information.
@@ -325,7 +341,7 @@ fn parse_method(
         Some((
             Pou {
                 name: call_name,
-                pou_type: PouType::Method,
+                pou_type,
                 variable_blocks,
                 return_type,
                 location: SourceRange::new(method_start..method_end),

@@ -3,12 +3,11 @@ use super::{
     expression_generator::ExpressionCodeGenerator, llvm::Llvm, pou_generator::PouGenerator,
 };
 use crate::{
-    ast::{
-        flatten_expression_list, AstStatement, ConditionalBlock, Operator, PouType, SourceRange,
-    },
+    ast::{flatten_expression_list, AstStatement, ConditionalBlock, Operator, SourceRange},
     codegen::{llvm_typesystem::cast_if_needed, LlvmTypedIndex},
     compile_error::CompileError,
     index::{ImplementationIndexEntry, Index},
+    resolver::AnnotationMap,
     typesystem::{
         DataTypeInformation, RANGE_CHECK_LS_FN, RANGE_CHECK_LU_FN, RANGE_CHECK_S_FN,
         RANGE_CHECK_U_FN,
@@ -33,8 +32,8 @@ pub struct FunctionContext<'a> {
 pub struct StatementCodeGenerator<'a, 'b> {
     llvm: &'b Llvm<'a>,
     index: &'b Index,
+    annotations: &'b AnnotationMap,
     pou_generator: &'b PouGenerator<'a, 'b>,
-    pou_type: PouType,
     llvm_index: &'b LlvmTypedIndex<'a>,
     function_context: &'b FunctionContext<'a>,
 
@@ -52,16 +51,16 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
     pub fn new(
         llvm: &'b Llvm<'a>,
         index: &'b Index,
+        annotations: &'b AnnotationMap,
         pou_generator: &'b PouGenerator<'a, 'b>,
-        pou_type: PouType,
         llvm_index: &'b LlvmTypedIndex<'a>,
         linking_context: &'b FunctionContext<'a>,
     ) -> StatementCodeGenerator<'a, 'b> {
         StatementCodeGenerator {
             llvm,
             index,
+            annotations,
             pou_generator,
-            pou_type,
             llvm_index,
             function_context: linking_context,
             load_prefix: "load_".to_string(),
@@ -76,6 +75,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         ExpressionCodeGenerator::new(
             self.llvm,
             self.index,
+            self.annotations,
             self.llvm_index,
             None,
             self.function_context,
@@ -151,7 +151,6 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
                 self.pou_generator.generate_return_statement(
                     self.function_context,
                     self.llvm_index,
-                    self.pou_type,
                     Some(location.clone()),
                 )?;
                 self.generate_buffer_block();
@@ -387,6 +386,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         let exp_gen = ExpressionCodeGenerator::new(
             self.llvm,
             self.index,
+            self.annotations,
             self.llvm_index,
             Some(selector_type),
             self.function_context,
