@@ -512,6 +512,13 @@
 <span id="510">510</span>
 <span id="511">511</span>
 <span id="512">512</span>
+<span id="513">513</span>
+<span id="514">514</span>
+<span id="515">515</span>
+<span id="516">516</span>
+<span id="517">517</span>
+<span id="518">518</span>
+<span id="519">519</span>
 </pre><pre class="rust">
 <span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 <span class="kw">use</span> <span class="ident">indexmap::IndexMap</span>;
@@ -600,7 +607,7 @@
     <span class="ident">AliasType</span>,     <span class="comment">// a Custom-Alias-dataType</span>
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">ImplementationType</span> {
     <span class="ident">Program</span>,
     <span class="ident">Function</span>,
@@ -614,6 +621,7 @@
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ImplementationIndexEntry</span> {
     <span class="ident">call_name</span>: <span class="ident">String</span>,
     <span class="ident">type_name</span>: <span class="ident">String</span>,
+    <span class="ident">associated_class</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
     <span class="ident">implementation_type</span>: <span class="ident">ImplementationType</span>,
 }
 
@@ -623,6 +631,9 @@
     }
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_type_name</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">str</span> {
         <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">type_name</span>
+    }
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_associated_class_name</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">String</span><span class="op">&gt;</span> {
+        <span class="self">self</span>.<span class="ident">associated_class</span>.<span class="ident">as_ref</span>()
     }
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_implementation_type</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">ImplementationType</span> {
         <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">implementation_type</span>
@@ -635,6 +646,7 @@
         <span class="ident">ImplementationIndexEntry</span> {
             <span class="ident">call_name</span>: <span class="ident">implementation</span>.<span class="ident">name</span>.<span class="ident">clone</span>(),
             <span class="ident">type_name</span>: <span class="ident">implementation</span>.<span class="ident">type_name</span>.<span class="ident">clone</span>(),
+            <span class="ident">associated_class</span>: <span class="ident">pou_type</span>.<span class="ident">get_optional_owner_class</span>(),
             <span class="ident">implementation_type</span>: <span class="ident">pou_type</span>.<span class="ident">into</span>(),
         }
     }
@@ -648,7 +660,7 @@
             <span class="ident">PouType::FunctionBlock</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ImplementationType::FunctionBlock</span>,
             <span class="ident">PouType::Action</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ImplementationType::Action</span>,
             <span class="ident">PouType::Class</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ImplementationType::Class</span>,
-            <span class="ident">PouType::Method</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ImplementationType::Method</span>,
+            <span class="ident">PouType::Method</span> { .. } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ImplementationType::Method</span>,
         }
     }
 }
@@ -885,6 +897,7 @@
         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
         <span class="ident">call_name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
         <span class="ident">type_name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
+        <span class="ident">associated_class_name</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">String</span><span class="op">&gt;</span>,
         <span class="ident">impl_type</span>: <span class="ident">ImplementationType</span>,
     ) {
         <span class="self">self</span>.<span class="ident">implementations</span>.<span class="ident">insert</span>(
@@ -892,6 +905,7 @@
             <span class="ident">ImplementationIndexEntry</span> {
                 <span class="ident">call_name</span>: <span class="ident">call_name</span>.<span class="ident">into</span>(),
                 <span class="ident">type_name</span>: <span class="ident">type_name</span>.<span class="ident">into</span>(),
+                <span class="ident">associated_class</span>: <span class="ident">associated_class_name</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">str</span><span class="op">|</span> <span class="ident">str</span>.<span class="ident">into</span>()),
                 <span class="ident">implementation_type</span>: <span class="ident">impl_type</span>,
             },
         );

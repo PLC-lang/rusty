@@ -136,10 +136,16 @@
 <span id="134">134</span>
 <span id="135">135</span>
 <span id="136">136</span>
+<span id="137">137</span>
+<span id="138">138</span>
+<span id="139">139</span>
+<span id="140">140</span>
+<span id="141">141</span>
 </pre><pre class="rust">
 <span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 <span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">expression_generator::ExpressionCodeGenerator</span>, <span class="ident">llvm::Llvm</span>};
 <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::index::Index</span>;
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::resolver::AnnotationMap</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">codegen::llvm_index::LlvmTypedIndex</span>, <span class="ident">compile_error::CompileError</span>, <span class="ident">index::VariableIndexEntry</span>,
 };
@@ -152,6 +158,7 @@
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">StructGenerator</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span><span class="op">&gt;</span> {
     <span class="ident">llvm</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="ident">Llvm</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
     <span class="ident">index</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="ident">Index</span>,
+    <span class="ident">annotations</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="ident">AnnotationMap</span>,
     <span class="ident">llvm_index</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="ident">LlvmTypedIndex</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
 }
 
@@ -166,11 +173,13 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(
         <span class="ident">llvm</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="ident">Llvm</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
         <span class="ident">index</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="ident">Index</span>,
+        <span class="ident">annotations</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="ident">AnnotationMap</span>,
         <span class="ident">llvm_index</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="ident">LlvmTypedIndex</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">StructGenerator</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span><span class="op">&gt;</span> {
         <span class="ident">StructGenerator</span> {
             <span class="ident">llvm</span>,
             <span class="ident">index</span>,
+            <span class="ident">annotations</span>,
             <span class="ident">llvm_index</span>,
         }
     }
@@ -240,6 +249,7 @@
                 <span class="kw">let</span> <span class="ident">exp_gen</span> <span class="op">=</span> <span class="ident">ExpressionCodeGenerator::new_context_free</span>(
                     <span class="self">self</span>.<span class="ident">llvm</span>,
                     <span class="self">self</span>.<span class="ident">index</span>,
+                    <span class="self">self</span>.<span class="ident">annotations</span>,
                     <span class="self">self</span>.<span class="ident">llvm_index</span>,
                     <span class="prelude-val">Some</span>(<span class="ident">variable_type</span>),
                 );

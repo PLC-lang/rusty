@@ -709,12 +709,11 @@
     <span class="ident">expression_generator::ExpressionCodeGenerator</span>, <span class="ident">llvm::Llvm</span>, <span class="ident">pou_generator::PouGenerator</span>,
 };
 <span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">ast</span>::{
-        <span class="ident">flatten_expression_list</span>, <span class="ident">AstStatement</span>, <span class="ident">ConditionalBlock</span>, <span class="ident">Operator</span>, <span class="ident">PouType</span>, <span class="ident">SourceRange</span>,
-    },
+    <span class="ident">ast</span>::{<span class="ident">flatten_expression_list</span>, <span class="ident">AstStatement</span>, <span class="ident">ConditionalBlock</span>, <span class="ident">Operator</span>, <span class="ident">SourceRange</span>},
     <span class="ident">codegen</span>::{<span class="ident">llvm_typesystem::cast_if_needed</span>, <span class="ident">LlvmTypedIndex</span>},
     <span class="ident">compile_error::CompileError</span>,
     <span class="ident">index</span>::{<span class="ident">ImplementationIndexEntry</span>, <span class="ident">Index</span>},
+    <span class="ident">resolver::AnnotationMap</span>,
     <span class="ident">typesystem</span>::{
         <span class="ident">DataTypeInformation</span>, <span class="ident">RANGE_CHECK_LS_FN</span>, <span class="ident">RANGE_CHECK_LU_FN</span>, <span class="ident">RANGE_CHECK_S_FN</span>,
         <span class="ident">RANGE_CHECK_U_FN</span>,
@@ -739,8 +738,8 @@
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">StatementCodeGenerator</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span><span class="op">&gt;</span> {
     <span class="ident">llvm</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="ident">Llvm</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
     <span class="ident">index</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="ident">Index</span>,
+    <span class="ident">annotations</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="ident">AnnotationMap</span>,
     <span class="ident">pou_generator</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="ident">PouGenerator</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span><span class="op">&gt;</span>,
-    <span class="ident">pou_type</span>: <span class="ident">PouType</span>,
     <span class="ident">llvm_index</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="ident">LlvmTypedIndex</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
     <span class="ident">function_context</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="ident">FunctionContext</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
 
@@ -758,16 +757,16 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(
         <span class="ident">llvm</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="ident">Llvm</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
         <span class="ident">index</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="ident">Index</span>,
+        <span class="ident">annotations</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="ident">AnnotationMap</span>,
         <span class="ident">pou_generator</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="ident">PouGenerator</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span><span class="op">&gt;</span>,
-        <span class="ident">pou_type</span>: <span class="ident">PouType</span>,
         <span class="ident">llvm_index</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="ident">LlvmTypedIndex</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
         <span class="ident">linking_context</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="ident">FunctionContext</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">StatementCodeGenerator</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span><span class="op">&gt;</span> {
         <span class="ident">StatementCodeGenerator</span> {
             <span class="ident">llvm</span>,
             <span class="ident">index</span>,
+            <span class="ident">annotations</span>,
             <span class="ident">pou_generator</span>,
-            <span class="ident">pou_type</span>,
             <span class="ident">llvm_index</span>,
             <span class="ident">function_context</span>: <span class="ident">linking_context</span>,
             <span class="ident">load_prefix</span>: <span class="string">&quot;load_&quot;</span>.<span class="ident">to_string</span>(),
@@ -782,6 +781,7 @@
         <span class="ident">ExpressionCodeGenerator::new</span>(
             <span class="self">self</span>.<span class="ident">llvm</span>,
             <span class="self">self</span>.<span class="ident">index</span>,
+            <span class="self">self</span>.<span class="ident">annotations</span>,
             <span class="self">self</span>.<span class="ident">llvm_index</span>,
             <span class="prelude-val">None</span>,
             <span class="self">self</span>.<span class="ident">function_context</span>,
@@ -857,7 +857,6 @@
                 <span class="self">self</span>.<span class="ident">pou_generator</span>.<span class="ident">generate_return_statement</span>(
                     <span class="self">self</span>.<span class="ident">function_context</span>,
                     <span class="self">self</span>.<span class="ident">llvm_index</span>,
-                    <span class="self">self</span>.<span class="ident">pou_type</span>,
                     <span class="prelude-val">Some</span>(<span class="ident">location</span>.<span class="ident">clone</span>()),
                 )<span class="question-mark">?</span>;
                 <span class="self">self</span>.<span class="ident">generate_buffer_block</span>();
@@ -1093,6 +1092,7 @@
         <span class="kw">let</span> <span class="ident">exp_gen</span> <span class="op">=</span> <span class="ident">ExpressionCodeGenerator::new</span>(
             <span class="self">self</span>.<span class="ident">llvm</span>,
             <span class="self">self</span>.<span class="ident">index</span>,
+            <span class="self">self</span>.<span class="ident">annotations</span>,
             <span class="self">self</span>.<span class="ident">llvm_index</span>,
             <span class="prelude-val">Some</span>(<span class="ident">selector_type</span>),
             <span class="self">self</span>.<span class="ident">function_context</span>,
