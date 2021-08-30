@@ -421,9 +421,15 @@ impl<'i> TypeAnnotator<'i> {
             AstStatement::Reference { name, .. } => {
                 let annotation = if let Some(qualifier) = ctx.qualifier.as_deref() {
                     // if we see a qualifier, we only consider [qualifier].[name] as candidates
-                    self.index
-                        .find_member(qualifier, name)
-                        .map(|v| to_variable_annotation(v, self.index))
+                    self.index.find_member(qualifier, name).map_or_else(
+                        || {
+                            find_implementation_annotation(
+                                format!("{}.{}", qualifier, name).as_str(),
+                                self.index,
+                            )
+                        },
+                        |v| Some(to_variable_annotation(v, self.index)),
+                    )
                 } else {
                     // if we see no qualifier, we try some strategies ...
                     ctx.pou
@@ -431,24 +437,42 @@ impl<'i> TypeAnnotator<'i> {
                             // ... first look at POU-local variables
                             self.index
                                 .find_member(qualifier, name)
+                                .or_else(|| {
+                                    // ... then check if we're in a method and we're referencing
+                                    // a member variable of the corresponding class
+                                    self.index
+                                        .find_implementation(ctx.pou.unwrap())
+                                        .and_then(
+                                            ImplementationIndexEntry::get_associated_class_name,
+                                        )
+                                        .and_then(|it| self.index.find_member(it, name))
+                                })
                                 .map(|v| to_variable_annotation(v, self.index))
+                                .or_else(|| {
+                                    //Try to find an action with this name
+                                    let action_call_name = format!("{}.{}", qualifier, name);
+                                    self.index.find_implementation(&action_call_name).and_then(
+                                        |entry| {
+                                            find_implementation_annotation(
+                                                entry.get_call_name(),
+                                                self.index,
+                                            )
+                                        },
+                                    )
+                                })
                         })
                         .or_else(|| {
                             // ... then try if we find a pou with that name (maybe it's a call?)
-                            self.index.find_implementation(name).and_then(|it| {
-                                match it.get_implementation_type() {
-                                    crate::index::ImplementationType::Program => {
-                                        Some(to_programm_annotation(it))
-                                    }
-                                    crate::index::ImplementationType::Function => {
-                                        Some(to_function_annotation(it, self.index))
-                                    }
-                                    crate::index::ImplementationType::FunctionBlock => {
-                                        Some(to_type_annotation(name))
-                                    }
-                                    _ => None,
-                                }
-                            })
+                            let class_name = self
+                                .index
+                                .find_implementation(ctx.pou.unwrap())
+                                .and_then(ImplementationIndexEntry::get_associated_class_name);
+
+                            //TODO introduce qualified names!
+                            let call_name = class_name
+                                .map(|it| format!("{}.{}", it, name))
+                                .unwrap_or_else(|| name.into());
+                            find_implementation_annotation(&call_name, self.index)
                         })
                         .or_else(|| {
                             // ... last option is a global variable, where we ignore the current pou's name as a qualifier
@@ -634,6 +658,20 @@ impl<'i> TypeAnnotator<'i> {
         }
     }
 }
+fn find_implementation_annotation(name: &str, index: &Index) -> Option<StatementAnnotation> {
+    index
+        .find_implementation(name)
+        .and_then(|it| match it.get_implementation_type() {
+            ImplementationType::Program | &ImplementationType::Action => {
+                Some(to_programm_annotation(it))
+            }
+            ImplementationType::Function | ImplementationType::Method => {
+                Some(to_function_annotation(it, index))
+            }
+            ImplementationType::FunctionBlock => Some(to_type_annotation(name)),
+            _ => None,
+        })
+}
 
 fn to_type_annotation(name: &str) -> StatementAnnotation {
     StatementAnnotation::Type {
@@ -657,10 +695,7 @@ fn to_variable_annotation(v: &VariableIndexEntry, index: &Index) -> StatementAnn
     }
 }
 
-fn to_function_annotation(
-    it: &crate::index::ImplementationIndexEntry,
-    index: &Index,
-) -> StatementAnnotation {
+fn to_function_annotation(it: &ImplementationIndexEntry, index: &Index) -> StatementAnnotation {
     StatementAnnotation::Function {
         qualified_name: it.get_call_name().into(),
         return_type: index

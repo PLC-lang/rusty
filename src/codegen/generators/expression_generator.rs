@@ -1,5 +1,9 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-use crate::{ast::SourceRange, index::Index};
+use crate::{
+    ast::{Pou, SourceRange},
+    index::{ImplementationType, Index},
+    resolver::{AnnotationMap, StatementAnnotation},
+};
 use inkwell::{
     basic_block::BasicBlock,
     types::BasicTypeEnum,
@@ -31,6 +35,7 @@ use chrono::{LocalResult, TimeZone, Utc};
 pub struct ExpressionCodeGenerator<'a, 'b> {
     llvm: &'b Llvm<'a>,
     index: &'b Index,
+    annotations: &'b AnnotationMap,
     llvm_index: &'b LlvmTypedIndex<'a>,
     /// an optional type hint for generating literals
     type_hint: Option<DataTypeInformation>,
@@ -62,6 +67,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
     pub fn new(
         llvm: &'b Llvm<'a>,
         index: &'b Index,
+        annotations: &'b AnnotationMap,
         llvm_index: &'b LlvmTypedIndex<'a>,
         type_hint: Option<DataTypeInformation>,
         function_context: &'b FunctionContext<'a>,
@@ -71,6 +77,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
             index,
             llvm_index,
             type_hint,
+            annotations,
             function_context: Some(function_context),
             temp_variable_prefix: "load_".to_string(),
             temp_variable_suffix: "".to_string(),
@@ -87,6 +94,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
     pub fn new_context_free(
         llvm: &'b Llvm<'a>,
         index: &'b Index,
+        annotations: &'b AnnotationMap,
         llvm_index: &'b LlvmTypedIndex<'a>,
         type_hint: Option<DataTypeInformation>,
     ) -> ExpressionCodeGenerator<'a, 'b> {
@@ -95,6 +103,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
             index,
             llvm_index,
             type_hint,
+            annotations,
             function_context: None,
             temp_variable_prefix: "load_".to_string(),
             temp_variable_suffix: "".to_string(),
@@ -106,13 +115,10 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
         type_hint: &DataTypeInformation,
     ) -> ExpressionCodeGenerator<'a, 'b> {
         ExpressionCodeGenerator {
-            llvm: self.llvm,
-            index: self.index,
-            llvm_index: self.llvm_index,
             type_hint: Some(type_hint.clone()),
-            function_context: self.function_context,
             temp_variable_prefix: self.temp_variable_prefix.clone(),
             temp_variable_suffix: self.temp_variable_suffix.clone(),
+            ..*self
         }
     }
 
@@ -326,7 +332,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                     }
                 };
 
-                Ok((callable_reference, implementation))
+                Ok((None, callable_reference, implementation))
             }
             AstStatement::QualifiedReference { .. } => {
                 let loaded_value = self.generate_element_pointer_for_rec(None, operator);
@@ -335,12 +341,33 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                          type_entry,
                          ptr_value,
                      }| {
-                        Ok((
-                            ptr_value,
-                            self.index
-                                .find_implementation(type_entry.get_name())
-                                .unwrap(),
-                        ))
+                        self.index
+                            .find_implementation(type_entry.get_name())
+                            .map(|implementation| {
+                                let (class_struct, method_struct) = if matches!(
+                                    implementation.get_implementation_type(),
+                                    &ImplementationType::Method
+                                ) {
+                                    (
+                                        Some(ptr_value),
+                                        self.allocate_function_struct_instance(
+                                            implementation.get_call_name(),
+                                            operator,
+                                        )
+                                        .unwrap(),
+                                    )
+                                } else {
+                                    (None, ptr_value)
+                                };
+                                (class_struct, method_struct, implementation)
+                            })
+                            .ok_or_else(|| CompileError::CodeGenError {
+                                message: format!(
+                                    "cannot generate call statement for {:?}",
+                                    operator
+                                ),
+                                location: operator.get_location(),
+                            })
                     },
                 )?
             }
@@ -350,7 +377,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
             }),
         };
 
-        let (instance, index_entry) = instance_and_index_entry?;
+        let (class_struct, instance, index_entry) = instance_and_index_entry?;
         let function_name = index_entry.get_call_name();
         //Create parameters for input and output blocks
         let current_f = function_context.function;
@@ -365,6 +392,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
         //Generate all parameters, this function may jump to the output block
         let parameters = self.generate_function_parameters(
             function_name,
+            class_struct,
             instance,
             parameters,
             &input_block,
@@ -377,7 +405,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
         builder.position_at_end(call_block);
         let return_type = self
             .index
-            .find_member(function_name, function_name)
+            .find_member(function_name, Pou::calc_return_name(function_name))
             .map(VariableIndexEntry::get_type_name)
             .or(Some("__VOID"))
             .and_then(|it| self.index.find_type_information(it));
@@ -445,12 +473,20 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
     fn generate_function_parameters(
         &self,
         function_name: &str,
+        class_struct: Option<PointerValue<'a>>,
         parameter_struct: PointerValue<'a>,
         parameters: &Option<AstStatement>,
         input_block: &BasicBlock,
         output_block: &BasicBlock,
     ) -> Result<Vec<BasicValueEnum<'a>>, CompileError> {
-        let mut result = vec![parameter_struct.as_basic_value_enum()];
+        let mut result = if let Some(class_struct) = class_struct {
+            vec![
+                class_struct.as_basic_value_enum(),
+                parameter_struct.as_basic_value_enum(),
+            ]
+        } else {
+            vec![parameter_struct.as_basic_value_enum()]
+        };
         match &parameters {
             Some(AstStatement::ExpressionList { expressions, .. }) => {
                 for (index, exp) in expressions.iter().enumerate() {
@@ -752,6 +788,21 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
             let variable_index_entry = self
                 .index
                 .find_variable(Some(type_name), &[name.to_string()])
+                .or_else(|| {
+                    let annotation = self.annotations.get(context)?;
+                    match annotation {
+                        StatementAnnotation::Variable {
+                            resulting_type: _,
+                            qualified_name,
+                        } => {
+                            //TODO introduce qualified names!
+                            let qualifier = &qualified_name[..qualified_name.rfind('.')?];
+                            self.index
+                                .find_variable(Some(qualifier), &[name.to_string()])
+                        }
+                        _ => None,
+                    }
+                })
                 .ok_or_else(|| CompileError::InvalidReference {
                     reference: name.to_string(),
                     location: offset.clone(),
