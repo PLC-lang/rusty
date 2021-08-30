@@ -5,6 +5,10 @@ on:
   pull_request:
     branches: [ master ]
 
+env:
+  toolchain-version: 1.53.0
+  llvm-version: "11.0.1"
+
 jobs:
   cargo-docs:
     runs-on: ubuntu-latest
@@ -19,6 +23,11 @@ jobs:
         uses: peaceiris/actions-mdbook@v1
         with:
           mdbook-version: 'latest'
+      - name: Install LLVM
+        uses: ghaith/install-llvm-action@latest
+        with:
+          version: ${{ env.llvm-version }}
+          directory: "./llvm"
       - name: Build API documentation
         uses: actions-rs/cargo@v1
         with:

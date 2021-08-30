@@ -429,7 +429,7 @@ impl<'i> TypeAnnotator<'i> {
                         // 3rd try - look for a method qualifier.name
                         .map_or_else(
                             || {
-                                try_to_implementation_annotation(
+                                find_implementation_annotation(
                                     format!("{}.{}", qualifier, name).as_str(),
                                     self.index,
                                 )
@@ -459,7 +459,7 @@ impl<'i> TypeAnnotator<'i> {
                                     let action_call_name = format!("{}.{}", qualifier, name);
                                     self.index.find_implementation(&action_call_name).and_then(
                                         |entry| {
-                                            try_to_implementation_annotation(
+                                            find_implementation_annotation(
                                                 entry.get_call_name(),
                                                 self.index,
                                             )
@@ -473,10 +473,12 @@ impl<'i> TypeAnnotator<'i> {
                                 .index
                                 .find_implementation(ctx.pou.unwrap())
                                 .and_then(ImplementationIndexEntry::get_associated_class_name);
+
+                            //TODO introduce qualified names!
                             let call_name = class_name
                                 .map(|it| format!("{}.{}", it, name))
                                 .unwrap_or_else(|| name.into());
-                            try_to_implementation_annotation(&call_name, self.index)
+                            find_implementation_annotation(&call_name, self.index)
                         })
                         .or_else(|| {
                             // ... last option is a global variable, where we ignore the current pou's name as a qualifier
@@ -691,7 +693,7 @@ impl<'i> TypeAnnotator<'i> {
         }
     }
 }
-fn try_to_implementation_annotation(name: &str, index: &Index) -> Option<StatementAnnotation> {
+fn find_implementation_annotation(name: &str, index: &Index) -> Option<StatementAnnotation> {
     index
         .find_implementation(name)
         .and_then(|it| match it.get_implementation_type() {

@@ -38,6 +38,9 @@ pub enum CompileError {
 
     #[error("Cannot write File {path:}: {reason:}")]
     IoWriteError { path: String, reason: String },
+
+    #[error("Cannot link: {reason:}")]
+    LinkerError { reason: String },
 }
 
 impl CompileError {

@@ -4,14 +4,13 @@ VAR_INPUT
 END_VAR
 END_FUNCTION
 
-@EXTERNAL FUNCTION exit : __VOID
-    VAR_INPUT status : DINT; END_VAR
-END_FUNCTION
-
-FUNCTION main : DINT
-	puts('hello, world');
+@EXTERNAL FUNCTION exit : DINT
+VAR_INPUT
+    status : DINT;
+END_VAR
 END_FUNCTION
 
 FUNCTION _start : DINT
-    exit(main(0));
-END_FUNCTION 
+	puts('hello, world!');
+    exit(0);
+END_FUNCTION

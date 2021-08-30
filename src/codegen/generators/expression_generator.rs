@@ -793,6 +793,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                             resulting_type: _,
                             qualified_name,
                         } => {
+                            //TODO introduce qualified names!
                             let qualifier = &qualified_name[..qualified_name.rfind('.')?];
                             self.index
                                 .find_variable(Some(qualifier), &[name.to_string()])

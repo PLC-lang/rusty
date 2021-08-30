@@ -124,7 +124,7 @@ impl From<&Implementation> for ImplementationIndexEntry {
         ImplementationIndexEntry {
             call_name: implementation.name.clone(),
             type_name: implementation.type_name.clone(),
-            associated_class: implementation.associated_class.clone(),
+            associated_class: pou_type.get_optional_owner_class(),
             implementation_type: pou_type.into(),
         }
     }
@@ -138,7 +138,7 @@ impl From<&PouType> for ImplementationType {
             PouType::FunctionBlock => ImplementationType::FunctionBlock,
             PouType::Action => ImplementationType::Action,
             PouType::Class => ImplementationType::Class,
-            PouType::Method => ImplementationType::Method,
+            PouType::Method { .. } => ImplementationType::Method,
         }
     }
 }
