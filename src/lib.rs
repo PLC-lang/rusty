@@ -239,6 +239,13 @@ fn create_source_code<T: Read>(
     Ok(buffer)
 }
 
+pub fn get_target_triple(triple: Option<String>) -> TargetTriple {
+    triple
+        .map(|it| TargetTriple::create(it.as_str()))
+        .or_else(|| Some(TargetMachine::get_default_triple()))
+        .unwrap()
+}
+
 ///
 /// Compiles the given source into an object file and saves it in output
 ///
@@ -247,15 +254,11 @@ fn compile_to_obj<T: SourceContainer>(
     encoding: Option<&'static Encoding>,
     output: &str,
     reloc: RelocMode,
-    triple: Option<String>,
+    triple: TargetTriple,
 ) -> Result<(), CompileError> {
     let initialization_config = &InitializationConfig::default();
     Target::initialize_all(initialization_config);
 
-    let triple = triple
-        .map(|it| TargetTriple::create(it.as_str()))
-        .or_else(|| Some(TargetMachine::get_default_triple()))
-        .unwrap();
     let target = Target::from_triple(&triple).unwrap();
     let machine = target
         .create_target_machine(
@@ -293,7 +296,13 @@ pub fn compile_to_static_obj<T: SourceContainer>(
     output: &str,
     target: Option<String>,
 ) -> Result<(), CompileError> {
-    compile_to_obj(sources, encoding, output, RelocMode::Default, target)
+    compile_to_obj(
+        sources,
+        encoding,
+        output,
+        RelocMode::Default,
+        get_target_triple(target),
+    )
 }
 
 /// Compiles a given source string to a shared position independent object and saves the output.
@@ -310,7 +319,13 @@ pub fn compile_to_shared_pic_object<T: SourceContainer>(
     output: &str,
     target: Option<String>,
 ) -> Result<(), CompileError> {
-    compile_to_obj(sources, encoding, output, RelocMode::PIC, target)
+    compile_to_obj(
+        sources,
+        encoding,
+        output,
+        RelocMode::PIC,
+        get_target_triple(target),
+    )
 }
 
 /// Compiles a given source string to a dynamic non PIC object and saves the output.
@@ -327,7 +342,13 @@ pub fn compile_to_shared_object<T: SourceContainer>(
     output: &str,
     target: Option<String>,
 ) -> Result<(), CompileError> {
-    compile_to_obj(sources, encoding, output, RelocMode::DynamicNoPic, target)
+    compile_to_obj(
+        sources,
+        encoding,
+        output,
+        RelocMode::DynamicNoPic,
+        get_target_triple(target),
+    )
 }
 
 ///
@@ -465,7 +486,33 @@ fn parse(source: &str) -> ParsedAst {
 
 #[cfg(test)]
 mod tests {
-    use crate::create_source_code;
+    use inkwell::targets::TargetMachine;
+
+    use crate::{create_source_code, get_target_triple};
+
+    #[test]
+    fn test_get_target_triple() {
+        let triple = get_target_triple(None);
+        assert_eq!(
+            triple.as_str().to_str().unwrap(),
+            TargetMachine::get_default_triple()
+                .as_str()
+                .to_str()
+                .unwrap()
+        );
+
+        // let triple = get_target_triple(Some("abcdef".into()));
+        // assert_eq!(
+        //     triple.as_str().to_str().unwrap(),
+        //     TargetMachine::get_default_triple()
+        //         .as_str()
+        //         .to_str()
+        //         .unwrap()
+        // );
+
+        let triple = get_target_triple(Some("x86_64-pc-linux-gnu".into()));
+        assert_eq!(triple.as_str().to_str().unwrap(), "x86_64-pc-linux-gnu");
+    }
 
     #[test]
     fn windows_encoded_file_content_read() {
