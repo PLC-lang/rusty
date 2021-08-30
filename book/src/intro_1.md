@@ -8,6 +8,8 @@ puts out static or shared objects as well as LLVM IR or bitcode by the flip of
 a command line flag. We are aiming towards an open-source industry-grade ST compiler
 supporting at least the features in 2nd edition IEC 61131 standard. 
 
+You might also want to refer to the [API documentation](https://ghaith.github.io/rusty/api/rusty/).
+
 ## Supported Language Concepts
 ### POUs
 - ✔ Program
@@ -40,6 +42,7 @@ supporting at least the features in 2nd edition IEC 61131 standard.
 - ✔ Call statements
 - ✔ Implicit call arguments
 - ✔ Explicit call arguments
+- ✔ EXIT, CONTINUE statements
 
 ### Control Structures
 - ✔ IF Statement
@@ -47,6 +50,7 @@ supporting at least the features in 2nd edition IEC 61131 standard.
 - ✔ FOR Loops
 - ✔ WHILE Loops
 - ✔ REPEAT Loops
+- ✔ RETURN statement
 
 ### Expressions
 - ✔ Arithmetic Operators
