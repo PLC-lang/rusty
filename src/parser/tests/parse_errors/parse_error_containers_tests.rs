@@ -155,7 +155,11 @@ fn function_with_illegal_return_variable_declaration() {
     let (compilation_unit, diagnostics) = parse(lexer);
     //expected end of statement (e.g. ;), but found KeywordEndProgram at line: 1 offset: 14..25"
     //Expecting a missing semicolon message
-    let expected = Diagnostic::unexpected_token_found("Datatype", "VAR", SourceRange::new(40..43));
+    let expected = Diagnostic::unexpected_token_found(
+        "DataTypeDefinition",
+        "KeywordVar",
+        SourceRange::new(40..43),
+    );
     assert_eq!(diagnostics[0], expected);
 
     //check if a was parsed successfully

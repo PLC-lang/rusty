@@ -21,6 +21,10 @@ fn method_with_invalid_return_type() {
 
     assert_eq!(
         diagnostics.first().unwrap(),
-        &Diagnostic::unexpected_token_found("Datatype", "ABSTRACT", SourceRange::new(29..37),)
+        &Diagnostic::unexpected_token_found(
+            "DataTypeDefinition",
+            "KeywordAbstract",
+            SourceRange::new(29..37),
+        )
     );
 }
