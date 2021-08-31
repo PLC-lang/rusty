@@ -592,6 +592,14 @@
 <span id="590">590</span>
 <span id="591">591</span>
 <span id="592">592</span>
+<span id="593">593</span>
+<span id="594">594</span>
+<span id="595">595</span>
+<span id="596">596</span>
+<span id="597">597</span>
+<span id="598">598</span>
+<span id="599">599</span>
+<span id="600">600</span>
 </pre><pre class="rust">
 <span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 <span class="doccomment">//! A Structured Text LLVM Frontent</span>
@@ -703,6 +711,14 @@
                 <span class="string">&quot;Unexpected token: expected {} but found {}&quot;</span>,
                 <span class="ident">expected</span>, <span class="ident">found</span>
             ),
+            <span class="ident">range</span>,
+            <span class="ident">err_no</span>: <span class="ident">ErrNo::syntax__unexpected_token</span>,
+        }
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">unexpected_initializer_on_function_return</span>(<span class="ident">range</span>: <span class="ident">SourceRange</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Diagnostic</span> {
+        <span class="ident">Diagnostic::SyntaxError</span> {
+            <span class="ident">message</span>: <span class="string">&quot;Return types cannot have a default value&quot;</span>.<span class="ident">into</span>(),
             <span class="ident">range</span>,
             <span class="ident">err_no</span>: <span class="ident">ErrNo::syntax__unexpected_token</span>,
         }

@@ -903,6 +903,7 @@
 <span id="901">901</span>
 <span id="902">902</span>
 <span id="903">903</span>
+<span id="904">904</span>
 </pre><pre class="rust">
 <span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 <span class="kw">use</span> <span class="kw">crate</span>::{
@@ -1161,19 +1162,20 @@
 <span class="kw">fn</span> <span class="ident">parse_return_type</span>(<span class="ident">lexer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ParseSession</span>, <span class="ident">pou_type</span>: <span class="kw-2">&amp;</span><span class="ident">PouType</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">DataTypeDeclaration</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">start_return_type</span> <span class="op">=</span> <span class="ident">lexer</span>.<span class="ident">range</span>().<span class="ident">start</span>;
     <span class="kw">if</span> <span class="ident">lexer</span>.<span class="ident">allow</span>(<span class="kw-2">&amp;</span><span class="ident">KeywordColon</span>) {
-        <span class="kw">if</span> <span class="ident">lexer</span>.<span class="ident">token</span> <span class="op">=</span><span class="op">=</span> <span class="ident">Identifier</span> <span class="op">|</span><span class="op">|</span> <span class="ident">lexer</span>.<span class="ident">token</span> <span class="op">=</span><span class="op">=</span> <span class="ident">KeywordString</span> {
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="ident">declaration</span>, <span class="ident">initializer</span>)) <span class="op">=</span> <span class="ident">parse_data_type_definition</span>(<span class="ident">lexer</span>, <span class="prelude-val">None</span>) {
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">init</span>) <span class="op">=</span> <span class="ident">initializer</span> {
+                <span class="ident">lexer</span>.<span class="ident">accept_diagnostic</span>(<span class="ident">Diagnostic::unexpected_initializer_on_function_return</span>(
+                    <span class="ident">init</span>.<span class="ident">get_location</span>(),
+                ));
+            }
+
             <span class="kw">if</span> <span class="op">!</span><span class="macro">matches!</span>(<span class="ident">pou_type</span>, <span class="ident">PouType::Function</span> <span class="op">|</span> <span class="ident">PouType::Method</span> { .. }) {
                 <span class="ident">lexer</span>.<span class="ident">accept_diagnostic</span>(<span class="ident">Diagnostic::return_type_not_supported</span>(
                     <span class="ident">pou_type</span>,
-                    <span class="ident">SourceRange::new</span>(<span class="ident">start_return_type</span>..<span class="ident">lexer</span>.<span class="ident">range</span>().<span class="ident">end</span>),
+                    <span class="ident">SourceRange::new</span>(<span class="ident">start_return_type</span>..<span class="ident">lexer</span>.<span class="ident">last_range</span>.<span class="ident">end</span>),
                 ));
             }
-            <span class="kw">let</span> <span class="ident">location</span> <span class="op">=</span> <span class="ident">lexer</span>.<span class="ident">location</span>();
-            <span class="kw">let</span> <span class="ident">referenced_type</span> <span class="op">=</span> <span class="ident">lexer</span>.<span class="ident">slice_and_advance</span>();
-            <span class="prelude-val">Some</span>(<span class="ident">DataTypeDeclaration::DataTypeReference</span> {
-                <span class="ident">referenced_type</span>,
-                <span class="ident">location</span>,
-            })
+            <span class="prelude-val">Some</span>(<span class="ident">declaration</span>)
         } <span class="kw">else</span> {
             <span class="comment">//missing return type</span>
             <span class="ident">lexer</span>.<span class="ident">accept_diagnostic</span>(<span class="ident">Diagnostic::unexpected_token_found</span>(
