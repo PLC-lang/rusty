@@ -321,11 +321,8 @@ pub enum Token {
     #[regex(r"2#[0-1]+(_[0-1]+)*")]
     LiteralIntegerBin,
 
-    #[regex(r"[0-9]+(_[0-9]+)*")]
+    #[regex(r"[0-9]+(_[0-9]+)*([eE][+-]?[0-9]+)?")]
     LiteralInteger,
-
-    #[regex("[eE][+-]?[0-9]+")]
-    LiteralExponent,
 
     #[token("NULL", ignore(case))]
     LiteralNull,
@@ -356,6 +353,9 @@ pub enum Token {
 
     #[regex("\"((\\$.)|[^$\"])*\"")]
     LiteralWideString,
+
+    #[regex("[a-zA-Z_][a-zA-Z_0-9]*#")]
+    TypeCastPrefix,
 
     #[regex(r"[ \t\n\f]+", logos::skip)]
     End,

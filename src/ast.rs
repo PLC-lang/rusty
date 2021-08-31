@@ -545,6 +545,12 @@ pub enum AstStatement {
         location: SourceRange,
         id: AstId,
     },
+    CastStatement {
+        target: Box<AstStatement>,
+        type_name: String,
+        location: SourceRange,
+        id: AstId,
+    },
     MultipliedStatement {
         multiplier: u32,
         element: Box<AstStatement>,
@@ -879,6 +885,13 @@ impl Debug for AstStatement {
             AstStatement::ReturnStatement { .. } => f.debug_struct("ReturnStatement").finish(),
             AstStatement::ContinueStatement { .. } => f.debug_struct("ContinueStatement").finish(),
             AstStatement::ExitStatement { .. } => f.debug_struct("ExitStatement").finish(),
+            AstStatement::CastStatement {
+                target, type_name, ..
+            } => f
+                .debug_struct("CastStatement")
+                .field("type_name", type_name)
+                .field("target", target)
+                .finish(),
         }
     }
 }
@@ -964,6 +977,7 @@ impl AstStatement {
             AstStatement::ReturnStatement { location, .. } => location.clone(),
             AstStatement::ContinueStatement { location, .. } => location.clone(),
             AstStatement::ExitStatement { location, .. } => location.clone(),
+            AstStatement::CastStatement { location, .. } => location.clone(),
         }
     }
 
@@ -1001,6 +1015,7 @@ impl AstStatement {
             AstStatement::ReturnStatement { id, .. } => *id,
             AstStatement::ContinueStatement { id, .. } => *id,
             AstStatement::ExitStatement { id, .. } => *id,
+            AstStatement::CastStatement { id, .. } => *id,
         }
     }
 }

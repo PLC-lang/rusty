@@ -271,6 +271,175 @@ END_PROGRAM
 }
 
 #[test]
+fn casted_literals_code_gen_test() {
+    let result = codegen!(
+        r#"PROGRAM prg
+VAR
+x : INT;
+z : INT;
+END_VAR
+
+      // the INT# should prevent this addition
+      // to result in an DINT (i32) and then truncated back
+      // to i16 again
+
+      z := x + INT#7; 
+
+END_PROGRAM
+"#
+    );
+    let expected = generate_program_boiler_plate(
+        "prg",
+        &[("i16", "x"), ("i16", "z")],
+        "void",
+        "",
+        "",
+        r#"%load_x = load i16, i16* %x, align 2
+  %tmpVar = add i16 %load_x, 7
+  store i16 %tmpVar, i16* %z, align 2
+  ret void
+"#,
+    );
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn casted_literals_lreal_code_gen_test() {
+    let result = codegen!(
+        r#"PROGRAM prg
+VAR
+x : REAL;
+z : REAL;
+END_VAR
+
+      // the LREAL# should fource a double addition
+      z := x + LREAL#7.7; 
+
+END_PROGRAM
+"#
+    );
+    let expected = generate_program_boiler_plate(
+        "prg",
+        &[("float", "x"), ("float", "z")],
+        "void",
+        "",
+        "",
+        r#"%load_x = load float, float* %x, align 4
+  %1 = fpext float %load_x to double
+  %tmpVar = fadd double %1, 7.700000e+00
+  %2 = fptrunc double %tmpVar to float
+  store float %2, float* %z, align 4
+  ret void
+"#,
+    );
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn casted_literals_real_code_gen_test() {
+    let result = codegen!(
+        r#"PROGRAM prg
+VAR
+x : INT;
+z : REAL;
+END_VAR
+
+      // the REAL# should prevent this addition
+      // to result in an DINT (i32) and then result 
+      // in an i32 devision
+
+      z := x / REAL#7; 
+
+END_PROGRAM
+"#
+    );
+    let expected = generate_program_boiler_plate(
+        "prg",
+        &[("i16", "x"), ("float", "z")],
+        "void",
+        "",
+        "",
+        r#"%load_x = load i16, i16* %x, align 2
+  %1 = sitofp i16 %load_x to float
+  %tmpVar = fdiv float %1, 7.000000e+00
+  store float %tmpVar, float* %z, align 4
+  ret void
+"#,
+    );
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn casted_literals_hex_code_gen_test() {
+    let result = codegen!(
+        r#"PROGRAM prg
+VAR
+x : INT;
+z : INT;
+END_VAR
+
+      // the INT# should prevent this addition
+      // to result in an DINT (i32) and then  
+      // truncated back to i16
+
+      z := x +  INT#16#D; 
+
+END_PROGRAM
+"#
+    );
+    let expected = generate_program_boiler_plate(
+        "prg",
+        &[("i16", "x"), ("i16", "z")],
+        "void",
+        "",
+        "",
+        r#"%load_x = load i16, i16* %x, align 2
+  %tmpVar = add i16 %load_x, 13
+  store i16 %tmpVar, i16* %z, align 2
+  ret void
+"#,
+    );
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn casted_literals_bool_code_gen_test() {
+    let result = codegen!(
+        r#"PROGRAM prg
+VAR
+z : BOOL;
+END_VAR
+
+      z := BOOL#TRUE; 
+      z := BOOL#FALSE; 
+      z := BOOL#1; 
+      z := BOOL#0; 
+
+END_PROGRAM
+"#
+    );
+    let expected = generate_program_boiler_plate(
+        "prg",
+        &[("i1", "z")],
+        "void",
+        "",
+        "",
+        r#"store i1 true, i1* %z, align 1
+  store i1 false, i1* %z, align 1
+  store i1 true, i1* %z, align 1
+  store i1 false, i1* %z, align 1
+  ret void
+"#,
+    );
+
+    assert_eq!(result, expected);
+}
+
+#[test]
 fn program_with_variable_assignment_generates_void_function_and_struct_and_body() {
     let result = codegen!(
         r#"PROGRAM prg
@@ -303,6 +472,8 @@ VAR
 y : REAL;
 END_VAR
 y := 0.15625;
+y := 0.1e3;
+y := 1e3;
 END_PROGRAM
 "#
     );
@@ -313,6 +484,8 @@ END_PROGRAM
         "",
         "",
         r#"store float 1.562500e-01, float* %y, align 4
+  store float 1.000000e+02, float* %y, align 4
+  store float 1.000000e+03, float* %y, align 4
   ret void
 "#,
     );
@@ -679,6 +852,64 @@ entry:
 "#;
 
     assert_eq!(result, expected);
+}
+
+#[test]
+fn program_with_casted_string_assignment() {
+    let result = codegen!(
+        r#"PROGRAM prg
+VAR
+  y : STRING;
+  z : WSTRING;
+END_VAR
+
+// cast a WSTRING to a STRING
+y := STRING#"im a genius"; 
+// cast a STRING to a WSTRING
+z := WSTRING#'im a utf16 genius'; 
+END_PROGRAM
+"#
+    );
+
+    let expected = r#"; ModuleID = 'main'
+source_filename = "main"
+
+%prg_interface = type { [81 x i8], [162 x i8] }
+
+@prg_instance = global %prg_interface zeroinitializer
+
+define void @prg(%prg_interface* %0) {
+entry:
+  %y = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 0
+  %z = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 1
+  store [12 x i8] c"im a genius\00", [81 x i8]* %y, align 1
+  store [36 x i8] c"i\00m\00 \00a\00 \00u\00t\00f\001\006\00 \00g\00e\00n\00i\00u\00s\00\00\00", [162 x i8]* %z, align 1
+  ret void
+}
+"#;
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn generate_with_invalid_casted_string_assignment() {
+    let result = codegen_wihout_unwrap!(
+        r#"PROGRAM prg
+VAR
+  y : INT;
+END_VAR
+y := INT#"seven"; 
+END_PROGRAM
+"#
+    );
+
+    assert_eq!(
+        result,
+        Err(CompileError::codegen_error(
+            "Cannot generate String-Literal for type INT".to_string(),
+            (44..51).into()
+        ))
+    );
 }
 
 #[test]
@@ -4057,10 +4288,10 @@ fn enums_are_generated() {
     let expected = r#"; ModuleID = 'main'
 source_filename = "main"
 
+@x = global i32 0
 @red = global i32 0
 @yellow = global i32 1
 @green = global i32 2
-@x = global i32 0
 "#;
 
     assert_eq!(result, expected);
@@ -4089,10 +4320,10 @@ source_filename = "main"
 
 %main_interface = type { i32 }
 
+@main_instance = global %main_interface zeroinitializer
 @red = global i32 0
 @yellow = global i32 1
 @green = global i32 2
-@main_instance = global %main_interface zeroinitializer
 
 define void @main(%main_interface* %0) {
 entry:
@@ -4202,10 +4433,10 @@ fn inline_enums_are_generated() {
     let expected = r#"; ModuleID = 'main'
 source_filename = "main"
 
+@x = global i32 0
 @red = global i32 0
 @yellow = global i32 1
 @green = global i32 2
-@x = global i32 0
 "#;
 
     assert_eq!(result, expected);

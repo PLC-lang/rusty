@@ -11,7 +11,7 @@ use crate::{
 mod tests;
 pub mod visitor;
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct VariableIndexEntry {
     name: String,
     qualified_name: String,
@@ -65,7 +65,7 @@ pub enum VariableType {
 }
 
 /// information regarding a variable
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct VariableInformation {
     /// the type of variable
     variable_type: VariableType,
@@ -153,6 +153,12 @@ pub struct Index {
     /// all global variables
     global_variables: IndexMap<String, VariableIndexEntry>,
 
+    /// all enum-members with their names
+    enum_global_variables: IndexMap<String, VariableIndexEntry>,
+
+    /// all enum-members with their qualified names <enum-type>.<element-name>
+    enum_qualified_variables: IndexMap<String, VariableIndexEntry>,
+
     /// all local variables, grouped by the POU's name
     member_variables: IndexMap<String, IndexMap<String, VariableIndexEntry>>,
 
@@ -169,6 +175,8 @@ impl Index {
     pub fn new() -> Index {
         Index {
             global_variables: IndexMap::new(),
+            enum_global_variables: IndexMap::new(),
+            enum_qualified_variables: IndexMap::new(),
             member_variables: IndexMap::new(),
             types: IndexMap::new(),
             implementations: IndexMap::new(),
@@ -188,6 +196,10 @@ impl Index {
     /// into the current one
     pub fn import(&mut self, other: Index) {
         self.global_variables.extend(other.global_variables);
+        self.enum_global_variables
+            .extend(other.enum_global_variables);
+        self.enum_qualified_variables
+            .extend(other.enum_qualified_variables);
         self.member_variables.extend(other.member_variables);
         self.types.extend(other.types);
         self.implementations.extend(other.implementations);
@@ -198,13 +210,26 @@ impl Index {
     }
 
     pub fn find_global_variable(&self, name: &str) -> Option<&VariableIndexEntry> {
-        self.global_variables.get(&name.to_lowercase())
+        self.global_variables
+            .get(&name.to_lowercase())
+            .or_else(|| self.enum_global_variables.get(&name.to_lowercase()))
     }
 
     pub fn find_member(&self, pou_name: &str, variable_name: &str) -> Option<&VariableIndexEntry> {
         self.member_variables
             .get(&pou_name.to_lowercase())
             .and_then(|map| map.get(&variable_name.to_lowercase()))
+    }
+
+    /// returns the index entry of the enum-element `element_name` of the enum-type `enum_name`
+    /// or None if the requested Enum-Type or -Element does not exist
+    pub fn find_enum_element(
+        &self,
+        enum_name: &str,
+        element_name: &str,
+    ) -> Option<&VariableIndexEntry> {
+        self.enum_qualified_variables
+            .get(&format!("{}.{}", enum_name, element_name).to_lowercase())
     }
 
     pub fn find_local_members(&self, container_name: &str) -> Vec<&VariableIndexEntry> {
@@ -358,6 +383,12 @@ impl Index {
             .ok_or_else(|| CompileError::unknown_type(type_name, SourceRange::undefined()))
     }
 
+    pub fn get_type_information_or_void(&self, type_name: &str) -> &DataTypeInformation {
+        self.find_type(type_name)
+            .map(|it| it.get_type_information())
+            .unwrap_or_else(|| self.get_void_type().get_type_information())
+    }
+
     /// Returns a list of types, should not be used to search for types, just to react on them
     pub(crate) fn get_types(&self) -> &IndexMap<String, DataType> {
         &self.types
@@ -365,6 +396,10 @@ impl Index {
 
     pub fn get_globals(&self) -> &IndexMap<String, VariableIndexEntry> {
         &self.global_variables
+    }
+
+    pub fn get_global_qualified_enums(&self) -> &IndexMap<String, VariableIndexEntry> {
+        &self.enum_qualified_variables
     }
 
     pub fn get_implementations(&self) -> &IndexMap<String, ImplementationIndexEntry> {
@@ -435,6 +470,33 @@ impl Index {
             },
         };
         members.insert(variable_name.to_lowercase(), entry);
+    }
+
+    pub fn register_enum_element(
+        &mut self,
+        element_name: &str,
+        enum_type_name: &str,
+        initial_value: Option<AstStatement>,
+        source_location: SourceRange,
+    ) {
+        let qualified_name = format!("{}.{}", enum_type_name, element_name);
+        let entry = VariableIndexEntry {
+            name: element_name.into(),
+            qualified_name: qualified_name.clone(),
+            initial_value,
+            source_location,
+            information: VariableInformation {
+                variable_type: VariableType::Global,
+                data_type_name: enum_type_name.into(),
+                qualifier: None,
+                location: 0,
+            },
+        };
+        self.enum_global_variables
+            .insert(element_name.to_lowercase(), entry.clone());
+
+        self.enum_qualified_variables
+            .insert(qualified_name.to_lowercase(), entry);
     }
 
     pub fn register_global_variable(

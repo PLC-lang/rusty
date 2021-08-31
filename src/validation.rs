@@ -3,6 +3,7 @@ use crate::{
         AstStatement, CompilationUnit, DataType, DataTypeDeclaration, Pou, SourceRange,
         UserTypeDeclaration, Variable, VariableBlock,
     },
+    index::Index,
     resolver::AnnotationMap,
     Diagnostic,
 };
@@ -32,6 +33,7 @@ macro_rules! visit_all_statements {
 
 pub struct ValidationContext<'s> {
     ast_annotation: &'s AnnotationMap,
+    index: &'s Index,
 }
 
 pub struct Validator {
@@ -58,9 +60,15 @@ impl Validator {
         all_diagnostics
     }
 
-    pub fn visit_unit(&mut self, annotations: &AnnotationMap, unit: &CompilationUnit) {
+    pub fn visit_unit(
+        &mut self,
+        annotations: &AnnotationMap,
+        index: &Index,
+        unit: &CompilationUnit,
+    ) {
         let context = ValidationContext {
             ast_annotation: annotations,
+            index,
         };
 
         for pou in &unit.units {
