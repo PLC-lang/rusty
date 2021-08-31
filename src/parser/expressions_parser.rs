@@ -241,28 +241,71 @@ fn parse_parenthesized_expression(lexer: &mut ParseSession) -> AstStatement {
 
 // Literals, Identifiers, etc.
 fn parse_leaf_expression(lexer: &mut ParseSession) -> AstStatement {
-    let literal_parse_result = match lexer.token {
-        Identifier => parse_qualified_reference(lexer),
-        LiteralInteger => parse_literal_number(lexer),
-        LiteralIntegerBin => parse_literal_number_with_modifier(lexer, 2),
-        LiteralIntegerOct => parse_literal_number_with_modifier(lexer, 8),
-        LiteralIntegerHex => parse_literal_number_with_modifier(lexer, 16),
-        LiteralDate => parse_literal_date(lexer),
-        LiteralTimeOfDay => parse_literal_time_of_day(lexer),
-        LiteralTime => parse_literal_time(lexer),
-        LiteralDateAndTime => parse_literal_date_and_time(lexer),
-        LiteralString => parse_literal_string(lexer, false),
-        LiteralWideString => parse_literal_string(lexer, true),
-        LiteralTrue => parse_bool_literal(lexer, true),
-        LiteralFalse => parse_bool_literal(lexer, false),
-        LiteralNull => parse_null_literal(lexer),
-        KeywordSquareParensOpen => parse_array_literal(lexer),
-        _ => Err(Diagnostic::unexpected_token_found(
-            "Literal",
-            lexer.slice(),
-            lexer.location(),
-        )),
+    //see if there's a cast
+    let literal_cast = if lexer.token == TypeCastPrefix {
+        let location = lexer.location();
+        let mut a = lexer.slice_and_advance();
+        a.pop(); //drop last char '#' - the lexer made sure it ends with a '#'
+        Some((a, location))
+    } else {
+        None
     };
+
+    let literal_parse_result = if lexer.allow(&OperatorMinus) {
+        //so we've seen a Minus '-', this has to be a number
+        match lexer.token {
+            LiteralInteger => parse_literal_number(lexer, true),
+            LiteralIntegerBin => parse_literal_number_with_modifier(lexer, 2, true),
+            LiteralIntegerOct => parse_literal_number_with_modifier(lexer, 8, true),
+            LiteralIntegerHex => parse_literal_number_with_modifier(lexer, 16, true),
+            _ => Err(Diagnostic::unexpected_token_found(
+                "Numeric Literal",
+                lexer.slice(),
+                lexer.location(),
+            )),
+        }
+    } else {
+        // no minus ... so this may be anything
+        match lexer.token {
+            Identifier => parse_qualified_reference(lexer),
+            LiteralInteger => parse_literal_number(lexer, false),
+            LiteralIntegerBin => parse_literal_number_with_modifier(lexer, 2, false),
+            LiteralIntegerOct => parse_literal_number_with_modifier(lexer, 8, false),
+            LiteralIntegerHex => parse_literal_number_with_modifier(lexer, 16, false),
+            LiteralDate => parse_literal_date(lexer),
+            LiteralTimeOfDay => parse_literal_time_of_day(lexer),
+            LiteralTime => parse_literal_time(lexer),
+            LiteralDateAndTime => parse_literal_date_and_time(lexer),
+            LiteralString => parse_literal_string(lexer, false),
+            LiteralWideString => parse_literal_string(lexer, true),
+            LiteralTrue => parse_bool_literal(lexer, true),
+            LiteralFalse => parse_bool_literal(lexer, false),
+            LiteralNull => parse_null_literal(lexer),
+            KeywordSquareParensOpen => parse_array_literal(lexer),
+            _ => Err(Diagnostic::unexpected_token_found(
+                "Literal",
+                lexer.slice(),
+                lexer.location(),
+            )),
+        }
+    };
+    let literal_parse_result = literal_parse_result.and_then(|statement| {
+        if let Some((cast, location)) = literal_cast {
+            //check if there is something between the literal-type and the literal itself
+            if location.get_end() != statement.get_location().get_start() {
+                return Err(Diagnostic::syntax_error("Incomplete statement", location));
+            }
+
+            Ok(AstStatement::CastStatement {
+                id: lexer.next_id(),
+                location: (location.get_start()..statement.get_location().get_end()).into(),
+                target: Box::new(statement),
+                type_name: cast,
+            })
+        } else {
+            Ok(statement)
+        }
+    });
 
     match literal_parse_result {
         Ok(statement) => {
@@ -414,6 +457,7 @@ fn parse_access_modifiers(
 fn parse_literal_number_with_modifier(
     lexer: &mut ParseSession,
     radix: u32,
+    is_negative: bool,
 ) -> Result<AstStatement, Diagnostic> {
     // we can safely unwrap the number string, since the token has
     // been matched using regular expressions
@@ -423,8 +467,9 @@ fn parse_literal_number_with_modifier(
     let number_str = number_str.replace("_", "");
 
     // again, the parsed number can be safely unwrapped.
-    let value = i64::from_str_radix(number_str.as_str(), radix).unwrap();
 
+    let value = i64::from_str_radix(number_str.as_str(), radix).unwrap();
+    let value = if is_negative { -value } else { value };
     Ok(AstStatement::LiteralInteger {
         value,
         location,
@@ -433,11 +478,27 @@ fn parse_literal_number_with_modifier(
     })
 }
 
-fn parse_literal_number(lexer: &mut ParseSession) -> Result<AstStatement, Diagnostic> {
-    let location = lexer.location();
+fn parse_literal_number(
+    lexer: &mut ParseSession,
+    is_negative: bool,
+) -> Result<AstStatement, Diagnostic> {
+    //correct the location if we just parsed a minus before
+    let location = if is_negative {
+        (lexer.last_range.start..lexer.location().get_end()).into()
+    } else {
+        lexer.location()
+    };
     let result = lexer.slice_and_advance();
-    if lexer.allow(&KeywordDot) {
-        return parse_literal_real(lexer, result, location);
+    if result.to_lowercase().contains('e') {
+        let result = result.replace('_', "");
+        //Treat exponents as reals
+        return Ok(AstStatement::LiteralReal {
+            value: result,
+            location,
+            id: lexer.next_id(),
+        });
+    } else if lexer.allow(&KeywordDot) {
+        return parse_literal_real(lexer, result, location, is_negative);
     } else if lexer.allow(&KeywordParensOpen) {
         let multiplier = result
             .parse::<u32>()
@@ -456,8 +517,12 @@ fn parse_literal_number(lexer: &mut ParseSession) -> Result<AstStatement, Diagno
 
     // parsed number value can be safely unwrapped
     let result = result.replace("_", "");
+
+    let value = result.parse::<i64>().unwrap();
+    let value = if is_negative { -value } else { value };
+
     Ok(AstStatement::LiteralInteger {
-        value: result.parse::<i64>().unwrap(),
+        value,
         location,
         id: lexer.next_id(),
     })
@@ -700,24 +765,29 @@ fn parse_literal_real(
     lexer: &mut ParseSession,
     integer: String,
     integer_range: SourceRange,
+    is_negative: bool,
 ) -> Result<AstStatement, Diagnostic> {
-    lexer.expect(LiteralInteger)?;
-    let start = integer_range.get_start();
-    let fraction_end = lexer.range().end;
-    let fractional = lexer.slice_and_advance();
-
-    let (exponent, end) = if lexer.token == LiteralExponent {
-        //this spans everything, [integer].[integer]
-        (lexer.slice_and_advance(), lexer.range().end)
+    if lexer.token == LiteralInteger {
+        let start = integer_range.get_start();
+        let end = lexer.range().end;
+        let fractional = lexer.slice_and_advance();
+        let result = format!(
+            "{}{}.{}",
+            if is_negative { "-" } else { "" },
+            integer,
+            fractional
+        );
+        let new_location = SourceRange::new(start..end);
+        Ok(AstStatement::LiteralReal {
+            value: result,
+            location: new_location,
+            id: lexer.next_id(),
+        })
     } else {
-        ("".to_string(), fraction_end)
-    };
-
-    let result = format!("{}.{}{}", integer, fractional, exponent);
-    let new_location = SourceRange::new(start..end);
-    Ok(AstStatement::LiteralReal {
-        value: result,
-        location: new_location,
-        id: lexer.next_id(),
-    })
+        Err(Diagnostic::unexpected_token_found(
+            "LiteralInteger or LiteralExponent",
+            lexer.slice(),
+            lexer.location(),
+        ))
+    }
 }

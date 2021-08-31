@@ -1,6 +1,7 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-use crate::ast::{AstStatement, Operator};
+use crate::ast::{AstStatement, Operator, SourceRange};
 use crate::parser::parse;
+use crate::parser::tests::ref_to;
 use pretty_assertions::*;
 
 #[test]
@@ -992,6 +993,200 @@ fn literal_real_test() {
         value: LiteralReal {
             value: "1.5",
         },
+    },
+]"#;
+    assert_eq!(ast_string, expected_ast);
+}
+
+fn literal_int_cast(data_type: &str, value: i64) -> AstStatement {
+    AstStatement::CastStatement {
+        id: 0,
+        location: SourceRange::undefined(),
+        target: Box::new(AstStatement::LiteralInteger {
+            id: 0,
+            location: (0..0).into(),
+            value,
+        }),
+        type_name: data_type.to_string(),
+    }
+}
+
+#[test]
+fn literal_enum_parse_test() {
+    let lexer = super::lex(
+        r#"
+        PROGRAM exp 
+            MyEnum#Val1;
+            MyEnum#Val2;
+            MyEnum#Val3;
+        END_PROGRAM
+        "#,
+    );
+    let result = parse(lexer).0;
+
+    let prg = &result.implementations[0];
+    let statement = &prg.statements;
+
+    let ast_string = format!("{:#?}", statement);
+    assert_eq!(
+        ast_string,
+        format!(
+            "{:#?}",
+            vec![
+                AstStatement::CastStatement {
+                    id: 0,
+                    location: (0..0).into(),
+                    type_name: "MyEnum".into(),
+                    target: Box::new(ref_to("Val1"))
+                },
+                AstStatement::CastStatement {
+                    id: 0,
+                    location: (0..0).into(),
+                    type_name: "MyEnum".into(),
+                    target: Box::new(ref_to("Val2"))
+                },
+                AstStatement::CastStatement {
+                    id: 0,
+                    location: (0..0).into(),
+                    type_name: "MyEnum".into(),
+                    target: Box::new(ref_to("Val3"))
+                }
+            ]
+        )
+    );
+}
+
+#[test]
+fn literal_cast_parse_test() {
+    let lexer = super::lex(
+        r#"
+        PROGRAM exp 
+            SINT#100;
+            DINT#16#AFFE;
+            BYTE#8#77;
+            WORD#2#1010;
+            INT#100;
+            DINT#-100;
+            REAL#-3.1415;
+            BOOL#1;
+            BOOL#FALSE;
+            STRING#"abc";
+            WSTRING#'xyz';
+        END_PROGRAM
+        "#,
+    );
+    let result = parse(lexer).0;
+
+    let prg = &result.implementations[0];
+    let statement = &prg.statements;
+
+    let ast_string = format!("{:#?}", statement);
+    assert_eq!(
+        ast_string,
+        format!(
+            "{:#?}",
+            vec![
+                literal_int_cast("SINT", 100),
+                literal_int_cast("DINT", 45054),
+                literal_int_cast("BYTE", 63),
+                literal_int_cast("WORD", 10),
+                literal_int_cast("INT", 100),
+                literal_int_cast("DINT", -100),
+                AstStatement::CastStatement {
+                    id: 0,
+                    location: (0..0).into(),
+                    type_name: "REAL".into(),
+                    target: Box::new(AstStatement::LiteralReal {
+                        id: 0,
+                        location: (0..0).into(),
+                        value: "-3.1415".to_string()
+                    })
+                },
+                AstStatement::CastStatement {
+                    id: 0,
+                    location: (0..0).into(),
+                    type_name: "BOOL".into(),
+                    target: Box::new(AstStatement::LiteralInteger {
+                        id: 0,
+                        location: (0..0).into(),
+                        value: 1,
+                    })
+                },
+                AstStatement::CastStatement {
+                    id: 0,
+                    location: (0..0).into(),
+                    type_name: "BOOL".into(),
+                    target: Box::new(AstStatement::LiteralBool {
+                        id: 0,
+                        location: (0..0).into(),
+                        value: false
+                    })
+                },
+                AstStatement::CastStatement {
+                    id: 0,
+                    location: (0..0).into(),
+                    type_name: "STRING".into(),
+                    target: Box::new(AstStatement::LiteralString {
+                        id: 0,
+                        location: (0..0).into(),
+                        value: "abc".to_string(),
+                        is_wide: true,
+                    })
+                },
+                AstStatement::CastStatement {
+                    id: 0,
+                    location: (0..0).into(),
+                    type_name: "WSTRING".into(),
+                    target: Box::new(AstStatement::LiteralString {
+                        id: 0,
+                        location: (0..0).into(),
+                        value: "xyz".to_string(),
+                        is_wide: false,
+                    })
+                },
+            ]
+        )
+    );
+}
+
+#[test]
+fn literal_exponents_test() {
+    let lexer = super::lex(
+        "
+        PROGRAM exp 
+        1_2e3;
+        12e3;
+        12.0e3;
+        12e-4;
+        1_2e-4;
+        12.0e-4;
+        END_PROGRAM
+        ",
+    );
+    let result = parse(lexer).0;
+
+    let prg = &result.implementations[0];
+    let statement = &prg.statements;
+
+    let ast_string = format!("{:#?}", statement);
+    let expected_ast = r#"[
+    LiteralReal {
+        value: "12e3",
+    },
+    LiteralReal {
+        value: "12e3",
+    },
+    LiteralReal {
+        value: "12.0e3",
+    },
+    LiteralReal {
+        value: "12e-4",
+    },
+    LiteralReal {
+        value: "12e-4",
+    },
+    LiteralReal {
+        value: "12.0e-4",
     },
 ]"#;
     assert_eq!(ast_string, expected_ast);

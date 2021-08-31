@@ -9,6 +9,7 @@ use crate::{
     Diagnostic,
 };
 
+mod literals_validation_tests;
 mod reference_resolve_tests;
 
 pub fn parse_and_validate(src: &str) -> Vec<Diagnostic> {
@@ -20,6 +21,6 @@ pub fn parse_and_validate(src: &str) -> Vec<Diagnostic> {
     let annotations = TypeAnnotator::visit_unit(&idx, &ast);
 
     let mut validator = Validator::new();
-    validator.visit_unit(&annotations, &ast);
+    validator.visit_unit(&annotations, &idx, &ast);
     validator.diagnostics()
 }
