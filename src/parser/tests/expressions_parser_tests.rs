@@ -1,7 +1,7 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-use crate::ast::{AstStatement, Operator, SourceRange};
+use crate::ast::{AstStatement, DirectAccess, Operator, SourceRange};
 use crate::parser::parse;
-use crate::parser::tests::ref_to;
+use crate::parser::tests::{literal_int, ref_to};
 use pretty_assertions::*;
 
 #[test]
@@ -49,6 +49,91 @@ fn qualified_reference_statement_parsed() {
     } else {
         panic!("Expected Reference but found {:?}", statement);
     }
+}
+#[test]
+fn bitwise_access_parsed() {
+    let lexer = super::lex(
+        "PROGRAM exp 
+    a.0; 
+    a.%X1; 
+    a.%B1; 
+    a[0].%W1; 
+    a.b.%D1; 
+    END_PROGRAM",
+    );
+    let result = parse(lexer).0;
+
+    let prg = &result.implementations[0];
+    let statement = &prg.statements;
+    let expected = vec![
+        AstStatement::QualifiedReference {
+            elements: vec![
+                ref_to("a"),
+                AstStatement::DirectAccess {
+                    access: DirectAccess::Bit,
+                    index: 0,
+                    location: SourceRange::undefined(),
+                    id: 0,
+                },
+            ],
+            id: 0,
+        },
+        AstStatement::QualifiedReference {
+            elements: vec![
+                ref_to("a"),
+                AstStatement::DirectAccess {
+                    access: DirectAccess::Bit,
+                    index: 1,
+                    location: SourceRange::undefined(),
+                    id: 0,
+                },
+            ],
+            id: 0,
+        },
+        AstStatement::QualifiedReference {
+            elements: vec![
+                ref_to("a"),
+                AstStatement::DirectAccess {
+                    access: DirectAccess::Byte,
+                    index: 1,
+                    location: SourceRange::undefined(),
+                    id: 0,
+                },
+            ],
+            id: 0,
+        },
+        AstStatement::QualifiedReference {
+            elements: vec![
+                AstStatement::ArrayAccess {
+                    access: Box::new(literal_int(0)),
+                    reference: Box::new(ref_to("a")),
+                    id: 0,
+                },
+                AstStatement::DirectAccess {
+                    access: DirectAccess::Word,
+                    index: 1,
+                    location: SourceRange::undefined(),
+                    id: 0,
+                },
+            ],
+            id: 0,
+        },
+        AstStatement::QualifiedReference {
+            elements: vec![
+                ref_to("a"),
+                ref_to("b"),
+                AstStatement::DirectAccess {
+                    access: DirectAccess::DWord,
+                    index: 1,
+                    location: SourceRange::undefined(),
+                    id: 0,
+                },
+            ],
+            id: 0,
+        },
+    ];
+
+    assert_eq!(format!("{:?}", expected), format!("{:?}", statement));
 }
 
 #[test]

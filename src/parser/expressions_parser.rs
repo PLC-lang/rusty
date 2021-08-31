@@ -381,7 +381,37 @@ pub fn parse_qualified_reference(lexer: &mut ParseSession) -> Result<AstStatemen
     let start = lexer.range().start;
     let mut reference_elements = vec![parse_reference_access(lexer)?];
     while lexer.allow(&KeywordDot) {
-        reference_elements.push(parse_reference_access(lexer)?);
+        let segment = match lexer.token {
+            //Is this an integer?
+            LiteralInteger => {
+                let number = parse_literal_number(lexer, false)?;
+                if let AstStatement::LiteralInteger {
+                    value,
+                    location,
+                    id,
+                } = number
+                {
+                    Ok(AstStatement::DirectAccess {
+                        access: crate::ast::DirectAccess::Bit,
+                        index: value as u32,
+                        location,
+                        id,
+                    })
+                } else {
+                    Err(Diagnostic::unexpected_token_found(
+                        "Integer",
+                        format!("{:?}", number).as_str(),
+                        number.get_location(),
+                    ))
+                }
+            }
+            //Is this a direct access?
+            DirectAccess => parse_direct_access(lexer),
+            _ => parse_reference_access(lexer),
+        }?;
+
+        //Is this a direct access?
+        reference_elements.push(segment);
     }
 
     let reference = if reference_elements.len() == 1 {
@@ -418,6 +448,46 @@ pub fn parse_qualified_reference(lexer: &mut ParseSession) -> Result<AstStatemen
     }
 }
 
+fn parse_direct_access(lexer: &mut ParseSession) -> Result<AstStatement, Diagnostic> {
+    let slice = lexer.slice_and_advance();
+    //Percent is at position 0
+    //Find the size from position 1
+    let access = slice
+        .chars()
+        .nth(1)
+        .and_then(|c| {
+            match c.to_ascii_lowercase() {
+                'x' => Some(crate::ast::DirectAccess::Bit),
+                'b' => Some(crate::ast::DirectAccess::Byte),
+                'w' => Some(crate::ast::DirectAccess::Word),
+                'd' => Some(crate::ast::DirectAccess::DWord),
+                _ => {
+                    //Report error
+                    None
+                }
+            }
+        })
+        .ok_or_else(|| {
+            Diagnostic::unexpected_token_found(
+                "Bitwise access in form of %X|B|W|D0",
+                &slice,
+                lexer.last_location(),
+            )
+        })?; //Report error
+
+    let (_, index) = slice.split_at(2);
+    let index = index
+        .parse::<u32>()
+        .map_err(|e| Diagnostic::syntax_error(format!("{}", e).as_str(), lexer.last_location()))?;
+
+    Ok(AstStatement::DirectAccess {
+        access,
+        index,
+        location: lexer.last_location(),
+        id: lexer.next_id(),
+    })
+}
+
 pub fn parse_reference_access(lexer: &mut ParseSession) -> Result<AstStatement, Diagnostic> {
     let location = lexer.location();
     let reference = AstStatement::Reference {
@@ -437,8 +507,7 @@ fn parse_access_modifiers(
     while lexer.token == KeywordSquareParensOpen || lexer.token == OperatorDeref {
         if lexer.allow(&KeywordSquareParensOpen) {
             let access = parse_expression(lexer);
-            lexer.expect(KeywordSquareParensClose)?;
-            lexer.advance();
+            lexer.consume_or_report(KeywordSquareParensClose);
             reference = AstStatement::ArrayAccess {
                 reference: Box::new(reference),
                 access: Box::new(access),

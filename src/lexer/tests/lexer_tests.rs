@@ -629,7 +629,6 @@ fn direct_access_test() {
     assert_eq!(lexer.token, DirectAccess);
     lexer.advance();
     assert_eq!(lexer.token, End);
-
 }
 
 #[test]

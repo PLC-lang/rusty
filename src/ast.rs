@@ -39,6 +39,14 @@ pub enum PolymorphismMode {
     Final,
 }
 
+#[derive(Clone, Debug, PartialEq)]
+pub enum DirectAccess {
+    Bit,
+    Byte,
+    Word,
+    DWord,
+}
+
 impl Debug for Pou {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
         f.debug_struct("POU")
@@ -576,6 +584,12 @@ pub enum AstStatement {
         reference: Box<AstStatement>,
         id: AstId,
     },
+    DirectAccess {
+        access: DirectAccess,
+        index: u32,
+        location: SourceRange,
+        id: AstId,
+    },
     BinaryExpression {
         operator: Operator,
         left: Box<AstStatement>,
@@ -869,6 +883,11 @@ impl Debug for AstStatement {
                 .debug_struct("PointerAccess")
                 .field("reference", reference)
                 .finish(),
+            AstStatement::DirectAccess { access, index, .. } => f
+                .debug_struct("DirectAccess")
+                .field("access", access)
+                .field("index", index)
+                .finish(),
             AstStatement::MultipliedStatement {
                 multiplier,
                 element,
@@ -972,6 +991,7 @@ impl AstStatement {
                 SourceRange::new(reference_loc.range.start..access_loc.range.end)
             }
             AstStatement::PointerAccess { reference, .. } => reference.get_location(),
+            AstStatement::DirectAccess { location, .. } => location.clone(),
             AstStatement::MultipliedStatement { location, .. } => location.clone(),
             AstStatement::CaseCondition { condition, .. } => condition.get_location(),
             AstStatement::ReturnStatement { location, .. } => location.clone(),
@@ -999,6 +1019,7 @@ impl AstStatement {
             AstStatement::Reference { id, .. } => *id,
             AstStatement::ArrayAccess { id, .. } => *id,
             AstStatement::PointerAccess { id, .. } => *id,
+            AstStatement::DirectAccess { id, .. } => *id,
             AstStatement::BinaryExpression { id, .. } => *id,
             AstStatement::UnaryExpression { id, .. } => *id,
             AstStatement::ExpressionList { id, .. } => *id,
