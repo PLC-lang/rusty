@@ -1,15 +1,15 @@
-use crate::ast::UserTypeDeclaration;
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
+
 use std::vec;
 
 use super::{
-    super::ast::{CompilationUnit, DataType, DataTypeDeclaration, Variable},
-    SourceRange,
+    super::ast::{CompilationUnit, DataType, DataTypeDeclaration, UserTypeDeclaration, Variable},
+    Pou, SourceRange,
 };
 
 pub fn pre_process(unit: &mut CompilationUnit) {
     //process all local variables from POUs
-    for pou in unit.units.iter_mut() {
+    for mut pou in unit.units.iter_mut() {
         let all_variables = pou
             .variable_blocks
             .iter_mut()
@@ -19,6 +19,9 @@ pub fn pre_process(unit: &mut CompilationUnit) {
         for var in all_variables {
             pre_process_variable_data_type(pou.name.as_str(), var, &mut unit.types)
         }
+
+        //Generate implicit type for returns
+        preprocess_return_type(&mut pou, &mut unit.types);
     }
 
     //process all variables from GVLs
@@ -51,8 +54,35 @@ pub fn pre_process(unit: &mut CompilationUnit) {
     unit.types.append(&mut new_types);
 }
 
-fn should_generate_implicit_type(variable: &Variable) -> bool {
-    match variable.data_type {
+fn preprocess_return_type(pou: &mut Pou, types: &mut Vec<UserTypeDeclaration>) {
+    if let Some(return_type) = &pou.return_type {
+        if should_generate_implicit(return_type) {
+            let type_name = format!("__{}_return", &pou.name);
+            let type_ref = DataTypeDeclaration::DataTypeReference {
+                referenced_type: type_name.clone(),
+                location: return_type.get_location(),
+            };
+            let datatype = std::mem::replace(&mut pou.return_type, Some(type_ref));
+            if let Some(DataTypeDeclaration::DataTypeDefinition {
+                mut data_type,
+                location,
+            }) = datatype
+            {
+                data_type.set_name(type_name);
+                add_nested_datatypes(pou.name.as_str(), &mut data_type, types, &location);
+                let data_type = UserTypeDeclaration {
+                    data_type,
+                    initializer: None,
+                    location,
+                };
+                types.push(data_type);
+            }
+        }
+    }
+}
+
+fn should_generate_implicit(datatype: &DataTypeDeclaration) -> bool {
+    match datatype {
         DataTypeDeclaration::DataTypeReference { .. } => false,
         DataTypeDeclaration::DataTypeDefinition {
             data_type: DataType::VarArgs { .. },
@@ -60,6 +90,10 @@ fn should_generate_implicit_type(variable: &Variable) -> bool {
         } => false,
         DataTypeDeclaration::DataTypeDefinition { .. } => true,
     }
+}
+
+fn should_generate_implicit_type(variable: &Variable) -> bool {
+    should_generate_implicit(&variable.data_type)
 }
 
 fn pre_process_variable_data_type(

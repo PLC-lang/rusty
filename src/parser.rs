@@ -255,19 +255,20 @@ fn parse_polymorphism_mode(
 fn parse_return_type(lexer: &mut ParseSession, pou_type: &PouType) -> Option<DataTypeDeclaration> {
     let start_return_type = lexer.range().start;
     if lexer.allow(&KeywordColon) {
-        if lexer.token == Identifier || lexer.token == KeywordString {
+        if let Some((declaration, initializer)) = parse_data_type_definition(lexer, None) {
+            if let Some(init) = initializer {
+                lexer.accept_diagnostic(Diagnostic::unexpected_initializer_on_function_return(
+                    init.get_location(),
+                ));
+            }
+
             if !matches!(pou_type, PouType::Function | PouType::Method { .. }) {
                 lexer.accept_diagnostic(Diagnostic::return_type_not_supported(
                     pou_type,
-                    SourceRange::new(start_return_type..lexer.range().end),
+                    SourceRange::new(start_return_type..lexer.last_range.end),
                 ));
             }
-            let location = lexer.location();
-            let referenced_type = lexer.slice_and_advance();
-            Some(DataTypeDeclaration::DataTypeReference {
-                referenced_type,
-                location,
-            })
+            Some(declaration)
         } else {
             //missing return type
             lexer.accept_diagnostic(Diagnostic::unexpected_token_found(
