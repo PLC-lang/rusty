@@ -2500,3 +2500,47 @@ fn sized_string_as_function_return() {
     assert_eq!(format!("{:?}", ast.units[0]), format!("{:?}", expected));
     assert_eq!(diagnostics.is_empty(), true);
 }
+
+#[test]
+fn array_type_as_function_return() {
+    let (ast, diagnostics) = parse(super::lex(
+        r"
+    FUNCTION foo : ARRAY[0..10] OF INT
+    END_FUNCTION
+    ",
+    ));
+
+    let expected = Pou {
+        name: "foo".into(),
+        poly_mode: None,
+        pou_type: crate::ast::PouType::Function,
+        return_type: Some(DataTypeDeclaration::DataTypeDefinition {
+            data_type: DataType::ArrayType {
+                referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
+                    referenced_type: "INT".into(),
+                    location: SourceRange::undefined(),
+                }),
+                bounds: AstStatement::RangeStatement {
+                    start: Box::new(AstStatement::LiteralInteger {
+                        id: 0,
+                        location: SourceRange::undefined(),
+                        value: 0,
+                    }),
+                    end: Box::new(AstStatement::LiteralInteger {
+                        id: 0,
+                        location: SourceRange::undefined(),
+                        value: 10,
+                    }),
+                    id: 0,
+                },
+                name: None,
+            },
+            location: SourceRange::undefined(),
+        }),
+        variable_blocks: vec![],
+        location: SourceRange::undefined(),
+    };
+
+    assert_eq!(format!("{:?}", ast.units[0]), format!("{:?}", expected));
+    assert_eq!(diagnostics.is_empty(), true);
+}

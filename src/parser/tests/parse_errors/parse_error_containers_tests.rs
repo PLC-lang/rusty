@@ -175,6 +175,33 @@ fn function_with_illegal_return_variable_declaration() {
 }
 
 #[test]
+fn function_return_type_with_initializer() {
+    let lexer = lex(r"
+            FUNCTION foo : INT := 3
+            VAR END_VAR
+            a;
+            END_FUNCTION
+            ");
+
+    let (compilation_unit, diagnostics) = parse(lexer);
+    //expected end of statement (e.g. ;), but found KeywordEndProgram at line: 1 offset: 14..25"
+    //Expecting a missing semicolon message
+    let expected = Diagnostic::unexpected_initializer_on_function_return(SourceRange::new(35..36));
+    assert_eq!(diagnostics[0], expected);
+
+    //check if a was parsed successfully
+    let pou = &compilation_unit.implementations[0];
+    assert_eq!(
+        format!("{:#?}", pou.statements),
+        r#"[
+    Reference {
+        name: "a",
+    },
+]"#
+    );
+}
+
+#[test]
 fn program_with_illegal_return_variable_declaration() {
     let lexer = lex(r"
                 PROGRAM foo : INT

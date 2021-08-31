@@ -255,8 +255,13 @@ fn parse_polymorphism_mode(
 fn parse_return_type(lexer: &mut ParseSession, pou_type: &PouType) -> Option<DataTypeDeclaration> {
     let start_return_type = lexer.range().start;
     if lexer.allow(&KeywordColon) {
-        if let Some((declaration, _)) = parse_data_type_definition(lexer, None) {
-            //TODO : does an initializer make sense here? (default return)
+        if let Some((declaration, initializer)) = parse_data_type_definition(lexer, None) {
+            if let Some(init) = initializer {
+                lexer.accept_diagnostic(Diagnostic::unexpected_initializer_on_function_return(
+                    init.get_location(),
+                ));
+            }
+
             if !matches!(pou_type, PouType::Function | PouType::Method { .. }) {
                 lexer.accept_diagnostic(Diagnostic::return_type_not_supported(
                     pou_type,
