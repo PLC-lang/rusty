@@ -489,7 +489,15 @@ fn parse_literal_number(
         lexer.location()
     };
     let result = lexer.slice_and_advance();
-    if lexer.allow(&KeywordDot) {
+    if result.to_lowercase().contains('e') {
+        let result = result.replace('_', "");
+        //Treat exponents as reals
+        return Ok(AstStatement::LiteralReal {
+            value: result,
+            location,
+            id: lexer.next_id(),
+        });
+    } else if lexer.allow(&KeywordDot) {
         return parse_literal_real(lexer, result, location, is_negative);
     } else if lexer.allow(&KeywordParensOpen) {
         let multiplier = result
@@ -759,29 +767,27 @@ fn parse_literal_real(
     integer_range: SourceRange,
     is_negative: bool,
 ) -> Result<AstStatement, Diagnostic> {
-    lexer.expect(LiteralInteger)?;
-    let start = integer_range.get_start();
-    let fraction_end = lexer.range().end;
-    let fractional = lexer.slice_and_advance();
-
-    let (exponent, end) = if lexer.token == LiteralExponent {
-        //this spans everything, [integer].[integer]
-        (lexer.slice_and_advance(), lexer.range().end)
+    if lexer.token == LiteralInteger {
+        let start = integer_range.get_start();
+        let end = lexer.range().end;
+        let fractional = lexer.slice_and_advance();
+        let result = format!(
+            "{}{}.{}",
+            if is_negative { "-" } else { "" },
+            integer,
+            fractional
+        );
+        let new_location = SourceRange::new(start..end);
+        Ok(AstStatement::LiteralReal {
+            value: result,
+            location: new_location,
+            id: lexer.next_id(),
+        })
     } else {
-        ("".to_string(), fraction_end)
-    };
-
-    let result = format!(
-        "{}{}.{}{}",
-        if is_negative { "-" } else { "" },
-        integer,
-        fractional,
-        exponent
-    );
-    let new_location = SourceRange::new(start..end);
-    Ok(AstStatement::LiteralReal {
-        value: result,
-        location: new_location,
-        id: lexer.next_id(),
-    })
+        Err(Diagnostic::unexpected_token_found(
+            "LiteralInteger or LiteralExponent",
+            lexer.slice(),
+            lexer.location(),
+        ))
+    }
 }

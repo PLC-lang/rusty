@@ -238,13 +238,28 @@ fn boolean_expression_test() {
 
 #[test]
 fn int_literals_test() {
-    let mut lexer = lex("1 2 3 0123 321");
+    let mut lexer = lex("1 2 3 0123 321 43_000 43__000 12_00E5 12e5");
 
-    for x in 0..5 {
-        print!("{}", x);
-        assert_eq!(lexer.token, LiteralInteger);
-        lexer.advance();
-    }
+    assert_eq!(lexer.token, LiteralInteger);
+    assert_eq!(lexer.slice_and_advance(), "1");
+    assert_eq!(lexer.token, LiteralInteger);
+    assert_eq!(lexer.slice_and_advance(), "2");
+    assert_eq!(lexer.token, LiteralInteger);
+    assert_eq!(lexer.slice_and_advance(), "3");
+    assert_eq!(lexer.token, LiteralInteger);
+    assert_eq!(lexer.slice_and_advance(), "0123");
+    assert_eq!(lexer.token, LiteralInteger);
+    assert_eq!(lexer.slice_and_advance(), "321");
+    assert_eq!(lexer.token, LiteralInteger);
+    assert_eq!(lexer.slice_and_advance(), "43_000");
+    assert_eq!(lexer.token, LiteralInteger);
+    assert_eq!(lexer.slice_and_advance(), "43");
+    assert_eq!(lexer.token, Identifier);
+    assert_eq!(lexer.slice_and_advance(), "__000");
+    assert_eq!(lexer.token, LiteralInteger);
+    assert_eq!(lexer.slice_and_advance(), "12_00E5");
+    assert_eq!(lexer.token, LiteralInteger);
+    assert_eq!(lexer.slice_and_advance(), "12e5");
 }
 
 #[test]
@@ -262,8 +277,6 @@ fn real_literals_test() {
     assert_eq!(lexer.token, KeywordDot);
     lexer.advance();
     assert_eq!(lexer.token, LiteralInteger);
-    lexer.advance();
-    assert_eq!(lexer.token, LiteralExponent);
     lexer.advance();
 }
 

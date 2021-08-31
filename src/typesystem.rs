@@ -29,9 +29,13 @@ pub const UDINT_TYPE: &str = "UDINT";
 pub const LWORD_TYPE: &str = "LWORD";
 pub const LINT_TYPE: &str = "LINT";
 pub const DATE_TYPE: &str = "DATE";
+pub const SHORT_DATE_TYPE: &str = "D";
 pub const TIME_TYPE: &str = "TIME";
+pub const SHORT_TIME_TYPE: &str = "T";
 pub const DATE_AND_TIME_TYPE: &str = "DATE_AND_TIME";
+pub const SHORT_DATE_AND_TIME_TYPE: &str = "DT";
 pub const TIME_OF_DAY_TYPE: &str = "TIME_OF_DAY";
+pub const SHORT_TIME_OF_DAY_TYPE: &str = "TOD";
 pub const ULINT_TYPE: &str = "ULINT";
 pub const REAL_TYPE: &str = "REAL";
 pub const LREAL_TYPE: &str = "LREAL";
@@ -402,6 +406,38 @@ pub fn get_builtin_types() -> Vec<DataType> {
             information: DataTypeInformation::String {
                 size: DEFAULT_STRING_LEN + 1,
                 encoding: StringEncoding::Utf16,
+            },
+        },
+        DataType {
+            name: SHORT_DATE_AND_TIME_TYPE.into(),
+            initial_value: None,
+            information: DataTypeInformation::Alias {
+                name: SHORT_DATE_AND_TIME_TYPE.into(),
+                referenced_type: DATE_AND_TIME_TYPE.into(),
+            },
+        },
+        DataType {
+            name: SHORT_DATE_TYPE.into(),
+            initial_value: None,
+            information: DataTypeInformation::Alias {
+                name: SHORT_DATE_TYPE.into(),
+                referenced_type: DATE_TYPE.into(),
+            },
+        },
+        DataType {
+            name: SHORT_TIME_OF_DAY_TYPE.into(),
+            initial_value: None,
+            information: DataTypeInformation::Alias {
+                name: SHORT_TIME_OF_DAY_TYPE.into(),
+                referenced_type: TIME_OF_DAY_TYPE.into(),
+            },
+        },
+        DataType {
+            name: SHORT_TIME_TYPE.into(),
+            initial_value: None,
+            information: DataTypeInformation::Alias {
+                name: SHORT_TIME_TYPE.into(),
+                referenced_type: TIME_TYPE.into(),
             },
         },
     ]

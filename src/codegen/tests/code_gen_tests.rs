@@ -472,6 +472,8 @@ VAR
 y : REAL;
 END_VAR
 y := 0.15625;
+y := 0.1e3;
+y := 1e3;
 END_PROGRAM
 "#
     );
@@ -482,6 +484,8 @@ END_PROGRAM
         "",
         "",
         r#"store float 1.562500e-01, float* %y, align 4
+  store float 1.000000e+02, float* %y, align 4
+  store float 1.000000e+03, float* %y, align 4
   ret void
 "#,
     );
@@ -522,9 +526,15 @@ fn program_with_date_assignment() {
     let result = codegen!(
         r#"PROGRAM prg
 VAR
+w : TIME_OF_DAY;
+x : TIME;
 y : DATE;
 z : DATE_AND_TIME;
 END_VAR
+w := TIME_OF_DAY#15:36:30.123;
+w := TOD#15:36:30.123;
+x := TIME#100s12ms;
+x := T#100s12ms;
 y := DATE#1984-10-01;
 y := D#1970-01-01;
 z := DATE_AND_TIME#1984-10-01-20:15:14;
@@ -537,14 +547,72 @@ END_PROGRAM
     let expected = r#"; ModuleID = 'main'
 source_filename = "main"
 
-%prg_interface = type { i64, i64 }
+%prg_interface = type { i64, i64, i64, i64 }
 
 @prg_instance = global %prg_interface zeroinitializer
 
 define void @prg(%prg_interface* %0) {
 entry:
-  %y = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 0
-  %z = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 1
+  %w = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 0
+  %x = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 1
+  %y = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 2
+  %z = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 3
+  store i64 56190123, i64* %w, align 4
+  store i64 56190123, i64* %w, align 4
+  store i64 100012000000, i64* %x, align 4
+  store i64 100012000000, i64* %x, align 4
+  store i64 465436800000, i64* %y, align 4
+  store i64 0, i64* %y, align 4
+  store i64 465509714000, i64* %z, align 4
+  store i64 58804123, i64* %z, align 4
+  store i64 58804123, i64* %z, align 4
+  ret void
+}
+"#;
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn program_with_date_assignment_whit_short_datatype_names() {
+    let result = codegen!(
+        r#"PROGRAM prg
+VAR
+w : TOD;
+x : T;
+y : D;
+z : DT;
+END_VAR
+w := TIME_OF_DAY#15:36:30.123;
+w := TOD#15:36:30.123;
+x := TIME#100s12ms;
+x := T#100s12ms;
+y := DATE#1984-10-01;
+y := D#1970-01-01;
+z := DATE_AND_TIME#1984-10-01-20:15:14;
+z := DT#1970-01-01-16:20:04.123;
+z := DT#1970-01-01-16:20:04.123456789;
+END_PROGRAM
+"#
+    );
+
+    let expected = r#"; ModuleID = 'main'
+source_filename = "main"
+
+%prg_interface = type { i64, i64, i64, i64 }
+
+@prg_instance = global %prg_interface zeroinitializer
+
+define void @prg(%prg_interface* %0) {
+entry:
+  %w = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 0
+  %x = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 1
+  %y = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 2
+  %z = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 3
+  store i64 56190123, i64* %w, align 4
+  store i64 56190123, i64* %w, align 4
+  store i64 100012000000, i64* %x, align 4
+  store i64 100012000000, i64* %x, align 4
   store i64 465436800000, i64* %y, align 4
   store i64 0, i64* %y, align 4
   store i64 465509714000, i64* %z, align 4
