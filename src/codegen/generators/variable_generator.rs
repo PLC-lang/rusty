@@ -19,7 +19,8 @@ pub fn generate_global_variables<'ctx, 'b>(
 ) -> Result<LlvmTypedIndex<'ctx>, CompileError> {
     let mut index = LlvmTypedIndex::new();
     let globals = global_index.get_globals();
-    for (name, variable) in globals {
+    let enums = global_index.get_global_qualified_enums();
+    for (name, variable) in globals.into_iter().chain(enums.into_iter()) {
         let global_variable = generate_global_variable(
             module,
             llvm,

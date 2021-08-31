@@ -263,6 +263,15 @@ mod cli_tests {
     }
 
     #[test]
+    fn test_target_triple() {
+        let parameters =
+            CompileParameters::parse(vec_of_strings!("alpha.st", "--target", "x86_64-linux-gnu"))
+                .unwrap();
+
+        assert_eq!(parameters.target, Some("x86_64-linux-gnu".to_string()));
+    }
+
+    #[test]
     fn test_default_format() {
         let parameters = CompileParameters::parse(vec_of_strings!("alpha.st", "--ir")).unwrap();
         assert_eq!(parameters.output_format_or_default(), FormatOption::IR);

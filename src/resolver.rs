@@ -16,7 +16,7 @@ use crate::{
     typesystem::{
         self, get_bigger_type_borrow, DataTypeInformation, BOOL_TYPE, DATE_AND_TIME_TYPE,
         DATE_TYPE, DINT_TYPE, LINT_TYPE, REAL_TYPE, STRING_TYPE, TIME_OF_DAY_TYPE, TIME_TYPE,
-        VOID_TYPE,
+        VOID_TYPE, WSTRING_TYPE,
     },
 };
 
@@ -421,15 +421,21 @@ impl<'i> TypeAnnotator<'i> {
             AstStatement::Reference { name, .. } => {
                 let annotation = if let Some(qualifier) = ctx.qualifier.as_deref() {
                     // if we see a qualifier, we only consider [qualifier].[name] as candidates
-                    self.index.find_member(qualifier, name).map_or_else(
-                        || {
-                            find_implementation_annotation(
-                                format!("{}.{}", qualifier, name).as_str(),
-                                self.index,
-                            )
-                        },
-                        |v| Some(to_variable_annotation(v, self.index)),
-                    )
+                    self.index
+                        // 1st try a qualified member variable qualifier.name
+                        .find_member(qualifier, name)
+                        // 2nd try an enum-element qualifier#name
+                        .or_else(|| self.index.find_enum_element(qualifier, name.as_str()))
+                        // 3rd try - look for a method qualifier.name
+                        .map_or_else(
+                            || {
+                                find_implementation_annotation(
+                                    format!("{}.{}", qualifier, name).as_str(),
+                                    self.index,
+                                )
+                            },
+                            |v| Some(to_variable_annotation(v, self.index)),
+                        )
                 } else {
                     // if we see no qualifier, we try some strategies ...
                     ctx.pou
@@ -597,6 +603,34 @@ impl<'i> TypeAnnotator<'i> {
                     }
                 }
             }
+            AstStatement::CastStatement {
+                target, type_name, ..
+            } => {
+                //see if this type really exists
+                let data_type = self.index.find_type_information(type_name);
+
+                if let Some(DataTypeInformation::Enum { name, .. }) = data_type {
+                    //enum cast
+                    self.visit_statement(&ctx.with_qualifier(name), target);
+                    //use the type of the target
+                    let type_name = self
+                        .annotation_map
+                        .get_type_or_void(target, self.index)
+                        .get_name();
+                    self.annotation_map
+                        .annotate(statement, StatementAnnotation::expression(type_name));
+                } else if let Some(t) = data_type {
+                    //different cast
+                    self.annotation_map
+                        .annotate(statement, StatementAnnotation::expression(t.get_name()));
+                    //overwrite the existing annotation
+                    self.annotation_map
+                        .annotate(target, StatementAnnotation::expression(t.get_name()))
+                } else {
+                    //unknown type? what should we do here?
+                    self.visit_statement(ctx, target);
+                }
+            }
             _ => {
                 self.visit_statement_literals(ctx, statement);
             }
@@ -611,9 +645,10 @@ impl<'i> TypeAnnotator<'i> {
                     .annotate(statement, StatementAnnotation::expression(BOOL_TYPE));
             }
 
-            AstStatement::LiteralString { .. } => {
+            AstStatement::LiteralString { is_wide, .. } => {
+                let string_type_name = if *is_wide { WSTRING_TYPE } else { STRING_TYPE };
                 self.annotation_map
-                    .annotate(statement, StatementAnnotation::expression(STRING_TYPE));
+                    .annotate(statement, StatementAnnotation::expression(string_type_name));
             }
             AstStatement::LiteralInteger { value, .. } => {
                 self.annotation_map.annotate(

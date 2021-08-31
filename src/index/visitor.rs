@@ -240,20 +240,20 @@ fn visit_data_type(index: &mut Index, type_declatation: &UserTypeDeclaration) {
         }
 
         DataType::EnumType { name, elements } => {
-            let information = DataTypeInformation::Integer {
-                name: "DINT".into(),
-                signed: true,
-                size: 32,
+            let enum_name = name.as_ref().unwrap();
+            let information = DataTypeInformation::Enum {
+                name: enum_name.clone(),
+                elements: elements.clone(),
             };
             index.register_type(
-                name.as_ref().unwrap(),
+                enum_name.as_str(),
                 type_declatation.initializer.clone(),
                 information,
             );
             elements.iter().enumerate().for_each(|(i, v)| {
-                index.register_global_variable(
+                index.register_enum_element(
                     v,
-                    "DINT",
+                    enum_name.as_str(),
                     Some(ast::AstStatement::LiteralInteger {
                         value: i as i64,
                         location: SourceRange::undefined(),

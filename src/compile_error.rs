@@ -2,7 +2,6 @@
 use thiserror::Error;
 
 use crate::ast::SourceRange;
-use crate::Diagnostic;
 
 #[derive(Error, Debug, PartialEq)]
 pub enum CompileError {
@@ -42,12 +41,6 @@ pub enum CompileError {
 
     #[error("Cannot link: {reason:}")]
     LinkerError { reason: String },
-}
-
-impl From<Diagnostic> for CompileError {
-    fn from(diag: Diagnostic) -> Self {
-        CompileError::codegen_error(diag.get_message().into(), diag.get_location())
-    }
 }
 
 impl CompileError {
