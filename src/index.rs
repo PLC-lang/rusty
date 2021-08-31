@@ -85,7 +85,7 @@ pub enum DataTypeType {
     AliasType,     // a Custom-Alias-dataType
 }
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq)]
 pub enum ImplementationType {
     Program,
     Function,
@@ -99,6 +99,7 @@ pub enum ImplementationType {
 pub struct ImplementationIndexEntry {
     call_name: String,
     type_name: String,
+    associated_class: Option<String>,
     implementation_type: ImplementationType,
 }
 
@@ -108,6 +109,9 @@ impl ImplementationIndexEntry {
     }
     pub fn get_type_name(&self) -> &str {
         &self.type_name
+    }
+    pub fn get_associated_class_name(&self) -> Option<&String> {
+        self.associated_class.as_ref()
     }
     pub fn get_implementation_type(&self) -> &ImplementationType {
         &self.implementation_type
@@ -120,6 +124,7 @@ impl From<&Implementation> for ImplementationIndexEntry {
         ImplementationIndexEntry {
             call_name: implementation.name.clone(),
             type_name: implementation.type_name.clone(),
+            associated_class: pou_type.get_optional_owner_class(),
             implementation_type: pou_type.into(),
         }
     }
@@ -133,7 +138,7 @@ impl From<&PouType> for ImplementationType {
             PouType::FunctionBlock => ImplementationType::FunctionBlock,
             PouType::Action => ImplementationType::Action,
             PouType::Class => ImplementationType::Class,
-            PouType::Method => ImplementationType::Method,
+            PouType::Method { .. } => ImplementationType::Method,
         }
     }
 }
@@ -370,6 +375,7 @@ impl Index {
         &mut self,
         call_name: &str,
         type_name: &str,
+        associated_class_name: Option<&String>,
         impl_type: ImplementationType,
     ) {
         self.implementations.insert(
@@ -377,6 +383,7 @@ impl Index {
             ImplementationIndexEntry {
                 call_name: call_name.into(),
                 type_name: type_name.into(),
+                associated_class: associated_class_name.map(|str| str.into()),
                 implementation_type: impl_type,
             },
         );

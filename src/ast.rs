@@ -50,6 +50,16 @@ impl Debug for Pou {
     }
 }
 
+impl Pou {
+    pub fn get_return_name(&self) -> &str {
+        Pou::calc_return_name(&self.name)
+    }
+
+    pub fn calc_return_name(pou_name: &str) -> &str {
+        pou_name.split('.').last().unwrap_or_default()
+    }
+}
+
 #[derive(Debug, PartialEq)]
 pub struct Implementation {
     pub name: String,
@@ -76,14 +86,25 @@ pub enum AccessModifier {
     Internal,
 }
 
-#[derive(Debug, Copy, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum PouType {
     Program,
     Function,
     FunctionBlock,
     Action,
     Class,
-    Method,
+    Method { owner_class: String },
+}
+
+impl PouType {
+    /// returns Some(owner_class) if this is a `Method` or otherwhise `None`
+    pub fn get_optional_owner_class(&self) -> Option<String> {
+        if let PouType::Method { owner_class } = self {
+            Some(owner_class.clone())
+        } else {
+            None
+        }
+    }
 }
 
 #[derive(Debug, PartialEq)]

@@ -52,7 +52,12 @@ fn method_with_defaults_can_be_parsed() {
     assert_eq!(unit.implementations.len(), 1);
 
     let method_pou = &unit.units[1];
-    assert_eq!(method_pou.pou_type, PouType::Method);
+    assert_eq!(
+        method_pou.pou_type,
+        PouType::Method {
+            owner_class: "MyClass".into()
+        }
+    );
     let method = &unit.implementations[0];
 
     assert_eq!(method_pou.name, "MyClass.testMethod");
@@ -73,7 +78,12 @@ fn method_can_be_parsed() {
     assert_eq!(unit.implementations.len(), 1);
 
     let method_pou = &unit.units[1];
-    assert_eq!(method_pou.pou_type, PouType::Method);
+    assert_eq!(
+        method_pou.pou_type,
+        PouType::Method {
+            owner_class: "MyClass".into()
+        }
+    );
     let method = &unit.implementations[0];
 
     assert_eq!(method_pou.name, "MyClass.testMethod2");
@@ -113,7 +123,12 @@ fn method_with_return_type_can_be_parsed() {
     assert_eq!(class.pou_type, PouType::Class);
 
     let method_pou = &unit.units[1];
-    assert_eq!(method_pou.pou_type, PouType::Method);
+    assert_eq!(
+        method_pou.pou_type,
+        PouType::Method {
+            owner_class: "MyClass".into()
+        }
+    );
     let method = &unit.implementations[0];
     assert_eq!(unit.implementations.len(), 1);
 
@@ -245,7 +260,12 @@ fn fb_method_can_be_parsed() {
     assert_eq!(unit.implementations.len(), 2);
 
     let method_pou = &unit.units[1];
-    assert_eq!(method_pou.pou_type, PouType::Method);
+    assert_eq!(
+        method_pou.pou_type,
+        PouType::Method {
+            owner_class: "MyFb".into()
+        }
+    );
     let method = &unit.implementations[0];
 
     assert_eq!(method_pou.name, "MyFb.testMethod2");
@@ -291,7 +311,12 @@ fn fb_method_with_return_type_can_be_parsed() {
     assert_eq!(class.pou_type, PouType::FunctionBlock);
 
     let method_pou = &unit.units[1];
-    assert_eq!(method_pou.pou_type, PouType::Method);
+    assert_eq!(
+        method_pou.pou_type,
+        PouType::Method {
+            owner_class: "MyShinyFb".into()
+        }
+    );
     let method = &unit.implementations[0];
     assert_eq!(unit.implementations.len(), 2);
 
