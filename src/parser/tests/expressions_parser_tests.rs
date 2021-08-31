@@ -998,6 +998,49 @@ fn literal_real_test() {
 }
 
 #[test]
+fn literal_exponents_test() {
+    let lexer = super::lex(
+        "
+        PROGRAM exp 
+        1_2e3;
+        12e3;
+        12.0e3;
+        12e-4;
+        1_2e-4;
+        12.0e-4;
+        END_PROGRAM
+        ",
+    );
+    let result = parse(lexer).0;
+
+    let prg = &result.implementations[0];
+    let statement = &prg.statements;
+
+    let ast_string = format!("{:#?}", statement);
+    let expected_ast = r#"[
+    LiteralReal {
+        value: "12e3",
+    },
+    LiteralReal {
+        value: "12e3",
+    },
+    LiteralReal {
+        value: "12.0e3",
+    },
+    LiteralReal {
+        value: "12e-4",
+    },
+    LiteralReal {
+        value: "12e-4",
+    },
+    LiteralReal {
+        value: "12.0e-4",
+    },
+]"#;
+    assert_eq!(ast_string, expected_ast);
+}
+
+#[test]
 fn signed_literal_expression_test() {
     let lexer = super::lex(
         "
