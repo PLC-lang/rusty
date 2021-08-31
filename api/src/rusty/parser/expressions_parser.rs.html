@@ -723,6 +723,13 @@
 <span id="721">721</span>
 <span id="722">722</span>
 <span id="723">723</span>
+<span id="724">724</span>
+<span id="725">725</span>
+<span id="726">726</span>
+<span id="727">727</span>
+<span id="728">728</span>
+<span id="729">729</span>
+<span id="730">730</span>
 </pre><pre class="rust">
 <span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 
@@ -1162,7 +1169,15 @@
 <span class="kw">fn</span> <span class="ident">parse_literal_number</span>(<span class="ident">lexer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ParseSession</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">AstStatement</span>, <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">location</span> <span class="op">=</span> <span class="ident">lexer</span>.<span class="ident">location</span>();
     <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">lexer</span>.<span class="ident">slice_and_advance</span>();
-    <span class="kw">if</span> <span class="ident">lexer</span>.<span class="ident">allow</span>(<span class="kw-2">&amp;</span><span class="ident">KeywordDot</span>) {
+    <span class="kw">if</span> <span class="ident">result</span>.<span class="ident">to_lowercase</span>().<span class="ident">contains</span>(<span class="string">&#39;e&#39;</span>) {
+        <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">result</span>.<span class="ident">replace</span>(<span class="string">&#39;_&#39;</span>, <span class="string">&quot;&quot;</span>);
+        <span class="comment">//Treat exponents as reals</span>
+        <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">AstStatement::LiteralReal</span> {
+            <span class="ident">value</span>: <span class="ident">result</span>,
+            <span class="ident">location</span>,
+            <span class="ident">id</span>: <span class="ident">lexer</span>.<span class="ident">next_id</span>(),
+        });
+    } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">lexer</span>.<span class="ident">allow</span>(<span class="kw-2">&amp;</span><span class="ident">KeywordDot</span>) {
         <span class="kw">return</span> <span class="ident">parse_literal_real</span>(<span class="ident">lexer</span>, <span class="ident">result</span>, <span class="ident">location</span>);
     } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">lexer</span>.<span class="ident">allow</span>(<span class="kw-2">&amp;</span><span class="ident">KeywordParensOpen</span>) {
         <span class="kw">let</span> <span class="ident">multiplier</span> <span class="op">=</span> <span class="ident">result</span>
@@ -1427,25 +1442,24 @@
     <span class="ident">integer</span>: <span class="ident">String</span>,
     <span class="ident">integer_range</span>: <span class="ident">SourceRange</span>,
 ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">AstStatement</span>, <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
-    <span class="ident">lexer</span>.<span class="ident">expect</span>(<span class="ident">LiteralInteger</span>)<span class="question-mark">?</span>;
-    <span class="kw">let</span> <span class="ident">start</span> <span class="op">=</span> <span class="ident">integer_range</span>.<span class="ident">get_start</span>();
-    <span class="kw">let</span> <span class="ident">fraction_end</span> <span class="op">=</span> <span class="ident">lexer</span>.<span class="ident">range</span>().<span class="ident">end</span>;
-    <span class="kw">let</span> <span class="ident">fractional</span> <span class="op">=</span> <span class="ident">lexer</span>.<span class="ident">slice_and_advance</span>();
-
-    <span class="kw">let</span> (<span class="ident">exponent</span>, <span class="ident">end</span>) <span class="op">=</span> <span class="kw">if</span> <span class="ident">lexer</span>.<span class="ident">token</span> <span class="op">=</span><span class="op">=</span> <span class="ident">LiteralExponent</span> {
-        <span class="comment">//this spans everything, [integer].[integer]</span>
-        (<span class="ident">lexer</span>.<span class="ident">slice_and_advance</span>(), <span class="ident">lexer</span>.<span class="ident">range</span>().<span class="ident">end</span>)
+    <span class="kw">if</span> <span class="ident">lexer</span>.<span class="ident">token</span> <span class="op">=</span><span class="op">=</span> <span class="ident">LiteralInteger</span> {
+        <span class="kw">let</span> <span class="ident">start</span> <span class="op">=</span> <span class="ident">integer_range</span>.<span class="ident">get_start</span>();
+        <span class="kw">let</span> <span class="ident">end</span> <span class="op">=</span> <span class="ident">lexer</span>.<span class="ident">range</span>().<span class="ident">end</span>;
+        <span class="kw">let</span> <span class="ident">exponent</span> <span class="op">=</span> <span class="ident">lexer</span>.<span class="ident">slice_and_advance</span>();
+        <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="macro">format!</span>(<span class="string">&quot;{}.{}&quot;</span>, <span class="ident">integer</span>, <span class="ident">exponent</span>);
+        <span class="kw">let</span> <span class="ident">new_location</span> <span class="op">=</span> <span class="ident">SourceRange::new</span>(<span class="ident">start</span>..<span class="ident">end</span>);
+        <span class="prelude-val">Ok</span>(<span class="ident">AstStatement::LiteralReal</span> {
+            <span class="ident">value</span>: <span class="ident">result</span>,
+            <span class="ident">location</span>: <span class="ident">new_location</span>,
+            <span class="ident">id</span>: <span class="ident">lexer</span>.<span class="ident">next_id</span>(),
+        })
     } <span class="kw">else</span> {
-        (<span class="string">&quot;&quot;</span>.<span class="ident">to_string</span>(), <span class="ident">fraction_end</span>)
-    };
-
-    <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="macro">format!</span>(<span class="string">&quot;{}.{}{}&quot;</span>, <span class="ident">integer</span>, <span class="ident">fractional</span>, <span class="ident">exponent</span>);
-    <span class="kw">let</span> <span class="ident">new_location</span> <span class="op">=</span> <span class="ident">SourceRange::new</span>(<span class="ident">start</span>..<span class="ident">end</span>);
-    <span class="prelude-val">Ok</span>(<span class="ident">AstStatement::LiteralReal</span> {
-        <span class="ident">value</span>: <span class="ident">result</span>,
-        <span class="ident">location</span>: <span class="ident">new_location</span>,
-        <span class="ident">id</span>: <span class="ident">lexer</span>.<span class="ident">next_id</span>(),
-    })
+        <span class="prelude-val">Err</span>(<span class="ident">Diagnostic::unexpected_token_found</span>(
+            <span class="string">&quot;LiteralInteger or LiteralExponent&quot;</span>,
+            <span class="ident">lexer</span>.<span class="ident">slice</span>(),
+            <span class="ident">lexer</span>.<span class="ident">location</span>(),
+        ))
+    }
 }
 </pre></div>
 </section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="rusty" data-search-index-js="../../../search-index.js" data-search-js="../../../search.js"></div><script src="../../../main.js"></script><script src="../../../source-script.js"></script><script src="../../../source-files.js"></script></body></html>
