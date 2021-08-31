@@ -414,10 +414,6 @@ VAR
 z : BOOL;
 END_VAR
 
-      // the REAL# should prevent this addition
-      // to result in an DINT (i32) and then result 
-      // in an i32 devision
-
       z := BOOL#TRUE; 
       z := BOOL#FALSE; 
       z := BOOL#1; 
