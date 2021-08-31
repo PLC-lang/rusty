@@ -715,7 +715,7 @@
     <span class="ident">index</span>::{<span class="ident">ImplementationIndexEntry</span>, <span class="ident">Index</span>},
     <span class="ident">resolver::AnnotationMap</span>,
     <span class="ident">typesystem</span>::{
-        <span class="ident">DataTypeInformation</span>, <span class="ident">RANGE_CHECK_LS_FN</span>, <span class="ident">RANGE_CHECK_LU_FN</span>, <span class="ident">RANGE_CHECK_S_FN</span>,
+        <span class="ident">DataTypeInformation</span>, <span class="ident">DINT_TYPE</span>, <span class="ident">RANGE_CHECK_LS_FN</span>, <span class="ident">RANGE_CHECK_LU_FN</span>, <span class="ident">RANGE_CHECK_S_FN</span>,
         <span class="ident">RANGE_CHECK_U_FN</span>,
     },
 };
@@ -1032,11 +1032,10 @@
         <span class="kw">let</span> <span class="ident">expression_generator</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">create_expr_generator</span>();
         <span class="kw">let</span> (<span class="kw">_</span>, <span class="ident">step_by_value</span>) <span class="op">=</span> <span class="ident">by_step</span>.<span class="ident">as_ref</span>().<span class="ident">map_or_else</span>(
             <span class="op">|</span><span class="op">|</span> {
-                <span class="ident">expression_generator</span>.<span class="ident">generate_literal</span>(<span class="kw-2">&amp;</span><span class="ident">AstStatement::LiteralInteger</span> {
-                    <span class="ident">value</span>: <span class="number">1</span>,
-                    <span class="ident">location</span>: <span class="ident">end</span>.<span class="ident">get_location</span>(),
-                    <span class="ident">id</span>: <span class="number">0</span>, <span class="comment">//TODO</span>
-                })
+                <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="self">self</span>
+                    .<span class="ident">llvm</span>
+                    .<span class="ident">create_const_numeric</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">llvm_index</span>.<span class="ident">get_associated_type</span>(<span class="ident">DINT_TYPE</span>)<span class="question-mark">?</span>, <span class="string">&quot;1&quot;</span>)<span class="question-mark">?</span>;
+                <span class="prelude-val">Ok</span>((<span class="self">self</span>.<span class="ident">index</span>.<span class="ident">get_type_information</span>(<span class="ident">DINT_TYPE</span>)<span class="question-mark">?</span>, <span class="ident">value</span>))
             },
             <span class="op">|</span><span class="ident">step</span><span class="op">|</span> <span class="ident">expression_generator</span>.<span class="ident">generate_expression</span>(<span class="ident">step</span>),
         )<span class="question-mark">?</span>;
@@ -1393,6 +1392,7 @@
     <span class="ident">sub_range</span>: <span class="ident">Range</span><span class="op">&lt;</span><span class="ident">AstStatement</span><span class="op">&gt;</span>,
     <span class="ident">location</span>: <span class="kw-2">&amp;</span><span class="ident">SourceRange</span>,
 ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">AstStatement</span> {
+    <span class="kw">let</span> <span class="ident">range_type_id</span> <span class="op">=</span> <span class="ident">sub_range</span>.<span class="ident">start</span>.<span class="ident">get_id</span>();
     <span class="ident">AstStatement::CallStatement</span> {
         <span class="ident">operator</span>: <span class="ident">Box::new</span>(<span class="ident">AstStatement::Reference</span> {
             <span class="ident">name</span>: <span class="ident">check_function_name</span>,
@@ -1401,7 +1401,7 @@
         }),
         <span class="ident">parameters</span>: <span class="ident">Box::new</span>(<span class="prelude-val">Some</span>(<span class="ident">AstStatement::ExpressionList</span> {
             <span class="ident">expressions</span>: <span class="macro">vec!</span>[<span class="ident">parameter</span>, <span class="ident">sub_range</span>.<span class="ident">start</span>, <span class="ident">sub_range</span>.<span class="ident">end</span>],
-            <span class="ident">id</span>: <span class="number">0</span>, <span class="comment">//TODO</span>
+            <span class="ident">id</span>: <span class="ident">range_type_id</span>, <span class="comment">//use the id so we end up with the same datatype</span>
         })),
         <span class="ident">location</span>: <span class="ident">location</span>.<span class="ident">clone</span>(),
         <span class="ident">id</span>: <span class="number">0</span>, <span class="comment">//TODO</span>

@@ -1115,6 +1115,21 @@
 <span id="1113">1113</span>
 <span id="1114">1114</span>
 <span id="1115">1115</span>
+<span id="1116">1116</span>
+<span id="1117">1117</span>
+<span id="1118">1118</span>
+<span id="1119">1119</span>
+<span id="1120">1120</span>
+<span id="1121">1121</span>
+<span id="1122">1122</span>
+<span id="1123">1123</span>
+<span id="1124">1124</span>
+<span id="1125">1125</span>
+<span id="1126">1126</span>
+<span id="1127">1127</span>
+<span id="1128">1128</span>
+<span id="1129">1129</span>
+<span id="1130">1130</span>
 </pre><pre class="rust">
 <span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::compile_error::CompileError</span>;
@@ -1663,6 +1678,12 @@
         <span class="ident">location</span>: <span class="ident">SourceRange</span>,
         <span class="ident">id</span>: <span class="ident">AstId</span>,
     },
+    <span class="ident">CastStatement</span> {
+        <span class="ident">target</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">AstStatement</span><span class="op">&gt;</span>,
+        <span class="ident">type_name</span>: <span class="ident">String</span>,
+        <span class="ident">location</span>: <span class="ident">SourceRange</span>,
+        <span class="ident">id</span>: <span class="ident">AstId</span>,
+    },
     <span class="ident">MultipliedStatement</span> {
         <span class="ident">multiplier</span>: <span class="ident">u32</span>,
         <span class="ident">element</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">AstStatement</span><span class="op">&gt;</span>,
@@ -1997,6 +2018,13 @@
             <span class="ident">AstStatement::ReturnStatement</span> { .. } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">f</span>.<span class="ident">debug_struct</span>(<span class="string">&quot;ReturnStatement&quot;</span>).<span class="ident">finish</span>(),
             <span class="ident">AstStatement::ContinueStatement</span> { .. } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">f</span>.<span class="ident">debug_struct</span>(<span class="string">&quot;ContinueStatement&quot;</span>).<span class="ident">finish</span>(),
             <span class="ident">AstStatement::ExitStatement</span> { .. } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">f</span>.<span class="ident">debug_struct</span>(<span class="string">&quot;ExitStatement&quot;</span>).<span class="ident">finish</span>(),
+            <span class="ident">AstStatement::CastStatement</span> {
+                <span class="ident">target</span>, <span class="ident">type_name</span>, ..
+            } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">f</span>
+                .<span class="ident">debug_struct</span>(<span class="string">&quot;CastStatement&quot;</span>)
+                .<span class="ident">field</span>(<span class="string">&quot;type_name&quot;</span>, <span class="ident">type_name</span>)
+                .<span class="ident">field</span>(<span class="string">&quot;target&quot;</span>, <span class="ident">target</span>)
+                .<span class="ident">finish</span>(),
         }
     }
 }
@@ -2082,6 +2110,7 @@
             <span class="ident">AstStatement::ReturnStatement</span> { <span class="ident">location</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">location</span>.<span class="ident">clone</span>(),
             <span class="ident">AstStatement::ContinueStatement</span> { <span class="ident">location</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">location</span>.<span class="ident">clone</span>(),
             <span class="ident">AstStatement::ExitStatement</span> { <span class="ident">location</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">location</span>.<span class="ident">clone</span>(),
+            <span class="ident">AstStatement::CastStatement</span> { <span class="ident">location</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">location</span>.<span class="ident">clone</span>(),
         }
     }
 
@@ -2119,6 +2148,7 @@
             <span class="ident">AstStatement::ReturnStatement</span> { <span class="ident">id</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="ident">id</span>,
             <span class="ident">AstStatement::ContinueStatement</span> { <span class="ident">id</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="ident">id</span>,
             <span class="ident">AstStatement::ExitStatement</span> { <span class="ident">id</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="ident">id</span>,
+            <span class="ident">AstStatement::CastStatement</span> { <span class="ident">id</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="ident">id</span>,
         }
     }
 }

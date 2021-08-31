@@ -583,6 +583,32 @@
 <span id="581">581</span>
 <span id="582">582</span>
 <span id="583">583</span>
+<span id="584">584</span>
+<span id="585">585</span>
+<span id="586">586</span>
+<span id="587">587</span>
+<span id="588">588</span>
+<span id="589">589</span>
+<span id="590">590</span>
+<span id="591">591</span>
+<span id="592">592</span>
+<span id="593">593</span>
+<span id="594">594</span>
+<span id="595">595</span>
+<span id="596">596</span>
+<span id="597">597</span>
+<span id="598">598</span>
+<span id="599">599</span>
+<span id="600">600</span>
+<span id="601">601</span>
+<span id="602">602</span>
+<span id="603">603</span>
+<span id="604">604</span>
+<span id="605">605</span>
+<span id="606">606</span>
+<span id="607">607</span>
+<span id="608">608</span>
+<span id="609">609</span>
 </pre><pre class="rust">
 <span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 <span class="kw">use</span> <span class="ident">std::ops::Range</span>;
@@ -598,6 +624,9 @@
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">RANGE_CHECK_LS_FN</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;CheckLRangeSigned&quot;</span>;
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">RANGE_CHECK_U_FN</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;CheckRangeUnsigned&quot;</span>;
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">RANGE_CHECK_LU_FN</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;CheckLRangeUnsigned&quot;</span>;
+
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">INT_SIZE</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">16</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">DINT_SIZE</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">2</span> <span class="op">*</span> <span class="ident">INT_SIZE</span>;
 
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">BOOL_TYPE</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;BOOL&quot;</span>;
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">BYTE_TYPE</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;BYTE&quot;</span>;
@@ -689,6 +718,10 @@
         <span class="ident">signed</span>: <span class="ident">bool</span>,
         <span class="ident">size</span>: <span class="ident">u32</span>,
     },
+    <span class="ident">Enum</span> {
+        <span class="ident">name</span>: <span class="ident">String</span>,
+        <span class="ident">elements</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
+    },
     <span class="ident">Float</span> {
         <span class="ident">name</span>: <span class="ident">String</span>,
         <span class="ident">size</span>: <span class="ident">u32</span>,
@@ -717,15 +750,31 @@
             <span class="ident">DataTypeInformation::Pointer</span> { <span class="ident">name</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">name</span>,
             <span class="ident">DataTypeInformation::Integer</span> { <span class="ident">name</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">name</span>,
             <span class="ident">DataTypeInformation::Float</span> { <span class="ident">name</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">name</span>,
-            <span class="ident">DataTypeInformation::String</span> { .. } <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;String&quot;</span>,
+            <span class="ident">DataTypeInformation::String</span> {
+                <span class="ident">encoding</span>: <span class="ident">StringEncoding::Utf8</span>,
+                ..
+            } <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;STRING&quot;</span>,
+            <span class="ident">DataTypeInformation::String</span> {
+                <span class="ident">encoding</span>: <span class="ident">StringEncoding::Utf16</span>,
+                ..
+            } <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;WSTRING&quot;</span>,
             <span class="ident">DataTypeInformation::SubRange</span> { <span class="ident">name</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">name</span>,
-            <span class="ident">DataTypeInformation::Void</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;Void&quot;</span>,
+            <span class="ident">DataTypeInformation::Void</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;VOID&quot;</span>,
             <span class="ident">DataTypeInformation::Alias</span> { <span class="ident">name</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">name</span>,
+            <span class="ident">DataTypeInformation::Enum</span> { <span class="ident">name</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">name</span>,
         }
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_int</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="macro">matches!</span>(<span class="self">self</span>, <span class="ident">DataTypeInformation::Integer</span> { .. })
+        <span class="comment">// internally an enum is represented as a DINT</span>
+        <span class="macro">matches!</span>(
+            <span class="self">self</span>,
+            <span class="ident">DataTypeInformation::Integer</span> { .. } <span class="op">|</span> <span class="ident">DataTypeInformation::Enum</span> { .. }
+        )
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_unsigned_int</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+        <span class="macro">matches!</span>(<span class="self">self</span>, <span class="ident">DataTypeInformation::Integer</span> { <span class="ident">signed</span>: <span class="bool-val">false</span>, .. })
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_float</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
@@ -735,7 +784,9 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_numerical</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
         <span class="macro">matches!</span>(
             <span class="self">self</span>,
-            <span class="ident">DataTypeInformation::Integer</span> { .. } <span class="op">|</span> <span class="ident">DataTypeInformation::Float</span> { .. }
+            <span class="ident">DataTypeInformation::Integer</span> { .. }
+                <span class="op">|</span> <span class="ident">DataTypeInformation::Float</span> { .. }
+                <span class="op">|</span> <span class="kw-2">&amp;</span><span class="ident">DataTypeInformation::Enum</span> { .. } <span class="comment">// internally an enum is represented as a DINT</span>
         )
     }
 
@@ -772,6 +823,7 @@
             <span class="ident">DataTypeInformation::SubRange</span> { .. } <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unimplemented!</span>(<span class="string">&quot;subrange&quot;</span>),
             <span class="ident">DataTypeInformation::Alias</span> { .. } <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unimplemented!</span>(<span class="string">&quot;alias&quot;</span>),
             <span class="ident">DataTypeInformation::Void</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">0</span>,
+            <span class="ident">DataTypeInformation::Enum</span> { .. } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">DINT_SIZE</span>,
         }
     }
 }
@@ -852,7 +904,7 @@
             <span class="ident">information</span>: <span class="ident">DataTypeInformation::Integer</span> {
                 <span class="ident">name</span>: <span class="ident">DWORD_TYPE</span>.<span class="ident">into</span>(),
                 <span class="ident">signed</span>: <span class="bool-val">false</span>,
-                <span class="ident">size</span>: <span class="number">32</span>,
+                <span class="ident">size</span>: <span class="ident">DINT_SIZE</span>,
             },
         },
         <span class="ident">DataType</span> {
@@ -861,7 +913,7 @@
             <span class="ident">information</span>: <span class="ident">DataTypeInformation::Integer</span> {
                 <span class="ident">name</span>: <span class="ident">DINT_TYPE</span>.<span class="ident">into</span>(),
                 <span class="ident">signed</span>: <span class="bool-val">true</span>,
-                <span class="ident">size</span>: <span class="number">32</span>,
+                <span class="ident">size</span>: <span class="ident">DINT_SIZE</span>,
             },
         },
         <span class="ident">DataType</span> {
@@ -870,7 +922,7 @@
             <span class="ident">information</span>: <span class="ident">DataTypeInformation::Integer</span> {
                 <span class="ident">name</span>: <span class="ident">UDINT_TYPE</span>.<span class="ident">into</span>(),
                 <span class="ident">signed</span>: <span class="bool-val">false</span>,
-                <span class="ident">size</span>: <span class="number">32</span>,
+                <span class="ident">size</span>: <span class="ident">DINT_SIZE</span>,
             },
         },
         <span class="ident">DataType</span> {

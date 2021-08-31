@@ -359,6 +359,9 @@
 <span id="357">357</span>
 <span id="358">358</span>
 <span id="359">359</span>
+<span id="360">360</span>
+<span id="361">361</span>
+<span id="362">362</span>
 </pre><pre class="rust">
 <span class="kw">use</span> <span class="ident">logos::Logos</span>;
 
@@ -715,6 +718,9 @@
 
     <span class="attribute">#[<span class="ident">regex</span>(<span class="string">&quot;\&quot;((\\$.)|[^$\&quot;])*\&quot;&quot;</span>)]</span>
     <span class="ident">LiteralWideString</span>,
+
+    <span class="attribute">#[<span class="ident">regex</span>(<span class="string">&quot;[a-zA-Z_][a-zA-Z_0-9]*#&quot;</span>)]</span>
+    <span class="ident">TypeCastPrefix</span>,
 
     <span class="attribute">#[<span class="ident">regex</span>(<span class="string">r&quot;[ \t\n\f]+&quot;</span>, <span class="ident">logos::skip</span>)]</span>
     <span class="ident">End</span>,

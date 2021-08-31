@@ -75,6 +75,7 @@
 <span id="73">73</span>
 <span id="74">74</span>
 <span id="75">75</span>
+<span id="76">76</span>
 </pre><pre class="rust">
 <span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 
@@ -97,7 +98,8 @@
 ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">LlvmTypedIndex</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span>, <span class="ident">CompileError</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">index</span> <span class="op">=</span> <span class="ident">LlvmTypedIndex::new</span>();
     <span class="kw">let</span> <span class="ident">globals</span> <span class="op">=</span> <span class="ident">global_index</span>.<span class="ident">get_globals</span>();
-    <span class="kw">for</span> (<span class="ident">name</span>, <span class="ident">variable</span>) <span class="kw">in</span> <span class="ident">globals</span> {
+    <span class="kw">let</span> <span class="ident">enums</span> <span class="op">=</span> <span class="ident">global_index</span>.<span class="ident">get_global_qualified_enums</span>();
+    <span class="kw">for</span> (<span class="ident">name</span>, <span class="ident">variable</span>) <span class="kw">in</span> <span class="ident">globals</span>.<span class="ident">into_iter</span>().<span class="ident">chain</span>(<span class="ident">enums</span>.<span class="ident">into_iter</span>()) {
         <span class="kw">let</span> <span class="ident">global_variable</span> <span class="op">=</span> <span class="ident">generate_global_variable</span>(
             <span class="ident">module</span>,
             <span class="ident">llvm</span>,
