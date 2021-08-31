@@ -60,7 +60,7 @@ fn preprocess_return_type(pou: &mut Pou, types: &mut Vec<UserTypeDeclaration>) {
             let type_name = format!("__{}_return", &pou.name);
             let type_ref = DataTypeDeclaration::DataTypeReference {
                 referenced_type: type_name.clone(),
-                location: return_type.get_location().clone(),
+                location: return_type.get_location(),
             };
             let datatype = std::mem::replace(&mut pou.return_type, Some(type_ref));
             if let Some(DataTypeDeclaration::DataTypeDefinition {
@@ -73,7 +73,7 @@ fn preprocess_return_type(pou: &mut Pou, types: &mut Vec<UserTypeDeclaration>) {
                 let data_type = UserTypeDeclaration {
                     data_type,
                     initializer: None,
-                    location: location.clone(),
+                    location,
                 };
                 types.push(data_type);
             }
