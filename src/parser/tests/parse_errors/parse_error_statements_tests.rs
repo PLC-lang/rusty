@@ -1086,3 +1086,28 @@ fn pointer_type_with_wrong_keyword_to_test() {
         diagnostics
     )
 }
+
+#[test]
+fn bitwise_access_error_validation() {
+    let (_, diagnostics) = parse(lex("PROGRAM exp 
+    a.2.0; 
+    a.1e5; 
+    b.%f6;
+    END_PROGRAM"));
+
+    assert_eq!(3, diagnostics.len());
+    let errs = vec![
+        Diagnostic::unexpected_token_found(
+            "Integer",
+            r#"LiteralReal { value: "2.0" }"#,
+            (19..22).into(),
+        ),
+        Diagnostic::unexpected_token_found(
+            "Integer",
+            r#"LiteralReal { value: "1e5" }"#,
+            (31..34).into(),
+        ),
+        Diagnostic::unexpected_token_found("KeywordSemicolon", "'f6'", (44..46).into()),
+    ];
+    assert_eq!(errs, diagnostics);
+}

@@ -455,30 +455,19 @@ fn parse_direct_access(lexer: &mut ParseSession) -> Result<AstStatement, Diagnos
     let access = slice
         .chars()
         .nth(1)
-        .and_then(|c| {
-            match c.to_ascii_lowercase() {
-                'x' => Some(crate::ast::DirectAccess::Bit),
-                'b' => Some(crate::ast::DirectAccess::Byte),
-                'w' => Some(crate::ast::DirectAccess::Word),
-                'd' => Some(crate::ast::DirectAccess::DWord),
-                _ => {
-                    //Report error
-                    None
-                }
+        .and_then(|c| match c.to_ascii_lowercase() {
+            'x' => Some(crate::ast::DirectAccess::Bit),
+            'b' => Some(crate::ast::DirectAccess::Byte),
+            'w' => Some(crate::ast::DirectAccess::Word),
+            'd' => Some(crate::ast::DirectAccess::DWord),
+            _ => {
+                unreachable!()
             }
         })
-        .ok_or_else(|| {
-            Diagnostic::unexpected_token_found(
-                "Bitwise access in form of %X|B|W|D0",
-                &slice,
-                lexer.last_location(),
-            )
-        })?; //Report error
+        .unwrap(); //Cannot fail
 
     let (_, index) = slice.split_at(2);
-    let index = index
-        .parse::<u32>()
-        .map_err(|e| Diagnostic::syntax_error(format!("{}", e).as_str(), lexer.last_location()))?;
+    let index = index.parse::<u32>().unwrap(); //Cannot fail
 
     Ok(AstStatement::DirectAccess {
         access,

@@ -52,6 +52,7 @@ fn qualified_reference_statement_parsed() {
         panic!("Expected Reference but found {:?}", statement);
     }
 }
+
 #[test]
 fn bitwise_access_parsed() {
     let lexer = super::lex(
@@ -63,7 +64,7 @@ fn bitwise_access_parsed() {
     a.b.%D1; 
     END_PROGRAM",
     );
-    let result = parse(lexer).0;
+    let (result, diagnostics) = parse(lexer);
 
     let prg = &result.implementations[0];
     let statement = &prg.statements;
@@ -136,6 +137,7 @@ fn bitwise_access_parsed() {
     ];
 
     assert_eq!(format!("{:?}", expected), format!("{:?}", statement));
+    assert_eq!(true, diagnostics.is_empty());
 }
 
 #[test]
