@@ -113,6 +113,14 @@ impl Diagnostic {
         }
     }
 
+    pub fn unexpected_initializer_on_function_return(range: SourceRange) -> Diagnostic {
+        Diagnostic::SyntaxError {
+            message: "Return types cannot have a default value".into(),
+            range,
+            err_no: ErrNo::syntax__unexpected_token,
+        }
+    }
+
     pub fn return_type_not_supported(pou_type: &PouType, range: SourceRange) -> Diagnostic {
         Diagnostic::SyntaxError {
             message: format!(

@@ -1,5 +1,7 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-use crate::ast::{AstStatement, DirectAccess, Operator, SourceRange};
+use crate::ast::{
+    AstStatement, DataType, DataTypeDeclaration, DirectAccess, Operator, Pou, SourceRange,
+};
 use crate::parser::parse;
 use crate::parser::tests::{literal_int, ref_to};
 use pretty_assertions::*;
@@ -2551,4 +2553,81 @@ fn expressions_location_test() {
         source[location.get_start()..location.get_end()].to_string(),
         "a := a + 4"
     );
+}
+
+#[test]
+fn sized_string_as_function_return() {
+    let (ast, diagnostics) = parse(super::lex(
+        r"
+    FUNCTION foo : STRING[10]
+    END_FUNCTION
+    ",
+    ));
+
+    let expected = Pou {
+        name: "foo".into(),
+        poly_mode: None,
+        pou_type: crate::ast::PouType::Function,
+        return_type: Some(DataTypeDeclaration::DataTypeDefinition {
+            data_type: DataType::StringType {
+                name: None,
+                is_wide: false,
+                size: Some(AstStatement::LiteralInteger {
+                    value: 10,
+                    location: SourceRange::undefined(),
+                    id: 0,
+                }),
+            },
+            location: SourceRange::undefined(),
+        }),
+        variable_blocks: vec![],
+        location: SourceRange::undefined(),
+    };
+
+    assert_eq!(format!("{:?}", ast.units[0]), format!("{:?}", expected));
+    assert_eq!(diagnostics.is_empty(), true);
+}
+
+#[test]
+fn array_type_as_function_return() {
+    let (ast, diagnostics) = parse(super::lex(
+        r"
+    FUNCTION foo : ARRAY[0..10] OF INT
+    END_FUNCTION
+    ",
+    ));
+
+    let expected = Pou {
+        name: "foo".into(),
+        poly_mode: None,
+        pou_type: crate::ast::PouType::Function,
+        return_type: Some(DataTypeDeclaration::DataTypeDefinition {
+            data_type: DataType::ArrayType {
+                referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
+                    referenced_type: "INT".into(),
+                    location: SourceRange::undefined(),
+                }),
+                bounds: AstStatement::RangeStatement {
+                    start: Box::new(AstStatement::LiteralInteger {
+                        id: 0,
+                        location: SourceRange::undefined(),
+                        value: 0,
+                    }),
+                    end: Box::new(AstStatement::LiteralInteger {
+                        id: 0,
+                        location: SourceRange::undefined(),
+                        value: 10,
+                    }),
+                    id: 0,
+                },
+                name: None,
+            },
+            location: SourceRange::undefined(),
+        }),
+        variable_blocks: vec![],
+        location: SourceRange::undefined(),
+    };
+
+    assert_eq!(format!("{:?}", ast.units[0]), format!("{:?}", expected));
+    assert_eq!(diagnostics.is_empty(), true);
 }
