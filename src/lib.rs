@@ -18,6 +18,7 @@
 //! [`IEC61131-3`]: https://en.wikipedia.org/wiki/IEC_61131-3
 //! [`IR`]: https://llvm.org/docs/LangRef.html
 use std::fs;
+use std::ops::Range;
 use std::path::Path;
 
 use ast::{PouType, SourceRange};
@@ -90,6 +91,8 @@ pub enum ErrNo {
     //type related
     type__literal_out_of_range,
     type__inompatible_literal_cast,
+    type__incompatible_directaccess,
+    type__incompatible_directaccess_range,
     type__expected_literal,
 }
 
@@ -161,6 +164,37 @@ impl Diagnostic {
             message: format!("Could not resolve reference to '{:}", reference),
             range: location,
             err_no: ErrNo::reference__unresolved,
+        }
+    }
+
+    pub fn incompatible_directaccess(
+        access_type: &str,
+        access_size: u32,
+        location: SourceRange,
+    ) -> Diagnostic {
+        Diagnostic::SyntaxError {
+            message: format!(
+                "{}-Wise access requires a Numerical type larger than {} bits",
+                access_type, access_size
+            ),
+            range: location,
+            err_no: ErrNo::type__incompatible_directaccess,
+        }
+    }
+
+    pub fn incompatible_directaccess_range(
+        access_type: &str,
+        target_type: &str,
+        access_range: Range<u32>,
+        location: SourceRange,
+    ) -> Diagnostic {
+        Diagnostic::SyntaxError {
+            message: format!(
+                "{}-Wise access for type {} must be in the range {}..{}",
+                access_type, target_type, access_range.start, access_range.end
+            ),
+            range: location,
+            err_no: ErrNo::type__incompatible_directaccess_range,
         }
     }
 

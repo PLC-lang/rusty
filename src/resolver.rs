@@ -14,9 +14,9 @@ use crate::{
     },
     index::{ImplementationIndexEntry, ImplementationType, Index, VariableIndexEntry},
     typesystem::{
-        self, get_bigger_type_borrow, DataTypeInformation, BOOL_TYPE, DATE_AND_TIME_TYPE,
-        DATE_TYPE, DINT_TYPE, LINT_TYPE, REAL_TYPE, STRING_TYPE, TIME_OF_DAY_TYPE, TIME_TYPE,
-        VOID_TYPE, WSTRING_TYPE,
+        self, get_bigger_type_borrow, DataTypeInformation, BOOL_TYPE, BYTE_TYPE,
+        DATE_AND_TIME_TYPE, DATE_TYPE, DINT_TYPE, DWORD_TYPE, LINT_TYPE, REAL_TYPE, STRING_TYPE,
+        TIME_OF_DAY_TYPE, TIME_TYPE, VOID_TYPE, WORD_TYPE, WSTRING_TYPE,
     },
 };
 
@@ -377,6 +377,32 @@ impl<'i> TypeAnnotator<'i> {
                         .annotate(statement, StatementAnnotation::expression(t));
                 }
             }
+            AstStatement::DirectAccess { access, .. } => match access {
+                crate::ast::DirectAccess::Bit => self.annotation_map.annotate(
+                    statement,
+                    StatementAnnotation::Value {
+                        resulting_type: BOOL_TYPE.into(),
+                    },
+                ),
+                crate::ast::DirectAccess::Byte => self.annotation_map.annotate(
+                    statement,
+                    StatementAnnotation::Value {
+                        resulting_type: BYTE_TYPE.into(),
+                    },
+                ),
+                crate::ast::DirectAccess::Word => self.annotation_map.annotate(
+                    statement,
+                    StatementAnnotation::Value {
+                        resulting_type: WORD_TYPE.into(),
+                    },
+                ),
+                crate::ast::DirectAccess::DWord => self.annotation_map.annotate(
+                    statement,
+                    StatementAnnotation::Value {
+                        resulting_type: DWORD_TYPE.into(),
+                    },
+                ),
+            },
             AstStatement::BinaryExpression { left, right, .. } => {
                 visit_all_statements!(self, ctx, left, right);
                 let left = &self

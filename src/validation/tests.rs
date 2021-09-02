@@ -12,6 +12,8 @@ use crate::{
 mod literals_validation_tests;
 mod reference_resolve_tests;
 
+mod bitaccess_validation_test;
+
 pub fn parse_and_validate(src: &str) -> Vec<Diagnostic> {
     let mut idx = Index::new();
     let (mut ast, _) = parse(lex(src));

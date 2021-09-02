@@ -46,6 +46,51 @@ impl StatementValidator {
             } => {
                 self.validate_cast_literal(target, type_name, location, context);
             }
+            AstStatement::QualifiedReference { elements, .. } => {
+                if elements.len() > 1 {
+                    if let Some(AstStatement::DirectAccess {
+                        access,
+                        index,
+                        location,
+                        ..
+                    }) = elements.last()
+                    {
+                        if let Some(reference) =
+                            elements.split_last().and_then(|(_, map)| map.last())
+                        {
+                            let target_type = context
+                                .ast_annotation
+                                .get_type_or_void(reference, context.index)
+                                .get_type_information();
+                            if target_type.is_int() {
+                                if !access.is_compatible(target_type) {
+                                    self.diagnostics.push(Diagnostic::incompatible_directaccess(
+                                        &format!("{:?}", access),
+                                        access.get_bit_witdh(),
+                                        location.clone(),
+                                    ))
+                                } else if !access.is_in_range(*index, target_type) {
+                                    self.diagnostics.push(
+                                        Diagnostic::incompatible_directaccess_range(
+                                            &format!("{:?}", access),
+                                            target_type.get_name(),
+                                            access.get_range(target_type),
+                                            location.clone(),
+                                        ),
+                                    )
+                                }
+                            } else {
+                                //Report incompatible type issue
+                                self.diagnostics.push(Diagnostic::incompatible_directaccess(
+                                    &format!("{:?}", access),
+                                    access.get_bit_witdh(),
+                                    location.clone(),
+                                ))
+                            }
+                        }
+                    }
+                }
+            }
             _ => (),
         }
     }

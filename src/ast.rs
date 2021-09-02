@@ -1,5 +1,5 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-use crate::compile_error::CompileError;
+use crate::{compile_error::CompileError, typesystem::DataTypeInformation};
 use std::{
     fmt::{Debug, Display, Formatter, Result},
     iter,
@@ -45,6 +45,33 @@ pub enum DirectAccess {
     Byte,
     Word,
     DWord,
+}
+
+impl DirectAccess {
+    pub fn is_in_range(&self, index: u32, information: &DataTypeInformation) -> bool {
+        self.to_bits(index) < information.get_size()
+    }
+
+    pub fn get_range(&self, information: &DataTypeInformation) -> Range<u32> {
+        0..((information.get_size() / self.get_bit_witdh()) - 1)
+    }
+
+    pub fn is_compatible(&self, information: &DataTypeInformation) -> bool {
+        information.get_size() > self.get_bit_witdh()
+    }
+
+    pub fn get_bit_witdh(&self) -> u32 {
+        match self {
+            DirectAccess::Bit => 1,
+            DirectAccess::Byte => 8,
+            DirectAccess::Word => 16,
+            DirectAccess::DWord => 32,
+        }
+    }
+
+    fn to_bits(&self, index: u32) -> u32 {
+        index * self.get_bit_witdh()
+    }
 }
 
 impl Debug for Pou {

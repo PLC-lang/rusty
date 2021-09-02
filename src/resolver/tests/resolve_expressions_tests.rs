@@ -1056,6 +1056,34 @@ fn method_references_are_resolved() {
     }
 }
 
+#[test]
+fn bitaccess_is_resolved() {
+    let (unit, index) = parse(
+        r"
+    PROGRAM prg
+        VAR
+            a,b,c,d,e : INT;
+        END_VAR
+        a.0;
+        b.%X1;
+        c.%B2;
+        d.%W3;
+        e.%D4;
+    END_PROGRAM
+    ",
+    );
+    let annotations = annotate(&unit, &index);
+    let statements = &unit.implementations[0].statements;
+
+    let expected_types = vec!["BOOL", "BOOL", "BYTE", "WORD", "DWORD"];
+    let type_names: Vec<&str> = statements
+        .iter()
+        .map(|s| annotations.get_type_or_void(s, &index).get_name())
+        .collect();
+
+    assert_eq!(format!("{:?}", expected_types), format!("{:?}", type_names));
+}
+
 fn get_expression_from_list(stmt: &Option<AstStatement>, index: usize) -> &AstStatement {
     if let Some(AstStatement::ExpressionList { expressions, .. }) = stmt {
         &expressions[index]
