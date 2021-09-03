@@ -14,6 +14,8 @@ pub enum LiteralValue {
     BoolLiteral (bool),
 }
 
+//TODO this is a evaluator, not a resolver!
+
 type ConstantsIndex<'a> = IndexMap<String, LiteralValue>;
 
 /// returns the resolved constants index and a Vec of qualified names of constants that could not be resolved.
