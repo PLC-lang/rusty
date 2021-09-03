@@ -12,6 +12,8 @@ mod resolve_control_statments;
 mod resolve_expressions_tests;
 #[cfg(test)]
 mod resolve_literals_tests;
+#[cfg(test)]
+mod const_resolver_tests;
 
 fn parse(src: &str) -> (CompilationUnit, Index) {
     let (mut unit, _) = crate::parser::parse(lex(src));

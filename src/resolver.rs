@@ -7,6 +7,8 @@
 
 use indexmap::IndexMap;
 
+mod const_resolver;
+
 use crate::{
     ast::{
         AstId, AstStatement, CompilationUnit, DataType, DataTypeDeclaration, Operator, Pou,

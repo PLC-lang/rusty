@@ -12,126 +12,126 @@ pub enum Token {
     #[token("@EXTERNAL")]
     PropertyExternal,
 
-    #[token("PROGRAM", ignore(case))]
+    #[token("PROGRAM")]
     KeywordProgram,
 
-    #[token("CLASS", ignore(case))]
+    #[token("CLASS")]
     KeywordClass,
 
-    #[token("END_CLASS", ignore(case))]
-    #[token("ENDCLASS", ignore(case))]
+    #[token("END_CLASS")]
+    #[token("ENDCLASS")]
     KeywordEndClass,
 
-    #[token("VAR_INPUT", ignore(case))]
-    #[token("VARINPUT", ignore(case))]
+    #[token("VAR_INPUT")]
+    #[token("VARINPUT")]
     KeywordVarInput,
 
-    #[token("VAR_OUTPUT", ignore(case))]
-    #[token("VAROUTPUT", ignore(case))]
+    #[token("VAR_OUTPUT")]
+    #[token("VAROUTPUT")]
     KeywordVarOutput,
 
-    #[token("VAR", ignore(case))]
+    #[token("VAR")]
     KeywordVar,
 
-    #[token("ABSTRACT", ignore(case))]
+    #[token("ABSTRACT")]
     KeywordAbstract,
 
-    #[token("FINAL", ignore(case))]
+    #[token("FINAL")]
     KeywordFinal,
 
-    #[token("METHOD", ignore(case))]
+    #[token("METHOD")]
     KeywordMethod,
 
-    #[token("CONSTANT", ignore(case))]
+    #[token("CONSTANT")]
     KeywordConstant,
 
-    #[token("RETAIN", ignore(case))]
+    #[token("RETAIN")]
     KeywordRetain,
 
-    #[token("NON_RETAIN", ignore(case))]
-    #[token("NONRETAIN", ignore(case))]
+    #[token("NON_RETAIN")]
+    #[token("NONRETAIN")]
     KeywordNonRetain,
 
-    #[token("VAR_TEMP", ignore(case))]
-    #[token("VARTEMP", ignore(case))]
+    #[token("VAR_TEMP")]
+    #[token("VARTEMP")]
     KeywordVarTemp,
 
-    #[token("END_METHOD", ignore(case))]
-    #[token("ENDMETHOD", ignore(case))]
+    #[token("END_METHOD")]
+    #[token("ENDMETHOD")]
     KeywordEndMethod,
 
-    #[token("PUBLIC", ignore(case))]
+    #[token("PUBLIC")]
     KeywordAccessPublic,
 
-    #[token("PRIVATE", ignore(case))]
+    #[token("PRIVATE")]
     KeywordAccessPrivate,
 
-    #[token("INTERNAL", ignore(case))]
+    #[token("INTERNAL")]
     KeywordAccessInternal,
 
-    #[token("PROTECTED", ignore(case))]
+    #[token("PROTECTED")]
     KeywordAccessProtected,
 
-    #[token("OVERRIDE", ignore(case))]
+    #[token("OVERRIDE")]
     KeywordOverride,
 
-    #[token("VAR_GLOBAL", ignore(case))]
-    #[token("VARGLOBAL", ignore(case))]
+    #[token("VAR_GLOBAL")]
+    #[token("VARGLOBAL")]
     KeywordVarGlobal,
 
-    #[token("VAR_IN_OUT", ignore(case))]
-    #[token("VARINOUT", ignore(case))]
+    #[token("VAR_IN_OUT")]
+    #[token("VARINOUT")]
     KeywordVarInOut,
 
-    #[token("END_VAR", ignore(case))]
-    #[token("ENDVAR", ignore(case))]
+    #[token("END_VAR")]
+    #[token("ENDVAR")]
     KeywordEndVar,
 
-    #[token("END_PROGRAM", ignore(case))]
-    #[token("ENDPROGRAM", ignore(case))]
+    #[token("END_PROGRAM")]
+    #[token("ENDPROGRAM")]
     KeywordEndProgram,
 
-    #[token("FUNCTION", ignore(case))]
+    #[token("FUNCTION")]
     KeywordFunction,
 
-    #[token("END_FUNCTION", ignore(case))]
-    #[token("ENDFUNCTION", ignore(case))]
+    #[token("END_FUNCTION")]
+    #[token("ENDFUNCTION")]
     KeywordEndFunction,
 
-    #[token("FUNCTION_BLOCK", ignore(case))]
-    #[token("FUNCTIONBLOCK", ignore(case))]
+    #[token("FUNCTION_BLOCK")]
+    #[token("FUNCTIONBLOCK")]
     KeywordFunctionBlock,
 
-    #[token("END_FUNCTION_BLOCK", ignore(case))]
-    #[token("ENDFUNCTIONBLOCK", ignore(case))]
+    #[token("END_FUNCTION_BLOCK")]
+    #[token("ENDFUNCTIONBLOCK")]
     KeywordEndFunctionBlock,
 
-    #[token("TYPE", ignore(case))]
+    #[token("TYPE")]
     KeywordType,
 
-    #[token("STRUCT", ignore(case))]
+    #[token("STRUCT")]
     KeywordStruct,
 
-    #[token("END_TYPE", ignore(case))]
-    #[token("ENDTYPE", ignore(case))]
+    #[token("END_TYPE")]
+    #[token("ENDTYPE")]
     KeywordEndType,
 
-    #[token("END_STRUCT", ignore(case))]
-    #[token("ENDSTRUCT", ignore(case))]
+    #[token("END_STRUCT")]
+    #[token("ENDSTRUCT")]
     KeywordEndStruct,
 
-    #[token("ACTIONS", ignore(case))]
+    #[token("ACTIONS")]
     KeywordActions,
 
-    #[token("ACTION", ignore(case))]
+    #[token("ACTION")]
     KeywordAction,
 
-    #[token("END_ACTION", ignore(case))]
-    #[token("ENDACTION", ignore(case))]
+    #[token("END_ACTION")]
+    #[token("ENDACTION")]
     KeywordEndAction,
 
-    #[token("END_ACTIONS", ignore(case))]
-    #[token("ENDACTIONS", ignore(case))]
+    #[token("END_ACTIONS")]
+    #[token("ENDACTIONS")]
     KeywordEndActions,
 
     #[token(":")]
@@ -171,88 +171,88 @@ pub enum Token {
     KeywordDot,
 
     //Control Structures
-    #[token("IF", ignore(case))]
+    #[token("IF")]
     KeywordIf,
 
-    #[token("THEN", ignore(case))]
+    #[token("THEN")]
     KeywordThen,
 
-    #[token("ELSIF", ignore(case))]
+    #[token("ELSIF")]
     KeywordElseIf,
 
-    #[token("ELSE", ignore(case))]
+    #[token("ELSE")]
     KeywordElse,
 
-    #[token("END_IF", ignore(case))]
-    #[token("ENDIF", ignore(case))]
+    #[token("END_IF")]
+    #[token("ENDIF")]
     KeywordEndIf,
 
-    #[token("FOR", ignore(case))]
+    #[token("FOR")]
     KeywordFor,
 
-    #[token("TO", ignore(case))]
+    #[token("TO")]
     KeywordTo,
 
-    #[token("BY", ignore(case))]
+    #[token("BY")]
     KeywordBy,
 
-    #[token("DO", ignore(case))]
+    #[token("DO")]
     KeywordDo,
 
-    #[token("END_FOR", ignore(case))]
-    #[token("ENDFOR", ignore(case))]
+    #[token("END_FOR")]
+    #[token("ENDFOR")]
     KeywordEndFor,
 
-    #[token("WHILE", ignore(case))]
+    #[token("WHILE")]
     KeywordWhile,
 
-    #[token("END_WHILE", ignore(case))]
-    #[token("ENDWHILE", ignore(case))]
+    #[token("END_WHILE")]
+    #[token("ENDWHILE")]
     KeywordEndWhile,
 
-    #[token("REPEAT", ignore(case))]
+    #[token("REPEAT")]
     KeywordRepeat,
 
-    #[token("UNTIL", ignore(case))]
+    #[token("UNTIL")]
     KeywordUntil,
 
-    #[token("END_REPEAT", ignore(case))]
-    #[token("ENDREPEAT", ignore(case))]
+    #[token("END_REPEAT")]
+    #[token("ENDREPEAT")]
     KeywordEndRepeat,
 
-    #[token("CASE", ignore(case))]
+    #[token("CASE")]
     KeywordCase,
 
-    #[token("RETURN", ignore(case))]
+    #[token("RETURN")]
     KeywordReturn,
 
-    #[token("EXIT", ignore(case))]
+    #[token("EXIT")]
     KeywordExit,
 
-    #[token("CONTINUE", ignore(case))]
+    #[token("CONTINUE")]
     KeywordContinue,
 
-    #[token("POINTER", ignore(case))]
+    #[token("POINTER")]
     KeywordPointer,
 
-    #[token("REF_TO", ignore(case))]
-    #[token("REFTO", ignore(case))]
+    #[token("REF_TO")]
+    #[token("REFTO")]
     KeywordRef,
 
-    #[token("ARRAY", ignore(case))]
+    #[token("ARRAY")]
     KeywordArray,
 
-    #[token("STRING", ignore(case))]
+    #[token("STRING")]
     KeywordString,
 
-    #[token("WSTRING", ignore(case))]
+    #[token("WSTRING")]
     KeywordWideString,
 
-    #[token("OF", ignore(case))]
+    #[token("OF")]
     KeywordOf,
 
-    #[token("END_CASE", ignore(case))]
-    #[token("ENDCASE", ignore(case))]
+    #[token("END_CASE")]
+    #[token("ENDCASE")]
     KeywordEndCase,
 
     //Operators
@@ -292,19 +292,19 @@ pub enum Token {
     #[token("^")]
     OperatorDeref,
 
-    #[token("MOD", ignore(case))]
+    #[token("MOD")]
     OperatorModulo,
 
-    #[token("AND", ignore(case))]
+    #[token("AND")]
     OperatorAnd,
 
-    #[token("OR", ignore(case))]
+    #[token("OR")]
     OperatorOr,
 
-    #[token("XOR", ignore(case))]
+    #[token("XOR")]
     OperatorXor,
 
-    #[token("NOT", ignore(case))]
+    #[token("NOT")]
     OperatorNot,
 
     //Identifiers
@@ -324,16 +324,16 @@ pub enum Token {
     #[regex(r"[0-9]+(_[0-9]+)*([eE][+-]?[0-9]+)?")]
     LiteralInteger,
 
-    #[token("NULL", ignore(case))]
+    #[token("NULL")]
     LiteralNull,
 
-    #[token("TRUE", ignore(case))]
+    #[token("TRUE")]
     LiteralTrue,
 
-    #[token("FALSE", ignore(case))]
+    #[token("FALSE")]
     LiteralFalse,
 
-    #[regex("D(ATE)?#\\d+-\\d+-\\d+", ignore(case))]
+    #[regex("D(ATE)?#\\d+-\\d+-\\d+")]
     LiteralDate,
 
     #[regex(
@@ -342,10 +342,10 @@ pub enum Token {
     )]
     LiteralDateAndTime,
 
-    #[regex("(TIME_OF_DAY|TOD)#\\d+:\\d+:\\d+(\\.\\d+)?", ignore(case))]
+    #[regex("(TIME_OF_DAY|TOD)#\\d+:\\d+:\\d+(\\.\\d+)?")]
     LiteralTimeOfDay,
 
-    #[regex("T(IME)?#-?(\\d+(\\.\\d+)?(d|h|ms|m|s|us|ns))+", ignore(case))]
+    #[regex("T(IME)?#-?(\\d+(\\.\\d+)?(d|h|ms|m|s|us|ns))+")]
     LiteralTime,
 
     #[regex("%(B|b|D|d|W|w|X|x)[0-9]+")]
