@@ -7,7 +7,7 @@
 
 use indexmap::IndexMap;
 
-mod const_resolver;
+mod const_evaluator;
 
 use crate::{
     ast::{
