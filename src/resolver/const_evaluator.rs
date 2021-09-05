@@ -9,25 +9,25 @@ use crate::{
 
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub enum LiteralValue {
-    IntLiteral(i128),
-    RealLiteral(f64),
-    BoolLiteral(bool),
+    Int(i128),
+    Real(f64),
+    Bool(bool),
 }
 
 macro_rules! arith {
     ($left:expr, $op:tt, $right:expr, $op_text:expr) => {
         match ($left, $right) {
-            (LiteralValue::IntLiteral(l), LiteralValue::IntLiteral(r)) => {
-                Ok(LiteralValue::IntLiteral(l $op r))
+            (LiteralValue::Int(l), LiteralValue::Int(r)) => {
+                Ok(LiteralValue::Int(l $op r))
             }
-            (LiteralValue::IntLiteral(l), LiteralValue::RealLiteral(r)) => {
-                Ok(LiteralValue::RealLiteral((l as f64) $op r))
+            (LiteralValue::Int(l), LiteralValue::Real(r)) => {
+                Ok(LiteralValue::Real((l as f64) $op r))
             }
-            (LiteralValue::RealLiteral(l), LiteralValue::IntLiteral(r)) => {
-                Ok(LiteralValue::RealLiteral(l $op (r as f64)))
+            (LiteralValue::Real(l), LiteralValue::Int(r)) => {
+                Ok(LiteralValue::Real(l $op (r as f64)))
             }
-            (LiteralValue::RealLiteral(l), LiteralValue::RealLiteral(r)) => {
-                Ok(LiteralValue::RealLiteral(l $op r))
+            (LiteralValue::Real(l), LiteralValue::Real(r)) => {
+                Ok(LiteralValue::Real(l $op r))
             }
             _ => Err(format!("Cannot evaluate {:?} {:} {:?}", $left, $op_text, $right)),
         }
@@ -53,7 +53,7 @@ pub fn evaluate_constants(index: &Index) -> (ConstantsIndex, Vec<String>) {
     // - with recursion, we can remove all of a recursion ring
     while tries_without_success < constants.len() {
         if let Some(candidate) = constants.pop_front() {
-            if let Some(initial) = &candidate.initial_value {
+            if let Some(initial) = index.maybe_get_constant_expression(&candidate.initial_value) {
                 if let Ok(Some(literal)) = evaluate(initial, &resolved_constants) {
                     resolved_constants.insert(
                         candidate.get_qualified_name().to_string(),
@@ -90,9 +90,9 @@ fn cast_if_necessary(
     index: &Index,
 ) -> LiteralValue {
     if let Some(data_type) = index.find_effective_type_by_name(candidate.get_type_name()) {
-        if let LiteralValue::IntLiteral(v) = literal {
+        if let LiteralValue::Int(v) = literal {
             if data_type.get_type_information().is_float() {
-                return LiteralValue::RealLiteral(v as f64);
+                return LiteralValue::Real(v as f64);
             }
         }
     }
@@ -108,14 +108,14 @@ fn evaluate(
 ) -> Result<Option<LiteralValue>, String> {
     let literal = match initial {
         AstStatement::LiteralInteger { value, .. } => {
-            Some(LiteralValue::IntLiteral(*value as i128))
+            Some(LiteralValue::Int(*value as i128))
         }
-        AstStatement::LiteralReal { value, .. } => Some(LiteralValue::RealLiteral(
+        AstStatement::LiteralReal { value, .. } => Some(LiteralValue::Real(
             value
                 .parse::<f64>()
                 .map_err(|_err| format!("Cannot parse {} as Real", value))?,
         )),
-        AstStatement::LiteralBool { value, .. } => Some(LiteralValue::BoolLiteral(*value)),
+        AstStatement::LiteralBool { value, .. } => Some(LiteralValue::Bool(*value)),
         AstStatement::Reference { name, .. } => cindex.get(name).copied(),
         AstStatement::BinaryExpression {
             left,
@@ -133,13 +133,13 @@ fn evaluate(
                     crate::ast::Operator::Equal => eq(&left, &right)?,
                     crate::ast::Operator::NotEqual => neq(&left, &right)?,
                     crate::ast::Operator::And => {
-                        LiteralValue::BoolLiteral(expect_bool(left)? & expect_bool(right)?)
+                        LiteralValue::Bool(expect_bool(left)? & expect_bool(right)?)
                     }
                     crate::ast::Operator::Or => {
-                        LiteralValue::BoolLiteral(expect_bool(left)? | expect_bool(right)?)
+                        LiteralValue::Bool(expect_bool(left)? | expect_bool(right)?)
                     }
                     crate::ast::Operator::Xor => {
-                        LiteralValue::BoolLiteral(expect_bool(left)? ^ expect_bool(right)?)
+                        LiteralValue::Bool(expect_bool(left)? ^ expect_bool(right)?)
                     }
                     _ => return Err(format!("cannot resolve operation: {:#?}", operator)),
                 })
@@ -153,7 +153,7 @@ fn evaluate(
             ..
         } => evaluate(value, cindex)
             .and_then(|it| it.map(expect_bool).transpose())?
-            .map(|it| LiteralValue::BoolLiteral(!it)),
+            .map(|it| LiteralValue::Bool(!it)),
         _ => return Err(format!("cannot resolve constants: {:#?}", initial)),
     };
     Ok(literal)
@@ -162,7 +162,7 @@ fn evaluate(
 /// checks if the give LiteralValue is a bool and returns its value.
 /// will return an Err if it is not a BoolLiteral
 fn expect_bool(lit: LiteralValue) -> Result<bool, String> {
-    if let LiteralValue::BoolLiteral(v) = lit {
+    if let LiteralValue::Bool(v) = lit {
         return Ok(v);
     }
     return Err(format!("Expected BoolLiteral but found {:?}", lit));
@@ -170,17 +170,17 @@ fn expect_bool(lit: LiteralValue) -> Result<bool, String> {
 
 fn modulo(left: &LiteralValue, right: &LiteralValue) -> Result<LiteralValue, String> {
     match (left, right) {
-        (LiteralValue::IntLiteral(l), LiteralValue::IntLiteral(r)) => {
-            Ok(LiteralValue::IntLiteral(l % r))
+        (LiteralValue::Int(l), LiteralValue::Int(r)) => {
+            Ok(LiteralValue::Int(l % r))
         }
-        (LiteralValue::IntLiteral(l), LiteralValue::RealLiteral(r)) => {
-            Ok(LiteralValue::RealLiteral((*l as f64) % r))
+        (LiteralValue::Int(l), LiteralValue::Real(r)) => {
+            Ok(LiteralValue::Real((*l as f64) % r))
         }
-        (LiteralValue::RealLiteral(l), LiteralValue::IntLiteral(r)) => {
-            Ok(LiteralValue::RealLiteral(l % (*r as f64)))
+        (LiteralValue::Real(l), LiteralValue::Int(r)) => {
+            Ok(LiteralValue::Real(l % (*r as f64)))
         }
-        (LiteralValue::RealLiteral(l), LiteralValue::RealLiteral(r)) => {
-            Ok(LiteralValue::RealLiteral(l % r))
+        (LiteralValue::Real(l), LiteralValue::Real(r)) => {
+            Ok(LiteralValue::Real(l % r))
         }
         _ => Err(format!("Cannot evaluate {:?} MOD {:?}", left, right)),
     }
@@ -188,14 +188,14 @@ fn modulo(left: &LiteralValue, right: &LiteralValue) -> Result<LiteralValue, Str
 
 fn eq(left: &LiteralValue, right: &LiteralValue) -> Result<LiteralValue, String> {
     match (left, right) {
-        (LiteralValue::IntLiteral(l), LiteralValue::IntLiteral(r)) => {
-            Ok(LiteralValue::BoolLiteral(l == r))
+        (LiteralValue::Int(l), LiteralValue::Int(r)) => {
+            Ok(LiteralValue::Bool(l == r))
         }
-        (LiteralValue::RealLiteral(l), LiteralValue::RealLiteral(r)) => {
+        (LiteralValue::Real(l), LiteralValue::Real(r)) => {
             Err("Cannot compare Reals without epsilon".into())
         }
-        (LiteralValue::BoolLiteral(l), LiteralValue::BoolLiteral(r)) => {
-            Ok(LiteralValue::BoolLiteral(l == r))
+        (LiteralValue::Bool(l), LiteralValue::Bool(r)) => {
+            Ok(LiteralValue::Bool(l == r))
         }
         _ => Err(format!("Cannot evaluate {:?} = {:?}", left, right)),
     }
@@ -203,14 +203,14 @@ fn eq(left: &LiteralValue, right: &LiteralValue) -> Result<LiteralValue, String>
 
 fn neq(left: &LiteralValue, right: &LiteralValue) -> Result<LiteralValue, String> {
     match (left, right) {
-        (LiteralValue::IntLiteral(l), LiteralValue::IntLiteral(r)) => {
-            Ok(LiteralValue::BoolLiteral(l != r))
+        (LiteralValue::Int(l), LiteralValue::Int(r)) => {
+            Ok(LiteralValue::Bool(l != r))
         }
-        (LiteralValue::RealLiteral(l), LiteralValue::RealLiteral(r)) => {
+        (LiteralValue::Real(_), LiteralValue::Real(_)) => {
             Err("Cannot compare Reals without epsilon".into())
         }
-        (LiteralValue::BoolLiteral(l), LiteralValue::BoolLiteral(r)) => {
-            Ok(LiteralValue::BoolLiteral(l != r))
+        (LiteralValue::Bool(l), LiteralValue::Bool(r)) => {
+            Ok(LiteralValue::Bool(l != r))
         }
         _ => Err(format!("Cannot evaluate {:?} <> {:?}", left, right)),
     }

@@ -32,12 +32,12 @@ fn const_references_to_int_compile_time_evaluation() {
 
     // THEN a,b,and c got their correct initial-literals
     assert_eq!(EMPTY, unresolvable);
-    assert_eq!(&LiteralValue::IntLiteral(4), constants.get("a").unwrap());
-    assert_eq!(&LiteralValue::IntLiteral(4), constants.get("b").unwrap());
-    assert_eq!(&LiteralValue::IntLiteral(4), constants.get("c").unwrap());
-    assert_eq!(&LiteralValue::RealLiteral(4.2), constants.get("d").unwrap());
-    assert_eq!(&LiteralValue::RealLiteral(4.0), constants.get("e").unwrap());
-    assert_eq!(&LiteralValue::RealLiteral(4.0), constants.get("f").unwrap());
+    assert_eq!(&LiteralValue::Int(4), constants.get("a").unwrap());
+    assert_eq!(&LiteralValue::Int(4), constants.get("b").unwrap());
+    assert_eq!(&LiteralValue::Int(4), constants.get("c").unwrap());
+    assert_eq!(&LiteralValue::Real(4.2), constants.get("d").unwrap());
+    assert_eq!(&LiteralValue::Real(4.0), constants.get("e").unwrap());
+    assert_eq!(&LiteralValue::Real(4.0), constants.get("f").unwrap());
 }
 
 #[test]
@@ -69,13 +69,13 @@ fn const_references_to_int_additions_compile_time_evaluation() {
 
     // THEN a,b,and c got their correct initial-literals
     assert_eq!(EMPTY, unresolvable);
-    assert_eq!(&LiteralValue::IntLiteral(4), constants.get("a").unwrap());
-    assert_eq!(&LiteralValue::IntLiteral(4), constants.get("b").unwrap());
-    assert_eq!(&LiteralValue::IntLiteral(11), constants.get("c").unwrap());
-    assert_eq!(&LiteralValue::RealLiteral(4.2), constants.get("d").unwrap());
-    assert_eq!(&LiteralValue::RealLiteral(4.0), constants.get("e").unwrap());
+    assert_eq!(&LiteralValue::Int(4), constants.get("a").unwrap());
+    assert_eq!(&LiteralValue::Int(4), constants.get("b").unwrap());
+    assert_eq!(&LiteralValue::Int(11), constants.get("c").unwrap());
+    assert_eq!(&LiteralValue::Real(4.2), constants.get("d").unwrap());
+    assert_eq!(&LiteralValue::Real(4.0), constants.get("e").unwrap());
     assert_eq!(
-        &LiteralValue::RealLiteral(11.7),
+        &LiteralValue::Real(11.7),
         constants.get("f").unwrap()
     );
 }
@@ -109,13 +109,13 @@ fn const_references_to_int_subtractions_compile_time_evaluation() {
 
     // THEN a,b,and c got their correct initial-literals
     assert_eq!(EMPTY, unresolvable);
-    assert_eq!(&LiteralValue::IntLiteral(4), constants.get("a").unwrap());
-    assert_eq!(&LiteralValue::IntLiteral(4), constants.get("b").unwrap());
-    assert_eq!(&LiteralValue::IntLiteral(-3), constants.get("c").unwrap());
-    assert_eq!(&LiteralValue::RealLiteral(4.2), constants.get("d").unwrap());
-    assert_eq!(&LiteralValue::RealLiteral(4.0), constants.get("e").unwrap());
+    assert_eq!(&LiteralValue::Int(4), constants.get("a").unwrap());
+    assert_eq!(&LiteralValue::Int(4), constants.get("b").unwrap());
+    assert_eq!(&LiteralValue::Int(-3), constants.get("c").unwrap());
+    assert_eq!(&LiteralValue::Real(4.2), constants.get("d").unwrap());
+    assert_eq!(&LiteralValue::Real(4.0), constants.get("e").unwrap());
     assert_eq!(
-        &LiteralValue::RealLiteral(-3.7),
+        &LiteralValue::Real(-3.7),
         constants.get("f").unwrap()
     );
 }
@@ -149,13 +149,13 @@ fn const_references_to_int_multiplications_compile_time_evaluation() {
 
     // THEN a,b,and c got their correct initial-literals
     assert_eq!(EMPTY, unresolvable);
-    assert_eq!(&LiteralValue::IntLiteral(4), constants.get("a").unwrap());
-    assert_eq!(&LiteralValue::IntLiteral(4), constants.get("b").unwrap());
-    assert_eq!(&LiteralValue::IntLiteral(28), constants.get("c").unwrap());
-    assert_eq!(&LiteralValue::RealLiteral(4.2), constants.get("d").unwrap());
-    assert_eq!(&LiteralValue::RealLiteral(4.0), constants.get("e").unwrap());
+    assert_eq!(&LiteralValue::Int(4), constants.get("a").unwrap());
+    assert_eq!(&LiteralValue::Int(4), constants.get("b").unwrap());
+    assert_eq!(&LiteralValue::Int(28), constants.get("c").unwrap());
+    assert_eq!(&LiteralValue::Real(4.2), constants.get("d").unwrap());
+    assert_eq!(&LiteralValue::Real(4.0), constants.get("e").unwrap());
     assert_eq!(
-        &LiteralValue::RealLiteral(30.8),
+        &LiteralValue::Real(30.8),
         constants.get("f").unwrap()
     );
 }
@@ -189,19 +189,19 @@ fn const_references_to_int_division_compile_time_evaluation() {
 
     // THEN a,b,and c got their correct initial-literals
     assert_eq!(EMPTY, unresolvable);
-    assert_eq!(&LiteralValue::IntLiteral(40), constants.get("a").unwrap());
-    assert_eq!(&LiteralValue::IntLiteral(40), constants.get("b").unwrap());
-    assert_eq!(&LiteralValue::IntLiteral(5), constants.get("c").unwrap());
+    assert_eq!(&LiteralValue::Int(40), constants.get("a").unwrap());
+    assert_eq!(&LiteralValue::Int(40), constants.get("b").unwrap());
+    assert_eq!(&LiteralValue::Int(5), constants.get("c").unwrap());
     assert_eq!(
-        &LiteralValue::RealLiteral(40.2),
+        &LiteralValue::Real(40.2),
         constants.get("d").unwrap()
     );
     assert_eq!(
-        &LiteralValue::RealLiteral(40.0),
+        &LiteralValue::Real(40.0),
         constants.get("e").unwrap()
     );
     assert_eq!(
-        &LiteralValue::RealLiteral(40_f64 / 7.7),
+        &LiteralValue::Real(40_f64 / 7.7),
         constants.get("f").unwrap()
     );
 }
@@ -275,94 +275,94 @@ fn const_references_int_float_type_behavior_evaluation() {
     assert_eq!(expected, unresolvable);
     // INT - INT
     assert_eq!(
-        &LiteralValue::IntLiteral(4),
+        &LiteralValue::Int(4),
         constants.get("int_plus_int").unwrap()
     );
     assert_eq!(
-        &LiteralValue::IntLiteral(2),
+        &LiteralValue::Int(2),
         constants.get("int_minus_int").unwrap()
     );
     assert_eq!(
-        &LiteralValue::IntLiteral(6),
+        &LiteralValue::Int(6),
         constants.get("int_mul_int").unwrap()
     );
     assert_eq!(
-        &LiteralValue::IntLiteral(2),
+        &LiteralValue::Int(2),
         constants.get("int_div_int").unwrap()
     );
     assert_eq!(
-        &LiteralValue::IntLiteral(5 % 2),
+        &LiteralValue::Int(5 % 2),
         constants.get("int_mod_int").unwrap()
     );
     assert_eq!(
-        &LiteralValue::BoolLiteral(true),
+        &LiteralValue::Bool(true),
         constants.get("int_eq_int").unwrap()
     );
     assert_eq!(
-        &LiteralValue::BoolLiteral(false),
+        &LiteralValue::Bool(false),
         constants.get("int_neq_int").unwrap()
     );
     // INT - REAL
     assert_eq!(
-        &LiteralValue::RealLiteral(4.1),
+        &LiteralValue::Real(4.1),
         constants.get("int_plus_real").unwrap()
     );
     assert_eq!(
-        &LiteralValue::RealLiteral(3.0 - 1.1),
+        &LiteralValue::Real(3.0 - 1.1),
         constants.get("int_minus_real").unwrap()
     );
     assert_eq!(
-        &LiteralValue::RealLiteral(3.0 * 1.1),
+        &LiteralValue::Real(3.0 * 1.1),
         constants.get("int_mul_real").unwrap()
     );
     assert_eq!(
-        &LiteralValue::RealLiteral(5.0 / 2.1),
+        &LiteralValue::Real(5.0 / 2.1),
         constants.get("int_div_real").unwrap()
     );
     assert_eq!(
-        &LiteralValue::RealLiteral(5.0 % 2.1),
+        &LiteralValue::Real(5.0 % 2.1),
         constants.get("int_mod_real").unwrap()
     );
     // REAL - INT
     assert_eq!(
-        &LiteralValue::RealLiteral(4.3),
+        &LiteralValue::Real(4.3),
         constants.get("real_plus_int").unwrap()
     );
     assert_eq!(
-        &LiteralValue::RealLiteral(2.3),
+        &LiteralValue::Real(2.3),
         constants.get("real_minus_int").unwrap()
     );
     assert_eq!(
-        &LiteralValue::RealLiteral(6.6),
+        &LiteralValue::Real(6.6),
         constants.get("real_mul_int").unwrap()
     );
     assert_eq!(
-        &LiteralValue::RealLiteral(5.2 / 2.0),
+        &LiteralValue::Real(5.2 / 2.0),
         constants.get("real_div_int").unwrap()
     );
     assert_eq!(
-        &LiteralValue::RealLiteral(5.2 % 2.0),
+        &LiteralValue::Real(5.2 % 2.0),
         constants.get("real_mod_int").unwrap()
     );
     // REAL - REAL
     assert_eq!(
-        &LiteralValue::RealLiteral(4.4),
+        &LiteralValue::Real(4.4),
         constants.get("real_plus_real").unwrap()
     );
     assert_eq!(
-        &LiteralValue::RealLiteral(3.3 - 1.1),
+        &LiteralValue::Real(3.3 - 1.1),
         constants.get("real_minus_real").unwrap()
     );
     assert_eq!(
-        &LiteralValue::RealLiteral(3.3 * 1.1),
+        &LiteralValue::Real(3.3 * 1.1),
         constants.get("real_mul_real").unwrap()
     );
     assert_eq!(
-        &LiteralValue::RealLiteral(5.3 / 2.1),
+        &LiteralValue::Real(5.3 / 2.1),
         constants.get("real_div_real").unwrap()
     );
     assert_eq!(
-        &LiteralValue::RealLiteral(5.3 % 2.1),
+        &LiteralValue::Real(5.3 % 2.1),
         constants.get("real_mod_real").unwrap()
     );
     // BOOL - BOOL
@@ -371,19 +371,19 @@ fn const_references_int_float_type_behavior_evaluation() {
     bool_xor_bool : BOOL := _true_ XOR _true_;
     not_bool : BOOL := NOT _true_;*/
     assert_eq!(
-        &LiteralValue::BoolLiteral(true),
+        &LiteralValue::Bool(true),
         constants.get("bool_and_bool").unwrap()
     );
     assert_eq!(
-        &LiteralValue::BoolLiteral(true),
+        &LiteralValue::Bool(true),
         constants.get("bool_or_bool").unwrap()
     );
     assert_eq!(
-        &LiteralValue::BoolLiteral(false),
+        &LiteralValue::Bool(false),
         constants.get("bool_xor_bool").unwrap()
     );
     assert_eq!(
-        &LiteralValue::BoolLiteral(false),
+        &LiteralValue::Bool(false),
         constants.get("not_bool").unwrap()
     );
 }
@@ -411,9 +411,9 @@ fn const_references_to_bool_compile_time_evaluation() {
 
     // THEN a,b,and c got their correct initial-literals
     assert_eq!(EMPTY, unresolvable);
-    assert_eq!(constants.get("a"), Some(&LiteralValue::BoolLiteral(true)));
-    assert_eq!(constants.get("b"), Some(&LiteralValue::BoolLiteral(false)));
-    assert_eq!(constants.get("c"), Some(&LiteralValue::BoolLiteral(false)));
+    assert_eq!(constants.get("a"), Some(&LiteralValue::Bool(true)));
+    assert_eq!(constants.get("b"), Some(&LiteralValue::Bool(false)));
+    assert_eq!(constants.get("c"), Some(&LiteralValue::Bool(false)));
 }
 
 #[test]
@@ -455,6 +455,6 @@ fn evaluating_constants_can_handle_recursion() {
 
     // THEN a,b,and c got their correct initial-literals
     assert_eq!(vec!["a", "b", "c", "d"], unresolvable);
-    assert_eq!(constants.get("aa"), Some(&LiteralValue::IntLiteral(4)));
-    assert_eq!(constants.get("bb"), Some(&LiteralValue::IntLiteral(4)));
+    assert_eq!(constants.get("aa"), Some(&LiteralValue::Int(4)));
+    assert_eq!(constants.get("bb"), Some(&LiteralValue::Int(4)));
 }
