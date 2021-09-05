@@ -30,11 +30,9 @@ macro_rules! arith {
                 Ok(LiteralValue::RealLiteral(l $op r))
             }
             _ => Err(format!("Cannot evaluate {:?} {:} {:?}", $left, $op_text, $right)),
-        }   
+        }
     };
 }
-
-
 
 //TODO this is a evaluator, not a resolver!
 

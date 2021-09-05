@@ -492,15 +492,11 @@ impl Index {
 
     /// returns globals and member variable index entries
     pub fn get_all_variable_entries(&self) -> impl Iterator<Item = &VariableIndexEntry> {
-        let members = self
-            .member_variables
-            .values()
-            .flat_map(|it| it.values());
+        let members = self.member_variables.values().flat_map(|it| it.values());
 
         let globals = self.global_variables.values();
 
         globals.chain(members)
-        
     }
 
     pub fn get_global_qualified_enums(&self) -> &IndexMap<String, VariableIndexEntry> {
