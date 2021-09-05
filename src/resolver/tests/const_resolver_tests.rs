@@ -246,25 +246,33 @@ fn const_references_int_float_type_behavior_evaluation() {
             real_mod_real : REAL := 5.3 MOD 2.1;
             real_eq_real : REAL := 5.3 = 2.1;
             real_neq_real : REAL := 5.3 <> 2.1;
+
+            //BOOL - BOOL
+            _true_ : BOOL := TRUE;
+            _false_ : BOOL := FALSE;
+            bool_and_bool : BOOL := _true_ AND _true_;
+            bool_or_bool : BOOL := _true_ OR _false_;
+            bool_xor_bool : BOOL := _true_ XOR _true_;
+            not_bool : BOOL := NOT _true_;
         END_VAR
         ",
     );
 
     // WHEN compile-time evaluation is applied
-    let (constants, unresolvable) = evaluate_constants(&index);
+    let (constants, mut unresolvable) = evaluate_constants(&index);
 
     // THEN a,b,and c got their correct initial-literals
-    assert_eq!(
-        vec![
-            "real_eq_real".to_string(),
-            "real_neq_real".to_string(),
-            "int_eq_real".to_string(),
-            "int_neq_real".to_string(),
-            "real_eq_int".to_string(),
-            "real_neq_int".to_string(),
-        ],
-        unresolvable
-    );
+    let mut expected = vec![
+        "real_eq_real".to_string(),
+        "real_neq_real".to_string(),
+        "int_eq_real".to_string(),
+        "int_neq_real".to_string(),
+        "real_eq_int".to_string(),
+        "real_neq_int".to_string(),
+    ];
+    expected.sort();
+    unresolvable.sort();
+    assert_eq!(expected, unresolvable);
     // INT - INT
     assert_eq!(
         &LiteralValue::IntLiteral(4),
@@ -357,6 +365,27 @@ fn const_references_int_float_type_behavior_evaluation() {
         &LiteralValue::RealLiteral(5.3 % 2.1),
         constants.get("real_mod_real").unwrap()
     );
+    // BOOL - BOOL
+    /*bool_and_bool : BOOL := _true_ AND _true_;
+    bool_or_bool : BOOL := _true_ OR _false_;
+    bool_xor_bool : BOOL := _true_ XOR _true_;
+    not_bool : BOOL := NOT _true_;*/
+    assert_eq!(
+        &LiteralValue::BoolLiteral(true),
+        constants.get("bool_and_bool").unwrap()
+    );
+    assert_eq!(
+        &LiteralValue::BoolLiteral(true),
+        constants.get("bool_or_bool").unwrap()
+    );
+    assert_eq!(
+        &LiteralValue::BoolLiteral(false),
+        constants.get("bool_xor_bool").unwrap()
+    );
+    assert_eq!(
+        &LiteralValue::BoolLiteral(false),
+        constants.get("not_bool").unwrap()
+    );
 }
 
 #[test]
@@ -404,4 +433,28 @@ fn not_evaluatable_consts_are_reported() {
 
     // THEN a,b,and c got their correct initial-literals
     assert_eq!(vec!["c".to_string(), "d".to_string()], unresolvable);
+}
+
+#[test]
+fn evaluating_constants_can_handle_recursion() {
+    // GIVEN some BOOL constants used as initializers
+    let (_, index) = parse(
+        "VAR_GLOBAL CONSTANT
+            a : INT := d;
+            b : INT := a;
+            c : INT := b;
+            d : INT := a;
+
+            aa : INT := 4;
+            bb : INT := aa;
+        END_VAR",
+    );
+
+    // WHEN compile-time evaluation is applied
+    let (constants, unresolvable) = evaluate_constants(&index);
+
+    // THEN a,b,and c got their correct initial-literals
+    assert_eq!(vec!["a", "b", "c", "d"], unresolvable);
+    assert_eq!(constants.get("aa"), Some(&LiteralValue::IntLiteral(4)));
+    assert_eq!(constants.get("bb"), Some(&LiteralValue::IntLiteral(4)));
 }

@@ -1,7 +1,6 @@
 use std::collections::VecDeque;
 
 use indexmap::IndexMap;
-use inkwell::values::BasicValueEnum;
 
 use crate::{
     ast::AstStatement,
@@ -14,6 +13,28 @@ pub enum LiteralValue {
     RealLiteral(f64),
     BoolLiteral(bool),
 }
+
+macro_rules! arith {
+    ($left:expr, $op:tt, $right:expr, $op_text:expr) => {
+        match ($left, $right) {
+            (LiteralValue::IntLiteral(l), LiteralValue::IntLiteral(r)) => {
+                Ok(LiteralValue::IntLiteral(l $op r))
+            }
+            (LiteralValue::IntLiteral(l), LiteralValue::RealLiteral(r)) => {
+                Ok(LiteralValue::RealLiteral((l as f64) $op r))
+            }
+            (LiteralValue::RealLiteral(l), LiteralValue::IntLiteral(r)) => {
+                Ok(LiteralValue::RealLiteral(l $op (r as f64)))
+            }
+            (LiteralValue::RealLiteral(l), LiteralValue::RealLiteral(r)) => {
+                Ok(LiteralValue::RealLiteral(l $op r))
+            }
+            _ => Err(format!("Cannot evaluate {:?} {:} {:?}", $left, $op_text, $right)),
+        }   
+    };
+}
+
+
 
 //TODO this is a evaluator, not a resolver!
 
@@ -30,6 +51,8 @@ pub fn evaluate_constants(index: &Index) -> (ConstantsIndex, Vec<String>) {
     let mut tries_without_success = 0;
     //if we need more tries than entries we cannot solve the issue
     //TODO is can be more efficient
+    // - we can know when retries are smart
+    // - with recursion, we can remove all of a recursion ring
     while tries_without_success < constants.len() {
         if let Some(candidate) = constants.pop_front() {
             if let Some(initial) = &candidate.initial_value {
@@ -104,94 +127,47 @@ fn evaluate(
         } => {
             if let (Some(left), Some(right)) = (evaluate(left, cindex)?, evaluate(right, cindex)?) {
                 Some(match operator {
-                    crate::ast::Operator::Plus => add(&left, &right)?,
-                    crate::ast::Operator::Minus => sub(&left, &right)?,
-                    crate::ast::Operator::Multiplication => multiply(&left, &right)?,
-                    crate::ast::Operator::Division => division(&left, &right)?,
+                    crate::ast::Operator::Plus => arith!(left, +, right, "+")?,
+                    crate::ast::Operator::Minus => arith!(left, -, right, "-")?,
+                    crate::ast::Operator::Multiplication => arith!(left, *, right, "*")?,
+                    crate::ast::Operator::Division => arith!(left, /, right, "/")?,
                     crate::ast::Operator::Modulo => modulo(&left, &right)?,
                     crate::ast::Operator::Equal => eq(&left, &right)?,
                     crate::ast::Operator::NotEqual => neq(&left, &right)?,
+                    crate::ast::Operator::And => {
+                        LiteralValue::BoolLiteral(expect_bool(left)? & expect_bool(right)?)
+                    }
+                    crate::ast::Operator::Or => {
+                        LiteralValue::BoolLiteral(expect_bool(left)? | expect_bool(right)?)
+                    }
+                    crate::ast::Operator::Xor => {
+                        LiteralValue::BoolLiteral(expect_bool(left)? ^ expect_bool(right)?)
+                    }
                     _ => return Err(format!("cannot resolve operation: {:#?}", operator)),
                 })
             } else {
                 None //not all operators can be resolved
             }
         }
+        AstStatement::UnaryExpression {
+            operator: crate::ast::Operator::Not,
+            value,
+            ..
+        } => evaluate(value, cindex)
+            .and_then(|it| it.map(expect_bool).transpose())?
+            .map(|it| LiteralValue::BoolLiteral(!it)),
         _ => return Err(format!("cannot resolve constants: {:#?}", initial)),
     };
     Ok(literal)
 }
 
-fn add(left: &LiteralValue, right: &LiteralValue) -> Result<LiteralValue, String> {
-    match (left, right) {
-        (LiteralValue::IntLiteral(l), LiteralValue::IntLiteral(r)) => {
-            Ok(LiteralValue::IntLiteral(l + r))
-        }
-        (LiteralValue::IntLiteral(l), LiteralValue::RealLiteral(r)) => {
-            Ok(LiteralValue::RealLiteral((*l as f64) + r))
-        }
-        (LiteralValue::RealLiteral(l), LiteralValue::IntLiteral(r)) => {
-            Ok(LiteralValue::RealLiteral(l + (*r as f64)))
-        }
-        (LiteralValue::RealLiteral(l), LiteralValue::RealLiteral(r)) => {
-            Ok(LiteralValue::RealLiteral(l + r))
-        }
-        _ => Err(format!("Cannot evaluate {:?} + {:?}", left, right)),
+/// checks if the give LiteralValue is a bool and returns its value.
+/// will return an Err if it is not a BoolLiteral
+fn expect_bool(lit: LiteralValue) -> Result<bool, String> {
+    if let LiteralValue::BoolLiteral(v) = lit {
+        return Ok(v);
     }
-}
-
-fn sub(left: &LiteralValue, right: &LiteralValue) -> Result<LiteralValue, String> {
-    match (left, right) {
-        (LiteralValue::IntLiteral(l), LiteralValue::IntLiteral(r)) => {
-            Ok(LiteralValue::IntLiteral(l - r))
-        }
-        (LiteralValue::IntLiteral(l), LiteralValue::RealLiteral(r)) => {
-            Ok(LiteralValue::RealLiteral((*l as f64) - r))
-        }
-        (LiteralValue::RealLiteral(l), LiteralValue::IntLiteral(r)) => {
-            Ok(LiteralValue::RealLiteral(l - (*r as f64)))
-        }
-        (LiteralValue::RealLiteral(l), LiteralValue::RealLiteral(r)) => {
-            Ok(LiteralValue::RealLiteral(l - r))
-        }
-        _ => Err(format!("Cannot evaluate {:?} - {:?}", left, right)),
-    }
-}
-
-fn multiply(left: &LiteralValue, right: &LiteralValue) -> Result<LiteralValue, String> {
-    match (left, right) {
-        (LiteralValue::IntLiteral(l), LiteralValue::IntLiteral(r)) => {
-            Ok(LiteralValue::IntLiteral(l * r))
-        }
-        (LiteralValue::IntLiteral(l), LiteralValue::RealLiteral(r)) => {
-            Ok(LiteralValue::RealLiteral((*l as f64) * r))
-        }
-        (LiteralValue::RealLiteral(l), LiteralValue::IntLiteral(r)) => {
-            Ok(LiteralValue::RealLiteral(l * (*r as f64)))
-        }
-        (LiteralValue::RealLiteral(l), LiteralValue::RealLiteral(r)) => {
-            Ok(LiteralValue::RealLiteral(l * r))
-        }
-        _ => Err(format!("Cannot evaluate {:?} * {:?}", left, right)),
-    }
-}
-
-fn division(left: &LiteralValue, right: &LiteralValue) -> Result<LiteralValue, String> {
-    match (left, right) {
-        (LiteralValue::IntLiteral(l), LiteralValue::IntLiteral(r)) => {
-            Ok(LiteralValue::IntLiteral(l / r))
-        }
-        (LiteralValue::IntLiteral(l), LiteralValue::RealLiteral(r)) => {
-            Ok(LiteralValue::RealLiteral((*l as f64) / r))
-        }
-        (LiteralValue::RealLiteral(l), LiteralValue::IntLiteral(r)) => {
-            Ok(LiteralValue::RealLiteral(l / (*r as f64)))
-        }
-        (LiteralValue::RealLiteral(l), LiteralValue::RealLiteral(r)) => {
-            Ok(LiteralValue::RealLiteral(l / r))
-        }
-        _ => Err(format!("Cannot evaluate {:?} / {:?}", left, right)),
-    }
+    return Err(format!("Expected BoolLiteral but found {:?}", lit));
 }
 
 fn modulo(left: &LiteralValue, right: &LiteralValue) -> Result<LiteralValue, String> {
@@ -241,4 +217,3 @@ fn neq(left: &LiteralValue, right: &LiteralValue) -> Result<LiteralValue, String
         _ => Err(format!("Cannot evaluate {:?} <> {:?}", left, right)),
     }
 }
-
