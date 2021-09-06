@@ -1,7 +1,7 @@
 use core::panic;
 
 use crate::{
-    ast::{AstStatement, DataType, UserTypeDeclaration},
+    ast::{AstStatement, DataType, UserTypeDeclaration, Variable},
     index::Index,
     resolver::{
         tests::{annotate, parse},
@@ -164,6 +164,45 @@ fn global_resolves_types() {
     let expected_types = vec![
         "BYTE", "WORD", "DWORD", "LWORD", "SINT", "USINT", "INT", "UINT", "DINT", "UDINT", "LINT",
         "ULINT",
+    ];
+    let type_names: Vec<&str> = statements
+        .iter()
+        .map(|s| annotations.get_type_or_void(s, &index).get_name())
+        .collect();
+
+    assert_eq!(format!("{:?}", expected_types), format!("{:?}", type_names));
+}
+
+#[test]
+fn global_initializers_resolves_types() {
+    let (unit, index) = parse(
+        "
+        VAR_GLOBAL
+            b : BYTE := 0;
+            w : WORD := 0;
+            dw : DWORD := 0;
+            lw : LWORD := 0;
+            si : SINT := 0;
+            usi : USINT := 0;
+            i : INT := 0;
+            ui : UINT := 0;
+            di : DINT := 0;
+            udi : UDINT := 0;
+            li : LINT := 0;
+            uli : ULINT := 0;
+        END_VAR
+        ",
+    );
+    let annotations = annotate(&unit, &index);
+    let statements: Vec<&AstStatement> = unit.global_vars[0]
+        .variables
+        .iter()
+        .map(|it| it.initializer.as_ref().unwrap())
+        .collect();
+
+    let expected_types = vec![
+        "DINT", "DINT", "DINT", "DINT", "DINT", "DINT", "DINT", "DINT", "DINT", "DINT", "DINT",
+        "DINT",
     ];
     let type_names: Vec<&str> = statements
         .iter()

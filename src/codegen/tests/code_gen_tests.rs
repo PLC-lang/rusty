@@ -305,6 +305,35 @@ END_PROGRAM
 }
 
 #[test]
+fn casted_literals_hex_ints_code_gen_test() {
+    let result = codegen!(
+        r#"PROGRAM prg
+VAR
+x : DINT;
+END_VAR
+
+      x := INT#16#FFFF; 
+      x := WORD#16#FFFF; 
+
+END_PROGRAM
+"#
+    );
+    let expected = generate_program_boiler_plate(
+        "prg",
+        &[("i32", "x")],
+        "void",
+        "",
+        "",
+        r#"store i32 -1, i32* %x, align 4
+  store i32 65535, i32* %x, align 4
+  ret void
+"#,
+    );
+
+    assert_eq!(result, expected);
+}
+
+#[test]
 fn casted_literals_lreal_code_gen_test() {
     let result = codegen!(
         r#"PROGRAM prg
@@ -5563,4 +5592,34 @@ continue:                                         ; preds = %output
 }
 "#;
     assert_eq!(expected, result);
+}
+
+#[test]
+fn initial_values_in_global_constant_variables() {
+    let result = codegen!(
+        "
+        VAR_GLOBAL CONSTANT
+          c_INT : INT := 7;
+          c_3c : INT := 3 * c_INT;
+        END_VAR
+
+        VAR_GLOBAL
+          x : INT := c_INT;
+          y : INT := c_INT + c_INT;
+          z : INT := c_INT + c_3c + 4;
+        END_VAR
+        "
+    );
+
+    let expected = r#"; ModuleID = 'main'
+source_filename = "main"
+
+@c_INT = global i16 7
+@c_3c = global i16 21
+@x = global i16 7
+@y = global i16 14
+@z = global i16 32
+"#;
+
+    assert_eq!(result, expected);
 }

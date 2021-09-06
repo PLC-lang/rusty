@@ -13,8 +13,20 @@ pub const RANGE_CHECK_LS_FN: &str = "CheckLRangeSigned";
 pub const RANGE_CHECK_U_FN: &str = "CheckRangeUnsigned";
 pub const RANGE_CHECK_LU_FN: &str = "CheckLRangeUnsigned";
 
+pub type NATIVE_SINT_TYPE = i8;
+pub type NATIVE_INT_TYPE = i16;
+pub type NATIVE_DINT_TYPE = i32;
+pub type NATIVE_LINT_TYPE = i64;
+pub type NATIVE_BYTE_TYPE = u8;
+pub type NATIVE_WORD_TYPE = u16;
+pub type NATIVE_DWORD_TYPE = u32;
+pub type NATIVE_LWORD_TYPE = u64;
+
+pub const BYTE_SIZE: u32 = 8;
+pub const SINT_SIZE: u32 = INT_SIZE / 2;
 pub const INT_SIZE: u32 = 16;
 pub const DINT_SIZE: u32 = 2 * INT_SIZE;
+pub const LINT_SIZE: u32 = 2 * DINT_SIZE;
 
 pub const BOOL_TYPE: &str = "BOOL";
 pub const BYTE_TYPE: &str = "BYTE";

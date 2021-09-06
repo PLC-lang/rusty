@@ -406,35 +406,27 @@ fn given_set_of_local_global_and_functions_the_index_can_be_retrieved() {
     );
 
     //Asking for a variable with no context returns global variables
-    let result = index.find_variable(None, &["a".to_string()]).unwrap();
+    let result = index.find_variable(None, &["a"]).unwrap();
     assert_eq!(VariableType::Global, result.information.variable_type);
     assert_eq!("a", result.name);
     assert_eq!(None, result.information.qualifier);
     //Asking for a variable with the POU  context finds a local variable
-    let result = index
-        .find_variable(Some("prg"), &["a".to_string()])
-        .unwrap();
+    let result = index.find_variable(Some("prg"), &["a"]).unwrap();
     assert_eq!(VariableType::Local, result.information.variable_type);
     assert_eq!("a", result.name);
     assert_eq!(Some("prg".to_string()), result.information.qualifier);
     //Asking for a variable with th POU context finds a global variable
-    let result = index
-        .find_variable(Some("prg"), &["b".to_string()])
-        .unwrap();
+    let result = index.find_variable(Some("prg"), &["b"]).unwrap();
     assert_eq!(VariableType::Global, result.information.variable_type);
     assert_eq!("b", result.name);
     assert_eq!(None, result.information.qualifier);
     //Asking for a variable with the function context finds the local variable
-    let result = index
-        .find_variable(Some("foo"), &["a".to_string()])
-        .unwrap();
+    let result = index.find_variable(Some("foo"), &["a"]).unwrap();
     assert_eq!(VariableType::Local, result.information.variable_type);
     assert_eq!("a", result.name);
     assert_eq!(Some("foo".to_string()), result.information.qualifier);
     //Asking for a variable with the function context finds the global variable
-    let result = index
-        .find_variable(Some("foo"), &["x".to_string()])
-        .unwrap();
+    let result = index.find_variable(Some("foo"), &["x"]).unwrap();
     assert_eq!(VariableType::Global, result.information.variable_type);
     assert_eq!("x", result.name);
     assert_eq!(None, result.information.qualifier);
@@ -473,15 +465,7 @@ fn index_can_be_retrieved_from_qualified_name() {
     );
 
     let result = index
-        .find_variable(
-            Some("prg"),
-            &[
-                "fb1_inst".to_string(),
-                "fb2_inst".to_string(),
-                "fb3_inst".to_string(),
-                "x".to_string(),
-            ],
-        )
+        .find_variable(Some("prg"), &["fb1_inst", "fb2_inst", "fb3_inst", "x"])
         .unwrap();
     assert_eq!(VariableType::Input, result.information.variable_type);
     assert_eq!("x", result.name);

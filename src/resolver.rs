@@ -7,7 +7,7 @@
 
 use indexmap::IndexMap;
 
-mod const_evaluator;
+pub mod const_evaluator;
 
 use crate::{
     ast::{
@@ -204,6 +204,17 @@ impl<'i> TypeAnnotator<'i> {
             qualifier: None,
             call: None,
         };
+
+        for global_initializer in unit
+            .global_vars
+            .iter()
+            .flat_map(|it| it.variables.iter())
+            .map(|it| it.initializer.as_ref())
+            .flatten()
+        {
+            //get rid of Nones
+            visitor.visit_statement_expression(ctx, global_initializer);
+        }
 
         for pou in &unit.units {
             visitor.visit_pou(ctx, pou);
@@ -497,9 +508,9 @@ impl<'i> TypeAnnotator<'i> {
                         })
                         .or_else(|| {
                             // ... then try if we find a pou with that name (maybe it's a call?)
-                            let class_name = self
-                                .index
-                                .find_implementation(ctx.pou.unwrap())
+                            let class_name = ctx
+                                .pou
+                                .and_then(|pou_name| self.index.find_implementation(pou_name))
                                 .and_then(ImplementationIndexEntry::get_associated_class_name);
 
                             //TODO introduce qualified names!

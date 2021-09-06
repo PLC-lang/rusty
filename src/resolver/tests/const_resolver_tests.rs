@@ -1,11 +1,12 @@
-use crate::resolver::const_evaluator::{evaluate_constants, LiteralValue};
+use crate::index::LiteralValue;
+use crate::resolver::const_evaluator::evaluate_constants;
 use crate::resolver::tests::parse;
 
 const EMPTY: Vec<String> = vec![];
 
 #[test]
 fn const_references_to_int_compile_time_evaluation() {
-    // GIVEN some INT constants used as initializers
+    // GIVEN some INT index used as initializers
     let (_, index) = parse(
         "VAR_GLOBAL CONSTANT
             iX : INT := 4;
@@ -28,21 +29,39 @@ fn const_references_to_int_compile_time_evaluation() {
     );
 
     // WHEN compile-time evaluation is applied
-    let (constants, unresolvable) = evaluate_constants(&index);
+    let (index, unresolvable) = evaluate_constants(index);
 
     // THEN a,b,and c got their correct initial-literals
     assert_eq!(EMPTY, unresolvable);
-    assert_eq!(&LiteralValue::Int(4), constants.get("a").unwrap());
-    assert_eq!(&LiteralValue::Int(4), constants.get("b").unwrap());
-    assert_eq!(&LiteralValue::Int(4), constants.get("c").unwrap());
-    assert_eq!(&LiteralValue::Real(4.2), constants.get("d").unwrap());
-    assert_eq!(&LiteralValue::Real(4.0), constants.get("e").unwrap());
-    assert_eq!(&LiteralValue::Real(4.0), constants.get("f").unwrap());
+    assert_eq!(
+        &LiteralValue::Int(4),
+        index.find_constant_value("a").unwrap()
+    );
+    assert_eq!(
+        &LiteralValue::Int(4),
+        index.find_constant_value("b").unwrap()
+    );
+    assert_eq!(
+        &LiteralValue::Int(4),
+        index.find_constant_value("c").unwrap()
+    );
+    assert_eq!(
+        &LiteralValue::Real(4.2),
+        index.find_constant_value("d").unwrap()
+    );
+    assert_eq!(
+        &LiteralValue::Real(4.0),
+        index.find_constant_value("e").unwrap()
+    );
+    assert_eq!(
+        &LiteralValue::Real(4.0),
+        index.find_constant_value("f").unwrap()
+    );
 }
 
 #[test]
 fn const_references_to_int_additions_compile_time_evaluation() {
-    // GIVEN some INT constants used as initializers
+    // GIVEN some INT index used as initializers
     let (_, index) = parse(
         "VAR_GLOBAL CONSTANT
             iX : INT := 4;
@@ -65,24 +84,39 @@ fn const_references_to_int_additions_compile_time_evaluation() {
     );
 
     // WHEN compile-time evaluation is applied
-    let (constants, unresolvable) = evaluate_constants(&index);
+    let (index, unresolvable) = evaluate_constants(index);
 
     // THEN a,b,and c got their correct initial-literals
     assert_eq!(EMPTY, unresolvable);
-    assert_eq!(&LiteralValue::Int(4), constants.get("a").unwrap());
-    assert_eq!(&LiteralValue::Int(4), constants.get("b").unwrap());
-    assert_eq!(&LiteralValue::Int(11), constants.get("c").unwrap());
-    assert_eq!(&LiteralValue::Real(4.2), constants.get("d").unwrap());
-    assert_eq!(&LiteralValue::Real(4.0), constants.get("e").unwrap());
+    assert_eq!(
+        &LiteralValue::Int(4),
+        index.find_constant_value("a").unwrap()
+    );
+    assert_eq!(
+        &LiteralValue::Int(4),
+        index.find_constant_value("b").unwrap()
+    );
+    assert_eq!(
+        &LiteralValue::Int(11),
+        index.find_constant_value("c").unwrap()
+    );
+    assert_eq!(
+        &LiteralValue::Real(4.2),
+        index.find_constant_value("d").unwrap()
+    );
+    assert_eq!(
+        &LiteralValue::Real(4.0),
+        index.find_constant_value("e").unwrap()
+    );
     assert_eq!(
         &LiteralValue::Real(11.7),
-        constants.get("f").unwrap()
+        index.find_constant_value("f").unwrap()
     );
 }
 
 #[test]
 fn const_references_to_int_subtractions_compile_time_evaluation() {
-    // GIVEN some INT constants used as initializers
+    // GIVEN some INT index used as initializers
     let (_, index) = parse(
         "VAR_GLOBAL CONSTANT
             iX : INT := 4;
@@ -105,24 +139,39 @@ fn const_references_to_int_subtractions_compile_time_evaluation() {
     );
 
     // WHEN compile-time evaluation is applied
-    let (constants, unresolvable) = evaluate_constants(&index);
+    let (index, unresolvable) = evaluate_constants(index);
 
     // THEN a,b,and c got their correct initial-literals
     assert_eq!(EMPTY, unresolvable);
-    assert_eq!(&LiteralValue::Int(4), constants.get("a").unwrap());
-    assert_eq!(&LiteralValue::Int(4), constants.get("b").unwrap());
-    assert_eq!(&LiteralValue::Int(-3), constants.get("c").unwrap());
-    assert_eq!(&LiteralValue::Real(4.2), constants.get("d").unwrap());
-    assert_eq!(&LiteralValue::Real(4.0), constants.get("e").unwrap());
+    assert_eq!(
+        &LiteralValue::Int(4),
+        index.find_constant_value("a").unwrap()
+    );
+    assert_eq!(
+        &LiteralValue::Int(4),
+        index.find_constant_value("b").unwrap()
+    );
+    assert_eq!(
+        &LiteralValue::Int(-3),
+        index.find_constant_value("c").unwrap()
+    );
+    assert_eq!(
+        &LiteralValue::Real(4.2),
+        index.find_constant_value("d").unwrap()
+    );
+    assert_eq!(
+        &LiteralValue::Real(4.0),
+        index.find_constant_value("e").unwrap()
+    );
     assert_eq!(
         &LiteralValue::Real(-3.7),
-        constants.get("f").unwrap()
+        index.find_constant_value("f").unwrap()
     );
 }
 
 #[test]
 fn const_references_to_int_multiplications_compile_time_evaluation() {
-    // GIVEN some INT constants used as initializers
+    // GIVEN some INT index used as initializers
     let (_, index) = parse(
         "VAR_GLOBAL CONSTANT
             iX : INT := 4;
@@ -145,24 +194,39 @@ fn const_references_to_int_multiplications_compile_time_evaluation() {
     );
 
     // WHEN compile-time evaluation is applied
-    let (constants, unresolvable) = evaluate_constants(&index);
+    let (index, unresolvable) = evaluate_constants(index);
 
     // THEN a,b,and c got their correct initial-literals
     assert_eq!(EMPTY, unresolvable);
-    assert_eq!(&LiteralValue::Int(4), constants.get("a").unwrap());
-    assert_eq!(&LiteralValue::Int(4), constants.get("b").unwrap());
-    assert_eq!(&LiteralValue::Int(28), constants.get("c").unwrap());
-    assert_eq!(&LiteralValue::Real(4.2), constants.get("d").unwrap());
-    assert_eq!(&LiteralValue::Real(4.0), constants.get("e").unwrap());
+    assert_eq!(
+        &LiteralValue::Int(4),
+        index.find_constant_value("a").unwrap()
+    );
+    assert_eq!(
+        &LiteralValue::Int(4),
+        index.find_constant_value("b").unwrap()
+    );
+    assert_eq!(
+        &LiteralValue::Int(28),
+        index.find_constant_value("c").unwrap()
+    );
+    assert_eq!(
+        &LiteralValue::Real(4.2),
+        index.find_constant_value("d").unwrap()
+    );
+    assert_eq!(
+        &LiteralValue::Real(4.0),
+        index.find_constant_value("e").unwrap()
+    );
     assert_eq!(
         &LiteralValue::Real(30.8),
-        constants.get("f").unwrap()
+        index.find_constant_value("f").unwrap()
     );
 }
 
 #[test]
 fn const_references_to_int_division_compile_time_evaluation() {
-    // GIVEN some INT constants used as initializers
+    // GIVEN some INT index used as initializers
     let (_, index) = parse(
         "VAR_GLOBAL CONSTANT
             iX : INT := 40;
@@ -185,30 +249,39 @@ fn const_references_to_int_division_compile_time_evaluation() {
     );
 
     // WHEN compile-time evaluation is applied
-    let (constants, unresolvable) = evaluate_constants(&index);
+    let (index, unresolvable) = evaluate_constants(index);
 
     // THEN a,b,and c got their correct initial-literals
     assert_eq!(EMPTY, unresolvable);
-    assert_eq!(&LiteralValue::Int(40), constants.get("a").unwrap());
-    assert_eq!(&LiteralValue::Int(40), constants.get("b").unwrap());
-    assert_eq!(&LiteralValue::Int(5), constants.get("c").unwrap());
+    assert_eq!(
+        &LiteralValue::Int(40),
+        index.find_constant_value("a").unwrap()
+    );
+    assert_eq!(
+        &LiteralValue::Int(40),
+        index.find_constant_value("b").unwrap()
+    );
+    assert_eq!(
+        &LiteralValue::Int(5),
+        index.find_constant_value("c").unwrap()
+    );
     assert_eq!(
         &LiteralValue::Real(40.2),
-        constants.get("d").unwrap()
+        index.find_constant_value("d").unwrap()
     );
     assert_eq!(
         &LiteralValue::Real(40.0),
-        constants.get("e").unwrap()
+        index.find_constant_value("e").unwrap()
     );
     assert_eq!(
         &LiteralValue::Real(40_f64 / 7.7),
-        constants.get("f").unwrap()
+        index.find_constant_value("f").unwrap()
     );
 }
 
 #[test]
 fn const_references_int_float_type_behavior_evaluation() {
-    // GIVEN some INT constants used as initializers
+    // GIVEN some INT index used as initializers
     let (_, index) = parse(
         "VAR_GLOBAL CONSTANT
             // INT - INT
@@ -259,7 +332,7 @@ fn const_references_int_float_type_behavior_evaluation() {
     );
 
     // WHEN compile-time evaluation is applied
-    let (constants, mut unresolvable) = evaluate_constants(&index);
+    let (index, mut unresolvable) = evaluate_constants(index);
 
     // THEN a,b,and c got their correct initial-literals
     let mut expected = vec![
@@ -276,111 +349,111 @@ fn const_references_int_float_type_behavior_evaluation() {
     // INT - INT
     assert_eq!(
         &LiteralValue::Int(4),
-        constants.get("int_plus_int").unwrap()
+        index.find_constant_value("int_plus_int").unwrap()
     );
     assert_eq!(
         &LiteralValue::Int(2),
-        constants.get("int_minus_int").unwrap()
+        index.find_constant_value("int_minus_int").unwrap()
     );
     assert_eq!(
         &LiteralValue::Int(6),
-        constants.get("int_mul_int").unwrap()
+        index.find_constant_value("int_mul_int").unwrap()
     );
     assert_eq!(
         &LiteralValue::Int(2),
-        constants.get("int_div_int").unwrap()
+        index.find_constant_value("int_div_int").unwrap()
     );
     assert_eq!(
         &LiteralValue::Int(5 % 2),
-        constants.get("int_mod_int").unwrap()
+        index.find_constant_value("int_mod_int").unwrap()
     );
     assert_eq!(
         &LiteralValue::Bool(true),
-        constants.get("int_eq_int").unwrap()
+        index.find_constant_value("int_eq_int").unwrap()
     );
     assert_eq!(
         &LiteralValue::Bool(false),
-        constants.get("int_neq_int").unwrap()
+        index.find_constant_value("int_neq_int").unwrap()
     );
     // INT - REAL
     assert_eq!(
         &LiteralValue::Real(4.1),
-        constants.get("int_plus_real").unwrap()
+        index.find_constant_value("int_plus_real").unwrap()
     );
     assert_eq!(
         &LiteralValue::Real(3.0 - 1.1),
-        constants.get("int_minus_real").unwrap()
+        index.find_constant_value("int_minus_real").unwrap()
     );
     assert_eq!(
         &LiteralValue::Real(3.0 * 1.1),
-        constants.get("int_mul_real").unwrap()
+        index.find_constant_value("int_mul_real").unwrap()
     );
     assert_eq!(
         &LiteralValue::Real(5.0 / 2.1),
-        constants.get("int_div_real").unwrap()
+        index.find_constant_value("int_div_real").unwrap()
     );
     assert_eq!(
         &LiteralValue::Real(5.0 % 2.1),
-        constants.get("int_mod_real").unwrap()
+        index.find_constant_value("int_mod_real").unwrap()
     );
     // REAL - INT
     assert_eq!(
         &LiteralValue::Real(4.3),
-        constants.get("real_plus_int").unwrap()
+        index.find_constant_value("real_plus_int").unwrap()
     );
     assert_eq!(
         &LiteralValue::Real(2.3),
-        constants.get("real_minus_int").unwrap()
+        index.find_constant_value("real_minus_int").unwrap()
     );
     assert_eq!(
         &LiteralValue::Real(6.6),
-        constants.get("real_mul_int").unwrap()
+        index.find_constant_value("real_mul_int").unwrap()
     );
     assert_eq!(
         &LiteralValue::Real(5.2 / 2.0),
-        constants.get("real_div_int").unwrap()
+        index.find_constant_value("real_div_int").unwrap()
     );
     assert_eq!(
         &LiteralValue::Real(5.2 % 2.0),
-        constants.get("real_mod_int").unwrap()
+        index.find_constant_value("real_mod_int").unwrap()
     );
     // REAL - REAL
     assert_eq!(
         &LiteralValue::Real(4.4),
-        constants.get("real_plus_real").unwrap()
+        index.find_constant_value("real_plus_real").unwrap()
     );
     assert_eq!(
         &LiteralValue::Real(3.3 - 1.1),
-        constants.get("real_minus_real").unwrap()
+        index.find_constant_value("real_minus_real").unwrap()
     );
     assert_eq!(
         &LiteralValue::Real(3.3 * 1.1),
-        constants.get("real_mul_real").unwrap()
+        index.find_constant_value("real_mul_real").unwrap()
     );
     assert_eq!(
         &LiteralValue::Real(5.3 / 2.1),
-        constants.get("real_div_real").unwrap()
+        index.find_constant_value("real_div_real").unwrap()
     );
     assert_eq!(
         &LiteralValue::Real(5.3 % 2.1),
-        constants.get("real_mod_real").unwrap()
+        index.find_constant_value("real_mod_real").unwrap()
     );
     // BOOL - BOOL
     assert_eq!(
         &LiteralValue::Bool(true),
-        constants.get("bool_and_bool").unwrap()
+        index.find_constant_value("bool_and_bool").unwrap()
     );
     assert_eq!(
         &LiteralValue::Bool(true),
-        constants.get("bool_or_bool").unwrap()
+        index.find_constant_value("bool_or_bool").unwrap()
     );
     assert_eq!(
         &LiteralValue::Bool(false),
-        constants.get("bool_xor_bool").unwrap()
+        index.find_constant_value("bool_xor_bool").unwrap()
     );
     assert_eq!(
         &LiteralValue::Bool(false),
-        constants.get("not_bool").unwrap()
+        index.find_constant_value("not_bool").unwrap()
     );
 }
 
@@ -401,33 +474,33 @@ fn const_references_bool_bit_functions_behavior_evaluation() {
             e : WORD := NOT a;
         END_VAR
         ",
-    );  
+    );
 
     // WHEN compile-time evaluation is applied
-    let (constants, unresolvable) = evaluate_constants(&index);
-    
+    let (index, unresolvable) = evaluate_constants(index);
+
     // THEN everything got resolved
     assert_eq!(EMPTY, unresolvable);
-    // AND the constants should have literal values
+    // AND the index should have literal values
     assert_eq!(
         &LiteralValue::Bool(true),
-        constants.get("a").unwrap()
+        index.find_constant_value("a").unwrap()
     );
     assert_eq!(
         &LiteralValue::Bool(false),
-        constants.get("b").unwrap()
+        index.find_constant_value("b").unwrap()
     );
     assert_eq!(
         &LiteralValue::Bool(true),
-        constants.get("c").unwrap()
+        index.find_constant_value("c").unwrap()
     );
     assert_eq!(
         &LiteralValue::Bool(false),
-        constants.get("d").unwrap()
+        index.find_constant_value("d").unwrap()
     );
     assert_eq!(
         &LiteralValue::Bool(false),
-        constants.get("e").unwrap()
+        index.find_constant_value("e").unwrap()
     );
 }
 
@@ -447,34 +520,50 @@ fn const_references_int_bit_functions_behavior_evaluation() {
             e : WORD := NOT a;
         END_VAR
         ",
-    );  
+    );
 
     // WHEN compile-time evaluation is applied
-    let (constants, unresolvable) = evaluate_constants(&index);
-    
+    let (index, unresolvable) = evaluate_constants(index);
+
     // THEN everything got resolved
     assert_eq!(EMPTY, unresolvable);
-    // AND the constants should have literal values
+    // AND the index should have literal values
     assert_eq!(
         &LiteralValue::Int(0xFFAB),
-        constants.get("a").unwrap()
+        index.find_constant_value("a").unwrap()
     );
     assert_eq!(
         &LiteralValue::Int(0x00AB),
-        constants.get("b").unwrap()
+        index.find_constant_value("b").unwrap()
     );
     assert_eq!(
         &LiteralValue::Int(0xFFFF),
-        constants.get("c").unwrap()
+        index.find_constant_value("c").unwrap()
     );
     assert_eq!(
         &LiteralValue::Int(0xFF54),
-        constants.get("d").unwrap()
+        index.find_constant_value("d").unwrap()
     );
     assert_eq!(
         &LiteralValue::Int(0x0054),
-        constants.get("e").unwrap()
+        index.find_constant_value("e").unwrap()
     );
+}
+#[test]
+fn illegal_cast_should_not_be_resolved() {
+    // GIVEN some bit-functions used as initializers
+    let (_, index) = parse(
+        "VAR_GLOBAL CONSTANT
+            a : INT := BOOL#00FF;
+        END_VAR
+       ",
+    );
+
+    // WHEN compile-time evaluation is applied
+    let (_constants, unresolvable) = evaluate_constants(index);
+
+    // THEN everything got resolved
+    assert_eq!(vec!["a"], unresolvable);
 }
 
 #[test]
@@ -487,45 +576,50 @@ fn const_references_not_function_with_signed_ints() {
         
         VAR_GLOBAL CONSTANT
             a : INT := INT#16#FFAB;//-85;
+            aa : INT := WORD#16#FFAB;//65xxx;
             b : INT := a AND _0x00ff; //171
             c : INT := a OR _0x00ff; //-1
             d : INT := a XOR _0x00ff; //-172
             e : INT := NOT a; //84
         END_VAR
         ",
-    );  
+    );
 
     // WHEN compile-time evaluation is applied
-    let (constants, unresolvable) = evaluate_constants(&index);
-    
+    let (index, unresolvable) = evaluate_constants(index);
+
     // THEN everything got resolved
     assert_eq!(EMPTY, unresolvable);
-    // AND the constants should have literal values
+    // AND the index should have literal values
     assert_eq!(
         &LiteralValue::Int(-85),
-        constants.get("a").unwrap()
+        index.find_constant_value("a").unwrap()
+    );
+    assert_eq!(
+        &LiteralValue::Int(0x0000_ffab),
+        index.find_constant_value("aa").unwrap()
     );
     assert_eq!(
         &LiteralValue::Int(171),
-        constants.get("b").unwrap()
+        index.find_constant_value("b").unwrap()
     );
     assert_eq!(
         &LiteralValue::Int(-1),
-        constants.get("c").unwrap()
+        index.find_constant_value("c").unwrap()
     );
     assert_eq!(
         &LiteralValue::Int(-172),
-        constants.get("d").unwrap()
+        index.find_constant_value("d").unwrap()
     );
     assert_eq!(
         &LiteralValue::Int(84),
-        constants.get("e").unwrap()
+        index.find_constant_value("e").unwrap()
     );
 }
 
 #[test]
 fn const_references_to_bool_compile_time_evaluation() {
-    // GIVEN some BOOL constants used as initializers
+    // GIVEN some BOOL index used as initializers
     let (_, index) = parse(
         "VAR_GLOBAL CONSTANT
             x : BOOL := TRUE;
@@ -542,18 +636,27 @@ fn const_references_to_bool_compile_time_evaluation() {
     );
 
     // WHEN compile-time evaluation is applied
-    let (constants, unresolvable) = evaluate_constants(&index);
+    let (index, unresolvable) = evaluate_constants(index);
 
     // THEN a,b,and c got their correct initial-literals
     assert_eq!(EMPTY, unresolvable);
-    assert_eq!(constants.get("a"), Some(&LiteralValue::Bool(true)));
-    assert_eq!(constants.get("b"), Some(&LiteralValue::Bool(false)));
-    assert_eq!(constants.get("c"), Some(&LiteralValue::Bool(false)));
+    assert_eq!(
+        index.find_constant_value("a"),
+        Some(&LiteralValue::Bool(true))
+    );
+    assert_eq!(
+        index.find_constant_value("b"),
+        Some(&LiteralValue::Bool(false))
+    );
+    assert_eq!(
+        index.find_constant_value("c"),
+        Some(&LiteralValue::Bool(false))
+    );
 }
 
 #[test]
 fn not_evaluatable_consts_are_reported() {
-    // GIVEN some BOOL constants used as initializers
+    // GIVEN some BOOL index used as initializers
     let (_, index) = parse(
         "VAR_GLOBAL CONSTANT
             a : INT := 1;
@@ -564,7 +667,7 @@ fn not_evaluatable_consts_are_reported() {
     );
 
     // WHEN compile-time evaluation is applied
-    let (_, unresolvable) = evaluate_constants(&index);
+    let (_, unresolvable) = evaluate_constants(index);
 
     // THEN a,b,and c got their correct initial-literals
     assert_eq!(vec!["c".to_string(), "d".to_string()], unresolvable);
@@ -572,7 +675,7 @@ fn not_evaluatable_consts_are_reported() {
 
 #[test]
 fn evaluating_constants_can_handle_recursion() {
-    // GIVEN some BOOL constants used as initializers
+    // GIVEN some BOOL index used as initializers
     let (_, index) = parse(
         "VAR_GLOBAL CONSTANT
             a : INT := d;
@@ -586,10 +689,10 @@ fn evaluating_constants_can_handle_recursion() {
     );
 
     // WHEN compile-time evaluation is applied
-    let (constants, unresolvable) = evaluate_constants(&index);
+    let (index, unresolvable) = evaluate_constants(index);
 
     // THEN a,b,and c got their correct initial-literals
     assert_eq!(vec!["a", "b", "c", "d"], unresolvable);
-    assert_eq!(constants.get("aa"), Some(&LiteralValue::Int(4)));
-    assert_eq!(constants.get("bb"), Some(&LiteralValue::Int(4)));
+    assert_eq!(index.find_constant_value("aa"), Some(&LiteralValue::Int(4)));
+    assert_eq!(index.find_constant_value("bb"), Some(&LiteralValue::Int(4)));
 }

@@ -13,6 +13,7 @@ pub struct LlvmTypedIndex<'ink> {
     initial_value_associations: HashMap<String, BasicValueEnum<'ink>>,
     loaded_variable_associations: HashMap<String, PointerValue<'ink>>,
     implementations: HashMap<String, FunctionValue<'ink>>,
+    constants: HashMap<String, BasicValueEnum<'ink>>,
 }
 
 impl<'ink> LlvmTypedIndex<'ink> {
@@ -23,6 +24,7 @@ impl<'ink> LlvmTypedIndex<'ink> {
             initial_value_associations: HashMap::new(),
             loaded_variable_associations: HashMap::new(),
             implementations: HashMap::new(),
+            constants: HashMap::new(),
         }
     }
 
@@ -33,6 +35,7 @@ impl<'ink> LlvmTypedIndex<'ink> {
             initial_value_associations: HashMap::new(),
             loaded_variable_associations: HashMap::new(),
             implementations: HashMap::new(),
+            constants: HashMap::new(),
         }
     }
 
@@ -52,7 +55,7 @@ impl<'ink> LlvmTypedIndex<'ink> {
         for (name, implementation) in other.implementations.drain() {
             self.implementations.insert(name, implementation);
         }
-        // index
+        self.constants.extend(other.constants);
     }
 
     pub fn associate_type(
@@ -187,5 +190,18 @@ impl<'ink> LlvmTypedIndex<'ink> {
                 .filter(|it| it.is_pointer_value())
                 .map(BasicValueEnum::into_pointer_value)
         })
+    }
+
+    pub fn associate_constant(
+        &mut self,
+        qualified_name: &str,
+        basic_value_enum: BasicValueEnum<'ink>,
+    ) {
+        self.constants
+            .insert(qualified_name.into(), basic_value_enum);
+    }
+
+    pub fn find_constant_value(&self, qualified_name: &str) -> Option<BasicValueEnum<'ink>> {
+        self.constants.get(qualified_name).copied()
     }
 }

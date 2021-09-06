@@ -1,19 +1,14 @@
 use std::collections::VecDeque;
 
-use indexmap::IndexMap;
-
 use crate::{
     ast::AstStatement,
-    index::{Index, VariableIndexEntry},
-    typesystem::DataType,
+    index::{ConstantsIndex, Index, LiteralValue, VariableIndexEntry},
+    typesystem::{
+        DataType, DINT_SIZE, INT_SIZE, LINT_SIZE, NATIVE_BYTE_TYPE, NATIVE_DINT_TYPE,
+        NATIVE_DWORD_TYPE, NATIVE_INT_TYPE, NATIVE_LINT_TYPE, NATIVE_LWORD_TYPE, NATIVE_SINT_TYPE,
+        NATIVE_WORD_TYPE, SINT_SIZE,
+    },
 };
-
-#[derive(Copy, Clone, Debug, PartialEq)]
-pub enum LiteralValue {
-    Int(i128),
-    Real(f64),
-    Bool(bool),
-}
 
 macro_rules! arithmetic_expression {
     ($left:expr, $op:tt, $right:expr, $op_text:expr) => {
@@ -49,10 +44,8 @@ macro_rules! bitwise_expression {
     };
 }
 
-type ConstantsIndex<'a> = IndexMap<String, LiteralValue>;
-
 /// returns the resolved constants index and a Vec of qualified names of constants that could not be resolved.
-pub fn evaluate_constants(index: &Index) -> (ConstantsIndex, Vec<String>) {
+pub fn evaluate_constants(mut index: Index) -> (Index, Vec<String>) {
     let all_const_variables = index.get_all_variable_entries();
 
     let mut resolved_constants = ConstantsIndex::new();
@@ -70,7 +63,7 @@ pub fn evaluate_constants(index: &Index) -> (ConstantsIndex, Vec<String>) {
                 let candidates_type = index
                     .find_effective_type_by_name(candidate.get_type_name())
                     .map(DataType::get_type_information);
-                let initial_value_literal = evaluate(initial, &resolved_constants, index);
+                let initial_value_literal = evaluate(initial, &resolved_constants, &index);
 
                 match (initial_value_literal, candidates_type) {
                     (
@@ -89,14 +82,14 @@ pub fn evaluate_constants(index: &Index) -> (ConstantsIndex, Vec<String>) {
                         let masked_value = v & mask; //delete all bits > size of data_type
                         resolved_constants.insert(
                             candidate.get_qualified_name().to_string(),
-                            cast_if_necessary(LiteralValue::Int(masked_value), candidate, index),
+                            cast_if_necessary(LiteralValue::Int(masked_value), candidate, &index),
                         );
                         tries_without_success = 0;
                     }
                     (Ok(Some(literal)), _) => {
                         resolved_constants.insert(
                             candidate.get_qualified_name().to_string(),
-                            cast_if_necessary(literal, candidate, index),
+                            cast_if_necessary(literal, candidate, &index),
                         );
                         tries_without_success = 0;
                     }
@@ -120,7 +113,8 @@ pub fn evaluate_constants(index: &Index) -> (ConstantsIndex, Vec<String>) {
             .map(|it| it.get_qualified_name().to_string()),
     );
 
-    (resolved_constants, unresolvable)
+    index.import_resolved_constants(resolved_constants);
+    (index, unresolvable)
 }
 
 /// transforms the given literal to better fit the datatype of the candidate
@@ -150,9 +144,9 @@ pub fn evaluate(
 ) -> Result<Option<LiteralValue>, String> {
     let literal = match initial {
         AstStatement::LiteralInteger { value, .. } => Some(LiteralValue::Int(*value as i128)),
-        AstStatement::CastStatement {target, type_name, ..} => {
-        todo!()
-        }
+        AstStatement::CastStatement {
+            target, type_name, ..
+        } => Some(get_cast_literal(target, type_name, index)?),
         AstStatement::LiteralReal { value, .. } => Some(LiteralValue::Real(
             value
                 .parse::<f64>()
@@ -166,7 +160,10 @@ pub fn evaluate(
             operator,
             ..
         } => {
-            if let (Some(left), Some(right)) = (evaluate(left, cindex, index)?, evaluate(right, cindex, index)?) {
+            if let (Some(left), Some(right)) = (
+                evaluate(left, cindex, index)?,
+                evaluate(right, cindex, index)?,
+            ) {
                 Some(match operator {
                     crate::ast::Operator::Plus => arithmetic_expression!(left, +, right, "+")?,
                     crate::ast::Operator::Minus => arithmetic_expression!(left, -, right, "-")?,
@@ -200,13 +197,52 @@ pub fn evaluate(
     Ok(literal)
 }
 
-/// checks if the give LiteralValue is a bool and returns its value.
-/// will return an Err if it is not a BoolLiteral
-fn expect_bool(lit: LiteralValue) -> Result<bool, String> {
-    if let LiteralValue::Bool(v) = lit {
-        return Ok(v);
+fn get_cast_literal(
+    initial: &AstStatement,
+    type_name: &str,
+    index: &Index,
+) -> Result<LiteralValue, String> {
+    match index
+        .find_effective_type_by_name(type_name)
+        .map(DataType::get_type_information)
+    {
+        Some(&crate::typesystem::DataTypeInformation::Integer { size, signed, .. }) => {
+            let evaluated_initial = evaluate(initial, &ConstantsIndex::default(), index)?
+                .map(|v| v.get_int_value())
+                .transpose()?;
+            if let Some(value) = evaluated_initial {
+                let value: i128 = match signed {
+                    //signed
+                    true if size == SINT_SIZE => (value as NATIVE_SINT_TYPE) as i128,
+                    true if size == INT_SIZE => (value as NATIVE_INT_TYPE) as i128,
+                    true if size == DINT_SIZE => (value as NATIVE_DINT_TYPE) as i128,
+                    true if size == LINT_SIZE => (value as NATIVE_LINT_TYPE) as i128,
+                    //unsigned
+                    false if size == SINT_SIZE => (value as NATIVE_BYTE_TYPE) as i128,
+                    false if size == INT_SIZE => (value as NATIVE_WORD_TYPE) as i128,
+                    false if size == DINT_SIZE => (value as NATIVE_DWORD_TYPE) as i128,
+                    false if size == LINT_SIZE => (value as NATIVE_LWORD_TYPE) as i128,
+                    _ => {
+                        return Err(format!(
+                            "Cannot resolve constant: {:}#{:?}",
+                            type_name, initial
+                        ))
+                    }
+                };
+                Ok(LiteralValue::Int(value /*& mask*/)) //delete all bits > size of data_type
+            } else {
+                Err(format!(
+                    "Cannot resolve constant: {:}#{:?}",
+                    type_name, initial
+                ))
+            }
+        }
+        //Some(&crate::typesystem::DataTypeInformation::Float{..}) => {},
+        _ => Err(format!(
+            "Cannot resolve constant: {:}#{:?}",
+            type_name, initial
+        )),
     }
-    return Err(format!("Expected BoolLiteral but found {:?}", lit));
 }
 
 fn modulo(left: &LiteralValue, right: &LiteralValue) -> Result<LiteralValue, String> {
