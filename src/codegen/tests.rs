@@ -1,6 +1,7 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 mod code_gen_tests;
 mod codegen_error_messages_tests;
+mod statement_codegen_test;
 mod typesystem_test;
 
 #[macro_export]

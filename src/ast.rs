@@ -48,18 +48,22 @@ pub enum DirectAccess {
 }
 
 impl DirectAccess {
-    pub fn is_in_range(&self, index: u32, information: &DataTypeInformation) -> bool {
-        self.to_bits(index) < information.get_size()
+    /// Returns true if the current index is in the range for the given type
+    pub fn is_in_range(&self, index: u32, data_type: &DataTypeInformation) -> bool {
+        self.to_bits(index) < data_type.get_size()
     }
 
-    pub fn get_range(&self, information: &DataTypeInformation) -> Range<u32> {
-        0..((information.get_size() / self.get_bit_witdh()) - 1)
+    /// Returns the range from 0 for the given data type
+    pub fn get_range(&self, data_type: &DataTypeInformation) -> Range<u32> {
+        0..((data_type.get_size() / self.get_bit_witdh()) - 1)
     }
 
-    pub fn is_compatible(&self, information: &DataTypeInformation) -> bool {
-        information.get_size() > self.get_bit_witdh()
+    /// Returns true if the direct access can be used for the given type
+    pub fn is_compatible(&self, data_type: &DataTypeInformation) -> bool {
+        data_type.get_size() > self.get_bit_witdh()
     }
 
+    /// Returns the size of the bitaccess result
     pub fn get_bit_witdh(&self) -> u32 {
         match self {
             DirectAccess::Bit => 1,
@@ -69,7 +73,8 @@ impl DirectAccess {
         }
     }
 
-    fn to_bits(&self, index: u32) -> u32 {
+    /// Converts the given index to the apporpiate bit size
+    pub fn to_bits(&self, index: u32) -> u32 {
         index * self.get_bit_witdh()
     }
 }
@@ -1064,6 +1069,15 @@ impl AstStatement {
             AstStatement::ContinueStatement { id, .. } => *id,
             AstStatement::ExitStatement { id, .. } => *id,
             AstStatement::CastStatement { id, .. } => *id,
+        }
+    }
+
+    /// Returns true if the current statement has a return access.
+    pub fn has_direct_access(&self) -> bool {
+        if let AstStatement::QualifiedReference { elements, .. } = self {
+            matches!(elements.last(), Some(AstStatement::DirectAccess { .. }))
+        } else {
+            false
         }
     }
 }

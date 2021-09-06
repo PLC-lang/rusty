@@ -165,6 +165,10 @@ impl DataTypeInformation {
         matches!(self, DataTypeInformation::Integer { signed: false, .. })
     }
 
+    pub fn is_signed_int(&self) -> bool {
+        matches!(self, DataTypeInformation::Integer { signed: true, .. })
+    }
+
     pub fn is_float(&self) -> bool {
         matches!(self, DataTypeInformation::Float { .. })
     }
