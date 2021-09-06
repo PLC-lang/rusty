@@ -366,10 +366,6 @@ fn const_references_int_float_type_behavior_evaluation() {
         constants.get("real_mod_real").unwrap()
     );
     // BOOL - BOOL
-    /*bool_and_bool : BOOL := _true_ AND _true_;
-    bool_or_bool : BOOL := _true_ OR _false_;
-    bool_xor_bool : BOOL := _true_ XOR _true_;
-    not_bool : BOOL := NOT _true_;*/
     assert_eq!(
         &LiteralValue::Bool(true),
         constants.get("bool_and_bool").unwrap()
@@ -385,6 +381,145 @@ fn const_references_int_float_type_behavior_evaluation() {
     assert_eq!(
         &LiteralValue::Bool(false),
         constants.get("not_bool").unwrap()
+    );
+}
+
+#[test]
+fn const_references_bool_bit_functions_behavior_evaluation() {
+    // GIVEN some bit-functions used as initializers
+    let (_, index) = parse(
+        "VAR_GLOBAL CONSTANT
+            _true : BOOL := TRUE;
+            _false : BOOL := FALSE;
+        END_VAR
+        
+        VAR_GLOBAL CONSTANT
+            a : WORD := _true;
+            b : WORD := a AND _false;
+            c : WORD := a OR _false;
+            d : WORD := a XOR _true;
+            e : WORD := NOT a;
+        END_VAR
+        ",
+    );  
+
+    // WHEN compile-time evaluation is applied
+    let (constants, unresolvable) = evaluate_constants(&index);
+    
+    // THEN everything got resolved
+    assert_eq!(EMPTY, unresolvable);
+    // AND the constants should have literal values
+    assert_eq!(
+        &LiteralValue::Bool(true),
+        constants.get("a").unwrap()
+    );
+    assert_eq!(
+        &LiteralValue::Bool(false),
+        constants.get("b").unwrap()
+    );
+    assert_eq!(
+        &LiteralValue::Bool(true),
+        constants.get("c").unwrap()
+    );
+    assert_eq!(
+        &LiteralValue::Bool(false),
+        constants.get("d").unwrap()
+    );
+    assert_eq!(
+        &LiteralValue::Bool(false),
+        constants.get("e").unwrap()
+    );
+}
+
+#[test]
+fn const_references_int_bit_functions_behavior_evaluation() {
+    // GIVEN some bit-functions used as initializers
+    let (_, index) = parse(
+        "VAR_GLOBAL CONSTANT
+            _0x00ff : WORD := 16#00FF;
+        END_VAR
+        
+        VAR_GLOBAL CONSTANT
+            a : WORD := 16#FFAB;
+            b : WORD := a AND _0x00ff;
+            c : WORD := a OR _0x00ff;
+            d : WORD := a XOR _0x00ff;
+            e : WORD := NOT a;
+        END_VAR
+        ",
+    );  
+
+    // WHEN compile-time evaluation is applied
+    let (constants, unresolvable) = evaluate_constants(&index);
+    
+    // THEN everything got resolved
+    assert_eq!(EMPTY, unresolvable);
+    // AND the constants should have literal values
+    assert_eq!(
+        &LiteralValue::Int(0xFFAB),
+        constants.get("a").unwrap()
+    );
+    assert_eq!(
+        &LiteralValue::Int(0x00AB),
+        constants.get("b").unwrap()
+    );
+    assert_eq!(
+        &LiteralValue::Int(0xFFFF),
+        constants.get("c").unwrap()
+    );
+    assert_eq!(
+        &LiteralValue::Int(0xFF54),
+        constants.get("d").unwrap()
+    );
+    assert_eq!(
+        &LiteralValue::Int(0x0054),
+        constants.get("e").unwrap()
+    );
+}
+
+#[test]
+fn const_references_not_function_with_signed_ints() {
+    // GIVEN some bit-functions used as initializers
+    let (_, index) = parse(
+        "VAR_GLOBAL CONSTANT
+            _0x00ff : INT := 16#00FF; //255
+        END_VAR
+        
+        VAR_GLOBAL CONSTANT
+            a : INT := INT#16#FFAB;//-85;
+            b : INT := a AND _0x00ff; //171
+            c : INT := a OR _0x00ff; //-1
+            d : INT := a XOR _0x00ff; //-172
+            e : INT := NOT a; //84
+        END_VAR
+        ",
+    );  
+
+    // WHEN compile-time evaluation is applied
+    let (constants, unresolvable) = evaluate_constants(&index);
+    
+    // THEN everything got resolved
+    assert_eq!(EMPTY, unresolvable);
+    // AND the constants should have literal values
+    assert_eq!(
+        &LiteralValue::Int(-85),
+        constants.get("a").unwrap()
+    );
+    assert_eq!(
+        &LiteralValue::Int(171),
+        constants.get("b").unwrap()
+    );
+    assert_eq!(
+        &LiteralValue::Int(-1),
+        constants.get("c").unwrap()
+    );
+    assert_eq!(
+        &LiteralValue::Int(-172),
+        constants.get("d").unwrap()
+    );
+    assert_eq!(
+        &LiteralValue::Int(84),
+        constants.get("e").unwrap()
     );
 }
 
