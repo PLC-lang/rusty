@@ -155,11 +155,13 @@ impl From<&PouType> for ImplementationType {
 
 pub type ConstantsIndex = IndexMap<String, LiteralValue>;
 
-#[derive(Copy, Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum LiteralValue {
     Int(i128),
     Real(f64),
     Bool(bool),
+    String(String),
+    WString(String),
 }
 
 impl LiteralValue {

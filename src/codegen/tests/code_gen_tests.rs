@@ -5597,18 +5597,30 @@ continue:                                         ; preds = %output
 #[test]
 fn initial_values_in_global_constant_variables() {
     let result = codegen!(
-        "
+        r#"
         VAR_GLOBAL CONSTANT
           c_INT : INT := 7;
           c_3c : INT := 3 * c_INT;
+          
+          c_BOOL : BOOL := TRUE;
+          c_not : BOOL := NOT c_BOOL;
+          //c_str : STRING := 'Hello';
+          //c_wstr : WSTRING := "Hello";
         END_VAR
 
-        VAR_GLOBAL
+        VAR_GLOBAL CONSTANT
           x : INT := c_INT;
           y : INT := c_INT + c_INT;
           z : INT := c_INT + c_3c + 4;
+
+          b : BOOL := c_BOOL;
+          nb : BOOL := c_not;
+          bb : BOOL := c_not AND NOT c_not;
+
+          //str : STRING := c_str;
+          //wstr : WSTRING := c_wstr;
         END_VAR
-        "
+        "#
     );
 
     let expected = r#"; ModuleID = 'main'
@@ -5619,6 +5631,9 @@ source_filename = "main"
 @x = global i16 7
 @y = global i16 14
 @z = global i16 32
+@b = global i1 1
+@nb = global i1 0
+@bb = global i1 0
 "#;
 
     assert_eq!(result, expected);

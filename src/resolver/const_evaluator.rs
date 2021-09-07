@@ -1,14 +1,15 @@
 use std::collections::VecDeque;
 
-use crate::{
-    ast::AstStatement,
-    index::{ConstantsIndex, Index, LiteralValue, VariableIndexEntry},
-    typesystem::{
-        DataType, DINT_SIZE, INT_SIZE, LINT_SIZE, NATIVE_BYTE_TYPE, NATIVE_DINT_TYPE,
-        NATIVE_DWORD_TYPE, NATIVE_INT_TYPE, NATIVE_LINT_TYPE, NATIVE_LWORD_TYPE, NATIVE_SINT_TYPE,
-        NATIVE_WORD_TYPE, SINT_SIZE,
-    },
-};
+use crate::{ast::{AstStatement, Operator}, index::{ConstantsIndex, Index, LiteralValue, VariableIndexEntry}, typesystem::{DINT_SIZE, DataType, DataTypeInformation, INT_SIZE, LINT_SIZE, NativeByteType, NativeDintType, NativeDwordType, NativeIntType, NativeLintType, NativeLwordType, NativeSintType, NativeWordType, SINT_SIZE, StringEncoding}};
+
+macro_rules! cannot_eval {
+    ($left:expr, $op_text:expr, $right:expr) => {
+        Err(format!(
+            "Cannot evaluate {:?} {:} {:?}",
+            $left, $op_text, $right
+        ))
+    };
+}
 
 macro_rules! arithmetic_expression {
     ($left:expr, $op:tt, $right:expr, $op_text:expr) => {
@@ -17,15 +18,15 @@ macro_rules! arithmetic_expression {
                 Ok(LiteralValue::Int(l $op r))
             }
             (LiteralValue::Int(l), LiteralValue::Real(r)) => {
-                Ok(LiteralValue::Real((l as f64) $op r))
+                Ok(LiteralValue::Real((*l as f64) $op r))
             }
             (LiteralValue::Real(l), LiteralValue::Int(r)) => {
-                Ok(LiteralValue::Real(l $op (r as f64)))
+                Ok(LiteralValue::Real(l $op (*r as f64)))
             }
             (LiteralValue::Real(l), LiteralValue::Real(r)) => {
                 Ok(LiteralValue::Real(l $op r))
             }
-            _ => Err(format!("Cannot evaluate {:?} {:} {:?}", $left, $op_text, $right)),
+            _ => cannot_eval!($left, $op_text, $right),
         }
     };
 }
@@ -39,26 +40,67 @@ macro_rules! bitwise_expression {
             (LiteralValue::Bool(l), LiteralValue::Bool(r)) => {
                 Ok(LiteralValue::Bool(l $op r))
             }
-            _ => Err(format!("Cannot evaluate {:?} {:} {:?}", $left, $op_text, $right)),
+            _ => cannot_eval!($left, $op_text, $right),
         }
     };
 }
 
+macro_rules! compare_expression {
+    ($left:expr, $op:tt, $right:expr, $op_text:expr) => {
+        match ($left, $right) {
+            (LiteralValue::Int(l), LiteralValue::Int(r)) => Ok(LiteralValue::Bool(l $op r)),
+            (LiteralValue::Real(_), LiteralValue::Real(_)) => {
+                Err("Cannot compare Reals without epsilon".into())
+            }
+            (LiteralValue::Bool(l), LiteralValue::Bool(r)) => Ok(LiteralValue::Bool(l $op r)),
+            _ => cannot_eval!($left, $op_text, $right),
+        }
+    }
+}
+
+#[derive(PartialEq, Debug)]
+pub struct UnresolvableConstant {
+    pub qualified_name: String,
+    pub reason: String,
+    //location
+    //source-file
+}
+
+impl UnresolvableConstant {
+    pub fn new(qualified_name: &str, reason: &str) -> Self {
+        UnresolvableConstant {
+            qualified_name: qualified_name.to_string(),
+            reason: reason.to_string(),
+        }
+    }
+
+    pub fn incomplete_initialzation(qualified_name: &str) -> Self {
+        UnresolvableConstant::new(
+            qualified_name,
+            "Incomplete initialization - cannot evaluate const expressions",
+        )
+    }
+
+    pub fn no_initial_value(qualified_name: &str) -> Self {
+        UnresolvableConstant::new(qualified_name, "No initial value")
+    }
+}
+
 /// returns the resolved constants index and a Vec of qualified names of constants that could not be resolved.
-pub fn evaluate_constants(mut index: Index) -> (Index, Vec<String>) {
+pub fn evaluate_constants(mut index: Index) -> (Index, Vec<UnresolvableConstant>) {
     let all_const_variables = index.get_all_variable_entries();
 
     let mut resolved_constants = ConstantsIndex::new();
-    let mut unresolvable: Vec<String> = Vec::new();
-    let mut constants: VecDeque<&VariableIndexEntry> =
+    let mut unresolvable: Vec<UnresolvableConstant> = Vec::new();
+    let mut remaining_constants: VecDeque<&VariableIndexEntry> =
         all_const_variables.filter(|it| it.is_constant()).collect();
     let mut tries_without_success = 0;
     //if we need more tries than entries we cannot solve the issue
     //TODO is can be more efficient
     // - we can know when retries are smart
     // - with recursion, we can remove all of a recursion ring
-    while tries_without_success < constants.len() {
-        if let Some(candidate) = constants.pop_front() {
+    while tries_without_success < remaining_constants.len() {
+        if let Some(candidate) = remaining_constants.pop_front() {
             if let Some(initial) = index.maybe_get_constant_expression(&candidate.initial_value) {
                 let candidates_type = index
                     .find_effective_type_by_name(candidate.get_type_name())
@@ -93,24 +135,32 @@ pub fn evaluate_constants(mut index: Index) -> (Index, Vec<String>) {
                         );
                         tries_without_success = 0;
                     }
-                    //TODO handle Ok(None)
-                    _ => {
+                    (Ok(None), _) => {
                         tries_without_success += 1;
-                        constants.push_back(candidate) //try again later
+                        remaining_constants.push_back(candidate) //try again later
+                    }
+                    (Err(err_msg), _) => {
+                        //error during resolving
+                        unresolvable.push(UnresolvableConstant::new(
+                            candidate.get_qualified_name(),
+                            err_msg.as_str(),
+                        ));
                     }
                 }
             } else {
                 //no initial value in a const ... well
-                unresolvable.push(candidate.get_qualified_name().to_string());
+                unresolvable.push(UnresolvableConstant::no_initial_value(
+                    candidate.get_qualified_name(),
+                ));
             }
         }
     }
 
     //import all constants that were note resolved in the loop above
     unresolvable.extend(
-        constants
+        remaining_constants
             .iter()
-            .map(|it| it.get_qualified_name().to_string()),
+            .map(|it| UnresolvableConstant::incomplete_initialzation(it.get_qualified_name())),
     );
 
     index.import_resolved_constants(resolved_constants);
@@ -125,10 +175,23 @@ fn cast_if_necessary(
     index: &Index,
 ) -> LiteralValue {
     if let Some(data_type) = index.find_effective_type_by_name(candidate.get_type_name()) {
-        if let LiteralValue::Int(v) = literal {
-            if data_type.get_type_information().is_float() {
-                return LiteralValue::Real(v as f64);
+        match &literal {
+            LiteralValue::Int(v) => {
+                if data_type.get_type_information().is_float() {
+                    return LiteralValue::Real(*v as f64);
+                }
+            },
+            LiteralValue::String(v) => {
+                if matches!(data_type.get_type_information(), DataTypeInformation::String{encoding: StringEncoding::Utf16 , ..}) {
+                    return LiteralValue::WString(v.clone());
+                }
+            },
+            LiteralValue::WString(v) => {
+                if matches!(data_type.get_type_information(), DataTypeInformation::String{encoding: StringEncoding::Utf8, ..}) {
+                    return LiteralValue::String(v.clone());
+                }
             }
+            _ => {}
         }
     }
     literal
@@ -152,39 +215,53 @@ pub fn evaluate(
                 .parse::<f64>()
                 .map_err(|_err| format!("Cannot parse {} as Real", value))?,
         )),
+        AstStatement::LiteralString { value, is_wide: false, ..} => Some(LiteralValue::String(value.clone())),
+        AstStatement::LiteralString { value, is_wide: true, ..} => Some(LiteralValue::WString(value.clone())),
         AstStatement::LiteralBool { value, .. } => Some(LiteralValue::Bool(*value)),
-        AstStatement::Reference { name, .. } => cindex.get(name).copied(),
+        AstStatement::Reference { name, .. } => cindex.get(name).cloned(),
         AstStatement::BinaryExpression {
             left,
             right,
             operator,
             ..
         } => {
-            if let (Some(left), Some(right)) = (
-                evaluate(left, cindex, index)?,
-                evaluate(right, cindex, index)?,
-            ) {
+            let eval_left = evaluate(left, cindex, index)?;
+            let eval_right = evaluate(right, cindex, index)?;
+            if let Some((left, right)) = eval_left.zip(eval_right).as_ref() {
                 Some(match operator {
-                    crate::ast::Operator::Plus => arithmetic_expression!(left, +, right, "+")?,
-                    crate::ast::Operator::Minus => arithmetic_expression!(left, -, right, "-")?,
-                    crate::ast::Operator::Multiplication => {
-                        arithmetic_expression!(left, *, right, "*")?
+                    Operator::Plus => arithmetic_expression!(left, +, right, "+")?,
+                    Operator::Minus => arithmetic_expression!(left, -, right, "-")?,
+                    Operator::Multiplication => arithmetic_expression!(left, *, right, "*")?,
+                    Operator::Division if is_zero(right) => {
+                        return Err("Attempt to divide by zero".to_string())
                     }
-                    crate::ast::Operator::Division => arithmetic_expression!(left, /, right, "/")?,
-                    crate::ast::Operator::Modulo => modulo(&left, &right)?,
-                    crate::ast::Operator::Equal => eq(&left, &right)?,
-                    crate::ast::Operator::NotEqual => neq(&left, &right)?,
-                    crate::ast::Operator::And => bitwise_expression!(left, & , right, "AND")?,
-                    crate::ast::Operator::Or => bitwise_expression!(left, | , right, "OR")?,
-                    crate::ast::Operator::Xor => bitwise_expression!(left, ^, right, "XOR")?,
-                    _ => return Err(format!("cannot resolve operation: {:#?}", operator)),
+                    Operator::Division => arithmetic_expression!(left, /, right, "/")?,
+                    Operator::Modulo if is_zero(right) => {
+                        return Err("Attempt to calculate the remainder with a divisor of zero".to_string())
+                    }
+                    Operator::Modulo => arithmetic_expression!(left, %, right, "MOD")?,
+                    Operator::Equal => compare_expression!(left, ==, right, "=")?,
+                    Operator::NotEqual => compare_expression!(left, !=, right, "<>")?,
+                    Operator::Greater => compare_expression!(left, >, right, ">")?,
+                    Operator::GreaterOrEqual => compare_expression!(left, >=, right, ">=")?,
+                    Operator::Less => compare_expression!(left, <, right, "<")?,
+                    Operator::LessOrEqual => compare_expression!(left, <=, right, "<=")?,
+                    Operator::And => bitwise_expression!(left, & , right, "AND")?,
+                    Operator::Or => bitwise_expression!(left, | , right, "OR")?,
+                    Operator::Xor => bitwise_expression!(left, ^, right, "XOR")?,
+                    _ => {
+                        return Err(format!(
+                            "Cannot resolve operator {:?} in constant evaluation",
+                            operator
+                        ))
+                    }
                 })
             } else {
                 None //not all operators can be resolved
             }
         }
         AstStatement::UnaryExpression {
-            operator: crate::ast::Operator::Not,
+            operator: Operator::Not,
             value,
             ..
         } => match evaluate(value, cindex, index)? {
@@ -195,6 +272,10 @@ pub fn evaluate(
         _ => return Err(format!("Cannot resolve constant: {:#?}", initial)),
     };
     Ok(literal)
+}
+
+fn is_zero(v: &LiteralValue) -> bool {
+    matches!(v, LiteralValue::Int(0))
 }
 
 fn get_cast_literal(
@@ -211,17 +292,19 @@ fn get_cast_literal(
                 .map(|v| v.get_int_value())
                 .transpose()?;
             if let Some(value) = evaluated_initial {
-                let value: i128 = match signed {
+                const SIGNED: bool = true;
+                const UNSIGNED: bool = false;
+                let value: i128 = match (signed, size) {
                     //signed
-                    true if size == SINT_SIZE => (value as NATIVE_SINT_TYPE) as i128,
-                    true if size == INT_SIZE => (value as NATIVE_INT_TYPE) as i128,
-                    true if size == DINT_SIZE => (value as NATIVE_DINT_TYPE) as i128,
-                    true if size == LINT_SIZE => (value as NATIVE_LINT_TYPE) as i128,
+                    (SIGNED, SINT_SIZE) => (value as NativeSintType) as i128,
+                    (SIGNED, INT_SIZE) => (value as NativeIntType) as i128,
+                    (SIGNED, DINT_SIZE) => (value as NativeDintType) as i128,
+                    (SIGNED, LINT_SIZE) => (value as NativeLintType) as i128,
                     //unsigned
-                    false if size == SINT_SIZE => (value as NATIVE_BYTE_TYPE) as i128,
-                    false if size == INT_SIZE => (value as NATIVE_WORD_TYPE) as i128,
-                    false if size == DINT_SIZE => (value as NATIVE_DWORD_TYPE) as i128,
-                    false if size == LINT_SIZE => (value as NATIVE_LWORD_TYPE) as i128,
+                    (UNSIGNED, SINT_SIZE) => (value as NativeByteType) as i128,
+                    (UNSIGNED, INT_SIZE) => (value as NativeWordType) as i128,
+                    (UNSIGNED, DINT_SIZE) => (value as NativeDwordType) as i128,
+                    (UNSIGNED, LINT_SIZE) => (value as NativeLwordType) as i128,
                     _ => {
                         return Err(format!(
                             "Cannot resolve constant: {:}#{:?}",
@@ -242,37 +325,5 @@ fn get_cast_literal(
             "Cannot resolve constant: {:}#{:?}",
             type_name, initial
         )),
-    }
-}
-
-fn modulo(left: &LiteralValue, right: &LiteralValue) -> Result<LiteralValue, String> {
-    match (left, right) {
-        (LiteralValue::Int(l), LiteralValue::Int(r)) => Ok(LiteralValue::Int(l % r)),
-        (LiteralValue::Int(l), LiteralValue::Real(r)) => Ok(LiteralValue::Real((*l as f64) % r)),
-        (LiteralValue::Real(l), LiteralValue::Int(r)) => Ok(LiteralValue::Real(l % (*r as f64))),
-        (LiteralValue::Real(l), LiteralValue::Real(r)) => Ok(LiteralValue::Real(l % r)),
-        _ => Err(format!("Cannot evaluate {:?} MOD {:?}", left, right)),
-    }
-}
-
-fn eq(left: &LiteralValue, right: &LiteralValue) -> Result<LiteralValue, String> {
-    match (left, right) {
-        (LiteralValue::Int(l), LiteralValue::Int(r)) => Ok(LiteralValue::Bool(l == r)),
-        (LiteralValue::Real(_), LiteralValue::Real(_)) => {
-            Err("Cannot compare Reals without epsilon".into())
-        }
-        (LiteralValue::Bool(l), LiteralValue::Bool(r)) => Ok(LiteralValue::Bool(l == r)),
-        _ => Err(format!("Cannot evaluate {:?} = {:?}", left, right)),
-    }
-}
-
-fn neq(left: &LiteralValue, right: &LiteralValue) -> Result<LiteralValue, String> {
-    match (left, right) {
-        (LiteralValue::Int(l), LiteralValue::Int(r)) => Ok(LiteralValue::Bool(l != r)),
-        (LiteralValue::Real(_), LiteralValue::Real(_)) => {
-            Err("Cannot compare Reals without epsilon".into())
-        }
-        (LiteralValue::Bool(l), LiteralValue::Bool(r)) => Ok(LiteralValue::Bool(l != r)),
-        _ => Err(format!("Cannot evaluate {:?} <> {:?}", left, right)),
     }
 }

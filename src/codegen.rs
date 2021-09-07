@@ -101,7 +101,13 @@ impl<'ink> CodeGen<'ink> {
                             .const_int(*val as u64, data_type.is_signed_int())
                     }
                     LiteralValue::Real(val) => todo!(),
-                    LiteralValue::Bool(val) => todo!(),
+                    LiteralValue::Bool(val) => {
+                        if *val {
+                            llvm.context.bool_type().const_int(1, false)
+                        } else {
+                            llvm.context.bool_type().const_int(0, false)
+                        }
+                    }
                     _ => todo!(),
                 };
                 index.associate_constant(qualified_name, initial_literal.as_basic_value_enum());

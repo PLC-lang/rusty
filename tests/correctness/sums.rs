@@ -44,3 +44,31 @@ fn real_division_in_result() {
     let (res, _) = compile_and_run(prog.to_string(), &mut MainType { ret: 0 });
     assert_eq!(res, 333)
 }
+
+
+#[test]
+fn real_division_by_zero() {
+    #[derive(Debug, PartialEq)]
+    struct MainType {
+        r: f64,
+        z: f64,
+    }
+
+    let prog = "
+    FUNCTION main : DINT
+        VAR
+            r : LREAL;
+            rZero: LREAL;
+        END_VAR
+        r := (1.0 / rZero);
+    END_FUNCTION
+    ";
+
+    let mut main = MainType{
+        r : 0.0,
+        z: 0.0,
+    }; 
+
+    compile_and_run(prog.to_string(), &mut main);
+    assert!(main.r.is_infinite());
+}
