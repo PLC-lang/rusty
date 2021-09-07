@@ -1,6 +1,14 @@
 use std::collections::VecDeque;
 
-use crate::{ast::{AstStatement, Operator}, index::{ConstantsIndex, Index, LiteralValue, VariableIndexEntry}, typesystem::{DINT_SIZE, DataType, DataTypeInformation, INT_SIZE, LINT_SIZE, NativeByteType, NativeDintType, NativeDwordType, NativeIntType, NativeLintType, NativeLwordType, NativeSintType, NativeWordType, SINT_SIZE, StringEncoding}};
+use crate::{
+    ast::{AstStatement, Operator},
+    index::{ConstantsIndex, Index, LiteralValue, VariableIndexEntry},
+    typesystem::{
+        DataType, DataTypeInformation, NativeByteType, NativeDintType, NativeDwordType,
+        NativeIntType, NativeLintType, NativeLwordType, NativeSintType, NativeWordType,
+        StringEncoding, DINT_SIZE, INT_SIZE, LINT_SIZE, SINT_SIZE,
+    },
+};
 
 macro_rules! cannot_eval {
     ($left:expr, $op_text:expr, $right:expr) => {
@@ -180,14 +188,26 @@ fn cast_if_necessary(
                 if data_type.get_type_information().is_float() {
                     return LiteralValue::Real(*v as f64);
                 }
-            },
+            }
             LiteralValue::String(v) => {
-                if matches!(data_type.get_type_information(), DataTypeInformation::String{encoding: StringEncoding::Utf16 , ..}) {
+                if matches!(
+                    data_type.get_type_information(),
+                    DataTypeInformation::String {
+                        encoding: StringEncoding::Utf16,
+                        ..
+                    }
+                ) {
                     return LiteralValue::WString(v.clone());
                 }
-            },
+            }
             LiteralValue::WString(v) => {
-                if matches!(data_type.get_type_information(), DataTypeInformation::String{encoding: StringEncoding::Utf8, ..}) {
+                if matches!(
+                    data_type.get_type_information(),
+                    DataTypeInformation::String {
+                        encoding: StringEncoding::Utf8,
+                        ..
+                    }
+                ) {
                     return LiteralValue::String(v.clone());
                 }
             }
@@ -215,8 +235,16 @@ pub fn evaluate(
                 .parse::<f64>()
                 .map_err(|_err| format!("Cannot parse {} as Real", value))?,
         )),
-        AstStatement::LiteralString { value, is_wide: false, ..} => Some(LiteralValue::String(value.clone())),
-        AstStatement::LiteralString { value, is_wide: true, ..} => Some(LiteralValue::WString(value.clone())),
+        AstStatement::LiteralString {
+            value,
+            is_wide: false,
+            ..
+        } => Some(LiteralValue::String(value.clone())),
+        AstStatement::LiteralString {
+            value,
+            is_wide: true,
+            ..
+        } => Some(LiteralValue::WString(value.clone())),
         AstStatement::LiteralBool { value, .. } => Some(LiteralValue::Bool(*value)),
         AstStatement::Reference { name, .. } => cindex.get(name).cloned(),
         AstStatement::BinaryExpression {
@@ -237,7 +265,9 @@ pub fn evaluate(
                     }
                     Operator::Division => arithmetic_expression!(left, /, right, "/")?,
                     Operator::Modulo if is_zero(right) => {
-                        return Err("Attempt to calculate the remainder with a divisor of zero".to_string())
+                        return Err(
+                            "Attempt to calculate the remainder with a divisor of zero".to_string()
+                        )
                     }
                     Operator::Modulo => arithmetic_expression!(left, %, right, "MOD")?,
                     Operator::Equal => compare_expression!(left, ==, right, "=")?,

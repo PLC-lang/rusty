@@ -61,9 +61,16 @@ pub fn generate_global_variable<'ctx, 'b>(
             index,
             Some(global_index.get_type_information(type_name).unwrap()),
         );
-        let (_, value) = expr_generator.generate_expression(initializer)?;
-        //Todo cast if necessary
-        Some(value)
+
+        //see if this value was compile-time evaluated ...
+        if let Some(value) = index.find_constant_value(global_variable.get_qualified_name()) {
+            //Todo cast if necessary
+            Some(value)
+        } else {
+            let (_, value) = expr_generator.generate_expression(initializer)?;
+            //Todo cast if necessary
+            Some(value)
+        }
     } else {
         None
     };

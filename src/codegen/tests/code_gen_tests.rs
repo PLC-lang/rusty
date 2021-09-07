@@ -5604,6 +5604,67 @@ fn initial_values_in_global_constant_variables() {
           
           c_BOOL : BOOL := TRUE;
           c_not : BOOL := NOT c_BOOL;
+          c_str : STRING := 'Hello';
+          c_wstr : WSTRING := "World";
+
+          c_real : REAL := 3.14;
+          c_lreal : LREAL := 3.1415;
+        END_VAR
+
+        VAR_GLOBAL CONSTANT
+          x : INT := c_INT;
+          y : INT := c_INT + c_INT;
+          z : INT := c_INT + c_3c + 4;
+
+          b : BOOL := c_BOOL;
+          nb : BOOL := c_not;
+          bb : BOOL := c_not AND NOT c_not;
+
+          str : STRING := c_str;
+          wstr : WSTRING := c_wstr;
+
+          r : REAL := c_real / 2;
+          tau : LREAL := 2 * c_lreal;
+        END_VAR
+        "#
+    );
+
+    let expected = r#"; ModuleID = 'main'
+source_filename = "main"
+
+@c_INT = global i16 7
+@c_3c = global i16 21
+@c_BOOL = global i1 true
+@c_not = global i1 false
+@c_str = global [81 x i8] c"Hello\00"
+@c_wstr = global [162 x i8] c"W\00o\00r\00l\00d\00\00\00"
+@c_real = global float 0x40091EB860000000
+@c_lreal = global double 3.141500e+00
+@x = global i16 7
+@y = global i16 14
+@z = global i16 32
+@b = global i1 true
+@nb = global i1 false
+@bb = global i1 false
+@str = global [81 x i8] c"Hello\00"
+@wstr = global [162 x i8] c"W\00o\00r\00l\00d\00\00\00"
+@r = global float 0x3FF91EB860000000
+@tau = global double 6.283000e+00
+"#;
+
+    assert_eq!(result, expected);
+}
+
+//#[test]
+fn initial_constant_values_in_pou_variables() {
+    let result = codegen!(
+        r#"
+        VAR_GLOBAL CONSTANT
+          c_INT : INT := 7;
+          c_3c : INT := 3 * c_INT;
+          
+          c_BOOL : BOOL := TRUE;
+          c_not : BOOL := NOT c_BOOL;
           //c_str : STRING := 'Hello';
           //c_wstr : WSTRING := "Hello";
         END_VAR
@@ -5628,12 +5689,14 @@ source_filename = "main"
 
 @c_INT = global i16 7
 @c_3c = global i16 21
+@c_BOOL = global i1 true
+@c_not = global i1 false
 @x = global i16 7
 @y = global i16 14
 @z = global i16 32
-@b = global i1 1
-@nb = global i1 0
-@bb = global i1 0
+@b = global i1 true
+@nb = global i1 false
+@bb = global i1 false
 "#;
 
     assert_eq!(result, expected);

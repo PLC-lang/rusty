@@ -847,14 +847,17 @@ fn evaluating_constant_strings() {
     let (index, unresolvable) = evaluate_constants(index);
 
     // THEN all should be resolved
-    assert_eq!(
-        EMPTY,
-        unresolvable
-    );
+    assert_eq!(EMPTY, unresolvable);
 
     // AND the globals should have gotten their values
-    assert_eq!(index.find_constant_value("aa"), Some(&LiteralValue::String("Hello".to_string())));
-    assert_eq!(index.find_constant_value("bb"), Some(&LiteralValue::WString("World".to_string())));
+    assert_eq!(
+        index.find_constant_value("aa"),
+        Some(&LiteralValue::String("Hello".to_string()))
+    );
+    assert_eq!(
+        index.find_constant_value("bb"),
+        Some(&LiteralValue::WString("World".to_string()))
+    );
 }
 
 #[test]
@@ -877,12 +880,15 @@ fn const_string_initializers_should_be_converted() {
     let (index, unresolvable) = evaluate_constants(index);
 
     // THEN all should be resolved
-    assert_eq!(
-        EMPTY,
-        unresolvable
-    );
+    assert_eq!(EMPTY, unresolvable);
 
     // AND the globals should have gotten their values
-    assert_eq!(index.find_constant_value("aa"), Some(&LiteralValue::String("World".to_string())));
-    assert_eq!(index.find_constant_value("bb"), Some(&LiteralValue::WString("Hello".to_string())));
+    assert_eq!(
+        index.find_constant_value("aa"),
+        Some(&LiteralValue::String("World".to_string()))
+    );
+    assert_eq!(
+        index.find_constant_value("bb"),
+        Some(&LiteralValue::WString("Hello".to_string()))
+    );
 }

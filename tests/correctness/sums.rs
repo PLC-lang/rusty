@@ -45,7 +45,6 @@ fn real_division_in_result() {
     assert_eq!(res, 333)
 }
 
-
 #[test]
 fn real_division_by_zero() {
     #[derive(Debug, PartialEq)]
@@ -64,10 +63,7 @@ fn real_division_by_zero() {
     END_FUNCTION
     ";
 
-    let mut main = MainType{
-        r : 0.0,
-        z: 0.0,
-    }; 
+    let mut main = MainType { r: 0.0, z: 0.0 };
 
     compile_and_run(prog.to_string(), &mut main);
     assert!(main.r.is_infinite());

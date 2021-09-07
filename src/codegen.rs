@@ -83,36 +83,47 @@ impl<'ink> CodeGen<'ink> {
 
         //generate llvm values for constants
         for (qualified_name, literal) in global_index.get_all_resolved_constants() {
-            if let Some((data_type, llvm_data_type)) = global_index
+            match global_index
                 .find_variable(None, &qualified_name.split(".").collect::<Vec<&str>>())
                 .and_then(|it| global_index.find_effective_type_by_name(it.get_type_name()))
                 .and_then(|dt| {
                     index
                         .find_associated_type(dt.get_name())
                         .map(|it| (dt.get_type_information(), it))
-                })
-            {
-                let initial_literal = match literal {
-                    LiteralValue::Int(val)
-                        if llvm_data_type.is_int_type() && data_type.is_int() =>
-                    {
-                        llvm_data_type
-                            .into_int_type()
-                            .const_int(*val as u64, data_type.is_signed_int())
-                    }
-                    LiteralValue::Real(val) => todo!(),
-                    LiteralValue::Bool(val) => {
-                        if *val {
-                            llvm.context.bool_type().const_int(1, false)
-                        } else {
-                            llvm.context.bool_type().const_int(0, false)
+                }) {
+                Some((data_type, llvm_data_type)) => {
+                    let initial_literal = match literal {
+                        LiteralValue::Int(val) =>
+                            //if llvm_data_type.is_int_type() && data_type.is_int() =>
+                        {
+                            llvm_data_type
+                                .into_int_type()
+                                .const_int(*val as u64, data_type.is_signed_int())
+                                .as_basic_value_enum()
                         }
-                    }
-                    _ => todo!(),
-                };
-                index.associate_constant(qualified_name, initial_literal.as_basic_value_enum());
-            } else {
-                todo!("no datatype for const")
+                        LiteralValue::Real(val) => {
+                            llvm_data_type
+                                .into_float_type()
+                                .const_float(*val)
+                                .as_basic_value_enum()
+                        },
+                        LiteralValue::Bool(val) => {
+                            if *val {
+                                llvm.bool_type().const_int(1, false)
+                            } else {
+                                llvm.bool_type().const_int(0, false)
+                            }.as_basic_value_enum()
+                        },
+                        LiteralValue::String(val) => {
+                            llvm.create_const_utf8_string(val.as_str())?.1.as_basic_value_enum()
+                        },
+                        LiteralValue::WString(val) => {
+                            llvm.create_const_utf16_string(val.as_str())?.1.as_basic_value_enum()
+                        }, 
+                    };
+                    index.associate_constant(qualified_name, initial_literal);
+                }
+                None => todo!("no datatype for const"),
             }
         }
 

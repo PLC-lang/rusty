@@ -147,6 +147,11 @@ impl<'a> Llvm<'a> {
         self.context.i32_type()
     }
 
+    /// returns the bool_type
+    pub fn bool_type(&self) -> inkwell::types::IntType<'a> {
+        self.context.bool_type()
+    }
+
     /// create a constant bool with the given value
     ///
     /// - `index` the index to obtain the datatypeinformation for BOOL

@@ -36,7 +36,6 @@ pub const REAL_SIZE: u32 = (size_of::<NativeRealType>() * 8) as u32;
 pub const LREAL_SIZE: u32 = (size_of::<NativeLrealType>() * 8) as u32;
 pub const DATE_TIME_SIZE: u32 = 64;
 
-
 pub const BOOL_TYPE: &str = "BOOL";
 pub const BYTE_TYPE: &str = "BYTE";
 pub const SINT_TYPE: &str = "SINT";
