@@ -196,7 +196,7 @@ impl StatementValidator {
     fn get_literal_actual_signed_type_name(target: &AstStatement, signed: bool) -> Option<&str> {
         match target {
             AstStatement::LiteralInteger { value, .. } => match signed {
-                _ if *value == 0_i64 || *value == 1_i64 => Some(BOOL_TYPE),
+                _ if *value == 0_i128 || *value == 1_i128 => Some(BOOL_TYPE),
                 true if is_covered_by!(i8, *value) => Some(SINT_TYPE),
                 true if is_covered_by!(i16, *value) => Some(INT_TYPE),
                 true if is_covered_by!(i32, *value) => Some(DINT_TYPE),

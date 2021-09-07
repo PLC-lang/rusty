@@ -522,7 +522,7 @@ pub enum AstStatement {
     },
     // Literals
     LiteralInteger {
-        value: i64,
+        value: i128,
         location: SourceRange,
         id: AstId,
     },

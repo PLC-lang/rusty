@@ -28,7 +28,7 @@ pub fn ref_to(name: &str) -> AstStatement {
 }
 
 /// helper function to create literal ints
-pub fn literal_int(value: i64) -> AstStatement {
+pub fn literal_int(value: i128) -> AstStatement {
     AstStatement::LiteralInteger {
         value,
         location: SourceRange::undefined(),

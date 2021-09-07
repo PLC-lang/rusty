@@ -10,3 +10,4 @@
     - [Using in external programs]()
 
 - [Datatypes](./datatypes.md)
+- [Bitwise access](./bitwise.md)

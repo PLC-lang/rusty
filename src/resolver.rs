@@ -767,8 +767,8 @@ fn to_function_annotation(it: &ImplementationIndexEntry, index: &Index) -> State
     }
 }
 
-fn get_int_type_name_for(value: i64) -> &'static str {
-    if i32::MIN as i64 <= value && i32::MAX as i64 >= value {
+fn get_int_type_name_for(value: i128) -> &'static str {
+    if i32::MIN as i128 <= value && i32::MAX as i128 >= value {
         DINT_TYPE
     } else {
         LINT_TYPE
@@ -782,13 +782,13 @@ mod resolver_tests {
     #[test]
     fn correct_int_types_name_for_numbers() {
         assert_eq!(get_int_type_name_for(0), "DINT");
-        assert_eq!(get_int_type_name_for(i64::pow(2, 8) - 1), "DINT");
-        assert_eq!(get_int_type_name_for(i64::pow(2, 8)), "DINT");
-        assert_eq!(get_int_type_name_for(i64::pow(2, 16) - 1), "DINT");
-        assert_eq!(get_int_type_name_for(i64::pow(2, 16)), "DINT");
-        assert_eq!(get_int_type_name_for(i64::pow(2, 31) - 1), "DINT");
-        assert_eq!(get_int_type_name_for(i64::pow(2, 31)), "LINT");
-        assert_eq!(get_int_type_name_for(i64::pow(2, 32)), "LINT");
-        assert_eq!(get_int_type_name_for(i64::MAX), "LINT");
+        assert_eq!(get_int_type_name_for(i128::pow(2, 8) - 1), "DINT");
+        assert_eq!(get_int_type_name_for(i128::pow(2, 8)), "DINT");
+        assert_eq!(get_int_type_name_for(i128::pow(2, 16) - 1), "DINT");
+        assert_eq!(get_int_type_name_for(i128::pow(2, 16)), "DINT");
+        assert_eq!(get_int_type_name_for(i128::pow(2, 31) - 1), "DINT");
+        assert_eq!(get_int_type_name_for(i128::pow(2, 31)), "LINT");
+        assert_eq!(get_int_type_name_for(i128::pow(2, 32)), "LINT");
+        assert_eq!(get_int_type_name_for(i64::MAX as i128), "LINT");
     }
 }

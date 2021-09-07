@@ -526,7 +526,7 @@ fn parse_literal_number_with_modifier(
 
     // again, the parsed number can be safely unwrapped.
 
-    let value = i64::from_str_radix(number_str.as_str(), radix).unwrap();
+    let value = i128::from_str_radix(number_str.as_str(), radix).unwrap();
     let value = if is_negative { -value } else { value };
     Ok(AstStatement::LiteralInteger {
         value,
@@ -576,7 +576,7 @@ fn parse_literal_number(
     // parsed number value can be safely unwrapped
     let result = result.replace("_", "");
 
-    let value = result.parse::<i64>().unwrap();
+    let value = result.parse::<i128>().unwrap();
     let value = if is_negative { -value } else { value };
 
     Ok(AstStatement::LiteralInteger {
