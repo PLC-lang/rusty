@@ -234,7 +234,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
 
     fn generate_directaccess(
         &self,
-        elements: &Vec<AstStatement>,
+        elements: &[AstStatement],
     ) -> Result<TypeAndValue<'a>, CompileError> {
         let (last, qualifer) = elements.split_last().unwrap();
         let id = elements.last().unwrap().get_id();
