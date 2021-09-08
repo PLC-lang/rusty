@@ -111,7 +111,7 @@ pub enum StatementAnnotation {
 }
 
 impl StatementAnnotation {
-    fn expression(type_name: &str) -> StatementAnnotation {
+    pub fn expression(type_name: &str) -> StatementAnnotation {
         StatementAnnotation::Value {
             resulting_type: type_name.to_string(),
         }
@@ -125,9 +125,18 @@ pub struct AnnotationMap {
 
 impl AnnotationMap {
     /// creates a new empty AnnotationMap
-    pub fn new() -> AnnotationMap {
+    pub fn new() -> Self {
         AnnotationMap {
             type_map: IndexMap::new(),
+        }
+    }
+
+    /// creates a new Annotation Map and stores the given mapping
+    pub fn with(id: AstId, annotation: StatementAnnotation) -> Self {
+        let mut type_map: IndexMap<AstId, StatementAnnotation> = IndexMap::new();
+        type_map.insert(id, annotation);
+        AnnotationMap {
+            type_map
         }
     }
 

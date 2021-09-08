@@ -10,14 +10,17 @@ use self::{
     },
     llvm_index::LlvmTypedIndex,
 };
-use crate::{compile_error::CompileError, resolver::AnnotationMap};
+use crate::{
+    codegen::generators::expression_generator::ExpressionCodeGenerator,
+    compile_error::CompileError, resolver::AnnotationMap,
+};
 
 use super::ast::*;
 use super::index::*;
 use crate::typesystem::{DataType, *};
+use inkwell::context::Context;
 use inkwell::module::Module;
 use inkwell::values::{BasicValueEnum, PointerValue};
-use inkwell::{context::Context, values::BasicValue};
 
 mod generators;
 mod llvm_index;
@@ -82,50 +85,7 @@ impl<'ink> CodeGen<'ink> {
         index.merge(llvm_type_index);
 
         //generate llvm values for constants
-        for (qualified_name, literal) in global_index.get_all_resolved_constants() {
-            match global_index
-                .find_variable(None, &qualified_name.split('.').collect::<Vec<&str>>())
-                .and_then(|it| global_index.find_effective_type_by_name(it.get_type_name()))
-                .and_then(|dt| {
-                    index
-                        .find_associated_type(dt.get_name())
-                        .map(|it| (dt.get_type_information(), it))
-                }) {
-                Some((data_type, llvm_data_type)) => {
-                    let initial_literal = match literal {
-                        LiteralValue::Int(val) =>
-                            //if llvm_data_type.is_int_type() && data_type.is_int() =>
-                        {
-                            llvm_data_type
-                                .into_int_type()
-                                .const_int(*val as u64, data_type.is_signed_int())
-                                .as_basic_value_enum()
-                        }
-                        LiteralValue::Real(val) => {
-                            llvm_data_type
-                                .into_float_type()
-                                .const_float(*val)
-                                .as_basic_value_enum()
-                        },
-                        LiteralValue::Bool(val) => {
-                            if *val {
-                                llvm.bool_type().const_int(1, false)
-                            } else {
-                                llvm.bool_type().const_int(0, false)
-                            }.as_basic_value_enum()
-                        },
-                        LiteralValue::String(val) => {
-                            llvm.create_const_utf8_string(val.as_str())?.1.as_basic_value_enum()
-                        },
-                        LiteralValue::WString(val) => {
-                            llvm.create_const_utf16_string(val.as_str())?.1.as_basic_value_enum()
-                        },
-                    };
-                    index.associate_constant(qualified_name, initial_literal);
-                }
-                None => todo!("no datatype for const"),
-            }
-        }
+        self.generate_global_constant_literals(global_index, &llvm, &mut index)?;
 
         //Generate global variables
         let llvm_gv_index = variable_generator::generate_global_variables(
@@ -163,6 +123,7 @@ impl<'ink> CodeGen<'ink> {
         //generate all pous
         let llvm = Llvm::new(self.context, self.context.create_builder());
         let pou_generator = PouGenerator::new(llvm, global_index, annotations, &llvm_index);
+
         //Generate the POU stubs in the first go to make sure they can be referenced.
         for implementation in &unit.implementations {
             //Don't generate external functions
@@ -170,7 +131,56 @@ impl<'ink> CodeGen<'ink> {
                 pou_generator.generate_implementation(implementation)?;
             }
         }
+
         Ok(self.module.print_to_string().to_string())
+    }
+
+    /// generates the BasicValueEnums for the const initializers that could be
+    /// evaluated at compile time
+    /// e.g. `VAR GLOBAL CONST x := 7; END_VAR`
+    /// generates the Value for `7` and associates it with the name `x`
+    fn generate_global_constant_literals<'a>(
+        &self,
+        global_index: &Index,
+        llvm: &Llvm<'a>,
+        index: &mut LlvmTypedIndex<'a>,
+    ) -> Result<(), CompileError> {
+        for (qualified_name, literal) in global_index.get_all_resolved_constants() {
+            match global_index
+                .find_variable(None, &qualified_name.split('.').collect::<Vec<&str>>())
+                .and_then(|it| global_index.find_effective_type_by_name(it.get_type_name()))
+            {
+                Some(data_type) => {
+                    //TODO this would be much much easier, if we would not generate these just from index, but form the VAR-GLOBAL itself
+                    let literal_statement =
+                        literal.generate_ast_literal(0, SourceRange::undefined());
+
+                    let annotations = AnnotationMap::with(
+                        literal_statement.get_id(),
+                        crate::resolver::StatementAnnotation::expression(data_type.get_name()),
+                    );
+                    let generator = ExpressionCodeGenerator::new_context_free(
+                        llvm,
+                        global_index,
+                        &annotations,
+                        index,
+                        Some(data_type.clone_type_information()), //TODO why do we need to clone this?
+                    );
+                    let (_, llvm_value) = generator.generate_literal(&literal_statement)?;
+                    index.associate_constant(qualified_name, llvm_value);
+                }
+                None => {
+                    return Err(CompileError::codegen_error(
+                        format!(
+                            "Unable to generate the global constant initialization for {:}: {:}",
+                            qualified_name, "Cannot find the variable's type."
+                        ),
+                        SourceRange::undefined(),
+                    ))
+                }
+            }
+        }
+        Ok(())
     }
 }
 
