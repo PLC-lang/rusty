@@ -84,7 +84,7 @@ impl<'ink> CodeGen<'ink> {
         //generate llvm values for constants
         for (qualified_name, literal) in global_index.get_all_resolved_constants() {
             match global_index
-                .find_variable(None, &qualified_name.split(".").collect::<Vec<&str>>())
+                .find_variable(None, &qualified_name.split('.').collect::<Vec<&str>>())
                 .and_then(|it| global_index.find_effective_type_by_name(it.get_type_name()))
                 .and_then(|dt| {
                     index
@@ -119,7 +119,7 @@ impl<'ink> CodeGen<'ink> {
                         },
                         LiteralValue::WString(val) => {
                             llvm.create_const_utf16_string(val.as_str())?.1.as_basic_value_enum()
-                        }, 
+                        },
                     };
                     index.associate_constant(qualified_name, initial_literal);
                 }

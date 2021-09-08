@@ -180,6 +180,38 @@ impl LiteralValue {
             Err(format!("Expected Bool-Literal, found {:?}", self))
         }
     }
+
+    pub fn generate_ast_literal(&self, id: usize, location: SourceRange) -> AstStatement {
+        match self {
+            LiteralValue::Int(value) => AstStatement::LiteralInteger {
+                id,
+                location,
+                value: *value as i64,
+            },
+            LiteralValue::Real(value) => AstStatement::LiteralReal {
+                id,
+                location,
+                value: format!("{:}", value),
+            },
+            LiteralValue::Bool(value) => AstStatement::LiteralBool {
+                id,
+                location,
+                value: *value,
+            },
+            LiteralValue::String(value) => AstStatement::LiteralString {
+                id,
+                location,
+                value: value.clone(),
+                is_wide: false,
+            },
+            LiteralValue::WString(value) => AstStatement::LiteralString {
+                id,
+                location,
+                value: value.clone(),
+                is_wide: true,
+            },
+        }
+    }
 }
 
 /// The global index of the rusty-compiler

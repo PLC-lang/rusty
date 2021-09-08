@@ -13,7 +13,6 @@ pub const RANGE_CHECK_LS_FN: &str = "CheckLRangeSigned";
 pub const RANGE_CHECK_U_FN: &str = "CheckRangeUnsigned";
 pub const RANGE_CHECK_LU_FN: &str = "CheckLRangeUnsigned";
 
-pub type NativeBoolType = bool;
 pub type NativeSintType = i8;
 pub type NativeIntType = i16;
 pub type NativeDintType = i32;

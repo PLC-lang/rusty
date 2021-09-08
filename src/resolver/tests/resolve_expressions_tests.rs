@@ -1,7 +1,7 @@
 use core::panic;
 
 use crate::{
-    ast::{AstStatement, DataType, UserTypeDeclaration, Variable},
+    ast::{AstStatement, DataType, UserTypeDeclaration},
     index::Index,
     resolver::{
         tests::{annotate, parse},

@@ -5655,48 +5655,42 @@ source_filename = "main"
     assert_eq!(result, expected);
 }
 
-//#[test]
+#[test]
 fn initial_constant_values_in_pou_variables() {
     let result = codegen!(
         r#"
         VAR_GLOBAL CONSTANT
-          c_INT : INT := 7;
-          c_3c : INT := 3 * c_INT;
-          
-          c_BOOL : BOOL := TRUE;
-          c_not : BOOL := NOT c_BOOL;
-          //c_str : STRING := 'Hello';
-          //c_wstr : WSTRING := "Hello";
+        MAX_LEN : INT := 99;
+        MIN_LEN : INT := 10;
+        LEN : INT := MIN_LEN + 10;
         END_VAR
-
-        VAR_GLOBAL CONSTANT
-          x : INT := c_INT;
-          y : INT := c_INT + c_INT;
-          z : INT := c_INT + c_3c + 4;
-
-          b : BOOL := c_BOOL;
-          nb : BOOL := c_not;
-          bb : BOOL := c_not AND NOT c_not;
-
-          //str : STRING := c_str;
-          //wstr : WSTRING := c_wstr;
-        END_VAR
+ 
+        PROGRAM prg
+      	  VAR_INPUT
+            my_len: INT := LEN + 4;
+            my_size: INT := MAX_LEN - MIN_LEN;
+          END_VAR
+        END_PROGRAM
+ 
         "#
     );
 
     let expected = r#"; ModuleID = 'main'
 source_filename = "main"
 
-@c_INT = global i16 7
-@c_3c = global i16 21
-@c_BOOL = global i1 true
-@c_not = global i1 false
-@x = global i16 7
-@y = global i16 14
-@z = global i16 32
-@b = global i1 true
-@nb = global i1 false
-@bb = global i1 false
+%prg_interface = type { i16, i16 }
+
+@MAX_LEN = global i16 99
+@MIN_LEN = global i16 10
+@LEN = global i16 20
+@prg_instance = global %prg_interface { i16 24, i16 89 }
+
+define void @prg(%prg_interface* %0) {
+entry:
+  %my_len = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 0
+  %my_size = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 1
+  ret void
+}
 "#;
 
     assert_eq!(result, expected);

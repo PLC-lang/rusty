@@ -105,16 +105,42 @@ impl<'a, 'b> StructGenerator<'a, 'b> {
             .maybe_get_constant_expression(&variable.initial_value)
         {
             Some(statement) => {
-                let exp_gen = ExpressionCodeGenerator::new_context_free(
-                    self.llvm,
+                //evalute the initializer to a value
+                let evaluated_const = crate::resolver::const_evaluator::evaluate(
+                    statement,
+                    self.index.get_all_resolved_constants(),
                     self.index,
-                    self.annotations,
-                    self.llvm_index,
-                    Some(variable_type),
                 );
-                exp_gen
-                    .generate_expression(statement)
-                    .map(|(_, value)| Some(value))?
+                match evaluated_const {
+                    Ok(Some(initializer)) => {
+                        //create the appropriate Literal AST-Statement
+                        let ast_statement = initializer
+                            .generate_ast_literal(statement.get_id(), statement.get_location());
+                        //generate the literal
+                        let exp_gen = ExpressionCodeGenerator::new_context_free(
+                            self.llvm,
+                            self.index,
+                            self.annotations,
+                            self.llvm_index,
+                            Some(variable_type),
+                        );
+                        exp_gen
+                            .generate_expression(&ast_statement)
+                            .map(|(_, value)| Some(value))?
+                    }
+                    Err(err) => {
+                        return Err(CompileError::codegen_error(
+                            format!("Cannot generate literal initializer: {:}", err),
+                            statement.get_location(),
+                        ));
+                    }
+                    Ok(None) => {
+                        return Err(CompileError::codegen_error(
+                            "Cannot generate literal initializer: Value can not be derived.".into(),
+                            statement.get_location(),
+                        ));
+                    }
+                }
             }
             None => self.llvm_index.find_associated_initial_value(type_name),
         };

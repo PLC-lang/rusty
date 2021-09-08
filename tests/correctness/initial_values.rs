@@ -72,6 +72,59 @@ fn initia_values_of_programs_members() {
 }
 
 #[test]
+fn initia_values_of_programs_members_using_constants() {
+    let function = r"
+        VAR_GLOBAL CONSTANT
+            cX      : DINT := 70;
+            cSeven  : DINT := 7;
+            cT      : BOOL := TRUE;
+            cF      : BOOL := FALSE;
+            cR      : REAL := 9.1;
+            cFr     : REAL := 0.0415;
+        END_VAR
+
+        PROGRAM other
+        VAR
+            x   : DINT := cX + cSeven;
+            x_  : DINT;
+            y   : BOOL := cT XOR cF;
+            y_  : BOOL;
+            z   : REAL := cR + cFr;
+            z_  : REAL;
+        END_VAR
+        END_PROGRAM
+
+        PROGRAM main
+        VAR
+            x : DINT;
+            x_ : DINT;
+            y : BOOL;
+            y_ : BOOL;
+            z : REAL;
+            z_ : REAL;
+        END_VAR
+            x := other.x;
+            x_ := other.x_;
+            y := other.y;
+            y_ := other.y_;
+            z := other.z;
+            z_ := other.z_;
+        END_PROGRAM
+        ";
+
+    let mut maintype = new();
+
+    compile_and_run(function.to_string(), &mut maintype);
+
+    assert_eq!(77, maintype.x);
+    assert_eq!(0, maintype.x_);
+    assert_eq!(true, maintype.y);
+    assert_eq!(false, maintype.y_);
+    assert_almost_eq!(9.1415, maintype.z, f32::EPSILON);
+    assert_almost_eq!(0.0, maintype.z_, f32::EPSILON);
+}
+
+#[test]
 fn initia_values_of_functionblock_members() {
     let function = r"
         FUNCTION_BLOCK MyFB
