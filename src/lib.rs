@@ -169,7 +169,7 @@ impl Diagnostic {
 
     pub fn incompatible_directaccess(
         access_type: &str,
-        access_size: u32,
+        access_size: u64,
         location: SourceRange,
     ) -> Diagnostic {
         Diagnostic::SyntaxError {
@@ -185,7 +185,7 @@ impl Diagnostic {
     pub fn incompatible_directaccess_range(
         access_type: &str,
         target_type: &str,
-        access_range: Range<u32>,
+        access_range: Range<u64>,
         location: SourceRange,
     ) -> Diagnostic {
         Diagnostic::SyntaxError {

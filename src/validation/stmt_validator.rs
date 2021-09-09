@@ -1,4 +1,4 @@
-use std::mem::discriminant;
+use std::{convert::TryInto, mem::discriminant};
 
 use super::ValidationContext;
 use crate::{
@@ -69,7 +69,8 @@ impl StatementValidator {
                                 access.get_bit_witdh(),
                                 location.clone(),
                             ))
-                        } else if !access.is_in_range(*index, target_type) {
+                        } else if let AstStatement::LiteralInteger{value, ..} = **index {
+                            if !access.is_in_range(value.try_into().unwrap_or_default(), target_type) {
                             self.diagnostics
                                 .push(Diagnostic::incompatible_directaccess_range(
                                     &format!("{:?}", access),
@@ -78,6 +79,7 @@ impl StatementValidator {
                                     location.clone(),
                                 ))
                         }
+                    }
                     } else {
                         //Report incompatible type issue
                         self.diagnostics.push(Diagnostic::incompatible_directaccess(

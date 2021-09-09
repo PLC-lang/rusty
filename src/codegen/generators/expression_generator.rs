@@ -14,7 +14,7 @@ use inkwell::{
     },
     AddressSpace, FloatPredicate, IntPredicate,
 };
-use std::collections::HashSet;
+use std::{collections::HashSet, convert::TryInto};
 
 use crate::{
     ast::{flatten_expression_list, AstStatement, Dimension, Operator},
@@ -251,14 +251,19 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
         let (expression_type, value) = self.generate_expression(&expression)?;
         if let AstStatement::DirectAccess { access, index, .. } = last {
             //Generate and load the index value
-            let index = access.to_bits(*index);
+            let index = if let AstStatement::LiteralInteger { value, .. } = **index {
+                value.try_into().unwrap_or_default()
+            } else {
+                todo!("Non integer access")
+            };
+            let index = access.to_bits(index);
             let datatype = self.annotations.get_type_or_void(last, self.index);
             let rhs = self
                 .llvm_index
                 .get_associated_type(expression_type.get_name())
                 .unwrap()
                 .into_int_type()
-                .const_int(index.into(), false);
+                .const_int(index, false);
             //Shift the qualifer value right by the index value
             let shift = self.llvm.builder.build_right_shift(
                 value.into_int_value(),

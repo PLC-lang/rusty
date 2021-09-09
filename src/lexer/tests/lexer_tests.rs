@@ -1,10 +1,7 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use pretty_assertions::{assert_eq, assert_ne};
 
-use crate::{
-    ast::SourceRange,
-    lexer::{ParseSession, Token::*},
-};
+use crate::{ast::{DirectAccessType, SourceRange}, lexer::{ParseSession, Token::*}};
 
 fn lex(source: &str) -> ParseSession {
     crate::lexer::lex(source)
@@ -610,23 +607,44 @@ fn direct_access_test() {
     let mut lexer = lex(r"
         %X1 %x1 %B1 %b1
         %W1 %w1 %D1 %d1
+        %X1_1
     ");
 
-    assert_eq!(lexer.token, DirectAccess);
+    assert_eq!(lexer.token, DirectAccess(DirectAccessType::Bit));
     lexer.advance();
-    assert_eq!(lexer.token, DirectAccess);
+    assert_eq!(lexer.token, LiteralInteger);
     lexer.advance();
-    assert_eq!(lexer.token, DirectAccess);
+    assert_eq!(lexer.token, DirectAccess(DirectAccessType::Bit));
     lexer.advance();
-    assert_eq!(lexer.token, DirectAccess);
+    assert_eq!(lexer.token, LiteralInteger);
     lexer.advance();
-    assert_eq!(lexer.token, DirectAccess);
+    assert_eq!(lexer.token, DirectAccess(DirectAccessType::Byte));
     lexer.advance();
-    assert_eq!(lexer.token, DirectAccess);
+    assert_eq!(lexer.token, LiteralInteger);
     lexer.advance();
-    assert_eq!(lexer.token, DirectAccess);
+    assert_eq!(lexer.token, DirectAccess(DirectAccessType::Byte));
     lexer.advance();
-    assert_eq!(lexer.token, DirectAccess);
+    assert_eq!(lexer.token, LiteralInteger);
+    lexer.advance();
+    assert_eq!(lexer.token, DirectAccess(DirectAccessType::Word));
+    lexer.advance();
+    assert_eq!(lexer.token, LiteralInteger);
+    lexer.advance();
+    assert_eq!(lexer.token, DirectAccess(DirectAccessType::Word));
+    lexer.advance();
+    assert_eq!(lexer.token, LiteralInteger);
+    lexer.advance();
+    assert_eq!(lexer.token, DirectAccess(DirectAccessType::DWord));
+    lexer.advance();
+    assert_eq!(lexer.token, LiteralInteger);
+    lexer.advance();
+    assert_eq!(lexer.token, DirectAccess(DirectAccessType::DWord));
+    lexer.advance();
+    assert_eq!(lexer.token, LiteralInteger);
+    lexer.advance();
+    assert_eq!(lexer.token, DirectAccess(DirectAccessType::Bit));
+    lexer.advance();
+    assert_eq!(lexer.token, LiteralInteger);
     lexer.advance();
     assert_eq!(lexer.token, End);
 }

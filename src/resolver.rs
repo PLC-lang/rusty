@@ -378,25 +378,25 @@ impl<'i> TypeAnnotator<'i> {
                 }
             }
             AstStatement::DirectAccess { access, .. } => match access {
-                crate::ast::DirectAccess::Bit => self.annotation_map.annotate(
+                crate::ast::DirectAccessType::Bit => self.annotation_map.annotate(
                     statement,
                     StatementAnnotation::Value {
                         resulting_type: BOOL_TYPE.into(),
                     },
                 ),
-                crate::ast::DirectAccess::Byte => self.annotation_map.annotate(
+                crate::ast::DirectAccessType::Byte => self.annotation_map.annotate(
                     statement,
                     StatementAnnotation::Value {
                         resulting_type: BYTE_TYPE.into(),
                     },
                 ),
-                crate::ast::DirectAccess::Word => self.annotation_map.annotate(
+                crate::ast::DirectAccessType::Word => self.annotation_map.annotate(
                     statement,
                     StatementAnnotation::Value {
                         resulting_type: WORD_TYPE.into(),
                     },
                 ),
-                crate::ast::DirectAccess::DWord => self.annotation_map.annotate(
+                crate::ast::DirectAccessType::DWord => self.annotation_map.annotate(
                     statement,
                     StatementAnnotation::Value {
                         resulting_type: DWORD_TYPE.into(),

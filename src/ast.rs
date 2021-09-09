@@ -39,42 +39,42 @@ pub enum PolymorphismMode {
     Final,
 }
 
-#[derive(Clone, Debug, PartialEq)]
-pub enum DirectAccess {
+#[derive(Copy, Clone, Debug, PartialEq)]
+pub enum DirectAccessType {
     Bit,
     Byte,
     Word,
     DWord,
 }
 
-impl DirectAccess {
+impl DirectAccessType {
     /// Returns true if the current index is in the range for the given type
-    pub fn is_in_range(&self, index: u32, data_type: &DataTypeInformation) -> bool {
-        self.to_bits(index) < data_type.get_size()
+    pub fn is_in_range(&self, index: u64, data_type: &DataTypeInformation) -> bool {
+        self.to_bits(index) < data_type.get_size() as u64
     }
 
     /// Returns the range from 0 for the given data type
-    pub fn get_range(&self, data_type: &DataTypeInformation) -> Range<u32> {
-        0..((data_type.get_size() / self.get_bit_witdh()) - 1)
+    pub fn get_range(&self, data_type: &DataTypeInformation) -> Range<u64> {
+        0..((data_type.get_size() as u64 / self.get_bit_witdh()) - 1)
     }
 
     /// Returns true if the direct access can be used for the given type
     pub fn is_compatible(&self, data_type: &DataTypeInformation) -> bool {
-        data_type.get_size() > self.get_bit_witdh()
+        data_type.get_size() as u64 > self.get_bit_witdh()
     }
 
     /// Returns the size of the bitaccess result
-    pub fn get_bit_witdh(&self) -> u32 {
+    pub fn get_bit_witdh(&self) -> u64 {
         match self {
-            DirectAccess::Bit => 1,
-            DirectAccess::Byte => 8,
-            DirectAccess::Word => 16,
-            DirectAccess::DWord => 32,
+            DirectAccessType::Bit => 1,
+            DirectAccessType::Byte => 8,
+            DirectAccessType::Word => 16,
+            DirectAccessType::DWord => 32,
         }
     }
 
     /// Converts the given index to the apporpiate bit size
-    pub fn to_bits(&self, index: u32) -> u32 {
+    pub fn to_bits(&self, index: u64) -> u64 {
         index * self.get_bit_witdh()
     }
 }
@@ -617,8 +617,8 @@ pub enum AstStatement {
         id: AstId,
     },
     DirectAccess {
-        access: DirectAccess,
-        index: u32,
+        access: DirectAccessType,
+        index: Box<AstStatement>,
         location: SourceRange,
         id: AstId,
     },

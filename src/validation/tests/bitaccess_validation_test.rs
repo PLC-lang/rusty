@@ -15,6 +15,7 @@ fn bitaccess_only_on_bit_types() {
 
             invalid.1;
             invalid2.1;
+            valid.1.2; (*Invalid*)
             valid.1;
             valid2.1;
             valid3.1;
@@ -27,6 +28,7 @@ fn bitaccess_only_on_bit_types() {
         vec![
             Diagnostic::incompatible_directaccess("Bit", 1, (223..224).into()),
             Diagnostic::incompatible_directaccess("Bit", 1, (247..248).into()),
+            Diagnostic::incompatible_directaccess("Bit", 1, (270..271).into()),
         ]
     );
 }

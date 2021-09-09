@@ -1,6 +1,6 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use crate::ast::{
-    AstStatement, DataType, DataTypeDeclaration, DirectAccess, Operator, Pou, SourceRange,
+    AstStatement, DataType, DataTypeDeclaration, DirectAccessType, Operator, Pou, SourceRange,
 };
 use crate::parser::parse;
 use crate::parser::tests::{literal_int, ref_to};
@@ -62,6 +62,7 @@ fn bitwise_access_parsed() {
     a.%B1; 
     a[0].%W1; 
     a.b.%D1; 
+    a.%B1.%X1;
     END_PROGRAM",
     );
     let (result, diagnostics) = parse(lexer);
@@ -73,8 +74,8 @@ fn bitwise_access_parsed() {
             elements: vec![
                 ref_to("a"),
                 AstStatement::DirectAccess {
-                    access: DirectAccess::Bit,
-                    index: 0,
+                    access: DirectAccessType::Bit,
+                    index: Box::new(literal_int(0)),
                     location: SourceRange::undefined(),
                     id: 0,
                 },
@@ -85,8 +86,8 @@ fn bitwise_access_parsed() {
             elements: vec![
                 ref_to("a"),
                 AstStatement::DirectAccess {
-                    access: DirectAccess::Bit,
-                    index: 1,
+                    access: DirectAccessType::Bit,
+                    index: Box::new(literal_int(1)),
                     location: SourceRange::undefined(),
                     id: 0,
                 },
@@ -97,8 +98,8 @@ fn bitwise_access_parsed() {
             elements: vec![
                 ref_to("a"),
                 AstStatement::DirectAccess {
-                    access: DirectAccess::Byte,
-                    index: 1,
+                    access: DirectAccessType::Byte,
+                    index: Box::new(literal_int(1)),
                     location: SourceRange::undefined(),
                     id: 0,
                 },
@@ -113,8 +114,8 @@ fn bitwise_access_parsed() {
                     id: 0,
                 },
                 AstStatement::DirectAccess {
-                    access: DirectAccess::Word,
-                    index: 1,
+                    access: DirectAccessType::Word,
+                    index: Box::new(literal_int(1)),
                     location: SourceRange::undefined(),
                     id: 0,
                 },
@@ -126,8 +127,26 @@ fn bitwise_access_parsed() {
                 ref_to("a"),
                 ref_to("b"),
                 AstStatement::DirectAccess {
-                    access: DirectAccess::DWord,
-                    index: 1,
+                    access: DirectAccessType::DWord,
+                    index: Box::new(literal_int(1)),
+                    location: SourceRange::undefined(),
+                    id: 0,
+                },
+            ],
+            id: 0,
+        },
+        AstStatement::QualifiedReference {
+            elements: vec![
+                ref_to("a"),
+                AstStatement::DirectAccess {
+                    access: DirectAccessType::Byte,
+                    index: Box::new(literal_int(1)),
+                    location: SourceRange::undefined(),
+                    id: 0,
+                },
+                AstStatement::DirectAccess {
+                    access: DirectAccessType::Bit,
+                    index: Box::new(literal_int(1)),
                     location: SourceRange::undefined(),
                     id: 0,
                 },
