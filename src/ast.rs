@@ -1071,15 +1071,6 @@ impl AstStatement {
             AstStatement::CastStatement { id, .. } => *id,
         }
     }
-
-    /// Returns true if the current statement has a return access.
-    pub fn has_direct_access(&self) -> bool {
-        if let AstStatement::QualifiedReference { elements, .. } = self {
-            matches!(elements.last(), Some(AstStatement::DirectAccess { .. }))
-        } else {
-            false
-        }
-    }
 }
 
 #[derive(Clone, Debug, PartialEq)]

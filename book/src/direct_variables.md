@@ -1,4 +1,4 @@
-# Bitwise Access in ST
+# Direct (Bit) Access on Variables
 
 The IEC61131 Standard allows reading specific `Bits`, `Bytes`, `Words` or `DWords` from an `ANY_BIT` type.
 RuSTy supports this functionalty and extends it to support all `INT` types.

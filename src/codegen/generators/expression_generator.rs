@@ -154,7 +154,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
             }
             AstStatement::QualifiedReference { elements, .. } => {
                 //If direct access, don't load pointers
-                if expression.has_direct_access() {
+                if has_direct_access(expression) {
                     //Split the qualified reference at the last element
                     self.generate_directaccess(elements)
                 } else {
@@ -1771,4 +1771,13 @@ fn calculate_date_time(
         "Invalid Date {}-{}-{}-{}:{}:{}.{}",
         year, month, day, hour, min, sec, milli
     ))
+}
+
+/// Returns true if the current statement has a return access.
+fn has_direct_access(statement: &AstStatement) -> bool {
+    if let AstStatement::QualifiedReference { elements, .. } = statement {
+        matches!(elements.last(), Some(AstStatement::DirectAccess { .. }))
+    } else {
+        false
+    }
 }
