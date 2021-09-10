@@ -221,3 +221,27 @@ fn dwordaccess_range_test() {
         ),]
     );
 }
+
+#[test]
+fn reference_direct_access_only_with_ints() {
+    let diagnostics = parse_and_validate(
+        "
+            PROGRAM prg
+            VAR 
+                c : DWORD; d : INT; e : LREAL; f : REAL;
+            END_VAR
+                c.%Xd;
+                c.%Xe;
+                c.%Xf;
+           END_PROGRAM
+       ",
+    );
+
+    assert_eq!(
+        diagnostics,
+        vec![
+            Diagnostic::incompatible_directaccess_variable("LREAL", (160..163).into()),
+            Diagnostic::incompatible_directaccess_variable("REAL", (183..186).into()),
+        ]
+    );
+}

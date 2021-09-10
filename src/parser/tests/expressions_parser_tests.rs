@@ -60,6 +60,7 @@ fn bitwise_access_parsed() {
     a.0; 
     a.%X1; 
     a.%B1; 
+    a.%Bb;
     a[0].%W1; 
     a.b.%D1; 
     a.%B1.%X1;
@@ -100,6 +101,18 @@ fn bitwise_access_parsed() {
                 AstStatement::DirectAccess {
                     access: DirectAccessType::Byte,
                     index: Box::new(literal_int(1)),
+                    location: SourceRange::undefined(),
+                    id: 0,
+                },
+            ],
+            id: 0,
+        },
+        AstStatement::QualifiedReference {
+            elements: vec![
+                ref_to("a"),
+                AstStatement::DirectAccess {
+                    access: DirectAccessType::Byte,
+                    index: Box::new(ref_to("b")),
                     location: SourceRange::undefined(),
                     id: 0,
                 },

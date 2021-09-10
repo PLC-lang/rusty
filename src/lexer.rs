@@ -281,10 +281,11 @@ fn get_closing_tag(open_tag: &str) -> (char, char) {
     }
 }
 
-fn parse_access_type(lexer : &mut Lexer<Token>) -> Option<DirectAccessType> {
+fn parse_access_type(lexer: &mut Lexer<Token>) -> Option<DirectAccessType> {
     //Percent is at position 0
     //Find the size from position 1
-    let access = lexer.slice()
+    let access = lexer
+        .slice()
         .chars()
         .nth(1)
         .and_then(|c| match c.to_ascii_lowercase() {

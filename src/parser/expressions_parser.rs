@@ -387,12 +387,12 @@ pub fn parse_qualified_reference(lexer: &mut ParseSession) -> Result<AstStatemen
                 let number = parse_strict_literal_integer(lexer)?;
                 let location = number.get_location().clone();
                 let id = number.get_id();
-                    Ok(AstStatement::DirectAccess {
-                        access: crate::ast::DirectAccessType::Bit,
-                        index: Box::new(number),
-                        location,
-                        id,
-                    })
+                Ok(AstStatement::DirectAccess {
+                    access: crate::ast::DirectAccessType::Bit,
+                    index: Box::new(number),
+                    location,
+                    id,
+                })
             }
             //Is this a direct access?
             DirectAccess(access) => parse_direct_access(lexer, access),
@@ -437,15 +437,25 @@ pub fn parse_qualified_reference(lexer: &mut ParseSession) -> Result<AstStatemen
     }
 }
 
-fn parse_direct_access(lexer: &mut ParseSession, access : DirectAccessType) -> Result<AstStatement, Diagnostic> {
+fn parse_direct_access(
+    lexer: &mut ParseSession,
+    access: DirectAccessType,
+) -> Result<AstStatement, Diagnostic> {
     //Consume the direct access
     let location = lexer.location();
     lexer.advance();
-    //Expect an integer
-    lexer.expect(LiteralInteger)?;
-    let index = parse_strict_literal_integer(lexer)?;
+    //The next token can either be an integer or an identifier
+    let index = match lexer.token {
+        LiteralInteger => parse_strict_literal_integer(lexer),
+        Identifier => parse_reference_access(lexer),
+        _ => Err(Diagnostic::unexpected_token_found(
+            format!("{:?}", lexer.token).as_str(),
+            lexer.slice(),
+            lexer.location(),
+        )),
+    }?;
 
-    // //check if there is something between the Direct access and the index 
+    // //check if there is something between the Direct access and the index
     // if location.get_end() != lexer.location().get_start(){
     //     return Err(Diagnostic::syntax_error("Incomplete statement", location));
     // }
@@ -453,7 +463,7 @@ fn parse_direct_access(lexer: &mut ParseSession, access : DirectAccessType) -> R
     let location = (location.get_start()..lexer.last_location().get_end()).into();
     Ok(AstStatement::DirectAccess {
         access,
-        index : Box::new(index),
+        index: Box::new(index),
         location,
         id: lexer.next_id(),
     })
@@ -568,28 +578,27 @@ fn parse_literal_number(
     })
 }
 
-fn parse_strict_literal_integer(
-    lexer: &mut ParseSession,
-) -> Result<AstStatement, Diagnostic> {
+fn parse_strict_literal_integer(lexer: &mut ParseSession) -> Result<AstStatement, Diagnostic> {
     //correct the location if we just parsed a minus before
     let location = lexer.location();
     let result = lexer.slice_and_advance();
     // parsed number value can be safely unwrapped
     let result = result.replace("_", "");
     if result.to_lowercase().contains('e') {
-        Err(Diagnostic::unexpected_token_found("Integer", &format!("Exponent value: {}",result), location))
+        Err(Diagnostic::unexpected_token_found(
+            "Integer",
+            &format!("Exponent value: {}", result),
+            location,
+        ))
     } else {
-    let value = result.parse::<i128>().unwrap();
-    Ok(AstStatement::LiteralInteger {
-        value,
-        location,
-        id: lexer.next_id(),
-    })
-
+        let value = result.parse::<i128>().unwrap();
+        Ok(AstStatement::LiteralInteger {
+            value,
+            location,
+            id: lexer.next_id(),
+        })
     }
-
 }
-
 
 fn parse_number<F: FromStr>(text: &str, location: &SourceRange) -> Result<F, Diagnostic> {
     text.parse::<F>().map_err(|_| {

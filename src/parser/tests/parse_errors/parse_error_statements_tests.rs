@@ -1093,15 +1093,11 @@ fn bitwise_access_error_validation() {
     a.1e5; 
     b.%f6;
     END_PROGRAM"));
-    println!("{:?}",ast);
+    println!("{:?}", ast);
 
     assert_eq!(2, diagnostics.len());
     let errs = vec![
-        Diagnostic::unexpected_token_found(
-            "Integer",
-            r#"Exponent value: 1e5"#,
-            (19..22).into(),
-        ),
+        Diagnostic::unexpected_token_found("Integer", r#"Exponent value: 1e5"#, (19..22).into()),
         Diagnostic::unexpected_token_found("KeywordSemicolon", "'f6'", (32..34).into()),
     ];
     assert_eq!(errs, diagnostics);

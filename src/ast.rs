@@ -50,7 +50,7 @@ pub enum DirectAccessType {
 impl DirectAccessType {
     /// Returns true if the current index is in the range for the given type
     pub fn is_in_range(&self, index: u64, data_type: &DataTypeInformation) -> bool {
-        self.to_bits(index) < data_type.get_size() as u64
+        (self.get_bit_witdh() * index) < data_type.get_size() as u64
     }
 
     /// Returns the range from 0 for the given data type
@@ -71,11 +71,6 @@ impl DirectAccessType {
             DirectAccessType::Word => 16,
             DirectAccessType::DWord => 32,
         }
-    }
-
-    /// Converts the given index to the apporpiate bit size
-    pub fn to_bits(&self, index: u64) -> u64 {
-        index * self.get_bit_witdh()
     }
 }
 

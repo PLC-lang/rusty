@@ -92,6 +92,7 @@ pub enum ErrNo {
     type__literal_out_of_range,
     type__inompatible_literal_cast,
     type__incompatible_directaccess,
+    type__incompatible_directaccess_variable,
     type__incompatible_directaccess_range,
     type__expected_literal,
 }
@@ -195,6 +196,20 @@ impl Diagnostic {
             ),
             range: location,
             err_no: ErrNo::type__incompatible_directaccess_range,
+        }
+    }
+
+    pub fn incompatible_directaccess_variable(
+        access_type: &str,
+        location: SourceRange,
+    ) -> Diagnostic {
+        Diagnostic::SyntaxError {
+            message: format!(
+                "Invalid type {} for direct variable access. Only variables of Integer types are allowed",
+                access_type
+            ),
+            range: location,
+            err_no: ErrNo::type__incompatible_directaccess_variable,
         }
     }
 
@@ -521,6 +536,7 @@ pub fn compile_module<'c, T: SourceContainer>(
     // ### PHASE 3 ###
     // - codegen
     let code_generator = codegen::CodeGen::new(context, "main");
+
     for (unit, annotations) in annotated_units {
         code_generator.generate(unit, &annotations, &full_index)?;
     }
