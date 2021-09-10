@@ -3,6 +3,9 @@ use core::ops::Range;
 use logos::Filter;
 use logos::Lexer;
 use logos::Logos;
+use std::sync::atomic::AtomicUsize;
+use std::sync::atomic::Ordering;
+use std::sync::Arc;
 pub use tokens::Token;
 
 use crate::ast::AstId;
@@ -23,7 +26,7 @@ pub struct ParseSession<'a> {
     /// the range of the `last_token`
     pub last_range: Range<usize>,
     pub parse_progress: usize,
-    current_id: AstId,
+    id_provider: IdProvider,
 }
 
 #[macro_export]
@@ -41,7 +44,7 @@ macro_rules! expect_token {
 }
 
 impl<'a> ParseSession<'a> {
-    pub fn new(l: Lexer<'a, Token>) -> ParseSession<'a> {
+    pub fn new(l: Lexer<'a, Token>, id_provider: IdProvider) -> ParseSession<'a> {
         let mut lexer = ParseSession {
             lexer: l,
             token: Token::KeywordBy,
@@ -50,15 +53,14 @@ impl<'a> ParseSession<'a> {
             last_token: Token::End,
             last_range: 0..0,
             parse_progress: 0,
-            current_id: 0,
+            id_provider,
         };
         lexer.advance();
         lexer
     }
 
     pub fn next_id(&mut self) -> AstId {
-        self.current_id += 1;
-        self.current_id
+        self.id_provider.next_id()
     }
 
     /// this function will be removed soon:
@@ -280,6 +282,47 @@ fn get_closing_tag(open_tag: &str) -> (char, char) {
     }
 }
 
+#[derive(Clone)]
+pub struct IdProvider {
+    current_id: Arc<AtomicUsize>,
+}
+
+impl IdProvider {
+    pub fn new() -> Self {
+        IdProvider {
+            current_id: Arc::new(AtomicUsize::new(1)),
+        }
+    }
+
+    pub fn next_id(&mut self) -> AstId {
+        self.current_id.fetch_add(1, Ordering::Relaxed)
+    }
+}
+
+#[cfg(test)]
 pub fn lex(source: &str) -> ParseSession {
-    ParseSession::new(Token::lexer(source))
+    ParseSession::new(Token::lexer(source), IdProvider::new())
+}
+
+pub fn lex_with_ids(source: &str, id_provider: IdProvider) -> ParseSession {
+    ParseSession::new(Token::lexer(source), id_provider)
+}
+
+#[cfg(test)]
+mod id_tests {
+    use super::IdProvider;
+
+    #[test]
+    fn id_provider_generates_unique_ids_over_clones() {
+        let mut id1 = IdProvider::new();
+
+        assert_eq!(id1.next_id(), 1);
+
+        let mut id2 = id1.clone();
+        assert_eq!(id2.next_id(), 2);
+
+        assert_eq!(id1.next_id(), 3);
+
+        assert_eq!(id2.next_id(), 4);
+    }
 }

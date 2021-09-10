@@ -34,13 +34,12 @@ use inkwell::context::Context;
 use inkwell::targets::{
     CodeModel, FileType, InitializationConfig, RelocMode, Target, TargetMachine, TargetTriple,
 };
-use parser::ParsedAst;
-use resolver::TypeAnnotator;
+use lexer::IdProvider;
 use std::{fs::File, io::Read};
 use validation::Validator;
 
 use crate::ast::CompilationUnit;
-use crate::resolver::AnnotationMap;
+use crate::resolver::{AnnotationMap, TypeAnnotator};
 mod ast;
 pub mod cli;
 mod codegen;
@@ -481,6 +480,7 @@ pub fn compile_module<'c, T: SourceContainer>(
     encoding: Option<&'static Encoding>,
 ) -> Result<codegen::CodeGen<'c>, CompileError> {
     let mut full_index = Index::new();
+    let id_provider = IdProvider::new();
     let mut files: SimpleFiles<String, String> = SimpleFiles::new();
 
     let mut all_units = Vec::new();
@@ -494,7 +494,9 @@ pub fn compile_module<'c, T: SourceContainer>(
             .map_err(|err| CompileError::io_read_error(err, location.clone()))?;
         let file_id = files.add(location.clone(), e.source.clone());
 
-        let (mut parse_result, diagnostics) = parse(e.source.as_str());
+        let (mut parse_result, diagnostics) =
+            parser::parse(lexer::lex_with_ids(e.source.as_str(), id_provider.clone()));
+
         //pre-process the ast (create inlined types)
         ast::pre_process(&mut parse_result);
         //index the pou
@@ -557,11 +559,6 @@ fn report_diagnostics(
         })?;
     }
     Ok(())
-}
-
-fn parse(source: &str) -> ParsedAst {
-    let lexer = lexer::lex(source);
-    parser::parse(lexer)
 }
 
 #[cfg(test)]
