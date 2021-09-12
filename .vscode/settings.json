@@ -1,3 +1,25 @@
 {
-    "remote.containers.dockerPath": "podman"
+    "remote.containers.dockerPath": "podman",
+    "restoreTerminals.terminals": [
+        {
+            "splitTerminals": [
+                {
+                    "name": "cargo",
+                    "commands": [
+                        "./cargo_watch.sh"
+                    ]
+                },
+            ]
+        },
+        {
+            "splitTerminals": [
+                {
+                    "name": "git",
+                    "commands": [
+                        ""
+                    ],
+                },
+            ]
+        }
+    ]
 }

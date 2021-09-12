@@ -4263,6 +4263,36 @@ source_filename = "main"
 }
 
 #[test]
+fn arrays_with_global_const_size_are_generated() {
+    let result = codegen!(
+        "
+        VAR_GLOBAL CONSTANT
+          THREE : INT := 3; 
+          ZERO  : INT := 0;
+          LEN   : INT := THREE * THREE;
+        END_VAR
+
+        TYPE MyArray: ARRAY[ZERO..LEN] OF INT; END_TYPE
+
+        VAR_GLOBAL
+          x : MyArray;
+        END_VAR
+        "
+    );
+
+    let expected = r#"; ModuleID = 'main'
+source_filename = "main"
+
+@THREE = global i16 3
+@ZERO = global i16 0
+@LEN = global i16 9
+@x = external global [10 x i16]
+"#;
+
+    assert_eq!(result, expected);
+}
+
+#[test]
 fn structs_members_can_be_referenced() {
     let result = codegen!(
         "

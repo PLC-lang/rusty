@@ -133,7 +133,7 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
                     )
                     .unwrap();
 
-                self.create_nested_array_type(inner_type, dimensions.clone())
+                self.create_nested_array_type(inner_type, dimensions)
                     .map(|it| it.as_basic_type_enum())
                     .map_err(|err| CompileError::codegen_error(err, SourceRange::undefined()))
                 //TODO error location
@@ -291,7 +291,7 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
     fn create_nested_array_type(
         &self,
         end_type: BasicTypeEnum<'ink>,
-        dimensions: Vec<Dimension>,
+        dimensions: &[Dimension],
     ) -> Result<ArrayType<'ink>, String> {
         let mut result: Option<ArrayType> = None;
         let mut current_type = end_type;

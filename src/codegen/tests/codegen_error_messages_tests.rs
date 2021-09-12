@@ -1,5 +1,5 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-use crate::{codegen_wihout_unwrap, compile_error::CompileError};
+use crate::{ast::SourceRange, codegen_wihout_unwrap, compile_error::CompileError};
 use pretty_assertions::assert_eq;
 
 #[test]
@@ -220,6 +220,81 @@ fn invalid_struct_access_in_array_access_should_be_reported_with_line_number() {
         // that's not perfect yet, we need display-names for generated datatypes
         assert_eq!(
             CompileError::invalid_reference("INT.index", (139..144).into()),
+            msg
+        )
+    } else {
+        panic!("expected code-gen error but got none")
+    }
+}
+
+
+#[test]
+fn invalid_initial_constant_values_in_pou_variables() {
+    let result = codegen_wihout_unwrap!(
+        r#"
+        VAR_GLOBAL CONSTANT
+            MAX_LEN : INT := 99;
+        END_VAR
+
+        VAR_GLOBAL
+            LEN := MAX_LEN - 2;
+        END_VAR
+ 
+        PROGRAM prg
+      	  VAR_INPUT
+            my_len: INT := LEN + 4;  //cannot be evaluated at compile time!
+          END_VAR
+        END_PROGRAM
+ 
+        "#
+    );
+
+    if let Err(msg) = result {
+        assert_eq!(
+            CompileError::codegen_error("Cannot generate literal initializer for 'prg.my_len': Value can not be derived".to_string(), (214..221).into()),
+            msg
+        )
+    } else {
+        panic!("expected code-gen error but got none")
+    }
+}
+
+#[test]
+fn constants_without_initialization() {
+    let result = codegen_wihout_unwrap!(
+        r#"
+        VAR_GLOBAL CONSTANT
+            a : INT;
+            b : INT := a;
+        END_VAR
+        "#
+    );
+
+    if let Err(msg) = result {
+        assert_eq!(
+            CompileError::codegen_error("Cannot generate literal initializer for 'b': Value can not be derived".to_string(), SourceRange::undefined()),
+            msg
+        )
+    } else {
+        panic!("expected code-gen error but got none")
+    }
+}
+
+
+#[test]
+fn recursive_initial_constant_values() {
+    let result = codegen_wihout_unwrap!(
+        r#"
+        VAR_GLOBAL CONSTANT
+            a : INT := b;
+            b : INT := a;
+        END_VAR
+        "#
+    );
+
+    if let Err(msg) = result {
+        assert_eq!(
+            CompileError::codegen_error("Cannot generate literal initializer for 'a': Value can not be derived".to_string(), SourceRange::undefined()),
             msg
         )
     } else {

@@ -78,6 +78,16 @@ impl CompileError {
         CompileError::CodeGenError { message, location }
     }
 
+    pub fn cannot_generate_initializer(variable_name: &str, location: SourceRange) -> CompileError {
+        CompileError::codegen_error(
+            format!(
+                "Cannot generate literal initializer for '{:}': Value can not be derived",
+                variable_name
+            ),
+            location,
+        )
+    }
+
     pub fn io_read_error(path: String, reason: String) -> CompileError {
         CompileError::IoReadError { path, reason }
     }
@@ -91,5 +101,9 @@ impl CompileError {
             message: format!("No type associated to {:}", type_name),
             location,
         }
+    }
+
+    pub fn literal_or_constant_int_expected(location: SourceRange) -> CompileError {
+        CompileError::codegen_error("Expected integer literal or constant".to_string(), location)
     }
 }

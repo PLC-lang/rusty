@@ -186,7 +186,7 @@ impl LiteralValue {
             LiteralValue::Int(value) => AstStatement::LiteralInteger {
                 id,
                 location,
-                value: *value as i64,
+                value: *value,
             },
             LiteralValue::Real(value) => AstStatement::LiteralReal {
                 id,
