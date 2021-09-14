@@ -107,7 +107,7 @@ impl<'a, 'b> StructGenerator<'a, 'b> {
                 let evaluated_const = crate::resolver::const_evaluator::evaluate(
                     statement,
                     self.index.get_all_resolved_constants(),
-                    self.index,
+                    self.index.get_type_index(),
                 );
                 match evaluated_const {
                     Ok(Some(initializer)) => {

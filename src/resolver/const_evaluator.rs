@@ -1,14 +1,10 @@
 use std::collections::VecDeque;
 
-use crate::{
-    ast::{AstStatement, Operator},
-    index::{ConstantsIndex, Index, LiteralValue, VariableIndexEntry},
-    typesystem::{
+use crate::{ast::{AstStatement, Operator}, index::{ConstantsIndex, Index, LiteralValue, TypeIndex, VariableIndexEntry}, typesystem::{
         DataType, DataTypeInformation, NativeByteType, NativeDintType, NativeDwordType,
         NativeIntType, NativeLintType, NativeLwordType, NativeSintType, NativeWordType,
         StringEncoding, DINT_SIZE, INT_SIZE, LINT_SIZE, SINT_SIZE,
-    },
-};
+    }};
 
 macro_rules! cannot_eval {
     ($left:expr, $op_text:expr, $right:expr) => {
@@ -113,7 +109,7 @@ pub fn evaluate_constants(mut index: Index) -> (Index, Vec<UnresolvableConstant>
                 let candidates_type = index
                     .find_effective_type_by_name(candidate.get_type_name())
                     .map(DataType::get_type_information);
-                let initial_value_literal = evaluate(initial, &resolved_constants, &index);
+                let initial_value_literal = evaluate(initial, &resolved_constants, &index.get_type_index());
 
                 match (initial_value_literal, candidates_type) {
                     (
@@ -223,7 +219,7 @@ fn cast_if_necessary(
 pub fn evaluate(
     initial: &AstStatement,
     cindex: &ConstantsIndex,
-    index: &Index,
+    index: &TypeIndex,
 ) -> Result<Option<LiteralValue>, String> {
     let literal = match initial {
         AstStatement::LiteralInteger { value, .. } => Some(LiteralValue::Int(*value as i128)),
@@ -311,7 +307,7 @@ fn is_zero(v: &LiteralValue) -> bool {
 fn get_cast_literal(
     initial: &AstStatement,
     type_name: &str,
-    index: &Index,
+    index: &TypeIndex,
 ) -> Result<LiteralValue, String> {
     match index
         .find_effective_type_by_name(type_name)
