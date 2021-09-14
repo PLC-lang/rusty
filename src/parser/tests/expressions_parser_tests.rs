@@ -1,7 +1,9 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-use crate::ast::{AstStatement, DataType, DataTypeDeclaration, Operator, Pou, SourceRange};
+use crate::ast::{
+    AstStatement, DataType, DataTypeDeclaration, DirectAccess, Operator, Pou, SourceRange,
+};
 use crate::parser::parse;
-use crate::parser::tests::ref_to;
+use crate::parser::tests::{literal_int, ref_to};
 use pretty_assertions::*;
 
 #[test]
@@ -52,6 +54,93 @@ fn qualified_reference_statement_parsed() {
 }
 
 #[test]
+fn bitwise_access_parsed() {
+    let lexer = super::lex(
+        "PROGRAM exp 
+    a.0; 
+    a.%X1; 
+    a.%B1; 
+    a[0].%W1; 
+    a.b.%D1; 
+    END_PROGRAM",
+    );
+    let (result, diagnostics) = parse(lexer);
+
+    let prg = &result.implementations[0];
+    let statement = &prg.statements;
+    let expected = vec![
+        AstStatement::QualifiedReference {
+            elements: vec![
+                ref_to("a"),
+                AstStatement::DirectAccess {
+                    access: DirectAccess::Bit,
+                    index: 0,
+                    location: SourceRange::undefined(),
+                    id: 0,
+                },
+            ],
+            id: 0,
+        },
+        AstStatement::QualifiedReference {
+            elements: vec![
+                ref_to("a"),
+                AstStatement::DirectAccess {
+                    access: DirectAccess::Bit,
+                    index: 1,
+                    location: SourceRange::undefined(),
+                    id: 0,
+                },
+            ],
+            id: 0,
+        },
+        AstStatement::QualifiedReference {
+            elements: vec![
+                ref_to("a"),
+                AstStatement::DirectAccess {
+                    access: DirectAccess::Byte,
+                    index: 1,
+                    location: SourceRange::undefined(),
+                    id: 0,
+                },
+            ],
+            id: 0,
+        },
+        AstStatement::QualifiedReference {
+            elements: vec![
+                AstStatement::ArrayAccess {
+                    access: Box::new(literal_int(0)),
+                    reference: Box::new(ref_to("a")),
+                    id: 0,
+                },
+                AstStatement::DirectAccess {
+                    access: DirectAccess::Word,
+                    index: 1,
+                    location: SourceRange::undefined(),
+                    id: 0,
+                },
+            ],
+            id: 0,
+        },
+        AstStatement::QualifiedReference {
+            elements: vec![
+                ref_to("a"),
+                ref_to("b"),
+                AstStatement::DirectAccess {
+                    access: DirectAccess::DWord,
+                    index: 1,
+                    location: SourceRange::undefined(),
+                    id: 0,
+                },
+            ],
+            id: 0,
+        },
+    ];
+
+    assert_eq!(format!("{:?}", expected), format!("{:?}", statement));
+    assert_eq!(true, diagnostics.is_empty());
+}
+
+#[test]
 fn literal_can_be_parsed() {
     let lexer = super::lex("PROGRAM exp 7; END_PROGRAM");
     let result = parse(lexer).0;
@@ -60,7 +149,7 @@ fn literal_can_be_parsed() {
     let statement = &prg.statements[0];
 
     if let AstStatement::LiteralInteger { value, .. } = statement {
-        assert_eq!(value, &7_i64);
+        assert_eq!(value, &7_i128);
     } else {
         panic!("Expected LiteralInteger but found {:?}", statement);
     }
@@ -75,7 +164,7 @@ fn literal_binary_with_underscore_number_can_be_parsed() {
     let statement = &prg.statements[0];
 
     if let AstStatement::LiteralInteger { value, .. } = statement {
-        assert_eq!(value, &45_i64);
+        assert_eq!(value, &45_i128);
     } else {
         panic!("Expected LiteralInteger but found {:?}", statement);
     }
@@ -90,7 +179,7 @@ fn literal_hex_number_with_underscores_can_be_parsed() {
     let statement = &prg.statements[0];
 
     if let AstStatement::LiteralInteger { value, .. } = statement {
-        assert_eq!(value, &3735928559_i64);
+        assert_eq!(value, &3735928559_i128);
     } else {
         panic!("Expected LiteralInteger but found {:?}", statement);
     }
@@ -105,7 +194,7 @@ fn literal_hex_number_can_be_parsed() {
     let statement = &prg.statements[0];
 
     if let AstStatement::LiteralInteger { value, .. } = statement {
-        assert_eq!(value, &3735928559_i64);
+        assert_eq!(value, &3735928559_i128);
     } else {
         panic!("Expected LiteralInteger but found {:?}", statement);
     }
@@ -120,7 +209,7 @@ fn literal_oct_number_with_underscores_can_be_parsed() {
     let statement = &prg.statements[0];
 
     if let AstStatement::LiteralInteger { value, .. } = statement {
-        assert_eq!(value, &63_i64);
+        assert_eq!(value, &63_i128);
     } else {
         panic!("Expected LiteralInteger but found {:?}", statement);
     }
@@ -135,7 +224,7 @@ fn literal_dec_number_with_underscores_can_be_parsed() {
     let statement = &prg.statements[0];
 
     if let AstStatement::LiteralInteger { value, .. } = statement {
-        assert_eq!(value, &43000_i64);
+        assert_eq!(value, &43000_i128);
     } else {
         panic!("Expected LiteralInteger but found {:?}", statement);
     }
@@ -150,7 +239,7 @@ fn literal_oct_number_with_underscore_can_be_parsed() {
     let statement = &prg.statements[0];
 
     if let AstStatement::LiteralInteger { value, .. } = statement {
-        assert_eq!(value, &63_i64);
+        assert_eq!(value, &63_i128);
     } else {
         panic!("Expected LiteralInteger but found {:?}", statement);
     }
@@ -998,7 +1087,7 @@ fn literal_real_test() {
     assert_eq!(ast_string, expected_ast);
 }
 
-fn literal_int_cast(data_type: &str, value: i64) -> AstStatement {
+fn literal_int_cast(data_type: &str, value: i128) -> AstStatement {
     AstStatement::CastStatement {
         id: 0,
         location: SourceRange::undefined(),

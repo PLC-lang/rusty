@@ -255,7 +255,7 @@ fn visit_data_type(index: &mut Index, type_declatation: &UserTypeDeclaration) {
                     v,
                     enum_name.as_str(),
                     Some(ast::AstStatement::LiteralInteger {
-                        value: i as i64,
+                        value: i as i128,
                         location: SourceRange::undefined(),
                         id: 0,
                     }),

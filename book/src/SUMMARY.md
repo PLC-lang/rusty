@@ -10,3 +10,4 @@
     - [Using in external programs]()
 
 - [Datatypes](./datatypes.md)
+- [Direct Bit Access](./direct_variables.md)

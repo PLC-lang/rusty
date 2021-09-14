@@ -46,6 +46,48 @@ impl StatementValidator {
             } => {
                 self.validate_cast_literal(target, type_name, location, context);
             }
+            AstStatement::QualifiedReference { elements, .. } => {
+                let mut i = elements.iter().rev();
+                if let Some((
+                    AstStatement::DirectAccess {
+                        access,
+                        index,
+                        location,
+                        ..
+                    },
+                    reference,
+                )) = i.next().zip(i.next())
+                {
+                    let target_type = context
+                        .ast_annotation
+                        .get_type_or_void(reference, context.index)
+                        .get_type_information();
+                    if target_type.is_int() {
+                        if !access.is_compatible(target_type) {
+                            self.diagnostics.push(Diagnostic::incompatible_directaccess(
+                                &format!("{:?}", access),
+                                access.get_bit_witdh(),
+                                location.clone(),
+                            ))
+                        } else if !access.is_in_range(*index, target_type) {
+                            self.diagnostics
+                                .push(Diagnostic::incompatible_directaccess_range(
+                                    &format!("{:?}", access),
+                                    target_type.get_name(),
+                                    access.get_range(target_type),
+                                    location.clone(),
+                                ))
+                        }
+                    } else {
+                        //Report incompatible type issue
+                        self.diagnostics.push(Diagnostic::incompatible_directaccess(
+                            &format!("{:?}", access),
+                            access.get_bit_witdh(),
+                            location.clone(),
+                        ))
+                    }
+                }
+            }
             _ => (),
         }
     }
@@ -151,7 +193,7 @@ impl StatementValidator {
     fn get_literal_actual_signed_type_name(target: &AstStatement, signed: bool) -> Option<&str> {
         match target {
             AstStatement::LiteralInteger { value, .. } => match signed {
-                _ if *value == 0_i64 || *value == 1_i64 => Some(BOOL_TYPE),
+                _ if *value == 0_i128 || *value == 1_i128 => Some(BOOL_TYPE),
                 true if is_covered_by!(i8, *value) => Some(SINT_TYPE),
                 true if is_covered_by!(i16, *value) => Some(INT_TYPE),
                 true if is_covered_by!(i32, *value) => Some(DINT_TYPE),

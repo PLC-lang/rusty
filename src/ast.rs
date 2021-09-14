@@ -1,5 +1,5 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-use crate::compile_error::CompileError;
+use crate::{compile_error::CompileError, typesystem::DataTypeInformation};
 use std::{
     fmt::{Debug, Display, Formatter, Result},
     iter,
@@ -37,6 +37,46 @@ pub enum PolymorphismMode {
     None,
     Abstract,
     Final,
+}
+
+#[derive(Clone, Debug, PartialEq)]
+pub enum DirectAccess {
+    Bit,
+    Byte,
+    Word,
+    DWord,
+}
+
+impl DirectAccess {
+    /// Returns true if the current index is in the range for the given type
+    pub fn is_in_range(&self, index: u32, data_type: &DataTypeInformation) -> bool {
+        self.to_bits(index) < data_type.get_size()
+    }
+
+    /// Returns the range from 0 for the given data type
+    pub fn get_range(&self, data_type: &DataTypeInformation) -> Range<u32> {
+        0..((data_type.get_size() / self.get_bit_witdh()) - 1)
+    }
+
+    /// Returns true if the direct access can be used for the given type
+    pub fn is_compatible(&self, data_type: &DataTypeInformation) -> bool {
+        data_type.get_size() > self.get_bit_witdh()
+    }
+
+    /// Returns the size of the bitaccess result
+    pub fn get_bit_witdh(&self) -> u32 {
+        match self {
+            DirectAccess::Bit => 1,
+            DirectAccess::Byte => 8,
+            DirectAccess::Word => 16,
+            DirectAccess::DWord => 32,
+        }
+    }
+
+    /// Converts the given index to the apporpiate bit size
+    pub fn to_bits(&self, index: u32) -> u32 {
+        index * self.get_bit_witdh()
+    }
 }
 
 impl Debug for Pou {
@@ -482,7 +522,7 @@ pub enum AstStatement {
     },
     // Literals
     LiteralInteger {
-        value: i64,
+        value: i128,
         location: SourceRange,
         id: AstId,
     },
@@ -574,6 +614,12 @@ pub enum AstStatement {
     },
     PointerAccess {
         reference: Box<AstStatement>,
+        id: AstId,
+    },
+    DirectAccess {
+        access: DirectAccess,
+        index: u32,
+        location: SourceRange,
         id: AstId,
     },
     BinaryExpression {
@@ -869,6 +915,11 @@ impl Debug for AstStatement {
                 .debug_struct("PointerAccess")
                 .field("reference", reference)
                 .finish(),
+            AstStatement::DirectAccess { access, index, .. } => f
+                .debug_struct("DirectAccess")
+                .field("access", access)
+                .field("index", index)
+                .finish(),
             AstStatement::MultipliedStatement {
                 multiplier,
                 element,
@@ -972,6 +1023,7 @@ impl AstStatement {
                 SourceRange::new(reference_loc.range.start..access_loc.range.end)
             }
             AstStatement::PointerAccess { reference, .. } => reference.get_location(),
+            AstStatement::DirectAccess { location, .. } => location.clone(),
             AstStatement::MultipliedStatement { location, .. } => location.clone(),
             AstStatement::CaseCondition { condition, .. } => condition.get_location(),
             AstStatement::ReturnStatement { location, .. } => location.clone(),
@@ -999,6 +1051,7 @@ impl AstStatement {
             AstStatement::Reference { id, .. } => *id,
             AstStatement::ArrayAccess { id, .. } => *id,
             AstStatement::PointerAccess { id, .. } => *id,
+            AstStatement::DirectAccess { id, .. } => *id,
             AstStatement::BinaryExpression { id, .. } => *id,
             AstStatement::UnaryExpression { id, .. } => *id,
             AstStatement::ExpressionList { id, .. } => *id,

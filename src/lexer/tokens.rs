@@ -348,6 +348,9 @@ pub enum Token {
     #[regex("T(IME)?#-?(\\d+(\\.\\d+)?(d|h|ms|m|s|us|ns))+", ignore(case))]
     LiteralTime,
 
+    #[regex("%(B|b|D|d|W|w|X|x)[0-9]+")]
+    DirectAccess,
+
     #[regex("'((\\$.)|[^$'])*'")]
     LiteralString,
 

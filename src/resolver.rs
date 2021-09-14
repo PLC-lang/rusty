@@ -14,9 +14,9 @@ use crate::{
     },
     index::{ImplementationIndexEntry, ImplementationType, Index, VariableIndexEntry},
     typesystem::{
-        self, get_bigger_type_borrow, DataTypeInformation, BOOL_TYPE, DATE_AND_TIME_TYPE,
-        DATE_TYPE, DINT_TYPE, LINT_TYPE, REAL_TYPE, STRING_TYPE, TIME_OF_DAY_TYPE, TIME_TYPE,
-        VOID_TYPE, WSTRING_TYPE,
+        self, get_bigger_type_borrow, DataTypeInformation, BOOL_TYPE, BYTE_TYPE,
+        DATE_AND_TIME_TYPE, DATE_TYPE, DINT_TYPE, DWORD_TYPE, LINT_TYPE, REAL_TYPE, STRING_TYPE,
+        TIME_OF_DAY_TYPE, TIME_TYPE, VOID_TYPE, WORD_TYPE, WSTRING_TYPE,
     },
 };
 
@@ -377,6 +377,32 @@ impl<'i> TypeAnnotator<'i> {
                         .annotate(statement, StatementAnnotation::expression(t));
                 }
             }
+            AstStatement::DirectAccess { access, .. } => match access {
+                crate::ast::DirectAccess::Bit => self.annotation_map.annotate(
+                    statement,
+                    StatementAnnotation::Value {
+                        resulting_type: BOOL_TYPE.into(),
+                    },
+                ),
+                crate::ast::DirectAccess::Byte => self.annotation_map.annotate(
+                    statement,
+                    StatementAnnotation::Value {
+                        resulting_type: BYTE_TYPE.into(),
+                    },
+                ),
+                crate::ast::DirectAccess::Word => self.annotation_map.annotate(
+                    statement,
+                    StatementAnnotation::Value {
+                        resulting_type: WORD_TYPE.into(),
+                    },
+                ),
+                crate::ast::DirectAccess::DWord => self.annotation_map.annotate(
+                    statement,
+                    StatementAnnotation::Value {
+                        resulting_type: DWORD_TYPE.into(),
+                    },
+                ),
+            },
             AstStatement::BinaryExpression { left, right, .. } => {
                 visit_all_statements!(self, ctx, left, right);
                 let left = &self
@@ -741,8 +767,8 @@ fn to_function_annotation(it: &ImplementationIndexEntry, index: &Index) -> State
     }
 }
 
-fn get_int_type_name_for(value: i64) -> &'static str {
-    if i32::MIN as i64 <= value && i32::MAX as i64 >= value {
+fn get_int_type_name_for(value: i128) -> &'static str {
+    if i32::MIN as i128 <= value && i32::MAX as i128 >= value {
         DINT_TYPE
     } else {
         LINT_TYPE
@@ -756,13 +782,13 @@ mod resolver_tests {
     #[test]
     fn correct_int_types_name_for_numbers() {
         assert_eq!(get_int_type_name_for(0), "DINT");
-        assert_eq!(get_int_type_name_for(i64::pow(2, 8) - 1), "DINT");
-        assert_eq!(get_int_type_name_for(i64::pow(2, 8)), "DINT");
-        assert_eq!(get_int_type_name_for(i64::pow(2, 16) - 1), "DINT");
-        assert_eq!(get_int_type_name_for(i64::pow(2, 16)), "DINT");
-        assert_eq!(get_int_type_name_for(i64::pow(2, 31) - 1), "DINT");
-        assert_eq!(get_int_type_name_for(i64::pow(2, 31)), "LINT");
-        assert_eq!(get_int_type_name_for(i64::pow(2, 32)), "LINT");
-        assert_eq!(get_int_type_name_for(i64::MAX), "LINT");
+        assert_eq!(get_int_type_name_for(i128::pow(2, 8) - 1), "DINT");
+        assert_eq!(get_int_type_name_for(i128::pow(2, 8)), "DINT");
+        assert_eq!(get_int_type_name_for(i128::pow(2, 16) - 1), "DINT");
+        assert_eq!(get_int_type_name_for(i128::pow(2, 16)), "DINT");
+        assert_eq!(get_int_type_name_for(i128::pow(2, 31) - 1), "DINT");
+        assert_eq!(get_int_type_name_for(i128::pow(2, 31)), "LINT");
+        assert_eq!(get_int_type_name_for(i128::pow(2, 32)), "LINT");
+        assert_eq!(get_int_type_name_for(i64::MAX as i128), "LINT");
     }
 }

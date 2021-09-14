@@ -152,9 +152,15 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                 let l_value = self.generate_element_pointer(expression)?;
                 Ok(self.llvm.load_pointer(&l_value, load_name.as_str()))
             }
-            AstStatement::QualifiedReference { .. } => {
-                let l_value = self.generate_element_pointer(expression)?;
-                Ok(self.llvm.load_pointer(&l_value, &self.temp_variable_prefix))
+            AstStatement::QualifiedReference { elements, .. } => {
+                //If direct access, don't load pointers
+                if has_direct_access(expression) {
+                    //Split the qualified reference at the last element
+                    self.generate_directaccess(elements)
+                } else {
+                    let l_value = self.generate_element_pointer(expression)?;
+                    Ok(self.llvm.load_pointer(&l_value, &self.temp_variable_prefix))
+                }
             }
             AstStatement::ArrayAccess { .. } => {
                 let l_value = self.generate_element_pointer(expression)?;
@@ -223,6 +229,63 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
             } => self.generate_unary_expression(operator, value),
             //fallback
             _ => self.generate_literal(expression),
+        }
+    }
+
+    fn generate_directaccess(
+        &self,
+        elements: &[AstStatement],
+    ) -> Result<TypeAndValue<'a>, CompileError> {
+        let (last, qualifer) = elements.split_last().unwrap();
+        let id = elements.last().unwrap().get_id();
+        let expression = if qualifer.len() == 1 {
+            //Create a single reference
+            qualifer.first().unwrap().clone()
+        } else {
+            AstStatement::QualifiedReference {
+                elements: qualifer.to_vec(),
+                id,
+            }
+        };
+        //Generate a load for the qualifer
+        let (expression_type, value) = self.generate_expression(&expression)?;
+        if let AstStatement::DirectAccess { access, index, .. } = last {
+            //Generate and load the index value
+            let index = access.to_bits(*index);
+            let datatype = self.annotations.get_type_or_void(last, self.index);
+            let rhs = self
+                .llvm_index
+                .get_associated_type(expression_type.get_name())
+                .unwrap()
+                .into_int_type()
+                .const_int(index.into(), false);
+            //Shift the qualifer value right by the index value
+            let shift = self.llvm.builder.build_right_shift(
+                value.into_int_value(),
+                rhs,
+                expression_type.is_signed_int(),
+                "shift",
+            );
+            //Trunc the result to the get only the target size
+            let llvm_target_type = self
+                .llvm_index
+                .get_associated_type(datatype.get_name())
+                .unwrap()
+                .into_int_type();
+            let result =
+                self.llvm
+                    .builder
+                    .build_int_truncate_or_bit_cast(shift, llvm_target_type, "");
+            Ok((
+                datatype.get_type_information().clone(),
+                result.as_basic_value_enum(),
+            ))
+        } else {
+            unreachable!()
+            // Err(CompileError::codegen_error(
+            //     "Bitwise operations not possible".into(),
+            //     expression.get_location(),
+            // ))
         }
     }
 
@@ -749,7 +812,6 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
         name: &str,
         context: &AstStatement,
     ) -> Result<TypeAndPointer<'a, '_>, CompileError> {
-        //let (data_type, ptr) = if let Some((qualifier_name, qualifier)) = type_with_context {
         let offset = &context.get_location();
         let l_value = if let Some(l_value) = qualifier {
             let qualifier_name = l_value.type_entry.get_name();
@@ -1709,4 +1771,13 @@ fn calculate_date_time(
         "Invalid Date {}-{}-{}-{}:{}:{}.{}",
         year, month, day, hour, min, sec, milli
     ))
+}
+
+/// Returns true if the current statement has a return access.
+fn has_direct_access(statement: &AstStatement) -> bool {
+    if let AstStatement::QualifiedReference { elements, .. } = statement {
+        matches!(elements.last(), Some(AstStatement::DirectAccess { .. }))
+    } else {
+        false
+    }
 }

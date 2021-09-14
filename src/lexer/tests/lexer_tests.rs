@@ -606,6 +606,32 @@ fn pointers_and_references_keyword() {
 }
 
 #[test]
+fn direct_access_test() {
+    let mut lexer = lex(r"
+        %X1 %x1 %B1 %b1
+        %W1 %w1 %D1 %d1
+    ");
+
+    assert_eq!(lexer.token, DirectAccess);
+    lexer.advance();
+    assert_eq!(lexer.token, DirectAccess);
+    lexer.advance();
+    assert_eq!(lexer.token, DirectAccess);
+    lexer.advance();
+    assert_eq!(lexer.token, DirectAccess);
+    lexer.advance();
+    assert_eq!(lexer.token, DirectAccess);
+    lexer.advance();
+    assert_eq!(lexer.token, DirectAccess);
+    lexer.advance();
+    assert_eq!(lexer.token, DirectAccess);
+    lexer.advance();
+    assert_eq!(lexer.token, DirectAccess);
+    lexer.advance();
+    assert_eq!(lexer.token, End);
+}
+
+#[test]
 fn multi_named_keywords_without_underscore_test() {
     let mut lexer = lex(
         "VARINPUT VARGLOBAL VARINOUT REFTO ENDVAR ENDPROGRAM ENDFUNCTION ENDCASE
