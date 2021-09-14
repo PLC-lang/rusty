@@ -3,7 +3,7 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>Using RuSTy - RuSTy User Documentation</title>
+        <title>Direct Bit Access - RuSTy User Documentation</title>
                 
 
         <!-- Custom HTML head -->
@@ -82,7 +82,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded "><a href="intro_1.html"><strong aria-hidden="true">1.</strong> RuSTy</a></li><li class="chapter-item expanded "><a href="build_and_install.html"><strong aria-hidden="true">2.</strong> Build and Install</a></li><li class="chapter-item expanded "><a href="using_rusty.html" class="active"><strong aria-hidden="true">3.</strong> Using RuSTy</a></li><li class="chapter-item expanded "><div><strong aria-hidden="true">4.</strong> Writing ST Programs</div></li><li><ol class="section"><li class="chapter-item expanded "><div><strong aria-hidden="true">4.1.</strong> Multiple Files</div></li><li class="chapter-item expanded "><a href="libraries.html"><strong aria-hidden="true">4.2.</strong> Libraries</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="libraries/external_functions.html"><strong aria-hidden="true">4.2.1.</strong> External Functions</a></li></ol></li><li class="chapter-item expanded "><div><strong aria-hidden="true">4.3.</strong> Using in external programs</div></li></ol></li><li class="chapter-item expanded "><a href="datatypes.html"><strong aria-hidden="true">5.</strong> Datatypes</a></li><li class="chapter-item expanded "><a href="direct_variables.html"><strong aria-hidden="true">6.</strong> Direct Bit Access</a></li></ol>            </div>
+                <ol class="chapter"><li class="chapter-item expanded "><a href="intro_1.html"><strong aria-hidden="true">1.</strong> RuSTy</a></li><li class="chapter-item expanded "><a href="build_and_install.html"><strong aria-hidden="true">2.</strong> Build and Install</a></li><li class="chapter-item expanded "><a href="using_rusty.html"><strong aria-hidden="true">3.</strong> Using RuSTy</a></li><li class="chapter-item expanded "><div><strong aria-hidden="true">4.</strong> Writing ST Programs</div></li><li><ol class="section"><li class="chapter-item expanded "><div><strong aria-hidden="true">4.1.</strong> Multiple Files</div></li><li class="chapter-item expanded "><a href="libraries.html"><strong aria-hidden="true">4.2.</strong> Libraries</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="libraries/external_functions.html"><strong aria-hidden="true">4.2.1.</strong> External Functions</a></li></ol></li><li class="chapter-item expanded "><div><strong aria-hidden="true">4.3.</strong> Using in external programs</div></li></ol></li><li class="chapter-item expanded "><a href="datatypes.html"><strong aria-hidden="true">5.</strong> Datatypes</a></li><li class="chapter-item expanded "><a href="direct_variables.html" class="active"><strong aria-hidden="true">6.</strong> Direct Bit Access</a></li></ol>            </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
 
@@ -143,85 +143,51 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1 id="using-rusty"><a class="header" href="#using-rusty">Using RuSTy</a></h1>
-<p><code>rustyc</code> offers a comprehensive help via the -h (--help) option. <code>rustyc</code> takes 
-one output-format parameter and any number of input-files. The input files can also be
-written as <a href="https://en.wikipedia.org/wiki/Glob_(programming)">glob patterns</a>.</p>
-<p><code>rustyc [OPTIONS] &lt;input-files&gt;... &lt;--ir|--shared|--pic|--static|--bc&gt;</code></p>
-<p>Note that you can only specify at most one output format. In the case that no output
-format switch has been specified, the compiler will select <code>--static</code> by default.</p>
-<p>Similarily, if you do not specify an output filename via the <code>-o</code> or <code>--output</code> options,
-the output filename will consist of the first input filename, but with an appropriate
-file extension depending on the output file format. A minimal invocation looks like this:</p>
-<p><code>rustyc input.st</code> ... this will take in the file input.st and compile it into a static object
-that will be written to a file named input.o.</p>
-<p>More examples:</p>
-<ul>
-<li><code>rustyc --ir file1.st file2.st</code> will compile file1.st and file2.st.</li>
-<li><code>rustyc --ir src/*.st</code> will compile all st files in the src-folder.</li>
-<li><code>rustyc --ir &quot;**/*.st&quot;</code> will compile all st-files in the current folder and its subfolders recursively.</li>
-</ul>
-<h2 id="example-building-a-hello-world-program"><a class="header" href="#example-building-a-hello-world-program">Example: Building a hello world program</a></h2>
-<h3 id="writing-the-code"><a class="header" href="#writing-the-code">Writing the code</a></h3>
-<p>We want to print something to the terminal, so we're going to declare external functions
-for that and link with libc when we're done. This program can also be found at
-<code>examples/hello_world.st</code> in the source tree of Rusty. </p>
-<ul>
-<li>
-<p><code>_start</code> is our entry point to the program, because most linker scripts define it this way. </p>
-</li>
-<li>
-<p>Since we don't have a <code>crt0</code> right now, we have to call the <code>exit()</code> function by ourselves after we're
-done. Otherwise, the program will most likely crash (because it tries to return to a function that never
-existed).</p>
-</li>
-</ul>
-<pre><code class="language-st">@EXTERNAL FUNCTION puts : DINT
-VAR_INPUT
-    text : STRING;
+                        <h1 id="direct-bit-access-on-variables"><a class="header" href="#direct-bit-access-on-variables">Direct (Bit) Access on Variables</a></h1>
+<p>The IEC61131 Standard allows reading specific <code>Bits</code>, <code>Bytes</code>, <code>Words</code> or <code>DWords</code> from an <code>ANY_BIT</code> type.
+RuSTy supports this functionalty and extends it to support all <code>INT</code> types.</p>
+<h2 id="usage"><a class="header" href="#usage">Usage</a></h2>
+<p>To access a bit sequence in a variable, a direct access instruction <code>%&lt;Type&gt;&lt;Value&gt;</code> is used.
+<code>Type</code> is the bit sequence size required and is described as follows : </p>
+<table><thead><tr><th>Type</th><th>Size</th><th>Example</th></tr></thead><tbody>
+<tr><td>X</td><td>1</td><td>`%X1</td></tr>
+<tr><td>B</td><td>8</td><td>`%B1</td></tr>
+<tr><td>W</td><td>16</td><td>`%W1</td></tr>
+<tr><td>D</td><td>32</td><td>`%D1</td></tr>
+</tbody></table>
+<blockquote>
+<p><em>For <code>Bit</code> access, the <code>%X</code> is optional.</em></p>
+</blockquote>
+<h3 id="example"><a class="header" href="#example">Example</a></h3>
+<pre><code class="language-st">FUNCTION main : DINT
+VAR 
+    variable    : LWORD; 
+    bitTarget   : BOOL;
+    bitTarget2  : BOOL;
+    byteTarget  : BYTE;
+    wordTarget  : WORD;
+    dwordTarget : DWORD;
 END_VAR
-END_FUNCTION
 
-@EXTERNAL FUNCTION exit : DINT
-VAR_INPUT
-    status : DINT;
-END_VAR
-END_FUNCTION
+variable    := 16#AB_CD_EF_12_34_56_78_90;
+bitTarget   := variable.%X63; (*Access last bit*)
+byteTarget  := variable.%B7; (*Access last byte*)
+wordTarget  := variable.%W3; (*Access last word*)
+dwordTarget := variable.%D1; (*Access last dword*)
+(*Chaining an access is also allowed *)
+bitTarget2  := variable.%D1.%W1.%B1.%X1;
 
-FUNCTION _start : DINT
-    puts('hello, world!');
-    exit(0);
 END_FUNCTION
 </code></pre>
-<h3 id="compiling-with-rusty"><a class="header" href="#compiling-with-rusty">Compiling with rusty</a></h3>
-<p>Compiling with rusty is very easy. If you just want to build an object file, then do this:</p>
-<pre><code class="language-bash">rustyc -c hello_world.st -o hello_world.o
-</code></pre>
-<h3 id="linking-an-executable"><a class="header" href="#linking-an-executable">Linking an executable</a></h3>
-<p>Instead, you can also compile this into an executable and run it:</p>
-<pre><code class="language-bash">rustyc hello_world.st -o hello_world -L/path/to/libs -lc
-./hello_world
-</code></pre>
-<p>Please note that RuSTy will attempt to link the generated object file by default to generate
-an executable if you didn't specify something else (option <code>-c</code>).</p>
-<ul>
-<li>The <code>-lc</code> flag tells the linker it should link against <code>libc</code>. Depending on the available libraries on your system,
-the linker will prefer a dynamically linked library if available, and revert to a static one otherwise.</li>
-<li>You add library search pathes by providing additional <code>-L /path/...</code> options. By default, this will be
-the current directory.</li>
-</ul>
 
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
-                                                    <a rel="prev" href="build_and_install.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                                    <a rel="prev" href="datatypes.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                                 <i class="fa fa-angle-left"></i>
                             </a>
                         
-                                                    <a rel="next" href="libraries.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
-                                <i class="fa fa-angle-right"></i>
-                            </a>
                         
                         <div style="clear: both"></div>
                     </nav>
@@ -229,13 +195,10 @@ the current directory.</li>
             </div>
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
-                                    <a rel="prev" href="build_and_install.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                    <a rel="prev" href="datatypes.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                         <i class="fa fa-angle-left"></i>
                     </a>
                 
-                                    <a rel="next" href="libraries.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
-                        <i class="fa fa-angle-right"></i>
-                    </a>
                             </nav>
 
         </div>

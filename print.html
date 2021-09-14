@@ -83,7 +83,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded "><a href="intro_1.html"><strong aria-hidden="true">1.</strong> RuSTy</a></li><li class="chapter-item expanded "><a href="build_and_install.html"><strong aria-hidden="true">2.</strong> Build and Install</a></li><li class="chapter-item expanded "><a href="using_rusty.html"><strong aria-hidden="true">3.</strong> Using RuSTy</a></li><li class="chapter-item expanded "><div><strong aria-hidden="true">4.</strong> Writing ST Programs</div></li><li><ol class="section"><li class="chapter-item expanded "><div><strong aria-hidden="true">4.1.</strong> Multiple Files</div></li><li class="chapter-item expanded "><a href="libraries.html"><strong aria-hidden="true">4.2.</strong> Libraries</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="libraries/external_functions.html"><strong aria-hidden="true">4.2.1.</strong> External Functions</a></li></ol></li><li class="chapter-item expanded "><div><strong aria-hidden="true">4.3.</strong> Using in external programs</div></li></ol></li><li class="chapter-item expanded "><a href="datatypes.html"><strong aria-hidden="true">5.</strong> Datatypes</a></li></ol>            </div>
+                <ol class="chapter"><li class="chapter-item expanded "><a href="intro_1.html"><strong aria-hidden="true">1.</strong> RuSTy</a></li><li class="chapter-item expanded "><a href="build_and_install.html"><strong aria-hidden="true">2.</strong> Build and Install</a></li><li class="chapter-item expanded "><a href="using_rusty.html"><strong aria-hidden="true">3.</strong> Using RuSTy</a></li><li class="chapter-item expanded "><div><strong aria-hidden="true">4.</strong> Writing ST Programs</div></li><li><ol class="section"><li class="chapter-item expanded "><div><strong aria-hidden="true">4.1.</strong> Multiple Files</div></li><li class="chapter-item expanded "><a href="libraries.html"><strong aria-hidden="true">4.2.</strong> Libraries</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="libraries/external_functions.html"><strong aria-hidden="true">4.2.1.</strong> External Functions</a></li></ol></li><li class="chapter-item expanded "><div><strong aria-hidden="true">4.3.</strong> Using in external programs</div></li></ol></li><li class="chapter-item expanded "><a href="datatypes.html"><strong aria-hidden="true">5.</strong> Datatypes</a></li><li class="chapter-item expanded "><a href="direct_variables.html"><strong aria-hidden="true">6.</strong> Direct Bit Access</a></li></ol>            </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
 
@@ -542,6 +542,42 @@ empty type and has an undefined size.</p>
 <tr><td>DWORD</td><td>32 bit</td><td>unsigned</td></tr>
 <tr><td>LWORD</td><td>64 bit</td><td>unsigned</td></tr>
 </tbody></table>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="direct-bit-access-on-variables"><a class="header" href="#direct-bit-access-on-variables">Direct (Bit) Access on Variables</a></h1>
+<p>The IEC61131 Standard allows reading specific <code>Bits</code>, <code>Bytes</code>, <code>Words</code> or <code>DWords</code> from an <code>ANY_BIT</code> type.
+RuSTy supports this functionalty and extends it to support all <code>INT</code> types.</p>
+<h2 id="usage"><a class="header" href="#usage">Usage</a></h2>
+<p>To access a bit sequence in a variable, a direct access instruction <code>%&lt;Type&gt;&lt;Value&gt;</code> is used.
+<code>Type</code> is the bit sequence size required and is described as follows : </p>
+<table><thead><tr><th>Type</th><th>Size</th><th>Example</th></tr></thead><tbody>
+<tr><td>X</td><td>1</td><td>`%X1</td></tr>
+<tr><td>B</td><td>8</td><td>`%B1</td></tr>
+<tr><td>W</td><td>16</td><td>`%W1</td></tr>
+<tr><td>D</td><td>32</td><td>`%D1</td></tr>
+</tbody></table>
+<blockquote>
+<p><em>For <code>Bit</code> access, the <code>%X</code> is optional.</em></p>
+</blockquote>
+<h3 id="example-1"><a class="header" href="#example-1">Example</a></h3>
+<pre><code class="language-st">FUNCTION main : DINT
+VAR 
+    variable    : LWORD; 
+    bitTarget   : BOOL;
+    bitTarget2  : BOOL;
+    byteTarget  : BYTE;
+    wordTarget  : WORD;
+    dwordTarget : DWORD;
+END_VAR
+
+variable    := 16#AB_CD_EF_12_34_56_78_90;
+bitTarget   := variable.%X63; (*Access last bit*)
+byteTarget  := variable.%B7; (*Access last byte*)
+wordTarget  := variable.%W3; (*Access last word*)
+dwordTarget := variable.%D1; (*Access last dword*)
+(*Chaining an access is also allowed *)
+bitTarget2  := variable.%D1.%W1.%B1.%X1;
+
+END_FUNCTION
+</code></pre>
 
                     </main>
 

@@ -607,6 +607,10 @@
 <span id="607">607</span>
 <span id="608">608</span>
 <span id="609">609</span>
+<span id="610">610</span>
+<span id="611">611</span>
+<span id="612">612</span>
+<span id="613">613</span>
 </pre><pre class="rust">
 <span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 <span class="kw">use</span> <span class="ident">std::ops::Range</span>;
@@ -773,6 +777,10 @@
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_unsigned_int</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
         <span class="macro">matches!</span>(<span class="self">self</span>, <span class="ident">DataTypeInformation::Integer</span> { <span class="ident">signed</span>: <span class="bool-val">false</span>, .. })
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_signed_int</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+        <span class="macro">matches!</span>(<span class="self">self</span>, <span class="ident">DataTypeInformation::Integer</span> { <span class="ident">signed</span>: <span class="bool-val">true</span>, .. })
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_float</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {

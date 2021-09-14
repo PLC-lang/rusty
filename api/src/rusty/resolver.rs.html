@@ -766,6 +766,32 @@
 <span id="766">766</span>
 <span id="767">767</span>
 <span id="768">768</span>
+<span id="769">769</span>
+<span id="770">770</span>
+<span id="771">771</span>
+<span id="772">772</span>
+<span id="773">773</span>
+<span id="774">774</span>
+<span id="775">775</span>
+<span id="776">776</span>
+<span id="777">777</span>
+<span id="778">778</span>
+<span id="779">779</span>
+<span id="780">780</span>
+<span id="781">781</span>
+<span id="782">782</span>
+<span id="783">783</span>
+<span id="784">784</span>
+<span id="785">785</span>
+<span id="786">786</span>
+<span id="787">787</span>
+<span id="788">788</span>
+<span id="789">789</span>
+<span id="790">790</span>
+<span id="791">791</span>
+<span id="792">792</span>
+<span id="793">793</span>
+<span id="794">794</span>
 </pre><pre class="rust">
 <span class="comment">// Copyright (c) 2021 Ghaith Hachem and Mathias Rieder</span>
 
@@ -783,9 +809,9 @@
     },
     <span class="ident">index</span>::{<span class="ident">ImplementationIndexEntry</span>, <span class="ident">ImplementationType</span>, <span class="ident">Index</span>, <span class="ident">VariableIndexEntry</span>},
     <span class="ident">typesystem</span>::{
-        <span class="self">self</span>, <span class="ident">get_bigger_type_borrow</span>, <span class="ident">DataTypeInformation</span>, <span class="ident">BOOL_TYPE</span>, <span class="ident">DATE_AND_TIME_TYPE</span>,
-        <span class="ident">DATE_TYPE</span>, <span class="ident">DINT_TYPE</span>, <span class="ident">LINT_TYPE</span>, <span class="ident">REAL_TYPE</span>, <span class="ident">STRING_TYPE</span>, <span class="ident">TIME_OF_DAY_TYPE</span>, <span class="ident">TIME_TYPE</span>,
-        <span class="ident">VOID_TYPE</span>, <span class="ident">WSTRING_TYPE</span>,
+        <span class="self">self</span>, <span class="ident">get_bigger_type_borrow</span>, <span class="ident">DataTypeInformation</span>, <span class="ident">BOOL_TYPE</span>, <span class="ident">BYTE_TYPE</span>,
+        <span class="ident">DATE_AND_TIME_TYPE</span>, <span class="ident">DATE_TYPE</span>, <span class="ident">DINT_TYPE</span>, <span class="ident">DWORD_TYPE</span>, <span class="ident">LINT_TYPE</span>, <span class="ident">REAL_TYPE</span>, <span class="ident">STRING_TYPE</span>,
+        <span class="ident">TIME_OF_DAY_TYPE</span>, <span class="ident">TIME_TYPE</span>, <span class="ident">VOID_TYPE</span>, <span class="ident">WORD_TYPE</span>, <span class="ident">WSTRING_TYPE</span>,
     },
 };
 
@@ -1146,6 +1172,32 @@
                         .<span class="ident">annotate</span>(<span class="ident">statement</span>, <span class="ident">StatementAnnotation::expression</span>(<span class="ident">t</span>));
                 }
             }
+            <span class="ident">AstStatement::DirectAccess</span> { <span class="ident">access</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident">access</span> {
+                <span class="kw">crate</span><span class="ident">::ast::DirectAccess::Bit</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">annotation_map</span>.<span class="ident">annotate</span>(
+                    <span class="ident">statement</span>,
+                    <span class="ident">StatementAnnotation::Value</span> {
+                        <span class="ident">resulting_type</span>: <span class="ident">BOOL_TYPE</span>.<span class="ident">into</span>(),
+                    },
+                ),
+                <span class="kw">crate</span><span class="ident">::ast::DirectAccess::Byte</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">annotation_map</span>.<span class="ident">annotate</span>(
+                    <span class="ident">statement</span>,
+                    <span class="ident">StatementAnnotation::Value</span> {
+                        <span class="ident">resulting_type</span>: <span class="ident">BYTE_TYPE</span>.<span class="ident">into</span>(),
+                    },
+                ),
+                <span class="kw">crate</span><span class="ident">::ast::DirectAccess::Word</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">annotation_map</span>.<span class="ident">annotate</span>(
+                    <span class="ident">statement</span>,
+                    <span class="ident">StatementAnnotation::Value</span> {
+                        <span class="ident">resulting_type</span>: <span class="ident">WORD_TYPE</span>.<span class="ident">into</span>(),
+                    },
+                ),
+                <span class="kw">crate</span><span class="ident">::ast::DirectAccess::DWord</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">annotation_map</span>.<span class="ident">annotate</span>(
+                    <span class="ident">statement</span>,
+                    <span class="ident">StatementAnnotation::Value</span> {
+                        <span class="ident">resulting_type</span>: <span class="ident">DWORD_TYPE</span>.<span class="ident">into</span>(),
+                    },
+                ),
+            },
             <span class="ident">AstStatement::BinaryExpression</span> { <span class="ident">left</span>, <span class="ident">right</span>, .. } <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="macro">visit_all_statements!</span>(<span class="self">self</span>, <span class="ident">ctx</span>, <span class="ident">left</span>, <span class="ident">right</span>);
                 <span class="kw">let</span> <span class="ident">left</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>
@@ -1510,8 +1562,8 @@
     }
 }
 
-<span class="kw">fn</span> <span class="ident">get_int_type_name_for</span>(<span class="ident">value</span>: <span class="ident">i64</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> {
-    <span class="kw">if</span> <span class="ident">i32::MIN</span> <span class="kw">as</span> <span class="ident">i64</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">value</span> <span class="op">&amp;&amp;</span> <span class="ident">i32::MAX</span> <span class="kw">as</span> <span class="ident">i64</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">value</span> {
+<span class="kw">fn</span> <span class="ident">get_int_type_name_for</span>(<span class="ident">value</span>: <span class="ident">i128</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> {
+    <span class="kw">if</span> <span class="ident">i32::MIN</span> <span class="kw">as</span> <span class="ident">i128</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">value</span> <span class="op">&amp;&amp;</span> <span class="ident">i32::MAX</span> <span class="kw">as</span> <span class="ident">i128</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">value</span> {
         <span class="ident">DINT_TYPE</span>
     } <span class="kw">else</span> {
         <span class="ident">LINT_TYPE</span>
@@ -1525,14 +1577,14 @@
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">correct_int_types_name_for_numbers</span>() {
         <span class="macro">assert_eq!</span>(<span class="ident">get_int_type_name_for</span>(<span class="number">0</span>), <span class="string">&quot;DINT&quot;</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">get_int_type_name_for</span>(<span class="ident">i64::pow</span>(<span class="number">2</span>, <span class="number">8</span>) <span class="op">-</span> <span class="number">1</span>), <span class="string">&quot;DINT&quot;</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">get_int_type_name_for</span>(<span class="ident">i64::pow</span>(<span class="number">2</span>, <span class="number">8</span>)), <span class="string">&quot;DINT&quot;</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">get_int_type_name_for</span>(<span class="ident">i64::pow</span>(<span class="number">2</span>, <span class="number">16</span>) <span class="op">-</span> <span class="number">1</span>), <span class="string">&quot;DINT&quot;</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">get_int_type_name_for</span>(<span class="ident">i64::pow</span>(<span class="number">2</span>, <span class="number">16</span>)), <span class="string">&quot;DINT&quot;</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">get_int_type_name_for</span>(<span class="ident">i64::pow</span>(<span class="number">2</span>, <span class="number">31</span>) <span class="op">-</span> <span class="number">1</span>), <span class="string">&quot;DINT&quot;</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">get_int_type_name_for</span>(<span class="ident">i64::pow</span>(<span class="number">2</span>, <span class="number">31</span>)), <span class="string">&quot;LINT&quot;</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">get_int_type_name_for</span>(<span class="ident">i64::pow</span>(<span class="number">2</span>, <span class="number">32</span>)), <span class="string">&quot;LINT&quot;</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">get_int_type_name_for</span>(<span class="ident">i64::MAX</span>), <span class="string">&quot;LINT&quot;</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">get_int_type_name_for</span>(<span class="ident">i128::pow</span>(<span class="number">2</span>, <span class="number">8</span>) <span class="op">-</span> <span class="number">1</span>), <span class="string">&quot;DINT&quot;</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">get_int_type_name_for</span>(<span class="ident">i128::pow</span>(<span class="number">2</span>, <span class="number">8</span>)), <span class="string">&quot;DINT&quot;</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">get_int_type_name_for</span>(<span class="ident">i128::pow</span>(<span class="number">2</span>, <span class="number">16</span>) <span class="op">-</span> <span class="number">1</span>), <span class="string">&quot;DINT&quot;</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">get_int_type_name_for</span>(<span class="ident">i128::pow</span>(<span class="number">2</span>, <span class="number">16</span>)), <span class="string">&quot;DINT&quot;</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">get_int_type_name_for</span>(<span class="ident">i128::pow</span>(<span class="number">2</span>, <span class="number">31</span>) <span class="op">-</span> <span class="number">1</span>), <span class="string">&quot;DINT&quot;</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">get_int_type_name_for</span>(<span class="ident">i128::pow</span>(<span class="number">2</span>, <span class="number">31</span>)), <span class="string">&quot;LINT&quot;</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">get_int_type_name_for</span>(<span class="ident">i128::pow</span>(<span class="number">2</span>, <span class="number">32</span>)), <span class="string">&quot;LINT&quot;</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">get_int_type_name_for</span>(<span class="ident">i64::MAX</span> <span class="kw">as</span> <span class="ident">i128</span>), <span class="string">&quot;LINT&quot;</span>);
     }
 }
 </pre></div>
