@@ -1,10 +1,8 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use std::ops::Range;
 
-use crate::{
-    ast::{AstStatement, Dimension},
-    index::Index,
-};
+
+use crate::{ast::{AstStatement, Dimension}, index::{Index, const_expressions::{ConstId}}};
 
 pub const DEFAULT_STRING_LEN: u32 = 80;
 
@@ -48,7 +46,7 @@ pub const VOID_TYPE: &str = "VOID";
 pub struct DataType {
     pub name: String,
     /// the initial value defined on the TYPE-declration
-    pub initial_value: Option<AstStatement>,
+    pub initial_value: Option<ConstId>,
     pub information: DataTypeInformation,
     //TODO : Add location information
 }

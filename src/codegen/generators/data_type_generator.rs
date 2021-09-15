@@ -227,7 +227,7 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
         data_type: &DataType,
         referenced_type: &str,
     ) -> Option<BasicValueEnum<'ink>> {
-        if let Some(initializer) = &data_type.initial_value {
+        if let Some(initializer) = self.index.get_constant_expression(&data_type.initial_value) {
             let generator = ExpressionCodeGenerator::new_context_free(
                 self.llvm,
                 self.index,
@@ -254,7 +254,7 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
         predicate: fn(&AstStatement) -> bool,
         expected_ast: &str,
     ) -> Result<Option<BasicValueEnum<'ink>>, CompileError> {
-        if let Some(initializer) = &data_type.initial_value {
+        if let Some(initializer) = self.index.get_constant_expression(&data_type.initial_value) {
             if predicate(initializer) {
                 let array_type = self.index.get_type_information(name)?;
                 let generator = ExpressionCodeGenerator::new_context_free(

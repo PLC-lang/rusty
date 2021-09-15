@@ -21,23 +21,22 @@ pub fn visit(unit: &CompilationUnit) -> Index {
 
     //Create user defined datatypes
     for user_type in &unit.types {
-        visit_data_type(&mut index, user_type);
+        visit_data_type(&mut index,  user_type);
     }
 
     //Create defined global variables
     for global_vars in &unit.global_vars {
-        visit_global_var_block(&mut index, global_vars);
+        visit_global_var_block(&mut index,  global_vars);
     }
 
     //Create types and variables for POUs
     for pou in &unit.units {
-        visit_pou(&mut index, pou);
+        visit_pou(&mut index,  pou);
     }
 
     for implementation in &unit.implementations {
         visit_implementation(&mut index, implementation);
     }
-
     index
 }
 
@@ -87,6 +86,8 @@ pub fn visit_pou(index: &mut Index, pou: &Pou) {
                 var.data_type.get_name().unwrap().to_string()
             };
 
+            let initial_value = index.add_maybe_constant_expression(var.initializer.clone());
+
             index.register_member_variable(
                 &MemberInfo {
                     container_name: &pou.name,
@@ -94,7 +95,7 @@ pub fn visit_pou(index: &mut Index, pou: &Pou) {
                     variable_linkage: block_type,
                     variable_type_name: &type_name,
                 },
-                var.initializer.clone(),
+                initial_value,
                 var.location.clone(),
                 count,
             );
@@ -172,10 +173,11 @@ fn register_inout_pointer_type_for(index: &mut Index, var: &Variable) -> String 
 
 fn visit_global_var_block(index: &mut Index, block: &VariableBlock) {
     for var in &block.variables {
+        let initializer = index.add_maybe_constant_expression(var.initializer.clone());
         index.register_global_variable(
             &var.name,
             var.data_type.get_name().unwrap(),
-            var.initializer.clone(),
+            initializer,
             var.location.clone(),
         );
     }
@@ -207,9 +209,11 @@ fn visit_data_type(index: &mut Index, type_declatation: &UserTypeDeclaration) {
                 member_names,
                 varargs: None,
             };
+
+            let init = index.add_maybe_constant_expression( type_declatation.initializer.clone());
             index.register_type(
                 name.as_ref().unwrap(),
-                type_declatation.initializer.clone(),
+                init,
                 information,
             );
             for (count, var) in variables.iter().enumerate() {
@@ -225,6 +229,7 @@ fn visit_data_type(index: &mut Index, type_declatation: &UserTypeDeclaration) {
                     )
                 }
 
+                let init = index.add_maybe_constant_expression(var.initializer.clone());
                 index.register_member_variable(
                     &MemberInfo {
                         container_name: struct_name,
@@ -232,7 +237,7 @@ fn visit_data_type(index: &mut Index, type_declatation: &UserTypeDeclaration) {
                         variable_linkage: VariableType::Local,
                         variable_type_name: var.data_type.get_name().unwrap(),
                     },
-                    var.initializer.clone(),
+                    init,
                     var.location.clone(),
                     count as u32,
                 );
@@ -245,20 +250,24 @@ fn visit_data_type(index: &mut Index, type_declatation: &UserTypeDeclaration) {
                 name: enum_name.clone(),
                 elements: elements.clone(),
             };
+
+            let init = index.add_maybe_constant_expression(type_declatation.initializer.clone());
             index.register_type(
                 enum_name.as_str(),
-                type_declatation.initializer.clone(),
+                init,
                 information,
             );
+
             elements.iter().enumerate().for_each(|(i, v)| {
-                index.register_enum_element(
-                    v,
-                    enum_name.as_str(),
-                    Some(ast::AstStatement::LiteralInteger {
+                let init = index.add_constant_expression(ast::AstStatement::LiteralInteger {
                         value: i as i128,
                         location: SourceRange::undefined(),
                         id: 0,
-                    }),
+                    });
+                index.register_enum_element(
+                    v,
+                    enum_name.as_str(),
+                    Some(init),
                     SourceRange::undefined(),
                 )
             }); //TODO : Enum locations
@@ -282,9 +291,11 @@ fn visit_data_type(index: &mut Index, type_declatation: &UserTypeDeclaration) {
                     referenced_type: referenced_type.into(),
                 }
             };
+
+            let init = index.add_maybe_constant_expression(type_declatation.initializer.clone());
             index.register_type(
                 name.as_ref().unwrap(),
-                type_declatation.initializer.clone(),
+                init,
                 information,
             )
         }
@@ -300,9 +311,11 @@ fn visit_data_type(index: &mut Index, type_declatation: &UserTypeDeclaration) {
                 inner_type_name: referenced_type_name.to_string(),
                 dimensions,
             };
+
+            let init = index.add_maybe_constant_expression(type_declatation.initializer.clone());
             index.register_type(
                 name.as_ref().unwrap(),
-                type_declatation.initializer.clone(),
+                init,
                 information,
             )
         }
@@ -317,9 +330,11 @@ fn visit_data_type(index: &mut Index, type_declatation: &UserTypeDeclaration) {
                 inner_type_name: inner_type_name.into(),
                 auto_deref: false,
             };
+
+            let init = index.add_maybe_constant_expression(type_declatation.initializer.clone());
             index.register_type(
                 name.as_ref().unwrap(),
-                type_declatation.initializer.clone(),
+                init,
                 information,
             )
         }
@@ -342,9 +357,10 @@ fn visit_data_type(index: &mut Index, type_declatation: &UserTypeDeclaration) {
             };
 
             let information = DataTypeInformation::String { size, encoding };
+            let init = index.add_maybe_constant_expression(type_declatation.initializer.clone());
             index.register_type(
                 name.as_ref().unwrap(),
-                type_declatation.initializer.clone(),
+                init,
                 information,
             )
         }

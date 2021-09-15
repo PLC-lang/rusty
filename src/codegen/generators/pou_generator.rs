@@ -285,7 +285,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                 location: variable.source_location.clone(),
                 id: 0, //TODO
             };
-            let right = variable.initial_value.as_ref().unwrap();
+            let right = self.index.get_constant_expression(&variable.initial_value).unwrap();
             statement_generator.generate_assignment_statement(&left, right)?;
         }
         Ok(())

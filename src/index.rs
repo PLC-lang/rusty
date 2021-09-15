@@ -7,6 +7,9 @@ use crate::{
     typesystem::*,
 };
 
+use self::const_expressions::{ConstExpressions, ConstId};
+
+pub mod const_expressions;
 #[cfg(test)]
 mod tests;
 pub mod visitor;
@@ -15,7 +18,7 @@ pub mod visitor;
 pub struct VariableIndexEntry {
     name: String,
     qualified_name: String,
-    pub initial_value: Option<AstStatement>,
+    pub initial_value: Option<ConstId>,
     information: VariableInformation,
     pub source_location: SourceRange,
 }
@@ -169,6 +172,8 @@ pub struct Index {
     implementations: IndexMap<String, ImplementationIndexEntry>,
 
     void_type: DataType,
+
+    constant_expressions: ConstExpressions,
 }
 
 impl Index {
@@ -185,6 +190,7 @@ impl Index {
                 initial_value: None,
                 information: DataTypeInformation::Void,
             },
+            constant_expressions: ConstExpressions::new(),
         }
     }
 
@@ -194,15 +200,59 @@ impl Index {
     /// # Arguments
     /// - `other` the other index. The elements are drained from the given index and moved
     /// into the current one
-    pub fn import(&mut self, other: Index) {
-        self.global_variables.extend(other.global_variables);
-        self.enum_global_variables
-            .extend(other.enum_global_variables);
-        self.enum_qualified_variables
-            .extend(other.enum_qualified_variables);
-        self.member_variables.extend(other.member_variables);
-        self.types.extend(other.types);
+    pub fn import(&mut self, mut other: Index) {
+        //global variables
+        for (name, mut e) in other.global_variables.drain(..) {
+            e.initial_value =
+                self.maybe_import_const_expr(&mut other.constant_expressions, &e.initial_value);
+            self.global_variables.insert(name, e);
+        }
+
+        //enum_global_variables
+        //dont import the const-expressions (initializers) because there are already
+        //covered by the enum_qualified_variables map
+        self.enum_global_variables.extend(other.enum_global_variables);
+
+        //enum qualified variables
+        
+        for (name, mut e) in other.enum_qualified_variables.drain(..) {
+            e.initial_value =
+                self.maybe_import_const_expr(&mut other.constant_expressions, &e.initial_value);
+            self.enum_qualified_variables.insert(name, e);
+        }
+
+        //member variables
+        for (name, mut members) in other.member_variables.drain(..) {
+            //enum qualified variables
+            for (_, mut e) in members.iter_mut() {
+                e.initial_value =
+                    self.maybe_import_const_expr(&mut other.constant_expressions, &e.initial_value);
+            }
+            self.member_variables.insert(name, members);
+        }
+
+        //types
+        for (name, mut e) in other.types.drain(..) {
+            e.initial_value =
+                self.maybe_import_const_expr(&mut other.constant_expressions, &e.initial_value);
+            self.types.insert(name, e);
+        }
+
+        //implementations
         self.implementations.extend(other.implementations);
+    }
+
+    /// imports the corresponding const-expression (according to the given initializer-id) from the given ConstExpressions
+    /// into self's const-expressions and returns the new Id
+    fn maybe_import_const_expr(
+        &mut self,
+        import_from: &mut ConstExpressions,
+        initializer_id: &Option<ConstId>,
+    ) -> Option<ConstId> {
+        initializer_id
+            .as_ref()
+            .and_then(|it| import_from.remove(it))
+            .map(|init| self.add_constant_expression(init))
     }
 
     pub fn get_void_type(&self) -> &DataType {
@@ -441,7 +491,7 @@ impl Index {
     pub fn register_member_variable(
         &mut self,
         member_info: &MemberInfo,
-        initial_value: Option<AstStatement>,
+        initial_value: Option<ConstId>,
         source_location: SourceRange,
         location: u32,
     ) {
@@ -476,7 +526,7 @@ impl Index {
         &mut self,
         element_name: &str,
         enum_type_name: &str,
-        initial_value: Option<AstStatement>,
+        initial_value: Option<ConstId>,
         source_location: SourceRange,
     ) {
         let qualified_name = format!("{}.{}", enum_type_name, element_name);
@@ -503,7 +553,7 @@ impl Index {
         &mut self,
         name: &str,
         type_name: &str,
-        initial_value: Option<AstStatement>,
+        initial_value: Option<ConstId>,
         source_location: SourceRange,
     ) {
         self.register_global_variable_with_name(
@@ -520,7 +570,7 @@ impl Index {
         association_name: &str,
         variable_name: &str,
         type_name: &str,
-        initial_value: Option<AstStatement>,
+        initial_value: Option<ConstId>,
         source_location: SourceRange,
     ) {
         //REVIEW, this seems like a misuse of the qualified name to store the association name. Any other ideas?
@@ -549,7 +599,7 @@ impl Index {
     pub fn register_type(
         &mut self,
         type_name: &str,
-        initial_value: Option<AstStatement>,
+        initial_value: Option<ConstId>,
         information: DataTypeInformation,
     ) {
         let index_entry = DataType {
@@ -571,6 +621,20 @@ impl Index {
             self.find_implementation(&v.information.data_type_name)
                 .is_some()
         })
+    }
+
+    pub fn add_constant_expression(&mut self, expr: AstStatement) -> ConstId {
+        self.constant_expressions.add_expression(expr)
+    }
+
+    /// adds the constant exression if there is some, otherwhise not
+    pub fn add_maybe_constant_expression(&mut self, expr: Option<AstStatement>) -> Option<ConstId> {
+        expr.map(|it| self.add_constant_expression(it))
+    }
+
+    pub fn get_constant_expression(&self, id: &Option<ConstId>) -> Option<&AstStatement> {
+        id.as_ref()
+            .and_then(|it| self.constant_expressions.find_expression(it))
     }
 }
 
