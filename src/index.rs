@@ -2,7 +2,7 @@
 use indexmap::IndexMap;
 
 use crate::{
-    ast::{AstStatement, Implementation, PouType, SourceRange},
+    ast::{evaluate_constant_int, AstStatement, Implementation, PouType, SourceRange},
     compile_error::CompileError,
     typesystem::*,
 };
@@ -211,10 +211,11 @@ impl Index {
         //enum_global_variables
         //dont import the const-expressions (initializers) because there are already
         //covered by the enum_qualified_variables map
-        self.enum_global_variables.extend(other.enum_global_variables);
+        self.enum_global_variables
+            .extend(other.enum_global_variables);
 
         //enum qualified variables
-        
+
         for (name, mut e) in other.enum_qualified_variables.drain(..) {
             e.initial_value =
                 self.maybe_import_const_expr(&mut other.constant_expressions, &e.initial_value);
@@ -235,6 +236,31 @@ impl Index {
         for (name, mut e) in other.types.drain(..) {
             e.initial_value =
                 self.maybe_import_const_expr(&mut other.constant_expressions, &e.initial_value);
+
+            match &mut e.information {
+                //import constant expressions in array-type-definitions
+                DataTypeInformation::Array { dimensions, .. } => {
+                    for d in dimensions.iter_mut() {
+                        d.start_offset = self
+                            .maybe_import_const_expr(
+                                &mut other.constant_expressions,
+                                &Some(d.start_offset),
+                            )
+                            .unwrap();
+                        d.end_offset = self
+                            .maybe_import_const_expr(
+                                &mut other.constant_expressions,
+                                &Some(d.end_offset),
+                            )
+                            .unwrap();
+                    }
+                }
+                // import constant expressions in String-size defintions
+                DataTypeInformation::String { size, .. } => {
+                    *size = self.maybe_import_const_expr(&mut other.constant_expressions, size);
+                }
+                _ => {}
+            }
             self.types.insert(name, e);
         }
 
@@ -623,18 +649,34 @@ impl Index {
         })
     }
 
+    /// adds the given constant expression to the constants arena and returns the ID to reference it
     pub fn add_constant_expression(&mut self, expr: AstStatement) -> ConstId {
         self.constant_expressions.add_expression(expr)
     }
 
-    /// adds the constant exression if there is some, otherwhise not
+    /// convinience-method to add the constant exression if there is some, otherwhise not
     pub fn add_maybe_constant_expression(&mut self, expr: Option<AstStatement>) -> Option<ConstId> {
         expr.map(|it| self.add_constant_expression(it))
     }
 
-    pub fn get_constant_expression(&self, id: &Option<ConstId>) -> Option<&AstStatement> {
-        id.as_ref()
-            .and_then(|it| self.constant_expressions.find_expression(it))
+    /// convinience-method to query for an optional constant expression.
+    /// if the given `id` is `None`, this method returns `None`
+    pub fn get_maybe_constant_expression(&self, id: &Option<ConstId>) -> Option<&AstStatement> {
+        id.as_ref().and_then(|it| self.get_constant_expression(it))
+    }
+
+    /// query the constants arena for an expression associated with the given `id`
+    pub fn get_constant_expression(&self, id: &ConstId) -> Option<&AstStatement> {
+        self.constant_expressions.find_expression(id)
+    }
+
+    /// query the constants arena for an expression that can be evaluated to an i128.
+    /// returns an Err if no expression was associated, or the associated expression is a
+    /// complex one (not a LiteralInteger)
+    pub fn get_constant_int_expression(&self, id: &ConstId) -> Result<i128, String> {
+        self.get_constant_expression(id)
+            .ok_or_else(|| "Cannot find constant expression".into())
+            .and_then(|it| evaluate_constant_int(it))
     }
 }
 

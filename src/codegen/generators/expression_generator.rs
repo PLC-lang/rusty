@@ -3,7 +3,7 @@ use crate::{
     ast::{Pou, SourceRange},
     index::{ImplementationType, Index},
     resolver::{AnnotationMap, StatementAnnotation},
-    typesystem::{StringEncoding, DINT_TYPE, LINT_TYPE, LREAL_TYPE},
+    typesystem::{Dimension, StringEncoding, DINT_TYPE, LINT_TYPE, LREAL_TYPE},
 };
 use inkwell::{
     basic_block::BasicBlock,
@@ -17,7 +17,7 @@ use inkwell::{
 use std::collections::HashSet;
 
 use crate::{
-    ast::{flatten_expression_list, AstStatement, Dimension, Operator},
+    ast::{flatten_expression_list, AstStatement, Operator},
     codegen::{
         llvm_index::LlvmTypedIndex,
         llvm_typesystem::{cast_if_needed, get_llvm_int_type, promote_if_needed},
@@ -944,7 +944,11 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
         dimension: &Dimension,
         access_expression: &AstStatement,
     ) -> Result<IntValue<'a>, CompileError> {
-        let start_offset = dimension.start_offset;
+        let start_offset = self
+            .index
+            .get_constant_int_expression(&dimension.start_offset)
+            .map_err(|err| CompileError::codegen_error(err, access_expression.get_location()))?;
+
         let (_, access_value) = self.generate_expression(access_expression)?;
         //If start offset is not 0, adjust the current statement with an add operation
         if start_offset != 0 {

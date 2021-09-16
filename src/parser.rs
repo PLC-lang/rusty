@@ -12,7 +12,7 @@ mod control_parser;
 mod expressions_parser;
 
 #[cfg(test)]
-mod tests;
+pub mod tests;
 pub type ParsedAst = (CompilationUnit, Vec<Diagnostic>);
 
 pub fn parse(mut lexer: ParseSession) -> ParsedAst {

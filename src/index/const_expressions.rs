@@ -5,8 +5,8 @@ use crate::ast::AstStatement;
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
 pub type ConstId = generational_arena::Index;
-pub struct ConstExpressions{
-    expressions: Arena::<AstStatement>,
+pub struct ConstExpressions {
+    expressions: Arena<AstStatement>,
 }
 
 impl ConstExpressions {
@@ -33,3 +33,8 @@ impl ConstExpressions {
     }
 }
 
+impl Default for ConstExpressions {
+    fn default() -> Self {
+        Self::new()
+    }
+}

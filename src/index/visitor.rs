@@ -1,10 +1,10 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use super::VariableType;
 use crate::ast::{
-    self, evaluate_constant_int, get_array_dimensions, AstStatement, CompilationUnit, DataType,
-    DataTypeDeclaration, Implementation, Pou, PouType, SourceRange, UserTypeDeclaration, Variable,
-    VariableBlock, VariableBlockType,
+    self, AstStatement, CompilationUnit, DataType, DataTypeDeclaration, Implementation, Pou,
+    PouType, SourceRange, UserTypeDeclaration, Variable, VariableBlock, VariableBlockType,
 };
+use crate::compile_error::CompileError;
 use crate::index::{Index, MemberInfo};
 use crate::typesystem::*;
 
@@ -21,17 +21,17 @@ pub fn visit(unit: &CompilationUnit) -> Index {
 
     //Create user defined datatypes
     for user_type in &unit.types {
-        visit_data_type(&mut index,  user_type);
+        visit_data_type(&mut index, user_type);
     }
 
     //Create defined global variables
     for global_vars in &unit.global_vars {
-        visit_global_var_block(&mut index,  global_vars);
+        visit_global_var_block(&mut index, global_vars);
     }
 
     //Create types and variables for POUs
     for pou in &unit.units {
-        visit_pou(&mut index,  pou);
+        visit_pou(&mut index, pou);
     }
 
     for implementation in &unit.implementations {
@@ -210,12 +210,8 @@ fn visit_data_type(index: &mut Index, type_declatation: &UserTypeDeclaration) {
                 varargs: None,
             };
 
-            let init = index.add_maybe_constant_expression( type_declatation.initializer.clone());
-            index.register_type(
-                name.as_ref().unwrap(),
-                init,
-                information,
-            );
+            let init = index.add_maybe_constant_expression(type_declatation.initializer.clone());
+            index.register_type(name.as_ref().unwrap(), init, information);
             for (count, var) in variables.iter().enumerate() {
                 if let DataTypeDeclaration::DataTypeDefinition { data_type, .. } = &var.data_type {
                     //first we need to handle the inner type
@@ -252,18 +248,14 @@ fn visit_data_type(index: &mut Index, type_declatation: &UserTypeDeclaration) {
             };
 
             let init = index.add_maybe_constant_expression(type_declatation.initializer.clone());
-            index.register_type(
-                enum_name.as_str(),
-                init,
-                information,
-            );
+            index.register_type(enum_name.as_str(), init, information);
 
             elements.iter().enumerate().for_each(|(i, v)| {
                 let init = index.add_constant_expression(ast::AstStatement::LiteralInteger {
-                        value: i as i128,
-                        location: SourceRange::undefined(),
-                        id: 0,
-                    });
+                    value: i as i128,
+                    location: SourceRange::undefined(),
+                    id: 0,
+                });
                 index.register_enum_element(
                     v,
                     enum_name.as_str(),
@@ -293,18 +285,31 @@ fn visit_data_type(index: &mut Index, type_declatation: &UserTypeDeclaration) {
             };
 
             let init = index.add_maybe_constant_expression(type_declatation.initializer.clone());
-            index.register_type(
-                name.as_ref().unwrap(),
-                init,
-                information,
-            )
+            index.register_type(name.as_ref().unwrap(), init, information)
         }
         DataType::ArrayType {
             name,
             referenced_type,
             bounds,
         } => {
-            let dimensions = get_array_dimensions(bounds).unwrap();
+            let dimensions: Result<Vec<Dimension>, CompileError> = bounds
+                .get_as_list()
+                .iter()
+                .map(|it| {
+                    if let AstStatement::RangeStatement { start, end, .. } = it {
+                        Ok(Dimension {
+                            start_offset: index.add_constant_expression(*start.clone()),
+                            end_offset: index.add_constant_expression(*end.clone()),
+                        })
+                    } else {
+                        Err(CompileError::codegen_error(
+                            "Invalid array definition: RangeStatement expected".into(),
+                            it.get_location(),
+                        ))
+                    }
+                })
+                .collect();
+            let dimensions = dimensions.unwrap(); //TODO hmm we need to talk about all this unwrapping :-/
             let referenced_type_name = referenced_type.get_name().unwrap();
             let information = DataTypeInformation::Array {
                 name: name.as_ref().unwrap().clone(),
@@ -313,11 +318,7 @@ fn visit_data_type(index: &mut Index, type_declatation: &UserTypeDeclaration) {
             };
 
             let init = index.add_maybe_constant_expression(type_declatation.initializer.clone());
-            index.register_type(
-                name.as_ref().unwrap(),
-                init,
-                information,
-            )
+            index.register_type(name.as_ref().unwrap(), init, information)
         }
         DataType::PointerType {
             name,
@@ -332,11 +333,7 @@ fn visit_data_type(index: &mut Index, type_declatation: &UserTypeDeclaration) {
             };
 
             let init = index.add_maybe_constant_expression(type_declatation.initializer.clone());
-            index.register_type(
-                name.as_ref().unwrap(),
-                init,
-                information,
-            )
+            index.register_type(name.as_ref().unwrap(), init, information)
         }
         DataType::StringType {
             name,
@@ -344,25 +341,38 @@ fn visit_data_type(index: &mut Index, type_declatation: &UserTypeDeclaration) {
             is_wide,
             ..
         } => {
-            let size = if let Some(statement) = size {
-                evaluate_constant_int(statement).unwrap() as u32
-            } else {
-                crate::typesystem::DEFAULT_STRING_LEN // DEFAULT STRING LEN
-            } + 1;
-
             let encoding = if *is_wide {
                 StringEncoding::Utf16
             } else {
                 StringEncoding::Utf8
             };
 
-            let information = DataTypeInformation::String { size, encoding };
+            let (size, default_size) = match size {
+                Some(AstStatement::LiteralInteger { value, .. }) => (None, (value + 1) as u32),
+                Some(statement) => {
+                    // construct a "x + 1" expression because we need one additional character for \0 terminator
+                    let len_plus_1 = AstStatement::BinaryExpression {
+                        id: statement.get_id(),
+                        left: Box::new(statement.clone()),
+                        operator: ast::Operator::Plus,
+                        right: Box::new(AstStatement::LiteralInteger {
+                            id: statement.get_id(),
+                            location: statement.get_location(),
+                            value: 1,
+                        }),
+                    };
+
+                    (Some(len_plus_1), DEFAULT_STRING_LEN + 1)
+                }
+                None => (None, DEFAULT_STRING_LEN + 1),
+            };
+            let information = DataTypeInformation::String {
+                size: index.add_maybe_constant_expression(size),
+                default_size,
+                encoding,
+            };
             let init = index.add_maybe_constant_expression(type_declatation.initializer.clone());
-            index.register_type(
-                name.as_ref().unwrap(),
-                init,
-                information,
-            )
+            index.register_type(name.as_ref().unwrap(), init, information)
         }
         DataType::VarArgs { .. } => {} //Varargs are not indexed
     };

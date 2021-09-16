@@ -1,18 +1,15 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-
 /// the data_type_generator generates user defined data-types
 /// - Structures
 /// - Enum types
 /// - SubRange types
 /// - Alias types
 /// - sized Strings
+use crate::ast::SourceRange;
 use crate::index::{Index, VariableIndexEntry};
 use crate::resolver::AnnotationMap;
-use crate::{
-    ast::{AstStatement, Dimension},
-    compile_error::CompileError,
-    typesystem::DataTypeInformation,
-};
+use crate::typesystem::Dimension;
+use crate::{ast::AstStatement, compile_error::CompileError, typesystem::DataTypeInformation};
 use crate::{
     codegen::{
         llvm_index::LlvmTypedIndex,
@@ -25,6 +22,7 @@ use inkwell::{
     values::BasicValueEnum,
     AddressSpace,
 };
+use std::convert::TryFrom;
 
 use super::{
     expression_generator::ExpressionCodeGenerator, llvm::Llvm, struct_generator::StructGenerator,
@@ -135,10 +133,11 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
                         self.index.find_type(inner_type_name).unwrap(),
                     )
                     .unwrap();
-                let array_type = self
-                    .create_nested_array_type(inner_type, dimensions.clone())
-                    .into();
-                Ok(array_type)
+
+                self.create_nested_array_type(inner_type, dimensions.clone())
+                    .map(|it| it.as_basic_type_enum())
+                    .map_err(|err| CompileError::codegen_error(err, SourceRange::undefined()))
+                //TODO error location
             }
             DataTypeInformation::Integer { size, .. } => {
                 get_llvm_int_type(self.llvm.context, *size, name).map(|it| it.into())
@@ -150,12 +149,29 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
             DataTypeInformation::Float { size, .. } => {
                 get_llvm_float_type(self.llvm.context, *size, name).map(|it| it.into())
             }
-            DataTypeInformation::String { size, encoding } => Ok(self
-                .llvm
-                .context
-                .i8_type()
-                .array_type(*size * encoding.get_bytes_per_char())
-                .into()),
+            DataTypeInformation::String {
+                size,
+                default_size,
+                encoding,
+            } => {
+                let string_size = if let Some(size_expr) = size {
+                    //constant expression
+                    self.index
+                        .get_constant_int_expression(size_expr)
+                        .and_then(|s| u32::try_from(s).map_err(|err| format!("{:}", err)))
+                        .map_err(|err| CompileError::codegen_error(err, SourceRange::undefined()))?
+                //TODO error location
+                } else {
+                    //default size
+                    *default_size
+                };
+                Ok(self
+                    .llvm
+                    .context
+                    .i8_type()
+                    .array_type(string_size * encoding.get_bytes_per_char())
+                    .into())
+            }
             DataTypeInformation::SubRange {
                 referenced_type, ..
             } => {
@@ -227,7 +243,10 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
         data_type: &DataType,
         referenced_type: &str,
     ) -> Option<BasicValueEnum<'ink>> {
-        if let Some(initializer) = self.index.get_constant_expression(&data_type.initial_value) {
+        if let Some(initializer) = self
+            .index
+            .get_maybe_constant_expression(&data_type.initial_value)
+        {
             let generator = ExpressionCodeGenerator::new_context_free(
                 self.llvm,
                 self.index,
@@ -254,7 +273,10 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
         predicate: fn(&AstStatement) -> bool,
         expected_ast: &str,
     ) -> Result<Option<BasicValueEnum<'ink>>, CompileError> {
-        if let Some(initializer) = self.index.get_constant_expression(&data_type.initial_value) {
+        if let Some(initializer) = self
+            .index
+            .get_maybe_constant_expression(&data_type.initial_value)
+        {
             if predicate(initializer) {
                 let array_type = self.index.get_type_information(name)?;
                 let generator = ExpressionCodeGenerator::new_context_free(
@@ -282,32 +304,22 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
         &self,
         end_type: BasicTypeEnum<'ink>,
         dimensions: Vec<Dimension>,
-    ) -> ArrayType<'ink> {
+    ) -> Result<ArrayType<'ink>, String> {
         let mut result: Option<ArrayType> = None;
         let mut current_type = end_type;
+
         for dimension in dimensions.iter().rev() {
+            let len = dimension.get_length(self.index)?;
             result = Some(match current_type {
-                BasicTypeEnum::IntType(..) => current_type
-                    .into_int_type()
-                    .array_type(dimension.get_length()),
-                BasicTypeEnum::FloatType(..) => current_type
-                    .into_float_type()
-                    .array_type(dimension.get_length()),
-                BasicTypeEnum::StructType(..) => current_type
-                    .into_struct_type()
-                    .array_type(dimension.get_length()),
-                BasicTypeEnum::ArrayType(..) => current_type
-                    .into_array_type()
-                    .array_type(dimension.get_length()),
-                BasicTypeEnum::PointerType(..) => current_type
-                    .into_pointer_type()
-                    .array_type(dimension.get_length()),
-                BasicTypeEnum::VectorType(..) => current_type
-                    .into_vector_type()
-                    .array_type(dimension.get_length()),
+                BasicTypeEnum::IntType(..) => current_type.into_int_type().array_type(len),
+                BasicTypeEnum::FloatType(..) => current_type.into_float_type().array_type(len),
+                BasicTypeEnum::StructType(..) => current_type.into_struct_type().array_type(len),
+                BasicTypeEnum::ArrayType(..) => current_type.into_array_type().array_type(len),
+                BasicTypeEnum::PointerType(..) => current_type.into_pointer_type().array_type(len),
+                BasicTypeEnum::VectorType(..) => current_type.into_vector_type().array_type(len),
             });
             current_type = result.unwrap().into();
         }
-        result.unwrap()
+        Ok(result.unwrap())
     }
 }

@@ -1319,3 +1319,218 @@ fn sub_range_boundaries_are_registered_at_the_index() {
 
     assert_eq!(format!("{:?}", expected), format!("{:?}", my_int));
 }
+
+#[test]
+fn global_initializers_are_stored_in_the_const_expression_arena() {
+    // GIVEN some globals with initial value expressions
+    let src = "
+        VAR_GLOBAL
+            a : INT := x + 1;
+            b : INT := y + 1;
+            c : INT := z + 1;
+        END_VAR
+        ";
+    // WHEN the program is indexed
+    let (mut ast, ..) = crate::parser::parse(crate::lexer::lex(src));
+
+    crate::ast::pre_process(&mut ast);
+    let index = crate::index::visitor::visit(&ast);
+
+    // THEN I expect the index to contain cosntant expressions (x+1), (y+1) and (z+1) as const expressions
+    // associated with the initial values of the globals
+    let variables = &ast.global_vars[0].variables;
+    let initializer = index
+        .find_global_variable("a")
+        .and_then(|g| index.get_maybe_constant_expression(&g.initial_value));
+    assert_eq!(variables[0].initializer.as_ref(), initializer);
+
+    let initializer = index
+        .find_global_variable("b")
+        .and_then(|g| index.get_maybe_constant_expression(&g.initial_value));
+    assert_eq!(variables[1].initializer.as_ref(), initializer);
+
+    let initializer = index
+        .find_global_variable("c")
+        .and_then(|g| index.get_maybe_constant_expression(&g.initial_value));
+    assert_eq!(variables[2].initializer.as_ref(), initializer);
+}
+
+#[test]
+fn local_initializers_are_stored_in_the_const_expression_arena() {
+    // GIVEN some local members with initial value expressions
+    let src = "
+        PROGRAM prg
+        VAR_INPUT
+            a : INT := x + 1;
+            b : INT := y + 1;
+            c : INT := z + 1;
+        END_VAR
+        END_PROGRAM
+        ";
+    // WHEN the program is indexed
+    let (mut ast, ..) = crate::parser::parse(crate::lexer::lex(src));
+
+    crate::ast::pre_process(&mut ast);
+    let index = crate::index::visitor::visit(&ast);
+
+    // THEN I expect the index to contain cosntant expressions (x+1), (y+1) and (z+1) as const expressions
+    // associated with the initial values of the members
+    let variables = &ast.units[0].variable_blocks[0].variables;
+    let initializer = index
+        .find_member("prg", "a")
+        .and_then(|g| index.get_maybe_constant_expression(&g.initial_value));
+    assert_eq!(variables[0].initializer.as_ref(), initializer);
+
+    let initializer = index
+        .find_member("prg", "b")
+        .and_then(|g| index.get_maybe_constant_expression(&g.initial_value));
+    assert_eq!(variables[1].initializer.as_ref(), initializer);
+
+    let initializer = index
+        .find_member("prg", "c")
+        .and_then(|g| index.get_maybe_constant_expression(&g.initial_value));
+    assert_eq!(variables[2].initializer.as_ref(), initializer);
+}
+
+#[test]
+fn datatype_initializers_are_stored_in_the_const_expression_arena() {
+    // GIVEN a datatype with an initial value expression
+    let src = "
+        TYPE MyInt : INT := 7 + x;
+        ";
+    // WHEN the program is indexed
+    let (mut ast, ..) = crate::parser::parse(crate::lexer::lex(src));
+
+    crate::ast::pre_process(&mut ast);
+    let index = crate::index::visitor::visit(&ast);
+
+    // THEN I expect the index to contain cosntant expressions (7+x) as const expressions
+    // associated with the initial values of the type
+    let data_type = &ast.types[0];
+    let initializer = index
+        .find_type("MyInt")
+        .and_then(|g| index.get_maybe_constant_expression(&g.initial_value));
+    assert_eq!(data_type.initializer.as_ref(), initializer);
+}
+
+#[test]
+fn array_dimensions_are_stored_in_the_const_expression_arena() {
+    // GIVEN an array-datatype with constant expressions used in the dimensions
+    let src = "
+        TYPE MyInt : ARRAY[0 .. LEN-1, MIN .. MAX] OF INT;
+        ";
+    // WHEN the program is indexed
+    let (mut ast, ..) = crate::parser::parse(crate::lexer::lex(src));
+
+    crate::ast::pre_process(&mut ast);
+    let index = crate::index::visitor::visit(&ast);
+
+    // THEN I expect the index to contain constants expressions used in the array-dimensions
+
+    // check first dimensions 0 .. LEN-1
+    let (start_0, end_0) = index
+        .find_type_information("MyInt")
+        .map(|it| {
+            if let DataTypeInformation::Array { dimensions, .. } = it {
+                //return the pair (start, end)
+                (
+                    index
+                        .get_constant_expression(&dimensions[0].start_offset)
+                        .unwrap(),
+                    index
+                        .get_constant_expression(&dimensions[0].end_offset)
+                        .unwrap(),
+                )
+            } else {
+                unreachable!()
+            }
+        })
+        .unwrap();
+
+    assert_eq!(
+        format!("{:#?}", crate::parser::tests::literal_int(0)),
+        format!("{:#?}", start_0)
+    );
+
+    assert_eq!(
+        format!(
+            "{:#?}",
+            AstStatement::BinaryExpression {
+                id: 0,
+                operator: Operator::Minus,
+                left: Box::new(crate::parser::tests::ref_to("LEN")),
+                right: Box::new(crate::parser::tests::literal_int(1))
+            }
+        ),
+        format!("{:#?}", end_0)
+    );
+
+    //check 2nd dimension MIN .. MAX
+    let (start_1, end_1) = index
+        .find_type_information("MyInt")
+        .map(|it| {
+            if let DataTypeInformation::Array { dimensions, .. } = it {
+                //return the pair (start, end)
+                (
+                    index
+                        .get_constant_expression(&dimensions[1].start_offset)
+                        .unwrap(),
+                    index
+                        .get_constant_expression(&dimensions[1].end_offset)
+                        .unwrap(),
+                )
+            } else {
+                unreachable!()
+            }
+        })
+        .unwrap();
+
+    assert_eq!(
+        format!("{:#?}", crate::parser::tests::ref_to("MIN")),
+        format!("{:#?}", start_1)
+    );
+
+    assert_eq!(
+        format!("{:#?}", crate::parser::tests::ref_to("MAX")),
+        format!("{:#?}", end_1)
+    );
+}
+
+#[test]
+fn string_dimensions_are_stored_in_the_const_expression_arena() {
+    // GIVEN a string type with a const expression as length
+    let src = "
+        TYPE MyString : STRING(LEN-1);
+        ";
+    // WHEN the program is indexed
+    let (mut ast, ..) = crate::parser::parse(crate::lexer::lex(src));
+
+    crate::ast::pre_process(&mut ast);
+    let index = crate::index::visitor::visit(&ast);
+
+    // THEN I expect the index to contain constants expressions used in the string-len
+
+    let data_type = &ast.types[0].data_type;
+    let actual_len_expression = if let DataType::StringType { size, .. } = data_type {
+        size.as_ref().unwrap()
+    } else {
+        unreachable!()
+    };
+    if let Some(DataTypeInformation::String { size, .. }) = index.find_type_information("MyString")
+    {
+        assert_eq!(
+            format!(
+                "{:#?}",
+                &AstStatement::BinaryExpression {
+                    id: actual_len_expression.get_id(),
+                    left: Box::new(actual_len_expression.clone()),
+                    operator: Operator::Plus,
+                    right: Box::new(crate::parser::tests::literal_int(1))
+                }
+            ),
+            format!("{:#?}", index.get_maybe_constant_expression(&size).unwrap())
+        );
+    } else {
+        unreachable!()
+    }
+}

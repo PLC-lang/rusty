@@ -1,8 +1,10 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use std::ops::Range;
 
-
-use crate::{ast::{AstStatement, Dimension}, index::{Index, const_expressions::{ConstId}}};
+use crate::{
+    ast::AstStatement,
+    index::{const_expressions::ConstId, Index},
+};
 
 pub const DEFAULT_STRING_LEN: u32 = 80;
 
@@ -113,7 +115,10 @@ pub enum DataTypeInformation {
         size: u32,
     },
     String {
-        size: u32,
+        ///the size-expression used in the declaration (e.g. STRING(`LEN`))
+        size: Option<ConstId>,
+        ///size to be used if the parameter `size` is None
+        default_size: u32,
         encoding: StringEncoding,
     },
     SubRange {
@@ -206,7 +211,7 @@ impl DataTypeInformation {
         match self {
             DataTypeInformation::Integer { size, .. } => *size,
             DataTypeInformation::Float { size, .. } => *size,
-            DataTypeInformation::String { size, .. } => *size,
+            DataTypeInformation::String { .. } => unimplemented!("string"),
             DataTypeInformation::Struct { .. } => 0, //TODO : Should we fill in the struct members here for size calculation or save the struct size.
             DataTypeInformation::Array { .. } => unimplemented!("array"), //Propably length * inner type size
             DataTypeInformation::Pointer { .. } => unimplemented!("pointer"),
@@ -215,6 +220,20 @@ impl DataTypeInformation {
             DataTypeInformation::Void => 0,
             DataTypeInformation::Enum { .. } => DINT_SIZE,
         }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct Dimension {
+    pub start_offset: ConstId,
+    pub end_offset: ConstId,
+}
+
+impl Dimension {
+    pub fn get_length(&self, index: &Index) -> Result<u32, String> {
+        let end = index.get_constant_int_expression(&self.end_offset)?;
+        let start = index.get_constant_int_expression(&self.start_offset)?;
+        Ok((end - start + 1) as u32)
     }
 }
 
@@ -398,7 +417,8 @@ pub fn get_builtin_types() -> Vec<DataType> {
             name: STRING_TYPE.into(),
             initial_value: None,
             information: DataTypeInformation::String {
-                size: DEFAULT_STRING_LEN + 1,
+                size: None,
+                default_size: DEFAULT_STRING_LEN + 1,
                 encoding: StringEncoding::Utf8,
             },
         },
@@ -406,7 +426,8 @@ pub fn get_builtin_types() -> Vec<DataType> {
             name: WSTRING_TYPE.into(),
             initial_value: None,
             information: DataTypeInformation::String {
-                size: DEFAULT_STRING_LEN + 1,
+                size: None,
+                default_size: DEFAULT_STRING_LEN + 1,
                 encoding: StringEncoding::Utf16,
             },
         },
@@ -447,14 +468,16 @@ pub fn get_builtin_types() -> Vec<DataType> {
 
 pub fn new_string_information(len: u32) -> DataTypeInformation {
     DataTypeInformation::String {
-        size: len + 1,
+        size: None,
+        default_size: len + 1,
         encoding: StringEncoding::Utf8,
     }
 }
 
 pub fn new_wide_string_information(len: u32) -> DataTypeInformation {
     DataTypeInformation::String {
-        size: len + 1,
+        size: None,
+        default_size: len + 1,
         encoding: StringEncoding::Utf16,
     }
 }
