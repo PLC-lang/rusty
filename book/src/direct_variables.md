@@ -43,7 +43,7 @@ END_FUNCTION
 
 While the IEC61131-3 Standard only defines variable access using constant int literals, 
 RuSTy additionally supports access using Variables
-To Syntax for a variable based access is `%<Type><Variable>`
+The Syntax for a variable based access is `%<Type><Variable>`
 The provided varibale has to be a direct Reference variable (non Qualified)
 
 > _Short hand access for Bit (Without the `%X` modifier) is not allowed._

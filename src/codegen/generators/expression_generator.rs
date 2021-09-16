@@ -258,7 +258,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
             let rhs = match &**index {
                 AstStatement::LiteralInteger { value, .. } => {
                     //Convert into the target literal
-                    let bitwidth = access.get_bit_witdh();
+                    let bitwidth = access.get_bit_width();
                     let value: u64 = (*value).try_into().unwrap_or_default();
                     let index = bitwidth * value;
                     let rhs = self
@@ -283,10 +283,10 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                         )
                         .map(BasicValueEnum::into_int_value)?;
                         //Multiply by the bitwitdh
-                        if access.get_bit_witdh() > 1 {
+                        if access.get_bit_width() > 1 {
                             let bitwidth = reference
                                 .get_type()
-                                .const_int(access.get_bit_witdh(), datatype.is_signed_int());
+                                .const_int(access.get_bit_width(), datatype.is_signed_int());
 
                             self.llvm.builder.build_int_mul(reference, bitwidth, "")
                         } else {

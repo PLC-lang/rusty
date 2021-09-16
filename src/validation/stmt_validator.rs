@@ -66,7 +66,7 @@ impl StatementValidator {
                         if !access.is_compatible(target_type) {
                             self.diagnostics.push(Diagnostic::incompatible_directaccess(
                                 &format!("{:?}", access),
-                                access.get_bit_witdh(),
+                                access.get_bit_width(),
                                 location.clone(),
                             ))
                         } else {
@@ -82,7 +82,7 @@ impl StatementValidator {
                         //Report incompatible type issue
                         self.diagnostics.push(Diagnostic::incompatible_directaccess(
                             &format!("{:?}", access),
-                            access.get_bit_witdh(),
+                            access.get_bit_width(),
                             location.clone(),
                         ))
                     }

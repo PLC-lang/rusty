@@ -50,21 +50,21 @@ pub enum DirectAccessType {
 impl DirectAccessType {
     /// Returns true if the current index is in the range for the given type
     pub fn is_in_range(&self, index: u64, data_type: &DataTypeInformation) -> bool {
-        (self.get_bit_witdh() * index) < data_type.get_size() as u64
+        (self.get_bit_width() * index) < data_type.get_size() as u64
     }
 
     /// Returns the range from 0 for the given data type
     pub fn get_range(&self, data_type: &DataTypeInformation) -> Range<u64> {
-        0..((data_type.get_size() as u64 / self.get_bit_witdh()) - 1)
+        0..((data_type.get_size() as u64 / self.get_bit_width()) - 1)
     }
 
     /// Returns true if the direct access can be used for the given type
     pub fn is_compatible(&self, data_type: &DataTypeInformation) -> bool {
-        data_type.get_size() as u64 > self.get_bit_witdh()
+        data_type.get_size() as u64 > self.get_bit_width()
     }
 
     /// Returns the size of the bitaccess result
-    pub fn get_bit_witdh(&self) -> u64 {
+    pub fn get_bit_width(&self) -> u64 {
         match self {
             DirectAccessType::Bit => 1,
             DirectAccessType::Byte => 8,

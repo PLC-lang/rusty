@@ -449,16 +449,11 @@ fn parse_direct_access(
         LiteralInteger => parse_strict_literal_integer(lexer),
         Identifier => parse_reference_access(lexer),
         _ => Err(Diagnostic::unexpected_token_found(
-            format!("{:?}", lexer.token).as_str(),
+            "Integer or Reference",
             lexer.slice(),
             lexer.location(),
         )),
     }?;
-
-    // //check if there is something between the Direct access and the index
-    // if location.get_end() != lexer.location().get_start(){
-    //     return Err(Diagnostic::syntax_error("Incomplete statement", location));
-    // }
 
     let location = (location.get_start()..lexer.last_location().get_end()).into();
     Ok(AstStatement::DirectAccess {
@@ -578,6 +573,7 @@ fn parse_literal_number(
     })
 }
 
+/// Parses a literal integer without considering Signs or the Possibility of a Floating Point/ Exponent
 fn parse_strict_literal_integer(lexer: &mut ParseSession) -> Result<AstStatement, Diagnostic> {
     //correct the location if we just parsed a minus before
     let location = lexer.location();
