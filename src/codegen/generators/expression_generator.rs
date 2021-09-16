@@ -944,17 +944,17 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
         dimension: &Dimension,
         access_expression: &AstStatement,
     ) -> Result<IntValue<'a>, CompileError> {
-        let start_offset = self
-            .index
-            .get_constant_int_expression(&dimension.start_offset)
-            .map_err(|err| CompileError::codegen_error(err, access_expression.get_location()))?;
+        let start_offset = dimension
+            .start_offset
+            .as_int_value(self.index)
+            .map_err(|it| CompileError::codegen_error(it, access_expression.get_location()))?;
 
         let (_, access_value) = self.generate_expression(access_expression)?;
         //If start offset is not 0, adjust the current statement with an add operation
         if start_offset != 0 {
             Ok(self.llvm.builder.build_int_sub(
                 access_value.into_int_value(),
-                self.llvm.i32_type().const_int(start_offset as u64, true),
+                self.llvm.i32_type().const_int(start_offset as u64, true), //TODO error handling for cast
                 "",
             ))
         } else {

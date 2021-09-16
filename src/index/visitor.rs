@@ -298,8 +298,12 @@ fn visit_data_type(index: &mut Index, type_declatation: &UserTypeDeclaration) {
                 .map(|it| {
                     if let AstStatement::RangeStatement { start, end, .. } = it {
                         Ok(Dimension {
-                            start_offset: index.add_constant_expression(*start.clone()),
-                            end_offset: index.add_constant_expression(*end.clone()),
+                            start_offset: TypeSize::from_expression(
+                                index.add_constant_expression(*start.clone()),
+                            ),
+                            end_offset: TypeSize::from_expression(
+                                index.add_constant_expression(*end.clone()),
+                            ),
                         })
                     } else {
                         Err(CompileError::codegen_error(
@@ -347,8 +351,10 @@ fn visit_data_type(index: &mut Index, type_declatation: &UserTypeDeclaration) {
                 StringEncoding::Utf8
             };
 
-            let (size, default_size) = match size {
-                Some(AstStatement::LiteralInteger { value, .. }) => (None, (value + 1) as u32),
+            let size = match size {
+                Some(AstStatement::LiteralInteger { value, .. }) => {
+                    TypeSize::from_literal((value + 1) as u32)
+                }
                 Some(statement) => {
                     // construct a "x + 1" expression because we need one additional character for \0 terminator
                     let len_plus_1 = AstStatement::BinaryExpression {
@@ -362,15 +368,11 @@ fn visit_data_type(index: &mut Index, type_declatation: &UserTypeDeclaration) {
                         }),
                     };
 
-                    (Some(len_plus_1), DEFAULT_STRING_LEN + 1)
+                    TypeSize::from_expression(index.add_constant_expression(len_plus_1))
                 }
-                None => (None, DEFAULT_STRING_LEN + 1),
+                None => TypeSize::from_literal(DEFAULT_STRING_LEN + 1),
             };
-            let information = DataTypeInformation::String {
-                size: index.add_maybe_constant_expression(size),
-                default_size,
-                encoding,
-            };
+            let information = DataTypeInformation::String { size, encoding };
             let init = index.add_maybe_constant_expression(type_declatation.initializer.clone());
             index.register_type(name.as_ref().unwrap(), init, information)
         }

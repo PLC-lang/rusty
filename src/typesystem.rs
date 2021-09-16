@@ -85,6 +85,41 @@ impl StringEncoding {
 }
 
 #[derive(Debug, Clone, PartialEq)]
+pub enum TypeSize {
+    LiteralInteger(u32),
+    ConstExpression(ConstId),
+}
+
+impl TypeSize {
+    pub fn from_literal(v: u32) -> TypeSize {
+        TypeSize::LiteralInteger(v)
+    }
+
+    pub fn from_expression(id: ConstId) -> TypeSize {
+        TypeSize::ConstExpression(id)
+    }
+
+    /// tries to compile-time evaluate the size-expression to an i64
+    pub fn as_int_value(&self, index: &Index) -> Result<i64, String> {
+        match self {
+            TypeSize::LiteralInteger(v) => Ok(*v as i64),
+            TypeSize::ConstExpression(id) => {
+                index.get_constant_int_expression(id).map(|it| it as i64)
+            }
+        }
+    }
+
+    /// returns the const expression represented by this TypeSize or None if this TypeSize
+    /// is a compile-time literal
+    pub fn as_const_expression<'i>(&self, index: &'i Index) -> Option<&'i AstStatement> {
+        match self {
+            TypeSize::LiteralInteger(_) => None,
+            TypeSize::ConstExpression(id) => index.get_constant_expression(id),
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq)]
 pub enum DataTypeInformation {
     Struct {
         name: String,
@@ -115,10 +150,7 @@ pub enum DataTypeInformation {
         size: u32,
     },
     String {
-        ///the size-expression used in the declaration (e.g. STRING(`LEN`))
-        size: Option<ConstId>,
-        ///size to be used if the parameter `size` is None
-        default_size: u32,
+        size: TypeSize,
         encoding: StringEncoding,
     },
     SubRange {
@@ -225,14 +257,14 @@ impl DataTypeInformation {
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Dimension {
-    pub start_offset: ConstId,
-    pub end_offset: ConstId,
+    pub start_offset: TypeSize,
+    pub end_offset: TypeSize,
 }
 
 impl Dimension {
     pub fn get_length(&self, index: &Index) -> Result<u32, String> {
-        let end = index.get_constant_int_expression(&self.end_offset)?;
-        let start = index.get_constant_int_expression(&self.start_offset)?;
+        let end = self.end_offset.as_int_value(index)?;
+        let start = self.start_offset.as_int_value(index)?;
         Ok((end - start + 1) as u32)
     }
 }
@@ -417,8 +449,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
             name: STRING_TYPE.into(),
             initial_value: None,
             information: DataTypeInformation::String {
-                size: None,
-                default_size: DEFAULT_STRING_LEN + 1,
+                size: TypeSize::from_literal(DEFAULT_STRING_LEN + 1),
                 encoding: StringEncoding::Utf8,
             },
         },
@@ -426,8 +457,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
             name: WSTRING_TYPE.into(),
             initial_value: None,
             information: DataTypeInformation::String {
-                size: None,
-                default_size: DEFAULT_STRING_LEN + 1,
+                size: TypeSize::from_literal(DEFAULT_STRING_LEN + 1),
                 encoding: StringEncoding::Utf16,
             },
         },
@@ -468,16 +498,14 @@ pub fn get_builtin_types() -> Vec<DataType> {
 
 pub fn new_string_information(len: u32) -> DataTypeInformation {
     DataTypeInformation::String {
-        size: None,
-        default_size: len + 1,
+        size: TypeSize::from_literal(len),
         encoding: StringEncoding::Utf8,
     }
 }
 
 pub fn new_wide_string_information(len: u32) -> DataTypeInformation {
     DataTypeInformation::String {
-        size: None,
-        default_size: len + 1,
+        size: TypeSize::from_literal(len),
         encoding: StringEncoding::Utf16,
     }
 }

@@ -10,7 +10,7 @@ use crate::{
     ast::AstStatement,
     ast::SourceRange,
     compile_error::CompileError,
-    index::{const_expressions::ConstId, Index},
+    index::Index,
     typesystem::{get_bigger_type, DataTypeInformation},
 };
 
@@ -280,16 +280,18 @@ pub fn cast_if_needed<'ctx>(
                 location_context.get_location(),
             )),
         },
-        DataTypeInformation::String {
-            size, default_size, ..
-        } => match value_type {
+        DataTypeInformation::String { size, .. } => match value_type {
             DataTypeInformation::String {
-                size: value_size,
-                default_size: value_default_size,
-                ..
+                size: value_size, ..
             } => {
-                let size = calculate_string_size(index, size, *default_size)?;
-                let value_size = calculate_string_size(index, value_size, *value_default_size)?;
+                let size = size
+                    .as_int_value(index)
+                    .map_err(|msg| CompileError::codegen_error(msg, SourceRange::undefined()))?
+                    as u32;
+                let value_size = value_size
+                    .as_int_value(index)
+                    .map_err(|msg| CompileError::codegen_error(msg, SourceRange::undefined()))?
+                    as u32;
                 if size < value_size {
                     //if we are on a vector replace it
                     if value.is_vector_value() {
@@ -336,24 +338,6 @@ pub fn get_llvm_int_type<'a>(
             SourceRange::undefined(),
         )),
     }
-}
-
-/// calculates the effective size of this string form the
-/// acutal `actual_size` exprsesion or falls back to the
-/// default_size
-fn calculate_string_size(
-    index: &Index,
-    actual_size: &Option<ConstId>,
-    default_size: u32,
-) -> Result<u32, CompileError> {
-    Ok(if let Some(size) = actual_size {
-        index
-            .get_constant_int_expression(size)
-            .map_err(|err| CompileError::codegen_error(err, SourceRange::undefined()))?
-            as u32
-    } else {
-        default_size
-    })
 }
 
 pub fn get_llvm_float_type<'a>(

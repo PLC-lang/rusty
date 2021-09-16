@@ -241,23 +241,15 @@ impl Index {
                 //import constant expressions in array-type-definitions
                 DataTypeInformation::Array { dimensions, .. } => {
                     for d in dimensions.iter_mut() {
-                        d.start_offset = self
-                            .maybe_import_const_expr(
-                                &mut other.constant_expressions,
-                                &Some(d.start_offset),
-                            )
-                            .unwrap();
-                        d.end_offset = self
-                            .maybe_import_const_expr(
-                                &mut other.constant_expressions,
-                                &Some(d.end_offset),
-                            )
-                            .unwrap();
+                        d.start_offset =
+                            self.import_type_size(&mut other.constant_expressions, &d.start_offset);
+                        d.end_offset =
+                            self.import_type_size(&mut other.constant_expressions, &d.end_offset);
                     }
                 }
                 // import constant expressions in String-size defintions
                 DataTypeInformation::String { size, .. } => {
-                    *size = self.maybe_import_const_expr(&mut other.constant_expressions, size);
+                    *size = self.import_type_size(&mut other.constant_expressions, size);
                 }
                 _ => {}
             }
@@ -279,6 +271,23 @@ impl Index {
             .as_ref()
             .and_then(|it| import_from.remove(it))
             .map(|init| self.add_constant_expression(init))
+    }
+
+    /// imports the corresponding TypeSize (according to the given initializer-id) from the given ConstExpressions
+    /// into self's const-expressions and returns the new Id
+    fn import_type_size(
+        &mut self,
+        import_from: &mut ConstExpressions,
+        type_size: &TypeSize,
+    ) -> TypeSize {
+        match type_size {
+            TypeSize::LiteralInteger(_) => type_size.clone(),
+            TypeSize::ConstExpression(id) => import_from
+                .remove(id)
+                .map(|expr| self.add_constant_expression(expr))
+                .map(TypeSize::from_expression)
+                .unwrap(),
+        }
     }
 
     pub fn get_void_type(&self) -> &DataType {

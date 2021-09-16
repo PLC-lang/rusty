@@ -22,7 +22,6 @@ use inkwell::{
     values::BasicValueEnum,
     AddressSpace,
 };
-use std::convert::TryFrom;
 
 use super::{
     expression_generator::ExpressionCodeGenerator, llvm::Llvm, struct_generator::StructGenerator,
@@ -149,22 +148,11 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
             DataTypeInformation::Float { size, .. } => {
                 get_llvm_float_type(self.llvm.context, *size, name).map(|it| it.into())
             }
-            DataTypeInformation::String {
-                size,
-                default_size,
-                encoding,
-            } => {
-                let string_size = if let Some(size_expr) = size {
-                    //constant expression
-                    self.index
-                        .get_constant_int_expression(size_expr)
-                        .and_then(|s| u32::try_from(s).map_err(|err| format!("{:}", err)))
-                        .map_err(|err| CompileError::codegen_error(err, SourceRange::undefined()))?
-                //TODO error location
-                } else {
-                    //default size
-                    *default_size
-                };
+            DataTypeInformation::String { size, encoding } => {
+                let string_size = size
+                    .as_int_value(self.index)
+                    .map_err(|it| CompileError::codegen_error(it, SourceRange::undefined()))?
+                    as u32;
                 Ok(self
                     .llvm
                     .context
