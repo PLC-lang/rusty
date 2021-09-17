@@ -1,8 +1,7 @@
-use generational_arena::Arena;
+// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
 use crate::ast::AstStatement;
-
-// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
+use generational_arena::Arena;
 
 pub type ConstId = generational_arena::Index;
 pub struct ConstExpressions {

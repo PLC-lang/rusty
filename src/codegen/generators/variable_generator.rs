@@ -52,7 +52,7 @@ pub fn generate_global_variable<'ctx, 'b>(
     let variable_type = index.get_associated_type(type_name)?;
 
     let initial_value = if let Some(initializer) =
-        global_index.get_maybe_constant_expression(&global_variable.initial_value)
+        global_index.maybe_get_constant_expression(&global_variable.initial_value)
     {
         let expr_generator = ExpressionCodeGenerator::new_context_free(
             llvm,

@@ -233,7 +233,7 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
     ) -> Option<BasicValueEnum<'ink>> {
         if let Some(initializer) = self
             .index
-            .get_maybe_constant_expression(&data_type.initial_value)
+            .maybe_get_constant_expression(&data_type.initial_value)
         {
             let generator = ExpressionCodeGenerator::new_context_free(
                 self.llvm,
@@ -263,7 +263,7 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
     ) -> Result<Option<BasicValueEnum<'ink>>, CompileError> {
         if let Some(initializer) = self
             .index
-            .get_maybe_constant_expression(&data_type.initial_value)
+            .maybe_get_constant_expression(&data_type.initial_value)
         {
             if predicate(initializer) {
                 let array_type = self.index.get_type_information(name)?;

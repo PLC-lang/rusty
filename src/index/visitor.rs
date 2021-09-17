@@ -86,7 +86,7 @@ pub fn visit_pou(index: &mut Index, pou: &Pou) {
                 var.data_type.get_name().unwrap().to_string()
             };
 
-            let initial_value = index.add_maybe_constant_expression(var.initializer.clone());
+            let initial_value = index.maybe_add_constant_expression(var.initializer.clone());
 
             index.register_member_variable(
                 &MemberInfo {
@@ -173,7 +173,7 @@ fn register_inout_pointer_type_for(index: &mut Index, var: &Variable) -> String 
 
 fn visit_global_var_block(index: &mut Index, block: &VariableBlock) {
     for var in &block.variables {
-        let initializer = index.add_maybe_constant_expression(var.initializer.clone());
+        let initializer = index.maybe_add_constant_expression(var.initializer.clone());
         index.register_global_variable(
             &var.name,
             var.data_type.get_name().unwrap(),
@@ -210,7 +210,7 @@ fn visit_data_type(index: &mut Index, type_declatation: &UserTypeDeclaration) {
                 varargs: None,
             };
 
-            let init = index.add_maybe_constant_expression(type_declatation.initializer.clone());
+            let init = index.maybe_add_constant_expression(type_declatation.initializer.clone());
             index.register_type(name.as_ref().unwrap(), init, information);
             for (count, var) in variables.iter().enumerate() {
                 if let DataTypeDeclaration::DataTypeDefinition { data_type, .. } = &var.data_type {
@@ -225,7 +225,7 @@ fn visit_data_type(index: &mut Index, type_declatation: &UserTypeDeclaration) {
                     )
                 }
 
-                let init = index.add_maybe_constant_expression(var.initializer.clone());
+                let init = index.maybe_add_constant_expression(var.initializer.clone());
                 index.register_member_variable(
                     &MemberInfo {
                         container_name: struct_name,
@@ -247,7 +247,7 @@ fn visit_data_type(index: &mut Index, type_declatation: &UserTypeDeclaration) {
                 elements: elements.clone(),
             };
 
-            let init = index.add_maybe_constant_expression(type_declatation.initializer.clone());
+            let init = index.maybe_add_constant_expression(type_declatation.initializer.clone());
             index.register_type(enum_name.as_str(), init, information);
 
             elements.iter().enumerate().for_each(|(i, v)| {
@@ -284,7 +284,7 @@ fn visit_data_type(index: &mut Index, type_declatation: &UserTypeDeclaration) {
                 }
             };
 
-            let init = index.add_maybe_constant_expression(type_declatation.initializer.clone());
+            let init = index.maybe_add_constant_expression(type_declatation.initializer.clone());
             index.register_type(name.as_ref().unwrap(), init, information)
         }
         DataType::ArrayType {
@@ -321,7 +321,7 @@ fn visit_data_type(index: &mut Index, type_declatation: &UserTypeDeclaration) {
                 dimensions,
             };
 
-            let init = index.add_maybe_constant_expression(type_declatation.initializer.clone());
+            let init = index.maybe_add_constant_expression(type_declatation.initializer.clone());
             index.register_type(name.as_ref().unwrap(), init, information)
         }
         DataType::PointerType {
@@ -336,7 +336,7 @@ fn visit_data_type(index: &mut Index, type_declatation: &UserTypeDeclaration) {
                 auto_deref: false,
             };
 
-            let init = index.add_maybe_constant_expression(type_declatation.initializer.clone());
+            let init = index.maybe_add_constant_expression(type_declatation.initializer.clone());
             index.register_type(name.as_ref().unwrap(), init, information)
         }
         DataType::StringType {
@@ -373,7 +373,7 @@ fn visit_data_type(index: &mut Index, type_declatation: &UserTypeDeclaration) {
                 None => TypeSize::from_literal(DEFAULT_STRING_LEN + 1),
             };
             let information = DataTypeInformation::String { size, encoding };
-            let init = index.add_maybe_constant_expression(type_declatation.initializer.clone());
+            let init = index.maybe_add_constant_expression(type_declatation.initializer.clone());
             index.register_type(name.as_ref().unwrap(), init, information)
         }
         DataType::VarArgs { .. } => {} //Varargs are not indexed

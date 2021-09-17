@@ -102,7 +102,7 @@ impl<'a, 'b> StructGenerator<'a, 'b> {
         let variable_type = self.index.get_type_information(type_name)?;
         let initializer = match self
             .index
-            .get_maybe_constant_expression(&variable.initial_value)
+            .maybe_get_constant_expression(&variable.initial_value)
         {
             Some(statement) => {
                 let exp_gen = ExpressionCodeGenerator::new_context_free(

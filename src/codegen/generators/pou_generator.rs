@@ -287,7 +287,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
             };
             let right = self
                 .index
-                .get_maybe_constant_expression(&variable.initial_value)
+                .maybe_get_constant_expression(&variable.initial_value)
                 .unwrap();
             statement_generator.generate_assignment_statement(&left, right)?;
         }

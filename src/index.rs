@@ -664,13 +664,17 @@ impl Index {
     }
 
     /// convinience-method to add the constant exression if there is some, otherwhise not
-    pub fn add_maybe_constant_expression(&mut self, expr: Option<AstStatement>) -> Option<ConstId> {
+    /// use this only as a shortcut if you have an Option<AstStatement> - e.g. an optional initializer.
+    /// otherwhise use `add_constant_expression`
+    pub fn maybe_add_constant_expression(&mut self, expr: Option<AstStatement>) -> Option<ConstId> {
         expr.map(|it| self.add_constant_expression(it))
     }
 
     /// convinience-method to query for an optional constant expression.
     /// if the given `id` is `None`, this method returns `None`
-    pub fn get_maybe_constant_expression(&self, id: &Option<ConstId>) -> Option<&AstStatement> {
+    /// use this only as a shortcut if you have an Option<ConstId> - e.g. an optional initializer.
+    /// otherwhise use `get_constant_expression`
+    pub fn maybe_get_constant_expression(&self, id: &Option<ConstId>) -> Option<&AstStatement> {
         id.as_ref().and_then(|it| self.get_constant_expression(it))
     }
 
