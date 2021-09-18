@@ -4,6 +4,8 @@ use crate::ast::AstStatement;
 use generational_arena::Arena;
 
 pub type ConstId = generational_arena::Index;
+
+#[derive(Default)]
 pub struct ConstExpressions {
     expressions: Arena<AstStatement>,
 }
@@ -19,21 +21,11 @@ impl ConstExpressions {
         self.expressions.insert(statement)
     }
 
-    pub fn add_maybe(&mut self, statement: &Option<AstStatement>) -> Option<ConstId> {
-        statement.as_ref().map(|it| self.add_expression(it.clone()))
-    }
-
     pub fn find_expression(&self, id: &ConstId) -> Option<&AstStatement> {
         self.expressions.get(*id)
     }
 
     pub fn remove(&mut self, id: &ConstId) -> Option<AstStatement> {
         self.expressions.remove(*id)
-    }
-}
-
-impl Default for ConstExpressions {
-    fn default() -> Self {
-        Self::new()
     }
 }

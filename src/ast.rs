@@ -4,7 +4,7 @@ use std::{
     fmt::{Debug, Display, Formatter, Result},
     iter,
     ops::Range,
-    result, unimplemented,
+    unimplemented,
 };
 mod pre_processor;
 
@@ -1118,24 +1118,4 @@ pub fn flatten_expression_list(condition: &AstStatement) -> Vec<&AstStatement> {
 
 pub fn pre_process(unit: &mut CompilationUnit) {
     pre_processor::pre_process(unit)
-}
-
-/// extracts the compile-time value of the given statement.
-/// returns an error if no value can be derived at compile-time
-pub fn extract_value(s: &AstStatement) -> result::Result<String, String> {
-    match s {
-        AstStatement::UnaryExpression {
-            operator, value, ..
-        } => extract_value(value).map(|result| format!("{}{}", operator, result)),
-        AstStatement::LiteralInteger { value, .. } => Ok(value.to_string()),
-        //TODO constants
-        _ => Err("Unsupported Statement. Cannot evaluate expression.".to_string()),
-    }
-}
-
-/// evaluate the given statemetn as i128
-pub fn evaluate_constant_int(s: &AstStatement) -> result::Result<i128, String> {
-    //TODO give early return for literalInteger (I think the negative-number issue is solved now)
-    let value = extract_value(s);
-    value.map(|v| v.parse().unwrap_or(0))
 }

@@ -2,7 +2,7 @@
 use indexmap::IndexMap;
 
 use crate::{
-    ast::{evaluate_constant_int, AstStatement, Implementation, PouType, SourceRange},
+    ast::{AstStatement, Implementation, PouType, SourceRange},
     compile_error::CompileError,
     typesystem::*,
 };
@@ -689,7 +689,10 @@ impl Index {
     pub fn get_constant_int_expression(&self, id: &ConstId) -> Result<i128, String> {
         self.get_constant_expression(id)
             .ok_or_else(|| "Cannot find constant expression".into())
-            .and_then(|it| evaluate_constant_int(it))
+            .and_then(|it| match it {
+                AstStatement::LiteralInteger { value, .. } => Ok(*value),
+                _ => Err(format!("Cannot extract int constant from {:#?}", it)),
+            })
     }
 }
 
