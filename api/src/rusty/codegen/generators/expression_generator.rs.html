@@ -1781,13 +1781,17 @@
 <span id="1781">1781</span>
 <span id="1782">1782</span>
 <span id="1783">1783</span>
+<span id="1784">1784</span>
+<span id="1785">1785</span>
+<span id="1786">1786</span>
+<span id="1787">1787</span>
 </pre><pre class="rust">
 <span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">ast</span>::{<span class="ident">Pou</span>, <span class="ident">SourceRange</span>},
     <span class="ident">index</span>::{<span class="ident">ImplementationType</span>, <span class="ident">Index</span>},
     <span class="ident">resolver</span>::{<span class="ident">AnnotationMap</span>, <span class="ident">StatementAnnotation</span>},
-    <span class="ident">typesystem</span>::{<span class="ident">StringEncoding</span>, <span class="ident">DINT_TYPE</span>, <span class="ident">LINT_TYPE</span>, <span class="ident">LREAL_TYPE</span>},
+    <span class="ident">typesystem</span>::{<span class="ident">Dimension</span>, <span class="ident">StringEncoding</span>, <span class="ident">DINT_TYPE</span>, <span class="ident">LINT_TYPE</span>, <span class="ident">LREAL_TYPE</span>},
 };
 <span class="kw">use</span> <span class="ident">inkwell</span>::{
     <span class="ident">basic_block::BasicBlock</span>,
@@ -1801,7 +1805,7 @@
 <span class="kw">use</span> <span class="ident">std::collections::HashSet</span>;
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">ast</span>::{<span class="ident">flatten_expression_list</span>, <span class="ident">AstStatement</span>, <span class="ident">Dimension</span>, <span class="ident">Operator</span>},
+    <span class="ident">ast</span>::{<span class="ident">flatten_expression_list</span>, <span class="ident">AstStatement</span>, <span class="ident">Operator</span>},
     <span class="ident">codegen</span>::{
         <span class="ident">llvm_index::LlvmTypedIndex</span>,
         <span class="ident">llvm_typesystem</span>::{<span class="ident">cast_if_needed</span>, <span class="ident">get_llvm_int_type</span>, <span class="ident">promote_if_needed</span>},
@@ -2728,13 +2732,17 @@
         <span class="ident">dimension</span>: <span class="kw-2">&amp;</span><span class="ident">Dimension</span>,
         <span class="ident">access_expression</span>: <span class="kw-2">&amp;</span><span class="ident">AstStatement</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">IntValue</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>, <span class="ident">CompileError</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">start_offset</span> <span class="op">=</span> <span class="ident">dimension</span>.<span class="ident">start_offset</span>;
+        <span class="kw">let</span> <span class="ident">start_offset</span> <span class="op">=</span> <span class="ident">dimension</span>
+            .<span class="ident">start_offset</span>
+            .<span class="ident">as_int_value</span>(<span class="self">self</span>.<span class="ident">index</span>)
+            .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">it</span><span class="op">|</span> <span class="ident">CompileError::codegen_error</span>(<span class="ident">it</span>, <span class="ident">access_expression</span>.<span class="ident">get_location</span>()))<span class="question-mark">?</span>;
+
         <span class="kw">let</span> (<span class="kw">_</span>, <span class="ident">access_value</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">generate_expression</span>(<span class="ident">access_expression</span>)<span class="question-mark">?</span>;
         <span class="comment">//If start offset is not 0, adjust the current statement with an add operation</span>
         <span class="kw">if</span> <span class="ident">start_offset</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
             <span class="prelude-val">Ok</span>(<span class="self">self</span>.<span class="ident">llvm</span>.<span class="ident">builder</span>.<span class="ident">build_int_sub</span>(
                 <span class="ident">access_value</span>.<span class="ident">into_int_value</span>(),
-                <span class="self">self</span>.<span class="ident">llvm</span>.<span class="ident">i32_type</span>().<span class="ident">const_int</span>(<span class="ident">start_offset</span> <span class="kw">as</span> <span class="ident">u64</span>, <span class="bool-val">true</span>),
+                <span class="self">self</span>.<span class="ident">llvm</span>.<span class="ident">i32_type</span>().<span class="ident">const_int</span>(<span class="ident">start_offset</span> <span class="kw">as</span> <span class="ident">u64</span>, <span class="bool-val">true</span>), <span class="comment">//TODO error handling for cast</span>
                 <span class="string">&quot;&quot;</span>,
             ))
         } <span class="kw">else</span> {
