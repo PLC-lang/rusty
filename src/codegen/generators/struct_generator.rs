@@ -100,20 +100,18 @@ impl<'a, 'b> StructGenerator<'a, 'b> {
         let variable_type = self.index.get_type_information(type_name)?;
         let initializer = match self
             .index
-            .maybe_get_constant_expression(&variable.initial_value)
+            .maybe_get_constant_statement(&variable.initial_value)
         {
             Some(statement) => {
                 //evalute the initializer to a value
                 let evaluated_const = crate::resolver::const_evaluator::evaluate(
                     statement,
-                    self.index.get_all_resolved_constants(),
-                    self.index.get_type_index(),
+                    self.index,
                 );
                 match evaluated_const {
                     Ok(Some(initializer)) => {
                         //create the appropriate Literal AST-Statement
-                        let ast_statement = initializer
-                            .generate_ast_literal(statement.get_id(), statement.get_location());
+                        let ast_statement = initializer;
                         //generate the literal
                         let exp_gen = ExpressionCodeGenerator::new_context_free(
                             self.llvm,

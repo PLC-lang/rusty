@@ -4,11 +4,10 @@ use indexmap::IndexMap;
 use crate::{
     ast::{AstStatement, Implementation, PouType, SourceRange},
     compile_error::CompileError,
-    resolver,
     typesystem::*,
 };
 
-use self::const_expressions::{ConstExpressions, ConstId};
+use self::const_expressions::{ConstExpression, ConstExpressions, ConstId};
 
 pub mod const_expressions;
 #[cfg(test)]
@@ -154,66 +153,6 @@ impl From<&PouType> for ImplementationType {
     }
 }
 
-pub type ConstantsIndex = IndexMap<String, LiteralValue>;
-
-#[derive(Clone, Debug, PartialEq)]
-pub enum LiteralValue {
-    Int(i128),
-    Real(f64),
-    Bool(bool),
-    String(String),
-    WString(String),
-}
-
-impl LiteralValue {
-    pub fn get_int_value(&self) -> Result<i128, String> {
-        if let LiteralValue::Int(v) = self {
-            Ok(*v)
-        } else {
-            Err(format!("Expected Int-Literal, found {:?}", self))
-        }
-    }
-
-    pub fn get_bool_value(&self) -> Result<bool, String> {
-        if let LiteralValue::Bool(v) = self {
-            Ok(*v)
-        } else {
-            Err(format!("Expected Bool-Literal, found {:?}", self))
-        }
-    }
-
-    pub fn generate_ast_literal(&self, id: usize, location: SourceRange) -> AstStatement {
-        match self {
-            LiteralValue::Int(value) => AstStatement::LiteralInteger {
-                id,
-                location,
-                value: *value,
-            },
-            LiteralValue::Real(value) => AstStatement::LiteralReal {
-                id,
-                location,
-                value: format!("{:}", value),
-            },
-            LiteralValue::Bool(value) => AstStatement::LiteralBool {
-                id,
-                location,
-                value: *value,
-            },
-            LiteralValue::String(value) => AstStatement::LiteralString {
-                id,
-                location,
-                value: value.clone(),
-                is_wide: false,
-            },
-            LiteralValue::WString(value) => AstStatement::LiteralString {
-                id,
-                location,
-                value: value.clone(),
-                is_wide: true,
-            },
-        }
-    }
-}
 
 /// the TypeIndex carries all types.
 /// it is extracted into its seaprate struct so it can be
@@ -327,8 +266,7 @@ pub struct Index {
     type_index: TypeIndex,
 
     constant_expressions: ConstExpressions,
-    /// all constants with their compile-time resolved values
-    resolved_constants: ConstantsIndex,
+
 }
 
 impl Index {
@@ -341,7 +279,6 @@ impl Index {
             type_index: TypeIndex::new(),
             implementations: IndexMap::new(),
             constant_expressions: ConstExpressions::new(),
-            resolved_constants: ConstantsIndex::new(),
         }
     }
 
@@ -409,7 +346,6 @@ impl Index {
 
         //implementations
         self.implementations.extend(other.implementations);
-        self.resolved_constants.extend(other.resolved_constants);
     }
 
     /// imports the corresponding const-expression (according to the given initializer-id) from the given ConstExpressions
@@ -422,7 +358,7 @@ impl Index {
         initializer_id
             .as_ref()
             .and_then(|it| import_from.remove(it))
-            .map(|init| self.add_constant_expression(init))
+            .map(|(init, target_type)| self.add_constant_expression(init, target_type))
     }
 
     /// imports the corresponding TypeSize (according to the given initializer-id) from the given ConstExpressions
@@ -436,7 +372,7 @@ impl Index {
             TypeSize::LiteralInteger(_) => type_size.clone(),
             TypeSize::ConstExpression(id) => import_from
                 .remove(id)
-                .map(|expr| self.add_constant_expression(expr))
+                .map(|(expr, target_type)| self.add_constant_expression(expr, target_type))
                 .map(TypeSize::from_expression)
                 .unwrap(),
         }
@@ -526,10 +462,6 @@ impl Index {
             };
         }
         result
-    }
-
-    pub fn find_constant_value(&self, qualified_name: &str) -> Option<&LiteralValue> {
-        self.resolved_constants.get(qualified_name)
     }
 
     pub fn find_type(&self, type_name: &str) -> Option<&DataType> {
@@ -830,35 +762,39 @@ impl Index {
     }
 
     /// adds the given constant expression to the constants arena and returns the ID to reference it
-    pub fn add_constant_expression(&mut self, expr: AstStatement) -> ConstId {
-        self.constant_expressions.add_expression(expr)
+    pub fn add_constant_expression(&mut self, expr: AstStatement, target_type: String) -> ConstId {
+        self.constant_expressions.add_expression(expr, target_type)
     }
 
     /// convinience-method to add the constant exression if there is some, otherwhise not
     /// use this only as a shortcut if you have an Option<AstStatement> - e.g. an optional initializer.
     /// otherwhise use `add_constant_expression`
-    pub fn maybe_add_constant_expression(&mut self, expr: Option<AstStatement>) -> Option<ConstId> {
-        expr.map(|it| self.add_constant_expression(it))
+    pub fn maybe_add_constant_expression(&mut self, expr: Option<AstStatement>, targe_type_name: &str) -> Option<ConstId> {
+        expr.map(|it| self.add_constant_expression(it, targe_type_name.to_string()))
     }
 
     /// convinience-method to query for an optional constant expression.
     /// if the given `id` is `None`, this method returns `None`
     /// use this only as a shortcut if you have an Option<ConstId> - e.g. an optional initializer.
     /// otherwhise use `get_constant_expression`
-    pub fn maybe_get_constant_expression(&self, id: &Option<ConstId>) -> Option<&AstStatement> {
-        id.as_ref().and_then(|it| self.get_constant_expression(it))
+    pub fn maybe_get_constant_statement(&self, id: &Option<ConstId>) -> Option<&AstStatement> {
+        id.as_ref().and_then(|it| self.get_constant_statement(it))
     }
 
     /// query the constants arena for an expression associated with the given `id`
-    pub fn get_constant_expression(&self, id: &ConstId) -> Option<&AstStatement> {
+    pub fn get_constant_statement(&self, id: &ConstId) -> Option<&AstStatement> {
         self.constant_expressions.find_expression(id)
+    }
+
+    pub fn get_resolved_const_statement(&self, id: &ConstId) -> Option<&ConstExpression> {
+        self.constant_expressions.find_const_expression(id)
     }
 
     /// query the constants arena for an expression that can be evaluated to an i128.
     /// returns an Err if no expression was associated, or the associated expression is a
     /// complex one (not a LiteralInteger)
-    pub fn get_constant_int_expression(&self, id: &ConstId) -> Result<i128, String> {
-        self.get_constant_expression(id)
+    pub fn get_constant_int_statement_value(&self, id: &ConstId) -> Result<i128, String> {
+        self.get_constant_statement(id)
             .ok_or_else(|| "Cannot find constant expression".into())
             .and_then(|it| match it {
                 AstStatement::LiteralInteger { value, .. } => Ok(*value),
@@ -866,19 +802,21 @@ impl Index {
             })
     }
 
-    /// drains all elements from the given `constants` and imports it into this index's `resolved_constants`
-    pub fn import_resolved_constants(&mut self, constants: ConstantsIndex) {
-        self.resolved_constants.extend(constants);
+    pub fn get_mut_const_expressions(&mut self) -> &mut ConstExpressions {
+        &mut self.constant_expressions
     }
 
-    pub fn get_all_resolved_constants(&self) -> &ConstantsIndex {
-        &self.resolved_constants
+    pub fn get_const_expressions(&self) -> &ConstExpressions {
+        &self.constant_expressions
     }
 
     /// resolves expressions in variable initializers (e.g. `x := OFFSET - SIZE`)
     /// and data-Type declarations (e.g. `ARRAY[0..LEN-1] OF INT`). It replaces the
     /// expressions with a Literal-Expression if possible.
     pub fn try_resolve_pending_const_expressions(&mut self) {
+
+
+        
         // resolve constants in global initializers
         // for global_variable in self.global_variables.values_mut() {
         //     if let Some(initial) = self.maybe_get_constant_expression(&global_variable.initial_value) {

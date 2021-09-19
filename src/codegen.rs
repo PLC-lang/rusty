@@ -11,7 +11,6 @@ use self::{
     llvm_index::LlvmTypedIndex,
 };
 use crate::{
-    codegen::generators::expression_generator::ExpressionCodeGenerator,
     compile_error::CompileError, resolver::AnnotationMap,
 };
 
@@ -84,9 +83,6 @@ impl<'ink> CodeGen<'ink> {
             data_type_generator::generate_data_types(&llvm, global_index, annotations)?;
         index.merge(llvm_type_index);
 
-        //generate llvm values for constants
-        self.generate_global_constant_literals(global_index, &llvm, &mut index)?;
-
         //Generate global variables
         let llvm_gv_index = variable_generator::generate_global_variables(
             module,
@@ -133,54 +129,6 @@ impl<'ink> CodeGen<'ink> {
         }
 
         Ok(self.module.print_to_string().to_string())
-    }
-
-    /// generates the BasicValueEnums for the const initializers that could be
-    /// evaluated at compile time
-    /// e.g. `VAR GLOBAL CONST x := 7; END_VAR`
-    /// generates the Value for `7` and associates it with the name `x`
-    fn generate_global_constant_literals<'a>(
-        &self,
-        global_index: &Index,
-        llvm: &Llvm<'a>,
-        index: &mut LlvmTypedIndex<'a>,
-    ) -> Result<(), CompileError> {
-        for (qualified_name, literal) in global_index.get_all_resolved_constants() {
-            match global_index
-                .find_variable(None, &qualified_name.split('.').collect::<Vec<&str>>())
-                .and_then(|it| global_index.find_effective_type_by_name(it.get_type_name()))
-            {
-                Some(data_type) => {
-                    //TODO this would be much much easier, if we would not generate these just from index, but form the VAR-GLOBAL itself
-                    let literal_statement =
-                        literal.generate_ast_literal(0, SourceRange::undefined());
-
-                    let annotations = AnnotationMap::with(
-                        literal_statement.get_id(),
-                        crate::resolver::StatementAnnotation::expression(data_type.get_name()),
-                    );
-                    let generator = ExpressionCodeGenerator::new_context_free(
-                        llvm,
-                        global_index,
-                        &annotations,
-                        index,
-                        Some(data_type.clone_type_information()), //TODO why do we need to clone this?
-                    );
-                    let (_, llvm_value) = generator.generate_literal(&literal_statement)?;
-                    index.associate_constant(qualified_name, llvm_value);
-                }
-                None => {
-                    return Err(CompileError::codegen_error(
-                        format!(
-                            "Unable to generate the global constant initialization for {:}: {:}",
-                            qualified_name, "Cannot find the variable's type."
-                        ),
-                        SourceRange::undefined(),
-                    ))
-                }
-            }
-        }
-        Ok(())
     }
 }
 

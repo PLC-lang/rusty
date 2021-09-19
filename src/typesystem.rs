@@ -123,7 +123,7 @@ impl TypeSize {
         match self {
             TypeSize::LiteralInteger(v) => Ok(*v as i64),
             TypeSize::ConstExpression(id) => {
-                index.get_constant_int_expression(id).map(|it| it as i64)
+                index.get_constant_int_statement_value(id).map(|it| it as i64)
             }
         }
     }
@@ -133,7 +133,7 @@ impl TypeSize {
     pub fn as_const_expression<'i>(&self, index: &'i Index) -> Option<&'i AstStatement> {
         match self {
             TypeSize::LiteralInteger(_) => None,
-            TypeSize::ConstExpression(id) => index.get_constant_expression(id),
+            TypeSize::ConstExpression(id) => index.get_constant_statement(id),
         }
     }
 }

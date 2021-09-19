@@ -1326,17 +1326,17 @@ fn global_initializers_are_stored_in_the_const_expression_arena() {
     let variables = &ast.global_vars[0].variables;
     let initializer = index
         .find_global_variable("a")
-        .and_then(|g| index.maybe_get_constant_expression(&g.initial_value));
+        .and_then(|g| index.maybe_get_constant_statement(&g.initial_value));
     assert_eq!(variables[0].initializer.as_ref(), initializer);
 
     let initializer = index
         .find_global_variable("b")
-        .and_then(|g| index.maybe_get_constant_expression(&g.initial_value));
+        .and_then(|g| index.maybe_get_constant_statement(&g.initial_value));
     assert_eq!(variables[1].initializer.as_ref(), initializer);
 
     let initializer = index
         .find_global_variable("c")
-        .and_then(|g| index.maybe_get_constant_expression(&g.initial_value));
+        .and_then(|g| index.maybe_get_constant_statement(&g.initial_value));
     assert_eq!(variables[2].initializer.as_ref(), initializer);
 }
 
@@ -1363,17 +1363,17 @@ fn local_initializers_are_stored_in_the_const_expression_arena() {
     let variables = &ast.units[0].variable_blocks[0].variables;
     let initializer = index
         .find_member("prg", "a")
-        .and_then(|g| index.maybe_get_constant_expression(&g.initial_value));
+        .and_then(|g| index.maybe_get_constant_statement(&g.initial_value));
     assert_eq!(variables[0].initializer.as_ref(), initializer);
 
     let initializer = index
         .find_member("prg", "b")
-        .and_then(|g| index.maybe_get_constant_expression(&g.initial_value));
+        .and_then(|g| index.maybe_get_constant_statement(&g.initial_value));
     assert_eq!(variables[1].initializer.as_ref(), initializer);
 
     let initializer = index
         .find_member("prg", "c")
-        .and_then(|g| index.maybe_get_constant_expression(&g.initial_value));
+        .and_then(|g| index.maybe_get_constant_statement(&g.initial_value));
     assert_eq!(variables[2].initializer.as_ref(), initializer);
 }
 
@@ -1394,7 +1394,7 @@ fn datatype_initializers_are_stored_in_the_const_expression_arena() {
     let data_type = &ast.types[0];
     let initializer = index
         .find_type("MyInt")
-        .and_then(|g| index.maybe_get_constant_expression(&g.initial_value));
+        .and_then(|g| index.maybe_get_constant_statement(&g.initial_value));
     assert_eq!(data_type.initializer.as_ref(), initializer);
 }
 
@@ -1513,7 +1513,7 @@ fn string_dimensions_are_stored_in_the_const_expression_arena() {
                     right: Box::new(crate::parser::tests::literal_int(1))
                 }
             ),
-            format!("{:#?}", index.get_constant_expression(&expr).unwrap())
+            format!("{:#?}", index.get_constant_statement(&expr).unwrap())
         );
     } else {
         unreachable!()
