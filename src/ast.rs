@@ -1,24 +1,12 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-use crate::{compile_error::CompileError, typesystem::DataTypeInformation};
+use crate::typesystem::DataTypeInformation;
 use std::{
     fmt::{Debug, Display, Formatter, Result},
     iter,
     ops::Range,
-    result, unimplemented,
+    unimplemented,
 };
 mod pre_processor;
-
-#[derive(Debug, Clone, PartialEq)]
-pub struct Dimension {
-    pub start_offset: i32,
-    pub end_offset: i32,
-}
-
-impl Dimension {
-    pub fn get_length(&self) -> u32 {
-        (self.end_offset - self.start_offset + 1) as u32
-    }
-}
 
 pub type AstId = usize;
 
@@ -1130,54 +1118,4 @@ pub fn flatten_expression_list(condition: &AstStatement) -> Vec<&AstStatement> {
 
 pub fn pre_process(unit: &mut CompilationUnit) {
     pre_processor::pre_process(unit)
-}
-
-/// constructs a vector with all dimensions for the given bounds-statement
-/// e.g. [0..10, 0..5]
-pub fn get_array_dimensions(bounds: &AstStatement) -> result::Result<Vec<Dimension>, CompileError> {
-    let mut result = vec![];
-    for statement in bounds.get_as_list() {
-        result.push(get_single_array_dimension(statement)?);
-    }
-    Ok(result)
-}
-
-/// constructs a Dimension for the given RangeStatement
-/// throws an error if the given statement is no RangeStatement
-fn get_single_array_dimension(bounds: &AstStatement) -> result::Result<Dimension, CompileError> {
-    if let AstStatement::RangeStatement { start, end, .. } = bounds {
-        let start_offset = evaluate_constant_int(start).unwrap_or(0);
-        let end_offset = evaluate_constant_int(end).unwrap_or(0);
-        Ok(Dimension {
-            start_offset,
-            end_offset,
-        })
-    } else {
-        Err(CompileError::codegen_error(
-            format!("Unexpected Statement {:?}, expected range", bounds),
-            bounds.get_location(),
-        ))
-    }
-}
-
-/// extracts the compile-time value of the given statement.
-/// returns an error if no value can be derived at compile-time
-fn extract_value(s: &AstStatement) -> result::Result<String, CompileError> {
-    match s {
-        AstStatement::UnaryExpression {
-            operator, value, ..
-        } => extract_value(value).map(|result| format!("{}{}", operator, result)),
-        AstStatement::LiteralInteger { value, .. } => Ok(value.to_string()),
-        //TODO constants
-        _ => Err(CompileError::codegen_error(
-            "Unsupported Statement. Cannot evaluate expression.".to_string(),
-            s.get_location(),
-        )),
-    }
-}
-
-/// evaluate the given statemetn as i32
-pub fn evaluate_constant_int(s: &AstStatement) -> result::Result<i32, CompileError> {
-    let value = extract_value(s);
-    value.map(|v| v.parse().unwrap_or(0))
 }
