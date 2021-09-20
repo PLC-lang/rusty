@@ -2633,3 +2633,34 @@ fn array_type_as_function_return() {
     assert_eq!(format!("{:?}", ast.units[0]), format!("{:?}", expected));
     assert_eq!(diagnostics.is_empty(), true);
 }
+
+
+#[test]
+/// regress #286
+fn plus_minus_parse_tree_priority_test() {
+    let (ast, diagnostics) = parse(super::lex(
+        r"
+    FUNCTION foo : INT
+        a - b + c;
+    END_FUNCTION
+    ",
+    ));
+
+    assert_eq!(
+        format!("{:#?}", ast.implementations[0].statements[0]),
+        format!("{:#?}",
+            AstStatement::BinaryExpression{
+                id: 0,
+                operator: Operator::Plus,
+                left: Box::new(AstStatement::BinaryExpression{
+                    id: 0,
+                    operator: Operator::Minus,
+                    left: Box::new(ref_to("a")),
+                    right: Box::new(ref_to("b")),
+                }),
+                right: Box::new(ref_to("c")),
+            }
+        )
+    );
+    assert_eq!(diagnostics.is_empty(), true);
+}
