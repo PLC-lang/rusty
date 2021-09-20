@@ -100,7 +100,10 @@ impl<'a, 'b> StructGenerator<'a, 'b> {
         //                         //&variable.data_type.get_name().ok_or_else(|| error_type_not_associated(type_name, &variable.location))?;
 
         let variable_type = self.index.get_type_information(type_name)?;
-        let initializer = match &variable.initial_value {
+        let initializer = match self
+            .index
+            .maybe_get_constant_expression(&variable.initial_value)
+        {
             Some(statement) => {
                 let exp_gen = ExpressionCodeGenerator::new_context_free(
                     self.llvm,
