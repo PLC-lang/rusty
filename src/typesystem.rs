@@ -122,9 +122,9 @@ impl TypeSize {
     pub fn as_int_value(&self, index: &Index) -> Result<i64, String> {
         match self {
             TypeSize::LiteralInteger(v) => Ok(*v as i64),
-            TypeSize::ConstExpression(id) => {
-                index.get_constant_int_statement_value(id).map(|it| it as i64)
-            }
+            TypeSize::ConstExpression(id) => index
+                .get_constant_int_statement_value(id)
+                .map(|it| it as i64),
         }
     }
 

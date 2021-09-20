@@ -192,15 +192,6 @@ impl<'ink> LlvmTypedIndex<'ink> {
         })
     }
 
-    pub fn associate_constant(
-        &mut self,
-        qualified_name: &str,
-        basic_value_enum: BasicValueEnum<'ink>,
-    ) {
-        self.constants
-            .insert(qualified_name.into(), basic_value_enum);
-    }
-
     pub fn find_constant_value(&self, qualified_name: &str) -> Option<BasicValueEnum<'ink>> {
         self.constants.get(qualified_name).copied()
     }

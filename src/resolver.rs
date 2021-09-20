@@ -135,9 +135,7 @@ impl AnnotationMap {
     pub fn with(id: AstId, annotation: StatementAnnotation) -> Self {
         let mut type_map: IndexMap<AstId, StatementAnnotation> = IndexMap::new();
         type_map.insert(id, annotation);
-        AnnotationMap {
-            type_map
-        }
+        AnnotationMap { type_map }
     }
 
     /// annotates the given statement (using it's `get_id()`) with the given type-name

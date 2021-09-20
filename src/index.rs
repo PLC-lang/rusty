@@ -153,7 +153,6 @@ impl From<&PouType> for ImplementationType {
     }
 }
 
-
 /// the TypeIndex carries all types.
 /// it is extracted into its seaprate struct so it can be
 /// internally borrowed individually from the other maps
@@ -165,7 +164,7 @@ pub struct TypeIndex {
 }
 
 impl TypeIndex {
-    fn new() -> Self{
+    fn new() -> Self {
         TypeIndex {
             types: IndexMap::new(),
             void_type: DataType {
@@ -239,7 +238,6 @@ impl TypeIndex {
     }
 }
 
-
 /// The global index of the rusty-compiler
 ///
 /// The index contains information about all referencable elements.
@@ -266,7 +264,6 @@ pub struct Index {
     type_index: TypeIndex,
 
     constant_expressions: ConstExpressions,
-
 }
 
 impl Index {
@@ -474,7 +471,7 @@ impl Index {
 
     pub fn get_effective_type_by_name(&self, type_name: &str) -> &DataType {
         self.type_index.get_effective_type_by_name(type_name)
-   }
+    }
 
     pub fn get_type(&self, type_name: &str) -> Result<&DataType, CompileError> {
         self.type_index.get_type(type_name)
@@ -745,7 +742,9 @@ impl Index {
             initial_value,
             information,
         };
-        self.type_index.types.insert(type_name.to_lowercase(), index_entry);
+        self.type_index
+            .types
+            .insert(type_name.to_lowercase(), index_entry);
     }
 
     pub fn find_callable_instance_variable(
@@ -769,7 +768,11 @@ impl Index {
     /// convinience-method to add the constant exression if there is some, otherwhise not
     /// use this only as a shortcut if you have an Option<AstStatement> - e.g. an optional initializer.
     /// otherwhise use `add_constant_expression`
-    pub fn maybe_add_constant_expression(&mut self, expr: Option<AstStatement>, targe_type_name: &str) -> Option<ConstId> {
+    pub fn maybe_add_constant_expression(
+        &mut self,
+        expr: Option<AstStatement>,
+        targe_type_name: &str,
+    ) -> Option<ConstId> {
         expr.map(|it| self.add_constant_expression(it, targe_type_name.to_string()))
     }
 
@@ -815,8 +818,6 @@ impl Index {
     /// expressions with a Literal-Expression if possible.
     pub fn try_resolve_pending_const_expressions(&mut self) {
 
-
-        
         // resolve constants in global initializers
         // for global_variable in self.global_variables.values_mut() {
         //     if let Some(initial) = self.maybe_get_constant_expression(&global_variable.initial_value) {

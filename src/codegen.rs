@@ -10,9 +10,7 @@ use self::{
     },
     llvm_index::LlvmTypedIndex,
 };
-use crate::{
-    compile_error::CompileError, resolver::AnnotationMap,
-};
+use crate::{compile_error::CompileError, resolver::AnnotationMap};
 
 use super::ast::*;
 use super::index::*;

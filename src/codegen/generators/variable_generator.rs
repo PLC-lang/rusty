@@ -31,10 +31,7 @@ pub fn generate_global_variables<'ctx, 'b>(
         )
         .map_err(|err| {
             if let CompileError::MissingFunctionError { .. } = err {
-                CompileError::cannot_generate_initializer(
-                    name.as_str(),
-                    SourceRange::undefined(),
-                )
+                CompileError::cannot_generate_initializer(name.as_str(), SourceRange::undefined())
             } else {
                 err
             }

@@ -227,7 +227,6 @@ fn invalid_struct_access_in_array_access_should_be_reported_with_line_number() {
     }
 }
 
-
 #[test]
 fn invalid_initial_constant_values_in_pou_variables() {
     let result = codegen_wihout_unwrap!(
@@ -251,7 +250,11 @@ fn invalid_initial_constant_values_in_pou_variables() {
 
     if let Err(msg) = result {
         assert_eq!(
-            CompileError::codegen_error("Cannot generate literal initializer for 'prg.my_len': Value can not be derived".to_string(), (214..221).into()),
+            CompileError::codegen_error(
+                "Cannot generate literal initializer for 'prg.my_len': Value can not be derived"
+                    .to_string(),
+                (214..221).into()
+            ),
             msg
         )
     } else {
@@ -272,14 +275,16 @@ fn constants_without_initialization() {
 
     if let Err(msg) = result {
         assert_eq!(
-            CompileError::codegen_error("Cannot generate literal initializer for 'b': Value can not be derived".to_string(), SourceRange::undefined()),
+            CompileError::codegen_error(
+                "Cannot generate literal initializer for 'b': Value can not be derived".to_string(),
+                SourceRange::undefined()
+            ),
             msg
         )
     } else {
         panic!("expected code-gen error but got none")
     }
 }
-
 
 #[test]
 fn recursive_initial_constant_values() {
@@ -294,7 +299,10 @@ fn recursive_initial_constant_values() {
 
     if let Err(msg) = result {
         assert_eq!(
-            CompileError::codegen_error("Cannot generate literal initializer for 'a': Value can not be derived".to_string(), SourceRange::undefined()),
+            CompileError::codegen_error(
+                "Cannot generate literal initializer for 'a': Value can not be derived".to_string(),
+                SourceRange::undefined()
+            ),
             msg
         )
     } else {

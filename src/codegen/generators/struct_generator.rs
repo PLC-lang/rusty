@@ -104,10 +104,8 @@ impl<'a, 'b> StructGenerator<'a, 'b> {
         {
             Some(statement) => {
                 //evalute the initializer to a value
-                let evaluated_const = crate::resolver::const_evaluator::evaluate(
-                    statement,
-                    self.index,
-                );
+                let evaluated_const =
+                    crate::resolver::const_evaluator::evaluate(statement, self.index);
                 match evaluated_const {
                     Ok(Some(initializer)) => {
                         //create the appropriate Literal AST-Statement
@@ -129,7 +127,7 @@ impl<'a, 'b> StructGenerator<'a, 'b> {
                             return Err(CompileError::cannot_generate_initializer(
                                 variable.get_qualified_name(),
                                 statement.get_location(),
-                            ))
+                            ));
                         } else {
                             result?
                         }
