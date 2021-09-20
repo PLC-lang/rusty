@@ -505,8 +505,7 @@ pub fn compile_module<'c, T: SourceContainer>(
     }
 
     // ### PHASE 1.1 resolve constant literal values
-    let (full_index, _unresolvables) =
-        resolver::const_evaluator::evaluate_constants(full_index);
+    let (full_index, _unresolvables) = resolver::const_evaluator::evaluate_constants(full_index);
 
     // ### PHASE 2 ###
     // annotation & validation everything
