@@ -100,6 +100,7 @@ impl<'a, 'b> StructGenerator<'a, 'b> {
         let variable_type = self.index.get_type_information(type_name)?;
         let initializer = match self
             .index
+            .get_const_expressions()
             .maybe_get_constant_statement(&variable.initial_value)
         {
             Some(statement) => {

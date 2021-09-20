@@ -2,12 +2,12 @@
 use indexmap::IndexMap;
 
 use crate::{
-    ast::{AstStatement, Implementation, PouType, SourceRange},
+    ast::{Implementation, PouType, SourceRange},
     compile_error::CompileError,
     typesystem::*,
 };
 
-use self::const_expressions::{ConstExpression, ConstExpressions, ConstId};
+use self::const_expressions::{ConstExpressions, ConstId};
 
 pub mod const_expressions;
 #[cfg(test)]
@@ -355,7 +355,10 @@ impl Index {
         initializer_id
             .as_ref()
             .and_then(|it| import_from.remove(it))
-            .map(|(init, target_type)| self.add_constant_expression(init, target_type))
+            .map(|(init, target_type)| {
+                self.get_mut_const_expressions()
+                    .add_constant_expression(init, target_type)
+            })
     }
 
     /// imports the corresponding TypeSize (according to the given initializer-id) from the given ConstExpressions
@@ -369,7 +372,10 @@ impl Index {
             TypeSize::LiteralInteger(_) => type_size.clone(),
             TypeSize::ConstExpression(id) => import_from
                 .remove(id)
-                .map(|(expr, target_type)| self.add_constant_expression(expr, target_type))
+                .map(|(expr, target_type)| {
+                    self.get_mut_const_expressions()
+                        .add_constant_expression(expr, target_type)
+                })
                 .map(TypeSize::from_expression)
                 .unwrap(),
         }
@@ -760,90 +766,14 @@ impl Index {
         })
     }
 
-    /// adds the given constant expression to the constants arena and returns the ID to reference it
-    pub fn add_constant_expression(&mut self, expr: AstStatement, target_type: String) -> ConstId {
-        self.constant_expressions.add_expression(expr, target_type)
-    }
-
-    /// convinience-method to add the constant exression if there is some, otherwhise not
-    /// use this only as a shortcut if you have an Option<AstStatement> - e.g. an optional initializer.
-    /// otherwhise use `add_constant_expression`
-    pub fn maybe_add_constant_expression(
-        &mut self,
-        expr: Option<AstStatement>,
-        targe_type_name: &str,
-    ) -> Option<ConstId> {
-        expr.map(|it| self.add_constant_expression(it, targe_type_name.to_string()))
-    }
-
-    /// convinience-method to query for an optional constant expression.
-    /// if the given `id` is `None`, this method returns `None`
-    /// use this only as a shortcut if you have an Option<ConstId> - e.g. an optional initializer.
-    /// otherwhise use `get_constant_expression`
-    pub fn maybe_get_constant_statement(&self, id: &Option<ConstId>) -> Option<&AstStatement> {
-        id.as_ref().and_then(|it| self.get_constant_statement(it))
-    }
-
-    /// query the constants arena for an expression associated with the given `id`
-    pub fn get_constant_statement(&self, id: &ConstId) -> Option<&AstStatement> {
-        self.constant_expressions.find_expression(id)
-    }
-
-    pub fn get_resolved_const_statement(&self, id: &ConstId) -> Option<&ConstExpression> {
-        self.constant_expressions.find_const_expression(id)
-    }
-
-    /// query the constants arena for an expression that can be evaluated to an i128.
-    /// returns an Err if no expression was associated, or the associated expression is a
-    /// complex one (not a LiteralInteger)
-    pub fn get_constant_int_statement_value(&self, id: &ConstId) -> Result<i128, String> {
-        self.get_constant_statement(id)
-            .ok_or_else(|| "Cannot find constant expression".into())
-            .and_then(|it| match it {
-                AstStatement::LiteralInteger { value, .. } => Ok(*value),
-                _ => Err(format!("Cannot extract int constant from {:#?}", it)),
-            })
-    }
-
+    /// returns the mutable reference to all registered ConstExpressions
     pub fn get_mut_const_expressions(&mut self) -> &mut ConstExpressions {
         &mut self.constant_expressions
     }
 
+    /// returns all registered ConstExpressions
     pub fn get_const_expressions(&self) -> &ConstExpressions {
         &self.constant_expressions
-    }
-
-    /// resolves expressions in variable initializers (e.g. `x := OFFSET - SIZE`)
-    /// and data-Type declarations (e.g. `ARRAY[0..LEN-1] OF INT`). It replaces the
-    /// expressions with a Literal-Expression if possible.
-    pub fn try_resolve_pending_const_expressions(&mut self) {
-
-        // resolve constants in global initializers
-        // for global_variable in self.global_variables.values_mut() {
-        //     if let Some(initial) = self.maybe_get_constant_expression(&global_variable.initial_value) {
-        //         if let Ok(Some(resolved_initializer)) =
-        //             resolver::const_evaluator::evaluate(initial, &self.resolved_constants, &self.type_index)
-        //                 .map(|it| {
-        //                     it.map(|it| {
-        //                         it.generate_ast_literal(initial.get_id(), initial.get_location())
-        //                     })
-        //                 })
-        //         {
-        //             global_variable.initial_value = Some(resolved_initializer);
-        //         }
-        //     }
-        // }
-
-        // // resolve dimensions and initializers of data_types
-        // for data_type in self.get_types().values() {
-        //     if let DataTypeInformation::Array{ dimensions, .. } = data_type.get_type_information() {
-        //         for d in dimensions {
-        //             todo!("continue here")
-        //         }
-        //     }
-        // }
-
-        //TODO reimplement using the arena'd const-expressions
     }
 
     fn insert_type(&mut self, type_name: String, data_type: DataType) {

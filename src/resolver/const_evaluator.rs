@@ -13,7 +13,7 @@ use crate::{
     },
 };
 
-macro_rules! cannot_eval {
+macro_rules! cannot_eval_error {
     ($left:expr, $op_text:expr, $right:expr) => {
         Err(format!(
             "Cannot evaluate {:?} {:} {:?}",
@@ -57,7 +57,7 @@ macro_rules! arithmetic_expression {
                     id: *left_id, value: (lvalue $op rvalue).to_string(), location: SourceRange::new(loc_left.get_start() .. loc_right.get_start())
                 })
             },
-            _ => cannot_eval!($left, $op_text, $right),
+            _ => cannot_eval_error!($left, $op_text, $right),
         }
     }
 }
@@ -77,7 +77,7 @@ macro_rules! bitwise_expression {
                     id: *left_id, value: lvalue $op rvalue, location: SourceRange::new(loc_left.get_start() .. loc_right.get_start())
                 })
             },
-            _ => cannot_eval!($left, $op_text, $right),
+            _ => cannot_eval_error!($left, $op_text, $right),
         }
     };
 }
@@ -101,11 +101,13 @@ macro_rules! compare_expression {
                     id: *left_id, value: lvalue $op rvalue, location: SourceRange::new(loc_left.get_start() .. loc_right.get_start())
                 })
             },
-            _ => cannot_eval!($left, $op_text, $right),
+            _ => cannot_eval_error!($left, $op_text, $right),
         }
     }
 }
 
+/// a wrapper for an unresolvable const-expression with the reason
+/// why it could not be resolved
 #[derive(PartialEq, Debug)]
 pub struct UnresolvableConstant {
     pub id: ConstId,
@@ -134,6 +136,9 @@ impl UnresolvableConstant {
     }
 }
 
+/// returns true, if the given expression needs to be evaluated.
+/// literals must not be further evaluated and can be known at
+/// compile time
 fn needs_evaluation(expr: &AstStatement) -> bool {
     match &expr {
         AstStatement::LiteralBool { .. }
@@ -160,26 +165,24 @@ fn needs_evaluation(expr: &AstStatement) -> bool {
 /// returns the resolved constants index and a Vec of qualified names of constants that could not be resolved.
 pub fn evaluate_constants(mut index: Index) -> (Index, Vec<UnresolvableConstant>) {
     let mut unresolvable: Vec<UnresolvableConstant> = Vec::new();
-    // let mut remaining_constants: VecDeque<&VariableIndexEntry> =
-    // all_const_variables.filter(|it| it.is_constant()).collect();
-
     let constants = index.get_const_expressions();
-    //todo should these be references?
-    let mut remaining_constants: VecDeque<ConstId> = constants
-        .into_iter()
-        //.filter(|(_, expr)| needs_evaluation(expr)) //TODO can we optimize this?
-        .map(|(id, _)| id)
-        .collect();
 
-    let mut tries_without_success = 0;
+    //todo should these be references?
+    let mut remaining_constants: VecDeque<ConstId> =
+        constants.into_iter().map(|(id, _)| id).collect();
+
+    //count how many consecutive resolve-attempts failed
+    let mut failed_tries = 0;
     //if we need more tries than entries we cannot solve the issue
     //TODO is can be more efficient
     // - we can know when retries are smart
     // - with recursion, we can remove all of a recursion ring
-    while tries_without_success < remaining_constants.len() {
+    while failed_tries < remaining_constants.len() {
         if let Some(candidate) = remaining_constants.pop_front() {
             if let (Some(const_expr), target_type) = (
-                index.get_resolved_const_statement(&candidate),
+                index
+                    .get_const_expressions()
+                    .find_const_expression(&candidate),
                 index
                     .get_const_expressions()
                     .find_expression_target_type(&candidate),
@@ -222,7 +225,7 @@ pub fn evaluate_constants(mut index: Index) -> (Index, Vec<UnresolvableConstant>
                                 },
                             )
                             .unwrap(); //panic if we dont know the id
-                        tries_without_success = 0;
+                        failed_tries = 0;
                     }
 
                     // we were able to evaluate a valid statement
@@ -238,12 +241,12 @@ pub fn evaluate_constants(mut index: Index) -> (Index, Vec<UnresolvableConstant>
                             .get_mut_const_expressions()
                             .mark_resolved(&candidate, literal)
                             .unwrap(); //panic if we dont know the id
-                        tries_without_success = 0;
+                        failed_tries = 0;
                     }
 
                     // we could not evaluate a valid statement - maybe later?
                     (Ok(None), _) => {
-                        tries_without_success += 1;
+                        failed_tries += 1;
                         remaining_constants.push_back(candidate) //try again later
                     }
 
@@ -356,7 +359,7 @@ pub fn evaluate(initial: &AstStatement, index: &Index) -> Result<Option<AstState
     let literal = match initial {
         AstStatement::CastStatement {
             target, type_name, ..
-        } => Some(get_cast_literal(target, type_name, index)?),
+        } => Some(get_cast_statement_literal(target, type_name, index)?),
         AstStatement::Reference { name, .. } => {
             //TODO respect scoping
             let variable = index.find_global_variable(name);
@@ -489,7 +492,7 @@ pub fn evaluate(initial: &AstStatement, index: &Index) -> Result<Option<AstState
     Ok(literal)
 }
 
-/// attempts to resolve the inital value of the given variable
+/// attempts to resolve the inital value of this reference's target
 /// may return Ok(None) if the variable's initial value can not be
 /// resolved yet
 fn resolve_const_reference(
@@ -504,7 +507,7 @@ fn resolve_const_reference(
     Ok(
         if let Some(ConstExpression::Resolved(statement)) = variable
             .and_then(|it| it.initial_value.as_ref())
-            .and_then(|it| index.get_resolved_const_statement(it))
+            .and_then(|it| index.get_const_expressions().find_const_expression(it))
         {
             Some(statement.clone())
         } else {
@@ -517,8 +520,11 @@ fn is_zero(v: &AstStatement) -> bool {
     matches!(v, AstStatement::LiteralInteger { value: 0, .. })
 }
 
-fn get_cast_literal(
-    initial: &AstStatement,
+/// takes the given cast_statement transform it into a literal that better represents
+/// the data_type given by the `type_name`
+/// (e.g. WORD#FFFF ... =-1 vs. DINT#FFFF ... =0x0000_FFFF)
+fn get_cast_statement_literal(
+    cast_statement: &AstStatement,
     type_name: &str,
     index: &Index,
 ) -> Result<AstStatement, String> {
@@ -527,7 +533,7 @@ fn get_cast_literal(
         .map(DataType::get_type_information)
     {
         Some(&crate::typesystem::DataTypeInformation::Integer { size, signed, .. }) => {
-            let evaluated_initial = evaluate(initial, index)?
+            let evaluated_initial = evaluate(cast_statement, index)?
                 .as_ref()
                 .map(|v| {
                     if let AstStatement::LiteralInteger { value, .. } = v {
@@ -554,26 +560,26 @@ fn get_cast_literal(
                     _ => {
                         return Err(format!(
                             "Cannot resolve constant: {:}#{:?}",
-                            type_name, initial
+                            type_name, cast_statement
                         ))
                     }
                 };
                 Ok(AstStatement::LiteralInteger {
                     value,
-                    id: initial.get_id(),
-                    location: initial.get_location(),
+                    id: cast_statement.get_id(),
+                    location: cast_statement.get_location(),
                 })
             } else {
                 Err(format!(
                     "Cannot resolve constant: {:}#{:?}",
-                    type_name, initial
+                    type_name, cast_statement
                 ))
             }
         }
         //Some(&crate::typesystem::DataTypeInformation::Float{..}) => {},
         _ => Err(format!(
             "Cannot resolve constant: {:}#{:?}",
-            type_name, initial
+            type_name, cast_statement
         )),
     }
 }

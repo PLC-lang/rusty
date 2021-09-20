@@ -74,10 +74,16 @@ fn global_variable_can_be_referenced_in_two_functions() {
 #[test]
 fn global_variables_with_initialization() {
     let function = r"
+    VAR_GLOBAL CONSTANT
+        c_X : INT   := 77;
+        c_Y : BOOL  := TRUE;
+        c_Z : REAL  := 9.1415;
+    END_VAR
+
     VAR_GLOBAL
-        gX : INT := 77;
-        gY : BOOL := TRUE;
-        gZ : REAL := 9.1415;
+        gX : INT := c_X;
+        gY : BOOL := c_Y;
+        gZ : REAL := c_Z;
     END_VAR
     PROGRAM main
         VAR

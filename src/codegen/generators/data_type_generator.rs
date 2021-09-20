@@ -233,6 +233,7 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
     ) -> Option<BasicValueEnum<'ink>> {
         if let Some(initializer) = self
             .index
+            .get_const_expressions()
             .maybe_get_constant_statement(&data_type.initial_value)
         {
             let generator = ExpressionCodeGenerator::new_context_free(
@@ -263,6 +264,7 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
     ) -> Result<Option<BasicValueEnum<'ink>>, CompileError> {
         if let Some(initializer) = self
             .index
+            .get_const_expressions()
             .maybe_get_constant_statement(&data_type.initial_value)
         {
             if predicate(initializer) {

@@ -49,6 +49,39 @@ fn array_assignments() {
 }
 
 #[test]
+fn array_declaration_using_constants() {
+    let function = r"
+        VAR_GLOBAL CONSTANT
+            ONE : INT := 1;
+            LEN : INT := 2 * ONE + ONE;
+            ARRAY_LEN : INT := LEN + 1;
+        END_VAR
+
+        PROGRAM main
+        VAR
+            x : INT;
+            y : INT;
+            z : INT;
+            int_array : ARRAY[ ONE-1 .. ARRAY_LEN] OF INT;
+        END_VAR
+            int_array[0] := 0 + 10;
+            int_array[1] := 1 + 10;
+            int_array[2] := 2 + 10;
+            int_array[3] := 3 + 10;
+            int_array[4] := 4 + 10;
+        END_PROGRAM
+        ";
+
+    let mut maintype = new();
+
+    compile_and_run(function.to_string(), &mut maintype);
+
+    for index in 0..5 {
+        assert_eq!((index + 10) as i16, maintype.int_array[index]);
+    }
+}
+
+#[test]
 fn matrix_array_assignments() {
     let function = r"
         PROGRAM main

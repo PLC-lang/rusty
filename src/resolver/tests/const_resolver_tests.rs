@@ -23,15 +23,34 @@ macro_rules! global {
     };
 }
 
+fn find_member_value<'a>(index: &'a Index, pou: &str, reference: &str) -> Option<&'a AstStatement> {
+    index.find_member(pou, reference).and_then(|it| {
+        index
+            .get_const_expressions()
+            .maybe_get_constant_statement(&it.initial_value)
+    })
+}
+
 fn find_connstant_value<'a>(index: &'a Index, reference: &str) -> Option<&'a AstStatement> {
-    index
-        .find_global_variable(reference)
-        .and_then(|it| index.maybe_get_constant_statement(&it.initial_value))
+    index.find_global_variable(reference).and_then(|it| {
+        index
+            .get_const_expressions()
+            .maybe_get_constant_statement(&it.initial_value)
+    })
 }
 
 fn create_int_literal(v: i128) -> AstStatement {
     AstStatement::LiteralInteger {
         value: v,
+        id: 0,
+        location: SourceRange::undefined(),
+    }
+}
+
+fn create_string_literal(v: &str, wide: bool) -> AstStatement {
+    AstStatement::LiteralString {
+        value: v.to_string(),
+        is_wide: wide,
         id: 0,
         location: SourceRange::undefined(),
     }
@@ -184,6 +203,53 @@ fn non_const_references_to_int_compile_time_evaluation() {
             UnresolvableConstant::incomplete_initialzation(&global!(index, "incomplete")), //this one is fine, but one depency cannot be resolved
         ],
         unresolvable
+    );
+}
+
+#[test]
+fn prg_members_initials_compile_time_evaluation() {
+    // GIVEN some member variables with const initializers
+    let (_, index) = parse(
+        "
+        VAR_GLOBAL CONSTANT
+            TWO : INT := 2;
+            FIVE : INT := TWO * 2 + 1;
+            C_STR : STRING := 'hello world';
+        END_VAR
+
+        PROGRAM plc_prg
+            VAR_INPUT
+                a : INT := TWO;
+                b : INT := TWO + 4;
+                c : INT := FIVE;
+                str : STRING := C_STR;
+            END_VAR
+        END_PROGRAM
+       END_VAR
+        ",
+    );
+
+    // WHEN compile-time evaluation is applied
+    let (index, unresolvable) = evaluate_constants(index);
+
+    // THEN everything got resolved
+    debug_assert_eq!(EMPTY, unresolvable);
+    // AND the program-members got their correct initial-literals
+    debug_assert_eq!(
+        &create_int_literal(2),
+        find_member_value(&index, "plc_prg", "a").unwrap()
+    );
+    debug_assert_eq!(
+        &create_int_literal(6),
+        find_member_value(&index, "plc_prg", "b").unwrap()
+    );
+    debug_assert_eq!(
+        &create_int_literal(5),
+        find_member_value(&index, "plc_prg", "c").unwrap()
+    );
+    debug_assert_eq!(
+        &create_string_literal("hello world", false),
+        find_member_value(&index, "plc_prg", "str").unwrap()
     );
 }
 
@@ -541,7 +607,9 @@ fn const_references_int_float_type_behavior_evaluation() {
         .get_globals()
         .values()
         .filter(|it| {
-            let const_expr = index.get_resolved_const_statement(it.initial_value.as_ref().unwrap());
+            let const_expr = index
+                .get_const_expressions()
+                .find_const_expression(it.initial_value.as_ref().unwrap());
             matches!(const_expr, Some(ConstExpression::Unresolvable { .. }))
         })
         .map(|it| it.get_qualified_name())
