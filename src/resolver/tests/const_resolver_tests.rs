@@ -80,7 +80,7 @@ fn const_references_to_int_compile_time_evaluation() {
     // WHEN compile-time evaluation is applied
     let (index, unresolvable) = evaluate_constants(index);
 
-    // THEN a,b,and c got their correct initial-literals
+    // THEN a to f got their correct initial-literals
     debug_assert_eq!(EMPTY, unresolvable);
     debug_assert_eq!(
         &create_int_literal(4),
@@ -105,6 +105,121 @@ fn const_references_to_int_compile_time_evaluation() {
     debug_assert_eq!(
         &create_real_literal(4.0),
         find_connstant_value(&index, "f").unwrap()
+    );
+}
+
+#[test]
+fn local_const_references_to_int_compile_time_evaluation() {
+    // GIVEN some INT index used as initializers
+    let (_, index) = parse(
+        "
+        PROGRAM prg 
+            VAR CONSTANT
+                iX : INT := 4;
+                rX : LREAL := 4.2;
+           END_VAR
+        END_PROGRAM
+
+        VAR_GLOBAL CONSTANT
+            a : INT := prg.iX;
+            b : LREAL := prg.rX;
+       END_VAR
+        ",
+    );
+
+    // WHEN compile-time evaluation is applied
+    let (index, unresolvable) = evaluate_constants(index);
+
+    // THEN a to f got their correct initial-literals
+    debug_assert_eq!(EMPTY, unresolvable);
+    debug_assert_eq!(
+        &create_int_literal(4),
+        find_connstant_value(&index, "a").unwrap()
+    );
+    debug_assert_eq!(
+        &create_real_literal(4.2),
+        find_connstant_value(&index, "b").unwrap()
+    );
+}
+
+#[test]
+fn non_const_references_to_int_compile_time_evaluation() {
+    // GIVEN some global consts
+    // AND some NON-constants
+    let (_, index) = parse(
+        "VAR_GLOBAL CONSTANT
+            iX : INT := 2;
+        END_VAR
+
+        VAR_GLOBAL
+            a : INT := 3;
+            b : INT := 4;
+        END_VAR
+        
+        VAR_GLOBAL CONSTANT
+            ok      : INT := iX;
+            nok_a   : INT := iX + a;
+            nok_b   : INT := iX + b;
+
+            temp        : INT := a;
+            incomplete  : INT := temp;
+        END_VAR
+        ",
+    );
+
+    // WHEN compile-time evaluation is applied
+    let (index, unresolvable) = evaluate_constants(index);
+
+    // THEN a to f got their correct initial-literals
+    debug_assert_eq!(
+        &create_int_literal(2),
+        find_connstant_value(&index, "ok").unwrap()
+    );
+
+    debug_assert_eq!(
+        vec![
+            UnresolvableConstant::new(global!(index, "nok_a"), "'a' is no const reference"),
+            UnresolvableConstant::new(global!(index, "nok_b"), "'b' is no const reference"),
+            UnresolvableConstant::new(global!(index, "temp"), "'a' is no const reference"),
+            UnresolvableConstant::incomplete_initialzation(&global!(index, "incomplete")), //this one is fine, but one depency cannot be resolved
+        ],
+        unresolvable
+    );
+}
+
+#[test]
+fn const_references_to_negative_reference() {
+    // GIVEN some INT index used as initializers
+    let (_, index) = parse(
+        "VAR_GLOBAL CONSTANT
+            iX : INT := 4;
+            rX : LREAL := 4.2;
+        END_VAR
+        
+        VAR_GLOBAL CONSTANT
+            a : INT := -iX;
+            b : LREAL := -rX;
+            c : INT := -5;
+       END_VAR
+        ",
+    );
+
+    // WHEN compile-time evaluation is applied
+    let (index, unresolvable) = evaluate_constants(index);
+
+    // THEN a,b,and c got their correct initial-literals
+    debug_assert_eq!(EMPTY, unresolvable);
+    debug_assert_eq!(
+        &create_int_literal(-4),
+        find_connstant_value(&index, "a").unwrap()
+    );
+    debug_assert_eq!(
+        &create_real_literal(-4.2),
+        find_connstant_value(&index, "b").unwrap()
+    );
+    debug_assert_eq!(
+        &create_int_literal(-5),
+        find_connstant_value(&index, "c").unwrap()
     );
 }
 
@@ -397,7 +512,7 @@ fn const_references_int_float_type_behavior_evaluation() {
     );
 
     // WHEN compile-time evaluation is applied
-    let (index, unresolvable) = evaluate_constants(index);
+    let (index, _) = evaluate_constants(index);
 
     // THEN some type mixed comparisons could not be resolved (note that real == real or real <> real also dont work)
     let mut expected = vec![

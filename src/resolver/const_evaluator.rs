@@ -359,17 +359,25 @@ pub fn evaluate(initial: &AstStatement, index: &Index) -> Result<Option<AstState
         } => Some(get_cast_literal(target, type_name, index)?),
         AstStatement::Reference { name, .. } => {
             //TODO respect scoping
-            let resolved = index
-                .find_global_variable(name)
-                .and_then(|it| it.initial_value.as_ref())
-                .and_then(|it| index.get_resolved_const_statement(it));
-
-            //only returned already resolved expression
-            if let Some(ConstExpression::Resolved(statement)) = resolved {
-                Some(statement.clone())
-            } else {
-                None
+            let variable = index.find_global_variable(name);
+            resolve_const_reference(variable, name, index)?
+        }
+        AstStatement::QualifiedReference { elements, .. } => {
+            // we made sure that there are exactly two references
+            if elements.len() == 2 {
+                if let (
+                    AstStatement::Reference { name: pou_name, .. },
+                    AstStatement::Reference {
+                        name: variable_name,
+                        ..
+                    },
+                ) = (&elements[0], &elements[1])
+                {
+                    let variable = index.find_member(pou_name, variable_name);
+                    return resolve_const_reference(variable, variable_name, index);
+                }
             }
+            return Err("Qualified references only allow references to qualified variables in the form of 'POU.variable'".to_string());
         }
         AstStatement::BinaryExpression {
             left,
@@ -414,6 +422,8 @@ pub fn evaluate(initial: &AstStatement, index: &Index) -> Result<Option<AstState
                 None //not all operators can be resolved
             }
         }
+
+        // NOT x
         AstStatement::UnaryExpression {
             operator: Operator::Not,
             value,
@@ -437,11 +447,70 @@ pub fn evaluate(initial: &AstStatement, index: &Index) -> Result<Option<AstState
                 id,
                 location,
             }),
-            _ => return Err(format!("Cannot resolve constant NOT {:?}", value)),
+            None => {
+                None //not yet resolvable
+            }
+            _ => return Err(format!("Cannot resolve constant Not {:?}", value)),
+        },
+        // - x
+        AstStatement::UnaryExpression {
+            operator: Operator::Minus,
+            value,
+            ..
+        } => match evaluate(value, index)? {
+            Some(AstStatement::LiteralInteger {
+                value: v,
+                id,
+                location,
+            }) => Some(AstStatement::LiteralInteger {
+                value: -v,
+                id,
+                location,
+            }),
+            Some(AstStatement::LiteralReal {
+                value: v,
+                id,
+                location,
+            }) => Some(AstStatement::LiteralReal {
+                value: format!(
+                    "{:}",
+                    -(v.parse::<f64>()).map_err(|err| format!("{:}: {:}", err.to_string(), v))?
+                ),
+                id,
+                location,
+            }),
+            None => {
+                None //not yet resolvable
+            }
+            _ => return Err(format!("Cannot resolve constant Minus {:?}", value)),
         },
         _ => return Err(format!("Cannot resolve constant: {:#?}", initial)),
     };
     Ok(literal)
+}
+
+/// attempts to resolve the inital value of the given variable
+/// may return Ok(None) if the variable's initial value can not be
+/// resolved yet
+fn resolve_const_reference(
+    variable: Option<&crate::index::VariableIndexEntry>,
+    name: &str,
+    index: &Index,
+) -> Result<Option<AstStatement>, String> {
+    if variable.filter(|it| !it.is_constant()).is_some() {
+        //the referenced variable is no const!
+        return Err(format!("'{:}' is no const reference", name));
+    }
+    Ok(
+        if let Some(ConstExpression::Resolved(statement)) = variable
+            .and_then(|it| it.initial_value.as_ref())
+            .and_then(|it| index.get_resolved_const_statement(it))
+        {
+            Some(statement.clone())
+        } else {
+            None
+        },
+    )
 }
 
 fn is_zero(v: &AstStatement) -> bool {
