@@ -1,5 +1,5 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-use crate::compile_and_run;
+use crate::compile_and_run_i32;
 
 #[allow(dead_code)]
 #[repr(C)]
@@ -35,7 +35,7 @@ END_FUNCTION
 
     let mut maintype = MainType {};
 
-    let (res, _) = compile_and_run(function.to_string(), &mut maintype);
+    let (res, _) = compile_and_run_i32(function.to_string(), &mut maintype);
 
     assert_eq!(36, res);
 }

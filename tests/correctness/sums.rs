@@ -28,7 +28,7 @@ fn int_division_in_result() {
     END_FUNCTION
     ";
 
-    let (res, _) = compile_and_run(prog.to_string(), &mut MainType { ret: 0 });
+    let (res, _) = compile_and_run::<_,i32>(prog.to_string(), &mut MainType { ret: 0 });
     assert_eq!(res, 300)
 }
 
@@ -41,6 +41,6 @@ fn real_division_in_result() {
     END_FUNCTION
     ";
 
-    let (res, _) = compile_and_run(prog.to_string(), &mut MainType { ret: 0 });
+    let (res, _) = compile_and_run::<_,i32>(prog.to_string(), &mut MainType { ret: 0 });
     assert_eq!(res, 333)
 }

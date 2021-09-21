@@ -43,7 +43,7 @@ fn using_structs() {
     END_PROGRAM
     "#;
 
-    compile_and_run(testcode.to_string(), &mut main_data);
+    compile_and_run_i32(testcode.to_string(), &mut main_data);
     assert_eq!(3, main_data.my_s.field1);
     assert_eq!(7, main_data.my_s.field2);
     assert_eq!(10, main_data.my_s.field3);
@@ -129,7 +129,7 @@ fn using_nested_structs() {
     END_PROGRAM
     "#;
 
-    compile_and_run(testcode.to_string(), &mut main_data);
+    compile_and_run_i32(testcode.to_string(), &mut main_data);
     assert_eq!(11, main_data.my_s.mys1.field1);
     assert_eq!(12, main_data.my_s.mys1.field2);
     assert_eq!(13, main_data.my_s.mys1.field3);
@@ -174,7 +174,7 @@ fn using_enums() {
     END_PROGRAM
     "#;
 
-    compile_and_run(testcode.to_string(), &mut d);
+    compile_and_run_i32(testcode.to_string(), &mut d);
     assert_eq!(1, d.field1);
     assert_eq!(2, d.field2);
     assert_eq!(3, d.field3);
@@ -211,7 +211,7 @@ fn using_inline_enums() {
     END_PROGRAM
     "#;
 
-    compile_and_run(testcode.to_string(), &mut d);
+    compile_and_run_i32(testcode.to_string(), &mut d);
     assert_eq!(1, d.field1);
     assert_eq!(2, d.field2);
     assert_eq!(3, d.field3);
@@ -253,7 +253,7 @@ fn using_inline_enums_in_structs() {
     END_PROGRAM
     "#;
 
-    compile_and_run(testcode.to_string(), &mut data);
+    compile_and_run_i32(testcode.to_string(), &mut data);
     assert_eq!(2, data.tf1); //yellow
     assert_eq!(3, data.tf2); //green
     assert_eq!(2, data.tf3); //yellow
@@ -301,7 +301,7 @@ fn using_inline_arrays_in_structs() {
     END_PROGRAM
     "#;
 
-    compile_and_run(testcode.to_string(), &mut data);
+    compile_and_run_i32(testcode.to_string(), &mut data);
     assert_eq!([0, 1, 2, 3], data.arr1);
     assert_eq!([0, 10, 20, 30, 0, 0, 0, 77], data.arr2);
     assert_eq!([77, 0, -1], data.arr3);
@@ -329,7 +329,7 @@ fn using_arrays() {
     END_PROGRAM
     "#;
 
-    compile_and_run(testcode.to_string(), &mut main);
+    compile_and_run_i32(testcode.to_string(), &mut main);
     for (i, j) in main.arr.iter_mut().enumerate() {
         assert_eq!(i as i32, *j);
     }
