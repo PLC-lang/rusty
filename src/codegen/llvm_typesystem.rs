@@ -284,12 +284,20 @@ pub fn cast_if_needed<'ctx>(
             DataTypeInformation::String {
                 size: value_size, ..
             } => {
+                let size = size
+                    .as_int_value(index)
+                    .map_err(|msg| CompileError::codegen_error(msg, SourceRange::undefined()))?
+                    as u32;
+                let value_size = value_size
+                    .as_int_value(index)
+                    .map_err(|msg| CompileError::codegen_error(msg, SourceRange::undefined()))?
+                    as u32;
                 if size < value_size {
                     //if we are on a vector replace it
                     if value.is_vector_value() {
                         let vec_value = value.into_vector_value();
                         let string_value = vec_value.get_string_constant().to_bytes();
-                        let new_value = &string_value[0..(*size - 1) as usize];
+                        let new_value = &string_value[0..(size - 1) as usize];
                         let (_, value) = llvm.create_llvm_const_vec_string(new_value)?;
                         Ok(value)
                     } else {

@@ -22,7 +22,7 @@ encoding_rs = "0.8"
 encoding_rs_io = "0.1"
 codespan-reporting = "0.11.1"
 mun_lld = "110.0.0"
-
+generational-arena = "0.2.8"
 
 [lib]
 name = "rusty"

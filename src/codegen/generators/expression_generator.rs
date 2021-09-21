@@ -3,7 +3,7 @@ use crate::{
     ast::{Pou, SourceRange},
     index::{ImplementationType, Index},
     resolver::{AnnotationMap, StatementAnnotation},
-    typesystem::{StringEncoding, DINT_TYPE, LINT_TYPE, LREAL_TYPE},
+    typesystem::{Dimension, StringEncoding, DINT_TYPE, LINT_TYPE, LREAL_TYPE},
 };
 use inkwell::{
     basic_block::BasicBlock,
@@ -14,10 +14,10 @@ use inkwell::{
     },
     AddressSpace, FloatPredicate, IntPredicate,
 };
-use std::collections::HashSet;
+use std::{collections::HashSet, convert::TryInto};
 
 use crate::{
-    ast::{flatten_expression_list, AstStatement, Dimension, Operator},
+    ast::{flatten_expression_list, AstStatement, Operator},
     codegen::{
         llvm_index::LlvmTypedIndex,
         llvm_typesystem::{cast_if_needed, get_llvm_int_type, promote_if_needed},
@@ -250,15 +250,58 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
         //Generate a load for the qualifer
         let (expression_type, value) = self.generate_expression(&expression)?;
         if let AstStatement::DirectAccess { access, index, .. } = last {
+            let datatype = self
+                .annotations
+                .get_type_or_void(last, self.index)
+                .clone_type_information();
             //Generate and load the index value
-            let index = access.to_bits(*index);
-            let datatype = self.annotations.get_type_or_void(last, self.index);
-            let rhs = self
-                .llvm_index
-                .get_associated_type(expression_type.get_name())
-                .unwrap()
-                .into_int_type()
-                .const_int(index.into(), false);
+            let rhs = match &**index {
+                AstStatement::LiteralInteger { value, .. } => {
+                    //Convert into the target literal
+                    let bitwidth = access.get_bit_width();
+                    let value: u64 = (*value).try_into().unwrap_or_default();
+                    let index = bitwidth * value;
+                    let rhs = self
+                        .llvm_index
+                        .get_associated_type(expression_type.get_name())
+                        .unwrap()
+                        .into_int_type()
+                        .const_int(index, false);
+                    rhs
+                }
+                AstStatement::Reference { location, .. } => {
+                    //Load the reference
+                    let (target_type, reference) = self.generate_expression(index)?;
+                    if reference.is_int_value() {
+                        let reference = cast_if_needed(
+                            self.llvm,
+                            self.index,
+                            &expression_type,
+                            reference,
+                            &target_type,
+                            index,
+                        )
+                        .map(BasicValueEnum::into_int_value)?;
+                        //Multiply by the bitwitdh
+                        if access.get_bit_width() > 1 {
+                            let bitwidth = reference
+                                .get_type()
+                                .const_int(access.get_bit_width(), datatype.is_signed_int());
+
+                            self.llvm.builder.build_int_mul(reference, bitwidth, "")
+                        } else {
+                            reference
+                        }
+                    } else {
+                        return Err(CompileError::casting_error(
+                            datatype.get_name(),
+                            "Integer Type",
+                            location.clone(),
+                        ));
+                    }
+                }
+                _ => unreachable!("Unexpected index : {:?}", *index),
+            };
             //Shift the qualifer value right by the index value
             let shift = self.llvm.builder.build_right_shift(
                 value.into_int_value(),
@@ -276,10 +319,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                 self.llvm
                     .builder
                     .build_int_truncate_or_bit_cast(shift, llvm_target_type, "");
-            Ok((
-                datatype.get_type_information().clone(),
-                result.as_basic_value_enum(),
-            ))
+            Ok((datatype, result.as_basic_value_enum()))
         } else {
             unreachable!()
             // Err(CompileError::codegen_error(
@@ -944,13 +984,17 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
         dimension: &Dimension,
         access_expression: &AstStatement,
     ) -> Result<IntValue<'a>, CompileError> {
-        let start_offset = dimension.start_offset;
+        let start_offset = dimension
+            .start_offset
+            .as_int_value(self.index)
+            .map_err(|it| CompileError::codegen_error(it, access_expression.get_location()))?;
+
         let (_, access_value) = self.generate_expression(access_expression)?;
         //If start offset is not 0, adjust the current statement with an add operation
         if start_offset != 0 {
             Ok(self.llvm.builder.build_int_sub(
                 access_value.into_int_value(),
-                self.llvm.i32_type().const_int(start_offset as u64, true),
+                self.llvm.i32_type().const_int(start_offset as u64, true), //TODO error handling for cast
                 "",
             ))
         } else {
