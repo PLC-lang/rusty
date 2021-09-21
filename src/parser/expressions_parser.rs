@@ -12,7 +12,6 @@ use std::str::FromStr;
 macro_rules! parse_left_associative_expression {
     ($lexer: expr, $action : expr,
         $( $pattern:pat_param )|+,
-        // $operator: expr
     ) => {
         {
             let mut left = $action($lexer);
@@ -84,100 +83,35 @@ pub(crate) fn parse_range_statement(lexer: &mut ParseSession) -> AstStatement {
 
 // OR
 fn parse_or_expression(lexer: &mut ParseSession) -> AstStatement {
-    let left = parse_xor_expression(lexer);
-
-    let operator = match lexer.token {
-        OperatorOr => Operator::Or,
-        _ => return left,
-    };
-
-    lexer.advance();
-
-    let right = parse_or_expression(lexer);
-    AstStatement::BinaryExpression {
-        operator,
-        left: Box::new(left),
-        right: Box::new(right),
-        id: lexer.next_id(),
-    }
+    parse_left_associative_expression!(lexer, parse_xor_expression, OperatorOr,)
 }
 
 // XOR
 fn parse_xor_expression(lexer: &mut ParseSession) -> AstStatement {
-    let left = parse_and_expression(lexer);
-
-    let operator = match lexer.token {
-        OperatorXor => Operator::Xor,
-        _ => return left,
-    };
-
-    lexer.advance();
-
-    let right = parse_xor_expression(lexer);
-    AstStatement::BinaryExpression {
-        operator,
-        left: Box::new(left),
-        right: Box::new(right),
-        id: lexer.next_id(),
-    }
+    parse_left_associative_expression!(lexer, parse_and_expression, OperatorXor,)
 }
 
 // AND
 fn parse_and_expression(lexer: &mut ParseSession) -> AstStatement {
-    let left = parse_equality_expression(lexer);
-
-    let operator = match lexer.token {
-        OperatorAnd => Operator::And,
-        _ => return left,
-    };
-
-    lexer.advance();
-
-    let right = parse_and_expression(lexer);
-    AstStatement::BinaryExpression {
-        operator,
-        left: Box::new(left),
-        right: Box::new(right),
-        id: lexer.next_id(),
-    }
+    parse_left_associative_expression!(lexer, parse_equality_expression, OperatorAnd,)
 }
 
 //EQUALITY  =, <>
 fn parse_equality_expression(lexer: &mut ParseSession) -> AstStatement {
-    let left = parse_compare_expression(lexer);
-    let operator = match lexer.token {
-        OperatorEqual => Operator::Equal,
-        OperatorNotEqual => Operator::NotEqual,
-        _ => return left,
-    };
-    lexer.advance();
-    let right = parse_equality_expression(lexer);
-    AstStatement::BinaryExpression {
-        operator,
-        left: Box::new(left),
-        right: Box::new(right),
-        id: lexer.next_id(),
-    }
+    parse_left_associative_expression!(
+        lexer,
+        parse_compare_expression,
+        OperatorEqual | OperatorNotEqual,
+    )
 }
 
 //COMPARE <, >, <=, >=
 fn parse_compare_expression(lexer: &mut ParseSession) -> AstStatement {
-    let left = parse_additive_expression(lexer);
-    let operator = match lexer.token {
-        OperatorLess => Operator::Less,
-        OperatorGreater => Operator::Greater,
-        OperatorLessOrEqual => Operator::LessOrEqual,
-        OperatorGreaterOrEqual => Operator::GreaterOrEqual,
-        _ => return left,
-    };
-    lexer.advance();
-    let right = parse_compare_expression(lexer);
-    AstStatement::BinaryExpression {
-        operator,
-        left: Box::new(left),
-        right: Box::new(right),
-        id: lexer.next_id(),
-    }
+    parse_left_associative_expression!(
+        lexer,
+        parse_additive_expression,
+        OperatorLess | OperatorGreater | OperatorLessOrEqual | OperatorGreaterOrEqual,
+    )
 }
 
 // Addition +, -
