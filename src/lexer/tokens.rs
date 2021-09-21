@@ -1,5 +1,7 @@
 use logos::Logos;
 
+use crate::ast::DirectAccessType;
+
 #[derive(Debug, PartialEq, Logos, Clone)]
 pub enum Token {
     #[error]
@@ -348,8 +350,8 @@ pub enum Token {
     #[regex("T(IME)?#-?(\\d+(\\.\\d+)?(d|h|ms|m|s|us|ns))+", ignore(case))]
     LiteralTime,
 
-    #[regex("%(B|b|D|d|W|w|X|x)[0-9]+")]
-    DirectAccess,
+    #[regex("%(B|b|D|d|W|w|X|x)", super::parse_access_type)]
+    DirectAccess(DirectAccessType),
 
     #[regex("'((\\$.)|[^$'])*'")]
     LiteralString,

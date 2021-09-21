@@ -7,6 +7,7 @@ type MainFunction<T> = unsafe extern "C" fn(*mut T) -> i32;
 
 mod correctness {
     mod arrays;
+    mod bitaccess;
     mod classes;
     mod control_flow;
     mod custom_datatypes;
@@ -55,6 +56,7 @@ pub fn compile(context: &Context, source: String) -> ExecutionEngine {
         source,
     };
     let code_gen = compile_module(context, vec![source], None).unwrap();
+    println!("{}", code_gen.module.print_to_string());
     code_gen
         .module
         .create_jit_execution_engine(inkwell::OptimizationLevel::None)

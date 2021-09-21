@@ -15,6 +15,7 @@ fn bitaccess_only_on_bit_types() {
 
             invalid.1;
             invalid2.1;
+            valid.1.2; (*Invalid*)
             valid.1;
             valid2.1;
             valid3.1;
@@ -27,6 +28,7 @@ fn bitaccess_only_on_bit_types() {
         vec![
             Diagnostic::incompatible_directaccess("Bit", 1, (223..224).into()),
             Diagnostic::incompatible_directaccess("Bit", 1, (247..248).into()),
+            Diagnostic::incompatible_directaccess("Bit", 1, (270..271).into()),
         ]
     );
 }
@@ -217,5 +219,29 @@ fn dwordaccess_range_test() {
             0..1,
             (107..110).into()
         ),]
+    );
+}
+
+#[test]
+fn reference_direct_access_only_with_ints() {
+    let diagnostics = parse_and_validate(
+        "
+            PROGRAM prg
+            VAR 
+                c : DWORD; d : INT; e : LREAL; f : REAL;
+            END_VAR
+                c.%Xd;
+                c.%Xe;
+                c.%Xf;
+           END_PROGRAM
+       ",
+    );
+
+    assert_eq!(
+        diagnostics,
+        vec![
+            Diagnostic::incompatible_directaccess_variable("LREAL", (160..163).into()),
+            Diagnostic::incompatible_directaccess_variable("REAL", (183..186).into()),
+        ]
     );
 }

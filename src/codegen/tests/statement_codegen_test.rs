@@ -195,23 +195,24 @@ END_PROGRAM
     assert_eq!(result, expected);
 }
 
-#[ignore = "Not yet implemented"]
 #[test]
 fn variable_based_bitwise_access() {
     let result = codegen!(
         r#"PROGRAM prg
 VAR
 a : BOOL;
+b : BYTE;
 x : INT;
 y : INT;
 END_VAR
-a := x.y;
+a := x.%Xy;
+b := x.%By;
 END_PROGRAM
 "#
     );
     let expected = generate_program_boiler_plate(
         "prg",
-        &[("i1", "a"), ("i16", "x"), ("i16", "y")],
+        &[("i1", "a"), ("i8", "b"), ("i16", "x"), ("i16", "y")],
         "void",
         "",
         "",
@@ -220,6 +221,12 @@ END_PROGRAM
   %shift = ashr i16 %load_x, %load_y
   %1 = trunc i16 %shift to i1
   store i1 %1, i1* %a, align 1
+  %load_x1 = load i16, i16* %x, align 2
+  %load_y2 = load i16, i16* %y, align 2
+  %2 = mul i16 %load_y2, 8
+  %shift3 = ashr i16 %load_x1, %2
+  %3 = trunc i16 %shift3 to i8
+  store i8 %3, i8* %b, align 1
   ret void
 "#,
     );

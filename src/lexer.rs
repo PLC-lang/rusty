@@ -9,6 +9,7 @@ use std::sync::Arc;
 pub use tokens::Token;
 
 use crate::ast::AstId;
+use crate::ast::DirectAccessType;
 use crate::ast::SourceRange;
 use crate::Diagnostic;
 
@@ -280,6 +281,27 @@ fn get_closing_tag(open_tag: &str) -> (char, char) {
         "/*" => ('/', '/'),
         _ => unreachable!(),
     }
+}
+
+fn parse_access_type(lexer: &mut Lexer<Token>) -> Option<DirectAccessType> {
+    //Percent is at position 0
+    //Find the size from position 1
+    let access = lexer
+        .slice()
+        .chars()
+        .nth(1)
+        .and_then(|c| match c.to_ascii_lowercase() {
+            'x' => Some(crate::ast::DirectAccessType::Bit),
+            'b' => Some(crate::ast::DirectAccessType::Byte),
+            'w' => Some(crate::ast::DirectAccessType::Word),
+            'd' => Some(crate::ast::DirectAccessType::DWord),
+            _ => {
+                unreachable!()
+            }
+        })
+        .unwrap(); //Cannot fail
+
+    Some(access)
 }
 
 #[derive(Clone)]

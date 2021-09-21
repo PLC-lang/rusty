@@ -1,12 +1,12 @@
-use std::mem::discriminant;
+use std::{convert::TryInto, mem::discriminant};
 
 use super::ValidationContext;
 use crate::{
-    ast::{AstStatement, SourceRange},
+    ast::{AstStatement, DirectAccessType, SourceRange},
     typesystem::{
-        BOOL_TYPE, DATE_AND_TIME_TYPE, DATE_TYPE, DINT_TYPE, INT_TYPE, LINT_TYPE, LREAL_TYPE,
-        SINT_TYPE, STRING_TYPE, TIME_OF_DAY_TYPE, TIME_TYPE, UDINT_TYPE, UINT_TYPE, ULINT_TYPE,
-        USINT_TYPE, VOID_TYPE, WSTRING_TYPE,
+        DataTypeInformation, BOOL_TYPE, DATE_AND_TIME_TYPE, DATE_TYPE, DINT_TYPE, INT_TYPE,
+        LINT_TYPE, LREAL_TYPE, SINT_TYPE, STRING_TYPE, TIME_OF_DAY_TYPE, TIME_TYPE, UDINT_TYPE,
+        UINT_TYPE, ULINT_TYPE, USINT_TYPE, VOID_TYPE, WSTRING_TYPE,
     },
     Diagnostic,
 };
@@ -66,29 +66,65 @@ impl StatementValidator {
                         if !access.is_compatible(target_type) {
                             self.diagnostics.push(Diagnostic::incompatible_directaccess(
                                 &format!("{:?}", access),
-                                access.get_bit_witdh(),
+                                access.get_bit_width(),
                                 location.clone(),
                             ))
-                        } else if !access.is_in_range(*index, target_type) {
-                            self.diagnostics
-                                .push(Diagnostic::incompatible_directaccess_range(
-                                    &format!("{:?}", access),
-                                    target_type.get_name(),
-                                    access.get_range(target_type),
-                                    location.clone(),
-                                ))
+                        } else {
+                            self.validate_access_index(
+                                context,
+                                index,
+                                access,
+                                target_type,
+                                location,
+                            );
                         }
                     } else {
                         //Report incompatible type issue
                         self.diagnostics.push(Diagnostic::incompatible_directaccess(
                             &format!("{:?}", access),
-                            access.get_bit_witdh(),
+                            access.get_bit_width(),
                             location.clone(),
                         ))
                     }
                 }
             }
             _ => (),
+        }
+    }
+
+    fn validate_access_index(
+        &mut self,
+        context: &ValidationContext,
+        access_index: &AstStatement,
+        access_type: &DirectAccessType,
+        target_type: &DataTypeInformation,
+        location: &SourceRange,
+    ) {
+        match *access_index {
+            AstStatement::LiteralInteger { value, .. } => {
+                if !access_type.is_in_range(value.try_into().unwrap_or_default(), target_type) {
+                    self.diagnostics
+                        .push(Diagnostic::incompatible_directaccess_range(
+                            &format!("{:?}", access_type),
+                            target_type.get_name(),
+                            access_type.get_range(target_type),
+                            location.clone(),
+                        ))
+                }
+            }
+            AstStatement::Reference { .. } => {
+                let ref_type = context
+                    .ast_annotation
+                    .get_type_or_void(access_index, context.index);
+                if !ref_type.get_type_information().is_int() {
+                    self.diagnostics
+                        .push(Diagnostic::incompatible_directaccess_variable(
+                            ref_type.get_name(),
+                            location.clone(),
+                        ))
+                }
+            }
+            _ => unreachable!(),
         }
     }
 
