@@ -384,29 +384,18 @@ pub fn parse_qualified_reference(lexer: &mut ParseSession) -> Result<AstStatemen
         let segment = match lexer.token {
             //Is this an integer?
             LiteralInteger => {
-                let number = parse_literal_number(lexer, false)?;
-                if let AstStatement::LiteralInteger {
-                    value,
+                let number = parse_strict_literal_integer(lexer)?;
+                let location = number.get_location().clone();
+                let id = number.get_id();
+                Ok(AstStatement::DirectAccess {
+                    access: crate::ast::DirectAccessType::Bit,
+                    index: Box::new(number),
                     location,
                     id,
-                } = number
-                {
-                    Ok(AstStatement::DirectAccess {
-                        access: crate::ast::DirectAccess::Bit,
-                        index: value as u32,
-                        location,
-                        id,
-                    })
-                } else {
-                    Err(Diagnostic::unexpected_token_found(
-                        "Integer",
-                        format!("{:?}", number).as_str(),
-                        number.get_location(),
-                    ))
-                }
+                })
             }
             //Is this a direct access?
-            DirectAccess => parse_direct_access(lexer),
+            DirectAccess(access) => parse_direct_access(lexer, access),
             _ => parse_reference_access(lexer),
         }?;
 
@@ -448,31 +437,29 @@ pub fn parse_qualified_reference(lexer: &mut ParseSession) -> Result<AstStatemen
     }
 }
 
-fn parse_direct_access(lexer: &mut ParseSession) -> Result<AstStatement, Diagnostic> {
-    let slice = lexer.slice_and_advance();
-    //Percent is at position 0
-    //Find the size from position 1
-    let access = slice
-        .chars()
-        .nth(1)
-        .and_then(|c| match c.to_ascii_lowercase() {
-            'x' => Some(crate::ast::DirectAccess::Bit),
-            'b' => Some(crate::ast::DirectAccess::Byte),
-            'w' => Some(crate::ast::DirectAccess::Word),
-            'd' => Some(crate::ast::DirectAccess::DWord),
-            _ => {
-                unreachable!()
-            }
-        })
-        .unwrap(); //Cannot fail
+fn parse_direct_access(
+    lexer: &mut ParseSession,
+    access: DirectAccessType,
+) -> Result<AstStatement, Diagnostic> {
+    //Consume the direct access
+    let location = lexer.location();
+    lexer.advance();
+    //The next token can either be an integer or an identifier
+    let index = match lexer.token {
+        LiteralInteger => parse_strict_literal_integer(lexer),
+        Identifier => parse_reference_access(lexer),
+        _ => Err(Diagnostic::unexpected_token_found(
+            "Integer or Reference",
+            lexer.slice(),
+            lexer.location(),
+        )),
+    }?;
 
-    let (_, index) = slice.split_at(2);
-    let index = index.parse::<u32>().unwrap(); //Cannot fail
-
+    let location = (location.get_start()..lexer.last_location().get_end()).into();
     Ok(AstStatement::DirectAccess {
         access,
-        index,
-        location: lexer.last_location(),
+        index: Box::new(index),
+        location,
         id: lexer.next_id(),
     })
 }
@@ -584,6 +571,29 @@ fn parse_literal_number(
         location,
         id: lexer.next_id(),
     })
+}
+
+/// Parses a literal integer without considering Signs or the Possibility of a Floating Point/ Exponent
+fn parse_strict_literal_integer(lexer: &mut ParseSession) -> Result<AstStatement, Diagnostic> {
+    //correct the location if we just parsed a minus before
+    let location = lexer.location();
+    let result = lexer.slice_and_advance();
+    // parsed number value can be safely unwrapped
+    let result = result.replace("_", "");
+    if result.to_lowercase().contains('e') {
+        Err(Diagnostic::unexpected_token_found(
+            "Integer",
+            &format!("Exponent value: {}", result),
+            location,
+        ))
+    } else {
+        let value = result.parse::<i128>().unwrap();
+        Ok(AstStatement::LiteralInteger {
+            value,
+            location,
+            id: lexer.next_id(),
+        })
+    }
 }
 
 fn parse_number<F: FromStr>(text: &str, location: &SourceRange) -> Result<F, Diagnostic> {
