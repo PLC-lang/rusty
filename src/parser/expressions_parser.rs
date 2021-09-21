@@ -1,9 +1,39 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
 use crate::{
-    ast::*, lexer::ParseSession, lexer::Token::*, parser::parse_any_in_region, Diagnostic,
+    ast::*,
+    lexer::Token::*,
+    lexer::{ParseSession, Token},
+    parser::parse_any_in_region,
+    Diagnostic,
 };
 use std::str::FromStr;
+
+macro_rules! parse_left_associative_expression {
+    ($lexer: expr, $action : expr,
+        $( $pattern:pat_param )|+,
+        // $operator: expr
+    ) => {
+        {
+            let mut left = $action($lexer);
+            while matches!($lexer.token, $( $pattern )|+)  {
+                let operator = match to_operator(&$lexer.token) {
+                    Some(operator) => operator,
+                    None => break,
+                };
+                $lexer.advance();
+                let right = $action($lexer);
+                left = AstStatement::BinaryExpression {
+                    operator,
+                    left: Box::new(left),
+                    right: Box::new(right),
+                    id: $lexer.next_id(),
+                };
+            }
+            left
+        }
+    };
+}
 
 /// parse_expression(): returns expression as Statement. if a parse error
 /// is encountered, the erroneous part of the AST will consist of an
@@ -152,39 +182,20 @@ fn parse_compare_expression(lexer: &mut ParseSession) -> AstStatement {
 
 // Addition +, -
 fn parse_additive_expression(lexer: &mut ParseSession) -> AstStatement {
-    let left = parse_multiplication_expression(lexer);
-    let operator = match lexer.token {
-        OperatorPlus => Operator::Plus,
-        OperatorMinus => Operator::Minus,
-        _ => return left,
-    };
-    lexer.advance();
-    let right = parse_additive_expression(lexer);
-    AstStatement::BinaryExpression {
-        operator,
-        left: Box::new(left),
-        right: Box::new(right),
-        id: lexer.next_id(),
-    }
+    parse_left_associative_expression!(
+        lexer,
+        parse_multiplication_expression,
+        OperatorPlus | OperatorMinus,
+    )
 }
 
 // Multiplication *, /, MOD
 fn parse_multiplication_expression(lexer: &mut ParseSession) -> AstStatement {
-    let left = parse_unary_expression(lexer);
-    let operator = match lexer.token {
-        OperatorMultiplication => Operator::Multiplication,
-        OperatorDivision => Operator::Division,
-        OperatorModulo => Operator::Modulo,
-        _ => return left,
-    };
-    lexer.advance();
-    let right = parse_multiplication_expression(lexer);
-    AstStatement::BinaryExpression {
-        operator,
-        left: Box::new(left),
-        right: Box::new(right),
-        id: lexer.next_id(),
-    }
+    parse_left_associative_expression!(
+        lexer,
+        parse_unary_expression,
+        OperatorMultiplication | OperatorDivision | OperatorModulo,
+    )
 }
 
 // UNARY -x, NOT x
@@ -236,6 +247,27 @@ fn parse_parenthesized_expression(lexer: &mut ParseSession) -> AstStatement {
             })
         }
         _ => parse_leaf_expression(lexer),
+    }
+}
+
+fn to_operator(token: &Token) -> Option<Operator> {
+    match token {
+        OperatorPlus => Some(Operator::Plus),
+        OperatorMinus => Some(Operator::Minus),
+        OperatorMultiplication => Some(Operator::Multiplication),
+        OperatorDivision => Some(Operator::Division),
+        OperatorEqual => Some(Operator::Equal),
+        OperatorNotEqual => Some(Operator::NotEqual),
+        OperatorLess => Some(Operator::Less),
+        OperatorGreater => Some(Operator::Greater),
+        OperatorLessOrEqual => Some(Operator::LessOrEqual),
+        OperatorGreaterOrEqual => Some(Operator::GreaterOrEqual),
+        OperatorModulo => Some(Operator::Modulo),
+        OperatorAnd => Some(Operator::And),
+        OperatorOr => Some(Operator::Or),
+        OperatorXor => Some(Operator::Xor),
+        OperatorNot => Some(Operator::Not),
+        _ => None,
     }
 }
 
