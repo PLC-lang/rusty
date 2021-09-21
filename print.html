@@ -543,9 +543,9 @@ empty type and has an undefined size.</p>
 <tr><td>LWORD</td><td>64 bit</td><td>unsigned</td></tr>
 </tbody></table>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="direct-bit-access-on-variables"><a class="header" href="#direct-bit-access-on-variables">Direct (Bit) Access on Variables</a></h1>
-<p>The IEC61131 Standard allows reading specific <code>Bits</code>, <code>Bytes</code>, <code>Words</code> or <code>DWords</code> from an <code>ANY_BIT</code> type.
+<p>The IEC61131-3 Standard allows reading specific <code>Bits</code>, <code>Bytes</code>, <code>Words</code> or <code>DWords</code> from an <code>ANY_BIT</code> type.
 RuSTy supports this functionalty and extends it to support all <code>INT</code> types.</p>
-<h2 id="usage"><a class="header" href="#usage">Usage</a></h2>
+<h2 id="constant-based-direct-access"><a class="header" href="#constant-based-direct-access">Constant based Direct Access</a></h2>
 <p>To access a bit sequence in a variable, a direct access instruction <code>%&lt;Type&gt;&lt;Value&gt;</code> is used.
 <code>Type</code> is the bit sequence size required and is described as follows : </p>
 <table><thead><tr><th>Type</th><th>Size</th><th>Example</th></tr></thead><tbody>
@@ -576,6 +576,38 @@ dwordTarget := variable.%D1; (*Access last dword*)
 (*Chaining an access is also allowed *)
 bitTarget2  := variable.%D1.%W1.%B1.%X1;
 
+END_FUNCTION
+</code></pre>
+<h2 id="varirable-based-direct-access"><a class="header" href="#varirable-based-direct-access">Varirable based Direct Access</a></h2>
+<p>While the IEC61131-3 Standard only defines variable access using constant int literals, 
+RuSTy additionally supports access using Variables
+The Syntax for a variable based access is <code>%&lt;Type&gt;&lt;Variable&gt;</code>
+The provided varibale has to be a direct Reference variable (non Qualified)</p>
+<blockquote>
+<p><em>Short hand access for Bit (Without the <code>%X</code> modifier) is not allowed.</em></p>
+</blockquote>
+<h3 id="example-2"><a class="header" href="#example-2">Example</a></h3>
+<pre><code class="language-st">FUNCTION main : DINT
+VAR 
+    variable    : LWORD; 
+    access_var  : INT;
+    bitTarget   : BOOL;
+    bitTarget2  : BOOL;
+    byteTarget  : BYTE;
+    wordTarget  : WORD;
+    dwordTarget : DWORD;
+END_VAR
+variable    := 16#AB_CD_EF_12_34_56_78_90;
+access_var := 63;
+bitTarget   := variable.%Xaccess_var; (*Access last bit*)
+access_var := 7;
+byteTarget  := variable.%Baccess_var; (*Access last byte*)
+access_var := 3;
+wordTarget  := variable.%Waccess_var; (*Access last word*)
+access_var := 1;
+dwordTarget := variable.%Daccess_var; (*Access last dword*)
+(*Chaining an access is also allowed *)
+bitTarget2  := variable.%Daccess_var.%Waccess_var.%Baccess_var.%Xaccess_var;
 END_FUNCTION
 </code></pre>
 

@@ -849,6 +849,16 @@
 <span id="849">849</span>
 <span id="850">850</span>
 <span id="851">851</span>
+<span id="852">852</span>
+<span id="853">853</span>
+<span id="854">854</span>
+<span id="855">855</span>
+<span id="856">856</span>
+<span id="857">857</span>
+<span id="858">858</span>
+<span id="859">859</span>
+<span id="860">860</span>
+<span id="861">861</span>
 </pre><pre class="rust">
 <span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 
@@ -1236,29 +1246,18 @@
         <span class="kw">let</span> <span class="ident">segment</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">lexer</span>.<span class="ident">token</span> {
             <span class="comment">//Is this an integer?</span>
             <span class="ident">LiteralInteger</span> <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="kw">let</span> <span class="ident">number</span> <span class="op">=</span> <span class="ident">parse_literal_number</span>(<span class="ident">lexer</span>, <span class="bool-val">false</span>)<span class="question-mark">?</span>;
-                <span class="kw">if</span> <span class="kw">let</span> <span class="ident">AstStatement::LiteralInteger</span> {
-                    <span class="ident">value</span>,
+                <span class="kw">let</span> <span class="ident">number</span> <span class="op">=</span> <span class="ident">parse_strict_literal_integer</span>(<span class="ident">lexer</span>)<span class="question-mark">?</span>;
+                <span class="kw">let</span> <span class="ident">location</span> <span class="op">=</span> <span class="ident">number</span>.<span class="ident">get_location</span>().<span class="ident">clone</span>();
+                <span class="kw">let</span> <span class="ident">id</span> <span class="op">=</span> <span class="ident">number</span>.<span class="ident">get_id</span>();
+                <span class="prelude-val">Ok</span>(<span class="ident">AstStatement::DirectAccess</span> {
+                    <span class="ident">access</span>: <span class="kw">crate</span><span class="ident">::ast::DirectAccessType::Bit</span>,
+                    <span class="ident">index</span>: <span class="ident">Box::new</span>(<span class="ident">number</span>),
                     <span class="ident">location</span>,
                     <span class="ident">id</span>,
-                } <span class="op">=</span> <span class="ident">number</span>
-                {
-                    <span class="prelude-val">Ok</span>(<span class="ident">AstStatement::DirectAccess</span> {
-                        <span class="ident">access</span>: <span class="kw">crate</span><span class="ident">::ast::DirectAccess::Bit</span>,
-                        <span class="ident">index</span>: <span class="ident">value</span> <span class="kw">as</span> <span class="ident">u32</span>,
-                        <span class="ident">location</span>,
-                        <span class="ident">id</span>,
-                    })
-                } <span class="kw">else</span> {
-                    <span class="prelude-val">Err</span>(<span class="ident">Diagnostic::unexpected_token_found</span>(
-                        <span class="string">&quot;Integer&quot;</span>,
-                        <span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="ident">number</span>).<span class="ident">as_str</span>(),
-                        <span class="ident">number</span>.<span class="ident">get_location</span>(),
-                    ))
-                }
+                })
             }
             <span class="comment">//Is this a direct access?</span>
-            <span class="ident">DirectAccess</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">parse_direct_access</span>(<span class="ident">lexer</span>),
+            <span class="ident">DirectAccess</span>(<span class="ident">access</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">parse_direct_access</span>(<span class="ident">lexer</span>, <span class="ident">access</span>),
             <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">parse_reference_access</span>(<span class="ident">lexer</span>),
         }<span class="question-mark">?</span>;
 
@@ -1300,31 +1299,29 @@
     }
 }
 
-<span class="kw">fn</span> <span class="ident">parse_direct_access</span>(<span class="ident">lexer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ParseSession</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">AstStatement</span>, <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="ident">slice</span> <span class="op">=</span> <span class="ident">lexer</span>.<span class="ident">slice_and_advance</span>();
-    <span class="comment">//Percent is at position 0</span>
-    <span class="comment">//Find the size from position 1</span>
-    <span class="kw">let</span> <span class="ident">access</span> <span class="op">=</span> <span class="ident">slice</span>
-        .<span class="ident">chars</span>()
-        .<span class="ident">nth</span>(<span class="number">1</span>)
-        .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">c</span><span class="op">|</span> <span class="kw">match</span> <span class="ident">c</span>.<span class="ident">to_ascii_lowercase</span>() {
-            <span class="string">&#39;x&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="kw">crate</span><span class="ident">::ast::DirectAccess::Bit</span>),
-            <span class="string">&#39;b&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="kw">crate</span><span class="ident">::ast::DirectAccess::Byte</span>),
-            <span class="string">&#39;w&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="kw">crate</span><span class="ident">::ast::DirectAccess::Word</span>),
-            <span class="string">&#39;d&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="kw">crate</span><span class="ident">::ast::DirectAccess::DWord</span>),
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="macro">unreachable!</span>()
-            }
-        })
-        .<span class="ident">unwrap</span>(); <span class="comment">//Cannot fail</span>
+<span class="kw">fn</span> <span class="ident">parse_direct_access</span>(
+    <span class="ident">lexer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ParseSession</span>,
+    <span class="ident">access</span>: <span class="ident">DirectAccessType</span>,
+) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">AstStatement</span>, <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
+    <span class="comment">//Consume the direct access</span>
+    <span class="kw">let</span> <span class="ident">location</span> <span class="op">=</span> <span class="ident">lexer</span>.<span class="ident">location</span>();
+    <span class="ident">lexer</span>.<span class="ident">advance</span>();
+    <span class="comment">//The next token can either be an integer or an identifier</span>
+    <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">lexer</span>.<span class="ident">token</span> {
+        <span class="ident">LiteralInteger</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">parse_strict_literal_integer</span>(<span class="ident">lexer</span>),
+        <span class="ident">Identifier</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">parse_reference_access</span>(<span class="ident">lexer</span>),
+        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">Diagnostic::unexpected_token_found</span>(
+            <span class="string">&quot;Integer or Reference&quot;</span>,
+            <span class="ident">lexer</span>.<span class="ident">slice</span>(),
+            <span class="ident">lexer</span>.<span class="ident">location</span>(),
+        )),
+    }<span class="question-mark">?</span>;
 
-    <span class="kw">let</span> (<span class="kw">_</span>, <span class="ident">index</span>) <span class="op">=</span> <span class="ident">slice</span>.<span class="ident">split_at</span>(<span class="number">2</span>);
-    <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="ident">index</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>().<span class="ident">unwrap</span>(); <span class="comment">//Cannot fail</span>
-
+    <span class="kw">let</span> <span class="ident">location</span> <span class="op">=</span> (<span class="ident">location</span>.<span class="ident">get_start</span>()..<span class="ident">lexer</span>.<span class="ident">last_location</span>().<span class="ident">get_end</span>()).<span class="ident">into</span>();
     <span class="prelude-val">Ok</span>(<span class="ident">AstStatement::DirectAccess</span> {
         <span class="ident">access</span>,
-        <span class="ident">index</span>,
-        <span class="ident">location</span>: <span class="ident">lexer</span>.<span class="ident">last_location</span>(),
+        <span class="ident">index</span>: <span class="ident">Box::new</span>(<span class="ident">index</span>),
+        <span class="ident">location</span>,
         <span class="ident">id</span>: <span class="ident">lexer</span>.<span class="ident">next_id</span>(),
     })
 }
@@ -1436,6 +1433,29 @@
         <span class="ident">location</span>,
         <span class="ident">id</span>: <span class="ident">lexer</span>.<span class="ident">next_id</span>(),
     })
+}
+
+<span class="doccomment">/// Parses a literal integer without considering Signs or the Possibility of a Floating Point/ Exponent</span>
+<span class="kw">fn</span> <span class="ident">parse_strict_literal_integer</span>(<span class="ident">lexer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ParseSession</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">AstStatement</span>, <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
+    <span class="comment">//correct the location if we just parsed a minus before</span>
+    <span class="kw">let</span> <span class="ident">location</span> <span class="op">=</span> <span class="ident">lexer</span>.<span class="ident">location</span>();
+    <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">lexer</span>.<span class="ident">slice_and_advance</span>();
+    <span class="comment">// parsed number value can be safely unwrapped</span>
+    <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">result</span>.<span class="ident">replace</span>(<span class="string">&quot;_&quot;</span>, <span class="string">&quot;&quot;</span>);
+    <span class="kw">if</span> <span class="ident">result</span>.<span class="ident">to_lowercase</span>().<span class="ident">contains</span>(<span class="string">&#39;e&#39;</span>) {
+        <span class="prelude-val">Err</span>(<span class="ident">Diagnostic::unexpected_token_found</span>(
+            <span class="string">&quot;Integer&quot;</span>,
+            <span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;Exponent value: {}&quot;</span>, <span class="ident">result</span>),
+            <span class="ident">location</span>,
+        ))
+    } <span class="kw">else</span> {
+        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">result</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="ident">i128</span><span class="op">&gt;</span>().<span class="ident">unwrap</span>();
+        <span class="prelude-val">Ok</span>(<span class="ident">AstStatement::LiteralInteger</span> {
+            <span class="ident">value</span>,
+            <span class="ident">location</span>,
+            <span class="ident">id</span>: <span class="ident">lexer</span>.<span class="ident">next_id</span>(),
+        })
+    }
 }
 
 <span class="kw">fn</span> <span class="ident">parse_number</span><span class="op">&lt;</span><span class="ident">F</span>: <span class="ident">FromStr</span><span class="op">&gt;</span>(<span class="ident">text</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">location</span>: <span class="kw-2">&amp;</span><span class="ident">SourceRange</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">Diagnostic</span><span class="op">&gt;</span> {

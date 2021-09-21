@@ -363,8 +363,12 @@
 <span id="363">363</span>
 <span id="364">364</span>
 <span id="365">365</span>
+<span id="366">366</span>
+<span id="367">367</span>
 </pre><pre class="rust">
 <span class="kw">use</span> <span class="ident">logos::Logos</span>;
+
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::ast::DirectAccessType</span>;
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Logos</span>, <span class="ident">Clone</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Token</span> {
@@ -714,8 +718,8 @@
     <span class="attribute">#[<span class="ident">regex</span>(<span class="string">&quot;T(IME)?#-?(\\d+(\\.\\d+)?(d|h|ms|m|s|us|ns))+&quot;</span>, <span class="ident">ignore</span>(<span class="ident">case</span>))]</span>
     <span class="ident">LiteralTime</span>,
 
-    <span class="attribute">#[<span class="ident">regex</span>(<span class="string">&quot;%(B|b|D|d|W|w|X|x)[0-9]+&quot;</span>)]</span>
-    <span class="ident">DirectAccess</span>,
+    <span class="attribute">#[<span class="ident">regex</span>(<span class="string">&quot;%(B|b|D|d|W|w|X|x)&quot;</span>, <span class="kw">super</span><span class="ident">::parse_access_type</span>)]</span>
+    <span class="ident">DirectAccess</span>(<span class="ident">DirectAccessType</span>),
 
     <span class="attribute">#[<span class="ident">regex</span>(<span class="string">&quot;&#39;((\\$.)|[^$&#39;])*&#39;&quot;</span>)]</span>
     <span class="ident">LiteralString</span>,

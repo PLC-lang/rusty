@@ -1785,6 +1785,46 @@
 <span id="1785">1785</span>
 <span id="1786">1786</span>
 <span id="1787">1787</span>
+<span id="1788">1788</span>
+<span id="1789">1789</span>
+<span id="1790">1790</span>
+<span id="1791">1791</span>
+<span id="1792">1792</span>
+<span id="1793">1793</span>
+<span id="1794">1794</span>
+<span id="1795">1795</span>
+<span id="1796">1796</span>
+<span id="1797">1797</span>
+<span id="1798">1798</span>
+<span id="1799">1799</span>
+<span id="1800">1800</span>
+<span id="1801">1801</span>
+<span id="1802">1802</span>
+<span id="1803">1803</span>
+<span id="1804">1804</span>
+<span id="1805">1805</span>
+<span id="1806">1806</span>
+<span id="1807">1807</span>
+<span id="1808">1808</span>
+<span id="1809">1809</span>
+<span id="1810">1810</span>
+<span id="1811">1811</span>
+<span id="1812">1812</span>
+<span id="1813">1813</span>
+<span id="1814">1814</span>
+<span id="1815">1815</span>
+<span id="1816">1816</span>
+<span id="1817">1817</span>
+<span id="1818">1818</span>
+<span id="1819">1819</span>
+<span id="1820">1820</span>
+<span id="1821">1821</span>
+<span id="1822">1822</span>
+<span id="1823">1823</span>
+<span id="1824">1824</span>
+<span id="1825">1825</span>
+<span id="1826">1826</span>
+<span id="1827">1827</span>
 </pre><pre class="rust">
 <span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 <span class="kw">use</span> <span class="kw">crate</span>::{
@@ -1802,7 +1842,7 @@
     },
     <span class="ident">AddressSpace</span>, <span class="ident">FloatPredicate</span>, <span class="ident">IntPredicate</span>,
 };
-<span class="kw">use</span> <span class="ident">std::collections::HashSet</span>;
+<span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">collections::HashSet</span>, <span class="ident">convert::TryInto</span>};
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">ast</span>::{<span class="ident">flatten_expression_list</span>, <span class="ident">AstStatement</span>, <span class="ident">Operator</span>},
@@ -2038,15 +2078,58 @@
         <span class="comment">//Generate a load for the qualifer</span>
         <span class="kw">let</span> (<span class="ident">expression_type</span>, <span class="ident">value</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">generate_expression</span>(<span class="kw-2">&amp;</span><span class="ident">expression</span>)<span class="question-mark">?</span>;
         <span class="kw">if</span> <span class="kw">let</span> <span class="ident">AstStatement::DirectAccess</span> { <span class="ident">access</span>, <span class="ident">index</span>, .. } <span class="op">=</span> <span class="ident">last</span> {
+            <span class="kw">let</span> <span class="ident">datatype</span> <span class="op">=</span> <span class="self">self</span>
+                .<span class="ident">annotations</span>
+                .<span class="ident">get_type_or_void</span>(<span class="ident">last</span>, <span class="self">self</span>.<span class="ident">index</span>)
+                .<span class="ident">clone_type_information</span>();
             <span class="comment">//Generate and load the index value</span>
-            <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="ident">access</span>.<span class="ident">to_bits</span>(<span class="kw-2">*</span><span class="ident">index</span>);
-            <span class="kw">let</span> <span class="ident">datatype</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">annotations</span>.<span class="ident">get_type_or_void</span>(<span class="ident">last</span>, <span class="self">self</span>.<span class="ident">index</span>);
-            <span class="kw">let</span> <span class="ident">rhs</span> <span class="op">=</span> <span class="self">self</span>
-                .<span class="ident">llvm_index</span>
-                .<span class="ident">get_associated_type</span>(<span class="ident">expression_type</span>.<span class="ident">get_name</span>())
-                .<span class="ident">unwrap</span>()
-                .<span class="ident">into_int_type</span>()
-                .<span class="ident">const_int</span>(<span class="ident">index</span>.<span class="ident">into</span>(), <span class="bool-val">false</span>);
+            <span class="kw">let</span> <span class="ident">rhs</span> <span class="op">=</span> <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="kw-2">*</span><span class="ident">index</span> {
+                <span class="ident">AstStatement::LiteralInteger</span> { <span class="ident">value</span>, .. } <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="comment">//Convert into the target literal</span>
+                    <span class="kw">let</span> <span class="ident">bitwidth</span> <span class="op">=</span> <span class="ident">access</span>.<span class="ident">get_bit_width</span>();
+                    <span class="kw">let</span> <span class="ident">value</span>: <span class="ident">u64</span> <span class="op">=</span> (<span class="kw-2">*</span><span class="ident">value</span>).<span class="ident">try_into</span>().<span class="ident">unwrap_or_default</span>();
+                    <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="ident">bitwidth</span> <span class="op">*</span> <span class="ident">value</span>;
+                    <span class="kw">let</span> <span class="ident">rhs</span> <span class="op">=</span> <span class="self">self</span>
+                        .<span class="ident">llvm_index</span>
+                        .<span class="ident">get_associated_type</span>(<span class="ident">expression_type</span>.<span class="ident">get_name</span>())
+                        .<span class="ident">unwrap</span>()
+                        .<span class="ident">into_int_type</span>()
+                        .<span class="ident">const_int</span>(<span class="ident">index</span>, <span class="bool-val">false</span>);
+                    <span class="ident">rhs</span>
+                }
+                <span class="ident">AstStatement::Reference</span> { <span class="ident">location</span>, .. } <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="comment">//Load the reference</span>
+                    <span class="kw">let</span> (<span class="ident">target_type</span>, <span class="ident">reference</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">generate_expression</span>(<span class="ident">index</span>)<span class="question-mark">?</span>;
+                    <span class="kw">if</span> <span class="ident">reference</span>.<span class="ident">is_int_value</span>() {
+                        <span class="kw">let</span> <span class="ident">reference</span> <span class="op">=</span> <span class="ident">cast_if_needed</span>(
+                            <span class="self">self</span>.<span class="ident">llvm</span>,
+                            <span class="self">self</span>.<span class="ident">index</span>,
+                            <span class="kw-2">&amp;</span><span class="ident">expression_type</span>,
+                            <span class="ident">reference</span>,
+                            <span class="kw-2">&amp;</span><span class="ident">target_type</span>,
+                            <span class="ident">index</span>,
+                        )
+                        .<span class="ident">map</span>(<span class="ident">BasicValueEnum::into_int_value</span>)<span class="question-mark">?</span>;
+                        <span class="comment">//Multiply by the bitwitdh</span>
+                        <span class="kw">if</span> <span class="ident">access</span>.<span class="ident">get_bit_width</span>() <span class="op">&gt;</span> <span class="number">1</span> {
+                            <span class="kw">let</span> <span class="ident">bitwidth</span> <span class="op">=</span> <span class="ident">reference</span>
+                                .<span class="ident">get_type</span>()
+                                .<span class="ident">const_int</span>(<span class="ident">access</span>.<span class="ident">get_bit_width</span>(), <span class="ident">datatype</span>.<span class="ident">is_signed_int</span>());
+
+                            <span class="self">self</span>.<span class="ident">llvm</span>.<span class="ident">builder</span>.<span class="ident">build_int_mul</span>(<span class="ident">reference</span>, <span class="ident">bitwidth</span>, <span class="string">&quot;&quot;</span>)
+                        } <span class="kw">else</span> {
+                            <span class="ident">reference</span>
+                        }
+                    } <span class="kw">else</span> {
+                        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">CompileError::casting_error</span>(
+                            <span class="ident">datatype</span>.<span class="ident">get_name</span>(),
+                            <span class="string">&quot;Integer Type&quot;</span>,
+                            <span class="ident">location</span>.<span class="ident">clone</span>(),
+                        ));
+                    }
+                }
+                <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable!</span>(<span class="string">&quot;Unexpected index : {:?}&quot;</span>, <span class="kw-2">*</span><span class="ident">index</span>),
+            };
             <span class="comment">//Shift the qualifer value right by the index value</span>
             <span class="kw">let</span> <span class="ident">shift</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">llvm</span>.<span class="ident">builder</span>.<span class="ident">build_right_shift</span>(
                 <span class="ident">value</span>.<span class="ident">into_int_value</span>(),
@@ -2064,10 +2147,7 @@
                 <span class="self">self</span>.<span class="ident">llvm</span>
                     .<span class="ident">builder</span>
                     .<span class="ident">build_int_truncate_or_bit_cast</span>(<span class="ident">shift</span>, <span class="ident">llvm_target_type</span>, <span class="string">&quot;&quot;</span>);
-            <span class="prelude-val">Ok</span>((
-                <span class="ident">datatype</span>.<span class="ident">get_type_information</span>().<span class="ident">clone</span>(),
-                <span class="ident">result</span>.<span class="ident">as_basic_value_enum</span>(),
-            ))
+            <span class="prelude-val">Ok</span>((<span class="ident">datatype</span>, <span class="ident">result</span>.<span class="ident">as_basic_value_enum</span>()))
         } <span class="kw">else</span> {
             <span class="macro">unreachable!</span>()
             <span class="comment">// Err(CompileError::codegen_error(</span>

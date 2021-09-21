@@ -792,6 +792,13 @@
 <span id="792">792</span>
 <span id="793">793</span>
 <span id="794">794</span>
+<span id="795">795</span>
+<span id="796">796</span>
+<span id="797">797</span>
+<span id="798">798</span>
+<span id="799">799</span>
+<span id="800">800</span>
+<span id="801">801</span>
 </pre><pre class="rust">
 <span class="comment">// Copyright (c) 2021 Ghaith Hachem and Mathias Rieder</span>
 
@@ -1172,32 +1179,39 @@
                         .<span class="ident">annotate</span>(<span class="ident">statement</span>, <span class="ident">StatementAnnotation::expression</span>(<span class="ident">t</span>));
                 }
             }
-            <span class="ident">AstStatement::DirectAccess</span> { <span class="ident">access</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident">access</span> {
-                <span class="kw">crate</span><span class="ident">::ast::DirectAccess::Bit</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">annotation_map</span>.<span class="ident">annotate</span>(
-                    <span class="ident">statement</span>,
-                    <span class="ident">StatementAnnotation::Value</span> {
-                        <span class="ident">resulting_type</span>: <span class="ident">BOOL_TYPE</span>.<span class="ident">into</span>(),
-                    },
-                ),
-                <span class="kw">crate</span><span class="ident">::ast::DirectAccess::Byte</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">annotation_map</span>.<span class="ident">annotate</span>(
-                    <span class="ident">statement</span>,
-                    <span class="ident">StatementAnnotation::Value</span> {
-                        <span class="ident">resulting_type</span>: <span class="ident">BYTE_TYPE</span>.<span class="ident">into</span>(),
-                    },
-                ),
-                <span class="kw">crate</span><span class="ident">::ast::DirectAccess::Word</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">annotation_map</span>.<span class="ident">annotate</span>(
-                    <span class="ident">statement</span>,
-                    <span class="ident">StatementAnnotation::Value</span> {
-                        <span class="ident">resulting_type</span>: <span class="ident">WORD_TYPE</span>.<span class="ident">into</span>(),
-                    },
-                ),
-                <span class="kw">crate</span><span class="ident">::ast::DirectAccess::DWord</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">annotation_map</span>.<span class="ident">annotate</span>(
-                    <span class="ident">statement</span>,
-                    <span class="ident">StatementAnnotation::Value</span> {
-                        <span class="ident">resulting_type</span>: <span class="ident">DWORD_TYPE</span>.<span class="ident">into</span>(),
-                    },
-                ),
-            },
+            <span class="ident">AstStatement::DirectAccess</span> { <span class="ident">access</span>, <span class="ident">index</span>, .. } <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="kw">let</span> <span class="ident">ctx</span> <span class="op">=</span> <span class="ident">VisitorContext</span> {
+                    <span class="ident">qualifier</span>: <span class="prelude-val">None</span>,
+                    ..<span class="ident">ctx</span>.<span class="ident">clone</span>()
+                };
+                <span class="macro">visit_all_statements!</span>(<span class="self">self</span>, <span class="kw-2">&amp;</span><span class="ident">ctx</span>, <span class="ident">index</span>);
+                <span class="kw">match</span> <span class="ident">access</span> {
+                    <span class="kw">crate</span><span class="ident">::ast::DirectAccessType::Bit</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">annotation_map</span>.<span class="ident">annotate</span>(
+                        <span class="ident">statement</span>,
+                        <span class="ident">StatementAnnotation::Value</span> {
+                            <span class="ident">resulting_type</span>: <span class="ident">BOOL_TYPE</span>.<span class="ident">into</span>(),
+                        },
+                    ),
+                    <span class="kw">crate</span><span class="ident">::ast::DirectAccessType::Byte</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">annotation_map</span>.<span class="ident">annotate</span>(
+                        <span class="ident">statement</span>,
+                        <span class="ident">StatementAnnotation::Value</span> {
+                            <span class="ident">resulting_type</span>: <span class="ident">BYTE_TYPE</span>.<span class="ident">into</span>(),
+                        },
+                    ),
+                    <span class="kw">crate</span><span class="ident">::ast::DirectAccessType::Word</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">annotation_map</span>.<span class="ident">annotate</span>(
+                        <span class="ident">statement</span>,
+                        <span class="ident">StatementAnnotation::Value</span> {
+                            <span class="ident">resulting_type</span>: <span class="ident">WORD_TYPE</span>.<span class="ident">into</span>(),
+                        },
+                    ),
+                    <span class="kw">crate</span><span class="ident">::ast::DirectAccessType::DWord</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">annotation_map</span>.<span class="ident">annotate</span>(
+                        <span class="ident">statement</span>,
+                        <span class="ident">StatementAnnotation::Value</span> {
+                            <span class="ident">resulting_type</span>: <span class="ident">DWORD_TYPE</span>.<span class="ident">into</span>(),
+                        },
+                    ),
+                }
+            }
             <span class="ident">AstStatement::BinaryExpression</span> { <span class="ident">left</span>, <span class="ident">right</span>, .. } <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="macro">visit_all_statements!</span>(<span class="self">self</span>, <span class="ident">ctx</span>, <span class="ident">left</span>, <span class="ident">right</span>);
                 <span class="kw">let</span> <span class="ident">left</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>

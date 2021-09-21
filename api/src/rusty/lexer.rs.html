@@ -326,6 +326,28 @@
 <span id="326">326</span>
 <span id="327">327</span>
 <span id="328">328</span>
+<span id="329">329</span>
+<span id="330">330</span>
+<span id="331">331</span>
+<span id="332">332</span>
+<span id="333">333</span>
+<span id="334">334</span>
+<span id="335">335</span>
+<span id="336">336</span>
+<span id="337">337</span>
+<span id="338">338</span>
+<span id="339">339</span>
+<span id="340">340</span>
+<span id="341">341</span>
+<span id="342">342</span>
+<span id="343">343</span>
+<span id="344">344</span>
+<span id="345">345</span>
+<span id="346">346</span>
+<span id="347">347</span>
+<span id="348">348</span>
+<span id="349">349</span>
+<span id="350">350</span>
 </pre><pre class="rust">
 <span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 <span class="kw">use</span> <span class="ident">core::ops::Range</span>;
@@ -338,6 +360,7 @@
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">tokens::Token</span>;
 
 <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::ast::AstId</span>;
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::ast::DirectAccessType</span>;
 <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::ast::SourceRange</span>;
 <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::Diagnostic</span>;
 
@@ -609,6 +632,27 @@
         <span class="string">&quot;/*&quot;</span> <span class="op">=</span><span class="op">&gt;</span> (<span class="string">&#39;/&#39;</span>, <span class="string">&#39;/&#39;</span>),
         <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable!</span>(),
     }
+}
+
+<span class="kw">fn</span> <span class="ident">parse_access_type</span>(<span class="ident">lexer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Lexer</span><span class="op">&lt;</span><span class="ident">Token</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">DirectAccessType</span><span class="op">&gt;</span> {
+    <span class="comment">//Percent is at position 0</span>
+    <span class="comment">//Find the size from position 1</span>
+    <span class="kw">let</span> <span class="ident">access</span> <span class="op">=</span> <span class="ident">lexer</span>
+        .<span class="ident">slice</span>()
+        .<span class="ident">chars</span>()
+        .<span class="ident">nth</span>(<span class="number">1</span>)
+        .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">c</span><span class="op">|</span> <span class="kw">match</span> <span class="ident">c</span>.<span class="ident">to_ascii_lowercase</span>() {
+            <span class="string">&#39;x&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="kw">crate</span><span class="ident">::ast::DirectAccessType::Bit</span>),
+            <span class="string">&#39;b&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="kw">crate</span><span class="ident">::ast::DirectAccessType::Byte</span>),
+            <span class="string">&#39;w&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="kw">crate</span><span class="ident">::ast::DirectAccessType::Word</span>),
+            <span class="string">&#39;d&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="kw">crate</span><span class="ident">::ast::DirectAccessType::DWord</span>),
+            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="macro">unreachable!</span>()
+            }
+        })
+        .<span class="ident">unwrap</span>(); <span class="comment">//Cannot fail</span>
+
+    <span class="prelude-val">Some</span>(<span class="ident">access</span>)
 }
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>)]</span>
