@@ -44,3 +44,25 @@ fn real_division_in_result() {
     let (res, _) = compile_and_run(prog.to_string(), &mut MainType { ret: 0 });
     assert_eq!(res, 333)
 }
+
+#[test]
+fn order_of_operations_sum() {
+    let prog = "
+    FUNCTION main : DINT
+    main := (6 * 100) + (600 / 6) - 500 + (200 / 20) - 210;
+    END_FUNCTION
+    ";
+    let (res, _) = compile_and_run(prog.to_string(), &mut MainType { ret: 0 });
+    assert_eq!(res, 0)
+}
+
+#[test]
+fn order_of_operations_mul() {
+    let prog = "
+    FUNCTION main : DINT
+    main := 10 * 10 / 5 / 2;
+    END_FUNCTION
+    ";
+    let (res, _) = compile_and_run(prog.to_string(), &mut MainType { ret: 0 });
+    assert_eq!(res, 10)
+}

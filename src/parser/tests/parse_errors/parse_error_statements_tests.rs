@@ -150,16 +150,16 @@ fn incomplete_statement_test() {
         r#"[
     BinaryExpression {
         operator: Plus,
-        left: LiteralInteger {
-            value: 1,
-        },
-        right: BinaryExpression {
+        left: BinaryExpression {
             operator: Plus,
             left: LiteralInteger {
+                value: 1,
+            },
+            right: LiteralInteger {
                 value: 2,
             },
-            right: EmptyStatement,
         },
+        right: EmptyStatement,
     },
     Reference {
         name: "x",
@@ -190,17 +190,17 @@ fn incomplete_statement_in_parantheses_recovery_test() {
     BinaryExpression {
         operator: Plus,
         left: BinaryExpression {
-            operator: Plus,
-            left: LiteralInteger {
-                value: 1,
-            },
-            right: BinaryExpression {
-                operator: Minus,
+            operator: Minus,
+            left: BinaryExpression {
+                operator: Plus,
                 left: LiteralInteger {
+                    value: 1,
+                },
+                right: LiteralInteger {
                     value: 2,
                 },
-                right: EmptyStatement,
             },
+            right: EmptyStatement,
         },
         right: LiteralInteger {
             value: 3,
