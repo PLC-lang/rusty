@@ -825,47 +825,42 @@
 <span id="825">825</span>
 <span id="826">826</span>
 <span id="827">827</span>
-<span id="828">828</span>
-<span id="829">829</span>
-<span id="830">830</span>
-<span id="831">831</span>
-<span id="832">832</span>
-<span id="833">833</span>
-<span id="834">834</span>
-<span id="835">835</span>
-<span id="836">836</span>
-<span id="837">837</span>
-<span id="838">838</span>
-<span id="839">839</span>
-<span id="840">840</span>
-<span id="841">841</span>
-<span id="842">842</span>
-<span id="843">843</span>
-<span id="844">844</span>
-<span id="845">845</span>
-<span id="846">846</span>
-<span id="847">847</span>
-<span id="848">848</span>
-<span id="849">849</span>
-<span id="850">850</span>
-<span id="851">851</span>
-<span id="852">852</span>
-<span id="853">853</span>
-<span id="854">854</span>
-<span id="855">855</span>
-<span id="856">856</span>
-<span id="857">857</span>
-<span id="858">858</span>
-<span id="859">859</span>
-<span id="860">860</span>
-<span id="861">861</span>
 </pre><pre class="rust">
 <span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">ast</span>::<span class="kw-2">*</span>, <span class="ident">lexer::ParseSession</span>, <span class="ident">lexer::Token</span>::<span class="kw-2">*</span>, <span class="ident">parser::parse_any_in_region</span>, <span class="ident">Diagnostic</span>,
+    <span class="ident">ast</span>::<span class="kw-2">*</span>,
+    <span class="ident">lexer::Token</span>::<span class="kw-2">*</span>,
+    <span class="ident">lexer</span>::{<span class="ident">ParseSession</span>, <span class="ident">Token</span>},
+    <span class="ident">parser::parse_any_in_region</span>,
+    <span class="ident">Diagnostic</span>,
 };
 <span class="kw">use</span> <span class="ident">std::str::FromStr</span>;
+
+<span class="macro">macro_rules!</span> <span class="ident">parse_left_associative_expression</span> {
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">lexer</span>: <span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">action</span> : <span class="ident">expr</span>,
+        $( <span class="macro-nonterminal">$</span><span class="macro-nonterminal">pattern</span>:<span class="ident">pat_param</span> )<span class="op">|</span><span class="op">+</span>,
+    ) <span class="op">=</span><span class="op">&gt;</span> {
+        {
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">left</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">action</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">lexer</span>);
+            <span class="kw">while</span> <span class="macro">matches!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">lexer</span>.<span class="ident">token</span>, $( <span class="macro-nonterminal">$</span><span class="macro-nonterminal">pattern</span> )<span class="op">|</span><span class="op">+</span>)  {
+                <span class="kw">let</span> <span class="ident">operator</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">to_operator</span>(<span class="kw-2">&amp;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">lexer</span>.<span class="ident">token</span>) {
+                    <span class="prelude-val">Some</span>(<span class="ident">operator</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">operator</span>,
+                    <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">break</span>,
+                };
+                <span class="macro-nonterminal">$</span><span class="macro-nonterminal">lexer</span>.<span class="ident">advance</span>();
+                <span class="kw">let</span> <span class="ident">right</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">action</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">lexer</span>);
+                <span class="ident">left</span> <span class="op">=</span> <span class="ident">AstStatement::BinaryExpression</span> {
+                    <span class="ident">operator</span>,
+                    <span class="ident">left</span>: <span class="ident">Box::new</span>(<span class="ident">left</span>),
+                    <span class="ident">right</span>: <span class="ident">Box::new</span>(<span class="ident">right</span>),
+                    <span class="ident">id</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">lexer</span>.<span class="ident">next_id</span>(),
+                };
+            }
+            <span class="ident">left</span>
+        }
+    };
+}
 
 <span class="doccomment">/// parse_expression(): returns expression as Statement. if a parse error</span>
 <span class="doccomment">/// is encountered, the erroneous part of the AST will consist of an</span>
@@ -916,137 +911,53 @@
 
 <span class="comment">// OR</span>
 <span class="kw">fn</span> <span class="ident">parse_or_expression</span>(<span class="ident">lexer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ParseSession</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">AstStatement</span> {
-    <span class="kw">let</span> <span class="ident">left</span> <span class="op">=</span> <span class="ident">parse_xor_expression</span>(<span class="ident">lexer</span>);
-
-    <span class="kw">let</span> <span class="ident">operator</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">lexer</span>.<span class="ident">token</span> {
-        <span class="ident">OperatorOr</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Operator::Or</span>,
-        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="ident">left</span>,
-    };
-
-    <span class="ident">lexer</span>.<span class="ident">advance</span>();
-
-    <span class="kw">let</span> <span class="ident">right</span> <span class="op">=</span> <span class="ident">parse_or_expression</span>(<span class="ident">lexer</span>);
-    <span class="ident">AstStatement::BinaryExpression</span> {
-        <span class="ident">operator</span>,
-        <span class="ident">left</span>: <span class="ident">Box::new</span>(<span class="ident">left</span>),
-        <span class="ident">right</span>: <span class="ident">Box::new</span>(<span class="ident">right</span>),
-        <span class="ident">id</span>: <span class="ident">lexer</span>.<span class="ident">next_id</span>(),
-    }
+    <span class="macro">parse_left_associative_expression!</span>(<span class="ident">lexer</span>, <span class="ident">parse_xor_expression</span>, <span class="ident">OperatorOr</span>,)
 }
 
 <span class="comment">// XOR</span>
 <span class="kw">fn</span> <span class="ident">parse_xor_expression</span>(<span class="ident">lexer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ParseSession</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">AstStatement</span> {
-    <span class="kw">let</span> <span class="ident">left</span> <span class="op">=</span> <span class="ident">parse_and_expression</span>(<span class="ident">lexer</span>);
-
-    <span class="kw">let</span> <span class="ident">operator</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">lexer</span>.<span class="ident">token</span> {
-        <span class="ident">OperatorXor</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Operator::Xor</span>,
-        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="ident">left</span>,
-    };
-
-    <span class="ident">lexer</span>.<span class="ident">advance</span>();
-
-    <span class="kw">let</span> <span class="ident">right</span> <span class="op">=</span> <span class="ident">parse_xor_expression</span>(<span class="ident">lexer</span>);
-    <span class="ident">AstStatement::BinaryExpression</span> {
-        <span class="ident">operator</span>,
-        <span class="ident">left</span>: <span class="ident">Box::new</span>(<span class="ident">left</span>),
-        <span class="ident">right</span>: <span class="ident">Box::new</span>(<span class="ident">right</span>),
-        <span class="ident">id</span>: <span class="ident">lexer</span>.<span class="ident">next_id</span>(),
-    }
+    <span class="macro">parse_left_associative_expression!</span>(<span class="ident">lexer</span>, <span class="ident">parse_and_expression</span>, <span class="ident">OperatorXor</span>,)
 }
 
 <span class="comment">// AND</span>
 <span class="kw">fn</span> <span class="ident">parse_and_expression</span>(<span class="ident">lexer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ParseSession</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">AstStatement</span> {
-    <span class="kw">let</span> <span class="ident">left</span> <span class="op">=</span> <span class="ident">parse_equality_expression</span>(<span class="ident">lexer</span>);
-
-    <span class="kw">let</span> <span class="ident">operator</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">lexer</span>.<span class="ident">token</span> {
-        <span class="ident">OperatorAnd</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Operator::And</span>,
-        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="ident">left</span>,
-    };
-
-    <span class="ident">lexer</span>.<span class="ident">advance</span>();
-
-    <span class="kw">let</span> <span class="ident">right</span> <span class="op">=</span> <span class="ident">parse_and_expression</span>(<span class="ident">lexer</span>);
-    <span class="ident">AstStatement::BinaryExpression</span> {
-        <span class="ident">operator</span>,
-        <span class="ident">left</span>: <span class="ident">Box::new</span>(<span class="ident">left</span>),
-        <span class="ident">right</span>: <span class="ident">Box::new</span>(<span class="ident">right</span>),
-        <span class="ident">id</span>: <span class="ident">lexer</span>.<span class="ident">next_id</span>(),
-    }
+    <span class="macro">parse_left_associative_expression!</span>(<span class="ident">lexer</span>, <span class="ident">parse_equality_expression</span>, <span class="ident">OperatorAnd</span>,)
 }
 
 <span class="comment">//EQUALITY  =, &lt;&gt;</span>
 <span class="kw">fn</span> <span class="ident">parse_equality_expression</span>(<span class="ident">lexer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ParseSession</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">AstStatement</span> {
-    <span class="kw">let</span> <span class="ident">left</span> <span class="op">=</span> <span class="ident">parse_compare_expression</span>(<span class="ident">lexer</span>);
-    <span class="kw">let</span> <span class="ident">operator</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">lexer</span>.<span class="ident">token</span> {
-        <span class="ident">OperatorEqual</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Operator::Equal</span>,
-        <span class="ident">OperatorNotEqual</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Operator::NotEqual</span>,
-        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="ident">left</span>,
-    };
-    <span class="ident">lexer</span>.<span class="ident">advance</span>();
-    <span class="kw">let</span> <span class="ident">right</span> <span class="op">=</span> <span class="ident">parse_equality_expression</span>(<span class="ident">lexer</span>);
-    <span class="ident">AstStatement::BinaryExpression</span> {
-        <span class="ident">operator</span>,
-        <span class="ident">left</span>: <span class="ident">Box::new</span>(<span class="ident">left</span>),
-        <span class="ident">right</span>: <span class="ident">Box::new</span>(<span class="ident">right</span>),
-        <span class="ident">id</span>: <span class="ident">lexer</span>.<span class="ident">next_id</span>(),
-    }
+    <span class="macro">parse_left_associative_expression!</span>(
+        <span class="ident">lexer</span>,
+        <span class="ident">parse_compare_expression</span>,
+        <span class="ident">OperatorEqual</span> <span class="op">|</span> <span class="ident">OperatorNotEqual</span>,
+    )
 }
 
 <span class="comment">//COMPARE &lt;, &gt;, &lt;=, &gt;=</span>
 <span class="kw">fn</span> <span class="ident">parse_compare_expression</span>(<span class="ident">lexer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ParseSession</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">AstStatement</span> {
-    <span class="kw">let</span> <span class="ident">left</span> <span class="op">=</span> <span class="ident">parse_additive_expression</span>(<span class="ident">lexer</span>);
-    <span class="kw">let</span> <span class="ident">operator</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">lexer</span>.<span class="ident">token</span> {
-        <span class="ident">OperatorLess</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Operator::Less</span>,
-        <span class="ident">OperatorGreater</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Operator::Greater</span>,
-        <span class="ident">OperatorLessOrEqual</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Operator::LessOrEqual</span>,
-        <span class="ident">OperatorGreaterOrEqual</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Operator::GreaterOrEqual</span>,
-        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="ident">left</span>,
-    };
-    <span class="ident">lexer</span>.<span class="ident">advance</span>();
-    <span class="kw">let</span> <span class="ident">right</span> <span class="op">=</span> <span class="ident">parse_compare_expression</span>(<span class="ident">lexer</span>);
-    <span class="ident">AstStatement::BinaryExpression</span> {
-        <span class="ident">operator</span>,
-        <span class="ident">left</span>: <span class="ident">Box::new</span>(<span class="ident">left</span>),
-        <span class="ident">right</span>: <span class="ident">Box::new</span>(<span class="ident">right</span>),
-        <span class="ident">id</span>: <span class="ident">lexer</span>.<span class="ident">next_id</span>(),
-    }
+    <span class="macro">parse_left_associative_expression!</span>(
+        <span class="ident">lexer</span>,
+        <span class="ident">parse_additive_expression</span>,
+        <span class="ident">OperatorLess</span> <span class="op">|</span> <span class="ident">OperatorGreater</span> <span class="op">|</span> <span class="ident">OperatorLessOrEqual</span> <span class="op">|</span> <span class="ident">OperatorGreaterOrEqual</span>,
+    )
 }
 
 <span class="comment">// Addition +, -</span>
 <span class="kw">fn</span> <span class="ident">parse_additive_expression</span>(<span class="ident">lexer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ParseSession</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">AstStatement</span> {
-    <span class="kw">let</span> <span class="ident">left</span> <span class="op">=</span> <span class="ident">parse_multiplication_expression</span>(<span class="ident">lexer</span>);
-    <span class="kw">let</span> <span class="ident">operator</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">lexer</span>.<span class="ident">token</span> {
-        <span class="ident">OperatorPlus</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Operator::Plus</span>,
-        <span class="ident">OperatorMinus</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Operator::Minus</span>,
-        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="ident">left</span>,
-    };
-    <span class="ident">lexer</span>.<span class="ident">advance</span>();
-    <span class="kw">let</span> <span class="ident">right</span> <span class="op">=</span> <span class="ident">parse_additive_expression</span>(<span class="ident">lexer</span>);
-    <span class="ident">AstStatement::BinaryExpression</span> {
-        <span class="ident">operator</span>,
-        <span class="ident">left</span>: <span class="ident">Box::new</span>(<span class="ident">left</span>),
-        <span class="ident">right</span>: <span class="ident">Box::new</span>(<span class="ident">right</span>),
-        <span class="ident">id</span>: <span class="ident">lexer</span>.<span class="ident">next_id</span>(),
-    }
+    <span class="macro">parse_left_associative_expression!</span>(
+        <span class="ident">lexer</span>,
+        <span class="ident">parse_multiplication_expression</span>,
+        <span class="ident">OperatorPlus</span> <span class="op">|</span> <span class="ident">OperatorMinus</span>,
+    )
 }
 
 <span class="comment">// Multiplication *, /, MOD</span>
 <span class="kw">fn</span> <span class="ident">parse_multiplication_expression</span>(<span class="ident">lexer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ParseSession</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">AstStatement</span> {
-    <span class="kw">let</span> <span class="ident">left</span> <span class="op">=</span> <span class="ident">parse_unary_expression</span>(<span class="ident">lexer</span>);
-    <span class="kw">let</span> <span class="ident">operator</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">lexer</span>.<span class="ident">token</span> {
-        <span class="ident">OperatorMultiplication</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Operator::Multiplication</span>,
-        <span class="ident">OperatorDivision</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Operator::Division</span>,
-        <span class="ident">OperatorModulo</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Operator::Modulo</span>,
-        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="ident">left</span>,
-    };
-    <span class="ident">lexer</span>.<span class="ident">advance</span>();
-    <span class="kw">let</span> <span class="ident">right</span> <span class="op">=</span> <span class="ident">parse_multiplication_expression</span>(<span class="ident">lexer</span>);
-    <span class="ident">AstStatement::BinaryExpression</span> {
-        <span class="ident">operator</span>,
-        <span class="ident">left</span>: <span class="ident">Box::new</span>(<span class="ident">left</span>),
-        <span class="ident">right</span>: <span class="ident">Box::new</span>(<span class="ident">right</span>),
-        <span class="ident">id</span>: <span class="ident">lexer</span>.<span class="ident">next_id</span>(),
-    }
+    <span class="macro">parse_left_associative_expression!</span>(
+        <span class="ident">lexer</span>,
+        <span class="ident">parse_unary_expression</span>,
+        <span class="ident">OperatorMultiplication</span> <span class="op">|</span> <span class="ident">OperatorDivision</span> <span class="op">|</span> <span class="ident">OperatorModulo</span>,
+    )
 }
 
 <span class="comment">// UNARY -x, NOT x</span>
@@ -1098,6 +1009,27 @@
             })
         }
         <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">parse_leaf_expression</span>(<span class="ident">lexer</span>),
+    }
+}
+
+<span class="kw">fn</span> <span class="ident">to_operator</span>(<span class="ident">token</span>: <span class="kw-2">&amp;</span><span class="ident">Token</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Operator</span><span class="op">&gt;</span> {
+    <span class="kw">match</span> <span class="ident">token</span> {
+        <span class="ident">OperatorPlus</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">Operator::Plus</span>),
+        <span class="ident">OperatorMinus</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">Operator::Minus</span>),
+        <span class="ident">OperatorMultiplication</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">Operator::Multiplication</span>),
+        <span class="ident">OperatorDivision</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">Operator::Division</span>),
+        <span class="ident">OperatorEqual</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">Operator::Equal</span>),
+        <span class="ident">OperatorNotEqual</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">Operator::NotEqual</span>),
+        <span class="ident">OperatorLess</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">Operator::Less</span>),
+        <span class="ident">OperatorGreater</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">Operator::Greater</span>),
+        <span class="ident">OperatorLessOrEqual</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">Operator::LessOrEqual</span>),
+        <span class="ident">OperatorGreaterOrEqual</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">Operator::GreaterOrEqual</span>),
+        <span class="ident">OperatorModulo</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">Operator::Modulo</span>),
+        <span class="ident">OperatorAnd</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">Operator::And</span>),
+        <span class="ident">OperatorOr</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">Operator::Or</span>),
+        <span class="ident">OperatorXor</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">Operator::Xor</span>),
+        <span class="ident">OperatorNot</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">Operator::Not</span>),
+        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
     }
 }
 
