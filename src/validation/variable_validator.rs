@@ -1,7 +1,10 @@
 use crate::{
     ast::{DataType, DataTypeDeclaration, SourceRange, Variable, VariableBlock},
+    index::const_expressions::ConstExpression,
     Diagnostic,
 };
+
+use super::ValidationContext;
 
 /// validates variables & datatypes
 
@@ -16,9 +19,49 @@ impl VariableValidator {
         }
     }
 
-    pub fn validate_variable_block(&self, _block: &VariableBlock) {}
+    pub fn validate_variable_block(&mut self, block: &VariableBlock, context: &ValidationContext) {
+        for variable in &block.variables {
+            self.validate_variable(variable, context);
+        }
+    }
 
-    pub fn validate_variable(&self, _variable: &Variable) {}
+    pub fn validate_variable(&mut self, variable: &Variable, context: &ValidationContext) {
+        if let Some(v_entry) = context
+            .qualifier
+            .and_then(|qualifier| context.index.find_member(qualifier, variable.name.as_str()))
+            .or_else(|| context.index.find_global_variable(variable.name.as_str()))
+        {
+            match v_entry.initial_value.and_then(|initial_id| {
+                context
+                    .index
+                    .get_const_expressions()
+                    .find_const_expression(&initial_id)
+            }) {
+                Some(ConstExpression::Unresolvable { reason, statement }) => {
+                    self.diagnostics.push(Diagnostic::unresolved_constant(
+                        variable.name.as_str(),
+                        Some(reason),
+                        statement.get_location(),
+                    ));
+                }
+                Some(ConstExpression::Unresolved(statement)) => {
+                    self.diagnostics.push(Diagnostic::unresolved_constant(
+                        variable.name.as_str(),
+                        None,
+                        statement.get_location(),
+                    ));
+                }
+                None if v_entry.is_constant() => {
+                    self.diagnostics.push(Diagnostic::unresolved_constant(
+                        variable.name.as_str(),
+                        None,
+                        variable.location.clone(),
+                    ));
+                }
+                _ => {}
+            }
+        }
+    }
 
     pub fn validate_data_type_declaration(&self, _declaration: &DataTypeDeclaration) {}
 

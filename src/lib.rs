@@ -83,6 +83,9 @@ pub enum ErrNo {
     pou__unexpected_return_type,
     pou__empty_variable_block,
 
+    //variable related
+    var__unresolved_constant,
+
     //reference related
     reference__unresolved,
     //variable related
@@ -250,6 +253,24 @@ impl Diagnostic {
     pub fn empty_variable_block(location: SourceRange) -> Diagnostic {
         Diagnostic::SyntaxError {
             message: "Variable block is empty".into(),
+            range: location,
+            err_no: ErrNo::pou__empty_variable_block,
+        }
+    }
+
+    pub fn unresolved_constant(
+        constant_name: &str,
+        reason: Option<&str>,
+        location: SourceRange,
+    ) -> Diagnostic {
+        Diagnostic::SyntaxError {
+            message: format!(
+                "Unresolved constant '{:}' variable{:}",
+                constant_name,
+                reason
+                    .map(|it| format!(": {:}", it))
+                    .unwrap_or_else(|| "".into()),
+            ),
             range: location,
             err_no: ErrNo::pou__empty_variable_block,
         }
