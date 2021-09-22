@@ -49,7 +49,7 @@ fn class_reference_in_pou() {
         "
     .into();
 
-    let res : i32 = compile_and_run(
+    let res: i32 = compile_and_run(
         source,
         &mut MainType {
             cl: MyClass { x: 0, y: 0 },

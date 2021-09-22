@@ -46,7 +46,7 @@ fn adding_through_conditions() {
 
     let (func_true, func_false) = function;
 
-    let res : i32 = compile_and_run(
+    let res: i32 = compile_and_run(
         func_true,
         &mut MainType {
             inc: 0,
@@ -55,7 +55,7 @@ fn adding_through_conditions() {
         },
     );
     assert_eq!(res, 10);
-    let res : i32 = compile_and_run(
+    let res: i32 = compile_and_run(
         func_false,
         &mut MainType {
             inc: 0,
