@@ -61,7 +61,7 @@ fn initia_values_of_programs_members() {
 
     let mut maintype = new();
 
-    compile_and_run(function.to_string(), &mut maintype);
+    compile_and_run::<_, i32>(function.to_string(), &mut maintype);
 
     assert_eq!(77, maintype.x);
     assert_eq!(0, maintype.x_);
@@ -109,7 +109,7 @@ fn initia_values_of_functionblock_members() {
 
     let mut maintype = new();
 
-    compile_and_run(function.to_string(), &mut maintype);
+    compile_and_run::<_, i32>(function.to_string(), &mut maintype);
 
     assert_eq!(77, maintype.x);
     assert_eq!(0, maintype.x_);
@@ -155,7 +155,7 @@ fn initia_values_of_function_members() {
 
     let mut maintype = ThreeInts { x: 0, y: 0, z: 0 };
 
-    compile_and_run(function.to_string(), &mut maintype);
+    compile_and_run::<_, i32>(function.to_string(), &mut maintype);
 
     assert_eq!(77, maintype.x);
     assert_eq!(88, maintype.y);
@@ -200,7 +200,7 @@ fn initia_values_of_struct_type_members() {
 
     let mut maintype = new();
 
-    compile_and_run(function.to_string(), &mut maintype);
+    compile_and_run::<_, i32>(function.to_string(), &mut maintype);
 
     assert_eq!(77, maintype.x);
     assert_eq!(0, maintype.x_);
@@ -246,7 +246,7 @@ fn initia_values_of_alias_type() {
 
     let mut maintype = new();
 
-    compile_and_run(function.to_string(), &mut maintype);
+    compile_and_run::<_, i32>(function.to_string(), &mut maintype);
 
     assert_eq!(7, maintype.x);
     assert_eq!(8, maintype.x_);
@@ -339,7 +339,7 @@ fn initial_values_in_single_dimension_array_variable() {
         h2: true,
     };
 
-    compile_and_run(function.to_string(), &mut maintype);
+    compile_and_run::<_, i32>(function.to_string(), &mut maintype);
     assert_eq!(1, maintype.a0);
     assert_eq!(3, maintype.a2);
     assert_eq!(4, maintype.b0);
@@ -395,7 +395,7 @@ fn initial_values_in_multi_dimension_array_variable() {
         a3: 0,
     };
 
-    compile_and_run(function.to_string(), &mut maintype);
+    compile_and_run::<_, i32>(function.to_string(), &mut maintype);
     assert_eq!(1, maintype.a0);
     assert_eq!(2, maintype.a1);
     assert_eq!(3, maintype.a2);
@@ -455,7 +455,7 @@ fn initial_values_in_array_of_array_variable() {
         a8: 0,
     };
 
-    compile_and_run(function.to_string(), &mut maintype);
+    compile_and_run::<_, i32>(function.to_string(), &mut maintype);
     assert_eq!(1, maintype.a1);
     assert_eq!(2, maintype.a2);
     assert_eq!(3, maintype.a3);
@@ -504,7 +504,7 @@ fn real_initial_values_in_array_variable() {
         r2: 0.0,
     };
 
-    compile_and_run(function.to_string(), &mut maintype);
+    compile_and_run::<_, i32>(function.to_string(), &mut maintype);
     assert_almost_eq!(9.1415, maintype.f1, f32::EPSILON);
     assert_almost_eq!(0.001, maintype.f2, f32::EPSILON);
     assert_almost_eq!(9.141592653589, maintype.r1, f64::EPSILON);
@@ -570,7 +570,7 @@ fn initialization_of_complex_struct_instance() {
         f: 0.0,
     };
 
-    compile_and_run(src.to_string(), &mut maintype);
+    compile_and_run::<_, i32>(src.to_string(), &mut maintype);
     assert_eq!(1, maintype.x);
     assert_eq!(2, maintype.y);
     assert_eq!(1, maintype.arr1);
@@ -629,7 +629,7 @@ fn initialization_of_complex_struct_instance_using_defaults() {
         f: 0.0,
     };
 
-    compile_and_run(src.to_string(), &mut maintype);
+    compile_and_run::<_, i32>(src.to_string(), &mut maintype);
     assert_eq!(1, maintype.x);
     assert_eq!(7, maintype.y);
     assert_eq!(1, maintype.arr1);
@@ -689,7 +689,7 @@ fn initialization_of_string_variables() {
         string3: [1; 21],
     };
 
-    compile_and_run(src.to_string(), &mut maintype);
+    compile_and_run::<_, i32>(src.to_string(), &mut maintype);
     assert_eq!(
         &maintype.mystring1[0..8],
         [97, 98, 99, 100, 101, 102, 103, 0]

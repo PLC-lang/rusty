@@ -35,7 +35,7 @@ END_FUNCTION
 
     let mut maintype = MainType {};
 
-    let (res, _) = compile_and_run(function.to_string(), &mut maintype);
+    let res: i32 = compile_and_run(function.to_string(), &mut maintype);
 
     assert_eq!(36, res);
 }

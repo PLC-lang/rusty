@@ -38,7 +38,7 @@ fn bitaccess_test() {
     ";
     let mut main_type = MainType::default();
 
-    compile_and_run(prog.to_string(), &mut main_type);
+    compile_and_run::<_, i32>(prog.to_string(), &mut main_type);
     assert_eq!(
         main_type,
         MainType {
@@ -81,7 +81,7 @@ fn bitaccess_with_var_test() {
     ";
     let mut main_type = MainType::default();
 
-    compile_and_run(prog.to_string(), &mut main_type);
+    compile_and_run::<_, i32>(prog.to_string(), &mut main_type);
     assert_eq!(
         main_type,
         MainType {
