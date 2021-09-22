@@ -5779,3 +5779,49 @@ entry:
 
     assert_eq!(result, expected);
 }
+
+#[test]
+fn using_global_consts_in_expressions() {
+    //GIVEN some constants used in an expression
+    let result = codegen!(
+        r#"
+        VAR_GLOBAL CONSTANT
+          cA : INT := 1;
+          cB : INT := 2;
+          cC : INT := cA + cB;
+        END_VAR 
+
+        PROGRAM prg
+          VAR
+            z : DINT;
+          END_VAR
+          z := cA + cB + cC;
+        END_PROGRAM
+        "#
+    );
+    //WHEN we compile
+    let expected = generate_program_boiler_plate(
+        "prg",
+        &[("i32", "z")],
+        "void",
+        "",
+        "
+@cA = global i16 1
+@cB = global i16 2
+@cC = global i16 3",
+        r#"%load_cA = load i16, i16* @cA, align 2
+  %load_cB = load i16, i16* @cB, align 2
+  %load_cC = load i16, i16* @cC, align 2
+  %tmpVar = add i16 %load_cB, %load_cC
+  %tmpVar1 = add i16 %load_cA, %tmpVar
+  %1 = sext i16 %tmpVar1 to i32
+  store i32 %1, i32* %z, align 4
+  ret void
+"#,
+    );
+
+    // we expect the constants to be inlined
+    //TODO inline constant values into body-expression
+    // https://github.com/ghaith/rusty/issues/291
+    assert_eq!(result, expected);
+}

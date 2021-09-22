@@ -661,7 +661,6 @@ fn multi_named_keywords_without_underscore_test() {
     assert_eq!(d2.get_location(), SourceRange::new(191..200));
 }
 
-#[ignore = "reason"]
 #[test]
 fn lowercase_keywords_accepted() {
     let mut result = lex(r###"
