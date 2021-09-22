@@ -24,6 +24,9 @@ codespan-reporting = "0.11.1"
 mun_lld = "110.0.0"
 generational-arena = "0.2.8"
 
+[dev-dependencies]
+num = "0.4"
+
 [lib]
 name = "rusty"
 path = "src/lib.rs"
