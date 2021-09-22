@@ -43,7 +43,7 @@ fn test_external_function_called() {
     let fn_value = code_gen.module.get_function("times_two").unwrap();
 
     exec_engine.add_global_mapping(&fn_value, times_two as usize);
-    let (res, _) = run_i32(&exec_engine, "main", &mut MainType { ret: 0 });
+    let res : i32 = run(&exec_engine, "main", &mut MainType { ret: 0 });
     assert_eq!(res, 200)
 
     //Call that function

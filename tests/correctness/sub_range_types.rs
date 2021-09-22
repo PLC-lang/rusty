@@ -70,7 +70,7 @@ fn sub_range_chooses_right_implementation() {
         _ulint: 0,
     };
 
-    compile_and_run_i32(function.to_string(), &mut maintype);
+    compile_and_run::<_,i32>(function.to_string(), &mut maintype);
     let expected = MainType {
         _byte: 7,
         _sint: -7,

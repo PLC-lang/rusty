@@ -46,9 +46,9 @@ fn max_function() {
         the_b: -2,
     };
 
-    let (res, _) = run_i32(&engine, "main", &mut case1);
+    let res : i32 = run(&engine, "main", &mut case1);
     assert_eq!(res, 7);
-    let (res, _) = run_i32(&engine, "main", &mut case2);
+    let res : i32 = run(&engine, "main", &mut case2);
     assert_eq!(res, 9);
 }
 
@@ -81,7 +81,7 @@ fn nested_function_call() {
             END_FUNCTION
         "#;
 
-    let (res, _) = compile_and_run_i32(function.to_string(), &mut main_data);
+    let res : i32 = compile_and_run(function.to_string(), &mut main_data);
     assert_eq!(1000, res);
 }
 
@@ -126,7 +126,7 @@ fn test_or_sideeffects() {
     let context: Context = Context::create();
     let engine = compile(&context, function);
     let mut case1 = MainType { x: false };
-    let (res, _) = run_i32(&engine, "main", &mut case1);
+    let res : i32 = run(&engine, "main", &mut case1);
     assert_eq!(res, 31);
 }
 
@@ -171,7 +171,7 @@ fn test_and_sideeffects() {
     let context: Context = Context::create();
     let engine = compile(&context, function);
     let mut case1 = MainType { x: false };
-    let (res, _) = run_i32(&engine, "main", &mut case1);
+    let res : i32 = run(&engine, "main", &mut case1);
     assert_eq!(res, 31);
 }
 
@@ -212,7 +212,7 @@ fn function_block_instances_save_state_per_instance() {
         f: FooType { i: 0 },
         j: FooType { i: 0 },
     };
-    let (_, _) = compile_and_run_i32(function.to_string(), &mut interface);
+    compile_and_run::<_,i32>(function.to_string(), &mut interface);
     assert_eq!(interface.f.i, 2);
     assert_eq!(interface.j.i, 7);
 }
@@ -241,8 +241,8 @@ fn program_instances_save_state_per() {
     };
     let context = inkwell::context::Context::create();
     let exec_engine = compile(&context, function.to_string());
-    run_i32(&exec_engine, "main", &mut interface);
-    run_i32(&exec_engine, "main", &mut interface);
+    run::<_,i32>(&exec_engine, "main", &mut interface);
+    run::<_,i32>(&exec_engine, "main", &mut interface);
     assert_eq!(interface.f.i, 6);
 }
 
@@ -270,7 +270,7 @@ fn functions_can_be_called_out_of_order() {
     "#;
 
     let mut interface = MainType { f: 0 };
-    let (_, _) = compile_and_run_i32(function.to_string(), &mut interface);
+    compile_and_run::<_,i32>(function.to_string(), &mut interface);
 
     assert_eq!(7, interface.f);
 }
@@ -336,7 +336,7 @@ fn function_block_instances_save_state_per_instance_2() {
             baz: BazType { i: 0 },
         },
     };
-    let (_, _) = compile_and_run_i32(function.to_string(), &mut interface);
+    compile_and_run::<_,i32>(function.to_string(), &mut interface);
 
     assert_eq!(2, interface.f.baz.i);
     assert_eq!(4, interface.j.baz.i);
@@ -378,7 +378,7 @@ fn function_call_inout_variable() {
     "#;
 
     let mut interface = MainType { baz: 7 };
-    let (_, _) = compile_and_run_i32(function.to_string(), &mut interface);
+    compile_and_run::<_,i32>(function.to_string(), &mut interface);
 
     assert_eq!(64, interface.baz);
 }
@@ -429,7 +429,7 @@ fn inouts_behave_like_pointers() {
         p2: 0,
         p3: 0,
     };
-    let (_, _) = compile_and_run_i32(function.to_string(), &mut interface);
+    compile_and_run::<_,i32>(function.to_string(), &mut interface);
 
     assert_eq!(7, interface.p1);
     assert_eq!(8, interface.p2);
