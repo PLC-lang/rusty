@@ -1,10 +1,11 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
+use std::vec;
+
 use super::{
     super::ast::{CompilationUnit, DataType, DataTypeDeclaration, UserTypeDeclaration, Variable},
     Pou, SourceRange,
 };
-use std::vec;
 
 pub fn pre_process(unit: &mut CompilationUnit) {
     //process all local variables from POUs
@@ -37,55 +38,17 @@ pub fn pre_process(unit: &mut CompilationUnit) {
     //process all variables in dataTypes
     let mut new_types = vec![];
     for dt in unit.types.iter_mut() {
-        {
-            match &mut dt.data_type {
-                DataType::StructType { name, variables } => {
-                    variables
-                        .iter_mut()
-                        .filter(|it| should_generate_implicit_type(it))
-                        .for_each(|var| {
-                            pre_process_variable_data_type(
-                                name.as_ref().unwrap().as_str(),
-                                var,
-                                &mut new_types,
-                            )
-                        });
-                }
-                DataType::ArrayType {
-                    name,
-                    referenced_type,
-                    ..
-                }
-                | DataType::PointerType {
-                    name,
-                    referenced_type,
-                    ..
-                } if should_generate_implicit(referenced_type) => {
-                    let name: &str = name.as_ref().map(|it| it.as_str()).unwrap_or("undefined");
-
-                    let type_name = format!("__{}", name);
-                    let type_ref = DataTypeDeclaration::DataTypeReference {
-                        referenced_type: type_name.clone(),
-                        location: SourceRange::undefined(), //return_type.get_location(),
-                    };
-                    let datatype = std::mem::replace(referenced_type, Box::new(type_ref));
-                    if let DataTypeDeclaration::DataTypeDefinition {
-                        mut data_type,
-                        location,
-                    } = *datatype
-                    {
-                        data_type.set_name(type_name);
-                        add_nested_datatypes(name, &mut data_type, &mut new_types, &location);
-                        let data_type = UserTypeDeclaration {
-                            data_type,
-                            initializer: None,
-                            location,
-                        };
-                        new_types.push(data_type);
-                    }
-                }
-                _ => {}
-            }
+        if let DataType::StructType { name, variables } = &mut dt.data_type {
+            variables
+                .iter_mut()
+                .filter(|it| should_generate_implicit_type(it))
+                .for_each(|var| {
+                    pre_process_variable_data_type(
+                        name.as_ref().unwrap().as_str(),
+                        var,
+                        &mut new_types,
+                    )
+                });
         }
     }
     unit.types.append(&mut new_types);
