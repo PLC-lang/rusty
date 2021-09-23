@@ -35,7 +35,7 @@ fn global_variable_can_be_referenced_in_fn() {
     main := gX;
     END_FUNCTION
     ";
-    let (res, _) = compile_and_run(function.to_string(), &mut MainType { x: 0, ret: 0 });
+    let res: i32 = compile_and_run(function.to_string(), &mut MainType { x: 0, ret: 0 });
     assert_eq!(res, 30);
 }
 
@@ -65,9 +65,9 @@ fn global_variable_can_be_referenced_in_two_functions() {
     let context = inkwell::context::Context::create();
     let exec_engine = compile(&context, function.to_string());
 
-    let (res, _) = run(&exec_engine, "main", &mut MainType { x: 0, ret: 0 });
+    let res: i32 = run(&exec_engine, "main", &mut MainType { x: 0, ret: 0 });
     assert_eq!(res, 30);
-    let (res2, _) = run(&exec_engine, "two", &mut MainType { x: 0, ret: 0 });
+    let res2: i32 = run(&exec_engine, "two", &mut MainType { x: 0, ret: 0 });
     assert_eq!(res2, 30)
 }
 
@@ -104,7 +104,7 @@ fn global_variables_with_initialization() {
         y: false,
         z: 0.0,
     };
-    run(&exec_engine, "main", &mut params);
+    run::<_, i32>(&exec_engine, "main", &mut params);
     assert_eq!(
         params,
         MainGlobalsType {

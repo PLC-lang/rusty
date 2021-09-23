@@ -397,32 +397,39 @@ impl<'i> TypeAnnotator<'i> {
                         .annotate(statement, StatementAnnotation::expression(t));
                 }
             }
-            AstStatement::DirectAccess { access, .. } => match access {
-                crate::ast::DirectAccess::Bit => self.annotation_map.annotate(
-                    statement,
-                    StatementAnnotation::Value {
-                        resulting_type: BOOL_TYPE.into(),
-                    },
-                ),
-                crate::ast::DirectAccess::Byte => self.annotation_map.annotate(
-                    statement,
-                    StatementAnnotation::Value {
-                        resulting_type: BYTE_TYPE.into(),
-                    },
-                ),
-                crate::ast::DirectAccess::Word => self.annotation_map.annotate(
-                    statement,
-                    StatementAnnotation::Value {
-                        resulting_type: WORD_TYPE.into(),
-                    },
-                ),
-                crate::ast::DirectAccess::DWord => self.annotation_map.annotate(
-                    statement,
-                    StatementAnnotation::Value {
-                        resulting_type: DWORD_TYPE.into(),
-                    },
-                ),
-            },
+            AstStatement::DirectAccess { access, index, .. } => {
+                let ctx = VisitorContext {
+                    qualifier: None,
+                    ..ctx.clone()
+                };
+                visit_all_statements!(self, &ctx, index);
+                match access {
+                    crate::ast::DirectAccessType::Bit => self.annotation_map.annotate(
+                        statement,
+                        StatementAnnotation::Value {
+                            resulting_type: BOOL_TYPE.into(),
+                        },
+                    ),
+                    crate::ast::DirectAccessType::Byte => self.annotation_map.annotate(
+                        statement,
+                        StatementAnnotation::Value {
+                            resulting_type: BYTE_TYPE.into(),
+                        },
+                    ),
+                    crate::ast::DirectAccessType::Word => self.annotation_map.annotate(
+                        statement,
+                        StatementAnnotation::Value {
+                            resulting_type: WORD_TYPE.into(),
+                        },
+                    ),
+                    crate::ast::DirectAccessType::DWord => self.annotation_map.annotate(
+                        statement,
+                        StatementAnnotation::Value {
+                            resulting_type: DWORD_TYPE.into(),
+                        },
+                    ),
+                }
+            }
             AstStatement::BinaryExpression { left, right, .. } => {
                 visit_all_statements!(self, ctx, left, right);
                 let left = &self

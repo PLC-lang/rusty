@@ -47,7 +47,7 @@ fn same_type_addition() {
 
     let mut maintype = new();
 
-    compile_and_run(function.to_string(), &mut maintype);
+    compile_and_run::<_, i32>(function.to_string(), &mut maintype);
     assert_eq!(false, maintype.bool_1);
     assert_eq!(true, maintype.bool_2);
     assert_eq!(false, maintype.bool_3); //Overflow
@@ -85,7 +85,7 @@ fn byte_addition() {
         byte_3: 0,
     };
 
-    compile_and_run(program.to_string(), &mut maintype);
+    compile_and_run::<_, i32>(program.to_string(), &mut maintype);
     assert_eq!(2, maintype.byte_1);
     assert_eq!(0, maintype.byte_2);
     assert_eq!(254, maintype.byte_3); //Overflow
@@ -117,7 +117,7 @@ fn byte_mixed_addition() {
         int_1: 275,
     };
 
-    compile_and_run(program.to_string(), &mut maintype);
+    compile_and_run::<_, i32>(program.to_string(), &mut maintype);
     assert_eq!(9, maintype.byte_1); //Overflow
 
     let mut maintype = Type {
@@ -126,7 +126,7 @@ fn byte_mixed_addition() {
         int_1: 10,
     };
 
-    compile_and_run(program.to_string(), &mut maintype);
+    compile_and_run::<_, i32>(program.to_string(), &mut maintype);
     assert_eq!(20, maintype.byte_1);
 }
 
@@ -158,7 +158,7 @@ fn usint_addition() {
         usint_3: 0,
     };
 
-    compile_and_run(program.to_string(), &mut maintype);
+    compile_and_run::<_, i32>(program.to_string(), &mut maintype);
     assert_eq!(2, maintype.usint_1);
     assert_eq!(0, maintype.usint_2);
     assert_eq!(254, maintype.usint_3); //Overflow
@@ -190,7 +190,7 @@ fn usint_mixed_addition() {
         int_1: 275,
     };
 
-    compile_and_run(program.to_string(), &mut maintype);
+    compile_and_run::<_, i32>(program.to_string(), &mut maintype);
     assert_eq!(9, maintype.usint_1); //Overflow
 
     let mut maintype = Type {
@@ -199,7 +199,7 @@ fn usint_mixed_addition() {
         int_1: 10,
     };
 
-    compile_and_run(program.to_string(), &mut maintype);
+    compile_and_run::<_, i32>(program.to_string(), &mut maintype);
     assert_eq!(20, maintype.usint_1);
 }
 
@@ -231,7 +231,7 @@ fn sint_additions() {
         sint_3: 0,
     };
 
-    compile_and_run(program.to_string(), &mut maintype);
+    compile_and_run::<_, i32>(program.to_string(), &mut maintype);
     assert_eq!(2, maintype.sint_1);
     assert_eq!(0, maintype.sint_2);
     assert_eq!(119, maintype.sint_3); //Overflow
@@ -263,7 +263,7 @@ fn sint_mixed_addition() {
         int_1: 0,
     };
 
-    compile_and_run(program.to_string(), &mut maintype);
+    compile_and_run::<_, i32>(program.to_string(), &mut maintype);
     assert_eq!(-6, maintype.sint_1);
 
     let mut maintype = Type {
@@ -272,7 +272,7 @@ fn sint_mixed_addition() {
         int_1: 300,
     };
 
-    compile_and_run(program.to_string(), &mut maintype);
+    compile_and_run::<_, i32>(program.to_string(), &mut maintype);
     assert_eq!(54, maintype.sint_1);
 }
 
@@ -304,7 +304,7 @@ fn word_addition() {
         byte_3: 0,
     };
 
-    compile_and_run(program.to_string(), &mut maintype);
+    compile_and_run::<_, i32>(program.to_string(), &mut maintype);
     assert_eq!(1, maintype.byte_1);
     assert_eq!(65525, maintype.byte_2);
     assert_eq!(9, maintype.byte_3); //Overflow
@@ -343,7 +343,7 @@ fn word_mixed_addition() {
         dint_1: -0xFFFFFFF,
     };
 
-    compile_and_run(program.to_string(), &mut maintype);
+    compile_and_run::<_, i32>(program.to_string(), &mut maintype);
     assert_eq!(256, maintype.word_1);
     assert_eq!(65527, maintype.word_2);
 }
@@ -377,7 +377,7 @@ fn int_addition() {
         byte_3: 0,
     };
 
-    compile_and_run(program.to_string(), &mut maintype);
+    compile_and_run::<_, i32>(program.to_string(), &mut maintype);
     assert_eq!(1, maintype.byte_1);
     assert_eq!(-32757, maintype.byte_2);
     assert_eq!(32759, maintype.byte_3); //Overflow
@@ -411,7 +411,7 @@ fn uint_addition() {
         byte_3: 0,
     };
 
-    compile_and_run(program.to_string(), &mut maintype);
+    compile_and_run::<_, i32>(program.to_string(), &mut maintype);
     assert_eq!(1, maintype.byte_1);
     assert_eq!(65525, maintype.byte_2);
     assert_eq!(9, maintype.byte_3); //Overflow
@@ -445,7 +445,7 @@ fn dword_addition() {
         byte_3: 0,
     };
 
-    compile_and_run(program.to_string(), &mut maintype);
+    compile_and_run::<_, i32>(program.to_string(), &mut maintype);
     assert_eq!(1, maintype.byte_1);
     assert_eq!(4294967286, maintype.byte_2);
     assert_eq!(10, maintype.byte_3); //Overflow
@@ -479,7 +479,7 @@ fn dint_addition() {
         byte_3: 0,
     };
 
-    compile_and_run(program.to_string(), &mut maintype);
+    compile_and_run::<_, i32>(program.to_string(), &mut maintype);
     assert_eq!(1, maintype.byte_1);
     assert_eq!(2147483638, maintype.byte_2);
     assert_eq!(-2147483639, maintype.byte_3); //overflow
@@ -513,7 +513,7 @@ fn udint_addition() {
         byte_3: 0,
     };
 
-    compile_and_run(program.to_string(), &mut maintype);
+    compile_and_run::<_, i32>(program.to_string(), &mut maintype);
     assert_eq!(1, maintype.byte_1);
     assert_eq!(4294967285, maintype.byte_2);
     assert_eq!(9, maintype.byte_3); //Overflow
@@ -543,7 +543,7 @@ fn unsinged_byte_expansion() {
         int_1: 0,
     };
 
-    compile_and_run(program.to_string(), &mut maintype);
+    compile_and_run::<_, i32>(program.to_string(), &mut maintype);
     assert_eq!(265, maintype.int_1);
 }
 
@@ -583,7 +583,7 @@ fn unsinged_byte_expansion2() {
         int_2: 0,
     };
 
-    compile_and_run(program.to_string(), &mut maintype);
+    compile_and_run::<_, i32>(program.to_string(), &mut maintype);
     assert_eq!(245, maintype.int_1);
     assert_eq!(65780, maintype.int_2);
 }
@@ -624,7 +624,7 @@ fn unsinged_byte_expansion3() {
         arg3: 10,
         result: 0,
     };
-    compile_and_run(program.to_string(), &mut maintype);
+    compile_and_run::<_, i32>(program.to_string(), &mut maintype);
     let arg1: u64 = maintype.arg1.into();
     let arg2: u64 = maintype.arg2.into();
     let arg3: u64 = maintype.arg3;
@@ -659,7 +659,7 @@ fn assign_short_string_to_long_string_variable() {
         text: [0; 81],
         text2: [0; 81],
     };
-    compile_and_run(program.to_string(), &mut maintype);
+    compile_and_run::<_, i32>(program.to_string(), &mut maintype);
 
     let t: [u8; 81] = maintype.text;
     assert_eq!(t[0] as u8, b'a');
@@ -709,7 +709,7 @@ fn assign_string_to_string() {
         text: [0; 81],
         text2: [0; 81],
     };
-    compile_and_run(program.to_string(), &mut maintype);
+    compile_and_run::<_, i32>(program.to_string(), &mut maintype);
 
     let t: [u8; 81] = maintype.text2;
     assert_eq!(t[0] as u8, b'a');
@@ -753,7 +753,7 @@ fn assign_long_string_to_short_string_variable() {
     for (i, b) in "hello".bytes().enumerate() {
         maintype.text2[i] = b;
     }
-    compile_and_run(program.to_string(), &mut maintype);
+    compile_and_run::<_, i32>(program.to_string(), &mut maintype);
 
     let t: [u8; 81] = maintype.text;
     for i in (0..75).step_by(3) {
@@ -801,7 +801,7 @@ fn function_parameters_string() {
         text2: [0; 81],
         text3: [0; 81],
     };
-    compile_and_run(program.to_string(), &mut maintype);
+    compile_and_run::<_, i32>(program.to_string(), &mut maintype);
     let t: [u8; 81] = maintype.text;
     for i in (0..75).step_by(3) {
         assert_eq!(t[i], b'a');
@@ -853,7 +853,7 @@ fn real_to_int_assignment() {
         int_val2: 0,
     };
 
-    compile_and_run(function.to_string(), &mut maintype);
+    compile_and_run::<_, i32>(function.to_string(), &mut maintype);
     assert_almost_eq!(2.0, maintype.real_val, f32::EPSILON);
     assert_eq!(2, maintype.int_val);
     assert_almost_eq!(4.0, maintype.lreal_val, f64::EPSILON);
@@ -892,7 +892,7 @@ fn real_float_assingment() {
         lreal_target: 0.0,
     };
 
-    compile_and_run(function.to_string(), &mut maintype);
+    compile_and_run::<_, i32>(function.to_string(), &mut maintype);
     assert_almost_eq!(2.0, maintype.real_val, f32::EPSILON);
     assert_almost_eq!(2.0, maintype.lreal_target, f64::EPSILON);
     assert_almost_eq!(4.0, maintype.lreal_val, f64::EPSILON);
@@ -912,7 +912,7 @@ fn real_to_int_assignment2() {
                 main := LOG();
         END_FUNCTION
     "#;
-    let (res, _) = compile_and_run(function.to_string(), &mut Type {});
+    let res: i32 = compile_and_run(function.to_string(), &mut Type {});
     assert_eq!(1, res);
 }
 
@@ -929,6 +929,6 @@ fn lreal_to_int_assignment() {
             main := LOG();
         END_FUNCTION
     "#;
-    let (res, _) = compile_and_run(function.to_string(), &mut Type {});
+    let res: i32 = compile_and_run(function.to_string(), &mut Type {});
     assert_eq!(1, res);
 }

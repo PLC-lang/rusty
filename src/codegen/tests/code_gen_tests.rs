@@ -5811,9 +5811,9 @@ fn using_global_consts_in_expressions() {
 @cC = global i16 3",
         r#"%load_cA = load i16, i16* @cA, align 2
   %load_cB = load i16, i16* @cB, align 2
+  %tmpVar = add i16 %load_cA, %load_cB
   %load_cC = load i16, i16* @cC, align 2
-  %tmpVar = add i16 %load_cB, %load_cC
-  %tmpVar1 = add i16 %load_cA, %tmpVar
+  %tmpVar1 = add i16 %tmpVar, %load_cC
   %1 = sext i16 %tmpVar1 to i32
   store i32 %1, i32* %z, align 4
   ret void

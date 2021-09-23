@@ -1,9 +1,38 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
 use crate::{
-    ast::*, lexer::ParseSession, lexer::Token::*, parser::parse_any_in_region, Diagnostic,
+    ast::*,
+    lexer::Token::*,
+    lexer::{ParseSession, Token},
+    parser::parse_any_in_region,
+    Diagnostic,
 };
 use std::str::FromStr;
+
+macro_rules! parse_left_associative_expression {
+    ($lexer: expr, $action : expr,
+        $( $pattern:pat_param )|+,
+    ) => {
+        {
+            let mut left = $action($lexer);
+            while matches!($lexer.token, $( $pattern )|+)  {
+                let operator = match to_operator(&$lexer.token) {
+                    Some(operator) => operator,
+                    None => break,
+                };
+                $lexer.advance();
+                let right = $action($lexer);
+                left = AstStatement::BinaryExpression {
+                    operator,
+                    left: Box::new(left),
+                    right: Box::new(right),
+                    id: $lexer.next_id(),
+                };
+            }
+            left
+        }
+    };
+}
 
 /// parse_expression(): returns expression as Statement. if a parse error
 /// is encountered, the erroneous part of the AST will consist of an
@@ -54,137 +83,53 @@ pub(crate) fn parse_range_statement(lexer: &mut ParseSession) -> AstStatement {
 
 // OR
 fn parse_or_expression(lexer: &mut ParseSession) -> AstStatement {
-    let left = parse_xor_expression(lexer);
-
-    let operator = match lexer.token {
-        OperatorOr => Operator::Or,
-        _ => return left,
-    };
-
-    lexer.advance();
-
-    let right = parse_or_expression(lexer);
-    AstStatement::BinaryExpression {
-        operator,
-        left: Box::new(left),
-        right: Box::new(right),
-        id: lexer.next_id(),
-    }
+    parse_left_associative_expression!(lexer, parse_xor_expression, OperatorOr,)
 }
 
 // XOR
 fn parse_xor_expression(lexer: &mut ParseSession) -> AstStatement {
-    let left = parse_and_expression(lexer);
-
-    let operator = match lexer.token {
-        OperatorXor => Operator::Xor,
-        _ => return left,
-    };
-
-    lexer.advance();
-
-    let right = parse_xor_expression(lexer);
-    AstStatement::BinaryExpression {
-        operator,
-        left: Box::new(left),
-        right: Box::new(right),
-        id: lexer.next_id(),
-    }
+    parse_left_associative_expression!(lexer, parse_and_expression, OperatorXor,)
 }
 
 // AND
 fn parse_and_expression(lexer: &mut ParseSession) -> AstStatement {
-    let left = parse_equality_expression(lexer);
-
-    let operator = match lexer.token {
-        OperatorAnd => Operator::And,
-        _ => return left,
-    };
-
-    lexer.advance();
-
-    let right = parse_and_expression(lexer);
-    AstStatement::BinaryExpression {
-        operator,
-        left: Box::new(left),
-        right: Box::new(right),
-        id: lexer.next_id(),
-    }
+    parse_left_associative_expression!(lexer, parse_equality_expression, OperatorAnd,)
 }
 
 //EQUALITY  =, <>
 fn parse_equality_expression(lexer: &mut ParseSession) -> AstStatement {
-    let left = parse_compare_expression(lexer);
-    let operator = match lexer.token {
-        OperatorEqual => Operator::Equal,
-        OperatorNotEqual => Operator::NotEqual,
-        _ => return left,
-    };
-    lexer.advance();
-    let right = parse_equality_expression(lexer);
-    AstStatement::BinaryExpression {
-        operator,
-        left: Box::new(left),
-        right: Box::new(right),
-        id: lexer.next_id(),
-    }
+    parse_left_associative_expression!(
+        lexer,
+        parse_compare_expression,
+        OperatorEqual | OperatorNotEqual,
+    )
 }
 
 //COMPARE <, >, <=, >=
 fn parse_compare_expression(lexer: &mut ParseSession) -> AstStatement {
-    let left = parse_additive_expression(lexer);
-    let operator = match lexer.token {
-        OperatorLess => Operator::Less,
-        OperatorGreater => Operator::Greater,
-        OperatorLessOrEqual => Operator::LessOrEqual,
-        OperatorGreaterOrEqual => Operator::GreaterOrEqual,
-        _ => return left,
-    };
-    lexer.advance();
-    let right = parse_compare_expression(lexer);
-    AstStatement::BinaryExpression {
-        operator,
-        left: Box::new(left),
-        right: Box::new(right),
-        id: lexer.next_id(),
-    }
+    parse_left_associative_expression!(
+        lexer,
+        parse_additive_expression,
+        OperatorLess | OperatorGreater | OperatorLessOrEqual | OperatorGreaterOrEqual,
+    )
 }
 
 // Addition +, -
 fn parse_additive_expression(lexer: &mut ParseSession) -> AstStatement {
-    let left = parse_multiplication_expression(lexer);
-    let operator = match lexer.token {
-        OperatorPlus => Operator::Plus,
-        OperatorMinus => Operator::Minus,
-        _ => return left,
-    };
-    lexer.advance();
-    let right = parse_additive_expression(lexer);
-    AstStatement::BinaryExpression {
-        operator,
-        left: Box::new(left),
-        right: Box::new(right),
-        id: lexer.next_id(),
-    }
+    parse_left_associative_expression!(
+        lexer,
+        parse_multiplication_expression,
+        OperatorPlus | OperatorMinus,
+    )
 }
 
 // Multiplication *, /, MOD
 fn parse_multiplication_expression(lexer: &mut ParseSession) -> AstStatement {
-    let left = parse_unary_expression(lexer);
-    let operator = match lexer.token {
-        OperatorMultiplication => Operator::Multiplication,
-        OperatorDivision => Operator::Division,
-        OperatorModulo => Operator::Modulo,
-        _ => return left,
-    };
-    lexer.advance();
-    let right = parse_multiplication_expression(lexer);
-    AstStatement::BinaryExpression {
-        operator,
-        left: Box::new(left),
-        right: Box::new(right),
-        id: lexer.next_id(),
-    }
+    parse_left_associative_expression!(
+        lexer,
+        parse_unary_expression,
+        OperatorMultiplication | OperatorDivision | OperatorModulo,
+    )
 }
 
 // UNARY -x, NOT x
@@ -236,6 +181,27 @@ fn parse_parenthesized_expression(lexer: &mut ParseSession) -> AstStatement {
             })
         }
         _ => parse_leaf_expression(lexer),
+    }
+}
+
+fn to_operator(token: &Token) -> Option<Operator> {
+    match token {
+        OperatorPlus => Some(Operator::Plus),
+        OperatorMinus => Some(Operator::Minus),
+        OperatorMultiplication => Some(Operator::Multiplication),
+        OperatorDivision => Some(Operator::Division),
+        OperatorEqual => Some(Operator::Equal),
+        OperatorNotEqual => Some(Operator::NotEqual),
+        OperatorLess => Some(Operator::Less),
+        OperatorGreater => Some(Operator::Greater),
+        OperatorLessOrEqual => Some(Operator::LessOrEqual),
+        OperatorGreaterOrEqual => Some(Operator::GreaterOrEqual),
+        OperatorModulo => Some(Operator::Modulo),
+        OperatorAnd => Some(Operator::And),
+        OperatorOr => Some(Operator::Or),
+        OperatorXor => Some(Operator::Xor),
+        OperatorNot => Some(Operator::Not),
+        _ => None,
     }
 }
 
@@ -384,29 +350,18 @@ pub fn parse_qualified_reference(lexer: &mut ParseSession) -> Result<AstStatemen
         let segment = match lexer.token {
             //Is this an integer?
             LiteralInteger => {
-                let number = parse_literal_number(lexer, false)?;
-                if let AstStatement::LiteralInteger {
-                    value,
+                let number = parse_strict_literal_integer(lexer)?;
+                let location = number.get_location().clone();
+                let id = number.get_id();
+                Ok(AstStatement::DirectAccess {
+                    access: crate::ast::DirectAccessType::Bit,
+                    index: Box::new(number),
                     location,
                     id,
-                } = number
-                {
-                    Ok(AstStatement::DirectAccess {
-                        access: crate::ast::DirectAccess::Bit,
-                        index: value as u32,
-                        location,
-                        id,
-                    })
-                } else {
-                    Err(Diagnostic::unexpected_token_found(
-                        "Integer",
-                        format!("{:?}", number).as_str(),
-                        number.get_location(),
-                    ))
-                }
+                })
             }
             //Is this a direct access?
-            DirectAccess => parse_direct_access(lexer),
+            DirectAccess(access) => parse_direct_access(lexer, access),
             _ => parse_reference_access(lexer),
         }?;
 
@@ -448,31 +403,29 @@ pub fn parse_qualified_reference(lexer: &mut ParseSession) -> Result<AstStatemen
     }
 }
 
-fn parse_direct_access(lexer: &mut ParseSession) -> Result<AstStatement, Diagnostic> {
-    let slice = lexer.slice_and_advance();
-    //Percent is at position 0
-    //Find the size from position 1
-    let access = slice
-        .chars()
-        .nth(1)
-        .and_then(|c| match c.to_ascii_lowercase() {
-            'x' => Some(crate::ast::DirectAccess::Bit),
-            'b' => Some(crate::ast::DirectAccess::Byte),
-            'w' => Some(crate::ast::DirectAccess::Word),
-            'd' => Some(crate::ast::DirectAccess::DWord),
-            _ => {
-                unreachable!()
-            }
-        })
-        .unwrap(); //Cannot fail
+fn parse_direct_access(
+    lexer: &mut ParseSession,
+    access: DirectAccessType,
+) -> Result<AstStatement, Diagnostic> {
+    //Consume the direct access
+    let location = lexer.location();
+    lexer.advance();
+    //The next token can either be an integer or an identifier
+    let index = match lexer.token {
+        LiteralInteger => parse_strict_literal_integer(lexer),
+        Identifier => parse_reference_access(lexer),
+        _ => Err(Diagnostic::unexpected_token_found(
+            "Integer or Reference",
+            lexer.slice(),
+            lexer.location(),
+        )),
+    }?;
 
-    let (_, index) = slice.split_at(2);
-    let index = index.parse::<u32>().unwrap(); //Cannot fail
-
+    let location = (location.get_start()..lexer.last_location().get_end()).into();
     Ok(AstStatement::DirectAccess {
         access,
-        index,
-        location: lexer.last_location(),
+        index: Box::new(index),
+        location,
         id: lexer.next_id(),
     })
 }
@@ -584,6 +537,29 @@ fn parse_literal_number(
         location,
         id: lexer.next_id(),
     })
+}
+
+/// Parses a literal integer without considering Signs or the Possibility of a Floating Point/ Exponent
+fn parse_strict_literal_integer(lexer: &mut ParseSession) -> Result<AstStatement, Diagnostic> {
+    //correct the location if we just parsed a minus before
+    let location = lexer.location();
+    let result = lexer.slice_and_advance();
+    // parsed number value can be safely unwrapped
+    let result = result.replace("_", "");
+    if result.to_lowercase().contains('e') {
+        Err(Diagnostic::unexpected_token_found(
+            "Integer",
+            &format!("Exponent value: {}", result),
+            location,
+        ))
+    } else {
+        let value = result.parse::<i128>().unwrap();
+        Ok(AstStatement::LiteralInteger {
+            value,
+            location,
+            id: lexer.next_id(),
+        })
+    }
 }
 
 fn parse_number<F: FromStr>(text: &str, location: &SourceRange) -> Result<F, Diagnostic> {

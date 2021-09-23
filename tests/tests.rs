@@ -3,10 +3,11 @@ use inkwell::context::Context;
 use inkwell::execution_engine::{ExecutionEngine, JitFunction};
 use rusty::*;
 
-type MainFunction<T> = unsafe extern "C" fn(*mut T) -> i32;
+type MainFunction<T, U> = unsafe extern "C" fn(*mut T) -> U;
 
 mod correctness {
     mod arrays;
+    mod bitaccess;
     mod classes;
     mod control_flow;
     mod custom_datatypes;
@@ -55,22 +56,24 @@ pub fn compile(context: &Context, source: String) -> ExecutionEngine {
         source,
     };
     let code_gen = compile_module(context, vec![source], None).unwrap();
+    println!("{}", code_gen.module.print_to_string());
     code_gen
         .module
         .create_jit_execution_engine(inkwell::OptimizationLevel::None)
         .unwrap()
 }
-pub fn compile_and_run<T>(source: String, params: &mut T) -> (i32, &'static str) {
+
+pub fn compile_and_run<T, U>(source: String, params: &mut T) -> U {
     let context: Context = Context::create();
     let exec_engine = compile(&context, source);
-    run::<T>(&exec_engine, "main", params)
+    run::<T, U>(&exec_engine, "main", params)
 }
 
-pub fn run<T>(exec_engine: &ExecutionEngine, name: &str, params: &mut T) -> (i32, &'static str) {
+pub fn run<T, U>(exec_engine: &ExecutionEngine, name: &str, params: &mut T) -> U {
     unsafe {
-        let main: JitFunction<MainFunction<T>> = exec_engine.get_function(name).unwrap();
+        let main: JitFunction<MainFunction<T, U>> = exec_engine.get_function(name).unwrap();
         let main_t_ptr = &mut *params as *mut _;
         let int_res = main.call(main_t_ptr);
-        (int_res, "")
+        int_res
     }
 }

@@ -46,7 +46,7 @@ fn adding_through_conditions() {
 
     let (func_true, func_false) = function;
 
-    let (res, _) = compile_and_run(
+    let res: i32 = compile_and_run(
         func_true,
         &mut MainType {
             inc: 0,
@@ -55,7 +55,7 @@ fn adding_through_conditions() {
         },
     );
     assert_eq!(res, 10);
-    let (res, _) = compile_and_run(
+    let res: i32 = compile_and_run(
         func_false,
         &mut MainType {
             inc: 0,
@@ -94,9 +94,9 @@ fn adding_through_conditions_to_function_return() {
 
     let (func_true, func_false) = function;
 
-    let (res, _) = compile_and_run(func_true, &mut MainType { ret: 0 });
+    let res: i32 = compile_and_run(func_true, &mut MainType { ret: 0 });
     assert_eq!(res, 10);
-    let (res, _) = compile_and_run(func_false, &mut MainType { ret: 0 });
+    let res: i32 = compile_and_run(func_false, &mut MainType { ret: 0 });
     assert_eq!(res, 100);
 }
 
@@ -116,7 +116,7 @@ fn early_return_test() {
     END_FUNCTION
     "#;
 
-    let (res, _) = compile_and_run(function.to_string(), &mut MainType { ret: 0 });
+    let res: i32 = compile_and_run(function.to_string(), &mut MainType { ret: 0 });
     assert_eq!(res, 100);
 }
 
@@ -138,7 +138,7 @@ fn for_continue_test() {
     END_FUNCTION
     "#;
 
-    let (res, _) = compile_and_run(function.to_string(), &mut MainType { ret: 0 });
+    let res: i32 = compile_and_run(function.to_string(), &mut MainType { ret: 0 });
     assert_eq!(res, 11);
 }
 
@@ -161,7 +161,7 @@ fn while_continue_test() {
     END_FUNCTION
     "#;
 
-    let (res, _) = compile_and_run(function.to_string(), &mut MainType { ret: 0 });
+    let res: i32 = compile_and_run(function.to_string(), &mut MainType { ret: 0 });
     assert_eq!(res, 10);
 }
 
@@ -186,7 +186,7 @@ fn loop_exit_test() {
     END_FUNCTION
     "#;
 
-    let (res, _) = compile_and_run(function.to_string(), &mut MainType { ret: 0 });
+    let res: i32 = compile_and_run(function.to_string(), &mut MainType { ret: 0 });
     assert_eq!(res, 100);
 }
 
@@ -211,7 +211,7 @@ fn for_loop_and_increment_10_times() {
     END_FUNCTION
     "#;
 
-    let (res, _) = compile_and_run(function.to_string(), &mut MainType { i: 0, ret: 0 });
+    let res: i32 = compile_and_run(function.to_string(), &mut MainType { i: 0, ret: 0 });
     assert_eq!(res, 110);
 }
 
@@ -235,7 +235,7 @@ fn for_loop_and_increment_10_times_skipping_1() {
     END_FUNCTION
     "#;
 
-    let (res, _) = compile_and_run(function.to_string(), &mut MainType { i: 0, ret: 0 });
+    let res: i32 = compile_and_run(function.to_string(), &mut MainType { i: 0, ret: 0 });
     assert_eq!(res, 1005);
 }
 
@@ -263,7 +263,7 @@ fn while_loop_no_entry() {
     END_FUNCTION
     "#;
 
-    let (res, _) = compile_and_run(function.to_string(), &mut MainType { i: 0, ret: 0 });
+    let res: i32 = compile_and_run(function.to_string(), &mut MainType { i: 0, ret: 0 });
     assert_eq!(res, 5);
 }
 
@@ -292,7 +292,7 @@ fn exit_in_if_in_while_loop() {
     END_FUNCTION
     "#;
 
-    let (res, _) = compile_and_run(function.to_string(), &mut MainType { i: 0, ret: 0 });
+    let res: i32 = compile_and_run(function.to_string(), &mut MainType { i: 0, ret: 0 });
     assert_eq!(res, 10);
 }
 
@@ -321,7 +321,7 @@ fn exit_in_for_loop_in_while_loop() {
     END_FUNCTION
     "#;
 
-    let (res, _) = compile_and_run(function.to_string(), &mut MainType { i: 0, ret: 0 });
+    let res: i32 = compile_and_run(function.to_string(), &mut MainType { i: 0, ret: 0 });
     assert_eq!(res, 20);
 }
 
@@ -351,7 +351,7 @@ fn continue_in_for_loop_in_while_loop() {
     END_FUNCTION
     "#;
 
-    let (res, _) = compile_and_run(function.to_string(), &mut MainType { i: 0, ret: 0 });
+    let res: i32 = compile_and_run(function.to_string(), &mut MainType { i: 0, ret: 0 });
     assert_eq!(res, 31);
 }
 
@@ -380,7 +380,7 @@ fn repeat_loop_no_entry() {
     END_FUNCTION
     "#;
 
-    let (res, _) = compile_and_run(function.to_string(), &mut MainType { i: 0, ret: 0 });
+    let res: i32 = compile_and_run(function.to_string(), &mut MainType { i: 0, ret: 0 });
     assert_eq!(res, 1017);
 }
 #[test]
@@ -406,7 +406,7 @@ fn while_loop_10_times() {
     END_FUNCTION
     "#;
 
-    let (res, _) = compile_and_run(function.to_string(), &mut MainType { i: 0, ret: 0 });
+    let res: i32 = compile_and_run(function.to_string(), &mut MainType { i: 0, ret: 0 });
     assert_eq!(res, 10101);
 }
 
@@ -434,7 +434,7 @@ fn repeat_loop_10_times() {
     END_FUNCTION
     "#;
 
-    let (res, _) = compile_and_run(function.to_string(), &mut MainType { i: 0, ret: 0 });
+    let res: i32 = compile_and_run(function.to_string(), &mut MainType { i: 0, ret: 0 });
     assert_eq!(res, 10101);
 }
 
@@ -462,20 +462,20 @@ fn case_statement() {
     "#;
 
     (1..9).for_each(|i| {
-        let (res, _) = compile_and_run(function.to_string(), &mut MainType { i });
+        let res: i32 = compile_and_run(function.to_string(), &mut MainType { i });
         assert_eq!(res, 101);
     });
 
     (10..19).for_each(|i| {
-        let (res, _) = compile_and_run(function.to_string(), &mut MainType { i });
+        let res: i32 = compile_and_run(function.to_string(), &mut MainType { i });
         assert_eq!(res, 201);
     });
 
     (20..29).for_each(|i| {
-        let (res, _) = compile_and_run(function.to_string(), &mut MainType { i });
+        let res: i32 = compile_and_run(function.to_string(), &mut MainType { i });
         assert_eq!(res, 301);
     });
 
-    let (res, _) = compile_and_run(function.to_string(), &mut MainType { i: 999 });
+    let res: i32 = compile_and_run(function.to_string(), &mut MainType { i: 999 });
     assert_eq!(res, 7);
 }

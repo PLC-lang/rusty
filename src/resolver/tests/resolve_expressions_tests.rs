@@ -1123,6 +1123,42 @@ fn bitaccess_is_resolved() {
     assert_eq!(format!("{:?}", expected_types), format!("{:?}", type_names));
 }
 
+#[test]
+fn variable_direct_access_type_resolved() {
+    let (unit, index) = parse(
+        r"
+    PROGRAM prg
+        VAR
+            a : INT;
+            b : REAL;
+            c : LREAL;
+        END_VAR
+        a.%Xa;
+        a.%Xb;
+        a.%Xc;
+    END_PROGRAM
+    ",
+    );
+    let annotations = annotate(&unit, &index);
+    let statements = &unit.implementations[0].statements;
+
+    let expected_types = vec!["INT", "REAL", "LREAL"];
+    let type_names: Vec<&str> = statements
+        .iter()
+        .map(|s| {
+            if let AstStatement::QualifiedReference { elements, .. } = s {
+                if let AstStatement::DirectAccess { index, .. } = elements.last().unwrap() {
+                    return index;
+                }
+            }
+            panic!("Wrong type {:?}", s);
+        })
+        .map(|s| annotations.get_type_or_void(s, &index).get_name())
+        .collect();
+
+    assert_eq!(format!("{:?}", expected_types), format!("{:?}", type_names));
+}
+
 fn get_expression_from_list(stmt: &Option<AstStatement>, index: usize) -> &AstStatement {
     if let Some(AstStatement::ExpressionList { expressions, .. }) = stmt {
         &expressions[index]

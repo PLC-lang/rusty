@@ -1,6 +1,6 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use crate::ast::{
-    AstStatement, DataType, DataTypeDeclaration, DirectAccess, Operator, Pou, SourceRange,
+    AstStatement, DataType, DataTypeDeclaration, DirectAccessType, Operator, Pou, SourceRange,
 };
 use crate::parser::parse;
 use crate::parser::tests::{literal_int, ref_to};
@@ -60,8 +60,10 @@ fn bitwise_access_parsed() {
     a.0; 
     a.%X1; 
     a.%B1; 
+    a.%Bb;
     a[0].%W1; 
     a.b.%D1; 
+    a.%B1.%X1;
     END_PROGRAM",
     );
     let (result, diagnostics) = parse(lexer);
@@ -73,8 +75,8 @@ fn bitwise_access_parsed() {
             elements: vec![
                 ref_to("a"),
                 AstStatement::DirectAccess {
-                    access: DirectAccess::Bit,
-                    index: 0,
+                    access: DirectAccessType::Bit,
+                    index: Box::new(literal_int(0)),
                     location: SourceRange::undefined(),
                     id: 0,
                 },
@@ -85,8 +87,8 @@ fn bitwise_access_parsed() {
             elements: vec![
                 ref_to("a"),
                 AstStatement::DirectAccess {
-                    access: DirectAccess::Bit,
-                    index: 1,
+                    access: DirectAccessType::Bit,
+                    index: Box::new(literal_int(1)),
                     location: SourceRange::undefined(),
                     id: 0,
                 },
@@ -97,8 +99,20 @@ fn bitwise_access_parsed() {
             elements: vec![
                 ref_to("a"),
                 AstStatement::DirectAccess {
-                    access: DirectAccess::Byte,
-                    index: 1,
+                    access: DirectAccessType::Byte,
+                    index: Box::new(literal_int(1)),
+                    location: SourceRange::undefined(),
+                    id: 0,
+                },
+            ],
+            id: 0,
+        },
+        AstStatement::QualifiedReference {
+            elements: vec![
+                ref_to("a"),
+                AstStatement::DirectAccess {
+                    access: DirectAccessType::Byte,
+                    index: Box::new(ref_to("b")),
                     location: SourceRange::undefined(),
                     id: 0,
                 },
@@ -113,8 +127,8 @@ fn bitwise_access_parsed() {
                     id: 0,
                 },
                 AstStatement::DirectAccess {
-                    access: DirectAccess::Word,
-                    index: 1,
+                    access: DirectAccessType::Word,
+                    index: Box::new(literal_int(1)),
                     location: SourceRange::undefined(),
                     id: 0,
                 },
@@ -126,8 +140,26 @@ fn bitwise_access_parsed() {
                 ref_to("a"),
                 ref_to("b"),
                 AstStatement::DirectAccess {
-                    access: DirectAccess::DWord,
-                    index: 1,
+                    access: DirectAccessType::DWord,
+                    index: Box::new(literal_int(1)),
+                    location: SourceRange::undefined(),
+                    id: 0,
+                },
+            ],
+            id: 0,
+        },
+        AstStatement::QualifiedReference {
+            elements: vec![
+                ref_to("a"),
+                AstStatement::DirectAccess {
+                    access: DirectAccessType::Byte,
+                    index: Box::new(literal_int(1)),
+                    location: SourceRange::undefined(),
+                    id: 0,
+                },
+                AstStatement::DirectAccess {
+                    access: DirectAccessType::Bit,
+                    index: Box::new(literal_int(1)),
                     location: SourceRange::undefined(),
                     id: 0,
                 },
@@ -287,26 +319,26 @@ fn additon_of_three_variables_parsed() {
         ..
     } = statement
     {
-        assert_eq!(operator, &Operator::Plus);
-        if let AstStatement::Reference { name, .. } = &**left {
-            assert_eq!(name, "x");
-        }
+        assert_eq!(operator, &Operator::Minus);
         if let AstStatement::BinaryExpression {
             operator,
             left,
             right,
             ..
-        } = &**right
+        } = &**left
         {
             if let AstStatement::Reference { name, .. } = &**left {
-                assert_eq!(name, "y");
+                assert_eq!(name, "x");
             }
             if let AstStatement::Reference { name, .. } = &**right {
-                assert_eq!(name, "z");
+                assert_eq!(name, "y");
             }
-            assert_eq!(operator, &Operator::Minus);
+            assert_eq!(operator, &Operator::Plus);
         } else {
             panic!("Expected Reference but found {:?}", statement);
+        }
+        if let AstStatement::Reference { name, .. } = &**right {
+            assert_eq!(name, "z");
         }
     } else {
         panic!("Expected Reference but found {:?}", statement);
@@ -350,18 +382,18 @@ fn multiplication_expressions_parse() {
 
     let ast_string = format!("{:#?}", statement);
     let expected_ast = r#"BinaryExpression {
-    operator: Multiplication,
-    left: LiteralInteger {
-        value: 1,
-    },
-    right: BinaryExpression {
-        operator: Division,
+    operator: Division,
+    left: BinaryExpression {
+        operator: Multiplication,
         left: LiteralInteger {
-            value: 2,
+            value: 1,
         },
         right: LiteralInteger {
-            value: 7,
+            value: 2,
         },
+    },
+    right: LiteralInteger {
+        value: 7,
     },
 }"#;
     assert_eq!(ast_string, expected_ast);
@@ -426,12 +458,12 @@ fn term_ast_test() {
     let ast_string = format!("{:#?}", statement);
     let expected_ast = r#"BinaryExpression {
     operator: Plus,
-    left: LiteralInteger {
-        value: 1,
-    },
-    right: BinaryExpression {
+    left: BinaryExpression {
         operator: Plus,
-        left: BinaryExpression {
+        left: LiteralInteger {
+            value: 1,
+        },
+        right: BinaryExpression {
             operator: Multiplication,
             left: LiteralInteger {
                 value: 2,
@@ -440,9 +472,9 @@ fn term_ast_test() {
                 value: 3,
             },
         },
-        right: LiteralInteger {
-            value: 4,
-        },
+    },
+    right: LiteralInteger {
+        value: 4,
     },
 }"#;
     assert_eq!(ast_string, expected_ast);
@@ -2631,5 +2663,72 @@ fn array_type_as_function_return() {
     };
 
     assert_eq!(format!("{:?}", ast.units[0]), format!("{:?}", expected));
+    assert_eq!(diagnostics.is_empty(), true);
+}
+
+#[test]
+/// regress #286
+fn plus_minus_parse_tree_priority_test() {
+    let (ast, diagnostics) = parse(super::lex(
+        r"
+    FUNCTION foo : INT
+        a - b + c;
+    END_FUNCTION
+    ",
+    ));
+
+    assert_eq!(
+        format!("{:#?}", ast.implementations[0].statements[0]),
+        format!(
+            "{:#?}",
+            AstStatement::BinaryExpression {
+                id: 0,
+                operator: Operator::Plus,
+                left: Box::new(AstStatement::BinaryExpression {
+                    id: 0,
+                    operator: Operator::Minus,
+                    left: Box::new(ref_to("a")),
+                    right: Box::new(ref_to("b")),
+                }),
+                right: Box::new(ref_to("c")),
+            }
+        )
+    );
+    assert_eq!(diagnostics.is_empty(), true);
+}
+
+#[test]
+/// regress #286
+fn mul_div_mod_parse_tree_priority_test() {
+    let (ast, diagnostics) = parse(super::lex(
+        r"
+    FUNCTION foo : INT
+        a * b / c MOD d;
+    END_FUNCTION
+    ",
+    ));
+
+    assert_eq!(
+        format!("{:#?}", ast.implementations[0].statements[0]),
+        format!(
+            "{:#?}",
+            AstStatement::BinaryExpression {
+                id: 0,
+                operator: Operator::Modulo,
+                left: Box::new(AstStatement::BinaryExpression {
+                    id: 0,
+                    operator: Operator::Division,
+                    left: Box::new(AstStatement::BinaryExpression {
+                        id: 0,
+                        operator: Operator::Multiplication,
+                        left: Box::new(ref_to("a")),
+                        right: Box::new(ref_to("b")),
+                    }),
+                    right: Box::new(ref_to("c")),
+                }),
+                right: Box::new(ref_to("d")),
+            }
+        )
+    );
     assert_eq!(diagnostics.is_empty(), true);
 }

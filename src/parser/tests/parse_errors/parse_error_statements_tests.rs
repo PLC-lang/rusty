@@ -150,16 +150,16 @@ fn incomplete_statement_test() {
         r#"[
     BinaryExpression {
         operator: Plus,
-        left: LiteralInteger {
-            value: 1,
-        },
-        right: BinaryExpression {
+        left: BinaryExpression {
             operator: Plus,
             left: LiteralInteger {
+                value: 1,
+            },
+            right: LiteralInteger {
                 value: 2,
             },
-            right: EmptyStatement,
         },
+        right: EmptyStatement,
     },
     Reference {
         name: "x",
@@ -190,17 +190,17 @@ fn incomplete_statement_in_parantheses_recovery_test() {
     BinaryExpression {
         operator: Plus,
         left: BinaryExpression {
-            operator: Plus,
-            left: LiteralInteger {
-                value: 1,
-            },
-            right: BinaryExpression {
-                operator: Minus,
+            operator: Minus,
+            left: BinaryExpression {
+                operator: Plus,
                 left: LiteralInteger {
+                    value: 1,
+                },
+                right: LiteralInteger {
                     value: 2,
                 },
-                right: EmptyStatement,
             },
+            right: EmptyStatement,
         },
         right: LiteralInteger {
             value: 3,
@@ -1089,25 +1089,16 @@ fn pointer_type_with_wrong_keyword_to_test() {
 
 #[test]
 fn bitwise_access_error_validation() {
-    let (_, diagnostics) = parse(lex("PROGRAM exp 
-    a.2.0; 
+    let (ast, diagnostics) = parse(lex("PROGRAM exp 
     a.1e5; 
     b.%f6;
     END_PROGRAM"));
+    println!("{:?}", ast);
 
-    assert_eq!(3, diagnostics.len());
+    assert_eq!(2, diagnostics.len());
     let errs = vec![
-        Diagnostic::unexpected_token_found(
-            "Integer",
-            r#"LiteralReal { value: "2.0" }"#,
-            (19..22).into(),
-        ),
-        Diagnostic::unexpected_token_found(
-            "Integer",
-            r#"LiteralReal { value: "1e5" }"#,
-            (31..34).into(),
-        ),
-        Diagnostic::unexpected_token_found("KeywordSemicolon", "'f6'", (44..46).into()),
+        Diagnostic::unexpected_token_found("Integer", r#"Exponent value: 1e5"#, (19..22).into()),
+        Diagnostic::unexpected_token_found("KeywordSemicolon", "'f6'", (32..34).into()),
     ];
     assert_eq!(errs, diagnostics);
 }

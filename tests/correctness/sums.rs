@@ -15,7 +15,7 @@ fn adds_in_result() {
     END_FUNCTION
     ";
 
-    let (res, _) = compile_and_run(prog.to_string(), &mut MainType { ret: 0 });
+    let res: i32 = compile_and_run(prog.to_string(), &mut MainType { ret: 0 });
     assert_eq!(res, 60)
 }
 
@@ -28,7 +28,7 @@ fn int_division_in_result() {
     END_FUNCTION
     ";
 
-    let (res, _) = compile_and_run(prog.to_string(), &mut MainType { ret: 0 });
+    let res: i32 = compile_and_run(prog.to_string(), &mut MainType { ret: 0 });
     assert_eq!(res, 300)
 }
 
@@ -41,7 +41,7 @@ fn real_division_in_result() {
     END_FUNCTION
     ";
 
-    let (res, _) = compile_and_run(prog.to_string(), &mut MainType { ret: 0 });
+    let res: i32 = compile_and_run(prog.to_string(), &mut MainType { ret: 0 });
     assert_eq!(res, 333)
 }
 
@@ -65,6 +65,27 @@ fn real_division_by_zero() {
 
     let mut main = MainType { r: 0.0, z: 0.0 };
 
-    compile_and_run(prog.to_string(), &mut main);
+    let _: i32 = compile_and_run(prog.to_string(), &mut main);
     assert!(main.r.is_infinite());
+}
+
+fn order_of_operations_sum() {
+    let prog = "
+    FUNCTION main : DINT
+    main := (6 * 100) + (600 / 6) - 500 + (200 / 20) - 210;
+    END_FUNCTION
+    ";
+    let res: i32 = compile_and_run(prog.to_string(), &mut MainType { ret: 0 });
+    assert_eq!(res, 0)
+}
+
+#[test]
+fn order_of_operations_mul() {
+    let prog = "
+    FUNCTION main : DINT
+    main := 10 * 10 / 5 / 2;
+    END_FUNCTION
+    ";
+    let res: i32 = compile_and_run(prog.to_string(), &mut MainType { ret: 0 });
+    assert_eq!(res, 10)
 }
