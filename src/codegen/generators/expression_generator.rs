@@ -143,6 +143,25 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
         expression: &AstStatement,
     ) -> Result<TypeAndValue<'a>, CompileError> {
         let builder = &self.llvm.builder;
+
+        //see if this is a constant - maybe we can short curcuit this codegen
+        if let Some(StatementAnnotation::Variable {
+            qualified_name,
+            resulting_type,
+        }) = self.annotations.get_annotation(expression)
+        {
+            if let Some((basic_value_enum, data_type_info)) =
+                self.llvm_index.find_constant_value(qualified_name).zip(
+                    self.index
+                        .find_effective_type_by_name(resulting_type)
+                        .map(DataType::clone_type_information),
+                )
+            {
+                //this is a constant and we have a value for it
+                return Ok((data_type_info, basic_value_enum));
+            }
+        }
+
         match expression {
             AstStatement::Reference { name, .. } => {
                 let load_name = format!(
@@ -387,7 +406,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                 //Get associated Variable or generate a variable for the type with the same name
                 let variable = self.index.find_callable_instance_variable(
                     Some(function_context.linking_context.get_type_name()),
-                    &[name.clone()],
+                    &[name],
                 );
 
                 let (implementation, callable_reference) = if let Some(variable_instance) = variable
@@ -887,7 +906,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
 
             let variable_index_entry = self
                 .index
-                .find_variable(Some(type_name), &[name.to_string()])
+                .find_variable(Some(type_name), &[name])
                 .or_else(|| {
                     let annotation = self.annotations.get(context)?;
                     match annotation {
@@ -897,8 +916,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                         } => {
                             //TODO introduce qualified names!
                             let qualifier = &qualified_name[..qualified_name.rfind('.')?];
-                            self.index
-                                .find_variable(Some(qualifier), &[name.to_string()])
+                            self.index.find_variable(Some(qualifier), &[name])
                         }
                         _ => None,
                     }

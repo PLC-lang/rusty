@@ -9,5 +9,6 @@
         - [External Functions](libraries/external_functions.md)
     - [Using in external programs]()
 
+- [Variables](./variables.md)
 - [Datatypes](./datatypes.md)
 - [Direct Bit Access](./direct_variables.md)

@@ -7,6 +7,8 @@
 
 use indexmap::IndexMap;
 
+pub mod const_evaluator;
+
 use crate::{
     ast::{
         AstId, AstStatement, CompilationUnit, DataType, DataTypeDeclaration, Operator, Pou,
@@ -109,7 +111,7 @@ pub enum StatementAnnotation {
 }
 
 impl StatementAnnotation {
-    fn expression(type_name: &str) -> StatementAnnotation {
+    pub fn expression(type_name: &str) -> StatementAnnotation {
         StatementAnnotation::Value {
             resulting_type: type_name.to_string(),
         }
@@ -123,10 +125,17 @@ pub struct AnnotationMap {
 
 impl AnnotationMap {
     /// creates a new empty AnnotationMap
-    pub fn new() -> AnnotationMap {
+    pub fn new() -> Self {
         AnnotationMap {
             type_map: IndexMap::new(),
         }
+    }
+
+    /// creates a new Annotation Map and stores the given mapping
+    pub fn with(id: AstId, annotation: StatementAnnotation) -> Self {
+        let mut type_map: IndexMap<AstId, StatementAnnotation> = IndexMap::new();
+        type_map.insert(id, annotation);
+        AnnotationMap { type_map }
     }
 
     /// annotates the given statement (using it's `get_id()`) with the given type-name
@@ -202,6 +211,17 @@ impl<'i> TypeAnnotator<'i> {
             qualifier: None,
             call: None,
         };
+
+        for global_initializer in unit
+            .global_vars
+            .iter()
+            .flat_map(|it| it.variables.iter())
+            .map(|it| it.initializer.as_ref())
+            .flatten()
+        {
+            //get rid of Nones
+            visitor.visit_statement_expression(ctx, global_initializer);
+        }
 
         for pou in &unit.units {
             visitor.visit_pou(ctx, pou);
@@ -502,9 +522,9 @@ impl<'i> TypeAnnotator<'i> {
                         })
                         .or_else(|| {
                             // ... then try if we find a pou with that name (maybe it's a call?)
-                            let class_name = self
-                                .index
-                                .find_implementation(ctx.pou.unwrap())
+                            let class_name = ctx
+                                .pou
+                                .and_then(|pou_name| self.index.find_implementation(pou_name))
                                 .and_then(ImplementationIndexEntry::get_associated_class_name);
 
                             //TODO introduce qualified names!

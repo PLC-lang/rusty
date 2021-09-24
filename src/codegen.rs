@@ -80,6 +80,7 @@ impl<'ink> CodeGen<'ink> {
         let llvm_type_index =
             data_type_generator::generate_data_types(&llvm, global_index, annotations)?;
         index.merge(llvm_type_index);
+
         //Generate global variables
         let llvm_gv_index = variable_generator::generate_global_variables(
             module,
@@ -89,6 +90,7 @@ impl<'ink> CodeGen<'ink> {
             &index,
         )?;
         index.merge(llvm_gv_index);
+
         //Generate opaque functions for implementations and associate them with their types
         let llvm = Llvm::new(self.context, self.context.create_builder());
         let llvm_impl_index = pou_generator::generate_implementation_stubs(
@@ -115,6 +117,7 @@ impl<'ink> CodeGen<'ink> {
         //generate all pous
         let llvm = Llvm::new(self.context, self.context.create_builder());
         let pou_generator = PouGenerator::new(llvm, global_index, annotations, &llvm_index);
+
         //Generate the POU stubs in the first go to make sure they can be referenced.
         for implementation in &unit.implementations {
             //Don't generate external functions
@@ -122,6 +125,21 @@ impl<'ink> CodeGen<'ink> {
                 pou_generator.generate_implementation(implementation)?;
             }
         }
+
         Ok(self.module.print_to_string().to_string())
+    }
+}
+
+#[cfg(test)]
+mod casting_big_numbers {
+    #[test]
+    fn casting_between_i128_and_u64() {
+        let n: i128 = u64::MAX as i128;
+        let nn: u64 = n as u64;
+        assert_eq!(0xFFFF_FFFF_FFFF_FFFF_u64, nn);
+
+        let n: i128 = i64::MAX as i128;
+        let nn: u64 = n as u64;
+        assert_eq!(0x7FFF_FFFF_FFFF_FFFF_u64, nn);
     }
 }
