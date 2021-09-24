@@ -1,5 +1,5 @@
 use crate::{
-    ast::{DataType, DataTypeDeclaration, SourceRange, Variable, VariableBlock},
+    ast::{DataType, DataTypeDeclaration, SourceRange, Variable, VariableBlock, VariableBlockType},
     index::const_expressions::ConstExpression,
     Diagnostic,
 };
@@ -20,6 +20,16 @@ impl VariableValidator {
     }
 
     pub fn validate_variable_block(&mut self, block: &VariableBlock, context: &ValidationContext) {
+        if block.constant
+            && !matches!(
+                block.variable_block_type,
+                VariableBlockType::Global | VariableBlockType::Local
+            )
+        {
+            self.diagnostics
+                .push(Diagnostic::invalid_constant_block(block.location.clone()))
+        }
+
         for variable in &block.variables {
             self.validate_variable(variable, context);
         }

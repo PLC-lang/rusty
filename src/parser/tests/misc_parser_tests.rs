@@ -55,7 +55,7 @@ fn exponent_literals_parsed_as_variables() {
             access: AccessModifier::Internal,
             constant: false,
             retain: false,
-
+            location: SourceRange::undefined(),
             variables: vec![Variable {
                 name: "E3".into(),
                 data_type: DataTypeDeclaration::DataTypeReference {

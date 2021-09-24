@@ -828,6 +828,7 @@ fn parse_variable_block(
     lexer: &mut ParseSession,
     variable_block_type: VariableBlockType,
 ) -> VariableBlock {
+    let location = lexer.location();
     //Consume the type keyword
     lexer.advance();
 
@@ -847,6 +848,7 @@ fn parse_variable_block(
         retain,
         variables,
         variable_block_type,
+        location,
     }
 }
 
