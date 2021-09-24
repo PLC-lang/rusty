@@ -53,6 +53,11 @@ struct VisitorContext<'s> {
     /// Inside the left hand side of an assignment is in the context of the call's POU
     /// `foo(a := a)` actually means: `foo(foo.a := POU.a)`
     call: Option<&'s str>,
+
+    /// true if the expression passed a constant-variable on the way
+    /// e.g. true for `x` if x is declared in a constant block
+    /// e.g. true for `a.b.c` if either a,b or c is declared in a constant block
+    constant: bool,
 }
 
 impl<'s> VisitorContext<'s> {
@@ -62,6 +67,7 @@ impl<'s> VisitorContext<'s> {
             pou: self.pou,
             qualifier: Some(qualifier),
             call: self.call,
+            constant: false,
         }
     }
 
@@ -71,6 +77,7 @@ impl<'s> VisitorContext<'s> {
             pou: Some(pou),
             qualifier: self.qualifier.clone(),
             call: self.call,
+            constant: false,
         }
     }
 
@@ -80,6 +87,7 @@ impl<'s> VisitorContext<'s> {
             pou: self.pou,
             qualifier: self.qualifier.clone(),
             call: Some(lhs_pou),
+            constant: false,
         }
     }
 }
@@ -98,6 +106,7 @@ pub enum StatementAnnotation {
     Variable {
         resulting_type: String,
         qualified_name: String,
+        constant: bool,
     },
     /// a reference to a function
     Function {
@@ -210,6 +219,7 @@ impl<'i> TypeAnnotator<'i> {
             pou: None,
             qualifier: None,
             call: None,
+            constant: false,
         };
 
         for global_initializer in unit
@@ -487,7 +497,7 @@ impl<'i> TypeAnnotator<'i> {
                                     self.index,
                                 )
                             },
-                            |v| Some(to_variable_annotation(v, self.index)),
+                            |v| Some(to_variable_annotation(v, self.index, ctx.constant)),
                         )
                 } else {
                     // if we see no qualifier, we try some strategies ...
@@ -506,7 +516,7 @@ impl<'i> TypeAnnotator<'i> {
                                         )
                                         .and_then(|it| self.index.find_member(it, name))
                                 })
-                                .map(|v| to_variable_annotation(v, self.index))
+                                .map(|v| to_variable_annotation(v, self.index, ctx.constant))
                                 .or_else(|| {
                                     //Try to find an action with this name
                                     let action_call_name = format!("{}.{}", qualifier, name);
@@ -537,7 +547,7 @@ impl<'i> TypeAnnotator<'i> {
                             // ... last option is a global variable, where we ignore the current pou's name as a qualifier
                             self.index
                                 .find_global_variable(name)
-                                .map(|v| to_variable_annotation(v, self.index))
+                                .map(|v| to_variable_annotation(v, self.index, ctx.constant))
                         })
                 };
                 if let Some(annotation) = annotation {
@@ -549,25 +559,28 @@ impl<'i> TypeAnnotator<'i> {
                 for s in elements.iter() {
                     self.visit_statement(&ctx, s);
 
-                    let qualifier = self
+                    let (qualifier, constant) = self
                         .annotation_map
                         .get_annotation(s)
                         .map(|it| match it {
                             StatementAnnotation::Value { resulting_type } => {
-                                resulting_type.as_str()
+                                (resulting_type.as_str(), false)
                             }
-                            StatementAnnotation::Variable { resulting_type, .. } => {
-                                resulting_type.as_str()
-                            }
-                            StatementAnnotation::Function { .. } => VOID_TYPE,
-                            StatementAnnotation::Type { type_name } => type_name.as_str(),
+                            StatementAnnotation::Variable {
+                                resulting_type,
+                                constant,
+                                ..
+                            } => (resulting_type.as_str(), *constant),
+                            StatementAnnotation::Function { .. } => (VOID_TYPE, false),
+                            StatementAnnotation::Type { type_name } => (type_name.as_str(), false),
                             StatementAnnotation::Program { qualified_name } => {
-                                qualified_name.as_str()
+                                (qualified_name.as_str(), false)
                             }
                         })
-                        .unwrap_or_else(|| VOID_TYPE);
-
-                    ctx = ctx.with_qualifier(qualifier.to_string());
+                        .unwrap_or_else(|| (VOID_TYPE, false));
+                    let mut new_ctx = ctx.with_qualifier(qualifier.to_string());
+                    new_ctx.constant = constant;
+                    ctx = new_ctx;
                 }
 
                 //the last guy represents the type of the whole qualified expression
@@ -773,13 +786,18 @@ fn to_programm_annotation(it: &ImplementationIndexEntry) -> StatementAnnotation 
     }
 }
 
-fn to_variable_annotation(v: &VariableIndexEntry, index: &Index) -> StatementAnnotation {
+fn to_variable_annotation(
+    v: &VariableIndexEntry,
+    index: &Index,
+    constant_override: bool,
+) -> StatementAnnotation {
     StatementAnnotation::Variable {
         qualified_name: v.get_qualified_name().into(),
         resulting_type: index
             .get_effective_type_by_name(v.get_type_name())
             .get_name()
             .into(),
+        constant: v.is_constant() || constant_override,
     }
 }
 
