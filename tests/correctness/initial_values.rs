@@ -763,3 +763,25 @@ fn initialization_of_string_variables() {
     ); // QWERT
     assert_eq!(maintype.string3[7..21], [0; 14]); // rest is blank
 }
+
+#[test]
+fn initial_array_value_tests() {
+
+    #[derive(Default)]
+    #[repr(C)]
+    struct Params {
+        arr : [i32; 9],
+    }
+
+    let prog = "
+    FUNCTION main : DINT
+    VAR
+    myArr : ARRAY[0..8] OF DINT := [0,1,2,3,4,5,6,7,8];
+    END_VAR
+    main := myArr[5];
+    END_FUNCTION
+    ";
+    let mut params = Params::default();
+    let res : i32 = compile_and_run(prog.to_string(), &mut params);
+    assert_eq!(5,res);
+}

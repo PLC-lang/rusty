@@ -53,6 +53,10 @@ struct VisitorContext<'s> {
     /// Inside the left hand side of an assignment is in the context of the call's POU
     /// `foo(a := a)` actually means: `foo(foo.a := POU.a)`
     call: Option<&'s str>,
+    /// Optional context of the target type of the currently visited expression
+    /// Can be used to derive a type for a given literal based on its target expression
+    /// For example, an array literal in an initialization has to be of the type of its target variable
+    target_type : Option<&'s str>,
 }
 
 impl<'s> VisitorContext<'s> {
@@ -62,6 +66,7 @@ impl<'s> VisitorContext<'s> {
             pou: self.pou,
             qualifier: Some(qualifier),
             call: self.call,
+            target_type : self.target_type,
         }
     }
 
@@ -71,6 +76,7 @@ impl<'s> VisitorContext<'s> {
             pou: Some(pou),
             qualifier: self.qualifier.clone(),
             call: self.call,
+            target_type : self.target_type,
         }
     }
 
@@ -80,7 +86,18 @@ impl<'s> VisitorContext<'s> {
             pou: self.pou,
             qualifier: self.qualifier.clone(),
             call: Some(lhs_pou),
+            target_type : self.target_type,
         }
+    }
+
+    fn with_type(&self, lhs_type : &'s str) -> VisitorContext<'s> {
+        VisitorContext {
+            pou: self.pou,
+            qualifier: self.qualifier.clone(),
+            call: self.call,
+            target_type : Some(lhs_type),
+        }
+
     }
 }
 
@@ -210,6 +227,7 @@ impl<'i> TypeAnnotator<'i> {
             pou: None,
             qualifier: None,
             call: None,
+            target_type: None,
         };
 
         for global_initializer in unit
@@ -262,6 +280,8 @@ impl<'i> TypeAnnotator<'i> {
     fn visit_variable(&mut self, ctx: &VisitorContext, variable: &Variable) {
         self.visit_data_type_declaration(ctx, &variable.data_type);
         if let Some(initializer) = variable.initializer.as_ref() {
+            let var_ctx = variable.data_type.get_name().map(|n|ctx.with_type(n));
+            let ctx = var_ctx.as_ref().unwrap_or(ctx);
             self.visit_statement(ctx, initializer);
         }
     }
@@ -737,10 +757,18 @@ impl<'i> TypeAnnotator<'i> {
             } => {
                 self.visit_statement(ctx, elements.as_ref());
                 //TODO as of yet we have no way to derive a name that reflects a fixed size array
+                if let Some(type_name) = ctx.target_type {
+                    self.annotation_map
+                        .annotate(statement, StatementAnnotation::expression(type_name));
+                }
             }
             AstStatement::MultipliedStatement { element, .. } => {
-                self.visit_statement(ctx, element)
+                self.visit_statement(ctx, element);
                 //TODO as of yet we have no way to derive a name that reflects a fixed size array
+                if let Some(type_name) = ctx.target_type {
+                    self.annotation_map
+                        .annotate(statement, StatementAnnotation::expression(type_name));
+                }
             }
             _ => {}
         }

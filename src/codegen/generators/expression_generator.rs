@@ -247,7 +247,16 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                 operator, value, ..
             } => self.generate_unary_expression(operator, value),
             //fallback
-            _ => self.generate_literal(expression),
+            _ => {
+                //Attemt to derive a target type
+                if self.type_hint.is_none() {
+                    if let Some(generator) = self.annotations.get_type(expression, self.index).map(|it|self.morph_to_typed(it.get_type_information())) {
+                        return generator.generate_literal(expression);
+                    }
+                }
+                self.generate_literal(expression)
+
+            },
         }
     }
 
