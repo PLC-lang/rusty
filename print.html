@@ -83,7 +83,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded "><a href="intro_1.html"><strong aria-hidden="true">1.</strong> RuSTy</a></li><li class="chapter-item expanded "><a href="build_and_install.html"><strong aria-hidden="true">2.</strong> Build and Install</a></li><li class="chapter-item expanded "><a href="using_rusty.html"><strong aria-hidden="true">3.</strong> Using RuSTy</a></li><li class="chapter-item expanded "><div><strong aria-hidden="true">4.</strong> Writing ST Programs</div></li><li><ol class="section"><li class="chapter-item expanded "><div><strong aria-hidden="true">4.1.</strong> Multiple Files</div></li><li class="chapter-item expanded "><a href="libraries.html"><strong aria-hidden="true">4.2.</strong> Libraries</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="libraries/external_functions.html"><strong aria-hidden="true">4.2.1.</strong> External Functions</a></li></ol></li><li class="chapter-item expanded "><div><strong aria-hidden="true">4.3.</strong> Using in external programs</div></li></ol></li><li class="chapter-item expanded "><a href="datatypes.html"><strong aria-hidden="true">5.</strong> Datatypes</a></li><li class="chapter-item expanded "><a href="direct_variables.html"><strong aria-hidden="true">6.</strong> Direct Bit Access</a></li></ol>            </div>
+                <ol class="chapter"><li class="chapter-item expanded "><a href="intro_1.html"><strong aria-hidden="true">1.</strong> RuSTy</a></li><li class="chapter-item expanded "><a href="build_and_install.html"><strong aria-hidden="true">2.</strong> Build and Install</a></li><li class="chapter-item expanded "><a href="using_rusty.html"><strong aria-hidden="true">3.</strong> Using RuSTy</a></li><li class="chapter-item expanded "><div><strong aria-hidden="true">4.</strong> Writing ST Programs</div></li><li><ol class="section"><li class="chapter-item expanded "><div><strong aria-hidden="true">4.1.</strong> Multiple Files</div></li><li class="chapter-item expanded "><a href="libraries.html"><strong aria-hidden="true">4.2.</strong> Libraries</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="libraries/external_functions.html"><strong aria-hidden="true">4.2.1.</strong> External Functions</a></li></ol></li><li class="chapter-item expanded "><div><strong aria-hidden="true">4.3.</strong> Using in external programs</div></li></ol></li><li class="chapter-item expanded "><a href="variables.html"><strong aria-hidden="true">5.</strong> Variables</a></li><li class="chapter-item expanded "><a href="datatypes.html"><strong aria-hidden="true">6.</strong> Datatypes</a></li><li class="chapter-item expanded "><a href="direct_variables.html"><strong aria-hidden="true">7.</strong> Direct Bit Access</a></li></ol>            </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
 
@@ -398,6 +398,43 @@ END_FUNCTION
 <p>Note: that we use clang to link the generated object file and generate an executable</p>
 </blockquote>
 <p>You can then run the demo with <code>./ExternalFunctions</code></p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="variables"><a class="header" href="#variables">Variables</a></h1>
+<h1 id="constants"><a class="header" href="#constants">Constants</a></h1>
+<p>Variable declaration blocks can be delcared as CONSTANT. All variables 
+of a constant declaration block become constants. Constant variables can not be changed and need to be initialized.</p>
+<h2 id="example-1"><a class="header" href="#example-1">Example</a></h2>
+<pre><code class="language-st">VAR_GLOBAL CONSTANT
+    MAX_SIZE : INT := 99;
+    MIN_LEN : INT := 1;
+END_VAR
+
+PROGRAM PLC_PRG
+    VAR CONSTANT
+        DEFAULT_INPUT : BOOL := FALSE;
+    END_VAR
+END_PROGRAM
+</code></pre>
+<h2 id="variable-initialization"><a class="header" href="#variable-initialization">Variable Initialization</a></h2>
+<p>Initializers of variables are evaluated at compile time. Therefore 
+they can only consist of literals, other constants or expressions
+consisting of a combination of them. Note that initializers must not contain
+recursive definitions.</p>
+<h2 id="example-2"><a class="header" href="#example-2">Example</a></h2>
+<pre><code class="language-st">VAR_GLOBAL CONSTANT
+    MIN_LEN : INT := 1;
+    MAX_LEN : INT := 100;
+
+    SIZE : INT := MAX_LEN - MIN_LEN;
+END_VAR
+
+PROGRAM PLC_PRG
+    VAR_INPUT
+        signals: ARRAY[0..SIZE] OF INT;
+    END_VAR
+
+    ...
+END_PROGRAM
+</code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="datatypes-1"><a class="header" href="#datatypes-1">Datatypes</a></h1>
 <h2 id="numeric-types"><a class="header" href="#numeric-types">Numeric types</a></h2>
 <p>A variety of numeric types exist with different sizes and properties complying
@@ -557,7 +594,7 @@ RuSTy supports this functionalty and extends it to support all <code>INT</code> 
 <blockquote>
 <p><em>For <code>Bit</code> access, the <code>%X</code> is optional.</em></p>
 </blockquote>
-<h3 id="example-1"><a class="header" href="#example-1">Example</a></h3>
+<h3 id="example-3"><a class="header" href="#example-3">Example</a></h3>
 <pre><code class="language-st">FUNCTION main : DINT
 VAR 
     variable    : LWORD; 
@@ -586,7 +623,7 @@ The provided varibale has to be a direct Reference variable (non Qualified)</p>
 <blockquote>
 <p><em>Short hand access for Bit (Without the <code>%X</code> modifier) is not allowed.</em></p>
 </blockquote>
-<h3 id="example-2"><a class="header" href="#example-2">Example</a></h3>
+<h3 id="example-4"><a class="header" href="#example-4">Example</a></h3>
 <pre><code class="language-st">FUNCTION main : DINT
 VAR 
     variable    : LWORD; 

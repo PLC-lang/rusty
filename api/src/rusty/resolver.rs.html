@@ -799,6 +799,26 @@
 <span id="799">799</span>
 <span id="800">800</span>
 <span id="801">801</span>
+<span id="802">802</span>
+<span id="803">803</span>
+<span id="804">804</span>
+<span id="805">805</span>
+<span id="806">806</span>
+<span id="807">807</span>
+<span id="808">808</span>
+<span id="809">809</span>
+<span id="810">810</span>
+<span id="811">811</span>
+<span id="812">812</span>
+<span id="813">813</span>
+<span id="814">814</span>
+<span id="815">815</span>
+<span id="816">816</span>
+<span id="817">817</span>
+<span id="818">818</span>
+<span id="819">819</span>
+<span id="820">820</span>
+<span id="821">821</span>
 </pre><pre class="rust">
 <span class="comment">// Copyright (c) 2021 Ghaith Hachem and Mathias Rieder</span>
 
@@ -808,6 +828,8 @@
 <span class="doccomment">//! records all resulting types associated with the statement&#39;s id.</span>
 
 <span class="kw">use</span> <span class="ident">indexmap::IndexMap</span>;
+
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">const_evaluator</span>;
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">ast</span>::{
@@ -911,7 +933,7 @@
 }
 
 <span class="kw">impl</span> <span class="ident">StatementAnnotation</span> {
-    <span class="kw">fn</span> <span class="ident">expression</span>(<span class="ident">type_name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">StatementAnnotation</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">expression</span>(<span class="ident">type_name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">StatementAnnotation</span> {
         <span class="ident">StatementAnnotation::Value</span> {
             <span class="ident">resulting_type</span>: <span class="ident">type_name</span>.<span class="ident">to_string</span>(),
         }
@@ -925,10 +947,17 @@
 
 <span class="kw">impl</span> <span class="ident">AnnotationMap</span> {
     <span class="doccomment">/// creates a new empty AnnotationMap</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">AnnotationMap</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">AnnotationMap</span> {
             <span class="ident">type_map</span>: <span class="ident">IndexMap::new</span>(),
         }
+    }
+
+    <span class="doccomment">/// creates a new Annotation Map and stores the given mapping</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">with</span>(<span class="ident">id</span>: <span class="ident">AstId</span>, <span class="ident">annotation</span>: <span class="ident">StatementAnnotation</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">type_map</span>: <span class="ident">IndexMap</span><span class="op">&lt;</span><span class="ident">AstId</span>, <span class="ident">StatementAnnotation</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">IndexMap::new</span>();
+        <span class="ident">type_map</span>.<span class="ident">insert</span>(<span class="ident">id</span>, <span class="ident">annotation</span>);
+        <span class="ident">AnnotationMap</span> { <span class="ident">type_map</span> }
     }
 
     <span class="doccomment">/// annotates the given statement (using it&#39;s `get_id()`) with the given type-name</span>
@@ -1004,6 +1033,17 @@
             <span class="ident">qualifier</span>: <span class="prelude-val">None</span>,
             <span class="ident">call</span>: <span class="prelude-val">None</span>,
         };
+
+        <span class="kw">for</span> <span class="ident">global_initializer</span> <span class="kw">in</span> <span class="ident">unit</span>
+            .<span class="ident">global_vars</span>
+            .<span class="ident">iter</span>()
+            .<span class="ident">flat_map</span>(<span class="op">|</span><span class="ident">it</span><span class="op">|</span> <span class="ident">it</span>.<span class="ident">variables</span>.<span class="ident">iter</span>())
+            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">it</span><span class="op">|</span> <span class="ident">it</span>.<span class="ident">initializer</span>.<span class="ident">as_ref</span>())
+            .<span class="ident">flatten</span>()
+        {
+            <span class="comment">//get rid of Nones</span>
+            <span class="ident">visitor</span>.<span class="ident">visit_statement_expression</span>(<span class="ident">ctx</span>, <span class="ident">global_initializer</span>);
+        }
 
         <span class="kw">for</span> <span class="ident">pou</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">unit</span>.<span class="ident">units</span> {
             <span class="ident">visitor</span>.<span class="ident">visit_pou</span>(<span class="ident">ctx</span>, <span class="ident">pou</span>);
@@ -1304,9 +1344,9 @@
                         })
                         .<span class="ident">or_else</span>(<span class="op">|</span><span class="op">|</span> {
                             <span class="comment">// ... then try if we find a pou with that name (maybe it&#39;s a call?)</span>
-                            <span class="kw">let</span> <span class="ident">class_name</span> <span class="op">=</span> <span class="self">self</span>
-                                .<span class="ident">index</span>
-                                .<span class="ident">find_implementation</span>(<span class="ident">ctx</span>.<span class="ident">pou</span>.<span class="ident">unwrap</span>())
+                            <span class="kw">let</span> <span class="ident">class_name</span> <span class="op">=</span> <span class="ident">ctx</span>
+                                .<span class="ident">pou</span>
+                                .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">pou_name</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">index</span>.<span class="ident">find_implementation</span>(<span class="ident">pou_name</span>))
                                 .<span class="ident">and_then</span>(<span class="ident">ImplementationIndexEntry::get_associated_class_name</span>);
 
                             <span class="comment">//TODO introduce qualified names!</span>

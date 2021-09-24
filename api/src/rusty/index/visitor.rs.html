@@ -379,6 +379,59 @@
 <span id="379">379</span>
 <span id="380">380</span>
 <span id="381">381</span>
+<span id="382">382</span>
+<span id="383">383</span>
+<span id="384">384</span>
+<span id="385">385</span>
+<span id="386">386</span>
+<span id="387">387</span>
+<span id="388">388</span>
+<span id="389">389</span>
+<span id="390">390</span>
+<span id="391">391</span>
+<span id="392">392</span>
+<span id="393">393</span>
+<span id="394">394</span>
+<span id="395">395</span>
+<span id="396">396</span>
+<span id="397">397</span>
+<span id="398">398</span>
+<span id="399">399</span>
+<span id="400">400</span>
+<span id="401">401</span>
+<span id="402">402</span>
+<span id="403">403</span>
+<span id="404">404</span>
+<span id="405">405</span>
+<span id="406">406</span>
+<span id="407">407</span>
+<span id="408">408</span>
+<span id="409">409</span>
+<span id="410">410</span>
+<span id="411">411</span>
+<span id="412">412</span>
+<span id="413">413</span>
+<span id="414">414</span>
+<span id="415">415</span>
+<span id="416">416</span>
+<span id="417">417</span>
+<span id="418">418</span>
+<span id="419">419</span>
+<span id="420">420</span>
+<span id="421">421</span>
+<span id="422">422</span>
+<span id="423">423</span>
+<span id="424">424</span>
+<span id="425">425</span>
+<span id="426">426</span>
+<span id="427">427</span>
+<span id="428">428</span>
+<span id="429">429</span>
+<span id="430">430</span>
+<span id="431">431</span>
+<span id="432">432</span>
+<span id="433">433</span>
+<span id="434">434</span>
 </pre><pre class="rust">
 <span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 <span class="kw">use</span> <span class="kw">super</span><span class="ident">::VariableType</span>;
@@ -388,7 +441,7 @@
 };
 <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::compile_error::CompileError</span>;
 <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::index</span>::{<span class="ident">Index</span>, <span class="ident">MemberInfo</span>};
-<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::typesystem</span>::<span class="kw-2">*</span>;
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::typesystem</span>::{<span class="self">self</span>, <span class="kw-2">*</span>};
 
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">visit</span>(<span class="ident">unit</span>: <span class="kw-2">&amp;</span><span class="ident">CompilationUnit</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Index</span> {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">index</span> <span class="op">=</span> <span class="ident">Index::new</span>();
@@ -396,9 +449,7 @@
     <span class="comment">//Create the typesystem</span>
     <span class="kw">let</span> <span class="ident">builtins</span> <span class="op">=</span> <span class="ident">get_builtin_types</span>();
     <span class="kw">for</span> <span class="ident">data_type</span> <span class="kw">in</span> <span class="ident">builtins</span> {
-        <span class="ident">index</span>
-            .<span class="ident">types</span>
-            .<span class="ident">insert</span>(<span class="ident">data_type</span>.<span class="ident">get_name</span>().<span class="ident">to_lowercase</span>(), <span class="ident">data_type</span>);
+        <span class="ident">index</span>.<span class="ident">insert_type</span>(<span class="ident">data_type</span>.<span class="ident">get_name</span>().<span class="ident">to_lowercase</span>(), <span class="ident">data_type</span>);
     }
 
     <span class="comment">//Create user defined datatypes</span>
@@ -433,6 +484,7 @@
             <span class="kw-2">&amp;</span><span class="ident">instance_name</span>,
             <span class="kw-2">&amp;</span><span class="ident">pou</span>.<span class="ident">name</span>,
             <span class="prelude-val">None</span>,
+            <span class="bool-val">false</span>, <span class="comment">//program&#39;s instance variable is no constant</span>
             <span class="ident">pou</span>.<span class="ident">location</span>.<span class="ident">clone</span>(),
         );
     }
@@ -467,8 +519,9 @@
             } <span class="kw">else</span> {
                 <span class="ident">var</span>.<span class="ident">data_type</span>.<span class="ident">get_name</span>().<span class="ident">unwrap</span>().<span class="ident">to_string</span>()
             };
-
-            <span class="kw">let</span> <span class="ident">initial_value</span> <span class="op">=</span> <span class="ident">index</span>.<span class="ident">maybe_add_constant_expression</span>(<span class="ident">var</span>.<span class="ident">initializer</span>.<span class="ident">clone</span>());
+            <span class="kw">let</span> <span class="ident">initial_value</span> <span class="op">=</span> <span class="ident">index</span>
+                .<span class="ident">get_mut_const_expressions</span>()
+                .<span class="ident">maybe_add_constant_expression</span>(<span class="ident">var</span>.<span class="ident">initializer</span>.<span class="ident">clone</span>(), <span class="ident">type_name</span>.<span class="ident">as_str</span>());
 
             <span class="ident">index</span>.<span class="ident">register_member_variable</span>(
                 <span class="kw-2">&amp;</span><span class="ident">MemberInfo</span> {
@@ -476,6 +529,7 @@
                     <span class="ident">variable_name</span>: <span class="kw-2">&amp;</span><span class="ident">var</span>.<span class="ident">name</span>,
                     <span class="ident">variable_linkage</span>: <span class="ident">block_type</span>,
                     <span class="ident">variable_type_name</span>: <span class="kw-2">&amp;</span><span class="ident">type_name</span>,
+                    <span class="ident">is_constant</span>: <span class="ident">block</span>.<span class="ident">constant</span>,
                 },
                 <span class="ident">initial_value</span>,
                 <span class="ident">var</span>.<span class="ident">location</span>.<span class="ident">clone</span>(),
@@ -495,6 +549,7 @@
                 <span class="ident">variable_name</span>: <span class="ident">pou</span>.<span class="ident">get_return_name</span>(),
                 <span class="ident">variable_linkage</span>: <span class="ident">VariableType::Return</span>,
                 <span class="ident">variable_type_name</span>: <span class="ident">return_type</span>.<span class="ident">get_name</span>().<span class="ident">unwrap_or_default</span>(),
+                <span class="ident">is_constant</span>: <span class="bool-val">false</span>, <span class="comment">//return variables are not constants</span>
             },
             <span class="prelude-val">None</span>,
             <span class="ident">source_location</span>,
@@ -555,11 +610,15 @@
 
 <span class="kw">fn</span> <span class="ident">visit_global_var_block</span>(<span class="ident">index</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Index</span>, <span class="ident">block</span>: <span class="kw-2">&amp;</span><span class="ident">VariableBlock</span>) {
     <span class="kw">for</span> <span class="ident">var</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">block</span>.<span class="ident">variables</span> {
-        <span class="kw">let</span> <span class="ident">initializer</span> <span class="op">=</span> <span class="ident">index</span>.<span class="ident">maybe_add_constant_expression</span>(<span class="ident">var</span>.<span class="ident">initializer</span>.<span class="ident">clone</span>());
+        <span class="kw">let</span> <span class="ident">target_type</span> <span class="op">=</span> <span class="ident">var</span>.<span class="ident">data_type</span>.<span class="ident">get_name</span>().<span class="ident">unwrap_or_default</span>();
+        <span class="kw">let</span> <span class="ident">initializer</span> <span class="op">=</span> <span class="ident">index</span>
+            .<span class="ident">get_mut_const_expressions</span>()
+            .<span class="ident">maybe_add_constant_expression</span>(<span class="ident">var</span>.<span class="ident">initializer</span>.<span class="ident">clone</span>(), <span class="ident">target_type</span>);
         <span class="ident">index</span>.<span class="ident">register_global_variable</span>(
             <span class="kw-2">&amp;</span><span class="ident">var</span>.<span class="ident">name</span>,
             <span class="ident">var</span>.<span class="ident">data_type</span>.<span class="ident">get_name</span>().<span class="ident">unwrap</span>(),
             <span class="ident">initializer</span>,
+            <span class="ident">block</span>.<span class="ident">constant</span>,
             <span class="ident">var</span>.<span class="ident">location</span>.<span class="ident">clone</span>(),
         );
     }
@@ -586,13 +645,19 @@
             <span class="kw">let</span> <span class="ident">member_names</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span> <span class="op">=</span>
                 <span class="ident">variables</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">it</span><span class="op">|</span> <span class="ident">it</span>.<span class="ident">name</span>.<span class="ident">to_string</span>()).<span class="ident">collect</span>();
 
+            <span class="kw">let</span> <span class="ident">type_name</span> <span class="op">=</span> <span class="ident">name</span>.<span class="ident">clone</span>().<span class="ident">unwrap</span>();
             <span class="kw">let</span> <span class="ident">information</span> <span class="op">=</span> <span class="ident">DataTypeInformation::Struct</span> {
-                <span class="ident">name</span>: <span class="ident">name</span>.<span class="ident">clone</span>().<span class="ident">unwrap</span>(),
+                <span class="ident">name</span>: <span class="ident">type_name</span>.<span class="ident">clone</span>(),
                 <span class="ident">member_names</span>,
                 <span class="ident">varargs</span>: <span class="prelude-val">None</span>,
             };
 
-            <span class="kw">let</span> <span class="ident">init</span> <span class="op">=</span> <span class="ident">index</span>.<span class="ident">maybe_add_constant_expression</span>(<span class="ident">type_declatation</span>.<span class="ident">initializer</span>.<span class="ident">clone</span>());
+            <span class="kw">let</span> <span class="ident">init</span> <span class="op">=</span> <span class="ident">index</span>
+                .<span class="ident">get_mut_const_expressions</span>()
+                .<span class="ident">maybe_add_constant_expression</span>(
+                    <span class="ident">type_declatation</span>.<span class="ident">initializer</span>.<span class="ident">clone</span>(),
+                    <span class="ident">type_name</span>.<span class="ident">as_str</span>(),
+                );
             <span class="ident">index</span>.<span class="ident">register_type</span>(<span class="ident">name</span>.<span class="ident">as_ref</span>().<span class="ident">unwrap</span>(), <span class="ident">init</span>, <span class="ident">information</span>);
             <span class="kw">for</span> (<span class="ident">count</span>, <span class="ident">var</span>) <span class="kw">in</span> <span class="ident">variables</span>.<span class="ident">iter</span>().<span class="ident">enumerate</span>() {
                 <span class="kw">if</span> <span class="kw">let</span> <span class="ident">DataTypeDeclaration::DataTypeDefinition</span> { <span class="ident">data_type</span>, .. } <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">var</span>.<span class="ident">data_type</span> {
@@ -607,13 +672,17 @@
                     )
                 }
 
-                <span class="kw">let</span> <span class="ident">init</span> <span class="op">=</span> <span class="ident">index</span>.<span class="ident">maybe_add_constant_expression</span>(<span class="ident">var</span>.<span class="ident">initializer</span>.<span class="ident">clone</span>());
+                <span class="kw">let</span> <span class="ident">member_type</span> <span class="op">=</span> <span class="ident">var</span>.<span class="ident">data_type</span>.<span class="ident">get_name</span>().<span class="ident">unwrap</span>();
+                <span class="kw">let</span> <span class="ident">init</span> <span class="op">=</span> <span class="ident">index</span>
+                    .<span class="ident">get_mut_const_expressions</span>()
+                    .<span class="ident">maybe_add_constant_expression</span>(<span class="ident">var</span>.<span class="ident">initializer</span>.<span class="ident">clone</span>(), <span class="ident">member_type</span>);
                 <span class="ident">index</span>.<span class="ident">register_member_variable</span>(
                     <span class="kw-2">&amp;</span><span class="ident">MemberInfo</span> {
                         <span class="ident">container_name</span>: <span class="ident">struct_name</span>,
                         <span class="ident">variable_name</span>: <span class="kw-2">&amp;</span><span class="ident">var</span>.<span class="ident">name</span>,
                         <span class="ident">variable_linkage</span>: <span class="ident">VariableType::Local</span>,
-                        <span class="ident">variable_type_name</span>: <span class="ident">var</span>.<span class="ident">data_type</span>.<span class="ident">get_name</span>().<span class="ident">unwrap</span>(),
+                        <span class="ident">variable_type_name</span>: <span class="ident">member_type</span>,
+                        <span class="ident">is_constant</span>: <span class="bool-val">false</span>, <span class="comment">//struct members are not constants //TODO thats probably not true (you can define a struct in an CONST-block?!)</span>
                     },
                     <span class="ident">init</span>,
                     <span class="ident">var</span>.<span class="ident">location</span>.<span class="ident">clone</span>(),
@@ -629,15 +698,23 @@
                 <span class="ident">elements</span>: <span class="ident">elements</span>.<span class="ident">clone</span>(),
             };
 
-            <span class="kw">let</span> <span class="ident">init</span> <span class="op">=</span> <span class="ident">index</span>.<span class="ident">maybe_add_constant_expression</span>(<span class="ident">type_declatation</span>.<span class="ident">initializer</span>.<span class="ident">clone</span>());
+            <span class="kw">let</span> <span class="ident">init</span> <span class="op">=</span> <span class="ident">index</span>
+                .<span class="ident">get_mut_const_expressions</span>()
+                .<span class="ident">maybe_add_constant_expression</span>(
+                    <span class="ident">type_declatation</span>.<span class="ident">initializer</span>.<span class="ident">clone</span>(),
+                    <span class="ident">enum_name</span>.<span class="ident">as_str</span>(),
+                );
             <span class="ident">index</span>.<span class="ident">register_type</span>(<span class="ident">enum_name</span>.<span class="ident">as_str</span>(), <span class="ident">init</span>, <span class="ident">information</span>);
 
             <span class="ident">elements</span>.<span class="ident">iter</span>().<span class="ident">enumerate</span>().<span class="ident">for_each</span>(<span class="op">|</span>(<span class="ident">i</span>, <span class="ident">v</span>)<span class="op">|</span> {
-                <span class="kw">let</span> <span class="ident">init</span> <span class="op">=</span> <span class="ident">index</span>.<span class="ident">add_constant_expression</span>(<span class="ident">ast::AstStatement::LiteralInteger</span> {
-                    <span class="ident">value</span>: <span class="ident">i</span> <span class="kw">as</span> <span class="ident">i128</span>,
-                    <span class="ident">location</span>: <span class="ident">SourceRange::undefined</span>(),
-                    <span class="ident">id</span>: <span class="number">0</span>,
-                });
+                <span class="kw">let</span> <span class="ident">init</span> <span class="op">=</span> <span class="ident">index</span>.<span class="ident">get_mut_const_expressions</span>().<span class="ident">add_constant_expression</span>(
+                    <span class="ident">ast::AstStatement::LiteralInteger</span> {
+                        <span class="ident">value</span>: <span class="ident">i</span> <span class="kw">as</span> <span class="ident">i128</span>,
+                        <span class="ident">location</span>: <span class="ident">SourceRange::undefined</span>(),
+                        <span class="ident">id</span>: <span class="number">0</span>,
+                    },
+                    <span class="ident">typesystem::INT_TYPE</span>.<span class="ident">to_string</span>(),
+                );
                 <span class="ident">index</span>.<span class="ident">register_enum_element</span>(
                     <span class="ident">v</span>,
                     <span class="ident">enum_name</span>.<span class="ident">as_str</span>(),
@@ -666,7 +743,12 @@
                 }
             };
 
-            <span class="kw">let</span> <span class="ident">init</span> <span class="op">=</span> <span class="ident">index</span>.<span class="ident">maybe_add_constant_expression</span>(<span class="ident">type_declatation</span>.<span class="ident">initializer</span>.<span class="ident">clone</span>());
+            <span class="kw">let</span> <span class="ident">init</span> <span class="op">=</span> <span class="ident">index</span>
+                .<span class="ident">get_mut_const_expressions</span>()
+                .<span class="ident">maybe_add_constant_expression</span>(
+                    <span class="ident">type_declatation</span>.<span class="ident">initializer</span>.<span class="ident">clone</span>(),
+                    <span class="ident">name</span>.<span class="ident">as_ref</span>().<span class="ident">unwrap</span>(),
+                );
             <span class="ident">index</span>.<span class="ident">register_type</span>(<span class="ident">name</span>.<span class="ident">as_ref</span>().<span class="ident">unwrap</span>(), <span class="ident">init</span>, <span class="ident">information</span>)
         }
         <span class="ident">DataType::ArrayType</span> {
@@ -679,12 +761,19 @@
                 .<span class="ident">iter</span>()
                 .<span class="ident">map</span>(<span class="op">|</span><span class="ident">it</span><span class="op">|</span> {
                     <span class="kw">if</span> <span class="kw">let</span> <span class="ident">AstStatement::RangeStatement</span> { <span class="ident">start</span>, <span class="ident">end</span>, .. } <span class="op">=</span> <span class="ident">it</span> {
+                        <span class="kw">let</span> <span class="ident">constants</span> <span class="op">=</span> <span class="ident">index</span>.<span class="ident">get_mut_const_expressions</span>();
                         <span class="prelude-val">Ok</span>(<span class="ident">Dimension</span> {
                             <span class="ident">start_offset</span>: <span class="ident">TypeSize::from_expression</span>(
-                                <span class="ident">index</span>.<span class="ident">add_constant_expression</span>(<span class="kw-2">*</span><span class="ident">start</span>.<span class="ident">clone</span>()),
+                                <span class="ident">constants</span>.<span class="ident">add_constant_expression</span>(
+                                    <span class="kw-2">*</span><span class="ident">start</span>.<span class="ident">clone</span>(),
+                                    <span class="ident">typesystem::INT_TYPE</span>.<span class="ident">to_string</span>(),
+                                ),
                             ),
                             <span class="ident">end_offset</span>: <span class="ident">TypeSize::from_expression</span>(
-                                <span class="ident">index</span>.<span class="ident">add_constant_expression</span>(<span class="kw-2">*</span><span class="ident">end</span>.<span class="ident">clone</span>()),
+                                <span class="ident">constants</span>.<span class="ident">add_constant_expression</span>(
+                                    <span class="kw-2">*</span><span class="ident">end</span>.<span class="ident">clone</span>(),
+                                    <span class="ident">typesystem::INT_TYPE</span>.<span class="ident">to_string</span>(),
+                                ),
                             ),
                         })
                     } <span class="kw">else</span> {
@@ -703,7 +792,12 @@
                 <span class="ident">dimensions</span>,
             };
 
-            <span class="kw">let</span> <span class="ident">init</span> <span class="op">=</span> <span class="ident">index</span>.<span class="ident">maybe_add_constant_expression</span>(<span class="ident">type_declatation</span>.<span class="ident">initializer</span>.<span class="ident">clone</span>());
+            <span class="kw">let</span> <span class="ident">init</span> <span class="op">=</span> <span class="ident">index</span>
+                .<span class="ident">get_mut_const_expressions</span>()
+                .<span class="ident">maybe_add_constant_expression</span>(
+                    <span class="ident">type_declatation</span>.<span class="ident">initializer</span>.<span class="ident">clone</span>(),
+                    <span class="ident">name</span>.<span class="ident">as_ref</span>().<span class="ident">unwrap</span>(),
+                );
             <span class="ident">index</span>.<span class="ident">register_type</span>(<span class="ident">name</span>.<span class="ident">as_ref</span>().<span class="ident">unwrap</span>(), <span class="ident">init</span>, <span class="ident">information</span>)
         }
         <span class="ident">DataType::PointerType</span> {
@@ -718,7 +812,12 @@
                 <span class="ident">auto_deref</span>: <span class="bool-val">false</span>,
             };
 
-            <span class="kw">let</span> <span class="ident">init</span> <span class="op">=</span> <span class="ident">index</span>.<span class="ident">maybe_add_constant_expression</span>(<span class="ident">type_declatation</span>.<span class="ident">initializer</span>.<span class="ident">clone</span>());
+            <span class="kw">let</span> <span class="ident">init</span> <span class="op">=</span> <span class="ident">index</span>
+                .<span class="ident">get_mut_const_expressions</span>()
+                .<span class="ident">maybe_add_constant_expression</span>(
+                    <span class="ident">type_declatation</span>.<span class="ident">initializer</span>.<span class="ident">clone</span>(),
+                    <span class="ident">name</span>.<span class="ident">as_ref</span>().<span class="ident">unwrap</span>(),
+                );
             <span class="ident">index</span>.<span class="ident">register_type</span>(<span class="ident">name</span>.<span class="ident">as_ref</span>().<span class="ident">unwrap</span>(), <span class="ident">init</span>, <span class="ident">information</span>)
         }
         <span class="ident">DataType::StringType</span> {
@@ -727,6 +826,7 @@
             <span class="ident">is_wide</span>,
             ..
         } <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="kw">let</span> <span class="ident">type_name</span> <span class="op">=</span> <span class="ident">name</span>.<span class="ident">as_ref</span>().<span class="ident">unwrap</span>();
             <span class="kw">let</span> <span class="ident">encoding</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw-2">*</span><span class="ident">is_wide</span> {
                 <span class="ident">StringEncoding::Utf16</span>
             } <span class="kw">else</span> {
@@ -750,12 +850,18 @@
                         }),
                     };
 
-                    <span class="ident">TypeSize::from_expression</span>(<span class="ident">index</span>.<span class="ident">add_constant_expression</span>(<span class="ident">len_plus_1</span>))
+                    <span class="ident">TypeSize::from_expression</span>(
+                        <span class="ident">index</span>
+                            .<span class="ident">get_mut_const_expressions</span>()
+                            .<span class="ident">add_constant_expression</span>(<span class="ident">len_plus_1</span>, <span class="ident">type_name</span>.<span class="ident">clone</span>()),
+                    )
                 }
                 <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">TypeSize::from_literal</span>(<span class="ident">DEFAULT_STRING_LEN</span> <span class="op">+</span> <span class="number">1</span>),
             };
             <span class="kw">let</span> <span class="ident">information</span> <span class="op">=</span> <span class="ident">DataTypeInformation::String</span> { <span class="ident">size</span>, <span class="ident">encoding</span> };
-            <span class="kw">let</span> <span class="ident">init</span> <span class="op">=</span> <span class="ident">index</span>.<span class="ident">maybe_add_constant_expression</span>(<span class="ident">type_declatation</span>.<span class="ident">initializer</span>.<span class="ident">clone</span>());
+            <span class="kw">let</span> <span class="ident">init</span> <span class="op">=</span> <span class="ident">index</span>
+                .<span class="ident">get_mut_const_expressions</span>()
+                .<span class="ident">maybe_add_constant_expression</span>(<span class="ident">type_declatation</span>.<span class="ident">initializer</span>.<span class="ident">clone</span>(), <span class="ident">type_name</span>);
             <span class="ident">index</span>.<span class="ident">register_type</span>(<span class="ident">name</span>.<span class="ident">as_ref</span>().<span class="ident">unwrap</span>(), <span class="ident">init</span>, <span class="ident">information</span>)
         }
         <span class="ident">DataType::VarArgs</span> { .. } <span class="op">=</span><span class="op">&gt;</span> {} <span class="comment">//Varargs are not indexed</span>

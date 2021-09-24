@@ -142,6 +142,41 @@
 <span id="142">142</span>
 <span id="143">143</span>
 <span id="144">144</span>
+<span id="145">145</span>
+<span id="146">146</span>
+<span id="147">147</span>
+<span id="148">148</span>
+<span id="149">149</span>
+<span id="150">150</span>
+<span id="151">151</span>
+<span id="152">152</span>
+<span id="153">153</span>
+<span id="154">154</span>
+<span id="155">155</span>
+<span id="156">156</span>
+<span id="157">157</span>
+<span id="158">158</span>
+<span id="159">159</span>
+<span id="160">160</span>
+<span id="161">161</span>
+<span id="162">162</span>
+<span id="163">163</span>
+<span id="164">164</span>
+<span id="165">165</span>
+<span id="166">166</span>
+<span id="167">167</span>
+<span id="168">168</span>
+<span id="169">169</span>
+<span id="170">170</span>
+<span id="171">171</span>
+<span id="172">172</span>
+<span id="173">173</span>
+<span id="174">174</span>
+<span id="175">175</span>
+<span id="176">176</span>
+<span id="177">177</span>
+<span id="178">178</span>
+<span id="179">179</span>
 </pre><pre class="rust">
 <span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 <span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">expression_generator::ExpressionCodeGenerator</span>, <span class="ident">llvm::Llvm</span>};
@@ -241,25 +276,60 @@
         <span class="ident">variable</span>: <span class="kw-2">&amp;</span><span class="ident">VariableIndexEntry</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">VariableDeclarationInformation</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>, <span class="ident">CompileError</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">type_name</span> <span class="op">=</span> <span class="ident">variable</span>.<span class="ident">get_type_name</span>();
-        <span class="comment">// let type_index_entry = self.index.get_type(type_name)?;</span>
-        <span class="comment">//                         //&amp;variable.data_type.get_name().ok_or_else(|| error_type_not_associated(type_name, &amp;variable.location))?;</span>
 
         <span class="kw">let</span> <span class="ident">variable_type</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">index</span>.<span class="ident">get_type_information</span>(<span class="ident">type_name</span>)<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">initializer</span> <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span>
             .<span class="ident">index</span>
-            .<span class="ident">maybe_get_constant_expression</span>(<span class="kw-2">&amp;</span><span class="ident">variable</span>.<span class="ident">initial_value</span>)
+            .<span class="ident">get_const_expressions</span>()
+            .<span class="ident">maybe_get_constant_statement</span>(<span class="kw-2">&amp;</span><span class="ident">variable</span>.<span class="ident">initial_value</span>)
         {
             <span class="prelude-val">Some</span>(<span class="ident">statement</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="kw">let</span> <span class="ident">exp_gen</span> <span class="op">=</span> <span class="ident">ExpressionCodeGenerator::new_context_free</span>(
-                    <span class="self">self</span>.<span class="ident">llvm</span>,
-                    <span class="self">self</span>.<span class="ident">index</span>,
-                    <span class="self">self</span>.<span class="ident">annotations</span>,
-                    <span class="self">self</span>.<span class="ident">llvm_index</span>,
-                    <span class="prelude-val">Some</span>(<span class="ident">variable_type</span>),
-                );
-                <span class="ident">exp_gen</span>
-                    .<span class="ident">generate_expression</span>(<span class="ident">statement</span>)
-                    .<span class="ident">map</span>(<span class="op">|</span>(<span class="kw">_</span>, <span class="ident">value</span>)<span class="op">|</span> <span class="prelude-val">Some</span>(<span class="ident">value</span>))<span class="question-mark">?</span>
+                <span class="comment">//evalute the initializer to a value</span>
+                <span class="kw">let</span> <span class="ident">evaluated_const</span> <span class="op">=</span>
+                    <span class="kw">crate</span><span class="ident">::resolver::const_evaluator::evaluate</span>(<span class="ident">statement</span>, <span class="self">self</span>.<span class="ident">index</span>);
+                <span class="kw">match</span> <span class="ident">evaluated_const</span> {
+                    <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="ident">initializer</span>)) <span class="op">=</span><span class="op">&gt;</span> {
+                        <span class="comment">//create the appropriate Literal AST-Statement</span>
+                        <span class="kw">let</span> <span class="ident">ast_statement</span> <span class="op">=</span> <span class="ident">initializer</span>;
+                        <span class="comment">//generate the literal</span>
+                        <span class="kw">let</span> <span class="ident">exp_gen</span> <span class="op">=</span> <span class="ident">ExpressionCodeGenerator::new_context_free</span>(
+                            <span class="self">self</span>.<span class="ident">llvm</span>,
+                            <span class="self">self</span>.<span class="ident">index</span>,
+                            <span class="self">self</span>.<span class="ident">annotations</span>,
+                            <span class="self">self</span>.<span class="ident">llvm_index</span>,
+                            <span class="prelude-val">Some</span>(<span class="ident">variable_type</span>),
+                        );
+
+                        <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">exp_gen</span>
+                            .<span class="ident">generate_expression</span>(<span class="kw-2">&amp;</span><span class="ident">ast_statement</span>)
+                            .<span class="ident">map</span>(<span class="op">|</span>(<span class="kw">_</span>, <span class="ident">value</span>)<span class="op">|</span> <span class="prelude-val">Some</span>(<span class="ident">value</span>));
+
+                        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">CompileError::MissingFunctionError</span> { .. }) <span class="op">=</span> <span class="ident">result</span> {
+                            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">CompileError::cannot_generate_initializer</span>(
+                                <span class="ident">variable</span>.<span class="ident">get_qualified_name</span>(),
+                                <span class="ident">statement</span>.<span class="ident">get_location</span>(),
+                            ));
+                        } <span class="kw">else</span> {
+                            <span class="ident">result</span><span class="question-mark">?</span>
+                        }
+                    }
+                    <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">CompileError::codegen_error</span>(
+                            <span class="macro">format!</span>(
+                                <span class="string">&quot;Cannot generate literal initializer for &#39;{:}&#39;: {:}&quot;</span>,
+                                <span class="ident">variable</span>.<span class="ident">get_qualified_name</span>(),
+                                <span class="ident">err</span>
+                            ),
+                            <span class="ident">statement</span>.<span class="ident">get_location</span>(),
+                        ));
+                    }
+                    <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">CompileError::cannot_generate_initializer</span>(
+                            <span class="ident">variable</span>.<span class="ident">get_qualified_name</span>(),
+                            <span class="ident">statement</span>.<span class="ident">get_location</span>(),
+                        ))
+                    }
+                }
             }
             <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">llvm_index</span>.<span class="ident">find_associated_initial_value</span>(<span class="ident">type_name</span>),
         };
