@@ -406,35 +406,27 @@ fn given_set_of_local_global_and_functions_the_index_can_be_retrieved() {
     );
 
     //Asking for a variable with no context returns global variables
-    let result = index.find_variable(None, &["a".to_string()]).unwrap();
+    let result = index.find_variable(None, &["a"]).unwrap();
     assert_eq!(VariableType::Global, result.information.variable_type);
     assert_eq!("a", result.name);
     assert_eq!(None, result.information.qualifier);
     //Asking for a variable with the POU  context finds a local variable
-    let result = index
-        .find_variable(Some("prg"), &["a".to_string()])
-        .unwrap();
+    let result = index.find_variable(Some("prg"), &["a"]).unwrap();
     assert_eq!(VariableType::Local, result.information.variable_type);
     assert_eq!("a", result.name);
     assert_eq!(Some("prg".to_string()), result.information.qualifier);
     //Asking for a variable with th POU context finds a global variable
-    let result = index
-        .find_variable(Some("prg"), &["b".to_string()])
-        .unwrap();
+    let result = index.find_variable(Some("prg"), &["b"]).unwrap();
     assert_eq!(VariableType::Global, result.information.variable_type);
     assert_eq!("b", result.name);
     assert_eq!(None, result.information.qualifier);
     //Asking for a variable with the function context finds the local variable
-    let result = index
-        .find_variable(Some("foo"), &["a".to_string()])
-        .unwrap();
+    let result = index.find_variable(Some("foo"), &["a"]).unwrap();
     assert_eq!(VariableType::Local, result.information.variable_type);
     assert_eq!("a", result.name);
     assert_eq!(Some("foo".to_string()), result.information.qualifier);
     //Asking for a variable with the function context finds the global variable
-    let result = index
-        .find_variable(Some("foo"), &["x".to_string()])
-        .unwrap();
+    let result = index.find_variable(Some("foo"), &["x"]).unwrap();
     assert_eq!(VariableType::Global, result.information.variable_type);
     assert_eq!("x", result.name);
     assert_eq!(None, result.information.qualifier);
@@ -473,15 +465,7 @@ fn index_can_be_retrieved_from_qualified_name() {
     );
 
     let result = index
-        .find_variable(
-            Some("prg"),
-            &[
-                "fb1_inst".to_string(),
-                "fb2_inst".to_string(),
-                "fb3_inst".to_string(),
-                "x".to_string(),
-            ],
-        )
+        .find_variable(Some("prg"), &["fb1_inst", "fb2_inst", "fb3_inst", "x"])
         .unwrap();
     assert_eq!(VariableType::Input, result.information.variable_type);
     assert_eq!("x", result.name);
@@ -1340,19 +1324,25 @@ fn global_initializers_are_stored_in_the_const_expression_arena() {
     // THEN I expect the index to contain cosntant expressions (x+1), (y+1) and (z+1) as const expressions
     // associated with the initial values of the globals
     let variables = &ast.global_vars[0].variables;
-    let initializer = index
-        .find_global_variable("a")
-        .and_then(|g| index.maybe_get_constant_expression(&g.initial_value));
+    let initializer = index.find_global_variable("a").and_then(|g| {
+        index
+            .get_const_expressions()
+            .maybe_get_constant_statement(&g.initial_value)
+    });
     assert_eq!(variables[0].initializer.as_ref(), initializer);
 
-    let initializer = index
-        .find_global_variable("b")
-        .and_then(|g| index.maybe_get_constant_expression(&g.initial_value));
+    let initializer = index.find_global_variable("b").and_then(|g| {
+        index
+            .get_const_expressions()
+            .maybe_get_constant_statement(&g.initial_value)
+    });
     assert_eq!(variables[1].initializer.as_ref(), initializer);
 
-    let initializer = index
-        .find_global_variable("c")
-        .and_then(|g| index.maybe_get_constant_expression(&g.initial_value));
+    let initializer = index.find_global_variable("c").and_then(|g| {
+        index
+            .get_const_expressions()
+            .maybe_get_constant_statement(&g.initial_value)
+    });
     assert_eq!(variables[2].initializer.as_ref(), initializer);
 }
 
@@ -1377,19 +1367,25 @@ fn local_initializers_are_stored_in_the_const_expression_arena() {
     // THEN I expect the index to contain cosntant expressions (x+1), (y+1) and (z+1) as const expressions
     // associated with the initial values of the members
     let variables = &ast.units[0].variable_blocks[0].variables;
-    let initializer = index
-        .find_member("prg", "a")
-        .and_then(|g| index.maybe_get_constant_expression(&g.initial_value));
+    let initializer = index.find_member("prg", "a").and_then(|g| {
+        index
+            .get_const_expressions()
+            .maybe_get_constant_statement(&g.initial_value)
+    });
     assert_eq!(variables[0].initializer.as_ref(), initializer);
 
-    let initializer = index
-        .find_member("prg", "b")
-        .and_then(|g| index.maybe_get_constant_expression(&g.initial_value));
+    let initializer = index.find_member("prg", "b").and_then(|g| {
+        index
+            .get_const_expressions()
+            .maybe_get_constant_statement(&g.initial_value)
+    });
     assert_eq!(variables[1].initializer.as_ref(), initializer);
 
-    let initializer = index
-        .find_member("prg", "c")
-        .and_then(|g| index.maybe_get_constant_expression(&g.initial_value));
+    let initializer = index.find_member("prg", "c").and_then(|g| {
+        index
+            .get_const_expressions()
+            .maybe_get_constant_statement(&g.initial_value)
+    });
     assert_eq!(variables[2].initializer.as_ref(), initializer);
 }
 
@@ -1408,9 +1404,11 @@ fn datatype_initializers_are_stored_in_the_const_expression_arena() {
     // THEN I expect the index to contain cosntant expressions (7+x) as const expressions
     // associated with the initial values of the type
     let data_type = &ast.types[0];
-    let initializer = index
-        .find_type("MyInt")
-        .and_then(|g| index.maybe_get_constant_expression(&g.initial_value));
+    let initializer = index.find_type("MyInt").and_then(|g| {
+        index
+            .get_const_expressions()
+            .maybe_get_constant_statement(&g.initial_value)
+    });
     assert_eq!(data_type.initializer.as_ref(), initializer);
 }
 
@@ -1529,7 +1527,13 @@ fn string_dimensions_are_stored_in_the_const_expression_arena() {
                     right: Box::new(crate::parser::tests::literal_int(1))
                 }
             ),
-            format!("{:#?}", index.get_constant_expression(&expr).unwrap())
+            format!(
+                "{:#?}",
+                index
+                    .get_const_expressions()
+                    .get_constant_statement(&expr)
+                    .unwrap()
+            )
         );
     } else {
         unreachable!()

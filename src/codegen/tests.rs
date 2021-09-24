@@ -14,6 +14,8 @@ macro_rules! codegen_wihout_unwrap {
         crate::ast::pre_process(&mut ast);
         let index = crate::index::visitor::visit(&ast);
         let annotations = crate::resolver::TypeAnnotator::visit_unit(&index, &ast);
+        let (index, _unresolvable) = crate::resolver::const_evaluator::evaluate_constants(index);
+
         let code_generator = crate::codegen::CodeGen::new(&context, "main");
         code_generator.generate(&ast, &annotations, &index)
     }};
@@ -22,15 +24,7 @@ macro_rules! codegen_wihout_unwrap {
 #[macro_export]
 macro_rules! codegen {
     ($code:tt) => {{
-        let lexer = crate::lexer::lex($code);
-        let (mut ast, ..) = crate::parser::parse(lexer);
-
-        let context = inkwell::context::Context::create();
-        crate::ast::pre_process(&mut ast);
-        let index = crate::index::visitor::visit(&ast);
-        let annotations = crate::resolver::TypeAnnotator::visit_unit(&index, &ast);
-        let code_generator = crate::codegen::CodeGen::new(&context, "main");
-        code_generator.generate(&ast, &annotations, &index).unwrap()
+        crate::codegen_wihout_unwrap!($code).unwrap()
     }};
 }
 

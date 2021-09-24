@@ -519,6 +519,9 @@ pub fn compile_module<'c, T: SourceContainer>(
         all_units.push((file_id, diagnostics, parse_result));
     }
 
+    // ### PHASE 1.1 resolve constant literal values
+    let (full_index, _unresolvables) = resolver::const_evaluator::evaluate_constants(full_index);
+
     // ### PHASE 2 ###
     // annotation & validation everything
     type AnnotatedAst<'a> = (&'a CompilationUnit, AnnotationMap);

@@ -1,7 +1,7 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
 /// offers operations to generate global variables
-use crate::{index::Index, resolver::AnnotationMap};
+use crate::{ast::SourceRange, index::Index, resolver::AnnotationMap};
 use inkwell::{module::Module, values::GlobalValue};
 
 use crate::{
@@ -28,7 +28,14 @@ pub fn generate_global_variables<'ctx, 'b>(
             annotations,
             types_index,
             variable,
-        )?;
+        )
+        .map_err(|err| {
+            if let CompileError::MissingFunctionError { .. } = err {
+                CompileError::cannot_generate_initializer(name.as_str(), SourceRange::undefined())
+            } else {
+                err
+            }
+        })?;
         index.associate_global(name, global_variable)?
     }
     Ok(index)
@@ -51,8 +58,9 @@ pub fn generate_global_variable<'ctx, 'b>(
     let type_name = global_variable.get_type_name();
     let variable_type = index.get_associated_type(type_name)?;
 
-    let initial_value = if let Some(initializer) =
-        global_index.maybe_get_constant_expression(&global_variable.initial_value)
+    let initial_value = if let Some(initializer) = global_index
+        .get_const_expressions()
+        .maybe_get_constant_statement(&global_variable.initial_value)
     {
         let expr_generator = ExpressionCodeGenerator::new_context_free(
             llvm,
@@ -61,9 +69,16 @@ pub fn generate_global_variable<'ctx, 'b>(
             index,
             Some(global_index.get_type_information(type_name).unwrap()),
         );
-        let (_, value) = expr_generator.generate_expression(initializer)?;
-        //Todo cast if necessary
-        Some(value)
+
+        //see if this value was compile-time evaluated ...
+        if let Some(value) = index.find_constant_value(global_variable.get_qualified_name()) {
+            //Todo cast if necessary
+            Some(value)
+        } else {
+            let (_, value) = expr_generator.generate_expression(initializer)?;
+            //Todo cast if necessary
+            Some(value)
+        }
     } else {
         None
     };

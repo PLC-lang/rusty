@@ -133,7 +133,7 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
                     )
                     .unwrap();
 
-                self.create_nested_array_type(inner_type, dimensions.clone())
+                self.create_nested_array_type(inner_type, dimensions)
                     .map(|it| it.as_basic_type_enum())
                     .map_err(|err| CompileError::codegen_error(err, SourceRange::undefined()))
                 //TODO error location
@@ -233,7 +233,8 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
     ) -> Option<BasicValueEnum<'ink>> {
         if let Some(initializer) = self
             .index
-            .maybe_get_constant_expression(&data_type.initial_value)
+            .get_const_expressions()
+            .maybe_get_constant_statement(&data_type.initial_value)
         {
             let generator = ExpressionCodeGenerator::new_context_free(
                 self.llvm,
@@ -263,7 +264,8 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
     ) -> Result<Option<BasicValueEnum<'ink>>, CompileError> {
         if let Some(initializer) = self
             .index
-            .maybe_get_constant_expression(&data_type.initial_value)
+            .get_const_expressions()
+            .maybe_get_constant_statement(&data_type.initial_value)
         {
             if predicate(initializer) {
                 let array_type = self.index.get_type_information(name)?;
@@ -291,7 +293,7 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
     fn create_nested_array_type(
         &self,
         end_type: BasicTypeEnum<'ink>,
-        dimensions: Vec<Dimension>,
+        dimensions: &[Dimension],
     ) -> Result<ArrayType<'ink>, String> {
         let mut result: Option<ArrayType> = None;
         let mut current_type = end_type;

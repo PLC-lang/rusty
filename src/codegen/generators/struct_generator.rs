@@ -96,25 +96,60 @@ impl<'a, 'b> StructGenerator<'a, 'b> {
         variable: &VariableIndexEntry,
     ) -> Result<VariableDeclarationInformation<'a>, CompileError> {
         let type_name = variable.get_type_name();
-        // let type_index_entry = self.index.get_type(type_name)?;
-        //                         //&variable.data_type.get_name().ok_or_else(|| error_type_not_associated(type_name, &variable.location))?;
 
         let variable_type = self.index.get_type_information(type_name)?;
         let initializer = match self
             .index
-            .maybe_get_constant_expression(&variable.initial_value)
+            .get_const_expressions()
+            .maybe_get_constant_statement(&variable.initial_value)
         {
             Some(statement) => {
-                let exp_gen = ExpressionCodeGenerator::new_context_free(
-                    self.llvm,
-                    self.index,
-                    self.annotations,
-                    self.llvm_index,
-                    Some(variable_type),
-                );
-                exp_gen
-                    .generate_expression(statement)
-                    .map(|(_, value)| Some(value))?
+                //evalute the initializer to a value
+                let evaluated_const =
+                    crate::resolver::const_evaluator::evaluate(statement, self.index);
+                match evaluated_const {
+                    Ok(Some(initializer)) => {
+                        //create the appropriate Literal AST-Statement
+                        let ast_statement = initializer;
+                        //generate the literal
+                        let exp_gen = ExpressionCodeGenerator::new_context_free(
+                            self.llvm,
+                            self.index,
+                            self.annotations,
+                            self.llvm_index,
+                            Some(variable_type),
+                        );
+
+                        let result = exp_gen
+                            .generate_expression(&ast_statement)
+                            .map(|(_, value)| Some(value));
+
+                        if let Err(CompileError::MissingFunctionError { .. }) = result {
+                            return Err(CompileError::cannot_generate_initializer(
+                                variable.get_qualified_name(),
+                                statement.get_location(),
+                            ));
+                        } else {
+                            result?
+                        }
+                    }
+                    Err(err) => {
+                        return Err(CompileError::codegen_error(
+                            format!(
+                                "Cannot generate literal initializer for '{:}': {:}",
+                                variable.get_qualified_name(),
+                                err
+                            ),
+                            statement.get_location(),
+                        ));
+                    }
+                    Ok(None) => {
+                        return Err(CompileError::cannot_generate_initializer(
+                            variable.get_qualified_name(),
+                            statement.get_location(),
+                        ))
+                    }
+                }
             }
             None => self.llvm_index.find_associated_initial_value(type_name),
         };

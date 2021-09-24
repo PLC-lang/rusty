@@ -2,7 +2,7 @@
 use indexmap::IndexMap;
 
 use crate::{
-    ast::{AstStatement, Implementation, PouType, SourceRange},
+    ast::{Implementation, PouType, SourceRange},
     compile_error::CompileError,
     typesystem::*,
 };
@@ -28,6 +28,7 @@ pub struct MemberInfo<'b> {
     variable_name: &'b str,
     variable_linkage: VariableType,
     variable_type_name: &'b str,
+    is_constant: bool,
 }
 
 impl VariableIndexEntry {
@@ -54,6 +55,10 @@ impl VariableIndexEntry {
     pub fn is_local(&self) -> bool {
         self.information.variable_type == VariableType::Local
     }
+
+    pub fn is_constant(&self) -> bool {
+        self.information.is_constant
+    }
 }
 
 #[derive(Copy, Clone, Debug, PartialEq)]
@@ -72,6 +77,8 @@ pub enum VariableType {
 pub struct VariableInformation {
     /// the type of variable
     variable_type: VariableType,
+    /// true if this variable is a compile-time-constant
+    is_constant: bool,
     /// the variable's datatype
     data_type_name: String,
     /// the variable's qualifier, None for global variables
@@ -146,6 +153,91 @@ impl From<&PouType> for ImplementationType {
     }
 }
 
+/// the TypeIndex carries all types.
+/// it is extracted into its seaprate struct so it can be
+/// internally borrowed individually from the other maps
+pub struct TypeIndex {
+    /// all types (structs, enums, type, POUs, etc.)
+    types: IndexMap<String, DataType>,
+
+    void_type: DataType,
+}
+
+impl TypeIndex {
+    fn new() -> Self {
+        TypeIndex {
+            types: IndexMap::new(),
+            void_type: DataType {
+                name: VOID_TYPE.into(),
+                initial_value: None,
+                information: DataTypeInformation::Void,
+            },
+        }
+    }
+
+    pub fn find_type(&self, type_name: &str) -> Option<&DataType> {
+        self.types.get(&type_name.to_lowercase())
+    }
+
+    pub fn find_effective_type_by_name(&self, type_name: &str) -> Option<&DataType> {
+        self.find_type(type_name)
+            .and_then(|it| self.find_effective_type(it))
+    }
+
+    pub fn get_effective_type_by_name(&self, type_name: &str) -> &DataType {
+        self.find_type(type_name)
+            .and_then(|it| self.find_effective_type(it))
+            .unwrap_or(&self.void_type)
+    }
+
+    pub fn get_type(&self, type_name: &str) -> Result<&DataType, CompileError> {
+        self.find_type(type_name)
+            .ok_or_else(|| CompileError::unknown_type(type_name, SourceRange::undefined()))
+    }
+
+    /// Retrieves the "Effective" type behind this datatype
+    /// An effective type will be any end type i.e. Structs, Integers, Floats, String and Array
+    pub fn find_effective_type<'ret>(
+        &'ret self,
+        data_type: &'ret DataType,
+    ) -> Option<&'ret DataType> {
+        match data_type.get_type_information() {
+            DataTypeInformation::SubRange {
+                referenced_type, ..
+            } => self
+                .find_type(referenced_type)
+                .and_then(|it| self.find_effective_type(it)),
+            DataTypeInformation::Alias {
+                referenced_type, ..
+            } => self
+                .find_type(referenced_type)
+                .and_then(|it| self.find_effective_type(it)),
+            _ => Some(data_type),
+        }
+    }
+
+    /// Retrieves the "Effective" type-information behind this datatype
+    /// An effective type will be any end type i.e. Structs, Integers, Floats, String and Array
+    pub fn find_effective_type_information<'ret>(
+        &'ret self,
+        data_type: &'ret DataTypeInformation,
+    ) -> Option<&'ret DataTypeInformation> {
+        match data_type {
+            DataTypeInformation::SubRange {
+                referenced_type, ..
+            } => self
+                .find_type(referenced_type)
+                .and_then(|it| self.find_effective_type_information(it.get_type_information())),
+            DataTypeInformation::Alias {
+                referenced_type, ..
+            } => self
+                .find_type(referenced_type)
+                .and_then(|it| self.find_effective_type_information(it.get_type_information())),
+            _ => Some(data_type),
+        }
+    }
+}
+
 /// The global index of the rusty-compiler
 ///
 /// The index contains information about all referencable elements.
@@ -165,13 +257,11 @@ pub struct Index {
     /// all local variables, grouped by the POU's name
     member_variables: IndexMap<String, IndexMap<String, VariableIndexEntry>>,
 
-    /// all types (structs, enums, type, POUs, etc.)
-    types: IndexMap<String, DataType>,
-
     /// all implementations
     implementations: IndexMap<String, ImplementationIndexEntry>,
 
-    void_type: DataType,
+    /// an index with all type-information
+    type_index: TypeIndex,
 
     constant_expressions: ConstExpressions,
 }
@@ -183,13 +273,8 @@ impl Index {
             enum_global_variables: IndexMap::new(),
             enum_qualified_variables: IndexMap::new(),
             member_variables: IndexMap::new(),
-            types: IndexMap::new(),
+            type_index: TypeIndex::new(),
             implementations: IndexMap::new(),
-            void_type: DataType {
-                name: VOID_TYPE.into(),
-                initial_value: None,
-                information: DataTypeInformation::Void,
-            },
             constant_expressions: ConstExpressions::new(),
         }
     }
@@ -233,7 +318,7 @@ impl Index {
         }
 
         //types
-        for (name, mut e) in other.types.drain(..) {
+        for (name, mut e) in other.type_index.types.drain(..) {
             e.initial_value =
                 self.maybe_import_const_expr(&mut other.constant_expressions, &e.initial_value);
 
@@ -253,7 +338,7 @@ impl Index {
                 }
                 _ => {}
             }
-            self.types.insert(name, e);
+            self.type_index.types.insert(name, e);
         }
 
         //implementations
@@ -270,7 +355,10 @@ impl Index {
         initializer_id
             .as_ref()
             .and_then(|it| import_from.remove(it))
-            .map(|init| self.add_constant_expression(init))
+            .map(|(init, target_type)| {
+                self.get_mut_const_expressions()
+                    .add_constant_expression(init, target_type)
+            })
     }
 
     /// imports the corresponding TypeSize (according to the given initializer-id) from the given ConstExpressions
@@ -284,14 +372,17 @@ impl Index {
             TypeSize::LiteralInteger(_) => type_size.clone(),
             TypeSize::ConstExpression(id) => import_from
                 .remove(id)
-                .map(|expr| self.add_constant_expression(expr))
+                .map(|(expr, target_type)| {
+                    self.get_mut_const_expressions()
+                        .add_constant_expression(expr, target_type)
+                })
                 .map(TypeSize::from_expression)
                 .unwrap(),
         }
     }
 
     pub fn get_void_type(&self) -> &DataType {
-        &self.void_type
+        &self.type_index.void_type
     }
 
     pub fn find_global_variable(&self, name: &str) -> Option<&VariableIndexEntry> {
@@ -353,13 +444,13 @@ impl Index {
     pub fn find_variable(
         &self,
         context: Option<&str>,
-        segments: &[String],
+        segments: &[&str],
     ) -> Option<&VariableIndexEntry> {
         if segments.is_empty() {
             return None;
         }
 
-        let first_var = &segments[0];
+        let first_var = segments[0];
 
         let mut result = match context {
             Some(context) => self
@@ -377,23 +468,19 @@ impl Index {
     }
 
     pub fn find_type(&self, type_name: &str) -> Option<&DataType> {
-        self.types.get(&type_name.to_lowercase())
+        self.type_index.find_type(type_name)
     }
 
     pub fn find_effective_type_by_name(&self, type_name: &str) -> Option<&DataType> {
-        self.find_type(type_name)
-            .and_then(|it| self.find_effective_type(it))
+        self.type_index.find_effective_type_by_name(type_name)
     }
 
     pub fn get_effective_type_by_name(&self, type_name: &str) -> &DataType {
-        self.find_type(type_name)
-            .and_then(|it| self.find_effective_type(it))
-            .unwrap_or(&self.void_type)
+        self.type_index.get_effective_type_by_name(type_name)
     }
 
     pub fn get_type(&self, type_name: &str) -> Result<&DataType, CompileError> {
-        self.find_type(type_name)
-            .ok_or_else(|| CompileError::unknown_type(type_name, SourceRange::undefined()))
+        self.type_index.get_type(type_name)
     }
 
     /// Retrieves the "Effective" type behind this datatype
@@ -475,12 +562,25 @@ impl Index {
     }
 
     /// Returns a list of types, should not be used to search for types, just to react on them
-    pub(crate) fn get_types(&self) -> &IndexMap<String, DataType> {
-        &self.types
+    pub fn get_types(&self) -> &IndexMap<String, DataType> {
+        &self.type_index.types
+    }
+
+    pub fn get_type_index(&self) -> &TypeIndex {
+        &self.type_index
     }
 
     pub fn get_globals(&self) -> &IndexMap<String, VariableIndexEntry> {
         &self.global_variables
+    }
+
+    /// returns globals and member variable index entries
+    pub fn get_all_variable_entries(&self) -> impl Iterator<Item = &VariableIndexEntry> {
+        let members = self.member_variables.values().flat_map(|it| it.values());
+
+        let globals = self.global_variables.values();
+
+        globals.chain(members)
     }
 
     pub fn get_global_qualified_enums(&self) -> &IndexMap<String, VariableIndexEntry> {
@@ -551,6 +651,7 @@ impl Index {
                 variable_type: variable_linkage,
                 data_type_name: variable_type_name.into(),
                 qualifier: Some(container_name.into()),
+                is_constant: member_info.is_constant,
                 location,
             },
         };
@@ -573,6 +674,7 @@ impl Index {
             information: VariableInformation {
                 variable_type: VariableType::Global,
                 data_type_name: enum_type_name.into(),
+                is_constant: true,
                 qualifier: None,
                 location: 0,
             },
@@ -589,6 +691,7 @@ impl Index {
         name: &str,
         type_name: &str,
         initial_value: Option<ConstId>,
+        is_constant: bool,
         source_location: SourceRange,
     ) {
         self.register_global_variable_with_name(
@@ -596,6 +699,7 @@ impl Index {
             name,
             type_name,
             initial_value,
+            is_constant,
             source_location,
         );
     }
@@ -606,6 +710,7 @@ impl Index {
         variable_name: &str,
         type_name: &str,
         initial_value: Option<ConstId>,
+        is_constant: bool,
         source_location: SourceRange,
     ) {
         //REVIEW, this seems like a misuse of the qualified name to store the association name. Any other ideas?
@@ -620,6 +725,7 @@ impl Index {
                 variable_type: VariableType::Global,
                 data_type_name: type_name.into(),
                 qualifier: None,
+                is_constant,
                 location: 0,
             },
         };
@@ -642,13 +748,15 @@ impl Index {
             initial_value,
             information,
         };
-        self.types.insert(type_name.to_lowercase(), index_entry);
+        self.type_index
+            .types
+            .insert(type_name.to_lowercase(), index_entry);
     }
 
     pub fn find_callable_instance_variable(
         &self,
         context: Option<&str>,
-        reference: &[String],
+        reference: &[&str],
     ) -> Option<&VariableIndexEntry> {
         //look for a *callable* variable with that name
         self.find_variable(context, reference).filter(|v| {
@@ -658,41 +766,18 @@ impl Index {
         })
     }
 
-    /// adds the given constant expression to the constants arena and returns the ID to reference it
-    pub fn add_constant_expression(&mut self, expr: AstStatement) -> ConstId {
-        self.constant_expressions.add_expression(expr)
+    /// returns the mutable reference to all registered ConstExpressions
+    pub fn get_mut_const_expressions(&mut self) -> &mut ConstExpressions {
+        &mut self.constant_expressions
     }
 
-    /// convinience-method to add the constant exression if there is some, otherwhise not
-    /// use this only as a shortcut if you have an Option<AstStatement> - e.g. an optional initializer.
-    /// otherwhise use `add_constant_expression`
-    pub fn maybe_add_constant_expression(&mut self, expr: Option<AstStatement>) -> Option<ConstId> {
-        expr.map(|it| self.add_constant_expression(it))
+    /// returns all registered ConstExpressions
+    pub fn get_const_expressions(&self) -> &ConstExpressions {
+        &self.constant_expressions
     }
 
-    /// convinience-method to query for an optional constant expression.
-    /// if the given `id` is `None`, this method returns `None`
-    /// use this only as a shortcut if you have an Option<ConstId> - e.g. an optional initializer.
-    /// otherwhise use `get_constant_expression`
-    pub fn maybe_get_constant_expression(&self, id: &Option<ConstId>) -> Option<&AstStatement> {
-        id.as_ref().and_then(|it| self.get_constant_expression(it))
-    }
-
-    /// query the constants arena for an expression associated with the given `id`
-    pub fn get_constant_expression(&self, id: &ConstId) -> Option<&AstStatement> {
-        self.constant_expressions.find_expression(id)
-    }
-
-    /// query the constants arena for an expression that can be evaluated to an i128.
-    /// returns an Err if no expression was associated, or the associated expression is a
-    /// complex one (not a LiteralInteger)
-    pub fn get_constant_int_expression(&self, id: &ConstId) -> Result<i128, String> {
-        self.get_constant_expression(id)
-            .ok_or_else(|| "Cannot find constant expression".into())
-            .and_then(|it| match it {
-                AstStatement::LiteralInteger { value, .. } => Ok(*value),
-                _ => Err(format!("Cannot extract int constant from {:#?}", it)),
-            })
+    fn insert_type(&mut self, type_name: String, data_type: DataType) {
+        self.type_index.types.insert(type_name, data_type);
     }
 }
 
