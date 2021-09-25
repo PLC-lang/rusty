@@ -86,6 +86,7 @@ pub enum ErrNo {
     //variable related
     var__unresolved_constant,
     var__invalid_constant_block,
+    var__invalid_constant,
 
     //reference related
     reference__unresolved,
@@ -282,6 +283,14 @@ impl Diagnostic {
             message: "This variable block does not support the CONSTANT modifier".to_string(),
             range: location,
             err_no: ErrNo::var__invalid_constant_block,
+        }
+    }
+
+    pub fn invalid_constant(constant_name: &str, location: SourceRange) -> Diagnostic {
+        Diagnostic::SyntaxError {
+            message: format!("Invalid constant {:} - Functionblock- and Class-instances cannot be delcared constant", constant_name),
+            range: location,
+            err_no: ErrNo::var__invalid_constant,
         }
     }
 

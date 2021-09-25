@@ -184,9 +184,7 @@ fn fb_methods_are_indexed() {
         .unwrap()
         .get_type_information();
     if let crate::typesystem::DataTypeInformation::Struct {
-        name,
-        member_names,
-        varargs: _,
+        name, member_names, ..
     } = info
     {
         assert_eq!("myFuncBlock.foo_interface", name);
@@ -216,9 +214,7 @@ fn class_methods_are_indexed() {
         .unwrap()
         .get_type_information();
     if let crate::typesystem::DataTypeInformation::Struct {
-        name,
-        member_names,
-        varargs: _,
+        name, member_names, ..
     } = info
     {
         assert_eq!("myClass.foo_interface", name);

@@ -129,6 +129,7 @@ pub fn visit_pou(index: &mut Index, pou: &Pou) {
             name: interface_name,
             member_names,
             varargs,
+            source: StructSource::Pou(pou.pou_type.clone()),
         },
     );
 }
@@ -215,6 +216,7 @@ fn visit_data_type(index: &mut Index, type_declatation: &UserTypeDeclaration) {
                 name: type_name.clone(),
                 member_names,
                 varargs: None,
+                source: StructSource::OriginalDeclaration,
             };
 
             let init = index

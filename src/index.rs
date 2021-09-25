@@ -95,7 +95,7 @@ pub enum DataTypeType {
     AliasType,     // a Custom-Alias-dataType
 }
 
-#[derive(Clone, PartialEq)]
+#[derive(Clone, PartialEq, Debug)]
 pub enum ImplementationType {
     Program,
     Function,
@@ -105,7 +105,7 @@ pub enum ImplementationType {
     Method,
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct ImplementationIndexEntry {
     call_name: String,
     type_name: String,
