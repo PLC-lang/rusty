@@ -3,6 +3,7 @@ use pretty_assertions::assert_eq;
 
 use crate::lexer;
 use crate::parser;
+use crate::parser::tests::literal_int;
 use crate::typesystem::TypeSize;
 use crate::{ast::*, index::VariableType, typesystem::DataTypeInformation};
 
@@ -882,6 +883,51 @@ fn pre_processing_generates_inline_pointers() {
 }
 
 #[test]
+fn pre_processing_generates_pointer_to_pointer_type() {
+    // GIVEN an inline pointer is declared
+    let lexer = lex(r#"
+        TYPE pointer_to_pointer: REF_TO REF_TO INT; END_TYPE
+        "#);
+    let (mut ast, ..) = parser::parse(lexer);
+
+    // WHEN the AST ist pre-processed
+    crate::ast::pre_process(&mut ast);
+
+    //Pointer
+    //THEN an implicit datatype should have been generated for the pointer
+
+    // POINTER TO INT
+    let new_pointer_type = &ast.types[1];
+    let expected = &UserTypeDeclaration {
+        data_type: DataType::PointerType {
+            name: Some("__pointer_to_pointer".to_string()),
+            referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
+                referenced_type: "INT".to_string(),
+                location: SourceRange::undefined(),
+            }),
+        },
+        location: SourceRange::undefined(),
+        initializer: None,
+    };
+    assert_eq!(format!("{:?}", expected), format!("{:?}", new_pointer_type));
+
+    // AND the original variable should now point to the new DataType
+    let original = &ast.types[0];
+    let expected = &UserTypeDeclaration {
+        data_type: DataType::PointerType {
+            name: Some("pointer_to_pointer".to_string()),
+            referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
+                referenced_type: "__pointer_to_pointer".to_string(),
+                location: SourceRange::undefined(),
+            }),
+        },
+        location: SourceRange::undefined(),
+        initializer: None,
+    };
+    assert_eq!(format!("{:?}", expected), format!("{:?}", original));
+}
+
+#[test]
 fn pre_processing_generates_inline_pointer_to_pointer() {
     // GIVEN an inline pointer is declared
     let lexer = lex(r#"
@@ -1079,6 +1125,57 @@ fn pre_processing_generates_inline_array_of_array() {
         },
         var_data_type
     );
+}
+
+#[test]
+fn pre_processing_generates_array_of_array_type() {
+    // GIVEN an inline pointer is declared
+    let lexer = lex(r#"
+        TYPE arr_arr: ARRAY[0..1] OF ARRAY[0..1] OF INT; END_TYPE
+        "#);
+    let (mut ast, ..) = parser::parse(lexer);
+
+    // WHEN the AST ist pre-processed
+    crate::ast::pre_process(&mut ast);
+
+    let new_type = &ast.types[1];
+    let expected = &UserTypeDeclaration {
+        data_type: DataType::ArrayType {
+            name: Some("__arr_arr".to_string()),
+            bounds: AstStatement::RangeStatement {
+                id: 0,
+                start: Box::new(literal_int(0)),
+                end: Box::new(literal_int(1)),
+            },
+            referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
+                referenced_type: "INT".to_string(),
+                location: SourceRange::undefined(),
+            }),
+        },
+        location: SourceRange::undefined(),
+        initializer: None,
+    };
+    assert_eq!(format!("{:?}", expected), format!("{:?}", new_type));
+
+    // AND the original variable should now point to the new DataType
+    let original = &ast.types[0];
+    let expected = &UserTypeDeclaration {
+        data_type: DataType::ArrayType {
+            name: Some("arr_arr".to_string()),
+            bounds: AstStatement::RangeStatement {
+                id: 0,
+                start: Box::new(literal_int(0)),
+                end: Box::new(literal_int(1)),
+            },
+            referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
+                referenced_type: "__arr_arr".to_string(),
+                location: SourceRange::undefined(),
+            }),
+        },
+        location: SourceRange::undefined(),
+        initializer: None,
+    };
+    assert_eq!(format!("{:?}", expected), format!("{:?}", original));
 }
 
 #[test]
