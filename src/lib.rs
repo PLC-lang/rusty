@@ -87,10 +87,10 @@ pub enum ErrNo {
     var__unresolved_constant,
     var__invalid_constant_block,
     var__invalid_constant,
+    var__cannot_assign_to_const,
 
     //reference related
     reference__unresolved,
-    //variable related
 
     //type related
     type__literal_out_of_range,
@@ -291,6 +291,14 @@ impl Diagnostic {
             message: format!("Invalid constant {:} - Functionblock- and Class-instances cannot be delcared constant", constant_name),
             range: location,
             err_no: ErrNo::var__invalid_constant,
+        }
+    }
+
+    pub fn cannot_assign_to_constant(qualified_name: &str, location: SourceRange) -> Diagnostic {
+        Diagnostic::SyntaxError {
+            message: format!("Cannot assign to CONSTANT '{:}'", qualified_name),
+            range: location,
+            err_no: ErrNo::var__cannot_assign_to_const,
         }
     }
 

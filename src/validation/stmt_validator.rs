@@ -3,6 +3,7 @@ use std::{convert::TryInto, mem::discriminant};
 use super::ValidationContext;
 use crate::{
     ast::{AstStatement, DirectAccessType, SourceRange},
+    resolver::StatementAnnotation,
     typesystem::{
         DataTypeInformation, BOOL_TYPE, DATE_AND_TIME_TYPE, DATE_TYPE, DINT_TYPE, INT_TYPE,
         LINT_TYPE, LREAL_TYPE, SINT_TYPE, STRING_TYPE, TIME_OF_DAY_TYPE, TIME_TYPE, UDINT_TYPE,
@@ -86,6 +87,20 @@ impl StatementValidator {
                             location.clone(),
                         ))
                     }
+                }
+            }
+            AstStatement::Assignment { left, .. } => {
+                // check if we assign to a constant variable
+                if let Some(StatementAnnotation::Variable {
+                    constant: true,
+                    qualified_name,
+                    ..
+                }) = context.ast_annotation.get(left.as_ref())
+                {
+                    self.diagnostics.push(Diagnostic::cannot_assign_to_constant(
+                        qualified_name.as_str(),
+                        left.get_location(),
+                    ));
                 }
             }
             _ => (),

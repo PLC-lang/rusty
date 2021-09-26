@@ -377,7 +377,7 @@ pub fn evaluate(
         }
         AstStatement::QualifiedReference { elements, .. } => {
             // we made sure that there are exactly two references
-            //TODO once we can initialize structs, we need to allow generic qualified references here
+            //TODO https://github.com/ghaith/rusty/issues/291 - once we can initialize structs, we need to allow generic qualified references here
             if elements.len() == 2 {
                 if let (
                     AstStatement::Reference { name: pou_name, .. },
