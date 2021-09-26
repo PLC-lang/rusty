@@ -148,6 +148,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
         if let Some(StatementAnnotation::Variable {
             qualified_name,
             resulting_type,
+            ..
         }) = self.annotations.get_annotation(expression)
         {
             if let Some((basic_value_enum, data_type_info)) =
@@ -913,6 +914,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                         StatementAnnotation::Variable {
                             resulting_type: _,
                             qualified_name,
+                            constant: _,
                         } => {
                             //TODO introduce qualified names!
                             let qualifier = &qualified_name[..qualified_name.rfind('.')?];
