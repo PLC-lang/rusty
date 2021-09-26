@@ -819,6 +819,24 @@
 <span id="819">819</span>
 <span id="820">820</span>
 <span id="821">821</span>
+<span id="822">822</span>
+<span id="823">823</span>
+<span id="824">824</span>
+<span id="825">825</span>
+<span id="826">826</span>
+<span id="827">827</span>
+<span id="828">828</span>
+<span id="829">829</span>
+<span id="830">830</span>
+<span id="831">831</span>
+<span id="832">832</span>
+<span id="833">833</span>
+<span id="834">834</span>
+<span id="835">835</span>
+<span id="836">836</span>
+<span id="837">837</span>
+<span id="838">838</span>
+<span id="839">839</span>
 </pre><pre class="rust">
 <span class="comment">// Copyright (c) 2021 Ghaith Hachem and Mathias Rieder</span>
 
@@ -875,6 +893,11 @@
     <span class="doccomment">/// Inside the left hand side of an assignment is in the context of the call&#39;s POU</span>
     <span class="doccomment">/// `foo(a := a)` actually means: `foo(foo.a := POU.a)`</span>
     <span class="ident">call</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;s</span> <span class="ident">str</span><span class="op">&gt;</span>,
+
+    <span class="doccomment">/// true if the expression passed a constant-variable on the way</span>
+    <span class="doccomment">/// e.g. true for `x` if x is declared in a constant block</span>
+    <span class="doccomment">/// e.g. true for `a.b.c` if either a,b or c is declared in a constant block</span>
+    <span class="ident">constant</span>: <span class="ident">bool</span>,
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;s</span><span class="op">&gt;</span> <span class="ident">VisitorContext</span><span class="op">&lt;</span><span class="lifetime">&#39;s</span><span class="op">&gt;</span> {
@@ -884,6 +907,7 @@
             <span class="ident">pou</span>: <span class="self">self</span>.<span class="ident">pou</span>,
             <span class="ident">qualifier</span>: <span class="prelude-val">Some</span>(<span class="ident">qualifier</span>),
             <span class="ident">call</span>: <span class="self">self</span>.<span class="ident">call</span>,
+            <span class="ident">constant</span>: <span class="bool-val">false</span>,
         }
     }
 
@@ -893,6 +917,7 @@
             <span class="ident">pou</span>: <span class="prelude-val">Some</span>(<span class="ident">pou</span>),
             <span class="ident">qualifier</span>: <span class="self">self</span>.<span class="ident">qualifier</span>.<span class="ident">clone</span>(),
             <span class="ident">call</span>: <span class="self">self</span>.<span class="ident">call</span>,
+            <span class="ident">constant</span>: <span class="bool-val">false</span>,
         }
     }
 
@@ -902,6 +927,7 @@
             <span class="ident">pou</span>: <span class="self">self</span>.<span class="ident">pou</span>,
             <span class="ident">qualifier</span>: <span class="self">self</span>.<span class="ident">qualifier</span>.<span class="ident">clone</span>(),
             <span class="ident">call</span>: <span class="prelude-val">Some</span>(<span class="ident">lhs_pou</span>),
+            <span class="ident">constant</span>: <span class="bool-val">false</span>,
         }
     }
 }
@@ -920,6 +946,7 @@
     <span class="ident">Variable</span> {
         <span class="ident">resulting_type</span>: <span class="ident">String</span>,
         <span class="ident">qualified_name</span>: <span class="ident">String</span>,
+        <span class="ident">constant</span>: <span class="ident">bool</span>,
     },
     <span class="doccomment">/// a reference to a function</span>
     <span class="ident">Function</span> {
@@ -1032,6 +1059,7 @@
             <span class="ident">pou</span>: <span class="prelude-val">None</span>,
             <span class="ident">qualifier</span>: <span class="prelude-val">None</span>,
             <span class="ident">call</span>: <span class="prelude-val">None</span>,
+            <span class="ident">constant</span>: <span class="bool-val">false</span>,
         };
 
         <span class="kw">for</span> <span class="ident">global_initializer</span> <span class="kw">in</span> <span class="ident">unit</span>
@@ -1309,7 +1337,7 @@
                                     <span class="self">self</span>.<span class="ident">index</span>,
                                 )
                             },
-                            <span class="op">|</span><span class="ident">v</span><span class="op">|</span> <span class="prelude-val">Some</span>(<span class="ident">to_variable_annotation</span>(<span class="ident">v</span>, <span class="self">self</span>.<span class="ident">index</span>)),
+                            <span class="op">|</span><span class="ident">v</span><span class="op">|</span> <span class="prelude-val">Some</span>(<span class="ident">to_variable_annotation</span>(<span class="ident">v</span>, <span class="self">self</span>.<span class="ident">index</span>, <span class="ident">ctx</span>.<span class="ident">constant</span>)),
                         )
                 } <span class="kw">else</span> {
                     <span class="comment">// if we see no qualifier, we try some strategies ...</span>
@@ -1328,7 +1356,7 @@
                                         )
                                         .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">it</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">index</span>.<span class="ident">find_member</span>(<span class="ident">it</span>, <span class="ident">name</span>))
                                 })
-                                .<span class="ident">map</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> <span class="ident">to_variable_annotation</span>(<span class="ident">v</span>, <span class="self">self</span>.<span class="ident">index</span>))
+                                .<span class="ident">map</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> <span class="ident">to_variable_annotation</span>(<span class="ident">v</span>, <span class="self">self</span>.<span class="ident">index</span>, <span class="ident">ctx</span>.<span class="ident">constant</span>))
                                 .<span class="ident">or_else</span>(<span class="op">|</span><span class="op">|</span> {
                                     <span class="comment">//Try to find an action with this name</span>
                                     <span class="kw">let</span> <span class="ident">action_call_name</span> <span class="op">=</span> <span class="macro">format!</span>(<span class="string">&quot;{}.{}&quot;</span>, <span class="ident">qualifier</span>, <span class="ident">name</span>);
@@ -1359,7 +1387,7 @@
                             <span class="comment">// ... last option is a global variable, where we ignore the current pou&#39;s name as a qualifier</span>
                             <span class="self">self</span>.<span class="ident">index</span>
                                 .<span class="ident">find_global_variable</span>(<span class="ident">name</span>)
-                                .<span class="ident">map</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> <span class="ident">to_variable_annotation</span>(<span class="ident">v</span>, <span class="self">self</span>.<span class="ident">index</span>))
+                                .<span class="ident">map</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> <span class="ident">to_variable_annotation</span>(<span class="ident">v</span>, <span class="self">self</span>.<span class="ident">index</span>, <span class="ident">ctx</span>.<span class="ident">constant</span>))
                         })
                 };
                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">annotation</span>) <span class="op">=</span> <span class="ident">annotation</span> {
@@ -1371,25 +1399,28 @@
                 <span class="kw">for</span> <span class="ident">s</span> <span class="kw">in</span> <span class="ident">elements</span>.<span class="ident">iter</span>() {
                     <span class="self">self</span>.<span class="ident">visit_statement</span>(<span class="kw-2">&amp;</span><span class="ident">ctx</span>, <span class="ident">s</span>);
 
-                    <span class="kw">let</span> <span class="ident">qualifier</span> <span class="op">=</span> <span class="self">self</span>
+                    <span class="kw">let</span> (<span class="ident">qualifier</span>, <span class="ident">constant</span>) <span class="op">=</span> <span class="self">self</span>
                         .<span class="ident">annotation_map</span>
                         .<span class="ident">get_annotation</span>(<span class="ident">s</span>)
                         .<span class="ident">map</span>(<span class="op">|</span><span class="ident">it</span><span class="op">|</span> <span class="kw">match</span> <span class="ident">it</span> {
                             <span class="ident">StatementAnnotation::Value</span> { <span class="ident">resulting_type</span> } <span class="op">=</span><span class="op">&gt;</span> {
-                                <span class="ident">resulting_type</span>.<span class="ident">as_str</span>()
+                                (<span class="ident">resulting_type</span>.<span class="ident">as_str</span>(), <span class="bool-val">false</span>)
                             }
-                            <span class="ident">StatementAnnotation::Variable</span> { <span class="ident">resulting_type</span>, .. } <span class="op">=</span><span class="op">&gt;</span> {
-                                <span class="ident">resulting_type</span>.<span class="ident">as_str</span>()
-                            }
-                            <span class="ident">StatementAnnotation::Function</span> { .. } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">VOID_TYPE</span>,
-                            <span class="ident">StatementAnnotation::Type</span> { <span class="ident">type_name</span> } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">type_name</span>.<span class="ident">as_str</span>(),
+                            <span class="ident">StatementAnnotation::Variable</span> {
+                                <span class="ident">resulting_type</span>,
+                                <span class="ident">constant</span>,
+                                ..
+                            } <span class="op">=</span><span class="op">&gt;</span> (<span class="ident">resulting_type</span>.<span class="ident">as_str</span>(), <span class="kw-2">*</span><span class="ident">constant</span>),
+                            <span class="ident">StatementAnnotation::Function</span> { .. } <span class="op">=</span><span class="op">&gt;</span> (<span class="ident">VOID_TYPE</span>, <span class="bool-val">false</span>),
+                            <span class="ident">StatementAnnotation::Type</span> { <span class="ident">type_name</span> } <span class="op">=</span><span class="op">&gt;</span> (<span class="ident">type_name</span>.<span class="ident">as_str</span>(), <span class="bool-val">false</span>),
                             <span class="ident">StatementAnnotation::Program</span> { <span class="ident">qualified_name</span> } <span class="op">=</span><span class="op">&gt;</span> {
-                                <span class="ident">qualified_name</span>.<span class="ident">as_str</span>()
+                                (<span class="ident">qualified_name</span>.<span class="ident">as_str</span>(), <span class="bool-val">false</span>)
                             }
                         })
-                        .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">VOID_TYPE</span>);
-
-                    <span class="ident">ctx</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">with_qualifier</span>(<span class="ident">qualifier</span>.<span class="ident">to_string</span>());
+                        .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> (<span class="ident">VOID_TYPE</span>, <span class="bool-val">false</span>));
+                    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">new_ctx</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">with_qualifier</span>(<span class="ident">qualifier</span>.<span class="ident">to_string</span>());
+                    <span class="ident">new_ctx</span>.<span class="ident">constant</span> <span class="op">=</span> <span class="ident">constant</span>;
+                    <span class="ident">ctx</span> <span class="op">=</span> <span class="ident">new_ctx</span>;
                 }
 
                 <span class="comment">//the last guy represents the type of the whole qualified expression</span>
@@ -1595,13 +1626,18 @@
     }
 }
 
-<span class="kw">fn</span> <span class="ident">to_variable_annotation</span>(<span class="ident">v</span>: <span class="kw-2">&amp;</span><span class="ident">VariableIndexEntry</span>, <span class="ident">index</span>: <span class="kw-2">&amp;</span><span class="ident">Index</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">StatementAnnotation</span> {
+<span class="kw">fn</span> <span class="ident">to_variable_annotation</span>(
+    <span class="ident">v</span>: <span class="kw-2">&amp;</span><span class="ident">VariableIndexEntry</span>,
+    <span class="ident">index</span>: <span class="kw-2">&amp;</span><span class="ident">Index</span>,
+    <span class="ident">constant_override</span>: <span class="ident">bool</span>,
+) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">StatementAnnotation</span> {
     <span class="ident">StatementAnnotation::Variable</span> {
         <span class="ident">qualified_name</span>: <span class="ident">v</span>.<span class="ident">get_qualified_name</span>().<span class="ident">into</span>(),
         <span class="ident">resulting_type</span>: <span class="ident">index</span>
             .<span class="ident">get_effective_type_by_name</span>(<span class="ident">v</span>.<span class="ident">get_type_name</span>())
             .<span class="ident">get_name</span>()
             .<span class="ident">into</span>(),
+        <span class="ident">constant</span>: <span class="ident">v</span>.<span class="ident">is_constant</span>() <span class="op">|</span><span class="op">|</span> <span class="ident">constant_override</span>,
     }
 }
 

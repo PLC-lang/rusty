@@ -678,6 +678,15 @@
 <span id="678">678</span>
 <span id="679">679</span>
 <span id="680">680</span>
+<span id="681">681</span>
+<span id="682">682</span>
+<span id="683">683</span>
+<span id="684">684</span>
+<span id="685">685</span>
+<span id="686">686</span>
+<span id="687">687</span>
+<span id="688">688</span>
+<span id="689">689</span>
 </pre><pre class="rust">
 <span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 <span class="doccomment">//! A Structured Text LLVM Frontent</span>
@@ -767,6 +776,7 @@
     <span class="comment">//variable related</span>
     <span class="ident">var__unresolved_constant</span>,
     <span class="ident">var__invalid_constant_block</span>,
+    <span class="ident">var__cannot_assign_to_const</span>,
 
     <span class="comment">//reference related</span>
     <span class="ident">reference__unresolved</span>,
@@ -963,6 +973,14 @@
             <span class="ident">message</span>: <span class="string">&quot;This variable block does not support the CONSTANT modifier&quot;</span>.<span class="ident">to_string</span>(),
             <span class="ident">range</span>: <span class="ident">location</span>,
             <span class="ident">err_no</span>: <span class="ident">ErrNo::var__invalid_constant_block</span>,
+        }
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">cannot_assign_to_constant</span>(<span class="ident">qualified_name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">location</span>: <span class="ident">SourceRange</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Diagnostic</span> {
+        <span class="ident">Diagnostic::SyntaxError</span> {
+            <span class="ident">message</span>: <span class="macro">format!</span>(<span class="string">&quot;Cannot assign to CONSTANT &#39;{:}&#39;&quot;</span>, <span class="ident">qualified_name</span>),
+            <span class="ident">range</span>: <span class="ident">location</span>,
+            <span class="ident">err_no</span>: <span class="ident">ErrNo::var__cannot_assign_to_const</span>,
         }
     }
 

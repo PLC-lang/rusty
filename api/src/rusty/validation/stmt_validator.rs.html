@@ -277,12 +277,28 @@
 <span id="277">277</span>
 <span id="278">278</span>
 <span id="279">279</span>
+<span id="280">280</span>
+<span id="281">281</span>
+<span id="282">282</span>
+<span id="283">283</span>
+<span id="284">284</span>
+<span id="285">285</span>
+<span id="286">286</span>
+<span id="287">287</span>
+<span id="288">288</span>
+<span id="289">289</span>
+<span id="290">290</span>
+<span id="291">291</span>
+<span id="292">292</span>
+<span id="293">293</span>
+<span id="294">294</span>
 </pre><pre class="rust">
 <span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">convert::TryInto</span>, <span class="ident">mem::discriminant</span>};
 
 <span class="kw">use</span> <span class="kw">super</span><span class="ident">::ValidationContext</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">ast</span>::{<span class="ident">AstStatement</span>, <span class="ident">DirectAccessType</span>, <span class="ident">SourceRange</span>},
+    <span class="ident">resolver::StatementAnnotation</span>,
     <span class="ident">typesystem</span>::{
         <span class="ident">DataTypeInformation</span>, <span class="ident">BOOL_TYPE</span>, <span class="ident">DATE_AND_TIME_TYPE</span>, <span class="ident">DATE_TYPE</span>, <span class="ident">DINT_TYPE</span>, <span class="ident">INT_TYPE</span>,
         <span class="ident">LINT_TYPE</span>, <span class="ident">LREAL_TYPE</span>, <span class="ident">SINT_TYPE</span>, <span class="ident">STRING_TYPE</span>, <span class="ident">TIME_OF_DAY_TYPE</span>, <span class="ident">TIME_TYPE</span>, <span class="ident">UDINT_TYPE</span>,
@@ -366,6 +382,20 @@
                             <span class="ident">location</span>.<span class="ident">clone</span>(),
                         ))
                     }
+                }
+            }
+            <span class="ident">AstStatement::Assignment</span> { <span class="ident">left</span>, .. } <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="comment">// check if we assign to a constant variable</span>
+                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">StatementAnnotation::Variable</span> {
+                    <span class="ident">constant</span>: <span class="bool-val">true</span>,
+                    <span class="ident">qualified_name</span>,
+                    ..
+                }) <span class="op">=</span> <span class="ident">context</span>.<span class="ident">ast_annotation</span>.<span class="ident">get</span>(<span class="ident">left</span>.<span class="ident">as_ref</span>())
+                {
+                    <span class="self">self</span>.<span class="ident">diagnostics</span>.<span class="ident">push</span>(<span class="ident">Diagnostic::cannot_assign_to_constant</span>(
+                        <span class="ident">qualified_name</span>.<span class="ident">as_str</span>(),
+                        <span class="ident">left</span>.<span class="ident">get_location</span>(),
+                    ));
                 }
             }
             <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> (),
