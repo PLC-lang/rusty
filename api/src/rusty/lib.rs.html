@@ -669,6 +669,15 @@
 <span id="669">669</span>
 <span id="670">670</span>
 <span id="671">671</span>
+<span id="672">672</span>
+<span id="673">673</span>
+<span id="674">674</span>
+<span id="675">675</span>
+<span id="676">676</span>
+<span id="677">677</span>
+<span id="678">678</span>
+<span id="679">679</span>
+<span id="680">680</span>
 </pre><pre class="rust">
 <span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 <span class="doccomment">//! A Structured Text LLVM Frontent</span>
@@ -757,6 +766,7 @@
 
     <span class="comment">//variable related</span>
     <span class="ident">var__unresolved_constant</span>,
+    <span class="ident">var__invalid_constant_block</span>,
 
     <span class="comment">//reference related</span>
     <span class="ident">reference__unresolved</span>,
@@ -945,6 +955,14 @@
             ),
             <span class="ident">range</span>: <span class="ident">location</span>,
             <span class="ident">err_no</span>: <span class="ident">ErrNo::pou__empty_variable_block</span>,
+        }
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">invalid_constant_block</span>(<span class="ident">location</span>: <span class="ident">SourceRange</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Diagnostic</span> {
+        <span class="ident">Diagnostic::SyntaxError</span> {
+            <span class="ident">message</span>: <span class="string">&quot;This variable block does not support the CONSTANT modifier&quot;</span>.<span class="ident">to_string</span>(),
+            <span class="ident">range</span>: <span class="ident">location</span>,
+            <span class="ident">err_no</span>: <span class="ident">ErrNo::var__invalid_constant_block</span>,
         }
     }
 

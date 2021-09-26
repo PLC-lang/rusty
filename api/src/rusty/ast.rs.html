@@ -1114,6 +1114,7 @@
 <span id="1114">1114</span>
 <span id="1115">1115</span>
 <span id="1116">1116</span>
+<span id="1117">1117</span>
 </pre><pre class="rust">
 <span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::typesystem::DataTypeInformation</span>;
@@ -1298,6 +1299,7 @@
     <span class="kw">pub</span> <span class="ident">retain</span>: <span class="ident">bool</span>,
     <span class="kw">pub</span> <span class="ident">variables</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Variable</span><span class="op">&gt;</span>,
     <span class="kw">pub</span> <span class="ident">variable_block_type</span>: <span class="ident">VariableBlockType</span>,
+    <span class="kw">pub</span> <span class="ident">location</span>: <span class="ident">SourceRange</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">Debug</span> <span class="kw">for</span> <span class="ident">VariableBlock</span> {

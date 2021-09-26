@@ -135,9 +135,19 @@
 <span id="135">135</span>
 <span id="136">136</span>
 <span id="137">137</span>
+<span id="138">138</span>
+<span id="139">139</span>
+<span id="140">140</span>
+<span id="141">141</span>
+<span id="142">142</span>
+<span id="143">143</span>
+<span id="144">144</span>
+<span id="145">145</span>
+<span id="146">146</span>
+<span id="147">147</span>
 </pre><pre class="rust">
 <span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">ast</span>::{<span class="ident">DataType</span>, <span class="ident">DataTypeDeclaration</span>, <span class="ident">SourceRange</span>, <span class="ident">Variable</span>, <span class="ident">VariableBlock</span>},
+    <span class="ident">ast</span>::{<span class="ident">DataType</span>, <span class="ident">DataTypeDeclaration</span>, <span class="ident">SourceRange</span>, <span class="ident">Variable</span>, <span class="ident">VariableBlock</span>, <span class="ident">VariableBlockType</span>},
     <span class="ident">index::const_expressions::ConstExpression</span>,
     <span class="ident">Diagnostic</span>,
 };
@@ -158,6 +168,16 @@
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">validate_variable_block</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">block</span>: <span class="kw-2">&amp;</span><span class="ident">VariableBlock</span>, <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="ident">ValidationContext</span>) {
+        <span class="kw">if</span> <span class="ident">block</span>.<span class="ident">constant</span>
+            <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="macro">matches!</span>(
+                <span class="ident">block</span>.<span class="ident">variable_block_type</span>,
+                <span class="ident">VariableBlockType::Global</span> <span class="op">|</span> <span class="ident">VariableBlockType::Local</span>
+            )
+        {
+            <span class="self">self</span>.<span class="ident">diagnostics</span>
+                .<span class="ident">push</span>(<span class="ident">Diagnostic::invalid_constant_block</span>(<span class="ident">block</span>.<span class="ident">location</span>.<span class="ident">clone</span>()))
+        }
+
         <span class="kw">for</span> <span class="ident">variable</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">block</span>.<span class="ident">variables</span> {
             <span class="self">self</span>.<span class="ident">validate_variable</span>(<span class="ident">variable</span>, <span class="ident">context</span>);
         }

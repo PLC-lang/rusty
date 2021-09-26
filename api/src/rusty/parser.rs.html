@@ -902,6 +902,8 @@
 <span id="902">902</span>
 <span id="903">903</span>
 <span id="904">904</span>
+<span id="905">905</span>
+<span id="906">906</span>
 </pre><pre class="rust">
 <span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 <span class="kw">use</span> <span class="kw">crate</span>::{
@@ -1733,6 +1735,7 @@
     <span class="ident">lexer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ParseSession</span>,
     <span class="ident">variable_block_type</span>: <span class="ident">VariableBlockType</span>,
 ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">VariableBlock</span> {
+    <span class="kw">let</span> <span class="ident">location</span> <span class="op">=</span> <span class="ident">lexer</span>.<span class="ident">location</span>();
     <span class="comment">//Consume the type keyword</span>
     <span class="ident">lexer</span>.<span class="ident">advance</span>();
 
@@ -1752,6 +1755,7 @@
         <span class="ident">retain</span>,
         <span class="ident">variables</span>,
         <span class="ident">variable_block_type</span>,
+        <span class="ident">location</span>,
     }
 }
 
