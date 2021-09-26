@@ -187,13 +187,15 @@ pub fn evaluate_constants(mut index: Index) -> (Index, Vec<UnresolvableConstant>
                     .get_const_expressions()
                     .find_expression_target_type(&candidate),
             ) {
-                let initial = const_expr.get_statement();
-
                 let candidates_type = target_type
                     .and_then(|type_name| index.find_effective_type_by_name(type_name))
                     .map(DataType::get_type_information);
 
-                let initial_value_literal = evaluate(initial, &index);
+                let initial_value_literal = evaluate(
+                    const_expr.get_statement(),
+                    const_expr.get_qualifier(),
+                    &index,
+                );
 
                 match (initial_value_literal, candidates_type) {
                     //we found an Int-Value and we found the const's datatype to be an unsigned Integer type (e.g. WORD)
@@ -349,9 +351,18 @@ fn cast_if_necessary(
 }
 
 /// evaluates the given Syntax-Tree `initial` to a `LiteralValue` if possible
+/// ## Arguments
+/// - `initial` the constant expression to resolve
+/// - `scope` an optional qualifier to be used when resolving references
+/// - `index` the global symbol-table
+/// ## Returns
 /// - returns an Err if resolving caused an internal error (e.g. number parsing)
 /// - returns None if the initializer cannot be resolved  (e.g. missing value)
-pub fn evaluate(initial: &AstStatement, index: &Index) -> Result<Option<AstStatement>, String> {
+pub fn evaluate(
+    initial: &AstStatement,
+    scope: Option<&str>,
+    index: &Index,
+) -> Result<Option<AstStatement>, String> {
     if !needs_evaluation(initial) {
         return Ok(Some(initial.clone())); // TODO hmm ...
     }
@@ -359,14 +370,14 @@ pub fn evaluate(initial: &AstStatement, index: &Index) -> Result<Option<AstState
     let literal = match initial {
         AstStatement::CastStatement {
             target, type_name, ..
-        } => Some(get_cast_statement_literal(target, type_name, index)?),
+        } => Some(get_cast_statement_literal(target, type_name, scope, index)?),
         AstStatement::Reference { name, .. } => {
-            //TODO respect scoping
-            let variable = index.find_global_variable(name);
+            let variable = index.find_variable(scope, std::slice::from_ref(&name.as_str()));
             resolve_const_reference(variable, name, index)?
         }
         AstStatement::QualifiedReference { elements, .. } => {
             // we made sure that there are exactly two references
+            //TODO once we can initialize structs, we need to allow generic qualified references here
             if elements.len() == 2 {
                 if let (
                     AstStatement::Reference { name: pou_name, .. },
@@ -388,8 +399,8 @@ pub fn evaluate(initial: &AstStatement, index: &Index) -> Result<Option<AstState
             operator,
             ..
         } => {
-            let eval_left = evaluate(left, index)?;
-            let eval_right = evaluate(right, index)?;
+            let eval_left = evaluate(left, scope, index)?;
+            let eval_right = evaluate(right, scope, index)?;
             if let Some((left, right)) = eval_left.zip(eval_right).as_ref() {
                 Some(match operator {
                     Operator::Plus => arithmetic_expression!(left, +, right, "+")?,
@@ -431,7 +442,7 @@ pub fn evaluate(initial: &AstStatement, index: &Index) -> Result<Option<AstState
             operator: Operator::Not,
             value,
             ..
-        } => match evaluate(value, index)? {
+        } => match evaluate(value, scope, index)? {
             Some(AstStatement::LiteralBool {
                 value: v,
                 id,
@@ -460,7 +471,7 @@ pub fn evaluate(initial: &AstStatement, index: &Index) -> Result<Option<AstState
             operator: Operator::Minus,
             value,
             ..
-        } => match evaluate(value, index)? {
+        } => match evaluate(value, scope, index)? {
             Some(AstStatement::LiteralInteger {
                 value: v,
                 id,
@@ -526,6 +537,7 @@ fn is_zero(v: &AstStatement) -> bool {
 fn get_cast_statement_literal(
     cast_statement: &AstStatement,
     type_name: &str,
+    scope: Option<&str>,
     index: &Index,
 ) -> Result<AstStatement, String> {
     match index
@@ -533,7 +545,7 @@ fn get_cast_statement_literal(
         .map(DataType::get_type_information)
     {
         Some(&crate::typesystem::DataTypeInformation::Integer { size, signed, .. }) => {
-            let evaluated_initial = evaluate(cast_statement, index)?
+            let evaluated_initial = evaluate(cast_statement, scope, index)?
                 .as_ref()
                 .map(|v| {
                     if let AstStatement::LiteralInteger { value, .. } = v {

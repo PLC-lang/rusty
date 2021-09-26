@@ -1,11 +1,9 @@
-use inkwell::types::StructType;
-
 use crate::{
     ast::{
         DataType, DataTypeDeclaration, PouType, SourceRange, Variable, VariableBlock,
         VariableBlockType,
     },
-    index::{const_expressions::ConstExpression, ImplementationType, Index},
+    index::{const_expressions::ConstExpression, Index},
     typesystem::{DataTypeInformation, StructSource},
     Diagnostic,
 };
@@ -68,7 +66,7 @@ impl VariableValidator {
                         statement.get_location(),
                     ));
                 }
-                Some(ConstExpression::Unresolved(statement)) => {
+                Some(ConstExpression::Unresolved { statement, .. }) => {
                     self.diagnostics.push(Diagnostic::unresolved_constant(
                         variable.name.as_str(),
                         None,

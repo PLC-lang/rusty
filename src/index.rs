@@ -355,9 +355,9 @@ impl Index {
         initializer_id
             .as_ref()
             .and_then(|it| import_from.remove(it))
-            .map(|(init, target_type)| {
+            .map(|(init, target_type, scope)| {
                 self.get_mut_const_expressions()
-                    .add_constant_expression(init, target_type)
+                    .add_constant_expression(init, target_type, scope)
             })
     }
 
@@ -372,9 +372,12 @@ impl Index {
             TypeSize::LiteralInteger(_) => type_size.clone(),
             TypeSize::ConstExpression(id) => import_from
                 .remove(id)
-                .map(|(expr, target_type)| {
-                    self.get_mut_const_expressions()
-                        .add_constant_expression(expr, target_type)
+                .map(|(expr, target_type, scope)| {
+                    self.get_mut_const_expressions().add_constant_expression(
+                        expr,
+                        target_type,
+                        scope,
+                    )
                 })
                 .map(TypeSize::from_expression)
                 .unwrap(),

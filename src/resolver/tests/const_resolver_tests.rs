@@ -162,6 +162,53 @@ fn local_const_references_to_int_compile_time_evaluation() {
 }
 
 #[test]
+fn local_const_references_to_int_compile_time_evaluation_uses_correct_scopes() {
+    // GIVEN some global and local constants
+    let (_, index) = parse(
+        "
+        VAR_GLOBAL CONSTANT
+            a : INT := 5;
+        END_VAR
+
+        VAR_GLOBAL
+            g : INT := a; //should be 5
+            h : INT := prg.a; // should be 4
+        END_VAR
+
+        PROGRAM prg 
+            VAR CONSTANT
+                a : INT := 4;
+            END_VAR
+
+            VAR_INPUT
+                v : INT := a; //should be 4
+            END_VAR
+        END_PROGRAM
+        ",
+    );
+
+    // WHEN compile-time evaluation is applied
+    let (index, unresolvable) = evaluate_constants(index);
+    debug_assert_eq!(EMPTY, unresolvable);
+
+    // THEN g should resolve its inital value to global 'a'
+    debug_assert_eq!(
+        &create_int_literal(5),
+        find_connstant_value(&index, "g").unwrap()
+    );
+    // THEN h should resolve its inital value to 'prg.a'
+    debug_assert_eq!(
+        &create_int_literal(4),
+        find_connstant_value(&index, "h").unwrap()
+    );
+    // AND prg.v should resolve its initial value to 'prg.a'
+    debug_assert_eq!(
+        &create_int_literal(4),
+        find_member_value(&index, "prg", "v").unwrap()
+    );
+}
+
+#[test]
 fn non_const_references_to_int_compile_time_evaluation() {
     // GIVEN some global consts
     // AND some NON-constants

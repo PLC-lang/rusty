@@ -18,7 +18,7 @@ struct ConstWrapper {
 impl ConstWrapper {
     pub fn get_statement(&self) -> &AstStatement {
         match &self.expr {
-            ConstExpression::Unresolved(statement) => statement,
+            ConstExpression::Unresolved { statement, .. } => statement,
             ConstExpression::Resolved(statement) => statement,
             ConstExpression::Unresolvable { statement, .. } => statement,
         }
@@ -29,7 +29,13 @@ impl ConstWrapper {
 /// whether this expression was already (potentially) resolved or not, or if a
 /// resolving failed.
 pub enum ConstExpression {
-    Unresolved(AstStatement),
+    Unresolved {
+        statement: AstStatement,
+        /// optional qualifier used when evaluating this expression
+        /// e.g. a const-expression inside a POU would use this POU's name as a
+        /// qualifier.
+        scope: Option<String>,
+    },
     Resolved(AstStatement),
     Unresolvable {
         statement: AstStatement,
@@ -38,11 +44,21 @@ pub enum ConstExpression {
 }
 
 impl ConstExpression {
+    /// returns the const-expression represented as an AST-element
     pub fn get_statement(&self) -> &AstStatement {
         match &self {
-            ConstExpression::Unresolved(statement) => statement,
+            ConstExpression::Unresolved { statement, .. } => statement,
             ConstExpression::Resolved(statement) => statement,
             ConstExpression::Unresolvable { statement, .. } => statement,
+        }
+    }
+
+    /// returns an optional qualifier that should be used as a scope when
+    /// resolving this ConstExpression (e.g. the host's POU-name)
+    pub fn get_qualifier(&self) -> Option<&str> {
+        match &self {
+            ConstExpression::Unresolved { scope, .. } => scope.as_ref().map(|it| it.as_str()),
+            _ => None,
         }
     }
 }
@@ -59,15 +75,29 @@ impl ConstExpressions {
         }
     }
 
-    pub fn add_expression(&mut self, statement: AstStatement, target_type_name: String) -> ConstId {
+    /// adds the const expression `statement`
+    /// - `statement`: the const expression to add
+    /// - `target_type_name`: the datatype this expression will be assigned to
+    /// - `scope`: the scope this expression needs to be resolved in (e.g. a POU's name)
+    pub fn add_expression(
+        &mut self,
+        statement: AstStatement,
+        target_type_name: String,
+        scope: Option<String>,
+    ) -> ConstId {
         self.expressions.insert(ConstWrapper {
-            expr: ConstExpression::Unresolved(statement),
+            expr: ConstExpression::Unresolved { statement, scope },
             target_type_name,
         })
     }
 
-    pub fn find_expression(&self, id: &ConstId) -> Option<&AstStatement> {
-        self.expressions.get(*id).map(|it| it.get_statement())
+    /// returns the expression associated with the given `id` together with an optional
+    /// `qualifier` that represents the expressions scope  (e.g. the host's POU-name)
+    pub fn find_expression(&self, id: &ConstId) -> (Option<&AstStatement>, Option<&str>) {
+        self.expressions
+            .get(*id)
+            .map(|it| (Some(it.expr.get_statement()), it.expr.get_qualifier()))
+            .unwrap_or((None, None))
     }
 
     pub fn find_expression_target_type(&self, id: &ConstId) -> Option<&str> {
@@ -83,11 +113,14 @@ impl ConstExpressions {
         self.expressions.get(*id).map(|it| &it.expr)
     }
 
-    pub fn remove(&mut self, id: &ConstId) -> Option<(AstStatement, String)> {
+    /// removes the expression from the ConstExpressions and returns all of its elements
+    pub fn remove(&mut self, id: &ConstId) -> Option<(AstStatement, String, Option<String>)> {
         self.expressions.remove(*id).map(|it| match it.expr {
-            ConstExpression::Unresolved(s) => (s, it.target_type_name),
-            ConstExpression::Resolved(s) => (s, it.target_type_name),
-            ConstExpression::Unresolvable { statement: s, .. } => (s, it.target_type_name),
+            ConstExpression::Unresolved { statement, scope } => {
+                (statement, it.target_type_name, scope)
+            }
+            ConstExpression::Resolved(s) => (s, it.target_type_name, None),
+            ConstExpression::Unresolvable { statement: s, .. } => (s, it.target_type_name, None),
         })
     }
 
@@ -119,8 +152,16 @@ impl ConstExpressions {
     }
 
     /// adds the given constant expression to the constants arena and returns the ID to reference it
-    pub fn add_constant_expression(&mut self, expr: AstStatement, target_type: String) -> ConstId {
-        self.add_expression(expr, target_type)
+    /// - `expr`: the const expression to add
+    /// - `target_type`: the datatype this expression will be assigned to
+    /// - `scope`: the scope this expression needs to be resolved in (e.g. a POU's name)
+    pub fn add_constant_expression(
+        &mut self,
+        expr: AstStatement,
+        target_type: String,
+        scope: Option<String>,
+    ) -> ConstId {
+        self.add_expression(expr, target_type, scope)
     }
 
     /// convinience-method to add the constant exression if there is some, otherwhise not
@@ -130,8 +171,9 @@ impl ConstExpressions {
         &mut self,
         expr: Option<AstStatement>,
         targe_type_name: &str,
+        scope: Option<String>,
     ) -> Option<ConstId> {
-        expr.map(|it| self.add_constant_expression(it, targe_type_name.to_string()))
+        expr.map(|it| self.add_constant_expression(it, targe_type_name.to_string(), scope))
     }
 
     /// convinience-method to query for an optional constant expression.
@@ -144,7 +186,7 @@ impl ConstExpressions {
 
     /// query the constants arena for an expression associated with the given `id`
     pub fn get_constant_statement(&self, id: &ConstId) -> Option<&AstStatement> {
-        self.find_expression(id)
+        self.find_expression(id).0
     }
 
     /// query the constants arena for an expression that can be evaluated to an i128.
