@@ -76,3 +76,62 @@ fn unresolvable_variables_are_reported() {
         ]
     );
 }
+
+#[test]
+fn constant_on_illegal_var_blocks_cause_validation_issue() {
+    // GIVEN different variable block types with the CONSTANT modifier
+    // WHEN it is validated
+    let diagnostics = parse_and_validate(
+        "
+        VAR_GLOBAL CONSTANT //OK
+        END_VAR
+
+        PROGRAM prg
+            VAR_INPUT CONSTANT //illegal
+            END_VAR
+
+            VAR_OUTPUT CONSTANT //illegal
+            END_VAR
+
+            VAR_IN_OUT CONSTANT //illegal
+            END_VAR
+
+            VAR CONSTANT //ok
+            END_VAR
+
+        END_PROGRAM
+
+        CLASS cls
+            VAR CONSTANT //ok
+            END_VAR
+
+             METHOD testMethod
+                VAR_INPUT CONSTANT //illegal
+                END_VAR
+
+                VAR_OUTPUT CONSTANT //illegal
+                END_VAR
+
+                VAR_IN_OUT CONSTANT //illegal
+                END_VAR
+
+                VAR CONSTANT //ok
+                END_VAR
+            END_METHOD
+        END_CLASS
+       ",
+    );
+
+    // THEN everything but VAR and VAR_GLOBALS are reported
+    assert_eq!(
+        diagnostics,
+        vec![
+            Diagnostic::invalid_constant_block((83..92).into()), // VAR_INPUT
+            Diagnostic::invalid_constant_block((145..155).into()), // VAR_OUTPUT
+            Diagnostic::invalid_constant_block((208..218).into()), // VAR_IN_OUT
+            Diagnostic::invalid_constant_block((447..456).into()), // VAR_INPUT
+            Diagnostic::invalid_constant_block((517..527).into()), // VAR_OUTPUT
+            Diagnostic::invalid_constant_block((588..598).into()), // VAR_IN_OUT
+        ]
+    );
+}

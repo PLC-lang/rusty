@@ -85,6 +85,7 @@ pub enum ErrNo {
 
     //variable related
     var__unresolved_constant,
+    var__invalid_constant_block,
 
     //reference related
     reference__unresolved,
@@ -273,6 +274,14 @@ impl Diagnostic {
             ),
             range: location,
             err_no: ErrNo::pou__empty_variable_block,
+        }
+    }
+
+    pub fn invalid_constant_block(location: SourceRange) -> Diagnostic {
+        Diagnostic::SyntaxError {
+            message: "This variable block does not support the CONSTANT modifier".to_string(),
+            range: location,
+            err_no: ErrNo::var__invalid_constant_block,
         }
     }
 
