@@ -5033,6 +5033,54 @@ source_filename = "main"
 }
 
 #[test]
+fn initial_values_in_global_variables_out_of_order() {
+    let result = codegen!(
+        "
+        VAR_GLOBAL
+        x : MyFB;
+        END_VAR
+        
+        PROGRAM prg
+        VAR
+        x : MyFB;            
+        END_VAR
+        END_PROGRAM
+
+        //if this fb is moved to the top, the initializer works
+        FUNCTION_BLOCK MyFB
+          VAR
+            x : INT := 77;            
+          END_VAR
+        END_FUNCTION_BLOCK
+        "
+    );
+
+    let expected = r#"; ModuleID = 'main'
+source_filename = "main"
+
+%MyFB_interface = type { i16 }
+%prg_interface = type { %MyFB_interface }
+
+@x = global %MyFB_interface { i16 77 }
+@prg_instance = global %prg_interface { %MyFB_interface { i16 77 }}
+
+define void @prg(%prg_interface* %0) {
+entry:
+  %x = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32
+  ret void
+}
+
+define void @MyFB(%MyFB_interface* %0) {
+entry:
+  %x = getelementptr inbounds %MyFB_interface, %MyFB_interface* %0, i32 0, i32 0
+  ret void
+}
+"#;
+
+    assert_eq!(result, expected);
+}
+
+#[test]
 fn initial_values_in_program_pou() {
     let result = codegen!(
         "
