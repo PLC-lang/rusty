@@ -105,8 +105,9 @@ impl<'a, 'b> StructGenerator<'a, 'b> {
         {
             Some(statement) => {
                 //evalute the initializer to a value
+                //TODO we should not resolve here, they should be resolved before!
                 let evaluated_const =
-                    crate::resolver::const_evaluator::evaluate(statement, self.index);
+                    crate::resolver::const_evaluator::evaluate(statement, None, self.index);
                 match evaluated_const {
                     Ok(Some(initializer)) => {
                         //create the appropriate Literal AST-Statement
