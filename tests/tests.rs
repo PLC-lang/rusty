@@ -19,6 +19,7 @@ mod correctness {
     mod pointers;
     mod sub_range_types;
     mod sums;
+    mod methods;
 }
 
 mod integration {
