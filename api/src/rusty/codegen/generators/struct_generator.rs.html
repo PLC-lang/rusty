@@ -177,6 +177,7 @@
 <span id="177">177</span>
 <span id="178">178</span>
 <span id="179">179</span>
+<span id="180">180</span>
 </pre><pre class="rust">
 <span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 <span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">expression_generator::ExpressionCodeGenerator</span>, <span class="ident">llvm::Llvm</span>};
@@ -285,8 +286,9 @@
         {
             <span class="prelude-val">Some</span>(<span class="ident">statement</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="comment">//evalute the initializer to a value</span>
+                <span class="comment">//TODO we should not resolve here, they should be resolved before!</span>
                 <span class="kw">let</span> <span class="ident">evaluated_const</span> <span class="op">=</span>
-                    <span class="kw">crate</span><span class="ident">::resolver::const_evaluator::evaluate</span>(<span class="ident">statement</span>, <span class="self">self</span>.<span class="ident">index</span>);
+                    <span class="kw">crate</span><span class="ident">::resolver::const_evaluator::evaluate</span>(<span class="ident">statement</span>, <span class="prelude-val">None</span>, <span class="self">self</span>.<span class="ident">index</span>);
                 <span class="kw">match</span> <span class="ident">evaluated_const</span> {
                     <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="ident">initializer</span>)) <span class="op">=</span><span class="op">&gt;</span> {
                         <span class="comment">//create the appropriate Literal AST-Statement</span>

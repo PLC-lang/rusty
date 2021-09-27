@@ -682,12 +682,20 @@
 <span id="682">682</span>
 <span id="683">683</span>
 <span id="684">684</span>
+<span id="685">685</span>
+<span id="686">686</span>
+<span id="687">687</span>
+<span id="688">688</span>
+<span id="689">689</span>
+<span id="690">690</span>
+<span id="691">691</span>
+<span id="692">692</span>
 </pre><pre class="rust">
 <span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 <span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">mem::size_of</span>, <span class="ident">ops::Range</span>};
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">ast::AstStatement</span>,
+    <span class="ident">ast</span>::{<span class="ident">AstStatement</span>, <span class="ident">PouType</span>},
     <span class="ident">index</span>::{<span class="ident">const_expressions::ConstId</span>, <span class="ident">Index</span>},
 };
 
@@ -826,12 +834,20 @@
     }
 }
 
+<span class="doccomment">/// indicates where this Struct origins from.</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">PartialEq</span>)]</span>
+<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">StructSource</span> {
+    <span class="ident">OriginalDeclaration</span>,
+    <span class="ident">Pou</span>(<span class="ident">PouType</span>),
+}
+
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">DataTypeInformation</span> {
     <span class="ident">Struct</span> {
         <span class="ident">name</span>: <span class="ident">String</span>,
         <span class="ident">member_names</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
         <span class="ident">varargs</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">VarArgs</span><span class="op">&gt;</span>,
+        <span class="ident">source</span>: <span class="ident">StructSource</span>,
     },
     <span class="ident">Array</span> {
         <span class="ident">name</span>: <span class="ident">String</span>,

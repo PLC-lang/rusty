@@ -786,6 +786,9 @@
 <span id="786">786</span>
 <span id="787">787</span>
 <span id="788">788</span>
+<span id="789">789</span>
+<span id="790">790</span>
+<span id="791">791</span>
 </pre><pre class="rust">
 <span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 <span class="kw">use</span> <span class="ident">indexmap::IndexMap</span>;
@@ -884,7 +887,7 @@
     <span class="ident">AliasType</span>,     <span class="comment">// a Custom-Alias-dataType</span>
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">PartialEq</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">PartialEq</span>, <span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">ImplementationType</span> {
     <span class="ident">Program</span>,
     <span class="ident">Function</span>,
@@ -894,7 +897,7 @@
     <span class="ident">Method</span>,
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ImplementationIndexEntry</span> {
     <span class="ident">call_name</span>: <span class="ident">String</span>,
     <span class="ident">type_name</span>: <span class="ident">String</span>,
@@ -1144,9 +1147,9 @@
         <span class="ident">initializer_id</span>
             .<span class="ident">as_ref</span>()
             .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">it</span><span class="op">|</span> <span class="ident">import_from</span>.<span class="ident">remove</span>(<span class="ident">it</span>))
-            .<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">init</span>, <span class="ident">target_type</span>)<span class="op">|</span> {
+            .<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">init</span>, <span class="ident">target_type</span>, <span class="ident">scope</span>)<span class="op">|</span> {
                 <span class="self">self</span>.<span class="ident">get_mut_const_expressions</span>()
-                    .<span class="ident">add_constant_expression</span>(<span class="ident">init</span>, <span class="ident">target_type</span>)
+                    .<span class="ident">add_constant_expression</span>(<span class="ident">init</span>, <span class="ident">target_type</span>, <span class="ident">scope</span>)
             })
     }
 
@@ -1161,9 +1164,12 @@
             <span class="ident">TypeSize::LiteralInteger</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">type_size</span>.<span class="ident">clone</span>(),
             <span class="ident">TypeSize::ConstExpression</span>(<span class="ident">id</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">import_from</span>
                 .<span class="ident">remove</span>(<span class="ident">id</span>)
-                .<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">expr</span>, <span class="ident">target_type</span>)<span class="op">|</span> {
-                    <span class="self">self</span>.<span class="ident">get_mut_const_expressions</span>()
-                        .<span class="ident">add_constant_expression</span>(<span class="ident">expr</span>, <span class="ident">target_type</span>)
+                .<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">expr</span>, <span class="ident">target_type</span>, <span class="ident">scope</span>)<span class="op">|</span> {
+                    <span class="self">self</span>.<span class="ident">get_mut_const_expressions</span>().<span class="ident">add_constant_expression</span>(
+                        <span class="ident">expr</span>,
+                        <span class="ident">target_type</span>,
+                        <span class="ident">scope</span>,
+                    )
                 })
                 .<span class="ident">map</span>(<span class="ident">TypeSize::from_expression</span>)
                 .<span class="ident">unwrap</span>(),
