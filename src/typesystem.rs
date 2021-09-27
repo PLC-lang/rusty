@@ -2,7 +2,7 @@
 use std::{mem::size_of, ops::Range};
 
 use crate::{
-    ast::AstStatement,
+    ast::{AstStatement, PouType},
     index::{const_expressions::ConstId, Index},
 };
 
@@ -141,12 +141,20 @@ impl TypeSize {
     }
 }
 
+/// indicates where this Struct origins from.
+#[derive(Debug, Clone, PartialEq)]
+pub enum StructSource {
+    OriginalDeclaration,
+    Pou(PouType),
+}
+
 #[derive(Debug, Clone, PartialEq)]
 pub enum DataTypeInformation {
     Struct {
         name: String,
         member_names: Vec<String>,
         varargs: Option<VarArgs>,
+        source: StructSource,
     },
     Array {
         name: String,

@@ -135,3 +135,40 @@ fn constant_on_illegal_var_blocks_cause_validation_issue() {
         ]
     );
 }
+
+#[test]
+fn constant_fb_instances_are_illegal() {
+    // GIVEN a couple of constants, including FB instances and class-instances
+    // WHEN it is validated
+    let diagnostics = parse_and_validate(
+        "
+        FUNCTION_BLOCK MyFb
+            ;
+        END_FUNCTION_BLOCK
+
+        CLASS cls
+            METHOD testMethod : INT
+                VAR_INPUT myMethodArg : INT; END_VAR
+                testMethod := 1;
+            END_METHOD
+        END_CLASS
+ 
+        VAR_GLOBAL CONSTANT
+            x : INT := 1;
+            y : MyFb;
+            z : cls;
+        END_VAR
+      ",
+    );
+
+    // THEN everything but VAR and VAR_GLOBALS are reported
+    assert_eq!(
+        diagnostics,
+        vec![
+            Diagnostic::unresolved_constant("y", None, (320..321).into()),
+            Diagnostic::invalid_constant("y", (320..321).into()),
+            Diagnostic::unresolved_constant("z", None, (342..343).into()),
+            Diagnostic::invalid_constant("z", (342..343).into()),
+        ]
+    );
+}

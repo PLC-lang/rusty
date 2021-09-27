@@ -86,7 +86,11 @@ pub fn visit_pou(index: &mut Index, pou: &Pou) {
             };
             let initial_value = index
                 .get_mut_const_expressions()
-                .maybe_add_constant_expression(var.initializer.clone(), type_name.as_str());
+                .maybe_add_constant_expression(
+                    var.initializer.clone(),
+                    type_name.as_str(),
+                    Some(pou.name.clone()),
+                );
 
             index.register_member_variable(
                 &MemberInfo {
@@ -129,6 +133,7 @@ pub fn visit_pou(index: &mut Index, pou: &Pou) {
             name: interface_name,
             member_names,
             varargs,
+            source: StructSource::Pou(pou.pou_type.clone()),
         },
     );
 }
@@ -178,7 +183,7 @@ fn visit_global_var_block(index: &mut Index, block: &VariableBlock) {
         let target_type = var.data_type.get_name().unwrap_or_default();
         let initializer = index
             .get_mut_const_expressions()
-            .maybe_add_constant_expression(var.initializer.clone(), target_type);
+            .maybe_add_constant_expression(var.initializer.clone(), target_type, None);
         index.register_global_variable(
             &var.name,
             var.data_type.get_name().unwrap(),
@@ -215,6 +220,7 @@ fn visit_data_type(index: &mut Index, type_declatation: &UserTypeDeclaration) {
                 name: type_name.clone(),
                 member_names,
                 varargs: None,
+                source: StructSource::OriginalDeclaration,
             };
 
             let init = index
@@ -222,6 +228,7 @@ fn visit_data_type(index: &mut Index, type_declatation: &UserTypeDeclaration) {
                 .maybe_add_constant_expression(
                     type_declatation.initializer.clone(),
                     type_name.as_str(),
+                    None,
                 );
             index.register_type(name.as_ref().unwrap(), init, information);
             for (count, var) in variables.iter().enumerate() {
@@ -240,7 +247,7 @@ fn visit_data_type(index: &mut Index, type_declatation: &UserTypeDeclaration) {
                 let member_type = var.data_type.get_name().unwrap();
                 let init = index
                     .get_mut_const_expressions()
-                    .maybe_add_constant_expression(var.initializer.clone(), member_type);
+                    .maybe_add_constant_expression(var.initializer.clone(), member_type, None);
                 index.register_member_variable(
                     &MemberInfo {
                         container_name: struct_name,
@@ -268,6 +275,7 @@ fn visit_data_type(index: &mut Index, type_declatation: &UserTypeDeclaration) {
                 .maybe_add_constant_expression(
                     type_declatation.initializer.clone(),
                     enum_name.as_str(),
+                    None,
                 );
             index.register_type(enum_name.as_str(), init, information);
 
@@ -279,6 +287,7 @@ fn visit_data_type(index: &mut Index, type_declatation: &UserTypeDeclaration) {
                         id: 0,
                     },
                     typesystem::INT_TYPE.to_string(),
+                    None,
                 );
                 index.register_enum_element(
                     v,
@@ -313,6 +322,7 @@ fn visit_data_type(index: &mut Index, type_declatation: &UserTypeDeclaration) {
                 .maybe_add_constant_expression(
                     type_declatation.initializer.clone(),
                     name.as_ref().unwrap(),
+                    None,
                 );
             index.register_type(name.as_ref().unwrap(), init, information)
         }
@@ -332,12 +342,14 @@ fn visit_data_type(index: &mut Index, type_declatation: &UserTypeDeclaration) {
                                 constants.add_constant_expression(
                                     *start.clone(),
                                     typesystem::INT_TYPE.to_string(),
+                                    None,
                                 ),
                             ),
                             end_offset: TypeSize::from_expression(
                                 constants.add_constant_expression(
                                     *end.clone(),
                                     typesystem::INT_TYPE.to_string(),
+                                    None,
                                 ),
                             ),
                         })
@@ -362,6 +374,7 @@ fn visit_data_type(index: &mut Index, type_declatation: &UserTypeDeclaration) {
                 .maybe_add_constant_expression(
                     type_declatation.initializer.clone(),
                     name.as_ref().unwrap(),
+                    None,
                 );
             index.register_type(name.as_ref().unwrap(), init, information)
         }
@@ -382,6 +395,7 @@ fn visit_data_type(index: &mut Index, type_declatation: &UserTypeDeclaration) {
                 .maybe_add_constant_expression(
                     type_declatation.initializer.clone(),
                     name.as_ref().unwrap(),
+                    None,
                 );
             index.register_type(name.as_ref().unwrap(), init, information)
         }
@@ -416,9 +430,11 @@ fn visit_data_type(index: &mut Index, type_declatation: &UserTypeDeclaration) {
                     };
 
                     TypeSize::from_expression(
-                        index
-                            .get_mut_const_expressions()
-                            .add_constant_expression(len_plus_1, type_name.clone()),
+                        index.get_mut_const_expressions().add_constant_expression(
+                            len_plus_1,
+                            type_name.clone(),
+                            None,
+                        ),
                     )
                 }
                 None => TypeSize::from_literal(DEFAULT_STRING_LEN + 1),
@@ -426,7 +442,11 @@ fn visit_data_type(index: &mut Index, type_declatation: &UserTypeDeclaration) {
             let information = DataTypeInformation::String { size, encoding };
             let init = index
                 .get_mut_const_expressions()
-                .maybe_add_constant_expression(type_declatation.initializer.clone(), type_name);
+                .maybe_add_constant_expression(
+                    type_declatation.initializer.clone(),
+                    type_name,
+                    None,
+                );
             index.register_type(name.as_ref().unwrap(), init, information)
         }
         DataType::VarArgs { .. } => {} //Varargs are not indexed
