@@ -69,6 +69,7 @@ fn real_division_by_zero() {
     assert!(main.r.is_infinite());
 }
 
+#[test]
 fn order_of_operations_sum() {
     let prog = "
     FUNCTION main : DINT
