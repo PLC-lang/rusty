@@ -126,6 +126,10 @@ fn main_compile(parameters: CompileParameters) -> Result<(), String> {
             linker.add_lib(library);
         }
 
+        if let Some(sysroot) = &parameters.sysroot {
+            linker.add_sysroot(sysroot);
+        }
+
         if out_format == FormatOption::Static {
             linker.build_exectuable(Path::new(&output_filename))?;
         } else {
