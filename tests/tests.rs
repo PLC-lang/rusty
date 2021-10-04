@@ -18,7 +18,13 @@ mod correctness {
     mod initial_values;
     mod pointers;
     mod sub_range_types;
-    mod math_operators;
+    mod math_operators {
+        mod addition;
+        mod division;
+        mod mixed;
+        mod multiplication;
+        mod substraction;
+    }
 }
 
 mod integration {
