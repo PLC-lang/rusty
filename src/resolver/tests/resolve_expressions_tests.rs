@@ -174,6 +174,45 @@ fn global_resolves_types() {
 }
 
 #[test]
+fn global_initializers_resolves_types() {
+    let (unit, index) = parse(
+        "
+        VAR_GLOBAL
+            b : BYTE := 0;
+            w : WORD := 0;
+            dw : DWORD := 0;
+            lw : LWORD := 0;
+            si : SINT := 0;
+            usi : USINT := 0;
+            i : INT := 0;
+            ui : UINT := 0;
+            di : DINT := 0;
+            udi : UDINT := 0;
+            li : LINT := 0;
+            uli : ULINT := 0;
+        END_VAR
+        ",
+    );
+    let annotations = annotate(&unit, &index);
+    let statements: Vec<&AstStatement> = unit.global_vars[0]
+        .variables
+        .iter()
+        .map(|it| it.initializer.as_ref().unwrap())
+        .collect();
+
+    let expected_types = vec![
+        "DINT", "DINT", "DINT", "DINT", "DINT", "DINT", "DINT", "DINT", "DINT", "DINT", "DINT",
+        "DINT",
+    ];
+    let type_names: Vec<&str> = statements
+        .iter()
+        .map(|s| annotations.get_type_or_void(s, &index).get_name())
+        .collect();
+
+    assert_eq!(format!("{:?}", expected_types), format!("{:?}", type_names));
+}
+
+#[test]
 fn resolve_binary_expressions() {
     let (unit, index) = parse(
         "
@@ -627,6 +666,7 @@ fn function_expression_resolves_to_the_function_itself_not_its_return_type() {
         Some(&StatementAnnotation::Variable {
             qualified_name: "foo.foo".into(),
             resulting_type: "INT".into(),
+            constant: false
         }),
         foo_annotation
     );
@@ -790,7 +830,8 @@ fn qualified_expressions_dont_fallback_to_globals() {
     assert_eq!(
         Some(&StatementAnnotation::Variable {
             qualified_name: "MyStruct.y".into(),
-            resulting_type: "INT".into()
+            resulting_type: "INT".into(),
+            constant: false
         }),
         annotations.get_annotation(&statements[1])
     );
@@ -1035,6 +1076,7 @@ fn method_references_are_resolved() {
         Some(&StatementAnnotation::Variable {
             qualified_name: "cls.foo.foo".into(),
             resulting_type: "INT".into(),
+            constant: false
         }),
         annotation
     );
@@ -1152,4 +1194,197 @@ fn assert_parameter_assignment(
     } else {
         panic!("expression list expected")
     }
+}
+
+#[test]
+fn const_flag_is_calculated_when_resolving_simple_references() {
+    let (unit, index) = parse(
+        "
+        VAR_GLOBAL CONSTANT
+            cg : INT := 1;
+        END_VAR
+        
+        VAR_GLOBAL
+            g : INT := 1;
+        END_VAR
+
+        PROGRAM PRG
+            VAR CONSTANT
+                cl : INT;
+            END_VAR
+
+            VAR 
+                l : INT;
+            END_VAR
+
+            cg;
+            g;
+            cl;
+            l;
+       END_PROGRAM",
+    );
+
+    let annotations = annotate(&unit, &index);
+    let statements = &unit.implementations[0].statements;
+
+    let expected_consts = vec![true, false, true, false];
+    let actual_consts: Vec<bool> = statements
+        .iter()
+        .map(|s| {
+            if let Some(StatementAnnotation::Variable { constant, .. }) = annotations.get(s) {
+                *constant
+            } else {
+                unreachable!()
+            }
+        })
+        .collect();
+
+    assert_eq!(
+        format!("{:?}", expected_consts),
+        format!("{:?}", actual_consts)
+    );
+}
+
+#[test]
+fn const_flag_is_calculated_when_resolving_qualified_variables() {
+    let (unit, index) = parse(
+        "
+        TYPE NextStruct: STRUCT
+            b : BYTE;
+        END_STRUCT
+        END_TYPE
+ 
+        TYPE MyStruct: STRUCT
+            b : BYTE;
+            next : NextStruct;
+        END_STRUCT
+        END_TYPE
+
+        PROGRAM PRG
+            VAR 
+                mys : MyStruct;
+            END_VAR
+            VAR CONSTANT 
+                cmys : MyStruct;
+            END_VAR
+
+            cmys.b;
+            mys.b;
+            cmys.next.b;
+            mys.next.b;
+        END_PROGRAM",
+    );
+
+    let annotations = annotate(&unit, &index);
+    let statements = &unit.implementations[0].statements;
+
+    let expected_consts = vec![true, false, true, false];
+    let actual_consts: Vec<bool> = statements
+        .iter()
+        .map(|s| {
+            if let Some(StatementAnnotation::Variable { constant, .. }) = annotations.get(s) {
+                *constant
+            } else {
+                unreachable!()
+            }
+        })
+        .collect();
+
+    assert_eq!(
+        format!("{:?}", expected_consts),
+        format!("{:?}", actual_consts)
+    );
+}
+
+#[test]
+fn const_flag_is_calculated_when_resolving_qualified_variables_over_prgs() {
+    let (unit, index) = parse(
+        "
+        TYPE NextStruct: STRUCT
+            b : BYTE;
+        END_STRUCT
+        END_TYPE
+ 
+        TYPE MyStruct: STRUCT
+            b : BYTE;
+            next : NextStruct;
+        END_STRUCT
+        END_TYPE
+
+        PROGRAM PRG
+            other.mys.next.b;
+            other.cmys.next.b;
+        END_PROGRAM
+        
+        PROGRAM other
+            VAR 
+                mys : MyStruct;
+            END_VAR
+            VAR CONSTANT 
+                cmys : MyStruct;
+            END_VAR
+
+        END_PROGRAM
+        ",
+    );
+
+    let annotations = annotate(&unit, &index);
+    let statements = &unit.implementations[0].statements;
+
+    let expected_consts = vec![false, true];
+    let actual_consts: Vec<bool> = statements
+        .iter()
+        .map(|s| {
+            if let Some(StatementAnnotation::Variable { constant, .. }) = annotations.get(s) {
+                *constant
+            } else {
+                unreachable!()
+            }
+        })
+        .collect();
+
+    assert_eq!(
+        format!("{:?}", expected_consts),
+        format!("{:?}", actual_consts)
+    );
+}
+
+#[test]
+fn const_flag_is_calculated_when_resolving_enum_literals() {
+    let (unit, index) = parse(
+        "
+        TYPE Color: (red, green, yellow);
+        END_TYPE
+                
+        PROGRAM other
+            VAR 
+                state: (OPEN, CLOSE);
+            END_VAR
+            red;
+            green;
+            OPEN;
+            state;
+        END_PROGRAM
+        ",
+    );
+
+    let annotations = annotate(&unit, &index);
+    let statements = &unit.implementations[0].statements;
+
+    let expected_consts = vec![true, true, true, false];
+    let actual_consts: Vec<bool> = statements
+        .iter()
+        .map(|s| {
+            if let Some(StatementAnnotation::Variable { constant, .. }) = annotations.get(s) {
+                *constant
+            } else {
+                unreachable!()
+            }
+        })
+        .collect();
+
+    assert_eq!(
+        format!("{:?}", expected_consts),
+        format!("{:?}", actual_consts)
+    );
 }

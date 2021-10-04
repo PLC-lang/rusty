@@ -274,6 +274,7 @@ fn invalid_variable_name_error_recovery() {
                 constant: false,
                 access: AccessModifier::Protected,
                 retain: false,
+                location: SourceRange::undefined(),
                 variables: vec![Variable {
                     name: "c".into(),
                     data_type: DataTypeDeclaration::DataTypeReference {

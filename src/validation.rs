@@ -22,11 +22,11 @@ mod tests;
 
 macro_rules! visit_all_statements {
      ($self:expr, $context:expr, $last:expr ) => {
-         $self.visit_statement($context, $last);
+         $self.visit_statement($last, $context);
      };
 
      ($self:expr, $context:expr, $head:expr, $($tail:expr), +) => {
-       $self.visit_statement($context, $head);
+       $self.visit_statement($head, $context);
        visit_all_statements!($self, $context, $($tail),+)
      };
    }
@@ -34,6 +34,7 @@ macro_rules! visit_all_statements {
 pub struct ValidationContext<'s> {
     ast_annotation: &'s AnnotationMap,
     index: &'s Index,
+    qualifier: Option<&'s str>,
 }
 
 pub struct Validator {
@@ -66,36 +67,51 @@ impl Validator {
         index: &Index,
         unit: &CompilationUnit,
     ) {
-        let context = ValidationContext {
-            ast_annotation: annotations,
-            index,
-        };
-
         for pou in &unit.units {
-            self.visit_pou(&context, pou);
+            self.visit_pou(
+                pou,
+                &ValidationContext {
+                    ast_annotation: annotations,
+                    index,
+                    qualifier: Some(pou.name.as_str()),
+                },
+            );
         }
 
+        let no_context = &ValidationContext {
+            ast_annotation: annotations,
+            index,
+            qualifier: None,
+        };
         for t in &unit.types {
-            self.visit_user_type_declaration(&context, t);
+            self.visit_user_type_declaration(t, no_context);
+        }
+
+        for gv in &unit.global_vars {
+            self.visit_variable_container(no_context, gv);
         }
 
         for i in &unit.implementations {
+            let context = ValidationContext {
+                ast_annotation: annotations,
+                index,
+                qualifier: Some(i.name.as_str()),
+            };
             i.statements
                 .iter()
-                .for_each(|s| self.visit_statement(&context, s));
+                .for_each(|s| self.visit_statement(s, &context));
         }
     }
 
     pub fn visit_user_type_declaration(
         &mut self,
-        _context: &ValidationContext,
         user_data_type: &UserTypeDeclaration,
+        context: &ValidationContext,
     ) {
-        self.variable_validator
-            .validate_data_type(&user_data_type.data_type, &user_data_type.location);
+        self.visit_data_type(context, &user_data_type.data_type, &user_data_type.location);
     }
 
-    pub fn visit_pou(&mut self, context: &ValidationContext, pou: &Pou) {
+    pub fn visit_pou(&mut self, pou: &Pou, context: &ValidationContext) {
         self.pou_validator.validate_pou(pou);
 
         for block in &pou.variable_blocks {
@@ -108,15 +124,12 @@ impl Validator {
         context: &ValidationContext,
         container: &VariableBlock,
     ) {
-        self.variable_validator.validate_variable_block(container);
-
-        for variable in &container.variables {
-            self.visit_variable(context, variable);
-        }
+        self.variable_validator
+            .validate_variable_block(container, context);
     }
 
     pub fn visit_variable(&mut self, context: &ValidationContext, variable: &Variable) {
-        self.variable_validator.validate_variable(variable);
+        self.variable_validator.validate_variable(variable, context);
 
         self.visit_data_type_declaration(context, &variable.data_type);
     }
@@ -163,18 +176,18 @@ impl Validator {
         }
     }
 
-    pub fn visit_statement(&mut self, context: &ValidationContext, statement: &AstStatement) {
+    pub fn visit_statement(&mut self, statement: &AstStatement, context: &ValidationContext) {
         match statement {
             AstStatement::LiteralArray {
                 elements: Some(elements),
                 ..
-            } => self.visit_statement(context, elements.as_ref()),
+            } => self.visit_statement(elements.as_ref(), context),
             AstStatement::MultipliedStatement { element, .. } => {
-                self.visit_statement(context, element)
+                self.visit_statement(element, context)
             }
             AstStatement::QualifiedReference { elements, .. } => elements
                 .iter()
-                .for_each(|e| self.visit_statement(context, e)),
+                .for_each(|e| self.visit_statement(e, context)),
             AstStatement::ArrayAccess {
                 reference, access, ..
             } => {
@@ -183,41 +196,41 @@ impl Validator {
             AstStatement::BinaryExpression { left, right, .. } => {
                 visit_all_statements!(self, context, left, right);
             }
-            AstStatement::UnaryExpression { value, .. } => self.visit_statement(context, value),
+            AstStatement::UnaryExpression { value, .. } => self.visit_statement(value, context),
             AstStatement::ExpressionList { expressions, .. } => expressions
                 .iter()
-                .for_each(|e| self.visit_statement(context, e)),
+                .for_each(|e| self.visit_statement(e, context)),
             AstStatement::RangeStatement { start, end, .. } => {
                 visit_all_statements!(self, context, start, end);
             }
             AstStatement::Assignment { left, right, .. } => {
-                self.visit_statement(context, left);
-                self.visit_statement(context, right);
+                self.visit_statement(left, context);
+                self.visit_statement(right, context);
             }
             AstStatement::OutputAssignment { left, right, .. } => {
-                self.visit_statement(context, left);
-                self.visit_statement(context, right);
+                self.visit_statement(left, context);
+                self.visit_statement(right, context);
             }
             AstStatement::CallStatement {
                 parameters,
                 operator,
                 ..
             } => {
-                self.visit_statement(context, operator);
+                self.visit_statement(operator, context);
                 if let Some(s) = parameters.as_ref() {
-                    self.visit_statement(context, s);
+                    self.visit_statement(s, context);
                 }
             }
             AstStatement::IfStatement {
                 blocks, else_block, ..
             } => {
                 blocks.iter().for_each(|b| {
-                    self.visit_statement(context, b.condition.as_ref());
-                    b.body.iter().for_each(|s| self.visit_statement(context, s));
+                    self.visit_statement(b.condition.as_ref(), context);
+                    b.body.iter().for_each(|s| self.visit_statement(s, context));
                 });
                 else_block
                     .iter()
-                    .for_each(|e| self.visit_statement(context, e));
+                    .for_each(|e| self.visit_statement(e, context));
             }
             AstStatement::ForLoopStatement {
                 counter,
@@ -229,21 +242,21 @@ impl Validator {
             } => {
                 visit_all_statements!(self, context, counter, start, end);
                 if let Some(by_step) = by_step {
-                    self.visit_statement(context, by_step);
+                    self.visit_statement(by_step, context);
                 }
-                body.iter().for_each(|s| self.visit_statement(context, s));
+                body.iter().for_each(|s| self.visit_statement(s, context));
             }
             AstStatement::WhileLoopStatement {
                 condition, body, ..
             } => {
-                self.visit_statement(context, condition);
-                body.iter().for_each(|s| self.visit_statement(context, s));
+                self.visit_statement(condition, context);
+                body.iter().for_each(|s| self.visit_statement(s, context));
             }
             AstStatement::RepeatLoopStatement {
                 condition, body, ..
             } => {
-                self.visit_statement(context, condition);
-                body.iter().for_each(|s| self.visit_statement(context, s));
+                self.visit_statement(condition, context);
+                body.iter().for_each(|s| self.visit_statement(s, context));
             }
             AstStatement::CaseStatement {
                 selector,
@@ -251,17 +264,17 @@ impl Validator {
                 else_block,
                 ..
             } => {
-                self.visit_statement(context, selector);
+                self.visit_statement(selector, context);
                 case_blocks.iter().for_each(|b| {
-                    self.visit_statement(context, b.condition.as_ref());
-                    b.body.iter().for_each(|s| self.visit_statement(context, s));
+                    self.visit_statement(b.condition.as_ref(), context);
+                    b.body.iter().for_each(|s| self.visit_statement(s, context));
                 });
                 else_block
                     .iter()
-                    .for_each(|s| self.visit_statement(context, s));
+                    .for_each(|s| self.visit_statement(s, context));
             }
             AstStatement::CaseCondition { condition, .. } => {
-                self.visit_statement(context, condition)
+                self.visit_statement(condition, context)
             }
             _ => {}
         }

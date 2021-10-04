@@ -181,6 +181,7 @@ pub struct VariableBlock {
     pub retain: bool,
     pub variables: Vec<Variable>,
     pub variable_block_type: VariableBlockType,
+    pub location: SourceRange,
 }
 
 impl Debug for VariableBlock {

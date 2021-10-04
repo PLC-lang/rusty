@@ -242,6 +242,30 @@ fn division_array_basic() {
     assert_eq!(res, 2);
 }
 
+#[test]
+fn real_division_by_zero() {
+    #[derive(Debug, PartialEq)]
+    struct MainType {
+        r: f64,
+        z: f64,
+    }
+
+    let prog = "
+    FUNCTION main : DINT
+        VAR
+            r : LREAL;
+            rZero: LREAL;
+        END_VAR
+        r := (1.0 / rZero);
+    END_FUNCTION
+    ";
+
+    let mut main = MainType { r: 0.0, z: 0.0 };
+
+    let _: i32 = compile_and_run(prog.to_string(), &mut main);
+    assert!(main.r.is_infinite());
+}
+
 //--------------------------
 
 fn approx_equal<T: Float>(a: T, b: T, decimal_places: u16) -> bool {

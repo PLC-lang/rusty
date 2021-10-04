@@ -261,6 +261,7 @@ fn unclosed_var_container() {
                 access: AccessModifier::Protected,
                 retain: false,
                 variable_block_type: VariableBlockType::Local,
+                location: SourceRange::undefined(),
                 variables: vec![Variable {
                     name: "a".into(),
                     data_type: crate::ast::DataTypeDeclaration::DataTypeReference {

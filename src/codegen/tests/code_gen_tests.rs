@@ -305,6 +305,35 @@ END_PROGRAM
 }
 
 #[test]
+fn casted_literals_hex_ints_code_gen_test() {
+    let result = codegen!(
+        r#"PROGRAM prg
+VAR
+x : DINT;
+END_VAR
+
+      x := INT#16#FFFF; 
+      x := WORD#16#FFFF; 
+
+END_PROGRAM
+"#
+    );
+    let expected = generate_program_boiler_plate(
+        "prg",
+        &[("i32", "x")],
+        "void",
+        "",
+        "",
+        r#"store i32 -1, i32* %x, align 4
+  store i32 65535, i32* %x, align 4
+  ret void
+"#,
+    );
+
+    assert_eq!(result, expected);
+}
+
+#[test]
 fn casted_literals_lreal_code_gen_test() {
     let result = codegen!(
         r#"PROGRAM prg
@@ -985,6 +1014,52 @@ entry:
   %wz = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 3
   store [12 x i8] c"im a genius\00", [16 x i8]* %y, align 1
   store [24 x i8] c"i\00m\00 \00a\00 \00g\00e\00n\00i\00u\00s\00\00\00", [32 x i8]* %wy, align 1
+  ret void
+}
+"#;
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn variable_length_strings_using_constants_can_be_created() {
+    let result = codegen!(
+        r#"
+        VAR_GLOBAL CONSTANT
+          LONG_STRING : INT := 15; 
+          SHORT_STRING : INT := 3; 
+        END_VAR
+        
+        PROGRAM prg
+          VAR
+          y : STRING[LONG_STRING];
+          z : STRING[SHORT_STRING] := 'xyz';
+          wy : WSTRING[2 * LONG_STRING];
+          wz : WSTRING[2 * SHORT_STRING] := "xyz";
+          END_VAR
+          y := 'im a genius';
+          wy := "im a genius";
+        END_PROGRAM
+        "#
+    );
+
+    let expected = r#"; ModuleID = 'main'
+source_filename = "main"
+
+%prg_interface = type { [16 x i8], [4 x i8], [62 x i8], [14 x i8] }
+
+@LONG_STRING = global i16 15
+@SHORT_STRING = global i16 3
+@prg_instance = global %prg_interface { [16 x i8] zeroinitializer, [4 x i8] c"xyz\00", [62 x i8] zeroinitializer, [8 x i8] c"x\00y\00z\00\00\00" }
+
+define void @prg(%prg_interface* %0) {
+entry:
+  %y = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 0
+  %z = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 1
+  %wy = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 2
+  %wz = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 3
+  store [12 x i8] c"im a genius\00", [16 x i8]* %y, align 1
+  store [24 x i8] c"i\00m\00 \00a\00 \00g\00e\00n\00i\00u\00s\00\00\00", [62 x i8]* %wy, align 1
   ret void
 }
 "#;
@@ -4234,6 +4309,44 @@ source_filename = "main"
 }
 
 #[test]
+fn arrays_with_global_const_size_are_generated() {
+    let result = codegen!(
+        "
+        VAR_GLOBAL CONSTANT
+          THREE : INT := 3; 
+          ZERO  : INT := 0;
+          LEN   : INT := THREE * THREE;
+        END_VAR
+
+        TYPE MyArray: ARRAY[ZERO..LEN] OF INT; END_TYPE
+
+        VAR_GLOBAL
+          x : MyArray;
+          y : ARRAY[ZERO .. LEN+1] OF DINT;
+          z : ARRAY[-LEN .. THREE * THREE] OF BYTE;
+          zz : ARRAY[-LEN .. ZERO, ZERO .. LEN] OF BYTE;
+          zzz : ARRAY[-LEN .. ZERO] OF ARRAY[2 .. LEN] OF BYTE;
+        END_VAR
+        "
+    );
+
+    let expected = r#"; ModuleID = 'main'
+source_filename = "main"
+
+@THREE = global i16 3
+@ZERO = global i16 0
+@LEN = global i16 9
+@x = external global [10 x i16]
+@y = external global [11 x i32]
+@z = external global [19 x i8]
+@zz = external global [10 x [10 x i8]]
+@zzz = external global [10 x [8 x i8]]
+"#;
+
+    assert_eq!(result, expected);
+}
+
+#[test]
 fn structs_members_can_be_referenced() {
     let result = codegen!(
         "
@@ -4491,6 +4604,30 @@ fn array_of_int_type_generated() {
         PROGRAM prg 
             VAR
                 x : ARRAY[0..10] OF INT;
+            END_VAR
+        END_PROGRAM
+        "
+    );
+
+    let expected = generate_program_boiler_plate(
+        "prg",
+        &[("[11 x i16]", "x")],
+        "void",
+        "",
+        "",
+        r#"ret void
+"#,
+    );
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn array_of_cast_int_type_generated() {
+    let result = codegen!(
+        "
+        PROGRAM prg 
+            VAR
+                x : ARRAY[0..INT#16#A] OF INT;
             END_VAR
         END_PROGRAM
         "
@@ -5563,4 +5700,152 @@ continue:                                         ; preds = %output
 }
 "#;
     assert_eq!(expected, result);
+}
+
+#[test]
+fn initial_values_in_global_constant_variables() {
+    let result = codegen!(
+        r#"
+        VAR_GLOBAL CONSTANT
+          c_INT : INT := 7;
+          c_3c : INT := 3 * c_INT;
+          
+          c_BOOL : BOOL := TRUE;
+          c_not : BOOL := NOT c_BOOL;
+          c_str : STRING := 'Hello';
+          c_wstr : WSTRING := "World";
+
+          c_real : REAL := 3.14;
+          c_lreal : LREAL := 3.1415;
+        END_VAR
+
+        VAR_GLOBAL CONSTANT
+          x : INT := c_INT;
+          y : INT := c_INT + c_INT;
+          z : INT := c_INT + c_3c + 4;
+
+          b : BOOL := c_BOOL;
+          nb : BOOL := c_not;
+          bb : BOOL := c_not AND NOT c_not;
+
+          str : STRING := c_str;
+          wstr : WSTRING := c_wstr;
+
+          r : REAL := c_real / 2;
+          tau : LREAL := 2 * c_lreal;
+        END_VAR
+        "#
+    );
+
+    let expected = r#"; ModuleID = 'main'
+source_filename = "main"
+
+@c_INT = global i16 7
+@c_3c = global i16 21
+@c_BOOL = global i1 true
+@c_not = global i1 false
+@c_str = global [81 x i8] c"Hello\00"
+@c_wstr = global [162 x i8] c"W\00o\00r\00l\00d\00\00\00"
+@c_real = global float 0x40091EB860000000
+@c_lreal = global double 3.141500e+00
+@x = global i16 7
+@y = global i16 14
+@z = global i16 32
+@b = global i1 true
+@nb = global i1 false
+@bb = global i1 false
+@str = global [81 x i8] c"Hello\00"
+@wstr = global [162 x i8] c"W\00o\00r\00l\00d\00\00\00"
+@r = global float 0x3FF91EB860000000
+@tau = global double 6.283000e+00
+"#;
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn initial_constant_values_in_pou_variables() {
+    let result = codegen!(
+        r#"
+        VAR_GLOBAL CONSTANT
+        MAX_LEN : INT := 99;
+        MIN_LEN : INT := 10;
+        LEN : INT := MIN_LEN + 10;
+        END_VAR
+ 
+        PROGRAM prg
+      	  VAR_INPUT
+            my_len: INT := LEN + 4;
+            my_size: INT := MAX_LEN - MIN_LEN;
+          END_VAR
+        END_PROGRAM
+ 
+        "#
+    );
+
+    let expected = r#"; ModuleID = 'main'
+source_filename = "main"
+
+%prg_interface = type { i16, i16 }
+
+@MAX_LEN = global i16 99
+@MIN_LEN = global i16 10
+@LEN = global i16 20
+@prg_instance = global %prg_interface { i16 24, i16 89 }
+
+define void @prg(%prg_interface* %0) {
+entry:
+  %my_len = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 0
+  %my_size = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 1
+  ret void
+}
+"#;
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn using_global_consts_in_expressions() {
+    //GIVEN some constants used in an expression
+    let result = codegen!(
+        r#"
+        VAR_GLOBAL CONSTANT
+          cA : INT := 1;
+          cB : INT := 2;
+          cC : INT := cA + cB;
+        END_VAR 
+
+        PROGRAM prg
+          VAR
+            z : DINT;
+          END_VAR
+          z := cA + cB + cC;
+        END_PROGRAM
+        "#
+    );
+    //WHEN we compile
+    let expected = generate_program_boiler_plate(
+        "prg",
+        &[("i32", "z")],
+        "void",
+        "",
+        "
+@cA = global i16 1
+@cB = global i16 2
+@cC = global i16 3",
+        r#"%load_cA = load i16, i16* @cA, align 2
+  %load_cB = load i16, i16* @cB, align 2
+  %tmpVar = add i16 %load_cA, %load_cB
+  %load_cC = load i16, i16* @cC, align 2
+  %tmpVar1 = add i16 %tmpVar, %load_cC
+  %1 = sext i16 %tmpVar1 to i32
+  store i32 %1, i32* %z, align 4
+  ret void
+"#,
+    );
+
+    // we expect the constants to be inlined
+    //TODO inline constant values into body-expression
+    // https://github.com/ghaith/rusty/issues/291
+    assert_eq!(result, expected);
 }

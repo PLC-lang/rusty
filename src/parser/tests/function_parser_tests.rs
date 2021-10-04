@@ -127,6 +127,7 @@ fn varargs_parameters_can_be_parsed() {
             access: AccessModifier::Protected,
             retain: false,
             variable_block_type: VariableBlockType::Input,
+            location: SourceRange::undefined(),
             variables: vec![
                 Variable {
                     name: "args1".into(),

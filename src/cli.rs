@@ -99,6 +99,9 @@ pub struct CompileParameters {
 
     #[structopt(name = "library", long, short = "l", help = "Library name to link")]
     pub libraries: Vec<String>,
+
+    #[structopt(long, name = "sysroot", help = "Path to system root, used for linking")]
+    pub sysroot: Option<String>,
 }
 
 fn parse_encoding(encoding: &str) -> Result<&'static Encoding, String> {
@@ -409,5 +412,13 @@ mod cli_tests {
             Ok(_) => panic!("expected help output, but found OK"),
             Err(ParameterError { kind, .. }) => assert_eq!(kind, ErrorKind::HelpDisplayed),
         }
+    }
+
+    #[test]
+    fn sysroot_added() {
+        let parameters =
+            CompileParameters::parse(vec_of_strings!("input.st", "--sysroot", "path/to/sysroot"))
+                .unwrap();
+        assert_eq!(parameters.sysroot, Some("path/to/sysroot".to_string()));
     }
 }

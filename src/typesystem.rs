@@ -1,8 +1,8 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-use std::ops::Range;
+use std::{mem::size_of, ops::Range};
 
 use crate::{
-    ast::AstStatement,
+    ast::{AstStatement, PouType},
     index::{const_expressions::ConstId, Index},
 };
 
@@ -13,8 +13,27 @@ pub const RANGE_CHECK_LS_FN: &str = "CheckLRangeSigned";
 pub const RANGE_CHECK_U_FN: &str = "CheckRangeUnsigned";
 pub const RANGE_CHECK_LU_FN: &str = "CheckLRangeUnsigned";
 
-pub const INT_SIZE: u32 = 16;
-pub const DINT_SIZE: u32 = 2 * INT_SIZE;
+pub type NativeSintType = i8;
+pub type NativeIntType = i16;
+pub type NativeDintType = i32;
+pub type NativeLintType = i64;
+pub type NativeByteType = u8;
+pub type NativeWordType = u16;
+pub type NativeDwordType = u32;
+pub type NativeLwordType = u64;
+pub type NativeRealType = f32;
+pub type NativeLrealType = f64;
+
+//TODO should we change this to usize?
+pub const BOOL_SIZE: u32 = 1;
+pub const BYTE_SIZE: u32 = (size_of::<NativeSintType>() * 8) as u32;
+pub const SINT_SIZE: u32 = (size_of::<NativeSintType>() * 8) as u32;
+pub const INT_SIZE: u32 = (size_of::<NativeIntType>() * 8) as u32;
+pub const DINT_SIZE: u32 = (size_of::<NativeDintType>() * 8) as u32;
+pub const LINT_SIZE: u32 = (size_of::<NativeLintType>() * 8) as u32;
+pub const REAL_SIZE: u32 = (size_of::<NativeRealType>() * 8) as u32;
+pub const LREAL_SIZE: u32 = (size_of::<NativeLrealType>() * 8) as u32;
+pub const DATE_TIME_SIZE: u32 = 64;
 
 pub const BOOL_TYPE: &str = "BOOL";
 pub const BYTE_TYPE: &str = "BYTE";
@@ -103,9 +122,10 @@ impl TypeSize {
     pub fn as_int_value(&self, index: &Index) -> Result<i64, String> {
         match self {
             TypeSize::LiteralInteger(v) => Ok(*v as i64),
-            TypeSize::ConstExpression(id) => {
-                index.get_constant_int_expression(id).map(|it| it as i64)
-            }
+            TypeSize::ConstExpression(id) => index
+                .get_const_expressions()
+                .get_constant_int_statement_value(id)
+                .map(|it| it as i64),
         }
     }
 
@@ -114,9 +134,18 @@ impl TypeSize {
     pub fn as_const_expression<'i>(&self, index: &'i Index) -> Option<&'i AstStatement> {
         match self {
             TypeSize::LiteralInteger(_) => None,
-            TypeSize::ConstExpression(id) => index.get_constant_expression(id),
+            TypeSize::ConstExpression(id) => {
+                index.get_const_expressions().get_constant_statement(id)
+            }
         }
     }
+}
+
+/// indicates where this Struct origins from.
+#[derive(Debug, Clone, PartialEq)]
+pub enum StructSource {
+    OriginalDeclaration,
+    Pou(PouType),
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -125,6 +154,7 @@ pub enum DataTypeInformation {
         name: String,
         member_names: Vec<String>,
         varargs: Option<VarArgs>,
+        source: StructSource,
     },
     Array {
         name: String,
@@ -282,7 +312,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
             information: DataTypeInformation::Integer {
                 name: BOOL_TYPE.into(),
                 signed: true,
-                size: 1,
+                size: BOOL_SIZE,
             },
         },
         DataType {
@@ -291,7 +321,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
             information: DataTypeInformation::Integer {
                 name: BYTE_TYPE.into(),
                 signed: false,
-                size: 8,
+                size: BYTE_SIZE,
             },
         },
         DataType {
@@ -300,7 +330,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
             information: DataTypeInformation::Integer {
                 name: SINT_TYPE.into(),
                 signed: true,
-                size: 8,
+                size: SINT_SIZE,
             },
         },
         DataType {
@@ -309,7 +339,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
             information: DataTypeInformation::Integer {
                 name: USINT_TYPE.into(),
                 signed: false,
-                size: 8,
+                size: SINT_SIZE,
             },
         },
         DataType {
@@ -318,7 +348,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
             information: DataTypeInformation::Integer {
                 name: WORD_TYPE.into(),
                 signed: false,
-                size: 16,
+                size: INT_SIZE,
             },
         },
         DataType {
@@ -327,7 +357,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
             information: DataTypeInformation::Integer {
                 name: INT_TYPE.into(),
                 signed: true,
-                size: 16,
+                size: INT_SIZE,
             },
         },
         DataType {
@@ -336,7 +366,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
             information: DataTypeInformation::Integer {
                 name: UINT_TYPE.into(),
                 signed: false,
-                size: 16,
+                size: INT_SIZE,
             },
         },
         DataType {
@@ -372,7 +402,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
             information: DataTypeInformation::Integer {
                 name: LWORD_TYPE.into(),
                 signed: false,
-                size: 64,
+                size: LINT_SIZE,
             },
         },
         DataType {
@@ -381,7 +411,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
             information: DataTypeInformation::Integer {
                 name: LINT_TYPE.into(),
                 signed: true,
-                size: 64,
+                size: LINT_SIZE,
             },
         },
         DataType {
@@ -390,7 +420,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
             information: DataTypeInformation::Integer {
                 name: DATE_TYPE.into(),
                 signed: true,
-                size: 64,
+                size: DATE_TIME_SIZE,
             },
         },
         DataType {
@@ -399,7 +429,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
             information: DataTypeInformation::Integer {
                 name: TIME_TYPE.into(),
                 signed: true,
-                size: 64,
+                size: DATE_TIME_SIZE,
             },
         },
         DataType {
@@ -408,7 +438,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
             information: DataTypeInformation::Integer {
                 name: DATE_AND_TIME_TYPE.into(),
                 signed: true,
-                size: 64,
+                size: DATE_TIME_SIZE,
             },
         },
         DataType {
@@ -417,7 +447,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
             information: DataTypeInformation::Integer {
                 name: TIME_OF_DAY_TYPE.into(),
                 signed: true,
-                size: 64,
+                size: DATE_TIME_SIZE,
             },
         },
         DataType {
@@ -426,7 +456,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
             information: DataTypeInformation::Integer {
                 name: ULINT_TYPE.into(),
                 signed: false,
-                size: 64,
+                size: LINT_SIZE,
             },
         },
         DataType {
@@ -434,7 +464,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
             initial_value: None,
             information: DataTypeInformation::Float {
                 name: REAL_TYPE.into(),
-                size: 32,
+                size: REAL_SIZE,
             },
         },
         DataType {
@@ -442,7 +472,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
             initial_value: None,
             information: DataTypeInformation::Float {
                 name: LREAL_TYPE.into(),
-                size: 64,
+                size: LREAL_SIZE,
             },
         },
         DataType {

@@ -83,9 +83,14 @@ pub enum ErrNo {
     pou__unexpected_return_type,
     pou__empty_variable_block,
 
+    //variable related
+    var__unresolved_constant,
+    var__invalid_constant_block,
+    var__invalid_constant,
+    var__cannot_assign_to_const,
+
     //reference related
     reference__unresolved,
-    //variable related
 
     //type related
     type__literal_out_of_range,
@@ -252,6 +257,48 @@ impl Diagnostic {
             message: "Variable block is empty".into(),
             range: location,
             err_no: ErrNo::pou__empty_variable_block,
+        }
+    }
+
+    pub fn unresolved_constant(
+        constant_name: &str,
+        reason: Option<&str>,
+        location: SourceRange,
+    ) -> Diagnostic {
+        Diagnostic::SyntaxError {
+            message: format!(
+                "Unresolved constant '{:}' variable{:}",
+                constant_name,
+                reason
+                    .map(|it| format!(": {:}", it))
+                    .unwrap_or_else(|| "".into()),
+            ),
+            range: location,
+            err_no: ErrNo::pou__empty_variable_block,
+        }
+    }
+
+    pub fn invalid_constant_block(location: SourceRange) -> Diagnostic {
+        Diagnostic::SyntaxError {
+            message: "This variable block does not support the CONSTANT modifier".to_string(),
+            range: location,
+            err_no: ErrNo::var__invalid_constant_block,
+        }
+    }
+
+    pub fn invalid_constant(constant_name: &str, location: SourceRange) -> Diagnostic {
+        Diagnostic::SyntaxError {
+            message: format!("Invalid constant {:} - Functionblock- and Class-instances cannot be delcared constant", constant_name),
+            range: location,
+            err_no: ErrNo::var__invalid_constant,
+        }
+    }
+
+    pub fn cannot_assign_to_constant(qualified_name: &str, location: SourceRange) -> Diagnostic {
+        Diagnostic::SyntaxError {
+            message: format!("Cannot assign to CONSTANT '{:}'", qualified_name),
+            range: location,
+            err_no: ErrNo::var__cannot_assign_to_const,
         }
     }
 
@@ -518,6 +565,9 @@ pub fn compile_module<'c, T: SourceContainer>(
         full_index.import(index::visitor::visit(&parse_result));
         all_units.push((file_id, diagnostics, parse_result));
     }
+
+    // ### PHASE 1.1 resolve constant literal values
+    let (full_index, _unresolvables) = resolver::const_evaluator::evaluate_constants(full_index);
 
     // ### PHASE 2 ###
     // annotation & validation everything
