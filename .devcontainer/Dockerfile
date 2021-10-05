@@ -1,6 +1,6 @@
 FROM mcr.microsoft.com/vscode/devcontainers/rust:latest
 
-ARG LLVM_VER=11
+ARG LLVM_VER=12
 RUN echo "deb http://apt.llvm.org/buster/ llvm-toolchain-buster-$LLVM_VER  main" >> /etc/apt/sources.list
 
 RUN wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key | apt-key add -

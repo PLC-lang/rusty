@@ -7,7 +7,7 @@ on:
 
 env:
   toolchain-version: 1.53.0
-  llvm-version: "11.0.1"
+  llvm-version: "12.0.1"
 
 jobs:
   cargo-docs:
