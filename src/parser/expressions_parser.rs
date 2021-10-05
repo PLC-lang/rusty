@@ -7,6 +7,7 @@ use crate::{
     parser::parse_any_in_region,
     Diagnostic,
 };
+use regex::{Captures, Regex};
 use std::str::FromStr;
 
 macro_rules! parse_left_associative_expression {
@@ -779,6 +780,47 @@ fn trim_quotes(quoted_string: &str) -> String {
     quoted_string[1..quoted_string.len() - 1].to_string()
 }
 
+fn handle_special_chars(string: &str, is_wide: bool) -> String {
+    let re: Regex;
+    let re_hex: Regex;
+    if is_wide {
+        re = Regex::new(r#"(\$([lLnNpPrRtT$"]))"#).unwrap();
+        re_hex = Regex::new(r"(\$([0-9A-F]{4}))").unwrap();
+    } else {
+        re = Regex::new(r"(\$([lLnNpPrRtT$']))").unwrap();
+        re_hex = Regex::new(r"(\$([0-9A-F]{2}))").unwrap();
+    };
+
+    // separated re and re_hex to minimize copying
+    let res = re
+        .replace_all(string, |caps: &Captures| {
+            let cap_str = &caps[1];
+            match cap_str {
+                "$l" | "$L" => "\n",
+                "$n" | "$N" => "\n",
+                "$p" | "$P" => "\x0C",
+                "$r" | "$R" => "\r",
+                "$t" | "$T" => "\t",
+                "$$" => "$",
+                "$'" => "\'",
+                "$\"" => "\"",
+                _ => unreachable!(),
+            }
+        })
+        .to_string();
+
+    re_hex
+        .replace_all(&res, |caps: &Captures| {
+            let decoded = hex::decode(&caps[1].replace("$", "")).unwrap();
+            match std::str::from_utf8(&decoded) {
+                Ok(v) => v,
+                Err(e) => panic!("Invalid UTF-8 sequence: {}", e),
+            }
+            .to_string()
+        })
+        .into()
+}
+
 fn parse_literal_string(
     lexer: &mut ParseSession,
     is_wide: bool,
@@ -786,7 +828,7 @@ fn parse_literal_string(
     let result = lexer.slice();
     let location = lexer.location();
     let string_literal = Ok(AstStatement::LiteralString {
-        value: trim_quotes(result),
+        value: handle_special_chars(&trim_quotes(result), is_wide),
         is_wide,
         location,
         id: lexer.next_id(),
@@ -823,5 +865,36 @@ fn parse_literal_real(
             lexer.slice(),
             lexer.location(),
         ))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::parser::expressions_parser::handle_special_chars;
+
+    #[test]
+    fn replace_all_test() {
+        // following special chars should be replaced
+        let string = "a $l$L b $n$N test $p$P c $r$R d $t$T$$ $'quote$' $57";
+        let expected = "a \n\n b \n\n test \x0C\x0C c \r\r d \t\t$ 'quote' W";
+
+        let w_string = r#"a $l$L b $n$N test $p$P c $r$R d $t$T$$ $"double$" $0077"#;
+        let w_expected = "a \n\n b \n\n test \x0C\x0C c \r\r d \t\t$ \"double\" \u{0}w";
+
+        assert_eq!(handle_special_chars(w_string, true), w_expected);
+        assert_eq!(handle_special_chars(string, false), expected);
+    }
+
+    #[test]
+    fn should_not_replace_test() {
+        // following special chars should not be replaced
+        let string = r#"$0043 $"no replace$""#;
+        let expected = "\u{0}43 $\"no replace$\"";
+
+        let w_string = r#"$57 $'no replace$'"#;
+        let w_expected = "$57 $'no replace$'";
+
+        assert_eq!(handle_special_chars(w_string, true), w_expected);
+        assert_eq!(handle_special_chars(string, false), expected);
     }
 }

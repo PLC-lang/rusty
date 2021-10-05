@@ -23,6 +23,8 @@ encoding_rs_io = "0.1"
 codespan-reporting = "0.11.1"
 mun_lld = "110.0.0"
 generational-arena = "0.2.8"
+regex = "1"
+hex = "0.4.3"
 
 [lib]
 name = "rusty"
