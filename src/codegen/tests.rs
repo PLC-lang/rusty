@@ -7,12 +7,13 @@ mod typesystem_test;
 #[macro_export]
 macro_rules! codegen_wihout_unwrap {
     ($code:tt) => {{
-        let lexer = crate::lexer::lex($code);
+        let ids = crate::lexer::IdProvider::new();
+        let lexer = crate::lexer::lex_with_ids($code, ids.clone());
         let (mut ast, ..) = crate::parser::parse(lexer);
 
         let context = inkwell::context::Context::create();
         crate::ast::pre_process(&mut ast);
-        let index = crate::index::visitor::visit(&ast);
+        let index = crate::index::visitor::visit(&ast, ids.clone());
         let annotations = crate::resolver::TypeAnnotator::visit_unit(&index, &ast);
         let (index, _unresolvable) = crate::resolver::const_evaluator::evaluate_constants(index);
 

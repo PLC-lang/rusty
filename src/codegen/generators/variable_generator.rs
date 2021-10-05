@@ -67,7 +67,6 @@ pub fn generate_global_variable<'ctx, 'b>(
             global_index,
             annotations,
             index,
-            Some(global_index.get_type_information(type_name).unwrap()),
         );
 
         //see if this value was compile-time evaluated ...

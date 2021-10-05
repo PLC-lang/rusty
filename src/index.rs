@@ -296,11 +296,14 @@ impl Index {
         //enum_global_variables
         //dont import the const-expressions (initializers) because there are already
         //covered by the enum_qualified_variables map
-        self.enum_global_variables
-            .extend(other.enum_global_variables);
+
+        for (name, mut e) in other.enum_global_variables.drain(..) {
+            e.initial_value =
+                self.maybe_import_const_expr(&mut other.constant_expressions, &e.initial_value);
+            self.enum_global_variables.insert(name, e);
+        }
 
         //enum qualified variables
-
         for (name, mut e) in other.enum_qualified_variables.drain(..) {
             e.initial_value =
                 self.maybe_import_const_expr(&mut other.constant_expressions, &e.initial_value);

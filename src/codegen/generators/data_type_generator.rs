@@ -241,7 +241,6 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
                 self.index,
                 self.annotations,
                 &self.types_index,
-                None,
             );
             let (_, initial_value) = generator.generate_expression(initializer).unwrap();
             Some(initial_value)
@@ -274,7 +273,6 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
                     self.index,
                     self.annotations,
                     &self.types_index,
-                    Some(array_type),
                 );
                 let (_, initial_value) = generator.generate_literal(initializer)?;
                 Ok(Some(initial_value))

@@ -14,7 +14,10 @@ use crate::{
         AstId, AstStatement, CompilationUnit, DataType, DataTypeDeclaration, Operator, Pou,
         UserTypeDeclaration, Variable,
     },
-    index::{ImplementationIndexEntry, ImplementationType, Index, VariableIndexEntry},
+    index::{
+        const_expressions::ConstExpression, ImplementationIndexEntry, ImplementationType, Index,
+        VariableIndexEntry,
+    },
     typesystem::{
         self, get_bigger_type_borrow, DataTypeInformation, BOOL_TYPE, BYTE_TYPE,
         DATE_AND_TIME_TYPE, DATE_TYPE, DINT_TYPE, DWORD_TYPE, LINT_TYPE, REAL_TYPE, STRING_TYPE,
@@ -130,6 +133,15 @@ impl StatementAnnotation {
 pub struct AnnotationMap {
     /// maps a statement to the type it resolves to
     type_map: IndexMap<AstId, StatementAnnotation>,
+
+    /// maps a statement to the target-type it should eventually resolve to
+    /// example:
+    /// x : BYTE := 1;  //1's actual type is DINT, 1's target type is BYTE
+    /// x : INT := 1;   //1's actual type is DINT, 1's target type is INT
+    ///
+    /// if the type-hint is equal to the actual type, or there is no
+    /// useful type-hint to resolve, there is no mapping in this map
+    type_hint_map: IndexMap<AstId, StatementAnnotation>,
 }
 
 impl AnnotationMap {
@@ -137,14 +149,8 @@ impl AnnotationMap {
     pub fn new() -> Self {
         AnnotationMap {
             type_map: IndexMap::new(),
+            type_hint_map: IndexMap::new(),
         }
-    }
-
-    /// creates a new Annotation Map and stores the given mapping
-    pub fn with(id: AstId, annotation: StatementAnnotation) -> Self {
-        let mut type_map: IndexMap<AstId, StatementAnnotation> = IndexMap::new();
-        type_map.insert(id, annotation);
-        AnnotationMap { type_map }
     }
 
     /// annotates the given statement (using it's `get_id()`) with the given type-name
@@ -152,8 +158,16 @@ impl AnnotationMap {
         self.type_map.insert(s.get_id(), annotation);
     }
 
+    pub fn annotate_type_hint(&mut self, s: &AstStatement, annotation: StatementAnnotation) {
+        self.type_hint_map.insert(s.get_id(), annotation);
+    }
+
     pub fn get(&self, s: &AstStatement) -> Option<&StatementAnnotation> {
         self.type_map.get(&s.get_id())
+    }
+
+    pub fn get_hint(&self, s: &AstStatement) -> Option<&StatementAnnotation> {
+        self.type_hint_map.get(&s.get_id())
     }
 
     /// returns the annotated type or void if none was annotated
@@ -166,13 +180,31 @@ impl AnnotationMap {
             .unwrap_or_else(|| index.get_void_type())
     }
 
-    /// returns the annotated type - for now only used by test
+    pub fn get_type_hint<'i>(
+        &self,
+        s: &AstStatement,
+        index: &'i Index,
+    ) -> Option<&'i typesystem::DataType> {
+        self.get_from_map(s, &self.type_hint_map, index)
+    }
+
+    /// returns the annotated type
     pub fn get_type<'i>(
         &self,
         s: &AstStatement,
         index: &'i Index,
     ) -> Option<&'i typesystem::DataType> {
-        self.get_annotation(s)
+        self.get_from_map(s, &self.type_map, index)
+    }
+
+    /// returns the annotated type from the given map
+    fn get_from_map<'i>(
+        &self,
+        s: &AstStatement,
+        map: &IndexMap<AstId, StatementAnnotation>,
+        index: &'i Index,
+    ) -> Option<&'i typesystem::DataType> {
+        map.get(&s.get_id())
             .and_then(|annotation| match annotation {
                 StatementAnnotation::Value { resulting_type } => Some(resulting_type.as_str()),
                 StatementAnnotation::Variable { resulting_type, .. } => {
@@ -222,15 +254,8 @@ impl<'i> TypeAnnotator<'i> {
             constant: false,
         };
 
-        for global_initializer in unit
-            .global_vars
-            .iter()
-            .flat_map(|it| it.variables.iter())
-            .map(|it| it.initializer.as_ref())
-            .flatten()
-        {
-            //get rid of Nones
-            visitor.visit_statement_expression(ctx, global_initializer);
+        for global_variable in unit.global_vars.iter().flat_map(|it| it.variables.iter()) {
+            visitor.visit_variable(ctx, global_variable);
         }
 
         for pou in &unit.units {
@@ -246,6 +271,21 @@ impl<'i> TypeAnnotator<'i> {
                 .iter()
                 .for_each(|s| visitor.visit_statement(&ctx.with_pou(i.name.as_str()), s));
         }
+
+        for (_, enum_element) in index.get_global_qualified_enums() {
+            if let Some(ConstExpression::Unresolved { statement, scope }) = enum_element
+                .initial_value
+                .and_then(|i| index.get_const_expressions().find_const_expression(&i))
+            {
+                if let Some(scope) = scope {
+                    let scoped_ctx = ctx.with_pou(scope.as_str());
+                    visitor.visit_statement(&scoped_ctx, statement);
+                } else {
+                    visitor.visit_statement(ctx, statement);
+                }
+            }
+        }
+
         visitor.annotation_map
     }
 
@@ -254,9 +294,23 @@ impl<'i> TypeAnnotator<'i> {
         user_data_type: &UserTypeDeclaration,
         ctx: &VisitorContext,
     ) {
-        self.visit_data_type(ctx, &user_data_type.data_type);
-        if let Some(initializer) = &user_data_type.initializer {
-            self.visit_statement(ctx, initializer);
+        if let Some(name) = user_data_type.data_type.get_name() {
+            let ctx = &ctx.with_pou(name);
+            self.visit_data_type(ctx, &user_data_type.data_type);
+            if let Some((initializer, name)) = user_data_type
+                .initializer
+                .as_ref()
+                .zip(user_data_type.data_type.get_name())
+            {
+                self.visit_statement(ctx, initializer);
+
+                //update the type-hint for the initializer
+                if let Some(right_type) = self.index.find_type(name) {
+                    self.update_expected_types(right_type, initializer);
+                }
+            }
+        } else {
+            unreachable!("datatype without a name");
         }
     }
 
@@ -269,10 +323,110 @@ impl<'i> TypeAnnotator<'i> {
         }
     }
 
+    /// updates the expected types of statement on the right side of an assignment
+    /// e.g. x : ARRAY [0..1] OF BYTE := [2,3];
+    /// note that the left side needs to be annotated before this call
+    fn update_right_hand_side_expected_type(
+        &mut self,
+        annotated_left_side: &AstStatement,
+        right_side: &AstStatement,
+    ) {
+        if let Some(t) = self
+            .annotation_map
+            .get_type(annotated_left_side, self.index)
+        {
+            self.update_expected_types(t, right_side);
+        }
+    }
+
+    /// updates the expected types of statements on the right side of an assignment
+    /// e.g. x : ARRAY [0..1] OF BYTE := [2,3];
+    fn update_expected_types(
+        &mut self,
+        expected_type: &typesystem::DataType,
+        statement: &AstStatement,
+    ) {
+        //see if we need to dive into it
+        match statement {
+            AstStatement::LiteralArray {
+                elements: Some(elements),
+                ..
+            } => {
+                self.annotation_map.annotate_type_hint(
+                    statement,
+                    StatementAnnotation::Value {
+                        resulting_type: expected_type.name.clone(),
+                    },
+                );
+                //TODO exprssionList and MultipliedExpressions are a mess!
+                if matches!(elements.as_ref(), AstStatement::ExpressionList{..} | AstStatement::MultipliedStatement{..}) {
+                    self.annotation_map.annotate_type_hint(
+                        elements,
+                        StatementAnnotation::Value {
+                            resulting_type: expected_type.name.clone(),
+                        },
+                    );
+                }
+
+                //check array-elements
+                if let DataTypeInformation::Array {
+                    inner_type_name, ..
+                } = expected_type.get_type_information()
+                {
+                    println!("{:}", inner_type_name);
+                    if let Some(inner_type) =
+                        self.index.find_effective_type_by_name(inner_type_name)
+                    {
+                        self.update_expected_types(inner_type, elements);
+                    }
+                }
+            }
+            AstStatement::MultipliedStatement {
+                element: elements, ..
+            } => {
+                // n(elements)
+                //annotate the type to all multiplied elements
+                for ele in AstStatement::get_as_list(elements) {
+                    self.update_expected_types(expected_type, ele);
+                }
+            }
+            AstStatement::ExpressionList { expressions, .. } => {
+                //annotate the type to all elements
+                for ele in expressions {
+                    self.update_expected_types(expected_type, ele);
+                }
+            }
+            _ =>
+            //annotate the statement
+            {
+
+                println!("leaf: {:} - {:#?}", expected_type.get_name(), statement);
+                self.annotation_map.annotate_type_hint(
+                    statement,
+                    StatementAnnotation::Value {
+                        resulting_type: expected_type.name.clone(),
+                    },
+                )
+            }
+        }
+    }
+
     fn visit_variable(&mut self, ctx: &VisitorContext, variable: &Variable) {
         self.visit_data_type_declaration(ctx, &variable.data_type);
         if let Some(initializer) = variable.initializer.as_ref() {
             self.visit_statement(ctx, initializer);
+
+            // annotate a type-hint for the initializer, it should be the same type as the variable
+            // e.g. x : BYTE := 7 + 3;  --> 7+3 should be casted into a byte
+            let qualifier = ctx.qualifier.as_deref().or(ctx.pou);
+
+            if let Some(expected_type) = self
+                .index
+                .find_variable(qualifier, &[variable.name.as_str()])
+                .and_then(|ve| self.index.find_effective_type_by_name(ve.get_type_name()))
+            {
+                self.update_expected_types(expected_type, initializer);
+            }
         }
     }
 
@@ -593,6 +747,7 @@ impl<'i> TypeAnnotator<'i> {
             AstStatement::ExpressionList { expressions, .. } => expressions
                 .iter()
                 .for_each(|e| self.visit_statement(ctx, e)),
+
             AstStatement::RangeStatement { start, end, .. } => {
                 visit_all_statements!(self, ctx, start, end);
             }
@@ -601,9 +756,11 @@ impl<'i> TypeAnnotator<'i> {
                 if let Some(lhs) = ctx.call {
                     //special context for left hand side
                     self.visit_statement(&ctx.with_pou(lhs), left);
+                    // give a type hint that we want the right side to be stored in the left's type
                 } else {
                     self.visit_statement(ctx, left);
                 }
+                self.update_right_hand_side_expected_type(left, right);
             }
             AstStatement::OutputAssignment { left, right, .. } => {
                 visit_all_statements!(self, ctx, left, right);
@@ -613,6 +770,7 @@ impl<'i> TypeAnnotator<'i> {
                 } else {
                     self.visit_statement(ctx, left);
                 }
+                self.update_right_hand_side_expected_type(left, right);
             }
             AstStatement::CallStatement {
                 parameters,
@@ -755,6 +913,7 @@ impl<'i> TypeAnnotator<'i> {
                 self.visit_statement(ctx, element)
                 //TODO as of yet we have no way to derive a name that reflects a fixed size array
             }
+
             _ => {}
         }
     }

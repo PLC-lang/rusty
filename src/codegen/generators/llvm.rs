@@ -176,6 +176,9 @@ impl<'a> Llvm<'a> {
         match target_type {
             BasicTypeEnum::IntType { 0: int_type } => {
                 let value = int_type.const_int_from_string(value, StringRadix::Decimal);
+                if value.is_none() {
+                    println!("whoops"); 
+                }
                 Ok(BasicValueEnum::IntValue(value.unwrap()))
             }
             BasicTypeEnum::FloatType { 0: float_type } => {

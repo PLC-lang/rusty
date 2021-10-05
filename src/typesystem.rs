@@ -647,14 +647,10 @@ pub fn get_signed_type<'t>(
 
 #[cfg(test)]
 mod tests {
-    use crate::{
-        ast::CompilationUnit,
-        index::visitor::visit,
-        typesystem::{
+    use crate::{ast::CompilationUnit, index::visitor::visit, lexer::IdProvider, typesystem::{
             get_signed_type, BYTE_TYPE, DINT_TYPE, DWORD_TYPE, INT_TYPE, LINT_TYPE, LWORD_TYPE,
             SINT_TYPE, UDINT_TYPE, UINT_TYPE, ULINT_TYPE, USINT_TYPE, WORD_TYPE,
-        },
-    };
+        }};
 
     macro_rules! assert_signed_type {
         ($expected:expr, $actual:expr, $index:expr) => {
@@ -671,7 +667,7 @@ mod tests {
     #[test]
     pub fn signed_types_tests() {
         // Given an initialized index
-        let index = visit(&CompilationUnit::default());
+        let index = visit(&CompilationUnit::default(), IdProvider::new());
         assert_signed_type!(SINT_TYPE, BYTE_TYPE, index);
         assert_signed_type!(SINT_TYPE, USINT_TYPE, index);
         assert_signed_type!(INT_TYPE, WORD_TYPE, index);

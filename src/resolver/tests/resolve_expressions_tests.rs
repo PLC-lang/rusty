@@ -1,7 +1,7 @@
 use core::panic;
 
 use crate::{
-    ast::{AstStatement, DataType, UserTypeDeclaration},
+    ast::{AstStatement, DataType, Pou, UserTypeDeclaration},
     index::Index,
     resolver::{
         tests::{annotate, parse},
@@ -1353,19 +1353,19 @@ fn const_flag_is_calculated_when_resolving_qualified_variables_over_prgs() {
 fn const_flag_is_calculated_when_resolving_enum_literals() {
     let (unit, index) = parse(
         "
-        TYPE Color: (red, green, yellow);
-        END_TYPE
-                
-        PROGRAM other
-            VAR 
-                state: (OPEN, CLOSE);
-            END_VAR
-            red;
-            green;
-            OPEN;
-            state;
-        END_PROGRAM
-        ",
+    TYPE Color: (red, green, yellow);
+    END_TYPE
+            
+    PROGRAM other
+        VAR 
+            state: (OPEN, CLOSE);
+        END_VAR
+        red;
+        green;
+        OPEN;
+        state;
+    END_PROGRAM
+    ",
     );
 
     let annotations = annotate(&unit, &index);
@@ -1387,4 +1387,225 @@ fn const_flag_is_calculated_when_resolving_enum_literals() {
         format!("{:?}", expected_consts),
         format!("{:?}", actual_consts)
     );
+}
+
+#[test]
+fn global_enums_type_resolving() {
+    let (unit, index) = parse(
+        "VAR_GLOBAL
+            x : (a,b,c);
+        END_VAR",
+    );
+    let annotations = annotate(&unit, &index);
+
+    for (_, ele) in index.get_global_qualified_enums() {
+        let const_exp = index
+            .get_const_expressions()
+            .get_constant_statement(ele.initial_value.as_ref().unwrap())
+            .unwrap();
+        let a = annotations.get_type_or_void(const_exp, &index);
+        assert_eq!(a.get_name(), "DINT");
+    }
+}
+
+#[test]
+fn struct_members_initializers_type_hint_test() {
+    //GIVEN a struct with some initialization
+    let (unit, index) = parse(
+        "
+        TYPE MyStruct:
+        STRUCT
+          i : INT := 7;
+          si : SINT := 7;
+          b : BOOL := 1;
+          r : REAL := 3.1415;
+          lr : LREAL := 3.1415;
+        END_STRUCT
+        END_TYPE
+       ",
+    );
+
+    // WHEN this type is annotated
+    let annotations = annotate(&unit, &index);
+
+    // THEN the members's initializers have correct type-hints
+    if let DataType::StructType { variables, .. } = &unit.types[0].data_type {
+        let hints: Vec<&str> = variables
+            .iter()
+            .map(|v| {
+                annotations
+                    .get_type_hint(v.initializer.as_ref().unwrap(), &index)
+                    .map(crate::typesystem::DataType::get_name)
+                    .unwrap()
+            })
+            .collect();
+
+        assert_eq!(hints, vec!["INT", "SINT", "BOOL", "REAL", "LREAL"]);
+    } else {
+        unreachable!()
+    }
+}
+
+#[test]
+fn program_members_initializers_type_hint_test() {
+    //GIVEN a pou with some initialization
+    let (unit, index) = parse(
+        "
+        PROGRAM prg
+      	  VAR_INPUT
+            i : INT := 7;
+            si : SINT := 7;
+            b : BOOL := 1;
+            r : REAL := 3.1415;
+            lr : LREAL := 3.1415;
+          END_VAR
+        END_PROGRAM
+      ",
+    );
+
+    // WHEN it is annotated
+    let annotations = annotate(&unit, &index);
+
+    // THEN the members's initializers have correct type-hints
+    let Pou {
+        variable_blocks: blocks,
+        ..
+    } = &unit.units[0];
+    let hints: Vec<&str> = blocks[0]
+        .variables
+        .iter()
+        .map(|v| {
+            annotations
+                .get_type_hint(v.initializer.as_ref().unwrap(), &index)
+                .map(crate::typesystem::DataType::get_name)
+                .unwrap()
+        })
+        .collect();
+
+    assert_eq!(hints, vec!["INT", "SINT", "BOOL", "REAL", "LREAL"]);
+}
+
+#[test]
+fn data_type_initializers_type_hint_test() {
+    //GIVEN a struct with some initialization
+    let (unit, index) = parse(
+        "
+        TYPE MyArray : ARRAY[0..2] OF INT := [1, 2, 3]; END_TYPE
+       ",
+    );
+
+    // WHEN this type is annotated
+    let annotations = annotate(&unit, &index);
+
+    // THEN the members's initializers have correct type-hints
+    if let Some(initializer) = &unit.types[0].initializer {
+        assert_eq!(
+            Some(index.get_type("MyArray").unwrap()),
+            annotations.get_type_hint(initializer, &index)
+        );
+
+        let initializer = index.get_type("MyArray").unwrap().initial_value.unwrap();
+        if let AstStatement::LiteralArray {
+            elements: Some(exp_list),
+            ..
+        } = index
+            .get_const_expressions()
+            .get_constant_statement(&initializer)
+            .unwrap()
+        {
+            if let AstStatement::ExpressionList {
+                expressions: elements,
+                ..
+            } = exp_list.as_ref()
+            {
+                for ele in elements {
+                    assert_eq!(
+                        index.get_type("INT").unwrap(),
+                        annotations.get_type_hint(ele, &index).unwrap()
+                    );
+                }
+            } else {
+                unreachable!()
+            }
+        } else {
+            unreachable!()
+        }
+    } else {
+        unreachable!()
+    }
+}
+
+#[test]
+fn data_type_initializers_multiplied_statement_type_hint_test() {
+    //GIVEN a struct with some initialization
+    let (unit, index) = parse(
+        "
+        TYPE MyArray : ARRAY[0..2] OF BYTE := [3(7)]; END_TYPE
+        VAR_GLOBAL a : ARRAY[0..2] OF BYTE := [3(7)]; END_VAR
+       ",
+    );
+
+    // WHEN this type is annotated
+    let annotations = annotate(&unit, &index);
+
+    // THEN the members's initializers have correct type-hints
+    if let Some(initializer) = &unit.types[0].initializer {
+        assert_eq!(
+            Some(index.get_type("MyArray").unwrap()),
+            annotations.get_type_hint(initializer, &index)
+        );
+
+        let initializer = index.get_type("MyArray").unwrap().initial_value.unwrap();
+        if let AstStatement::LiteralArray {
+            elements: Some(exp_list),
+            ..
+        } = index
+            .get_const_expressions()
+            .get_constant_statement(&initializer)
+            .unwrap()
+        {
+            for ele in AstStatement::get_as_list(exp_list) {
+                assert_eq!(
+                    index.get_type("BYTE").unwrap(),
+                    annotations.get_type_hint(ele, &index).unwrap()
+                );
+            }
+        } else {
+            unreachable!()
+        }
+    } else {
+        unreachable!()
+    }
+
+    //same checks for the global a
+    if let Some(initializer) = &unit.global_vars[0].variables[0].initializer {
+        let global = index.find_global_variable("a").unwrap();
+        assert_eq!(
+            index.find_effective_type_by_name(global.get_type_name()),
+            annotations.get_type_hint(initializer, &index)
+        );
+
+        let initializer = global.initial_value.unwrap();
+        if let AstStatement::LiteralArray {
+            elements: Some(exp_list),
+            ..
+        } = index
+            .get_const_expressions()
+            .get_constant_statement(&initializer)
+            .unwrap()
+        {
+            let elements = AstStatement::get_as_list(exp_list);
+            assert!(!elements.is_empty());
+            for ele in elements{
+                assert_eq!(
+                    index.get_type("BYTE").unwrap(),
+                    annotations.get_type_hint(ele, &index).unwrap()
+                );
+            }
+        } else {
+            unreachable!()
+        }
+    } else {
+        unreachable!()
+    }
 }

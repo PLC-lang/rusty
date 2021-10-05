@@ -118,7 +118,6 @@ impl<'a, 'b> StructGenerator<'a, 'b> {
                             self.index,
                             self.annotations,
                             self.llvm_index,
-                            Some(variable_type),
                         );
 
                         let result = exp_gen

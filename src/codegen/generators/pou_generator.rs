@@ -320,7 +320,6 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                 self.index,
                 self.annotations,
                 local_index,
-                None,
                 function_context,
             );
             exp_gen.temp_variable_prefix = "".to_string();

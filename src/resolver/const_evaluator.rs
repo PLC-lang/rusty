@@ -23,38 +23,38 @@ macro_rules! cannot_eval_error {
 }
 
 macro_rules! arithmetic_expression {
-    ($left:expr, $op:tt, $right:expr, $op_text:expr) => {
+    ($left:expr, $op:tt, $right:expr, $op_text:expr, $resulting_id:expr) => {
         match ($left, $right) {
-            (   AstStatement::LiteralInteger{value: lvalue, id: left_id, location: loc_left},
+            (   AstStatement::LiteralInteger{value: lvalue, location: loc_left, ..},
                 AstStatement::LiteralInteger{value: rvalue, location: loc_right, ..}) => {
                 Ok(AstStatement::LiteralInteger{
-                    id: *left_id, value: lvalue $op rvalue, location: SourceRange::new(loc_left.get_start() .. loc_right.get_start())
+                    id: $resulting_id, value: lvalue $op rvalue, location: SourceRange::new(loc_left.get_start() .. loc_right.get_start())
                 })
             },
-            (   AstStatement::LiteralInteger{value: lvalue, id: left_id, location: loc_left},
+            (   AstStatement::LiteralInteger{value: lvalue, location: loc_left, ..},
                 AstStatement::LiteralReal{value: rvalue, location: loc_right, ..}) => {
                     let rvalue = rvalue.parse::<f64>()
                         .map_err(|err| err.to_string())?;
                 Ok(AstStatement::LiteralReal{
-                    id: *left_id, value: (*lvalue as f64 $op rvalue).to_string(), location: SourceRange::new(loc_left.get_start() .. loc_right.get_start())
+                    id: $resulting_id, value: (*lvalue as f64 $op rvalue).to_string(), location: SourceRange::new(loc_left.get_start() .. loc_right.get_start())
                 })
             },
-            (   AstStatement::LiteralReal{value: lvalue, id: left_id, location: loc_left},
+            (   AstStatement::LiteralReal{value: lvalue, location: loc_left, ..},
                 AstStatement::LiteralInteger{value: rvalue, location: loc_right, ..}) => {
                     let lvalue = lvalue.parse::<f64>()
                         .map_err(|err| err.to_string())?;
                 Ok(AstStatement::LiteralReal{
-                    id: *left_id, value: (lvalue $op *rvalue as f64).to_string(), location: SourceRange::new(loc_left.get_start() .. loc_right.get_start())
+                    id: $resulting_id, value: (lvalue $op *rvalue as f64).to_string(), location: SourceRange::new(loc_left.get_start() .. loc_right.get_start())
                 })
             },
-            (   AstStatement::LiteralReal{value: lvalue, id: left_id, location: loc_left},
+            (   AstStatement::LiteralReal{value: lvalue, location: loc_left, ..},
                 AstStatement::LiteralReal{value: rvalue, location: loc_right, ..}) => {
                     let lvalue = lvalue.parse::<f64>()
                         .map_err(|err| err.to_string())?;
                     let rvalue = rvalue.parse::<f64>()
                         .map_err(|err| err.to_string())?;
                 Ok(AstStatement::LiteralReal{
-                    id: *left_id, value: (lvalue $op rvalue).to_string(), location: SourceRange::new(loc_left.get_start() .. loc_right.get_start())
+                    id: $resulting_id, value: (lvalue $op rvalue).to_string(), location: SourceRange::new(loc_left.get_start() .. loc_right.get_start())
                 })
             },
             _ => cannot_eval_error!($left, $op_text, $right),
@@ -63,18 +63,18 @@ macro_rules! arithmetic_expression {
 }
 
 macro_rules! bitwise_expression {
-    ($left:expr, $op:tt, $right:expr, $op_text:expr) => {
+    ($left:expr, $op:tt, $right:expr, $op_text:expr, $resulting_id:expr) => {
         match ($left, $right) {
-            (   AstStatement::LiteralInteger{value: lvalue, id: left_id, location: loc_left},
+            (   AstStatement::LiteralInteger{value: lvalue, location: loc_left, ..},
                 AstStatement::LiteralInteger{value: rvalue, location: loc_right, ..}) => {
                 Ok(AstStatement::LiteralInteger{
-                    id: *left_id, value: lvalue $op rvalue, location: SourceRange::new(loc_left.get_start() .. loc_right.get_start())
+                    id: $resulting_id, value: lvalue $op rvalue, location: SourceRange::new(loc_left.get_start() .. loc_right.get_start())
                 })
             },
-            (   AstStatement::LiteralBool{value: lvalue, id: left_id, location: loc_left},
+            (   AstStatement::LiteralBool{value: lvalue, location: loc_left, ..},
                 AstStatement::LiteralBool{value: rvalue, location: loc_right, ..}) => {
                 Ok(AstStatement::LiteralBool{
-                    id: *left_id, value: lvalue $op rvalue, location: SourceRange::new(loc_left.get_start() .. loc_right.get_start())
+                    id: $resulting_id, value: lvalue $op rvalue, location: SourceRange::new(loc_left.get_start() .. loc_right.get_start())
                 })
             },
             _ => cannot_eval_error!($left, $op_text, $right),
@@ -83,22 +83,22 @@ macro_rules! bitwise_expression {
 }
 
 macro_rules! compare_expression {
-    ($left:expr, $op:tt, $right:expr, $op_text:expr) => {
+    ($left:expr, $op:tt, $right:expr, $op_text:expr, $resulting_id:expr) => {
         match ($left, $right) {
-            (   AstStatement::LiteralInteger{value: lvalue, id: left_id, location: loc_left},
+            (   AstStatement::LiteralInteger{value: lvalue, location: loc_left, ..},
                 AstStatement::LiteralInteger{value: rvalue, location: loc_right, ..}) => {
                 Ok(AstStatement::LiteralBool{
-                    id: *left_id, value: lvalue $op rvalue, location: SourceRange::new(loc_left.get_start() .. loc_right.get_start())
+                    id: $resulting_id, value: lvalue $op rvalue, location: SourceRange::new(loc_left.get_start() .. loc_right.get_start())
                 })
             },
             (   AstStatement::LiteralReal{..},
                 AstStatement::LiteralReal{..}) => {
                 Err("Cannot compare Reals without epsilon".into())
             },
-            (   AstStatement::LiteralBool{value: lvalue, id: left_id, location: loc_left},
+            (   AstStatement::LiteralBool{value: lvalue, location: loc_left, ..},
                 AstStatement::LiteralBool{value: rvalue, location: loc_right, ..}) => {
                 Ok(AstStatement::LiteralBool{
-                    id: *left_id, value: lvalue $op rvalue, location: SourceRange::new(loc_left.get_start() .. loc_right.get_start())
+                    id: $resulting_id, value: lvalue $op rvalue, location: SourceRange::new(loc_left.get_start() .. loc_right.get_start())
                 })
             },
             _ => cannot_eval_error!($left, $op_text, $right),
@@ -397,34 +397,35 @@ pub fn evaluate(
             left,
             right,
             operator,
+            id,
             ..
         } => {
             let eval_left = evaluate(left, scope, index)?;
             let eval_right = evaluate(right, scope, index)?;
             if let Some((left, right)) = eval_left.zip(eval_right).as_ref() {
                 Some(match operator {
-                    Operator::Plus => arithmetic_expression!(left, +, right, "+")?,
-                    Operator::Minus => arithmetic_expression!(left, -, right, "-")?,
-                    Operator::Multiplication => arithmetic_expression!(left, *, right, "*")?,
+                    Operator::Plus => arithmetic_expression!(left, +, right, "+", *id)?,
+                    Operator::Minus => arithmetic_expression!(left, -, right, "-", *id)?,
+                    Operator::Multiplication => arithmetic_expression!(left, *, right, "*", *id)?,
                     Operator::Division if is_zero(right) => {
                         return Err("Attempt to divide by zero".to_string())
                     }
-                    Operator::Division => arithmetic_expression!(left, /, right, "/")?,
+                    Operator::Division => arithmetic_expression!(left, /, right, "/", *id)?,
                     Operator::Modulo if is_zero(right) => {
                         return Err(
                             "Attempt to calculate the remainder with a divisor of zero".to_string()
                         )
                     }
-                    Operator::Modulo => arithmetic_expression!(left, %, right, "MOD")?,
-                    Operator::Equal => compare_expression!(left, ==, right, "=")?,
-                    Operator::NotEqual => compare_expression!(left, !=, right, "<>")?,
-                    Operator::Greater => compare_expression!(left, >, right, ">")?,
-                    Operator::GreaterOrEqual => compare_expression!(left, >=, right, ">=")?,
-                    Operator::Less => compare_expression!(left, <, right, "<")?,
-                    Operator::LessOrEqual => compare_expression!(left, <=, right, "<=")?,
-                    Operator::And => bitwise_expression!(left, & , right, "AND")?,
-                    Operator::Or => bitwise_expression!(left, | , right, "OR")?,
-                    Operator::Xor => bitwise_expression!(left, ^, right, "XOR")?,
+                    Operator::Modulo => arithmetic_expression!(left, %, right, "MOD", *id)?,
+                    Operator::Equal => compare_expression!(left, ==, right, "=", *id)?,
+                    Operator::NotEqual => compare_expression!(left, !=, right, "<>", *id)?,
+                    Operator::Greater => compare_expression!(left, >, right, ">", *id)?,
+                    Operator::GreaterOrEqual => compare_expression!(left, >=, right, ">=", *id)?,
+                    Operator::Less => compare_expression!(left, <, right, "<", *id)?,
+                    Operator::LessOrEqual => compare_expression!(left, <=, right, "<=", *id)?,
+                    Operator::And => bitwise_expression!(left, & , right, "AND", *id)?,
+                    Operator::Or => bitwise_expression!(left, | , right, "OR", *id)?,
+                    Operator::Xor => bitwise_expression!(left, ^, right, "XOR", *id)?,
                     _ => {
                         return Err(format!(
                             "Cannot resolve operator {:?} in constant evaluation",
@@ -498,6 +499,64 @@ pub fn evaluate(
             }
             _ => return Err(format!("Cannot resolve constant Minus {:?}", value)),
         },
+        AstStatement::LiteralArray {
+            id,
+            elements: Some(elements),
+            location,
+            ..
+        } => {
+            let inner_elements = AstStatement::get_as_list(elements)
+                .iter()
+                .map(|e| evaluate(e, scope, index))
+                .collect::<Result<Vec<Option<AstStatement>>, String>>()?
+                .into_iter()
+                .collect::<Option<Vec<AstStatement>>>();
+
+            //return a new array, or return none if one was not resolvable
+            inner_elements.map(|ie| AstStatement::LiteralArray {
+                id: *id,
+                elements: Some(Box::new(AstStatement::ExpressionList {
+                    expressions: ie,
+                    id: *id,
+                })),
+                location: location.clone(),
+            })
+        }
+        AstStatement::MultipliedStatement {
+            element,
+            id,
+            multiplier,
+            location,
+        } => {
+            let inner_elements = AstStatement::get_as_list(element.as_ref())
+                .iter()
+                .map(|e| evaluate(e, scope, index))
+                .collect::<Result<Vec<Option<AstStatement>>, String>>()?
+                .into_iter()
+                .collect::<Option<Vec<AstStatement>>>();
+
+            //return a new array, or return none if one was not resolvable
+            inner_elements.map(|ie| {
+                if let [ie] = ie.as_slice() {
+                    AstStatement::MultipliedStatement {
+                        id: *id,
+                        element: Box::new(ie.clone()),   //TODO
+                        multiplier: *multiplier,
+                        location: location.clone(),
+                    }
+                } else {
+                    AstStatement::MultipliedStatement {
+                        id: *id,
+                        element: Box::new(AstStatement::ExpressionList {
+                            expressions: ie,
+                            id: *id,
+                        }),
+                        multiplier: *multiplier,
+                        location: location.clone(),
+                    }
+                }
+            })
+        }
         _ => return Err(format!("Cannot resolve constant: {:#?}", initial)),
     };
     Ok(literal)

@@ -77,7 +77,6 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
             self.index,
             self.annotations,
             self.llvm_index,
-            None,
             self.function_context,
         )
     }
@@ -387,7 +386,6 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
             self.index,
             self.annotations,
             self.llvm_index,
-            Some(selector_type),
             self.function_context,
         );
 

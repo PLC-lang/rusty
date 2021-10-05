@@ -3,7 +3,7 @@ use crate::{
     ast::{Pou, SourceRange},
     index::{ImplementationType, Index},
     resolver::{AnnotationMap, StatementAnnotation},
-    typesystem::{Dimension, StringEncoding, DINT_TYPE, LINT_TYPE, LREAL_TYPE},
+    typesystem::{Dimension, StringEncoding, LINT_TYPE},
 };
 use inkwell::{
     basic_block::BasicBlock,
@@ -38,8 +38,6 @@ pub struct ExpressionCodeGenerator<'a, 'b> {
     index: &'b Index,
     annotations: &'b AnnotationMap,
     llvm_index: &'b LlvmTypedIndex<'a>,
-    /// an optional type hint for generating literals
-    type_hint: Option<DataTypeInformation>,
     /// the current function to create blocks in
     function_context: Option<&'b FunctionContext<'a>>,
 
@@ -70,14 +68,12 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
         index: &'b Index,
         annotations: &'b AnnotationMap,
         llvm_index: &'b LlvmTypedIndex<'a>,
-        type_hint: Option<DataTypeInformation>,
         function_context: &'b FunctionContext<'a>,
     ) -> ExpressionCodeGenerator<'a, 'b> {
         ExpressionCodeGenerator {
             llvm,
             index,
             llvm_index,
-            type_hint,
             annotations,
             function_context: Some(function_context),
             temp_variable_prefix: "load_".to_string(),
@@ -97,29 +93,15 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
         index: &'b Index,
         annotations: &'b AnnotationMap,
         llvm_index: &'b LlvmTypedIndex<'a>,
-        type_hint: Option<DataTypeInformation>,
     ) -> ExpressionCodeGenerator<'a, 'b> {
         ExpressionCodeGenerator {
             llvm,
             index,
             llvm_index,
-            type_hint,
             annotations,
             function_context: None,
             temp_variable_prefix: "load_".to_string(),
             temp_variable_suffix: "".to_string(),
-        }
-    }
-
-    pub fn morph_to_typed(
-        &self,
-        type_hint: &DataTypeInformation,
-    ) -> ExpressionCodeGenerator<'a, 'b> {
-        ExpressionCodeGenerator {
-            type_hint: Some(type_hint.clone()),
-            temp_variable_prefix: self.temp_variable_prefix.clone(),
-            temp_variable_suffix: self.temp_variable_suffix.clone(),
-            ..*self
         }
     }
 
@@ -130,10 +112,6 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
     ) -> Result<&'b FunctionContext<'a>, CompileError> {
         self.function_context
             .ok_or_else(|| CompileError::missing_function(statement.get_location()))
-    }
-
-    fn get_type_hint(&self) -> Option<&DataTypeInformation> {
-        self.type_hint.as_ref()
     }
 
     /// generates the given expression and returns a TypeAndValue as a result of the
@@ -1369,7 +1347,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                 self.llvm.create_const_bool(self.index, *value)
             }
             AstStatement::LiteralInteger { value, .. } => {
-                let type_context = self.get_type_hint_for(literal_statement, DINT_TYPE)?;
+                let type_context = self.get_type_hint_for(literal_statement)?;
                 let value = self.llvm.create_const_numeric(
                     &self
                         .llvm_index
@@ -1431,7 +1409,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                 *nano,
             )),
             AstStatement::LiteralReal { value, .. } => {
-                let type_context = self.get_type_hint_for(literal_statement, LREAL_TYPE)?;
+                let type_context = self.get_type_hint_for(literal_statement)?;
                 let value = self.llvm.create_const_numeric(
                     &self
                         .llvm_index
@@ -1465,9 +1443,14 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                 }
             }
             AstStatement::LiteralArray {
-                elements, location, ..
+                elements: Some(elements),
+                location,
+                ..
             } => self.generate_literal_array(elements, location),
-            &AstStatement::LiteralNull { .. } => self.llvm.create_null_ptr(),
+            AstStatement::MultipliedStatement { .. } => {
+                self.generate_literal_array(literal_statement, &literal_statement.get_location())
+            }
+            AstStatement::LiteralNull { .. } => self.llvm.create_null_ptr(),
             // if there is an expression-list this might be a struct-initialization
             AstStatement::ExpressionList { .. } => {
                 self.generate_literal_struct(literal_statement, &literal_statement.get_location())
@@ -1491,22 +1474,14 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
     fn get_type_hint_for(
         &self,
         statement: &AstStatement,
-        default_type_name: &str,
     ) -> Result<&DataTypeInformation, CompileError> {
-        self.get_type_hint()
-            .or_else(|| {
-                self.annotations
-                    .get_type(statement, self.index)
-                    .map(|it| it.get_type_information())
-            })
-            .or_else(|| {
-                self.index
-                    .find_type(default_type_name)
-                    .map(|it| it.get_type_information())
-            })
+        self.annotations
+            .get_type_hint(statement, self.index)
+            .or_else(|| self.annotations.get_type(statement, self.index))
+            .map(DataType::get_type_information)
             .ok_or_else(|| {
                 CompileError::codegen_error(
-                    "no defualt type for literal integerers available".to_string(),
+                    "no type hint available".to_string(),
                     statement.get_location(),
                 )
             })
@@ -1518,141 +1493,129 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
         assignments: &AstStatement,
         declaration_location: &SourceRange,
     ) -> Result<TypeAndValue<'a>, CompileError> {
-        if let Some(type_info) = &self.type_hint {
-            if let DataTypeInformation::Struct {
-                name: struct_name,
-                member_names,
-                ..
-            } = type_info
-            {
-                let generated_type = self.llvm_index.get_associated_type(struct_name)?;
-                let mut uninitialized_members: HashSet<&str> =
-                    member_names.iter().map(|it| it.as_str()).collect();
-                let mut member_values: Vec<(u32, BasicValueEnum<'a>)> = Vec::new();
-                for assignment in flatten_expression_list(assignments) {
-                    if let AstStatement::Assignment { left, right, .. } = assignment {
-                        if let AstStatement::Reference {
-                            name: variable_name,
-                            location,
-                            ..
-                        } = &**left
-                        {
-                            let member = self
-                                .index
-                                .find_member(struct_name, variable_name)
-                                .ok_or_else(|| {
-                                    CompileError::invalid_reference(
-                                        format!("{}.{}", struct_name, variable_name).as_str(),
-                                        location.clone(),
-                                    )
-                                })?;
+        let type_info = self.get_type_hint_for(assignments)?;
+        if let DataTypeInformation::Struct {
+            name: struct_name,
+            member_names,
+            ..
+        } = type_info
+        {
+            let generated_type = self.llvm_index.get_associated_type(struct_name)?;
+            let mut uninitialized_members: HashSet<&str> =
+                member_names.iter().map(|it| it.as_str()).collect();
+            let mut member_values: Vec<(u32, BasicValueEnum<'a>)> = Vec::new();
+            for assignment in flatten_expression_list(assignments) {
+                if let AstStatement::Assignment { left, right, .. } = assignment {
+                    if let AstStatement::Reference {
+                        name: variable_name,
+                        location,
+                        ..
+                    } = &**left
+                    {
+                        let member = self
+                            .index
+                            .find_member(struct_name, variable_name)
+                            .ok_or_else(|| {
+                                CompileError::invalid_reference(
+                                    format!("{}.{}", struct_name, variable_name).as_str(),
+                                    location.clone(),
+                                )
+                            })?;
 
-                            let index_in_parent = member.get_location_in_parent();
+                        let index_in_parent = member.get_location_in_parent();
+                        let (_, value) = self.generate_expression(right)?;
 
-                            let typed_generator = self.morph_to_typed(
-                                &self.index.get_type_information(member.get_type_name())?,
-                            );
-                            let (_, value) = typed_generator.generate_expression(right)?;
-
-                            uninitialized_members.remove(member.get_name());
-                            member_values.push((index_in_parent, value));
-                        } else {
-                            return Err(CompileError::codegen_error(
-                                "struct member lvalue required as left operand of assignment"
-                                    .to_string(),
-                                left.get_location(),
-                            ));
-                        }
+                        uninitialized_members.remove(member.get_name());
+                        member_values.push((index_in_parent, value));
                     } else {
-                        return Err(CompileError::codegen_error("struct literal must consist of explicit assignments in the form of member := value".to_string(), assignment.get_location()));
+                        return Err(CompileError::codegen_error(
+                            "struct member lvalue required as left operand of assignment"
+                                .to_string(),
+                            left.get_location(),
+                        ));
                     }
-                }
-
-                let struct_type = generated_type.into_struct_type();
-                //fill the struct with fields we didnt mention yet
-                for variable_name in uninitialized_members {
-                    let member = self
-                        .index
-                        .find_member(struct_name, variable_name)
-                        .ok_or_else(|| {
-                            CompileError::invalid_reference(
-                                format!("{}.{}", struct_name, variable_name).as_str(),
-                                declaration_location.clone(),
-                            )
-                        })?;
-
-                    let index_in_parent = member.get_location_in_parent();
-
-                    let initial_value = self
-                        .llvm_index
-                        .find_associated_variable_value(member.get_qualified_name())
-                        // .or_else(|| self.index.find_associated_variable_value(name))
-                        .or_else(|| {
-                            self.llvm_index
-                                .find_associated_initial_value(member.get_type_name())
-                        })
-                        .unwrap();
-
-                    member_values.push((index_in_parent, initial_value));
-                }
-                if member_values.len() == struct_type.count_fields() as usize {
-                    member_values.sort_by(|(a, _), (b, _)| a.cmp(b));
-                    let ordered_values: Vec<BasicValueEnum<'a>> =
-                        member_values.iter().map(|(_, v)| *v).collect();
-
-                    return Ok((
-                        type_info.clone(),
-                        struct_type
-                            .const_named_struct(ordered_values.as_slice())
-                            .as_basic_value_enum(),
-                    ));
                 } else {
-                    return Err(CompileError::codegen_error(
-                        format!(
-                            "Expected {} fields for Struct {}, but found {}.",
-                            struct_type.count_fields(),
-                            struct_name,
-                            member_values.len()
-                        ),
-                        assignments.get_location(),
-                    ));
+                    return Err(CompileError::codegen_error("struct literal must consist of explicit assignments in the form of member := value".to_string(), assignment.get_location()));
                 }
             }
+
+            let struct_type = generated_type.into_struct_type();
+            //fill the struct with fields we didnt mention yet
+            for variable_name in uninitialized_members {
+                let member = self
+                    .index
+                    .find_member(struct_name, variable_name)
+                    .ok_or_else(|| {
+                        CompileError::invalid_reference(
+                            format!("{}.{}", struct_name, variable_name).as_str(),
+                            declaration_location.clone(),
+                        )
+                    })?;
+
+                let index_in_parent = member.get_location_in_parent();
+
+                let initial_value = self
+                    .llvm_index
+                    .find_associated_variable_value(member.get_qualified_name())
+                    // .or_else(|| self.index.find_associated_variable_value(name))
+                    .or_else(|| {
+                        self.llvm_index
+                            .find_associated_initial_value(member.get_type_name())
+                    })
+                    .unwrap();
+
+                member_values.push((index_in_parent, initial_value));
+            }
+            if member_values.len() == struct_type.count_fields() as usize {
+                member_values.sort_by(|(a, _), (b, _)| a.cmp(b));
+                let ordered_values: Vec<BasicValueEnum<'a>> =
+                    member_values.iter().map(|(_, v)| *v).collect();
+
+                return Ok((
+                    type_info.clone(),
+                    struct_type
+                        .const_named_struct(ordered_values.as_slice())
+                        .as_basic_value_enum(),
+                ));
+            } else {
+                return Err(CompileError::codegen_error(
+                    format!(
+                        "Expected {} fields for Struct {}, but found {}.",
+                        struct_type.count_fields(),
+                        struct_name,
+                        member_values.len()
+                    ),
+                    assignments.get_location(),
+                ));
+            }
+        } else {
+            return Err(CompileError::codegen_error(
+                format!("Expected Struct-literal, got {:#?}", assignments),
+                assignments.get_location(),
+            ));
         }
-        Err(CompileError::codegen_error(
-            format!(
-                "Internal error when generating Struct literal: incompatible type: {:?}",
-                self.type_hint
-            ),
-            declaration_location.clone(),
-        ))
     }
 
     /// generates an array literal with the given optional elements (represented as an ExpressionList)
     fn generate_literal_array(
         &self,
-        elements: &Option<Box<AstStatement>>,
+        initializer: &AstStatement,
         location: &SourceRange,
     ) -> Result<TypeAndValue<'a>, CompileError> {
-        if let Some(type_info) = &self.type_hint {
-            if let DataTypeInformation::Array {
-                inner_type_name, ..
-            } = type_info
-            {
-                let inner_type_hint = self.index.get_type_information(inner_type_name)?;
-                if let Some(initializer) = elements {
-                    let array_value = self.generate_literal_array_value(
-                        flatten_expression_list(initializer),
-                        &inner_type_hint,
-                    )?;
-                    return Ok((type_info.clone(), array_value.as_basic_value_enum()));
-                }
-            }
+        let type_info = self.get_type_hint_for(initializer)?;
+
+        println!("type_info: {:#?}", type_info);
+
+        for ele in flatten_expression_list(initializer) {
+            let type_info = self.get_type_hint_for(ele)?;
+            println!("element: {:#?}", type_info);
         }
-        Err(CompileError::codegen_error(
-            "Internal error when generating Array literal: unknown inner array-type.".to_string(),
-            location.clone(),
-        ))
+
+        let array_value = self.generate_literal_array_value(
+            flatten_expression_list(initializer),
+            &initializer.get_location(),
+        )?;
+        return Ok((type_info.clone(), array_value.as_basic_value_enum()));
     }
 
     /// constructs an ArrayValue (returned as a BasicValueEnum) of the given element-literals constructing an array-value of the
@@ -1663,17 +1626,21 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
     fn generate_literal_array_value(
         &self,
         elements: Vec<&AstStatement>,
-        inner_array_type: &DataTypeInformation,
+        location: &SourceRange,
     ) -> Result<BasicValueEnum<'a>, CompileError> {
-        let element_expression_gen = self.morph_to_typed(inner_array_type);
-        let llvm_type = self
-            .llvm_index
-            .get_associated_type(inner_array_type.get_name())?;
+        let inner_type = elements
+            .first()
+            .ok_or_else(|| {
+                CompileError::codegen_error("Cannot generate empty array".into(), location.clone())
+            }) //TODO
+            .and_then(|it| self.get_type_hint_for(it))?;
+
+        let llvm_type = self.llvm_index.get_associated_type(inner_type.get_name())?;
 
         let mut v = Vec::new();
         for e in elements {
             //generate with correct type hint
-            let (_, value) = element_expression_gen.generate_literal(e)?;
+            let (_, value) = self.generate_literal(e)?;
             v.push(value.as_basic_value_enum());
         }
 

@@ -562,7 +562,7 @@ pub fn compile_module<'c, T: SourceContainer>(
         //pre-process the ast (create inlined types)
         ast::pre_process(&mut parse_result);
         //index the pou
-        full_index.import(index::visitor::visit(&parse_result));
+        full_index.import(index::visitor::visit(&parse_result, id_provider.clone()));
         all_units.push((file_id, diagnostics, parse_result));
     }
 

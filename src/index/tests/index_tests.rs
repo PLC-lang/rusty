@@ -2,6 +2,7 @@
 use pretty_assertions::assert_eq;
 
 use crate::lexer;
+use crate::lexer::IdProvider;
 use crate::parser;
 use crate::parser::tests::literal_int;
 use crate::typesystem::TypeSize;
@@ -9,11 +10,12 @@ use crate::{ast::*, index::VariableType, typesystem::DataTypeInformation};
 
 macro_rules! index {
     ($code:tt) => {{
-        let lexer = crate::lexer::lex($code);
+        let ids = crate::lexer::IdProvider::new();
+        let lexer = crate::lexer::lex_with_ids($code, ids.clone());
         let (mut ast, ..) = crate::parser::parse(lexer);
 
         crate::ast::pre_process(&mut ast);
-        crate::index::visitor::visit(&ast)
+        crate::index::visitor::visit(&ast, ids.clone())
     }};
 }
 
@@ -1409,10 +1411,11 @@ fn global_initializers_are_stored_in_the_const_expression_arena() {
         END_VAR
         ";
     // WHEN the program is indexed
-    let (mut ast, ..) = crate::parser::parse(crate::lexer::lex(src));
+    let ids = IdProvider::new();
+    let (mut ast, ..) = crate::parser::parse(crate::lexer::lex_with_ids(src, ids.clone()));
 
     crate::ast::pre_process(&mut ast);
-    let index = crate::index::visitor::visit(&ast);
+    let index = crate::index::visitor::visit(&ast, ids.clone());
 
     // THEN I expect the index to contain cosntant expressions (x+1), (y+1) and (z+1) as const expressions
     // associated with the initial values of the globals
@@ -1452,10 +1455,11 @@ fn local_initializers_are_stored_in_the_const_expression_arena() {
         END_PROGRAM
         ";
     // WHEN the program is indexed
-    let (mut ast, ..) = crate::parser::parse(crate::lexer::lex(src));
+    let ids = IdProvider::new();
+    let (mut ast, ..) = crate::parser::parse(crate::lexer::lex_with_ids(src, ids.clone()));
 
     crate::ast::pre_process(&mut ast);
-    let index = crate::index::visitor::visit(&ast);
+    let index = crate::index::visitor::visit(&ast, ids.clone());
 
     // THEN I expect the index to contain cosntant expressions (x+1), (y+1) and (z+1) as const expressions
     // associated with the initial values of the members
@@ -1489,10 +1493,11 @@ fn datatype_initializers_are_stored_in_the_const_expression_arena() {
         TYPE MyInt : INT := 7 + x;
         ";
     // WHEN the program is indexed
-    let (mut ast, ..) = crate::parser::parse(crate::lexer::lex(src));
+    let ids = IdProvider::new();
+    let (mut ast, ..) = crate::parser::parse(crate::lexer::lex_with_ids(src, ids.clone()));
 
     crate::ast::pre_process(&mut ast);
-    let index = crate::index::visitor::visit(&ast);
+    let index = crate::index::visitor::visit(&ast, ids.clone());
 
     // THEN I expect the index to contain cosntant expressions (7+x) as const expressions
     // associated with the initial values of the type
@@ -1512,10 +1517,11 @@ fn array_dimensions_are_stored_in_the_const_expression_arena() {
         TYPE MyInt : ARRAY[0 .. LEN-1, MIN .. MAX] OF INT;
         ";
     // WHEN the program is indexed
-    let (mut ast, ..) = crate::parser::parse(crate::lexer::lex(src));
+    let ids = IdProvider::new();
+    let (mut ast, ..) = crate::parser::parse(crate::lexer::lex_with_ids(src, ids.clone()));
 
     crate::ast::pre_process(&mut ast);
-    let index = crate::index::visitor::visit(&ast);
+    let index = crate::index::visitor::visit(&ast, ids.clone());
 
     // THEN I expect the index to contain constants expressions used in the array-dimensions
 
@@ -1592,10 +1598,11 @@ fn string_dimensions_are_stored_in_the_const_expression_arena() {
         TYPE MyString : STRING[LEN-1];
         ";
     // WHEN the program is indexed
-    let (mut ast, ..) = crate::parser::parse(crate::lexer::lex(src));
+    let ids = IdProvider::new();
+    let (mut ast, ..) = crate::parser::parse(crate::lexer::lex_with_ids(src, ids.clone()));
 
     crate::ast::pre_process(&mut ast);
-    let index = crate::index::visitor::visit(&ast);
+    let index = crate::index::visitor::visit(&ast, ids.clone());
 
     // THEN I expect the index to contain constants expressions used in the string-len
 
