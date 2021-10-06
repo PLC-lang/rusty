@@ -35,68 +35,10 @@ function check_env() {
 	fi
 }
 
-# More safety, by turning some bugs into errors.
-set -o errexit -o pipefail -o noclobber -o nounset
-
-
-OPTIONS=sorvpc
-LONGOPTS=sources,offline,release,verbose,package,container
-
-check_env
-# -activate quoting/enhanced mode (e.g. by writing out “--options”)
-# -pass arguments only via   -- "$@"   to separate them correctly
-! PARSED=$(getopt --options=$OPTIONS --longoptions=$LONGOPTS --name "$0" -- "$@")
-if [[ ${PIPESTATUS[0]} -ne 0 ]]; then
-		# e.g. return value is 1
-		#  then getopt has complained about wrong arguments to stdout
-		exit 2
-fi
-
-# read getopt’s output this way to handle the quoting right:
-eval set -- "$PARSED"
-
-while true; do
-		case "$1" in
-			-s|--sources)
-						vendor=1
-						shift
-						;;
-				-o|--offline)
-						offline=1
-						shift 
-						;;
-				-r|--release)
-						release=1
-						shift
-						;;
-				-v|--verbose)
-						debug=1
-						shift
-						;;
-				-p|--package)
-						package=1
-						shift
-						;;
-				-c|--container)
-					echo "Container set"
-						container=1
-						shift
-						;;
-				--)
-						shift
-						break
-						;;
-				*)
-						echo "Programming error"
-						exit 3
-						;;
-		esac
-done
-
-log "Running with parameters: Offline : $vendor , Offline: $offline, Check : $check, Release : $release"
 
 function build() {
 	original_location=$PWD
+	CARGO_OPTIONS=""
 
 	if [[ $debug -ne 0 ]]; then
 		CARGO_OPTIONS="$CARGO_OPTIONS --verbose"
@@ -113,6 +55,10 @@ function build() {
 	fi
 	if [[ $release -ne 0 ]]; then
 		CARGO_OPTIONS="$CARGO_OPTIONS --release"
+	fi
+	if [[ $offline -ne 0 ]]; then
+		set_offline
+		CARGO_OPTIONS="$CARGO_OPTIONS --frozen"
 	fi
 
 	# Run cargo build with release or debug flags
@@ -138,8 +84,6 @@ function generate_sources() {
 }
 
 function set_offline() {
-	# Configure dependency resolution
-	# -o/--offline=... for offline installation (Provide sources location to be used)
 	log "Vendor location set, using offline build"
 	log "Copy the offline.toml config to .cargo/config.toml"
 	make_dir .cargo
@@ -148,7 +92,6 @@ function set_offline() {
 		echo "Offline sources not found at $project_location/3rd-party"
 		exit 1
 	fi
-	CARGO_OPTIONS="$CARGO_OPTIONS --frozen"
 }
 
 function build_book() {
@@ -157,19 +100,19 @@ function build_book() {
 		book_args="-d $BUILD_DIR/output/book"
 	fi
 	# Compile the book
-	echo "Building book"
-	echo "-----------------------------------"
+	log "Building book"
+	log "-----------------------------------"
 	mdbook build $book_location $book_args
 	if [[ ${PIPESTATUS[0]} -ne 0 ]]; then
 		echo "Book Build failed"
 		exit 1
 	else 
-		echo "Done buinding book"
-		echo "-----------------------------------"
+		log "Done buinding book"
+		log "-----------------------------------"
 	fi
 }
 
-function package() {
+function package_build() {
 	log "Copying build artifact output directory"
 	folder=debug
 	if [[ $release -ne 0 ]]; then
@@ -180,27 +123,96 @@ function package() {
 }
 
 function build_in_container() {
-	container_engine=`command -v docker`
-	if [[ ! -x $container_engine ]]; then
-		container_engine=`command -v podman`
+	log "Trying docker"
+	if command -v docker &> /dev/null 
+	then
+		command_engine=`command -v docker`
+	else
+		log "Docker not found, trying docker"
 	fi
-	if [[ ! -x $container_engine ]]; then
+	# if [[ ${PIPESTATUS[0]} -ne 0 ]]; then
+	if command -v podman &> /dev/null 
+	then
+		container_engine=`command -v podman`
+	else
 		echo "Docker or podman not found"
 		exit 1
 	fi
 	log "container engine found at : $container_engine"
-	params="--package"
+	params=""
+	if [[ $package -ne 0 ]]; then
+		params="$params --package"
+	fi
 	if [[ $offline -ne 0 ]]; then
 		params="$params --offline"
 	fi
 	if [[ $debug -ne 0 ]]; then
-		params="$params --debug"
+		params="$params --verbose"
+	fi
+	if [[ $release -ne 0 ]]; then
+		params="$params --release"
 	fi
 
-	$container_engine run -it -v $project_location:/usr/local/src rust-llvm scripts/build.sh $params
+	$container_engine run -it -v $project_location:/usr/local/src -w /usr/local/src rust-llvm  /usr/local/src/scripts/build.sh $params
 
 }
 
+# More safety, by turning some bugs into errors.
+set -o errexit -o pipefail -o noclobber -o nounset
+
+
+OPTIONS=sorvpc
+LONGOPTS=sources,offline,release,verbose,package,container
+
+check_env
+# -activate quoting/enhanced mode (e.g. by writing out “--options”)
+# -pass arguments only via   -- "$@"   to separate them correctly
+! PARSED=$(getopt --options=$OPTIONS --longoptions=$LONGOPTS --name "$0" -- "$@")
+if [[ ${PIPESTATUS[0]} -ne 0 ]]; then
+		# e.g. return value is 1
+		#  then getopt has complained about wrong arguments to stdout
+		exit 2
+fi
+
+# read getopt’s output this way to handle the quoting right:
+eval set -- "$PARSED"
+
+while true; do
+		case "$1" in
+			-s|--sources)
+					vendor=1
+					shift
+					;;
+			-o|--offline)
+					offline=1
+					shift 
+					;;
+			-r|--release)
+					release=1
+					shift
+					;;
+			-v|--verbose)
+					debug=1
+					shift
+					;;
+			-p|--package)
+					package=1
+					shift
+					;;
+			-c|--container)
+					container=1
+					shift
+					;;
+			--)
+					shift
+					break
+					;;
+			*)
+					echo "Programming error"
+					exit 3
+					;;
+		esac
+done
 
 log "Locating project root"
 project_location=`cargo locate-project --message-format plain`
@@ -213,24 +225,22 @@ cd $project_location
 
 
 if [[ $container -ne 0 ]]; then
-	echo "Container Build"
+	log "Container Build"
 	build_in_container
 	exit 0
 fi
 
 if [[ $vendor -ne 0 ]]; then
 	generate_sources
+	exit 0
 fi
 
-if [[ $offline -ne 0 ]]; then
-	set_offline
-fi
 
 build
 build_book
 
 if [[ $package -ne 0 ]]; then
-	package
+	package_build
 fi
 echo "Done"
 echo "======================================"
