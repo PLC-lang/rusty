@@ -1,4 +1,5 @@
 use core::panic;
+use std::any::Any;
 
 use crate::{
     ast::{AstStatement, DataType, Pou, UserTypeDeclaration},
@@ -7,7 +8,7 @@ use crate::{
         tests::{annotate, parse},
         AnnotationMap, StatementAnnotation,
     },
-    typesystem::VOID_TYPE,
+    typesystem::{self, BYTE_TYPE, DINT_TYPE, SINT_SIZE, SINT_TYPE, VOID_TYPE},
 };
 
 #[test]
@@ -869,7 +870,7 @@ fn function_parameter_assignments_resolve_types() {
     );
     assert_eq!(
         annotations.get_annotation(&statements[0]),
-        Some(&StatementAnnotation::expression("INT"))
+        Some(&StatementAnnotation::value("INT"))
     );
     if let AstStatement::CallStatement {
         operator,
@@ -986,15 +987,15 @@ fn type_initial_values_are_resolved() {
 
     if let DataType::StructType { variables, .. } = data_type {
         assert_eq!(
-            Some(&StatementAnnotation::expression("DINT")),
+            Some(&StatementAnnotation::value("DINT")),
             annotations.get(variables[0].initializer.as_ref().unwrap())
         );
         assert_eq!(
-            Some(&StatementAnnotation::expression("BOOL")),
+            Some(&StatementAnnotation::value("BOOL")),
             annotations.get(variables[1].initializer.as_ref().unwrap())
         );
         assert_eq!(
-            Some(&StatementAnnotation::expression("STRING")),
+            Some(&StatementAnnotation::value("STRING")),
             annotations.get(variables[2].initializer.as_ref().unwrap())
         );
     } else {
@@ -1090,7 +1091,7 @@ fn method_references_are_resolved() {
             annotations.get(operator)
         );
         assert_eq!(
-            Some(&StatementAnnotation::expression("INT")),
+            Some(&StatementAnnotation::value("INT")),
             annotations.get(method_call)
         );
     } else {
@@ -1549,25 +1550,30 @@ fn data_type_initializers_multiplied_statement_type_hint_test() {
     let annotations = annotate(&unit, &index);
 
     // THEN the members's initializers have correct type-hints
-    if let Some(initializer) = &unit.types[0].initializer {
+    if let Some(my_array_initializer) = &unit.types[0].initializer {
+        let my_array_type = index.get_type("MyArray").unwrap();
         assert_eq!(
-            Some(index.get_type("MyArray").unwrap()),
-            annotations.get_type_hint(initializer, &index)
+            Some(my_array_type),
+            annotations.get_type_hint(my_array_initializer, &index)
         );
 
-        let initializer = index.get_type("MyArray").unwrap().initial_value.unwrap();
+        let my_array_type_const_initializer = my_array_type.initial_value.unwrap();
         if let AstStatement::LiteralArray {
-            elements: Some(exp_list),
+            elements: Some(multiplied_statement),
             ..
         } = index
             .get_const_expressions()
-            .get_constant_statement(&initializer)
+            .get_constant_statement(&my_array_type_const_initializer)
             .unwrap()
         {
-            for ele in AstStatement::get_as_list(exp_list) {
+            if let AstStatement::MultipliedStatement {
+                element: literal_seven,
+                ..
+            } = multiplied_statement.as_ref()
+            {
                 assert_eq!(
-                    index.get_type("BYTE").unwrap(),
-                    annotations.get_type_hint(ele, &index).unwrap()
+                    index.find_type(BYTE_TYPE),
+                    annotations.get_type_hint(literal_seven, &index)
                 );
             }
         } else {
@@ -1578,28 +1584,30 @@ fn data_type_initializers_multiplied_statement_type_hint_test() {
     }
 
     //same checks for the global a
-    if let Some(initializer) = &unit.global_vars[0].variables[0].initializer {
+    if let Some(a_initializer) = &unit.global_vars[0].variables[0].initializer {
         let global = index.find_global_variable("a").unwrap();
         assert_eq!(
             index.find_effective_type_by_name(global.get_type_name()),
-            annotations.get_type_hint(initializer, &index)
+            annotations.get_type_hint(a_initializer, &index)
         );
 
-        let initializer = global.initial_value.unwrap();
+        let global_var_const_initializer = global.initial_value.unwrap();
         if let AstStatement::LiteralArray {
-            elements: Some(exp_list),
+            elements: Some(multiplied_statement),
             ..
         } = index
             .get_const_expressions()
-            .get_constant_statement(&initializer)
+            .get_constant_statement(&global_var_const_initializer)
             .unwrap()
         {
-            let elements = AstStatement::get_as_list(exp_list);
-            assert!(!elements.is_empty());
-            for ele in elements{
+            if let AstStatement::MultipliedStatement {
+                element: literal_seven,
+                ..
+            } = multiplied_statement.as_ref()
+            {
                 assert_eq!(
-                    index.get_type("BYTE").unwrap(),
-                    annotations.get_type_hint(ele, &index).unwrap()
+                    index.find_type(BYTE_TYPE),
+                    annotations.get_type_hint(literal_seven, &index)
                 );
             }
         } else {
@@ -1607,5 +1615,93 @@ fn data_type_initializers_multiplied_statement_type_hint_test() {
         }
     } else {
         unreachable!()
+    }
+}
+
+#[test]
+fn case_conditions_type_hint_test() {
+    //GIVEN a Switch-Case statement
+    let (unit, index) = parse(
+        "
+        PROGRAM prg 
+        VAR
+            x : BYTE;
+            y : BYTE;
+        END_VAR
+        CASE x OF
+            1: y := 1;
+            2: y := 2;
+            3: y := 3;
+        ELSE
+            y := 0;
+        END_CASE
+        END_PROGRAM
+       ",
+    );
+
+    // WHEN this code is annotated
+    let annotations = annotate(&unit, &index);
+
+    // THEN we want the case-bocks (1:, 2: , 3:) to have the type hint of the case-selector (x) - in this case BYTE
+
+    //check if 'CASE x' got the type BYTE
+    if let AstStatement::CaseStatement {
+        selector,
+        case_blocks,
+        ..
+    } = &unit.implementations[0].statements[0]
+    {
+        let type_of_x = annotations.get_type(selector, &index).unwrap();
+
+        assert_eq!(type_of_x, index.get_type(BYTE_TYPE).unwrap());
+
+        for b in case_blocks {
+            let type_hint = annotations
+                .get_type_hint(b.condition.as_ref(), &index)
+                .unwrap();
+            assert_eq!(type_hint, type_of_x);
+        }
+    } else {
+        unreachable!()
+    }
+}
+
+#[test]
+fn range_type_min_max_type_hint_test() {
+    //GIVEN a Switch-Case statement
+    let (unit, index) = parse(
+        "
+            TYPE MyInt: SINT(0..100); END_TYPE
+        ",
+    );
+
+    // WHEN this code is annotated
+    let annotations = annotate(&unit, &index);
+
+    // THEN we want the range-limits (0 and 100) to have proper type-associations
+    if let DataType::SubRangeType {
+        bounds: Some(AstStatement::RangeStatement { start, end, .. }),
+        ..
+    } = &unit.types[0].data_type
+    {
+        //lets see if start and end got their type-annotations
+        assert_eq!(
+            annotations.get_type(start.as_ref(), &index),
+            index.find_type(DINT_TYPE)
+        );
+        assert_eq!(
+            annotations.get_type(end.as_ref(), &index),
+            index.find_type(DINT_TYPE)
+        );
+        
+        //lets see if start and end got their type-HINT-annotations
+        assert_eq!(
+            annotations.get_type_hint(start.as_ref(), &index),
+            index.find_type(SINT_TYPE)
+        );
+        assert_eq!(
+            annotations.get_type_hint(end.as_ref(), &index),
+            index.find_type(SINT_TYPE)
+        );
     }
 }

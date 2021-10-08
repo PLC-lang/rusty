@@ -869,7 +869,7 @@ source_filename = "main"
 
 %prg_interface = type { i16, i16, i32 }
 
-@prg_instance = global %prg_interface { i16 0, i32 1, i32 2 }
+@prg_instance = global %prg_interface { i16 0, i16 1, i32 2 }
 
 define void @prg(%prg_interface* %0) {
 entry:
@@ -5178,7 +5178,7 @@ source_filename = "main"
 }
 
 #[test]
-fn initial_values_different_data_types() {
+fn struct_initial_values_different_data_types() {
     let result = codegen!(
         "
         TYPE MyStruct:

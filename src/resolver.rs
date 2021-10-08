@@ -123,7 +123,7 @@ pub enum StatementAnnotation {
 }
 
 impl StatementAnnotation {
-    pub fn expression(type_name: &str) -> StatementAnnotation {
+    pub fn value(type_name: &str) -> StatementAnnotation {
         StatementAnnotation::Value {
             resulting_type: type_name.to_string(),
         }
@@ -294,9 +294,10 @@ impl<'i> TypeAnnotator<'i> {
         user_data_type: &UserTypeDeclaration,
         ctx: &VisitorContext,
     ) {
+
+        self.visit_data_type(ctx, &user_data_type.data_type);
         if let Some(name) = user_data_type.data_type.get_name() {
             let ctx = &ctx.with_pou(name);
-            self.visit_data_type(ctx, &user_data_type.data_type);
             if let Some((initializer, name)) = user_data_type
                 .initializer
                 .as_ref()
@@ -352,32 +353,44 @@ impl<'i> TypeAnnotator<'i> {
                 elements: Some(elements),
                 ..
             } => {
+                //annotate the literal-array itself
                 self.annotation_map.annotate_type_hint(
                     statement,
-                    StatementAnnotation::Value {
-                        resulting_type: expected_type.name.clone(),
-                    },
+                    StatementAnnotation::value(expected_type.get_name()),
                 );
                 //TODO exprssionList and MultipliedExpressions are a mess!
-                if matches!(elements.as_ref(), AstStatement::ExpressionList{..} | AstStatement::MultipliedStatement{..}) {
+                if matches!(
+                    elements.as_ref(),
+                    AstStatement::ExpressionList { .. } | AstStatement::MultipliedStatement { .. }
+                ) {
                     self.annotation_map.annotate_type_hint(
                         elements,
-                        StatementAnnotation::Value {
-                            resulting_type: expected_type.name.clone(),
-                        },
+                        StatementAnnotation::value(expected_type.get_name()),
                     );
                 }
-
-                //check array-elements
+                //annotate the array's member elements with the array's inner type
                 if let DataTypeInformation::Array {
                     inner_type_name, ..
                 } = expected_type.get_type_information()
                 {
-                    println!("{:}", inner_type_name);
                     if let Some(inner_type) =
                         self.index.find_effective_type_by_name(inner_type_name)
                     {
                         self.update_expected_types(inner_type, elements);
+                    }
+                }
+            }
+            AstStatement::Assignment {
+                left, right, ..
+            } => {
+                //struct initialization (left := right)
+                //find out left's type and update a type hint for right
+                if let (typesystem::DataTypeInformation::Struct { name: qualifier, ..},
+                        AstStatement::Reference{name: variable_name, ..} ) = (expected_type.get_type_information(), left.as_ref()) {
+                    if let Some(v) = self.index.find_member(qualifier, variable_name) {
+                        if let Some(target_type) = self.index.find_type(v.get_type_name()) {
+                            self.update_expected_types(target_type, right);
+                        }
                     }
                 }
             }
@@ -396,16 +409,15 @@ impl<'i> TypeAnnotator<'i> {
                     self.update_expected_types(expected_type, ele);
                 }
             }
-            _ =>
-            //annotate the statement
-            {
-
-                println!("leaf: {:} - {:#?}", expected_type.get_name(), statement);
+            AstStatement::RangeStatement { start, end, ..} => {
+                self.update_expected_types(expected_type, start);
+                self.update_expected_types(expected_type, end);
+            }
+            _ => {
+                //annotate the statement, whatever it is
                 self.annotation_map.annotate_type_hint(
                     statement,
-                    StatementAnnotation::Value {
-                        resulting_type: expected_type.name.clone(),
-                    },
+                    StatementAnnotation::value(expected_type.get_name()),
                 )
             }
         }
@@ -442,8 +454,9 @@ impl<'i> TypeAnnotator<'i> {
 
     fn visit_data_type(&mut self, ctx: &VisitorContext, data_type: &DataType) {
         match data_type {
-            DataType::StructType { variables, .. } => {
-                variables.iter().for_each(|v| self.visit_variable(ctx, v))
+            DataType::StructType {name: Some(name), variables, .. } => {
+                let ctx = ctx.with_qualifier(name.clone());
+                variables.iter().for_each(|v| self.visit_variable(&ctx, v))
             }
             DataType::ArrayType {
                 referenced_type, ..
@@ -453,7 +466,14 @@ impl<'i> TypeAnnotator<'i> {
             } => {
                 self.visit_data_type_declaration(ctx, referenced_type.as_ref());
             }
-            _ => {}
+            DataType::SubRangeType {  referenced_type, bounds: Some(bounds) , ..} => {
+                if let Some(expected_type) = self.index.find_effective_type_by_name(referenced_type){
+                    self.visit_statement(ctx, bounds);
+                    self.update_expected_types(expected_type, bounds);
+                }
+            }
+            _ => {
+            }
         }
     }
 
@@ -506,8 +526,12 @@ impl<'i> TypeAnnotator<'i> {
                 ..
             } => {
                 self.visit_statement(ctx, selector);
+                let selector_type = self.annotation_map.get_type(selector, self.index);
                 case_blocks.iter().for_each(|b| {
                     self.visit_statement(ctx, b.condition.as_ref());
+                    if let Some(selector_type) = selector_type {
+                        self.update_expected_types(selector_type, b.condition.as_ref());
+                    }
                     b.body.iter().for_each(|s| self.visit_statement(ctx, s));
                 });
                 else_block.iter().for_each(|s| self.visit_statement(ctx, s));
@@ -540,7 +564,7 @@ impl<'i> TypeAnnotator<'i> {
                         .get_name();
 
                     self.annotation_map
-                        .annotate(statement, StatementAnnotation::expression(t));
+                        .annotate(statement, StatementAnnotation::value(t));
                 }
             }
             AstStatement::PointerAccess { reference, .. } => {
@@ -558,7 +582,7 @@ impl<'i> TypeAnnotator<'i> {
                         .get_effective_type_by_name(inner_type_name)
                         .get_name();
                     self.annotation_map
-                        .annotate(statement, StatementAnnotation::expression(t));
+                        .annotate(statement, StatementAnnotation::value(t));
                 }
             }
             AstStatement::DirectAccess { access, index, .. } => {
@@ -608,7 +632,7 @@ impl<'i> TypeAnnotator<'i> {
                 if left.is_numerical() && right.is_numerical() {
                     let bigger_name = get_bigger_type_borrow(left, right, self.index).get_name();
                     self.annotation_map
-                        .annotate(statement, StatementAnnotation::expression(bigger_name));
+                        .annotate(statement, StatementAnnotation::value(bigger_name));
                 }
             }
             AstStatement::UnaryExpression {
@@ -622,17 +646,13 @@ impl<'i> TypeAnnotator<'i> {
                 if operator == &Operator::Minus {
                     //keep the same type but switch to signed
                     if let Some(target) = typesystem::get_signed_type(inner_type, self.index) {
-                        self.annotation_map.annotate(
-                            statement,
-                            StatementAnnotation::expression(target.get_name()),
-                        );
+                        self.annotation_map
+                            .annotate(statement, StatementAnnotation::value(target.get_name()));
                     }
                 } else {
                     //TODO: The adderss operator should report a correct pointer type. We need to have reproducable type names for that first.
-                    self.annotation_map.annotate(
-                        statement,
-                        StatementAnnotation::expression(inner_type.get_name()),
-                    );
+                    self.annotation_map
+                        .annotate(statement, StatementAnnotation::value(inner_type.get_name()));
                 }
             }
             AstStatement::Reference { name, .. } => {
@@ -823,7 +843,7 @@ impl<'i> TypeAnnotator<'i> {
                         .map(|it| it.get_name())
                     {
                         self.annotation_map
-                            .annotate(statement, StatementAnnotation::expression(return_type));
+                            .annotate(statement, StatementAnnotation::value(return_type));
                     }
                 }
             }
@@ -842,14 +862,14 @@ impl<'i> TypeAnnotator<'i> {
                         .get_type_or_void(target, self.index)
                         .get_name();
                     self.annotation_map
-                        .annotate(statement, StatementAnnotation::expression(type_name));
+                        .annotate(statement, StatementAnnotation::value(type_name));
                 } else if let Some(t) = data_type {
                     //different cast
                     self.annotation_map
-                        .annotate(statement, StatementAnnotation::expression(t.get_name()));
+                        .annotate(statement, StatementAnnotation::value(t.get_name()));
                     //overwrite the existing annotation
                     self.annotation_map
-                        .annotate(target, StatementAnnotation::expression(t.get_name()))
+                        .annotate(target, StatementAnnotation::value(t.get_name()))
                 } else {
                     //unknown type? what should we do here?
                     self.visit_statement(ctx, target);
@@ -866,41 +886,39 @@ impl<'i> TypeAnnotator<'i> {
         match statement {
             AstStatement::LiteralBool { .. } => {
                 self.annotation_map
-                    .annotate(statement, StatementAnnotation::expression(BOOL_TYPE));
+                    .annotate(statement, StatementAnnotation::value(BOOL_TYPE));
             }
 
             AstStatement::LiteralString { is_wide, .. } => {
                 let string_type_name = if *is_wide { WSTRING_TYPE } else { STRING_TYPE };
                 self.annotation_map
-                    .annotate(statement, StatementAnnotation::expression(string_type_name));
+                    .annotate(statement, StatementAnnotation::value(string_type_name));
             }
             AstStatement::LiteralInteger { value, .. } => {
                 self.annotation_map.annotate(
                     statement,
-                    StatementAnnotation::expression(get_int_type_name_for(*value)),
+                    StatementAnnotation::value(get_int_type_name_for(*value)),
                 );
             }
             AstStatement::LiteralTime { .. } => self
                 .annotation_map
-                .annotate(statement, StatementAnnotation::expression(TIME_TYPE)),
+                .annotate(statement, StatementAnnotation::value(TIME_TYPE)),
             AstStatement::LiteralTimeOfDay { .. } => {
                 self.annotation_map
-                    .annotate(statement, StatementAnnotation::expression(TIME_OF_DAY_TYPE));
+                    .annotate(statement, StatementAnnotation::value(TIME_OF_DAY_TYPE));
             }
             AstStatement::LiteralDate { .. } => {
                 self.annotation_map
-                    .annotate(statement, StatementAnnotation::expression(DATE_TYPE));
+                    .annotate(statement, StatementAnnotation::value(DATE_TYPE));
             }
             AstStatement::LiteralDateAndTime { .. } => {
-                self.annotation_map.annotate(
-                    statement,
-                    StatementAnnotation::expression(DATE_AND_TIME_TYPE),
-                );
+                self.annotation_map
+                    .annotate(statement, StatementAnnotation::value(DATE_AND_TIME_TYPE));
             }
             AstStatement::LiteralReal { .. } => {
                 //TODO when do we need a LREAL literal?
                 self.annotation_map
-                    .annotate(statement, StatementAnnotation::expression(REAL_TYPE));
+                    .annotate(statement, StatementAnnotation::value(REAL_TYPE));
             }
             AstStatement::LiteralArray {
                 elements: Some(elements),
