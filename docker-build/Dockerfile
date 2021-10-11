@@ -18,6 +18,9 @@ RUN rustup component add clippy
 
 RUN cargo install mdbook
 
-#RUN cargo install cargo-watch #Activate this for local builds to enable watching
+WORKDIR /build
+ENTRYPOINT ["/usr/bin/bash"]
 
+#Activate this for local builds to enable watching
+#RUN cargo install cargo-watch 
 #ENTRYPOINT ["cargo"]

@@ -12,6 +12,19 @@ container=0
 
 debug=0
 
+machine=None
+unameOut="$(uname -s)"
+case "${unameOut}" in
+    Linux*)     machine=Linux;;
+    MINGW*)     machine=Windows;;
+esac
+
+if [ "{$machine}" == "None" ]; then
+				log "Unkown system : $unameOut"
+				exit 1
+fi
+
+
 function log() {
 	if [[ $debug -ne 0 ]]; then
 		echo $1
@@ -126,17 +139,16 @@ function build_in_container() {
 	log "Trying docker"
 	if command -v docker &> /dev/null 
 	then
-		command_engine=`command -v docker`
+		container_engine=docker
 	else
-		log "Docker not found, trying docker"
-	fi
-	# if [[ ${PIPESTATUS[0]} -ne 0 ]]; then
-	if command -v podman &> /dev/null 
-	then
-		container_engine=`command -v podman`
-	else
-		echo "Docker or podman not found"
-		exit 1
+		log "Docker not found, trying podman"
+	  if command -v podman &> /dev/null 
+	  then
+	  	container_engine=podman
+	  else
+		  echo "Docker or podman not found"
+		  exit 1
+	  fi
 	fi
 	log "container engine found at : $container_engine"
 	params=""
@@ -153,7 +165,13 @@ function build_in_container() {
 		params="$params --release"
 	fi
 
-	$container_engine run -it -v $project_location:/usr/local/src -w /usr/local/src rust-llvm  /usr/local/src/scripts/build.sh $params
+	volume_target="/build"
+	if [ "$machine" == "Windows" ]; then
+					log "Running on Windofs, setting build directory to C:\Build"
+					volume_target="C:\\build"
+	fi
+
+	$container_engine run -it -v $project_location:$volume_target rust-llvm  scripts/build.sh $params
 
 }
 
