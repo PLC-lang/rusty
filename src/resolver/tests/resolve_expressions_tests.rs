@@ -1693,7 +1693,7 @@ fn range_type_min_max_type_hint_test() {
             annotations.get_type(end.as_ref(), &index),
             index.find_type(DINT_TYPE)
         );
-        
+
         //lets see if start and end got their type-HINT-annotations
         assert_eq!(
             annotations.get_type_hint(start.as_ref(), &index),
@@ -1703,5 +1703,143 @@ fn range_type_min_max_type_hint_test() {
             annotations.get_type_hint(end.as_ref(), &index),
             index.find_type(SINT_TYPE)
         );
+    }
+}
+
+#[test]
+fn struct_variable_initialization_annotates_initializer() {
+    //GIVEN a STRUCT type and global variables of this type
+    let (unit, index) = parse(
+        "
+        TYPE MyStruct: STRUCT
+          a: DINT; b: DINT;
+        END_STRUCT END_TYPE
+
+         VAR_GLOBAL 
+           a : MyStruct  := (a:=3, b:=5); 
+           b : MyStruct  := (a:=3); 
+         END_VAR
+         ",
+    );
+
+    // WHEN this code is annotated
+    let annotations = annotate(&unit, &index);
+
+    // THEN we want the whole initializer to have a type-hint of 'MyStruct'
+    {
+        let initializer = index
+            .find_global_variable("a")
+            .unwrap()
+            .initial_value
+            .and_then(|i| index.get_const_expressions().get_constant_statement(&i))
+            .unwrap();
+
+        assert_eq!(
+            annotations.get_type_hint(initializer, &index),
+            index.find_effective_type_by_name("MyStruct")
+        );
+    }
+    {
+        let initializer = index
+            .find_global_variable("b")
+            .unwrap()
+            .initial_value
+            .and_then(|i| index.get_const_expressions().get_constant_statement(&i))
+            .unwrap();
+
+        assert_eq!(
+            annotations.get_type_hint(initializer, &index),
+            index.find_effective_type_by_name("MyStruct")
+        );
+    }
+}
+
+#[test]
+fn deep_struct_variable_initialization_annotates_initializer() {
+    //GIVEN a 2 lvl-STRUCT type and global variables of this type
+    let (unit, index) = parse(
+        "
+        TYPE Point: STRUCT
+          a: BYTE; b: SINT;
+        END_STRUCT END_TYPE
+
+        Type MyStruct: STRUCT
+            v: Point; q: Point;
+        END_STRUCT END_TYPE
+
+         VAR_GLOBAL 
+           a : MyStruct  := (
+               v := (a := 1, b := 2), 
+               q := (b := 3)); 
+         END_VAR
+         ",
+    );
+
+    // WHEN this code is annotated
+    let annotations = annotate(&unit, &index);
+
+    // THEN we want the whole initializer to have a type-hint of 'MyStruct'
+    let initializer = index
+        .find_global_variable("a")
+        .unwrap()
+        .initial_value
+        .and_then(|i| index.get_const_expressions().get_constant_statement(&i))
+        .unwrap();
+
+    assert_eq!(
+        annotations.get_type_hint(initializer, &index),
+        index.find_effective_type_by_name("MyStruct")
+    );
+
+    //check the initializer-part
+    if let AstStatement::ExpressionList { expressions, .. } = initializer {
+        // v := (a := 1, b := 2)
+        if let AstStatement::Assignment { left, right, .. } = &expressions[0] {
+            assert_eq!(
+                annotations.get_type(left, &index),
+                index.find_effective_type_by_name("Point")
+            );
+            assert_eq!(
+                annotations.get_type_hint(right, &index),
+                index.find_effective_type_by_name("Point")
+            );
+
+            // (a := 1, b := 2)
+            if let AstStatement::ExpressionList { expressions, .. } = right.as_ref() {
+                // a := 1
+                if let AstStatement::Assignment { left, right, .. } = &expressions[0] {
+                    assert_eq!(
+                        annotations.get_type(left.as_ref(), &index),
+                        index.find_effective_type_by_name("BYTE")
+                    );
+                    assert_eq!(
+                        annotations.get_type_hint(right.as_ref(), &index),
+                        index.find_effective_type_by_name("BYTE")
+                    );
+                } else {
+                    unreachable!()
+                }
+
+                // b := 2
+                if let AstStatement::Assignment { left, right, .. } = &expressions[1] {
+                    assert_eq!(
+                        annotations.get_type(left.as_ref(), &index),
+                        index.find_effective_type_by_name("SINT")
+                    );
+                    assert_eq!(
+                        annotations.get_type_hint(right.as_ref(), &index),
+                        index.find_effective_type_by_name("SINT")
+                    );
+                } else {
+                    unreachable!()
+                }
+            } else {
+                unreachable!()
+            }
+        } else {
+            unreachable!()
+        }
+    } else {
+        unreachable!()
     }
 }

@@ -282,15 +282,16 @@ fn visit_data_type(index: &mut Index, id_provider: &mut IdProvider, type_declata
             index.register_type(enum_name.as_str(), init, information);
 
             elements.iter().enumerate().for_each(|(i, v)| {
-                let init = index.get_mut_const_expressions().add_constant_expression(
-                    ast::AstStatement::LiteralInteger {
+                let enum_literal = ast::AstStatement::LiteralInteger {
                         value: i as i128,
                         location: SourceRange::undefined(),
                         id: id_provider.next_id(),
-                    },
+                    };
+                let init = index.get_mut_const_expressions().add_constant_expression(enum_literal,
                     typesystem::INT_TYPE.to_string(),
                     None,
                 );
+                
                 index.register_enum_element(
                     v,
                     enum_name.as_str(),

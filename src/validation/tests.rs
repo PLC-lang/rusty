@@ -14,7 +14,7 @@ pub fn parse_and_validate(src: &str) -> Vec<Diagnostic> {
     let ids = IdProvider::new();
     let (mut ast, _) = parse(lex_with_ids(src, ids.clone()));
     ast::pre_process(&mut ast);
-    idx.import(index::visitor::visit(&ast, ids.clone()));
+    idx.import(index::visitor::visit(&ast, ids));
 
     let (idx, _) = resolver::const_evaluator::evaluate_constants(idx);
 

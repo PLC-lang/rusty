@@ -94,7 +94,7 @@ pub enum ErrNo {
 
     //type related
     type__literal_out_of_range,
-    type__inompatible_literal_cast,
+    type__incompatible_literal_cast,
     type__incompatible_directaccess,
     type__incompatible_directaccess_variable,
     type__incompatible_directaccess_range,
@@ -228,7 +228,7 @@ impl Diagnostic {
                 literal_type, cast_type
             ),
             range: location,
-            err_no: ErrNo::type__inompatible_literal_cast,
+            err_no: ErrNo::type__incompatible_literal_cast,
         }
     }
 

@@ -287,6 +287,41 @@ fn casted_inner_literals_are_annotated() {
 }
 
 #[test]
+fn casted_literals_enums_are_annotated_correctly() {
+    let (unit, index) = parse(
+        "
+            TYPE Color: (red, green, blue); END_TYPE
+            PROGRAM PRG
+                Color#red;
+                Color#green;
+                Color#blue;
+            END_PROGRAM",
+    );
+    let annotations = annotate(&unit, &index);
+    let statements = &unit.implementations[0].statements;
+
+    let expected_types = vec![
+        "Color", "Color", "Color"
+    ];
+    let actual_types: Vec<&str> = statements
+        .iter()
+        .map(|it| {
+            if let AstStatement::CastStatement { target, .. } = it {
+                target
+            } else {
+                unreachable!();
+            }
+        })
+        .map(|it| annotations.get_type_or_void(it, &index).get_name())
+        .collect();
+
+    assert_eq!(
+        format!("{:#?}", expected_types),
+        format!("{:#?}", actual_types),
+    )
+}
+
+#[test]
 fn expression_list_members_are_annotated() {
     let (unit, index) = parse(
         "PROGRAM PRG

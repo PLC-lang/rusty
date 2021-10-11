@@ -272,14 +272,15 @@ impl<'i> TypeAnnotator<'i> {
                 .for_each(|s| visitor.visit_statement(&ctx.with_pou(i.name.as_str()), s));
         }
 
+        /// enum initializers may have been introduced by the visitor (indexer)
+        /// so we shoul try to resolve and type-annotate them here as well
         for (_, enum_element) in index.get_global_qualified_enums() {
-            if let Some(ConstExpression::Unresolved { statement, scope }) = enum_element
+            if let Some((Some(statement), scope)) = enum_element
                 .initial_value
-                .and_then(|i| index.get_const_expressions().find_const_expression(&i))
+                .map(|i| index.get_const_expressions().find_expression(&i))
             {
                 if let Some(scope) = scope {
-                    let scoped_ctx = ctx.with_pou(scope.as_str());
-                    visitor.visit_statement(&scoped_ctx, statement);
+                    visitor.visit_statement(&ctx.with_pou(scope), statement);
                 } else {
                     visitor.visit_statement(ctx, statement);
                 }
@@ -294,7 +295,6 @@ impl<'i> TypeAnnotator<'i> {
         user_data_type: &UserTypeDeclaration,
         ctx: &VisitorContext,
     ) {
-
         self.visit_data_type(ctx, &user_data_type.data_type);
         if let Some(name) = user_data_type.data_type.get_name() {
             let ctx = &ctx.with_pou(name);
@@ -336,6 +336,11 @@ impl<'i> TypeAnnotator<'i> {
             .annotation_map
             .get_type(annotated_left_side, self.index)
         {
+            //annotate the right-hand side as a whole
+            self.annotation_map
+                .annotate_type_hint(right_side, StatementAnnotation::value(t.get_name()));
+
+            //dive into the right hand side
             self.update_expected_types(t, right_side);
         }
     }
@@ -380,15 +385,29 @@ impl<'i> TypeAnnotator<'i> {
                     }
                 }
             }
-            AstStatement::Assignment {
-                left, right, ..
-            } => {
+            AstStatement::Assignment { left, right, .. } => {
                 //struct initialization (left := right)
                 //find out left's type and update a type hint for right
-                if let (typesystem::DataTypeInformation::Struct { name: qualifier, ..},
-                        AstStatement::Reference{name: variable_name, ..} ) = (expected_type.get_type_information(), left.as_ref()) {
+                if let (
+                    typesystem::DataTypeInformation::Struct {
+                        name: qualifier, ..
+                    },
+                    AstStatement::Reference {
+                        name: variable_name,
+                        ..
+                    },
+                ) = (expected_type.get_type_information(), left.as_ref())
+                {
                     if let Some(v) = self.index.find_member(qualifier, variable_name) {
                         if let Some(target_type) = self.index.find_type(v.get_type_name()) {
+                            self.annotation_map.annotate(
+                                left.as_ref(),
+                                StatementAnnotation::value(v.get_type_name()),
+                            );
+                            self.annotation_map.annotate_type_hint(
+                                right.as_ref(),
+                                StatementAnnotation::value(v.get_type_name()),
+                            );
                             self.update_expected_types(target_type, right);
                         }
                     }
@@ -409,7 +428,7 @@ impl<'i> TypeAnnotator<'i> {
                     self.update_expected_types(expected_type, ele);
                 }
             }
-            AstStatement::RangeStatement { start, end, ..} => {
+            AstStatement::RangeStatement { start, end, .. } => {
                 self.update_expected_types(expected_type, start);
                 self.update_expected_types(expected_type, end);
             }
@@ -437,6 +456,10 @@ impl<'i> TypeAnnotator<'i> {
                 .find_variable(qualifier, &[variable.name.as_str()])
                 .and_then(|ve| self.index.find_effective_type_by_name(ve.get_type_name()))
             {
+                self.annotation_map.annotate_type_hint(
+                    initializer,
+                    StatementAnnotation::value(expected_type.get_name()),
+                );
                 self.update_expected_types(expected_type, initializer);
             }
         }
@@ -454,7 +477,11 @@ impl<'i> TypeAnnotator<'i> {
 
     fn visit_data_type(&mut self, ctx: &VisitorContext, data_type: &DataType) {
         match data_type {
-            DataType::StructType {name: Some(name), variables, .. } => {
+            DataType::StructType {
+                name: Some(name),
+                variables,
+                ..
+            } => {
                 let ctx = ctx.with_qualifier(name.clone());
                 variables.iter().for_each(|v| self.visit_variable(&ctx, v))
             }
@@ -466,14 +493,18 @@ impl<'i> TypeAnnotator<'i> {
             } => {
                 self.visit_data_type_declaration(ctx, referenced_type.as_ref());
             }
-            DataType::SubRangeType {  referenced_type, bounds: Some(bounds) , ..} => {
-                if let Some(expected_type) = self.index.find_effective_type_by_name(referenced_type){
+            DataType::SubRangeType {
+                referenced_type,
+                bounds: Some(bounds),
+                ..
+            } => {
+                if let Some(expected_type) = self.index.find_effective_type_by_name(referenced_type)
+                {
                     self.visit_statement(ctx, bounds);
                     self.update_expected_types(expected_type, bounds);
                 }
             }
-            _ => {
-            }
+            _ => {}
         }
     }
 

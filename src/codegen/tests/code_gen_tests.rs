@@ -4411,6 +4411,43 @@ source_filename = "main"
 }
 
 #[test]
+fn enums_custom_type_are_generated() {
+    let result = codegen!(
+        "
+    TYPE TrafficLight:
+        (White, Red, Yellow, Green);
+    END_TYPE
+
+    PROGRAM main
+    VAR
+        tf1 : TrafficLight;        
+    END_VAR
+    END_PROGRAM
+        "
+    );
+
+    let expected = r#"; ModuleID = 'main'
+source_filename = "main"
+
+%main_interface = type { i32 }
+
+@main_instance = global %main_interface zeroinitializer
+@White = global i32 0
+@Red = global i32 1
+@Yellow = global i32 2
+@Green = global i32 3
+
+define void @main(%main_interface* %0) {
+entry:
+  %tf1 = getelementptr inbounds %main_interface, %main_interface* %0, i32 0, i32 0
+  ret void
+}
+"#;
+
+    assert_eq!(result, expected);
+}
+
+#[test]
 fn enum_members_can_be_used_in_asignments() {
     let result = codegen!(
         "
@@ -5395,7 +5432,7 @@ source_filename = "main"
 }
 
 #[test]
-fn initial_values_in_struct_variable_using_multiplied_statement() {
+fn initial_values_in_struct_variable() {
     let result = codegen!(
         "
         TYPE MyStruct: STRUCT
