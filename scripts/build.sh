@@ -7,22 +7,9 @@ offline=0
 check=0
 release=0
 debug=0
-package=0
 container=0
 
 debug=0
-
-machine=None
-unameOut="$(uname -s)"
-case "${unameOut}" in
-    Linux*)     machine=Linux;;
-    MINGW*)     machine=Windows;;
-esac
-
-if [ "{$machine}" == "None" ]; then
-				log "Unkown system : $unameOut"
-				exit 1
-fi
 
 
 function log() {
@@ -48,24 +35,13 @@ function check_env() {
 	fi
 }
 
-
-function build() {
-	original_location=$PWD
+function set_cargo_options() {
 	CARGO_OPTIONS=""
 
 	if [[ $debug -ne 0 ]]; then
 		CARGO_OPTIONS="$CARGO_OPTIONS --verbose"
 	fi
-	BUILD_DIR=$project_location/build
-	make_dir $BUILD_DIR
-	log "Moving into $BUILD_DIR"
-	cd $BUILD_DIR
-
 	CARGO_OPTIONS=""
-	if [[ $package -ne 0 ]]; then
-		make_dir output
-		CARGO_OPTIONS="$CARGO_OPTIONS --target-dir=$BUILD_DIR/target"
-	fi
 	if [[ $release -ne 0 ]]; then
 		CARGO_OPTIONS="$CARGO_OPTIONS --release"
 	fi
@@ -73,6 +49,18 @@ function build() {
 		set_offline
 		CARGO_OPTIONS="$CARGO_OPTIONS --frozen"
 	fi
+	return $CARGO_OPTIONS
+}
+
+
+function build() {
+	original_location=$PWD
+	CARGO_OPTIONS=set_cargo_options
+
+	BUILD_DIR=$project_location/build
+	make_dir $BUILD_DIR
+	log "Moving into $BUILD_DIR"
+	cd $BUILD_DIR
 
 	# Run cargo build with release or debug flags
 	echo "Build starting"
@@ -87,8 +75,14 @@ function build() {
 	else
 		echo "Build done"
 	fi
+}
 
-
+function check() {
+	CARGO_OPTIONS=set_cargo_options
+  log "Running cargo clippy"
+	cargo clippy $CARGO_OPTIONS -- -Dwarnings
+  log "Running cargo fmt check"
+	cargo fmt $CARGO_OPTIONS -- --check
 }
 
 function generate_sources() {
@@ -105,34 +99,6 @@ function set_offline() {
 		echo "Offline sources not found at $project_location/3rd-party"
 		exit 1
 	fi
-}
-
-function build_book() {
-	book_args=""
-	if [[ $package -ne 0 ]]; then
-		book_args="-d $BUILD_DIR/output/book"
-	fi
-	# Compile the book
-	log "Building book"
-	log "-----------------------------------"
-	mdbook build $book_location $book_args
-	if [[ ${PIPESTATUS[0]} -ne 0 ]]; then
-		echo "Book Build failed"
-		exit 1
-	else 
-		log "Done buinding book"
-		log "-----------------------------------"
-	fi
-}
-
-function package_build() {
-	log "Copying build artifact output directory"
-	folder=debug
-	if [[ $release -ne 0 ]]; then
-		folder=release
-	fi
-	cp $BUILD_DIR/target/$folder/rustyc $BUILD_DIR/output/
-	echo "Output saved in $BUILD_DIR/output"
 }
 
 function build_in_container() {
@@ -152,24 +118,26 @@ function build_in_container() {
 	fi
 	log "container engine found at : $container_engine"
 	params=""
-	if [[ $package -ne 0 ]]; then
-		params="$params --package"
-	fi
 	if [[ $offline -ne 0 ]]; then
 		params="$params --offline"
 	fi
 	if [[ $debug -ne 0 ]]; then
 		params="$params --verbose"
 	fi
+	if [[ $check -ne 0 ]]; then
+		params="$params --check"
+	fi
 	if [[ $release -ne 0 ]]; then
 		params="$params --release"
 	fi
 
 	volume_target="/build"
-	if [ "$machine" == "Windows" ]; then
-					log "Running on Windofs, setting build directory to C:\Build"
-					volume_target="C:\\build"
-	fi
+  unameOut="$(uname -s)"
+  case "${unameOut}" in
+  		Linux*)     volume_target="/build"
+  		MINGW*)     volume_target="C:\\build"
+  		cygwin*)     volume_target="C:\\build"
+  esac
 
 	$container_engine run -it -v $project_location:$volume_target rust-llvm  scripts/build.sh $params
 
@@ -179,8 +147,8 @@ function build_in_container() {
 set -o errexit -o pipefail -o noclobber -o nounset
 
 
-OPTIONS=sorvpc
-LONGOPTS=sources,offline,release,verbose,package,container
+OPTIONS=sorvc
+LONGOPTS=sources,offline,release,check,verbose,container
 
 check_env
 # -activate quoting/enhanced mode (e.g. by writing out “--options”)
@@ -213,12 +181,12 @@ while true; do
 					debug=1
 					shift
 					;;
-			-p|--package)
-					package=1
-					shift
-					;;
 			-c|--container)
 					container=1
+					shift
+					;;
+      --check)
+				  check=1
 					shift
 					;;
 			--)
@@ -253,12 +221,13 @@ if [[ $vendor -ne 0 ]]; then
 	exit 0
 fi
 
-
-build
-build_book
-
-if [[ $package -ne 0 ]]; then
-	package_build
+if [[ $check -ne 0 ]]; then
+  check
+	exit 0
 fi
+
+check
+build
+
 echo "Done"
 echo "======================================"
