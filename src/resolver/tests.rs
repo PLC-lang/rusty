@@ -1,4 +1,8 @@
-use crate::{ast::{self, CompilationUnit}, index::{self, Index}, lexer::{IdProvider, lex_with_ids}};
+use crate::{
+    ast::{self, CompilationUnit},
+    index::{self, Index},
+    lexer::{lex_with_ids, IdProvider},
+};
 
 use super::{AnnotationMap, TypeAnnotator};
 
@@ -12,7 +16,7 @@ mod resolve_expressions_tests;
 mod resolve_literals_tests;
 
 fn parse(src: &str) -> (CompilationUnit, Index) {
-    let ids = IdProvider::new();
+    let ids = IdProvider::default();
     let (mut unit, _) = crate::parser::parse(lex_with_ids(src, ids.clone()));
 
     ast::pre_process(&mut unit);

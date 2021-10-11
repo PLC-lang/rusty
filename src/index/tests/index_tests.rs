@@ -10,7 +10,7 @@ use crate::{ast::*, index::VariableType, typesystem::DataTypeInformation};
 
 macro_rules! index {
     ($code:tt) => {{
-        let ids = crate::lexer::IdProvider::new();
+        let ids = crate::lexer::IdProvider::default();
         let lexer = crate::lexer::lex_with_ids($code, ids.clone());
         let (mut ast, ..) = crate::parser::parse(lexer);
 
@@ -1411,7 +1411,7 @@ fn global_initializers_are_stored_in_the_const_expression_arena() {
         END_VAR
         ";
     // WHEN the program is indexed
-    let ids = IdProvider::new();
+    let ids = IdProvider::default();
     let (mut ast, ..) = crate::parser::parse(crate::lexer::lex_with_ids(src, ids.clone()));
 
     crate::ast::pre_process(&mut ast);
@@ -1455,7 +1455,7 @@ fn local_initializers_are_stored_in_the_const_expression_arena() {
         END_PROGRAM
         ";
     // WHEN the program is indexed
-    let ids = IdProvider::new();
+    let ids = IdProvider::default();
     let (mut ast, ..) = crate::parser::parse(crate::lexer::lex_with_ids(src, ids.clone()));
 
     crate::ast::pre_process(&mut ast);
@@ -1493,7 +1493,7 @@ fn datatype_initializers_are_stored_in_the_const_expression_arena() {
         TYPE MyInt : INT := 7 + x;
         ";
     // WHEN the program is indexed
-    let ids = IdProvider::new();
+    let ids = IdProvider::default();
     let (mut ast, ..) = crate::parser::parse(crate::lexer::lex_with_ids(src, ids.clone()));
 
     crate::ast::pre_process(&mut ast);
@@ -1517,7 +1517,7 @@ fn array_dimensions_are_stored_in_the_const_expression_arena() {
         TYPE MyInt : ARRAY[0 .. LEN-1, MIN .. MAX] OF INT;
         ";
     // WHEN the program is indexed
-    let ids = IdProvider::new();
+    let ids = IdProvider::default();
     let (mut ast, ..) = crate::parser::parse(crate::lexer::lex_with_ids(src, ids.clone()));
 
     crate::ast::pre_process(&mut ast);
@@ -1598,7 +1598,7 @@ fn string_dimensions_are_stored_in_the_const_expression_arena() {
         TYPE MyString : STRING[LEN-1];
         ";
     // WHEN the program is indexed
-    let ids = IdProvider::new();
+    let ids = IdProvider::default();
     let (mut ast, ..) = crate::parser::parse(crate::lexer::lex_with_ids(src, ids.clone()));
 
     crate::ast::pre_process(&mut ast);

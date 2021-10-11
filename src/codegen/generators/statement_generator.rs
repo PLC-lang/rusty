@@ -379,7 +379,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
 
         let basic_block = builder.get_insert_block().unwrap();
         let exp_gen = self.create_expr_generator();
-        let (selector_type, selector_statement) = exp_gen.generate_expression(&*selector)?;
+        let (_, selector_statement) = exp_gen.generate_expression(&*selector)?;
         //re-brand the expression generator to use the selector's type when generating literals
         let exp_gen = ExpressionCodeGenerator::new(
             self.llvm,

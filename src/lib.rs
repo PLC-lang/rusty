@@ -542,7 +542,7 @@ pub fn compile_module<'c, T: SourceContainer>(
     encoding: Option<&'static Encoding>,
 ) -> Result<codegen::CodeGen<'c>, CompileError> {
     let mut full_index = Index::new();
-    let id_provider = IdProvider::new();
+    let id_provider = IdProvider::default();
     let mut files: SimpleFiles<String, String> = SimpleFiles::new();
 
     let mut all_units = Vec::new();

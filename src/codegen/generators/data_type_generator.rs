@@ -195,7 +195,6 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
             DataTypeInformation::Array { .. } => self
                 .generate_array_initializer(
                     data_type,
-                    data_type.get_name(),
                     |stmt| matches!(stmt, AstStatement::LiteralArray { .. }),
                     "LiteralArray",
                 )
@@ -206,7 +205,6 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
             DataTypeInformation::String { .. } => self
                 .generate_array_initializer(
                     data_type,
-                    data_type.get_name(),
                     |stmt| matches!(stmt, AstStatement::LiteralString { .. }),
                     "LiteralString",
                 )
@@ -257,7 +255,6 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
     fn generate_array_initializer(
         &self,
         data_type: &DataType,
-        name: &str,
         predicate: fn(&AstStatement) -> bool,
         expected_ast: &str,
     ) -> Result<Option<BasicValueEnum<'ink>>, CompileError> {
@@ -267,7 +264,6 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
             .maybe_get_constant_statement(&data_type.initial_value)
         {
             if predicate(initializer) {
-                let array_type = self.index.get_type_information(name)?;
                 let generator = ExpressionCodeGenerator::new_context_free(
                     self.llvm,
                     self.index,

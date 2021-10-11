@@ -177,7 +177,7 @@ impl<'a> Llvm<'a> {
             BasicTypeEnum::IntType { 0: int_type } => {
                 let value = int_type.const_int_from_string(value, StringRadix::Decimal);
                 if value.is_none() {
-                    println!("whoops"); 
+                    println!("whoops");
                 }
                 Ok(BasicValueEnum::IntValue(value.unwrap()))
             }

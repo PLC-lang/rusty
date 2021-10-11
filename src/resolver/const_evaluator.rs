@@ -540,7 +540,7 @@ pub fn evaluate(
                 if let [ie] = ie.as_slice() {
                     AstStatement::MultipliedStatement {
                         id: *id,
-                        element: Box::new(ie.clone()),   //TODO
+                        element: Box::new(ie.clone()), //TODO
                         multiplier: *multiplier,
                         location: location.clone(),
                     }

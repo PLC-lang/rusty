@@ -298,7 +298,8 @@ impl Index {
             e.initial_value =
                 self.maybe_import_const_expr(&mut other.constant_expressions, &e.initial_value);
             self.enum_global_variables.insert(name, e.clone());
-            self.enum_qualified_variables.insert(e.qualified_name.to_lowercase(), e);
+            self.enum_qualified_variables
+                .insert(e.qualified_name.to_lowercase(), e);
         }
 
         //member variables

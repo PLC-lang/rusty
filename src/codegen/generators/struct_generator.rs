@@ -97,7 +97,6 @@ impl<'a, 'b> StructGenerator<'a, 'b> {
     ) -> Result<VariableDeclarationInformation<'a>, CompileError> {
         let type_name = variable.get_type_name();
 
-        let variable_type = self.index.get_type_information(type_name)?;
         let initializer = match self
             .index
             .get_const_expressions()

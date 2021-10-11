@@ -1407,7 +1407,8 @@ fn nested_array_literals_multiplied_statement_type_resolving() {
     {
         // outer_expression_list = [2(2)],[2(3)]
         if let Some(DataTypeInformation::Array {
-            inner_type_name: array_of_byte, ..
+            inner_type_name: array_of_byte,
+            ..
         }) = index
             .find_type(a.get_type_name())
             .map(|t| t.get_type_information())

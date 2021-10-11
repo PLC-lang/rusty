@@ -1,4 +1,8 @@
-use crate::{ast::AstStatement, resolver::tests::{annotate, parse}, typesystem::{DataTypeInformation, Dimension}};
+use crate::{
+    ast::AstStatement,
+    resolver::tests::{annotate, parse},
+    typesystem::{DataTypeInformation, Dimension},
+};
 
 #[test]
 fn bool_literals_are_annotated() {
@@ -300,9 +304,7 @@ fn casted_literals_enums_are_annotated_correctly() {
     let annotations = annotate(&unit, &index);
     let statements = &unit.implementations[0].statements;
 
-    let expected_types = vec![
-        "Color", "Color", "Color"
-    ];
+    let expected_types = vec!["Color", "Color", "Color"];
     let actual_types: Vec<&str> = statements
         .iter()
         .map(|it| {
@@ -394,11 +396,13 @@ fn array_initialization_is_annotated_correctly() {
 
     let annotations = annotate(&unit, &index);
 
-    let a_init = unit.global_vars[0].variables[0].initializer.as_ref().unwrap();
+    let a_init = unit.global_vars[0].variables[0]
+        .initializer
+        .as_ref()
+        .unwrap();
     let t = annotations.get_type_hint(a_init, &index).unwrap();
     assert_eq!(
         index.find_global_variable("a").unwrap().get_type_name(),
         t.get_name()
     )
 }
-

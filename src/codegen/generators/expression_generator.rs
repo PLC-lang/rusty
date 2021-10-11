@@ -1444,11 +1444,10 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
             }
             AstStatement::LiteralArray {
                 elements: Some(elements),
-                location,
                 ..
-            } => self.generate_literal_array(elements, location),
+            } => self.generate_literal_array(elements),
             AstStatement::MultipliedStatement { .. } => {
-                self.generate_literal_array(literal_statement, &literal_statement.get_location())
+                self.generate_literal_array(literal_statement)
             }
             AstStatement::LiteralNull { .. } => self.llvm.create_null_ptr(),
             // if there is an expression-list this might be a struct-initialization
@@ -1600,7 +1599,6 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
     fn generate_literal_array(
         &self,
         initializer: &AstStatement,
-        location: &SourceRange,
     ) -> Result<TypeAndValue<'a>, CompileError> {
         let type_info = self.get_type_hint_for(initializer)?;
 

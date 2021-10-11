@@ -62,12 +62,8 @@ pub fn generate_global_variable<'ctx, 'b>(
         .get_const_expressions()
         .maybe_get_constant_statement(&global_variable.initial_value)
     {
-        let expr_generator = ExpressionCodeGenerator::new_context_free(
-            llvm,
-            global_index,
-            annotations,
-            index,
-        );
+        let expr_generator =
+            ExpressionCodeGenerator::new_context_free(llvm, global_index, annotations, index);
 
         //see if this value was compile-time evaluated ...
         if let Some(value) = index.find_constant_value(global_variable.get_qualified_name()) {

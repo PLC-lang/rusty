@@ -14,10 +14,7 @@ use crate::{
         AstId, AstStatement, CompilationUnit, DataType, DataTypeDeclaration, Operator, Pou,
         UserTypeDeclaration, Variable,
     },
-    index::{
-        const_expressions::ConstExpression, ImplementationIndexEntry, ImplementationType, Index,
-        VariableIndexEntry,
-    },
+    index::{ImplementationIndexEntry, ImplementationType, Index, VariableIndexEntry},
     typesystem::{
         self, get_bigger_type_borrow, DataTypeInformation, BOOL_TYPE, BYTE_TYPE,
         DATE_AND_TIME_TYPE, DATE_TYPE, DINT_TYPE, DWORD_TYPE, LINT_TYPE, REAL_TYPE, STRING_TYPE,
@@ -272,8 +269,8 @@ impl<'i> TypeAnnotator<'i> {
                 .for_each(|s| visitor.visit_statement(&ctx.with_pou(i.name.as_str()), s));
         }
 
-        /// enum initializers may have been introduced by the visitor (indexer)
-        /// so we shoul try to resolve and type-annotate them here as well
+        // enum initializers may have been introduced by the visitor (indexer)
+        // so we shoul try to resolve and type-annotate them here as well
         for (_, enum_element) in index.get_global_qualified_enums() {
             if let Some((Some(statement), scope)) = enum_element
                 .initial_value

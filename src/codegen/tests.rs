@@ -7,7 +7,7 @@ mod typesystem_test;
 #[macro_export]
 macro_rules! codegen_wihout_unwrap {
     ($code:tt) => {{
-        let ids = crate::lexer::IdProvider::new();
+        let ids = crate::lexer::IdProvider::default();
         let lexer = crate::lexer::lex_with_ids($code, ids.clone());
         let (mut ast, ..) = crate::parser::parse(lexer);
 
