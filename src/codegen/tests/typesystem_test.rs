@@ -405,3 +405,36 @@ fn int_bigger_than_float_converted_to_double() {
 
     assert_eq!(result, expected)
 }
+
+#[test]
+fn int_bigger_than_byte_promoted_on_compare_statement() {
+    let result = codegen!(
+        r#"
+        PROGRAM prg
+        VAR
+            a : BYTE;
+            b : LINT;
+        END_VAR
+
+        b < a;
+        END_PROGRAM
+        "#
+    );
+
+    let expected = generate_program_boiler_plate(
+        "prg",
+        &[("i8", "a"), ("i64", "b")],
+        "void",
+        "",
+        "",
+        r#"%load_b = load i64, i64* %b, align 4
+  %load_a = load i8, i8* %a, align 1
+  %1 = zext i8 %load_a to i64
+  %tmpVar = icmp slt i64 %load_b, %1
+  ret void
+"#,
+    );
+
+    assert_eq!(result, expected)
+}
+

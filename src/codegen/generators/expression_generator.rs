@@ -1,6 +1,7 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use crate::{
     ast::{Pou, SourceRange},
+    codegen::llvm_typesystem,
     index::{ImplementationType, Index},
     resolver::{AnnotationMap, StatementAnnotation},
     typesystem::{Dimension, StringEncoding, LINT_TYPE},
@@ -120,6 +121,16 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
         &self,
         expression: &AstStatement,
     ) -> Result<TypeAndValue<'a>, CompileError> {
+        self.do_generate_expression(expression)
+        //.map(|(info, v)|{
+        //    (info, self.promote_if_needed(expression, v))
+        //})
+    }
+
+    fn do_generate_expression(
+        &self,
+        expression: &AstStatement,
+    ) -> Result<TypeAndValue<'a>, CompileError> {
         let builder = &self.llvm.builder;
 
         //see if this is a constant - maybe we can short curcuit this codegen
@@ -183,36 +194,40 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                     _ => {}
                 }
 
-                let left_type_and_value = self.generate_expression(left)?;
-                let right_type_and_value = self.generate_expression(right)?;
-
-                let (common_type, left_value, right_value) = promote_if_needed(
-                    self.llvm.context,
-                    builder,
-                    &left_type_and_value,
-                    &right_type_and_value,
-                    self.index,
-                    self.llvm_index,
+                let left_v = self.generate_expression(left)?.1;
+                let right_v = self.generate_expression(right)?.1;
+                
+                let left_value = self.promote_if_needed(
+                    self.annotations.get_type_hint(left, self.index),
+                    self.annotations.get_type_or_void(left, self.index),
+                    left_v,
+                );
+                let right_value = self.promote_if_needed(
+                    self.annotations.get_type_hint(right, self.index),
+                    self.annotations.get_type_or_void(right, self.index),
+                    right_v,
                 );
 
-                if common_type.is_int() {
+
+                let result_type = self.get_type_hint_for(expression)?;
+                if result_type.is_int() {
                     Ok(self.create_llvm_int_binary_expression(
                         operator,
                         left_value,
                         right_value,
-                        &common_type,
+                        result_type,
                     ))
-                } else if common_type.is_float() {
+                } else if result_type.is_float() {
                     Ok(self.create_llvm_float_binary_expression(
                         operator,
                         left_value,
                         right_value,
-                        &common_type,
+                        result_type,
                     ))
                 } else {
                     let message = format!(
                         "invalid types, cannot generate binary expression for {:?}",
-                        common_type
+                        result_type
                     );
                     Err(CompileError::codegen_error(message, left.get_location()))
                 }
@@ -918,11 +933,35 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
             let type_name = variable_index_entry.get_type_name();
             let variable_type = self.index.get_type(type_name)?;
 
+            let target_type = self.get_type_hint_for(context);
+            //see if we need to upgrade
+
             TypeAndPointer::new(variable_type, accessor_ptr)
             //self.auto_deref_if_necessary(variable_type, accessor_ptr)?
         };
 
         Ok(l_value)
+    }
+
+    //promotes the given value v to the type-hint annotated to stmt
+    fn promote_if_needed(
+        &self,
+        target_type_hint: Option<&DataType>,
+        actual_type: &DataType,
+        v: BasicValueEnum<'a>,
+    ) -> BasicValueEnum<'a> {
+        if let Some(target_type_hint) = target_type_hint {
+            if actual_type.get_type_information().can_promote_to(target_type_hint.get_type_information()) {
+                return llvm_typesystem::promote_value_if_needed(
+                    self.llvm.context,
+                    &self.llvm.builder,
+                    v,
+                    actual_type.get_type_information(),
+                    target_type_hint.get_type_information(),
+                );
+            }
+        }
+        v
     }
 
     fn deref(
@@ -1754,6 +1793,10 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
             value.to_string().as_str(),
         )?;
         Ok((type_info, value))
+    }
+
+    fn void(&self) -> DataTypeInformation {
+        self.index.get_void_type().clone_type_information()
     }
 }
 

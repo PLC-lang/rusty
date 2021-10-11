@@ -646,21 +646,41 @@ impl<'i> TypeAnnotator<'i> {
                     ),
                 }
             }
-            AstStatement::BinaryExpression { left, right, .. } => {
+            AstStatement::BinaryExpression {
+                left,
+                right,
+                operator,
+                ..
+            } => {
                 visit_all_statements!(self, ctx, left, right);
-                let left = &self
+                let left_type = &self
                     .annotation_map
                     .get_type_or_void(left, self.index)
                     .get_type_information();
-                let right = &self
+                let right_type = &self
                     .annotation_map
                     .get_type_or_void(right, self.index)
                     .get_type_information();
 
-                if left.is_numerical() && right.is_numerical() {
-                    let bigger_name = get_bigger_type_borrow(left, right, self.index).get_name();
+                if left_type.is_numerical() && right_type.is_numerical() {
+                    let bigger_name =
+                        get_bigger_type_borrow(left_type, right_type, self.index).get_name();
+                    if bigger_name != left_type.get_name() {
+                        self.annotation_map
+                            .annotate_type_hint(left, StatementAnnotation::value(bigger_name));
+                    }
+                    if bigger_name != right_type.get_name() {
+                        self.annotation_map
+                            .annotate_type_hint(right, StatementAnnotation::value(bigger_name));
+                    }
+
+                    let target_name = if operator.is_bool_type() {
+                        BOOL_TYPE
+                    } else {
+                        bigger_name
+                    };
                     self.annotation_map
-                        .annotate(statement, StatementAnnotation::value(bigger_name));
+                        .annotate(statement, StatementAnnotation::value(target_name));
                 }
             }
             AstStatement::UnaryExpression {

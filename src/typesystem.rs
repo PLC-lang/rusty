@@ -283,6 +283,22 @@ impl DataTypeInformation {
             DataTypeInformation::Enum { .. } => DINT_SIZE,
         }
     }
+
+    pub(crate) fn can_promote_to(&self, target_type: &DataTypeInformation) -> bool {
+        match (self, target_type) {
+            (DataTypeInformation::Integer{size: lsize, signed: lsigned, ..}, DataTypeInformation::Integer{size: rsize, signed: rsigned, ..}) => {
+                lsize != rsize || lsigned != rsigned
+            },
+            (DataTypeInformation::Float{size: lsize, ..}, DataTypeInformation::Float{size: rsize, ..}) => {
+                lsize != rsize
+            },
+            (DataTypeInformation::Integer{..}, DataTypeInformation::Float{..}) => {
+                true
+            },
+            _ => false
+        }
+    
+    }
 }
 
 #[derive(Debug, Clone, PartialEq)]

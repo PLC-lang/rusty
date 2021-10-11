@@ -263,6 +263,106 @@ fn resolve_binary_expressions() {
 }
 
 #[test]
+fn necessary_promotions_should_be_type_hinted() {
+    // GIVEN  BYTE + DINT, BYTE < DINT
+    let (unit, index) = parse(
+        "
+        VAR_GLOBAL
+            b : BYTE;
+            di : DINT;
+       END_VAR
+        
+        PROGRAM PRG
+            b + di;
+            b < di;
+        END_PROGRAM",
+    );
+
+    //WHEN it gets annotated
+    let annotations = annotate(&unit, &index);
+    let statements = &unit.implementations[0].statements;
+
+    // THEN we want a hint to promote b to DINT, BYTE + DINT should be treated as DINT
+    if let AstStatement::BinaryExpression { left, .. } = &statements[0] {
+        assert_eq!(
+            annotations.get_type(&statements[0], &index),
+            index.find_effective_type_by_name("DINT")
+        );
+        assert_eq!(
+            (
+                annotations.get_type(left.as_ref(), &index),
+                annotations.get_type_hint(left.as_ref(), &index)
+            ),
+            (
+                index.find_effective_type_by_name("BYTE"),
+                index.find_effective_type_by_name("DINT")
+            )
+        );
+    } else {
+        unreachable!();
+    }
+    
+    // THEN we want a hint to promote b to DINT, BYTE < DINT should be treated as BOOL
+    if let AstStatement::BinaryExpression { left, .. } = &statements[1] {
+        assert_eq!(
+            annotations.get_type(&statements[1], &index),
+            index.find_effective_type_by_name("BOOL")
+        );
+        assert_eq!(
+            (
+                annotations.get_type(left.as_ref(), &index),
+                annotations.get_type_hint(left.as_ref(), &index)
+            ),
+            (
+                index.find_effective_type_by_name("BYTE"),
+                index.find_effective_type_by_name("DINT")
+            )
+        );
+    } else {
+        unreachable!();
+    }
+}
+
+#[test]
+fn necessary_promotions_between_real_and_literal_should_be_type_hinted() {
+    // GIVEN  REAL > DINT
+    let (unit, index) = parse(
+        "
+        VAR_GLOBAL
+            f : REAL;
+       END_VAR
+        
+        PROGRAM PRG
+            f > 0;
+        END_PROGRAM",
+    );
+
+    //WHEN it gets annotated
+    let annotations = annotate(&unit, &index);
+    let statements = &unit.implementations[0].statements;
+
+    // THEN we want a hint to promote 0 to REAL, the result of f > 0 should be type bool
+    if let AstStatement::BinaryExpression { right, .. } = &statements[0] {
+        assert_eq!(
+            annotations.get_type(&statements[0], &index),
+            index.find_effective_type_by_name("BOOL")
+        );
+        assert_eq!(
+            (
+                annotations.get_type(right.as_ref(), &index),
+                annotations.get_type_hint(right.as_ref(), &index)
+            ),
+            (
+                index.find_effective_type_by_name("DINT"),
+                index.find_effective_type_by_name("REAL")
+            )
+        );
+    } else {
+        unreachable!();
+    }
+}
+
+#[test]
 fn complex_expressions_resolve_types() {
     let (unit, index) = parse(
         "PROGRAM PRG

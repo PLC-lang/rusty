@@ -6,13 +6,7 @@ use inkwell::{
     values::{BasicValueEnum, IntValue},
 };
 
-use crate::{
-    ast::AstStatement,
-    ast::SourceRange,
-    compile_error::CompileError,
-    index::Index,
-    typesystem::{get_bigger_type, DataTypeInformation},
-};
+use crate::{ast::AstStatement, ast::SourceRange, compile_error::CompileError, index::Index, typesystem::{DataType, DataTypeInformation, get_bigger_type}};
 
 use super::{generators::llvm::Llvm, llvm_index::LlvmTypedIndex, TypeAndValue};
 
@@ -28,9 +22,6 @@ pub fn promote_if_needed<'a>(
     let (rtype, rvalue) = rvalue;
 
     //TODO : We need better error handling here
-    let ltype = index.find_effective_type_information(ltype).unwrap();
-    let rtype = index.find_effective_type_information(rtype).unwrap();
-
     let ltype_llvm = llvm_index.find_associated_type(ltype.get_name()).unwrap();
     let rtype_llvm = llvm_index.find_associated_type(rtype.get_name()).unwrap();
 
@@ -51,11 +42,13 @@ pub fn promote_if_needed<'a>(
             (target_type, promoted_lvalue, promoted_rvalue)
         }
     } else {
+        dbg!(ltype);
+        dbg!(rtype);
         panic!("Binary operations need numerical types")
     }
 }
 
-fn promote_value_if_needed<'ctx>(
+pub fn promote_value_if_needed<'ctx>(
     context: &'ctx Context,
     builder: &Builder<'ctx>,
     lvalue: BasicValueEnum<'ctx>,
