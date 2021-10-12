@@ -55,13 +55,13 @@ jobs:
         config:
           - { 
             os: "ubuntu-latest",
-            dir: linux,
+            dir: 'linux',
             image: 'docker-build/linux/Dockerfile'
             artifacts: "rustyc"
           }
           - { 
             os: "windows-latest",
-            dir: windows,
+            dir: 'windows',
             image: 'docker-build/windows/Dockerfile'
             artifacts: "rustyc.exe rustyc.pdb"
           }
