@@ -121,10 +121,16 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
         &self,
         expression: &AstStatement,
     ) -> Result<TypeAndValue<'a>, CompileError> {
-        self.do_generate_expression(expression)
-        //.map(|(info, v)|{
-        //    (info, self.promote_if_needed(expression, v))
-        //})
+        let (t,v) = self.do_generate_expression(expression)?;
+        
+        //see if we need a cast
+        if let Some(target_type) = self.annotations.get_type_hint(expression, self.index) {
+            let actual_type = self.annotations.get_type_or_void(expression, self.index);
+            let v = llvm_typesystem::cast_if_needed(self.llvm, self.index, target_type.get_type_information(), v, actual_type.get_type_information(), expression)?;
+            Ok((target_type.get_type_information().clone(), v))
+        } else {
+            Ok((t, v))
+        }
     }
 
     fn do_generate_expression(
@@ -194,9 +200,11 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                     _ => {}
                 }
 
-                let left_v = self.generate_expression(left)?.1;
-                let right_v = self.generate_expression(right)?.1;
-                
+                let ltype = self.get_type_hint_for(left)?;
+                let rtype = self.get_type_hint_for(right)?;
+                let left_value = self.generate_expression(left)?.1;
+                let right_value = self.generate_expression(right)?.1;
+                /*
                 let left_value = self.promote_if_needed(
                     self.annotations.get_type_hint(left, self.index),
                     self.annotations.get_type_or_void(left, self.index),
@@ -206,18 +214,17 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                     self.annotations.get_type_hint(right, self.index),
                     self.annotations.get_type_or_void(right, self.index),
                     right_v,
-                );
-
+                );*/
 
                 let result_type = self.get_type_hint_for(expression)?;
-                if result_type.is_int() {
+                if ltype.is_int() && rtype.is_int() {
                     Ok(self.create_llvm_int_binary_expression(
                         operator,
                         left_value,
                         right_value,
                         result_type,
                     ))
-                } else if result_type.is_float() {
+                } else if ltype.is_float() && rtype.is_float() {
                     Ok(self.create_llvm_float_binary_expression(
                         operator,
                         left_value,

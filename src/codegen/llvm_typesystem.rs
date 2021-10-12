@@ -1,10 +1,5 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-use inkwell::{
-    builder::Builder,
-    context::Context,
-    types::{FloatType, IntType},
-    values::{BasicValueEnum, IntValue},
-};
+use inkwell::{builder::Builder, context::Context, types::{FloatType, IntType}, values::{BasicValue, BasicValueEnum, IntValue}};
 
 use crate::{ast::AstStatement, ast::SourceRange, compile_error::CompileError, index::Index, typesystem::{DataType, DataTypeInformation, get_bigger_type}};
 
@@ -83,10 +78,10 @@ pub fn promote_value_if_needed<'ctx>(
         DataTypeInformation::Float {
             size: target_size, ..
         } => {
-            if let DataTypeInformation::Integer { signed, .. } = ltype {
+            if lvalue.is_int_value() {
                 // INT --> FLOAT
                 let int_value = lvalue.into_int_value();
-                if *signed {
+                if ltype.is_signed_int() {
                     builder
                         .build_signed_int_to_float(
                             int_value,
@@ -224,6 +219,7 @@ pub fn cast_if_needed<'ctx>(
                 )),
             }
         }
+        
         DataTypeInformation::Float {
             // generated_type,
             size: lsize,
