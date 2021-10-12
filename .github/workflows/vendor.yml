@@ -1,0 +1,45 @@
+name: 'Vendor'
+description: 'Create a snapshot of 3rd party repos used to build this version of RuSTy'
+
+on:
+  # Triggers the workflow on push or pull request events but only for the master branch
+  push:
+  pull_request:
+    branches: [ master ]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+jobs:
+  vendor:
+    name: Download Sources
+    runs-on: ubuntu-latest
+    runs:
+        using: 'docker'
+        image: 'docker-build/linux/Dockerfile'
+        args:
+            - 'cargo vendor 3rd-party'
+    # steps:
+    #   - uses: actions/checkout@v2
+    #     with:
+    #       submodules: true
+
+    #   - name: Install Rust
+    #     uses: actions-rs/toolchain@v1
+    #     with:
+    #       toolchain: ${{ env.toolchain-version }}
+    #       profile: minimal
+    #       override: true
+
+    #   - name: Cargo vendor
+    #     uses: actions-rs/cargo@v1
+    #     with:
+    #       command: vendor 3rd-party
+  package:
+    name: 'Create source package'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/upload-artifact@master
+        with:
+          name: 3rd-party
+          path: 3rd-party

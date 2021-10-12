@@ -12,14 +12,14 @@ RUN apt-get update
 RUN apt-get install -y clang-$LLVM_VER lldb-$LLVM_VER lld-$LLVM_VER clangd-$LLVM_VER liblld-$LLVM_VER-dev llvm-$LLVM_VER-dev
 
 RUN rustup install $RUST_VER 
+RUN rustup install nightly
 RUN rustup default $RUST_VER 
-RUN rustup component add rustfmt 
-RUN rustup component add clippy 
+RUN rustup component add rustfmt clippy llvm-tools-preview 
 
-RUN cargo install mdbook
+RUN cargo install mdbook grcov
 
 WORKDIR /build
-ENTRYPOINT ["/usr/bin/bash"]
+ENTRYPOINT ["bash"]
 
 #Activate this for local builds to enable watching
 #RUN cargo install cargo-watch 

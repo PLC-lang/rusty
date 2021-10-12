@@ -35,8 +35,10 @@ RUN 7z x C:/TEMP/llvm.7z -ollvm
 # RUN scoop install rustup
 ADD https://win.rustup.rs C:/TEMP/rustup-init.exe
 RUN C:/TEMP/rustup-init.exe --default-toolchain $env:RUST_VER -y
+RUN rustup install nightly
 
-RUN cargo install mdbook
+RUN rustup component add llvm-tools-preview 
+RUN cargo install mdbook grcov
 
 RUN setx /M PATH $($Env:PATH + ';C:/buildTools/llvm/bin') 
 

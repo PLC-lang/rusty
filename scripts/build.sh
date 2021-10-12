@@ -1,39 +1,16 @@
-#!/bin/bash
-# Build script for rusty
+#!/bin/env bash
 
 # Parse parameters
 vendor=0
 offline=0
 check=0
+build=0
 release=0
 debug=0
 container=0
+build_container=0
 
-debug=0
-
-
-function log() {
-	if [[ $debug -ne 0 ]]; then
-		echo $1
-	fi
-}
-
-function make_dir() {
-if [[ ! -d $1 ]]; then
-	log "Creating a target build directory at $1"
-	mkdir $1
-fi
-}
-
-function check_env() {
-	# -allow a command to fail with !’s side effect on errexit
-	# -use return value from ${PIPESTATUS[0]}, because ! hosed $?
-	! getopt --test > /dev/null 
-	if [[ ${PIPESTATUS[0]} -ne 4 ]]; then
-			echo 'Error:  extended getopts needed'
-			exit 1
-	fi
-}
+source "${BASH_SOURCE%/*}/common.sh"
 
 function set_cargo_options() {
 	CARGO_OPTIONS=""
@@ -49,25 +26,24 @@ function set_cargo_options() {
 		set_offline
 		CARGO_OPTIONS="$CARGO_OPTIONS --frozen"
 	fi
-	return $CARGO_OPTIONS
+	echo "$CARGO_OPTIONS"
 }
 
 
-function build() {
-	original_location=$PWD
-	CARGO_OPTIONS=set_cargo_options
+function run_build() {
+	CARGO_OPTIONS=$(set_cargo_options)
 
 	BUILD_DIR=$project_location/build
-	make_dir $BUILD_DIR
+	make_dir "$BUILD_DIR"
 	log "Moving into $BUILD_DIR"
-	cd $BUILD_DIR
+	cd "$BUILD_DIR"
 
 	# Run cargo build with release or debug flags
 	echo "Build starting"
 	echo "-----------------------------------"
 	cmd="cargo build $CARGO_OPTIONS " 
 	log "Running $cmd" 
-	eval $cmd
+	eval "$cmd"
 	echo "-----------------------------------"
 	if [[ ${PIPESTATUS[0]} -ne 0 ]]; then
 		echo "Build failed"
@@ -94,29 +70,15 @@ function set_offline() {
 	log "Vendor location set, using offline build"
 	log "Copy the offline.toml config to .cargo/config.toml"
 	make_dir .cargo
-	cp $project_location/scripts/data/offline.toml .cargo/config.toml
+	cp "$project_location"/scripts/data/offline.toml .cargo/config.toml
 	if [[ ! -d $project_location/3rd-party ]]; then
 		echo "Offline sources not found at $project_location/3rd-party"
 		exit 1
 	fi
 }
 
-function build_in_container() {
-	log "Trying docker"
-	if command -v docker &> /dev/null 
-	then
-		container_engine=docker
-	else
-		log "Docker not found, trying podman"
-	  if command -v podman &> /dev/null 
-	  then
-	  	container_engine=podman
-	  else
-		  echo "Docker or podman not found"
-		  exit 1
-	  fi
-	fi
-	log "container engine found at : $container_engine"
+function run_in_container() {
+	container_engine=$(get_container_engine)
 	params=""
 	if [[ $offline -ne 0 ]]; then
 		params="$params --offline"
@@ -127,6 +89,9 @@ function build_in_container() {
 	if [[ $check -ne 0 ]]; then
 		params="$params --check"
 	fi
+	if [[ $build -ne 0 ]]; then
+		params="$params --build"
+	fi
 	if [[ $release -ne 0 ]]; then
 		params="$params --release"
 	fi
@@ -134,29 +99,49 @@ function build_in_container() {
 	volume_target="/build"
   unameOut="$(uname -s)"
   case "${unameOut}" in
-  		Linux*)     volume_target="/build"
-  		MINGW*)     volume_target="C:\\build"
-  		cygwin*)     volume_target="C:\\build"
+  		Linux*)     
+				volume_target="/build"
+				;;
+  		MINGW* | cygwin*)     
+				volume_target="C:\\build"
+				;;
+			*)
+				echo "Unsupported os $unameOut"
+				exit 1
   esac
 
-	$container_engine run -it -v $project_location:$volume_target rust-llvm  scripts/build.sh $params
-
+	command_to_run="$container_engine run -it -v $project_location:$volume_target rust-llvm  scripts/build.sh $params"
+	log "Running command : $command_to_run"
+	eval "$command_to_run"
 }
+
+function build_docker_file() {
+	container_engine=$(get_container_engine)
+  unameOut="$(uname -s)"
+  case "${unameOut}" in
+		  Linux*)
+				os=linux
+				;;
+  		MINGW* | cygwin*)     
+				os=windows
+				;;
+  esac
+	docker_file_location="$project_location/docker-build/$os"
+	$container_engine build "$docker_file_location" -t rust-llvm
+}
+
 
 # More safety, by turning some bugs into errors.
 set -o errexit -o pipefail -o noclobber -o nounset
 
+OPTIONS=sorbvc
+LONGOPTS=sources,offline,release,check,build,verbose,container,build-container
 
-OPTIONS=sorvc
-LONGOPTS=sources,offline,release,check,verbose,container
-
-check_env
+check_env 
 # -activate quoting/enhanced mode (e.g. by writing out “--options”)
 # -pass arguments only via   -- "$@"   to separate them correctly
-! PARSED=$(getopt --options=$OPTIONS --longoptions=$LONGOPTS --name "$0" -- "$@")
+! PARSED=$(getopt --options="$OPTIONS" --longoptions="$LONGOPTS" --name "$0" -- "$@")
 if [[ ${PIPESTATUS[0]} -ne 0 ]]; then
-		# e.g. return value is 1
-		#  then getopt has complained about wrong arguments to stdout
 		exit 2
 fi
 
@@ -185,8 +170,16 @@ while true; do
 					container=1
 					shift
 					;;
+			--build-container)
+					build_container=1
+					shift
+					;;
       --check)
 				  check=1
+					shift
+					;;
+			-b|--build)
+				  build=1
 					shift
 					;;
 			--)
@@ -200,19 +193,19 @@ while true; do
 		esac
 done
 
-log "Locating project root"
-project_location=`cargo locate-project --message-format plain`
-project_location=`dirname $project_location`
-book_location=$project_location/book
-log "Project root at $project_location"
-log "Book location at $book_location"
+project_location=$(find_project_root)
 log "Moving to project level directory $project_location"
-cd $project_location
+cd "$project_location"
 
 
 if [[ $container -ne 0 ]]; then
 	log "Container Build"
-	build_in_container
+	run_in_container
+	exit 0
+fi
+
+if [[ $build_container -ne 0 ]]; then
+	build_docker_file
 	exit 0
 fi
 
@@ -223,11 +216,17 @@ fi
 
 if [[ $check -ne 0 ]]; then
   check
+	if [[ $build -ne 0 ]]; then
+		run_build
+	fi
 	exit 0
 fi
 
-check
-build
+if [[ $build -ne 0 ]]; then
+  run_build
+	exit 0
+fi
+
 
 echo "Done"
 echo "======================================"
