@@ -473,6 +473,7 @@ dependencies = [
  "logos",
  "mun_lld",
  "pretty_assertions",
+ "regex",
  "structopt",
  "thiserror",
 ]
