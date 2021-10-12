@@ -17,33 +17,28 @@ jobs:
   check: 
     name: Check
     runs-on: ubuntu-latest
-    runs:
-        using: 'docker'
-        image: 'docker-build/linux/Dockerfile'
-        args:
-            - 'cargo check'
-    # steps:
-    #   - uses: actions/checkout@v2
-    #     with:
-    #       submodules: true
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: true
 
-    #   - name: Install Rust
-    #     uses: actions-rs/toolchain@v1
-    #     with:
-    #       toolchain: ${{ env.toolchain-version }}
-    #       profile: minimal
-    #       override: true
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: ${{ env.toolchain-version }}
+          profile: minimal
+          override: true
 
-    #   - name: Install LLVM
-    #     uses: ghaith/install-llvm-action@latest
-    #     with:
-    #       version: ${{ env.llvm-version }}
-    #       directory: "./llvm"
+      - name: Install LLVM
+        uses: ghaith/install-llvm-action@latest
+        with:
+          version: ${{ env.llvm-version }}
+          directory: "./llvm"
 
-    #   - name: Cargo check
-    #     uses: actions-rs/cargo@v1
-    #     with:
-    #       command: check
+      - name: Cargo check
+        uses: actions-rs/cargo@v1
+        with:
+          command: check
 
   test:
     name: Test
@@ -55,46 +50,36 @@ jobs:
         config:
           - { 
             os: "ubuntu-latest",
-            dir: 'linux',
-            image: 'docker-build/linux/Dockerfile'
+            dir: linux,
             artifacts: "rustyc"
           }
           - { 
             os: "windows-latest",
-            dir: 'windows',
-            image: 'docker-build/windows/Dockerfile'
+            dir: windows,
             artifacts: "rustyc.exe rustyc.pdb"
           }
     steps:
+
       - uses: actions/checkout@v2
-      - name: Run Tests
-        runs-on: ${{ matrix.config.os }}
-        runs:
-          using: 'docker' 
-          image: ${{ matrix.config.image }}
-          args:
-            - 'cargo test -- --nocapture'
 
-      # - uses: actions/checkout@v2
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: ${{ env.toolchain-version }}
+          profile: minimal
+          override: true
 
-      # - name: Install Rust
-      #   uses: actions-rs/toolchain@v1
-      #   with:
-      #     toolchain: ${{ env.toolchain-version }}
-      #     profile: minimal
-      #     override: true
-
-      # - name: Install LLVM
-      #   uses: ghaith/install-llvm-action@latest
-      #   with:
-      #     version: ${{ env.llvm-version }}
-      #     directory: "./llvm"
+      - name: Install LLVM
+        uses: ghaith/install-llvm-action@latest
+        with:
+          version: ${{ env.llvm-version }}
+          directory: "./llvm"
           
-      # - name: Cargo test
-      #   uses: actions-rs/cargo@v1
-      #   with:
-      #     command: test
-      #     args: -- --nocapture
+      - name: Cargo test
+        uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: -- --nocapture
 
       - run: mkdir -p ${{ matrix.config.dir }}
 
@@ -121,45 +106,32 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - name: Run fmt
-        runs:
-          using: 'docker' 
-          image: 'docker-build/linux/Dockerfile'
-          args:
-            - 'cargo fmt --all -- --check'
-      - name: Run clippy
-        runs:
-          using: 'docker' 
-          image: 'docker-build/linux/Dockerfile'
-          args:
-            - 'cargo clippy --all-features -- -D warnings'
-      # - uses: actions/checkout@v2
 
-      # - name: Install stable toolchain
-      #   uses: actions-rs/toolchain@v1
-      #   with:
-      #     toolchain: ${{ env.toolchain-version }}
-      #     profile: minimal
-      #     override: true
-      #     components: clippy, rustfmt
+      - name: Install stable toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: ${{ env.toolchain-version }}
+          profile: minimal
+          override: true
+          components: clippy, rustfmt
 
-      # - name: Install LLVM
-      #   uses: ghaith/install-llvm-action@latest
-      #   with:
-      #     version: ${{ env.llvm-version }}
-      #     directory: "./llvm"
+      - name: Install LLVM
+        uses: ghaith/install-llvm-action@latest
+        with:
+          version: ${{ env.llvm-version }}
+          directory: "./llvm"
 
-      # - name: Run cargo fmt
-      #   uses: actions-rs/cargo@v1
-      #   with:
-      #     command: fmt
-      #     args: --all -- --check
+      - name: Run cargo fmt
+        uses: actions-rs/cargo@v1
+        with:
+          command: fmt
+          args: --all -- --check
 
-      # - name: Run cargo clippy
-      #   uses: actions-rs/clippy-check@v1
-      #   with:
-      #     token: ${{ secrets.GITHUB_TOKEN }}
-      #     args: --all-features -- -D warnings
+      - name: Run cargo clippy
+        uses: actions-rs/clippy-check@v1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          args: --all-features -- -D warnings
 
   coverage:
     name: Run Coverage 
@@ -172,65 +144,50 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Run Coverage
-        runs:
-          using: 'docker' 
-          image: 'docker-build/linux/Dockerfile'
-          args:
-            - 'cargo clean \
-              && cargo test --all-features --no-fail-fast --verbose \
-              && grcov . --binary-path ./target/debug/ -s . -t lcov --branch \
-              --ignore "/*" \
-              --ignore "src/main.rs" \
-              --ignore "src/*/tests.rs" \
-              --ignore "src/*/tests/*" \
-              --ignore "src/lexer/tokens.rs" \
-              --ignore-not-existing -o lcov.info'
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: nightly
+          components: llvm-tools-preview
+          override: true
 
-      # - uses: actions-rs/toolchain@v1
-      #   with:
-      #     toolchain: nightly
-      #     components: llvm-tools-preview
-      #     override: true
+      - name: Install LLVM
+        uses: ghaith/install-llvm-action@latest
+        with:
+          version: ${{ env.llvm-version }}
 
-      # - name: Install LLVM
-      #   uses: ghaith/install-llvm-action@latest
-      #   with:
-      #     version: ${{ env.llvm-version }}
+      - name: Clean
+        uses: actions-rs/cargo@v1
+        with:
+          command: clean
 
-      # - name: Clean
-      #   uses: actions-rs/cargo@v1
-      #   with:
-      #     command: clean
+      - name: Build
+        uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: --verbose
 
-      # - name: Build
-      #   uses: actions-rs/cargo@v1
-      #   with:
-      #     command: build
-      #     args: --verbose
-
-      # - name: Run Tests for Coverage
-      #   uses: actions-rs/cargo@v1
-      #   with:
-      #     command: test
-      #     args: --all-features --no-fail-fast --verbose
+      - name: Run Tests for Coverage
+        uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: --all-features --no-fail-fast --verbose
       
-      # - name: Install grcov
-      #   uses: actions-rs/install@v0.1
-      #   with:
-      #     crate: grcov
-      #     version: latest
-      #     use-tool-cache: true
+      - name: Install grcov
+        uses: actions-rs/install@v0.1
+        with:
+          crate: grcov
+          version: latest
+          use-tool-cache: true
       
-      # - name: Generate coverage report
-      #   run: |
-      #     grcov . --binary-path ./target/debug/ -s . -t lcov --branch \
-      #       --ignore "/*" \
-      #       --ignore "src/main.rs" \
-      #       --ignore "src/*/tests.rs" \
-      #       --ignore "src/*/tests/*" \
-      #       --ignore "src/lexer/tokens.rs" \
-      #       --ignore-not-existing -o lcov.info
+      - name: Generate coverage report
+        run: |
+          grcov . --binary-path ./target/debug/ -s . -t lcov --branch \
+            --ignore "/*" \
+            --ignore "src/main.rs" \
+            --ignore "src/*/tests.rs" \
+            --ignore "src/*/tests/*" \
+            --ignore "src/lexer/tokens.rs" \
+            --ignore-not-existing -o lcov.info
 
 
       - name: Upload to codecov.io
