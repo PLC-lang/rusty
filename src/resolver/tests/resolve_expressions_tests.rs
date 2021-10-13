@@ -928,6 +928,27 @@ fn function_call_expression_resolves_to_the_function_itself_not_its_return_type(
 }
 
 #[test]
+fn shadowed_function_is_annotated_correctly() {
+    let (unit, index) = parse(
+        "
+        FUNCTION foo : DINT
+        END_FUNCTION
+
+        PROGRAM prg 
+        foo();
+        END_PROGRAM
+        "
+    );
+    //WHEN the AST is annotated
+    let annotations = annotate(&unit, &index);
+    let statements = &unit.implementations[1].statements;
+
+    // THEN we expect it to be annotated with the function itself
+    assert_type_and_hint!(&annotations, &index, &statements[0], "DINT", None);
+}
+
+
+#[test]
 fn qualified_expressions_to_aliased_structs_resolve_types() {
     let (unit, index) = parse(
         "

@@ -1437,28 +1437,32 @@ END_PROGRAM
         "",
         "",
         r#"%load_y = load i1, i1* %y, align 1
-  %1 = icmp ne i1 %load_y, false
-  br i1 %1, label %2, label %3
+  %1 = sext i1 %load_y to i32
+  %2 = icmp ne i32 %1, 0
+  br i1 %2, label %3, label %5
 
-2:                                                ; preds = %entry
+3:                                                ; preds = %entry
   %load_z = load i32, i32* %z, align 4
   %tmpVar = icmp sge i32 %load_z, 5
-  br label %3
+  %4 = sext i1 %tmpVar to i32
+  br label %5
 
-3:                                                ; preds = %2, %entry
-  %4 = phi i1 [ %load_y, %entry ], [ %tmpVar, %2 ]
+5:                                                ; preds = %3, %entry
+  %6 = phi i32 [ %1, %entry ], [ %4, %3 ]
   %load_z1 = load i32, i32* %z, align 4
   %tmpVar2 = icmp sle i32 %load_z1, 6
   %tmpVar3 = xor i1 %tmpVar2, true
-  %5 = icmp ne i1 %tmpVar3, false
-  br i1 %5, label %7, label %6
+  %7 = sext i1 %tmpVar3 to i32
+  %8 = icmp ne i32 %7, 0
+  br i1 %8, label %11, label %9
 
-6:                                                ; preds = %3
+9:                                                ; preds = %5
   %load_y4 = load i1, i1* %y, align 1
-  br label %7
+  %10 = sext i1 %load_y4 to i32
+  br label %11
 
-7:                                                ; preds = %6, %3
-  %8 = phi i1 [ %tmpVar3, %3 ], [ %load_y4, %6 ]
+11:                                               ; preds = %9, %5
+  %12 = phi i32 [ %7, %5 ], [ %10, %9 ]
   ret void
 "#,
     );
@@ -1635,23 +1639,25 @@ fn if_with_expression_generator_test() {
         "",
         r#"%load_x = load i32, i32* %x, align 4
   %tmpVar = icmp sgt i32 %load_x, 1
-  %1 = icmp ne i1 %tmpVar, false
-  br i1 %1, label %3, label %2
+  %1 = sext i1 %tmpVar to i32
+  %2 = icmp ne i32 %1, 0
+  br i1 %2, label %5, label %3
 
-condition_body:                                   ; preds = %3
+condition_body:                                   ; preds = %5
   %load_x1 = load i32, i32* %x, align 4
   br label %continue
 
-continue:                                         ; preds = %condition_body, %3
+continue:                                         ; preds = %condition_body, %5
   ret void
 
-2:                                                ; preds = %entry
+3:                                                ; preds = %entry
   %load_b1 = load i1, i1* %b1, align 1
-  br label %3
+  %4 = sext i1 %load_b1 to i32
+  br label %5
 
-3:                                                ; preds = %2, %entry
-  %4 = phi i1 [ %tmpVar, %entry ], [ %load_b1, %2 ]
-  br i1 %4, label %condition_body, label %continue
+5:                                                ; preds = %3, %entry
+  %6 = phi i32 [ %1, %entry ], [ %4, %3 ]
+  br i32 %6, label %condition_body, label %continue
 "#,
     );
 
@@ -1867,8 +1873,10 @@ entry:
   %load_x = load i16, i16* %x, align 2
   store i16 %load_x, i16* %y, align 2
   %load_myMethodLocalVar = load i16, i16* %myMethodLocalVar, align 2
+  %2 = sext i16 %load_myMethodLocalVar to i32
   %load_y = load i16, i16* %y, align 2
-  %tmpVar = icmp eq i16 %load_myMethodLocalVar, %load_y
+  %3 = sext i16 %load_y to i32
+  %tmpVar = icmp eq i32 %2, %3
   ret void
 }
 
@@ -1971,8 +1979,10 @@ entry:
   %load_x = load i16, i16* %x, align 2
   store i16 %load_x, i16* %y, align 2
   %load_myMethodLocalVar = load i16, i16* %myMethodLocalVar, align 2
+  %2 = sext i16 %load_myMethodLocalVar to i32
   %load_y = load i16, i16* %y, align 2
-  %tmpVar = icmp eq i16 %load_myMethodLocalVar, %load_y
+  %3 = sext i16 %load_y to i32
+  %tmpVar = icmp eq i32 %2, %3
   ret void
 }
 
@@ -4041,9 +4051,10 @@ fn function_called_when_shadowed() {
 
         PROGRAM prg 
         VAR
-            foo : DINT;
+            froo : DINT;
         END_VAR
-        foo := foo();
+        froo := foo();  //the original test was foo := foo() which cannot work!!!
+                        // imagine prg.foo was a FB which can be called.
         END_PROGRAM
         "
     );
@@ -4066,7 +4077,7 @@ entry:
 
 define void @prg(%prg_interface* %0) {
 entry:
-  %foo = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 0
+  %froo = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 0
   %foo_instance = alloca %foo_interface, align 8
   br label %input
 
@@ -4081,7 +4092,7 @@ output:                                           ; preds = %call
   br label %continue
 
 continue:                                         ; preds = %output
-  store i32 %call1, i32* %foo, align 4
+  store i32 %call1, i32* %froo, align 4
   ret void
 }
 "#;
@@ -5885,12 +5896,14 @@ fn using_global_consts_in_expressions() {
 @cB = global i16 2
 @cC = global i16 3",
         r#"%load_cA = load i16, i16* @cA, align 2
+  %1 = sext i16 %load_cA to i32
   %load_cB = load i16, i16* @cB, align 2
-  %tmpVar = add i16 %load_cA, %load_cB
+  %2 = sext i16 %load_cB to i32
+  %tmpVar = add i32 %1, %2
   %load_cC = load i16, i16* @cC, align 2
-  %tmpVar1 = add i16 %tmpVar, %load_cC
-  %1 = sext i16 %tmpVar1 to i32
-  store i32 %1, i32* %z, align 4
+  %3 = sext i16 %load_cC to i32
+  %tmpVar1 = add i32 %tmpVar, %3
+  store i32 %tmpVar1, i32* %z, align 4
   ret void
 "#,
     );
