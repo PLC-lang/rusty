@@ -4,14 +4,7 @@ use num::{Float, NumCast};
 #[derive(Default)]
 #[allow(dead_code)]
 #[repr(C)]
-struct MainType {
-    di1: i32,
-    i1: i16,
-    i2: i16,
-    r1: f32,
-    r2: f32,
-    t1: i64,
-}
+struct MainType {}
 
 //--------------------------------------------------------------
 //multiplication tests

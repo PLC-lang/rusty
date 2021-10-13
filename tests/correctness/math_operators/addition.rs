@@ -4,16 +4,7 @@ use num::{Float, NumCast};
 #[derive(Default)]
 #[allow(dead_code)]
 #[repr(C)]
-struct MainType {
-    di1: i32,
-    i1: i16,
-    i2: i16,
-    i3: i64,
-    int_array: [i16; 5],
-    r1: f32,
-    r2: f32,
-    t1: i64,
-}
+struct MainType {}
 
 //addition tests
 
@@ -96,12 +87,10 @@ fn adds_multiple_vars_lreal_type() {
 
     let res: f64 = compile_and_run(prog.to_string(), &mut main);
     assert!(approx_equal(res, 28.0f64, 5));
-    //let expected : f64 = 20.8f64 + 2f64 + 5f64 + 0.2f64;
-    //assert_eq!(res, expected);
 }
 
 #[test]
-fn adds_w_decimals() {
+fn store_decimal_addition_in_int() {
     let prog = "
     FUNCTION main : DINT
         main := 1.1 + 5.3 + 3.4 + 2.2;
@@ -144,7 +133,7 @@ fn adds_ulint_type() {
     END_FUNCTION
     ";
 
-    let res: i64 = compile_and_run(prog.to_string(), &mut MainType::default());
+    let res: u64 = compile_and_run(prog.to_string(), &mut MainType::default());
     assert_eq!(res, 34843591080)
 }
 
@@ -156,7 +145,7 @@ fn adds_udint_type() {
     END_FUNCTION
     ";
 
-    let res: i32 = compile_and_run(prog.to_string(), &mut MainType::default());
+    let res: u32 = compile_and_run(prog.to_string(), &mut MainType::default());
     assert_eq!(res, 2147483647)
 }
 
@@ -168,7 +157,7 @@ fn adds_uint_type() {
     END_FUNCTION
     ";
 
-    let res: i16 = compile_and_run(prog.to_string(), &mut MainType::default());
+    let res: u16 = compile_and_run(prog.to_string(), &mut MainType::default());
     assert_eq!(res, 32767)
 }
 
@@ -180,7 +169,7 @@ fn adds_usint_type() {
     END_FUNCTION
     ";
 
-    let res: i8 = compile_and_run(prog.to_string(), &mut MainType::default());
+    let res: u8 = compile_and_run(prog.to_string(), &mut MainType::default());
     assert_eq!(res, 127)
 }
 
@@ -215,12 +204,17 @@ fn adds_dt_type_basic() {
     let mut main = MainType::default();
 
     let res: i64 = compile_and_run(prog.to_string(), &mut main);
-    print!("{} < result >", res);
     assert_eq!(res, 25000000010);
 }
 
 #[test]
 fn adds_tod_type_basic() {
+    #[allow(dead_code)]
+    #[derive(Default)]
+    #[repr(C)]
+    struct MainType {
+        i3: i32,
+    }
     let prog = "
     FUNCTION main : TOD
     VAR
@@ -263,10 +257,10 @@ fn adds_array_basic() {
     FUNCTION main : DINT
     VAR
         int_array : ARRAY[1..20] OF INT;
-        myArr2 : ARRAY[0..8] OF INT := [1,2,3,4,5,6,7,8,9];
+        my_arr2 : ARRAY[0..8] OF INT := [1,2,3,4,5,6,7,8,9];
     END_VAR
         int_array[20] := 20;
-        main := int_array[20] + myArr2[5] + 10;
+        main := int_array[20] + my_arr2[5] + 10;
     END_FUNCTION
     ";
 
