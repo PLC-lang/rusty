@@ -295,8 +295,10 @@ END_PROGRAM
         "",
         "",
         r#"%load_x = load i16, i16* %x, align 2
-  %tmpVar = add i16 %load_x, 7
-  store i16 %tmpVar, i16* %z, align 2
+  %1 = sext i16 %load_x to i32
+  %tmpVar = add i32 %1, 7
+  %2 = trunc i32 %tmpVar to i16
+  store i16 %2, i16* %z, align 2
   ret void
 "#,
     );
@@ -426,8 +428,10 @@ END_PROGRAM
         "",
         "",
         r#"%load_x = load i16, i16* %x, align 2
-  %tmpVar = add i16 %load_x, 13
-  store i16 %tmpVar, i16* %z, align 2
+  %1 = sext i16 %load_x to i32
+  %tmpVar = add i32 %1, 13
+  %2 = trunc i32 %tmpVar to i16
+  store i16 %2, i16* %z, align 2
   ret void
 "#,
     );
@@ -1287,15 +1291,17 @@ END_PROGRAM
         "",
         "",
         r#"%load_x = load i1, i1* %x, align 1
-  %1 = icmp ne i1 %load_x, false
-  br i1 %1, label %2, label %3
+  %1 = sext i1 %load_x to i32
+  %2 = icmp ne i32 %1, 0
+  br i1 %2, label %3, label %5
 
-2:                                                ; preds = %entry
+3:                                                ; preds = %entry
   %load_y = load i1, i1* %y, align 1
-  br label %3
+  %4 = sext i1 %load_y to i32
+  br label %5
 
-3:                                                ; preds = %2, %entry
-  %4 = phi i1 [ %load_x, %entry ], [ %load_y, %2 ]
+5:                                                ; preds = %3, %entry
+  %6 = phi i32 [ %1, %entry ], [ %4, %3 ]
   ret void
 "#,
     );
@@ -1322,15 +1328,17 @@ END_PROGRAM
         "",
         "",
         r#"%load_x = load i1, i1* %x, align 1
-  %1 = icmp ne i1 %load_x, false
-  br i1 %1, label %3, label %2
+  %1 = sext i1 %load_x to i32
+  %2 = icmp ne i32 %1, 0
+  br i1 %2, label %5, label %3
 
-2:                                                ; preds = %entry
+3:                                                ; preds = %entry
   %load_y = load i1, i1* %y, align 1
-  br label %3
+  %4 = sext i1 %load_y to i32
+  br label %5
 
-3:                                                ; preds = %2, %entry
-  %4 = phi i1 [ %load_x, %entry ], [ %load_y, %2 ]
+5:                                                ; preds = %3, %entry
+  %6 = phi i32 [ %1, %entry ], [ %4, %3 ]
   ret void
 "#,
     );
@@ -1357,8 +1365,10 @@ END_PROGRAM
         "",
         "",
         r#"%load_x = load i1, i1* %x, align 1
+  %1 = sext i1 %load_x to i32
   %load_y = load i1, i1* %y, align 1
-  %tmpVar = xor i1 %load_x, %load_y
+  %2 = sext i1 %load_y to i32
+  %tmpVar = xor i32 %1, %2
   ret void
 "#,
     );
@@ -1388,16 +1398,18 @@ END_PROGRAM
         r#"%load_x = load i1, i1* %x, align 1
   %tmpVar = xor i1 %load_x, true
   %load_x1 = load i1, i1* %x, align 1
-  %1 = icmp ne i1 %load_x1, false
-  br i1 %1, label %2, label %3
+  %1 = sext i1 %load_x1 to i32
+  %2 = icmp ne i32 %1, 0
+  br i1 %2, label %3, label %5
 
-2:                                                ; preds = %entry
+3:                                                ; preds = %entry
   %load_y = load i1, i1* %y, align 1
   %tmpVar2 = xor i1 %load_y, true
-  br label %3
+  %4 = sext i1 %tmpVar2 to i32
+  br label %5
 
-3:                                                ; preds = %2, %entry
-  %4 = phi i1 [ %load_x1, %entry ], [ %tmpVar2, %2 ]
+5:                                                ; preds = %3, %entry
+  %6 = phi i32 [ %1, %entry ], [ %4, %3 ]
   ret void
 "#,
     );
@@ -2122,8 +2134,10 @@ entry:
   %load_x = load i16, i16* %x, align 2
   store i16 %load_x, i16* %y, align 2
   %load_myMethodLocalVar = load i16, i16* %myMethodLocalVar, align 2
+  %2 = sext i16 %load_myMethodLocalVar to i32
   %load_y = load i16, i16* %y, align 2
-  %tmpVar = icmp eq i16 %load_myMethodLocalVar, %load_y
+  %3 = sext i16 %load_y to i32
+  %tmpVar = icmp eq i32 %2, %3
   ret void
 }
 "#;

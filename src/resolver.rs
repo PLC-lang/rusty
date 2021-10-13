@@ -663,8 +663,13 @@ impl<'i> TypeAnnotator<'i> {
                     .get_type_information();
 
                 if left_type.is_numerical() && right_type.is_numerical() {
-                    let bigger_name =
-                        get_bigger_type_borrow(left_type, right_type, self.index).get_name();
+                    let dint = self.index.find_type_information(DINT_TYPE).unwrap();
+                    let bigger_name = get_bigger_type_borrow(
+                        get_bigger_type_borrow(left_type, right_type, self.index),
+                        &dint,
+                        self.index
+                    )
+                    .get_name();
                     if bigger_name != left_type.get_name() {
                         self.annotation_map
                             .annotate_type_hint(left, StatementAnnotation::value(bigger_name));

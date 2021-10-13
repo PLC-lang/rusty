@@ -367,7 +367,7 @@ fn expression_lists_with_expressions_are_annotated() {
     let annotations = annotate(&unit, &index);
     let exp_list = &unit.implementations[0].statements[0];
 
-    let expected_types = vec!["INT", "BOOL", "LREAL", "LREAL"];
+    let expected_types = vec!["DINT", "BOOL", "LREAL", "LREAL"];
 
     if let AstStatement::ExpressionList { expressions, .. } = exp_list {
         let actual_types: Vec<&str> = expressions

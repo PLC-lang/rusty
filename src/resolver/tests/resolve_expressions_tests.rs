@@ -1,5 +1,4 @@
 use core::panic;
-use std::any::Any;
 
 use crate::{
     ast::{AstStatement, DataType, Pou, UserTypeDeclaration},
@@ -8,8 +7,23 @@ use crate::{
         tests::{annotate, parse},
         AnnotationMap, StatementAnnotation,
     },
-    typesystem::{self, BYTE_TYPE, DINT_TYPE, SINT_SIZE, SINT_TYPE, VOID_TYPE},
+    typesystem::{BYTE_TYPE, DINT_TYPE, INT_TYPE, SINT_TYPE, UINT_TYPE, USINT_TYPE, VOID_TYPE},
 };
+
+macro_rules! assert_type_and_hint {
+    ($annotations:expr, $index:expr, $stmt:expr, $expected_type:expr, $expected_type_hint:expr) => {
+        assert_eq!(
+            (
+                $annotations.get_type($stmt, $index),
+                $annotations.get_type_hint($stmt, $index)
+            ),
+            (
+                $index.find_effective_type_by_name($expected_type),
+                $expected_type_hint.and_then(|n| $index.find_effective_type_by_name(n))
+            )
+        );
+    };
+}
 
 #[test]
 fn binary_expressions_resolves_types() {
@@ -31,6 +45,114 @@ fn binary_expressions_resolves_types() {
         .collect();
 
     assert_eq!(expected_types, types);
+}
+
+#[test]
+fn binary_expressions_resolves_types_for_mixed_signed_ints() {
+    let (unit, index) = parse(
+        "PROGRAM PRG
+            VAR a : INT; END_VAR
+            a + UINT#7;
+        END_PROGRAM",
+    );
+    let annotations = annotate(&unit, &index);
+    let statements = &unit.implementations[0].statements;
+
+    if let AstStatement::BinaryExpression { left, right, .. } = &statements[0] {
+        assert_type_and_hint!(&annotations, &index, left, INT_TYPE, Some(DINT_TYPE));
+        assert_type_and_hint!(&annotations, &index, right, UINT_TYPE, Some(DINT_TYPE));
+        assert_type_and_hint!(&annotations, &index, &statements[0], DINT_TYPE, None);
+    } else {
+        unreachable!()
+    }
+}
+
+#[test]
+fn binary_expressions_resolves_types_for_literals_directly() {
+    let (unit, index) = parse(
+        "PROGRAM PRG
+            VAR a : BYTE; END_VAR
+            a := a + 7;
+            a := 7;
+        END_PROGRAM",
+    );
+    let annotations = annotate(&unit, &index);
+    let statements = &unit.implementations[0].statements;
+
+    if let AstStatement::Assignment {
+        right: addition, ..
+    } = &statements[0]
+    {
+        // a + 7 --> DINT (BYTE hint)
+        assert_type_and_hint!(&annotations, &index, addition, DINT_TYPE, Some(BYTE_TYPE));
+        if let AstStatement::BinaryExpression {
+            left: a,
+            right: seven,
+            ..
+        } = addition.as_ref()
+        {
+            // a --> BYTE (DINT hint)
+            assert_type_and_hint!(&annotations, &index, a, BYTE_TYPE, Some(DINT_TYPE));
+            // 7 --> DINT (BYTE hint)
+            assert_type_and_hint!(&annotations, &index, seven, DINT_TYPE, None);
+        } else {
+            unreachable!()
+        }
+    } else {
+        unreachable!()
+    }
+
+    if let AstStatement::Assignment { right: seven, .. } = &statements[1] {
+        assert_type_and_hint!(&annotations, &index, seven, DINT_TYPE, Some(BYTE_TYPE));
+    } else {
+        unreachable!()
+    }
+}
+
+#[test]
+fn complex_expressions_resolves_types_for_literals_directly() {
+    let (unit, index) = parse(
+        "PROGRAM PRG
+            VAR 
+                a : BYTE; 
+                b : SINT; 
+                c : INT; 
+            END_VAR
+            a := ((b + USINT#7) - c);
+        END_PROGRAM",
+    );
+    let annotations = annotate(&unit, &index);
+    let statements = &unit.implementations[0].statements;
+
+    if let AstStatement::Assignment { right, .. } = &statements[0] {
+        // ((b + USINT#7) - c) 
+        assert_type_and_hint!(&annotations, &index, right, DINT_TYPE, Some(BYTE_TYPE));
+        if let AstStatement::BinaryExpression { left, right: c, .. } = right.as_ref() {
+            // c
+            assert_type_and_hint!(&annotations, &index, c, INT_TYPE, Some(DINT_TYPE));
+            // (b + USINT#7)
+            assert_type_and_hint!(&annotations, &index, left, DINT_TYPE, None);
+
+            if let AstStatement::BinaryExpression {
+                left: b,
+                right: seven,
+                ..
+            } = left.as_ref()
+            {
+                //b
+                assert_type_and_hint!(&annotations, &index, b, SINT_TYPE, Some(DINT_TYPE));
+                // USINT#7
+                assert_type_and_hint!(&annotations, &index, seven, USINT_TYPE, Some(DINT_TYPE));
+            } else {
+                unreachable!()
+            }
+        } else {
+            unreachable!()
+        }
+        // 7 --> DINT (BYTE hint)
+    } else {
+        unreachable!()
+    }
 }
 
 #[test]
@@ -251,7 +373,7 @@ fn resolve_binary_expressions() {
     let statements = &unit.implementations[0].statements;
 
     let expected_types = vec![
-        "BYTE", "WORD", "DWORD", "LWORD", "SINT", "BYTE", "INT", "UINT", "DINT", "UDINT", "LINT",
+        "DINT", "DINT", "DINT", "LWORD", "DINT", "DINT", "DINT", "DINT", "DINT", "DINT", "LINT",
         "ULINT",
     ];
     let type_names: Vec<&str> = statements
@@ -301,7 +423,7 @@ fn necessary_promotions_should_be_type_hinted() {
     } else {
         unreachable!();
     }
-    
+
     // THEN we want a hint to promote b to DINT, BYTE < DINT should be treated as BOOL
     if let AstStatement::BinaryExpression { left, .. } = &statements[1] {
         assert_eq!(
@@ -526,7 +648,7 @@ fn qualified_expressions_resolve_types() {
     let annotations = annotate(&unit, &index);
     let statements = &unit.implementations[1].statements;
 
-    let expected_types = vec!["BYTE", "WORD", "DWORD", "LWORD", "WORD", "DWORD", "LWORD"];
+    let expected_types = vec!["BYTE", "WORD", "DWORD", "LWORD", "DINT", "DINT", "LWORD"];
     let type_names: Vec<&str> = statements
         .iter()
         .map(|s| annotations.get_type_or_void(s, &index).get_name())
