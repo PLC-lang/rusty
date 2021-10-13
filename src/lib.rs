@@ -36,6 +36,7 @@ use inkwell::targets::{
 };
 use lexer::IdProvider;
 use std::{fs::File, io::Read};
+use typesystem::DataTypeInformation;
 use validation::Validator;
 
 use crate::ast::CompilationUnit;
@@ -81,6 +82,7 @@ pub enum ErrNo {
     // pou related
     pou__missing_return_type,
     pou__unexpected_return_type,
+    pou__unsupported_return_type,
     pou__empty_variable_block,
 
     //variable related
@@ -137,6 +139,17 @@ impl Diagnostic {
             ),
             range,
             err_no: ErrNo::pou__unexpected_return_type,
+        }
+    }
+
+    pub fn unsupported_return_type(
+        data_type: &DataTypeInformation,
+        range: SourceRange,
+    ) -> Diagnostic {
+        Diagnostic::SyntaxError {
+            message: format!("Data Type {:?} not supported!", data_type),
+            range,
+            err_no: ErrNo::pou__unsupported_return_type,
         }
     }
 
