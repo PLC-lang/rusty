@@ -24,7 +24,7 @@ jobs:
         with:
           mdbook-version: 'latest'
       - name: Install LLVM
-        uses: ghaith/install-llvm-action@latest
+        uses: PLC-lang/install-llvm-action@latest
         with:
           version: ${{ env.llvm-version }}
           directory: "./llvm"
