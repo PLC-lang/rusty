@@ -25,7 +25,7 @@ Structured text compiler written in Rust
 ```
 
 For build, installation and usage reference as well as supported language constructs, check out
-the [documentation](https://ghaith.github.io/rusty/).
+the [documentation](https://plc-lang.github.io/rusty/).
 
 ## About RuSTy
 RuSTy is a structured text (ST) compiler written in Rust and based on the
@@ -38,4 +38,4 @@ supporting at least the features in 2nd edition IEC 61131 standard.
 ## Getting started
 Start by [installing Rust](https://www.rust-lang.org/tools/install) and git on your machine.
 Then, clone this repository and run `cargo build` to compile the code. Check out the
-[documentation](https://ghaith.github.io/rusty/) for further reference.
+[documentation](https://plc-lang.github.io/rusty/) for further reference.
