@@ -61,6 +61,9 @@ pub const LREAL_TYPE: &str = "LREAL";
 pub const STRING_TYPE: &str = "STRING";
 pub const WSTRING_TYPE: &str = "WSTRING";
 
+pub const CONST_STRING_TYPE: &str = "___CONST_STRING";
+pub const CONST_WSTRING_TYPE: &str = "___CONST_WSTRING";
+
 pub const VOID_TYPE: &str = "VOID";
 
 #[derive(Debug, PartialEq)]
@@ -508,6 +511,22 @@ pub fn get_builtin_types() -> Vec<DataType> {
             },
         },
         DataType {
+            name: CONST_STRING_TYPE.into(),
+            initial_value: None,
+            information: DataTypeInformation::String {
+                size: TypeSize::from_literal(u16::MAX as u32),
+                encoding: StringEncoding::Utf8,
+            },
+        },
+        DataType {
+            name: CONST_WSTRING_TYPE.into(),
+            initial_value: None,
+            information: DataTypeInformation::String {
+                size: TypeSize::from_literal(u16::MAX as u32),
+                encoding: StringEncoding::Utf16,
+            },
+        },
+        DataType {
             name: SHORT_DATE_AND_TIME_TYPE.into(),
             initial_value: None,
             information: DataTypeInformation::Alias {
@@ -539,6 +558,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
                 referenced_type: TIME_TYPE.into(),
             },
         },
+        
     ]
 }
 

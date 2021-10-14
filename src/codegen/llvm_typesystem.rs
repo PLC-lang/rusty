@@ -281,14 +281,21 @@ pub fn cast_if_needed<'ctx>(
                     .as_int_value(index)
                     .map_err(|msg| CompileError::codegen_error(msg, SourceRange::undefined()))?
                     as u32;
+   
                 if size < value_size {
                     //if we are on a vector replace it
                     if value.is_vector_value() {
                         let vec_value = value.into_vector_value();
                         let string_value = vec_value.get_string_constant().to_bytes();
-                        let new_value = &string_value[0..(size - 1) as usize];
-                        let (_, value) = llvm.create_llvm_const_vec_string(new_value)?;
-                        Ok(value)
+                        let real_size = std::cmp::min(size, (string_value.len() +1) as u32);
+                        if real_size < value_size {
+
+                            let new_value = &string_value[0..(real_size - 1) as usize];
+                            let (_, value) = llvm.create_llvm_const_vec_string(new_value)?;
+                            Ok(value)
+                        }else{
+                            Ok(value)
+                        }
                     } else {
                         Err(CompileError::casting_error(
                             value_type.get_name(),

@@ -1,17 +1,9 @@
 use core::panic;
 
-use crate::{
-    ast::{AstStatement, DataType, Pou, UserTypeDeclaration},
-    index::Index,
-    resolver::{
+use crate::{ast::{AstStatement, DataType, Pou, UserTypeDeclaration}, index::Index, resolver::{
         tests::{annotate, parse},
         AnnotationMap, StatementAnnotation,
-    },
-    typesystem::{
-        BOOL_TYPE, BYTE_TYPE, DINT_TYPE, INT_TYPE, LREAL_TYPE, REAL_TYPE, SINT_TYPE, UINT_TYPE,
-        USINT_TYPE, VOID_TYPE,
-    },
-};
+    }, typesystem::{BOOL_TYPE, BYTE_TYPE, CONST_STRING_TYPE, DINT_TYPE, INT_TYPE, LREAL_TYPE, REAL_TYPE, SINT_TYPE, UINT_TYPE, USINT_TYPE, VOID_TYPE}};
 
 macro_rules! assert_type_and_hint {
     ($annotations:expr, $index:expr, $stmt:expr, $expected_type:expr, $expected_type_hint:expr) => {
@@ -1293,7 +1285,7 @@ fn type_initial_values_are_resolved() {
         assert_eq!(
             Some(&StatementAnnotation::value(
                 index
-                    .find_effective_type_by_name(type_of_z)
+                    .find_effective_type_by_name(CONST_STRING_TYPE)
                     .unwrap()
                     .get_name()
             )),

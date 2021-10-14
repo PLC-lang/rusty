@@ -12,11 +12,7 @@ pub mod const_evaluator;
 use crate::{ast::{
         AstId, AstStatement, CompilationUnit, DataType, DataTypeDeclaration, Operator, Pou,
         UserTypeDeclaration, Variable,
-    }, index::{self, ImplementationIndexEntry, ImplementationType, Index, VariableIndexEntry}, typesystem::{
-        self, get_bigger_type_borrow, DataTypeInformation, BOOL_TYPE, BYTE_TYPE,
-        DATE_AND_TIME_TYPE, DATE_TYPE, DINT_TYPE, DWORD_TYPE, LINT_TYPE, REAL_TYPE, STRING_TYPE,
-        TIME_OF_DAY_TYPE, TIME_TYPE, VOID_TYPE, WORD_TYPE, WSTRING_TYPE,
-    }};
+    }, index::{self, ImplementationIndexEntry, ImplementationType, Index, VariableIndexEntry}, typesystem::{self, BOOL_TYPE, BYTE_TYPE, CONST_STRING_TYPE, CONST_WSTRING_TYPE, DATE_AND_TIME_TYPE, DATE_TYPE, DINT_TYPE, DWORD_TYPE, DataTypeInformation, LINT_TYPE, REAL_TYPE, STRING_TYPE, TIME_OF_DAY_TYPE, TIME_TYPE, VOID_TYPE, WORD_TYPE, WSTRING_TYPE, get_bigger_type_borrow}};
 
 #[cfg(test)]
 mod tests;
@@ -441,14 +437,14 @@ impl<'i> TypeAnnotator<'i> {
                     )
                 }
             }
-            AstStatement::LiteralString { .. } => {
-                //special case -> promote a literal-String directly, not via type-hint
-                // (avoid later cast)
-                self.annotation_map.annotate(
-                    statement,
-                    StatementAnnotation::value(expected_type.get_name()),
-                )
-            }
+            // AstStatement::LiteralString { .. } => {
+            //     //special case -> promote a literal-String directly, not via type-hint
+            //     // (avoid later cast)
+            //     self.annotation_map.annotate(
+            //         statement,
+            //         StatementAnnotation::value(expected_type.get_name()),
+            //     )
+            // }
             _ => {
                 //annotate the statement, whatever it is
                 self.annotation_map.annotate_type_hint(
@@ -956,7 +952,7 @@ impl<'i> TypeAnnotator<'i> {
             }
 
             AstStatement::LiteralString { is_wide, .. } => {
-                let string_type_name = if *is_wide { WSTRING_TYPE } else { STRING_TYPE };
+                let string_type_name = if *is_wide { CONST_WSTRING_TYPE } else { CONST_STRING_TYPE };
                 self.annotation_map
                     .annotate(statement, StatementAnnotation::value(string_type_name));
             }

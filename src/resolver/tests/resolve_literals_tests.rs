@@ -1,8 +1,4 @@
-use crate::{
-    ast::AstStatement,
-    resolver::tests::{annotate, parse},
-    typesystem::{DataTypeInformation, Dimension},
-};
+use crate::{ast::AstStatement, resolver::tests::{annotate, parse}, typesystem::{CONST_STRING_TYPE, CONST_WSTRING_TYPE, DataTypeInformation, Dimension}};
 
 #[test]
 fn bool_literals_are_annotated() {
@@ -40,7 +36,7 @@ fn string_literals_are_annotated() {
     let annotations = annotate(&unit, &index);
     let statements = &unit.implementations[0].statements;
 
-    let expected_types = vec!["WSTRING", "STRING"];
+    let expected_types = vec![CONST_WSTRING_TYPE, CONST_STRING_TYPE];
 
     let types: Vec<&str> = statements
         .iter()
