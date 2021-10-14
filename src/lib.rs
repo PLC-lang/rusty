@@ -21,7 +21,7 @@ use std::fs;
 use std::ops::Range;
 use std::path::Path;
 
-use ast::{PouType, SourceRange};
+use ast::{DataTypeDeclaration, PouType, SourceRange};
 use codespan_reporting::diagnostic::{self, Label};
 use codespan_reporting::files::SimpleFiles;
 use codespan_reporting::term::termcolor::{ColorChoice, StandardStream};
@@ -36,7 +36,6 @@ use inkwell::targets::{
 };
 use lexer::IdProvider;
 use std::{fs::File, io::Read};
-use typesystem::DataTypeInformation;
 use validation::Validator;
 
 use crate::ast::CompilationUnit;
@@ -142,13 +141,10 @@ impl Diagnostic {
         }
     }
 
-    pub fn unsupported_return_type(
-        data_type: &DataTypeInformation,
-        range: SourceRange,
-    ) -> Diagnostic {
+    pub fn function_unsupported_return_type(data_type: &DataTypeDeclaration) -> Diagnostic {
         Diagnostic::SyntaxError {
             message: format!("Data Type {:?} not supported!", data_type),
-            range,
+            range: data_type.get_location(),
             err_no: ErrNo::pou__unsupported_return_type,
         }
     }
