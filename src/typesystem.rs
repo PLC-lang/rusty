@@ -611,24 +611,25 @@ pub fn get_bigger_type(
 }
 
 pub fn get_bigger_type_borrow<'t>(
-    ltype: &'t DataTypeInformation,
-    rtype: &'t DataTypeInformation,
+    left_type: &'t DataType,
+    right_type: &'t DataType,
     index: &'t Index,
-) -> &'t DataTypeInformation {
-    if is_same_type_nature(ltype, rtype) {
-        if get_rank(ltype) < get_rank(rtype) {
-            rtype
+) -> &'t DataType {
+    let lt = left_type.get_type_information();
+    let rt = right_type.get_type_information();
+    if is_same_type_nature(lt, rt) {
+        if get_rank(lt) < get_rank(rt) {
+            right_type
         } else {
-            ltype
+            left_type
         }
     } else {
         let real_type = index
             .get_type(REAL_TYPE)
-            .map(|it| it.get_type_information())
             .unwrap();
-        let real_size = real_type.get_size();
-        if ltype.get_size() > real_size || rtype.get_size() > real_size {
-            index.get_type(LREAL_TYPE).unwrap().get_type_information()
+        let real_size = real_type.get_type_information().get_size();
+        if lt.get_size() > real_size || rt.get_size() > real_size {
+            index.get_type(LREAL_TYPE).unwrap()
         } else {
             real_type
         }

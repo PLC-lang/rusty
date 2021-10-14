@@ -59,6 +59,10 @@ impl VariableIndexEntry {
     pub fn is_constant(&self) -> bool {
         self.information.is_constant
     }
+
+    pub fn get_variable_type(&self) -> VariableType {
+        self.information.variable_type
+    }
 }
 
 #[derive(Copy, Clone, Debug, PartialEq)]

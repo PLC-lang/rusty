@@ -7,7 +7,10 @@ use crate::{
         tests::{annotate, parse},
         AnnotationMap, StatementAnnotation,
     },
-    typesystem::{BYTE_TYPE, DINT_TYPE, INT_TYPE, SINT_TYPE, UINT_TYPE, USINT_TYPE, VOID_TYPE},
+    typesystem::{
+        BOOL_TYPE, BYTE_TYPE, DINT_TYPE, INT_TYPE, LREAL_TYPE, REAL_TYPE, SINT_TYPE, UINT_TYPE,
+        USINT_TYPE, VOID_TYPE,
+    },
 };
 
 macro_rules! assert_type_and_hint {
@@ -125,7 +128,7 @@ fn complex_expressions_resolves_types_for_literals_directly() {
     let statements = &unit.implementations[0].statements;
 
     if let AstStatement::Assignment { right, .. } = &statements[0] {
-        // ((b + USINT#7) - c) 
+        // ((b + USINT#7) - c)
         assert_type_and_hint!(&annotations, &index, right, DINT_TYPE, Some(BYTE_TYPE));
         if let AstStatement::BinaryExpression { left, right: c, .. } = right.as_ref() {
             // c
@@ -196,6 +199,62 @@ fn binary_expressions_resolves_types_with_floats() {
             "{:#?}",
             s
         );
+    }
+}
+
+#[test]
+fn binary_expressions_resolves_types_with_float_comparisons() {
+    //GIVEN some comparison expressions with floats
+    let (unit, index) = parse(
+        "PROGRAM PRG
+            VAR a, b : REAL END_VAR
+                a < b;
+                a = b;
+                a >= b;
+        END_PROGRAM",
+    );
+
+    //WHEN I annotate the code
+    let annotations = annotate(&unit, &index);
+    let statements = &unit.implementations[0].statements;
+
+    //I want the expressions to be of type BOOL, the left and right of type REAL
+    for s in statements.iter() {
+        assert_type_and_hint!(&annotations, &index, s, BOOL_TYPE, None);
+
+        if let AstStatement::BinaryExpression { left, right, .. } = s {
+            assert_type_and_hint!(&annotations, &index, left, REAL_TYPE, None);
+            assert_type_and_hint!(&annotations, &index, right, REAL_TYPE, None);
+        } else {
+            unreachable!()
+        }
+    }
+}
+
+#[test]
+fn binary_expressions_resolves_types_of_literals_with_float_comparisons() {
+    //GIVEN some comparison expressions with floats
+    let (unit, index) = parse(
+        "PROGRAM PRG
+            VAR a : REAL END_VAR
+                a < 1;
+        END_PROGRAM",
+    );
+
+    //WHEN I annotate the code
+    let annotations = annotate(&unit, &index);
+    let statements = &unit.implementations[0].statements;
+
+    //I want the '1' to be treated as a real right away (no casting involved)
+    for s in statements.iter() {
+        assert_type_and_hint!(&annotations, &index, s, BOOL_TYPE, None);
+
+        if let AstStatement::BinaryExpression { left, right, .. } = s {
+            assert_type_and_hint!(&annotations, &index, left, REAL_TYPE, None);
+            assert_type_and_hint!(&annotations, &index, right, REAL_TYPE, None);
+        } else {
+            unreachable!()
+        }
     }
 }
 
@@ -463,22 +522,15 @@ fn necessary_promotions_between_real_and_literal_should_be_type_hinted() {
     let annotations = annotate(&unit, &index);
     let statements = &unit.implementations[0].statements;
 
-    // THEN we want a hint to promote 0 to REAL, the result of f > 0 should be type bool
+    // THEN we want '0' to be treated as a REAL right away, the result of f > 0 should be type bool
     if let AstStatement::BinaryExpression { right, .. } = &statements[0] {
         assert_eq!(
             annotations.get_type(&statements[0], &index),
             index.find_effective_type_by_name("BOOL")
         );
-        assert_eq!(
-            (
-                annotations.get_type(right.as_ref(), &index),
-                annotations.get_type_hint(right.as_ref(), &index)
-            ),
-            (
-                index.find_effective_type_by_name("DINT"),
-                index.find_effective_type_by_name("REAL")
-            )
-        );
+
+        assert_type_and_hint!(&annotations, &index, &statements[0], BOOL_TYPE, None);
+        assert_type_and_hint!(&annotations, &index, right.as_ref(), REAL_TYPE, None);
     } else {
         unreachable!();
     }
@@ -937,7 +989,7 @@ fn shadowed_function_is_annotated_correctly() {
         PROGRAM prg 
         foo();
         END_PROGRAM
-        "
+        ",
     );
     //WHEN the AST is annotated
     let annotations = annotate(&unit, &index);
@@ -946,7 +998,6 @@ fn shadowed_function_is_annotated_correctly() {
     // THEN we expect it to be annotated with the function itself
     assert_type_and_hint!(&annotations, &index, &statements[0], "DINT", None);
 }
-
 
 #[test]
 fn qualified_expressions_to_aliased_structs_resolve_types() {
@@ -1237,8 +1288,15 @@ fn type_initial_values_are_resolved() {
             Some(&StatementAnnotation::value("BOOL")),
             annotations.get(variables[1].initializer.as_ref().unwrap())
         );
+
+        let type_of_z = index.find_member("MyStruct", "z").unwrap().get_type_name();
         assert_eq!(
-            Some(&StatementAnnotation::value("STRING")),
+            Some(&StatementAnnotation::value(
+                index
+                    .find_effective_type_by_name(type_of_z)
+                    .unwrap()
+                    .get_name()
+            )),
             annotations.get(variables[2].initializer.as_ref().unwrap())
         );
     } else {
@@ -2085,4 +2143,29 @@ fn deep_struct_variable_initialization_annotates_initializer() {
     } else {
         unreachable!()
     }
+}
+
+
+#[test]
+fn inouts_should_be_annotated_according_to_auto_deref() {
+    //a program with in-out variables that get auto-deref'd
+    let (unit, index) = parse(
+        "
+        PROGRAM foo 
+            VAR_IN_OUT
+                inout : DINT;
+            END_VAR
+
+            inout;
+        END_PROGRAM
+        ",
+    );
+
+    // WHEN this code is annotated
+    let annotations = annotate(&unit, &index);
+    let inout_ref = &unit.implementations[0].statements[0];
+    
+    // then accessing inout should be annotated with DINT, because it is auto-dereferenced
+    assert_type_and_hint!(&annotations, &index, inout_ref, DINT_TYPE, None);
+
 }
