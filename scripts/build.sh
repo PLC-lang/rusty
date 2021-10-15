@@ -1,4 +1,4 @@
-#!/bin/env bash
+#!/bin/bash
 
 # Parse parameters
 vendor=0
@@ -54,11 +54,12 @@ function run_build() {
 }
 
 function check() {
-	CARGO_OPTIONS=set_cargo_options
+	CARGO_OPTIONS=$(set_cargo_options)
   log "Running cargo clippy"
 	cargo clippy $CARGO_OPTIONS -- -Dwarnings
   log "Running cargo fmt check"
-	cargo fmt $CARGO_OPTIONS -- --check
+	cargo fmt -- --check
+	cargo test $CARGO_OPTIONS
 }
 
 function generate_sources() {

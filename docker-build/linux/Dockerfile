@@ -20,6 +20,7 @@ RUN cargo install mdbook grcov
 
 WORKDIR /build
 ENTRYPOINT ["bash"]
+SHELL ["bash"]
 
 #Activate this for local builds to enable watching
 #RUN cargo install cargo-watch 
