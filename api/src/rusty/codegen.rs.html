@@ -143,6 +143,7 @@
 <span id="143">143</span>
 <span id="144">144</span>
 <span id="145">145</span>
+<span id="146">146</span>
 </pre><pre class="rust">
 <span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 
@@ -176,6 +177,7 @@
 
 <span class="doccomment">/// Tuple consisting of an llvm pointer-value and the resulting DataType</span>
 <span class="doccomment">/// what to expect when loading the given pointer</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">TypeAndPointer</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span><span class="op">&gt;</span> {
     <span class="doccomment">/// the index-entry of the datatype of the dereferenced pointer</span>
     <span class="ident">type_entry</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="ident">DataType</span>,
