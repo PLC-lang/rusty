@@ -3985,7 +3985,6 @@ fn pointer_and_array_access_to_in_out() {
     );
 
     insta::assert_snapshot!(result)
-
 }
 
 #[test]
