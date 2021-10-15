@@ -30,6 +30,7 @@ type TypeAndValue<'a> = (DataTypeInformation, BasicValueEnum<'a>);
 
 /// Tuple consisting of an llvm pointer-value and the resulting DataType
 /// what to expect when loading the given pointer
+#[derive(Debug)]
 pub struct TypeAndPointer<'a, 'b> {
     /// the index-entry of the datatype of the dereferenced pointer
     type_entry: &'b DataType,
