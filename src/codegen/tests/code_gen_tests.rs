@@ -821,14 +821,13 @@ fn date_comparisons() {
 fn program_with_string_assignment() {
     let result = codegen!(
         r#"PROGRAM prg
-VAR
-y : STRING;
-z : WSTRING;
-END_VAR
-y := 'im a genius';
-z := "im a utf16 genius";
-END_PROGRAM
-"#
+            VAR
+            y : STRING;
+            z : WSTRING;
+            END_VAR
+            y := 'im a genius';
+            z := "im a utf16 genius";
+        END_PROGRAM"#
     );
 
     let expected = r#"; ModuleID = 'main'
@@ -988,6 +987,7 @@ entry:
 }
 
 #[test]
+#[ignore = "wstrings will be reworked: https://github.com/PLC-lang/rusty/issues/327"]
 fn variable_length_strings_can_be_created() {
     let result = codegen!(
         r#"PROGRAM prg

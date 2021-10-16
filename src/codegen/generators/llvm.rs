@@ -229,20 +229,13 @@ impl<'a> Llvm<'a> {
         &self,
         value: &[u16],
     ) -> Result<TypeAndValue<'a>, CompileError> {
-        let mut bytes = Vec::with_capacity(value.len() * 2);
-        value.iter().for_each(|it| {
-            let ordered_bytes = it.to_le_bytes(); //todo make this a compiler-setting
-            bytes.push(ordered_bytes[0]);
-            bytes.push(ordered_bytes[1]);
-        });
-
+        let bytes = get_bytes_from_u16_array(value);
         let exp_value = self.context.const_string(bytes.as_slice(), false);
         Ok((
             typesystem::new_wide_string_information(value.len() as u32),
             BasicValueEnum::VectorValue(exp_value),
         ))
     }
-
     /// create a constant utf8 string-value with the given value
     ///
     /// - `value` the value of the constant string value
@@ -256,4 +249,14 @@ impl<'a> Llvm<'a> {
             BasicValueEnum::VectorValue(exp_value),
         ))
     }
+}
+
+pub fn get_bytes_from_u16_array(value: &[u16]) -> Vec<u8> {
+    let mut bytes = Vec::with_capacity(value.len() * 2);
+    value.iter().for_each(|it| {
+        let ordered_bytes = it.to_le_bytes(); //todo make this a compiler-setting
+        bytes.push(ordered_bytes[0]);
+        bytes.push(ordered_bytes[1]);
+    });
+    bytes
 }

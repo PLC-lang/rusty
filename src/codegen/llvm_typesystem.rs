@@ -3,7 +3,7 @@ use inkwell::{builder::Builder, context::Context, types::{FloatType, IntType}, v
 
 use crate::{ast::AstStatement, ast::SourceRange, compile_error::CompileError, index::Index, typesystem::{DataType, DataTypeInformation, get_bigger_type}};
 
-use super::{generators::llvm::Llvm, llvm_index::LlvmTypedIndex, TypeAndValue};
+use super::{TypeAndValue, generators::llvm::{self, Llvm}, llvm_index::LlvmTypedIndex};
 
 pub fn promote_if_needed<'a>(
     context: &'a Context,
@@ -37,8 +37,6 @@ pub fn promote_if_needed<'a>(
             (target_type, promoted_lvalue, promoted_rvalue)
         }
     } else {
-        dbg!(ltype);
-        dbg!(rtype);
         panic!("Binary operations need numerical types")
     }
 }
@@ -144,7 +142,7 @@ pub fn cast_if_needed<'ctx>(
     target_type: &DataTypeInformation,
     value: BasicValueEnum<'ctx>,
     value_type: &DataTypeInformation,
-    location_context: &AstStatement,
+    statement: &AstStatement,
 ) -> Result<BasicValueEnum<'ctx>, CompileError> {
     let builder = &llvm.builder;
     let target_type = index
@@ -215,7 +213,7 @@ pub fn cast_if_needed<'ctx>(
                 _ => Err(CompileError::casting_error(
                     value_type.get_name(),
                     target_type.get_name(),
-                    location_context.get_location(),
+                    statement.get_location(),
                 )),
             }
         }
@@ -266,7 +264,7 @@ pub fn cast_if_needed<'ctx>(
             _ => Err(CompileError::casting_error(
                 value_type.get_name(),
                 target_type.get_name(),
-                location_context.get_location(),
+                statement.get_location(),
             )),
         },
         DataTypeInformation::String { size, .. } => match value_type {
@@ -283,25 +281,46 @@ pub fn cast_if_needed<'ctx>(
                     as u32;
    
                 if size < value_size {
-                    //if we are on a vector replace it
-                    if value.is_vector_value() {
-                        let vec_value = value.into_vector_value();
-                        let string_value = vec_value.get_string_constant().to_bytes();
-                        let real_size = std::cmp::min(size, (string_value.len() +1) as u32);
-                        if real_size < value_size {
-
-                            let new_value = &string_value[0..(real_size - 1) as usize];
-                            let (_, value) = llvm.create_llvm_const_vec_string(new_value)?;
-                            Ok(value)
-                        }else{
-                            Ok(value)
-                        }
+                    //we need to downcast the size of the string
+                    //check if it's a literal, if so we can exactly know how big this is
+                    if let AstStatement::LiteralString { is_wide, value: string_value, ..} = statement {
+                        let str_bytes = if *is_wide {
+                            let chars = string_value.encode_utf16().collect::<Vec<u16>>();
+                            let mut bytes = llvm::get_bytes_from_u16_array(chars.as_slice());
+                            bytes.push(0);
+                            bytes
+                       } else {
+                            let bytes = string_value.bytes().collect::<Vec<u8>>();
+                            bytes
+                        };
+                        let bytes_per_char = if *is_wide { 2 } else { 1 };
+                        let total_bytes_to_copy = std::cmp::min((size-1)*bytes_per_char, (str_bytes.len()) as u32);
+                        //dont bother with the wstring, because we will rework them
+                        // 
+                        let new_value = &str_bytes[0..(total_bytes_to_copy) as usize];
+                        let (_, value) = llvm.create_llvm_const_vec_string(new_value)?;
+                        Ok(value)
                     } else {
-                        Err(CompileError::casting_error(
-                            value_type.get_name(),
-                            target_type.get_name(),
-                            location_context.get_location(),
-                        ))
+                        //if we are on a vector replace it 
+                        if value.is_vector_value() {
+                            let vec_value = value.into_vector_value();
+                            let string_value = vec_value.get_string_constant().to_bytes();
+                            let real_size = std::cmp::min(size, (string_value.len() +1) as u32);
+                            if real_size < value_size {
+
+                                let new_value = &string_value[0..(real_size - 1) as usize];
+                                let (_, value) = llvm.create_llvm_const_vec_string(new_value)?;
+                                Ok(value)
+                            }else{
+                                Ok(value)
+                            }
+                        } else {
+                            Err(CompileError::casting_error(
+                                value_type.get_name(),
+                                target_type.get_name(),
+                                statement.get_location(),
+                            ))
+                        }
                     }
                 } else {
                     Ok(value)
@@ -310,7 +329,7 @@ pub fn cast_if_needed<'ctx>(
             _ => Err(CompileError::casting_error(
                 value_type.get_name(),
                 target_type.get_name(),
-                location_context.get_location(),
+                statement.get_location(),
             )),
         },
         _ => Ok(value),

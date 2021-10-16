@@ -212,8 +212,6 @@ impl StatementValidator {
         } else if discriminant(cast_type) != discriminant(literal_type) {
             // different types
             // REAL#100 is fine, other differences are not
-            dbg!(&cast_type);
-            dbg!(&literal_type);
             if !(cast_type.is_float() && literal_type.is_int()) {
                 self.diagnostics.push(Diagnostic::incompatible_literal_cast(
                     cast_type.get_name(),
