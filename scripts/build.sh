@@ -76,6 +76,7 @@ function set_offline() {
 	log "Copy the offline.toml config to .cargo/config.toml"
 	make_dir "$project_location"/build/.cargo
 	cp "$project_location"/scripts/data/offline.toml "$project_location"/build/.cargo/config.toml
+	cd build
 	if [[ ! -d $project_location/3rd-party ]]; then
 		echo "Offline sources not found at $project_location/3rd-party"
 		exit 1
@@ -115,7 +116,10 @@ function run_in_container() {
 				exit 1
   esac
 
-	command_to_run="$container_engine run -it -v $project_location:$volume_target rust-llvm  scripts/build.sh $params"
+	build_location=$(sanitize_path "$project_location")
+	log "Sanitized Project location : $project_location"
+
+	command_to_run="$container_engine run -it -v $build_location:$volume_target rust-llvm  scripts/build.sh $params"
 	log "Running command : $command_to_run"
 	eval "$command_to_run"
 }

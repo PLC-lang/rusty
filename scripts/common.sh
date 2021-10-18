@@ -10,7 +10,7 @@ function log() {
 function make_dir() {
 if [[ ! -d $1 ]]; then
 	log "Creating a target build directory at $1"
-	mkdir "$1"
+	mkdir -p "$1"
 fi
 }
 
@@ -59,8 +59,6 @@ function find_project_root() {
 	fi
 	log "Found project location at $project_location"
 	# echo $project_location | tr -t "\\" "\\\\"
-	project_location=$(sanitize_path "$project_location")
-	log "Sanitized Project location : $project_location"
 	echo $project_location
 }
 
