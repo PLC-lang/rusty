@@ -21,7 +21,7 @@ use std::fs;
 use std::ops::Range;
 use std::path::Path;
 
-use ast::{PouType, SourceRange};
+use ast::{DataTypeDeclaration, PouType, SourceRange};
 use codespan_reporting::diagnostic::{self, Label};
 use codespan_reporting::files::SimpleFiles;
 use codespan_reporting::term::termcolor::{ColorChoice, StandardStream};
@@ -82,6 +82,7 @@ pub enum ErrNo {
     // pou related
     pou__missing_return_type,
     pou__unexpected_return_type,
+    pou__unsupported_return_type,
     pou__empty_variable_block,
 
     //variable related
@@ -138,6 +139,17 @@ impl Diagnostic {
             ),
             range,
             err_no: ErrNo::pou__unexpected_return_type,
+        }
+    }
+
+    pub fn function_unsupported_return_type(data_type: &DataTypeDeclaration) -> Diagnostic {
+        Diagnostic::SyntaxError {
+            message: format!(
+                "Data Type {:?} not supported as a function return type!",
+                data_type
+            ),
+            range: data_type.get_location(),
+            err_no: ErrNo::pou__unsupported_return_type,
         }
     }
 
