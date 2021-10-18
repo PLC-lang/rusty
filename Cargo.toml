@@ -25,9 +25,9 @@ generational-arena = "0.2.8"
 regex = "1"
 
 [dev-dependencies]
+num = "0.4"
 insta = "1.8.0"
 pretty_assertions = "0.6.1"
-
 
 [lib]
 name = "rusty"
