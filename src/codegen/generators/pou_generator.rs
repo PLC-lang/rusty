@@ -217,6 +217,12 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
             Some(enum_type) if enum_type.is_array_type() => {
                 Ok(enum_type.into_array_type().fn_type(params, is_var_args))
             }
+            Some(enum_type) if enum_type.is_pointer_type() => {
+                Ok(enum_type.into_pointer_type().fn_type(params, is_var_args))
+            }
+            Some(enum_type) if enum_type.is_struct_type() => {
+                Ok(enum_type.into_struct_type().fn_type(params, is_var_args))
+            }
             None => Ok(self.llvm.context.void_type().fn_type(params, is_var_args)),
             _ => Err(CompileError::codegen_error(
                 format!("Unsupported return type {:?}", return_type),
