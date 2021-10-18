@@ -696,6 +696,18 @@
 <span id="696">696</span>
 <span id="697">697</span>
 <span id="698">698</span>
+<span id="699">699</span>
+<span id="700">700</span>
+<span id="701">701</span>
+<span id="702">702</span>
+<span id="703">703</span>
+<span id="704">704</span>
+<span id="705">705</span>
+<span id="706">706</span>
+<span id="707">707</span>
+<span id="708">708</span>
+<span id="709">709</span>
+<span id="710">710</span>
 </pre><pre class="rust">
 <span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 <span class="doccomment">//! A Structured Text LLVM Frontent</span>
@@ -720,7 +732,7 @@
 <span class="kw">use</span> <span class="ident">std::ops::Range</span>;
 <span class="kw">use</span> <span class="ident">std::path::Path</span>;
 
-<span class="kw">use</span> <span class="ident">ast</span>::{<span class="ident">PouType</span>, <span class="ident">SourceRange</span>};
+<span class="kw">use</span> <span class="ident">ast</span>::{<span class="ident">DataTypeDeclaration</span>, <span class="ident">PouType</span>, <span class="ident">SourceRange</span>};
 <span class="kw">use</span> <span class="ident">codespan_reporting::diagnostic</span>::{<span class="self">self</span>, <span class="ident">Label</span>};
 <span class="kw">use</span> <span class="ident">codespan_reporting::files::SimpleFiles</span>;
 <span class="kw">use</span> <span class="ident">codespan_reporting::term::termcolor</span>::{<span class="ident">ColorChoice</span>, <span class="ident">StandardStream</span>};
@@ -781,6 +793,7 @@
     <span class="comment">// pou related</span>
     <span class="ident">pou__missing_return_type</span>,
     <span class="ident">pou__unexpected_return_type</span>,
+    <span class="ident">pou__unsupported_return_type</span>,
     <span class="ident">pou__empty_variable_block</span>,
 
     <span class="comment">//variable related</span>
@@ -837,6 +850,17 @@
             ),
             <span class="ident">range</span>,
             <span class="ident">err_no</span>: <span class="ident">ErrNo::pou__unexpected_return_type</span>,
+        }
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">function_unsupported_return_type</span>(<span class="ident">data_type</span>: <span class="kw-2">&amp;</span><span class="ident">DataTypeDeclaration</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Diagnostic</span> {
+        <span class="ident">Diagnostic::SyntaxError</span> {
+            <span class="ident">message</span>: <span class="macro">format!</span>(
+                <span class="string">&quot;Data Type {:?} not supported as a function return type!&quot;</span>,
+                <span class="ident">data_type</span>
+            ),
+            <span class="ident">range</span>: <span class="ident">data_type</span>.<span class="ident">get_location</span>(),
+            <span class="ident">err_no</span>: <span class="ident">ErrNo::pou__unsupported_return_type</span>,
         }
     }
 

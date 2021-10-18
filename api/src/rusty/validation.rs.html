@@ -397,7 +397,7 @@
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">visit_pou</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">pou</span>: <span class="kw-2">&amp;</span><span class="ident">Pou</span>, <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="ident">ValidationContext</span>) {
-        <span class="self">self</span>.<span class="ident">pou_validator</span>.<span class="ident">validate_pou</span>(<span class="ident">pou</span>);
+        <span class="self">self</span>.<span class="ident">pou_validator</span>.<span class="ident">validate_pou</span>(<span class="ident">pou</span>, <span class="ident">context</span>);
 
         <span class="kw">for</span> <span class="ident">block</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">pou</span>.<span class="ident">variable_blocks</span> {
             <span class="self">self</span>.<span class="ident">visit_variable_container</span>(<span class="ident">context</span>, <span class="ident">block</span>);
