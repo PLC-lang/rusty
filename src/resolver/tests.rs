@@ -20,7 +20,7 @@ fn parse(src: &str) -> (CompilationUnit, Index) {
     let (mut unit, _) = crate::parser::parse(lex_with_ids(src, ids.clone()));
 
     ast::pre_process(&mut unit);
-    let index = index::visitor::visit(&unit, ids.clone());
+    let index = index::visitor::visit(&unit, ids);
     (unit, index)
 }
 

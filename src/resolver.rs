@@ -9,10 +9,18 @@ use indexmap::IndexMap;
 
 pub mod const_evaluator;
 
-use crate::{ast::{
+use crate::{
+    ast::{
         AstId, AstStatement, CompilationUnit, DataType, DataTypeDeclaration, Operator, Pou,
         UserTypeDeclaration, Variable,
-    }, index::{self, ImplementationIndexEntry, ImplementationType, Index, VariableIndexEntry}, typesystem::{self, BOOL_TYPE, BYTE_TYPE, CONST_STRING_TYPE, CONST_WSTRING_TYPE, DATE_AND_TIME_TYPE, DATE_TYPE, DINT_TYPE, DWORD_TYPE, DataTypeInformation, LINT_TYPE, REAL_TYPE, STRING_TYPE, TIME_OF_DAY_TYPE, TIME_TYPE, VOID_TYPE, WORD_TYPE, WSTRING_TYPE, get_bigger_type_borrow}};
+    },
+    index::{ImplementationIndexEntry, ImplementationType, Index, VariableIndexEntry},
+    typesystem::{
+        self, get_bigger_type, DataTypeInformation, BOOL_TYPE, BYTE_TYPE, CONST_STRING_TYPE,
+        CONST_WSTRING_TYPE, DATE_AND_TIME_TYPE, DATE_TYPE, DINT_TYPE, DWORD_TYPE, LINT_TYPE,
+        REAL_TYPE, TIME_OF_DAY_TYPE, TIME_TYPE, VOID_TYPE, WORD_TYPE,
+    },
+};
 
 #[cfg(test)]
 mod tests;
@@ -676,9 +684,9 @@ impl<'i> TypeAnnotator<'i> {
                     && right_type.get_type_information().is_numerical()
                 {
                     let dint = self.index.find_type(DINT_TYPE).unwrap();
-                    let bigger_type = get_bigger_type_borrow(
-                        get_bigger_type_borrow(left_type, right_type, self.index),
-                        &dint,
+                    let bigger_type = get_bigger_type(
+                        get_bigger_type(left_type, right_type, self.index),
+                        dint,
                         self.index,
                     );
                     if bigger_type != left_type {
@@ -952,7 +960,11 @@ impl<'i> TypeAnnotator<'i> {
             }
 
             AstStatement::LiteralString { is_wide, .. } => {
-                let string_type_name = if *is_wide { CONST_WSTRING_TYPE } else { CONST_STRING_TYPE };
+                let string_type_name = if *is_wide {
+                    CONST_WSTRING_TYPE
+                } else {
+                    CONST_STRING_TYPE
+                };
                 self.annotation_map
                     .annotate(statement, StatementAnnotation::value(string_type_name));
             }
@@ -1030,13 +1042,17 @@ fn to_variable_annotation(
     index: &Index,
     constant_override: bool,
 ) -> StatementAnnotation {
-
     let effective_type_name = {
         //see if this is an auto-deref variable
         let v_type = index.get_effective_type_by_name(v.get_type_name());
-        if let DataTypeInformation::Pointer{ auto_deref: true, inner_type_name, .. } = v_type.get_type_information() {
+        if let DataTypeInformation::Pointer {
+            auto_deref: true,
+            inner_type_name,
+            ..
+        } = v_type.get_type_information()
+        {
             inner_type_name.clone()
-        } else{
+        } else {
             v_type.get_name().to_string()
         }
     };

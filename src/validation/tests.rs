@@ -3,7 +3,7 @@ use super::Validator;
 use crate::{
     ast,
     index::{self, Index},
-    lexer::{lex, lex_with_ids, IdProvider},
+    lexer::{lex_with_ids, IdProvider},
     parser::parse,
     resolver::{self, TypeAnnotator},
     Diagnostic,

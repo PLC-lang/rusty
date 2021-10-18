@@ -1,45 +1,17 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-use inkwell::{builder::Builder, context::Context, types::{FloatType, IntType}, values::{BasicValue, BasicValueEnum, IntValue}};
+use inkwell::{
+    builder::Builder,
+    context::Context,
+    types::{FloatType, IntType},
+    values::{BasicValueEnum, IntValue},
+};
 
-use crate::{ast::AstStatement, ast::SourceRange, compile_error::CompileError, index::Index, typesystem::{DataType, DataTypeInformation, get_bigger_type}};
+use crate::{
+    ast::AstStatement, ast::SourceRange, compile_error::CompileError, index::Index,
+    typesystem::DataTypeInformation,
+};
 
-use super::{TypeAndValue, generators::llvm::{self, Llvm}, llvm_index::LlvmTypedIndex};
-
-pub fn promote_if_needed<'a>(
-    context: &'a Context,
-    builder: &Builder<'a>,
-    lvalue: &TypeAndValue<'a>,
-    rvalue: &TypeAndValue<'a>,
-    index: &Index,
-    llvm_index: &LlvmTypedIndex<'a>,
-) -> (DataTypeInformation, BasicValueEnum<'a>, BasicValueEnum<'a>) {
-    let (ltype, lvalue) = lvalue;
-    let (rtype, rvalue) = rvalue;
-
-    //TODO : We need better error handling here
-    let ltype_llvm = llvm_index.find_associated_type(ltype.get_name()).unwrap();
-    let rtype_llvm = llvm_index.find_associated_type(rtype.get_name()).unwrap();
-
-    if ltype.is_numerical() && rtype.is_numerical() {
-        if ltype_llvm == rtype_llvm {
-            (ltype.clone(), *lvalue, *rvalue)
-        } else {
-            let target_type = get_bigger_type(
-                &get_bigger_type(ltype, rtype),
-                &index.find_type_information("DINT").unwrap(),
-            );
-
-            let promoted_lvalue =
-                promote_value_if_needed(context, builder, *lvalue, ltype, &target_type);
-            let promoted_rvalue =
-                promote_value_if_needed(context, builder, *rvalue, rtype, &target_type);
-
-            (target_type, promoted_lvalue, promoted_rvalue)
-        }
-    } else {
-        panic!("Binary operations need numerical types")
-    }
-}
+use super::generators::llvm::{self, Llvm};
 
 pub fn promote_value_if_needed<'ctx>(
     context: &'ctx Context,
@@ -217,7 +189,7 @@ pub fn cast_if_needed<'ctx>(
                 )),
             }
         }
-        
+
         DataTypeInformation::Float {
             // generated_type,
             size: lsize,
@@ -279,39 +251,44 @@ pub fn cast_if_needed<'ctx>(
                     .as_int_value(index)
                     .map_err(|msg| CompileError::codegen_error(msg, SourceRange::undefined()))?
                     as u32;
-   
+
                 if size < value_size {
                     //we need to downcast the size of the string
                     //check if it's a literal, if so we can exactly know how big this is
-                    if let AstStatement::LiteralString { is_wide, value: string_value, ..} = statement {
+                    if let AstStatement::LiteralString {
+                        is_wide,
+                        value: string_value,
+                        ..
+                    } = statement
+                    {
                         let str_bytes = if *is_wide {
                             let chars = string_value.encode_utf16().collect::<Vec<u16>>();
                             let mut bytes = llvm::get_bytes_from_u16_array(chars.as_slice());
                             bytes.push(0);
                             bytes
-                       } else {
+                        } else {
                             let bytes = string_value.bytes().collect::<Vec<u8>>();
                             bytes
                         };
                         let bytes_per_char = if *is_wide { 2 } else { 1 };
-                        let total_bytes_to_copy = std::cmp::min((size-1)*bytes_per_char, (str_bytes.len()) as u32);
+                        let total_bytes_to_copy =
+                            std::cmp::min((size - 1) * bytes_per_char, (str_bytes.len()) as u32);
                         //dont bother with the wstring, because we will rework them
-                        // 
+                        //
                         let new_value = &str_bytes[0..(total_bytes_to_copy) as usize];
                         let (_, value) = llvm.create_llvm_const_vec_string(new_value)?;
                         Ok(value)
                     } else {
-                        //if we are on a vector replace it 
+                        //if we are on a vector replace it
                         if value.is_vector_value() {
                             let vec_value = value.into_vector_value();
                             let string_value = vec_value.get_string_constant().to_bytes();
-                            let real_size = std::cmp::min(size, (string_value.len() +1) as u32);
+                            let real_size = std::cmp::min(size, (string_value.len() + 1) as u32);
                             if real_size < value_size {
-
                                 let new_value = &string_value[0..(real_size - 1) as usize];
                                 let (_, value) = llvm.create_llvm_const_vec_string(new_value)?;
                                 Ok(value)
-                            }else{
+                            } else {
                                 Ok(value)
                             }
                         } else {

@@ -440,4 +440,3 @@ fn int_bigger_than_byte_promoted_on_compare_statement() {
 
     assert_eq!(result, expected)
 }
-

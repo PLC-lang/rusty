@@ -128,11 +128,8 @@ impl<'a> Llvm<'a> {
     ///
     /// - `lvalue` the pointer and it's datatype
     /// - `name` the name of the temporary variable
-    pub fn load_pointer(&self, lvalue: &TypeAndPointer<'a, '_>, name: &str) -> TypeAndValue<'a> {
-        (
-            lvalue.get_type_information().clone(),
-            self.builder.build_load(lvalue.ptr_value, name),
-        )
+    pub fn load_pointer(&self, lvalue: &PointerValue<'a>, name: &str) -> BasicValueEnum<'a> {
+        self.builder.build_load(lvalue.ptr_value, name)
     }
 
     /// creates a placeholder datatype for a struct with the given name

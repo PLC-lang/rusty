@@ -21,8 +21,7 @@ use crate::{
     ast::{flatten_expression_list, AstStatement, Operator},
     codegen::{
         llvm_index::LlvmTypedIndex,
-        llvm_typesystem::{cast_if_needed, get_llvm_int_type, promote_if_needed},
-        TypeAndPointer, TypeAndValue,
+        llvm_typesystem::{cast_if_needed, get_llvm_int_type},
     },
     compile_error::CompileError,
     index::VariableIndexEntry,
@@ -32,6 +31,10 @@ use crate::{
 use super::{llvm::Llvm, statement_generator::FunctionContext, struct_generator};
 
 use chrono::{LocalResult, TimeZone, Utc};
+
+
+type TypeAndValue<'a> = BasicValueEnum<'a>;
+type TypeAndPointer<'a, 'b> = PointerValue<'a>;
 
 /// the generator for expressions
 pub struct ExpressionCodeGenerator<'a, 'b> {
@@ -121,15 +124,22 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
         &self,
         expression: &AstStatement,
     ) -> Result<TypeAndValue<'a>, CompileError> {
-        let (t,v) = self.do_generate_expression(expression)?;
-        
+        let v= self.do_generate_expression(expression)?;
+
         //see if we need a cast
         if let Some(target_type) = self.annotations.get_type_hint(expression, self.index) {
             let actual_type = self.annotations.get_type_or_void(expression, self.index);
-            let v = llvm_typesystem::cast_if_needed(self.llvm, self.index, target_type.get_type_information(), v, actual_type.get_type_information(), expression)?;
-            Ok((target_type.get_type_information().clone(), v))
+            let v = llvm_typesystem::cast_if_needed(
+                self.llvm,
+                self.index,
+                target_type.get_type_information(),
+                v,
+                actual_type.get_type_information(),
+                expression,
+            )?;
+            Ok(v)
         } else {
-            Ok((t, v))
+            Ok(v)
         }
     }
 
@@ -137,7 +147,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
         &self,
         expression: &AstStatement,
     ) -> Result<TypeAndValue<'a>, CompileError> {
-        let builder = &self.llvm.builder;
+        let _builder = &self.llvm.builder;
 
         //see if this is a constant - maybe we can short curcuit this codegen
         if let Some(StatementAnnotation::Variable {
@@ -154,7 +164,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                 )
             {
                 //this is a constant and we have a value for it
-                return Ok((data_type_info, basic_value_enum));
+                return Ok(basic_value_enum);
             }
         }
 
@@ -200,10 +210,10 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                     _ => {}
                 }
 
-                let ltype = self.get_type_hint_for(left)?;
-                let rtype = self.get_type_hint_for(right)?;
-                let left_value = self.generate_expression(left)?.1;
-                let right_value = self.generate_expression(right)?.1;
+                let ltype = self.get_type_hint_info_for(left)?;
+                let rtype = self.get_type_hint_info_for(right)?;
+                let left_value = self.generate_expression(left)?;
+                let right_value = self.generate_expression(right)?;
                 /*
                 let left_value = self.promote_if_needed(
                     self.annotations.get_type_hint(left, self.index),
@@ -216,7 +226,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                     right_v,
                 );*/
 
-                let result_type = self.get_type_hint_for(expression)?;
+                let result_type = self.get_type_hint_info_for(expression)?;
                 if ltype.is_int() && rtype.is_int() {
                     Ok(self.create_llvm_int_binary_expression(
                         operator,
@@ -268,13 +278,11 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
             }
         };
         //Generate a load for the qualifer
-        let (expression_type, value) = self.generate_expression(&expression)?;
+        let value = self.generate_expression(&expression)?;
+        let expression_type = self.get_type_hint_info_for(&expression)?;
         if let AstStatement::DirectAccess { access, index, .. } = last {
-            let datatype = self
-                .annotations
-                .get_type_or_void(last, self.index)
-                .clone_type_information();
-            //Generate and load the index value
+            let datatype = self.get_type_hint_info_for(last)?;
+           //Generate and load the index value
             let rhs = match &**index {
                 AstStatement::LiteralInteger { value, .. } => {
                     //Convert into the target literal
@@ -291,7 +299,8 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                 }
                 AstStatement::Reference { location, .. } => {
                     //Load the reference
-                    let (target_type, reference) = self.generate_expression(index)?;
+                    let reference = self.generate_expression(index)?;
+                    let target_type = self.get_type_hint_info_for(index)?;
                     if reference.is_int_value() {
                         let reference = cast_if_needed(
                             self.llvm,
@@ -339,7 +348,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                 self.llvm
                     .builder
                     .build_int_truncate_or_bit_cast(shift, llvm_target_type, "");
-            Ok((datatype, result.as_basic_value_enum()))
+            Ok(result.as_basic_value_enum())
         } else {
             unreachable!()
             // Err(CompileError::codegen_error(
@@ -355,24 +364,16 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
         unary_operator: &Operator,
         expression: &AstStatement,
     ) -> Result<TypeAndValue<'a>, CompileError> {
-        let (data_type, value) = match unary_operator {
+        let value = match unary_operator {
             Operator::Not => {
-                let (data_type, loaded_value) = self.generate_expression(expression)?;
-                (
-                    data_type,
-                    self.llvm
+                self.llvm
                         .builder
-                        .build_not(loaded_value.into_int_value(), "tmpVar"),
-                )
+                        .build_not(self.generate_expression(expression)?.into_int_value(), "tmpVar")
             }
             Operator::Minus => {
-                let (data_type, loaded_value) = self.generate_expression(expression)?;
-                (
-                    data_type,
-                    self.llvm
+                self.llvm
                         .builder
-                        .build_int_neg(loaded_value.into_int_value(), "tmpVar"),
-                )
+                        .build_int_neg(self.generate_expression(expression)?.into_int_value(), "tmpVar")
             }
             Operator::Address => {
                 //datatype is a pointer to the address
@@ -380,15 +381,12 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                 return self
                     .generate_element_pointer_for_rec(None, expression)
                     .map(|result| {
-                        (
-                            result.get_type_information().clone(),
-                            result.ptr_value.as_basic_value_enum(),
-                        )
+                            result.as_basic_value_enum()
                     });
             }
             _ => unimplemented!(),
         };
-        Ok((data_type, BasicValueEnum::IntValue(value)))
+        Ok(BasicValueEnum::IntValue(value))
     }
 
     /// generates the given call-statement <operator>(<parameters>)
@@ -458,10 +456,9 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
             AstStatement::QualifiedReference { .. } => {
                 let loaded_value = self.generate_element_pointer_for_rec(None, operator);
                 loaded_value.map(
-                    |TypeAndPointer {
-                         type_entry,
+                    |
                          ptr_value,
-                     }| {
+                     | {
                         self.index
                             .find_implementation(type_entry.get_name())
                             .map(|implementation| {
@@ -559,7 +556,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
             })
         })?;
 
-        Ok((return_type.unwrap(), value))
+        Ok(value)
     }
 
     /// generates a new instance of a function called `function_name` and returns a PointerValue to it
@@ -692,7 +689,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
     fn generate_nameless_parameter(
         &self,
         param_context: &ParameterContext,
-        assignment_statement: &AstStatement,
+        expression: &AstStatement,
     ) -> Result<Option<BasicValueEnum<'a>>, CompileError> {
         let builder = &self.llvm.builder;
         let function_name = param_context.function_name;
@@ -711,44 +708,36 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                 })
                 .map(|var| var.get_type_information())
                 .unwrap();
-            let (value_type, generated_exp) = if let DataTypeInformation::Pointer {
+            let generated_exp = if let DataTypeInformation::Pointer {
                 auto_deref: true,
                 ..
             } = parameter
             {
                 //this is VAR_IN_OUT assignemt, so don't load the value, assign the pointer
-                self.generate_element_pointer_for_rec(None, assignment_statement)
+                self.generate_element_pointer_for_rec(None, expression)
                     //get a pointer for that variable
                     .and_then(|tp| {
                         self.auto_deref_if_necessary(
-                            tp.type_entry,
-                            tp.ptr_value,
-                            assignment_statement,
-                        )
-                    })
-                    // auto-deref, if it is a var_in_out itself
-                    .map(|v| {
-                        (
-                            v.type_entry.get_type_information().clone(),
-                            v.ptr_value.as_basic_value_enum(),
+                            self.get_type_hint_for(expression)?,
+                            tp,
+                            expression,
                         )
                     })?
             } else {
-                self.generate_expression(assignment_statement)?
+                self.generate_expression(expression)?
             };
             let value = cast_if_needed(
                 self.llvm,
                 self.index,
                 parameter,
                 generated_exp,
-                &value_type,
-                assignment_statement,
+                self.get_type_hint_info_for(expression)?,
+                expression,
             )?;
             builder.build_store(pointer_to_param, value);
             Ok(None)
         } else {
-            let (_, value) = self.generate_expression(assignment_statement)?;
-            Ok(Some(value))
+            Ok(Some(self.generate_expression(expression)?))
         }
     }
 
@@ -940,7 +929,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
             let type_name = variable_index_entry.get_type_name();
             let variable_type = self.index.get_type(type_name)?;
 
-            let target_type = self.get_type_hint_for(context);
+            let _target_type = self.get_type_hint_info_for(context);
             //see if we need to upgrade
 
             TypeAndPointer::new(variable_type, accessor_ptr)
@@ -948,27 +937,6 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
         };
 
         Ok(l_value)
-    }
-
-    //promotes the given value v to the type-hint annotated to stmt
-    fn promote_if_needed(
-        &self,
-        target_type_hint: Option<&DataType>,
-        actual_type: &DataType,
-        v: BasicValueEnum<'a>,
-    ) -> BasicValueEnum<'a> {
-        if let Some(target_type_hint) = target_type_hint {
-            if actual_type.get_type_information().can_promote_to(target_type_hint.get_type_information()) {
-                return llvm_typesystem::promote_value_if_needed(
-                    self.llvm.context,
-                    &self.llvm.builder,
-                    v,
-                    actual_type.get_type_information(),
-                    target_type_hint.get_type_information(),
-                );
-            }
-        }
-        v
     }
 
     fn deref(
@@ -982,11 +950,11 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
         } = &variable_type.information
         {
             // auto_deref the pointer
-            let (_, value) = self
+            let value = self
                 .llvm
                 .load_pointer(&TypeAndPointer::new(variable_type, accessor_ptr), "deref");
             let inner_type = self.index.get_type(inner_type_name)?;
-            Ok(TypeAndPointer::new(inner_type, value.into_pointer_value()))
+            Ok(value.into_pointer_value())
         } else {
             Err(CompileError::codegen_error(
                 format!("Cannot derefence non pointer type : {:?}", variable_type),
@@ -1393,7 +1361,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                 self.llvm.create_const_bool(self.index, *value)
             }
             AstStatement::LiteralInteger { value, .. } => {
-                let type_context = self.get_type_hint_for(literal_statement)?;
+                let type_context = self.get_type_hint_info_for(literal_statement)?;
                 let value = self.llvm.create_const_numeric(
                     &self
                         .llvm_index
@@ -1455,7 +1423,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                 *nano,
             )),
             AstStatement::LiteralReal { value, .. } => {
-                let type_context = self.get_type_hint_for(literal_statement)?;
+                let type_context = self.get_type_hint_info_for(literal_statement)?;
                 let value = self.llvm.create_const_numeric(
                     &self
                         .llvm_index
@@ -1516,14 +1484,27 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
     /// - 1st try: fetch the type associated via the `self.annotations`
     /// - 2nd try: fetch the type associated with the given `default_type_name`
     /// - else return an `Err`
-    fn get_type_hint_for(
+    fn get_type_hint_info_for(
         &self,
         statement: &AstStatement,
     ) -> Result<&DataTypeInformation, CompileError> {
+        self.get_type_hint_for(statement)
+            .map(DataType::get_type_information)
+    }
+
+
+
+    /// returns the data type associated to the given statement using the following strategy:
+    /// - 1st try: fetch the type associated via the `self.annotations`
+    /// - 2nd try: fetch the type associated with the given `default_type_name`
+    /// - else return an `Err`
+    fn get_type_hint_for(
+        &self,
+        statement: &AstStatement,
+    ) -> Result<&DataType, CompileError> {
         self.annotations
             .get_type_hint(statement, self.index)
             .or_else(|| self.annotations.get_type(statement, self.index))
-            .map(DataType::get_type_information)
             .ok_or_else(|| {
                 CompileError::codegen_error(
                     "no type hint available".to_string(),
@@ -1538,7 +1519,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
         assignments: &AstStatement,
         declaration_location: &SourceRange,
     ) -> Result<TypeAndValue<'a>, CompileError> {
-        let type_info = self.get_type_hint_for(assignments)?;
+        let type_info = self.get_type_hint_info_for(assignments)?;
         if let DataTypeInformation::Struct {
             name: struct_name,
             member_names,
@@ -1646,12 +1627,12 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
         &self,
         initializer: &AstStatement,
     ) -> Result<TypeAndValue<'a>, CompileError> {
-        let type_info = self.get_type_hint_for(initializer)?;
+        let type_info = self.get_type_hint_info_for(initializer)?;
 
         println!("type_info: {:#?}", type_info);
 
         for ele in flatten_expression_list(initializer) {
-            let type_info = self.get_type_hint_for(ele)?;
+            let type_info = self.get_type_hint_info_for(ele)?;
             println!("element: {:#?}", type_info);
         }
 
@@ -1677,7 +1658,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
             .ok_or_else(|| {
                 CompileError::codegen_error("Cannot generate empty array".into(), location.clone())
             }) //TODO
-            .and_then(|it| self.get_type_hint_for(it))?;
+            .and_then(|it| self.get_type_hint_info_for(it))?;
 
         let llvm_type = self.llvm_index.get_associated_type(inner_type.get_name())?;
 
@@ -1800,10 +1781,6 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
             value.to_string().as_str(),
         )?;
         Ok((type_info, value))
-    }
-
-    fn void(&self) -> DataTypeInformation {
-        self.index.get_void_type().clone_type_information()
     }
 }
 

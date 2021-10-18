@@ -286,22 +286,6 @@ impl DataTypeInformation {
             DataTypeInformation::Enum { .. } => DINT_SIZE,
         }
     }
-
-    pub(crate) fn can_promote_to(&self, target_type: &DataTypeInformation) -> bool {
-        match (self, target_type) {
-            (DataTypeInformation::Integer{size: lsize, signed: lsigned, ..}, DataTypeInformation::Integer{size: rsize, signed: rsigned, ..}) => {
-                lsize != rsize || lsigned != rsigned
-            },
-            (DataTypeInformation::Float{size: lsize, ..}, DataTypeInformation::Float{size: rsize, ..}) => {
-                lsize != rsize
-            },
-            (DataTypeInformation::Integer{..}, DataTypeInformation::Float{..}) => {
-                true
-            },
-            _ => false
-        }
-    
-    }
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -558,7 +542,6 @@ pub fn get_builtin_types() -> Vec<DataType> {
                 referenced_type: TIME_TYPE.into(),
             },
         },
-        
     ]
 }
 
@@ -595,42 +578,7 @@ fn is_same_type_nature(ltype: &DataTypeInformation, rtype: &DataTypeInformation)
         || (ltype.is_float() && ltype.is_float() == rtype.is_float())
 }
 
-fn get_real_type() -> DataTypeInformation {
-    DataTypeInformation::Float {
-        name: REAL_TYPE.into(),
-        size: 32,
-    }
-}
-
-fn get_lreal_type() -> DataTypeInformation {
-    DataTypeInformation::Float {
-        name: LREAL_TYPE.into(),
-        size: 64,
-    }
-}
-
-pub fn get_bigger_type(
-    ltype: &DataTypeInformation,
-    rtype: &DataTypeInformation,
-) -> DataTypeInformation {
-    if is_same_type_nature(ltype, rtype) {
-        if get_rank(ltype) < get_rank(rtype) {
-            rtype.clone()
-        } else {
-            ltype.clone()
-        }
-    } else {
-        let real_type = get_real_type();
-        let real_size = real_type.get_size();
-        if ltype.get_size() > real_size || rtype.get_size() > real_size {
-            get_lreal_type()
-        } else {
-            real_type
-        }
-    }
-}
-
-pub fn get_bigger_type_borrow<'t>(
+pub fn get_bigger_type<'t>(
     left_type: &'t DataType,
     right_type: &'t DataType,
     index: &'t Index,
@@ -644,9 +592,7 @@ pub fn get_bigger_type_borrow<'t>(
             left_type
         }
     } else {
-        let real_type = index
-            .get_type(REAL_TYPE)
-            .unwrap();
+        let real_type = index.get_type(REAL_TYPE).unwrap();
         let real_size = real_type.get_type_information().get_size();
         if lt.get_size() > real_size || rt.get_size() > real_size {
             index.get_type(LREAL_TYPE).unwrap()

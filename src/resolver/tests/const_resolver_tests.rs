@@ -1,7 +1,7 @@
 use crate::ast::{AstStatement, SourceRange};
 use crate::index::const_expressions::ConstExpression;
 use crate::index::Index;
-use crate::parser::tests::literal_int;
+
 use crate::resolver::const_evaluator::{evaluate_constants, UnresolvableConstant};
 use crate::resolver::tests::{annotate, parse};
 use crate::typesystem::DataTypeInformation;

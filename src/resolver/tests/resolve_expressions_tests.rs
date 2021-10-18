@@ -1,9 +1,17 @@
 use core::panic;
 
-use crate::{ast::{AstStatement, DataType, Pou, UserTypeDeclaration}, index::Index, resolver::{
+use crate::{
+    ast::{AstStatement, DataType, Pou, UserTypeDeclaration},
+    index::Index,
+    resolver::{
         tests::{annotate, parse},
         AnnotationMap, StatementAnnotation,
-    }, typesystem::{BOOL_TYPE, BYTE_TYPE, CONST_STRING_TYPE, DINT_TYPE, INT_TYPE, LREAL_TYPE, REAL_TYPE, SINT_TYPE, UINT_TYPE, USINT_TYPE, VOID_TYPE}};
+    },
+    typesystem::{
+        BOOL_TYPE, BYTE_TYPE, CONST_STRING_TYPE, DINT_TYPE, INT_TYPE, REAL_TYPE, SINT_TYPE,
+        UINT_TYPE, USINT_TYPE, VOID_TYPE,
+    },
+};
 
 macro_rules! assert_type_and_hint {
     ($annotations:expr, $index:expr, $stmt:expr, $expected_type:expr, $expected_type_hint:expr) => {
@@ -1281,7 +1289,7 @@ fn type_initial_values_are_resolved() {
             annotations.get(variables[1].initializer.as_ref().unwrap())
         );
 
-        let type_of_z = index.find_member("MyStruct", "z").unwrap().get_type_name();
+        let _type_of_z = index.find_member("MyStruct", "z").unwrap().get_type_name();
         assert_eq!(
             Some(&StatementAnnotation::value(
                 index
@@ -2137,7 +2145,6 @@ fn deep_struct_variable_initialization_annotates_initializer() {
     }
 }
 
-
 #[test]
 fn inouts_should_be_annotated_according_to_auto_deref() {
     //a program with in-out variables that get auto-deref'd
@@ -2156,8 +2163,7 @@ fn inouts_should_be_annotated_according_to_auto_deref() {
     // WHEN this code is annotated
     let annotations = annotate(&unit, &index);
     let inout_ref = &unit.implementations[0].statements[0];
-    
+
     // then accessing inout should be annotated with DINT, because it is auto-dereferenced
     assert_type_and_hint!(&annotations, &index, inout_ref, DINT_TYPE, None);
-
 }

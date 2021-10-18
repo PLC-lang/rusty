@@ -1,4 +1,8 @@
-use crate::{ast::AstStatement, resolver::tests::{annotate, parse}, typesystem::{CONST_STRING_TYPE, CONST_WSTRING_TYPE, DataTypeInformation, Dimension}};
+use crate::{
+    ast::AstStatement,
+    resolver::tests::{annotate, parse},
+    typesystem::{DataTypeInformation, CONST_STRING_TYPE, CONST_WSTRING_TYPE},
+};
 
 #[test]
 fn bool_literals_are_annotated() {
