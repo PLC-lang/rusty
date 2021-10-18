@@ -355,3 +355,48 @@ fn function_inline_struct_return_unsupported() {
         ))
     );
 }
+
+#[test]
+fn simple_fb_with_var_temp_can_be_parsed() {
+    let lexer = lex("FUNCTION_BLOCK buz VAR_TEMP x : INT; END_VAR END_FUNCTION_BLOCK");
+    let result = parse(lexer).0;
+
+    let prg = &result.units[0];
+    let variable_block = &prg.variable_blocks[0];
+    let ast_string = format!("{:#?}", variable_block);
+    let expected_ast = r#"VariableBlock {
+    variables: [
+        Variable {
+            name: "x",
+            data_type: DataTypeReference {
+                referenced_type: "INT",
+            },
+        },
+    ],
+    variable_block_type: Temp,
+}"#;
+    assert_eq!(ast_string, expected_ast);
+}
+
+
+#[test]
+fn simple_function_with_var_temp_can_be_parsed() {
+    let lexer = lex("FUNCTION buz VAR_TEMP x : INT; END_VAR END_FUNCTION");
+    let result = parse(lexer).0;
+
+    let prg = &result.units[0];
+    let variable_block = &prg.variable_blocks[0];
+    let ast_string = format!("{:#?}", variable_block);
+    let expected_ast = r#"VariableBlock {
+    variables: [
+        Variable {
+            name: "x",
+            data_type: DataTypeReference {
+                referenced_type: "INT",
+            },
+        },
+    ],
+    variable_block_type: Temp,
+}"#;
+    assert_eq!(ast_string, expected_ast);
+}
