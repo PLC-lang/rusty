@@ -1,6 +1,8 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use crate::compile_and_run;
 
+mod complex;
+
 #[allow(dead_code)]
 #[repr(C)]
 struct MainType {}

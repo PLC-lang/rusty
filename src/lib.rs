@@ -52,6 +52,7 @@ mod typesystem;
 mod validation;
 
 #[macro_use]
+#[cfg(test)]
 extern crate pretty_assertions;
 
 #[derive(PartialEq, Debug, Clone)]

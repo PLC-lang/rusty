@@ -873,7 +873,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
         context: &AstStatement,
     ) -> Result<TypeAndPointer<'a, '_>, CompileError> {
         let offset = &context.get_location();
-        let l_value = if let Some(l_value) = qualifier {
+        let (type_entry, ptr_value) = if let Some(l_value) = qualifier {
             let qualifier_name = l_value.type_entry.get_name();
             let member = self.index.find_member(l_value.type_entry.get_name(), name);
             let member_location =
@@ -896,7 +896,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                 offset,
             )?;
 
-            TypeAndPointer::new(member_type, gep)
+            (member_type, gep)
         } else {
             //no context
 
@@ -940,11 +940,9 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
             let type_name = variable_index_entry.get_type_name();
             let variable_type = self.index.get_type(type_name)?;
 
-            TypeAndPointer::new(variable_type, accessor_ptr)
-            //self.auto_deref_if_necessary(variable_type, accessor_ptr)?
+            (variable_type, accessor_ptr)
         };
-
-        Ok(l_value)
+        self.auto_deref_if_necessary(type_entry, ptr_value, context)
     }
 
     fn deref(
