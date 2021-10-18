@@ -24,7 +24,6 @@ function set_cargo_options() {
 		CARGO_OPTIONS="$CARGO_OPTIONS --release"
 	fi
 	if [[ $offline -ne 0 ]]; then
-		set_offline
 		CARGO_OPTIONS="$CARGO_OPTIONS --frozen"
 	fi
 	echo "$CARGO_OPTIONS"
@@ -33,12 +32,6 @@ function set_cargo_options() {
 
 function run_build() {
 	CARGO_OPTIONS=$(set_cargo_options)
-
-	BUILD_DIR=$project_location/build
-	make_dir "$BUILD_DIR"
-	log "Moving into $BUILD_DIR"
-	cd "$BUILD_DIR"
-	echo `pwd`
 
 	# Run cargo build with release or debug flags
 	echo "Build starting"
@@ -73,10 +66,9 @@ function generate_sources() {
 
 function set_offline() {
 	log "Vendor location set, using offline build"
-	log "Copy the offline.toml config to .cargo/config.toml"
-	make_dir "$project_location"/build/.cargo
-	cp "$project_location"/scripts/data/offline.toml "$project_location"/build/.cargo/config.toml
-	cd build
+	log "Copy the offline.toml config to build/.cargo/config.toml"
+	make_dir "$BUILD_DIR"/.cargo
+	cp "$project_location"/scripts/data/offline.toml "$BUILD_DIR"/.cargo/config.toml
 	if [[ ! -d $project_location/3rd-party ]]; then
 		echo "Offline sources not found at $project_location/3rd-party"
 		exit 1
@@ -231,6 +223,15 @@ if [[ $vendor -ne 0 ]]; then
 	exit 0
 fi
 
+
+if [[ $offline -ne 0 ]]; then
+	BUILD_DIR=$project_location/build
+	make_dir "$BUILD_DIR"
+	set_offline
+	log "Moving into $BUILD_DIR"
+	cd "$BUILD_DIR"
+fi
+
 if [[ $check -ne 0 ]]; then
   check
 	if [[ $build -ne 0 ]]; then
@@ -243,6 +244,9 @@ if [[ $build -ne 0 ]]; then
   run_build
 	exit 0
 fi
+
+log "Removing temporary build directory : $BUILD_DIR"
+rm -rf "$BUILD_DIR"
 
 
 echo "Done"
