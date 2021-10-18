@@ -1,4 +1,5 @@
-use crate::{ast::Pou, Diagnostic};
+use super::ValidationContext;
+use crate::{ast::Pou, Diagnostic, PouType};
 
 /// validates POUs
 pub struct PouValidator {
@@ -12,5 +13,18 @@ impl PouValidator {
         }
     }
 
-    pub fn validate_pou(&mut self, _pou: &Pou) {}
+    pub fn validate_pou(&mut self, pou: &Pou, context: &ValidationContext) {
+        if pou.pou_type == PouType::Function {
+            self.validate_function(pou, context);
+        };
+    }
+
+    pub fn validate_function(&mut self, pou: &Pou, context: &ValidationContext) {
+        let return_type = context.index.find_return_type(&pou.name);
+        // functions must have a return type
+        if return_type.is_none() {
+            self.diagnostics
+                .push(Diagnostic::function_return_missing(pou.location.to_owned()));
+        }
+    }
 }
