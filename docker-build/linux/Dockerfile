@@ -9,11 +9,9 @@ RUN wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key | apt-key add -
 
 RUN apt-get update
 #Install Clang dependencies
-RUN apt-get install -y clang-$LLVM_VER lldb-$LLVM_VER lld-$LLVM_VER clangd-$LLVM_VER liblld-$LLVM_VER-dev llvm-$LLVM_VER-dev
+RUN apt-get install -y zip clang-$LLVM_VER lldb-$LLVM_VER lld-$LLVM_VER clangd-$LLVM_VER liblld-$LLVM_VER-dev llvm-$LLVM_VER-dev
 
-RUN rustup install $RUST_VER 
-RUN rustup install nightly
-RUN rustup default $RUST_VER 
+RUN rustup install $RUST_VER && rustup install nightly && rustup default $RUST_VER 
 RUN rustup component add rustfmt clippy llvm-tools-preview 
 
 RUN cargo install mdbook grcov

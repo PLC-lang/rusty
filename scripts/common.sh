@@ -1,4 +1,4 @@
-#!/bin/env bash
+#!/bin/bash
 
 debug=0
 function log() {
@@ -58,6 +58,13 @@ function find_project_root() {
 		project_location=$(dirname $(readlink -f "$project_location"))
 	fi
 	log "Found project location at $project_location"
+	# echo $project_location | tr -t "\\" "\\\\"
+	project_location=$(sanitize_path "$project_location")
+	log "Sanitized Project location : $project_location"
 	echo $project_location
+}
 
+function sanitize_path() {
+	target=$1
+	echo "${target//\\/\\\\}"
 }
