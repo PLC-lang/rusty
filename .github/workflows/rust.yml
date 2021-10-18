@@ -30,7 +30,7 @@ jobs:
           override: true
 
       - name: Install LLVM
-        uses: ghaith/install-llvm-action@latest
+        uses: PLC-lang/install-llvm-action@latest
         with:
           version: ${{ env.llvm-version }}
           directory: "./llvm"

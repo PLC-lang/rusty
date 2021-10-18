@@ -848,6 +848,50 @@ entry:
 }
 
 #[test]
+fn program_with_special_chars_in_string() {
+    let result = codegen!(
+        r#"PROGRAM prg
+VAR
+should_replace_s : STRING;
+should_not_replace_s : STRING;
+
+should_replace_ws : WSTRING;
+should_not_replace_ws : WSTRING;
+END_VAR
+should_replace_s := 'a$l$L b$n$N c$p$P d$r$R e$t$T $$ $'single$' $57💖$F0$9F$92$96';
+should_not_replace_s := '$0043 $"no replace$"';
+
+should_replace_ws := "a$l$L b$n$N c$p$P d$r$R e$t$T $$ $"double$" $0057💖$D83D$DC96";
+should_not_replace_ws := "$43 $'no replace$'";
+END_PROGRAM
+"#
+    );
+
+    let expected = r#"; ModuleID = 'main'
+source_filename = "main"
+
+%prg_interface = type { [81 x i8], [81 x i8], [162 x i8], [162 x i8] }
+
+@prg_instance = global %prg_interface zeroinitializer
+
+define void @prg(%prg_interface* %0) {
+entry:
+  %should_replace_s = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 0
+  %should_not_replace_s = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 1
+  %should_replace_ws = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 2
+  %should_not_replace_ws = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 3
+  store [41 x i8] c"a\0A\0A b\0A\0A c\0C\0C d\0D\0D e\09\09 $ 'single' W\F0\9F\92\96\F0\9F\92\96\00", [81 x i8]* %should_replace_s, align 1
+  store [19 x i8] c"\0043 $\22no replace$\22\00", [81 x i8]* %should_not_replace_s, align 1
+  store [74 x i8] c"a\00\0A\00\0A\00 \00b\00\0A\00\0A\00 \00c\00\0C\00\0C\00 \00d\00\0D\00\0D\00 \00e\00\09\00\09\00 \00$\00 \00\22\00d\00o\00u\00b\00l\00e\00\22\00 \00W\00=\D8\96\DC=\D8\96\DC\00\00", [162 x i8]* %should_replace_ws, align 1
+  store [38 x i8] c"$\004\003\00 \00$\00'\00n\00o\00 \00r\00e\00p\00l\00a\00c\00e\00$\00'\00\00\00", [162 x i8]* %should_not_replace_ws, align 1
+  ret void
+}
+"#;
+
+    assert_eq!(result, expected);
+}
+
+#[test]
 fn different_case_references() {
     let result = codegen!(
         r#"
@@ -3920,6 +3964,27 @@ entry:
 }
 "#;
     assert_eq!(result, expected);
+}
+
+#[test]
+fn pointer_and_array_access_to_in_out() {
+    let result = codegen!(
+        "
+        FUNCTION main : INT 
+        VAR_IN_OUT
+            a : REF_TO INT;
+            b : ARRAY[0..1] OF INT;
+        END_VAR
+        VAR
+            c : INT;
+        END_VAR
+        c := a^;
+        c := b[0];
+        END_PROGRAM
+        "
+    );
+
+    insta::assert_snapshot!(result)
 }
 
 #[test]
