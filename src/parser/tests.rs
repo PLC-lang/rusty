@@ -14,10 +14,6 @@ mod statement_parser_tests;
 mod type_parser_tests;
 mod variable_parser_tests;
 
-pub fn lex(source: &str) -> crate::lexer::ParseSession {
-    crate::lexer::lex(source)
-}
-
 /// helper function to create references
 pub fn ref_to(name: &str) -> AstStatement {
     AstStatement::Reference {

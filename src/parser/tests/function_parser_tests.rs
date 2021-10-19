@@ -1,14 +1,10 @@
-use crate::{
-    ast::*,
-    parser::{parse, tests::lex},
-    Diagnostic,
-};
+use crate::{ast::*, test_utils::tests::parse, Diagnostic};
 use pretty_assertions::*;
 
 #[test]
 fn simple_foo_function_can_be_parsed() {
-    let lexer = lex("FUNCTION foo : INT END_FUNCTION");
-    let result = parse(lexer).0;
+    let src = "FUNCTION foo : INT END_FUNCTION";
+    let result = parse(src).0;
 
     let prg = &result.units[0];
     assert_eq!(prg.pou_type, PouType::Function);
@@ -24,8 +20,8 @@ fn simple_foo_function_can_be_parsed() {
 
 #[test]
 fn simple_foo_function_block_can_be_parsed() {
-    let lexer = lex("FUNCTION_BLOCK foo END_FUNCTION_BLOCK");
-    let result = parse(lexer).0;
+    let src = "FUNCTION_BLOCK foo END_FUNCTION_BLOCK";
+    let result = parse(src).0;
 
     let prg = &result.units[0];
     assert_eq!(prg.pou_type, PouType::FunctionBlock);
@@ -35,8 +31,8 @@ fn simple_foo_function_block_can_be_parsed() {
 
 #[test]
 fn a_function_with_varargs_can_be_parsed() {
-    let lexer = lex("FUNCTION foo : INT VAR_INPUT x : INT; y : ...; END_VAR END_FUNCTION");
-    let result = parse(lexer).0;
+    let src = "FUNCTION foo : INT VAR_INPUT x : INT; y : ...; END_VAR END_FUNCTION";
+    let result = parse(src).0;
 
     let prg = &result.units[0];
     let variable_block = &prg.variable_blocks[0];
@@ -65,8 +61,8 @@ fn a_function_with_varargs_can_be_parsed() {
 
 #[test]
 fn a_function_with_typed_varargs_can_be_parsed() {
-    let lexer = lex("FUNCTION foo : INT VAR_INPUT x : INT; y : INT...; END_VAR END_FUNCTION");
-    let result = parse(lexer).0;
+    let src = "FUNCTION foo : INT VAR_INPUT x : INT; y : INT...; END_VAR END_FUNCTION";
+    let result = parse(src).0;
 
     let prg = &result.units[0];
     let variable_block = &prg.variable_blocks[0];
@@ -99,15 +95,15 @@ fn a_function_with_typed_varargs_can_be_parsed() {
 
 #[test]
 fn varargs_parameters_can_be_parsed() {
-    let lexer = lex("
+    let src = "
             FUNCTION foo : DINT
             VAR_INPUT
             args1 : ...;
             args2 : INT...;
             END_VAR
             END_FUNCTION
-           ");
-    let (parse_result, diagnostics) = parse(lexer);
+           ";
+    let (parse_result, diagnostics) = parse(src);
 
     assert_eq!(
         format!("{:#?}", diagnostics),

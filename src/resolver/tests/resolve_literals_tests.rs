@@ -1,18 +1,16 @@
 use crate::{
-    ast::AstStatement,
-    resolver::tests::{annotate, parse},
-    typesystem::DataTypeInformation,
+    ast::AstStatement, test_utils::tests::index, typesystem::DataTypeInformation, TypeAnnotator,
 };
 
 #[test]
 fn bool_literals_are_annotated() {
-    let (unit, index) = parse(
+    let (unit, index) = index(
         "PROGRAM PRG
                 TRUE;
                 FALSE;
             END_PROGRAM",
     );
-    let annotations = annotate(&unit, &index);
+    let annotations = TypeAnnotator::visit_unit(&index, &unit);
     let statements = &unit.implementations[0].statements;
 
     assert_eq!(
@@ -31,13 +29,13 @@ fn bool_literals_are_annotated() {
 
 #[test]
 fn string_literals_are_annotated() {
-    let (unit, index) = parse(
+    let (unit, index) = index(
         r#"PROGRAM PRG
                 "abc";
                 'xyz';
             END_PROGRAM"#,
     );
-    let annotations = annotate(&unit, &index);
+    let annotations = TypeAnnotator::visit_unit(&index, &unit);
     let statements = &unit.implementations[0].statements;
 
     let expected_types = vec!["WSTRING", "STRING"];
@@ -52,7 +50,7 @@ fn string_literals_are_annotated() {
 
 #[test]
 fn int_literals_are_annotated() {
-    let (unit, index) = parse(
+    let (unit, index) = index(
         "PROGRAM PRG
                 0;
                 127;
@@ -63,7 +61,7 @@ fn int_literals_are_annotated() {
                 2147483648;
             END_PROGRAM",
     );
-    let annotations = annotate(&unit, &index);
+    let annotations = TypeAnnotator::visit_unit(&index, &unit);
     let statements = &unit.implementations[0].statements;
 
     let expected_types = vec!["DINT", "DINT", "DINT", "DINT", "DINT", "DINT", "LINT"];
@@ -78,7 +76,7 @@ fn int_literals_are_annotated() {
 
 #[test]
 fn date_literals_are_annotated() {
-    let (unit, index) = parse(
+    let (unit, index) = index(
         "PROGRAM PRG
                 T#12.4d;
                 TIME#-12m;
@@ -90,7 +88,7 @@ fn date_literals_are_annotated() {
                 D#2021-04-20; 
             END_PROGRAM",
     );
-    let annotations = annotate(&unit, &index);
+    let annotations = TypeAnnotator::visit_unit(&index, &unit);
     let statements = &unit.implementations[0].statements;
 
     let expected_types = vec![
@@ -115,13 +113,13 @@ fn date_literals_are_annotated() {
 
 #[test]
 fn real_literals_are_annotated() {
-    let (unit, index) = parse(
+    let (unit, index) = index(
         "PROGRAM PRG
                 3.1415;
                 1.0;
             END_PROGRAM",
     );
-    let annotations = annotate(&unit, &index);
+    let annotations = TypeAnnotator::visit_unit(&index, &unit);
     let statements = &unit.implementations[0].statements;
 
     let expected_types = vec!["REAL", "REAL"];
@@ -137,7 +135,7 @@ fn real_literals_are_annotated() {
 
 #[test]
 fn casted_literals_are_annotated() {
-    let (unit, index) = parse(
+    let (unit, index) = index(
         "PROGRAM PRG
                 SINT#7;
                 INT#7;
@@ -149,7 +147,7 @@ fn casted_literals_are_annotated() {
                 BOOL#FALSE;
             END_PROGRAM",
     );
-    let annotations = annotate(&unit, &index);
+    let annotations = TypeAnnotator::visit_unit(&index, &unit);
     let statements = &unit.implementations[0].statements;
 
     let expected_types = vec![
@@ -168,7 +166,7 @@ fn casted_literals_are_annotated() {
 
 #[test]
 fn enum_literals_are_annotated() {
-    let (unit, index) = parse(
+    let (unit, index) = index(
         "
             TYPE Color: (Green, Yellow, Red); END_TYPE
             TYPE Animal: (Dog, Cat, Horse); END_TYPE
@@ -198,7 +196,7 @@ fn enum_literals_are_annotated() {
 
             END_PROGRAM",
     );
-    let annotations = annotate(&unit, &index);
+    let annotations = TypeAnnotator::visit_unit(&index, &unit);
     let statements = &unit.implementations[0].statements;
 
     let actual_resolves: Vec<&str> = statements
@@ -216,7 +214,7 @@ fn enum_literals_are_annotated() {
 
 #[test]
 fn enum_literals_target_are_annotated() {
-    let (unit, index) = parse(
+    let (unit, index) = index(
         "
             TYPE Color: (Green, Yellow, Red); END_TYPE
 
@@ -224,7 +222,7 @@ fn enum_literals_target_are_annotated() {
                 Color#Red;
             END_PROGRAM",
     );
-    let annotations = annotate(&unit, &index);
+    let annotations = TypeAnnotator::visit_unit(&index, &unit);
     let color_red = &unit.implementations[0].statements[0];
 
     assert_eq!(
@@ -254,7 +252,7 @@ fn enum_literals_target_are_annotated() {
 
 #[test]
 fn casted_inner_literals_are_annotated() {
-    let (unit, index) = parse(
+    let (unit, index) = index(
         "PROGRAM PRG
                 SINT#7;
                 INT#7;
@@ -266,7 +264,7 @@ fn casted_inner_literals_are_annotated() {
                 BOOL#FALSE;
             END_PROGRAM",
     );
-    let annotations = annotate(&unit, &index);
+    let annotations = TypeAnnotator::visit_unit(&index, &unit);
     let statements = &unit.implementations[0].statements;
 
     let expected_types = vec![

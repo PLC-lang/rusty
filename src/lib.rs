@@ -48,6 +48,7 @@ pub mod index;
 mod lexer;
 mod parser;
 mod resolver;
+mod test_utils;
 mod typesystem;
 mod validation;
 
