@@ -3969,7 +3969,7 @@ entry:
 
 #[test]
 fn pointer_and_array_access_to_in_out() {
-    let result = codegen!(
+    let result = codegen(
         "
         FUNCTION main : INT 
         VAR_IN_OUT
@@ -3982,7 +3982,7 @@ fn pointer_and_array_access_to_in_out() {
         c := a^;
         c := b[0];
         END_PROGRAM
-        "
+        ",
     );
 
     insta::assert_snapshot!(result)

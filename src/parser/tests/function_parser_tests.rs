@@ -167,8 +167,7 @@ fn function_array_return_supported() {
     //GIVEN FUNCTION returning an ARRAY
     let function = "FUNCTION foo : ARRAY[0..3] OF INT VAR_INPUT END_VAR END_FUNCTION";
     //WHEN parsing is done
-    let lexer = lex(function);
-    let (_parse_result, diagnostics) = parse(lexer);
+    let (_parse_result, diagnostics) = parse(function);
     //THEN there shouldn't be any diagnostics -> valid return type
     assert_eq!(diagnostics, vec![]);
 }
@@ -178,8 +177,7 @@ fn function_subrange_return_supported() {
     //GIVEN FUNCTION returning a SubRange
     let function = "FUNCTION foo : INT(0..10) VAR_INPUT END_VAR END_FUNCTION";
     //WHEN parsing is done
-    let lexer = lex(function);
-    let (_parse_result, diagnostics) = parse(lexer);
+    let (_parse_result, diagnostics) = parse(function);
     //THEN there shouldn't be any diagnostics -> valid return type
     assert_eq!(diagnostics, vec![]);
 }
@@ -189,8 +187,7 @@ fn function_pointer_return_supported() {
     //GIVEN FUNCTION returning a POINTER
     let function = "FUNCTION foo : REF_TO INT VAR_INPUT END_VAR END_FUNCTION";
     //WHEN parsing is done
-    let lexer = lex(function);
-    let (_parse_result, diagnostics) = parse(lexer);
+    let (_parse_result, diagnostics) = parse(function);
     //THEN there shouldn't be any diagnostics -> valid return type
     assert_eq!(diagnostics, vec![]);
 }
@@ -201,8 +198,7 @@ fn function_string_return_supported() {
     //GIVEN FUNCTION returning a STRING
     let function = "FUNCTION foo : STRING VAR_INPUT END_VAR END_FUNCTION";
     //WHEN parsing is done
-    let lexer = lex(function);
-    let (_parse_result, diagnostics) = parse(lexer);
+    let (_parse_result, diagnostics) = parse(function);
     //THEN there shouldn't be any diagnostics -> valid return type
     assert_eq!(diagnostics, vec![]);
 }
@@ -212,8 +208,7 @@ fn function_string_len_return_supported() {
     //GIVEN FUNCTION returning a STRING[10]
     let function = "FUNCTION foo : STRING[10] VAR_INPUT END_VAR END_FUNCTION";
     //WHEN parsing is done
-    let lexer = lex(function);
-    let (_parse_result, diagnostics) = parse(lexer);
+    let (_parse_result, diagnostics) = parse(function);
     //THEN there shouldn't be any diagnostics -> valid return type
     assert_eq!(diagnostics, vec![]);
 }
@@ -223,8 +218,7 @@ fn function_wstring_return_supported() {
     //GIVEN FUNCTION returning a WSTRING
     let function = "FUNCTION foo : WSTRING VAR_INPUT END_VAR END_FUNCTION";
     //WHEN parsing is done
-    let lexer = lex(function);
-    let (_parse_result, diagnostics) = parse(lexer);
+    let (_parse_result, diagnostics) = parse(function);
     //THEN there shouldn't be any diagnostics -> valid return type
     assert_eq!(diagnostics, vec![]);
 }
@@ -234,8 +228,7 @@ fn function_wstring_len_return_supported() {
     //GIVEN FUNCTION returning a WSTRING[10]
     let function = "FUNCTION foo : WSTRING[10] VAR_INPUT END_VAR END_FUNCTION";
     //WHEN parsing is done
-    let lexer = lex(function);
-    let (_parse_result, diagnostics) = parse(lexer);
+    let (_parse_result, diagnostics) = parse(function);
     //THEN there shouldn't be any diagnostics -> valid return type
     assert_eq!(diagnostics, vec![]);
 }
@@ -246,8 +239,7 @@ fn function_int_return_supported() {
     //GIVEN FUNCTION returning an INT
     let function = "FUNCTION foo : INT VAR_INPUT END_VAR END_FUNCTION";
     //WHEN parsing is done
-    let lexer = lex(function);
-    let (_parse_result, diagnostics) = parse(lexer);
+    let (_parse_result, diagnostics) = parse(function);
     //THEN there shouldn't be any diagnostics -> valid return type
     assert_eq!(diagnostics, vec![]);
 }
@@ -257,8 +249,7 @@ fn function_bool_return_supported() {
     //GIVEN FUNCTION returning a BOOL
     let function = "FUNCTION foo : BOOL VAR_INPUT END_VAR END_FUNCTION";
     //WHEN parsing is done
-    let lexer = lex(function);
-    let (_parse_result, diagnostics) = parse(lexer);
+    let (_parse_result, diagnostics) = parse(function);
     //THEN there shouldn't be any diagnostics -> valid return type
     assert_eq!(diagnostics, vec![]);
 }
@@ -269,8 +260,7 @@ fn function_type_enum_return_supported() {
     let function = "TYPE MyEnum: (green, yellow, red); END_TYPE
 	FUNCTION foo : MyEnum VAR_INPUT END_VAR END_FUNCTION";
     //WHEN parsing is done
-    let lexer = lex(function);
-    let (_parse_result, diagnostics) = parse(lexer);
+    let (_parse_result, diagnostics) = parse(function);
     //THEN there shouldn't be any diagnostics -> valid return type
     assert_eq!(diagnostics, vec![]);
 }
@@ -281,8 +271,7 @@ fn function_type_struct_return_supported() {
     let function = "TYPE MyStruct: STRUCT x : INT; y : INT; END_STRUCT END_TYPE
 	FUNCTION foo : MyStruct VAR_INPUT END_VAR END_FUNCTION";
     //WHEN parsing is done
-    let lexer = lex(function);
-    let (_parse_result, diagnostics) = parse(lexer);
+    let (_parse_result, diagnostics) = parse(function);
     //THEN there shouldn't be any diagnostics -> valid return type
     assert_eq!(diagnostics, vec![]);
 }
@@ -293,8 +282,7 @@ fn function_inline_enum_return_unsupported() {
     // GIVEN FUNCTION returning an inline ENUM
     let function = "FUNCTION foo : (green, yellow, red) VAR_INPUT END_VAR END_FUNCTION";
     // WHEN parsing is done
-    let lexer = lex(function);
-    let (_parse_result, diagnostics) = parse(lexer);
+    let (_parse_result, diagnostics) = parse(function);
     // THEN there should be one diagnostic -> unsupported return type
     assert_eq!(
         diagnostics,
@@ -316,8 +304,7 @@ fn function_inline_struct_return_unsupported() {
     let function =
         "FUNCTION foo : STRUCT x : INT; y : INT; END_STRUCT VAR_INPUT END_VAR END_FUNCTION";
     // WHEN parsing is done
-    let lexer = lex(function);
-    let (_parse_result, diagnostics) = parse(lexer);
+    let (_parse_result, diagnostics) = parse(function);
     // THEN there should be one diagnostic -> unsupported return type
     assert_eq!(
         true,
