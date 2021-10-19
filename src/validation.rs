@@ -112,7 +112,7 @@ impl Validator {
     }
 
     pub fn visit_pou(&mut self, pou: &Pou, context: &ValidationContext) {
-        self.pou_validator.validate_pou(pou);
+        self.pou_validator.validate_pou(pou, context);
 
         for block in &pou.variable_blocks {
             self.visit_variable_container(context, block);

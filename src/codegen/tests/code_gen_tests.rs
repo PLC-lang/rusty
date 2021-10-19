@@ -3968,6 +3968,27 @@ entry:
 }
 
 #[test]
+fn pointer_and_array_access_to_in_out() {
+    let result = codegen!(
+        "
+        FUNCTION main : INT 
+        VAR_IN_OUT
+            a : REF_TO INT;
+            b : ARRAY[0..1] OF INT;
+        END_VAR
+        VAR
+            c : INT;
+        END_VAR
+        c := a^;
+        c := b[0];
+        END_PROGRAM
+        "
+    );
+
+    insta::assert_snapshot!(result)
+}
+
+#[test]
 fn program_with_var_out_called_mixed_in_program() {
     let result = codegen(
         "

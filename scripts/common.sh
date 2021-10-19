@@ -1,4 +1,4 @@
-#!/bin/env bash
+#!/bin/bash
 
 debug=0
 function log() {
@@ -10,7 +10,7 @@ function log() {
 function make_dir() {
 if [[ ! -d $1 ]]; then
 	log "Creating a target build directory at $1"
-	mkdir "$1"
+	mkdir -p "$1"
 fi
 }
 
@@ -58,6 +58,11 @@ function find_project_root() {
 		project_location=$(dirname $(readlink -f "$project_location"))
 	fi
 	log "Found project location at $project_location"
+	# echo $project_location | tr -t "\\" "\\\\"
 	echo $project_location
+}
 
+function sanitize_path() {
+	target=$1
+	echo "${target//\\/\\\\}"
 }

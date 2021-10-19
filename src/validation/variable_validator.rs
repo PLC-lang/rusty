@@ -45,14 +45,6 @@ impl VariableValidator {
             .and_then(|qualifier| context.index.find_member(qualifier, variable.name.as_str()))
             .or_else(|| context.index.find_global_variable(variable.name.as_str()))
         {
-            println!(
-                "validating: {:} : {:#?}",
-                v_entry.get_name(),
-                context
-                    .index
-                    .find_effective_type_by_name(v_entry.get_type_name())
-            );
-
             match v_entry.initial_value.and_then(|initial_id| {
                 context
                     .index

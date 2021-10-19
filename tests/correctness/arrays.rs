@@ -112,6 +112,52 @@ fn matrix_array_assignments() {
 }
 
 #[test]
+fn two_dim_array_math() {
+    let function = "
+        FUNCTION main : INT
+        VAR
+            x,y,z : INT;
+            int_array : ARRAY[0..4, 0..4] OF INT;
+        END_VAR
+        x := int_array[0,1];
+        y := int_array[0,2];
+        z := int_array[4,4];
+        x := 10;
+        y := 20;
+        z := 5;
+            main := x+y-z*z/z;
+        END_FUNCTION
+        ";
+
+    let mut maintype = new();
+    let res: i16 = compile_and_run(function.to_string(), &mut maintype);
+    assert_eq!(res, 25);
+}
+
+#[test]
+fn three_dim_array_math() {
+    let function = "
+        FUNCTION main : INT
+        VAR
+            x,y,z : INT;
+            int_array : ARRAY[0..4, 0..4, 0..4] OF INT;
+        END_VAR
+        x := int_array[0,1,0];
+        y := int_array[0,2,3];
+        z := int_array[4,4,0];
+        x := 10;
+        y := 20;
+        z := 5;
+            main := x+y-z*z/z+x-y;
+        END_FUNCTION
+        ";
+
+    let mut maintype = new();
+    let res: i16 = compile_and_run(function.to_string(), &mut maintype);
+    assert_eq!(res, 15);
+}
+
+#[test]
 fn matrix_array_assignments2() {
     let function = r"
     PROGRAM main
@@ -124,9 +170,9 @@ fn matrix_array_assignments2() {
     END_VAR
 
             FOR x := 0 TO 4 DO
-            FOR y := 0 TO 4 DO
-            matrix[x][y] := x*y;
-            END_FOR
+                FOR y := 0 TO 4 DO
+                    matrix[x][y] := x*y;
+                END_FOR
             END_FOR
             END_PROGRAM
             ";
@@ -209,4 +255,53 @@ fn cube_array_assignments2() {
             }
         }
     }
+}
+
+#[test]
+fn two_dim_array_if() {
+    let function = "
+        FUNCTION main : INT
+        VAR
+            x,y,z : INT;
+            int_array : ARRAY[0..4, 0..4] OF INT;
+        END_VAR
+            int_array[0,1] := 10;
+            y := 20;
+
+            IF y > 21 THEN
+                int_array[4,4] := 40;
+            ELSIF y < 21 THEN
+                int_array[4,4] := 20;
+            END_IF;
+            main := int_array[4,4];
+        END_FUNCTION
+        ";
+
+    let mut maintype = new();
+    let res: i16 = compile_and_run(function.to_string(), &mut maintype);
+    assert_eq!(res, 20);
+}
+
+#[test]
+fn two_dim_array_while() {
+    let function = "
+        FUNCTION main : INT
+        VAR
+            x,y,z,counter : INT;
+            int_array : ARRAY[0..4, 0..4] OF INT;
+        END_VAR
+            int_array[0,1] := 10;
+            y := 20;
+
+            WHILE counter = 0 DO
+                int_array[4,4] := 1;
+                counter := counter +1;
+            END_WHILE
+            main := counter;
+        END_FUNCTION
+        ";
+
+    let mut maintype = new();
+    let res: i16 = compile_and_run(function.to_string(), &mut maintype);
+    assert_eq!(res, 1);
 }

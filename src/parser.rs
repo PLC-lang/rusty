@@ -268,6 +268,17 @@ fn parse_return_type(lexer: &mut ParseSession, pou_type: &PouType) -> Option<Dat
                     SourceRange::new(start_return_type..lexer.last_range.end),
                 ));
             }
+
+            if let DataTypeDeclaration::DataTypeDefinition { data_type, .. } = &declaration {
+                if matches!(
+                    data_type,
+                    DataType::EnumType { .. } | DataType::StructType { .. }
+                ) {
+                    lexer.accept_diagnostic(Diagnostic::function_unsupported_return_type(
+                        &declaration,
+                    ))
+                }
+            }
             Some(declaration)
         } else {
             //missing return type
