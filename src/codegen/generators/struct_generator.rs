@@ -121,7 +121,7 @@ impl<'a, 'b> StructGenerator<'a, 'b> {
 
                         let result = exp_gen
                             .generate_expression(&ast_statement)
-                            .map(|(_, value)| Some(value));
+                            .map(|value| Some(value));
 
                         if let Err(CompileError::MissingFunctionError { .. }) = result {
                             return Err(CompileError::cannot_generate_initializer(

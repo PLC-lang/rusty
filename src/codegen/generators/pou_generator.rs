@@ -324,7 +324,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
             );
             exp_gen.temp_variable_prefix = "".to_string();
             exp_gen.temp_variable_suffix = "_ret".to_string();
-            let (_, value) = exp_gen.generate_expression(&reference)?;
+            let value = exp_gen.generate_expression(&reference)?;
             self.llvm.builder.build_return(Some(&value));
         } else {
             self.llvm.builder.build_return(None);

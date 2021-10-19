@@ -240,8 +240,7 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
                 self.annotations,
                 &self.types_index,
             );
-            let (_, initial_value) = generator.generate_expression(initializer).unwrap();
-            Some(initial_value)
+            Some(generator.generate_expression(initializer).unwrap())
         } else {
             // if there's no initializer defined for this alias, we go and check the aliased type for an initial value
             self.index
@@ -270,8 +269,7 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
                     self.annotations,
                     &self.types_index,
                 );
-                let (_, initial_value) = generator.generate_literal(initializer)?;
-                Ok(Some(initial_value))
+                Ok(Some(generator.generate_literal(initializer)?))
             } else {
                 Err(CompileError::codegen_error(
                     format!("Expected {} but found {:?}", expected_ast, initializer),

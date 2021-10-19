@@ -70,7 +70,7 @@ pub fn generate_global_variable<'ctx, 'b>(
             //Todo cast if necessary
             Some(value)
         } else {
-            let (_, value) = expr_generator.generate_expression(initializer)?;
+            let value = expr_generator.generate_expression(initializer)?;
             //Todo cast if necessary
             Some(value)
         }

@@ -2167,3 +2167,5 @@ fn inouts_should_be_annotated_according_to_auto_deref() {
     // then accessing inout should be annotated with DINT, because it is auto-dereferenced
     assert_type_and_hint!(&annotations, &index, inout_ref, DINT_TYPE, None);
 }
+
+
