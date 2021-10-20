@@ -3,6 +3,7 @@ use crate::compile_and_run;
 
 mod arrays;
 mod complex;
+mod references;
 
 #[allow(dead_code)]
 #[repr(C)]
