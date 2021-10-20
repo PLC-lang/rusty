@@ -95,7 +95,7 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
                 })
                 .filter(|var| !var.is_return())
                 //Avoid generating temp variables in llvm
-                .filter(|var| !var.is_temp()) 
+                .filter(|var| !var.is_temp())
                 .collect();
             let ((_, initial_value), member_values) =
                 struct_generator.generate_struct_type(&members, data_type.get_name())?;

@@ -123,4 +123,3 @@ fn simple_program_with_var_temp_can_be_parsed() {
 }"#;
     assert_eq!(ast_string, expected_ast);
 }
-

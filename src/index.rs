@@ -55,9 +55,9 @@ impl VariableIndexEntry {
     pub fn is_local(&self) -> bool {
         self.information.variable_type == VariableType::Local
     }
-     pub fn is_temp(&self) -> bool {
-         self.information.variable_type == VariableType::Temp
-     }
+    pub fn is_temp(&self) -> bool {
+        self.information.variable_type == VariableType::Temp
+    }
 
     pub fn is_constant(&self) -> bool {
         self.information.is_constant

@@ -3222,10 +3222,9 @@ fn program_with_local_temp_var_initialization() {
         PROGRAM prg
         foo();
         END_PROGRAM
-        ")
-    ;
+        "
+    );
     insta::assert_snapshot!(result)
-    
 }
 
 #[test]

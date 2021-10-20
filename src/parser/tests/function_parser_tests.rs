@@ -378,7 +378,6 @@ fn simple_fb_with_var_temp_can_be_parsed() {
     assert_eq!(ast_string, expected_ast);
 }
 
-
 #[test]
 fn simple_function_with_var_temp_can_be_parsed() {
     let lexer = lex("FUNCTION buz VAR_TEMP x : INT; END_VAR END_FUNCTION");
