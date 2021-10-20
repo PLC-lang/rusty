@@ -348,6 +348,10 @@ fn program_members_are_indexed() {
             c : BOOL;
             d : BOOL;
         END_VAR
+        VAR_TEMP
+            e : INT;
+            f : INT;
+        END_VAR
         END_PROGRAM
     "#
     );
@@ -371,6 +375,16 @@ fn program_members_are_indexed() {
     assert_eq!("d", variable.name);
     assert_eq!("BOOL", variable.information.data_type_name);
     assert_eq!(VariableType::Input, variable.information.variable_type);
+
+    let variable = index.find_member("myProgram", "e").unwrap();
+    assert_eq!("e", variable.name);
+    assert_eq!("INT", variable.information.data_type_name);
+    assert_eq!(VariableType::Temp, variable.information.variable_type);
+
+    let variable = index.find_member("myProgram", "f").unwrap();
+    assert_eq!("f", variable.name);
+    assert_eq!("INT", variable.information.data_type_name);
+    assert_eq!(VariableType::Temp, variable.information.variable_type);
 }
 
 #[test]

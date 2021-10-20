@@ -3157,7 +3157,7 @@ continue:                                         ; preds = %output
 }
 
 #[test]
-fn function_with_local_var_initialization() {
+fn function_with_local_var_initialization_and_call() {
     let result = codegen!(
         "
         FUNCTION foo : DINT
@@ -3171,30 +3171,61 @@ fn function_with_local_var_initialization() {
         END_VAR
         foo := 1;
         END_FUNCTION
+        PROGRAM prg
+        foo(5);
+        END_PROGRAM
         "
     );
 
-    let expected = r#"; ModuleID = 'main'
-source_filename = "main"
-
-%foo_interface = type { i32, i16, i16, i16 }
-
-define i32 @foo(%foo_interface* %0) {
-entry:
-  %in1 = getelementptr inbounds %foo_interface, %foo_interface* %0, i32 0, i32 0
-  %x = getelementptr inbounds %foo_interface, %foo_interface* %0, i32 0, i32 1
-  %y = getelementptr inbounds %foo_interface, %foo_interface* %0, i32 0, i32 2
-  %z = getelementptr inbounds %foo_interface, %foo_interface* %0, i32 0, i32 3
-  %foo = alloca i32, align 4
-  store i16 7, i16* %x, align 2
-  store i16 9, i16* %z, align 2
-  store i32 1, i32* %foo, align 4
-  %foo_ret = load i32, i32* %foo, align 4
-  ret i32 %foo_ret
+    insta::assert_snapshot!(result)
 }
-"#;
 
-    assert_eq!(result, expected);
+#[test]
+fn function_with_local_temp_var_initialization() {
+    let result = codegen!(
+        "
+        FUNCTION foo : DINT
+        VAR_INPUT
+          in1 : DINT;
+        END_VAR
+        VAR
+          x : INT := 7;
+        END_VAR
+        VAR_TEMP
+          y : INT;
+          z : INT := 9;
+        END_VAR
+        y := z + 1;
+        END_FUNCTION
+        PROGRAM prg
+        foo(5);
+        END_PROGRAM
+        "
+    );
+    insta::assert_snapshot!(result)
+}
+
+#[test]
+fn program_with_local_temp_var_initialization() {
+    let result = codegen!(
+        "
+        PROGRAM foo
+        VAR
+          x : INT := 7;
+        END_VAR
+        VAR_TEMP
+          y : INT;
+          z : INT := 9;
+        END_VAR
+        y := z + 1;
+        END_PROGRAM
+        PROGRAM prg
+        foo();
+        END_PROGRAM
+        ")
+    ;
+    insta::assert_snapshot!(result)
+    
 }
 
 #[test]
