@@ -1,9 +1,9 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 mod code_gen_tests;
 mod codegen_error_messages_tests;
+mod expression_tests;
 mod statement_codegen_test;
 mod typesystem_test;
-mod expression_tests;
 
 #[macro_export]
 macro_rules! codegen_wihout_unwrap {
