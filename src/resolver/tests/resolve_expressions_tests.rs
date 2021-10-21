@@ -941,7 +941,8 @@ fn function_expression_resolves_to_the_function_itself_not_its_return_type() {
         Some(&StatementAnnotation::Variable {
             qualified_name: "foo.foo".into(),
             resulting_type: "INT".into(),
-            constant: false
+            constant: false,
+            is_auto_deref: false
         }),
         foo_annotation
     );
@@ -1126,7 +1127,8 @@ fn qualified_expressions_dont_fallback_to_globals() {
         Some(&StatementAnnotation::Variable {
             qualified_name: "MyStruct.y".into(),
             resulting_type: "INT".into(),
-            constant: false
+            constant: false,
+            is_auto_deref: false
         }),
         annotations.get_annotation(&statements[1])
     );
@@ -1378,7 +1380,8 @@ fn method_references_are_resolved() {
         Some(&StatementAnnotation::Variable {
             qualified_name: "cls.foo.foo".into(),
             resulting_type: "INT".into(),
-            constant: false
+            constant: false,
+            is_auto_deref: false
         }),
         annotation
     );
@@ -2183,7 +2186,7 @@ fn action_call_should_be_annotated() {
         ACTION foo
             x := 2;
         END_ACTION
-        "
+        ",
     );
 
     // WHEN this code is annotated
@@ -2191,8 +2194,93 @@ fn action_call_should_be_annotated() {
     let action_call = &unit.implementations[0].statements[0];
 
     // then accessing inout should be annotated with DINT, because it is auto-dereferenced
-    let a = annotations.get_annotation(action_call);
-    assert_eq!(false, true);
+    if let AstStatement::CallStatement{ operator, .. } = action_call {
+        let a = annotations.get_annotation(operator);
+        assert_eq!(
+            Some(&StatementAnnotation::Program {
+                qualified_name: "prg.foo".to_string()
+            }),
+            a
+        );
+    }
+}
+
+#[test]
+fn action_body_gets_resolved() {
+    //a program with an action in it
+    let (unit, index) = parse(
+        "
+        PROGRAM prg 
+            VAR
+                x : DINT;
+            END_VAR
+            prg.foo();
+            END_PROGRAM
+            ACTIONS prg
+            ACTION foo
+                x := 2;
+            END_ACTION
+        END_PROGRAM
+        ",
+    );
+
+    // WHEN this code is annotated
+    let annotations = annotate(&unit, &index);
+    let x_assignment = &unit.implementations[1].statements[0];
+
+    // then accessing inout should be annotated with DINT, because it is auto-dereferenced
+    if let AstStatement::Assignment{ left, right, .. } = x_assignment {
+        let a = annotations.get_annotation(left);
+        assert_eq!(
+            Some(&StatementAnnotation::Variable {
+                qualified_name: "prg.x".to_string(),
+                resulting_type: "DINT".to_string(),
+                constant: false,
+                is_auto_deref: false
+            }),
+            a
+        );
+
+        let two = annotations.get_annotation(right);
+        assert_eq!(
+            Some(&StatementAnnotation::value(DINT_TYPE)),
+            two
+        );
+    }
 }
 
 
+#[test]
+fn class_method_gets_annotated() {
+    //a class with a method with class-variables and method-variables
+    let (unit, index) = parse(
+        "
+    CLASS MyClass
+        VAR
+            x, y : BYTE;
+        END_VAR
+    
+        METHOD testMethod
+            VAR_INPUT myMethodArg : DINT; END_VAR
+            VAR myMethodLocalVar : SINT; END_VAR
+
+            x;
+            myMethodArg;
+            y;
+            myMethodLocalVar;
+        END_METHOD
+    END_CLASS
+        ",
+    );
+
+    // WHEN this code is annotated
+    let annotations = annotate(&unit, &index);
+    let body = &unit.implementations[0].statements;
+
+    // then accessing inout should be annotated with DINT, because it is auto-dereferenced
+    assert_type_and_hint!(&annotations, &index, &body[0], "BYTE", None);
+    assert_type_and_hint!(&annotations, &index, &body[1], "DINT", None);
+    assert_type_and_hint!(&annotations, &index, &body[2], "BYTE", None);
+    assert_type_and_hint!(&annotations, &index, &body[3], "SINT", None);
+    
+}

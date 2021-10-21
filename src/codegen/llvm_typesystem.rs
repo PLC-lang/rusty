@@ -182,11 +182,13 @@ pub fn cast_if_needed<'ctx>(
                             .into())
                     }
                 }
-                _ => Err(CompileError::casting_error(
+                _ => {
+                    dbg!(statement);
+                    Err(CompileError::casting_error(
                     value_type.get_name(),
                     target_type.get_name(),
                     statement.get_location(),
-                )),
+                ))},
             }
         }
 

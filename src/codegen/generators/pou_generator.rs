@@ -304,28 +304,15 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         local_index: &LlvmTypedIndex<'ink>,
         location: Option<SourceRange>,
     ) -> Result<(), CompileError> {
-        if self
+        if let Some(ret_v) = self
             .index
             .find_return_variable(function_context.linking_context.get_type_name())
-            .is_some()
         {
-            let reference = AstStatement::Reference {
-                name: Pou::calc_return_name(function_context.linking_context.get_call_name())
-                    .into(),
-                location: location.unwrap_or_else(SourceRange::undefined),
-                id: 0, //TODO
-            };
-            let mut exp_gen = ExpressionCodeGenerator::new(
-                &self.llvm,
-                self.index,
-                self.annotations,
-                local_index,
-                function_context,
-            );
-            exp_gen.temp_variable_prefix = "".to_string();
-            exp_gen.temp_variable_suffix = "_ret".to_string();
-            let value = exp_gen.generate_expression(&reference)?;
-            self.llvm.builder.build_return(Some(&value));
+            let var_name = format!("{}_ret", function_context.linking_context.get_call_name());
+            let ret_name =  ret_v.get_qualified_name();
+            let value_ptr = local_index.find_loaded_associated_variable_value(ret_name);
+            let loaded_value = self.llvm.load_pointer(value_ptr.as_ref().unwrap(), var_name.as_str()); 
+            self.llvm.builder.build_return(Some(&loaded_value));
         } else {
             self.llvm.builder.build_return(None);
         }

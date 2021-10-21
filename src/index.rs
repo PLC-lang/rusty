@@ -397,6 +397,12 @@ impl Index {
         self.member_variables
             .get(&pou_name.to_lowercase())
             .and_then(|map| map.get(&variable_name.to_lowercase()))
+            .or_else(|| {
+                //check qualifier
+                pou_name.rfind('.')
+                    .map(|p| &pou_name[..p])
+                    .and_then(|qualifier| self.find_member(qualifier, variable_name))
+            })
     }
 
     /// returns the index entry of the enum-element `element_name` of the enum-type `enum_name`

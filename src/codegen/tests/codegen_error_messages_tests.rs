@@ -180,6 +180,7 @@ fn invalid_array_access_in_struct_should_be_reported_with_line_number() {
     }
 }
 
+#[ignore = "will be covered by validation"]
 #[test]
 fn invalid_struct_access_in_array_should_be_reported_with_line_number() {
     let src = "
@@ -203,6 +204,8 @@ fn invalid_struct_access_in_array_should_be_reported_with_line_number() {
     }
 }
 
+
+#[ignore = "will be covered by validation"]
 #[test]
 fn invalid_struct_access_in_array_access_should_be_reported_with_line_number() {
     let src = "
