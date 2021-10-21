@@ -945,9 +945,6 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                     )
                 })?;
 
-            let type_name = variable_index_entry.get_type_name();
-            let variable_type = self.index.get_type(type_name)?;
-
             accessor_ptr
         };
 
@@ -956,24 +953,14 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
 
     fn deref(
         &self,
-        variable_type: &'b DataType,
         accessor_ptr: PointerValue<'a>,
         statement: &AstStatement,
     ) -> Result<TypeAndPointer<'a, 'b>, CompileError> {
-        if let DataTypeInformation::Pointer {
-            inner_type_name, ..
-        } = &variable_type.information
-        {
+        
             // auto_deref the pointer
             let value = self.llvm.load_pointer(&accessor_ptr, "deref");
-            let inner_type = self.index.get_type(inner_type_name)?;
             Ok(value.into_pointer_value())
-        } else {
-            Err(CompileError::codegen_error(
-                format!("Cannot derefence non pointer type : {:?}", variable_type),
-                statement.get_location(),
-            ))
-        }
+        
     }
 
     /// automatically derefs an inout variable pointer so it can be used like a normal variable
@@ -986,17 +973,8 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
         accessor_ptr: PointerValue<'a>,
         statement: &AstStatement,
     ) -> Result<TypeAndPointer<'a, 'b>, CompileError> {
-        if let Ok(variable_type) = self.get_type_hint_for(statement) {
-            Ok(
-                if let DataTypeInformation::Pointer {
-                    auto_deref: true, ..
-                } = &variable_type.get_type_information()
-                {
-                    self.deref(variable_type, accessor_ptr, statement)?
-                } else {
-                    accessor_ptr
-                },
-            )
+        if let Some(StatementAnnotation::Variable{ is_auto_deref: true, resulting_type, ..}) = self.annotations.get_annotation(statement) {
+            self.deref(accessor_ptr, statement)
         } else {
             Ok(accessor_ptr)
         }
@@ -1148,20 +1126,20 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                     }
                 };
                 //Otherwise, load a variable reference
-                self.create_llvm_pointer_value_for_reference(
+                let x = self.create_llvm_pointer_value_for_reference(
                     qualifier.zip(Some(self.get_annotated_qualifier_for(reference)?)),
                     name,
                     reference,
                 )
-                .and_then(|p| self.auto_deref_if_necessary(p, reference))
+                .and_then(|p| self.auto_deref_if_necessary(p, reference));
+                x
             }
             AstStatement::ArrayAccess {
                 reference, access, ..
             } => self.generate_element_pointer_for_array(qualifier, reference, access),
             AstStatement::PointerAccess { reference, .. } => {
                 let pointer = self.generate_element_pointer_for_rec(qualifier, reference)?;
-                let type_entry = self.get_type_hint_for(reference)?;
-                self.deref(type_entry, pointer, reference)
+                self.deref(pointer, reference)
             }
             _ => Err(CompileError::codegen_error(
                 format!("Unsupported Statement {:?}", reference),

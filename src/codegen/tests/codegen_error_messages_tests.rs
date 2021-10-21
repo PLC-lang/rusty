@@ -96,6 +96,7 @@ fn unknown_type_should_be_reported_with_line_number() {
     }
 }
 
+#[ignore = "will be covered by validation"]
 #[test]
 fn unknown_struct_field_should_be_reported_with_line_number() {
     let result = codegen_wihout_unwrap!(

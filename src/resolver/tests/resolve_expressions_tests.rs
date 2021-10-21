@@ -2284,3 +2284,45 @@ fn class_method_gets_annotated() {
     assert_type_and_hint!(&annotations, &index, &body[3], "SINT", None);
     
 }
+
+
+
+#[test]
+fn nested_bitwise_access_resolves_correctly() {
+    let (unit, index) = parse(
+        r#"PROGRAM prg
+        VAR
+        a : BOOL;
+        x : LWORD;
+        END_VAR
+        (* Second bit of the second byte of the second word of the second dword of an lword*)
+        a := x.%D1.%W1.%B1.%X1;
+        END_PROGRAM
+        "#);
+
+    // WHEN this code is annotated
+    let annotations = annotate(&unit, &index);
+    let assignment = &unit.implementations[0].statements[0];
+
+    if let AstStatement::Assignment{ right, ..} = assignment {
+        assert_type_and_hint!(&annotations, &index, right, "BOOL", Some("BOOL"));   //strange
+
+        if let AstStatement::QualifiedReference {elements, ..} = right.as_ref() {
+            assert_type_and_hint!(&annotations, &index, &elements[0], "LWORD", None);
+            assert_type_and_hint!(&annotations, &index, &elements[1], "DWORD", None);
+            assert_type_and_hint!(&annotations, &index, &elements[2], "WORD", None);
+            assert_type_and_hint!(&annotations, &index, &elements[3], "BYTE", None);
+            assert_type_and_hint!(&annotations, &index, &elements[4], "BOOL", None);
+
+            if let AstStatement::DirectAccess{ index: idx_stmt, ..} = &elements[4] {
+                assert_type_and_hint!(&annotations, &index, idx_stmt, "DINT", None);
+            } else {
+                unreachable!()
+            }
+        }else{
+            unreachable!()
+        }
+    }else{
+        unreachable!();
+    }
+}

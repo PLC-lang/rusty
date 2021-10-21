@@ -2065,8 +2065,8 @@ entry:
   %myMethodArg = getelementptr inbounds %MyClass.testMethod_interface, %MyClass.testMethod_interface* %1, i32 0, i32 0
   %MyClass.testMethod = alloca i16, align 2
   store i16 1, i16* %MyClass.testMethod, align 2
-  %testMethod_ret = load i16, i16* %MyClass.testMethod, align 2
-  ret i16 %testMethod_ret
+  %MyClass.testMethod_ret = load i16, i16* %MyClass.testMethod, align 2
+  ret i16 %MyClass.testMethod_ret
 }
 "#;
 
