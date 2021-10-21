@@ -915,6 +915,8 @@ impl<'i> TypeAnnotator<'i> {
                         self.annotation_map
                             .annotate(statement, StatementAnnotation::value(return_type));
                     }
+                }else{
+                    println!("{:#?}", self.annotation_map.get(operator));
                 }
             }
             AstStatement::CastStatement {

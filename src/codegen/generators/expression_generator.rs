@@ -450,10 +450,15 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
             }
             AstStatement::QualifiedReference { .. } => {
                 let loaded_value = self.generate_element_pointer_for_rec(None, operator);
-                let type_entry = self.get_type_hint_for(operator)?;
+                let call_name = match self.annotations.get_annotation(operator) {
+                    Some(StatementAnnotation::Function { qualified_name, .. }) => {Some(qualified_name.as_str())},
+                    Some(StatementAnnotation::Program { qualified_name }) => { Some(qualified_name.as_str())},
+                    Some(StatementAnnotation::Variable {resulting_type,..}) => { Some(resulting_type.as_str())},
+                    _ => {None},
+                };
                 loaded_value.map(|ptr_value| {
                     self.index
-                        .find_implementation(type_entry.get_name())
+                        .find_implementation(call_name.unwrap())
                         .map(|implementation| {
                             let (class_struct, method_struct) = if matches!(
                                 implementation.get_implementation_type(),
@@ -1499,7 +1504,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
             .or_else(|| self.annotations.get_type(statement, self.index))
             .ok_or_else(|| {
                 CompileError::codegen_error(
-                    "no type hint available".to_string(),
+                    format!("no type hint available for {:#?}", statement),
                     statement.get_location(),
                 )
             })

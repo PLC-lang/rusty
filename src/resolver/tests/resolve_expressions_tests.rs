@@ -2168,4 +2168,31 @@ fn inouts_should_be_annotated_according_to_auto_deref() {
     assert_type_and_hint!(&annotations, &index, inout_ref, DINT_TYPE, None);
 }
 
+#[test]
+fn action_call_should_be_annotated() {
+    //a program with in-out variables that get auto-deref'd
+    let (unit, index) = parse(
+        "
+        PROGRAM prg 
+        VAR
+            x : DINT;
+        END_VAR
+        prg.foo();
+        END_PROGRAM
+        ACTIONS prg
+        ACTION foo
+            x := 2;
+        END_ACTION
+        "
+    );
+
+    // WHEN this code is annotated
+    let annotations = annotate(&unit, &index);
+    let action_call = &unit.implementations[0].statements[0];
+
+    // then accessing inout should be annotated with DINT, because it is auto-dereferenced
+    let a = annotations.get_annotation(action_call);
+    assert_eq!(false, true);
+}
+
 
