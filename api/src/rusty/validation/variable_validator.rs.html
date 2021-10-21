@@ -201,6 +201,7 @@
 <span id="201">201</span>
 <span id="202">202</span>
 <span id="203">203</span>
+<span id="204">204</span>
 </pre><pre class="rust">
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">ast</span>::{
@@ -356,7 +357,8 @@
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">variable_validator_tests</span> {
-    <span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">validation::tests::parse_and_validate</span>, <span class="ident">Diagnostic</span>};
+    <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::test_utils::tests::parse_and_validate</span>;
+    <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::Diagnostic</span>;
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">validate_empty_struct_declaration</span>() {
