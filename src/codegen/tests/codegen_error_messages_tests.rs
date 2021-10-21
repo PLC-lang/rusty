@@ -1,10 +1,12 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-use crate::{ast::SourceRange, codegen_wihout_unwrap, compile_error::CompileError};
+use crate::{
+    ast::SourceRange, compile_error::CompileError, test_utils::tests::codegen_without_unwrap,
+};
 use pretty_assertions::assert_eq;
 
 #[test]
 fn unknown_reference_should_be_reported_with_line_number() {
-    let result = codegen_wihout_unwrap!(
+    let result = codegen_without_unwrap(
         "
         PROGRAM prg 
             VAR
@@ -12,7 +14,7 @@ fn unknown_reference_should_be_reported_with_line_number() {
             END_VAR
             x := y;
         END_PROGRAM
-        "
+        ",
     );
     if let Err(msg) = result {
         assert_eq!(CompileError::invalid_reference("y", (100..101).into()), msg);
@@ -23,7 +25,7 @@ fn unknown_reference_should_be_reported_with_line_number() {
 
 #[test]
 fn exit_not_in_loop() {
-    let result = codegen_wihout_unwrap!(
+    let result = codegen_without_unwrap(
         "
         PROGRAM prg 
             VAR
@@ -31,7 +33,7 @@ fn exit_not_in_loop() {
             END_VAR
             EXIT;
         END_PROGRAM
-        "
+        ",
     );
     if let Err(msg) = result {
         assert_eq!(
@@ -48,7 +50,7 @@ fn exit_not_in_loop() {
 
 #[test]
 fn continue_not_in_loop() {
-    let result = codegen_wihout_unwrap!(
+    let result = codegen_without_unwrap(
         "
         PROGRAM prg 
             VAR
@@ -56,7 +58,7 @@ fn continue_not_in_loop() {
             END_VAR
             CONTINUE;
         END_PROGRAM
-        "
+        ",
     );
     if let Err(msg) = result {
         assert_eq!(
@@ -74,7 +76,7 @@ fn continue_not_in_loop() {
 #[test]
 #[ignore]
 fn unknown_type_should_be_reported_with_line_number() {
-    let result = codegen_wihout_unwrap!(
+    let result = codegen_without_unwrap(
         "
         PROGRAM prg 
             VAR
@@ -82,7 +84,7 @@ fn unknown_type_should_be_reported_with_line_number() {
             END_VAR
             x := 7;
         END_PROGRAM
-        "
+        ",
     );
     if let Err(msg) = result {
         // that's not perfect yet, the error is reported for the region of the variable
@@ -98,7 +100,7 @@ fn unknown_type_should_be_reported_with_line_number() {
 
 #[test]
 fn unknown_struct_field_should_be_reported_with_line_number() {
-    let result = codegen_wihout_unwrap!(
+    let result = codegen_without_unwrap(
         "
         TYPE MyStruct:
         STRUCT 
@@ -115,7 +117,7 @@ fn unknown_struct_field_should_be_reported_with_line_number() {
             x.b := 8;
             x.c := 9;
         END_PROGRAM
-        "
+        ",
     );
     if let Err(msg) = result {
         assert_eq!(
@@ -129,7 +131,7 @@ fn unknown_struct_field_should_be_reported_with_line_number() {
 
 #[test]
 fn invalid_array_access_should_be_reported_with_line_number() {
-    let result = codegen_wihout_unwrap!(
+    let result = codegen_without_unwrap(
         "
         PROGRAM prg 
             VAR
@@ -137,7 +139,7 @@ fn invalid_array_access_should_be_reported_with_line_number() {
             END_VAR
             x[3] := 3;
         END_PROGRAM
-        "
+        ",
     );
     if let Err(msg) = result {
         // that's not perfect yet, the error is reported for the region of the variable
@@ -153,7 +155,7 @@ fn invalid_array_access_should_be_reported_with_line_number() {
 
 #[test]
 fn invalid_array_access_in_struct_should_be_reported_with_line_number() {
-    let result = codegen_wihout_unwrap!(
+    let result = codegen_without_unwrap(
         "
         TYPE MyStruct:
         STRUCT 
@@ -168,7 +170,7 @@ fn invalid_array_access_in_struct_should_be_reported_with_line_number() {
             END_VAR
             x.a := x.b[3];
         END_PROGRAM
-        "
+        ",
     );
     if let Err(msg) = result {
         assert_eq!(
@@ -191,7 +193,7 @@ fn invalid_struct_access_in_array_should_be_reported_with_line_number() {
         END_PROGRAM
         ";
 
-    let result = codegen_wihout_unwrap!(src);
+    let result = codegen_without_unwrap(src);
     if let Err(msg) = result {
         // that's not perfect yet, we need display-names for generated datatypes
         assert_eq!(
@@ -215,7 +217,7 @@ fn invalid_struct_access_in_array_access_should_be_reported_with_line_number() {
         END_PROGRAM
         ";
 
-    let result = codegen_wihout_unwrap!(src);
+    let result = codegen_without_unwrap(src);
     if let Err(msg) = result {
         // that's not perfect yet, we need display-names for generated datatypes
         assert_eq!(
@@ -229,7 +231,7 @@ fn invalid_struct_access_in_array_access_should_be_reported_with_line_number() {
 
 #[test]
 fn invalid_initial_constant_values_in_pou_variables() {
-    let result = codegen_wihout_unwrap!(
+    let result = codegen_without_unwrap(
         r#"
         VAR_GLOBAL CONSTANT
             MAX_LEN : INT := 99;
@@ -245,7 +247,7 @@ fn invalid_initial_constant_values_in_pou_variables() {
           END_VAR
         END_PROGRAM
  
-        "#
+        "#,
     );
 
     if let Err(msg) = result {
@@ -264,13 +266,13 @@ fn invalid_initial_constant_values_in_pou_variables() {
 
 #[test]
 fn constants_without_initialization() {
-    let result = codegen_wihout_unwrap!(
+    let result = codegen_without_unwrap(
         r#"
         VAR_GLOBAL CONSTANT
             a : INT;
             b : INT := a;
         END_VAR
-        "#
+        "#,
     );
 
     if let Err(msg) = result {
@@ -288,13 +290,13 @@ fn constants_without_initialization() {
 
 #[test]
 fn recursive_initial_constant_values() {
-    let result = codegen_wihout_unwrap!(
+    let result = codegen_without_unwrap(
         r#"
         VAR_GLOBAL CONSTANT
             a : INT := b;
             b : INT := a;
         END_VAR
-        "#
+        "#,
     );
 
     if let Err(msg) = result {

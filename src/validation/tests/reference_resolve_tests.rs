@@ -1,4 +1,5 @@
-use crate::{validation::tests::parse_and_validate, Diagnostic};
+use crate::test_utils::tests::parse_and_validate;
+use crate::Diagnostic;
 
 /// tests wheter simple local and global variables can be resolved and
 /// errors are reported properly

@@ -1,29 +1,14 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use pretty_assertions::assert_eq;
 
-use crate::lexer;
-use crate::parser;
 use crate::parser::tests::literal_int;
+use crate::test_utils::tests::{index, parse};
 use crate::typesystem::TypeSize;
 use crate::{ast::*, index::VariableType, typesystem::DataTypeInformation};
 
-macro_rules! index {
-    ($code:tt) => {{
-        let lexer = crate::lexer::lex($code);
-        let (mut ast, ..) = crate::parser::parse(lexer);
-
-        crate::ast::pre_process(&mut ast);
-        crate::index::visitor::visit(&ast)
-    }};
-}
-
-fn lex(source: &str) -> lexer::ParseSession {
-    lexer::lex(source)
-}
-
 #[test]
 fn index_not_case_sensitive() {
-    let index = index!(
+    let (_, index) = index(
         r#"
         TYPE st : STRUCT
             x : INT;
@@ -43,7 +28,7 @@ fn index_not_case_sensitive() {
                 c,d : INT;
             END_VAR
         END_PROGRAM
-    "#
+    "#,
     );
 
     let entry = index.find_global_variable("A").unwrap();
@@ -64,13 +49,13 @@ fn index_not_case_sensitive() {
 
 #[test]
 fn global_variables_are_indexed() {
-    let index = index!(
+    let (_, index) = index(
         r#"
         VAR_GLOBAL
             a: INT;
             b: BOOL;
         END_VAR
-    "#
+    "#,
     );
 
     let entry_a = index.find_global_variable("a").unwrap();
@@ -84,11 +69,11 @@ fn global_variables_are_indexed() {
 
 #[test]
 fn program_is_indexed() {
-    let index = index!(
+    let (_, index) = index(
         r#"
         PROGRAM myProgram
         END_PROGRAM
-    "#
+    "#,
     );
 
     index.find_type("myProgram").unwrap();
@@ -99,7 +84,7 @@ fn program_is_indexed() {
 
 #[test]
 fn actions_are_indexed() {
-    let index = index!(
+    let (_, index) = index(
         r#"
         PROGRAM myProgram
         END_PROGRAM
@@ -109,7 +94,7 @@ fn actions_are_indexed() {
         END_ACTIONS
         ACTION myProgram.bar
         END_ACTION
-    "#
+    "#,
     );
 
     let foo_impl = index.find_implementation("myProgram.foo").unwrap();
@@ -166,14 +151,14 @@ fn actions_are_indexed() {
 
 #[test]
 fn fb_methods_are_indexed() {
-    let index = index!(
+    let (_, index) = index(
         r#"
         FUNCTION_BLOCK myFuncBlock
             METHOD foo
                 VAR x : SINT; END_VAR
             END_METHOD
         END_FUNCTION_BLOCK
-    "#
+    "#,
     );
 
     let foo_impl = index.find_implementation("myFuncBlock.foo").unwrap();
@@ -196,14 +181,14 @@ fn fb_methods_are_indexed() {
 
 #[test]
 fn class_methods_are_indexed() {
-    let index = index!(
+    let (_, index) = index(
         r#"
         CLASS myClass
             METHOD foo
                 VAR y : DINT; END_VAR
             END_METHOD
         END_CLASS
-    "#
+    "#,
     );
 
     let foo_impl = index.find_implementation("myClass.foo").unwrap();
@@ -226,11 +211,11 @@ fn class_methods_are_indexed() {
 
 #[test]
 fn function_is_indexed() {
-    let index = index!(
+    let (_, index) = index(
         r#"
         FUNCTION myFunction : INT
         END_FUNCTION
-    "#
+    "#,
     );
 
     index.find_type("myFunction").unwrap();
@@ -250,7 +235,7 @@ fn function_is_indexed() {
 
 #[test]
 fn function_with_varargs_param_marked() {
-    let index = index!(
+    let (_, index) = index(
         r#"
         FUNCTION myFunc : INT
         VAR_INPUT
@@ -258,7 +243,7 @@ fn function_with_varargs_param_marked() {
             y : ...;
         END_VAR
         END_FUNCTION
-        "#
+        "#,
     );
     let function = index.find_type("myFunc").unwrap();
     assert!(function.get_type_information().is_variadic());
@@ -267,7 +252,7 @@ fn function_with_varargs_param_marked() {
 
 #[test]
 fn function_with_typed_varargs_param_marked() {
-    let index = index!(
+    let (_, index) = index(
         r#"
         FUNCTION myFunc : INT
         VAR_INPUT
@@ -275,7 +260,7 @@ fn function_with_typed_varargs_param_marked() {
             y : INT...;
         END_VAR
         END_FUNCTION
-        "#
+        "#,
     );
     let function = index.find_type("myFunc").unwrap();
     assert!(function.get_type_information().is_variadic());
@@ -287,7 +272,7 @@ fn function_with_typed_varargs_param_marked() {
 
 #[test]
 fn pous_are_indexed() {
-    let index = index!(
+    let (_, index) = index(
         r#"
         PROGRAM myProgram
         END_PROGRAM
@@ -297,7 +282,7 @@ fn pous_are_indexed() {
         END_FUNCTION_BLOCK
         CLASS myClass
         END_CLASS
-    "#
+    "#,
     );
 
     index.find_type("myFunction").unwrap();
@@ -308,7 +293,7 @@ fn pous_are_indexed() {
 
 #[test]
 fn implementations_are_indexed() {
-    let index = index!(
+    let (_, index) = index(
         r#"
         PROGRAM myProgram
         END_PROGRAM
@@ -318,7 +303,7 @@ fn implementations_are_indexed() {
         END_FUNCTION_BLOCK
         FUNCTION foo : INT
         END_FUNCTION
-        "#
+        "#,
     );
 
     let my_program = index.find_implementation("myProgram").unwrap();
@@ -337,7 +322,7 @@ fn implementations_are_indexed() {
 
 #[test]
 fn program_members_are_indexed() {
-    let index = index!(
+    let (_, index) = index(
         r#"
         PROGRAM myProgram
         VAR
@@ -349,7 +334,7 @@ fn program_members_are_indexed() {
             d : BOOL;
         END_VAR
         END_PROGRAM
-    "#
+    "#,
     );
 
     let variable = index.find_member("myProgram", "a").unwrap();
@@ -375,7 +360,7 @@ fn program_members_are_indexed() {
 
 #[test]
 fn given_set_of_local_global_and_functions_the_index_can_be_retrieved() {
-    let index = index!(
+    let (_, index) = index(
         r#"
         VAR_GLOBAL
             a : INT;
@@ -399,7 +384,7 @@ fn given_set_of_local_global_and_functions_the_index_can_be_retrieved() {
             b : INT;
         END_VAR
         END_FUNCTION
-        "#
+        "#,
     );
 
     //Asking for a variable with no context returns global variables
@@ -431,7 +416,7 @@ fn given_set_of_local_global_and_functions_the_index_can_be_retrieved() {
 
 #[test]
 fn index_can_be_retrieved_from_qualified_name() {
-    let index = index!(
+    let (_, index) = index(
         r#"
     FUNCTION_BLOCK fb1
     VAR_INPUT
@@ -458,7 +443,7 @@ fn index_can_be_retrieved_from_qualified_name() {
     PROGRAM prg
         fb1_inst.fb2_inst.fb3_inst.x := 1;
     END_PROGRAM
-    "#
+    "#,
     );
 
     let result = index
@@ -471,7 +456,7 @@ fn index_can_be_retrieved_from_qualified_name() {
 
 #[test]
 fn callable_instances_can_be_retreived() {
-    let index = index!(
+    let (_, index) = index(
         r#"
     FUNCTION_BLOCK fb1
     VAR_INPUT
@@ -510,7 +495,7 @@ fn callable_instances_can_be_retreived() {
     END_VAR
         fb1_inst.fb2_inst.fb3_inst.x := 1;
     END_PROGRAM
-    "#
+    "#,
     );
 
     assert_eq!(
@@ -595,13 +580,13 @@ fn callable_instances_can_be_retreived() {
 
 #[test]
 fn find_type_retrieves_directly_registered_type() {
-    let index = index!(
+    let (_, index) = index(
         r"
             TYPE MyAlias : INT;  END_TYPE
             TYPE MySecondAlias : MyAlias;  END_TYPE
             TYPE MyArray : ARRAY[0..10] OF INT;  END_TYPE
             TYPE MyArrayAlias : MyArray; END_TYPE
-        "
+        ",
     );
 
     let my_alias = index.find_type("MyAlias").unwrap();
@@ -616,13 +601,13 @@ fn find_type_retrieves_directly_registered_type() {
 
 #[test]
 fn find_effective_type_finds_the_inner_effective_type() {
-    let index = index!(
+    let (_, index) = index(
         r"
             TYPE MyAlias : INT;  END_TYPE
             TYPE MySecondAlias : MyAlias;  END_TYPE
             TYPE MyArray : ARRAY[0..10] OF INT;  END_TYPE
             TYPE MyArrayAlias : MyArray; END_TYPE
-        "
+        ",
     );
 
     let my_alias = index.find_type("MyAlias").unwrap().get_type_information();
@@ -656,8 +641,7 @@ fn pre_processing_generates_inline_enums_global() {
             inline_enum : (a,b,c);
         END_VAR
         "#;
-    let lexer = lex(src);
-    let (mut ast, ..) = parser::parse(lexer);
+    let (mut ast, ..) = parse(src);
 
     // WHEN the AST ist pre-processed
     crate::ast::pre_process(&mut ast);
@@ -700,12 +684,12 @@ fn pre_processing_generates_inline_enums_global() {
 #[test]
 fn pre_processing_generates_inline_structs_global() {
     // GIVEN a global inline enum
-    let lexer = lex(r#"
+    let src = r#"
         VAR_GLOBAL
             inline_struct: STRUCT a: INT; END_STRUCT
         END_VAR
-        "#);
-    let (mut ast, ..) = parser::parse(lexer);
+        "#;
+    let (mut ast, ..) = parse(src);
 
     // WHEN the AST ist pre-processed
     crate::ast::pre_process(&mut ast);
@@ -750,14 +734,14 @@ fn pre_processing_generates_inline_structs_global() {
 #[test]
 fn pre_processing_generates_inline_enums() {
     // GIVEN a global inline enum
-    let lexer = lex(r#"
+    let src = r#"
         PROGRAM foo
         VAR
             inline_enum : (a,b,c);
         END_VAR
         END_PROGRAM
-        "#);
-    let (mut ast, ..) = parser::parse(lexer);
+        "#;
+    let (mut ast, ..) = parse(src);
 
     // WHEN the AST ist pre-processed
     crate::ast::pre_process(&mut ast);
@@ -787,14 +771,14 @@ fn pre_processing_generates_inline_enums() {
 #[test]
 fn pre_processing_generates_inline_structs() {
     // GIVEN a global inline enum
-    let lexer = lex(r#"
+    let src = r#"
         PROGRAM foo
         VAR
             inline_struct: STRUCT a: INT; END_STRUCT
         END_VAR
         END_PROGRAM
-        "#);
-    let (mut ast, ..) = parser::parse(lexer);
+        "#;
+    let (mut ast, ..) = parse(src);
 
     // WHEN the AST ist pre-processed
     crate::ast::pre_process(&mut ast);
@@ -839,14 +823,14 @@ fn pre_processing_generates_inline_structs() {
 #[test]
 fn pre_processing_generates_inline_pointers() {
     // GIVEN an inline pointer is declared
-    let lexer = lex(r#"
+    let src = r#"
         PROGRAM foo
         VAR
             inline_pointer: REF_TO INT;
         END_VAR
         END_PROGRAM
-        "#);
-    let (mut ast, ..) = parser::parse(lexer);
+        "#;
+    let (mut ast, ..) = parse(src);
 
     // WHEN the AST ist pre-processed
     crate::ast::pre_process(&mut ast);
@@ -881,10 +865,10 @@ fn pre_processing_generates_inline_pointers() {
 #[test]
 fn pre_processing_generates_pointer_to_pointer_type() {
     // GIVEN an inline pointer is declared
-    let lexer = lex(r#"
+    let src = r#"
         TYPE pointer_to_pointer: REF_TO REF_TO INT; END_TYPE
-        "#);
-    let (mut ast, ..) = parser::parse(lexer);
+        "#;
+    let (mut ast, ..) = parse(src);
 
     // WHEN the AST ist pre-processed
     crate::ast::pre_process(&mut ast);
@@ -926,14 +910,14 @@ fn pre_processing_generates_pointer_to_pointer_type() {
 #[test]
 fn pre_processing_generates_inline_pointer_to_pointer() {
     // GIVEN an inline pointer is declared
-    let lexer = lex(r#"
+    let src = r#"
         PROGRAM foo
         VAR
             inline_pointer: REF_TO REF_TO INT;
         END_VAR
         END_PROGRAM
-        "#);
-    let (mut ast, ..) = parser::parse(lexer);
+        "#;
+    let (mut ast, ..) = parse(src);
 
     // WHEN the AST ist pre-processed
     crate::ast::pre_process(&mut ast);
@@ -984,14 +968,14 @@ fn pre_processing_generates_inline_pointer_to_pointer() {
 #[test]
 fn pre_processing_generates_inline_arrays() {
     // GIVEN an inline array is declared
-    let lexer = lex(r#"
+    let src = r#"
         PROGRAM foo
         VAR
             inline_array: ARRAY[0..1] OF INT;
         END_VAR
         END_PROGRAM
-        "#);
-    let (mut ast, ..) = parser::parse(lexer);
+        "#;
+    let (mut ast, ..) = parse(src);
 
     // WHEN the AST ist pre-processed
     crate::ast::pre_process(&mut ast);
@@ -1040,14 +1024,14 @@ fn pre_processing_generates_inline_arrays() {
 #[test]
 fn pre_processing_generates_inline_array_of_array() {
     // GIVEN an inline array is declared
-    let lexer = lex(r#"
+    let src = r#"
         PROGRAM foo
         VAR
             inline_array: ARRAY[0..1] OF ARRAY[0..1] OF INT;
         END_VAR
         END_PROGRAM
-        "#);
-    let (mut ast, ..) = parser::parse(lexer);
+        "#;
+    let (mut ast, ..) = parse(src);
 
     // WHEN the AST ist pre-processed
     crate::ast::pre_process(&mut ast);
@@ -1126,10 +1110,10 @@ fn pre_processing_generates_inline_array_of_array() {
 #[test]
 fn pre_processing_generates_array_of_array_type() {
     // GIVEN an inline pointer is declared
-    let lexer = lex(r#"
+    let src = r#"
         TYPE arr_arr: ARRAY[0..1] OF ARRAY[0..1] OF INT; END_TYPE
-        "#);
-    let (mut ast, ..) = parser::parse(lexer);
+        "#;
+    let (mut ast, ..) = parse(src);
 
     // WHEN the AST ist pre-processed
     crate::ast::pre_process(&mut ast);
@@ -1176,7 +1160,7 @@ fn pre_processing_generates_array_of_array_type() {
 
 #[test]
 fn pre_processing_nested_array_in_struct() {
-    let lexer = lex(r#"
+    let src = r#"
         TYPE MyStruct:
         STRUCT 
           field1 : ARRAY[0..4] OF INT;
@@ -1189,9 +1173,9 @@ fn pre_processing_nested_array_in_struct() {
         END_VAR
           m.field1[3] := 7;
         END_PROGRAM
-        "#);
+        "#;
 
-    let (mut ast, ..) = parser::parse(lexer);
+    let (mut ast, ..) = parse(src);
 
     // WHEN the AST ist pre-processed
     crate::ast::pre_process(&mut ast);
@@ -1250,14 +1234,14 @@ fn pre_processing_nested_array_in_struct() {
 #[test]
 fn pre_processing_generates_inline_array_of_array_of_array() {
     // GIVEN an inline array is declared
-    let lexer = lex(r#"
+    let src = r#"
         PROGRAM foo
         VAR
             inline_array: ARRAY[0..1] OF ARRAY[0..1] OF ARRAY[0..1] OF INT;
         END_VAR
         END_PROGRAM
-        "#);
-    let (mut ast, ..) = parser::parse(lexer);
+        "#;
+    let (mut ast, ..) = parse(src);
 
     // WHEN the AST ist pre-processed
     crate::ast::pre_process(&mut ast);
@@ -1368,7 +1352,7 @@ fn sub_range_boundaries_are_registered_at_the_index() {
         TYPE MyAliasInt: MyInt; END_TYPE 
         ";
     // WHEN the program is indexed
-    let index = index!(src);
+    let (_, index) = index(src);
 
     // THEN I expect the index to contain the defined range-information for the given type
     let my_int = &index.get_type("MyInt").unwrap().information;
