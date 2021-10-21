@@ -1,6 +1,7 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use crate::{
-    codegen, codegen_wihout_unwrap, compile_error::CompileError, generate_with_empty_program,
+    compile_error::CompileError,
+    test_utils::tests::{codegen, codegen_without_unwrap, generate_with_empty_program},
 };
 use pretty_assertions::assert_eq;
 
@@ -8,7 +9,7 @@ use super::{generate_program_boiler_plate, generate_program_boiler_plate_globals
 
 #[test]
 fn program_with_variables_and_references_generates_void_function_and_struct_and_body() {
-    let result = codegen!(
+    let result = codegen(
         r#"PROGRAM prg
 VAR
 x : DINT;
@@ -17,7 +18,7 @@ END_VAR
 x;
 y;
 END_PROGRAM
-"#
+"#,
     );
     let expected = generate_program_boiler_plate(
         "prg",
@@ -36,14 +37,14 @@ END_PROGRAM
 
 #[test]
 fn empty_statements_dont_generate_anything() {
-    let result = codegen!(
+    let result = codegen(
         r#"PROGRAM prg
             VAR x : DINT; y : DINT; END_VAR
             x;
             ;;;;
             y;
 END_PROGRAM
-"#
+"#,
     );
     let expected = generate_program_boiler_plate(
         "prg",
@@ -62,7 +63,7 @@ END_PROGRAM
 
 #[test]
 fn empty_global_variable_list_generates_nothing() {
-    let result = generate_with_empty_program!("VAR_GLOBAL END_VAR");
+    let result = generate_with_empty_program("VAR_GLOBAL END_VAR");
     let expected = generate_program_boiler_plate_globals("");
 
     assert_eq!(result, expected);
@@ -70,7 +71,7 @@ fn empty_global_variable_list_generates_nothing() {
 
 #[test]
 fn a_global_variables_generates_in_separate_global_variables() {
-    let result = generate_with_empty_program!("VAR_GLOBAL gX : INT; gY : BOOL; END_VAR");
+    let result = generate_with_empty_program("VAR_GLOBAL gX : INT; gY : BOOL; END_VAR");
     let expected = generate_program_boiler_plate_globals(
         r#"
 @gX = global i16 0
@@ -82,8 +83,8 @@ fn a_global_variables_generates_in_separate_global_variables() {
 
 #[test]
 fn two_global_variables_generates_in_separate_global_variables() {
-    let result = generate_with_empty_program!(
-        "VAR_GLOBAL gX : INT; gY : BOOL; END_VAR VAR_GLOBAL gA : INT; END_VAR"
+    let result = generate_with_empty_program(
+        "VAR_GLOBAL gX : INT; gY : BOOL; END_VAR VAR_GLOBAL gA : INT; END_VAR",
     );
     let expected = generate_program_boiler_plate_globals(
         r#"
@@ -97,7 +98,7 @@ fn two_global_variables_generates_in_separate_global_variables() {
 
 #[test]
 fn global_variable_reference_is_generated() {
-    let function = codegen!(
+    let function = codegen(
         r"
     VAR_GLOBAL
         gX : INT;
@@ -109,7 +110,7 @@ fn global_variable_reference_is_generated() {
     gX := 20;
     x := gX;
     END_PROGRAM
-    "
+    ",
     );
 
     let expected = generate_program_boiler_plate(
@@ -131,7 +132,7 @@ fn global_variable_reference_is_generated() {
 
 #[test]
 fn empty_program_with_name_generates_void_function() {
-    let result = codegen!("PROGRAM prg END_PROGRAM");
+    let result = codegen("PROGRAM prg END_PROGRAM");
     let expected = generate_program_boiler_plate(
         "prg",
         &[],
@@ -147,7 +148,7 @@ fn empty_program_with_name_generates_void_function() {
 
 #[test]
 fn empty_function_with_name_generates_int_function() {
-    let result = codegen!("FUNCTION foo : INT END_FUNCTION");
+    let result = codegen("FUNCTION foo : INT END_FUNCTION");
     let expected = r#"; ModuleID = 'main'
 source_filename = "main"
 
@@ -166,14 +167,14 @@ entry:
 
 #[test]
 fn program_with_variables_generates_void_function_and_struct() {
-    let result = codegen!(
+    let result = codegen(
         r#"PROGRAM prg
 VAR
 x : DINT;
 y : DINT;
 END_VAR
 END_PROGRAM
-"#
+"#,
     );
     let expected = generate_program_boiler_plate(
         "prg",
@@ -190,7 +191,7 @@ END_PROGRAM
 
 #[test]
 fn program_with_bool_variables_and_references_generates_void_function_and_struct_and_body() {
-    let result = codegen!(
+    let result = codegen(
         r#"PROGRAM prg
 VAR
 x : BOOL;
@@ -199,7 +200,7 @@ END_VAR
 x;
 y;
 END_PROGRAM
-"#
+"#,
     );
     let expected = generate_program_boiler_plate(
         "prg",
@@ -218,7 +219,7 @@ END_PROGRAM
 
 #[test]
 fn program_with_variables_and_additions_generates_void_function_and_struct_and_body() {
-    let result = codegen!(
+    let result = codegen(
         r#"PROGRAM prg
 VAR
 x : DINT;
@@ -226,7 +227,7 @@ y : DINT;
 END_VAR
 x + y;
 END_PROGRAM
-"#
+"#,
     );
     let expected = generate_program_boiler_plate(
         "prg",
@@ -246,14 +247,14 @@ END_PROGRAM
 
 #[test]
 fn program_with_variable_and_addition_literal_generates_void_function_and_struct_and_body() {
-    let result = codegen!(
+    let result = codegen(
         r#"PROGRAM prg
 VAR
 x : DINT;
 END_VAR
 x + 7;
 END_PROGRAM
-"#
+"#,
     );
     let expected = generate_program_boiler_plate(
         "prg",
@@ -272,7 +273,7 @@ END_PROGRAM
 
 #[test]
 fn casted_literals_code_gen_test() {
-    let result = codegen!(
+    let result = codegen(
         r#"PROGRAM prg
 VAR
 x : INT;
@@ -286,7 +287,7 @@ END_VAR
       z := x + INT#7; 
 
 END_PROGRAM
-"#
+"#,
     );
     let expected = generate_program_boiler_plate(
         "prg",
@@ -306,7 +307,7 @@ END_PROGRAM
 
 #[test]
 fn casted_literals_hex_ints_code_gen_test() {
-    let result = codegen!(
+    let result = codegen(
         r#"PROGRAM prg
 VAR
 x : DINT;
@@ -316,7 +317,7 @@ END_VAR
       x := WORD#16#FFFF; 
 
 END_PROGRAM
-"#
+"#,
     );
     let expected = generate_program_boiler_plate(
         "prg",
@@ -335,7 +336,7 @@ END_PROGRAM
 
 #[test]
 fn casted_literals_lreal_code_gen_test() {
-    let result = codegen!(
+    let result = codegen(
         r#"PROGRAM prg
 VAR
 x : REAL;
@@ -346,7 +347,7 @@ END_VAR
       z := x + LREAL#7.7; 
 
 END_PROGRAM
-"#
+"#,
     );
     let expected = generate_program_boiler_plate(
         "prg",
@@ -368,7 +369,7 @@ END_PROGRAM
 
 #[test]
 fn casted_literals_real_code_gen_test() {
-    let result = codegen!(
+    let result = codegen(
         r#"PROGRAM prg
 VAR
 x : INT;
@@ -382,7 +383,7 @@ END_VAR
       z := x / REAL#7; 
 
 END_PROGRAM
-"#
+"#,
     );
     let expected = generate_program_boiler_plate(
         "prg",
@@ -403,7 +404,7 @@ END_PROGRAM
 
 #[test]
 fn casted_literals_hex_code_gen_test() {
-    let result = codegen!(
+    let result = codegen(
         r#"PROGRAM prg
 VAR
 x : INT;
@@ -417,7 +418,7 @@ END_VAR
       z := x +  INT#16#D; 
 
 END_PROGRAM
-"#
+"#,
     );
     let expected = generate_program_boiler_plate(
         "prg",
@@ -437,7 +438,7 @@ END_PROGRAM
 
 #[test]
 fn casted_literals_bool_code_gen_test() {
-    let result = codegen!(
+    let result = codegen(
         r#"PROGRAM prg
 VAR
 z : BOOL;
@@ -449,7 +450,7 @@ END_VAR
       z := BOOL#0; 
 
 END_PROGRAM
-"#
+"#,
     );
     let expected = generate_program_boiler_plate(
         "prg",
@@ -470,14 +471,14 @@ END_PROGRAM
 
 #[test]
 fn program_with_variable_assignment_generates_void_function_and_struct_and_body() {
-    let result = codegen!(
+    let result = codegen(
         r#"PROGRAM prg
 VAR
 y : DINT;
 END_VAR
 y := 7;
 END_PROGRAM
-"#
+"#,
     );
     let expected = generate_program_boiler_plate(
         "prg",
@@ -495,7 +496,7 @@ END_PROGRAM
 
 #[test]
 fn program_with_real_assignment() {
-    let result = codegen!(
+    let result = codegen(
         r#"PROGRAM prg
 VAR
 y : REAL;
@@ -504,7 +505,7 @@ y := 0.15625;
 y := 0.1e3;
 y := 1e3;
 END_PROGRAM
-"#
+"#,
     );
     let expected = generate_program_boiler_plate(
         "prg",
@@ -524,7 +525,7 @@ END_PROGRAM
 
 #[test]
 fn program_with_real_cast_assignment() {
-    let result = codegen!(
+    let result = codegen(
         r#"PROGRAM prg
 VAR
 y : REAL;
@@ -532,7 +533,7 @@ x : INT;
 END_VAR
 y := x;
 END_PROGRAM
-"#
+"#,
     );
     let expected = generate_program_boiler_plate(
         "prg",
@@ -552,7 +553,7 @@ END_PROGRAM
 
 #[test]
 fn program_with_date_assignment() {
-    let result = codegen!(
+    let result = codegen(
         r#"PROGRAM prg
 VAR
 w : TIME_OF_DAY;
@@ -570,7 +571,7 @@ z := DATE_AND_TIME#1984-10-01-20:15:14;
 z := DT#1970-01-01-16:20:04.123;
 z := DT#1970-01-01-16:20:04.123456789;
 END_PROGRAM
-"#
+"#,
     );
 
     let expected = r#"; ModuleID = 'main'
@@ -604,7 +605,7 @@ entry:
 
 #[test]
 fn program_with_date_assignment_whit_short_datatype_names() {
-    let result = codegen!(
+    let result = codegen(
         r#"PROGRAM prg
 VAR
 w : TOD;
@@ -622,7 +623,7 @@ z := DATE_AND_TIME#1984-10-01-20:15:14;
 z := DT#1970-01-01-16:20:04.123;
 z := DT#1970-01-01-16:20:04.123456789;
 END_PROGRAM
-"#
+"#,
     );
 
     let expected = r#"; ModuleID = 'main'
@@ -656,7 +657,7 @@ entry:
 
 #[test]
 fn program_with_time_assignment() {
-    let result = codegen!(
+    let result = codegen(
         r#"PROGRAM prg
 VAR
 y : TIME;
@@ -672,7 +673,7 @@ y := T#1ns;
 y := T#-1d0h0m0s1ms;
 y := T#100d0h0m0s1ms;
 END_PROGRAM
-"#
+"#,
     );
 
     let expected = r#"; ModuleID = 'main'
@@ -703,7 +704,7 @@ entry:
 
 #[test]
 fn program_with_time_of_day_assignment() {
-    let result = codegen!(
+    let result = codegen(
         r#"PROGRAM prg
 VAR
 y : TIME_OF_DAY;
@@ -714,7 +715,7 @@ y := TOD#01:00:00;
 y := TIME_OF_DAY#01:00:00.001;
 y := TOD#1:1:1;
 END_PROGRAM
-"#
+"#,
     );
 
     let expected = r#"; ModuleID = 'main'
@@ -740,7 +741,7 @@ entry:
 
 #[test]
 fn time_variables_have_nano_seconds_resolution() {
-    let result = codegen!(
+    let result = codegen(
         r#"PROGRAM prg
 VAR
 y : TIME;
@@ -751,7 +752,7 @@ y := T#0.000001s;
 y := T#0.0000001s;
 y := T#100d0h0m0s1.125ms;
 END_PROGRAM
-"#
+"#,
     );
 
     let expected = r#"; ModuleID = 'main'
@@ -777,7 +778,7 @@ entry:
 
 #[test]
 fn date_comparisons() {
-    let result = codegen!(
+    let result = codegen(
         r#"PROGRAM prg
         VAR
           a : DATE;
@@ -790,7 +791,7 @@ fn date_comparisons() {
           b > DT#2021-05-01-19:29:17;
           c > T#1d19h29m17s;
           d > TOD#19:29:17;
-        END_PROGRAM"#
+        END_PROGRAM"#,
     );
     let expected = generate_program_boiler_plate(
         "prg",
@@ -815,7 +816,7 @@ fn date_comparisons() {
 
 #[test]
 fn program_with_string_assignment() {
-    let result = codegen!(
+    let result = codegen(
         r#"PROGRAM prg
 VAR
 y : STRING;
@@ -824,7 +825,7 @@ END_VAR
 y := 'im a genius';
 z := "im a utf16 genius";
 END_PROGRAM
-"#
+"#,
     );
 
     let expected = r#"; ModuleID = 'main'
@@ -849,7 +850,7 @@ entry:
 
 #[test]
 fn program_with_special_chars_in_string() {
-    let result = codegen!(
+    let result = codegen(
         r#"PROGRAM prg
 VAR
 should_replace_s : STRING;
@@ -864,7 +865,7 @@ should_not_replace_s := '$0043 $"no replace$"';
 should_replace_ws := "a$l$L b$n$N c$p$P d$r$R e$t$T $$ $"double$" $0057💖$D83D$DC96";
 should_not_replace_ws := "$43 $'no replace$'";
 END_PROGRAM
-"#
+"#,
     );
 
     let expected = r#"; ModuleID = 'main'
@@ -893,7 +894,7 @@ entry:
 
 #[test]
 fn different_case_references() {
-    let result = codegen!(
+    let result = codegen(
         r#"
 TYPE MyInt: INT := 1; END_TYPE
 TYPE MyDInt: DINT := 2; END_TYPE
@@ -905,7 +906,7 @@ z : MyInt;
 zz : Mydint;
 END_VAR
 END_PROGRAM
-"#
+"#,
     );
 
     let expected = r#"; ModuleID = 'main'
@@ -929,7 +930,7 @@ entry:
 
 #[test]
 fn program_with_casted_string_assignment() {
-    let result = codegen!(
+    let result = codegen(
         r#"PROGRAM prg
 VAR
   y : STRING;
@@ -941,7 +942,7 @@ y := STRING#"im a genius";
 // cast a STRING to a WSTRING
 z := WSTRING#'im a utf16 genius'; 
 END_PROGRAM
-"#
+"#,
     );
 
     let expected = r#"; ModuleID = 'main'
@@ -966,14 +967,14 @@ entry:
 
 #[test]
 fn generate_with_invalid_casted_string_assignment() {
-    let result = codegen_wihout_unwrap!(
+    let result = codegen_without_unwrap(
         r#"PROGRAM prg
 VAR
   y : INT;
 END_VAR
 y := INT#"seven"; 
 END_PROGRAM
-"#
+"#,
     );
 
     assert_eq!(
@@ -987,7 +988,7 @@ END_PROGRAM
 
 #[test]
 fn program_with_string_type_assignment() {
-    let result = codegen!(
+    let result = codegen(
         r#"
 TYPE MyString: STRING[99] := 'abc'; END_TYPE
 TYPE MyWString: WSTRING[99] := "abc"; END_TYPE
@@ -1002,7 +1003,7 @@ y := 'im a genius';
 z := 'im also a genius';
 zz := "im also a genius";
 END_PROGRAM
-"#
+"#,
     );
 
     let expected = r#"; ModuleID = 'main'
@@ -1029,7 +1030,7 @@ entry:
 
 #[test]
 fn variable_length_strings_can_be_created() {
-    let result = codegen!(
+    let result = codegen(
         r#"PROGRAM prg
           VAR
           y : STRING[15];
@@ -1040,7 +1041,7 @@ fn variable_length_strings_can_be_created() {
           y := 'im a genius';
           wy := "im a genius";
         END_PROGRAM
-        "#
+        "#,
     );
 
     let expected = r#"; ModuleID = 'main'
@@ -1067,7 +1068,7 @@ entry:
 
 #[test]
 fn variable_length_strings_using_constants_can_be_created() {
-    let result = codegen!(
+    let result = codegen(
         r#"
         VAR_GLOBAL CONSTANT
           LONG_STRING : INT := 15; 
@@ -1084,7 +1085,7 @@ fn variable_length_strings_using_constants_can_be_created() {
           y := 'im a genius';
           wy := "im a genius";
         END_PROGRAM
-        "#
+        "#,
     );
 
     let expected = r#"; ModuleID = 'main'
@@ -1113,7 +1114,7 @@ entry:
 
 #[test]
 fn program_with_real_additions() {
-    let result = codegen!(
+    let result = codegen(
         r#"PROGRAM prg
 VAR
 x : REAL;
@@ -1124,7 +1125,7 @@ x := 12.375;
 y := 0.25;
 z := x + y;
 END_PROGRAM
-"#
+"#,
     );
     let expected = generate_program_boiler_plate(
         "prg",
@@ -1147,7 +1148,7 @@ END_PROGRAM
 
 #[test]
 fn program_with_boolean_assignment_generates_void_function_and_struct_and_body() {
-    let result = codegen!(
+    let result = codegen(
         r#"PROGRAM prg
 VAR
 y : BOOL;
@@ -1155,7 +1156,7 @@ END_VAR
 y := TRUE;
 y := FALSE;
 END_PROGRAM
-"#
+"#,
     );
     let expected = generate_program_boiler_plate(
         "prg",
@@ -1174,7 +1175,7 @@ END_PROGRAM
 
 #[test]
 fn program_with_variable_and_arithmatic_assignment_generates_void_function_and_struct_and_body() {
-    let result = codegen!(
+    let result = codegen(
         r#"PROGRAM prg
 VAR
 x : DINT;
@@ -1186,7 +1187,7 @@ y := x * 3;
 y := x / 4;
 y := x MOD 5;
 END_PROGRAM
-"#
+"#,
     );
     let expected = generate_program_boiler_plate(
         "prg",
@@ -1218,7 +1219,7 @@ END_PROGRAM
 
 #[test]
 fn program_with_variable_and_comparison_assignment_generates_void_function_and_struct_and_body() {
-    let result = codegen!(
+    let result = codegen(
         r#"PROGRAM prg
 VAR
 x : DINT;
@@ -1231,7 +1232,7 @@ y := x <> 4;
 y := x >= 5;
 y := x <= 6;
 END_PROGRAM
-"#
+"#,
     );
     let expected = generate_program_boiler_plate(
         "prg",
@@ -1266,7 +1267,7 @@ END_PROGRAM
 
 #[test]
 fn program_with_floats_variable_and_comparison_assignment_generates_correctly() {
-    let result = codegen!(
+    let result = codegen(
         r#"PROGRAM prg
 VAR
 x : REAL;
@@ -1279,7 +1280,7 @@ y := x <> 4;
 y := x >= 5;
 y := x <= 6;
 END_PROGRAM
-"#
+"#,
     );
     let expected = generate_program_boiler_plate(
         "prg",
@@ -1314,7 +1315,7 @@ END_PROGRAM
 
 #[test]
 fn program_with_and_statement() {
-    let result = codegen!(
+    let result = codegen(
         r#"PROGRAM prg
 VAR
 x : BOOL;
@@ -1322,7 +1323,7 @@ y : BOOL;
 END_VAR
 x AND y;
 END_PROGRAM
-"#
+"#,
     );
     let expected = generate_program_boiler_plate(
         "prg",
@@ -1349,7 +1350,7 @@ END_PROGRAM
 
 #[test]
 fn program_with_or_statement() {
-    let result = codegen!(
+    let result = codegen(
         r#"PROGRAM prg
 VAR
 x : BOOL;
@@ -1357,7 +1358,7 @@ y : BOOL;
 END_VAR
 x OR y;
 END_PROGRAM
-"#
+"#,
     );
     let expected = generate_program_boiler_plate(
         "prg",
@@ -1384,7 +1385,7 @@ END_PROGRAM
 
 #[test]
 fn program_with_xor_statement() {
-    let result = codegen!(
+    let result = codegen(
         r#"PROGRAM prg
 VAR
 x : BOOL;
@@ -1392,7 +1393,7 @@ y : BOOL;
 END_VAR
 x XOR y;
 END_PROGRAM
-"#
+"#,
     );
     let expected = generate_program_boiler_plate(
         "prg",
@@ -1412,7 +1413,7 @@ END_PROGRAM
 
 #[test]
 fn program_with_negated_expressions_generates_void_function_and_struct_and_body() {
-    let result = codegen!(
+    let result = codegen(
         r#"PROGRAM prg
 VAR
 x : BOOL;
@@ -1421,7 +1422,7 @@ END_VAR
 NOT x;
 x AND NOT y;
 END_PROGRAM
-"#
+"#,
     );
     let expected = generate_program_boiler_plate(
         "prg",
@@ -1451,7 +1452,7 @@ END_PROGRAM
 
 #[test]
 fn program_with_negated_combined_expressions_generates_void_function_and_struct_and_body() {
-    let result = codegen!(
+    let result = codegen(
         r#"PROGRAM prg
 VAR
 z : DINT;
@@ -1460,7 +1461,7 @@ END_VAR
 y AND z >= 5;
 NOT (z <= 6) OR y;
 END_PROGRAM
-"#
+"#,
     );
     let expected = generate_program_boiler_plate(
         "prg",
@@ -1500,7 +1501,7 @@ END_PROGRAM
 
 #[test]
 fn program_with_signed_combined_expressions() {
-    let result = codegen!(
+    let result = codegen(
         r#"PROGRAM prg
             VAR
             z : DINT;
@@ -1510,7 +1511,7 @@ fn program_with_signed_combined_expressions() {
             2 +-z;
             -y + 3;
             END_PROGRAM
-            "#
+            "#,
     );
     let expected = generate_program_boiler_plate(
         "prg",
@@ -1535,7 +1536,7 @@ fn program_with_signed_combined_expressions() {
 
 #[test]
 fn if_elsif_else_generator_test() {
-    let result = codegen!(
+    let result = codegen(
         "
         PROGRAM prg 
         VAR
@@ -1557,7 +1558,7 @@ fn if_elsif_else_generator_test() {
             u;
         END_IF
         END_PROGRAM
-        "
+        ",
     );
     let expected = generate_program_boiler_plate(
         "prg",
@@ -1610,7 +1611,7 @@ continue:                                         ; preds = %else, %condition_bo
 
 #[test]
 fn if_generator_test() {
-    let result = codegen!(
+    let result = codegen(
         "
         PROGRAM prg 
         VAR
@@ -1621,7 +1622,7 @@ fn if_generator_test() {
             x;
         END_IF
         END_PROGRAM
-        "
+        ",
     );
     let expected = generate_program_boiler_plate(
         "prg",
@@ -1646,7 +1647,7 @@ continue:                                         ; preds = %condition_body, %en
 
 #[test]
 fn if_with_expression_generator_test() {
-    let result = codegen!(
+    let result = codegen(
         "
         PROGRAM prg 
         VAR
@@ -1657,7 +1658,7 @@ fn if_with_expression_generator_test() {
             x;
         END_IF
         END_PROGRAM
-        "
+        ",
     );
     let expected = generate_program_boiler_plate(
         "prg",
@@ -1692,7 +1693,7 @@ continue:                                         ; preds = %condition_body, %3
 
 #[test]
 fn for_statement_with_steps_test() {
-    let result = codegen!(
+    let result = codegen(
         "
         PROGRAM prg 
         VAR
@@ -1702,7 +1703,7 @@ fn for_statement_with_steps_test() {
             x;
         END_FOR
         END_PROGRAM
-        "
+        ",
     );
 
     let expected = generate_program_boiler_plate(
@@ -1738,7 +1739,7 @@ continue:                                         ; preds = %condition_check
 
 #[test]
 fn for_statement_with_continue() {
-    let result = codegen!(
+    let result = codegen(
         "
         PROGRAM prg 
         VAR
@@ -1750,7 +1751,7 @@ fn for_statement_with_continue() {
             x := x - 1;
         END_FOR
         END_PROGRAM
-        "
+        ",
     );
 
     let expected = generate_program_boiler_plate(
@@ -1794,7 +1795,7 @@ continue:                                         ; preds = %condition_check
 
 #[test]
 fn for_statement_with_exit() {
-    let result = codegen!(
+    let result = codegen(
         "
         PROGRAM prg 
         VAR
@@ -1806,7 +1807,7 @@ fn for_statement_with_exit() {
             x := x + 5;
         END_FOR
         END_PROGRAM
-        "
+        ",
     );
 
     let expected = generate_program_boiler_plate(
@@ -1850,7 +1851,7 @@ continue:                                         ; preds = %for_body, %conditio
 
 #[test]
 fn class_method_in_pou() {
-    let result = codegen!(
+    let result = codegen(
         "
         CLASS MyClass
             VAR
@@ -1876,7 +1877,7 @@ fn class_method_in_pou() {
         cl.testMethod(x);
         cl.testMethod(myMethodArg:= x);
         END_PROGRAM
-        "
+        ",
     );
 
     let expected = r#"; ModuleID = 'main'
@@ -1954,7 +1955,7 @@ continue6:                                        ; preds = %output5
 
 #[test]
 fn fb_method_in_pou() {
-    let result = codegen!(
+    let result = codegen(
         "
         FUNCTION_BLOCK MyClass
             VAR
@@ -1980,7 +1981,7 @@ fn fb_method_in_pou() {
         cl.testMethod(x);
         cl.testMethod(myMethodArg:= x);
         END_PROGRAM
-        "
+        ",
     );
 
     let expected = r#"; ModuleID = 'main'
@@ -2065,7 +2066,7 @@ continue6:                                        ; preds = %output5
 
 #[test]
 fn method_codegen_return() {
-    let result = codegen!(
+    let result = codegen(
         "
     CLASS MyClass
         METHOD testMethod : INT
@@ -2073,7 +2074,7 @@ fn method_codegen_return() {
             testMethod := 1;
         END_METHOD
     END_CLASS
-        "
+        ",
     );
 
     let expected = r#"; ModuleID = 'main'
@@ -2097,7 +2098,7 @@ entry:
 
 #[test]
 fn method_codegen_void() {
-    let result = codegen!(
+    let result = codegen(
         "
     CLASS MyClass
         METHOD testMethod
@@ -2107,7 +2108,7 @@ fn method_codegen_void() {
             myMethodLocalVar := 1;
         END_METHOD
     END_CLASS
-        "
+        ",
     );
 
     let expected = r#"; ModuleID = 'main'
@@ -2130,7 +2131,7 @@ entry:
 
 #[test]
 fn class_member_access_from_method() {
-    let result = codegen!(
+    let result = codegen(
         "
     CLASS MyClass
         VAR
@@ -2146,7 +2147,7 @@ fn class_member_access_from_method() {
             myMethodLocalVar = y;
         END_METHOD
     END_CLASS
-        "
+        ",
     );
 
     let expected = r#"; ModuleID = 'main'
@@ -2177,7 +2178,7 @@ entry:
 
 #[test]
 fn while_loop_with_if_exit() {
-    let result = codegen!(
+    let result = codegen(
         "
         PROGRAM prg 
         VAR
@@ -2189,7 +2190,7 @@ fn while_loop_with_if_exit() {
             EXIT;
           END_IF
         END_PROGRAM
-        "
+        ",
     );
 
     let expected = generate_program_boiler_plate(
@@ -2232,7 +2233,7 @@ continue3:                                        ; preds = %buffer_block, %whil
 
 #[test]
 fn for_statement_without_steps_test() {
-    let result = codegen!(
+    let result = codegen(
         "
         PROGRAM prg 
         VAR
@@ -2242,7 +2243,7 @@ fn for_statement_without_steps_test() {
             x;
         END_FOR
         END_PROGRAM
-        "
+        ",
     );
 
     let expected = generate_program_boiler_plate(
@@ -2278,7 +2279,7 @@ continue:                                         ; preds = %condition_check
 
 #[test]
 fn for_statement_continue() {
-    let result = codegen!(
+    let result = codegen(
         "
         PROGRAM prg 
         VAR
@@ -2288,7 +2289,7 @@ fn for_statement_continue() {
         END_FOR
         x;
         END_PROGRAM
-        "
+        ",
     );
 
     let expected = generate_program_boiler_plate(
@@ -2324,7 +2325,7 @@ continue:                                         ; preds = %condition_check
 
 #[test]
 fn for_statement_with_references_steps_test() {
-    let result = codegen!(
+    let result = codegen(
         "
         PROGRAM prg 
         VAR
@@ -2337,7 +2338,7 @@ fn for_statement_with_references_steps_test() {
             x;
         END_FOR
         END_PROGRAM
-        "
+        ",
     );
 
     let expected = generate_program_boiler_plate(
@@ -2376,7 +2377,7 @@ continue:                                         ; preds = %condition_check
 
 #[test]
 fn while_statement() {
-    let result = codegen!(
+    let result = codegen(
         "
         PROGRAM prg 
         VAR
@@ -2386,7 +2387,7 @@ fn while_statement() {
             x;
         END_WHILE
         END_PROGRAM
-        "
+        ",
     );
 
     let expected = generate_program_boiler_plate(
@@ -2415,7 +2416,7 @@ continue:                                         ; preds = %condition_check
 
 #[test]
 fn while_with_expression_statement() {
-    let result = codegen!(
+    let result = codegen(
         "
         PROGRAM prg 
         VAR
@@ -2425,7 +2426,7 @@ fn while_with_expression_statement() {
             x;
         END_WHILE
         END_PROGRAM
-        "
+        ",
     );
 
     let expected = generate_program_boiler_plate(
@@ -2456,7 +2457,7 @@ continue:                                         ; preds = %condition_check
 
 #[test]
 fn repeat_statement() {
-    let result = codegen!(
+    let result = codegen(
         "
         PROGRAM prg 
         VAR
@@ -2467,7 +2468,7 @@ fn repeat_statement() {
         UNTIL x 
         END_REPEAT
         END_PROGRAM
-        "
+        ",
     );
 
     let expected = generate_program_boiler_plate(
@@ -2496,7 +2497,7 @@ continue:                                         ; preds = %condition_check
 
 #[test]
 fn simple_case_statement() {
-    let result = codegen!(
+    let result = codegen(
         "
         PROGRAM prg 
         VAR
@@ -2511,7 +2512,7 @@ fn simple_case_statement() {
             y := -1;
         END_CASE
         END_PROGRAM
-        "
+        ",
     );
 
     let expected = generate_program_boiler_plate(
@@ -2553,7 +2554,7 @@ continue:                                         ; preds = %else, %case2, %case
 
 #[test]
 fn simple_case_i8_statement() {
-    let result = codegen!(
+    let result = codegen(
         "
         PROGRAM prg 
         VAR
@@ -2568,7 +2569,7 @@ fn simple_case_i8_statement() {
             y := 0;
         END_CASE
         END_PROGRAM
-        "
+        ",
     );
 
     let expected = generate_program_boiler_plate(
@@ -2610,7 +2611,7 @@ continue:                                         ; preds = %else, %case2, %case
 
 #[test]
 fn case_with_multiple_labels_statement() {
-    let result = codegen!(
+    let result = codegen(
         "
         PROGRAM prg 
         VAR
@@ -2624,7 +2625,7 @@ fn case_with_multiple_labels_statement() {
             y := -1;
         END_CASE
         END_PROGRAM
-        "
+        ",
     );
 
     let expected = generate_program_boiler_plate(
@@ -2663,7 +2664,7 @@ continue:                                         ; preds = %else, %case1, %case
 
 #[test]
 fn case_with_ranges_statement() {
-    let result = codegen!(
+    let result = codegen(
         "
         PROGRAM prg 
         VAR
@@ -2674,7 +2675,7 @@ fn case_with_ranges_statement() {
         2..3: y := 2;
         END_CASE
         END_PROGRAM
-        "
+        ",
     );
 
     let expected = generate_program_boiler_plate(
@@ -2714,7 +2715,7 @@ continue:                                         ; preds = %range_else, %case
 
 #[test]
 fn function_called_in_program() {
-    let result = codegen!(
+    let result = codegen(
         "
         FUNCTION foo : DINT
         foo := 1;
@@ -2726,7 +2727,7 @@ fn function_called_in_program() {
         END_VAR
         x := foo();
         END_PROGRAM
-        "
+        ",
     );
 
     let expected = r#"; ModuleID = 'main'
@@ -2772,7 +2773,7 @@ continue:                                         ; preds = %output
 
 #[test]
 fn real_function_called_in_program() {
-    let result = codegen!(
+    let result = codegen(
         "
         FUNCTION foo : REAL
         foo := 1.0;
@@ -2784,7 +2785,7 @@ fn real_function_called_in_program() {
         END_VAR
         x := foo();
         END_PROGRAM
-        "
+        ",
     );
 
     let expected = r#"; ModuleID = 'main'
@@ -2831,7 +2832,7 @@ continue:                                         ; preds = %output
 
 #[test]
 fn external_function_called_in_program() {
-    let result = codegen!(
+    let result = codegen(
         "
         @EXTERNAL FUNCTION foo : DINT
         END_FUNCTION
@@ -2839,7 +2840,7 @@ fn external_function_called_in_program() {
         PROGRAM prg 
         foo();
         END_PROGRAM
-        "
+        ",
     );
 
     let expected = r#"; ModuleID = 'main'
@@ -2877,7 +2878,7 @@ continue:                                         ; preds = %output
 
 #[test]
 fn nested_function_called_in_program() {
-    let result = codegen!(
+    let result = codegen(
         "
         FUNCTION bar : DINT
         bar := 1;
@@ -2897,7 +2898,7 @@ fn nested_function_called_in_program() {
         END_VAR
         x := foo(bar());
         END_PROGRAM
-        "
+        ",
     );
 
     let expected = r#"; ModuleID = 'main'
@@ -2969,7 +2970,7 @@ continue4:                                        ; preds = %output3
 
 #[test]
 fn function_with_parameters_called_in_program() {
-    let result = codegen!(
+    let result = codegen(
         "
         FUNCTION foo : DINT
         VAR_INPUT
@@ -2984,7 +2985,7 @@ fn function_with_parameters_called_in_program() {
         END_VAR
         x := foo(2);
         END_PROGRAM
-        "
+        ",
     );
 
     let expected = r#"; ModuleID = 'main'
@@ -3033,7 +3034,7 @@ continue:                                         ; preds = %output
 
 #[test]
 fn function_with_two_parameters_called_in_program() {
-    let result = codegen!(
+    let result = codegen(
         "
         FUNCTION foo : DINT
         VAR_INPUT
@@ -3049,7 +3050,7 @@ fn function_with_two_parameters_called_in_program() {
         END_VAR
         x := foo(2, TRUE);
         END_PROGRAM
-        "
+        ",
     );
 
     let expected = r#"; ModuleID = 'main'
@@ -3101,7 +3102,7 @@ continue:                                         ; preds = %output
 
 #[test]
 fn function_with_varargs_called_in_program() {
-    let result = codegen!(
+    let result = codegen(
         "
         @EXTERNAL
         FUNCTION foo : DINT
@@ -3116,7 +3117,7 @@ fn function_with_varargs_called_in_program() {
         END_VAR
         x := foo(FALSE, 3, (x + 1));
         END_PROGRAM
-        "
+        ",
     );
 
     let expected = r#"; ModuleID = 'main'
@@ -3158,7 +3159,7 @@ continue:                                         ; preds = %output
 
 #[test]
 fn function_with_local_var_initialization() {
-    let result = codegen!(
+    let result = codegen(
         "
         FUNCTION foo : DINT
         VAR_INPUT
@@ -3171,7 +3172,7 @@ fn function_with_local_var_initialization() {
         END_VAR
         foo := 1;
         END_FUNCTION
-        "
+        ",
     );
 
     let expected = r#"; ModuleID = 'main'
@@ -3199,7 +3200,7 @@ entry:
 
 #[test]
 fn program_called_in_program() {
-    let result = codegen!(
+    let result = codegen(
         "
         PROGRAM foo
         END_PROGRAM
@@ -3207,7 +3208,7 @@ fn program_called_in_program() {
         PROGRAM prg 
         foo();
         END_PROGRAM
-        "
+        ",
     );
 
     let expected = r#"; ModuleID = 'main'
@@ -3248,7 +3249,7 @@ continue:                                         ; preds = %output
 
 #[test]
 fn action_called_in_program() {
-    let result = codegen!(
+    let result = codegen(
         "
         PROGRAM prg 
         VAR
@@ -3260,7 +3261,7 @@ fn action_called_in_program() {
         ACTION foo
             x := 2;
         END_ACTION
-        "
+        ",
     );
 
     let expected = r#"; ModuleID = 'main'
@@ -3302,7 +3303,7 @@ entry:
 
 #[test]
 fn qualified_local_action_called_in_program() {
-    let result = codegen!(
+    let result = codegen(
         "
         PROGRAM prg 
         VAR
@@ -3314,7 +3315,7 @@ fn qualified_local_action_called_in_program() {
         ACTION foo
             x := 2;
         END_ACTION
-        "
+        ",
     );
 
     let expected = r#"; ModuleID = 'main'
@@ -3356,7 +3357,7 @@ entry:
 
 #[test]
 fn qualified_foreign_action_called_in_program() {
-    let result = codegen!(
+    let result = codegen(
         "
         PROGRAM bar
             prg.foo();
@@ -3371,7 +3372,7 @@ fn qualified_foreign_action_called_in_program() {
             x := 2;
         END_ACTION
         END_ACTIONS
-        "
+        ",
     );
 
     let expected = r#"; ModuleID = 'main'
@@ -3420,7 +3421,7 @@ entry:
 
 #[test]
 fn qualified_action_from_fb_called_in_program() {
-    let result = codegen!(
+    let result = codegen(
         "
         PROGRAM bar
         VAR
@@ -3439,7 +3440,7 @@ fn qualified_action_from_fb_called_in_program() {
             x := 2;
         END_ACTION
         END_ACTIONS
-        "
+        ",
     );
 
     let expected = r#"; ModuleID = 'main'
@@ -3488,7 +3489,7 @@ entry:
 
 #[test]
 fn program_with_two_parameters_called_in_program() {
-    let result = codegen!(
+    let result = codegen(
         "
         PROGRAM foo 
         VAR_INPUT
@@ -3500,7 +3501,7 @@ fn program_with_two_parameters_called_in_program() {
         PROGRAM prg 
           foo(2, TRUE);
         END_PROGRAM
-        "
+        ",
     );
 
     let expected = r#"; ModuleID = 'main'
@@ -3545,7 +3546,7 @@ continue:                                         ; preds = %output
 
 #[test]
 fn program_with_two_explicit_parameters_called_in_program() {
-    let result = codegen!(
+    let result = codegen(
         "
         PROGRAM foo 
         VAR_INPUT
@@ -3557,7 +3558,7 @@ fn program_with_two_explicit_parameters_called_in_program() {
         PROGRAM prg 
           foo(buz := TRUE, bar := 2);
         END_PROGRAM
-        "
+        ",
     );
 
     let expected = r#"; ModuleID = 'main'
@@ -3602,7 +3603,7 @@ continue:                                         ; preds = %output
 
 #[test]
 fn program_with_var_out_called_in_program() {
-    let result = codegen!(
+    let result = codegen(
         "
         PROGRAM foo 
         VAR_INPUT
@@ -3619,7 +3620,7 @@ fn program_with_var_out_called_in_program() {
         END_VAR
           foo(bar := 2, buz => baz);
         END_PROGRAM
-        "
+        ",
     );
 
     let expected = r#"; ModuleID = 'main'
@@ -3666,7 +3667,7 @@ continue:                                         ; preds = %output
 
 #[test]
 fn program_with_var_inout_called_in_program() {
-    let result = codegen!(
+    let result = codegen(
         "
         PROGRAM foo 
         VAR_IN_OUT
@@ -3682,7 +3683,7 @@ fn program_with_var_inout_called_in_program() {
           baz := 7;
           foo(inout := baz);
         END_PROGRAM
-        "
+        ",
     );
 
     //TODO see if the auto-deref can be integrated into the cast_if_needed
@@ -3734,7 +3735,7 @@ continue:                                         ; preds = %output
 
 #[test]
 fn pass_inout_to_inout() {
-    let result = codegen!(
+    let result = codegen(
         "
         PROGRAM foo2
         VAR_IN_OUT
@@ -3758,7 +3759,7 @@ fn pass_inout_to_inout() {
         END_VAR
           foo(inout := baz);
         END_PROGRAM
-        "
+        ",
     );
 
     //TODO see if the auto-deref can be integrated into the cast_if_needed
@@ -3831,7 +3832,7 @@ continue:                                         ; preds = %output
 
 #[test]
 fn pointers_generated() {
-    let result = codegen!(
+    let result = codegen(
         "
         PROGRAM prg 
         VAR
@@ -3855,7 +3856,7 @@ fn pointers_generated() {
         rX^ := X;
             
         END_PROGRAM
-        "
+        ",
     );
 
     let expected = r#"; ModuleID = 'main'
@@ -3895,7 +3896,7 @@ entry:
 
 #[test]
 fn complex_pointers() {
-    let result = codegen!(
+    let result = codegen(
         "
         PROGRAM prg 
         VAR
@@ -3919,7 +3920,7 @@ fn complex_pointers() {
         rarrX^[7] := arrrX[8]^;
             
         END_PROGRAM
-        "
+        ",
     );
 
     let expected = r#"; ModuleID = 'main'
@@ -3968,7 +3969,7 @@ entry:
 
 #[test]
 fn pointer_and_array_access_to_in_out() {
-    let result = codegen!(
+    let result = codegen(
         "
         FUNCTION main : INT 
         VAR_IN_OUT
@@ -3981,7 +3982,7 @@ fn pointer_and_array_access_to_in_out() {
         c := a^;
         c := b[0];
         END_PROGRAM
-        "
+        ",
     );
 
     insta::assert_snapshot!(result)
@@ -3989,7 +3990,7 @@ fn pointer_and_array_access_to_in_out() {
 
 #[test]
 fn program_with_var_out_called_mixed_in_program() {
-    let result = codegen!(
+    let result = codegen(
         "
         PROGRAM foo 
         VAR_INPUT
@@ -4006,7 +4007,7 @@ fn program_with_var_out_called_mixed_in_program() {
         END_VAR
           foo(buz => baz, bar := 2);
         END_PROGRAM
-        "
+        ",
     );
 
     let expected = r#"; ModuleID = 'main'
@@ -4053,7 +4054,7 @@ continue:                                         ; preds = %output
 
 #[test]
 fn program_called_before_decalaration() {
-    codegen!(
+    codegen(
         "
         PROGRAM foo 
           bar();
@@ -4061,14 +4062,14 @@ fn program_called_before_decalaration() {
 
         PROGRAM bar 
         END_PROGRAM
-        "
+        ",
     );
     //Expecting no errors
 }
 
 #[test]
 fn function_called_before_decalaration() {
-    codegen!(
+    codegen(
         "
         FUNCTION foo : INT
           foo := bar();
@@ -4077,14 +4078,14 @@ fn function_called_before_decalaration() {
         FUNCTION bar : INT
             bar := 7;
         END_FUNCTION
-        "
+        ",
     );
     //Expecting no errors
 }
 
 #[test]
 fn function_called_when_shadowed() {
-    let result = codegen!(
+    let result = codegen(
         "
         FUNCTION foo : DINT
         foo := 1;
@@ -4096,7 +4097,7 @@ fn function_called_when_shadowed() {
         END_VAR
         foo := foo();
         END_PROGRAM
-        "
+        ",
     );
 
     let expected = r#"; ModuleID = 'main'
@@ -4142,7 +4143,7 @@ continue:                                         ; preds = %output
 
 #[test]
 fn function_block_instance_call() {
-    let result = codegen!(
+    let result = codegen(
         "
         FUNCTION_BLOCK foo
         END_FUNCTION_BLOCK
@@ -4153,7 +4154,7 @@ fn function_block_instance_call() {
         END_VAR
         fb_inst();
         END_PROGRAM
-        "
+        ",
     );
 
     let expected = r#"; ModuleID = 'main'
@@ -4194,7 +4195,7 @@ continue:                                         ; preds = %output
 
 #[test]
 fn function_block_qualified_instance_call() {
-    let result = codegen!(
+    let result = codegen(
         "
         FUNCTION_BLOCK foo
         VAR
@@ -4211,7 +4212,7 @@ fn function_block_qualified_instance_call() {
         END_VAR
           foo_inst.bar_inst();
         END_PROGRAM
-      "
+      ",
     );
 
     let expected = r#"; ModuleID = 'main'
@@ -4260,7 +4261,7 @@ continue:                                         ; preds = %output
 
 #[test]
 fn reference_qualified_name() {
-    let result = codegen!(
+    let result = codegen(
         "
         FUNCTION_BLOCK fb
         VAR_INPUT
@@ -4282,7 +4283,7 @@ fn reference_qualified_name() {
             x := foo.y;
             x := foo.baz.x;    
         END_PROGRAM
-        "
+        ",
     );
 
     let expected = r#"; ModuleID = 'main'
@@ -4327,7 +4328,7 @@ entry:
 
 #[test]
 fn structs_are_generated() {
-    let result = codegen!(
+    let result = codegen(
         "
         TYPE MyStruct: STRUCT
           a: DINT;
@@ -4338,7 +4339,7 @@ fn structs_are_generated() {
         VAR_GLOBAL
           x : MyStruct;
         END_VAR
-        "
+        ",
     );
 
     let expected = r#"; ModuleID = 'main'
@@ -4354,14 +4355,14 @@ source_filename = "main"
 
 #[test]
 fn arrays_are_generated() {
-    let result = codegen!(
+    let result = codegen(
         "
         TYPE MyArray: ARRAY[0..9] OF INT; END_TYPE
 
         VAR_GLOBAL
           x : MyArray;
         END_VAR
-        "
+        ",
     );
 
     let expected = r#"; ModuleID = 'main'
@@ -4375,7 +4376,7 @@ source_filename = "main"
 
 #[test]
 fn arrays_with_global_const_size_are_generated() {
-    let result = codegen!(
+    let result = codegen(
         "
         VAR_GLOBAL CONSTANT
           THREE : INT := 3; 
@@ -4392,7 +4393,7 @@ fn arrays_with_global_const_size_are_generated() {
           zz : ARRAY[-LEN .. ZERO, ZERO .. LEN] OF BYTE;
           zzz : ARRAY[-LEN .. ZERO] OF ARRAY[2 .. LEN] OF BYTE;
         END_VAR
-        "
+        ",
     );
 
     let expected = r#"; ModuleID = 'main'
@@ -4413,7 +4414,7 @@ source_filename = "main"
 
 #[test]
 fn structs_members_can_be_referenced() {
-    let result = codegen!(
+    let result = codegen(
         "
         TYPE MyStruct: STRUCT
           a: DINT;
@@ -4427,7 +4428,7 @@ fn structs_members_can_be_referenced() {
         END_VAR
           Cord.a := 0;
         END_PROGRAM
-        "
+        ",
     );
 
     let expected = r#"; ModuleID = 'main'
@@ -4452,7 +4453,7 @@ entry:
 
 #[test]
 fn enums_are_generated() {
-    let result = codegen!(
+    let result = codegen(
         "
         TYPE MyEnum: (red, yellow, green);
         END_TYPE
@@ -4460,7 +4461,7 @@ fn enums_are_generated() {
         VAR_GLOBAL
           x : MyEnum;
         END_VAR
-        "
+        ",
     );
 
     let expected = r#"; ModuleID = 'main'
@@ -4477,7 +4478,7 @@ source_filename = "main"
 
 #[test]
 fn enum_members_can_be_used_in_asignments() {
-    let result = codegen!(
+    let result = codegen(
         "
       TYPE MyEnum: (red, yellow, green);
       END_TYPE
@@ -4490,7 +4491,7 @@ fn enum_members_can_be_used_in_asignments() {
       color := yellow;
       color := green;
       END_PROGRAM
-      "
+      ",
     );
 
     let expected = r#"; ModuleID = 'main'
@@ -4521,7 +4522,7 @@ entry:
 
 #[test]
 fn inline_structs_are_generated() {
-    let result = codegen!(
+    let result = codegen(
         "
         
         VAR_GLOBAL
@@ -4530,7 +4531,7 @@ fn inline_structs_are_generated() {
               b: DINT;
             END_STRUCT
         END_VAR
-        "
+        ",
     );
 
     let expected = r#"; ModuleID = 'main'
@@ -4546,7 +4547,7 @@ source_filename = "main"
 
 #[test]
 fn accessing_nested_structs() {
-    let result = codegen!(
+    let result = codegen(
         "
         TYPE InnerStruct:
         STRUCT 
@@ -4570,7 +4571,7 @@ fn accessing_nested_structs() {
           m.out1.inner1 := 3;
           m.out2.inner2 := 7;
         END_PROGRAM
-        "
+        ",
     );
 
     let expected = r#"; ModuleID = 'main'
@@ -4600,12 +4601,12 @@ entry:
 
 #[test]
 fn inline_enums_are_generated() {
-    let result = codegen!(
+    let result = codegen(
         "
         VAR_GLOBAL
           x : (red, yellow, green);
         END_VAR
-        "
+        ",
     );
 
     let expected = r#"; ModuleID = 'main'
@@ -4622,7 +4623,7 @@ source_filename = "main"
 
 #[test]
 fn basic_datatypes_generated() {
-    let result = codegen!(
+    let result = codegen(
         "
         VAR_GLOBAL
             bool_1   : BOOL;
@@ -4639,7 +4640,7 @@ fn basic_datatypes_generated() {
             lint_12  : LINT;
             ulint_13 : ULINT;
         END_VAR
-        "
+        ",
     );
     let expected = r#"; ModuleID = 'main'
 source_filename = "main"
@@ -4664,14 +4665,14 @@ source_filename = "main"
 
 #[test]
 fn array_of_int_type_generated() {
-    let result = codegen!(
+    let result = codegen(
         "
         PROGRAM prg 
             VAR
                 x : ARRAY[0..10] OF INT;
             END_VAR
         END_PROGRAM
-        "
+        ",
     );
 
     let expected = generate_program_boiler_plate(
@@ -4688,14 +4689,14 @@ fn array_of_int_type_generated() {
 
 #[test]
 fn array_of_cast_int_type_generated() {
-    let result = codegen!(
+    let result = codegen(
         "
         PROGRAM prg 
             VAR
                 x : ARRAY[0..INT#16#A] OF INT;
             END_VAR
         END_PROGRAM
-        "
+        ",
     );
 
     let expected = generate_program_boiler_plate(
@@ -4712,7 +4713,7 @@ fn array_of_cast_int_type_generated() {
 
 #[test]
 fn array_of_int_type_used() {
-    let result = codegen!(
+    let result = codegen(
         "
         PROGRAM prg 
             VAR
@@ -4721,7 +4722,7 @@ fn array_of_int_type_used() {
             x[1] := 3;
             x[2] := x[3] + 3;
         END_PROGRAM
-        "
+        ",
     );
 
     let expected = generate_program_boiler_plate(
@@ -4745,14 +4746,14 @@ fn array_of_int_type_used() {
 
 #[test]
 fn array_of_int_non_zero_type_generated() {
-    let result = codegen!(
+    let result = codegen(
         "
         PROGRAM prg 
             VAR
                 x : ARRAY[10..20] OF INT;
             END_VAR
         END_PROGRAM
-        "
+        ",
     );
 
     let expected = generate_program_boiler_plate(
@@ -4769,7 +4770,7 @@ fn array_of_int_non_zero_type_generated() {
 
 #[test]
 fn array_of_int_type_with_non_zero_start_used() {
-    let result = codegen!(
+    let result = codegen(
         "
         PROGRAM prg 
             VAR
@@ -4778,7 +4779,7 @@ fn array_of_int_type_with_non_zero_start_used() {
             x[1] := 3;
             x[2] := x[3] + 3;
         END_PROGRAM
-        "
+        ",
     );
 
     let expected = generate_program_boiler_plate(
@@ -4802,14 +4803,14 @@ fn array_of_int_type_with_non_zero_start_used() {
 
 #[test]
 fn array_of_int_non_zero_negative_type_generated() {
-    let result = codegen!(
+    let result = codegen(
         "
         PROGRAM prg 
             VAR
                 x : ARRAY[-10..20] OF INT;
             END_VAR
         END_PROGRAM
-        "
+        ",
     );
 
     let expected = generate_program_boiler_plate(
@@ -4826,7 +4827,7 @@ fn array_of_int_non_zero_negative_type_generated() {
 
 #[test]
 fn array_of_int_type_with_non_zero_negative_start_used() {
-    let result = codegen!(
+    let result = codegen(
         "
         PROGRAM prg 
             VAR
@@ -4835,7 +4836,7 @@ fn array_of_int_type_with_non_zero_negative_start_used() {
             x[-1] := 3;
             x[2] := x[3] + 3;
         END_PROGRAM
-        "
+        ",
     );
 
     let expected = generate_program_boiler_plate(
@@ -4859,14 +4860,14 @@ fn array_of_int_type_with_non_zero_negative_start_used() {
 
 #[test]
 fn multidim_array_declaration() {
-    let result = codegen!(
+    let result = codegen(
         "
         PROGRAM prg 
             VAR
                 x : ARRAY[0..1, 2..4] OF INT;
             END_VAR
         END_PROGRAM
-        "
+        ",
     );
 
     let expected = generate_program_boiler_plate(
@@ -4883,7 +4884,7 @@ fn multidim_array_declaration() {
 
 #[test]
 fn multidim_array_access() {
-    let result = codegen!(
+    let result = codegen(
         "
         PROGRAM prg 
             VAR
@@ -4892,7 +4893,7 @@ fn multidim_array_access() {
             x[2, 1] := 3;
             x[3, 2] := x[1, 2] + 3;
         END_PROGRAM
-        "
+        ",
     );
 
     let expected = generate_program_boiler_plate(
@@ -4916,14 +4917,14 @@ fn multidim_array_access() {
 
 #[test]
 fn nested_array_declaration() {
-    let result = codegen!(
+    let result = codegen(
         "
         PROGRAM prg 
             VAR
                 x : ARRAY[2..4] OF ARRAY[0..1] OF INT;
             END_VAR
         END_PROGRAM
-        "
+        ",
     );
 
     let expected = generate_program_boiler_plate(
@@ -4940,7 +4941,7 @@ fn nested_array_declaration() {
 
 #[test]
 fn nested_array_access() {
-    let result = codegen!(
+    let result = codegen(
         "
         PROGRAM prg 
             VAR
@@ -4949,7 +4950,7 @@ fn nested_array_access() {
             x[2][1] := 3;
             x[3][2] := x[1][2] + 3;
         END_PROGRAM
-        "
+        ",
     );
 
     let expected = generate_program_boiler_plate(
@@ -4976,7 +4977,7 @@ fn nested_array_access() {
 
 #[test]
 fn returning_early_in_function() {
-    let result = codegen!(
+    let result = codegen(
         "
         FUNCTION smaller_than_ten: INT
           VAR_INPUT n : SINT; END_VAR
@@ -4984,7 +4985,7 @@ fn returning_early_in_function() {
                   RETURN;
           END_IF;
         END_FUNCTION
-        "
+        ",
     );
 
     let expected = r#"; ModuleID = 'main'
@@ -5019,7 +5020,7 @@ continue:                                         ; preds = %buffer_block, %entr
 
 #[test]
 fn returning_early_in_function_block() {
-    let result = codegen!(
+    let result = codegen(
         "
         FUNCTION_BLOCK abcdef
           VAR_INPUT n : SINT; END_VAR
@@ -5027,7 +5028,7 @@ fn returning_early_in_function_block() {
                   RETURN;
           END_IF;
         END_FUNCTION_BLOCK
-        "
+        ",
     );
 
     let expected = r#"; ModuleID = 'main'
@@ -5059,7 +5060,7 @@ continue:                                         ; preds = %buffer_block, %entr
 
 #[test]
 fn accessing_nested_array_in_struct() {
-    let result = codegen!(
+    let result = codegen(
         "
         TYPE MyStruct:
         STRUCT 
@@ -5074,7 +5075,7 @@ fn accessing_nested_array_in_struct() {
 
           m.field1[3] := 7;
         END_PROGRAM
-        "
+        ",
     );
 
     let expected = r#"; ModuleID = 'main'
@@ -5100,14 +5101,14 @@ entry:
 
 #[test]
 fn initial_values_in_global_variables() {
-    let result = codegen!(
+    let result = codegen(
         "
         VAR_GLOBAL
           x : INT := 7;
           y : BOOL := TRUE;
           z : REAL := 3.1415;
         END_VAR
-        "
+        ",
     );
 
     let expected = r#"; ModuleID = 'main'
@@ -5123,7 +5124,7 @@ source_filename = "main"
 
 #[test]
 fn initial_values_in_program_pou() {
-    let result = codegen!(
+    let result = codegen(
         "
         PROGRAM Main
         VAR
@@ -5135,7 +5136,7 @@ fn initial_values_in_program_pou() {
           zz : REAL;
         END_VAR
         END_PROGRAM
-        "
+        ",
     );
 
     let expected = r#"; ModuleID = 'main'
@@ -5162,7 +5163,7 @@ entry:
 
 #[test]
 fn initial_values_in_function_block_pou() {
-    let result = codegen!(
+    let result = codegen(
         "
         FUNCTION_BLOCK FB
         VAR
@@ -5180,7 +5181,7 @@ fn initial_values_in_function_block_pou() {
           fb : FB;
         END_VAR
         END_PROGRAM
-        "
+        ",
     );
 
     let expected = r#"; ModuleID = 'main'
@@ -5214,7 +5215,7 @@ entry:
 
 #[test]
 fn initial_values_in_struct_types() {
-    let result = codegen!(
+    let result = codegen(
         "
         TYPE MyStruct:
         STRUCT
@@ -5228,7 +5229,7 @@ fn initial_values_in_struct_types() {
         END_TYPE
 
         VAR_GLOBAL x : MyStruct; END_VAR
-        "
+        ",
     );
 
     let expected = r#"; ModuleID = 'main'
@@ -5244,7 +5245,7 @@ source_filename = "main"
 
 #[test]
 fn initial_values_different_data_types() {
-    let result = codegen!(
+    let result = codegen(
         "
         TYPE MyStruct:
         STRUCT
@@ -5266,7 +5267,7 @@ fn initial_values_different_data_types() {
         END_TYPE
 
         VAR_GLOBAL x : MyStruct; END_VAR
-        "
+        ",
     );
 
     let expected = r#"; ModuleID = 'main'
@@ -5282,11 +5283,11 @@ source_filename = "main"
 
 #[test]
 fn initial_values_in_type_alias() {
-    let result = codegen!(
+    let result = codegen(
         "
         TYPE MyInt: INT := 7; END_TYPE 
         VAR_GLOBAL x : MyInt; END_VAR
-        "
+        ",
     );
 
     let expected = r#"; ModuleID = 'main'
@@ -5300,11 +5301,11 @@ source_filename = "main"
 
 #[test]
 fn initial_values_in_sub_range_type() {
-    let result = codegen!(
+    let result = codegen(
         "
         TYPE MyInt: INT(0..1000) := 7; END_TYPE 
         VAR_GLOBAL x : MyInt; END_VAR
-        "
+        ",
     );
 
     let expected = r#"; ModuleID = 'main'
@@ -5318,7 +5319,7 @@ source_filename = "main"
 
 #[test]
 fn alias_chain_with_lots_of_initializers() {
-    let result = codegen!(
+    let result = codegen(
         "
         TYPE MyInt: MyOtherInt1; END_TYPE 
         VAR_GLOBAL 
@@ -5330,7 +5331,7 @@ fn alias_chain_with_lots_of_initializers() {
         TYPE MyOtherInt3 : DINT := 3; END_TYPE
         TYPE MyOtherInt1 : MyOtherInt2 := 1; END_TYPE
         TYPE MyOtherInt2 : MyOtherInt3 := 2; END_TYPE
-        "
+        ",
     );
 
     let expected = r#"; ModuleID = 'main'
@@ -5347,7 +5348,7 @@ source_filename = "main"
 
 #[test]
 fn initial_values_in_single_dimension_array_variable() {
-    let result = codegen!(
+    let result = codegen(
         "
         VAR_GLOBAL 
           a : ARRAY[0..2] OF SINT  := [1, 2, 3]; 
@@ -5359,7 +5360,7 @@ fn initial_values_in_single_dimension_array_variable() {
           g : ARRAY[0..2] OF ULINT := [1, 2, 3]; 
           h : ARRAY[0..2] OF BOOL := [TRUE, FALSE, TRUE]; 
         END_VAR
-        "
+        ",
     );
 
     let expected = r#"; ModuleID = 'main'
@@ -5380,11 +5381,11 @@ source_filename = "main"
 
 #[test]
 fn initial_values_in_single_dimension_array_type() {
-    let result = codegen!(
+    let result = codegen(
         "
         TYPE MyArray : ARRAY[0..2] OF INT := [1, 2, 3]; END_TYPE
         VAR_GLOBAL x : MyArray; END_VAR
-        "
+        ",
     );
 
     let expected = r#"; ModuleID = 'main'
@@ -5398,12 +5399,12 @@ source_filename = "main"
 
 #[test]
 fn initial_values_in_multi_dimension_array_variable() {
-    let result = codegen!(
+    let result = codegen(
         "
          VAR_GLOBAL 
            a : ARRAY[0..1, 0..1] OF BYTE  := [1,2,3,4]; 
          END_VAR
-         "
+         ",
     );
 
     let expected = r#"; ModuleID = 'main'
@@ -5417,12 +5418,12 @@ source_filename = "main"
 
 #[test]
 fn initial_values_in_array_of_array_variable() {
-    let result = codegen!(
+    let result = codegen(
         "
          VAR_GLOBAL 
            a : ARRAY[0..1] OF ARRAY[0..1] OF BYTE  := [[1,2],[3,4]]; 
          END_VAR
-         "
+         ",
     );
 
     let expected = r#"; ModuleID = 'main'
@@ -5436,7 +5437,7 @@ source_filename = "main"
 
 #[test]
 fn initial_values_in_array_variable_using_multiplied_statement() {
-    let result = codegen!(
+    let result = codegen(
         "
          VAR_GLOBAL 
            a : ARRAY[0..3] OF BYTE  := [4(7)]; 
@@ -5444,7 +5445,7 @@ fn initial_values_in_array_variable_using_multiplied_statement() {
            c : ARRAY[0..9] OF BYTE  := [5(0,1)]; 
            d : ARRAY[0..9] OF BYTE  := [2(2(0), 2(1), 2)]; 
          END_VAR
-         "
+         ",
     );
 
     let expected = r#"; ModuleID = 'main'
@@ -5461,7 +5462,7 @@ source_filename = "main"
 
 #[test]
 fn initial_values_in_struct_variable_using_multiplied_statement() {
-    let result = codegen!(
+    let result = codegen(
         "
         TYPE MyStruct: STRUCT
           a: DINT;
@@ -5473,7 +5474,7 @@ fn initial_values_in_struct_variable_using_multiplied_statement() {
            a : MyStruct  := (a:=3, b:=5); 
            b : MyStruct  := (b:=3, a:=5); 
          END_VAR
-         "
+         ",
     );
 
     let expected = r#"; ModuleID = 'main'
@@ -5490,7 +5491,7 @@ source_filename = "main"
 
 #[test]
 fn complex_initial_values_in_struct_variable_using_multiplied_statement() {
-    let result = codegen!(
+    let result = codegen(
         "
         TYPE MyPoint: STRUCT
           x: DINT;
@@ -5512,7 +5513,7 @@ fn complex_initial_values_in_struct_variable_using_multiplied_statement() {
               f := 7
             ); 
         END_VAR
-        "
+        ",
     );
 
     let expected = r#"; ModuleID = 'main'
@@ -5529,7 +5530,7 @@ source_filename = "main"
 
 #[test]
 fn struct_with_one_field_can_be_initialized() {
-    let result = codegen!(
+    let result = codegen(
         "
         TYPE MyPoint: STRUCT
           x: DINT;
@@ -5539,7 +5540,7 @@ fn struct_with_one_field_can_be_initialized() {
         VAR_GLOBAL 
           a : MyPoint := ( x := 7);
         END_VAR
-        "
+        ",
     );
 
     let expected = r#"; ModuleID = 'main'
@@ -5566,7 +5567,7 @@ fn struct_initializer_needs_assignments() {
                 x : Point := (x := 1, 2);
             END_VAR
            ";
-    let result = codegen_wihout_unwrap!(source);
+    let result = codegen_without_unwrap(source);
     assert_eq!(
         result,
         Err(CompileError::codegen_error(
@@ -5599,7 +5600,7 @@ fn struct_initialization_uses_types_default_if_not_provided() {
            ";
 
     //WHEN it is generated
-    let result = codegen!(source);
+    let result = codegen(source);
 
     //THEN we expect z to be 7
     let expected = r#"; ModuleID = 'main'
@@ -5626,7 +5627,7 @@ fn struct_initializer_uses_fallback_to_field_default() {
                 x : Point := (x := 1, y := 2);
             END_VAR
            ";
-    let result = codegen!(source);
+    let result = codegen(source);
 
     let expected = r#"; ModuleID = 'main'
 source_filename = "main"
@@ -5659,7 +5660,7 @@ fn sub_range_type_calls_check_function_missing() {
             x := 7;
             END_PROGRAM
            ";
-    let result = codegen!(source);
+    let result = codegen(source);
 
     // we expect a normal assignemnt, no check-function call
     let expected = r#"; ModuleID = 'main'
@@ -5714,7 +5715,7 @@ fn sub_range_type_calls_check_function_on_assigment() {
             x := 7;
             END_PROGRAM
            ";
-    let result = codegen!(source);
+    let result = codegen(source);
 
     // we expect no simple assigment, but we expect somehting like x:= CheckRangeSigned(7);
     let expected = r#"; ModuleID = 'main'
@@ -5769,7 +5770,7 @@ continue:                                         ; preds = %output
 
 #[test]
 fn initial_values_in_global_constant_variables() {
-    let result = codegen!(
+    let result = codegen(
         r#"
         VAR_GLOBAL CONSTANT
           c_INT : INT := 7;
@@ -5799,7 +5800,7 @@ fn initial_values_in_global_constant_variables() {
           r : REAL := c_real / 2;
           tau : LREAL := 2 * c_lreal;
         END_VAR
-        "#
+        "#,
     );
 
     let expected = r#"; ModuleID = 'main'
@@ -5830,7 +5831,7 @@ source_filename = "main"
 
 #[test]
 fn initial_constant_values_in_pou_variables() {
-    let result = codegen!(
+    let result = codegen(
         r#"
         VAR_GLOBAL CONSTANT
         MAX_LEN : INT := 99;
@@ -5845,7 +5846,7 @@ fn initial_constant_values_in_pou_variables() {
           END_VAR
         END_PROGRAM
  
-        "#
+        "#,
     );
 
     let expected = r#"; ModuleID = 'main'
@@ -5872,7 +5873,7 @@ entry:
 #[test]
 fn using_global_consts_in_expressions() {
     //GIVEN some constants used in an expression
-    let result = codegen!(
+    let result = codegen(
         r#"
         VAR_GLOBAL CONSTANT
           cA : INT := 1;
@@ -5886,7 +5887,7 @@ fn using_global_consts_in_expressions() {
           END_VAR
           z := cA + cB + cC;
         END_PROGRAM
-        "#
+        "#,
     );
     //WHEN we compile
     let expected = generate_program_boiler_plate(

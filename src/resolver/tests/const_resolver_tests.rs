@@ -2,7 +2,7 @@ use crate::ast::{AstStatement, SourceRange};
 use crate::index::const_expressions::ConstExpression;
 use crate::index::Index;
 use crate::resolver::const_evaluator::{evaluate_constants, UnresolvableConstant};
-use crate::resolver::tests::parse;
+use crate::test_utils::tests::index;
 
 const EMPTY: Vec<UnresolvableConstant> = vec![];
 
@@ -75,7 +75,7 @@ fn create_bool_literal(v: bool) -> AstStatement {
 #[test]
 fn const_references_to_int_compile_time_evaluation() {
     // GIVEN some INT index used as initializers
-    let (_, index) = parse(
+    let (_, index) = index(
         "VAR_GLOBAL CONSTANT
             iX : INT := 4;
             rX : LREAL := 4.2;
@@ -130,7 +130,7 @@ fn const_references_to_int_compile_time_evaluation() {
 #[test]
 fn local_const_references_to_int_compile_time_evaluation() {
     // GIVEN some INT index used as initializers
-    let (_, index) = parse(
+    let (_, index) = index(
         "
         PROGRAM prg 
             VAR CONSTANT
@@ -164,7 +164,7 @@ fn local_const_references_to_int_compile_time_evaluation() {
 #[test]
 fn local_const_references_to_int_compile_time_evaluation_uses_correct_scopes() {
     // GIVEN some global and local constants
-    let (_, index) = parse(
+    let (_, index) = index(
         "
         VAR_GLOBAL CONSTANT
             a : INT := 5;
@@ -212,7 +212,7 @@ fn local_const_references_to_int_compile_time_evaluation_uses_correct_scopes() {
 fn non_const_references_to_int_compile_time_evaluation() {
     // GIVEN some global consts
     // AND some NON-constants
-    let (_, index) = parse(
+    let (_, index) = index(
         "VAR_GLOBAL CONSTANT
             iX : INT := 2;
         END_VAR
@@ -256,7 +256,7 @@ fn non_const_references_to_int_compile_time_evaluation() {
 #[test]
 fn prg_members_initials_compile_time_evaluation() {
     // GIVEN some member variables with const initializers
-    let (_, index) = parse(
+    let (_, index) = index(
         "
         VAR_GLOBAL CONSTANT
             TWO : INT := 2;
@@ -303,7 +303,7 @@ fn prg_members_initials_compile_time_evaluation() {
 #[test]
 fn const_references_to_negative_reference() {
     // GIVEN some INT index used as initializers
-    let (_, index) = parse(
+    let (_, index) = index(
         "VAR_GLOBAL CONSTANT
             iX : INT := 4;
             rX : LREAL := 4.2;
@@ -339,7 +339,7 @@ fn const_references_to_negative_reference() {
 #[test]
 fn const_references_to_int_additions_compile_time_evaluation() {
     // GIVEN some INT index used as initializers
-    let (_, index) = parse(
+    let (_, index) = index(
         "VAR_GLOBAL CONSTANT
             iX : INT := 4;
             rX : LREAL := 4.2;
@@ -394,7 +394,7 @@ fn const_references_to_int_additions_compile_time_evaluation() {
 #[test]
 fn const_references_to_int_subtractions_compile_time_evaluation() {
     // GIVEN some INT index used as initializers
-    let (_, index) = parse(
+    let (_, index) = index(
         "VAR_GLOBAL CONSTANT
             iX : INT := 4;
             rX : LREAL := 4.2;
@@ -449,7 +449,7 @@ fn const_references_to_int_subtractions_compile_time_evaluation() {
 #[test]
 fn const_references_to_int_multiplications_compile_time_evaluation() {
     // GIVEN some INT index used as initializers
-    let (_, index) = parse(
+    let (_, index) = index(
         "VAR_GLOBAL CONSTANT
             iX : INT := 4;
             rX : LREAL := 4.2;
@@ -504,7 +504,7 @@ fn const_references_to_int_multiplications_compile_time_evaluation() {
 #[test]
 fn const_references_to_int_division_compile_time_evaluation() {
     // GIVEN some INT index used as initializers
-    let (_, index) = parse(
+    let (_, index) = index(
         "VAR_GLOBAL CONSTANT
             iX : INT := 40;
             rX : LREAL := 40.2;
@@ -559,7 +559,7 @@ fn const_references_to_int_division_compile_time_evaluation() {
 #[test]
 fn const_references_int_float_type_behavior_evaluation() {
     // GIVEN some INT index used as initializers
-    let (_, index) = parse(
+    let (_, index) = index(
         "VAR_GLOBAL CONSTANT
             // INT - INT
             int_plus_int : INT := 3 + 1;
@@ -795,7 +795,7 @@ fn const_references_int_float_type_behavior_evaluation() {
 #[test]
 fn const_references_bool_bit_functions_behavior_evaluation() {
     // GIVEN some bit-functions used as initializers
-    let (_, index) = parse(
+    let (_, index) = index(
         "VAR_GLOBAL CONSTANT
             _true : BOOL := TRUE;
             _false : BOOL := FALSE;
@@ -842,7 +842,7 @@ fn const_references_bool_bit_functions_behavior_evaluation() {
 #[test]
 fn const_references_int_bit_functions_behavior_evaluation() {
     // GIVEN some bit-functions used as initializers
-    let (_, index) = parse(
+    let (_, index) = index(
         "VAR_GLOBAL CONSTANT
             _0x00ff : WORD := 16#00FF;
         END_VAR
@@ -887,7 +887,7 @@ fn const_references_int_bit_functions_behavior_evaluation() {
 #[test]
 fn illegal_cast_should_not_be_resolved() {
     // GIVEN some bit-functions used as initializers
-    let (_, index) = parse(
+    let (_, index) = index(
         "VAR_GLOBAL CONSTANT
             a : INT := BOOL#16#00FF;
         END_VAR
@@ -910,7 +910,7 @@ fn illegal_cast_should_not_be_resolved() {
 #[test]
 fn division_by_0_should_fail() {
     // GIVEN some bit-functions used as initializers
-    let (_, index) = parse(
+    let (_, index) = index(
         "VAR_GLOBAL CONSTANT
             zero_int : INT := 0;
             zero_real : REAL := 0.0;
@@ -973,7 +973,7 @@ fn division_by_0_should_fail() {
 #[test]
 fn const_references_not_function_with_signed_ints() {
     // GIVEN some bit-functions used as initializers
-    let (_, index) = parse(
+    let (_, index) = index(
         "VAR_GLOBAL CONSTANT
             _0x00ff : INT := 16#00FF; //255
         END_VAR
@@ -1024,7 +1024,7 @@ fn const_references_not_function_with_signed_ints() {
 #[test]
 fn const_references_to_bool_compile_time_evaluation() {
     // GIVEN some BOOL index used as initializers
-    let (_, index) = parse(
+    let (_, index) = index(
         "VAR_GLOBAL CONSTANT
             x : BOOL := TRUE;
             y : BOOL := FALSE;
@@ -1061,7 +1061,7 @@ fn const_references_to_bool_compile_time_evaluation() {
 #[test]
 fn not_evaluatable_consts_are_reported() {
     // GIVEN some BOOL index used as initializers
-    let (_, index) = parse(
+    let (_, index) = index(
         "VAR_GLOBAL CONSTANT
             a : INT := 1;
             b : INT := a;
@@ -1085,7 +1085,7 @@ fn not_evaluatable_consts_are_reported() {
 #[test]
 fn evaluating_constants_can_handle_recursion() {
     // GIVEN some BOOL index used as initializers
-    let (_, index) = parse(
+    let (_, index) = index(
         "VAR_GLOBAL CONSTANT
             a : INT := d;
             b : INT := a;
@@ -1124,7 +1124,7 @@ fn evaluating_constants_can_handle_recursion() {
 #[test]
 fn const_string_initializers_should_be_converted() {
     // GIVEN some STRING constants used as initializers
-    let (_, index) = parse(
+    let (_, index) = index(
         r#"VAR_GLOBAL CONSTANT
             a : STRING := 'Hello';
             b : WSTRING := "World";

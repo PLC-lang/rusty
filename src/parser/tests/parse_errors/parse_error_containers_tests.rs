@@ -1,10 +1,5 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-use crate::{
-    ast::*,
-    lexer::Token,
-    parser::{parse, tests::lex},
-    Diagnostic,
-};
+use crate::{ast::*, lexer::Token, test_utils::tests::parse, Diagnostic};
 use pretty_assertions::*;
 
 /*
@@ -18,14 +13,14 @@ use pretty_assertions::*;
 
 #[test]
 fn missing_pou_name() {
-    let lexer = lex(r"
+    let src = r"
             PROGRAM  
             VAR END_VAR
             a;
             END_PROGRAM
-            ");
+            ";
 
-    let (compilation_unit, diagnostics) = parse(lexer);
+    let (compilation_unit, diagnostics) = parse(src);
     //expected end of statement (e.g. ;), but found KeywordEndProgram at line: 1 offset: 14..25"
     //Expecting a missing semicolon message
     let expected =
@@ -49,14 +44,14 @@ fn missing_pou_name() {
 #[test]
 fn missing_pou_name_2() {
     // in this case, a becomes the POU's name
-    let lexer = lex(r"
+    let src = r"
             PROGRAM 
             a := 2;
             x;
             END_PROGRAM
-            ");
+            ";
 
-    let (compilation_unit, diagnostics) = parse(lexer);
+    let (compilation_unit, diagnostics) = parse(src);
     assert_eq!(
         diagnostics,
         vec![
@@ -81,16 +76,16 @@ fn missing_pou_name_2() {
 
 #[test]
 fn illegal_end_pou_keyword() {
-    let lexer = lex(r"
+    let src = r"
             PROGRAM foo
             a;
             END_FUNCTION
             PROGRAM baz
             b;
             END_PROGRAM
-            ");
+            ";
 
-    let (compilation_unit, diagnostics) = parse(lexer);
+    let (compilation_unit, diagnostics) = parse(src);
     let expected = Diagnostic::unexpected_token_found(
         format!("{:?}", Token::KeywordEndProgram).as_str(),
         "END_FUNCTION",
@@ -117,14 +112,14 @@ fn illegal_end_pou_keyword() {
 #[ignore = "Semantic validation"]
 fn function_without_return_variable_declaration() {
     // GIVEN a function without a return type
-    let lexer = lex(r"
+    let src = r"
         FUNCTION foo
         a;
         END_FUNCTION
-        ");
+        ";
 
     // WHEN the function is parsed
-    let (compilation_unit, diagnostics) = parse(lexer);
+    let (compilation_unit, diagnostics) = parse(src);
 
     // THEN I expect a diagnostic complaining about a missing return type
     let expected =
@@ -145,14 +140,14 @@ fn function_without_return_variable_declaration() {
 
 #[test]
 fn function_with_illegal_return_variable_declaration() {
-    let lexer = lex(r"
+    let src = r"
             FUNCTION foo :
             VAR END_VAR
             a;
             END_FUNCTION
-            ");
+            ";
 
-    let (compilation_unit, diagnostics) = parse(lexer);
+    let (compilation_unit, diagnostics) = parse(src);
     //expected end of statement (e.g. ;), but found KeywordEndProgram at line: 1 offset: 14..25"
     //Expecting a missing semicolon message
     let expected = Diagnostic::unexpected_token_found(
@@ -176,14 +171,14 @@ fn function_with_illegal_return_variable_declaration() {
 
 #[test]
 fn function_return_type_with_initializer() {
-    let lexer = lex(r"
+    let src = r"
             FUNCTION foo : INT := 3
             VAR END_VAR
             a;
             END_FUNCTION
-            ");
+            ";
 
-    let (compilation_unit, diagnostics) = parse(lexer);
+    let (compilation_unit, diagnostics) = parse(src);
     //expected end of statement (e.g. ;), but found KeywordEndProgram at line: 1 offset: 14..25"
     //Expecting a missing semicolon message
     let expected = Diagnostic::unexpected_initializer_on_function_return(SourceRange::new(35..36));
@@ -203,14 +198,14 @@ fn function_return_type_with_initializer() {
 
 #[test]
 fn program_with_illegal_return_variable_declaration() {
-    let lexer = lex(r"
+    let src = r"
                 PROGRAM foo : INT
                 VAR END_VAR
                 a;
                 END_PROGRAM
-                ");
+                ";
 
-    let (compilation_unit, diagnostics) = parse(lexer);
+    let (compilation_unit, diagnostics) = parse(src);
     //expected end of statement (e.g. ;), but found KeywordEndProgram at line: 1 offset: 14..25"
     //Expecting a missing semicolon message
     let expected =
@@ -234,14 +229,14 @@ fn program_with_illegal_return_variable_declaration() {
 
 #[test]
 fn unclosed_var_container() {
-    let lexer = lex(r"
+    let src = r"
                 PROGRAM foo
                     VAR a : INT;
                     VAR b : INT; END_VAR
                 END_PROGRAM
-                ");
+                ";
 
-    let (compilation_unit, diagnostics) = parse(lexer);
+    let (compilation_unit, diagnostics) = parse(src);
     assert_eq!(
         vec![Diagnostic::unexpected_token_found(
             "KeywordEndVar",
@@ -278,12 +273,12 @@ fn unclosed_var_container() {
 
 #[test]
 fn test_unexpected_type_declaration_error_message() {
-    let lexer = lex("TYPE MyType:
+    let src = "TYPE MyType:
                 PROGRAM
                 END_PROGRAM
             END_TYPE
-    ");
-    let (_, diagnostics) = parse(lexer);
+    ";
+    let (_, diagnostics) = parse(src);
     assert_eq!(
         vec![
             Diagnostic::unexpected_token_found(
@@ -304,8 +299,8 @@ fn test_unexpected_type_declaration_error_message() {
 
 #[test]
 fn a_program_needs_to_end_with_end_program() {
-    let lexer = lex("PROGRAM buz ");
-    let (_, diagnostics) = parse(lexer);
+    let src = "PROGRAM buz ";
+    let (_, diagnostics) = parse(src);
     assert_eq!(
         diagnostics,
         vec![Diagnostic::unexpected_token_found(
@@ -318,8 +313,8 @@ fn a_program_needs_to_end_with_end_program() {
 
 #[test]
 fn a_variable_declaration_block_needs_to_end_with_endvar() {
-    let lexer = lex("PROGRAM buz VAR END_PROGRAM ");
-    let (_, diagnostics) = parse(lexer);
+    let src = "PROGRAM buz VAR END_PROGRAM ";
+    let (_, diagnostics) = parse(src);
 
     assert_eq!(
         diagnostics,
