@@ -1,4 +1,5 @@
-use crate::{validation::tests::parse_and_validate, Diagnostic};
+use crate::test_utils::tests::parse_and_validate;
+use crate::Diagnostic;
 
 #[test]
 fn assignment_to_constants_result_in_an_error() {

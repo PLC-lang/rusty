@@ -2,10 +2,8 @@
 use crate::{
     ast::*,
     lexer::Token,
-    parser::{
-        parse,
-        tests::{empty_stmt, lex, ref_to},
-    },
+    parser::tests::{empty_stmt, ref_to},
+    test_utils::tests::parse,
     Diagnostic,
 };
 use pretty_assertions::*;
@@ -24,14 +22,14 @@ fn missing_semicolon_after_call() {
      * missing ';' after buz will be reported, both calls should be
      * parsed correctly
      */
-    let lexer = lex(r"
+    let src = r"
                 PROGRAM foo 
                     buz()
                     foo();
                 END_PROGRAM
-    ");
+    ";
 
-    let (compilation_unit, diagnostics) = parse(lexer);
+    let (compilation_unit, diagnostics) = parse(src);
     //expected end of statement (e.g. ;), but found KeywordEndProgram at line: 1 offset: 14..25"
     //Expecting a missing semicolon message
     let expected =
@@ -58,13 +56,13 @@ fn missing_comma_in_call_parameters() {
      * the missing comma after b will end the expression-list so we expect a ')'
      * c will not be parsed as an expression
      */
-    let lexer = lex(r"
+    let src = r"
                 PROGRAM foo 
                     buz(a,b c);
                 END_PROGRAM
-    ");
+    ";
 
-    let (compilation_unit, diagnostics) = parse(lexer);
+    let (compilation_unit, diagnostics) = parse(src);
     let expected =
         Diagnostic::unexpected_token_found("KeywordParensClose", "'c'", SourceRange::new(58..59));
     assert_eq!(diagnostics, vec![expected]);
@@ -93,13 +91,13 @@ fn illegal_semicolon_in_call_parameters() {
      * _ the semicolon after b will close the call-statement
      * _ c will be its own reference with an illegal token ')'
      */
-    let lexer = lex(r"
+    let src = r"
                 PROGRAM foo 
                     buz(a,b; c);
                 END_PROGRAM
-    ");
+    ";
 
-    let (compilation_unit, diagnostics) = parse(lexer);
+    let (compilation_unit, diagnostics) = parse(src);
     assert_eq!(
         diagnostics,
         vec![
@@ -136,14 +134,14 @@ fn illegal_semicolon_in_call_parameters() {
 
 #[test]
 fn incomplete_statement_test() {
-    let lexer = lex("
+    let src = "
         PROGRAM exp 
             1 + 2 +;
             x;
         END_PROGRAM
-        ");
+        ";
 
-    let (cu, diagnostics) = parse(lexer);
+    let (cu, diagnostics) = parse(src);
     let pou = &cu.implementations[0];
     assert_eq!(
         format!("{:#?}", pou.statements),
@@ -175,14 +173,14 @@ fn incomplete_statement_test() {
 
 #[test]
 fn incomplete_statement_in_parantheses_recovery_test() {
-    let lexer = lex("
+    let src = "
         PROGRAM exp 
             (1 + 2 - ) + 3;
             x;
         END_PROGRAM
-        ");
+        ";
 
-    let (cu, diagnostics) = parse(lexer);
+    let (cu, diagnostics) = parse(src);
     let pou = &cu.implementations[0];
     assert_eq!(
         format!("{:#?}", pou.statements),
@@ -220,14 +218,14 @@ fn incomplete_statement_in_parantheses_recovery_test() {
 
 #[test]
 fn mismatched_parantheses_recovery_test() {
-    let lexer = lex("
+    let src = "
         PROGRAM exp 
             (1 + 2;
             x;
         END_PROGRAM
-        ");
+        ";
 
-    let (cu, diagnostics) = parse(lexer);
+    let (cu, diagnostics) = parse(src);
     let pou = &cu.implementations[0];
     assert_eq!(
         format!("{:#?}", pou.statements),
@@ -255,16 +253,16 @@ fn mismatched_parantheses_recovery_test() {
 
 #[test]
 fn invalid_variable_name_error_recovery() {
-    let lexer = lex("
+    let src = "
         PROGRAM p
             VAR 
                 c : INT;
                 4 : INT;
             END_VAR
         END_PROGRAM
-        ");
+        ";
 
-    let (cu, diagnostics) = parse(lexer);
+    let (cu, diagnostics) = parse(src);
     let pou = &cu.units[0];
     assert_eq!(
         format!("{:#?}", pou.variable_blocks[0]),
@@ -301,7 +299,7 @@ fn invalid_variable_name_error_recovery() {
 
 #[test]
 fn invalid_variable_data_type_error_recovery() {
-    let lexer = lex("
+    let src = "
         PROGRAM p
             VAR 
                 a DINT : ;
@@ -310,9 +308,9 @@ fn invalid_variable_data_type_error_recovery() {
                 f , INT : ;
             END_VAR
         END_PROGRAM
-        ");
+        ";
 
-    let (cu, diagnostics) = parse(lexer);
+    let (cu, diagnostics) = parse(src);
     let pou = &cu.units[0];
     assert_eq!(
         format!("{:#?}", pou.variable_blocks[0]),
@@ -361,13 +359,13 @@ fn invalid_variable_data_type_error_recovery() {
 #[test]
 fn test_if_with_missing_semicolon_in_body() {
     //regress, this used to end in an endless loop
-    let lexer = lex("PROGRAM My_PRG
+    let src = "PROGRAM My_PRG
             IF TRUE THEN
                 x := x + 1
             END_IF
         END_PROGRAM
-    ");
-    let (_, diagnostics) = parse(lexer);
+    ";
+    let (_, diagnostics) = parse(src);
 
     assert_eq!(
         diagnostics,
@@ -381,15 +379,15 @@ fn test_if_with_missing_semicolon_in_body() {
 #[test]
 fn test_nested_if_with_missing_end_if() {
     //regress, this used to end in an endless loop
-    let lexer = lex("PROGRAM My_PRG
+    let src = "PROGRAM My_PRG
             IF FALSE THEN
                 IF TRUE THEN
                     x := y;
             END_IF
             y := x;
         END_PROGRAM
-    ");
-    let (unit, diagnostics) = parse(lexer);
+    ";
+    let (unit, diagnostics) = parse(src);
 
     assert_eq!(
         diagnostics,
@@ -449,13 +447,13 @@ fn test_nested_if_with_missing_end_if() {
 #[test]
 fn test_for_with_missing_semicolon_in_body() {
     //regress, this used to end in an endless loop
-    let lexer = lex("PROGRAM My_PRG
+    let src = "PROGRAM My_PRG
             FOR x := 1 TO 2 DO
                 y := x
             END_FOR
         END_PROGRAM
-    ");
-    let (_, diagnostics) = parse(lexer);
+    ";
+    let (_, diagnostics) = parse(src);
 
     assert_eq!(
         diagnostics,
@@ -469,15 +467,15 @@ fn test_for_with_missing_semicolon_in_body() {
 #[test]
 fn test_nested_for_with_missing_end_for() {
     //regress, this used to end in an endless loop
-    let lexer = lex("PROGRAM My_PRG
+    let src = "PROGRAM My_PRG
             FOR x := 1 TO 2 DO 
                 FOR x := 1 TO 2 DO 
                     y := x;
             END_FOR
             x := y;
         END_PROGRAM
-    ");
-    let (unit, diagnostics) = parse(lexer);
+    ";
+    let (unit, diagnostics) = parse(src);
 
     assert_eq!(
         diagnostics,
@@ -543,14 +541,14 @@ fn test_nested_for_with_missing_end_for() {
 #[test]
 fn test_repeat_with_missing_semicolon_in_body() {
     //regress, this used to end in an endless loop
-    let lexer = lex("PROGRAM My_PRG
+    let src = "PROGRAM My_PRG
             REPEAT
                 x := 3
             UNTIL x = y END_REPEAT
             y := x;     
            END_PROGRAM
-    ");
-    let (unit, diagnostics) = parse(lexer);
+    ";
+    let (unit, diagnostics) = parse(src);
 
     assert_eq!(
         diagnostics,
@@ -597,15 +595,15 @@ fn test_repeat_with_missing_semicolon_in_body() {
 #[test]
 fn test_nested_repeat_with_missing_until_end_repeat() {
     //regress, this used to end in an endless loop
-    let lexer = lex("PROGRAM My_PRG
+    let src = "PROGRAM My_PRG
             REPEAT
                 REPEAT
                     ;
                 UNTIL x = y END_REPEAT
                 y := x;     
            END_PROGRAM
-    ");
-    let (unit, diagnostics) = parse(lexer);
+    ";
+    let (unit, diagnostics) = parse(src);
 
     assert_eq!(
         diagnostics,
@@ -649,7 +647,7 @@ fn test_nested_repeat_with_missing_until_end_repeat() {
 #[test]
 fn test_nested_repeat_with_missing_condition_and_end_repeat() {
     //regress, this used to end in an endless loop
-    let lexer = lex("PROGRAM My_PRG
+    let src = "PROGRAM My_PRG
             REPEAT
                 REPEAT
                     ;
@@ -657,8 +655,8 @@ fn test_nested_repeat_with_missing_condition_and_end_repeat() {
                 y := x;
             UNTIL
            END_PROGRAM
-    ");
-    let (unit, diagnostics) = parse(lexer);
+    ";
+    let (unit, diagnostics) = parse(src);
 
     assert_eq!(
         diagnostics,
@@ -707,7 +705,7 @@ fn test_nested_repeat_with_missing_condition_and_end_repeat() {
 #[test]
 fn test_nested_repeat_with_missing_end_repeat() {
     //regress, this used to end in an endless loop
-    let lexer = lex("PROGRAM My_PRG
+    let src = "PROGRAM My_PRG
             REPEAT
                 REPEAT
                     ;
@@ -715,8 +713,8 @@ fn test_nested_repeat_with_missing_end_repeat() {
                 y := x;
             UNTIL x = y
            END_PROGRAM
-    ");
-    let (unit, diagnostics) = parse(lexer);
+    ";
+    let (unit, diagnostics) = parse(src);
 
     assert_eq!(
         diagnostics,
@@ -769,14 +767,14 @@ fn test_nested_repeat_with_missing_end_repeat() {
 #[test]
 fn test_while_with_missing_semicolon_in_body() {
     //regress, this used to end in an endless loop
-    let lexer = lex("PROGRAM My_PRG
+    let src = "PROGRAM My_PRG
             WHILE x = y DO
                 x := 3
             END_WHILE
             y := x;     
            END_PROGRAM
-    ");
-    let (unit, diagnostics) = parse(lexer);
+    ";
+    let (unit, diagnostics) = parse(src);
 
     assert_eq!(
         diagnostics,
@@ -823,15 +821,15 @@ fn test_while_with_missing_semicolon_in_body() {
 #[test]
 fn test_nested_while_with_missing_end_while() {
     //regress, this used to end in an endless loop
-    let lexer = lex("PROGRAM My_PRG
+    let src = "PROGRAM My_PRG
             WHILE x = y DO
                 WHILE x = y DO
                     ;
                 END_WHILE
                 y := x;
            END_PROGRAM
-    ");
-    let (unit, diagnostics) = parse(lexer);
+    ";
+    let (unit, diagnostics) = parse(src);
 
     assert_eq!(
         diagnostics,
@@ -884,13 +882,13 @@ fn test_nested_while_with_missing_end_while() {
 #[test]
 fn test_while_with_missing_do() {
     //regress, this used to end in an endless loop
-    let lexer = lex("PROGRAM My_PRG
+    let src = "PROGRAM My_PRG
             WHILE x = y
                 y := x;
             END_WHILE
            END_PROGRAM
-    ");
-    let (unit, diagnostics) = parse(lexer);
+    ";
+    let (unit, diagnostics) = parse(src);
 
     assert_eq!(
         diagnostics,
@@ -923,13 +921,13 @@ fn test_while_with_missing_do() {
 #[test]
 fn test_case_body_with_missing_semicolon() {
     //regress, this used to end in an endless loop
-    let lexer = lex("PROGRAM My_PRG
+    let src = "PROGRAM My_PRG
            CASE x OF
            y: y := z
            END_CASE
            END_PROGRAM
-    ");
-    let (unit, diagnostics) = parse(lexer);
+    ";
+    let (unit, diagnostics) = parse(src);
 
     assert_eq!(
         diagnostics,
@@ -963,15 +961,15 @@ fn test_case_body_with_missing_semicolon() {
 
 #[test]
 fn test_case_without_condition() {
-    let lexer = lex("PROGRAM My_PRG
+    let src = "PROGRAM My_PRG
                 CASE x OF
                     1: 
                     : x := 3;
                 END_CASE
             END_PROGRAM
 
-    ");
-    let (cu, diagnostics) = parse(lexer);
+    ";
+    let (cu, diagnostics) = parse(src);
 
     assert_eq!(
         format!("{:#?}", cu.implementations[0].statements),
@@ -1018,11 +1016,12 @@ fn test_case_without_condition() {
 
 #[test]
 fn pointer_type_without_to_test() {
-    let (result, diagnostics) = parse(lex(r#"
+    let src = r#"
         TYPE SamplePointer :
             POINTER INT;
         END_TYPE 
-        "#));
+        "#;
+    let (result, diagnostics) = parse(src);
     let pointer_type = &result.types[0];
     let expected = UserTypeDeclaration {
         data_type: DataType::PointerType {
@@ -1054,11 +1053,12 @@ fn pointer_type_without_to_test() {
 
 #[test]
 fn pointer_type_with_wrong_keyword_to_test() {
-    let (result, diagnostics) = parse(lex(r#"
+    let src = r#"
         TYPE SamplePointer :
             POINTER tu INT;
         END_TYPE 
-        "#));
+        "#;
+    let (result, diagnostics) = parse(src);
     let pointer_type = &result.types[0];
     let expected = UserTypeDeclaration {
         data_type: DataType::PointerType {
@@ -1090,10 +1090,11 @@ fn pointer_type_with_wrong_keyword_to_test() {
 
 #[test]
 fn bitwise_access_error_validation() {
-    let (ast, diagnostics) = parse(lex("PROGRAM exp 
+    let src = "PROGRAM exp 
     a.1e5; 
     b.%f6;
-    END_PROGRAM"));
+    END_PROGRAM";
+    let (ast, diagnostics) = parse(src);
     println!("{:?}", ast);
 
     assert_eq!(2, diagnostics.len());

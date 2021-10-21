@@ -3,12 +3,8 @@ use pretty_assertions::{assert_eq, assert_ne};
 
 use crate::{
     ast::{DirectAccessType, SourceRange},
-    lexer::{ParseSession, Token::*},
+    lexer::{lex, Token::*},
 };
-
-fn lex(source: &str) -> ParseSession {
-    crate::lexer::lex(source)
-}
 
 #[test]
 fn generic_properties() {
