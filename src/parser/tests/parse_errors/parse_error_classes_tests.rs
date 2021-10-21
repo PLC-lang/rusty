@@ -1,12 +1,9 @@
-use crate::{
-    parser::{parse, tests::lex},
-    Diagnostic, SourceRange,
-};
+use crate::{test_utils::tests::parse, Diagnostic, SourceRange};
 
 #[test]
 fn simple_class_without_name() {
-    let lexer = lex("CLASS END_CLASS");
-    let diagnostics = parse(lexer).1;
+    let src = "CLASS END_CLASS";
+    let diagnostics = parse(src).1;
 
     assert_eq!(
         diagnostics.first().unwrap(),
@@ -16,8 +13,8 @@ fn simple_class_without_name() {
 
 #[test]
 fn method_with_invalid_return_type() {
-    let lexer = lex("CLASS TestClass METHOD foo : ABSTRACT END_METHOD END_CLASS");
-    let diagnostics = parse(lexer).1;
+    let src = "CLASS TestClass METHOD foo : ABSTRACT END_METHOD END_CLASS";
+    let diagnostics = parse(src).1;
 
     assert_eq!(
         diagnostics.first().unwrap(),

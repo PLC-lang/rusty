@@ -1,6 +1,6 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use super::*;
-use crate::codegen;
+use crate::test_utils::tests::codegen;
 
 //Same size operations remain the same
 // Different types smaller than int converted to int (expanded according to sign)
@@ -28,7 +28,7 @@ use crate::codegen;
 
 #[test]
 fn no_type_conversion_if_datatypes_are_the_same() {
-    let result = codegen!(
+    let result = codegen(
         r#"PROGRAM prg
         VAR
         b : SINT;
@@ -39,7 +39,7 @@ fn no_type_conversion_if_datatypes_are_the_same() {
         x := b + c;
 
         END_PROGRAM
-        "#
+        "#,
     );
 
     let expected = generate_program_boiler_plate(
@@ -61,7 +61,7 @@ fn no_type_conversion_if_datatypes_are_the_same() {
 
 #[test]
 fn datatypes_smaller_than_dint_promoted_to_dint() {
-    let result = codegen!(
+    let result = codegen(
         r#"PROGRAM prg
         VAR
         b : SINT;
@@ -72,7 +72,7 @@ fn datatypes_smaller_than_dint_promoted_to_dint() {
         x := b + c;
 
         END_PROGRAM
-        "#
+        "#,
     );
 
     let expected = generate_program_boiler_plate(
@@ -95,7 +95,7 @@ fn datatypes_smaller_than_dint_promoted_to_dint() {
 
 #[test]
 fn aliased_datatypes_respect_conversion_rules() {
-    let result = codegen!(
+    let result = codegen(
         r#"
         TYPE MYSINT : SINT; END_TYPE
         TYPE MYDINT : DINT; END_TYPE
@@ -110,7 +110,7 @@ fn aliased_datatypes_respect_conversion_rules() {
         b := c + x;
 
         END_PROGRAM
-        "#
+        "#,
     );
 
     let expected = generate_program_boiler_plate(
@@ -138,7 +138,7 @@ fn aliased_datatypes_respect_conversion_rules() {
 
 #[test]
 fn unsingned_datatypes_smaller_than_dint_promoted_to_dint() {
-    let result = codegen!(
+    let result = codegen(
         r#"PROGRAM prg
         VAR
         b : BYTE;
@@ -149,7 +149,7 @@ fn unsingned_datatypes_smaller_than_dint_promoted_to_dint() {
         x := b + c;
 
         END_PROGRAM
-        "#
+        "#,
     );
 
     let expected = generate_program_boiler_plate(
@@ -172,7 +172,7 @@ fn unsingned_datatypes_smaller_than_dint_promoted_to_dint() {
 
 #[test]
 fn datatypes_larger_than_int_promote_the_second_operand() {
-    let result = codegen!(
+    let result = codegen(
         r#"PROGRAM prg
         VAR
         b : DINT;
@@ -183,7 +183,7 @@ fn datatypes_larger_than_int_promote_the_second_operand() {
         x := b + c;
 
         END_PROGRAM
-        "#
+        "#,
     );
 
     let expected = generate_program_boiler_plate(
@@ -206,7 +206,7 @@ fn datatypes_larger_than_int_promote_the_second_operand() {
 
 #[test]
 fn float_and_double_mix_converted_to_double() {
-    let result = codegen!(
+    let result = codegen(
         r#"
         PROGRAM prg
         VAR
@@ -217,7 +217,7 @@ fn float_and_double_mix_converted_to_double() {
 
         c := b + a;
         END_PROGRAM
-        "#
+        "#,
     );
 
     let expected = generate_program_boiler_plate(
@@ -240,7 +240,7 @@ fn float_and_double_mix_converted_to_double() {
 
 #[test]
 fn float_assinged_to_double_to_double() {
-    let result = codegen!(
+    let result = codegen(
         r#"
         PROGRAM prg
         VAR
@@ -250,7 +250,7 @@ fn float_assinged_to_double_to_double() {
 
         b := a;
         END_PROGRAM
-        "#
+        "#,
     );
 
     let expected = generate_program_boiler_plate(
@@ -271,7 +271,7 @@ fn float_assinged_to_double_to_double() {
 
 #[test]
 fn int_assigned_to_float_is_cast() {
-    let result = codegen!(
+    let result = codegen(
         r#"
         PROGRAM prg
         VAR
@@ -282,7 +282,7 @@ fn int_assigned_to_float_is_cast() {
         c := a;
         c := b;
         END_PROGRAM
-        "#
+        "#,
     );
 
     let expected = generate_program_boiler_plate(
@@ -306,7 +306,7 @@ fn int_assigned_to_float_is_cast() {
 
 #[test]
 fn float_assigned_to_int_is_cast() {
-    let result = codegen!(
+    let result = codegen(
         r#"
         PROGRAM prg
         VAR
@@ -317,7 +317,7 @@ fn float_assigned_to_int_is_cast() {
         a := c;
         b := c;
         END_PROGRAM
-        "#
+        "#,
     );
 
     let expected = generate_program_boiler_plate(
@@ -341,7 +341,7 @@ fn float_assigned_to_int_is_cast() {
 
 #[test]
 fn int_smaller_or_equal_to_float_converted_to_float() {
-    let result = codegen!(
+    let result = codegen(
         r#"
         PROGRAM prg
         VAR
@@ -352,7 +352,7 @@ fn int_smaller_or_equal_to_float_converted_to_float() {
 
         c := b + a;
         END_PROGRAM
-        "#
+        "#,
     );
 
     let expected = generate_program_boiler_plate(
@@ -375,7 +375,7 @@ fn int_smaller_or_equal_to_float_converted_to_float() {
 
 #[test]
 fn int_bigger_than_float_converted_to_double() {
-    let result = codegen!(
+    let result = codegen(
         r#"
         PROGRAM prg
         VAR
@@ -385,7 +385,7 @@ fn int_bigger_than_float_converted_to_double() {
 
         b + a;
         END_PROGRAM
-        "#
+        "#,
     );
 
     let expected = generate_program_boiler_plate(
