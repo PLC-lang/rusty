@@ -186,7 +186,14 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                 implementation.pou_type,
                 PouType::Function | PouType::Method { .. }
             ) {
-                self.generate_initialization_of_local_vars(pou_members, &statement_gen)?;
+                self.generate_initialization_of_local_vars(&pou_members, &statement_gen)?;
+            } else {
+                //Generate temp variables
+                let members = pou_members
+                    .into_iter()
+                    .filter(|it| it.is_temp())
+                    .collect::<Vec<&VariableIndexEntry>>();
+                self.generate_initialization_of_local_vars(&members, &statement_gen)?;
             }
             statement_gen.generate_body(&implementation.statements)?
         }
@@ -217,6 +224,12 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
             Some(enum_type) if enum_type.is_array_type() => {
                 Ok(enum_type.into_array_type().fn_type(params, is_var_args))
             }
+            Some(enum_type) if enum_type.is_pointer_type() => {
+                Ok(enum_type.into_pointer_type().fn_type(params, is_var_args))
+            }
+            Some(enum_type) if enum_type.is_struct_type() => {
+                Ok(enum_type.into_struct_type().fn_type(params, is_var_args))
+            }
             None => Ok(self.llvm.context.void_type().fn_type(params, is_var_args)),
             _ => Err(CompileError::codegen_error(
                 format!("Unsupported return type {:?}", return_type),
@@ -244,6 +257,12 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                     Pou::calc_return_name(type_name),
                     self.llvm.create_local_variable(type_name, &return_type),
                 )
+            } else if m.is_temp() {
+                let temp_type = index.get_associated_type(m.get_type_name())?;
+                (
+                    parameter_name,
+                    self.llvm.create_local_variable(parameter_name, &temp_type),
+                )
             } else {
                 let ptr_value = current_function
                     .get_nth_param(arg_index)
@@ -260,6 +279,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                         .unwrap(),
                 )
             };
+
             index.associate_loaded_local_variable(type_name, name, variable)?;
         }
 
@@ -271,12 +291,12 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
     /// - `blocks` - all declaration blocks of the current pou
     fn generate_initialization_of_local_vars(
         &self,
-        variables: Vec<&VariableIndexEntry>,
+        variables: &[&VariableIndexEntry],
         statement_generator: &StatementCodeGenerator<'ink, '_>,
     ) -> Result<(), CompileError> {
         let variables_with_initializers = variables
             .iter()
-            .filter(|it| it.is_local())
+            .filter(|it| it.is_local() || it.is_temp())
             .filter(|it| it.initial_value.is_some());
 
         for variable in variables_with_initializers {
