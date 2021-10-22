@@ -986,7 +986,7 @@ entry:
     assert_eq!(result, expected);
 }
 
-#[ignore = "Strings seem to be broken"]
+#[ignore = "strings look broken :("]
 #[test]
 fn variable_length_strings_can_be_created() {
     let result = codegen!(
@@ -1016,6 +1016,41 @@ entry:
   %z = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 1
   %wy = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 2
   %wz = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 3
+  store [12 x i8] c"im a genius\00", [16 x i8]* %y, align 1
+  store [24 x i8] c"i\00m\00 \00a\00 \00g\00e\00n\00i\00u\00s\00\00\00", [32 x i8]* %wy, align 1
+  ret void
+}
+"#;
+
+    assert_eq!(result, expected);
+}
+
+#[ignore = "https://github.com/PLC-lang/rusty/issues/338"]
+#[test]
+fn assigning_variable_length_string_variables() {
+    let result = codegen!(
+        r#"PROGRAM prg
+          VAR
+          y : STRING[15];
+          z : STRING[30] := 'xyz';
+          END_VAR
+          y := z;
+          z := y;
+        END_PROGRAM
+        "#
+    );
+
+    let expected = r#"; ModuleID = 'main'
+source_filename = "main"
+
+%prg_interface = type { [16 x i8], [4 x i8], [32 x i8], [8 x i8] }
+
+@prg_instance = global %prg_interface { [16 x i8] zeroinitializer, [4 x i8] c"xyz\00", [32 x i8] zeroinitializer, [8 x i8] c"x\00y\00z\00\00\00" }
+
+define void @prg(%prg_interface* %0) {
+entry:
+  %y = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 0
+  %z = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 1
   store [12 x i8] c"im a genius\00", [16 x i8]* %y, align 1
   store [24 x i8] c"i\00m\00 \00a\00 \00g\00e\00n\00i\00u\00s\00\00\00", [32 x i8]* %wy, align 1
   ret void
