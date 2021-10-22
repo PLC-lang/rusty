@@ -14,6 +14,7 @@ mod correctness {
     mod datatypes;
     mod external_functions;
     mod functions;
+    mod functions_struct;
     mod global_variables;
     mod initial_values;
     mod methods;
