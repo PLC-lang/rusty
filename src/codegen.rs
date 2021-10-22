@@ -30,6 +30,7 @@ type TypeAndValue<'a> = (DataTypeInformation, BasicValueEnum<'a>);
 
 /// Tuple consisting of an llvm pointer-value and the resulting DataType
 /// what to expect when loading the given pointer
+#[derive(Debug)]
 pub struct TypeAndPointer<'a, 'b> {
     /// the index-entry of the datatype of the dereferenced pointer
     type_entry: &'b DataType,
@@ -37,20 +38,6 @@ pub struct TypeAndPointer<'a, 'b> {
     ptr_value: PointerValue<'a>,
 }
 
-impl<'a, 'b> TypeAndPointer<'a, 'b> {
-    /// constructs a new TypeAndPointer
-    pub fn new(entry: &'b DataType, value: PointerValue<'a>) -> TypeAndPointer<'a, 'b> {
-        TypeAndPointer {
-            type_entry: entry,
-            ptr_value: value,
-        }
-    }
-
-    /// returns the DataTypeInformation for the pointer's dereferenced type
-    pub fn get_type_information(&self) -> &DataTypeInformation {
-        self.type_entry.get_type_information()
-    }
-}
 
 /// the codegen struct carries all dependencies required to generate
 /// the IR code for a compilation unit

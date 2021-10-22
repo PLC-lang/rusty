@@ -66,7 +66,10 @@ impl VariableIndexEntry {
 
     pub(crate) fn is_parameter(&self) -> bool {
         let vt = self.get_variable_type();
-        matches!(vt, VariableType::Input | VariableType::Output | VariableType::InOut )
+        matches!(
+            vt,
+            VariableType::Input | VariableType::Output | VariableType::InOut
+        )
     }
 }
 
@@ -404,7 +407,8 @@ impl Index {
             .and_then(|map| map.get(&variable_name.to_lowercase()))
             .or_else(|| {
                 //check qualifier
-                pou_name.rfind('.')
+                pou_name
+                    .rfind('.')
                     .map(|p| &pou_name[..p])
                     .and_then(|qualifier| self.find_member(qualifier, variable_name))
             })

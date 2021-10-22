@@ -186,13 +186,16 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                 implementation.pou_type,
                 PouType::Function | PouType::Method { .. }
             ) {
-                self.generate_initialization_of_local_vars(pou_members, &local_index, &statement_gen)?;
+                self.generate_initialization_of_local_vars(
+                    pou_members,
+                    &local_index
+                )?;
             }
             statement_gen.generate_body(&implementation.statements)?
         }
 
         // generate return statement
-        self.generate_return_statement(&function_context, &local_index, None)?; //TODO location
+        self.generate_return_statement(&function_context, &local_index)?;
 
         Ok(())
     }
@@ -273,7 +276,6 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         &self,
         variables: Vec<&VariableIndexEntry>,
         local_llvm_index: &LlvmTypedIndex,
-        statement_generator: &StatementCodeGenerator<'ink, '_>,
     ) -> Result<(), CompileError> {
         let variables_with_initializers = variables
             .iter()
@@ -281,11 +283,6 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
             .filter(|it| it.initial_value.is_some());
 
         for variable in variables_with_initializers {
-            let left = AstStatement::Reference {
-                name: variable.get_name().into(),
-                location: variable.source_location.clone(),
-                id: 0, //TODO
-            };
             let right = self
                 .index
                 .get_const_expressions()
@@ -323,7 +320,6 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         &self,
         function_context: &FunctionContext<'ink>,
         local_index: &LlvmTypedIndex<'ink>,
-        location: Option<SourceRange>,
     ) -> Result<(), CompileError> {
         if let Some(ret_v) = self
             .index

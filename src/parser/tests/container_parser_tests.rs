@@ -1,13 +1,10 @@
-use crate::{
-    parser::{parse, tests::lex},
-    Diagnostic,
-};
+use crate::{test_utils::tests::parse, Diagnostic};
 use pretty_assertions::*;
 
 #[test]
 fn action_container_parsed() {
-    let lexer = lex("ACTIONS foo ACTION bar END_ACTION END_ACTIONS");
-    let result = parse(lexer).0;
+    let src = "ACTIONS foo ACTION bar END_ACTION END_ACTIONS";
+    let result = parse(src).0;
 
     let prg = &result.implementations[0];
     assert_eq!(prg.name, "foo.bar");
@@ -16,8 +13,8 @@ fn action_container_parsed() {
 
 #[test]
 fn two_action_containers_parsed() {
-    let lexer = lex("ACTIONS foo ACTION bar END_ACTION ACTION buz END_ACTION END_ACTIONS");
-    let result = parse(lexer).0;
+    let src = "ACTIONS foo ACTION bar END_ACTION ACTION buz END_ACTION END_ACTIONS";
+    let result = parse(src).0;
 
     let prg = &result.implementations[0];
     assert_eq!(prg.name, "foo.bar");
@@ -30,8 +27,8 @@ fn two_action_containers_parsed() {
 
 #[test]
 fn mixed_action_types_parsed() {
-    let lexer = lex("PROGRAM foo END_PROGRAM ACTIONS foo ACTION bar END_ACTION END_ACTIONS ACTION foo.buz END_ACTION");
-    let result = parse(lexer).0;
+    let src = "PROGRAM foo END_PROGRAM ACTIONS foo ACTION bar END_ACTION END_ACTIONS ACTION foo.buz END_ACTION";
+    let result = parse(src).0;
 
     let prg = &result.implementations[1];
     assert_eq!(prg.name, "foo.bar");
@@ -44,8 +41,8 @@ fn mixed_action_types_parsed() {
 
 #[test]
 fn actions_with_no_container_have_unkown_container() {
-    let lexer = lex("ACTIONS ACTION bar END_ACTION END_ACTIONS");
-    let (result, diagnostic) = parse(lexer);
+    let src = "ACTIONS ACTION bar END_ACTION END_ACTIONS";
+    let (result, diagnostic) = parse(src);
     let prg = &result.implementations[0];
     assert_eq!(prg.name, "__unknown__.bar");
     assert_eq!(prg.type_name, "__unknown__");
@@ -59,10 +56,9 @@ fn actions_with_no_container_have_unkown_container() {
 
 #[test]
 fn actions_with_no_container_inherits_previous_pou() {
-    let lexer = lex(
-        "PROGRAM buz END_PROGRAM PROGRAM foo END_PROGRAM ACTIONS ACTION bar END_ACTION END_ACTIONS",
-    );
-    let (result, diagnostic) = parse(lexer);
+    let src =
+        "PROGRAM buz END_PROGRAM PROGRAM foo END_PROGRAM ACTIONS ACTION bar END_ACTION END_ACTIONS";
+    let (result, diagnostic) = parse(src);
     let prg = &result.implementations[0];
     assert_eq!(prg.name, "buz");
     assert_eq!(prg.type_name, "buz");
@@ -84,8 +80,8 @@ fn actions_with_no_container_inherits_previous_pou() {
 
 #[test]
 fn actions_with_invalid_token() {
-    let lexer = lex("ACTIONS LIMA BRAVO END_ACTIONS");
-    let errors = parse(lexer).1;
+    let src = "ACTIONS LIMA BRAVO END_ACTIONS";
+    let errors = parse(src).1;
     assert_eq!(
         errors.first().unwrap(),
         &Diagnostic::unexpected_token_found("KeywordAction", "BRAVO", (13..18).into())
@@ -94,8 +90,8 @@ fn actions_with_invalid_token() {
 
 #[test]
 fn two_programs_can_be_parsed() {
-    let lexer = lex("PROGRAM foo END_PROGRAM  PROGRAM bar END_PROGRAM");
-    let result = parse(lexer).0;
+    let src = "PROGRAM foo END_PROGRAM  PROGRAM bar END_PROGRAM";
+    let result = parse(src).0;
 
     let prg = &result.units[0];
     assert_eq!(prg.name, "foo");
@@ -105,8 +101,8 @@ fn two_programs_can_be_parsed() {
 
 #[test]
 fn simple_program_with_varblock_can_be_parsed() {
-    let lexer = lex("PROGRAM buz VAR END_VAR END_PROGRAM");
-    let result = parse(lexer).0;
+    let src = "PROGRAM buz VAR END_VAR END_PROGRAM";
+    let result = parse(src).0;
 
     let prg = &result.units[0];
 
@@ -115,8 +111,8 @@ fn simple_program_with_varblock_can_be_parsed() {
 
 #[test]
 fn simple_program_with_two_varblocks_can_be_parsed() {
-    let lexer = lex("PROGRAM buz VAR END_VAR VAR END_VAR END_PROGRAM");
-    let result = parse(lexer).0;
+    let src = "PROGRAM buz VAR END_VAR VAR END_VAR END_PROGRAM";
+    let result = parse(src).0;
 
     let prg = &result.units[0];
 
@@ -125,8 +121,8 @@ fn simple_program_with_two_varblocks_can_be_parsed() {
 
 #[test]
 fn single_action_parsed() {
-    let lexer = lex("ACTION foo.bar END_ACTION");
-    let result = parse(lexer).0;
+    let src = "ACTION foo.bar END_ACTION";
+    let result = parse(src).0;
 
     let prg = &result.implementations[0];
     assert_eq!(prg.name, "foo.bar");
@@ -135,8 +131,8 @@ fn single_action_parsed() {
 
 #[test]
 fn two_actions_parsed() {
-    let lexer = lex("ACTION foo.bar END_ACTION ACTION fuz.bar END_ACTION");
-    let result = parse(lexer).0;
+    let src = "ACTION foo.bar END_ACTION ACTION fuz.bar END_ACTION";
+    let result = parse(src).0;
 
     let prg = &result.implementations[0];
     assert_eq!(prg.name, "foo.bar");

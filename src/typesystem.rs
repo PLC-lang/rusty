@@ -173,7 +173,7 @@ pub enum DataTypeInformation {
         name: String,
         signed: bool,
         size: u32,
-        range : Option<Range<usize>>,
+        range: Option<Range<usize>>,
     },
     Enum {
         name: String,

@@ -146,11 +146,10 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
             } => {
                 self.generate_case_statement(selector, case_blocks, else_block)?;
             }
-            AstStatement::ReturnStatement { location, .. } => {
+            AstStatement::ReturnStatement { .. } => {
                 self.pou_generator.generate_return_statement(
                     self.function_context,
                     self.llvm_index,
-                    Some(location.clone()),
                 )?;
                 self.generate_buffer_block();
             }
@@ -198,27 +197,34 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         let left_type = exp_gen.get_type_hint_for(left_statement)?;
         // if the lhs-type is a subrange type we may need to generate a check-call
         // e.g. x := y,  ==> x := CheckSignedInt(y);
-        let range_checked_right_side =
-            if let DataTypeInformation::SubRange { sub_range, .. } = left_type.get_type_information() {
-                // there is a sub-range defined, so we need to wrap the right side into the check function if it exists
-                self.find_range_check_impolementation_for(left_type.get_type_information())
-                    .map(|implementation| {
-                        create_call_to_check_function_ast(
-                            left_statement,
-                            implementation.get_call_name().to_string(),
-                            right_statement.clone(),
-                            sub_range.clone(),
-                            &left_statement.get_location(),
-                        )
-                    })
-            } else {
-                None
-            };
+        let range_checked_right_side = if let DataTypeInformation::SubRange { sub_range, .. } =
+            left_type.get_type_information()
+        {
+            // there is a sub-range defined, so we need to wrap the right side into the check function if it exists
+            self.find_range_check_impolementation_for(left_type.get_type_information())
+                .map(|implementation| {
+                    create_call_to_check_function_ast(
+                        left_statement,
+                        implementation.get_call_name().to_string(),
+                        right_statement.clone(),
+                        sub_range.clone(),
+                        &left_statement.get_location(),
+                    )
+                })
+        } else {
+            None
+        };
 
         let (right_type, right) = if let Some(check_call) = range_checked_right_side {
-            (exp_gen.get_type_hint_info_for(&check_call)?, exp_gen.generate_expression(&check_call)?)
+            (
+                exp_gen.get_type_hint_info_for(&check_call)?,
+                exp_gen.generate_expression(&check_call)?,
+            )
         } else {
-            (exp_gen.get_type_hint_info_for(right_statement)?, exp_gen.generate_expression(right_statement)?)
+            (
+                exp_gen.get_type_hint_info_for(right_statement)?,
+                exp_gen.generate_expression(right_statement)?,
+            )
         };
 
         let cast_value = cast_if_needed(
@@ -327,8 +333,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         let expression_generator = self.create_expr_generator();
         let step_by_value = by_step.as_ref().map_or_else(
             || {
-                self
-                    .llvm
+                self.llvm
                     .create_const_numeric(&self.llvm_index.get_associated_type(DINT_TYPE)?, "1")
             },
             |step| expression_generator.generate_expression(step),
@@ -340,8 +345,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
             "tmpVar",
         );
 
-        let ptr = expression_generator
-            .generate_element_pointer(counter)?;
+        let ptr = expression_generator.generate_element_pointer(counter)?;
         builder.build_store(ptr, next);
 
         //Loop back
@@ -417,7 +421,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
                     // this should be a a literal or a reference to a constant
                     builder.position_at_end(basic_block);
                     let condition = exp_gen.generate_expression(s)?; //TODO : Is a type conversion needed here?
-                                                                          // collect all literal case blocks to pass to the llvm switch-statement
+                                                                     // collect all literal case blocks to pass to the llvm switch-statement
                     cases.push((condition.into_int_value(), case_block));
                 }
             }
@@ -463,30 +467,27 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
             .insert_basic_block_after(range_then, "range_else");
         let exp_gen = self.create_expr_generator();
         let lower_bound = {
-            let (type_info, start_val) = (exp_gen.get_type_hint_info_for(start)?, exp_gen.generate_expression(start)?);
+            let start_val = exp_gen.generate_expression(start)?;
             let selector_val = exp_gen.generate_expression(selector)?;
-            let lower_bound_condition = exp_gen.create_llvm_int_binary_expression(
+            exp_gen.create_llvm_int_binary_expression(
                 &Operator::GreaterOrEqual,
                 selector_val,
                 start_val,
-                &type_info,
-            );
-            lower_bound_condition
+            )
         };
 
         //jmp to continue if the value is smaller than start
         builder.build_conditional_branch(lower_bound.into_int_value(), range_then, range_else);
         builder.position_at_end(range_then);
         let upper_bound = {
-            let (type_info, end_val) = (exp_gen.get_type_hint_info_for(end)?, exp_gen.generate_expression(end)?);
+            let end_val = 
+                exp_gen.generate_expression(end)?;
             let selector_val = exp_gen.generate_expression(selector)?;
-            let upper_bound_condition = exp_gen.create_llvm_int_binary_expression(
+            exp_gen.create_llvm_int_binary_expression(
                 &Operator::LessOrEqual,
                 selector_val,
                 end_val,
-                &type_info,
-            );
-            upper_bound_condition
+            )
         };
         self.llvm.builder.build_conditional_branch(
             upper_bound.into_int_value(),

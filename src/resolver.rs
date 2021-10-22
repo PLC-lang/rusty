@@ -9,11 +9,20 @@ use indexmap::IndexMap;
 
 pub mod const_evaluator;
 
-use crate::{ast::{self, AstId, AstStatement, CompilationUnit, DataType, DataTypeDeclaration, Operator, Pou, UserTypeDeclaration, Variable}, index::{ImplementationIndexEntry, ImplementationType, Index, VariableIndexEntry, VariableType}, typesystem::{
+use crate::{
+    ast::{
+        self, AstId, AstStatement, CompilationUnit, DataType, DataTypeDeclaration, Operator, Pou,
+        UserTypeDeclaration, Variable,
+    },
+    index::{
+        ImplementationIndexEntry, ImplementationType, Index, VariableIndexEntry, VariableType,
+    },
+    typesystem::{
         self, get_bigger_type, DataTypeInformation, BOOL_TYPE, BYTE_TYPE, CONST_STRING_TYPE,
         CONST_WSTRING_TYPE, DATE_AND_TIME_TYPE, DATE_TYPE, DINT_TYPE, DWORD_TYPE, LINT_TYPE,
         REAL_TYPE, TIME_OF_DAY_TYPE, TIME_TYPE, VOID_TYPE, WORD_TYPE,
-    }};
+    },
+};
 
 #[cfg(test)]
 mod tests;
@@ -216,14 +225,6 @@ impl AnnotationMap {
     pub fn has_type_annotation(&self, id: &usize) -> bool {
         self.type_map.contains_key(id)
     }
-
-    pub(crate) fn is_auto_deref(&self, expression: &AstStatement) -> bool {
-        if let Some(StatementAnnotation::Variable { is_auto_deref, ..}) = self.get_annotation(expression){
-            *is_auto_deref
-        } else {
-            false
-        }
-    }
 }
 
 impl Default for AnnotationMap {
@@ -266,8 +267,6 @@ impl<'i> TypeAnnotator<'i> {
         }
 
         for i in &unit.implementations {
-            let last_dot = i.name.rfind('.');
-
             i.statements
                 .iter()
                 .for_each(|s| visitor.visit_statement(&ctx.with_pou(i.name.as_str()), s));
@@ -403,7 +402,7 @@ impl<'i> TypeAnnotator<'i> {
                         if let Some(target_type) = self.index.find_type(v.get_type_name()) {
                             self.annotation_map.annotate(
                                 left.as_ref(),
-                                to_variable_annotation(v, self.index, false)
+                                to_variable_annotation(v, self.index, false),
                             );
                             self.annotation_map.annotate_type_hint(
                                 right.as_ref(),
@@ -605,7 +604,16 @@ impl<'i> TypeAnnotator<'i> {
             AstStatement::ArrayAccess {
                 reference, access, ..
             } => {
-                visit_all_statements!(self, ctx, reference, access);
+                visit_all_statements!(self, ctx, reference);
+                self.visit_statement(
+                    &VisitorContext {
+                        call: None,
+                        constant: false,
+                        pou: ctx.pou,
+                        qualifier: None,
+                    },
+                    access,
+                );
                 let array_type = self
                     .annotation_map
                     .get_type_or_void(reference, self.index)
@@ -896,9 +904,7 @@ impl<'i> TypeAnnotator<'i> {
                                 }
                                 None
                             }
-                            _ => {
-                                None
-                            }
+                            _ => None,
                         })
                         .unwrap_or_else(|| VOID_TYPE.to_string());
                     let ctx = ctx.with_call(operator_qualifier.as_str());
@@ -908,18 +914,24 @@ impl<'i> TypeAnnotator<'i> {
                     let parameters = ast::flatten_expression_list(s);
                     let all_members = self.index.find_local_members(operator_qualifier.as_str());
                     let members = all_members.iter().filter(|it| it.is_parameter());
-                    
+
                     for (i, m) in members.enumerate() {
                         if let Some(p) = parameters.get(i) {
-                            if !matches!(p, AstStatement::Assignment{..}) {
-                                if let Some(effective_member_type) = self.index.find_effective_type_by_name(m.get_type_name()){
+                            if !matches!(p, AstStatement::Assignment { .. }) {
+                                if let Some(effective_member_type) =
+                                    self.index.find_effective_type_by_name(m.get_type_name())
+                                {
                                     //update the type hint
-                                    self.annotation_map.annotate_type_hint(p, StatementAnnotation::value(effective_member_type.get_name()))
+                                    self.annotation_map.annotate_type_hint(
+                                        p,
+                                        StatementAnnotation::value(
+                                            effective_member_type.get_name(),
+                                        ),
+                                    )
                                 }
                             }
                         }
                     }
-
                 }
 
                 if let Some(StatementAnnotation::Function { return_type, .. }) =
@@ -934,7 +946,7 @@ impl<'i> TypeAnnotator<'i> {
                         self.annotation_map
                             .annotate(statement, StatementAnnotation::value(return_type));
                     }
-                }else{
+                } else {
                     println!("{:#?}", self.annotation_map.get(operator));
                 }
             }
@@ -1065,24 +1077,23 @@ fn to_variable_annotation(
 ) -> StatementAnnotation {
     let v_type = index.get_effective_type_by_name(v.get_type_name());
 
-    let (effective_type_name,is_auto_deref) = 
-        //see if this is an auto-deref variable
-        if let DataTypeInformation::Pointer {
-            auto_deref: true,
-            inner_type_name,
-            ..
-        } = v_type.get_type_information()
-        {
-            (inner_type_name.clone(), true)
-        } else {
-            (v_type.get_name().to_string(), false) 
-        };
+    //see if this is an auto-deref variable
+    let (effective_type_name, is_auto_deref) = if let DataTypeInformation::Pointer {
+        auto_deref: true,
+        inner_type_name,
+        ..
+    } = v_type.get_type_information()
+    {
+        (inner_type_name.clone(), true)
+    } else {
+        (v_type.get_name().to_string(), false)
+    };
 
     StatementAnnotation::Variable {
         qualified_name: v.get_qualified_name().into(),
         resulting_type: effective_type_name,
         constant: v.is_constant() || constant_override,
-        is_auto_deref
+        is_auto_deref,
     }
 }
 

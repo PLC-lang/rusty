@@ -24,7 +24,6 @@ use crate::{
         llvm_typesystem::{cast_if_needed, get_llvm_int_type},
     },
     compile_error::CompileError,
-    index::VariableIndexEntry,
     typesystem::{DataType, DataTypeInformation},
 };
 
@@ -151,16 +150,10 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
         //see if this is a constant - maybe we can short curcuit this codegen
         if let Some(StatementAnnotation::Variable {
             qualified_name,
-            resulting_type,
             ..
         }) = self.annotations.get_annotation(expression)
         {
-            if let Some((basic_value_enum, data_type_info)) =
-                self.llvm_index.find_constant_value(qualified_name).zip(
-                    self.index
-                        .find_effective_type_by_name(resulting_type)
-                        .map(DataType::clone_type_information),
-                )
+            if let Some(basic_value_enum) = self.llvm_index.find_constant_value(qualified_name)
             {
                 //this is a constant and we have a value for it
                 return Ok(basic_value_enum);
@@ -231,14 +224,12 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                         operator,
                         left_value,
                         right_value,
-                        result_type,
                     ))
                 } else if ltype.is_float() && rtype.is_float() {
                     Ok(self.create_llvm_float_binary_expression(
                         operator,
                         left_value,
                         right_value,
-                        result_type,
                     ))
                 } else {
                     let message = format!(
@@ -305,9 +296,9 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                         let reference = cast_if_needed(
                             self.llvm,
                             self.index,
-                            &expression_type,
+                            expression_type,
                             reference,
-                            &target_type,
+                            target_type,
                             index,
                         )
                         .map(BasicValueEnum::into_int_value)?;
@@ -522,12 +513,6 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
         builder.position_at_end(output_block);
         builder.build_unconditional_branch(continue_block);
         builder.position_at_end(call_block);
-        let return_type = self
-            .index
-            .find_member(function_name, Pou::calc_return_name(function_name))
-            .map(VariableIndexEntry::get_type_name)
-            .or(Some("__VOID"))
-            .and_then(|it| self.index.find_type_information(it));
         let function = self
             .llvm_index
             .find_associated_implementation(function_name) //using the non error option to control the output error
@@ -711,12 +696,12 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                 .map(|var| var.get_type_information())
                 .unwrap();
             let generated_exp = if let DataTypeInformation::Pointer {
-                 auto_deref: true, ..
+                auto_deref: true, ..
             } = parameter
             {
                 //this is VAR_IN_OUT assignemt, so don't load the value, assign the pointer
                 self.generate_element_pointer_for_rec(None, expression)?
-                     .as_basic_value_enum()
+                    .as_basic_value_enum()
             } else {
                 self.generate_expression(expression)?
             };
@@ -864,20 +849,13 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
     ) -> Result<TypeAndPointer<'a, '_>, CompileError> {
         let offset = &context.get_location();
         let l_value = if let Some((l_value, qualifier_name)) = qualifier {
-            let type_entry = self.get_type_hint_for(context).map_err(|_| {
-                CompileError::invalid_reference(
-                    &format!("{:}.{:}", qualifier_name, name),
-                    offset.clone(),
-                )
-            })?;
 
             if let Some(StatementAnnotation::Variable {
                 qualified_name,
-                resulting_type,
                 ..
             }) = self.annotations.get_annotation(context)
             {
-                let segments: Vec<&str> = qualified_name.split(".").collect();
+                let segments: Vec<&str> = qualified_name.split('.').collect();
                 let (qualifier, segments) = if segments.len() > 1 {
                     (
                         Some(segments[0]),
@@ -894,9 +872,8 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                             CompileError::invalid_reference(qualified_name, offset.clone())
                         })?;
 
-                let member_type = self.index.get_type(resulting_type)?;
                 let gep = self.llvm.get_member_pointer_from_struct(
-                    l_value.clone(),
+                    *l_value,
                     member_location,
                     name,
                     offset,
@@ -947,20 +924,15 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
 
             accessor_ptr
         };
-
+        // self.auto_deref_if_necessary(l_value, context)
         Ok(l_value)
     }
 
     fn deref(
         &self,
         accessor_ptr: PointerValue<'a>,
-        statement: &AstStatement,
-    ) -> Result<TypeAndPointer<'a, 'b>, CompileError> {
-        
-            // auto_deref the pointer
-            let value = self.llvm.load_pointer(&accessor_ptr, "deref");
-            Ok(value.into_pointer_value())
-        
+    ) -> TypeAndPointer<'a, 'b> {
+        self.llvm.load_pointer(&accessor_ptr, "deref").into_pointer_value()
     }
 
     /// automatically derefs an inout variable pointer so it can be used like a normal variable
@@ -973,8 +945,12 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
         accessor_ptr: PointerValue<'a>,
         statement: &AstStatement,
     ) -> Result<TypeAndPointer<'a, 'b>, CompileError> {
-        if let Some(StatementAnnotation::Variable{ is_auto_deref: true, resulting_type, ..}) = self.annotations.get_annotation(statement) {
-            self.deref(accessor_ptr, statement)
+        if let Some(StatementAnnotation::Variable {
+            is_auto_deref: true,
+            ..
+        }) = self.annotations.get_annotation(statement)
+        {
+            Ok(self.deref(accessor_ptr))
         } else {
             Ok(accessor_ptr)
         }
@@ -1038,7 +1014,6 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
         self.generate_element_pointer_for_rec(qualifier, reference)
             .and_then(|lvalue| {
                 if let DataTypeInformation::Array {
-                    inner_type_name,
                     dimensions,
                     ..
                 } = self.get_type_hint_info_for(reference)?
@@ -1126,12 +1101,13 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                     }
                 };
                 //Otherwise, load a variable reference
-                let x = self.create_llvm_pointer_value_for_reference(
-                    qualifier.zip(Some(self.get_annotated_qualifier_for(reference)?)),
-                    name,
-                    reference,
-                )
-                .and_then(|p| self.auto_deref_if_necessary(p, reference));
+                let x = self
+                    .create_llvm_pointer_value_for_reference(
+                        qualifier.zip(Some(self.get_annotated_qualifier_for(reference)?)),
+                        name,
+                        reference,
+                    )
+                    .and_then(|p| self.auto_deref_if_necessary(p, reference));
                 x
             }
             AstStatement::ArrayAccess {
@@ -1139,7 +1115,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
             } => self.generate_element_pointer_for_array(qualifier, reference, access),
             AstStatement::PointerAccess { reference, .. } => {
                 let pointer = self.generate_element_pointer_for_rec(qualifier, reference)?;
-                self.deref(pointer, reference)
+                Ok(self.deref(pointer))
             }
             _ => Err(CompileError::codegen_error(
                 format!("Unsupported Statement {:?}", reference),
@@ -1159,107 +1135,82 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
         operator: &Operator,
         left_value: BasicValueEnum<'a>,
         right_value: BasicValueEnum<'a>,
-        target_type: &DataTypeInformation,
     ) -> TypeAndValue<'a> {
         let int_lvalue = left_value.into_int_value();
         let int_rvalue = right_value.into_int_value();
 
-        let (value, data_type) = match operator {
-            Operator::Plus => (
+        let value = match operator {
+            Operator::Plus => 
                 self.llvm
                     .builder
                     .build_int_add(int_lvalue, int_rvalue, "tmpVar"),
-                target_type.clone(),
-            ),
-            Operator::Minus => (
+            Operator::Minus => 
                 self.llvm
                     .builder
                     .build_int_sub(int_lvalue, int_rvalue, "tmpVar"),
-                target_type.clone(),
-            ),
-            Operator::Multiplication => (
+            Operator::Multiplication => 
                 self.llvm
                     .builder
                     .build_int_mul(int_lvalue, int_rvalue, "tmpVar"),
-                target_type.clone(),
-            ),
-            Operator::Division => (
+            Operator::Division => 
                 self.llvm
                     .builder
                     .build_int_signed_div(int_lvalue, int_rvalue, "tmpVar"),
-                target_type.clone(),
-            ),
-            Operator::Modulo => (
+            Operator::Modulo => 
                 self.llvm
                     .builder
                     .build_int_signed_rem(int_lvalue, int_rvalue, "tmpVar"),
-                target_type.clone(),
-            ),
-            Operator::Equal => (
+            Operator::Equal => 
                 self.llvm.builder.build_int_compare(
                     IntPredicate::EQ,
                     int_lvalue,
                     int_rvalue,
                     "tmpVar",
                 ),
-                self.index.find_type_information("BOOL").unwrap(),
-            ),
 
-            Operator::NotEqual => (
+            Operator::NotEqual => 
                 self.llvm.builder.build_int_compare(
                     IntPredicate::NE,
                     int_lvalue,
                     int_rvalue,
                     "tmpVar",
                 ),
-                self.index.find_type_information("BOOL").unwrap(),
-            ),
 
-            Operator::Less => (
+            Operator::Less => 
                 self.llvm.builder.build_int_compare(
                     IntPredicate::SLT,
                     int_lvalue,
                     int_rvalue,
                     "tmpVar",
                 ),
-                self.index.find_type_information("BOOL").unwrap(),
-            ),
 
-            Operator::Greater => (
+            Operator::Greater => 
                 self.llvm.builder.build_int_compare(
                     IntPredicate::SGT,
                     int_lvalue,
                     int_rvalue,
                     "tmpVar",
                 ),
-                self.index.find_type_information("BOOL").unwrap(),
-            ),
 
-            Operator::LessOrEqual => (
+            Operator::LessOrEqual => 
                 self.llvm.builder.build_int_compare(
                     IntPredicate::SLE,
                     int_lvalue,
                     int_rvalue,
                     "tmpVar",
                 ),
-                self.index.find_type_information("BOOL").unwrap(),
-            ),
 
-            Operator::GreaterOrEqual => (
+            Operator::GreaterOrEqual => 
                 self.llvm.builder.build_int_compare(
                     IntPredicate::SGE,
                     int_lvalue,
                     int_rvalue,
                     "tmpVar",
                 ),
-                self.index.find_type_information("BOOL").unwrap(),
-            ),
-            Operator::Xor => (
+            Operator::Xor => 
                 self.llvm
                     .builder
                     .build_xor(int_lvalue, int_rvalue, "tmpVar"),
-                self.index.find_type_information("BOOL").unwrap(),
-            ),
             _ => unimplemented!(),
         };
         value.into()
@@ -1276,94 +1227,67 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
         operator: &Operator,
         lvalue: BasicValueEnum<'a>,
         rvalue: BasicValueEnum<'a>,
-        target_type: &DataTypeInformation,
     ) -> TypeAndValue<'a> {
         let float_lvalue = lvalue.into_float_value();
         let float_rvalue = rvalue.into_float_value();
 
-        let (value, data_type) = match operator {
-            Operator::Plus => (
+        let value = match operator {
+            Operator::Plus => 
                 self.llvm
                     .builder
                     .build_float_add(float_lvalue, float_rvalue, "tmpVar")
                     .into(),
-                target_type.clone(),
-            ),
-            Operator::Minus => (
+            Operator::Minus => 
                 self.llvm
                     .builder
                     .build_float_sub(float_lvalue, float_rvalue, "tmpVar")
                     .into(),
-                target_type.clone(),
-            ),
-            Operator::Multiplication => (
+            Operator::Multiplication => 
                 self.llvm
                     .builder
                     .build_float_mul(float_lvalue, float_rvalue, "tmpVar")
                     .into(),
-                target_type.clone(),
-            ),
-            Operator::Division => (
+            Operator::Division => 
                 self.llvm
                     .builder
                     .build_float_div(float_lvalue, float_rvalue, "tmpVar")
                     .into(),
-                target_type.clone(),
-            ),
-            Operator::Modulo => (
+            Operator::Modulo => 
                 self.llvm
                     .builder
                     .build_float_rem(float_lvalue, float_rvalue, "tmpVar")
                     .into(),
-                target_type.clone(),
-            ),
-            Operator::Equal => (
+
+            Operator::Equal => 
                 self.llvm
                     .builder
                     .build_float_compare(FloatPredicate::OEQ, float_lvalue, float_rvalue, "tmpVar")
                     .into(),
-                self.index.find_type_information("BOOL").unwrap(),
-            ),
-
-            Operator::NotEqual => (
+            Operator::NotEqual => 
                 self.llvm
                     .builder
                     .build_float_compare(FloatPredicate::ONE, float_lvalue, float_rvalue, "tmpVar")
                     .into(),
-                self.index.find_type_information("BOOL").unwrap(),
-            ),
-
-            Operator::Less => (
+            Operator::Less => 
                 self.llvm
                     .builder
                     .build_float_compare(FloatPredicate::OLT, float_lvalue, float_rvalue, "tmpVar")
                     .into(),
-                self.index.find_type_information("BOOL").unwrap(),
-            ),
-
-            Operator::Greater => (
+            Operator::Greater => 
                 self.llvm
                     .builder
                     .build_float_compare(FloatPredicate::OGT, float_lvalue, float_rvalue, "tmpVar")
                     .into(),
-                self.index.find_type_information("BOOL").unwrap(),
-            ),
-
-            Operator::LessOrEqual => (
+            Operator::LessOrEqual => 
                 self.llvm
                     .builder
                     .build_float_compare(FloatPredicate::OLE, float_lvalue, float_rvalue, "tmpVar")
                     .into(),
-                self.index.find_type_information("BOOL").unwrap(),
-            ),
-
-            Operator::GreaterOrEqual => (
+            Operator::GreaterOrEqual => 
                 self.llvm
                     .builder
                     .build_float_compare(FloatPredicate::OGE, float_lvalue, float_rvalue, "tmpVar")
                     .into(),
-                self.index.find_type_information("BOOL").unwrap(),
-            ),
 
             _ => unimplemented!(),
         };
@@ -1825,7 +1749,6 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
     }
 
     fn create_const_int(&self, value: i64) -> Result<TypeAndValue<'a>, CompileError> {
-        let type_info = self.index.get_type_information(LINT_TYPE)?;
         let value = self.llvm.create_const_numeric(
             &self.llvm_index.get_associated_type(LINT_TYPE)?,
             value.to_string().as_str(),

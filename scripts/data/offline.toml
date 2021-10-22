@@ -1,0 +1,10 @@
+[source.crates-io]
+replace-with = "vendored-sources"
+
+[source."https://github.com/TheDan64/inkwell"]
+git = "https://github.com/TheDan64/inkwell"
+branch = "master"
+replace-with = "vendored-sources"
+
+[source.vendored-sources]
+directory = "../3rd-party"
