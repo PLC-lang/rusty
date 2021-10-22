@@ -1,8 +1,5 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-use crate::{
-    ast::SourceRange,
-    compile_error::CompileError,
-};
+use crate::{ast::SourceRange, compile_error::CompileError};
 use inkwell::{
     builder::Builder,
     context::Context,
@@ -145,10 +142,7 @@ impl<'a> Llvm<'a> {
     ///
     /// - `index` the index to obtain the datatypeinformation for BOOL
     /// - `value` the value of the constant bool value
-    pub fn create_const_bool(
-        &self,
-        value: bool,
-    ) -> Result<BasicValueEnum<'a>, CompileError> {
+    pub fn create_const_bool(&self, value: bool) -> Result<BasicValueEnum<'a>, CompileError> {
         let itype = self.context.bool_type();
         let value = itype.const_int(value as u64, false);
         Ok(BasicValueEnum::IntValue(value))

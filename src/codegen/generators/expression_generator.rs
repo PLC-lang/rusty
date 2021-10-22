@@ -1261,9 +1261,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
         literal_statement: &AstStatement,
     ) -> Result<BasicValueEnum<'a>, CompileError> {
         match literal_statement {
-            AstStatement::LiteralBool { value, .. } => self
-                .llvm
-                .create_const_bool(*value),
+            AstStatement::LiteralBool { value, .. } => self.llvm.create_const_bool(*value),
             AstStatement::LiteralInteger { value, .. } => {
                 self.generate_numeric_literal(literal_statement, value.to_string().as_str())
             }
@@ -1329,12 +1327,10 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                 let expected_type = self.get_type_hint_info_for(literal_statement)?;
                 if let DataTypeInformation::String { encoding, .. } = expected_type {
                     match encoding {
-                        StringEncoding::Utf8 => self
-                            .llvm
-                            .create_const_utf8_string(value.as_str()),
-                        StringEncoding::Utf16 => self
-                            .llvm
-                            .create_const_utf16_string(value.as_str()),
+                        StringEncoding::Utf8 => self.llvm.create_const_utf8_string(value.as_str()),
+                        StringEncoding::Utf16 => {
+                            self.llvm.create_const_utf16_string(value.as_str())
+                        }
                     }
                 } else {
                     Err(CompileError::codegen_error(

@@ -172,6 +172,7 @@ fn parse_pou(
                 KeywordVarInput,
                 KeywordVarOutput,
                 KeywordVarInOut,
+                KeywordVarTemp,
             ],
         };
         while allowed_var_types.contains(&lexer.token) {

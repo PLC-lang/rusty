@@ -19,7 +19,7 @@ pub mod tests {
         let id_provider = IdProvider::default();
         let (mut unit, ..) = parser::parse(lexer::lex_with_ids(src, id_provider.clone()));
         ast::pre_process(&mut unit);
-        let index = index::visitor::visit(&unit, id_provider.clone());
+        let index = index::visitor::visit(&unit, id_provider);
         (unit, index)
     }
 

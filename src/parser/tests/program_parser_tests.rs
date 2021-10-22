@@ -98,3 +98,25 @@ fn simple_program_with_var_inout_can_be_parsed() {
 }"#;
     assert_eq!(ast_string, expected_ast);
 }
+
+#[test]
+fn simple_program_with_var_temp_can_be_parsed() {
+    let program = "PROGRAM buz VAR_TEMP x : INT; END_VAR END_PROGRAM";
+    let result = parse(program).0;
+
+    let prg = &result.units[0];
+    let variable_block = &prg.variable_blocks[0];
+    let ast_string = format!("{:#?}", variable_block);
+    let expected_ast = r#"VariableBlock {
+    variables: [
+        Variable {
+            name: "x",
+            data_type: DataTypeReference {
+                referenced_type: "INT",
+            },
+        },
+    ],
+    variable_block_type: Temp,
+}"#;
+    assert_eq!(ast_string, expected_ast);
+}

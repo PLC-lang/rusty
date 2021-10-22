@@ -279,7 +279,7 @@ pub fn cast_if_needed<'ctx>(
                         //dont bother with the wstring, because we will rework them
                         //
                         let new_value = &str_bytes[0..(total_bytes_to_copy) as usize];
-                        let value= llvm.create_llvm_const_vec_string(new_value)?;
+                        let value = llvm.create_llvm_const_vec_string(new_value)?;
                         Ok(value)
                     } else {
                         //if we are on a vector replace it
@@ -289,7 +289,7 @@ pub fn cast_if_needed<'ctx>(
                             let real_size = std::cmp::min(size, (string_value.len() + 1) as u32);
                             if real_size < value_size {
                                 let new_value = &string_value[0..(real_size - 1) as usize];
-                                let value= llvm.create_llvm_const_vec_string(new_value)?;
+                                let value = llvm.create_llvm_const_vec_string(new_value)?;
                                 Ok(value)
                             } else {
                                 Ok(value)

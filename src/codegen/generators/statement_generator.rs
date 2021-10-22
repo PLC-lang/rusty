@@ -4,7 +4,7 @@ use super::{
 };
 use crate::{
     ast::{flatten_expression_list, AstStatement, ConditionalBlock, Operator, SourceRange},
-    codegen::{llvm_typesystem::cast_if_needed, LlvmTypedIndex},
+    codegen::LlvmTypedIndex,
     compile_error::CompileError,
     index::{ImplementationIndexEntry, Index},
     resolver::AnnotationMap,

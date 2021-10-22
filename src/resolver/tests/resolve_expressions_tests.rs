@@ -4,10 +4,10 @@ use crate::{
     ast::{self, AstStatement, DataType, Pou, UserTypeDeclaration},
     index::Index,
     resolver::{AnnotationMap, StatementAnnotation},
-    test_utils::tests::{annotate, parse},
+    test_utils::tests::annotate,
     typesystem::{
         BOOL_TYPE, BYTE_TYPE, CONST_STRING_TYPE, DINT_TYPE, INT_TYPE, REAL_TYPE, SINT_TYPE,
-        STRING_TYPE, UINT_TYPE, USINT_TYPE, VOID_TYPE,
+        UINT_TYPE, USINT_TYPE, VOID_TYPE,
     },
 };
 
