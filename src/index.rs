@@ -63,6 +63,11 @@ impl VariableIndexEntry {
     pub fn get_variable_type(&self) -> VariableType {
         self.information.variable_type
     }
+
+    pub(crate) fn is_parameter(&self) -> bool {
+        let vt = self.get_variable_type();
+        matches!(vt, VariableType::Input | VariableType::Output | VariableType::InOut )
+    }
 }
 
 #[derive(Copy, Clone, Debug, PartialEq)]
@@ -206,11 +211,11 @@ impl TypeIndex {
         data_type: &'ret DataType,
     ) -> Option<&'ret DataType> {
         match data_type.get_type_information() {
-            DataTypeInformation::SubRange {
-                referenced_type, ..
-            } => self
-                .find_type(referenced_type)
-                .and_then(|it| self.find_effective_type(it)),
+            // DataTypeInformation::SubRange {
+            //     referenced_type, ..
+            // } => self
+            //     .find_type(referenced_type)
+            //     .and_then(|it| self.find_effective_type(it)),
             DataTypeInformation::Alias {
                 referenced_type, ..
             } => self

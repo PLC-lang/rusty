@@ -204,6 +204,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
                 self.find_range_check_impolementation_for(left_type.get_type_information())
                     .map(|implementation| {
                         create_call_to_check_function_ast(
+                            left_statement,
                             implementation.get_call_name().to_string(),
                             right_statement.clone(),
                             sub_range.clone(),
@@ -678,6 +679,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
 }
 
 fn create_call_to_check_function_ast(
+    target: &AstStatement,
     check_function_name: String,
     parameter: AstStatement,
     sub_range: Range<AstStatement>,
@@ -688,13 +690,13 @@ fn create_call_to_check_function_ast(
         operator: Box::new(AstStatement::Reference {
             name: check_function_name,
             location: location.clone(),
-            id: 0, //TODO
+            id: target.get_id(), //TODO
         }),
         parameters: Box::new(Some(AstStatement::ExpressionList {
             expressions: vec![parameter, sub_range.start, sub_range.end],
             id: range_type_id, //use the id so we end up with the same datatype
         })),
         location: location.clone(),
-        id: 0, //TODO
+        id: target.get_id(), //TODO
     }
 }

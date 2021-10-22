@@ -266,17 +266,18 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
         elements: &[AstStatement],
     ) -> Result<TypeAndValue<'a>, CompileError> {
         let (last, qualifer) = elements.split_last().unwrap();
-        let id = elements.last().unwrap().get_id();
         let expression = if qualifer.len() == 1 {
             //Create a single reference
             qualifer.first().unwrap().clone()
         } else {
+            let id = qualifer.last().unwrap().get_id();
             AstStatement::QualifiedReference {
                 elements: qualifer.to_vec(),
                 id,
             }
         };
         //Generate a load for the qualifer
+        // a.%b1.%x1
         let value = self.generate_expression(&expression)?;
         let expression_type = self.get_type_hint_info_for(&expression)?;
         if let AstStatement::DirectAccess { access, index, .. } = last {
@@ -700,6 +701,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
             let pointer_to_param = builder
                 .build_struct_gep(parameter_struct, index as u32, "")
                 .unwrap();
+
             let parameter = parameter_type
                 .or_else(|| {
                     self.index
@@ -709,26 +711,24 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                 .map(|var| var.get_type_information())
                 .unwrap();
             let generated_exp = if let DataTypeInformation::Pointer {
-                auto_deref: true, ..
+                 auto_deref: true, ..
             } = parameter
             {
                 //this is VAR_IN_OUT assignemt, so don't load the value, assign the pointer
-                self.generate_element_pointer_for_rec(None, expression)
-                    //get a pointer for that variable
-                    .and_then(|tp| self.auto_deref_if_necessary(tp, expression))?
-                    .as_basic_value_enum()
+                self.generate_element_pointer_for_rec(None, expression)?
+                     .as_basic_value_enum()
             } else {
                 self.generate_expression(expression)?
             };
-            let value = cast_if_needed(
-                self.llvm,
-                self.index,
-                parameter,
-                generated_exp,
-                self.get_type_hint_info_for(expression)?,
-                expression,
-            )?;
-            builder.build_store(pointer_to_param, value);
+            // let value = cast_if_needed(
+            //     self.llvm,
+            //     self.index,
+            //     parameter,
+            //     generated_exp,
+            //     self.get_type_hint_info_for(expression)?,
+            //     expression,
+            // )?;
+            builder.build_store(pointer_to_param, generated_exp);
             Ok(None)
         } else {
             Ok(Some(self.generate_expression(expression)?))

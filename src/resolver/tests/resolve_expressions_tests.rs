@@ -1,18 +1,11 @@
 use core::panic;
 
-use crate::{
-    ast::{AstStatement, DataType, Pou, UserTypeDeclaration},
-    index::Index,
-    resolver::{
+use crate::{ast::{self, AstStatement, DataType, Pou, UserTypeDeclaration}, index::Index, resolver::{
         tests::{annotate, parse},
         AnnotationMap, StatementAnnotation,
-    },
-    typesystem::{
-        BOOL_TYPE, BYTE_TYPE, CONST_STRING_TYPE, DINT_TYPE, INT_TYPE, REAL_TYPE, SINT_TYPE,
-        UINT_TYPE, USINT_TYPE, VOID_TYPE,
-    },
-};
+    }, typesystem::{BOOL_TYPE, BYTE_TYPE, CONST_STRING_TYPE, DINT_TYPE, INT_TYPE, REAL_TYPE, SINT_TYPE, STRING_TYPE, UINT_TYPE, USINT_TYPE, VOID_TYPE}};
 
+#[macro_export]
 macro_rules! assert_type_and_hint {
     ($annotations:expr, $index:expr, $stmt:expr, $expected_type:expr, $expected_type_hint:expr) => {
         assert_eq!(
@@ -2306,7 +2299,6 @@ fn nested_bitwise_access_resolves_correctly() {
 
     if let AstStatement::Assignment{ right, ..} = assignment {
         assert_type_and_hint!(&annotations, &index, right, "BOOL", Some("BOOL"));   //strange
-
         if let AstStatement::QualifiedReference {elements, ..} = right.as_ref() {
             assert_type_and_hint!(&annotations, &index, &elements[0], "LWORD", None);
             assert_type_and_hint!(&annotations, &index, &elements[1], "DWORD", None);
@@ -2323,6 +2315,34 @@ fn nested_bitwise_access_resolves_correctly() {
             unreachable!()
         }
     }else{
+        unreachable!();
+    }
+}
+
+#[test]
+fn literals_passed_to_function_get_annotated() {
+    let (unit, index) = parse(
+        r#"
+        FUNCTION foo : STRING
+            VAR_INPUT b : BYTE; in : STRING END_VAR
+
+            foo := in;
+        END_FUNCTION
+
+        PROGRAM prg
+            foo(77, 'abc');
+        END_PROGRAM
+        "#);
+
+    // WHEN this code is annotated
+    let annotations = annotate(&unit, &index);
+    let call_stmt = &unit.implementations[1].statements[0];
+
+    if let AstStatement::CallStatement{ parameters, .. } = call_stmt {
+        let parameters = ast::flatten_expression_list(parameters.as_ref().as_ref().unwrap());
+        assert_type_and_hint!(&annotations, &index, parameters[0], DINT_TYPE, Some(BYTE_TYPE));
+        assert_type_and_hint!(&annotations, &index, parameters[1], CONST_STRING_TYPE, Some("__foo_in"));
+    }else{  
         unreachable!();
     }
 }

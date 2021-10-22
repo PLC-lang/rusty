@@ -9,10 +9,7 @@ use indexmap::IndexMap;
 
 pub mod const_evaluator;
 
-use crate::{ast::{
-        AstId, AstStatement, CompilationUnit, DataType, DataTypeDeclaration, Operator, Pou,
-        UserTypeDeclaration, Variable,
-    }, index::{ImplementationIndexEntry, ImplementationType, Index, VariableIndexEntry, VariableType}, typesystem::{
+use crate::{ast::{self, AstId, AstStatement, CompilationUnit, DataType, DataTypeDeclaration, Operator, Pou, UserTypeDeclaration, Variable}, index::{ImplementationIndexEntry, ImplementationType, Index, VariableIndexEntry, VariableType}, typesystem::{
         self, get_bigger_type, DataTypeInformation, BOOL_TYPE, BYTE_TYPE, CONST_STRING_TYPE,
         CONST_WSTRING_TYPE, DATE_AND_TIME_TYPE, DATE_TYPE, DINT_TYPE, DWORD_TYPE, LINT_TYPE,
         REAL_TYPE, TIME_OF_DAY_TYPE, TIME_TYPE, VOID_TYPE, WORD_TYPE,
@@ -900,7 +897,6 @@ impl<'i> TypeAnnotator<'i> {
                                 None
                             }
                             _ => {
-                                println!("{:#?}", it);
                                 None
                             }
                         })
@@ -908,6 +904,22 @@ impl<'i> TypeAnnotator<'i> {
                     let ctx = ctx.with_call(operator_qualifier.as_str());
                     //need to clone the qualifier string because of borrow checker :-( - //todo look into this
                     self.visit_statement(&ctx, s);
+
+                    let parameters = ast::flatten_expression_list(s);
+                    let all_members = self.index.find_local_members(operator_qualifier.as_str());
+                    let members = all_members.iter().filter(|it| it.is_parameter());
+                    
+                    for (i, m) in members.enumerate() {
+                        if let Some(p) = parameters.get(i) {
+                            if !matches!(p, AstStatement::Assignment{..}) {
+                                if let Some(effective_member_type) = self.index.find_effective_type_by_name(m.get_type_name()){
+                                    //update the type hint
+                                    self.annotation_map.annotate_type_hint(p, StatementAnnotation::value(effective_member_type.get_name()))
+                                }
+                            }
+                        }
+                    }
+
                 }
 
                 if let Some(StatementAnnotation::Function { return_type, .. }) =

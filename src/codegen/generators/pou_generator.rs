@@ -186,7 +186,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                 implementation.pou_type,
                 PouType::Function | PouType::Method { .. }
             ) {
-                self.generate_initialization_of_local_vars(pou_members, &statement_gen)?;
+                self.generate_initialization_of_local_vars(pou_members, &local_index, &statement_gen)?;
             }
             statement_gen.generate_body(&implementation.statements)?
         }
@@ -272,6 +272,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
     fn generate_initialization_of_local_vars(
         &self,
         variables: Vec<&VariableIndexEntry>,
+        local_llvm_index: &LlvmTypedIndex,
         statement_generator: &StatementCodeGenerator<'ink, '_>,
     ) -> Result<(), CompileError> {
         let variables_with_initializers = variables
@@ -290,7 +291,27 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                 .get_const_expressions()
                 .maybe_get_constant_statement(&variable.initial_value)
                 .unwrap();
-            statement_generator.generate_assignment_statement(&left, right)?;
+
+            //get the loaded_ptr for the parameter and store right in it
+            if let Some(left) = local_llvm_index
+                .find_loaded_associated_variable_value(variable.get_qualified_name())
+            {
+                let exp_gen = ExpressionCodeGenerator::new_context_free(
+                    &self.llvm,
+                    self.index,
+                    self.annotations,
+                    local_llvm_index,
+                );
+
+                self.llvm
+                    .builder
+                    .build_store(left, exp_gen.generate_expression(right)?);
+            } else {
+                return Err(CompileError::cannot_generate_initializer(
+                    variable.get_qualified_name(),
+                    variable.source_location.clone(),
+                ));
+            }
         }
         Ok(())
     }
@@ -309,9 +330,11 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
             .find_return_variable(function_context.linking_context.get_type_name())
         {
             let var_name = format!("{}_ret", function_context.linking_context.get_call_name());
-            let ret_name =  ret_v.get_qualified_name();
+            let ret_name = ret_v.get_qualified_name();
             let value_ptr = local_index.find_loaded_associated_variable_value(ret_name);
-            let loaded_value = self.llvm.load_pointer(value_ptr.as_ref().unwrap(), var_name.as_str()); 
+            let loaded_value = self
+                .llvm
+                .load_pointer(value_ptr.as_ref().unwrap(), var_name.as_str());
             self.llvm.builder.build_return(Some(&loaded_value));
         } else {
             self.llvm.builder.build_return(None);

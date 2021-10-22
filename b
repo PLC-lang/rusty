@@ -1,25 +1,40 @@
-"; ModuleID = 'main'
+; ModuleID = 'main'
 source_filename = \"main\"
 
-%smaller_than_ten_interface = type { i8 }
+%foo_interface = type { i32* }
+%prg_interface = type { i32 }
 
-define i16 @smaller_than_ten(%smaller_than_ten_interface* %0) {
+@foo_instance = global %foo_interface zeroinitializer
+@prg_instance = global %prg_interface zeroinitializer
+
+define void @foo(%foo_interface* %0) {
 entry:
-  %n = getelementptr inbounds %smaller_than_ten_interface, %smaller_than_ten_interface* %0, i32 0, i32 0
-  %smaller_than_ten = alloca i16, align 2
-  %load_n = load i8, i8* %n, align 1
-  %1 = sext i8 %load_n to i32
-  %tmpVar = icmp slt i32 %1, 10
-  br i1 %tmpVar, label %condition_body, label %continue
+  %inout = getelementptr inbounds %foo_interface, %foo_interface* %0, i32 0, i32 0
+  %deref = load i32*, i32** %inout, align 8
+  %deref1 = load i32*, i32** %inout, align 8
+  %load_inout = load i32, i32* %deref1, align 4
+  %tmpVar = add i32 %load_inout, 1
+  store i32 %tmpVar, i32* %deref, align 4
+  ret void
+}
 
-condition_body:                                   ; preds = %entry
-  %smaller_than_ten_ret = load i16, i16* %smaller_than_ten, align 2
-  ret i16 %smaller_than_ten_ret
+define void @prg(%prg_interface* %0) {
+entry:
+  %baz = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 0
+  store i32 7, i32* %baz, align 4
+  br label %input
 
-buffer_block:                                     ; No predecessors!
+input:                                            ; preds = %entry
+  store i32* %baz, i32** getelementptr inbounds (%foo_interface, %foo_interface* @foo_instance, i32 0, i32 0), align 8
+  br label %call
+
+call:                                             ; preds = %input
+  call void @foo(%foo_interface* @foo_instance)
+  br label %output
+
+output:                                           ; preds = %call
   br label %continue
 
-continue:                                         ; preds = %buffer_block, %entry
-  %smaller_than_ten_ret1 = load i16, i16* %smaller_than_ten, align 2
-  ret i16 %smaller_than_ten_ret1
+continue:                                         ; preds = %output
+  ret void
 }

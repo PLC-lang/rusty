@@ -173,6 +173,7 @@ pub enum DataTypeInformation {
         name: String,
         signed: bool,
         size: u32,
+        range : Option<Range<usize>>,
     },
     Enum {
         name: String,
@@ -316,6 +317,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
                 name: BOOL_TYPE.into(),
                 signed: true,
                 size: BOOL_SIZE,
+                range: None,
             },
         },
         DataType {
@@ -325,6 +327,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
                 name: BYTE_TYPE.into(),
                 signed: false,
                 size: BYTE_SIZE,
+                range: None,
             },
         },
         DataType {
@@ -334,6 +337,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
                 name: SINT_TYPE.into(),
                 signed: true,
                 size: SINT_SIZE,
+                range: None,
             },
         },
         DataType {
@@ -343,6 +347,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
                 name: USINT_TYPE.into(),
                 signed: false,
                 size: SINT_SIZE,
+                range: None,
             },
         },
         DataType {
@@ -352,6 +357,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
                 name: WORD_TYPE.into(),
                 signed: false,
                 size: INT_SIZE,
+                range: None,
             },
         },
         DataType {
@@ -361,6 +367,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
                 name: INT_TYPE.into(),
                 signed: true,
                 size: INT_SIZE,
+                range: None,
             },
         },
         DataType {
@@ -370,6 +377,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
                 name: UINT_TYPE.into(),
                 signed: false,
                 size: INT_SIZE,
+                range: None,
             },
         },
         DataType {
@@ -379,6 +387,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
                 name: DWORD_TYPE.into(),
                 signed: false,
                 size: DINT_SIZE,
+                range: None,
             },
         },
         DataType {
@@ -388,6 +397,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
                 name: DINT_TYPE.into(),
                 signed: true,
                 size: DINT_SIZE,
+                range: None,
             },
         },
         DataType {
@@ -397,6 +407,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
                 name: UDINT_TYPE.into(),
                 signed: false,
                 size: DINT_SIZE,
+                range: None,
             },
         },
         DataType {
@@ -406,6 +417,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
                 name: LWORD_TYPE.into(),
                 signed: false,
                 size: LINT_SIZE,
+                range: None,
             },
         },
         DataType {
@@ -415,6 +427,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
                 name: LINT_TYPE.into(),
                 signed: true,
                 size: LINT_SIZE,
+                range: None,
             },
         },
         DataType {
@@ -424,6 +437,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
                 name: DATE_TYPE.into(),
                 signed: true,
                 size: DATE_TIME_SIZE,
+                range: None,
             },
         },
         DataType {
@@ -433,6 +447,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
                 name: TIME_TYPE.into(),
                 signed: true,
                 size: DATE_TIME_SIZE,
+                range: None,
             },
         },
         DataType {
@@ -442,6 +457,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
                 name: DATE_AND_TIME_TYPE.into(),
                 signed: true,
                 size: DATE_TIME_SIZE,
+                range: None,
             },
         },
         DataType {
@@ -451,6 +467,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
                 name: TIME_OF_DAY_TYPE.into(),
                 signed: true,
                 size: DATE_TIME_SIZE,
+                range: None,
             },
         },
         DataType {
@@ -460,6 +477,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
                 name: ULINT_TYPE.into(),
                 signed: false,
                 size: LINT_SIZE,
+                range: None,
             },
         },
         DataType {
