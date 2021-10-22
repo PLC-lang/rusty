@@ -67,11 +67,9 @@ pub fn generate_global_variable<'ctx, 'b>(
 
         //see if this value was compile-time evaluated ...
         if let Some(value) = index.find_constant_value(global_variable.get_qualified_name()) {
-            //Todo cast if necessary
             Some(value)
         } else {
             let value = expr_generator.generate_expression(initializer)?;
-            //Todo cast if necessary
             Some(value)
         }
     } else {

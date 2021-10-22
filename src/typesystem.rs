@@ -563,20 +563,6 @@ pub fn get_builtin_types() -> Vec<DataType> {
     ]
 }
 
-pub fn new_string_information(len: u32) -> DataTypeInformation {
-    DataTypeInformation::String {
-        size: TypeSize::from_literal(len),
-        encoding: StringEncoding::Utf8,
-    }
-}
-
-pub fn new_wide_string_information(len: u32) -> DataTypeInformation {
-    DataTypeInformation::String {
-        size: TypeSize::from_literal(len),
-        encoding: StringEncoding::Utf16,
-    }
-}
-
 fn get_rank(type_information: &DataTypeInformation) -> u32 {
     match type_information {
         DataTypeInformation::Integer { signed, size, .. } => {

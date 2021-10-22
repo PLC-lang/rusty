@@ -1,10 +1,7 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use crate::{
     ast::SourceRange,
-    codegen::TypeAndValue,
     compile_error::CompileError,
-    index::Index,
-    typesystem::{self, VOID_TYPE},
 };
 use inkwell::{
     builder::Builder,
@@ -150,14 +147,11 @@ impl<'a> Llvm<'a> {
     /// - `value` the value of the constant bool value
     pub fn create_const_bool(
         &self,
-        index: &Index,
         value: bool,
-    ) -> Result<TypeAndValue<'a>, CompileError> {
+    ) -> Result<BasicValueEnum<'a>, CompileError> {
         let itype = self.context.bool_type();
         let value = itype.const_int(value as u64, false);
-
-        let data_type = index.get_type_information("BOOL")?;
-        Ok((data_type, BasicValueEnum::IntValue(value)))
+        Ok(BasicValueEnum::IntValue(value))
     }
 
     /// create a constant int or float with the given value and the given type
@@ -190,29 +184,29 @@ impl<'a> Llvm<'a> {
     }
 
     /// create a null pointer
-    pub fn create_null_ptr(&self) -> Result<TypeAndValue<'a>, CompileError> {
+    pub fn create_null_ptr(&self) -> Result<BasicValueEnum<'a>, CompileError> {
         let itype = self.context.i32_type().ptr_type(AddressSpace::Generic);
         let value = itype.const_null();
-
-        let data_type = typesystem::DataTypeInformation::Pointer {
-            name: "VOIDPtr".into(),
-            inner_type_name: VOID_TYPE.into(),
-            auto_deref: false,
-        };
-        Ok((data_type, value.into()))
+        Ok(value.into())
     }
 
     /// create a constant utf8 string-value with the given value
     ///
     /// - `value` the value of the constant string value
-    pub fn create_const_utf8_string(&self, value: &str) -> Result<TypeAndValue<'a>, CompileError> {
+    pub fn create_const_utf8_string(
+        &self,
+        value: &str,
+    ) -> Result<BasicValueEnum<'a>, CompileError> {
         self.create_llvm_const_vec_string(value.as_bytes())
     }
 
     /// create a constant utf16 string-value with the given value
     ///
     /// - `value` the value of the constant string value
-    pub fn create_const_utf16_string(&self, value: &str) -> Result<TypeAndValue<'a>, CompileError> {
+    pub fn create_const_utf16_string(
+        &self,
+        value: &str,
+    ) -> Result<BasicValueEnum<'a>, CompileError> {
         let mut utf16_chars: Vec<u16> = value.encode_utf16().collect();
         //it only contains a single NUL-terminator-byte so we add a second one
         utf16_chars.push(0);
@@ -225,13 +219,10 @@ impl<'a> Llvm<'a> {
     pub fn create_llvm_const_utf16_vec_string(
         &self,
         value: &[u16],
-    ) -> Result<TypeAndValue<'a>, CompileError> {
+    ) -> Result<BasicValueEnum<'a>, CompileError> {
         let bytes = get_bytes_from_u16_array(value);
         let exp_value = self.context.const_string(bytes.as_slice(), false);
-        Ok((
-            typesystem::new_wide_string_information(value.len() as u32),
-            BasicValueEnum::VectorValue(exp_value),
-        ))
+        Ok(BasicValueEnum::VectorValue(exp_value))
     }
     /// create a constant utf8 string-value with the given value
     ///
@@ -239,12 +230,9 @@ impl<'a> Llvm<'a> {
     pub fn create_llvm_const_vec_string(
         &self,
         value: &[u8],
-    ) -> Result<TypeAndValue<'a>, CompileError> {
+    ) -> Result<BasicValueEnum<'a>, CompileError> {
         let exp_value = self.context.const_string(value, true);
-        Ok((
-            typesystem::new_string_information(value.len() as u32),
-            BasicValueEnum::VectorValue(exp_value),
-        ))
+        Ok(BasicValueEnum::VectorValue(exp_value))
     }
 }
 

@@ -14,29 +14,14 @@ use crate::{compile_error::CompileError, resolver::AnnotationMap};
 
 use super::ast::*;
 use super::index::*;
-use crate::typesystem::{DataType, *};
 use inkwell::context::Context;
 use inkwell::module::Module;
-use inkwell::values::{BasicValueEnum, PointerValue};
 
 mod generators;
 mod llvm_index;
 mod llvm_typesystem;
 #[cfg(test)]
 mod tests;
-
-/// Tuple consisting of an llvm value with it's DataType
-type TypeAndValue<'a> = (DataTypeInformation, BasicValueEnum<'a>);
-
-/// Tuple consisting of an llvm pointer-value and the resulting DataType
-/// what to expect when loading the given pointer
-#[derive(Debug)]
-pub struct TypeAndPointer<'a, 'b> {
-    /// the index-entry of the datatype of the dereferenced pointer
-    type_entry: &'b DataType,
-    /// the pointer value
-    ptr_value: PointerValue<'a>,
-}
 
 /// the codegen struct carries all dependencies required to generate
 /// the IR code for a compilation unit

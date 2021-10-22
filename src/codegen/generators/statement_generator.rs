@@ -213,27 +213,11 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
             None
         };
 
-        let (right_type, right) = if let Some(check_call) = range_checked_right_side {
-            (
-                exp_gen.get_type_hint_info_for(&check_call)?,
-                exp_gen.generate_expression(&check_call)?,
-            )
-        } else {
-            (
-                exp_gen.get_type_hint_info_for(right_statement)?,
-                exp_gen.generate_expression(right_statement)?,
-            )
-        };
+        let right_statement = range_checked_right_side.as_ref().unwrap_or(right_statement);
+        self.llvm
+            .builder
+            .build_store(left, exp_gen.generate_expression(right_statement)?);
 
-        let cast_value = cast_if_needed(
-            self.llvm,
-            self.index,
-            left_type.get_type_information(),
-            right,
-            right_type,
-            right_statement,
-        )?;
-        self.llvm.builder.build_store(left, cast_value);
         Ok(())
     }
 

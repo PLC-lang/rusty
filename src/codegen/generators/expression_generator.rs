@@ -1263,8 +1263,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
         match literal_statement {
             AstStatement::LiteralBool { value, .. } => self
                 .llvm
-                .create_const_bool(self.index, *value)
-                .map(|(_, a)| a),
+                .create_const_bool(*value),
             AstStatement::LiteralInteger { value, .. } => {
                 self.generate_numeric_literal(literal_statement, value.to_string().as_str())
             }
@@ -1332,12 +1331,10 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                     match encoding {
                         StringEncoding::Utf8 => self
                             .llvm
-                            .create_const_utf8_string(value.as_str())
-                            .map(|it| it.1),
+                            .create_const_utf8_string(value.as_str()),
                         StringEncoding::Utf16 => self
                             .llvm
-                            .create_const_utf16_string(value.as_str())
-                            .map(|it| it.1),
+                            .create_const_utf16_string(value.as_str()),
                     }
                 } else {
                     Err(CompileError::codegen_error(
@@ -1356,7 +1353,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
             AstStatement::MultipliedStatement { .. } => {
                 self.generate_literal_array(literal_statement)
             }
-            AstStatement::LiteralNull { .. } => self.llvm.create_null_ptr().map(|it| it.1),
+            AstStatement::LiteralNull { .. } => self.llvm.create_null_ptr(),
             // if there is an expression-list this might be a struct-initialization
             AstStatement::ExpressionList { .. } => {
                 self.generate_literal_struct(literal_statement, &literal_statement.get_location())
