@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;git&#x2F;checkouts&#x2F;inkwell-946411d814d2c9f8&#x2F;41857f9&#x2F;src&#x2F;values&#x2F;mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../inkwell/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input"name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;git&#x2F;checkouts&#x2F;inkwell-946411d814d2c9f8&#x2F;41857f9&#x2F;src&#x2F;values&#x2F;mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../inkwell/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -220,8 +220,7 @@
 <span id="220">220</span>
 <span id="221">221</span>
 <span id="222">222</span>
-</pre><pre class="rust">
-<span class="doccomment">//! A value is an instance of a type.</span>
+</pre><pre class="rust"><code><span class="doccomment">//! A value is an instance of a type.</span>
 
 <span class="attribute">#[<span class="ident">deny</span>(<span class="ident">missing_docs</span>)]</span>
 <span class="kw">mod</span> <span class="ident">array_value</span>;
@@ -244,27 +243,27 @@
 <span class="kw">mod</span> <span class="ident">vec_value</span>;
 <span class="kw">mod</span> <span class="ident">callable_value</span>;
 
-<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::support::LLVMString</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::values::array_value::ArrayValue</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::values::basic_value_use::BasicValueUse</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::values::call_site_value::CallSiteValue</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::values::enums</span>::{<span class="ident">AnyValueEnum</span>, <span class="ident">AggregateValueEnum</span>, <span class="ident">BasicValueEnum</span>, <span class="ident">BasicMetadataValueEnum</span>};
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::values::float_value::FloatValue</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::values::fn_value::FunctionValue</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::values::generic_value::GenericValue</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::values::global_value::GlobalValue</span>;
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::support::LLVMString</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::values::array_value::ArrayValue</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::values::basic_value_use::BasicValueUse</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::values::call_site_value::CallSiteValue</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::values::enums</span>::{<span class="ident">AnyValueEnum</span>, <span class="ident">AggregateValueEnum</span>, <span class="ident">BasicValueEnum</span>, <span class="ident">BasicMetadataValueEnum</span>};
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::values::float_value::FloatValue</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::values::fn_value::FunctionValue</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::values::generic_value::GenericValue</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::values::global_value::GlobalValue</span>;
 <span class="attribute">#[<span class="ident">llvm_versions</span>(<span class="number">7.0</span>..<span class="op">=</span><span class="ident">latest</span>)]</span>
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::values::global_value::UnnamedAddress</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::values::instruction_value</span>::{<span class="ident">InstructionValue</span>, <span class="ident">InstructionOpcode</span>};
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::values::int_value::IntValue</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::values::metadata_value</span>::{<span class="ident">MetadataValue</span>, <span class="ident">FIRST_CUSTOM_METADATA_KIND_ID</span>};
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::values::phi_value::PhiValue</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::values::ptr_value::PointerValue</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::values::struct_value::StructValue</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::values::callable_value::CallableValue</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::values::traits</span>::{<span class="ident">AnyValue</span>, <span class="ident">AggregateValue</span>, <span class="ident">BasicValue</span>, <span class="ident">IntMathValue</span>, <span class="ident">FloatMathValue</span>, <span class="ident">PointerMathValue</span>};
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::values::vec_value::VectorValue</span>;
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::values::traits::AsValueRef</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::values::global_value::UnnamedAddress</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::values::instruction_value</span>::{<span class="ident">InstructionValue</span>, <span class="ident">InstructionOpcode</span>};
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::values::int_value::IntValue</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::values::metadata_value</span>::{<span class="ident">MetadataValue</span>, <span class="ident">FIRST_CUSTOM_METADATA_KIND_ID</span>};
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::values::phi_value::PhiValue</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::values::ptr_value::PointerValue</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::values::struct_value::StructValue</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::values::callable_value::CallableValue</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::values::traits</span>::{<span class="ident">AnyValue</span>, <span class="ident">AggregateValue</span>, <span class="ident">BasicValue</span>, <span class="ident">IntMathValue</span>, <span class="ident">FloatMathValue</span>, <span class="ident">PointerMathValue</span>};
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::values::vec_value::VectorValue</span>;
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::values::traits::AsValueRef</span>;
 
 <span class="kw">use</span> <span class="ident">llvm_sys::core</span>::{<span class="ident">LLVMIsConstant</span>, <span class="ident">LLVMIsNull</span>, <span class="ident">LLVMIsUndef</span>, <span class="ident">LLVMPrintTypeToString</span>, <span class="ident">LLVMPrintValueToString</span>, <span class="ident">LLVMTypeOf</span>, <span class="ident">LLVMDumpValue</span>, <span class="ident">LLVMIsAInstruction</span>, <span class="ident">LLVMReplaceAllUsesWith</span>, <span class="ident">LLVMGetFirstUse</span>};
 <span class="kw">use</span> <span class="ident">llvm_sys::prelude</span>::{<span class="ident">LLVMValueRef</span>, <span class="ident">LLVMTypeRef</span>};
@@ -328,7 +327,7 @@
                   <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm4-0&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm5-0&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm6-0&quot;</span>))]</span>
         {
             <span class="kw">use</span> <span class="ident">llvm_sys::core::LLVMSetValueName</span>;
-            <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::support::to_c_str</span>;
+            <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::support::to_c_str</span>;
 
             <span class="kw">let</span> <span class="ident">c_string</span> <span class="op">=</span> <span class="ident">to_c_str</span>(<span class="ident">name</span>);
 
@@ -443,7 +442,7 @@
             .<span class="ident">finish</span>()
     }
 }
-</pre></div>
+</code></pre></div>
 </section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="inkwell" data-search-index-js="../../../search-index.js" data-search-js="../../../search.js"></div>
     <script src="../../../main.js"></script><script src="../../../source-script.js"></script><script src="../../../source-files.js"></script>
 </body></html>

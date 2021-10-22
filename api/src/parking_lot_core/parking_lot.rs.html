@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;parking_lot_core-0.8.3&#x2F;src&#x2F;parking_lot.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>parking_lot.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg"><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../parking_lot_core/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input"name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">   1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;parking_lot_core-0.8.3&#x2F;src&#x2F;parking_lot.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>parking_lot.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../parking_lot_core/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">   1</span>
 <span id="2">   2</span>
 <span id="3">   3</span>
 <span id="4">   4</span>
@@ -1666,16 +1666,15 @@
 <span id="1666">1666</span>
 <span id="1667">1667</span>
 <span id="1668">1668</span>
-</pre><pre class="rust">
-<span class="comment">// Copyright 2016 Amanieu d&#39;Antras</span>
+</pre><pre class="rust"><code><span class="comment">// Copyright 2016 Amanieu d&#39;Antras</span>
 <span class="comment">//</span>
 <span class="comment">// Licensed under the Apache License, Version 2.0, &lt;LICENSE-APACHE or</span>
 <span class="comment">// http://apache.org/licenses/LICENSE-2.0&gt; or the MIT license &lt;LICENSE-MIT or</span>
 <span class="comment">// http://opensource.org/licenses/MIT&gt;, at your option. This file may not be</span>
 <span class="comment">// copied, modified, or distributed except according to those terms.</span>
-<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::thread_parker</span>::{<span class="ident">ThreadParker</span>, <span class="ident">ThreadParkerT</span>, <span class="ident">UnparkHandleT</span>};
-<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::util::UncheckedOptionExt</span>;
-<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::word_lock::WordLock</span>;
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::thread_parker</span>::{<span class="ident">ThreadParker</span>, <span class="ident">ThreadParkerT</span>, <span class="ident">UnparkHandleT</span>};
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::util::UncheckedOptionExt</span>;
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::word_lock::WordLock</span>;
 <span class="kw">use</span> <span class="ident">core</span>::{
     <span class="ident">cell</span>::{<span class="ident">Cell</span>, <span class="ident">UnsafeCell</span>},
     <span class="ident">ptr</span>,
@@ -2734,10 +2733,10 @@
 <span class="doccomment">/// Enabled via the `deadlock_detection` feature flag.</span>
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">deadlock</span> {
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deadlock_detection&quot;</span>)]</span>
-    <span class="kw">use</span> <span class="kw">super</span><span class="ident">::deadlock_impl</span>;
+    <span class="kw">use</span> <span class="ident"><span class="kw">super</span>::deadlock_impl</span>;
 
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deadlock_detection&quot;</span>)]</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">use</span> <span class="kw">super</span><span class="ident">::deadlock_impl::DeadlockData</span>;
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">use</span> <span class="ident"><span class="kw">super</span>::deadlock_impl::DeadlockData</span>;
 
     <span class="doccomment">/// Acquire a resource identified by key in the deadlock detector</span>
     <span class="doccomment">/// Noop if deadlock_detection feature isn&#39;t enabled.</span>
@@ -2776,7 +2775,7 @@
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">on_unpark</span>(<span class="ident">_td</span>: <span class="kw-2">&amp;</span><span class="kw">super</span><span class="ident">::ThreadData</span>) {
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">on_unpark</span>(<span class="ident">_td</span>: <span class="kw-2">&amp;</span><span class="ident"><span class="kw">super</span>::ThreadData</span>) {
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deadlock_detection&quot;</span>)]</span>
         <span class="ident">deadlock_impl::on_unpark</span>(<span class="ident">_td</span>);
     }
@@ -2785,8 +2784,8 @@
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deadlock_detection&quot;</span>)]</span>
 <span class="kw">mod</span> <span class="ident">deadlock_impl</span> {
     <span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">get_hashtable</span>, <span class="ident">lock_bucket</span>, <span class="ident">with_thread_data</span>, <span class="ident">ThreadData</span>, <span class="ident">NUM_THREADS</span>};
-    <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::thread_parker</span>::{<span class="ident">ThreadParkerT</span>, <span class="ident">UnparkHandleT</span>};
-    <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::word_lock::WordLock</span>;
+    <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::thread_parker</span>::{<span class="ident">ThreadParkerT</span>, <span class="ident">UnparkHandleT</span>};
+    <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::word_lock::WordLock</span>;
     <span class="kw">use</span> <span class="ident">backtrace::Backtrace</span>;
     <span class="kw">use</span> <span class="ident">petgraph</span>;
     <span class="kw">use</span> <span class="ident">petgraph::graphmap::DiGraphMap</span>;
@@ -2927,7 +2926,7 @@
         <span class="ident">Resource</span>(<span class="ident">usize</span>),
     }
 
-    <span class="kw">use</span> <span class="self">self</span><span class="ident">::WaitGraphNode</span>::<span class="kw-2">*</span>;
+    <span class="kw">use</span> <span class="ident"><span class="self">self</span>::WaitGraphNode</span>::<span class="kw-2">*</span>;
 
     <span class="comment">// Contrary to the _fast variant this locks the entries table before looking for cycles.</span>
     <span class="comment">// Returns all detected thread wait cycles.</span>
@@ -3078,7 +3077,7 @@
 
     <span class="doccomment">/// Calls a closure for every `ThreadData` currently parked on a given key</span>
     <span class="kw">fn</span> <span class="ident">for_each</span>(<span class="ident">key</span>: <span class="ident">usize</span>, <span class="kw-2">mut</span> <span class="ident">f</span>: <span class="kw">impl</span> <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><span class="ident">ThreadData</span>)) {
-        <span class="kw">let</span> <span class="ident">bucket</span> <span class="op">=</span> <span class="kw">super</span><span class="ident">::lock_bucket</span>(<span class="ident">key</span>);
+        <span class="kw">let</span> <span class="ident">bucket</span> <span class="op">=</span> <span class="ident"><span class="kw">super</span>::lock_bucket</span>(<span class="ident">key</span>);
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">current</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">ThreadData</span> <span class="op">=</span> <span class="ident">bucket</span>.<span class="ident">queue_head</span>.<span class="ident">get</span>();
         <span class="kw">while</span> <span class="op">!</span><span class="ident">current</span>.<span class="ident">is_null</span>() {
@@ -3208,7 +3207,7 @@
             <span class="self">self</span>.<span class="ident">down</span>();
 
             <span class="comment">// Report back to the test verification code that this thread woke up</span>
-            <span class="kw">let</span> <span class="ident">this_thread_ptr</span> <span class="op">=</span> <span class="kw">super</span><span class="ident">::with_thread_data</span>(<span class="op">|</span><span class="ident">t</span><span class="op">|</span> <span class="ident">t</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="kw">_</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw">_</span>);
+            <span class="kw">let</span> <span class="ident">this_thread_ptr</span> <span class="op">=</span> <span class="ident"><span class="kw">super</span>::with_thread_data</span>(<span class="op">|</span><span class="ident">t</span><span class="op">|</span> <span class="ident">t</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="kw">_</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw">_</span>);
             <span class="self">self</span>.<span class="ident">last_awoken</span>.<span class="ident">store</span>(<span class="ident">this_thread_ptr</span>, <span class="ident">Ordering::SeqCst</span>);
             <span class="self">self</span>.<span class="ident">num_awake</span>.<span class="ident">fetch_add</span>(<span class="number">1</span>, <span class="ident">Ordering::SeqCst</span>);
         }
@@ -3261,7 +3260,7 @@
                 <span class="kw">let</span> <span class="ident">num_awake_before_unpark</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">num_awake</span>.<span class="ident">load</span>(<span class="ident">Ordering::SeqCst</span>);
 
                 <span class="kw">let</span> <span class="ident">num_unparked</span> <span class="op">=</span>
-                    <span class="kw">unsafe</span> { <span class="kw">super</span><span class="ident">::unpark_all</span>(<span class="self">self</span>.<span class="ident">semaphore_addr</span>(), <span class="ident">DEFAULT_UNPARK_TOKEN</span>) };
+                    <span class="kw">unsafe</span> { <span class="ident"><span class="kw">super</span>::unpark_all</span>(<span class="self">self</span>.<span class="ident">semaphore_addr</span>(), <span class="ident">DEFAULT_UNPARK_TOKEN</span>) };
                 <span class="macro">assert!</span>(<span class="ident">num_unparked</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">num_waiting_on_address</span>);
                 <span class="macro">assert!</span>(<span class="ident">num_unparked</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">num_threads_left</span>);
 
@@ -3298,7 +3297,7 @@
             <span class="kw">let</span> <span class="ident">before_sleep</span> <span class="op">=</span> <span class="op">|</span><span class="op">|</span> {};
             <span class="kw">let</span> <span class="ident">timed_out</span> <span class="op">=</span> <span class="op">|</span><span class="kw">_</span>, <span class="kw">_</span><span class="op">|</span> {};
             <span class="kw">unsafe</span> {
-                <span class="kw">super</span><span class="ident">::park</span>(
+                <span class="ident"><span class="kw">super</span>::park</span>(
                     <span class="self">self</span>.<span class="ident">semaphore_addr</span>(),
                     <span class="ident">validate</span>,
                     <span class="ident">before_sleep</span>,
@@ -3319,7 +3318,7 @@
                 <span class="comment">// but not yet parked.</span>
                 <span class="kw">loop</span> {
                     <span class="kw">match</span> <span class="kw">unsafe</span> {
-                        <span class="kw">super</span><span class="ident">::unpark_one</span>(<span class="self">self</span>.<span class="ident">semaphore_addr</span>(), <span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">DEFAULT_UNPARK_TOKEN</span>)
+                        <span class="ident"><span class="kw">super</span>::unpark_one</span>(<span class="self">self</span>.<span class="ident">semaphore_addr</span>(), <span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">DEFAULT_UNPARK_TOKEN</span>)
                             .<span class="ident">unparked_threads</span>
                     } {
                         <span class="number">1</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">break</span>,
@@ -3335,7 +3334,7 @@
         }
     }
 }
-</pre></div>
+</code></pre></div>
 </section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="parking_lot_core" data-search-index-js="../../search-index.js" data-search-js="../../search.js"></div>
     <script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script>
 </body></html>
