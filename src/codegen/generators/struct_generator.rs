@@ -119,9 +119,7 @@ impl<'a, 'b> StructGenerator<'a, 'b> {
                             self.llvm_index,
                         );
 
-                        let result = exp_gen
-                            .generate_expression(&ast_statement)
-                            .map(|value| Some(value));
+                        let result = exp_gen.generate_expression(&ast_statement).map(Some);
 
                         if let Err(CompileError::MissingFunctionError { .. }) = result {
                             return Err(CompileError::cannot_generate_initializer(

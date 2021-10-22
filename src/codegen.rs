@@ -38,7 +38,6 @@ pub struct TypeAndPointer<'a, 'b> {
     ptr_value: PointerValue<'a>,
 }
 
-
 /// the codegen struct carries all dependencies required to generate
 /// the IR code for a compilation unit
 pub struct CodeGen<'ink> {

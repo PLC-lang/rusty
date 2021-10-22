@@ -1,10 +1,10 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use crate::{
-    ast::{Pou, SourceRange},
+    ast::SourceRange,
     codegen::llvm_typesystem,
     index::{ImplementationType, Index},
     resolver::{AnnotationMap, StatementAnnotation},
-    typesystem::{Dimension, StringEncoding, LINT_TYPE},
+    typesystem::{Dimension, StringEncoding, INT_SIZE, INT_TYPE, LINT_TYPE},
 };
 use inkwell::{
     basic_block::BasicBlock,
@@ -30,9 +30,6 @@ use crate::{
 use super::{llvm::Llvm, statement_generator::FunctionContext, struct_generator};
 
 use chrono::{LocalResult, TimeZone, Utc};
-
-type TypeAndValue<'a> = BasicValueEnum<'a>;
-type TypeAndPointer<'a, 'b> = PointerValue<'a>;
 
 /// the generator for expressions
 pub struct ExpressionCodeGenerator<'a, 'b> {
@@ -121,7 +118,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
     pub fn generate_expression(
         &self,
         expression: &AstStatement,
-    ) -> Result<TypeAndValue<'a>, CompileError> {
+    ) -> Result<BasicValueEnum<'a>, CompileError> {
         let v = self.do_generate_expression(expression)?;
 
         //see if we need a cast
@@ -144,17 +141,14 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
     fn do_generate_expression(
         &self,
         expression: &AstStatement,
-    ) -> Result<TypeAndValue<'a>, CompileError> {
+    ) -> Result<BasicValueEnum<'a>, CompileError> {
         let _builder = &self.llvm.builder;
 
         //see if this is a constant - maybe we can short curcuit this codegen
-        if let Some(StatementAnnotation::Variable {
-            qualified_name,
-            ..
-        }) = self.annotations.get_annotation(expression)
+        if let Some(StatementAnnotation::Variable { qualified_name, .. }) =
+            self.annotations.get_annotation(expression)
         {
-            if let Some(basic_value_enum) = self.llvm_index.find_constant_value(qualified_name)
-            {
+            if let Some(basic_value_enum) = self.llvm_index.find_constant_value(qualified_name) {
                 //this is a constant and we have a value for it
                 return Ok(basic_value_enum);
             }
@@ -194,49 +188,34 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                 ..
             } => {
                 //If OR, or AND handle before generating the statements
-                match operator {
-                    Operator::And | Operator::Or => {
-                        return self
-                            .generate_short_circuit_boolean_expression(operator, left, right)
-                    }
-                    _ => {}
+                if let Operator::And | Operator::Or = operator {
+                    return self.generate_short_circuit_boolean_expression(operator, left, right);
                 }
 
                 let ltype = self.get_type_hint_info_for(left)?;
                 let rtype = self.get_type_hint_info_for(right)?;
-                let left_value = self.generate_expression(left)?;
-                let right_value = self.generate_expression(right)?;
-                /*
-                let left_value = self.promote_if_needed(
-                    self.annotations.get_type_hint(left, self.index),
-                    self.annotations.get_type_or_void(left, self.index),
-                    left_v,
-                );
-                let right_value = self.promote_if_needed(
-                    self.annotations.get_type_hint(right, self.index),
-                    self.annotations.get_type_or_void(right, self.index),
-                    right_v,
-                );*/
-
                 let result_type = self.get_type_hint_info_for(expression)?;
+
                 if ltype.is_int() && rtype.is_int() {
                     Ok(self.create_llvm_int_binary_expression(
                         operator,
-                        left_value,
-                        right_value,
+                        self.generate_expression(left)?,
+                        self.generate_expression(right)?,
                     ))
                 } else if ltype.is_float() && rtype.is_float() {
                     Ok(self.create_llvm_float_binary_expression(
                         operator,
-                        left_value,
-                        right_value,
+                        self.generate_expression(left)?,
+                        self.generate_expression(right)?,
                     ))
                 } else {
-                    let message = format!(
-                        "invalid types, cannot generate binary expression for {:?}",
-                        result_type
-                    );
-                    Err(CompileError::codegen_error(message, left.get_location()))
+                    Err(CompileError::codegen_error(
+                        format!(
+                            "invalid types, cannot generate binary expression for {:?}",
+                            result_type
+                        ),
+                        left.get_location(),
+                    ))
                 }
             }
             AstStatement::CallStatement {
@@ -255,7 +234,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
     fn generate_directaccess(
         &self,
         elements: &[AstStatement],
-    ) -> Result<TypeAndValue<'a>, CompileError> {
+    ) -> Result<BasicValueEnum<'a>, CompileError> {
         let (last, qualifer) = elements.split_last().unwrap();
         let expression = if qualifer.len() == 1 {
             //Create a single reference
@@ -354,7 +333,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
         &self,
         unary_operator: &Operator,
         expression: &AstStatement,
-    ) -> Result<TypeAndValue<'a>, CompileError> {
+    ) -> Result<BasicValueEnum<'a>, CompileError> {
         let value = match unary_operator {
             Operator::Not => self.llvm.builder.build_not(
                 self.generate_expression(expression)?.into_int_value(),
@@ -385,7 +364,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
         &self,
         operator: &AstStatement,
         parameters: &Option<AstStatement>,
-    ) -> Result<TypeAndValue<'a>, CompileError> {
+    ) -> Result<BasicValueEnum<'a>, CompileError> {
         let function_context = self.get_function_context(operator)?;
         let instance_and_index_entry = match operator {
             AstStatement::Reference { name, .. } => {
@@ -442,21 +421,9 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
             }
             AstStatement::QualifiedReference { .. } => {
                 let loaded_value = self.generate_element_pointer_for_rec(None, operator);
-                let call_name = match self.annotations.get_annotation(operator) {
-                    Some(StatementAnnotation::Function { qualified_name, .. }) => {
-                        Some(qualified_name.as_str())
-                    }
-                    Some(StatementAnnotation::Program { qualified_name }) => {
-                        Some(qualified_name.as_str())
-                    }
-                    Some(StatementAnnotation::Variable { resulting_type, .. }) => {
-                        Some(resulting_type.as_str())
-                    }
-                    _ => None,
-                };
                 loaded_value.map(|ptr_value| {
                     self.index
-                        .find_implementation(call_name.unwrap())
+                        .find_implementation(self.annotations.get_call_name(operator).unwrap())
                         .map(|implementation| {
                             let (class_struct, method_struct) = if matches!(
                                 implementation.get_implementation_type(),
@@ -533,9 +500,9 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
         builder.position_at_end(continue_block);
 
         // !! REVIEW !! we return an uninitialized int pointer for void methods :-/
-        // dont touch it!!
+        // dont deref it!!
         let value = call_result.either(Ok, |_| {
-            get_llvm_int_type(self.llvm.context, 16, "INT").map(|int| {
+            get_llvm_int_type(self.llvm.context, INT_SIZE, INT_TYPE).map(|int| {
                 int.ptr_type(AddressSpace::Const)
                     .const_null()
                     .as_basic_value_enum()
@@ -705,14 +672,6 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
             } else {
                 self.generate_expression(expression)?
             };
-            // let value = cast_if_needed(
-            //     self.llvm,
-            //     self.index,
-            //     parameter,
-            //     generated_exp,
-            //     self.get_type_hint_info_for(expression)?,
-            //     expression,
-            // )?;
             builder.build_store(pointer_to_param, generated_exp);
             Ok(None)
         } else {
@@ -803,7 +762,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
     pub fn generate_element_pointer(
         &self,
         reference_statement: &AstStatement,
-    ) -> Result<TypeAndPointer<'a, '_>, CompileError> {
+    ) -> Result<PointerValue<'a>, CompileError> {
         let result = match reference_statement {
             AstStatement::Reference { name, .. } => {
                 self.create_llvm_pointer_value_for_reference(None, name, reference_statement)
@@ -843,17 +802,14 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
     /// - `context` the statement to obtain the location from when returning an error
     fn create_llvm_pointer_value_for_reference(
         &self,
-        qualifier: Option<(&TypeAndPointer<'a, '_>, &str)>,
+        qualifier: Option<(&PointerValue<'a>, &str)>,
         name: &str,
         context: &AstStatement,
-    ) -> Result<TypeAndPointer<'a, '_>, CompileError> {
+    ) -> Result<PointerValue<'a>, CompileError> {
         let offset = &context.get_location();
         let l_value = if let Some((l_value, qualifier_name)) = qualifier {
-
-            if let Some(StatementAnnotation::Variable {
-                qualified_name,
-                ..
-            }) = self.annotations.get_annotation(context)
+            if let Some(StatementAnnotation::Variable { qualified_name, .. }) =
+                self.annotations.get_annotation(context)
             {
                 let segments: Vec<&str> = qualified_name.split('.').collect();
                 let (qualifier, segments) = if segments.len() > 1 {
@@ -928,11 +884,10 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
         Ok(l_value)
     }
 
-    fn deref(
-        &self,
-        accessor_ptr: PointerValue<'a>,
-    ) -> TypeAndPointer<'a, 'b> {
-        self.llvm.load_pointer(&accessor_ptr, "deref").into_pointer_value()
+    fn deref(&self, accessor_ptr: PointerValue<'a>) -> PointerValue<'a> {
+        self.llvm
+            .load_pointer(&accessor_ptr, "deref")
+            .into_pointer_value()
     }
 
     /// automatically derefs an inout variable pointer so it can be used like a normal variable
@@ -944,7 +899,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
         &self,
         accessor_ptr: PointerValue<'a>,
         statement: &AstStatement,
-    ) -> Result<TypeAndPointer<'a, 'b>, CompileError> {
+    ) -> Result<PointerValue<'a>, CompileError> {
         if let Some(StatementAnnotation::Variable {
             is_auto_deref: true,
             ..
@@ -991,10 +946,10 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
     /// - `access` the accessor expression (the expression between the brackets: reference[access])
     fn generate_element_pointer_for_array(
         &self,
-        qualifier: Option<&TypeAndPointer<'a, '_>>,
+        qualifier: Option<&PointerValue<'a>>,
         reference: &AstStatement,
         access: &AstStatement,
-    ) -> Result<TypeAndPointer<'a, '_>, CompileError> {
+    ) -> Result<PointerValue<'a>, CompileError> {
         self.do_generate_element_pointer_for_array(qualifier, reference, access)
             .map_err(|_| {
                 CompileError::codegen_error(
@@ -1006,17 +961,15 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
 
     fn do_generate_element_pointer_for_array(
         &self,
-        qualifier: Option<&TypeAndPointer<'a, '_>>,
+        qualifier: Option<&PointerValue<'a>>,
         reference: &AstStatement,
         access: &AstStatement,
-    ) -> Result<TypeAndPointer<'a, '_>, CompileError> {
+    ) -> Result<PointerValue<'a>, CompileError> {
         //Load the reference
         self.generate_element_pointer_for_rec(qualifier, reference)
             .and_then(|lvalue| {
-                if let DataTypeInformation::Array {
-                    dimensions,
-                    ..
-                } = self.get_type_hint_info_for(reference)?
+                if let DataTypeInformation::Array { dimensions, .. } =
+                    self.get_type_hint_info_for(reference)?
                 {
                     //First 0 is to access the pointer, then we access the array
                     let mut indices = vec![self.llvm.i32_type().const_int(0, false)];
@@ -1056,9 +1009,9 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
     /// - `reference` the reference to load
     fn generate_element_pointer_for_rec(
         &self,
-        qualifier: Option<&TypeAndPointer<'a, '_>>,
+        qualifier: Option<&PointerValue<'a>>,
         reference: &AstStatement,
-    ) -> Result<TypeAndPointer<'a, '_>, CompileError> {
+    ) -> Result<PointerValue<'a>, CompileError> {
         match reference {
             AstStatement::QualifiedReference { elements, .. } => {
                 let mut element_iter = elements.iter();
@@ -1135,82 +1088,76 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
         operator: &Operator,
         left_value: BasicValueEnum<'a>,
         right_value: BasicValueEnum<'a>,
-    ) -> TypeAndValue<'a> {
+    ) -> BasicValueEnum<'a> {
         let int_lvalue = left_value.into_int_value();
         let int_rvalue = right_value.into_int_value();
 
         let value = match operator {
-            Operator::Plus => 
-                self.llvm
-                    .builder
-                    .build_int_add(int_lvalue, int_rvalue, "tmpVar"),
-            Operator::Minus => 
-                self.llvm
-                    .builder
-                    .build_int_sub(int_lvalue, int_rvalue, "tmpVar"),
-            Operator::Multiplication => 
-                self.llvm
-                    .builder
-                    .build_int_mul(int_lvalue, int_rvalue, "tmpVar"),
-            Operator::Division => 
-                self.llvm
-                    .builder
-                    .build_int_signed_div(int_lvalue, int_rvalue, "tmpVar"),
-            Operator::Modulo => 
-                self.llvm
-                    .builder
-                    .build_int_signed_rem(int_lvalue, int_rvalue, "tmpVar"),
-            Operator::Equal => 
-                self.llvm.builder.build_int_compare(
-                    IntPredicate::EQ,
-                    int_lvalue,
-                    int_rvalue,
-                    "tmpVar",
-                ),
+            Operator::Plus => self
+                .llvm
+                .builder
+                .build_int_add(int_lvalue, int_rvalue, "tmpVar"),
+            Operator::Minus => self
+                .llvm
+                .builder
+                .build_int_sub(int_lvalue, int_rvalue, "tmpVar"),
+            Operator::Multiplication => self
+                .llvm
+                .builder
+                .build_int_mul(int_lvalue, int_rvalue, "tmpVar"),
+            Operator::Division => self
+                .llvm
+                .builder
+                .build_int_signed_div(int_lvalue, int_rvalue, "tmpVar"),
+            Operator::Modulo => self
+                .llvm
+                .builder
+                .build_int_signed_rem(int_lvalue, int_rvalue, "tmpVar"),
+            Operator::Equal => self.llvm.builder.build_int_compare(
+                IntPredicate::EQ,
+                int_lvalue,
+                int_rvalue,
+                "tmpVar",
+            ),
 
-            Operator::NotEqual => 
-                self.llvm.builder.build_int_compare(
-                    IntPredicate::NE,
-                    int_lvalue,
-                    int_rvalue,
-                    "tmpVar",
-                ),
+            Operator::NotEqual => self.llvm.builder.build_int_compare(
+                IntPredicate::NE,
+                int_lvalue,
+                int_rvalue,
+                "tmpVar",
+            ),
 
-            Operator::Less => 
-                self.llvm.builder.build_int_compare(
-                    IntPredicate::SLT,
-                    int_lvalue,
-                    int_rvalue,
-                    "tmpVar",
-                ),
+            Operator::Less => self.llvm.builder.build_int_compare(
+                IntPredicate::SLT,
+                int_lvalue,
+                int_rvalue,
+                "tmpVar",
+            ),
 
-            Operator::Greater => 
-                self.llvm.builder.build_int_compare(
-                    IntPredicate::SGT,
-                    int_lvalue,
-                    int_rvalue,
-                    "tmpVar",
-                ),
+            Operator::Greater => self.llvm.builder.build_int_compare(
+                IntPredicate::SGT,
+                int_lvalue,
+                int_rvalue,
+                "tmpVar",
+            ),
 
-            Operator::LessOrEqual => 
-                self.llvm.builder.build_int_compare(
-                    IntPredicate::SLE,
-                    int_lvalue,
-                    int_rvalue,
-                    "tmpVar",
-                ),
+            Operator::LessOrEqual => self.llvm.builder.build_int_compare(
+                IntPredicate::SLE,
+                int_lvalue,
+                int_rvalue,
+                "tmpVar",
+            ),
 
-            Operator::GreaterOrEqual => 
-                self.llvm.builder.build_int_compare(
-                    IntPredicate::SGE,
-                    int_lvalue,
-                    int_rvalue,
-                    "tmpVar",
-                ),
-            Operator::Xor => 
-                self.llvm
-                    .builder
-                    .build_xor(int_lvalue, int_rvalue, "tmpVar"),
+            Operator::GreaterOrEqual => self.llvm.builder.build_int_compare(
+                IntPredicate::SGE,
+                int_lvalue,
+                int_rvalue,
+                "tmpVar",
+            ),
+            Operator::Xor => self
+                .llvm
+                .builder
+                .build_xor(int_lvalue, int_rvalue, "tmpVar"),
             _ => unimplemented!(),
         };
         value.into()
@@ -1227,71 +1174,83 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
         operator: &Operator,
         lvalue: BasicValueEnum<'a>,
         rvalue: BasicValueEnum<'a>,
-    ) -> TypeAndValue<'a> {
+    ) -> BasicValueEnum<'a> {
         let float_lvalue = lvalue.into_float_value();
         let float_rvalue = rvalue.into_float_value();
 
         let value = match operator {
-            Operator::Plus => 
-                self.llvm
-                    .builder
-                    .build_float_add(float_lvalue, float_rvalue, "tmpVar")
-                    .into(),
-            Operator::Minus => 
-                self.llvm
-                    .builder
-                    .build_float_sub(float_lvalue, float_rvalue, "tmpVar")
-                    .into(),
-            Operator::Multiplication => 
-                self.llvm
-                    .builder
-                    .build_float_mul(float_lvalue, float_rvalue, "tmpVar")
-                    .into(),
-            Operator::Division => 
-                self.llvm
-                    .builder
-                    .build_float_div(float_lvalue, float_rvalue, "tmpVar")
-                    .into(),
-            Operator::Modulo => 
-                self.llvm
-                    .builder
-                    .build_float_rem(float_lvalue, float_rvalue, "tmpVar")
-                    .into(),
+            Operator::Plus => self
+                .llvm
+                .builder
+                .build_float_add(float_lvalue, float_rvalue, "tmpVar")
+                .into(),
+            Operator::Minus => self
+                .llvm
+                .builder
+                .build_float_sub(float_lvalue, float_rvalue, "tmpVar")
+                .into(),
+            Operator::Multiplication => self
+                .llvm
+                .builder
+                .build_float_mul(float_lvalue, float_rvalue, "tmpVar")
+                .into(),
+            Operator::Division => self
+                .llvm
+                .builder
+                .build_float_div(float_lvalue, float_rvalue, "tmpVar")
+                .into(),
+            Operator::Modulo => self
+                .llvm
+                .builder
+                .build_float_rem(float_lvalue, float_rvalue, "tmpVar")
+                .into(),
 
-            Operator::Equal => 
-                self.llvm
-                    .builder
-                    .build_float_compare(FloatPredicate::OEQ, float_lvalue, float_rvalue, "tmpVar")
-                    .into(),
-            Operator::NotEqual => 
-                self.llvm
-                    .builder
-                    .build_float_compare(FloatPredicate::ONE, float_lvalue, float_rvalue, "tmpVar")
-                    .into(),
-            Operator::Less => 
-                self.llvm
-                    .builder
-                    .build_float_compare(FloatPredicate::OLT, float_lvalue, float_rvalue, "tmpVar")
-                    .into(),
-            Operator::Greater => 
-                self.llvm
-                    .builder
-                    .build_float_compare(FloatPredicate::OGT, float_lvalue, float_rvalue, "tmpVar")
-                    .into(),
-            Operator::LessOrEqual => 
-                self.llvm
-                    .builder
-                    .build_float_compare(FloatPredicate::OLE, float_lvalue, float_rvalue, "tmpVar")
-                    .into(),
-            Operator::GreaterOrEqual => 
-                self.llvm
-                    .builder
-                    .build_float_compare(FloatPredicate::OGE, float_lvalue, float_rvalue, "tmpVar")
-                    .into(),
+            Operator::Equal => self
+                .llvm
+                .builder
+                .build_float_compare(FloatPredicate::OEQ, float_lvalue, float_rvalue, "tmpVar")
+                .into(),
+            Operator::NotEqual => self
+                .llvm
+                .builder
+                .build_float_compare(FloatPredicate::ONE, float_lvalue, float_rvalue, "tmpVar")
+                .into(),
+            Operator::Less => self
+                .llvm
+                .builder
+                .build_float_compare(FloatPredicate::OLT, float_lvalue, float_rvalue, "tmpVar")
+                .into(),
+            Operator::Greater => self
+                .llvm
+                .builder
+                .build_float_compare(FloatPredicate::OGT, float_lvalue, float_rvalue, "tmpVar")
+                .into(),
+            Operator::LessOrEqual => self
+                .llvm
+                .builder
+                .build_float_compare(FloatPredicate::OLE, float_lvalue, float_rvalue, "tmpVar")
+                .into(),
+            Operator::GreaterOrEqual => self
+                .llvm
+                .builder
+                .build_float_compare(FloatPredicate::OGE, float_lvalue, float_rvalue, "tmpVar")
+                .into(),
 
             _ => unimplemented!(),
         };
         value
+    }
+
+    fn generate_numeric_literal(
+        &self,
+        stmt: &AstStatement,
+        number: &str,
+    ) -> Result<BasicValueEnum<'a>, CompileError> {
+        let literal_type = self
+            .get_type_hint_info_for(stmt)
+            .map(DataTypeInformation::get_name)
+            .and_then(|name| self.llvm_index.get_associated_type(name))?;
+        self.llvm.create_const_numeric(&literal_type, number)
     }
 
     /// generates the literal statement and returns the resulting value
@@ -1300,21 +1259,17 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
     pub fn generate_literal(
         &self,
         literal_statement: &AstStatement,
-    ) -> Result<TypeAndValue<'a>, CompileError> {
+    ) -> Result<BasicValueEnum<'a>, CompileError> {
         match literal_statement {
             AstStatement::LiteralBool { value, .. } => self
                 .llvm
                 .create_const_bool(self.index, *value)
                 .map(|(_, a)| a),
             AstStatement::LiteralInteger { value, .. } => {
-                let type_context = self.get_type_hint_info_for(literal_statement)?;
-                let value = self.llvm.create_const_numeric(
-                    &self
-                        .llvm_index
-                        .get_associated_type(type_context.get_name())?,
-                    value.to_string().as_str(),
-                )?;
-                Ok(value)
+                self.generate_numeric_literal(literal_statement, value.to_string().as_str())
+            }
+            AstStatement::LiteralReal { value, .. } => {
+                self.generate_numeric_literal(literal_statement, value)
             }
             AstStatement::LiteralDate {
                 year,
@@ -1368,23 +1323,11 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                 *micro,
                 *nano,
             )),
-            AstStatement::LiteralReal { value, .. } => {
-                let type_context = self.get_type_hint_info_for(literal_statement)?;
-                let value = self.llvm.create_const_numeric(
-                    &self
-                        .llvm_index
-                        .get_associated_type(type_context.get_name())?,
-                    value.to_string().as_str(),
-                )?;
-                Ok(value)
-            }
+
             AstStatement::LiteralString {
                 value, location, ..
             } => {
-                let expected_type = self
-                    .annotations
-                    .get_type_or_void(literal_statement, self.index)
-                    .get_type_information();
+                let expected_type = self.get_type_hint_info_for(literal_statement)?;
                 if let DataTypeInformation::String { encoding, .. } = expected_type {
                     match encoding {
                         StringEncoding::Utf8 => self
@@ -1487,15 +1430,13 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
         &self,
         assignments: &AstStatement,
         declaration_location: &SourceRange,
-    ) -> Result<TypeAndValue<'a>, CompileError> {
-        let type_info = self.get_type_hint_info_for(assignments)?;
+    ) -> Result<BasicValueEnum<'a>, CompileError> {
         if let DataTypeInformation::Struct {
             name: struct_name,
             member_names,
             ..
-        } = type_info
+        } = self.get_type_hint_info_for(assignments)?
         {
-            let generated_type = self.llvm_index.get_associated_type(struct_name)?;
             let mut uninitialized_members: HashSet<&str> =
                 member_names.iter().map(|it| it.as_str()).collect();
             let mut member_values: Vec<(u32, BasicValueEnum<'a>)> = Vec::new();
@@ -1534,7 +1475,6 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                 }
             }
 
-            let struct_type = generated_type.into_struct_type();
             //fill the struct with fields we didnt mention yet
             for variable_name in uninitialized_members {
                 let member = self
@@ -1547,8 +1487,6 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                         )
                     })?;
 
-                let index_in_parent = member.get_location_in_parent();
-
                 let initial_value = self
                     .llvm_index
                     .find_associated_variable_value(member.get_qualified_name())
@@ -1559,8 +1497,12 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                     })
                     .unwrap();
 
-                member_values.push((index_in_parent, initial_value));
+                member_values.push((member.get_location_in_parent(), initial_value));
             }
+            let struct_type = self
+                .llvm_index
+                .get_associated_type(struct_name)?
+                .into_struct_type();
             if member_values.len() == struct_type.count_fields() as usize {
                 member_values.sort_by(|(a, _), (b, _)| a.cmp(b));
                 let ordered_values: Vec<BasicValueEnum<'a>> =
@@ -1592,16 +1534,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
     fn generate_literal_array(
         &self,
         initializer: &AstStatement,
-    ) -> Result<TypeAndValue<'a>, CompileError> {
-        let type_info = self.get_type_hint_info_for(initializer)?;
-
-        println!("type_info: {:#?}", type_info);
-
-        for ele in flatten_expression_list(initializer) {
-            let type_info = self.get_type_hint_info_for(ele)?;
-            println!("element: {:#?}", type_info);
-        }
-
+    ) -> Result<BasicValueEnum<'a>, CompileError> {
         let array_value = self.generate_literal_array_value(
             flatten_expression_list(initializer),
             &initializer.get_location(),
@@ -1687,17 +1620,16 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
         operator: &Operator,
         left: &AstStatement,
         right: &AstStatement,
-    ) -> Result<TypeAndValue<'a>, CompileError> {
+    ) -> Result<BasicValueEnum<'a>, CompileError> {
         let builder = &self.llvm.builder;
         let function = self.get_function_context(left)?.function;
 
         let right_branch = self.llvm.context.append_basic_block(function, "");
         let continue_branch = self.llvm.context.append_basic_block(function, "");
 
-        let (left_type, left_value) = (
-            self.get_type_hint_for(left)?,
-            self.generate_expression(left)?,
-        );
+        let left_type = self.get_type_hint_for(left)?;
+        let left_value = self.generate_expression(left)?;
+
         let final_left_block = builder.get_insert_block().unwrap();
         let left_llvm_type = self.llvm_index.get_associated_type(left_type.get_name())?;
         //Compare left to 0
@@ -1748,7 +1680,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
         Ok(phi_value.as_basic_value())
     }
 
-    fn create_const_int(&self, value: i64) -> Result<TypeAndValue<'a>, CompileError> {
+    fn create_const_int(&self, value: i64) -> Result<BasicValueEnum<'a>, CompileError> {
         let value = self.llvm.create_const_numeric(
             &self.llvm_index.get_associated_type(LINT_TYPE)?,
             value.to_string().as_str(),

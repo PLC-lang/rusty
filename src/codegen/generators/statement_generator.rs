@@ -147,10 +147,8 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
                 self.generate_case_statement(selector, case_blocks, else_block)?;
             }
             AstStatement::ReturnStatement { .. } => {
-                self.pou_generator.generate_return_statement(
-                    self.function_context,
-                    self.llvm_index,
-                )?;
+                self.pou_generator
+                    .generate_return_statement(self.function_context, self.llvm_index)?;
                 self.generate_buffer_block();
             }
             AstStatement::ExitStatement { location, .. } => {
@@ -232,7 +230,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
             self.index,
             left_type.get_type_information(),
             right,
-            &right_type,
+            right_type,
             right_statement,
         )?;
         self.llvm.builder.build_store(left, cast_value);
@@ -480,14 +478,9 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         builder.build_conditional_branch(lower_bound.into_int_value(), range_then, range_else);
         builder.position_at_end(range_then);
         let upper_bound = {
-            let end_val = 
-                exp_gen.generate_expression(end)?;
+            let end_val = exp_gen.generate_expression(end)?;
             let selector_val = exp_gen.generate_expression(selector)?;
-            exp_gen.create_llvm_int_binary_expression(
-                &Operator::LessOrEqual,
-                selector_val,
-                end_val,
-            )
+            exp_gen.create_llvm_int_binary_expression(&Operator::LessOrEqual, selector_val, end_val)
         };
         self.llvm.builder.build_conditional_branch(
             upper_bound.into_int_value(),

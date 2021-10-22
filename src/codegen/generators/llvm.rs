@@ -1,7 +1,7 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use crate::{
     ast::SourceRange,
-    codegen::{TypeAndPointer, TypeAndValue},
+    codegen::TypeAndValue,
     compile_error::CompileError,
     index::Index,
     typesystem::{self, VOID_TYPE},

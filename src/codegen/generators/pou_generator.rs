@@ -17,7 +17,7 @@ use crate::{
 use crate::index::{ImplementationIndexEntry, VariableIndexEntry};
 use crate::typesystem::*;
 use crate::{
-    ast::{AstStatement, Implementation, PouType, SourceRange},
+    ast::{Implementation, PouType, SourceRange},
     compile_error::CompileError,
     index::Index,
 };
@@ -186,10 +186,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                 implementation.pou_type,
                 PouType::Function | PouType::Method { .. }
             ) {
-                self.generate_initialization_of_local_vars(
-                    pou_members,
-                    &local_index
-                )?;
+                self.generate_initialization_of_local_vars(pou_members, &local_index)?;
             }
             statement_gen.generate_body(&implementation.statements)?
         }

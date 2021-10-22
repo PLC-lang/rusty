@@ -14,9 +14,7 @@ use crate::{
         self, AstId, AstStatement, CompilationUnit, DataType, DataTypeDeclaration, Operator, Pou,
         UserTypeDeclaration, Variable,
     },
-    index::{
-        ImplementationIndexEntry, ImplementationType, Index, VariableIndexEntry, VariableType,
-    },
+    index::{ImplementationIndexEntry, ImplementationType, Index, VariableIndexEntry},
     typesystem::{
         self, get_bigger_type, DataTypeInformation, BOOL_TYPE, BYTE_TYPE, CONST_STRING_TYPE,
         CONST_WSTRING_TYPE, DATE_AND_TIME_TYPE, DATE_TYPE, DINT_TYPE, DWORD_TYPE, LINT_TYPE,
@@ -215,6 +213,21 @@ impl AnnotationMap {
                 StatementAnnotation::Program { .. } => None,
             })
             .and_then(|type_name| index.get_type(type_name).ok())
+    }
+
+    /// reutrns the name of the callable that is refered by the given statemt
+    /// or none if this thing may not be callable
+    pub fn get_call_name(&self, s: &AstStatement) -> Option<&str> {
+        match self.type_map.get(&s.get_id()) {
+            Some(StatementAnnotation::Function { qualified_name, .. }) => {
+                Some(qualified_name.as_str())
+            }
+            Some(StatementAnnotation::Program { qualified_name }) => Some(qualified_name.as_str()),
+            Some(StatementAnnotation::Variable { resulting_type, .. }) => {
+                Some(resulting_type.as_str())
+            }
+            _ => None,
+        }
     }
 
     /// returns the annotation of the given statement or none if it was not annotated
