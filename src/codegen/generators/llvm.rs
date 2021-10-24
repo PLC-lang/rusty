@@ -226,17 +226,15 @@ impl<'a> Llvm<'a> {
         &self,
         value: &[u16],
     ) -> Result<TypeAndValue<'a>, CompileError> {
-        let mut bytes = Vec::with_capacity(value.len() * 2);
-        value.iter().for_each(|it| {
-            let ordered_bytes = it.to_le_bytes(); //todo make this a compiler-setting
-            bytes.push(ordered_bytes[0]);
-            bytes.push(ordered_bytes[1]);
-        });
-
-        let exp_value = self.context.const_string(bytes.as_slice(), false);
+        let values: Vec<IntValue> = value
+            .iter()
+            .map(|it| self.context.i16_type().const_int(*it as u64, false))
+            .collect();
+        let vector = self.context.i16_type().const_array(&values);
         Ok((
             typesystem::new_wide_string_information(value.len() as u32),
-            BasicValueEnum::VectorValue(exp_value),
+            BasicValueEnum::ArrayValue(vector),
+            // BasicValueEnum::VectorValue(exp_value),
         ))
     }
 
