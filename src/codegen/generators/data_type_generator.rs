@@ -8,7 +8,7 @@
 use crate::ast::SourceRange;
 use crate::index::{Index, VariableIndexEntry};
 use crate::resolver::AnnotationMap;
-use crate::typesystem::Dimension;
+use crate::typesystem::{Dimension, StringEncoding};
 use crate::{ast::AstStatement, compile_error::CompileError, typesystem::DataTypeInformation};
 use crate::{
     codegen::{
@@ -151,16 +151,17 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
                 get_llvm_float_type(self.llvm.context, *size, name).map(|it| it.into())
             }
             DataTypeInformation::String { size, encoding } => {
+                let base_type = if *encoding == StringEncoding::Utf8 {
+                    self.llvm.context.i8_type()
+                } else {
+                    self.llvm.context.i16_type()
+                };
+
                 let string_size = size
                     .as_int_value(self.index)
                     .map_err(|it| CompileError::codegen_error(it, SourceRange::undefined()))?
                     as u32;
-                Ok(self
-                    .llvm
-                    .context
-                    .i8_type()
-                    .array_type(string_size * encoding.get_bytes_per_char())
-                    .into())
+                Ok(base_type.array_type(string_size).into())
             }
             DataTypeInformation::SubRange {
                 referenced_type, ..
