@@ -225,7 +225,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                 operator, value, ..
             } => self.generate_unary_expression(operator, value),
             //fallback
-            _ => self.generate_literal(expression),
+            _ => dbg!(self.generate_literal(expression)),
         }
     }
 
@@ -1416,7 +1416,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
         let mut v = Vec::new();
         for e in elements {
             //generate with correct type hint
-            let value = self.generate_literal(e)?;
+            let value = dbg!(self.generate_literal(e))?;
             v.push(value.as_basic_value_enum());
         }
 

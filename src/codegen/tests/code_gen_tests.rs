@@ -831,24 +831,7 @@ fn program_with_string_assignment() {
         END_PROGRAM"#,
     );
 
-    let expected = r#"; ModuleID = 'main'
-source_filename = "main"
-
-%prg_interface = type { [81 x i8], [162 x i8] }
-
-@prg_instance = global %prg_interface zeroinitializer
-
-define void @prg(%prg_interface* %0) {
-entry:
-  %y = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 0
-  %z = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 1
-  store [12 x i8] c"im a genius\00", [81 x i8]* %y, align 1
-  store [36 x i8] c"i\00m\00 \00a\00 \00u\00t\00f\001\006\00 \00g\00e\00n\00i\00u\00s\00\00\00", [162 x i8]* %z, align 1
-  ret void
-}
-"#;
-
-    assert_eq!(result, expected);
+    insta::assert_snapshot!(result);
 }
 
 #[test]
@@ -871,28 +854,7 @@ END_PROGRAM
 "#,
     );
 
-    let expected = r#"; ModuleID = 'main'
-source_filename = "main"
-
-%prg_interface = type { [81 x i8], [81 x i8], [162 x i8], [162 x i8] }
-
-@prg_instance = global %prg_interface zeroinitializer
-
-define void @prg(%prg_interface* %0) {
-entry:
-  %should_replace_s = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 0
-  %should_not_replace_s = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 1
-  %should_replace_ws = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 2
-  %should_not_replace_ws = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 3
-  store [41 x i8] c"a\0A\0A b\0A\0A c\0C\0C d\0D\0D e\09\09 $ 'single' W\F0\9F\92\96\F0\9F\92\96\00", [81 x i8]* %should_replace_s, align 1
-  store [19 x i8] c"\0043 $\22no replace$\22\00", [81 x i8]* %should_not_replace_s, align 1
-  store [74 x i8] c"a\00\0A\00\0A\00 \00b\00\0A\00\0A\00 \00c\00\0C\00\0C\00 \00d\00\0D\00\0D\00 \00e\00\09\00\09\00 \00$\00 \00\22\00d\00o\00u\00b\00l\00e\00\22\00 \00W\00=\D8\96\DC=\D8\96\DC\00\00", [162 x i8]* %should_replace_ws, align 1
-  store [38 x i8] c"$\004\003\00 \00$\00'\00n\00o\00 \00r\00e\00p\00l\00a\00c\00e\00$\00'\00\00\00", [162 x i8]* %should_not_replace_ws, align 1
-  ret void
-}
-"#;
-
-    assert_eq!(result, expected);
+    insta::assert_snapshot!(result);
 }
 
 #[test]
@@ -947,25 +909,7 @@ z := WSTRING#'im a utf16 genius';
 END_PROGRAM
 "#,
     );
-
-    let expected = r#"; ModuleID = 'main'
-source_filename = "main"
-
-%prg_interface = type { [81 x i8], [162 x i8] }
-
-@prg_instance = global %prg_interface zeroinitializer
-
-define void @prg(%prg_interface* %0) {
-entry:
-  %y = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 0
-  %z = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 1
-  store [12 x i8] c"im a genius\00", [81 x i8]* %y, align 1
-  store [36 x i8] c"i\00m\00 \00a\00 \00u\00t\00f\001\006\00 \00g\00e\00n\00i\00u\00s\00\00\00", [162 x i8]* %z, align 1
-  ret void
-}
-"#;
-
-    assert_eq!(result, expected);
+    insta::assert_snapshot!(result);
 }
 
 #[test]
@@ -1009,26 +953,7 @@ END_PROGRAM
 "#,
     );
 
-    let expected = r#"; ModuleID = 'main'
-source_filename = "main"
-
-%prg_interface = type { [81 x i8], [100 x i8], [200 x i8] }
-
-@prg_instance = global %prg_interface { [81 x i8] zeroinitializer, [4 x i8] c"abc\00", [8 x i8] c"a\00b\00c\00\00\00" }
-
-define void @prg(%prg_interface* %0) {
-entry:
-  %y = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 0
-  %z = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 1
-  %zz = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 2
-  store [12 x i8] c"im a genius\00", [81 x i8]* %y, align 1
-  store [17 x i8] c"im also a genius\00", [100 x i8]* %z, align 1
-  store [34 x i8] c"i\00m\00 \00a\00l\00s\00o\00 \00a\00 \00g\00e\00n\00i\00u\00s\00\00\00", [200 x i8]* %zz, align 1
-  ret void
-}
-"#;
-
-    assert_eq!(result, expected);
+    insta::assert_snapshot!(result);
 }
 
 #[ignore = "strings look broken :("]
@@ -1048,26 +973,7 @@ fn variable_length_strings_can_be_created() {
         "#,
     );
 
-    let expected = r#"; ModuleID = 'main'
-source_filename = "main"
-
-%prg_interface = type { [16 x i8], [4 x i8], [32 x i8], [8 x i8] }
-
-@prg_instance = global %prg_interface { [16 x i8] zeroinitializer, [4 x i8] c"xyz\00", [32 x i8] zeroinitializer, [8 x i8] c"x\00y\00z\00\00\00" }
-
-define void @prg(%prg_interface* %0) {
-entry:
-  %y = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 0
-  %z = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 1
-  %wy = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 2
-  %wz = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 3
-  store [12 x i8] c"im a genius\00", [16 x i8]* %y, align 1
-  store [24 x i8] c"i\00m\00 \00a\00 \00g\00e\00n\00i\00u\00s\00\00\00", [32 x i8]* %wy, align 1
-  ret void
-}
-"#;
-
-    assert_eq!(result, expected);
+    insta::assert_snapshot!(result);
 }
 
 #[ignore = "https://github.com/PLC-lang/rusty/issues/338"]
@@ -1215,28 +1121,7 @@ fn variable_length_strings_using_constants_can_be_created() {
         "#,
     );
 
-    let expected = r#"; ModuleID = 'main'
-source_filename = "main"
-
-%prg_interface = type { [16 x i8], [4 x i8], [62 x i8], [14 x i8] }
-
-@LONG_STRING = global i16 15
-@SHORT_STRING = global i16 3
-@prg_instance = global %prg_interface { [16 x i8] zeroinitializer, [4 x i8] c"xyz\00", [62 x i8] zeroinitializer, [8 x i8] c"x\00y\00z\00\00\00" }
-
-define void @prg(%prg_interface* %0) {
-entry:
-  %y = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 0
-  %z = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 1
-  %wy = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 2
-  %wz = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 3
-  store [12 x i8] c"im a genius\00", [16 x i8]* %y, align 1
-  store [24 x i8] c"i\00m\00 \00a\00 \00g\00e\00n\00i\00u\00s\00\00\00", [62 x i8]* %wy, align 1
-  ret void
-}
-"#;
-
-    assert_eq!(result, expected);
+    insta::assert_snapshot!(result);
 }
 
 #[test]
@@ -6018,30 +5903,7 @@ fn initial_values_in_global_constant_variables() {
         "#,
     );
 
-    let expected = r#"; ModuleID = 'main'
-source_filename = "main"
-
-@c_INT = global i16 7
-@c_3c = global i16 21
-@c_BOOL = global i1 true
-@c_not = global i1 false
-@c_str = global [81 x i8] c"Hello\00"
-@c_wstr = global [162 x i8] c"W\00o\00r\00l\00d\00\00\00"
-@c_real = global float 0x40091EB860000000
-@c_lreal = global double 3.141500e+00
-@x = global i16 7
-@y = global i16 14
-@z = global i16 32
-@b = global i1 true
-@nb = global i1 false
-@bb = global i1 false
-@str = global [81 x i8] c"Hello\00"
-@wstr = global [162 x i8] c"W\00o\00r\00l\00d\00\00\00"
-@r = global float 0x3FF91EB860000000
-@tau = global double 6.283000e+00
-"#;
-
-    assert_eq!(result, expected);
+    insta::assert_snapshot!(result);
 }
 
 #[test]

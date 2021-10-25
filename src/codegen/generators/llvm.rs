@@ -214,9 +214,12 @@ impl<'a> Llvm<'a> {
         &self,
         value: &[u16],
     ) -> Result<BasicValueEnum<'a>, CompileError> {
-        let bytes = get_bytes_from_u16_array(value);
-        let exp_value = self.context.const_string(bytes.as_slice(), false);
-        Ok(BasicValueEnum::VectorValue(exp_value))
+        let values: Vec<IntValue> = value
+            .iter()
+            .map(|it| self.context.i16_type().const_int(*it as u64, false))
+            .collect();
+        let vector = self.context.i16_type().const_array(&values);
+        Ok(BasicValueEnum::ArrayValue(vector))
     }
     /// create a constant utf8 string-value with the given value
     ///
@@ -228,14 +231,4 @@ impl<'a> Llvm<'a> {
         let exp_value = self.context.const_string(value, true);
         Ok(BasicValueEnum::VectorValue(exp_value))
     }
-}
-
-pub fn get_bytes_from_u16_array(value: &[u16]) -> Vec<u8> {
-    let mut bytes = Vec::with_capacity(value.len() * 2);
-    value.iter().for_each(|it| {
-        let ordered_bytes = it.to_le_bytes(); //todo make this a compiler-setting
-        bytes.push(ordered_bytes[0]);
-        bytes.push(ordered_bytes[1]);
-    });
-    bytes
 }

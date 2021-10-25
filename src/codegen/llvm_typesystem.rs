@@ -11,7 +11,7 @@ use crate::{
     typesystem::DataTypeInformation,
 };
 
-use super::generators::llvm::{self, Llvm};
+use super::generators::llvm::Llvm;
 
 pub fn promote_value_if_needed<'ctx>(
     context: &'ctx Context,
@@ -182,14 +182,11 @@ pub fn cast_if_needed<'ctx>(
                             .into())
                     }
                 }
-                _ => {
-                    dbg!(statement);
-                    Err(CompileError::casting_error(
-                        value_type.get_name(),
-                        target_type.get_name(),
-                        statement.get_location(),
-                    ))
-                }
+                _ => Err(CompileError::casting_error(
+                    value_type.get_name(),
+                    target_type.get_name(),
+                    statement.get_location(),
+                )),
             }
         }
 
@@ -242,10 +239,18 @@ pub fn cast_if_needed<'ctx>(
                 statement.get_location(),
             )),
         },
-        DataTypeInformation::String { size, .. } => match value_type {
+        DataTypeInformation::String { size, encoding } => match value_type {
             DataTypeInformation::String {
-                size: value_size, ..
+                size: value_size,
+                encoding: value_encoding,
             } => {
+                if encoding != value_encoding {
+                    return Err(CompileError::casting_error(
+                        value_type.get_name(),
+                        target_type.get_name(),
+                        statement.get_location(),
+                    ));
+                }
                 let size = size
                     .as_int_value(index)
                     .map_err(|msg| CompileError::codegen_error(msg, SourceRange::undefined()))?
@@ -264,22 +269,18 @@ pub fn cast_if_needed<'ctx>(
                         ..
                     } = statement
                     {
-                        let str_bytes = if *is_wide {
-                            let chars = string_value.encode_utf16().collect::<Vec<u16>>();
-                            let mut bytes = llvm::get_bytes_from_u16_array(chars.as_slice());
-                            bytes.push(0);
-                            bytes
+                        let value = if *is_wide {
+                            let mut chars = dbg!(string_value).encode_utf16().collect::<Vec<u16>>();
+                            chars.push(0);
+                            let total_bytes_to_copy = std::cmp::min(size - 1, chars.len() as u32);
+                            let new_value = &chars[0..(total_bytes_to_copy) as usize];
+                            llvm.create_llvm_const_utf16_vec_string(new_value)?
                         } else {
                             let bytes = string_value.bytes().collect::<Vec<u8>>();
-                            bytes
+                            let total_bytes_to_copy = std::cmp::min(size - 1, bytes.len() as u32);
+                            let new_value = &bytes[0..total_bytes_to_copy as usize];
+                            llvm.create_llvm_const_vec_string(new_value)?
                         };
-                        let bytes_per_char = if *is_wide { 2 } else { 1 };
-                        let total_bytes_to_copy =
-                            std::cmp::min((size - 1) * bytes_per_char, (str_bytes.len()) as u32);
-                        //dont bother with the wstring, because we will rework them
-                        //
-                        let new_value = &str_bytes[0..(total_bytes_to_copy) as usize];
-                        let value = llvm.create_llvm_const_vec_string(new_value)?;
                         Ok(value)
                     } else {
                         //if we are on a vector replace it
