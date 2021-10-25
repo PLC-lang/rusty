@@ -9,8 +9,8 @@ use inkwell::{
     basic_block::BasicBlock,
     types::BasicTypeEnum,
     values::{
-        ArrayValue, BasicValue, BasicValueEnum, FloatValue, IntValue, PointerValue, StructValue,
-        VectorValue,
+        ArrayValue, BasicMetadataValueEnum, BasicValue, BasicValueEnum, FloatValue, IntValue,
+        PointerValue, StructValue, VectorValue,
     },
     AddressSpace, FloatPredicate, IntPredicate,
 };
@@ -599,14 +599,14 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
         parameters: &Option<AstStatement>,
         input_block: &BasicBlock,
         output_block: &BasicBlock,
-    ) -> Result<Vec<BasicValueEnum<'a>>, CompileError> {
+    ) -> Result<Vec<BasicMetadataValueEnum<'a>>, CompileError> {
         let mut result = if let Some(class_struct) = class_struct {
             vec![
-                class_struct.as_basic_value_enum(),
-                parameter_struct.as_basic_value_enum(),
+                class_struct.as_basic_value_enum().into(),
+                parameter_struct.as_basic_value_enum().into(),
             ]
         } else {
-            vec![parameter_struct.as_basic_value_enum()]
+            vec![parameter_struct.as_basic_value_enum().into()]
         };
         match &parameters {
             Some(AstStatement::ExpressionList { expressions, .. }) => {
@@ -623,7 +623,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                         output_block,
                     )?;
                     if let Some(parameter) = parameter {
-                        result.push(parameter);
+                        result.push(parameter.into());
                     };
                 }
             }
@@ -640,7 +640,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                     output_block,
                 )?;
                 if let Some(parameter) = parameter {
-                    result.push(parameter);
+                    result.push(parameter.into());
                 };
             }
             None => {}

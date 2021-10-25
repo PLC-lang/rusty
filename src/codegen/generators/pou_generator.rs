@@ -24,7 +24,7 @@ use crate::{
 use inkwell::types::StructType;
 use inkwell::{
     module::Module,
-    types::{BasicTypeEnum, FunctionType},
+    types::{BasicMetadataTypeEnum, BasicTypeEnum, FunctionType},
     values::{BasicValueEnum, FunctionValue},
     AddressSpace,
 };
@@ -209,7 +209,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
     /// returns the given `return_type`
     fn create_llvm_function_type(
         &self,
-        parameters: Vec<BasicTypeEnum<'ink>>,
+        parameters: Vec<BasicMetadataTypeEnum<'ink>>,
         is_var_args: bool,
         return_type: Option<BasicTypeEnum<'ink>>,
     ) -> Result<FunctionType<'ink>, CompileError> {
