@@ -315,6 +315,7 @@
 <span id="315">315</span>
 <span id="316">316</span>
 <span id="317">317</span>
+<span id="318">318</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 <span class="doccomment">/// the data_type_generator generates user defined data-types</span>
 <span class="doccomment">/// - Structures</span>
@@ -325,7 +326,7 @@
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::ast::SourceRange</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::index</span>::{<span class="ident">Index</span>, <span class="ident">VariableIndexEntry</span>};
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::resolver::AnnotationMap</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::typesystem::Dimension</span>;
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::typesystem</span>::{<span class="ident">Dimension</span>, <span class="ident">StringEncoding</span>};
 <span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">ast::AstStatement</span>, <span class="ident">compile_error::CompileError</span>, <span class="ident">typesystem::DataTypeInformation</span>};
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">codegen</span>::{
@@ -468,16 +469,17 @@
                 <span class="ident">get_llvm_float_type</span>(<span class="self">self</span>.<span class="ident">llvm</span>.<span class="ident">context</span>, <span class="kw-2">*</span><span class="ident">size</span>, <span class="ident">name</span>).<span class="ident">map</span>(<span class="op">|</span><span class="ident">it</span><span class="op">|</span> <span class="ident">it</span>.<span class="ident">into</span>())
             }
             <span class="ident">DataTypeInformation::String</span> { <span class="ident">size</span>, <span class="ident">encoding</span> } <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="kw">let</span> <span class="ident">base_type</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw-2">*</span><span class="ident">encoding</span> <span class="op">=</span><span class="op">=</span> <span class="ident">StringEncoding::Utf8</span> {
+                    <span class="self">self</span>.<span class="ident">llvm</span>.<span class="ident">context</span>.<span class="ident">i8_type</span>()
+                } <span class="kw">else</span> {
+                    <span class="self">self</span>.<span class="ident">llvm</span>.<span class="ident">context</span>.<span class="ident">i16_type</span>()
+                };
+
                 <span class="kw">let</span> <span class="ident">string_size</span> <span class="op">=</span> <span class="ident">size</span>
                     .<span class="ident">as_int_value</span>(<span class="self">self</span>.<span class="ident">index</span>)
                     .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">it</span><span class="op">|</span> <span class="ident">CompileError::codegen_error</span>(<span class="ident">it</span>, <span class="ident">SourceRange::undefined</span>()))<span class="question-mark">?</span>
                     <span class="kw">as</span> <span class="ident">u32</span>;
-                <span class="prelude-val">Ok</span>(<span class="self">self</span>
-                    .<span class="ident">llvm</span>
-                    .<span class="ident">context</span>
-                    .<span class="ident">i8_type</span>()
-                    .<span class="ident">array_type</span>(<span class="ident">string_size</span> <span class="op">*</span> <span class="ident">encoding</span>.<span class="ident">get_bytes_per_char</span>())
-                    .<span class="ident">into</span>())
+                <span class="prelude-val">Ok</span>(<span class="ident">base_type</span>.<span class="ident">array_type</span>(<span class="ident">string_size</span>).<span class="ident">into</span>())
             }
             <span class="ident">DataTypeInformation::SubRange</span> {
                 <span class="ident">referenced_type</span>, ..
