@@ -461,6 +461,22 @@ impl Index {
             })
     }
 
+    pub fn find_fully_qualified_variable(
+        &self,
+        fully_qualified_name: &str,
+    ) -> Option<&VariableIndexEntry> {
+        let segments: Vec<&str> = fully_qualified_name.split('.').collect();
+        let (q, segments) = if segments.len() > 1 {
+            (
+                Some(segments[0]),
+                segments.iter().skip(1).copied().collect::<Vec<&str>>(),
+            )
+        } else {
+            (None, segments)
+        };
+        self.find_variable(q, &segments[..])
+    }
+
     pub fn find_variable(
         &self,
         context: Option<&str>,

@@ -2,7 +2,7 @@
 use crate::{
     ast::SourceRange,
     codegen::llvm_typesystem,
-    index::{ImplementationType, Index},
+    index::{ImplementationType, Index, VariableIndexEntry},
     resolver::{AnnotationMap, StatementAnnotation},
     typesystem::{Dimension, StringEncoding, INT_SIZE, INT_TYPE, LINT_TYPE},
 };
@@ -124,15 +124,14 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
         //see if we need a cast
         if let Some(target_type) = self.annotations.get_type_hint(expression, self.index) {
             let actual_type = self.annotations.get_type_or_void(expression, self.index);
-            let v = llvm_typesystem::cast_if_needed(
+            Ok(llvm_typesystem::cast_if_needed(
                 self.llvm,
                 self.index,
                 target_type.get_type_information(),
                 v,
                 actual_type.get_type_information(),
                 expression,
-            )?;
-            Ok(v)
+            )?)
         } else {
             Ok(v)
         }
@@ -194,7 +193,6 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
 
                 let ltype = self.get_type_hint_info_for(left)?;
                 let rtype = self.get_type_hint_info_for(right)?;
-                let result_type = self.get_type_hint_info_for(expression)?;
 
                 if ltype.is_int() && rtype.is_int() {
                     Ok(self.create_llvm_int_binary_expression(
@@ -212,7 +210,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                     Err(CompileError::codegen_error(
                         format!(
                             "invalid types, cannot generate binary expression for {:?}",
-                            result_type
+                            self.get_type_hint_info_for(expression)?
                         ),
                         left.get_location(),
                     ))
@@ -256,9 +254,8 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
             let rhs = match &**index {
                 AstStatement::LiteralInteger { value, .. } => {
                     //Convert into the target literal
-                    let bitwidth = access.get_bit_width();
                     let value: u64 = (*value).try_into().unwrap_or_default();
-                    let index = bitwidth * value;
+                    let index = access.get_bit_width() * value;
                     let rhs = self
                         .llvm_index
                         .get_associated_type(expression_type.get_name())
@@ -270,14 +267,15 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                 AstStatement::Reference { location, .. } => {
                     //Load the reference
                     let reference = self.generate_expression(index)?;
-                    let target_type = self.get_type_hint_info_for(index)?;
                     if reference.is_int_value() {
+                        //TDOO why is this cast necessary???
+                        //did the annotator not annotate 'index' correctly?
                         let reference = cast_if_needed(
                             self.llvm,
                             self.index,
                             expression_type,
                             reference,
-                            target_type,
+                            self.get_type_hint_info_for(index)?,
                             index,
                         )
                         .map(BasicValueEnum::into_int_value)?;
@@ -321,10 +319,6 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
             Ok(result.as_basic_value_enum())
         } else {
             unreachable!()
-            // Err(CompileError::codegen_error(
-            //     "Bitwise operations not possible".into(),
-            //     expression.get_location(),
-            // ))
         }
     }
 
@@ -347,7 +341,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                 //datatype is a pointer to the address
                 //value is the address
                 return self
-                    .generate_element_pointer_for_rec(None, expression)
+                    .generate_element_pointer(expression)
                     .map(|result| result.as_basic_value_enum());
             }
             _ => unimplemented!(),
@@ -420,7 +414,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                 Ok((None, callable_reference, implementation))
             }
             AstStatement::QualifiedReference { .. } => {
-                let loaded_value = self.generate_element_pointer_for_rec(None, operator);
+                let loaded_value = self.generate_element_pointer(operator);
                 loaded_value.map(|ptr_value| {
                     self.index
                         .find_implementation(self.annotations.get_call_name(operator).unwrap())
@@ -667,7 +661,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
             } = parameter
             {
                 //this is VAR_IN_OUT assignemt, so don't load the value, assign the pointer
-                self.generate_element_pointer_for_rec(None, expression)?
+                self.generate_element_pointer(expression)?
                     .as_basic_value_enum()
             } else {
                 self.generate_expression(expression)?
@@ -709,7 +703,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                 .build_struct_gep(parameter_struct, index as u32, "")
                 .unwrap();
 
-            let l_value = self.generate_element_pointer_for_rec(None, right)?;
+            let l_value = self.generate_element_pointer(right)?;
             let loaded_value = builder.build_load(pointer_to_param, parameter.get_name());
             let value = cast_if_needed(
                 self.llvm,
@@ -763,29 +757,39 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
         &self,
         reference_statement: &AstStatement,
     ) -> Result<PointerValue<'a>, CompileError> {
-        let result = match reference_statement {
-            AstStatement::Reference { name, .. } => {
-                self.create_llvm_pointer_value_for_reference(None, name, reference_statement)
+        if let AstStatement::QualifiedReference { elements, .. } = reference_statement {
+            let mut qualifier: Option<PointerValue> = None;
+            for e in elements {
+                qualifier = Some(self.do_generate_element_pointer(qualifier, e)?);
             }
+            qualifier.ok_or_else(|| {
+                CompileError::codegen_error(
+                    format!("Cannot generate a LValue for {:?}", reference_statement),
+                    reference_statement.get_location(),
+                )
+            })
+        } else {
+            self.do_generate_element_pointer(None, reference_statement)
+        }
+    }
 
+    fn do_generate_element_pointer(
+        &self,
+        qualifier: Option<PointerValue<'a>>,
+        reference_statement: &AstStatement,
+    ) -> Result<PointerValue<'a>, CompileError> {
+        let result = match reference_statement {
+            AstStatement::Reference { name, .. } => self.create_llvm_pointer_value_for_reference(
+                qualifier.as_ref(),
+                name.as_str(),
+                reference_statement,
+            ),
             AstStatement::ArrayAccess {
                 reference, access, ..
-            } => self.generate_element_pointer_for_array(None, reference, access),
-            AstStatement::QualifiedReference { elements, .. } => {
-                let mut qualifier: Option<PointerValue> = None;
-                for e in elements {
-                    qualifier = Some(self.generate_element_pointer_for_rec(qualifier.as_ref(), e)?);
-                }
-                qualifier.ok_or_else(|| {
-                    CompileError::codegen_error(
-                        format!("Cannot generate a LValue for {:?}", reference_statement),
-                        reference_statement.get_location(),
-                    )
-                })
-            }
-            AstStatement::PointerAccess { .. } => {
-                self.generate_element_pointer_for_rec(None, reference_statement)
-            }
+            } => self.generate_element_pointer_for_array(qualifier.as_ref(), reference, access),
+            AstStatement::PointerAccess { reference, .. } => self
+                .do_generate_element_pointer(qualifier, reference)
+                .map(|it| self.deref(it)),
             _ => Err(CompileError::codegen_error(
                 format!("Cannot generate a LValue for {:?}", reference_statement),
                 reference_statement.get_location(),
@@ -802,86 +806,58 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
     /// - `context` the statement to obtain the location from when returning an error
     fn create_llvm_pointer_value_for_reference(
         &self,
-        qualifier: Option<(&PointerValue<'a>, &str)>,
+        qualifier: Option<&PointerValue<'a>>,
         name: &str,
         context: &AstStatement,
     ) -> Result<PointerValue<'a>, CompileError> {
         let offset = &context.get_location();
-        let l_value = if let Some((l_value, qualifier_name)) = qualifier {
-            if let Some(StatementAnnotation::Variable { qualified_name, .. }) =
-                self.annotations.get_annotation(context)
-            {
-                let segments: Vec<&str> = qualified_name.split('.').collect();
-                let (qualifier, segments) = if segments.len() > 1 {
-                    (
-                        Some(segments[0]),
-                        segments.iter().skip(1).copied().collect::<Vec<&str>>(),
-                    )
-                } else {
-                    (None, segments)
-                };
-                let member = self.index.find_variable(qualifier, &segments[..]);
-                let member_location =
-                    member
-                        .map(|it| it.get_location_in_parent())
+        if let Some(qualifier) = qualifier {
+            //if we're loading a reference like PLC_PRG.ACTION we already loaded PLC_PRG pointer into qualifier,
+            //so we should not load anything in addition for the action (or the method)
+            match self.annotations.get_annotation(context) {
+                Some(StatementAnnotation::Function { qualified_name, .. })
+                | Some(StatementAnnotation::Program { qualified_name, .. }) => {
+                    if self.index.find_implementation(qualified_name).is_some() {
+                        return Ok(qualifier.to_owned());
+                    }
+                }
+                Some(StatementAnnotation::Variable { qualified_name, .. }) => {
+                    let member_location = self
+                        .index
+                        .find_fully_qualified_variable(qualified_name)
+                        .map(VariableIndexEntry::get_location_in_parent)
                         .ok_or_else(|| {
                             CompileError::invalid_reference(qualified_name, offset.clone())
                         })?;
+                    let gep = self.llvm.get_member_pointer_from_struct(
+                        *qualifier,
+                        member_location,
+                        name,
+                        offset,
+                    )?;
 
-                let gep = self.llvm.get_member_pointer_from_struct(
-                    *l_value,
-                    member_location,
-                    name,
-                    offset,
-                )?;
-
-                gep
-            } else {
-                return Err(CompileError::invalid_reference(
-                    &format!("{:}.{:}", qualifier_name, name),
-                    offset.clone(),
-                ));
-            }
-        } else {
-            //no context
-
-            let type_name = self
-                .get_function_context(context)?
-                .linking_context
-                .get_type_name();
-
-            let variable_index_entry = self
-                .index
-                .find_variable(Some(type_name), &[name])
-                .or_else(|| {
-                    let annotation = self.annotations.get(context)?;
-                    match annotation {
-                        StatementAnnotation::Variable { qualified_name, .. } => {
-                            //TODO introduce qualified names!
-                            let qualifier = &qualified_name[..qualified_name.rfind('.')?];
-                            self.index.find_variable(Some(qualifier), &[name])
-                        }
-                        _ => None,
+                    return Ok(gep);
+                }
+                _ => {
+                    let qualifier_name = self.get_type_hint_for(context)?.get_name();
+                    let qualified_name = format!("{}.{}", qualifier_name, name);
+                    let implementation = self.index.find_implementation(&qualified_name);
+                    if implementation.is_some() {
+                        return Ok(qualifier.to_owned());
                     }
-                })
-                .ok_or_else(|| CompileError::InvalidReference {
-                    reference: name.to_string(),
-                    location: offset.clone(),
-                })?;
-            let accessor_ptr = self
-                .llvm_index
-                .find_loaded_associated_variable_value(variable_index_entry.get_qualified_name())
-                .ok_or_else(|| {
-                    CompileError::codegen_error(
-                        format!("Cannot generate reference for {:}", name),
-                        offset.clone(),
-                    )
-                })?;
+                }
+            }
+        }
 
-            accessor_ptr
-        };
-        // self.auto_deref_if_necessary(l_value, context)
-        Ok(l_value)
+        // no context ... so just something like 'x'
+        match self.annotations.get(context) {
+            Some(StatementAnnotation::Variable { qualified_name, .. })
+            | Some(StatementAnnotation::Program { qualified_name, .. }) => self
+                .llvm_index
+                .find_loaded_associated_variable_value(qualified_name)
+                .ok_or_else(|| CompileError::invalid_reference(name, offset.clone())),
+            _ => Err(CompileError::invalid_reference(name, offset.clone())),
+        }
     }
 
     fn deref(&self, accessor_ptr: PointerValue<'a>) -> PointerValue<'a> {
@@ -950,23 +926,8 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
         reference: &AstStatement,
         access: &AstStatement,
     ) -> Result<PointerValue<'a>, CompileError> {
-        self.do_generate_element_pointer_for_array(qualifier, reference, access)
-            .map_err(|_| {
-                CompileError::codegen_error(
-                    "Invalid array access".to_string(),
-                    access.get_location(),
-                )
-            })
-    }
-
-    fn do_generate_element_pointer_for_array(
-        &self,
-        qualifier: Option<&PointerValue<'a>>,
-        reference: &AstStatement,
-        access: &AstStatement,
-    ) -> Result<PointerValue<'a>, CompileError> {
         //Load the reference
-        self.generate_element_pointer_for_rec(qualifier, reference)
+        self.do_generate_element_pointer(qualifier.cloned(), reference)
             .and_then(|lvalue| {
                 if let DataTypeInformation::Array { dimensions, .. } =
                     self.get_type_hint_info_for(reference)?
@@ -978,11 +939,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                     let statements = access.get_as_list();
                     if statements.is_empty() || statements.len() != dimensions.len() {
                         return Err(CompileError::codegen_error(
-                            format!(
-                                "Mismatched array access : {} -> {} ",
-                                statements.len(),
-                                dimensions.len()
-                            ),
+                            "Invalid array access".to_string(),
                             access.get_location(),
                         ));
                     }
@@ -1001,80 +958,6 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                     access.get_location(),
                 ))
             })
-    }
-
-    /// the entry function for recursive reference-generation (for qualified references)
-    ///
-    /// - `qualifier` the qualifier (TypeAndPointer) for the given reference-statement
-    /// - `reference` the reference to load
-    fn generate_element_pointer_for_rec(
-        &self,
-        qualifier: Option<&PointerValue<'a>>,
-        reference: &AstStatement,
-    ) -> Result<PointerValue<'a>, CompileError> {
-        match reference {
-            AstStatement::QualifiedReference { elements, .. } => {
-                let mut element_iter = elements.iter();
-                let current_element = element_iter.next();
-                let mut current_lvalue =
-                    self.generate_element_pointer_for_rec(qualifier, current_element.unwrap());
-
-                for it in element_iter {
-                    let ctx = current_lvalue?;
-                    let context_ptr = ctx;
-
-                    current_lvalue = self.generate_element_pointer_for_rec(Some(&context_ptr), it);
-                }
-                current_lvalue
-            }
-            AstStatement::Reference { name, .. } => {
-                if let Some(qualifier) = qualifier {
-                    //see if there is an action with the current name
-                    match self.annotations.get_annotation(reference) {
-                        Some(StatementAnnotation::Function { qualified_name, .. }) => {
-                            let implementation = self.index.find_implementation(qualified_name);
-                            if implementation.is_some() {
-                                return Ok(qualifier.to_owned());
-                            }
-                        }
-                        Some(StatementAnnotation::Program { qualified_name, .. }) => {
-                            let implementation = self.index.find_implementation(qualified_name);
-                            if implementation.is_some() {
-                                return Ok(qualifier.to_owned());
-                            }
-                        }
-                        _ => {
-                            let qualifier_name = self.get_type_hint_for(reference)?.get_name();
-                            let qualified_name = format!("{}.{}", qualifier_name, name);
-                            let implementation = self.index.find_implementation(&qualified_name);
-                            if implementation.is_some() {
-                                return Ok(qualifier.to_owned());
-                            }
-                        }
-                    }
-                };
-                //Otherwise, load a variable reference
-                let x = self
-                    .create_llvm_pointer_value_for_reference(
-                        qualifier.zip(Some(self.get_annotated_qualifier_for(reference)?)),
-                        name,
-                        reference,
-                    )
-                    .and_then(|p| self.auto_deref_if_necessary(p, reference));
-                x
-            }
-            AstStatement::ArrayAccess {
-                reference, access, ..
-            } => self.generate_element_pointer_for_array(qualifier, reference, access),
-            AstStatement::PointerAccess { reference, .. } => {
-                let pointer = self.generate_element_pointer_for_rec(qualifier, reference)?;
-                Ok(self.deref(pointer))
-            }
-            _ => Err(CompileError::codegen_error(
-                format!("Unsupported Statement {:?}", reference),
-                reference.get_location(),
-            )),
-        }
     }
 
     /// generates the result of an int/bool binary-expression (+, -, *, /, %, ==)
@@ -1392,30 +1275,6 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                     statement.get_location(),
                 )
             })
-    }
-
-    /// returns the data type associated to the given statement using the following strategy:
-    /// - 1st try: fetch the type associated via the `self.annotations`
-    /// - 2nd try: fetch the type associated with the given `default_type_name`
-    /// - else return an `Err`
-    pub fn get_annotated_qualifier_for(
-        &self,
-        statement: &AstStatement,
-    ) -> Result<&str, CompileError> {
-        match self.annotations.get_annotation(statement) {
-            Some(StatementAnnotation::Value { resulting_type }) => Ok(resulting_type.as_str()),
-            Some(StatementAnnotation::Variable { resulting_type, .. }) => {
-                Ok(resulting_type.as_str())
-            }
-            Some(StatementAnnotation::Function { qualified_name, .. }) => {
-                Ok(qualified_name.as_str())
-            }
-            Some(StatementAnnotation::Program { qualified_name }) => Ok(qualified_name.as_str()),
-            _ => Err(CompileError::codegen_error(
-                format!("no qualifier available for {:#?}", statement),
-                statement.get_location(),
-            )),
-        }
     }
 
     /// generates a struct literal value with the given value assignments (ExpressionList)
