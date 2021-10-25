@@ -1,0 +1,18 @@
+---
+source: src/codegen/tests/expression_tests.rs
+expression: result
+
+---
+; ModuleID = 'main'
+source_filename = "main"
+
+%myStruct = type { i16 }
+%func_interface = type {}
+
+define %myStruct @func(%func_interface* %0) {
+entry:
+  %func = alloca %myStruct, align 8
+  %func_ret = load %myStruct, %myStruct* %func, align 2
+  ret %myStruct %func_ret
+}
+

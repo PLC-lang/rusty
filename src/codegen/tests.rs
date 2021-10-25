@@ -1,41 +1,9 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 mod code_gen_tests;
 mod codegen_error_messages_tests;
+mod expression_tests;
 mod statement_codegen_test;
 mod typesystem_test;
-
-#[macro_export]
-macro_rules! codegen_wihout_unwrap {
-    ($code:tt) => {{
-        let lexer = crate::lexer::lex($code);
-        let (mut ast, ..) = crate::parser::parse(lexer);
-
-        let context = inkwell::context::Context::create();
-        crate::ast::pre_process(&mut ast);
-        let index = crate::index::visitor::visit(&ast);
-        let annotations = crate::resolver::TypeAnnotator::visit_unit(&index, &ast);
-        let (index, _unresolvable) = crate::resolver::const_evaluator::evaluate_constants(index);
-
-        let code_generator = crate::codegen::CodeGen::new(&context, "main");
-        code_generator.generate(&ast, &annotations, &index)
-    }};
-}
-
-#[macro_export]
-macro_rules! codegen {
-    ($code:tt) => {{
-        crate::codegen_wihout_unwrap!($code).unwrap()
-    }};
-}
-
-#[macro_export]
-macro_rules! generate_with_empty_program {
-    ($code:tt) => {{
-        let source = format!("{} {}", "PROGRAM main END_PROGRAM", $code);
-        let str_source = source.as_str();
-        codegen!(str_source)
-    }};
-}
 
 fn generate_program_boiler_plate(
     pou_name: &str,

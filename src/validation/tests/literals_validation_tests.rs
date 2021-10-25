@@ -1,6 +1,6 @@
 use crate::{
+    test_utils::tests::parse_and_validate,
     typesystem::{DATE_AND_TIME_TYPE, DATE_TYPE, TIME_OF_DAY_TYPE, TIME_TYPE},
-    validation::tests::parse_and_validate,
     Diagnostic,
 };
 

@@ -45,14 +45,6 @@ impl VariableValidator {
             .and_then(|qualifier| context.index.find_member(qualifier, variable.name.as_str()))
             .or_else(|| context.index.find_global_variable(variable.name.as_str()))
         {
-            println!(
-                "validating: {:} : {:#?}",
-                v_entry.get_name(),
-                context
-                    .index
-                    .find_effective_type_by_name(v_entry.get_type_name())
-            );
-
             match v_entry.initial_value.and_then(|initial_id| {
                 context
                     .index
@@ -160,7 +152,8 @@ fn data_type_is_fb_or_class_instance(type_name: &str, index: &Index) -> bool {
 
 #[cfg(test)]
 mod variable_validator_tests {
-    use crate::{validation::tests::parse_and_validate, Diagnostic};
+    use crate::test_utils::tests::parse_and_validate;
+    use crate::Diagnostic;
 
     #[test]
     fn validate_empty_struct_declaration() {

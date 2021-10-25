@@ -2,9 +2,9 @@
 
 Structured text compiler written in Rust
 
-[![Rust Build](https://github.com/ghaith/ruSTy/workflows/Rust%20on%20Docker/badge.svg)](https://github.com/ghaith/ruSTy/actions)
-[![codecov](https://codecov.io/gh/ghaith/rusty/branch/master/graph/badge.svg?token=7ZZ5XZYE9V)](https://codecov.io/gh/ghaith/rusty)
-[![Lines of Code](https://tokei.rs/b1/github/ghaith/rusty)](https://github.com/XAMPPRocky/tokei)
+[![Rust Build](https://github.com/PLC-lang/ruSTy/workflows/Rust%20on%20Docker/badge.svg)](https://github.com/PLC-lang/ruSTy/actions)
+[![codecov](https://codecov.io/gh/PLC-lang/rusty/branch/master/graph/badge.svg?token=7ZZ5XZYE9V)](https://codecov.io/gh/PLC-lang/rusty)
+[![Lines of Code](https://tokei.rs/b1/github/PLC-lang/rusty)](https://github.com/XAMPPRocky/tokei)
 
 
 ```
@@ -25,7 +25,7 @@ Structured text compiler written in Rust
 ```
 
 For build, installation and usage reference as well as supported language constructs, check out
-the [documentation](https://ghaith.github.io/rusty/).
+the [documentation](https://plc-lang.github.io/rusty/).
 
 ## About RuSTy
 RuSTy is a structured text (ST) compiler written in Rust and based on the
@@ -38,4 +38,4 @@ supporting at least the features in 2nd edition IEC 61131 standard.
 ## Getting started
 Start by [installing Rust](https://www.rust-lang.org/tools/install) and git on your machine.
 Then, clone this repository and run `cargo build` to compile the code. Check out the
-[documentation](https://ghaith.github.io/rusty/) for further reference.
+[documentation](https://plc-lang.github.io/rusty/) for further reference.

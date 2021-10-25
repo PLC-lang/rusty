@@ -1,12 +1,12 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-use crate::codegen;
+use crate::test_utils::tests::codegen;
 use pretty_assertions::assert_eq;
 
 use super::generate_program_boiler_plate;
 
 #[test]
 fn bitaccess_generated_as_rsh_and_trunc_i1() {
-    let result = codegen!(
+    let result = codegen(
         r#"PROGRAM prg
 VAR
 a : BOOL;
@@ -16,7 +16,7 @@ END_VAR
 a := x.2;
 a := y.%X4;
 END_PROGRAM
-"#
+"#,
     );
     let expected = generate_program_boiler_plate(
         "prg",
@@ -41,7 +41,7 @@ END_PROGRAM
 
 #[test]
 fn byteaccess_generated_as_rsh_and_trunc_i8() {
-    let result = codegen!(
+    let result = codegen(
         r#"PROGRAM prg
 VAR
 a : BYTE;
@@ -52,7 +52,7 @@ a := x.%B0;
 a := x.%B1;
 a := y.%B3;
 END_PROGRAM
-"#
+"#,
     );
     let expected = generate_program_boiler_plate(
         "prg",
@@ -81,7 +81,7 @@ END_PROGRAM
 
 #[test]
 fn wordaccess_generated_as_rsh_and_trunc_i16() {
-    let result = codegen!(
+    let result = codegen(
         r#"PROGRAM prg
 VAR
 a : WORD;
@@ -92,7 +92,7 @@ a := x.%W0;
 a := x.%W1;
 a := y.%W1;
 END_PROGRAM
-"#
+"#,
     );
     let expected = generate_program_boiler_plate(
         "prg",
@@ -121,7 +121,7 @@ END_PROGRAM
 
 #[test]
 fn dwordaccess_generated_as_rsh_and_trunc_i32() {
-    let result = codegen!(
+    let result = codegen(
         r#"PROGRAM prg
 VAR
 a : DWORD;
@@ -132,7 +132,7 @@ a := x.%D0;
 a := x.%D1;
 a := y.%D1;
 END_PROGRAM
-"#
+"#,
     );
     let expected = generate_program_boiler_plate(
         "prg",
@@ -161,7 +161,7 @@ END_PROGRAM
 
 #[test]
 fn nested_bitwise_access() {
-    let result = codegen!(
+    let result = codegen(
         r#"PROGRAM prg
 VAR
 a : BOOL;
@@ -170,7 +170,7 @@ END_VAR
 (* Second bit of the second byte of the second word of the second dword of an lword*)
 a := x.%D1.%W1.%B1.%X1;
 END_PROGRAM
-"#
+"#,
     );
     let expected = generate_program_boiler_plate(
         "prg",
@@ -197,7 +197,7 @@ END_PROGRAM
 
 #[test]
 fn variable_based_bitwise_access() {
-    let result = codegen!(
+    let result = codegen(
         r#"PROGRAM prg
 VAR
 a : BOOL;
@@ -208,7 +208,7 @@ END_VAR
 a := x.%Xy;
 b := x.%By;
 END_PROGRAM
-"#
+"#,
     );
     let expected = generate_program_boiler_plate(
         "prg",
