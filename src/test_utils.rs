@@ -7,19 +7,24 @@ pub mod tests {
         index::{self, Index},
         lexer::{self, IdProvider},
         parser,
-        resolver::{const_evaluator::evaluate_constants, TypeAnnotator},
+        resolver::{const_evaluator::evaluate_constants, AnnotationMap, TypeAnnotator},
         Diagnostic, Validator,
     };
 
     pub fn parse(src: &str) -> (CompilationUnit, Vec<Diagnostic>) {
-        parser::parse(lexer::lex_with_ids(src, IdProvider::new()))
+        parser::parse(lexer::lex_with_ids(src, IdProvider::default()))
     }
 
     pub fn index(src: &str) -> (CompilationUnit, Index) {
-        let (mut unit, ..) = parse(src);
+        let id_provider = IdProvider::default();
+        let (mut unit, ..) = parser::parse(lexer::lex_with_ids(src, id_provider.clone()));
         ast::pre_process(&mut unit);
-        let index = index::visitor::visit(&unit);
+        let index = index::visitor::visit(&unit, id_provider);
         (unit, index)
+    }
+
+    pub fn annotate(parse_result: &CompilationUnit, index: &Index) -> AnnotationMap {
+        TypeAnnotator::visit_unit(index, parse_result)
     }
 
     pub fn parse_and_validate(src: &str) -> Vec<Diagnostic> {

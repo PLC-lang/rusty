@@ -1,8 +1,10 @@
 use crate::ast::{AstStatement, SourceRange};
 use crate::index::const_expressions::ConstExpression;
 use crate::index::Index;
+
 use crate::resolver::const_evaluator::{evaluate_constants, UnresolvableConstant};
-use crate::test_utils::tests::index;
+use crate::test_utils::tests::{annotate, index};
+use crate::typesystem::DataTypeInformation;
 
 const EMPTY: Vec<UnresolvableConstant> = vec![];
 
@@ -1163,4 +1165,298 @@ fn const_string_initializers_should_be_converted() {
             location: SourceRange::undefined()
         })
     );
+}
+
+#[test]
+fn const_lreal_initializers_should_be_resolved_correctly() {
+    // GIVEN some STRING constants used as initializers
+    let (parse_result, index) = index(
+        r#"
+        VAR_GLOBAL CONSTANT
+            clreal : LREAL := 3.1415;
+        END_VAR
+        
+        VAR_GLOBAL CONSTANT
+            tau : LREAL := 2 * clreal;
+        END_VAR
+        "#,
+    );
+
+    // WHEN compile-time evaluation is applied
+    // AND types are resolved
+    let annotations = annotate(&parse_result, &index);
+    let (index, unresolvable) = evaluate_constants(index);
+
+    // THEN all should be resolved
+    debug_assert_eq!(EMPTY, unresolvable);
+
+    // AND the globals should have gotten their values
+    debug_assert_eq!(
+        find_connstant_value(&index, "tau"),
+        Some(AstStatement::LiteralReal {
+            value: "6.283".into(),
+            id: 0,
+            location: SourceRange::undefined()
+        })
+    );
+
+    //AND the type is correctly associated
+    let i = index
+        .find_global_variable("tau")
+        .unwrap()
+        .initial_value
+        .unwrap();
+    assert_eq!(
+        index
+            .get_const_expressions()
+            .find_expression_target_type(&i)
+            .unwrap(),
+        "LREAL"
+    );
+
+    assert_eq!(
+        annotations.get_type(
+            index
+                .get_const_expressions()
+                .get_constant_statement(&i)
+                .unwrap(),
+            &index
+        ),
+        index.find_type("LREAL")
+    );
+}
+
+#[test]
+fn array_literals_type_resolving() {
+    // GIVEN some STRING constants used as initializers
+    let (parse_result, index) = index(
+        r#"
+        VAR_GLOBAL CONSTANT
+            a : ARRAY[0..5] OF BYTE := [1,2,3,4];
+        END_VAR
+       "#,
+    );
+
+    // WHEN compile-time evaluation is applied
+    // AND types are resolved
+    let annotations = annotate(&parse_result, &index);
+    let (index, unresolvable) = evaluate_constants(index);
+
+    // THEN all should be resolved
+    debug_assert_eq!(EMPTY, unresolvable);
+
+    let a = index.find_global_variable("a").unwrap();
+    let i = a.initial_value.unwrap();
+    assert_eq!(
+        index
+            .get_const_expressions()
+            .find_expression_target_type(&i),
+        Some(index.find_global_variable("a").unwrap().get_type_name())
+    );
+
+    // AND the array-literals types are associated correctly
+    if let AstStatement::LiteralArray {
+        elements: Some(elements),
+        ..
+    } = parse_result.global_vars[0].variables[0]
+        .initializer
+        .as_ref()
+        .unwrap()
+    {
+        if let AstStatement::ExpressionList { expressions, .. } = elements.as_ref() {
+            for ele in expressions.iter() {
+                assert_eq!(
+                    annotations.get_type_hint(ele, &index),
+                    index.find_type("BYTE")
+                );
+            }
+        } else {
+            unreachable!();
+        }
+    } else {
+        unreachable!();
+    }
+
+    assert_eq!(
+        annotations.get_type_hint(
+            index
+                .get_const_expressions()
+                .get_constant_statement(&i)
+                .unwrap(),
+            &index
+        ),
+        index.find_type(a.get_type_name())
+    );
+}
+
+#[test]
+fn nested_array_literals_type_resolving() {
+    // GIVEN a multi-nested Array Type with an initializer
+    let (parse_result, index) = index(
+        r#"
+        VAR_GLOBAL CONSTANT
+            a : ARRAY[0..1] OF ARRAY[0..1] OF BYTE  := [[1,2],[3,4]]; 
+        END_VAR
+       "#,
+    );
+
+    // WHEN compile-time evaluation is applied
+    // AND types are resolved
+    let annotations = annotate(&parse_result, &index);
+    let (index, unresolvable) = evaluate_constants(index);
+
+    // THEN all should be resolved
+    debug_assert_eq!(EMPTY, unresolvable);
+
+    //AND the type is correctly associated
+    let a = index.find_global_variable("a").unwrap();
+    let i = a.initial_value.unwrap();
+    assert_eq!(
+        index
+            .get_const_expressions()
+            .find_expression_target_type(&i),
+        Some(index.find_global_variable("a").unwrap().get_type_name())
+    );
+    //check the initializer's type
+    let initializer = index
+        .get_const_expressions()
+        .get_constant_statement(&i)
+        .unwrap();
+    assert_eq!(
+        annotations.get_type_hint(initializer, &index),
+        index.find_type(a.get_type_name())
+    );
+
+    println!("{:#?}", initializer);
+
+    //check the initializer's array-element's types
+    if let AstStatement::LiteralArray {
+        elements: Some(e), ..
+    } = initializer
+    {
+        if let Some(DataTypeInformation::Array {
+            inner_type_name, ..
+        }) = index
+            .find_type(a.get_type_name())
+            .map(|t| t.get_type_information())
+        {
+            //check the type of the expression-list has the same type as the variable itself
+            /*assert_eq!(
+                annotations.get_type_hint(e, &index),
+                index.find_type(a.get_type_name())
+            );*/
+
+            // check if the array's elements have the array's inner type
+            for ele in AstStatement::get_as_list(e) {
+                let element_hint = annotations.get_type_hint(ele, &index).unwrap();
+                assert_eq!(Some(element_hint), index.find_type(inner_type_name))
+            }
+        } else {
+            unreachable!()
+        }
+    } else {
+        unreachable!()
+    }
+}
+
+#[test]
+fn nested_array_literals_multiplied_statement_type_resolving() {
+    // GIVEN a multi-nested Array Type with an initializer
+    let (parse_result, index) = index(
+        r#"
+        VAR_GLOBAL CONSTANT
+            a : ARRAY[0..1] OF ARRAY[0..1] OF BYTE  := [[2(2)],[2(3)]]; 
+        END_VAR
+       "#,
+    );
+
+    // WHEN compile-time evaluation is applied
+    // AND types are resolved
+    let annotations = annotate(&parse_result, &index);
+    let (index, unresolvable) = evaluate_constants(index);
+
+    // THEN all should be resolved
+    debug_assert_eq!(EMPTY, unresolvable);
+
+    //AND the type is correctly associated
+    let a = index.find_global_variable("a").unwrap();
+    let i = a.initial_value.unwrap();
+    assert_eq!(
+        index
+            .get_const_expressions()
+            .find_expression_target_type(&i),
+        Some(index.find_global_variable("a").unwrap().get_type_name())
+    );
+    //check the initializer's type
+    let initializer = index
+        .get_const_expressions()
+        .get_constant_statement(&i)
+        .unwrap();
+
+    assert_eq!(
+        annotations.get_type_hint(initializer, &index),
+        index.find_type(a.get_type_name())
+    );
+
+    //check the initializer's array-element's types
+    // [[2(2)],[2(3)]]
+    if let AstStatement::LiteralArray {
+        elements: Some(outer_expresion_list),
+        ..
+    } = initializer
+    {
+        // outer_expression_list = [2(2)],[2(3)]
+        if let Some(DataTypeInformation::Array {
+            inner_type_name: array_of_byte,
+            ..
+        }) = index
+            .find_type(a.get_type_name())
+            .map(|t| t.get_type_information())
+        {
+            //check the type of the expression-list has the same type as the variable itself
+            assert_eq!(
+                annotations.get_type_hint(outer_expresion_list, &index),
+                index.find_type(a.get_type_name())
+            );
+
+            // check if the array's elements have the array's inner type
+            for inner_array in AstStatement::get_as_list(outer_expresion_list) {
+                // [2(2)]
+                let element_hint = annotations.get_type_hint(inner_array, &index).unwrap();
+                assert_eq!(Some(element_hint), index.find_type(array_of_byte));
+
+                //check if the inner array statement's also got the type-annotations
+                if let AstStatement::LiteralArray {
+                    elements: Some(inner_multiplied_stmt),
+                    ..
+                } = inner_array
+                {
+                    // inner_multiplied_stmt = 2(2)
+                    for inner_multiplied_stmt in AstStatement::get_as_list(inner_multiplied_stmt) {
+                        if let AstStatement::MultipliedStatement {
+                            element: multiplied_element,
+                            ..
+                        } = inner_multiplied_stmt
+                        {
+                            //check if the inner thing really got the BYTE hint
+                            // multiplied-element = 2
+                            println!("{:#?}", multiplied_element.as_ref());
+                            assert_eq!(
+                                annotations.get_type_hint(multiplied_element.as_ref(), &index),
+                                index.find_type("BYTE")
+                            );
+                        } else {
+                            unreachable!()
+                        }
+                    }
+                } else {
+                    unreachable!()
+                }
+            }
+        } else {
+            unreachable!()
+        }
+    } else {
+        unreachable!()
+    }
 }

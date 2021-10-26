@@ -5,9 +5,9 @@ use crate::{
     ast::{AstStatement, DirectAccessType, SourceRange},
     resolver::StatementAnnotation,
     typesystem::{
-        DataTypeInformation, BOOL_TYPE, DATE_AND_TIME_TYPE, DATE_TYPE, DINT_TYPE, INT_TYPE,
-        LINT_TYPE, LREAL_TYPE, SINT_TYPE, STRING_TYPE, TIME_OF_DAY_TYPE, TIME_TYPE, UDINT_TYPE,
-        UINT_TYPE, ULINT_TYPE, USINT_TYPE, VOID_TYPE, WSTRING_TYPE,
+        DataType, DataTypeInformation, BOOL_TYPE, DATE_AND_TIME_TYPE, DATE_TYPE, DINT_TYPE,
+        INT_TYPE, LINT_TYPE, LREAL_TYPE, SINT_TYPE, STRING_TYPE, TIME_OF_DAY_TYPE, TIME_TYPE,
+        UDINT_TYPE, UINT_TYPE, ULINT_TYPE, USINT_TYPE, VOID_TYPE, WSTRING_TYPE,
     },
     Diagnostic,
 };
@@ -177,6 +177,12 @@ impl StatementValidator {
                 literal,
                 !cast_type.is_unsigned_int(),
             )
+            .or_else(|| {
+                context
+                    .ast_annotation
+                    .get_type_hint(literal, context.index)
+                    .map(DataType::get_name)
+            })
             .unwrap_or_else(|| {
                 context
                     .ast_annotation

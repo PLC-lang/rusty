@@ -6,9 +6,10 @@ use crate::ast::{
 };
 use crate::compile_error::CompileError;
 use crate::index::{Index, MemberInfo};
+use crate::lexer::IdProvider;
 use crate::typesystem::{self, *};
 
-pub fn visit(unit: &CompilationUnit) -> Index {
+pub fn visit(unit: &CompilationUnit, mut id_provider: IdProvider) -> Index {
     let mut index = Index::new();
 
     //Create the typesystem
@@ -19,7 +20,7 @@ pub fn visit(unit: &CompilationUnit) -> Index {
 
     //Create user defined datatypes
     for user_type in &unit.types {
-        visit_data_type(&mut index, user_type);
+        visit_data_type(&mut index, &mut id_provider, user_type);
     }
 
     //Create defined global variables
@@ -205,7 +206,11 @@ fn get_variable_type_from_block(block: &VariableBlock) -> VariableType {
     }
 }
 
-fn visit_data_type(index: &mut Index, type_declatation: &UserTypeDeclaration) {
+fn visit_data_type(
+    index: &mut Index,
+    id_provider: &mut IdProvider,
+    type_declatation: &UserTypeDeclaration,
+) {
     let data_type = &type_declatation.data_type;
     //names should not be empty
     match data_type {
@@ -236,6 +241,7 @@ fn visit_data_type(index: &mut Index, type_declatation: &UserTypeDeclaration) {
                     //first we need to handle the inner type
                     visit_data_type(
                         index,
+                        id_provider,
                         &UserTypeDeclaration {
                             data_type: data_type.clone(),
                             initializer: None,
@@ -280,15 +286,17 @@ fn visit_data_type(index: &mut Index, type_declatation: &UserTypeDeclaration) {
             index.register_type(enum_name.as_str(), init, information);
 
             elements.iter().enumerate().for_each(|(i, v)| {
+                let enum_literal = ast::AstStatement::LiteralInteger {
+                    value: i as i128,
+                    location: SourceRange::undefined(),
+                    id: id_provider.next_id(),
+                };
                 let init = index.get_mut_const_expressions().add_constant_expression(
-                    ast::AstStatement::LiteralInteger {
-                        value: i as i128,
-                        location: SourceRange::undefined(),
-                        id: 0,
-                    },
+                    enum_literal,
                     typesystem::INT_TYPE.to_string(),
                     None,
                 );
+
                 index.register_enum_element(
                     v,
                     enum_name.as_str(),

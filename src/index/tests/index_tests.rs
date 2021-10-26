@@ -1,6 +1,7 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use pretty_assertions::assert_eq;
 
+use crate::lexer::IdProvider;
 use crate::parser::tests::literal_int;
 use crate::test_utils::tests::{index, parse};
 use crate::typesystem::TypeSize;
@@ -333,6 +334,10 @@ fn program_members_are_indexed() {
             c : BOOL;
             d : BOOL;
         END_VAR
+        VAR_TEMP
+            e : INT;
+            f : INT;
+        END_VAR
         END_PROGRAM
     "#,
     );
@@ -356,6 +361,16 @@ fn program_members_are_indexed() {
     assert_eq!("d", variable.name);
     assert_eq!("BOOL", variable.information.data_type_name);
     assert_eq!(VariableType::Input, variable.information.variable_type);
+
+    let variable = index.find_member("myProgram", "e").unwrap();
+    assert_eq!("e", variable.name);
+    assert_eq!("INT", variable.information.data_type_name);
+    assert_eq!(VariableType::Temp, variable.information.variable_type);
+
+    let variable = index.find_member("myProgram", "f").unwrap();
+    assert_eq!("f", variable.name);
+    assert_eq!("INT", variable.information.data_type_name);
+    assert_eq!(VariableType::Temp, variable.information.variable_type);
 }
 
 #[test]
@@ -501,79 +516,73 @@ fn callable_instances_can_be_retreived() {
     assert_eq!(
         true,
         index
-            .find_callable_instance_variable(Some("prg"), &["fb1_inst".into()])
+            .find_callable_instance_variable(Some("prg"), &["fb1_inst"])
             .is_some()
     );
     assert_eq!(
         true,
         index
-            .find_callable_instance_variable(Some("prg"), &["fb2_inst".into()])
+            .find_callable_instance_variable(Some("prg"), &["fb2_inst"])
             .is_some()
     );
     assert_eq!(
         true,
         index
-            .find_callable_instance_variable(Some("prg"), &["fb3_inst".into()])
+            .find_callable_instance_variable(Some("prg"), &["fb3_inst"])
             .is_some()
     );
     assert_eq!(
         true,
         index
-            .find_callable_instance_variable(Some("prg"), &["fb1_local".into()])
+            .find_callable_instance_variable(Some("prg"), &["fb1_local"])
             .is_some()
     );
     assert_eq!(
         true,
         index
-            .find_callable_instance_variable(
-                Some("prg"),
-                &["fb1_local".into(), "fb2_inst".into(), "fb3_inst".into()]
-            )
+            .find_callable_instance_variable(Some("prg"), &["fb1_local", "fb2_inst", "fb3_inst"])
             .is_some()
     );
     assert_eq!(
         true,
         index
-            .find_callable_instance_variable(Some("prg"), &["fb1_inst".into(), "fb2_inst".into()])
+            .find_callable_instance_variable(Some("prg"), &["fb1_inst", "fb2_inst"])
             .is_some()
     );
     assert_eq!(
         true,
         index
-            .find_callable_instance_variable(
-                Some("prg"),
-                &["fb1_inst".into(), "fb2_inst".into(), "fb3_inst".into()]
-            )
+            .find_callable_instance_variable(Some("prg"), &["fb1_inst", "fb2_inst", "fb3_inst"])
             .is_some()
     );
     assert_eq!(
         true,
         index
-            .find_callable_instance_variable(Some("prg"), &["foo".into()])
+            .find_callable_instance_variable(Some("prg"), &["foo"])
             .is_none()
     );
     assert_eq!(
         true,
         index
-            .find_callable_instance_variable(Some("prg"), &["a".into()])
+            .find_callable_instance_variable(Some("prg"), &["a"])
             .is_none()
     );
     assert_eq!(
         true,
         index
-            .find_callable_instance_variable(Some("prg"), &["b".into()])
+            .find_callable_instance_variable(Some("prg"), &["b"])
             .is_none()
     );
     assert_eq!(
         true,
         index
-            .find_callable_instance_variable(Some("prg"), &["c".into()])
+            .find_callable_instance_variable(Some("prg"), &["c"])
             .is_none()
     );
     assert_eq!(
         true,
         index
-            .find_callable_instance_variable(Some("prg"), &["d".into()])
+            .find_callable_instance_variable(Some("prg"), &["d"])
             .is_none()
     );
 }
@@ -1393,10 +1402,11 @@ fn global_initializers_are_stored_in_the_const_expression_arena() {
         END_VAR
         ";
     // WHEN the program is indexed
-    let (mut ast, ..) = crate::parser::parse(crate::lexer::lex(src));
+    let ids = IdProvider::default();
+    let (mut ast, ..) = crate::parser::parse(crate::lexer::lex_with_ids(src, ids.clone()));
 
     crate::ast::pre_process(&mut ast);
-    let index = crate::index::visitor::visit(&ast);
+    let index = crate::index::visitor::visit(&ast, ids);
 
     // THEN I expect the index to contain cosntant expressions (x+1), (y+1) and (z+1) as const expressions
     // associated with the initial values of the globals
@@ -1436,10 +1446,11 @@ fn local_initializers_are_stored_in_the_const_expression_arena() {
         END_PROGRAM
         ";
     // WHEN the program is indexed
-    let (mut ast, ..) = crate::parser::parse(crate::lexer::lex(src));
+    let ids = IdProvider::default();
+    let (mut ast, ..) = crate::parser::parse(crate::lexer::lex_with_ids(src, ids.clone()));
 
     crate::ast::pre_process(&mut ast);
-    let index = crate::index::visitor::visit(&ast);
+    let index = crate::index::visitor::visit(&ast, ids);
 
     // THEN I expect the index to contain cosntant expressions (x+1), (y+1) and (z+1) as const expressions
     // associated with the initial values of the members
@@ -1473,10 +1484,11 @@ fn datatype_initializers_are_stored_in_the_const_expression_arena() {
         TYPE MyInt : INT := 7 + x;
         ";
     // WHEN the program is indexed
-    let (mut ast, ..) = crate::parser::parse(crate::lexer::lex(src));
+    let ids = IdProvider::default();
+    let (mut ast, ..) = crate::parser::parse(crate::lexer::lex_with_ids(src, ids.clone()));
 
     crate::ast::pre_process(&mut ast);
-    let index = crate::index::visitor::visit(&ast);
+    let index = crate::index::visitor::visit(&ast, ids);
 
     // THEN I expect the index to contain cosntant expressions (7+x) as const expressions
     // associated with the initial values of the type
@@ -1496,10 +1508,11 @@ fn array_dimensions_are_stored_in_the_const_expression_arena() {
         TYPE MyInt : ARRAY[0 .. LEN-1, MIN .. MAX] OF INT;
         ";
     // WHEN the program is indexed
-    let (mut ast, ..) = crate::parser::parse(crate::lexer::lex(src));
+    let ids = IdProvider::default();
+    let (mut ast, ..) = crate::parser::parse(crate::lexer::lex_with_ids(src, ids.clone()));
 
     crate::ast::pre_process(&mut ast);
-    let index = crate::index::visitor::visit(&ast);
+    let index = crate::index::visitor::visit(&ast, ids);
 
     // THEN I expect the index to contain constants expressions used in the array-dimensions
 
@@ -1576,10 +1589,11 @@ fn string_dimensions_are_stored_in_the_const_expression_arena() {
         TYPE MyString : STRING[LEN-1];
         ";
     // WHEN the program is indexed
-    let (mut ast, ..) = crate::parser::parse(crate::lexer::lex(src));
+    let ids = IdProvider::default();
+    let (mut ast, ..) = crate::parser::parse(crate::lexer::lex_with_ids(src, ids.clone()));
 
     crate::ast::pre_process(&mut ast);
-    let index = crate::index::visitor::visit(&ast);
+    let index = crate::index::visitor::visit(&ast, ids);
 
     // THEN I expect the index to contain constants expressions used in the string-len
 

@@ -1,5 +1,9 @@
 use crate::{
-    ast::AstStatement, test_utils::tests::index, typesystem::DataTypeInformation, TypeAnnotator,
+    assert_type_and_hint,
+    ast::AstStatement,
+    resolver::TypeAnnotator,
+    test_utils::tests::{annotate, index},
+    typesystem::{DataTypeInformation, CONST_STRING_TYPE, CONST_WSTRING_TYPE},
 };
 
 #[test]
@@ -38,14 +42,20 @@ fn string_literals_are_annotated() {
     let annotations = TypeAnnotator::visit_unit(&index, &unit);
     let statements = &unit.implementations[0].statements;
 
-    let expected_types = vec!["WSTRING", "STRING"];
-
-    let types: Vec<&str> = statements
-        .iter()
-        .map(|s| annotations.get_type_or_void(s, &index).get_name())
-        .collect();
-
-    assert_eq!(expected_types, types);
+    assert_type_and_hint!(
+        &annotations,
+        &index,
+        &statements[0],
+        CONST_WSTRING_TYPE,
+        None
+    );
+    assert_type_and_hint!(
+        &annotations,
+        &index,
+        &statements[1],
+        CONST_STRING_TYPE,
+        None
+    );
 }
 
 #[test]
@@ -285,5 +295,122 @@ fn casted_inner_literals_are_annotated() {
     assert_eq!(
         format!("{:#?}", expected_types),
         format!("{:#?}", actual_types),
+    )
+}
+
+#[test]
+fn casted_literals_enums_are_annotated_correctly() {
+    let (unit, index) = index(
+        "
+            TYPE Color: (red, green, blue); END_TYPE
+            PROGRAM PRG
+                Color#red;
+                Color#green;
+                Color#blue;
+            END_PROGRAM",
+    );
+    let annotations = annotate(&unit, &index);
+    let statements = &unit.implementations[0].statements;
+
+    let expected_types = vec!["Color", "Color", "Color"];
+    let actual_types: Vec<&str> = statements
+        .iter()
+        .map(|it| {
+            if let AstStatement::CastStatement { target, .. } = it {
+                target
+            } else {
+                unreachable!();
+            }
+        })
+        .map(|it| annotations.get_type_or_void(it, &index).get_name())
+        .collect();
+
+    assert_eq!(
+        format!("{:#?}", expected_types),
+        format!("{:#?}", actual_types),
+    )
+}
+
+#[test]
+fn expression_list_members_are_annotated() {
+    let (unit, index) = index(
+        "PROGRAM PRG
+                (1,TRUE,3.1415);
+            END_PROGRAM",
+    );
+    let annotations = annotate(&unit, &index);
+    let exp_list = &unit.implementations[0].statements[0];
+
+    let expected_types = vec!["DINT", "BOOL", "REAL"];
+
+    if let AstStatement::ExpressionList { expressions, .. } = exp_list {
+        let actual_types: Vec<&str> = expressions
+            .iter()
+            .map(|it| annotations.get_type_or_void(it, &index).get_name())
+            .collect();
+
+        assert_eq!(
+            format!("{:#?}", expected_types),
+            format!("{:#?}", actual_types),
+        )
+    } else {
+        unreachable!()
+    }
+}
+
+#[test]
+fn expression_lists_with_expressions_are_annotated() {
+    let (unit, index) = index(
+        "
+            VAR_GLOBAL CONSTANT
+                a : INT : = 2;
+                b : BOOL : = FALSE;
+                c : LREAL : = 3.14;
+            END_VAR
+
+            PROGRAM PRG
+                (a + a, b OR b , 2 * c, a + c);
+            END_PROGRAM",
+    );
+    let annotations = annotate(&unit, &index);
+    let exp_list = &unit.implementations[0].statements[0];
+
+    let expected_types = vec!["DINT", "BOOL", "LREAL", "LREAL"];
+
+    if let AstStatement::ExpressionList { expressions, .. } = exp_list {
+        let actual_types: Vec<&str> = expressions
+            .iter()
+            .map(|it| annotations.get_type_or_void(it, &index).get_name())
+            .collect();
+
+        assert_eq!(
+            format!("{:#?}", expected_types),
+            format!("{:#?}", actual_types),
+        )
+    } else {
+        unreachable!()
+    }
+}
+
+#[test]
+fn array_initialization_is_annotated_correctly() {
+    let (unit, index) = index(
+        "
+            VAR_GLOBAL CONSTANT
+                a : ARRAY[0..2] OF BYTE := [1,2,3];
+            END_VAR
+            ",
+    );
+
+    let annotations = annotate(&unit, &index);
+
+    let a_init = unit.global_vars[0].variables[0]
+        .initializer
+        .as_ref()
+        .unwrap();
+    let t = annotations.get_type_hint(a_init, &index).unwrap();
+    assert_eq!(
+        index.find_global_variable("a").unwrap().get_type_name(),
+        t.get_name()
     )
 }

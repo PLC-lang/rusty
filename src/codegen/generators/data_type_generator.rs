@@ -8,7 +8,7 @@
 use crate::ast::SourceRange;
 use crate::index::{Index, VariableIndexEntry};
 use crate::resolver::AnnotationMap;
-use crate::typesystem::Dimension;
+use crate::typesystem::{Dimension, StringEncoding};
 use crate::{ast::AstStatement, compile_error::CompileError, typesystem::DataTypeInformation};
 use crate::{
     codegen::{
@@ -94,8 +94,10 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
                         .unwrap()
                 })
                 .filter(|var| !var.is_return())
+                //Avoid generating temp variables in llvm
+                .filter(|var| !var.is_temp())
                 .collect();
-            let ((_, initial_value), member_values) =
+            let (initial_value, member_values) =
                 struct_generator.generate_struct_type(&members, data_type.get_name())?;
             for (member, value) in member_values {
                 let qualified_name = format!("{}.{}", data_type.get_name(), member);
@@ -149,16 +151,17 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
                 get_llvm_float_type(self.llvm.context, *size, name).map(|it| it.into())
             }
             DataTypeInformation::String { size, encoding } => {
+                let base_type = if *encoding == StringEncoding::Utf8 {
+                    self.llvm.context.i8_type()
+                } else {
+                    self.llvm.context.i16_type()
+                };
+
                 let string_size = size
                     .as_int_value(self.index)
                     .map_err(|it| CompileError::codegen_error(it, SourceRange::undefined()))?
                     as u32;
-                Ok(self
-                    .llvm
-                    .context
-                    .i8_type()
-                    .array_type(string_size * encoding.get_bytes_per_char())
-                    .into())
+                Ok(base_type.array_type(string_size).into())
             }
             DataTypeInformation::SubRange {
                 referenced_type, ..
@@ -195,7 +198,6 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
             DataTypeInformation::Array { .. } => self
                 .generate_array_initializer(
                     data_type,
-                    data_type.get_name(),
                     |stmt| matches!(stmt, AstStatement::LiteralArray { .. }),
                     "LiteralArray",
                 )
@@ -206,7 +208,6 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
             DataTypeInformation::String { .. } => self
                 .generate_array_initializer(
                     data_type,
-                    data_type.get_name(),
                     |stmt| matches!(stmt, AstStatement::LiteralString { .. }),
                     "LiteralString",
                 )
@@ -241,10 +242,8 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
                 self.index,
                 self.annotations,
                 &self.types_index,
-                None,
             );
-            let (_, initial_value) = generator.generate_expression(initializer).unwrap();
-            Some(initial_value)
+            Some(generator.generate_expression(initializer).unwrap())
         } else {
             // if there's no initializer defined for this alias, we go and check the aliased type for an initial value
             self.index
@@ -258,7 +257,6 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
     fn generate_array_initializer(
         &self,
         data_type: &DataType,
-        name: &str,
         predicate: fn(&AstStatement) -> bool,
         expected_ast: &str,
     ) -> Result<Option<BasicValueEnum<'ink>>, CompileError> {
@@ -268,16 +266,13 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
             .maybe_get_constant_statement(&data_type.initial_value)
         {
             if predicate(initializer) {
-                let array_type = self.index.get_type_information(name)?;
                 let generator = ExpressionCodeGenerator::new_context_free(
                     self.llvm,
                     self.index,
                     self.annotations,
                     &self.types_index,
-                    Some(array_type),
                 );
-                let (_, initial_value) = generator.generate_literal(initializer)?;
-                Ok(Some(initial_value))
+                Ok(Some(generator.generate_literal(initializer)?))
             } else {
                 Err(CompileError::codegen_error(
                     format!("Expected {} but found {:?}", expected_ast, initializer),

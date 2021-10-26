@@ -132,7 +132,6 @@ END_PROGRAM
 
     compile_and_run::<_, i32>(function.to_string(), &mut new_with_struct);
 
-    let new_with_struct = dbg!(new_with_struct);
     assert_eq!(true, new_with_struct.b_result_a);
     assert_eq!(100, new_with_struct.b_result_b);
     assert_eq!(true, new_with_struct.b_result_c);

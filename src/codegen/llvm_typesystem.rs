@@ -7,55 +7,13 @@ use inkwell::{
 };
 
 use crate::{
-    ast::AstStatement,
-    ast::SourceRange,
-    compile_error::CompileError,
-    index::Index,
-    typesystem::{get_bigger_type, DataTypeInformation},
+    ast::AstStatement, ast::SourceRange, compile_error::CompileError, index::Index,
+    typesystem::DataTypeInformation,
 };
 
-use super::{generators::llvm::Llvm, llvm_index::LlvmTypedIndex, TypeAndValue};
+use super::generators::llvm::Llvm;
 
-pub fn promote_if_needed<'a>(
-    context: &'a Context,
-    builder: &Builder<'a>,
-    lvalue: &TypeAndValue<'a>,
-    rvalue: &TypeAndValue<'a>,
-    index: &Index,
-    llvm_index: &LlvmTypedIndex<'a>,
-) -> (DataTypeInformation, BasicValueEnum<'a>, BasicValueEnum<'a>) {
-    let (ltype, lvalue) = lvalue;
-    let (rtype, rvalue) = rvalue;
-
-    //TODO : We need better error handling here
-    let ltype = index.find_effective_type_information(ltype).unwrap();
-    let rtype = index.find_effective_type_information(rtype).unwrap();
-
-    let ltype_llvm = llvm_index.find_associated_type(ltype.get_name()).unwrap();
-    let rtype_llvm = llvm_index.find_associated_type(rtype.get_name()).unwrap();
-
-    if ltype.is_numerical() && rtype.is_numerical() {
-        if ltype_llvm == rtype_llvm {
-            (ltype.clone(), *lvalue, *rvalue)
-        } else {
-            let target_type = get_bigger_type(
-                &get_bigger_type(ltype, rtype),
-                &index.find_type_information("DINT").unwrap(),
-            );
-
-            let promoted_lvalue =
-                promote_value_if_needed(context, builder, *lvalue, ltype, &target_type);
-            let promoted_rvalue =
-                promote_value_if_needed(context, builder, *rvalue, rtype, &target_type);
-
-            (target_type, promoted_lvalue, promoted_rvalue)
-        }
-    } else {
-        panic!("Binary operations need numerical types")
-    }
-}
-
-fn promote_value_if_needed<'ctx>(
+pub fn promote_value_if_needed<'ctx>(
     context: &'ctx Context,
     builder: &Builder<'ctx>,
     lvalue: BasicValueEnum<'ctx>,
@@ -90,10 +48,10 @@ fn promote_value_if_needed<'ctx>(
         DataTypeInformation::Float {
             size: target_size, ..
         } => {
-            if let DataTypeInformation::Integer { signed, .. } = ltype {
+            if lvalue.is_int_value() {
                 // INT --> FLOAT
                 let int_value = lvalue.into_int_value();
-                if *signed {
+                if ltype.is_signed_int() {
                     builder
                         .build_signed_int_to_float(
                             int_value,
@@ -156,7 +114,7 @@ pub fn cast_if_needed<'ctx>(
     target_type: &DataTypeInformation,
     value: BasicValueEnum<'ctx>,
     value_type: &DataTypeInformation,
-    location_context: &AstStatement,
+    statement: &AstStatement,
 ) -> Result<BasicValueEnum<'ctx>, CompileError> {
     let builder = &llvm.builder;
     let target_type = index
@@ -227,10 +185,11 @@ pub fn cast_if_needed<'ctx>(
                 _ => Err(CompileError::casting_error(
                     value_type.get_name(),
                     target_type.get_name(),
-                    location_context.get_location(),
+                    statement.get_location(),
                 )),
             }
         }
+
         DataTypeInformation::Float {
             // generated_type,
             size: lsize,
@@ -277,13 +236,21 @@ pub fn cast_if_needed<'ctx>(
             _ => Err(CompileError::casting_error(
                 value_type.get_name(),
                 target_type.get_name(),
-                location_context.get_location(),
+                statement.get_location(),
             )),
         },
-        DataTypeInformation::String { size, .. } => match value_type {
+        DataTypeInformation::String { size, encoding } => match value_type {
             DataTypeInformation::String {
-                size: value_size, ..
+                size: value_size,
+                encoding: value_encoding,
             } => {
+                if encoding != value_encoding {
+                    return Err(CompileError::casting_error(
+                        value_type.get_name(),
+                        target_type.get_name(),
+                        statement.get_location(),
+                    ));
+                }
                 let size = size
                     .as_int_value(index)
                     .map_err(|msg| CompileError::codegen_error(msg, SourceRange::undefined()))?
@@ -292,20 +259,52 @@ pub fn cast_if_needed<'ctx>(
                     .as_int_value(index)
                     .map_err(|msg| CompileError::codegen_error(msg, SourceRange::undefined()))?
                     as u32;
+
                 if size < value_size {
-                    //if we are on a vector replace it
-                    if value.is_vector_value() {
-                        let vec_value = value.into_vector_value();
-                        let string_value = vec_value.get_string_constant().to_bytes();
-                        let new_value = &string_value[0..(size - 1) as usize];
-                        let (_, value) = llvm.create_llvm_const_vec_string(new_value)?;
+                    //we need to downcast the size of the string
+                    //check if it's a literal, if so we can exactly know how big this is
+                    if let AstStatement::LiteralString {
+                        is_wide,
+                        value: string_value,
+                        ..
+                    } = statement
+                    {
+                        let value = if *is_wide {
+                            let mut chars = string_value.encode_utf16().collect::<Vec<u16>>();
+                            //We add a null terminator since the llvm command will not account for
+                            //it
+                            chars.push(0);
+                            let total_bytes_to_copy = std::cmp::min(size, chars.len() as u32);
+                            let new_value = &chars[0..(total_bytes_to_copy) as usize];
+                            llvm.create_llvm_const_utf16_vec_string(new_value)?
+                        } else {
+                            let bytes = string_value.bytes().collect::<Vec<u8>>();
+                            let total_bytes_to_copy = std::cmp::min(size - 1, bytes.len() as u32);
+                            let new_value = &bytes[0..total_bytes_to_copy as usize];
+                            //This accounts for a null terminator, hence we don't add it here.
+                            llvm.create_llvm_const_vec_string(new_value)?
+                        };
                         Ok(value)
                     } else {
-                        Err(CompileError::casting_error(
-                            value_type.get_name(),
-                            target_type.get_name(),
-                            location_context.get_location(),
-                        ))
+                        //if we are on a vector replace it
+                        if value.is_vector_value() {
+                            let vec_value = value.into_vector_value();
+                            let string_value = vec_value.get_string_constant().to_bytes();
+                            let real_size = std::cmp::min(size, (string_value.len() + 1) as u32);
+                            if real_size < value_size {
+                                let new_value = &string_value[0..(real_size - 1) as usize];
+                                let value = llvm.create_llvm_const_vec_string(new_value)?;
+                                Ok(value)
+                            } else {
+                                Ok(value)
+                            }
+                        } else {
+                            Err(CompileError::casting_error(
+                                value_type.get_name(),
+                                target_type.get_name(),
+                                statement.get_location(),
+                            ))
+                        }
                     }
                 } else {
                     Ok(value)
@@ -314,7 +313,7 @@ pub fn cast_if_needed<'ctx>(
             _ => Err(CompileError::casting_error(
                 value_type.get_name(),
                 target_type.get_name(),
-                location_context.get_location(),
+                statement.get_location(),
             )),
         },
         _ => Ok(value),

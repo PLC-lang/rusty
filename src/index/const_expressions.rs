@@ -8,6 +8,7 @@ pub type ConstId = generational_arena::Index;
 /// wrapper around ConstExpression stored in the arena
 /// changing expr allows to change the referenced const-expression
 /// without aquiring a new ID in the arena
+#[derive(Debug)]
 struct ConstWrapper {
     /// the constant expression
     expr: ConstExpression,
@@ -28,6 +29,7 @@ impl ConstWrapper {
 /// constant expressions registered here are wrapped behind this enum to indicate
 /// whether this expression was already (potentially) resolved or not, or if a
 /// resolving failed.
+#[derive(Debug)]
 pub enum ConstExpression {
     Unresolved {
         statement: AstStatement,

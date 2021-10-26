@@ -65,8 +65,8 @@ fn initia_values_of_programs_members() {
 
     assert_eq!(77, maintype.x);
     assert_eq!(0, maintype.x_);
-    assert_eq!(true, maintype.y);
-    assert_eq!(false, maintype.y_);
+    assert!(maintype.y);
+    assert!(!maintype.y_);
     assert_almost_eq!(9.1415, maintype.z, f32::EPSILON);
     assert_almost_eq!(0.0, maintype.z_, f32::EPSILON);
 }
@@ -118,8 +118,8 @@ fn initia_values_of_programs_members_using_constants() {
 
     assert_eq!(77, maintype.x);
     assert_eq!(0, maintype.x_);
-    assert_eq!(true, maintype.y);
-    assert_eq!(false, maintype.y_);
+    assert!(maintype.y);
+    assert!(!maintype.y_);
     assert_almost_eq!(9.1415, maintype.z, f32::EPSILON);
     assert_almost_eq!(0.0, maintype.z_, f32::EPSILON);
 }
@@ -166,8 +166,8 @@ fn initia_values_of_functionblock_members() {
 
     assert_eq!(77, maintype.x);
     assert_eq!(0, maintype.x_);
-    assert_eq!(true, maintype.y);
-    assert_eq!(false, maintype.y_);
+    assert!(maintype.y);
+    assert!(!maintype.y_);
     assert_almost_eq!(9.1415, maintype.z, f32::EPSILON);
     assert_almost_eq!(0.0, maintype.z_, f32::EPSILON);
 }
@@ -257,8 +257,8 @@ fn initia_values_of_struct_type_members() {
 
     assert_eq!(77, maintype.x);
     assert_eq!(0, maintype.x_);
-    assert_eq!(true, maintype.y);
-    assert_eq!(false, maintype.y_);
+    assert!(maintype.y);
+    assert!(!maintype.y_);
     assert_almost_eq!(9.1415, maintype.z, f32::EPSILON);
     assert_almost_eq!(0.0, maintype.z_, f32::EPSILON);
 }
@@ -303,8 +303,8 @@ fn initia_values_of_alias_type() {
 
     assert_eq!(7, maintype.x);
     assert_eq!(8, maintype.x_);
-    assert_eq!(true, maintype.y);
-    assert_eq!(false, maintype.y_);
+    assert!(maintype.y);
+    assert!(!maintype.y_);
     assert_almost_eq!(5.67, maintype.z, f32::EPSILON);
     assert_almost_eq!(1.23, maintype.z_, f32::EPSILON);
 }
@@ -407,8 +407,8 @@ fn initial_values_in_single_dimension_array_variable() {
     assert_eq!(18, maintype.f2);
     assert_eq!(19, maintype.g0);
     assert_eq!(21, maintype.g2);
-    assert_eq!(true, maintype.h0);
-    assert_eq!(false, maintype.h2);
+    assert!(maintype.h0);
+    assert!(!maintype.h2);
 }
 
 #[derive(Debug)]
