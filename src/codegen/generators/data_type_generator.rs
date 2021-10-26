@@ -97,7 +97,7 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
                 //Avoid generating temp variables in llvm
                 .filter(|var| !var.is_temp())
                 .collect();
-            let ((_, initial_value), member_values) =
+            let (initial_value, member_values) =
                 struct_generator.generate_struct_type(&members, data_type.get_name())?;
             for (member, value) in member_values {
                 let qualified_name = format!("{}.{}", data_type.get_name(), member);

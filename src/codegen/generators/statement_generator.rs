@@ -192,26 +192,25 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
     ) -> Result<(), CompileError> {
         let exp_gen = self.create_expr_generator();
         let left = exp_gen.generate_element_pointer(left_statement)?;
-        let left_type = exp_gen.get_type_hint_for(left_statement)?;
+        let left_type = exp_gen.get_type_hint_info_for(left_statement)?;
         // if the lhs-type is a subrange type we may need to generate a check-call
         // e.g. x := y,  ==> x := CheckSignedInt(y);
-        let range_checked_right_side = if let DataTypeInformation::SubRange { sub_range, .. } =
-            left_type.get_type_information()
-        {
-            // there is a sub-range defined, so we need to wrap the right side into the check function if it exists
-            self.find_range_check_impolementation_for(left_type.get_type_information())
-                .map(|implementation| {
-                    create_call_to_check_function_ast(
-                        left_statement,
-                        implementation.get_call_name().to_string(),
-                        right_statement.clone(),
-                        sub_range.clone(),
-                        &left_statement.get_location(),
-                    )
-                })
-        } else {
-            None
-        };
+        let range_checked_right_side =
+            if let DataTypeInformation::SubRange { sub_range, .. } = left_type {
+                // there is a sub-range defined, so we need to wrap the right side into the check function if it exists
+                self.find_range_check_impolementation_for(left_type)
+                    .map(|implementation| {
+                        create_call_to_check_function_ast(
+                            left_statement,
+                            implementation.get_call_name().to_string(),
+                            right_statement.clone(),
+                            sub_range.clone(),
+                            &left_statement.get_location(),
+                        )
+                    })
+            } else {
+                None
+            };
 
         let right_statement = range_checked_right_side.as_ref().unwrap_or(right_statement);
         self.llvm

@@ -5,10 +5,7 @@ use crate::resolver::AnnotationMap;
 use crate::{
     codegen::llvm_index::LlvmTypedIndex, compile_error::CompileError, index::VariableIndexEntry,
 };
-use inkwell::{
-    types::{BasicTypeEnum, StructType},
-    values::BasicValueEnum,
-};
+use inkwell::{types::BasicTypeEnum, values::BasicValueEnum};
 
 /// object that offers convinient operations to create struct types and instances
 pub struct StructGenerator<'a, 'b> {
@@ -22,7 +19,7 @@ pub struct StructGenerator<'a, 'b> {
 /// a touple (name, data_type, initializer) describing the declaration of a variable.
 ///
 type VariableDeclarationInformation<'a> = (String, BasicTypeEnum<'a>, Option<BasicValueEnum<'a>>);
-type StructTypeAndValue<'a> = (StructType<'a>, BasicValueEnum<'a>);
+type StructValue<'a> = BasicValueEnum<'a>;
 
 impl<'a, 'b> StructGenerator<'a, 'b> {
     /// creates a new StructGenerator
@@ -48,7 +45,7 @@ impl<'a, 'b> StructGenerator<'a, 'b> {
         &mut self,
         member_variables: &[&VariableIndexEntry],
         name: &str,
-    ) -> Result<(StructTypeAndValue<'a>, Vec<(String, BasicValueEnum<'a>)>), CompileError> {
+    ) -> Result<(StructValue<'a>, Vec<(String, BasicValueEnum<'a>)>), CompileError> {
         let struct_type = self
             .llvm_index
             .get_associated_type(name)
@@ -85,7 +82,7 @@ impl<'a, 'b> StructGenerator<'a, 'b> {
             .map(|(name, value)| (name.to_string(), *value))
             .collect();
 
-        Ok(((struct_type, initial_value.into()), member_values))
+        Ok((initial_value.into(), member_values))
     }
 
     /// creates all declaration information for the given variable

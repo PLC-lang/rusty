@@ -113,8 +113,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
             .ok_or_else(|| CompileError::missing_function(statement.get_location()))
     }
 
-    /// generates the given expression and returns a TypeAndValue as a result of the
-    /// given epxression
+    /// generates the given expression and returns the resulting BasicValueEnum
     pub fn generate_expression(
         &self,
         expression: &AstStatement,
@@ -350,7 +349,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
     }
 
     /// generates the given call-statement <operator>(<parameters>)
-    /// returns the result of the call as a TypeAndValue (may be an invalid pointer and void-type for PROGRAMs)
+    /// returns the call's result as a BasicValueEnum (may be a void-type for PROGRAMs)
     ///
     /// - `operator` - the expression that points to the callable instance (e.g. a PROGRAM, FUNCTION or FUNCTION_BLOCK instance)
     /// - `parameters` - an optional StatementList of parameters
