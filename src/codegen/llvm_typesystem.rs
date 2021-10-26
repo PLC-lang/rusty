@@ -260,7 +260,7 @@ pub fn cast_if_needed<'ctx>(
                     .map_err(|msg| CompileError::codegen_error(msg, SourceRange::undefined()))?
                     as u32;
 
-                if dbg!(size) < dbg!(value_size) {
+                if size < value_size {
                     //we need to downcast the size of the string
                     //check if it's a literal, if so we can exactly know how big this is
                     if let AstStatement::LiteralString {
