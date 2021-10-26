@@ -23,7 +23,7 @@ fn compile_all(name: &str, encoding: Option<&'static Encoding>) {
     compile_to_shared_pic_object(vec![FilePath { path: path.clone() }], encoding, &out, None)
         .unwrap();
     fs::remove_file(&out).unwrap();
-    compile_to_static_obj(vec![FilePath { path: path }], encoding, &out, None).unwrap();
+    compile_to_static_obj(vec![FilePath { path }], encoding, &out, None).unwrap();
     fs::remove_file(&out).unwrap();
 }
 

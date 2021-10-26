@@ -1115,3 +1115,20 @@ pub fn flatten_expression_list(condition: &AstStatement) -> Vec<&AstStatement> {
 pub fn pre_process(unit: &mut CompilationUnit) {
     pre_processor::pre_process(unit)
 }
+impl Operator {
+    pub(crate) fn is_bool_type(&self) -> bool {
+        matches!(
+            self,
+            Operator::Equal
+                | Operator::NotEqual
+                | Operator::Less
+                | Operator::Greater
+                | Operator::LessOrEqual
+                | Operator::GreaterOrEqual
+                | Operator::Not
+                | Operator::And
+                | Operator::Or
+                | Operator::Xor
+        )
+    }
+}

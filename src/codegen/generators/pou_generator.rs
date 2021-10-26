@@ -17,7 +17,7 @@ use crate::{
 use crate::index::{ImplementationIndexEntry, VariableIndexEntry};
 use crate::typesystem::*;
 use crate::{
-    ast::{AstStatement, Implementation, PouType, SourceRange},
+    ast::{Implementation, PouType, SourceRange},
     compile_error::CompileError,
     index::Index,
 };
@@ -173,6 +173,20 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
             function: current_function,
         };
         {
+            //if this is a function, we need to initilialize the VAR-variables
+            if matches!(
+                implementation.pou_type,
+                PouType::Function | PouType::Method { .. }
+            ) {
+                self.generate_initialization_of_local_vars(&pou_members, &local_index)?;
+            } else {
+                //Generate temp variables
+                let members = pou_members
+                    .into_iter()
+                    .filter(|it| it.is_temp())
+                    .collect::<Vec<&VariableIndexEntry>>();
+                self.generate_initialization_of_local_vars(&members, &local_index)?;
+            }
             let statement_gen = StatementCodeGenerator::new(
                 &self.llvm,
                 self.index,
@@ -181,25 +195,11 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                 &local_index,
                 &function_context,
             );
-            //if this is a function, we need to initilialize the VAR-variables
-            if matches!(
-                implementation.pou_type,
-                PouType::Function | PouType::Method { .. }
-            ) {
-                self.generate_initialization_of_local_vars(&pou_members, &statement_gen)?;
-            } else {
-                //Generate temp variables
-                let members = pou_members
-                    .into_iter()
-                    .filter(|it| it.is_temp())
-                    .collect::<Vec<&VariableIndexEntry>>();
-                self.generate_initialization_of_local_vars(&members, &statement_gen)?;
-            }
             statement_gen.generate_body(&implementation.statements)?
         }
 
         // generate return statement
-        self.generate_return_statement(&function_context, &local_index, None)?; //TODO location
+        self.generate_return_statement(&function_context, &local_index)?;
 
         Ok(())
     }
@@ -292,7 +292,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
     fn generate_initialization_of_local_vars(
         &self,
         variables: &[&VariableIndexEntry],
-        statement_generator: &StatementCodeGenerator<'ink, '_>,
+        local_llvm_index: &LlvmTypedIndex,
     ) -> Result<(), CompileError> {
         let variables_with_initializers = variables
             .iter()
@@ -300,17 +300,32 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
             .filter(|it| it.initial_value.is_some());
 
         for variable in variables_with_initializers {
-            let left = AstStatement::Reference {
-                name: variable.get_name().into(),
-                location: variable.source_location.clone(),
-                id: 0, //TODO
-            };
             let right = self
                 .index
                 .get_const_expressions()
                 .maybe_get_constant_statement(&variable.initial_value)
                 .unwrap();
-            statement_generator.generate_assignment_statement(&left, right)?;
+
+            //get the loaded_ptr for the parameter and store right in it
+            if let Some(left) = local_llvm_index
+                .find_loaded_associated_variable_value(variable.get_qualified_name())
+            {
+                let exp_gen = ExpressionCodeGenerator::new_context_free(
+                    &self.llvm,
+                    self.index,
+                    self.annotations,
+                    local_llvm_index,
+                );
+
+                self.llvm
+                    .builder
+                    .build_store(left, exp_gen.generate_expression(right)?);
+            } else {
+                return Err(CompileError::cannot_generate_initializer(
+                    variable.get_qualified_name(),
+                    variable.source_location.clone(),
+                ));
+            }
         }
         Ok(())
     }
@@ -322,31 +337,18 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         &self,
         function_context: &FunctionContext<'ink>,
         local_index: &LlvmTypedIndex<'ink>,
-        location: Option<SourceRange>,
     ) -> Result<(), CompileError> {
-        if self
+        if let Some(ret_v) = self
             .index
             .find_return_variable(function_context.linking_context.get_type_name())
-            .is_some()
         {
-            let reference = AstStatement::Reference {
-                name: Pou::calc_return_name(function_context.linking_context.get_call_name())
-                    .into(),
-                location: location.unwrap_or_else(SourceRange::undefined),
-                id: 0, //TODO
-            };
-            let mut exp_gen = ExpressionCodeGenerator::new(
-                &self.llvm,
-                self.index,
-                self.annotations,
-                local_index,
-                None,
-                function_context,
-            );
-            exp_gen.temp_variable_prefix = "".to_string();
-            exp_gen.temp_variable_suffix = "_ret".to_string();
-            let (_, value) = exp_gen.generate_expression(&reference)?;
-            self.llvm.builder.build_return(Some(&value));
+            let var_name = format!("{}_ret", function_context.linking_context.get_call_name());
+            let ret_name = ret_v.get_qualified_name();
+            let value_ptr = local_index.find_loaded_associated_variable_value(ret_name);
+            let loaded_value = self
+                .llvm
+                .load_pointer(value_ptr.as_ref().unwrap(), var_name.as_str());
+            self.llvm.builder.build_return(Some(&loaded_value));
         } else {
             self.llvm.builder.build_return(None);
         }

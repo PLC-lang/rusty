@@ -62,6 +62,18 @@ impl VariableIndexEntry {
     pub fn is_constant(&self) -> bool {
         self.information.is_constant
     }
+
+    pub fn get_variable_type(&self) -> VariableType {
+        self.information.variable_type
+    }
+
+    pub(crate) fn is_parameter(&self) -> bool {
+        let vt = self.get_variable_type();
+        matches!(
+            vt,
+            VariableType::Input | VariableType::Output | VariableType::InOut
+        )
+    }
 }
 
 #[derive(Copy, Clone, Debug, PartialEq)]
@@ -205,11 +217,11 @@ impl TypeIndex {
         data_type: &'ret DataType,
     ) -> Option<&'ret DataType> {
         match data_type.get_type_information() {
-            DataTypeInformation::SubRange {
-                referenced_type, ..
-            } => self
-                .find_type(referenced_type)
-                .and_then(|it| self.find_effective_type(it)),
+            // DataTypeInformation::SubRange {
+            //     referenced_type, ..
+            // } => self
+            //     .find_type(referenced_type)
+            //     .and_then(|it| self.find_effective_type(it)),
             DataTypeInformation::Alias {
                 referenced_type, ..
             } => self
@@ -297,17 +309,12 @@ impl Index {
         }
 
         //enum_global_variables
-        //dont import the const-expressions (initializers) because there are already
-        //covered by the enum_qualified_variables map
-        self.enum_global_variables
-            .extend(other.enum_global_variables);
-
-        //enum qualified variables
-
-        for (name, mut e) in other.enum_qualified_variables.drain(..) {
+        for (name, mut e) in other.enum_global_variables.drain(..) {
             e.initial_value =
                 self.maybe_import_const_expr(&mut other.constant_expressions, &e.initial_value);
-            self.enum_qualified_variables.insert(name, e);
+            self.enum_global_variables.insert(name, e.clone());
+            self.enum_qualified_variables
+                .insert(e.qualified_name.to_lowercase(), e);
         }
 
         //member variables
@@ -401,6 +408,13 @@ impl Index {
         self.member_variables
             .get(&pou_name.to_lowercase())
             .and_then(|map| map.get(&variable_name.to_lowercase()))
+            .or_else(|| {
+                //check qualifier
+                pou_name
+                    .rfind('.')
+                    .map(|p| &pou_name[..p])
+                    .and_then(|qualifier| self.find_member(qualifier, variable_name))
+            })
     }
 
     /// returns the index entry of the enum-element `element_name` of the enum-type `enum_name`
@@ -445,6 +459,22 @@ impl Index {
                     .filter(|item| item.information.variable_type == VariableType::Input)
                     .find(|item| item.information.location == index)
             })
+    }
+
+    pub fn find_fully_qualified_variable(
+        &self,
+        fully_qualified_name: &str,
+    ) -> Option<&VariableIndexEntry> {
+        let segments: Vec<&str> = fully_qualified_name.split('.').collect();
+        let (q, segments) = if segments.len() > 1 {
+            (
+                Some(segments[0]),
+                segments.iter().skip(1).copied().collect::<Vec<&str>>(),
+            )
+        } else {
+            (None, segments)
+        };
+        self.find_variable(q, &segments[..])
     }
 
     pub fn find_variable(
