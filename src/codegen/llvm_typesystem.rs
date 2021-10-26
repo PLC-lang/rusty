@@ -260,7 +260,7 @@ pub fn cast_if_needed<'ctx>(
                     .map_err(|msg| CompileError::codegen_error(msg, SourceRange::undefined()))?
                     as u32;
 
-                if size < value_size {
+                if dbg!(size) < dbg!(value_size) {
                     //we need to downcast the size of the string
                     //check if it's a literal, if so we can exactly know how big this is
                     if let AstStatement::LiteralString {
@@ -270,15 +270,18 @@ pub fn cast_if_needed<'ctx>(
                     } = statement
                     {
                         let value = if *is_wide {
-                            let mut chars = dbg!(string_value).encode_utf16().collect::<Vec<u16>>();
+                            let mut chars = string_value.encode_utf16().collect::<Vec<u16>>();
+                            //We add a null terminator since the llvm command will not account for
+                            //it
                             chars.push(0);
-                            let total_bytes_to_copy = std::cmp::min(size - 1, chars.len() as u32);
+                            let total_bytes_to_copy = std::cmp::min(size, chars.len() as u32);
                             let new_value = &chars[0..(total_bytes_to_copy) as usize];
                             llvm.create_llvm_const_utf16_vec_string(new_value)?
                         } else {
                             let bytes = string_value.bytes().collect::<Vec<u8>>();
                             let total_bytes_to_copy = std::cmp::min(size - 1, bytes.len() as u32);
                             let new_value = &bytes[0..total_bytes_to_copy as usize];
+                            //This accounts for a null terminator, hence we don't add it here.
                             llvm.create_llvm_const_vec_string(new_value)?
                         };
                         Ok(value)

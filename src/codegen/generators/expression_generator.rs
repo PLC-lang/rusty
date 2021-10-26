@@ -140,8 +140,6 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
         &self,
         expression: &AstStatement,
     ) -> Result<BasicValueEnum<'a>, CompileError> {
-        let _builder = &self.llvm.builder;
-
         //see if this is a constant - maybe we can short curcuit this codegen
         if let Some(StatementAnnotation::Variable { qualified_name, .. }) =
             self.annotations.get_annotation(expression)
@@ -224,7 +222,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                 operator, value, ..
             } => self.generate_unary_expression(operator, value),
             //fallback
-            _ => dbg!(self.generate_literal(expression)),
+            _ => self.generate_literal(expression),
         }
     }
 
@@ -267,7 +265,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                     //Load the reference
                     let reference = self.generate_expression(index)?;
                     if reference.is_int_value() {
-                        //TDOO why is this cast necessary???
+                        //TODO why is this cast necessary???
                         //did the annotator not annotate 'index' correctly?
                         let reference = cast_if_needed(
                             self.llvm,
@@ -1415,7 +1413,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
         let mut v = Vec::new();
         for e in elements {
             //generate with correct type hint
-            let value = dbg!(self.generate_literal(e))?;
+            let value = self.generate_literal(e)?;
             v.push(value.as_basic_value_enum());
         }
 

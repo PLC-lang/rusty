@@ -956,7 +956,6 @@ END_PROGRAM
     insta::assert_snapshot!(result);
 }
 
-#[ignore = "strings look broken :("]
 #[test]
 fn variable_length_strings_can_be_created() {
     let result = codegen(
