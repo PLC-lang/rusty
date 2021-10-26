@@ -1,8 +1,7 @@
+// Copyright (c) 2021 Daniel Schwenniger
+
 use crate::compile_and_run;
 
-use super::super::arrays;
-
-// Copyright (c) 2021 Daniel Schwenniger
 #[allow(dead_code)]
 #[repr(C)]
 #[derive(Default)]
@@ -187,10 +186,6 @@ struct MainTypeWithStruct {
     b_result_h: i16,
 }
 
-fn newWithStruct() -> MainTypeWithStruct {
-    MainTypeWithStruct::default()
-}
-
 #[test]
 fn reference_call_struct() {
     let function = r"
@@ -280,18 +275,18 @@ END_PROGRAM
 
     ";
 
-    let mut newWithStruct: MainTypeWithStruct = newWithStruct();
+    let mut new_with_struct: MainTypeWithStruct = MainTypeWithStruct::default();
 
-    compile_and_run::<_, i32>(function.to_string(), &mut newWithStruct);
+    compile_and_run::<_, i32>(function.to_string(), &mut new_with_struct);
 
-    assert_eq!(true, newWithStruct.b_result_a);
-    assert_eq!(100, newWithStruct.b_result_b);
-    assert_eq!(true, newWithStruct.b_result_c);
-    assert_eq!(100, newWithStruct.b_result_d);
-    assert_eq!(true, newWithStruct.b_result_e);
-    assert_eq!(100, newWithStruct.b_result_f);
-    assert_eq!(true, newWithStruct.b_result_g);
-    assert_eq!(100, newWithStruct.b_result_h);
+    assert_eq!(true, new_with_struct.b_result_a);
+    assert_eq!(100, new_with_struct.b_result_b);
+    assert_eq!(true, new_with_struct.b_result_c);
+    assert_eq!(100, new_with_struct.b_result_d);
+    assert_eq!(true, new_with_struct.b_result_e);
+    assert_eq!(100, new_with_struct.b_result_f);
+    assert_eq!(true, new_with_struct.b_result_g);
+    assert_eq!(100, new_with_struct.b_result_h);
 }
 
 #[allow(dead_code)]
@@ -333,10 +328,6 @@ struct MainTypeWithArray {
     b_result_n: i16,
     b_result_o: i16,
     b_result_p: i16,
-}
-
-fn newWithArray() -> MainTypeWithArray {
-    MainTypeWithArray::default()
 }
 
 #[test]
@@ -439,24 +430,24 @@ fn reference_call_array() {
     END_PROGRAM
   ";
 
-    let mut newWithArray: MainTypeWithArray = newWithArray();
+    let mut new_with_array: MainTypeWithArray = MainTypeWithArray::default();
 
-    compile_and_run::<_, i32>(function.to_string(), &mut newWithArray);
+    compile_and_run::<_, i32>(function.to_string(), &mut new_with_array);
 
-    assert_eq!(100, newWithArray.b_result_a);
-    assert_eq!(0, newWithArray.b_result_b);
-    assert_eq!(100, newWithArray.b_result_c);
-    assert_eq!(0, newWithArray.b_result_d);
-    assert_eq!(0, newWithArray.b_result_e);
-    assert_eq!(100, newWithArray.b_result_f);
-    assert_eq!(0, newWithArray.b_result_g);
-    assert_eq!(100, newWithArray.b_result_h);
-    assert_eq!(100, newWithArray.b_result_i);
-    assert_eq!(0, newWithArray.b_result_j);
-    assert_eq!(100, newWithArray.b_result_k);
-    assert_eq!(0, newWithArray.b_result_l);
-    assert_eq!(0, newWithArray.b_result_m);
-    assert_eq!(100, newWithArray.b_result_n);
-    assert_eq!(0, newWithArray.b_result_o);
-    assert_eq!(100, newWithArray.b_result_p);
+    assert_eq!(100, new_with_array.b_result_a);
+    assert_eq!(0, new_with_array.b_result_b);
+    assert_eq!(100, new_with_array.b_result_c);
+    assert_eq!(0, new_with_array.b_result_d);
+    assert_eq!(0, new_with_array.b_result_e);
+    assert_eq!(100, new_with_array.b_result_f);
+    assert_eq!(0, new_with_array.b_result_g);
+    assert_eq!(100, new_with_array.b_result_h);
+    assert_eq!(100, new_with_array.b_result_i);
+    assert_eq!(0, new_with_array.b_result_j);
+    assert_eq!(100, new_with_array.b_result_k);
+    assert_eq!(0, new_with_array.b_result_l);
+    assert_eq!(0, new_with_array.b_result_m);
+    assert_eq!(100, new_with_array.b_result_n);
+    assert_eq!(0, new_with_array.b_result_o);
+    assert_eq!(100, new_with_array.b_result_p);
 }
