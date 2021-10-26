@@ -226,6 +226,8 @@
 <span id="226">226</span>
 <span id="227">227</span>
 <span id="228">228</span>
+<span id="229">229</span>
+<span id="230">230</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::ast::AstStatement</span>;
@@ -236,6 +238,7 @@
 <span class="doccomment">/// wrapper around ConstExpression stored in the arena</span>
 <span class="doccomment">/// changing expr allows to change the referenced const-expression</span>
 <span class="doccomment">/// without aquiring a new ID in the arena</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="kw">struct</span> <span class="ident">ConstWrapper</span> {
     <span class="doccomment">/// the constant expression</span>
     <span class="ident">expr</span>: <span class="ident">ConstExpression</span>,
@@ -256,6 +259,7 @@
 <span class="doccomment">/// constant expressions registered here are wrapped behind this enum to indicate</span>
 <span class="doccomment">/// whether this expression was already (potentially) resolved or not, or if a</span>
 <span class="doccomment">/// resolving failed.</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">ConstExpression</span> {
     <span class="ident">Unresolved</span> {
         <span class="ident">statement</span>: <span class="ident">AstStatement</span>,

@@ -353,7 +353,6 @@
 <span id="353">353</span>
 <span id="354">354</span>
 <span id="355">355</span>
-<span id="356">356</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 <span class="kw">use</span> <span class="ident">inkwell</span>::{
     <span class="ident">builder::Builder</span>,
@@ -363,55 +362,13 @@
 };
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">ast::AstStatement</span>,
-    <span class="ident">ast::SourceRange</span>,
-    <span class="ident">compile_error::CompileError</span>,
-    <span class="ident">index::Index</span>,
-    <span class="ident">typesystem</span>::{<span class="ident">get_bigger_type</span>, <span class="ident">DataTypeInformation</span>},
+    <span class="ident">ast::AstStatement</span>, <span class="ident">ast::SourceRange</span>, <span class="ident">compile_error::CompileError</span>, <span class="ident">index::Index</span>,
+    <span class="ident">typesystem::DataTypeInformation</span>,
 };
 
-<span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">generators::llvm::Llvm</span>, <span class="ident">llvm_index::LlvmTypedIndex</span>, <span class="ident">TypeAndValue</span>};
+<span class="kw">use</span> <span class="ident"><span class="kw">super</span>::generators::llvm::Llvm</span>;
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">promote_if_needed</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(
-    <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Context</span>,
-    <span class="ident">builder</span>: <span class="kw-2">&amp;</span><span class="ident">Builder</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
-    <span class="ident">lvalue</span>: <span class="kw-2">&amp;</span><span class="ident">TypeAndValue</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
-    <span class="ident">rvalue</span>: <span class="kw-2">&amp;</span><span class="ident">TypeAndValue</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
-    <span class="ident">index</span>: <span class="kw-2">&amp;</span><span class="ident">Index</span>,
-    <span class="ident">llvm_index</span>: <span class="kw-2">&amp;</span><span class="ident">LlvmTypedIndex</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
-) <span class="op">-</span><span class="op">&gt;</span> (<span class="ident">DataTypeInformation</span>, <span class="ident">BasicValueEnum</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>, <span class="ident">BasicValueEnum</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>) {
-    <span class="kw">let</span> (<span class="ident">ltype</span>, <span class="ident">lvalue</span>) <span class="op">=</span> <span class="ident">lvalue</span>;
-    <span class="kw">let</span> (<span class="ident">rtype</span>, <span class="ident">rvalue</span>) <span class="op">=</span> <span class="ident">rvalue</span>;
-
-    <span class="comment">//TODO : We need better error handling here</span>
-    <span class="kw">let</span> <span class="ident">ltype</span> <span class="op">=</span> <span class="ident">index</span>.<span class="ident">find_effective_type_information</span>(<span class="ident">ltype</span>).<span class="ident">unwrap</span>();
-    <span class="kw">let</span> <span class="ident">rtype</span> <span class="op">=</span> <span class="ident">index</span>.<span class="ident">find_effective_type_information</span>(<span class="ident">rtype</span>).<span class="ident">unwrap</span>();
-
-    <span class="kw">let</span> <span class="ident">ltype_llvm</span> <span class="op">=</span> <span class="ident">llvm_index</span>.<span class="ident">find_associated_type</span>(<span class="ident">ltype</span>.<span class="ident">get_name</span>()).<span class="ident">unwrap</span>();
-    <span class="kw">let</span> <span class="ident">rtype_llvm</span> <span class="op">=</span> <span class="ident">llvm_index</span>.<span class="ident">find_associated_type</span>(<span class="ident">rtype</span>.<span class="ident">get_name</span>()).<span class="ident">unwrap</span>();
-
-    <span class="kw">if</span> <span class="ident">ltype</span>.<span class="ident">is_numerical</span>() <span class="op">&amp;&amp;</span> <span class="ident">rtype</span>.<span class="ident">is_numerical</span>() {
-        <span class="kw">if</span> <span class="ident">ltype_llvm</span> <span class="op">=</span><span class="op">=</span> <span class="ident">rtype_llvm</span> {
-            (<span class="ident">ltype</span>.<span class="ident">clone</span>(), <span class="kw-2">*</span><span class="ident">lvalue</span>, <span class="kw-2">*</span><span class="ident">rvalue</span>)
-        } <span class="kw">else</span> {
-            <span class="kw">let</span> <span class="ident">target_type</span> <span class="op">=</span> <span class="ident">get_bigger_type</span>(
-                <span class="kw-2">&amp;</span><span class="ident">get_bigger_type</span>(<span class="ident">ltype</span>, <span class="ident">rtype</span>),
-                <span class="kw-2">&amp;</span><span class="ident">index</span>.<span class="ident">find_type_information</span>(<span class="string">&quot;DINT&quot;</span>).<span class="ident">unwrap</span>(),
-            );
-
-            <span class="kw">let</span> <span class="ident">promoted_lvalue</span> <span class="op">=</span>
-                <span class="ident">promote_value_if_needed</span>(<span class="ident">context</span>, <span class="ident">builder</span>, <span class="kw-2">*</span><span class="ident">lvalue</span>, <span class="ident">ltype</span>, <span class="kw-2">&amp;</span><span class="ident">target_type</span>);
-            <span class="kw">let</span> <span class="ident">promoted_rvalue</span> <span class="op">=</span>
-                <span class="ident">promote_value_if_needed</span>(<span class="ident">context</span>, <span class="ident">builder</span>, <span class="kw-2">*</span><span class="ident">rvalue</span>, <span class="ident">rtype</span>, <span class="kw-2">&amp;</span><span class="ident">target_type</span>);
-
-            (<span class="ident">target_type</span>, <span class="ident">promoted_lvalue</span>, <span class="ident">promoted_rvalue</span>)
-        }
-    } <span class="kw">else</span> {
-        <span class="macro">panic!</span>(<span class="string">&quot;Binary operations need numerical types&quot;</span>)
-    }
-}
-
-<span class="kw">fn</span> <span class="ident">promote_value_if_needed</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span>(
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">promote_value_if_needed</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span>(
     <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ctx</span> <span class="ident">Context</span>,
     <span class="ident">builder</span>: <span class="kw-2">&amp;</span><span class="ident">Builder</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span>,
     <span class="ident">lvalue</span>: <span class="ident">BasicValueEnum</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span>,
@@ -446,10 +403,10 @@
         <span class="ident">DataTypeInformation::Float</span> {
             <span class="ident">size</span>: <span class="ident">target_size</span>, ..
         } <span class="op">=</span><span class="op">&gt;</span> {
-            <span class="kw">if</span> <span class="kw">let</span> <span class="ident">DataTypeInformation::Integer</span> { <span class="ident">signed</span>, .. } <span class="op">=</span> <span class="ident">ltype</span> {
+            <span class="kw">if</span> <span class="ident">lvalue</span>.<span class="ident">is_int_value</span>() {
                 <span class="comment">// INT --&gt; FLOAT</span>
                 <span class="kw">let</span> <span class="ident">int_value</span> <span class="op">=</span> <span class="ident">lvalue</span>.<span class="ident">into_int_value</span>();
-                <span class="kw">if</span> <span class="kw-2">*</span><span class="ident">signed</span> {
+                <span class="kw">if</span> <span class="ident">ltype</span>.<span class="ident">is_signed_int</span>() {
                     <span class="ident">builder</span>
                         .<span class="ident">build_signed_int_to_float</span>(
                             <span class="ident">int_value</span>,
@@ -512,7 +469,7 @@
     <span class="ident">target_type</span>: <span class="kw-2">&amp;</span><span class="ident">DataTypeInformation</span>,
     <span class="ident">value</span>: <span class="ident">BasicValueEnum</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span>,
     <span class="ident">value_type</span>: <span class="kw-2">&amp;</span><span class="ident">DataTypeInformation</span>,
-    <span class="ident">location_context</span>: <span class="kw-2">&amp;</span><span class="ident">AstStatement</span>,
+    <span class="ident">statement</span>: <span class="kw-2">&amp;</span><span class="ident">AstStatement</span>,
 ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">BasicValueEnum</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span>, <span class="ident">CompileError</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">builder</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">llvm</span>.<span class="ident">builder</span>;
     <span class="kw">let</span> <span class="ident">target_type</span> <span class="op">=</span> <span class="ident">index</span>
@@ -583,10 +540,11 @@
                 <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">CompileError::casting_error</span>(
                     <span class="ident">value_type</span>.<span class="ident">get_name</span>(),
                     <span class="ident">target_type</span>.<span class="ident">get_name</span>(),
-                    <span class="ident">location_context</span>.<span class="ident">get_location</span>(),
+                    <span class="ident">statement</span>.<span class="ident">get_location</span>(),
                 )),
             }
         }
+
         <span class="ident">DataTypeInformation::Float</span> {
             <span class="comment">// generated_type,</span>
             <span class="ident">size</span>: <span class="ident">lsize</span>,
@@ -633,13 +591,21 @@
             <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">CompileError::casting_error</span>(
                 <span class="ident">value_type</span>.<span class="ident">get_name</span>(),
                 <span class="ident">target_type</span>.<span class="ident">get_name</span>(),
-                <span class="ident">location_context</span>.<span class="ident">get_location</span>(),
+                <span class="ident">statement</span>.<span class="ident">get_location</span>(),
             )),
         },
-        <span class="ident">DataTypeInformation::String</span> { <span class="ident">size</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident">value_type</span> {
+        <span class="ident">DataTypeInformation::String</span> { <span class="ident">size</span>, <span class="ident">encoding</span> } <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident">value_type</span> {
             <span class="ident">DataTypeInformation::String</span> {
-                <span class="ident">size</span>: <span class="ident">value_size</span>, ..
+                <span class="ident">size</span>: <span class="ident">value_size</span>,
+                <span class="ident">encoding</span>: <span class="ident">value_encoding</span>,
             } <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="kw">if</span> <span class="ident">encoding</span> <span class="op">!</span><span class="op">=</span> <span class="ident">value_encoding</span> {
+                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">CompileError::casting_error</span>(
+                        <span class="ident">value_type</span>.<span class="ident">get_name</span>(),
+                        <span class="ident">target_type</span>.<span class="ident">get_name</span>(),
+                        <span class="ident">statement</span>.<span class="ident">get_location</span>(),
+                    ));
+                }
                 <span class="kw">let</span> <span class="ident">size</span> <span class="op">=</span> <span class="ident">size</span>
                     .<span class="ident">as_int_value</span>(<span class="ident">index</span>)
                     .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">msg</span><span class="op">|</span> <span class="ident">CompileError::codegen_error</span>(<span class="ident">msg</span>, <span class="ident">SourceRange::undefined</span>()))<span class="question-mark">?</span>
@@ -648,20 +614,52 @@
                     .<span class="ident">as_int_value</span>(<span class="ident">index</span>)
                     .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">msg</span><span class="op">|</span> <span class="ident">CompileError::codegen_error</span>(<span class="ident">msg</span>, <span class="ident">SourceRange::undefined</span>()))<span class="question-mark">?</span>
                     <span class="kw">as</span> <span class="ident">u32</span>;
+
                 <span class="kw">if</span> <span class="ident">size</span> <span class="op">&lt;</span> <span class="ident">value_size</span> {
-                    <span class="comment">//if we are on a vector replace it</span>
-                    <span class="kw">if</span> <span class="ident">value</span>.<span class="ident">is_vector_value</span>() {
-                        <span class="kw">let</span> <span class="ident">vec_value</span> <span class="op">=</span> <span class="ident">value</span>.<span class="ident">into_vector_value</span>();
-                        <span class="kw">let</span> <span class="ident">string_value</span> <span class="op">=</span> <span class="ident">vec_value</span>.<span class="ident">get_string_constant</span>().<span class="ident">to_bytes</span>();
-                        <span class="kw">let</span> <span class="ident">new_value</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">string_value</span>[<span class="number">0</span>..(<span class="ident">size</span> <span class="op">-</span> <span class="number">1</span>) <span class="kw">as</span> <span class="ident">usize</span>];
-                        <span class="kw">let</span> (<span class="kw">_</span>, <span class="ident">value</span>) <span class="op">=</span> <span class="ident">llvm</span>.<span class="ident">create_llvm_const_vec_string</span>(<span class="ident">new_value</span>)<span class="question-mark">?</span>;
+                    <span class="comment">//we need to downcast the size of the string</span>
+                    <span class="comment">//check if it&#39;s a literal, if so we can exactly know how big this is</span>
+                    <span class="kw">if</span> <span class="kw">let</span> <span class="ident">AstStatement::LiteralString</span> {
+                        <span class="ident">is_wide</span>,
+                        <span class="ident">value</span>: <span class="ident">string_value</span>,
+                        ..
+                    } <span class="op">=</span> <span class="ident">statement</span>
+                    {
+                        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw-2">*</span><span class="ident">is_wide</span> {
+                            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">chars</span> <span class="op">=</span> <span class="ident">string_value</span>.<span class="ident">encode_utf16</span>().<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u16</span><span class="op">&gt;</span><span class="op">&gt;</span>();
+                            <span class="comment">//We add a null terminator since the llvm command will not account for</span>
+                            <span class="comment">//it</span>
+                            <span class="ident">chars</span>.<span class="ident">push</span>(<span class="number">0</span>);
+                            <span class="kw">let</span> <span class="ident">total_bytes_to_copy</span> <span class="op">=</span> <span class="ident">std::cmp::min</span>(<span class="ident">size</span>, <span class="ident">chars</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u32</span>);
+                            <span class="kw">let</span> <span class="ident">new_value</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">chars</span>[<span class="number">0</span>..(<span class="ident">total_bytes_to_copy</span>) <span class="kw">as</span> <span class="ident">usize</span>];
+                            <span class="ident">llvm</span>.<span class="ident">create_llvm_const_utf16_vec_string</span>(<span class="ident">new_value</span>)<span class="question-mark">?</span>
+                        } <span class="kw">else</span> {
+                            <span class="kw">let</span> <span class="ident">bytes</span> <span class="op">=</span> <span class="ident">string_value</span>.<span class="ident">bytes</span>().<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span><span class="op">&gt;</span>();
+                            <span class="kw">let</span> <span class="ident">total_bytes_to_copy</span> <span class="op">=</span> <span class="ident">std::cmp::min</span>(<span class="ident">size</span> <span class="op">-</span> <span class="number">1</span>, <span class="ident">bytes</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u32</span>);
+                            <span class="kw">let</span> <span class="ident">new_value</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">bytes</span>[<span class="number">0</span>..<span class="ident">total_bytes_to_copy</span> <span class="kw">as</span> <span class="ident">usize</span>];
+                            <span class="comment">//This accounts for a null terminator, hence we don&#39;t add it here.</span>
+                            <span class="ident">llvm</span>.<span class="ident">create_llvm_const_vec_string</span>(<span class="ident">new_value</span>)<span class="question-mark">?</span>
+                        };
                         <span class="prelude-val">Ok</span>(<span class="ident">value</span>)
                     } <span class="kw">else</span> {
-                        <span class="prelude-val">Err</span>(<span class="ident">CompileError::casting_error</span>(
-                            <span class="ident">value_type</span>.<span class="ident">get_name</span>(),
-                            <span class="ident">target_type</span>.<span class="ident">get_name</span>(),
-                            <span class="ident">location_context</span>.<span class="ident">get_location</span>(),
-                        ))
+                        <span class="comment">//if we are on a vector replace it</span>
+                        <span class="kw">if</span> <span class="ident">value</span>.<span class="ident">is_vector_value</span>() {
+                            <span class="kw">let</span> <span class="ident">vec_value</span> <span class="op">=</span> <span class="ident">value</span>.<span class="ident">into_vector_value</span>();
+                            <span class="kw">let</span> <span class="ident">string_value</span> <span class="op">=</span> <span class="ident">vec_value</span>.<span class="ident">get_string_constant</span>().<span class="ident">to_bytes</span>();
+                            <span class="kw">let</span> <span class="ident">real_size</span> <span class="op">=</span> <span class="ident">std::cmp::min</span>(<span class="ident">size</span>, (<span class="ident">string_value</span>.<span class="ident">len</span>() <span class="op">+</span> <span class="number">1</span>) <span class="kw">as</span> <span class="ident">u32</span>);
+                            <span class="kw">if</span> <span class="ident">real_size</span> <span class="op">&lt;</span> <span class="ident">value_size</span> {
+                                <span class="kw">let</span> <span class="ident">new_value</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">string_value</span>[<span class="number">0</span>..(<span class="ident">real_size</span> <span class="op">-</span> <span class="number">1</span>) <span class="kw">as</span> <span class="ident">usize</span>];
+                                <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">llvm</span>.<span class="ident">create_llvm_const_vec_string</span>(<span class="ident">new_value</span>)<span class="question-mark">?</span>;
+                                <span class="prelude-val">Ok</span>(<span class="ident">value</span>)
+                            } <span class="kw">else</span> {
+                                <span class="prelude-val">Ok</span>(<span class="ident">value</span>)
+                            }
+                        } <span class="kw">else</span> {
+                            <span class="prelude-val">Err</span>(<span class="ident">CompileError::casting_error</span>(
+                                <span class="ident">value_type</span>.<span class="ident">get_name</span>(),
+                                <span class="ident">target_type</span>.<span class="ident">get_name</span>(),
+                                <span class="ident">statement</span>.<span class="ident">get_location</span>(),
+                            ))
+                        }
                     }
                 } <span class="kw">else</span> {
                     <span class="prelude-val">Ok</span>(<span class="ident">value</span>)
@@ -670,7 +668,7 @@
             <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">CompileError::casting_error</span>(
                 <span class="ident">value_type</span>.<span class="ident">get_name</span>(),
                 <span class="ident">target_type</span>.<span class="ident">get_name</span>(),
-                <span class="ident">location_context</span>.<span class="ident">get_location</span>(),
+                <span class="ident">statement</span>.<span class="ident">get_location</span>(),
             )),
         },
         <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">value</span>),

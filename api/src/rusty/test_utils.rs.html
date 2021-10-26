@@ -53,6 +53,11 @@
 <span id="53">53</span>
 <span id="54">54</span>
 <span id="55">55</span>
+<span id="56">56</span>
+<span id="57">57</span>
+<span id="58">58</span>
+<span id="59">59</span>
+<span id="60">60</span>
 </pre><pre class="rust"><code><span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">tests</span> {
 
@@ -62,19 +67,24 @@
         <span class="ident">index</span>::{<span class="self">self</span>, <span class="ident">Index</span>},
         <span class="ident">lexer</span>::{<span class="self">self</span>, <span class="ident">IdProvider</span>},
         <span class="ident">parser</span>,
-        <span class="ident">resolver</span>::{<span class="ident">const_evaluator::evaluate_constants</span>, <span class="ident">TypeAnnotator</span>},
+        <span class="ident">resolver</span>::{<span class="ident">const_evaluator::evaluate_constants</span>, <span class="ident">AnnotationMap</span>, <span class="ident">TypeAnnotator</span>},
         <span class="ident">Diagnostic</span>, <span class="ident">Validator</span>,
     };
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">parse</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> (<span class="ident">CompilationUnit</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Diagnostic</span><span class="op">&gt;</span>) {
-        <span class="ident">parser::parse</span>(<span class="ident">lexer::lex_with_ids</span>(<span class="ident">src</span>, <span class="ident">IdProvider::new</span>()))
+        <span class="ident">parser::parse</span>(<span class="ident">lexer::lex_with_ids</span>(<span class="ident">src</span>, <span class="ident">IdProvider::default</span>()))
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">index</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> (<span class="ident">CompilationUnit</span>, <span class="ident">Index</span>) {
-        <span class="kw">let</span> (<span class="kw-2">mut</span> <span class="ident">unit</span>, ..) <span class="op">=</span> <span class="ident">parse</span>(<span class="ident">src</span>);
+        <span class="kw">let</span> <span class="ident">id_provider</span> <span class="op">=</span> <span class="ident">IdProvider::default</span>();
+        <span class="kw">let</span> (<span class="kw-2">mut</span> <span class="ident">unit</span>, ..) <span class="op">=</span> <span class="ident">parser::parse</span>(<span class="ident">lexer::lex_with_ids</span>(<span class="ident">src</span>, <span class="ident">id_provider</span>.<span class="ident">clone</span>()));
         <span class="ident">ast::pre_process</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">unit</span>);
-        <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="ident">index::visitor::visit</span>(<span class="kw-2">&amp;</span><span class="ident">unit</span>);
+        <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="ident">index::visitor::visit</span>(<span class="kw-2">&amp;</span><span class="ident">unit</span>, <span class="ident">id_provider</span>);
         (<span class="ident">unit</span>, <span class="ident">index</span>)
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">annotate</span>(<span class="ident">parse_result</span>: <span class="kw-2">&amp;</span><span class="ident">CompilationUnit</span>, <span class="ident">index</span>: <span class="kw-2">&amp;</span><span class="ident">Index</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">AnnotationMap</span> {
+        <span class="ident">TypeAnnotator::visit_unit</span>(<span class="ident">index</span>, <span class="ident">parse_result</span>)
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">parse_and_validate</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Diagnostic</span><span class="op">&gt;</span> {

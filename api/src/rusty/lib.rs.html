@@ -808,7 +808,7 @@
 
     <span class="comment">//type related</span>
     <span class="ident">type__literal_out_of_range</span>,
-    <span class="ident">type__inompatible_literal_cast</span>,
+    <span class="ident">type__incompatible_literal_cast</span>,
     <span class="ident">type__incompatible_directaccess</span>,
     <span class="ident">type__incompatible_directaccess_variable</span>,
     <span class="ident">type__incompatible_directaccess_range</span>,
@@ -953,7 +953,7 @@
                 <span class="ident">literal_type</span>, <span class="ident">cast_type</span>
             ),
             <span class="ident">range</span>: <span class="ident">location</span>,
-            <span class="ident">err_no</span>: <span class="ident">ErrNo::type__inompatible_literal_cast</span>,
+            <span class="ident">err_no</span>: <span class="ident">ErrNo::type__incompatible_literal_cast</span>,
         }
     }
 
@@ -1267,7 +1267,7 @@
     <span class="ident">encoding</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">Encoding</span><span class="op">&gt;</span>,
 ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">codegen::CodeGen</span><span class="op">&lt;</span><span class="lifetime">&#39;c</span><span class="op">&gt;</span>, <span class="ident">CompileError</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">full_index</span> <span class="op">=</span> <span class="ident">Index::new</span>();
-    <span class="kw">let</span> <span class="ident">id_provider</span> <span class="op">=</span> <span class="ident">IdProvider::new</span>();
+    <span class="kw">let</span> <span class="ident">id_provider</span> <span class="op">=</span> <span class="ident">IdProvider::default</span>();
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">files</span>: <span class="ident">SimpleFiles</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">String</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">SimpleFiles::new</span>();
 
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">all_units</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
@@ -1287,7 +1287,7 @@
         <span class="comment">//pre-process the ast (create inlined types)</span>
         <span class="ident">ast::pre_process</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">parse_result</span>);
         <span class="comment">//index the pou</span>
-        <span class="ident">full_index</span>.<span class="ident">import</span>(<span class="ident">index::visitor::visit</span>(<span class="kw-2">&amp;</span><span class="ident">parse_result</span>));
+        <span class="ident">full_index</span>.<span class="ident">import</span>(<span class="ident">index::visitor::visit</span>(<span class="kw-2">&amp;</span><span class="ident">parse_result</span>, <span class="ident">id_provider</span>.<span class="ident">clone</span>()));
         <span class="ident">all_units</span>.<span class="ident">push</span>((<span class="ident">file_id</span>, <span class="ident">diagnostics</span>, <span class="ident">parse_result</span>));
     }
 

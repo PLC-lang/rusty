@@ -792,6 +792,36 @@
 <span id="792">792</span>
 <span id="793">793</span>
 <span id="794">794</span>
+<span id="795">795</span>
+<span id="796">796</span>
+<span id="797">797</span>
+<span id="798">798</span>
+<span id="799">799</span>
+<span id="800">800</span>
+<span id="801">801</span>
+<span id="802">802</span>
+<span id="803">803</span>
+<span id="804">804</span>
+<span id="805">805</span>
+<span id="806">806</span>
+<span id="807">807</span>
+<span id="808">808</span>
+<span id="809">809</span>
+<span id="810">810</span>
+<span id="811">811</span>
+<span id="812">812</span>
+<span id="813">813</span>
+<span id="814">814</span>
+<span id="815">815</span>
+<span id="816">816</span>
+<span id="817">817</span>
+<span id="818">818</span>
+<span id="819">819</span>
+<span id="820">820</span>
+<span id="821">821</span>
+<span id="822">822</span>
+<span id="823">823</span>
+<span id="824">824</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 <span class="kw">use</span> <span class="ident">indexmap::IndexMap</span>;
 
@@ -855,6 +885,18 @@
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_constant</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
         <span class="self">self</span>.<span class="ident">information</span>.<span class="ident">is_constant</span>
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_variable_type</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">VariableType</span> {
+        <span class="self">self</span>.<span class="ident">information</span>.<span class="ident">variable_type</span>
+    }
+
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">is_parameter</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+        <span class="kw">let</span> <span class="ident">vt</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_variable_type</span>();
+        <span class="macro">matches!</span>(
+            <span class="ident">vt</span>,
+            <span class="ident">VariableType::Input</span> <span class="op">|</span> <span class="ident">VariableType::Output</span> <span class="op">|</span> <span class="ident">VariableType::InOut</span>
+        )
     }
 }
 
@@ -999,11 +1041,11 @@
         <span class="ident">data_type</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ret</span> <span class="ident">DataType</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;ret</span> <span class="ident">DataType</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="ident">data_type</span>.<span class="ident">get_type_information</span>() {
-            <span class="ident">DataTypeInformation::SubRange</span> {
-                <span class="ident">referenced_type</span>, ..
-            } <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>
-                .<span class="ident">find_type</span>(<span class="ident">referenced_type</span>)
-                .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">it</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">find_effective_type</span>(<span class="ident">it</span>)),
+            <span class="comment">// DataTypeInformation::SubRange {</span>
+            <span class="comment">//     referenced_type, ..</span>
+            <span class="comment">// } =&gt; self</span>
+            <span class="comment">//     .find_type(referenced_type)</span>
+            <span class="comment">//     .and_then(|it| self.find_effective_type(it)),</span>
             <span class="ident">DataTypeInformation::Alias</span> {
                 <span class="ident">referenced_type</span>, ..
             } <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>
@@ -1091,17 +1133,12 @@
         }
 
         <span class="comment">//enum_global_variables</span>
-        <span class="comment">//dont import the const-expressions (initializers) because there are already</span>
-        <span class="comment">//covered by the enum_qualified_variables map</span>
-        <span class="self">self</span>.<span class="ident">enum_global_variables</span>
-            .<span class="ident">extend</span>(<span class="ident">other</span>.<span class="ident">enum_global_variables</span>);
-
-        <span class="comment">//enum qualified variables</span>
-
-        <span class="kw">for</span> (<span class="ident">name</span>, <span class="kw-2">mut</span> <span class="ident">e</span>) <span class="kw">in</span> <span class="ident">other</span>.<span class="ident">enum_qualified_variables</span>.<span class="ident">drain</span>(..) {
+        <span class="kw">for</span> (<span class="ident">name</span>, <span class="kw-2">mut</span> <span class="ident">e</span>) <span class="kw">in</span> <span class="ident">other</span>.<span class="ident">enum_global_variables</span>.<span class="ident">drain</span>(..) {
             <span class="ident">e</span>.<span class="ident">initial_value</span> <span class="op">=</span>
                 <span class="self">self</span>.<span class="ident">maybe_import_const_expr</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">other</span>.<span class="ident">constant_expressions</span>, <span class="kw-2">&amp;</span><span class="ident">e</span>.<span class="ident">initial_value</span>);
-            <span class="self">self</span>.<span class="ident">enum_qualified_variables</span>.<span class="ident">insert</span>(<span class="ident">name</span>, <span class="ident">e</span>);
+            <span class="self">self</span>.<span class="ident">enum_global_variables</span>.<span class="ident">insert</span>(<span class="ident">name</span>, <span class="ident">e</span>.<span class="ident">clone</span>());
+            <span class="self">self</span>.<span class="ident">enum_qualified_variables</span>
+                .<span class="ident">insert</span>(<span class="ident">e</span>.<span class="ident">qualified_name</span>.<span class="ident">to_lowercase</span>(), <span class="ident">e</span>);
         }
 
         <span class="comment">//member variables</span>
@@ -1195,6 +1232,13 @@
         <span class="self">self</span>.<span class="ident">member_variables</span>
             .<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">pou_name</span>.<span class="ident">to_lowercase</span>())
             .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">map</span><span class="op">|</span> <span class="ident">map</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">variable_name</span>.<span class="ident">to_lowercase</span>()))
+            .<span class="ident">or_else</span>(<span class="op">|</span><span class="op">|</span> {
+                <span class="comment">//check qualifier</span>
+                <span class="ident">pou_name</span>
+                    .<span class="ident">rfind</span>(<span class="string">&#39;.&#39;</span>)
+                    .<span class="ident">map</span>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> <span class="kw-2">&amp;</span><span class="ident">pou_name</span>[..<span class="ident">p</span>])
+                    .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">qualifier</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">find_member</span>(<span class="ident">qualifier</span>, <span class="ident">variable_name</span>))
+            })
     }
 
     <span class="doccomment">/// returns the index entry of the enum-element `element_name` of the enum-type `enum_name`</span>
@@ -1239,6 +1283,22 @@
                     .<span class="ident">filter</span>(<span class="op">|</span><span class="ident">item</span><span class="op">|</span> <span class="ident">item</span>.<span class="ident">information</span>.<span class="ident">variable_type</span> <span class="op">=</span><span class="op">=</span> <span class="ident">VariableType::Input</span>)
                     .<span class="ident">find</span>(<span class="op">|</span><span class="ident">item</span><span class="op">|</span> <span class="ident">item</span>.<span class="ident">information</span>.<span class="ident">location</span> <span class="op">=</span><span class="op">=</span> <span class="ident">index</span>)
             })
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">find_fully_qualified_variable</span>(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        <span class="ident">fully_qualified_name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">VariableIndexEntry</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="ident">segments</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">fully_qualified_name</span>.<span class="ident">split</span>(<span class="string">&#39;.&#39;</span>).<span class="ident">collect</span>();
+        <span class="kw">let</span> (<span class="ident">q</span>, <span class="ident">segments</span>) <span class="op">=</span> <span class="kw">if</span> <span class="ident">segments</span>.<span class="ident">len</span>() <span class="op">&gt;</span> <span class="number">1</span> {
+            (
+                <span class="prelude-val">Some</span>(<span class="ident">segments</span>[<span class="number">0</span>]),
+                <span class="ident">segments</span>.<span class="ident">iter</span>().<span class="ident">skip</span>(<span class="number">1</span>).<span class="ident">copied</span>().<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span>(),
+            )
+        } <span class="kw">else</span> {
+            (<span class="prelude-val">None</span>, <span class="ident">segments</span>)
+        };
+        <span class="self">self</span>.<span class="ident">find_variable</span>(<span class="ident">q</span>, <span class="kw-2">&amp;</span><span class="ident">segments</span>[..])
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">find_variable</span>(

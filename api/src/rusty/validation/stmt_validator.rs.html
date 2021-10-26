@@ -292,6 +292,12 @@
 <span id="292">292</span>
 <span id="293">293</span>
 <span id="294">294</span>
+<span id="295">295</span>
+<span id="296">296</span>
+<span id="297">297</span>
+<span id="298">298</span>
+<span id="299">299</span>
+<span id="300">300</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">convert::TryInto</span>, <span class="ident">mem::discriminant</span>};
 
 <span class="kw">use</span> <span class="ident"><span class="kw">super</span>::ValidationContext</span>;
@@ -299,9 +305,9 @@
     <span class="ident">ast</span>::{<span class="ident">AstStatement</span>, <span class="ident">DirectAccessType</span>, <span class="ident">SourceRange</span>},
     <span class="ident">resolver::StatementAnnotation</span>,
     <span class="ident">typesystem</span>::{
-        <span class="ident">DataTypeInformation</span>, <span class="ident">BOOL_TYPE</span>, <span class="ident">DATE_AND_TIME_TYPE</span>, <span class="ident">DATE_TYPE</span>, <span class="ident">DINT_TYPE</span>, <span class="ident">INT_TYPE</span>,
-        <span class="ident">LINT_TYPE</span>, <span class="ident">LREAL_TYPE</span>, <span class="ident">SINT_TYPE</span>, <span class="ident">STRING_TYPE</span>, <span class="ident">TIME_OF_DAY_TYPE</span>, <span class="ident">TIME_TYPE</span>, <span class="ident">UDINT_TYPE</span>,
-        <span class="ident">UINT_TYPE</span>, <span class="ident">ULINT_TYPE</span>, <span class="ident">USINT_TYPE</span>, <span class="ident">VOID_TYPE</span>, <span class="ident">WSTRING_TYPE</span>,
+        <span class="ident">DataType</span>, <span class="ident">DataTypeInformation</span>, <span class="ident">BOOL_TYPE</span>, <span class="ident">DATE_AND_TIME_TYPE</span>, <span class="ident">DATE_TYPE</span>, <span class="ident">DINT_TYPE</span>,
+        <span class="ident">INT_TYPE</span>, <span class="ident">LINT_TYPE</span>, <span class="ident">LREAL_TYPE</span>, <span class="ident">SINT_TYPE</span>, <span class="ident">STRING_TYPE</span>, <span class="ident">TIME_OF_DAY_TYPE</span>, <span class="ident">TIME_TYPE</span>,
+        <span class="ident">UDINT_TYPE</span>, <span class="ident">UINT_TYPE</span>, <span class="ident">ULINT_TYPE</span>, <span class="ident">USINT_TYPE</span>, <span class="ident">VOID_TYPE</span>, <span class="ident">WSTRING_TYPE</span>,
     },
     <span class="ident">Diagnostic</span>,
 };
@@ -471,6 +477,12 @@
                 <span class="ident">literal</span>,
                 <span class="op">!</span><span class="ident">cast_type</span>.<span class="ident">is_unsigned_int</span>(),
             )
+            .<span class="ident">or_else</span>(<span class="op">|</span><span class="op">|</span> {
+                <span class="ident">context</span>
+                    .<span class="ident">ast_annotation</span>
+                    .<span class="ident">get_type_hint</span>(<span class="ident">literal</span>, <span class="ident">context</span>.<span class="ident">index</span>)
+                    .<span class="ident">map</span>(<span class="ident">DataType::get_name</span>)
+            })
             .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> {
                 <span class="ident">context</span>
                     .<span class="ident">ast_annotation</span>

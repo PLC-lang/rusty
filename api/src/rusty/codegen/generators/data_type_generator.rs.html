@@ -308,14 +308,6 @@
 <span id="308">308</span>
 <span id="309">309</span>
 <span id="310">310</span>
-<span id="311">311</span>
-<span id="312">312</span>
-<span id="313">313</span>
-<span id="314">314</span>
-<span id="315">315</span>
-<span id="316">316</span>
-<span id="317">317</span>
-<span id="318">318</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 <span class="doccomment">/// the data_type_generator generates user defined data-types</span>
 <span class="doccomment">/// - Structures</span>
@@ -415,7 +407,7 @@
                 <span class="comment">//Avoid generating temp variables in llvm</span>
                 .<span class="ident">filter</span>(<span class="op">|</span><span class="ident">var</span><span class="op">|</span> <span class="op">!</span><span class="ident">var</span>.<span class="ident">is_temp</span>())
                 .<span class="ident">collect</span>();
-            <span class="kw">let</span> ((<span class="kw">_</span>, <span class="ident">initial_value</span>), <span class="ident">member_values</span>) <span class="op">=</span>
+            <span class="kw">let</span> (<span class="ident">initial_value</span>, <span class="ident">member_values</span>) <span class="op">=</span>
                 <span class="ident">struct_generator</span>.<span class="ident">generate_struct_type</span>(<span class="kw-2">&amp;</span><span class="ident">members</span>, <span class="ident">data_type</span>.<span class="ident">get_name</span>())<span class="question-mark">?</span>;
             <span class="kw">for</span> (<span class="ident">member</span>, <span class="ident">value</span>) <span class="kw">in</span> <span class="ident">member_values</span> {
                 <span class="kw">let</span> <span class="ident">qualified_name</span> <span class="op">=</span> <span class="macro">format!</span>(<span class="string">&quot;{}.{}&quot;</span>, <span class="ident">data_type</span>.<span class="ident">get_name</span>(), <span class="ident">member</span>);
@@ -516,7 +508,6 @@
             <span class="ident">DataTypeInformation::Array</span> { .. } <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>
                 .<span class="ident">generate_array_initializer</span>(
                     <span class="ident">data_type</span>,
-                    <span class="ident">data_type</span>.<span class="ident">get_name</span>(),
                     <span class="op">|</span><span class="ident">stmt</span><span class="op">|</span> <span class="macro">matches!</span>(<span class="ident">stmt</span>, <span class="ident">AstStatement::LiteralArray</span> { .. }),
                     <span class="string">&quot;LiteralArray&quot;</span>,
                 )
@@ -527,7 +518,6 @@
             <span class="ident">DataTypeInformation::String</span> { .. } <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>
                 .<span class="ident">generate_array_initializer</span>(
                     <span class="ident">data_type</span>,
-                    <span class="ident">data_type</span>.<span class="ident">get_name</span>(),
                     <span class="op">|</span><span class="ident">stmt</span><span class="op">|</span> <span class="macro">matches!</span>(<span class="ident">stmt</span>, <span class="ident">AstStatement::LiteralString</span> { .. }),
                     <span class="string">&quot;LiteralString&quot;</span>,
                 )
@@ -562,10 +552,8 @@
                 <span class="self">self</span>.<span class="ident">index</span>,
                 <span class="self">self</span>.<span class="ident">annotations</span>,
                 <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">types_index</span>,
-                <span class="prelude-val">None</span>,
             );
-            <span class="kw">let</span> (<span class="kw">_</span>, <span class="ident">initial_value</span>) <span class="op">=</span> <span class="ident">generator</span>.<span class="ident">generate_expression</span>(<span class="ident">initializer</span>).<span class="ident">unwrap</span>();
-            <span class="prelude-val">Some</span>(<span class="ident">initial_value</span>)
+            <span class="prelude-val">Some</span>(<span class="ident">generator</span>.<span class="ident">generate_expression</span>(<span class="ident">initializer</span>).<span class="ident">unwrap</span>())
         } <span class="kw">else</span> {
             <span class="comment">// if there&#39;s no initializer defined for this alias, we go and check the aliased type for an initial value</span>
             <span class="self">self</span>.<span class="ident">index</span>
@@ -579,7 +567,6 @@
     <span class="kw">fn</span> <span class="ident">generate_array_initializer</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">data_type</span>: <span class="kw-2">&amp;</span><span class="ident">DataType</span>,
-        <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
         <span class="ident">predicate</span>: <span class="kw">fn</span>(<span class="kw-2">&amp;</span><span class="ident">AstStatement</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span>,
         <span class="ident">expected_ast</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">BasicValueEnum</span><span class="op">&lt;</span><span class="lifetime">&#39;ink</span><span class="op">&gt;</span><span class="op">&gt;</span>, <span class="ident">CompileError</span><span class="op">&gt;</span> {
@@ -589,16 +576,13 @@
             .<span class="ident">maybe_get_constant_statement</span>(<span class="kw-2">&amp;</span><span class="ident">data_type</span>.<span class="ident">initial_value</span>)
         {
             <span class="kw">if</span> <span class="ident">predicate</span>(<span class="ident">initializer</span>) {
-                <span class="kw">let</span> <span class="ident">array_type</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">index</span>.<span class="ident">get_type_information</span>(<span class="ident">name</span>)<span class="question-mark">?</span>;
                 <span class="kw">let</span> <span class="ident">generator</span> <span class="op">=</span> <span class="ident">ExpressionCodeGenerator::new_context_free</span>(
                     <span class="self">self</span>.<span class="ident">llvm</span>,
                     <span class="self">self</span>.<span class="ident">index</span>,
                     <span class="self">self</span>.<span class="ident">annotations</span>,
                     <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">types_index</span>,
-                    <span class="prelude-val">Some</span>(<span class="ident">array_type</span>),
                 );
-                <span class="kw">let</span> (<span class="kw">_</span>, <span class="ident">initial_value</span>) <span class="op">=</span> <span class="ident">generator</span>.<span class="ident">generate_literal</span>(<span class="ident">initializer</span>)<span class="question-mark">?</span>;
-                <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="ident">initial_value</span>))
+                <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="ident">generator</span>.<span class="ident">generate_literal</span>(<span class="ident">initializer</span>)<span class="question-mark">?</span>))
             } <span class="kw">else</span> {
                 <span class="prelude-val">Err</span>(<span class="ident">CompileError::codegen_error</span>(
                     <span class="macro">format!</span>(<span class="string">&quot;Expected {} but found {:?}&quot;</span>, <span class="ident">expected_ast</span>, <span class="ident">initializer</span>),
