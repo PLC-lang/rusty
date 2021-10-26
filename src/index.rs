@@ -16,10 +16,21 @@ pub mod visitor;
 
 #[derive(Debug, PartialEq, Clone)]
 pub struct VariableIndexEntry {
+    /// the name of this variable (e.g. 'x' for 'PLC_PRG.x')
     name: String,
+    /// the fully qualified name of this variable (e.g. PLC_PRG.x)
     qualified_name: String,
+    /// an optional initial value of this variable
     pub initial_value: Option<ConstId>,
-    information: VariableInformation,
+    /// the type of variable
+    variable_type: VariableType,
+    /// true if this variable is a compile-time-constant
+    is_constant: bool,
+    /// the variable's datatype
+    data_type_name: String,
+    /// Location in the qualifier defautls to 0 (Single variables)
+    location_in_parent: u32,
+    /// the location in the original source-file
     pub source_location: SourceRange,
 }
 
@@ -33,38 +44,38 @@ pub struct MemberInfo<'b> {
 
 impl VariableIndexEntry {
     pub fn get_name(&self) -> &str {
-        &self.name
+        self.name.as_str()
     }
 
     pub fn get_qualified_name(&self) -> &str {
-        &self.qualified_name
+        self.qualified_name.as_str()
     }
 
     pub fn get_type_name(&self) -> &str {
-        self.information.data_type_name.as_str()
+        self.data_type_name.as_str()
     }
 
     pub fn get_location_in_parent(&self) -> u32 {
-        self.information.location
+        self.location_in_parent
     }
 
     pub fn is_return(&self) -> bool {
-        self.information.variable_type == VariableType::Return
+        self.variable_type == VariableType::Return
     }
 
     pub fn is_local(&self) -> bool {
-        self.information.variable_type == VariableType::Local
+        self.variable_type == VariableType::Local
     }
     pub fn is_temp(&self) -> bool {
-        self.information.variable_type == VariableType::Temp
+        self.variable_type == VariableType::Temp
     }
 
     pub fn is_constant(&self) -> bool {
-        self.information.is_constant
+        self.is_constant
     }
 
     pub fn get_variable_type(&self) -> VariableType {
-        self.information.variable_type
+        self.variable_type
     }
 
     pub(crate) fn is_parameter(&self) -> bool {
@@ -99,7 +110,7 @@ pub struct VariableInformation {
     /// the variable's qualifier, None for global variables
     qualifier: Option<String>,
     /// Location in the qualifier defautls to 0 (Single variables)
-    location: u32,
+    location_in_parent: u32,
 }
 
 #[derive(Debug)]
@@ -442,11 +453,11 @@ impl Index {
             .and_then(|map| {
                 map.values()
                     .filter(|item| {
-                        item.information.variable_type == VariableType::Input
-                            || item.information.variable_type == VariableType::InOut
-                            || item.information.variable_type == VariableType::Output
+                        item.variable_type == VariableType::Input
+                            || item.variable_type == VariableType::InOut
+                            || item.variable_type == VariableType::Output
                     })
-                    .find(|item| item.information.location == index)
+                    .find(|item| item.location_in_parent == index)
             })
             .is_some()
     }
@@ -456,8 +467,8 @@ impl Index {
             .get(&pou_name.to_lowercase())
             .and_then(|map| {
                 map.values()
-                    .filter(|item| item.information.variable_type == VariableType::Input)
-                    .find(|item| item.information.location == index)
+                    .filter(|item| item.variable_type == VariableType::Input)
+                    .find(|item| item.location_in_parent == index)
             })
     }
 
@@ -496,7 +507,7 @@ impl Index {
         };
         for segment in segments.iter().skip(1) {
             result = match result {
-                Some(context) => self.find_member(&context.information.data_type_name, segment),
+                Some(context) => self.find_member(&context.data_type_name, segment),
                 None => None,
             };
         }
@@ -565,7 +576,7 @@ impl Index {
         let members = self.member_variables.get(&pou_name.to_lowercase()); //.ok_or_else(||CompileError::unknown_type(pou_name, 0..0))?;
         if let Some(members) = members {
             for (_, variable) in members {
-                if variable.information.variable_type == VariableType::Return {
+                if variable.variable_type == VariableType::Return {
                     return Some(variable);
                 }
             }
@@ -683,13 +694,10 @@ impl Index {
             qualified_name,
             initial_value,
             source_location,
-            information: VariableInformation {
-                variable_type: variable_linkage,
-                data_type_name: variable_type_name.into(),
-                qualifier: Some(container_name.into()),
-                is_constant: member_info.is_constant,
-                location,
-            },
+            variable_type: variable_linkage,
+            data_type_name: variable_type_name.into(),
+            is_constant: member_info.is_constant,
+            location_in_parent: location,
         };
         members.insert(variable_name.to_lowercase(), entry);
     }
@@ -707,13 +715,10 @@ impl Index {
             qualified_name: qualified_name.clone(),
             initial_value,
             source_location,
-            information: VariableInformation {
-                variable_type: VariableType::Global,
-                data_type_name: enum_type_name.into(),
-                is_constant: true,
-                qualifier: None,
-                location: 0,
-            },
+            variable_type: VariableType::Global,
+            data_type_name: enum_type_name.into(),
+            is_constant: true,
+            location_in_parent: 0,
         };
         self.enum_global_variables
             .insert(element_name.to_lowercase(), entry.clone());
@@ -757,13 +762,10 @@ impl Index {
             qualified_name,
             initial_value,
             source_location,
-            information: VariableInformation {
-                variable_type: VariableType::Global,
-                data_type_name: type_name.into(),
-                qualifier: None,
-                is_constant,
-                location: 0,
-            },
+            variable_type: VariableType::Global,
+            data_type_name: type_name.into(),
+            is_constant,
+            location_in_parent: 0,
         };
         self.global_variables
             .insert(association_name.to_lowercase(), entry);
@@ -797,8 +799,7 @@ impl Index {
         //look for a *callable* variable with that name
         self.find_variable(context, reference).filter(|v| {
             //callable means, there is an implementation associated with the variable's datatype
-            self.find_implementation(&v.information.data_type_name)
-                .is_some()
+            self.find_implementation(&v.data_type_name).is_some()
         })
     }
 
