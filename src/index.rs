@@ -729,10 +729,6 @@ impl Index {
     pub fn get_const_expressions(&self) -> &ConstExpressions {
         &self.constant_expressions
     }
-
-    fn insert_type(&mut self, type_name: String, data_type: DataType) {
-        self.type_index.types.insert(type_name, data_type);
-    }
 }
 
 impl Default for Index {

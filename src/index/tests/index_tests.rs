@@ -1606,7 +1606,7 @@ fn string_dimensions_are_stored_in_the_const_expression_arena() {
                 "{:#?}",
                 index
                     .get_const_expressions()
-                    .get_constant_statement(&expr)
+                    .get_constant_statement(expr)
                     .unwrap()
             )
         );

@@ -9,8 +9,8 @@ use crate::{
     index::{ImplementationIndexEntry, Index},
     resolver::AnnotationMap,
     typesystem::{
-        self, DataTypeInformation, DINT_TYPE, RANGE_CHECK_LS_FN, RANGE_CHECK_LU_FN,
-        RANGE_CHECK_S_FN, RANGE_CHECK_U_FN,
+        DataTypeInformation, DINT_TYPE, RANGE_CHECK_LS_FN, RANGE_CHECK_LU_FN, RANGE_CHECK_S_FN,
+        RANGE_CHECK_U_FN,
     },
 };
 use inkwell::{
