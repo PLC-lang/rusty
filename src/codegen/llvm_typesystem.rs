@@ -6,10 +6,7 @@ use inkwell::{
     values::{BasicValueEnum, IntValue},
 };
 
-use crate::{
-    ast::AstStatement, ast::SourceRange, compile_error::CompileError, index::Index,
-    typesystem::DataTypeInformation,
-};
+use crate::{ast::AstStatement, ast::SourceRange, compile_error::CompileError, index::Index, typesystem::{DataType, DataTypeInformation}};
 
 use super::generators::llvm::Llvm;
 
@@ -111,28 +108,20 @@ fn create_llvm_extend_int_value<'a>(
 pub fn cast_if_needed<'ctx>(
     llvm: &Llvm<'ctx>,
     index: &Index,
-    target_type: &DataTypeInformation,
+    target_type: &DataType,
     value: BasicValueEnum<'ctx>,
-    value_type: &DataTypeInformation,
+    value_type: &DataType,
     statement: &AstStatement,
 ) -> Result<BasicValueEnum<'ctx>, CompileError> {
     let builder = &llvm.builder;
     let target_type = index
-        .find_effective_type_information(target_type)
-        .ok_or_else(|| {
-            CompileError::codegen_error(
-                format!("Could not find primitive type for {:?}", target_type),
-                SourceRange::undefined(),
-            )
-        })?;
+        .find_effective_type_info(target_type.get_name())
+        .unwrap_or_else(|| index.get_void_type().get_type_information());
+
     let value_type = index
-        .find_effective_type_information(value_type)
-        .ok_or_else(|| {
-            CompileError::codegen_error(
-                format!("Could not find primitive type for {:?}", value_type),
-                SourceRange::undefined(),
-            )
-        })?;
+        .find_effective_type_info(value_type.get_name())
+        .unwrap_or_else(|| index.get_void_type().get_type_information());
+
     match target_type {
         DataTypeInformation::Integer {
             signed,

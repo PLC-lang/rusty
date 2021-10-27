@@ -319,7 +319,7 @@ impl<'i> TypeAnnotator<'i> {
                 self.visit_statement(ctx, initializer);
 
                 //update the type-hint for the initializer
-                if let Some(right_type) = self.index.find_type(name) {
+                if let Some(right_type) = self.index.find_effective_type(name) {
                     self.update_expected_types(right_type, initializer);
                 }
             }
@@ -392,7 +392,7 @@ impl<'i> TypeAnnotator<'i> {
                 } = expected_type.get_type_information()
                 {
                     if let Some(inner_type) =
-                        self.index.find_effective_type_by_name(inner_type_name)
+                        self.index.find_effective_type(inner_type_name)
                     {
                         self.update_expected_types(inner_type, elements);
                     }
@@ -412,7 +412,7 @@ impl<'i> TypeAnnotator<'i> {
                 ) = (expected_type.get_type_information(), left.as_ref())
                 {
                     if let Some(v) = self.index.find_member(qualifier, variable_name) {
-                        if let Some(target_type) = self.index.find_type(v.get_type_name()) {
+                        if let Some(target_type) = self.index.find_effective_type(v.get_type_name()) {
                             self.annotation_map.annotate(
                                 left.as_ref(),
                                 to_variable_annotation(v, self.index, false),
@@ -487,11 +487,10 @@ impl<'i> TypeAnnotator<'i> {
             // annotate a type-hint for the initializer, it should be the same type as the variable
             // e.g. x : BYTE := 7 + 3;  --> 7+3 should be casted into a byte
             let qualifier = ctx.qualifier.as_deref().or(ctx.pou);
-
             if let Some(expected_type) = self
                 .index
                 .find_variable(qualifier, &[variable.name.as_str()])
-                .and_then(|ve| self.index.find_effective_type_by_name(ve.get_type_name()))
+                .and_then(|ve| self.index.find_effective_type(ve.get_type_name()))
             {
                 self.annotation_map.annotate_type_hint(
                     initializer,
@@ -535,7 +534,7 @@ impl<'i> TypeAnnotator<'i> {
                 bounds: Some(bounds),
                 ..
             } => {
-                if let Some(expected_type) = self.index.find_effective_type_by_name(referenced_type)
+                if let Some(expected_type) = self.index.find_effective_type(referenced_type)
                 {
                     self.visit_statement(ctx, bounds);
                     self.update_expected_types(expected_type, bounds);
@@ -708,7 +707,7 @@ impl<'i> TypeAnnotator<'i> {
                 if left_type.get_type_information().is_numerical()
                     && right_type.get_type_information().is_numerical()
                 {
-                    let dint = self.index.find_type(DINT_TYPE).unwrap();
+                    let dint = self.index.find_effective_type(DINT_TYPE).unwrap();
                     let bigger_type = get_bigger_type(
                         get_bigger_type(left_type, right_type, self.index),
                         dint,
@@ -925,14 +924,14 @@ impl<'i> TypeAnnotator<'i> {
                     self.visit_statement(&ctx, s);
 
                     let parameters = ast::flatten_expression_list(s);
-                    let all_members = self.index.find_local_members(operator_qualifier.as_str());
+                    let all_members = self.index.get_local_members(operator_qualifier.as_str());
                     let members = all_members.iter().filter(|it| it.is_parameter());
 
                     for (i, m) in members.enumerate() {
                         if let Some(p) = parameters.get(i) {
                             if !matches!(p, AstStatement::Assignment { .. }) {
                                 if let Some(effective_member_type) =
-                                    self.index.find_effective_type_by_name(m.get_type_name())
+                                    self.index.find_effective_type(m.get_type_name())
                                 {
                                     //update the type hint
                                     self.annotation_map.annotate_type_hint(
@@ -950,14 +949,11 @@ impl<'i> TypeAnnotator<'i> {
                 if let Some(StatementAnnotation::Function { return_type, .. }) =
                     self.annotation_map.get(operator)
                 {
-                    if let Some(return_type) = self
-                        .index
-                        .find_type(return_type)
-                        .and_then(|it| self.index.find_effective_type(it))
-                        .map(|it| it.get_name())
-                    {
-                        self.annotation_map
-                            .annotate(statement, StatementAnnotation::value(return_type));
+                    if let Some(return_type) = self.index.find_effective_type(return_type) {
+                        self.annotation_map.annotate(
+                            statement,
+                            StatementAnnotation::value(return_type.get_name()),
+                        );
                     }
                 } else {
                     println!("{:#?}", self.annotation_map.get(operator));

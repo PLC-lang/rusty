@@ -22,8 +22,8 @@ macro_rules! assert_type_and_hint {
                 $annotations.get_type_hint($stmt, $index)
             ),
             (
-                $index.find_effective_type_by_name($expected_type),
-                $expected_type_hint.and_then(|n| $index.find_effective_type_by_name(n))
+                $index.get_type($expected_type).ok(),
+                $expected_type_hint.and_then(|n| $index.get_type(n).ok())
             )
         );
     };
@@ -467,7 +467,7 @@ fn necessary_promotions_should_be_type_hinted() {
     if let AstStatement::BinaryExpression { left, .. } = &statements[0] {
         assert_eq!(
             annotations.get_type(&statements[0], &index),
-            index.find_effective_type_by_name("DINT")
+            index.find_effective_type("DINT")
         );
         assert_eq!(
             (
@@ -475,8 +475,8 @@ fn necessary_promotions_should_be_type_hinted() {
                 annotations.get_type_hint(left.as_ref(), &index)
             ),
             (
-                index.find_effective_type_by_name("BYTE"),
-                index.find_effective_type_by_name("DINT")
+                index.find_effective_type("BYTE"),
+                index.find_effective_type("DINT")
             )
         );
     } else {
@@ -487,7 +487,7 @@ fn necessary_promotions_should_be_type_hinted() {
     if let AstStatement::BinaryExpression { left, .. } = &statements[1] {
         assert_eq!(
             annotations.get_type(&statements[1], &index),
-            index.find_effective_type_by_name("BOOL")
+            index.find_effective_type("BOOL")
         );
         assert_eq!(
             (
@@ -495,8 +495,8 @@ fn necessary_promotions_should_be_type_hinted() {
                 annotations.get_type_hint(left.as_ref(), &index)
             ),
             (
-                index.find_effective_type_by_name("BYTE"),
-                index.find_effective_type_by_name("DINT")
+                index.find_effective_type("BYTE"),
+                index.find_effective_type("DINT")
             )
         );
     } else {
@@ -526,7 +526,7 @@ fn necessary_promotions_between_real_and_literal_should_be_type_hinted() {
     if let AstStatement::BinaryExpression { right, .. } = &statements[0] {
         assert_eq!(
             annotations.get_type(&statements[0], &index),
-            index.find_effective_type_by_name("BOOL")
+            index.find_effective_type("BOOL")
         );
 
         assert_type_and_hint!(&annotations, &index, &statements[0], BOOL_TYPE, None);
@@ -977,7 +977,7 @@ fn function_call_expression_resolves_to_the_function_itself_not_its_return_type(
 
     // AND we expect no type to be associated with the expression
     let associated_type = annotations.get_type(&statements[0], &index);
-    assert_eq!(index.find_type("INT"), associated_type);
+    assert_eq!(index.find_effective_type("INT"), associated_type);
 }
 
 #[test]
@@ -1295,7 +1295,7 @@ fn type_initial_values_are_resolved() {
         assert_eq!(
             Some(&StatementAnnotation::value(
                 index
-                    .find_effective_type_by_name(CONST_STRING_TYPE)
+                    .find_effective_type(CONST_STRING_TYPE)
                     .unwrap()
                     .get_name()
             )),
@@ -1876,7 +1876,7 @@ fn data_type_initializers_multiplied_statement_type_hint_test() {
             } = multiplied_statement.as_ref()
             {
                 assert_eq!(
-                    index.find_type(BYTE_TYPE),
+                    index.find_effective_type(BYTE_TYPE),
                     annotations.get_type_hint(literal_seven, &index)
                 );
             }
@@ -1891,7 +1891,7 @@ fn data_type_initializers_multiplied_statement_type_hint_test() {
     if let Some(a_initializer) = &unit.global_vars[0].variables[0].initializer {
         let global = index.find_global_variable("a").unwrap();
         assert_eq!(
-            index.find_effective_type_by_name(global.get_type_name()),
+            index.find_effective_type(global.get_type_name()),
             annotations.get_type_hint(a_initializer, &index)
         );
 
@@ -1910,7 +1910,7 @@ fn data_type_initializers_multiplied_statement_type_hint_test() {
             } = multiplied_statement.as_ref()
             {
                 assert_eq!(
-                    index.find_type(BYTE_TYPE),
+                    index.find_effective_type(BYTE_TYPE),
                     annotations.get_type_hint(literal_seven, &index)
                 );
             }
@@ -1991,21 +1991,21 @@ fn range_type_min_max_type_hint_test() {
         //lets see if start and end got their type-annotations
         assert_eq!(
             annotations.get_type(start.as_ref(), &index),
-            index.find_type(DINT_TYPE)
+            index.find_effective_type(DINT_TYPE)
         );
         assert_eq!(
             annotations.get_type(end.as_ref(), &index),
-            index.find_type(DINT_TYPE)
+            index.find_effective_type(DINT_TYPE)
         );
 
         //lets see if start and end got their type-HINT-annotations
         assert_eq!(
             annotations.get_type_hint(start.as_ref(), &index),
-            index.find_type(SINT_TYPE)
+            index.find_effective_type(SINT_TYPE)
         );
         assert_eq!(
             annotations.get_type_hint(end.as_ref(), &index),
-            index.find_type(SINT_TYPE)
+            index.find_effective_type(SINT_TYPE)
         );
     }
 }
@@ -2040,7 +2040,7 @@ fn struct_variable_initialization_annotates_initializer() {
 
         assert_eq!(
             annotations.get_type_hint(initializer, &index),
-            index.find_effective_type_by_name("MyStruct")
+            index.find_effective_type("MyStruct")
         );
     }
     {
@@ -2053,7 +2053,7 @@ fn struct_variable_initialization_annotates_initializer() {
 
         assert_eq!(
             annotations.get_type_hint(initializer, &index),
-            index.find_effective_type_by_name("MyStruct")
+            index.find_effective_type("MyStruct")
         );
     }
 }
@@ -2092,7 +2092,7 @@ fn deep_struct_variable_initialization_annotates_initializer() {
 
     assert_eq!(
         annotations.get_type_hint(initializer, &index),
-        index.find_effective_type_by_name("MyStruct")
+        index.find_effective_type("MyStruct")
     );
 
     //check the initializer-part
@@ -2101,11 +2101,11 @@ fn deep_struct_variable_initialization_annotates_initializer() {
         if let AstStatement::Assignment { left, right, .. } = &expressions[0] {
             assert_eq!(
                 annotations.get_type(left, &index),
-                index.find_effective_type_by_name("Point")
+                index.find_effective_type("Point")
             );
             assert_eq!(
                 annotations.get_type_hint(right, &index),
-                index.find_effective_type_by_name("Point")
+                index.find_effective_type("Point")
             );
 
             // (a := 1, b := 2)
@@ -2114,11 +2114,11 @@ fn deep_struct_variable_initialization_annotates_initializer() {
                 if let AstStatement::Assignment { left, right, .. } = &expressions[0] {
                     assert_eq!(
                         annotations.get_type(left.as_ref(), &index),
-                        index.find_effective_type_by_name("BYTE")
+                        index.find_effective_type("BYTE")
                     );
                     assert_eq!(
                         annotations.get_type_hint(right.as_ref(), &index),
-                        index.find_effective_type_by_name("BYTE")
+                        index.find_effective_type("BYTE")
                     );
                 } else {
                     unreachable!()
@@ -2128,11 +2128,11 @@ fn deep_struct_variable_initialization_annotates_initializer() {
                 if let AstStatement::Assignment { left, right, .. } = &expressions[1] {
                     assert_eq!(
                         annotations.get_type(left.as_ref(), &index),
-                        index.find_effective_type_by_name("SINT")
+                        index.find_effective_type("SINT")
                     );
                     assert_eq!(
                         annotations.get_type_hint(right.as_ref(), &index),
-                        index.find_effective_type_by_name("SINT")
+                        index.find_effective_type("SINT")
                     );
                 } else {
                     unreachable!()
@@ -2400,3 +2400,65 @@ fn array_accessor_in_struct_array_is_annotated() {
         unreachable!();
     }
 }
+
+#[test]
+fn type_hint_should_not_hint_to_the_effective_type_but_to_the_original() {
+    //GIVEN a aliased type to INT and a variable declared as myInt
+    let (unit, index) = index(
+        r#"
+        TYPE MyInt: INT(0..100); END_TYPE
+
+        PROGRAM Main
+        VAR
+            x : MyInt;
+        END_VAR 
+        x := 7;
+        END_PROGRAM
+        "#,
+    );
+
+    //WHEN we assign to this variable (x := 7)
+
+    // THEN we want the hint for '7' to be MyInt, not INT
+    let annotations = annotate(&unit, &index);
+    let stmt = &unit.implementations[0].statements[0];
+ 
+    if let AstStatement::Assignment {left, right, .. } = stmt {
+        assert_type_and_hint!(&annotations, &index, left, "MyInt", None);
+        assert_type_and_hint!(&annotations, &index, right, "DINT", Some("MyInt"));
+    } else {
+        unreachable!();
+    }
+}
+
+
+#[test]
+fn null_statement_should_get_a_valid_type_hint() {
+    //GIVEN a NULL assignment to a pointer
+    let (unit, index) = index(
+        r#"
+        PROGRAM Main
+        VAR
+            x : POINTER TO BYTE;
+        END_VAR 
+        x := NULL;
+        END_PROGRAM
+        "#,
+    );
+
+    // THEN we want the hint for 'NULL' to be POINTER TO BYTE 
+    let annotations = annotate(&unit, &index);
+    let stmt = &unit.implementations[0].statements[0];
+ 
+    let var_x_type = &unit.units[0].variable_blocks[0].variables[0].data_type.get_name().unwrap();
+
+    if let AstStatement::Assignment {right, .. } = stmt {
+        assert_type_and_hint!(&annotations, &index, right, "VOID", Some(var_x_type));
+    } else {
+        unreachable!();
+    }
+}
+
+
+
+

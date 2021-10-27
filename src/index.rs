@@ -28,7 +28,7 @@ pub struct VariableIndexEntry {
     is_constant: bool,
     /// the variable's datatype
     data_type_name: String,
-    /// Location in the qualifier defautls to 0 (Single variables)
+    /// the index of the member-variable in it's container (e.g. struct). defautls to 0 (Single variables)
     location_in_parent: u32,
     /// the location in the original source-file
     pub source_location: SourceRange,
@@ -228,11 +228,6 @@ impl TypeIndex {
         data_type: &'ret DataType,
     ) -> Option<&'ret DataType> {
         match data_type.get_type_information() {
-            // DataTypeInformation::SubRange {
-            //     referenced_type, ..
-            // } => self
-            //     .find_type(referenced_type)
-            //     .and_then(|it| self.find_effective_type(it)),
             DataTypeInformation::Alias {
                 referenced_type, ..
             } => self
@@ -241,34 +236,11 @@ impl TypeIndex {
             _ => Some(data_type),
         }
     }
-
-    /// Retrieves the "Effective" type-information behind this datatype
-    /// An effective type will be any end type i.e. Structs, Integers, Floats, String and Array
-    pub fn find_effective_type_information<'ret>(
-        &'ret self,
-        data_type: &'ret DataTypeInformation,
-    ) -> Option<&'ret DataTypeInformation> {
-        match data_type {
-            DataTypeInformation::SubRange {
-                referenced_type, ..
-            } => self
-                .find_type(referenced_type)
-                .and_then(|it| self.find_effective_type_information(it.get_type_information())),
-            DataTypeInformation::Alias {
-                referenced_type, ..
-            } => self
-                .find_type(referenced_type)
-                .and_then(|it| self.find_effective_type_information(it.get_type_information())),
-            _ => Some(data_type),
-        }
-    }
 }
 
 /// The global index of the rusty-compiler
 ///
 /// The index contains information about all referencable elements.
-///
-///
 #[derive()]
 pub struct Index {
     /// all global variables
@@ -439,7 +411,7 @@ impl Index {
             .get(&format!("{}.{}", enum_name, element_name).to_lowercase())
     }
 
-    pub fn find_local_members(&self, container_name: &str) -> Vec<&VariableIndexEntry> {
+    pub fn get_local_members(&self, container_name: &str) -> Vec<&VariableIndexEntry> {
         self.member_variables
             .get(&container_name.to_lowercase())
             .map(|it| it.values().collect())
@@ -496,9 +468,7 @@ impl Index {
         if segments.is_empty() {
             return None;
         }
-
         let first_var = segments[0];
-
         let mut result = match context {
             Some(context) => self
                 .find_member(context, first_var)
@@ -514,62 +484,28 @@ impl Index {
         result
     }
 
-    pub fn find_type(&self, type_name: &str) -> Option<&DataType> {
-        self.type_index.find_type(type_name)
-    }
-
-    pub fn find_effective_type_by_name(&self, type_name: &str) -> Option<&DataType> {
+    /// returns the effective DataType of the type with the given name if it exists
+    pub fn find_effective_type(&self, type_name: &str) -> Option<&DataType> {
         self.type_index.find_effective_type_by_name(type_name)
     }
 
+    /// returns the effective DataTypeInformation of the type with the given name if it exists
+    pub fn find_effective_type_info(
+        &self,
+        type_name: &str,
+    ) -> Option<&DataTypeInformation> {
+        self.find_effective_type(type_name)
+            .map(DataType::get_type_information)
+    }
+
+    /// returns the effective type of the type with the with the given name or the
+    /// void-type if the given name does not exist
     pub fn get_effective_type_by_name(&self, type_name: &str) -> &DataType {
         self.type_index.get_effective_type_by_name(type_name)
     }
 
     pub fn get_type(&self, type_name: &str) -> Result<&DataType, CompileError> {
         self.type_index.get_type(type_name)
-    }
-
-    /// Retrieves the "Effective" type behind this datatype
-    /// An effective type will be any end type i.e. Structs, Integers, Floats, String and Array
-    pub fn find_effective_type<'ret>(
-        &'ret self,
-        data_type: &'ret DataType,
-    ) -> Option<&'ret DataType> {
-        match data_type.get_type_information() {
-            DataTypeInformation::SubRange {
-                referenced_type, ..
-            } => self
-                .find_type(referenced_type)
-                .and_then(|it| self.find_effective_type(it)),
-            DataTypeInformation::Alias {
-                referenced_type, ..
-            } => self
-                .find_type(referenced_type)
-                .and_then(|it| self.find_effective_type(it)),
-            _ => Some(data_type),
-        }
-    }
-
-    /// Retrieves the "Effective" type-information behind this datatype
-    /// An effective type will be any end type i.e. Structs, Integers, Floats, String and Array
-    pub fn find_effective_type_information<'ret>(
-        &'ret self,
-        data_type: &'ret DataTypeInformation,
-    ) -> Option<&'ret DataTypeInformation> {
-        match data_type {
-            DataTypeInformation::SubRange {
-                referenced_type, ..
-            } => self
-                .find_type(referenced_type)
-                .and_then(|it| self.find_effective_type_information(it.get_type_information())),
-            DataTypeInformation::Alias {
-                referenced_type, ..
-            } => self
-                .find_type(referenced_type)
-                .and_then(|it| self.find_effective_type_information(it.get_type_information())),
-            _ => Some(data_type),
-        }
     }
 
     pub fn find_return_variable(&self, pou_name: &str) -> Option<&VariableIndexEntry> {
@@ -590,7 +526,7 @@ impl Index {
     }
 
     pub fn find_type_information(&self, type_name: &str) -> Option<DataTypeInformation> {
-        self.find_type(type_name)
+        self.find_effective_type(type_name)
             .map(|entry| entry.clone_type_information())
     }
 
@@ -603,7 +539,7 @@ impl Index {
     }
 
     pub fn get_type_information_or_void(&self, type_name: &str) -> &DataTypeInformation {
-        self.find_type(type_name)
+        self.find_effective_type(type_name)
             .map(|it| it.get_type_information())
             .unwrap_or_else(|| self.get_void_type().get_type_information())
     }
@@ -624,9 +560,7 @@ impl Index {
     /// returns globals and member variable index entries
     pub fn get_all_variable_entries(&self) -> impl Iterator<Item = &VariableIndexEntry> {
         let members = self.member_variables.values().flat_map(|it| it.values());
-
         let globals = self.global_variables.values();
-
         globals.chain(members)
     }
 

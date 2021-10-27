@@ -147,7 +147,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
 
         if let PouType::Method { .. } = implementation.pou_type {
             let class_name = implementation.type_name.split('.').collect::<Vec<&str>>()[0];
-            let class_members = self.index.find_local_members(class_name);
+            let class_members = self.index.get_local_members(class_name);
             self.generate_local_variable_accessors(
                 param_index,
                 &mut local_index,
@@ -159,7 +159,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         }
 
         // generate loads for all the parameters
-        let pou_members = self.index.find_local_members(&implementation.type_name);
+        let pou_members = self.index.get_local_members(&implementation.type_name);
         self.generate_local_variable_accessors(
             param_index,
             &mut local_index,
