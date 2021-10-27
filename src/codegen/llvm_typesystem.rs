@@ -6,7 +6,13 @@ use inkwell::{
     values::{BasicValueEnum, IntValue},
 };
 
-use crate::{ast::AstStatement, ast::SourceRange, compile_error::CompileError, index::Index, typesystem::{DataType, DataTypeInformation}};
+use crate::{
+    ast::AstStatement,
+    ast::SourceRange,
+    compile_error::CompileError,
+    index::Index,
+    typesystem::{DataType, DataTypeInformation},
+};
 
 use super::generators::llvm::Llvm;
 

@@ -108,7 +108,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
             .map(DataType::get_name)
             .map(|it| self.llvm_index.get_associated_type(it).unwrap());
         let variadic = global_index
-            .find_type_information(implementation.get_type_name())
+            .find_effective_type_info(implementation.get_type_name())
             .map(|it| it.is_variadic())
             .unwrap_or(false);
 
@@ -147,7 +147,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
 
         if let PouType::Method { .. } = implementation.pou_type {
             let class_name = implementation.type_name.split('.').collect::<Vec<&str>>()[0];
-            let class_members = self.index.get_local_members(class_name);
+            let class_members = self.index.get_container_members(class_name);
             self.generate_local_variable_accessors(
                 param_index,
                 &mut local_index,
@@ -159,7 +159,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         }
 
         // generate loads for all the parameters
-        let pou_members = self.index.get_local_members(&implementation.type_name);
+        let pou_members = self.index.get_container_members(&implementation.type_name);
         self.generate_local_variable_accessors(
             param_index,
             &mut local_index,

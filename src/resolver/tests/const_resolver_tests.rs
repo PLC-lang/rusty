@@ -1349,7 +1349,10 @@ fn nested_array_literals_type_resolving() {
             // check if the array's elements have the array's inner type
             for ele in AstStatement::get_as_list(e) {
                 let element_hint = annotations.get_type_hint(ele, &index).unwrap();
-                assert_eq!(Some(element_hint), index.find_effective_type(inner_type_name))
+                assert_eq!(
+                    Some(element_hint),
+                    index.find_effective_type(inner_type_name)
+                )
             }
         } else {
             unreachable!()

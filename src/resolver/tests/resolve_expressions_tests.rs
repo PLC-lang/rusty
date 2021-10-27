@@ -2422,15 +2422,14 @@ fn type_hint_should_not_hint_to_the_effective_type_but_to_the_original() {
     // THEN we want the hint for '7' to be MyInt, not INT
     let annotations = annotate(&unit, &index);
     let stmt = &unit.implementations[0].statements[0];
- 
-    if let AstStatement::Assignment {left, right, .. } = stmt {
+
+    if let AstStatement::Assignment { left, right, .. } = stmt {
         assert_type_and_hint!(&annotations, &index, left, "MyInt", None);
         assert_type_and_hint!(&annotations, &index, right, "DINT", Some("MyInt"));
     } else {
         unreachable!();
     }
 }
-
 
 #[test]
 fn null_statement_should_get_a_valid_type_hint() {
@@ -2446,19 +2445,18 @@ fn null_statement_should_get_a_valid_type_hint() {
         "#,
     );
 
-    // THEN we want the hint for 'NULL' to be POINTER TO BYTE 
+    // THEN we want the hint for 'NULL' to be POINTER TO BYTE
     let annotations = annotate(&unit, &index);
     let stmt = &unit.implementations[0].statements[0];
- 
-    let var_x_type = &unit.units[0].variable_blocks[0].variables[0].data_type.get_name().unwrap();
 
-    if let AstStatement::Assignment {right, .. } = stmt {
+    let var_x_type = &unit.units[0].variable_blocks[0].variables[0]
+        .data_type
+        .get_name()
+        .unwrap();
+
+    if let AstStatement::Assignment { right, .. } = stmt {
         assert_type_and_hint!(&annotations, &index, right, "VOID", Some(var_x_type));
     } else {
         unreachable!();
     }
 }
-
-
-
-

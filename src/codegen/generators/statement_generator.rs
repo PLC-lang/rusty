@@ -238,12 +238,16 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
             DataTypeInformation::Integer { signed, size, .. } if !*signed && *size > 32 => {
                 self.index.find_implementation(RANGE_CHECK_LU_FN)
             }
-            DataTypeInformation::Alias {name, .. } |
-            DataTypeInformation::SubRange {referenced_type: name, ..} => {
+            DataTypeInformation::Alias { name, .. }
+            | DataTypeInformation::SubRange {
+                referenced_type: name,
+                ..
+            } => {
                 //traverse to the primitive type
-                self.index.find_effective_type_info(name)
+                self.index
+                    .find_effective_type_info(name)
                     .and_then(|info| self.find_range_check_implementation_for(info))
-            },
+            }
             _ => None,
         }
     }

@@ -224,10 +224,7 @@ fn function_is_indexed() {
     let return_variable = index.find_member("myFunction", "myFunction").unwrap();
     assert_eq!("myFunction", return_variable.name);
     assert_eq!("INT", return_variable.data_type_name);
-    assert_eq!(
-        VariableType::Return,
-        return_variable.variable_type
-    );
+    assert_eq!(VariableType::Return, return_variable.variable_type);
 }
 
 #[test]
@@ -1477,11 +1474,14 @@ fn datatype_initializers_are_stored_in_the_const_expression_arena() {
     // THEN I expect the index to contain cosntant expressions (7+x) as const expressions
     // associated with the initial values of the type
     let data_type = &ast.types[0];
-    let initializer = index.get_type("MyInt").map(|g| {
-        index
-            .get_const_expressions()
-            .maybe_get_constant_statement(&g.initial_value)
-    }).unwrap();
+    let initializer = index
+        .get_type("MyInt")
+        .map(|g| {
+            index
+                .get_const_expressions()
+                .maybe_get_constant_statement(&g.initial_value)
+        })
+        .unwrap();
     assert_eq!(data_type.initializer.as_ref(), initializer);
 }
 
@@ -1502,9 +1502,9 @@ fn array_dimensions_are_stored_in_the_const_expression_arena() {
 
     // check first dimensions 0 .. LEN-1
     let (start_0, end_0) = index
-        .find_type_information("MyInt")
+        .find_effective_type_info("MyInt")
         .map(|it| {
-            if let DataTypeInformation::Array { dimensions, .. } = &it {
+            if let DataTypeInformation::Array { dimensions, .. } = it {
                 //return the pair (start, end)
                 (
                     dimensions[0].start_offset.as_int_value(&index).unwrap(),
@@ -1535,7 +1535,7 @@ fn array_dimensions_are_stored_in_the_const_expression_arena() {
 
     //check 2nd dimension MIN .. MAX
     let (start_1, end_1) = index
-        .find_type_information("MyInt")
+        .find_effective_type_info("MyInt")
         .map(|it| {
             if let DataTypeInformation::Array { dimensions, .. } = it {
                 //return the pair (start, end)
@@ -1590,7 +1590,7 @@ fn string_dimensions_are_stored_in_the_const_expression_arena() {
     if let Some(DataTypeInformation::String {
         size: TypeSize::ConstExpression(expr),
         ..
-    }) = index.find_type_information("MyString")
+    }) = index.find_effective_type_info("MyString")
     {
         assert_eq!(
             format!(

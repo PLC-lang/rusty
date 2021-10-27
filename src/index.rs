@@ -377,73 +377,40 @@ impl Index {
         }
     }
 
+    /// returns the void-type
+    /// the NULL-statement has a type of void.
+    /// void cannot be casted to any other
     pub fn get_void_type(&self) -> &DataType {
         &self.type_index.void_type
     }
 
+    /// returns the `VariableIndexEntry` of the global variable with the given name
     pub fn find_global_variable(&self, name: &str) -> Option<&VariableIndexEntry> {
         self.global_variables
             .get(&name.to_lowercase())
             .or_else(|| self.enum_global_variables.get(&name.to_lowercase()))
     }
 
-    pub fn find_member(&self, pou_name: &str, variable_name: &str) -> Option<&VariableIndexEntry> {
+    /// return the `VariableIndexEntry` with the qualified name: `container_name`.`variable_name`
+    pub fn find_member(
+        &self,
+        container_name: &str,
+        variable_name: &str,
+    ) -> Option<&VariableIndexEntry> {
         self.member_variables
-            .get(&pou_name.to_lowercase())
+            .get(&container_name.to_lowercase())
             .and_then(|map| map.get(&variable_name.to_lowercase()))
             .or_else(|| {
                 //check qualifier
-                pou_name
+                container_name
                     .rfind('.')
-                    .map(|p| &pou_name[..p])
+                    .map(|p| &container_name[..p])
                     .and_then(|qualifier| self.find_member(qualifier, variable_name))
             })
     }
 
-    /// returns the index entry of the enum-element `element_name` of the enum-type `enum_name`
-    /// or None if the requested Enum-Type or -Element does not exist
-    pub fn find_enum_element(
-        &self,
-        enum_name: &str,
-        element_name: &str,
-    ) -> Option<&VariableIndexEntry> {
-        self.enum_qualified_variables
-            .get(&format!("{}.{}", enum_name, element_name).to_lowercase())
-    }
-
-    pub fn get_local_members(&self, container_name: &str) -> Vec<&VariableIndexEntry> {
-        self.member_variables
-            .get(&container_name.to_lowercase())
-            .map(|it| it.values().collect())
-            .unwrap_or_else(Vec::new)
-    }
-
-    /// Returns true if the current index is a VAR_INPUT, VAR_IN_OUT or VAR_OUTPUT that is not a variadic argument
-    pub fn is_declared_parameter(&self, pou_name: &str, index: u32) -> bool {
-        self.member_variables
-            .get(&pou_name.to_lowercase())
-            .and_then(|map| {
-                map.values()
-                    .filter(|item| {
-                        item.variable_type == VariableType::Input
-                            || item.variable_type == VariableType::InOut
-                            || item.variable_type == VariableType::Output
-                    })
-                    .find(|item| item.location_in_parent == index)
-            })
-            .is_some()
-    }
-
-    pub fn find_input_parameter(&self, pou_name: &str, index: u32) -> Option<&VariableIndexEntry> {
-        self.member_variables
-            .get(&pou_name.to_lowercase())
-            .and_then(|map| {
-                map.values()
-                    .filter(|item| item.variable_type == VariableType::Input)
-                    .find(|item| item.location_in_parent == index)
-            })
-    }
-
+    /// return the `VariableIndexEntry` associated with the given fully qualified name using `.` as
+    /// a delimiter. (e.g. "PLC_PRG.x", or "MyClass.MyMethod.x")
     pub fn find_fully_qualified_variable(
         &self,
         fully_qualified_name: &str,
@@ -484,16 +451,60 @@ impl Index {
         result
     }
 
+    /// returns the index entry of the enum-element `element_name` of the enum-type `enum_name`
+    /// or None if the requested Enum-Type or -Element does not exist
+    pub fn find_enum_element(
+        &self,
+        enum_name: &str,
+        element_name: &str,
+    ) -> Option<&VariableIndexEntry> {
+        self.enum_qualified_variables
+            .get(&format!("{}.{}", enum_name, element_name).to_lowercase())
+    }
+
+    /// returns all member variables of the given container (e.g. FUNCTION, PROGRAM, STRUCT, etc.)
+    pub fn get_container_members(&self, container_name: &str) -> Vec<&VariableIndexEntry> {
+        self.member_variables
+            .get(&container_name.to_lowercase())
+            .map(|it| it.values().collect())
+            .unwrap_or_else(Vec::new)
+    }
+
+    /// returns true if the current index is a VAR_INPUT, VAR_IN_OUT or VAR_OUTPUT that is not a variadic argument
+    /// In other words it returns whether the member variable at `index` of the given container is a possible parameter in
+    /// call to it
+    pub fn is_declared_parameter(&self, container_name: &str, index: u32) -> bool {
+        self.member_variables
+            .get(&container_name.to_lowercase())
+            .and_then(|map| {
+                map.values()
+                    .filter(|item| {
+                        item.variable_type == VariableType::Input
+                            || item.variable_type == VariableType::InOut
+                            || item.variable_type == VariableType::Output
+                    })
+                    .find(|item| item.location_in_parent == index)
+            })
+            .is_some()
+    }
+
+    pub fn find_input_parameter(&self, pou_name: &str, index: u32) -> Option<&VariableIndexEntry> {
+        self.member_variables
+            .get(&pou_name.to_lowercase())
+            .and_then(|map| {
+                map.values()
+                    .filter(|item| item.variable_type == VariableType::Input)
+                    .find(|item| item.location_in_parent == index)
+            })
+    }
+
     /// returns the effective DataType of the type with the given name if it exists
     pub fn find_effective_type(&self, type_name: &str) -> Option<&DataType> {
         self.type_index.find_effective_type_by_name(type_name)
     }
 
     /// returns the effective DataTypeInformation of the type with the given name if it exists
-    pub fn find_effective_type_info(
-        &self,
-        type_name: &str,
-    ) -> Option<&DataTypeInformation> {
+    pub fn find_effective_type_info(&self, type_name: &str) -> Option<&DataTypeInformation> {
         self.find_effective_type(type_name)
             .map(DataType::get_type_information)
     }
@@ -525,19 +536,6 @@ impl Index {
         variable.map(|it| self.get_type(it.get_type_name()).unwrap())
     }
 
-    pub fn find_type_information(&self, type_name: &str) -> Option<DataTypeInformation> {
-        self.find_effective_type(type_name)
-            .map(|entry| entry.clone_type_information())
-    }
-
-    pub fn get_type_information(
-        &self,
-        type_name: &str,
-    ) -> Result<DataTypeInformation, CompileError> {
-        self.find_type_information(type_name)
-            .ok_or_else(|| CompileError::unknown_type(type_name, SourceRange::undefined()))
-    }
-
     pub fn get_type_information_or_void(&self, type_name: &str) -> &DataTypeInformation {
         self.find_effective_type(type_name)
             .map(|it| it.get_type_information())
@@ -549,19 +547,8 @@ impl Index {
         &self.type_index.types
     }
 
-    pub fn get_type_index(&self) -> &TypeIndex {
-        &self.type_index
-    }
-
     pub fn get_globals(&self) -> &IndexMap<String, VariableIndexEntry> {
         &self.global_variables
-    }
-
-    /// returns globals and member variable index entries
-    pub fn get_all_variable_entries(&self) -> impl Iterator<Item = &VariableIndexEntry> {
-        let members = self.member_variables.values().flat_map(|it| it.values());
-        let globals = self.global_variables.values();
-        globals.chain(members)
     }
 
     pub fn get_global_qualified_enums(&self) -> &IndexMap<String, VariableIndexEntry> {
@@ -703,10 +690,6 @@ impl Index {
         };
         self.global_variables
             .insert(association_name.to_lowercase(), entry);
-    }
-
-    pub fn print_global_variables(&self) {
-        println!("{:?}", self.global_variables);
     }
 
     pub fn register_type(

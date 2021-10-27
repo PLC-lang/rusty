@@ -166,15 +166,19 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
             DataTypeInformation::SubRange {
                 referenced_type, ..
             } => {
-                let ref_type =
-                    self.create_type(name, self.index.find_effective_type(referenced_type).unwrap())?;
+                let ref_type = self.create_type(
+                    name,
+                    self.index.find_effective_type(referenced_type).unwrap(),
+                )?;
                 Ok(ref_type)
             }
             DataTypeInformation::Alias {
                 referenced_type, ..
             } => {
-                let ref_type =
-                    self.create_type(name, self.index.find_effective_type(referenced_type).unwrap())?;
+                let ref_type = self.create_type(
+                    name,
+                    self.index.find_effective_type(referenced_type).unwrap(),
+                )?;
                 Ok(ref_type)
             }
             // REVIEW: Void types are not basic type enums, so we return an int here
