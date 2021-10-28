@@ -298,6 +298,10 @@
 <span id="298">298</span>
 <span id="299">299</span>
 <span id="300">300</span>
+<span id="301">301</span>
+<span id="302">302</span>
+<span id="303">303</span>
+<span id="304">304</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">convert::TryInto</span>, <span class="ident">mem::discriminant</span>};
 
 <span class="kw">use</span> <span class="ident"><span class="kw">super</span>::ValidationContext</span>;
@@ -472,24 +476,28 @@
             .<span class="ident">get_effective_type_by_name</span>(<span class="ident">type_name</span>)
             .<span class="ident">get_type_information</span>();
 
-        <span class="kw">let</span> <span class="ident">literal_type</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">index</span>.<span class="ident">get_type_information_or_void</span>(
-            <span class="ident">StatementValidator::get_literal_actual_signed_type_name</span>(
-                <span class="ident">literal</span>,
-                <span class="op">!</span><span class="ident">cast_type</span>.<span class="ident">is_unsigned_int</span>(),
+        <span class="kw">let</span> <span class="ident">literal_type</span> <span class="op">=</span> <span class="ident">context</span>
+            .<span class="ident">index</span>
+            .<span class="ident">find_effective_type_info</span>(
+                <span class="ident">StatementValidator::get_literal_actual_signed_type_name</span>(
+                    <span class="ident">literal</span>,
+                    <span class="op">!</span><span class="ident">cast_type</span>.<span class="ident">is_unsigned_int</span>(),
+                )
+                .<span class="ident">or_else</span>(<span class="op">|</span><span class="op">|</span> {
+                    <span class="ident">context</span>
+                        .<span class="ident">ast_annotation</span>
+                        .<span class="ident">get_type_hint</span>(<span class="ident">literal</span>, <span class="ident">context</span>.<span class="ident">index</span>)
+                        .<span class="ident">map</span>(<span class="ident">DataType::get_name</span>)
+                })
+                .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> {
+                    <span class="ident">context</span>
+                        .<span class="ident">ast_annotation</span>
+                        .<span class="ident">get_type_or_void</span>(<span class="ident">literal</span>, <span class="ident">context</span>.<span class="ident">index</span>)
+                        .<span class="ident">get_name</span>()
+                }),
             )
-            .<span class="ident">or_else</span>(<span class="op">|</span><span class="op">|</span> {
-                <span class="ident">context</span>
-                    .<span class="ident">ast_annotation</span>
-                    .<span class="ident">get_type_hint</span>(<span class="ident">literal</span>, <span class="ident">context</span>.<span class="ident">index</span>)
-                    .<span class="ident">map</span>(<span class="ident">DataType::get_name</span>)
-            })
-            .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> {
-                <span class="ident">context</span>
-                    .<span class="ident">ast_annotation</span>
-                    .<span class="ident">get_type_or_void</span>(<span class="ident">literal</span>, <span class="ident">context</span>.<span class="ident">index</span>)
-                    .<span class="ident">get_name</span>()
-            }),
-        );
+            .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">context</span>.<span class="ident">index</span>.<span class="ident">get_void_type</span>().<span class="ident">get_type_information</span>());
+
         <span class="kw">if</span> <span class="op">!</span><span class="ident">is_typable_literal</span>(<span class="ident">literal</span>) {
             <span class="self">self</span>.<span class="ident">diagnostics</span>
                 .<span class="ident">push</span>(<span class="ident">Diagnostic::literal_expected</span>(<span class="ident">location</span>.<span class="ident">clone</span>()))

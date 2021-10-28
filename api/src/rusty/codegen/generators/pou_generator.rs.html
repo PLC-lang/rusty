@@ -465,7 +465,7 @@
             .<span class="ident">map</span>(<span class="ident">DataType::get_name</span>)
             .<span class="ident">map</span>(<span class="op">|</span><span class="ident">it</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">llvm_index</span>.<span class="ident">get_associated_type</span>(<span class="ident">it</span>).<span class="ident">unwrap</span>());
         <span class="kw">let</span> <span class="ident">variadic</span> <span class="op">=</span> <span class="ident">global_index</span>
-            .<span class="ident">find_type_information</span>(<span class="ident">implementation</span>.<span class="ident">get_type_name</span>())
+            .<span class="ident">find_effective_type_info</span>(<span class="ident">implementation</span>.<span class="ident">get_type_name</span>())
             .<span class="ident">map</span>(<span class="op">|</span><span class="ident">it</span><span class="op">|</span> <span class="ident">it</span>.<span class="ident">is_variadic</span>())
             .<span class="ident">unwrap_or</span>(<span class="bool-val">false</span>);
 
@@ -504,7 +504,7 @@
 
         <span class="kw">if</span> <span class="kw">let</span> <span class="ident">PouType::Method</span> { .. } <span class="op">=</span> <span class="ident">implementation</span>.<span class="ident">pou_type</span> {
             <span class="kw">let</span> <span class="ident">class_name</span> <span class="op">=</span> <span class="ident">implementation</span>.<span class="ident">type_name</span>.<span class="ident">split</span>(<span class="string">&#39;.&#39;</span>).<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span>()[<span class="number">0</span>];
-            <span class="kw">let</span> <span class="ident">class_members</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">index</span>.<span class="ident">find_local_members</span>(<span class="ident">class_name</span>);
+            <span class="kw">let</span> <span class="ident">class_members</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">index</span>.<span class="ident">get_container_members</span>(<span class="ident">class_name</span>);
             <span class="self">self</span>.<span class="ident">generate_local_variable_accessors</span>(
                 <span class="ident">param_index</span>,
                 <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">local_index</span>,
@@ -516,7 +516,7 @@
         }
 
         <span class="comment">// generate loads for all the parameters</span>
-        <span class="kw">let</span> <span class="ident">pou_members</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">index</span>.<span class="ident">find_local_members</span>(<span class="kw-2">&amp;</span><span class="ident">implementation</span>.<span class="ident">type_name</span>);
+        <span class="kw">let</span> <span class="ident">pou_members</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">index</span>.<span class="ident">get_container_members</span>(<span class="kw-2">&amp;</span><span class="ident">implementation</span>.<span class="ident">type_name</span>);
         <span class="self">self</span>.<span class="ident">generate_local_variable_accessors</span>(
             <span class="ident">param_index</span>,
             <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">local_index</span>,

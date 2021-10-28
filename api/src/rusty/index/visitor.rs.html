@@ -460,6 +460,10 @@
 <span id="460">460</span>
 <span id="461">461</span>
 <span id="462">462</span>
+<span id="463">463</span>
+<span id="464">464</span>
+<span id="465">465</span>
+<span id="466">466</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 <span class="kw">use</span> <span class="ident"><span class="kw">super</span>::VariableType</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::ast</span>::{
@@ -477,7 +481,11 @@
     <span class="comment">//Create the typesystem</span>
     <span class="kw">let</span> <span class="ident">builtins</span> <span class="op">=</span> <span class="ident">get_builtin_types</span>();
     <span class="kw">for</span> <span class="ident">data_type</span> <span class="kw">in</span> <span class="ident">builtins</span> {
-        <span class="ident">index</span>.<span class="ident">insert_type</span>(<span class="ident">data_type</span>.<span class="ident">get_name</span>().<span class="ident">to_lowercase</span>(), <span class="ident">data_type</span>);
+        <span class="ident">index</span>.<span class="ident">register_type</span>(
+            <span class="ident">data_type</span>.<span class="ident">get_name</span>(),
+            <span class="ident">data_type</span>.<span class="ident">initial_value</span>,
+            <span class="ident">data_type</span>.<span class="ident">clone_type_information</span>(),
+        );
     }
 
     <span class="comment">//Create user defined datatypes</span>

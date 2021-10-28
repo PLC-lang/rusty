@@ -314,7 +314,7 @@
 
 <span class="doccomment">/// returns whether this data_type is a function block, a class or an array/pointer of/to these</span>
 <span class="kw">fn</span> <span class="ident">data_type_is_fb_or_class_instance</span>(<span class="ident">type_name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">index</span>: <span class="kw-2">&amp;</span><span class="ident">Index</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-    <span class="kw">let</span> <span class="ident">data_type</span> <span class="op">=</span> <span class="ident">index</span>.<span class="ident">find_effective_type_by_name</span>(<span class="ident">type_name</span>).<span class="ident">map_or_else</span>(
+    <span class="kw">let</span> <span class="ident">data_type</span> <span class="op">=</span> <span class="ident">index</span>.<span class="ident">find_effective_type</span>(<span class="ident">type_name</span>).<span class="ident">map_or_else</span>(
         <span class="op">|</span><span class="op">|</span> <span class="ident">index</span>.<span class="ident">get_void_type</span>().<span class="ident">get_type_information</span>(),
         <span class="ident"><span class="kw">crate</span>::typesystem::DataType::get_type_information</span>,
     );

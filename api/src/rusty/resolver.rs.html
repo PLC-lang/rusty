@@ -1143,9 +1143,6 @@
 <span id="1143">1143</span>
 <span id="1144">1144</span>
 <span id="1145">1145</span>
-<span id="1146">1146</span>
-<span id="1147">1147</span>
-<span id="1148">1148</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2021 Ghaith Hachem and Mathias Rieder</span>
 
 <span class="doccomment">//! Resolves (partial) expressions &amp; statements and annotates the resulting types</span>
@@ -1467,7 +1464,7 @@
                 <span class="self">self</span>.<span class="ident">visit_statement</span>(<span class="ident">ctx</span>, <span class="ident">initializer</span>);
 
                 <span class="comment">//update the type-hint for the initializer</span>
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">right_type</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">index</span>.<span class="ident">find_type</span>(<span class="ident">name</span>) {
+                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">right_type</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">index</span>.<span class="ident">find_effective_type</span>(<span class="ident">name</span>) {
                     <span class="self">self</span>.<span class="ident">update_expected_types</span>(<span class="ident">right_type</span>, <span class="ident">initializer</span>);
                 }
             }
@@ -1539,9 +1536,7 @@
                     <span class="ident">inner_type_name</span>, ..
                 } <span class="op">=</span> <span class="ident">expected_type</span>.<span class="ident">get_type_information</span>()
                 {
-                    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">inner_type</span>) <span class="op">=</span>
-                        <span class="self">self</span>.<span class="ident">index</span>.<span class="ident">find_effective_type_by_name</span>(<span class="ident">inner_type_name</span>)
-                    {
+                    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">inner_type</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">index</span>.<span class="ident">find_effective_type</span>(<span class="ident">inner_type_name</span>) {
                         <span class="self">self</span>.<span class="ident">update_expected_types</span>(<span class="ident">inner_type</span>, <span class="ident">elements</span>);
                     }
                 }
@@ -1560,7 +1555,8 @@
                 ) <span class="op">=</span> (<span class="ident">expected_type</span>.<span class="ident">get_type_information</span>(), <span class="ident">left</span>.<span class="ident">as_ref</span>())
                 {
                     <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">v</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">index</span>.<span class="ident">find_member</span>(<span class="ident">qualifier</span>, <span class="ident">variable_name</span>) {
-                        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">target_type</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">index</span>.<span class="ident">find_type</span>(<span class="ident">v</span>.<span class="ident">get_type_name</span>()) {
+                        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">target_type</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">index</span>.<span class="ident">find_effective_type</span>(<span class="ident">v</span>.<span class="ident">get_type_name</span>())
+                        {
                             <span class="self">self</span>.<span class="ident">annotation_map</span>.<span class="ident">annotate</span>(
                                 <span class="ident">left</span>.<span class="ident">as_ref</span>(),
                                 <span class="ident">to_variable_annotation</span>(<span class="ident">v</span>, <span class="self">self</span>.<span class="ident">index</span>, <span class="bool-val">false</span>),
@@ -1634,12 +1630,13 @@
 
             <span class="comment">// annotate a type-hint for the initializer, it should be the same type as the variable</span>
             <span class="comment">// e.g. x : BYTE := 7 + 3;  --&gt; 7+3 should be casted into a byte</span>
-            <span class="kw">let</span> <span class="ident">qualifier</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">qualifier</span>.<span class="ident">as_deref</span>().<span class="ident">or</span>(<span class="ident">ctx</span>.<span class="ident">pou</span>);
-
             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">expected_type</span>) <span class="op">=</span> <span class="self">self</span>
                 .<span class="ident">index</span>
-                .<span class="ident">find_variable</span>(<span class="ident">qualifier</span>, <span class="kw-2">&amp;</span>[<span class="ident">variable</span>.<span class="ident">name</span>.<span class="ident">as_str</span>()])
-                .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">ve</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">index</span>.<span class="ident">find_effective_type_by_name</span>(<span class="ident">ve</span>.<span class="ident">get_type_name</span>()))
+                .<span class="ident">find_variable</span>(
+                    <span class="ident">ctx</span>.<span class="ident">qualifier</span>.<span class="ident">as_deref</span>().<span class="ident">or</span>(<span class="ident">ctx</span>.<span class="ident">pou</span>),
+                    <span class="kw-2">&amp;</span>[<span class="ident">variable</span>.<span class="ident">name</span>.<span class="ident">as_str</span>()],
+                )
+                .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">ve</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">index</span>.<span class="ident">find_effective_type</span>(<span class="ident">ve</span>.<span class="ident">get_type_name</span>()))
             {
                 <span class="self">self</span>.<span class="ident">annotation_map</span>.<span class="ident">annotate_type_hint</span>(
                     <span class="ident">initializer</span>,
@@ -1683,8 +1680,7 @@
                 <span class="ident">bounds</span>: <span class="prelude-val">Some</span>(<span class="ident">bounds</span>),
                 ..
             } <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">expected_type</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">index</span>.<span class="ident">find_effective_type_by_name</span>(<span class="ident">referenced_type</span>)
-                {
+                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">expected_type</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">index</span>.<span class="ident">find_effective_type</span>(<span class="ident">referenced_type</span>) {
                     <span class="self">self</span>.<span class="ident">visit_statement</span>(<span class="ident">ctx</span>, <span class="ident">bounds</span>);
                     <span class="self">self</span>.<span class="ident">update_expected_types</span>(<span class="ident">expected_type</span>, <span class="ident">bounds</span>);
                 }
@@ -1856,7 +1852,7 @@
                 <span class="kw">if</span> <span class="ident">left_type</span>.<span class="ident">get_type_information</span>().<span class="ident">is_numerical</span>()
                     <span class="op">&amp;&amp;</span> <span class="ident">right_type</span>.<span class="ident">get_type_information</span>().<span class="ident">is_numerical</span>()
                 {
-                    <span class="kw">let</span> <span class="ident">dint</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">index</span>.<span class="ident">find_type</span>(<span class="ident">DINT_TYPE</span>).<span class="ident">unwrap</span>();
+                    <span class="kw">let</span> <span class="ident">dint</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">index</span>.<span class="ident">find_effective_type</span>(<span class="ident">DINT_TYPE</span>).<span class="ident">unwrap</span>();
                     <span class="kw">let</span> <span class="ident">bigger_type</span> <span class="op">=</span> <span class="ident">get_bigger_type</span>(
                         <span class="ident">get_bigger_type</span>(<span class="ident">left_type</span>, <span class="ident">right_type</span>, <span class="self">self</span>.<span class="ident">index</span>),
                         <span class="ident">dint</span>,
@@ -2073,14 +2069,16 @@
                     <span class="self">self</span>.<span class="ident">visit_statement</span>(<span class="kw-2">&amp;</span><span class="ident">ctx</span>, <span class="ident">s</span>);
 
                     <span class="kw">let</span> <span class="ident">parameters</span> <span class="op">=</span> <span class="ident">ast::flatten_expression_list</span>(<span class="ident">s</span>);
-                    <span class="kw">let</span> <span class="ident">all_members</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">index</span>.<span class="ident">find_local_members</span>(<span class="ident">operator_qualifier</span>.<span class="ident">as_str</span>());
+                    <span class="kw">let</span> <span class="ident">all_members</span> <span class="op">=</span> <span class="self">self</span>
+                        .<span class="ident">index</span>
+                        .<span class="ident">get_container_members</span>(<span class="ident">operator_qualifier</span>.<span class="ident">as_str</span>());
                     <span class="kw">let</span> <span class="ident">members</span> <span class="op">=</span> <span class="ident">all_members</span>.<span class="ident">iter</span>().<span class="ident">filter</span>(<span class="op">|</span><span class="ident">it</span><span class="op">|</span> <span class="ident">it</span>.<span class="ident">is_parameter</span>());
 
                     <span class="kw">for</span> (<span class="ident">i</span>, <span class="ident">m</span>) <span class="kw">in</span> <span class="ident">members</span>.<span class="ident">enumerate</span>() {
                         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">p</span>) <span class="op">=</span> <span class="ident">parameters</span>.<span class="ident">get</span>(<span class="ident">i</span>) {
                             <span class="kw">if</span> <span class="op">!</span><span class="macro">matches!</span>(<span class="ident">p</span>, <span class="ident">AstStatement::Assignment</span> { .. }) {
                                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">effective_member_type</span>) <span class="op">=</span>
-                                    <span class="self">self</span>.<span class="ident">index</span>.<span class="ident">find_effective_type_by_name</span>(<span class="ident">m</span>.<span class="ident">get_type_name</span>())
+                                    <span class="self">self</span>.<span class="ident">index</span>.<span class="ident">find_effective_type</span>(<span class="ident">m</span>.<span class="ident">get_type_name</span>())
                                 {
                                     <span class="comment">//update the type hint</span>
                                     <span class="self">self</span>.<span class="ident">annotation_map</span>.<span class="ident">annotate_type_hint</span>(
@@ -2098,14 +2096,11 @@
                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">StatementAnnotation::Function</span> { <span class="ident">return_type</span>, .. }) <span class="op">=</span>
                     <span class="self">self</span>.<span class="ident">annotation_map</span>.<span class="ident">get</span>(<span class="ident">operator</span>)
                 {
-                    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">return_type</span>) <span class="op">=</span> <span class="self">self</span>
-                        .<span class="ident">index</span>
-                        .<span class="ident">find_type</span>(<span class="ident">return_type</span>)
-                        .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">it</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">index</span>.<span class="ident">find_effective_type</span>(<span class="ident">it</span>))
-                        .<span class="ident">map</span>(<span class="op">|</span><span class="ident">it</span><span class="op">|</span> <span class="ident">it</span>.<span class="ident">get_name</span>())
-                    {
-                        <span class="self">self</span>.<span class="ident">annotation_map</span>
-                            .<span class="ident">annotate</span>(<span class="ident">statement</span>, <span class="ident">StatementAnnotation::value</span>(<span class="ident">return_type</span>));
+                    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">return_type</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">index</span>.<span class="ident">find_effective_type</span>(<span class="ident">return_type</span>) {
+                        <span class="self">self</span>.<span class="ident">annotation_map</span>.<span class="ident">annotate</span>(
+                            <span class="ident">statement</span>,
+                            <span class="ident">StatementAnnotation::value</span>(<span class="ident">return_type</span>.<span class="ident">get_name</span>()),
+                        );
                     }
                 } <span class="kw">else</span> {
                     <span class="macro">println!</span>(<span class="string">&quot;{:#?}&quot;</span>, <span class="self">self</span>.<span class="ident">annotation_map</span>.<span class="ident">get</span>(<span class="ident">operator</span>));
@@ -2115,11 +2110,10 @@
                 <span class="ident">target</span>, <span class="ident">type_name</span>, ..
             } <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="comment">//see if this type really exists</span>
-                <span class="kw">let</span> <span class="ident">data_type</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">index</span>.<span class="ident">find_type_information</span>(<span class="ident">type_name</span>);
-
+                <span class="kw">let</span> <span class="ident">data_type</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">index</span>.<span class="ident">find_effective_type_info</span>(<span class="ident">type_name</span>);
                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">DataTypeInformation::Enum</span> { <span class="ident">name</span>, .. }) <span class="op">=</span> <span class="ident">data_type</span> {
                     <span class="comment">//enum cast</span>
-                    <span class="self">self</span>.<span class="ident">visit_statement</span>(<span class="kw-2">&amp;</span><span class="ident">ctx</span>.<span class="ident">with_qualifier</span>(<span class="ident">name</span>), <span class="ident">target</span>);
+                    <span class="self">self</span>.<span class="ident">visit_statement</span>(<span class="kw-2">&amp;</span><span class="ident">ctx</span>.<span class="ident">with_qualifier</span>(<span class="ident">name</span>.<span class="ident">to_string</span>()), <span class="ident">target</span>);
                     <span class="comment">//use the type of the target</span>
                     <span class="kw">let</span> <span class="ident">type_name</span> <span class="op">=</span> <span class="self">self</span>
                         .<span class="ident">annotation_map</span>

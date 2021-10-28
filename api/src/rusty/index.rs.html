@@ -736,92 +736,6 @@
 <span id="736">736</span>
 <span id="737">737</span>
 <span id="738">738</span>
-<span id="739">739</span>
-<span id="740">740</span>
-<span id="741">741</span>
-<span id="742">742</span>
-<span id="743">743</span>
-<span id="744">744</span>
-<span id="745">745</span>
-<span id="746">746</span>
-<span id="747">747</span>
-<span id="748">748</span>
-<span id="749">749</span>
-<span id="750">750</span>
-<span id="751">751</span>
-<span id="752">752</span>
-<span id="753">753</span>
-<span id="754">754</span>
-<span id="755">755</span>
-<span id="756">756</span>
-<span id="757">757</span>
-<span id="758">758</span>
-<span id="759">759</span>
-<span id="760">760</span>
-<span id="761">761</span>
-<span id="762">762</span>
-<span id="763">763</span>
-<span id="764">764</span>
-<span id="765">765</span>
-<span id="766">766</span>
-<span id="767">767</span>
-<span id="768">768</span>
-<span id="769">769</span>
-<span id="770">770</span>
-<span id="771">771</span>
-<span id="772">772</span>
-<span id="773">773</span>
-<span id="774">774</span>
-<span id="775">775</span>
-<span id="776">776</span>
-<span id="777">777</span>
-<span id="778">778</span>
-<span id="779">779</span>
-<span id="780">780</span>
-<span id="781">781</span>
-<span id="782">782</span>
-<span id="783">783</span>
-<span id="784">784</span>
-<span id="785">785</span>
-<span id="786">786</span>
-<span id="787">787</span>
-<span id="788">788</span>
-<span id="789">789</span>
-<span id="790">790</span>
-<span id="791">791</span>
-<span id="792">792</span>
-<span id="793">793</span>
-<span id="794">794</span>
-<span id="795">795</span>
-<span id="796">796</span>
-<span id="797">797</span>
-<span id="798">798</span>
-<span id="799">799</span>
-<span id="800">800</span>
-<span id="801">801</span>
-<span id="802">802</span>
-<span id="803">803</span>
-<span id="804">804</span>
-<span id="805">805</span>
-<span id="806">806</span>
-<span id="807">807</span>
-<span id="808">808</span>
-<span id="809">809</span>
-<span id="810">810</span>
-<span id="811">811</span>
-<span id="812">812</span>
-<span id="813">813</span>
-<span id="814">814</span>
-<span id="815">815</span>
-<span id="816">816</span>
-<span id="817">817</span>
-<span id="818">818</span>
-<span id="819">819</span>
-<span id="820">820</span>
-<span id="821">821</span>
-<span id="822">822</span>
-<span id="823">823</span>
-<span id="824">824</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 <span class="kw">use</span> <span class="ident">indexmap::IndexMap</span>;
 
@@ -840,10 +754,21 @@
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Clone</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">VariableIndexEntry</span> {
+    <span class="doccomment">/// the name of this variable (e.g. &#39;x&#39; for &#39;PLC_PRG.x&#39;)</span>
     <span class="ident">name</span>: <span class="ident">String</span>,
+    <span class="doccomment">/// the fully qualified name of this variable (e.g. PLC_PRG.x)</span>
     <span class="ident">qualified_name</span>: <span class="ident">String</span>,
+    <span class="doccomment">/// an optional initial value of this variable</span>
     <span class="kw">pub</span> <span class="ident">initial_value</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ConstId</span><span class="op">&gt;</span>,
-    <span class="ident">information</span>: <span class="ident">VariableInformation</span>,
+    <span class="doccomment">/// the type of variable</span>
+    <span class="ident">variable_type</span>: <span class="ident">VariableType</span>,
+    <span class="doccomment">/// true if this variable is a compile-time-constant</span>
+    <span class="ident">is_constant</span>: <span class="ident">bool</span>,
+    <span class="doccomment">/// the variable&#39;s datatype</span>
+    <span class="ident">data_type_name</span>: <span class="ident">String</span>,
+    <span class="doccomment">/// the index of the member-variable in it&#39;s container (e.g. struct). defautls to 0 (Single variables)</span>
+    <span class="ident">location_in_parent</span>: <span class="ident">u32</span>,
+    <span class="doccomment">/// the location in the original source-file</span>
     <span class="kw">pub</span> <span class="ident">source_location</span>: <span class="ident">SourceRange</span>,
 }
 
@@ -857,38 +782,38 @@
 
 <span class="kw">impl</span> <span class="ident">VariableIndexEntry</span> {
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_name</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">str</span> {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">name</span>
+        <span class="self">self</span>.<span class="ident">name</span>.<span class="ident">as_str</span>()
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_qualified_name</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">str</span> {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">qualified_name</span>
+        <span class="self">self</span>.<span class="ident">qualified_name</span>.<span class="ident">as_str</span>()
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_type_name</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">str</span> {
-        <span class="self">self</span>.<span class="ident">information</span>.<span class="ident">data_type_name</span>.<span class="ident">as_str</span>()
+        <span class="self">self</span>.<span class="ident">data_type_name</span>.<span class="ident">as_str</span>()
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_location_in_parent</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span> {
-        <span class="self">self</span>.<span class="ident">information</span>.<span class="ident">location</span>
+        <span class="self">self</span>.<span class="ident">location_in_parent</span>
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_return</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">information</span>.<span class="ident">variable_type</span> <span class="op">=</span><span class="op">=</span> <span class="ident">VariableType::Return</span>
+        <span class="self">self</span>.<span class="ident">variable_type</span> <span class="op">=</span><span class="op">=</span> <span class="ident">VariableType::Return</span>
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_local</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">information</span>.<span class="ident">variable_type</span> <span class="op">=</span><span class="op">=</span> <span class="ident">VariableType::Local</span>
+        <span class="self">self</span>.<span class="ident">variable_type</span> <span class="op">=</span><span class="op">=</span> <span class="ident">VariableType::Local</span>
     }
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_temp</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">information</span>.<span class="ident">variable_type</span> <span class="op">=</span><span class="op">=</span> <span class="ident">VariableType::Temp</span>
+        <span class="self">self</span>.<span class="ident">variable_type</span> <span class="op">=</span><span class="op">=</span> <span class="ident">VariableType::Temp</span>
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_constant</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">information</span>.<span class="ident">is_constant</span>
+        <span class="self">self</span>.<span class="ident">is_constant</span>
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_variable_type</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">VariableType</span> {
-        <span class="self">self</span>.<span class="ident">information</span>.<span class="ident">variable_type</span>
+        <span class="self">self</span>.<span class="ident">variable_type</span>
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">is_parameter</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
@@ -923,7 +848,7 @@
     <span class="doccomment">/// the variable&#39;s qualifier, None for global variables</span>
     <span class="ident">qualifier</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
     <span class="doccomment">/// Location in the qualifier defautls to 0 (Single variables)</span>
-    <span class="ident">location</span>: <span class="ident">u32</span>,
+    <span class="ident">location_in_parent</span>: <span class="ident">u32</span>,
 }
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
@@ -1041,11 +966,6 @@
         <span class="ident">data_type</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ret</span> <span class="ident">DataType</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;ret</span> <span class="ident">DataType</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="ident">data_type</span>.<span class="ident">get_type_information</span>() {
-            <span class="comment">// DataTypeInformation::SubRange {</span>
-            <span class="comment">//     referenced_type, ..</span>
-            <span class="comment">// } =&gt; self</span>
-            <span class="comment">//     .find_type(referenced_type)</span>
-            <span class="comment">//     .and_then(|it| self.find_effective_type(it)),</span>
             <span class="ident">DataTypeInformation::Alias</span> {
                 <span class="ident">referenced_type</span>, ..
             } <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>
@@ -1054,34 +974,11 @@
             <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">data_type</span>),
         }
     }
-
-    <span class="doccomment">/// Retrieves the &quot;Effective&quot; type-information behind this datatype</span>
-    <span class="doccomment">/// An effective type will be any end type i.e. Structs, Integers, Floats, String and Array</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">find_effective_type_information</span><span class="op">&lt;</span><span class="lifetime">&#39;ret</span><span class="op">&gt;</span>(
-        <span class="kw-2">&amp;</span><span class="lifetime">&#39;ret</span> <span class="self">self</span>,
-        <span class="ident">data_type</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ret</span> <span class="ident">DataTypeInformation</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;ret</span> <span class="ident">DataTypeInformation</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> <span class="ident">data_type</span> {
-            <span class="ident">DataTypeInformation::SubRange</span> {
-                <span class="ident">referenced_type</span>, ..
-            } <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>
-                .<span class="ident">find_type</span>(<span class="ident">referenced_type</span>)
-                .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">it</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">find_effective_type_information</span>(<span class="ident">it</span>.<span class="ident">get_type_information</span>())),
-            <span class="ident">DataTypeInformation::Alias</span> {
-                <span class="ident">referenced_type</span>, ..
-            } <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>
-                .<span class="ident">find_type</span>(<span class="ident">referenced_type</span>)
-                .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">it</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">find_effective_type_information</span>(<span class="ident">it</span>.<span class="ident">get_type_information</span>())),
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">data_type</span>),
-        }
-    }
 }
 
 <span class="doccomment">/// The global index of the rusty-compiler</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// The index contains information about all referencable elements.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">///</span>
 <span class="attribute">#[<span class="ident">derive</span>()]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Index</span> {
     <span class="doccomment">/// all global variables</span>
@@ -1218,73 +1115,40 @@
         }
     }
 
+    <span class="doccomment">/// returns the void-type</span>
+    <span class="doccomment">/// the NULL-statement has a type of void.</span>
+    <span class="doccomment">/// void cannot be casted to any other</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_void_type</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">DataType</span> {
         <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">type_index</span>.<span class="ident">void_type</span>
     }
 
+    <span class="doccomment">/// returns the `VariableIndexEntry` of the global variable with the given name</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">find_global_variable</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">VariableIndexEntry</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">global_variables</span>
             .<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">name</span>.<span class="ident">to_lowercase</span>())
             .<span class="ident">or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">enum_global_variables</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">name</span>.<span class="ident">to_lowercase</span>()))
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">find_member</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">pou_name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">variable_name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">VariableIndexEntry</span><span class="op">&gt;</span> {
+    <span class="doccomment">/// return the `VariableIndexEntry` with the qualified name: `container_name`.`variable_name`</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">find_member</span>(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        <span class="ident">container_name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
+        <span class="ident">variable_name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">VariableIndexEntry</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">member_variables</span>
-            .<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">pou_name</span>.<span class="ident">to_lowercase</span>())
+            .<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">container_name</span>.<span class="ident">to_lowercase</span>())
             .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">map</span><span class="op">|</span> <span class="ident">map</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">variable_name</span>.<span class="ident">to_lowercase</span>()))
             .<span class="ident">or_else</span>(<span class="op">|</span><span class="op">|</span> {
                 <span class="comment">//check qualifier</span>
-                <span class="ident">pou_name</span>
+                <span class="ident">container_name</span>
                     .<span class="ident">rfind</span>(<span class="string">&#39;.&#39;</span>)
-                    .<span class="ident">map</span>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> <span class="kw-2">&amp;</span><span class="ident">pou_name</span>[..<span class="ident">p</span>])
+                    .<span class="ident">map</span>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> <span class="kw-2">&amp;</span><span class="ident">container_name</span>[..<span class="ident">p</span>])
                     .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">qualifier</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">find_member</span>(<span class="ident">qualifier</span>, <span class="ident">variable_name</span>))
             })
     }
 
-    <span class="doccomment">/// returns the index entry of the enum-element `element_name` of the enum-type `enum_name`</span>
-    <span class="doccomment">/// or None if the requested Enum-Type or -Element does not exist</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">find_enum_element</span>(
-        <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">enum_name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
-        <span class="ident">element_name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">VariableIndexEntry</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">enum_qualified_variables</span>
-            .<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;{}.{}&quot;</span>, <span class="ident">enum_name</span>, <span class="ident">element_name</span>).<span class="ident">to_lowercase</span>())
-    }
-
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">find_local_members</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">container_name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">VariableIndexEntry</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">member_variables</span>
-            .<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">container_name</span>.<span class="ident">to_lowercase</span>())
-            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">it</span><span class="op">|</span> <span class="ident">it</span>.<span class="ident">values</span>().<span class="ident">collect</span>())
-            .<span class="ident">unwrap_or_else</span>(<span class="ident">Vec::new</span>)
-    }
-
-    <span class="doccomment">/// Returns true if the current index is a VAR_INPUT, VAR_IN_OUT or VAR_OUTPUT that is not a variadic argument</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_declared_parameter</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">pou_name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">index</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">member_variables</span>
-            .<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">pou_name</span>.<span class="ident">to_lowercase</span>())
-            .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">map</span><span class="op">|</span> {
-                <span class="ident">map</span>.<span class="ident">values</span>()
-                    .<span class="ident">filter</span>(<span class="op">|</span><span class="ident">item</span><span class="op">|</span> {
-                        <span class="ident">item</span>.<span class="ident">information</span>.<span class="ident">variable_type</span> <span class="op">=</span><span class="op">=</span> <span class="ident">VariableType::Input</span>
-                            <span class="op">|</span><span class="op">|</span> <span class="ident">item</span>.<span class="ident">information</span>.<span class="ident">variable_type</span> <span class="op">=</span><span class="op">=</span> <span class="ident">VariableType::InOut</span>
-                            <span class="op">|</span><span class="op">|</span> <span class="ident">item</span>.<span class="ident">information</span>.<span class="ident">variable_type</span> <span class="op">=</span><span class="op">=</span> <span class="ident">VariableType::Output</span>
-                    })
-                    .<span class="ident">find</span>(<span class="op">|</span><span class="ident">item</span><span class="op">|</span> <span class="ident">item</span>.<span class="ident">information</span>.<span class="ident">location</span> <span class="op">=</span><span class="op">=</span> <span class="ident">index</span>)
-            })
-            .<span class="ident">is_some</span>()
-    }
-
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">find_input_parameter</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">pou_name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">index</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">VariableIndexEntry</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">member_variables</span>
-            .<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">pou_name</span>.<span class="ident">to_lowercase</span>())
-            .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">map</span><span class="op">|</span> {
-                <span class="ident">map</span>.<span class="ident">values</span>()
-                    .<span class="ident">filter</span>(<span class="op">|</span><span class="ident">item</span><span class="op">|</span> <span class="ident">item</span>.<span class="ident">information</span>.<span class="ident">variable_type</span> <span class="op">=</span><span class="op">=</span> <span class="ident">VariableType::Input</span>)
-                    .<span class="ident">find</span>(<span class="op">|</span><span class="ident">item</span><span class="op">|</span> <span class="ident">item</span>.<span class="ident">information</span>.<span class="ident">location</span> <span class="op">=</span><span class="op">=</span> <span class="ident">index</span>)
-            })
-    }
-
+    <span class="doccomment">/// return the `VariableIndexEntry` associated with the given fully qualified name using `.` as</span>
+    <span class="doccomment">/// a delimiter. (e.g. &quot;PLC_PRG.x&quot;, or &quot;MyClass.MyMethod.x&quot;)</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">find_fully_qualified_variable</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">fully_qualified_name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
@@ -1309,9 +1173,7 @@
         <span class="kw">if</span> <span class="ident">segments</span>.<span class="ident">is_empty</span>() {
             <span class="kw">return</span> <span class="prelude-val">None</span>;
         }
-
         <span class="kw">let</span> <span class="ident">first_var</span> <span class="op">=</span> <span class="ident">segments</span>[<span class="number">0</span>];
-
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">result</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">context</span> {
             <span class="prelude-val">Some</span>(<span class="ident">context</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>
                 .<span class="ident">find_member</span>(<span class="ident">context</span>, <span class="ident">first_var</span>)
@@ -1320,21 +1182,73 @@
         };
         <span class="kw">for</span> <span class="ident">segment</span> <span class="kw">in</span> <span class="ident">segments</span>.<span class="ident">iter</span>().<span class="ident">skip</span>(<span class="number">1</span>) {
             <span class="ident">result</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">result</span> {
-                <span class="prelude-val">Some</span>(<span class="ident">context</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">find_member</span>(<span class="kw-2">&amp;</span><span class="ident">context</span>.<span class="ident">information</span>.<span class="ident">data_type_name</span>, <span class="ident">segment</span>),
+                <span class="prelude-val">Some</span>(<span class="ident">context</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">find_member</span>(<span class="kw-2">&amp;</span><span class="ident">context</span>.<span class="ident">data_type_name</span>, <span class="ident">segment</span>),
                 <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
             };
         }
         <span class="ident">result</span>
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">find_type</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">type_name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">DataType</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">type_index</span>.<span class="ident">find_type</span>(<span class="ident">type_name</span>)
+    <span class="doccomment">/// returns the index entry of the enum-element `element_name` of the enum-type `enum_name`</span>
+    <span class="doccomment">/// or None if the requested Enum-Type or -Element does not exist</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">find_enum_element</span>(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        <span class="ident">enum_name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
+        <span class="ident">element_name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">VariableIndexEntry</span><span class="op">&gt;</span> {
+        <span class="self">self</span>.<span class="ident">enum_qualified_variables</span>
+            .<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;{}.{}&quot;</span>, <span class="ident">enum_name</span>, <span class="ident">element_name</span>).<span class="ident">to_lowercase</span>())
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">find_effective_type_by_name</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">type_name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">DataType</span><span class="op">&gt;</span> {
+    <span class="doccomment">/// returns all member variables of the given container (e.g. FUNCTION, PROGRAM, STRUCT, etc.)</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_container_members</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">container_name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">VariableIndexEntry</span><span class="op">&gt;</span> {
+        <span class="self">self</span>.<span class="ident">member_variables</span>
+            .<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">container_name</span>.<span class="ident">to_lowercase</span>())
+            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">it</span><span class="op">|</span> <span class="ident">it</span>.<span class="ident">values</span>().<span class="ident">collect</span>())
+            .<span class="ident">unwrap_or_else</span>(<span class="ident">Vec::new</span>)
+    }
+
+    <span class="doccomment">/// returns true if the current index is a VAR_INPUT, VAR_IN_OUT or VAR_OUTPUT that is not a variadic argument</span>
+    <span class="doccomment">/// In other words it returns whether the member variable at `index` of the given container is a possible parameter in</span>
+    <span class="doccomment">/// call to it</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_declared_parameter</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">container_name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">index</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+        <span class="self">self</span>.<span class="ident">member_variables</span>
+            .<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">container_name</span>.<span class="ident">to_lowercase</span>())
+            .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">map</span><span class="op">|</span> {
+                <span class="ident">map</span>.<span class="ident">values</span>()
+                    .<span class="ident">filter</span>(<span class="op">|</span><span class="ident">item</span><span class="op">|</span> {
+                        <span class="ident">item</span>.<span class="ident">variable_type</span> <span class="op">=</span><span class="op">=</span> <span class="ident">VariableType::Input</span>
+                            <span class="op">|</span><span class="op">|</span> <span class="ident">item</span>.<span class="ident">variable_type</span> <span class="op">=</span><span class="op">=</span> <span class="ident">VariableType::InOut</span>
+                            <span class="op">|</span><span class="op">|</span> <span class="ident">item</span>.<span class="ident">variable_type</span> <span class="op">=</span><span class="op">=</span> <span class="ident">VariableType::Output</span>
+                    })
+                    .<span class="ident">find</span>(<span class="op">|</span><span class="ident">item</span><span class="op">|</span> <span class="ident">item</span>.<span class="ident">location_in_parent</span> <span class="op">=</span><span class="op">=</span> <span class="ident">index</span>)
+            })
+            .<span class="ident">is_some</span>()
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">find_input_parameter</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">pou_name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">index</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">VariableIndexEntry</span><span class="op">&gt;</span> {
+        <span class="self">self</span>.<span class="ident">member_variables</span>
+            .<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">pou_name</span>.<span class="ident">to_lowercase</span>())
+            .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">map</span><span class="op">|</span> {
+                <span class="ident">map</span>.<span class="ident">values</span>()
+                    .<span class="ident">filter</span>(<span class="op">|</span><span class="ident">item</span><span class="op">|</span> <span class="ident">item</span>.<span class="ident">variable_type</span> <span class="op">=</span><span class="op">=</span> <span class="ident">VariableType::Input</span>)
+                    .<span class="ident">find</span>(<span class="op">|</span><span class="ident">item</span><span class="op">|</span> <span class="ident">item</span>.<span class="ident">location_in_parent</span> <span class="op">=</span><span class="op">=</span> <span class="ident">index</span>)
+            })
+    }
+
+    <span class="doccomment">/// returns the effective DataType of the type with the given name if it exists</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">find_effective_type</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">type_name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">DataType</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">type_index</span>.<span class="ident">find_effective_type_by_name</span>(<span class="ident">type_name</span>)
     }
 
+    <span class="doccomment">/// returns the effective DataTypeInformation of the type with the given name if it exists</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">find_effective_type_info</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">type_name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">DataTypeInformation</span><span class="op">&gt;</span> {
+        <span class="self">self</span>.<span class="ident">find_effective_type</span>(<span class="ident">type_name</span>)
+            .<span class="ident">map</span>(<span class="ident">DataType::get_type_information</span>)
+    }
+
+    <span class="doccomment">/// returns the effective type of the type with the with the given name or the</span>
+    <span class="doccomment">/// void-type if the given name does not exist</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_effective_type_by_name</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">type_name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">DataType</span> {
         <span class="self">self</span>.<span class="ident">type_index</span>.<span class="ident">get_effective_type_by_name</span>(<span class="ident">type_name</span>)
     }
@@ -1343,53 +1257,11 @@
         <span class="self">self</span>.<span class="ident">type_index</span>.<span class="ident">get_type</span>(<span class="ident">type_name</span>)
     }
 
-    <span class="doccomment">/// Retrieves the &quot;Effective&quot; type behind this datatype</span>
-    <span class="doccomment">/// An effective type will be any end type i.e. Structs, Integers, Floats, String and Array</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">find_effective_type</span><span class="op">&lt;</span><span class="lifetime">&#39;ret</span><span class="op">&gt;</span>(
-        <span class="kw-2">&amp;</span><span class="lifetime">&#39;ret</span> <span class="self">self</span>,
-        <span class="ident">data_type</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ret</span> <span class="ident">DataType</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;ret</span> <span class="ident">DataType</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> <span class="ident">data_type</span>.<span class="ident">get_type_information</span>() {
-            <span class="ident">DataTypeInformation::SubRange</span> {
-                <span class="ident">referenced_type</span>, ..
-            } <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>
-                .<span class="ident">find_type</span>(<span class="ident">referenced_type</span>)
-                .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">it</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">find_effective_type</span>(<span class="ident">it</span>)),
-            <span class="ident">DataTypeInformation::Alias</span> {
-                <span class="ident">referenced_type</span>, ..
-            } <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>
-                .<span class="ident">find_type</span>(<span class="ident">referenced_type</span>)
-                .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">it</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">find_effective_type</span>(<span class="ident">it</span>)),
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">data_type</span>),
-        }
-    }
-
-    <span class="doccomment">/// Retrieves the &quot;Effective&quot; type-information behind this datatype</span>
-    <span class="doccomment">/// An effective type will be any end type i.e. Structs, Integers, Floats, String and Array</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">find_effective_type_information</span><span class="op">&lt;</span><span class="lifetime">&#39;ret</span><span class="op">&gt;</span>(
-        <span class="kw-2">&amp;</span><span class="lifetime">&#39;ret</span> <span class="self">self</span>,
-        <span class="ident">data_type</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ret</span> <span class="ident">DataTypeInformation</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;ret</span> <span class="ident">DataTypeInformation</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> <span class="ident">data_type</span> {
-            <span class="ident">DataTypeInformation::SubRange</span> {
-                <span class="ident">referenced_type</span>, ..
-            } <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>
-                .<span class="ident">find_type</span>(<span class="ident">referenced_type</span>)
-                .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">it</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">find_effective_type_information</span>(<span class="ident">it</span>.<span class="ident">get_type_information</span>())),
-            <span class="ident">DataTypeInformation::Alias</span> {
-                <span class="ident">referenced_type</span>, ..
-            } <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>
-                .<span class="ident">find_type</span>(<span class="ident">referenced_type</span>)
-                .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">it</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">find_effective_type_information</span>(<span class="ident">it</span>.<span class="ident">get_type_information</span>())),
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">data_type</span>),
-        }
-    }
-
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">find_return_variable</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">pou_name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">VariableIndexEntry</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">members</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">member_variables</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">pou_name</span>.<span class="ident">to_lowercase</span>()); <span class="comment">//.ok_or_else(||CompileError::unknown_type(pou_name, 0..0))?;</span>
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">members</span>) <span class="op">=</span> <span class="ident">members</span> {
             <span class="kw">for</span> (<span class="kw">_</span>, <span class="ident">variable</span>) <span class="kw">in</span> <span class="ident">members</span> {
-                <span class="kw">if</span> <span class="ident">variable</span>.<span class="ident">information</span>.<span class="ident">variable_type</span> <span class="op">=</span><span class="op">=</span> <span class="ident">VariableType::Return</span> {
+                <span class="kw">if</span> <span class="ident">variable</span>.<span class="ident">variable_type</span> <span class="op">=</span><span class="op">=</span> <span class="ident">VariableType::Return</span> {
                     <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="ident">variable</span>);
                 }
             }
@@ -1402,21 +1274,8 @@
         <span class="ident">variable</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">it</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">get_type</span>(<span class="ident">it</span>.<span class="ident">get_type_name</span>()).<span class="ident">unwrap</span>())
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">find_type_information</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">type_name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">DataTypeInformation</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">find_type</span>(<span class="ident">type_name</span>)
-            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">entry</span><span class="op">|</span> <span class="ident">entry</span>.<span class="ident">clone_type_information</span>())
-    }
-
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_type_information</span>(
-        <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">type_name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">DataTypeInformation</span>, <span class="ident">CompileError</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">find_type_information</span>(<span class="ident">type_name</span>)
-            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">CompileError::unknown_type</span>(<span class="ident">type_name</span>, <span class="ident">SourceRange::undefined</span>()))
-    }
-
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_type_information_or_void</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">type_name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">DataTypeInformation</span> {
-        <span class="self">self</span>.<span class="ident">find_type</span>(<span class="ident">type_name</span>)
+        <span class="self">self</span>.<span class="ident">find_effective_type</span>(<span class="ident">type_name</span>)
             .<span class="ident">map</span>(<span class="op">|</span><span class="ident">it</span><span class="op">|</span> <span class="ident">it</span>.<span class="ident">get_type_information</span>())
             .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">get_void_type</span>().<span class="ident">get_type_information</span>())
     }
@@ -1426,21 +1285,8 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">type_index</span>.<span class="ident">types</span>
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_type_index</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">TypeIndex</span> {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">type_index</span>
-    }
-
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_globals</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">IndexMap</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">VariableIndexEntry</span><span class="op">&gt;</span> {
         <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">global_variables</span>
-    }
-
-    <span class="doccomment">/// returns globals and member variable index entries</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_all_variable_entries</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw">impl</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">VariableIndexEntry</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">members</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">member_variables</span>.<span class="ident">values</span>().<span class="ident">flat_map</span>(<span class="op">|</span><span class="ident">it</span><span class="op">|</span> <span class="ident">it</span>.<span class="ident">values</span>());
-
-        <span class="kw">let</span> <span class="ident">globals</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">global_variables</span>.<span class="ident">values</span>();
-
-        <span class="ident">globals</span>.<span class="ident">chain</span>(<span class="ident">members</span>)
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_global_qualified_enums</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">IndexMap</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">VariableIndexEntry</span><span class="op">&gt;</span> {
@@ -1507,13 +1353,10 @@
             <span class="ident">qualified_name</span>,
             <span class="ident">initial_value</span>,
             <span class="ident">source_location</span>,
-            <span class="ident">information</span>: <span class="ident">VariableInformation</span> {
-                <span class="ident">variable_type</span>: <span class="ident">variable_linkage</span>,
-                <span class="ident">data_type_name</span>: <span class="ident">variable_type_name</span>.<span class="ident">into</span>(),
-                <span class="ident">qualifier</span>: <span class="prelude-val">Some</span>(<span class="ident">container_name</span>.<span class="ident">into</span>()),
-                <span class="ident">is_constant</span>: <span class="ident">member_info</span>.<span class="ident">is_constant</span>,
-                <span class="ident">location</span>,
-            },
+            <span class="ident">variable_type</span>: <span class="ident">variable_linkage</span>,
+            <span class="ident">data_type_name</span>: <span class="ident">variable_type_name</span>.<span class="ident">into</span>(),
+            <span class="ident">is_constant</span>: <span class="ident">member_info</span>.<span class="ident">is_constant</span>,
+            <span class="ident">location_in_parent</span>: <span class="ident">location</span>,
         };
         <span class="ident">members</span>.<span class="ident">insert</span>(<span class="ident">variable_name</span>.<span class="ident">to_lowercase</span>(), <span class="ident">entry</span>);
     }
@@ -1531,13 +1374,10 @@
             <span class="ident">qualified_name</span>: <span class="ident">qualified_name</span>.<span class="ident">clone</span>(),
             <span class="ident">initial_value</span>,
             <span class="ident">source_location</span>,
-            <span class="ident">information</span>: <span class="ident">VariableInformation</span> {
-                <span class="ident">variable_type</span>: <span class="ident">VariableType::Global</span>,
-                <span class="ident">data_type_name</span>: <span class="ident">enum_type_name</span>.<span class="ident">into</span>(),
-                <span class="ident">is_constant</span>: <span class="bool-val">true</span>,
-                <span class="ident">qualifier</span>: <span class="prelude-val">None</span>,
-                <span class="ident">location</span>: <span class="number">0</span>,
-            },
+            <span class="ident">variable_type</span>: <span class="ident">VariableType::Global</span>,
+            <span class="ident">data_type_name</span>: <span class="ident">enum_type_name</span>.<span class="ident">into</span>(),
+            <span class="ident">is_constant</span>: <span class="bool-val">true</span>,
+            <span class="ident">location_in_parent</span>: <span class="number">0</span>,
         };
         <span class="self">self</span>.<span class="ident">enum_global_variables</span>
             .<span class="ident">insert</span>(<span class="ident">element_name</span>.<span class="ident">to_lowercase</span>(), <span class="ident">entry</span>.<span class="ident">clone</span>());
@@ -1581,20 +1421,13 @@
             <span class="ident">qualified_name</span>,
             <span class="ident">initial_value</span>,
             <span class="ident">source_location</span>,
-            <span class="ident">information</span>: <span class="ident">VariableInformation</span> {
-                <span class="ident">variable_type</span>: <span class="ident">VariableType::Global</span>,
-                <span class="ident">data_type_name</span>: <span class="ident">type_name</span>.<span class="ident">into</span>(),
-                <span class="ident">qualifier</span>: <span class="prelude-val">None</span>,
-                <span class="ident">is_constant</span>,
-                <span class="ident">location</span>: <span class="number">0</span>,
-            },
+            <span class="ident">variable_type</span>: <span class="ident">VariableType::Global</span>,
+            <span class="ident">data_type_name</span>: <span class="ident">type_name</span>.<span class="ident">into</span>(),
+            <span class="ident">is_constant</span>,
+            <span class="ident">location_in_parent</span>: <span class="number">0</span>,
         };
         <span class="self">self</span>.<span class="ident">global_variables</span>
             .<span class="ident">insert</span>(<span class="ident">association_name</span>.<span class="ident">to_lowercase</span>(), <span class="ident">entry</span>);
-    }
-
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">print_global_variables</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-        <span class="macro">println!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="self">self</span>.<span class="ident">global_variables</span>);
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">register_type</span>(
@@ -1621,8 +1454,7 @@
         <span class="comment">//look for a *callable* variable with that name</span>
         <span class="self">self</span>.<span class="ident">find_variable</span>(<span class="ident">context</span>, <span class="ident">reference</span>).<span class="ident">filter</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> {
             <span class="comment">//callable means, there is an implementation associated with the variable&#39;s datatype</span>
-            <span class="self">self</span>.<span class="ident">find_implementation</span>(<span class="kw-2">&amp;</span><span class="ident">v</span>.<span class="ident">information</span>.<span class="ident">data_type_name</span>)
-                .<span class="ident">is_some</span>()
+            <span class="self">self</span>.<span class="ident">find_implementation</span>(<span class="kw-2">&amp;</span><span class="ident">v</span>.<span class="ident">data_type_name</span>).<span class="ident">is_some</span>()
         })
     }
 
@@ -1634,10 +1466,6 @@
     <span class="doccomment">/// returns all registered ConstExpressions</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_const_expressions</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">ConstExpressions</span> {
         <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">constant_expressions</span>
-    }
-
-    <span class="kw">fn</span> <span class="ident">insert_type</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">type_name</span>: <span class="ident">String</span>, <span class="ident">data_type</span>: <span class="ident">DataType</span>) {
-        <span class="self">self</span>.<span class="ident">type_index</span>.<span class="ident">types</span>.<span class="ident">insert</span>(<span class="ident">type_name</span>, <span class="ident">data_type</span>);
     }
 }
 
