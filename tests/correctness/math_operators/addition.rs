@@ -251,7 +251,6 @@ fn add_date_basic() {
 }
 
 #[test]
-#[ignore = "Issue #297"]
 fn adds_array_basic() {
     let prog = "
     FUNCTION main : DINT
@@ -260,6 +259,7 @@ fn adds_array_basic() {
         my_arr2 : ARRAY[0..8] OF INT := [1,2,3,4,5,6,7,8,9];
     END_VAR
         int_array[20] := 20;
+        //           20       +    6       + 10 == 36
         main := int_array[20] + my_arr2[5] + 10;
     END_FUNCTION
     ";
@@ -267,7 +267,7 @@ fn adds_array_basic() {
     let mut main = MainType::default();
 
     let res: i32 = compile_and_run(prog.to_string(), &mut main);
-    assert_eq!(res, 35);
+    assert_eq!(res, 36);
 }
 
 //--------------------------
