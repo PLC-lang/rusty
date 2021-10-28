@@ -1222,7 +1222,7 @@ fn const_lreal_initializers_should_be_resolved_correctly() {
                 .unwrap(),
             &index
         ),
-        index.find_type("LREAL")
+        index.find_effective_type("LREAL")
     );
 }
 
@@ -1267,7 +1267,7 @@ fn array_literals_type_resolving() {
             for ele in expressions.iter() {
                 assert_eq!(
                     annotations.get_type_hint(ele, &index),
-                    index.find_type("BYTE")
+                    index.find_effective_type("BYTE")
                 );
             }
         } else {
@@ -1285,7 +1285,7 @@ fn array_literals_type_resolving() {
                 .unwrap(),
             &index
         ),
-        index.find_type(a.get_type_name())
+        index.find_effective_type(a.get_type_name())
     );
 }
 
@@ -1324,7 +1324,7 @@ fn nested_array_literals_type_resolving() {
         .unwrap();
     assert_eq!(
         annotations.get_type_hint(initializer, &index),
-        index.find_type(a.get_type_name())
+        index.find_effective_type(a.get_type_name())
     );
 
     println!("{:#?}", initializer);
@@ -1337,7 +1337,7 @@ fn nested_array_literals_type_resolving() {
         if let Some(DataTypeInformation::Array {
             inner_type_name, ..
         }) = index
-            .find_type(a.get_type_name())
+            .find_effective_type(a.get_type_name())
             .map(|t| t.get_type_information())
         {
             //check the type of the expression-list has the same type as the variable itself
@@ -1349,7 +1349,10 @@ fn nested_array_literals_type_resolving() {
             // check if the array's elements have the array's inner type
             for ele in AstStatement::get_as_list(e) {
                 let element_hint = annotations.get_type_hint(ele, &index).unwrap();
-                assert_eq!(Some(element_hint), index.find_type(inner_type_name))
+                assert_eq!(
+                    Some(element_hint),
+                    index.find_effective_type(inner_type_name)
+                )
             }
         } else {
             unreachable!()
@@ -1395,7 +1398,7 @@ fn nested_array_literals_multiplied_statement_type_resolving() {
 
     assert_eq!(
         annotations.get_type_hint(initializer, &index),
-        index.find_type(a.get_type_name())
+        index.find_effective_type(a.get_type_name())
     );
 
     //check the initializer's array-element's types
@@ -1410,20 +1413,20 @@ fn nested_array_literals_multiplied_statement_type_resolving() {
             inner_type_name: array_of_byte,
             ..
         }) = index
-            .find_type(a.get_type_name())
+            .find_effective_type(a.get_type_name())
             .map(|t| t.get_type_information())
         {
             //check the type of the expression-list has the same type as the variable itself
             assert_eq!(
                 annotations.get_type_hint(outer_expresion_list, &index),
-                index.find_type(a.get_type_name())
+                index.find_effective_type(a.get_type_name())
             );
 
             // check if the array's elements have the array's inner type
             for inner_array in AstStatement::get_as_list(outer_expresion_list) {
                 // [2(2)]
                 let element_hint = annotations.get_type_hint(inner_array, &index).unwrap();
-                assert_eq!(Some(element_hint), index.find_type(array_of_byte));
+                assert_eq!(Some(element_hint), index.find_effective_type(array_of_byte));
 
                 //check if the inner array statement's also got the type-annotations
                 if let AstStatement::LiteralArray {
@@ -1443,7 +1446,7 @@ fn nested_array_literals_multiplied_statement_type_resolving() {
                             println!("{:#?}", multiplied_element.as_ref());
                             assert_eq!(
                                 annotations.get_type_hint(multiplied_element.as_ref(), &index),
-                                index.find_type("BYTE")
+                                index.find_effective_type("BYTE")
                             );
                         } else {
                             unreachable!()

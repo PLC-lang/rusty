@@ -172,24 +172,28 @@ impl StatementValidator {
             .get_effective_type_by_name(type_name)
             .get_type_information();
 
-        let literal_type = context.index.get_type_information_or_void(
-            StatementValidator::get_literal_actual_signed_type_name(
-                literal,
-                !cast_type.is_unsigned_int(),
+        let literal_type = context
+            .index
+            .find_effective_type_info(
+                StatementValidator::get_literal_actual_signed_type_name(
+                    literal,
+                    !cast_type.is_unsigned_int(),
+                )
+                .or_else(|| {
+                    context
+                        .ast_annotation
+                        .get_type_hint(literal, context.index)
+                        .map(DataType::get_name)
+                })
+                .unwrap_or_else(|| {
+                    context
+                        .ast_annotation
+                        .get_type_or_void(literal, context.index)
+                        .get_name()
+                }),
             )
-            .or_else(|| {
-                context
-                    .ast_annotation
-                    .get_type_hint(literal, context.index)
-                    .map(DataType::get_name)
-            })
-            .unwrap_or_else(|| {
-                context
-                    .ast_annotation
-                    .get_type_or_void(literal, context.index)
-                    .get_name()
-            }),
-        );
+            .unwrap_or_else(|| context.index.get_void_type().get_type_information());
+
         if !is_typable_literal(literal) {
             self.diagnostics
                 .push(Diagnostic::literal_expected(location.clone()))

@@ -198,7 +198,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         let range_checked_right_side =
             if let DataTypeInformation::SubRange { sub_range, .. } = left_type {
                 // there is a sub-range defined, so we need to wrap the right side into the check function if it exists
-                self.find_range_check_impolementation_for(left_type)
+                self.find_range_check_implementation_for(left_type)
                     .map(|implementation| {
                         create_call_to_check_function_ast(
                             left_statement,
@@ -221,23 +221,32 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
     }
 
     /// returns the implementation of the sub-range-check-function for a variable of the given dataType
-    fn find_range_check_impolementation_for(
+    fn find_range_check_implementation_for(
         &self,
-        data_type: &DataTypeInformation,
+        range_type: &DataTypeInformation,
     ) -> Option<&ImplementationIndexEntry> {
-        let effective_type = self.index.find_effective_type_information(data_type);
-        match effective_type {
-            Some(DataTypeInformation::Integer { signed, size, .. }) if *signed && *size <= 32 => {
+        match range_type {
+            DataTypeInformation::Integer { signed, size, .. } if *signed && *size <= 32 => {
                 self.index.find_implementation(RANGE_CHECK_S_FN)
             }
-            Some(DataTypeInformation::Integer { signed, size, .. }) if *signed && *size > 32 => {
+            DataTypeInformation::Integer { signed, size, .. } if *signed && *size > 32 => {
                 self.index.find_implementation(RANGE_CHECK_LS_FN)
             }
-            Some(DataTypeInformation::Integer { signed, size, .. }) if !*signed && *size <= 32 => {
+            DataTypeInformation::Integer { signed, size, .. } if !*signed && *size <= 32 => {
                 self.index.find_implementation(RANGE_CHECK_U_FN)
             }
-            Some(DataTypeInformation::Integer { signed, size, .. }) if !*signed && *size > 32 => {
+            DataTypeInformation::Integer { signed, size, .. } if !*signed && *size > 32 => {
                 self.index.find_implementation(RANGE_CHECK_LU_FN)
+            }
+            DataTypeInformation::Alias { name, .. }
+            | DataTypeInformation::SubRange {
+                referenced_type: name,
+                ..
+            } => {
+                //traverse to the primitive type
+                self.index
+                    .find_effective_type_info(name)
+                    .and_then(|info| self.find_range_check_implementation_for(info))
             }
             _ => None,
         }

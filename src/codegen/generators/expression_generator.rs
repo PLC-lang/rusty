@@ -126,9 +126,9 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
             Ok(llvm_typesystem::cast_if_needed(
                 self.llvm,
                 self.index,
-                target_type.get_type_information(),
+                target_type,
                 v,
-                actual_type.get_type_information(),
+                actual_type,
                 expression,
             )?)
         } else {
@@ -244,7 +244,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
         //Generate a load for the qualifer
         // a.%b1.%x1
         let value = self.generate_expression(&expression)?;
-        let expression_type = self.get_type_hint_info_for(&expression)?;
+        let expression_type = self.get_type_hint_for(&expression)?;
         if let AstStatement::DirectAccess { access, index, .. } = last {
             let datatype = self.get_type_hint_info_for(last)?;
             //Generate and load the index value
@@ -272,7 +272,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                             self.index,
                             expression_type,
                             reference,
-                            self.get_type_hint_info_for(index)?,
+                            self.get_type_hint_for(index)?,
                             index,
                         )
                         .map(BasicValueEnum::into_int_value)?;
@@ -300,7 +300,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
             let shift = self.llvm.builder.build_right_shift(
                 value.into_int_value(),
                 rhs,
-                expression_type.is_signed_int(),
+                expression_type.get_type_information().is_signed_int(),
                 "shift",
             );
             //Trunc the result to the get only the target size
@@ -649,7 +649,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                 .or_else(|| {
                     self.index
                         .find_input_parameter(function_name, index as u32)
-                        .and_then(|var| self.index.find_type(var.get_type_name()))
+                        .and_then(|var| self.index.find_effective_type(var.get_type_name()))
                 })
                 .map(|var| var.get_type_information())
                 .unwrap();
@@ -687,13 +687,12 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
             let index = parameter.get_location_in_parent();
             let param_type = self
                 .index
-                .find_type(parameter.get_type_name())
+                .find_effective_type(parameter.get_type_name())
                 .or_else(|| {
                     self.index
                         .find_input_parameter(function_name, index as u32)
-                        .and_then(|var| self.index.find_type(var.get_type_name()))
+                        .and_then(|var| self.index.find_effective_type(var.get_type_name()))
                 })
-                .map(|var| var.get_type_information())
                 .unwrap();
             //load the function prameter
             let pointer_to_param = builder
@@ -705,7 +704,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
             let value = cast_if_needed(
                 self.llvm,
                 self.index,
-                self.get_type_hint_info_for(right)?,
+                self.get_type_hint_for(right)?,
                 loaded_value,
                 param_type,
                 right,
@@ -731,7 +730,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
         if let AstStatement::Reference { name, .. } = &*left {
             let parameter = self.index.find_member(function_name, name).unwrap();
             let index = parameter.get_location_in_parent();
-            let param_type = self.index.find_type(parameter.get_type_name());
+            let param_type = self.index.find_effective_type(parameter.get_type_name());
             self.generate_single_parameter(
                 &ParameterContext {
                     assignment_statement: right,
@@ -1127,8 +1126,8 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
         number: &str,
     ) -> Result<BasicValueEnum<'a>, CompileError> {
         let literal_type = self
-            .get_type_hint_info_for(stmt)
-            .map(DataTypeInformation::get_name)
+            .get_type_hint_for(stmt)
+            .map(DataType::get_name)
             .and_then(|name| self.llvm_index.get_associated_type(name))?;
         self.llvm.create_const_numeric(&literal_type, number)
     }

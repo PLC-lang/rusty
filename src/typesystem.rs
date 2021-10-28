@@ -622,18 +622,15 @@ mod tests {
         lexer::IdProvider,
         typesystem::{
             get_signed_type, BYTE_TYPE, DINT_TYPE, DWORD_TYPE, INT_TYPE, LINT_TYPE, LWORD_TYPE,
-            SINT_TYPE, UDINT_TYPE, UINT_TYPE, ULINT_TYPE, USINT_TYPE, WORD_TYPE,
+            SINT_TYPE, STRING_TYPE, UDINT_TYPE, UINT_TYPE, ULINT_TYPE, USINT_TYPE, WORD_TYPE,
         },
     };
 
     macro_rules! assert_signed_type {
         ($expected:expr, $actual:expr, $index:expr) => {
             assert_eq!(
-                $index.find_type_information($expected).as_ref(),
-                get_signed_type(
-                    $index.find_type_information($actual).as_ref().unwrap(),
-                    &$index
-                )
+                $index.find_effective_type_info($expected),
+                get_signed_type($index.find_effective_type_info($actual).unwrap(), &$index)
             );
         };
     }
@@ -654,7 +651,11 @@ mod tests {
         assert_eq!(
             None,
             get_signed_type(
-                index.find_type_information("STRING").as_ref().unwrap(),
+                index
+                    .find_effective_type(STRING_TYPE)
+                    .as_ref()
+                    .unwrap()
+                    .get_type_information(),
                 &index
             )
         );

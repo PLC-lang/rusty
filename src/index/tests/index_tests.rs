@@ -34,14 +34,14 @@ fn index_not_case_sensitive() {
 
     let entry = index.find_global_variable("A").unwrap();
     assert_eq!("a", entry.name);
-    assert_eq!("INT", entry.information.data_type_name);
+    assert_eq!("INT", entry.data_type_name);
     let entry = index.find_global_variable("X").unwrap();
     assert_eq!("x", entry.name);
-    assert_eq!("ST", entry.information.data_type_name);
+    assert_eq!("ST", entry.data_type_name);
     let entry = index.find_member("ST", "X").unwrap();
     assert_eq!("x", entry.name);
-    assert_eq!("INT", entry.information.data_type_name);
-    let entry = index.find_type("APROGRAM").unwrap();
+    assert_eq!("INT", entry.data_type_name);
+    let entry = index.find_effective_type("APROGRAM").unwrap();
     assert_eq!("aProgram", entry.name);
     let entry = index.find_implementation("Foo").unwrap();
     assert_eq!("foo", entry.call_name);
@@ -61,11 +61,11 @@ fn global_variables_are_indexed() {
 
     let entry_a = index.find_global_variable("a").unwrap();
     assert_eq!("a", entry_a.name);
-    assert_eq!("INT", entry_a.information.data_type_name);
+    assert_eq!("INT", entry_a.data_type_name);
 
     let entry_b = index.find_global_variable("b").unwrap();
     assert_eq!("b", entry_b.name);
-    assert_eq!("BOOL", entry_b.information.data_type_name);
+    assert_eq!("BOOL", entry_b.data_type_name);
 }
 
 #[test]
@@ -77,10 +77,10 @@ fn program_is_indexed() {
     "#,
     );
 
-    index.find_type("myProgram").unwrap();
+    index.find_effective_type("myProgram").unwrap();
     let program_variable = index.find_global_variable("myProgram").unwrap();
 
-    assert_eq!("myProgram", program_variable.information.data_type_name);
+    assert_eq!("myProgram", program_variable.data_type_name);
 }
 
 #[test]
@@ -116,7 +116,7 @@ fn actions_are_indexed() {
         panic!("Wrong variant : {:#?}", info);
     }
     if let crate::typesystem::DataTypeInformation::Struct { name, .. } =
-        index.find_effective_type_information(info).unwrap()
+        index.find_effective_type_info(info.get_name()).unwrap()
     {
         assert_eq!("myProgram_interface", name);
     } else {
@@ -142,7 +142,7 @@ fn actions_are_indexed() {
         panic!("Wrong variant : {:#?}", info);
     }
     if let crate::typesystem::DataTypeInformation::Struct { name, .. } =
-        index.find_effective_type_information(info).unwrap()
+        index.find_effective_type_info(info.get_name()).unwrap()
     {
         assert_eq!("myProgram_interface", name);
     } else {
@@ -219,19 +219,12 @@ fn function_is_indexed() {
     "#,
     );
 
-    index.find_type("myFunction").unwrap();
+    index.find_effective_type("myFunction").unwrap();
 
     let return_variable = index.find_member("myFunction", "myFunction").unwrap();
     assert_eq!("myFunction", return_variable.name);
-    assert_eq!(
-        Some("myFunction".to_string()),
-        return_variable.information.qualifier
-    );
-    assert_eq!("INT", return_variable.information.data_type_name);
-    assert_eq!(
-        VariableType::Return,
-        return_variable.information.variable_type
-    );
+    assert_eq!("INT", return_variable.data_type_name);
+    assert_eq!(VariableType::Return, return_variable.variable_type);
 }
 
 #[test]
@@ -246,7 +239,7 @@ fn function_with_varargs_param_marked() {
         END_FUNCTION
         "#,
     );
-    let function = index.find_type("myFunc").unwrap();
+    let function = index.find_effective_type("myFunc").unwrap();
     assert!(function.get_type_information().is_variadic());
     assert_eq!(None, function.get_type_information().get_variadic_type());
 }
@@ -263,7 +256,7 @@ fn function_with_typed_varargs_param_marked() {
         END_FUNCTION
         "#,
     );
-    let function = index.find_type("myFunc").unwrap();
+    let function = index.find_effective_type("myFunc").unwrap();
     assert!(function.get_type_information().is_variadic());
     assert_eq!(
         Some("INT"),
@@ -286,10 +279,10 @@ fn pous_are_indexed() {
     "#,
     );
 
-    index.find_type("myFunction").unwrap();
-    index.find_type("myProgram").unwrap();
-    index.find_type("myFunctionBlock").unwrap();
-    index.find_type("myClass").unwrap();
+    index.find_effective_type("myFunction").unwrap();
+    index.find_effective_type("myProgram").unwrap();
+    index.find_effective_type("myFunctionBlock").unwrap();
+    index.find_effective_type("myClass").unwrap();
 }
 
 #[test]
@@ -344,33 +337,33 @@ fn program_members_are_indexed() {
 
     let variable = index.find_member("myProgram", "a").unwrap();
     assert_eq!("a", variable.name);
-    assert_eq!("INT", variable.information.data_type_name);
-    assert_eq!(VariableType::Local, variable.information.variable_type);
+    assert_eq!("INT", variable.data_type_name);
+    assert_eq!(VariableType::Local, variable.variable_type);
 
     let variable = index.find_member("myProgram", "b").unwrap();
     assert_eq!("b", variable.name);
-    assert_eq!("INT", variable.information.data_type_name);
-    assert_eq!(VariableType::Local, variable.information.variable_type);
+    assert_eq!("INT", variable.data_type_name);
+    assert_eq!(VariableType::Local, variable.variable_type);
 
     let variable = index.find_member("myProgram", "c").unwrap();
     assert_eq!("c", variable.name);
-    assert_eq!("BOOL", variable.information.data_type_name);
-    assert_eq!(VariableType::Input, variable.information.variable_type);
+    assert_eq!("BOOL", variable.data_type_name);
+    assert_eq!(VariableType::Input, variable.variable_type);
 
     let variable = index.find_member("myProgram", "d").unwrap();
     assert_eq!("d", variable.name);
-    assert_eq!("BOOL", variable.information.data_type_name);
-    assert_eq!(VariableType::Input, variable.information.variable_type);
+    assert_eq!("BOOL", variable.data_type_name);
+    assert_eq!(VariableType::Input, variable.variable_type);
 
     let variable = index.find_member("myProgram", "e").unwrap();
     assert_eq!("e", variable.name);
-    assert_eq!("INT", variable.information.data_type_name);
-    assert_eq!(VariableType::Temp, variable.information.variable_type);
+    assert_eq!("INT", variable.data_type_name);
+    assert_eq!(VariableType::Temp, variable.variable_type);
 
     let variable = index.find_member("myProgram", "f").unwrap();
     assert_eq!("f", variable.name);
-    assert_eq!("INT", variable.information.data_type_name);
-    assert_eq!(VariableType::Temp, variable.information.variable_type);
+    assert_eq!("INT", variable.data_type_name);
+    assert_eq!(VariableType::Temp, variable.variable_type);
 }
 
 #[test]
@@ -404,29 +397,24 @@ fn given_set_of_local_global_and_functions_the_index_can_be_retrieved() {
 
     //Asking for a variable with no context returns global variables
     let result = index.find_variable(None, &["a"]).unwrap();
-    assert_eq!(VariableType::Global, result.information.variable_type);
+    assert_eq!(VariableType::Global, result.variable_type);
     assert_eq!("a", result.name);
-    assert_eq!(None, result.information.qualifier);
     //Asking for a variable with the POU  context finds a local variable
     let result = index.find_variable(Some("prg"), &["a"]).unwrap();
-    assert_eq!(VariableType::Local, result.information.variable_type);
+    assert_eq!(VariableType::Local, result.variable_type);
     assert_eq!("a", result.name);
-    assert_eq!(Some("prg".to_string()), result.information.qualifier);
     //Asking for a variable with th POU context finds a global variable
     let result = index.find_variable(Some("prg"), &["b"]).unwrap();
-    assert_eq!(VariableType::Global, result.information.variable_type);
+    assert_eq!(VariableType::Global, result.variable_type);
     assert_eq!("b", result.name);
-    assert_eq!(None, result.information.qualifier);
     //Asking for a variable with the function context finds the local variable
     let result = index.find_variable(Some("foo"), &["a"]).unwrap();
-    assert_eq!(VariableType::Local, result.information.variable_type);
+    assert_eq!(VariableType::Local, result.variable_type);
     assert_eq!("a", result.name);
-    assert_eq!(Some("foo".to_string()), result.information.qualifier);
     //Asking for a variable with the function context finds the global variable
     let result = index.find_variable(Some("foo"), &["x"]).unwrap();
-    assert_eq!(VariableType::Global, result.information.variable_type);
+    assert_eq!(VariableType::Global, result.variable_type);
     assert_eq!("x", result.name);
-    assert_eq!(None, result.information.qualifier);
 }
 
 #[test]
@@ -464,9 +452,8 @@ fn index_can_be_retrieved_from_qualified_name() {
     let result = index
         .find_variable(Some("prg"), &["fb1_inst", "fb2_inst", "fb3_inst", "x"])
         .unwrap();
-    assert_eq!(VariableType::Input, result.information.variable_type);
+    assert_eq!(VariableType::Input, result.variable_type);
     assert_eq!("x", result.name);
-    assert_eq!(Some("fb3".to_string()), result.information.qualifier);
 }
 
 #[test]
@@ -588,7 +575,7 @@ fn callable_instances_can_be_retreived() {
 }
 
 #[test]
-fn find_type_retrieves_directly_registered_type() {
+fn get_type_retrieves_directly_registered_type() {
     let (_, index) = index(
         r"
             TYPE MyAlias : INT;  END_TYPE
@@ -598,13 +585,13 @@ fn find_type_retrieves_directly_registered_type() {
         ",
     );
 
-    let my_alias = index.find_type("MyAlias").unwrap();
+    let my_alias = index.get_type("MyAlias").unwrap();
     assert_eq!("MyAlias", my_alias.get_name());
 
-    let my_alias = index.find_type("MySecondAlias").unwrap();
+    let my_alias = index.get_type("MySecondAlias").unwrap();
     assert_eq!("MySecondAlias", my_alias.get_name());
 
-    let my_alias = index.find_type("MyArrayAlias").unwrap();
+    let my_alias = index.get_type("MyArrayAlias").unwrap();
     assert_eq!("MyArrayAlias", my_alias.get_name());
 }
 
@@ -619,26 +606,20 @@ fn find_effective_type_finds_the_inner_effective_type() {
         ",
     );
 
-    let my_alias = index.find_type("MyAlias").unwrap().get_type_information();
-    let int = index.find_effective_type_information(my_alias).unwrap();
+    let my_alias = "MyAlias";
+    let int = index.find_effective_type(my_alias).unwrap();
     assert_eq!("INT", int.get_name());
 
-    let my_alias = index
-        .find_type("MySecondAlias")
-        .unwrap()
-        .get_type_information();
-    let int = index.find_effective_type_information(my_alias).unwrap();
+    let my_alias = "MySecondAlias";
+    let int = index.find_effective_type(my_alias).unwrap();
     assert_eq!("INT", int.get_name());
 
-    let my_alias = index
-        .find_type("MyArrayAlias")
-        .unwrap()
-        .get_type_information();
-    let array = index.find_effective_type_information(my_alias).unwrap();
+    let my_alias = "MyArrayAlias";
+    let array = index.find_effective_type(my_alias).unwrap();
     assert_eq!("MyArray", array.get_name());
 
-    let my_alias = index.find_type("MyArray").unwrap().get_type_information();
-    let array = index.find_effective_type_information(my_alias).unwrap();
+    let my_alias = "MyArray";
+    let array = index.find_effective_type(my_alias).unwrap();
     assert_eq!("MyArray", array.get_name());
 }
 
@@ -1493,11 +1474,14 @@ fn datatype_initializers_are_stored_in_the_const_expression_arena() {
     // THEN I expect the index to contain cosntant expressions (7+x) as const expressions
     // associated with the initial values of the type
     let data_type = &ast.types[0];
-    let initializer = index.find_type("MyInt").and_then(|g| {
-        index
-            .get_const_expressions()
-            .maybe_get_constant_statement(&g.initial_value)
-    });
+    let initializer = index
+        .get_type("MyInt")
+        .map(|g| {
+            index
+                .get_const_expressions()
+                .maybe_get_constant_statement(&g.initial_value)
+        })
+        .unwrap();
     assert_eq!(data_type.initializer.as_ref(), initializer);
 }
 
@@ -1518,9 +1502,9 @@ fn array_dimensions_are_stored_in_the_const_expression_arena() {
 
     // check first dimensions 0 .. LEN-1
     let (start_0, end_0) = index
-        .find_type_information("MyInt")
+        .find_effective_type_info("MyInt")
         .map(|it| {
-            if let DataTypeInformation::Array { dimensions, .. } = &it {
+            if let DataTypeInformation::Array { dimensions, .. } = it {
                 //return the pair (start, end)
                 (
                     dimensions[0].start_offset.as_int_value(&index).unwrap(),
@@ -1551,7 +1535,7 @@ fn array_dimensions_are_stored_in_the_const_expression_arena() {
 
     //check 2nd dimension MIN .. MAX
     let (start_1, end_1) = index
-        .find_type_information("MyInt")
+        .find_effective_type_info("MyInt")
         .map(|it| {
             if let DataTypeInformation::Array { dimensions, .. } = it {
                 //return the pair (start, end)
@@ -1606,7 +1590,7 @@ fn string_dimensions_are_stored_in_the_const_expression_arena() {
     if let Some(DataTypeInformation::String {
         size: TypeSize::ConstExpression(expr),
         ..
-    }) = index.find_type_information("MyString")
+    }) = index.find_effective_type_info("MyString")
     {
         assert_eq!(
             format!(
@@ -1622,7 +1606,7 @@ fn string_dimensions_are_stored_in_the_const_expression_arena() {
                 "{:#?}",
                 index
                     .get_const_expressions()
-                    .get_constant_statement(&expr)
+                    .get_constant_statement(expr)
                     .unwrap()
             )
         );
