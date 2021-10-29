@@ -6040,3 +6040,35 @@ fn using_const_expression_in_range_type() {
     //assigning to x should call the range-function with 0 and 8 as parameters
     insta::assert_snapshot!(result);
 }
+
+#[test]
+fn inlined_array_size_from_local_scoped_constants() {
+    // GIVEN some an array with const-expr -dimensions
+    // the dimension-constants are defined within the same POU
+    // which means that a & b are only visible from within that PROGRAM
+    let result = codegen(
+        r#"
+        VAR_GLOBAL CONSTANT
+          a : INT := 0;
+          b : INT := 2;
+          c : INT := 5;
+        END_VAR
+
+        PROGRAM aaa
+            VAR CONSTANT
+                a : INT := 3;
+                b : INT := 7;
+            END_VAR 
+
+            VAR
+                arr : ARRAY[a..b] OF BYTE;
+                arr2 : ARRAY[a..c] OF BYTE;
+            END_VAR
+        END_PROGRAM
+       "#,
+    );
+
+    // THEN we expect arr to be of size 5, not size 3
+    // AND we expect arr2 to be of size 3
+    insta::assert_snapshot!(result);
+}
