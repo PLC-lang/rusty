@@ -1227,6 +1227,32 @@ fn const_lreal_initializers_should_be_resolved_correctly() {
 }
 
 #[test]
+fn array_size_from_constant() {
+    // GIVEN some an array with const-expr -dimensions
+    let (parse_result, index) = index(
+        r#"
+        PROGRAM aaa
+            VAR CONSTANT
+                a : INT := 3;
+                b : INT := 7;
+            END_VAR 
+
+            VAR
+                arr : ARRAY[a..b] OF BYTE;
+            END_VAR
+        END_PROGRAM
+       "#,
+    );
+
+    // WHEN compile-time evaluation is applied
+    // AND types are resolved
+    annotate(&parse_result, &index);
+    let (_, unresolvable) = evaluate_constants(index);
+
+    debug_assert_eq!(EMPTY, unresolvable);
+}
+
+#[test]
 fn array_literals_type_resolving() {
     // GIVEN some STRING constants used as initializers
     let (parse_result, index) = index(

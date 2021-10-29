@@ -180,7 +180,7 @@ impl Diagnostic {
 
     pub fn unrseolved_reference(reference: &str, location: SourceRange) -> Diagnostic {
         Diagnostic::SyntaxError {
-            message: format!("Could not resolve reference to '{:}", reference),
+            message: format!("Could not resolve reference to {:}", reference),
             range: location,
             err_no: ErrNo::reference__unresolved,
         }

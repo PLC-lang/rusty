@@ -72,6 +72,7 @@ pub fn pre_process(unit: &mut CompilationUnit) {
                     if let DataTypeDeclaration::DataTypeDefinition {
                         mut data_type,
                         location,
+                        scope,
                     } = *datatype
                     {
                         data_type.set_name(type_name);
@@ -80,6 +81,7 @@ pub fn pre_process(unit: &mut CompilationUnit) {
                             data_type,
                             initializer: None,
                             location,
+                            scope,
                         };
                         new_types.push(data_type);
                     }
@@ -103,6 +105,7 @@ fn preprocess_return_type(pou: &mut Pou, types: &mut Vec<UserTypeDeclaration>) {
             if let Some(DataTypeDeclaration::DataTypeDefinition {
                 mut data_type,
                 location,
+                scope,
             }) = datatype
             {
                 data_type.set_name(type_name);
@@ -111,6 +114,7 @@ fn preprocess_return_type(pou: &mut Pou, types: &mut Vec<UserTypeDeclaration>) {
                     data_type,
                     initializer: None,
                     location,
+                    scope
                 };
                 types.push(data_type);
             }
@@ -142,6 +146,7 @@ fn pre_process_variable_data_type(
     if let DataTypeDeclaration::DataTypeDefinition {
         mut data_type,
         location,
+        scope,
     } = variable.replace_data_type_with_reference_to(new_type_name.clone())
     {
         // create index entry
@@ -151,6 +156,7 @@ fn pre_process_variable_data_type(
             data_type,
             initializer: None,
             location,
+            scope,
         });
     }
     //make sure it gets generated
@@ -166,6 +172,7 @@ fn add_nested_datatypes(
     if let Some(DataTypeDeclaration::DataTypeDefinition {
         mut data_type,
         location: inner_location,
+        scope,
     }) = datatype.replace_data_type_with_reference_to(new_type_name.clone(), location)
     {
         data_type.set_name(new_type_name.clone());
@@ -179,6 +186,7 @@ fn add_nested_datatypes(
             data_type,
             initializer: None,
             location: location.clone(),
+            scope,
         });
     }
 }

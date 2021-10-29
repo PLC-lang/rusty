@@ -213,9 +213,10 @@ fn get_variable_type_from_block(block: &VariableBlock) -> VariableType {
 fn visit_data_type(
     index: &mut Index,
     id_provider: &mut IdProvider,
-    type_declatation: &UserTypeDeclaration,
+    type_declaration: &UserTypeDeclaration,
 ) {
-    let data_type = &type_declatation.data_type;
+    let data_type = &type_declaration.data_type;
+    let scope = &type_declaration.scope;
     //names should not be empty
     match data_type {
         DataType::StructType { name, variables } => {
@@ -235,13 +236,16 @@ fn visit_data_type(
             let init = index
                 .get_mut_const_expressions()
                 .maybe_add_constant_expression(
-                    type_declatation.initializer.clone(),
+                    type_declaration.initializer.clone(),
                     type_name.as_str(),
-                    None,
+                    scope.clone(),
                 );
             index.register_type(name.as_ref().unwrap(), init, information);
             for (count, var) in variables.iter().enumerate() {
-                if let DataTypeDeclaration::DataTypeDefinition { data_type, .. } = &var.data_type {
+                if let DataTypeDeclaration::DataTypeDefinition {
+                    data_type, scope, ..
+                } = &var.data_type
+                {
                     //first we need to handle the inner type
                     visit_data_type(
                         index,
@@ -250,6 +254,7 @@ fn visit_data_type(
                             data_type: data_type.clone(),
                             initializer: None,
                             location: SourceRange::undefined(),
+                            scope: scope.clone(),
                         },
                     )
                 }
@@ -257,7 +262,11 @@ fn visit_data_type(
                 let member_type = var.data_type.get_name().unwrap();
                 let init = index
                     .get_mut_const_expressions()
-                    .maybe_add_constant_expression(var.initializer.clone(), member_type, None);
+                    .maybe_add_constant_expression(
+                        var.initializer.clone(),
+                        member_type,
+                        scope.clone(),
+                    );
                 index.register_member_variable(
                     &MemberInfo {
                         container_name: struct_name,
@@ -283,9 +292,9 @@ fn visit_data_type(
             let init = index
                 .get_mut_const_expressions()
                 .maybe_add_constant_expression(
-                    type_declatation.initializer.clone(),
+                    type_declaration.initializer.clone(),
                     enum_name.as_str(),
-                    None,
+                    scope.clone(),
                 );
             index.register_type(enum_name.as_str(), init, information);
 
@@ -298,7 +307,7 @@ fn visit_data_type(
                 let init = index.get_mut_const_expressions().add_constant_expression(
                     enum_literal,
                     typesystem::INT_TYPE.to_string(),
-                    None,
+                    scope.clone(),
                 );
 
                 index.register_enum_element(
@@ -332,9 +341,9 @@ fn visit_data_type(
             let init = index
                 .get_mut_const_expressions()
                 .maybe_add_constant_expression(
-                    type_declatation.initializer.clone(),
+                    type_declaration.initializer.clone(),
                     name.as_ref().unwrap(),
-                    None,
+                    scope.clone(),
                 );
             index.register_type(name.as_ref().unwrap(), init, information)
         }
@@ -354,14 +363,14 @@ fn visit_data_type(
                                 constants.add_constant_expression(
                                     *start.clone(),
                                     typesystem::INT_TYPE.to_string(),
-                                    None,
+                                    scope.clone(),
                                 ),
                             ),
                             end_offset: TypeSize::from_expression(
                                 constants.add_constant_expression(
                                     *end.clone(),
                                     typesystem::INT_TYPE.to_string(),
-                                    None,
+                                    scope.clone(),
                                 ),
                             ),
                         })
@@ -384,9 +393,9 @@ fn visit_data_type(
             let init = index
                 .get_mut_const_expressions()
                 .maybe_add_constant_expression(
-                    type_declatation.initializer.clone(),
+                    type_declaration.initializer.clone(),
                     name.as_ref().unwrap(),
-                    None,
+                    scope.clone(),
                 );
             index.register_type(name.as_ref().unwrap(), init, information)
         }
@@ -405,9 +414,9 @@ fn visit_data_type(
             let init = index
                 .get_mut_const_expressions()
                 .maybe_add_constant_expression(
-                    type_declatation.initializer.clone(),
+                    type_declaration.initializer.clone(),
                     name.as_ref().unwrap(),
-                    None,
+                    scope.clone(),
                 );
             index.register_type(name.as_ref().unwrap(), init, information)
         }
@@ -445,7 +454,7 @@ fn visit_data_type(
                         index.get_mut_const_expressions().add_constant_expression(
                             len_plus_1,
                             type_name.clone(),
-                            None,
+                            scope.clone(),
                         ),
                     )
                 }
@@ -455,9 +464,9 @@ fn visit_data_type(
             let init = index
                 .get_mut_const_expressions()
                 .maybe_add_constant_expression(
-                    type_declatation.initializer.clone(),
+                    type_declaration.initializer.clone(),
                     type_name,
-                    None,
+                    scope.clone(),
                 );
             index.register_type(name.as_ref().unwrap(), init, information)
         }

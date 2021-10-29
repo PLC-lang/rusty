@@ -28,6 +28,7 @@ pub struct ParseSession<'a> {
     pub last_range: Range<usize>,
     pub parse_progress: usize,
     id_provider: IdProvider,
+    pub scope: Option<String>,
 }
 
 #[macro_export]
@@ -55,6 +56,7 @@ impl<'a> ParseSession<'a> {
             last_range: 0..0,
             parse_progress: 0,
             id_provider,
+            scope: None,
         };
         lexer.advance();
         lexer

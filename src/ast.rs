@@ -277,6 +277,7 @@ pub enum DataTypeDeclaration {
     DataTypeDefinition {
         data_type: DataType,
         location: SourceRange,
+        scope: Option<String>,
     },
 }
 
@@ -320,6 +321,8 @@ pub struct UserTypeDeclaration {
     pub data_type: DataType,
     pub initializer: Option<AstStatement>,
     pub location: SourceRange,
+    /// stores the original scope for compiler-generated types
+    pub scope: Option<String>,
 }
 
 impl Debug for UserTypeDeclaration {
@@ -327,6 +330,7 @@ impl Debug for UserTypeDeclaration {
         f.debug_struct("UserTypeDeclaration")
             .field("data_type", &self.data_type)
             .field("initializer", &self.initializer)
+            .field("scope", &self.scope)
             .finish()
     }
 }

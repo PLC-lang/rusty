@@ -156,6 +156,7 @@ fn inline_enum_declaration_can_be_parsed() {
                 elements: vec!["red".to_string(), "yellow".to_string(), "green".to_string()],
             },
             location: SourceRange::undefined(),
+            scope: None,
         },
         initializer: None,
         location: SourceRange::undefined(),

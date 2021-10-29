@@ -164,6 +164,7 @@ fn string_with_round_parens_can_be_parsed() {
                 },
                 initializer: None,
                 location: (18..42).into(),
+                scope: None,
             },
             UserTypeDeclaration {
                 data_type: DataType::StringType {
@@ -182,6 +183,7 @@ fn string_with_round_parens_can_be_parsed() {
                     id: 0,
                 }),
                 location: SourceRange::undefined(),
+                scope: None,
             },
             UserTypeDeclaration {
                 data_type: DataType::StringType {
@@ -195,6 +197,7 @@ fn string_with_round_parens_can_be_parsed() {
                 },
                 initializer: None,
                 location: SourceRange::undefined(),
+                scope: None,
             }
         ]
     );
