@@ -1132,6 +1132,10 @@
 <span id="1132">1132</span>
 <span id="1133">1133</span>
 <span id="1134">1134</span>
+<span id="1135">1135</span>
+<span id="1136">1136</span>
+<span id="1137">1137</span>
+<span id="1138">1138</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::typesystem::DataTypeInformation</span>;
 <span class="kw">use</span> <span class="ident">std</span>::{
@@ -1411,6 +1415,7 @@
     <span class="ident">DataTypeDefinition</span> {
         <span class="ident">data_type</span>: <span class="ident">DataType</span>,
         <span class="ident">location</span>: <span class="ident">SourceRange</span>,
+        <span class="ident">scope</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
     },
 }
 
@@ -1454,6 +1459,8 @@
     <span class="kw">pub</span> <span class="ident">data_type</span>: <span class="ident">DataType</span>,
     <span class="kw">pub</span> <span class="ident">initializer</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">AstStatement</span><span class="op">&gt;</span>,
     <span class="kw">pub</span> <span class="ident">location</span>: <span class="ident">SourceRange</span>,
+    <span class="doccomment">/// stores the original scope for compiler-generated types</span>
+    <span class="kw">pub</span> <span class="ident">scope</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">Debug</span> <span class="kw">for</span> <span class="ident">UserTypeDeclaration</span> {
@@ -1461,6 +1468,7 @@
         <span class="ident">f</span>.<span class="ident">debug_struct</span>(<span class="string">&quot;UserTypeDeclaration&quot;</span>)
             .<span class="ident">field</span>(<span class="string">&quot;data_type&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">data_type</span>)
             .<span class="ident">field</span>(<span class="string">&quot;initializer&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">initializer</span>)
+            .<span class="ident">field</span>(<span class="string">&quot;scope&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">scope</span>)
             .<span class="ident">finish</span>()
     }
 }

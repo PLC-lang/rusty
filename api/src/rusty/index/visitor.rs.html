@@ -464,6 +464,15 @@
 <span id="464">464</span>
 <span id="465">465</span>
 <span id="466">466</span>
+<span id="467">467</span>
+<span id="468">468</span>
+<span id="469">469</span>
+<span id="470">470</span>
+<span id="471">471</span>
+<span id="472">472</span>
+<span id="473">473</span>
+<span id="474">474</span>
+<span id="475">475</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 <span class="kw">use</span> <span class="ident"><span class="kw">super</span>::VariableType</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::ast</span>::{
@@ -679,9 +688,10 @@
 <span class="kw">fn</span> <span class="ident">visit_data_type</span>(
     <span class="ident">index</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Index</span>,
     <span class="ident">id_provider</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">IdProvider</span>,
-    <span class="ident">type_declatation</span>: <span class="kw-2">&amp;</span><span class="ident">UserTypeDeclaration</span>,
+    <span class="ident">type_declaration</span>: <span class="kw-2">&amp;</span><span class="ident">UserTypeDeclaration</span>,
 ) {
-    <span class="kw">let</span> <span class="ident">data_type</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">type_declatation</span>.<span class="ident">data_type</span>;
+    <span class="kw">let</span> <span class="ident">data_type</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">type_declaration</span>.<span class="ident">data_type</span>;
+    <span class="kw">let</span> <span class="ident">scope</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">type_declaration</span>.<span class="ident">scope</span>;
     <span class="comment">//names should not be empty</span>
     <span class="kw">match</span> <span class="ident">data_type</span> {
         <span class="ident">DataType::StructType</span> { <span class="ident">name</span>, <span class="ident">variables</span> } <span class="op">=</span><span class="op">&gt;</span> {
@@ -701,13 +711,16 @@
             <span class="kw">let</span> <span class="ident">init</span> <span class="op">=</span> <span class="ident">index</span>
                 .<span class="ident">get_mut_const_expressions</span>()
                 .<span class="ident">maybe_add_constant_expression</span>(
-                    <span class="ident">type_declatation</span>.<span class="ident">initializer</span>.<span class="ident">clone</span>(),
+                    <span class="ident">type_declaration</span>.<span class="ident">initializer</span>.<span class="ident">clone</span>(),
                     <span class="ident">type_name</span>.<span class="ident">as_str</span>(),
-                    <span class="prelude-val">None</span>,
+                    <span class="ident">scope</span>.<span class="ident">clone</span>(),
                 );
             <span class="ident">index</span>.<span class="ident">register_type</span>(<span class="ident">name</span>.<span class="ident">as_ref</span>().<span class="ident">unwrap</span>(), <span class="ident">init</span>, <span class="ident">information</span>);
             <span class="kw">for</span> (<span class="ident">count</span>, <span class="ident">var</span>) <span class="kw">in</span> <span class="ident">variables</span>.<span class="ident">iter</span>().<span class="ident">enumerate</span>() {
-                <span class="kw">if</span> <span class="kw">let</span> <span class="ident">DataTypeDeclaration::DataTypeDefinition</span> { <span class="ident">data_type</span>, .. } <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">var</span>.<span class="ident">data_type</span> {
+                <span class="kw">if</span> <span class="kw">let</span> <span class="ident">DataTypeDeclaration::DataTypeDefinition</span> {
+                    <span class="ident">data_type</span>, <span class="ident">scope</span>, ..
+                } <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">var</span>.<span class="ident">data_type</span>
+                {
                     <span class="comment">//first we need to handle the inner type</span>
                     <span class="ident">visit_data_type</span>(
                         <span class="ident">index</span>,
@@ -716,6 +729,7 @@
                             <span class="ident">data_type</span>: <span class="ident">data_type</span>.<span class="ident">clone</span>(),
                             <span class="ident">initializer</span>: <span class="prelude-val">None</span>,
                             <span class="ident">location</span>: <span class="ident">SourceRange::undefined</span>(),
+                            <span class="ident">scope</span>: <span class="ident">scope</span>.<span class="ident">clone</span>(),
                         },
                     )
                 }
@@ -723,7 +737,11 @@
                 <span class="kw">let</span> <span class="ident">member_type</span> <span class="op">=</span> <span class="ident">var</span>.<span class="ident">data_type</span>.<span class="ident">get_name</span>().<span class="ident">unwrap</span>();
                 <span class="kw">let</span> <span class="ident">init</span> <span class="op">=</span> <span class="ident">index</span>
                     .<span class="ident">get_mut_const_expressions</span>()
-                    .<span class="ident">maybe_add_constant_expression</span>(<span class="ident">var</span>.<span class="ident">initializer</span>.<span class="ident">clone</span>(), <span class="ident">member_type</span>, <span class="prelude-val">None</span>);
+                    .<span class="ident">maybe_add_constant_expression</span>(
+                        <span class="ident">var</span>.<span class="ident">initializer</span>.<span class="ident">clone</span>(),
+                        <span class="ident">member_type</span>,
+                        <span class="ident">scope</span>.<span class="ident">clone</span>(),
+                    );
                 <span class="ident">index</span>.<span class="ident">register_member_variable</span>(
                     <span class="kw-2">&amp;</span><span class="ident">MemberInfo</span> {
                         <span class="ident">container_name</span>: <span class="ident">struct_name</span>,
@@ -749,9 +767,9 @@
             <span class="kw">let</span> <span class="ident">init</span> <span class="op">=</span> <span class="ident">index</span>
                 .<span class="ident">get_mut_const_expressions</span>()
                 .<span class="ident">maybe_add_constant_expression</span>(
-                    <span class="ident">type_declatation</span>.<span class="ident">initializer</span>.<span class="ident">clone</span>(),
+                    <span class="ident">type_declaration</span>.<span class="ident">initializer</span>.<span class="ident">clone</span>(),
                     <span class="ident">enum_name</span>.<span class="ident">as_str</span>(),
-                    <span class="prelude-val">None</span>,
+                    <span class="ident">scope</span>.<span class="ident">clone</span>(),
                 );
             <span class="ident">index</span>.<span class="ident">register_type</span>(<span class="ident">enum_name</span>.<span class="ident">as_str</span>(), <span class="ident">init</span>, <span class="ident">information</span>);
 
@@ -764,7 +782,7 @@
                 <span class="kw">let</span> <span class="ident">init</span> <span class="op">=</span> <span class="ident">index</span>.<span class="ident">get_mut_const_expressions</span>().<span class="ident">add_constant_expression</span>(
                     <span class="ident">enum_literal</span>,
                     <span class="ident">typesystem::INT_TYPE</span>.<span class="ident">to_string</span>(),
-                    <span class="prelude-val">None</span>,
+                    <span class="ident">scope</span>.<span class="ident">clone</span>(),
                 );
 
                 <span class="ident">index</span>.<span class="ident">register_enum_element</span>(
@@ -798,9 +816,9 @@
             <span class="kw">let</span> <span class="ident">init</span> <span class="op">=</span> <span class="ident">index</span>
                 .<span class="ident">get_mut_const_expressions</span>()
                 .<span class="ident">maybe_add_constant_expression</span>(
-                    <span class="ident">type_declatation</span>.<span class="ident">initializer</span>.<span class="ident">clone</span>(),
+                    <span class="ident">type_declaration</span>.<span class="ident">initializer</span>.<span class="ident">clone</span>(),
                     <span class="ident">name</span>.<span class="ident">as_ref</span>().<span class="ident">unwrap</span>(),
-                    <span class="prelude-val">None</span>,
+                    <span class="ident">scope</span>.<span class="ident">clone</span>(),
                 );
             <span class="ident">index</span>.<span class="ident">register_type</span>(<span class="ident">name</span>.<span class="ident">as_ref</span>().<span class="ident">unwrap</span>(), <span class="ident">init</span>, <span class="ident">information</span>)
         }
@@ -820,14 +838,14 @@
                                 <span class="ident">constants</span>.<span class="ident">add_constant_expression</span>(
                                     <span class="kw-2">*</span><span class="ident">start</span>.<span class="ident">clone</span>(),
                                     <span class="ident">typesystem::INT_TYPE</span>.<span class="ident">to_string</span>(),
-                                    <span class="prelude-val">None</span>,
+                                    <span class="ident">scope</span>.<span class="ident">clone</span>(),
                                 ),
                             ),
                             <span class="ident">end_offset</span>: <span class="ident">TypeSize::from_expression</span>(
                                 <span class="ident">constants</span>.<span class="ident">add_constant_expression</span>(
                                     <span class="kw-2">*</span><span class="ident">end</span>.<span class="ident">clone</span>(),
                                     <span class="ident">typesystem::INT_TYPE</span>.<span class="ident">to_string</span>(),
-                                    <span class="prelude-val">None</span>,
+                                    <span class="ident">scope</span>.<span class="ident">clone</span>(),
                                 ),
                             ),
                         })
@@ -850,9 +868,9 @@
             <span class="kw">let</span> <span class="ident">init</span> <span class="op">=</span> <span class="ident">index</span>
                 .<span class="ident">get_mut_const_expressions</span>()
                 .<span class="ident">maybe_add_constant_expression</span>(
-                    <span class="ident">type_declatation</span>.<span class="ident">initializer</span>.<span class="ident">clone</span>(),
+                    <span class="ident">type_declaration</span>.<span class="ident">initializer</span>.<span class="ident">clone</span>(),
                     <span class="ident">name</span>.<span class="ident">as_ref</span>().<span class="ident">unwrap</span>(),
-                    <span class="prelude-val">None</span>,
+                    <span class="ident">scope</span>.<span class="ident">clone</span>(),
                 );
             <span class="ident">index</span>.<span class="ident">register_type</span>(<span class="ident">name</span>.<span class="ident">as_ref</span>().<span class="ident">unwrap</span>(), <span class="ident">init</span>, <span class="ident">information</span>)
         }
@@ -871,9 +889,9 @@
             <span class="kw">let</span> <span class="ident">init</span> <span class="op">=</span> <span class="ident">index</span>
                 .<span class="ident">get_mut_const_expressions</span>()
                 .<span class="ident">maybe_add_constant_expression</span>(
-                    <span class="ident">type_declatation</span>.<span class="ident">initializer</span>.<span class="ident">clone</span>(),
+                    <span class="ident">type_declaration</span>.<span class="ident">initializer</span>.<span class="ident">clone</span>(),
                     <span class="ident">name</span>.<span class="ident">as_ref</span>().<span class="ident">unwrap</span>(),
-                    <span class="prelude-val">None</span>,
+                    <span class="ident">scope</span>.<span class="ident">clone</span>(),
                 );
             <span class="ident">index</span>.<span class="ident">register_type</span>(<span class="ident">name</span>.<span class="ident">as_ref</span>().<span class="ident">unwrap</span>(), <span class="ident">init</span>, <span class="ident">information</span>)
         }
@@ -911,7 +929,7 @@
                         <span class="ident">index</span>.<span class="ident">get_mut_const_expressions</span>().<span class="ident">add_constant_expression</span>(
                             <span class="ident">len_plus_1</span>,
                             <span class="ident">type_name</span>.<span class="ident">clone</span>(),
-                            <span class="prelude-val">None</span>,
+                            <span class="ident">scope</span>.<span class="ident">clone</span>(),
                         ),
                     )
                 }
@@ -921,9 +939,9 @@
             <span class="kw">let</span> <span class="ident">init</span> <span class="op">=</span> <span class="ident">index</span>
                 .<span class="ident">get_mut_const_expressions</span>()
                 .<span class="ident">maybe_add_constant_expression</span>(
-                    <span class="ident">type_declatation</span>.<span class="ident">initializer</span>.<span class="ident">clone</span>(),
+                    <span class="ident">type_declaration</span>.<span class="ident">initializer</span>.<span class="ident">clone</span>(),
                     <span class="ident">type_name</span>,
-                    <span class="prelude-val">None</span>,
+                    <span class="ident">scope</span>.<span class="ident">clone</span>(),
                 );
             <span class="ident">index</span>.<span class="ident">register_type</span>(<span class="ident">name</span>.<span class="ident">as_ref</span>().<span class="ident">unwrap</span>(), <span class="ident">init</span>, <span class="ident">information</span>)
         }

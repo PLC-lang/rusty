@@ -350,6 +350,8 @@
 <span id="350">350</span>
 <span id="351">351</span>
 <span id="352">352</span>
+<span id="353">353</span>
+<span id="354">354</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 <span class="kw">use</span> <span class="ident">core::ops::Range</span>;
 <span class="kw">use</span> <span class="ident">logos::Filter</span>;
@@ -380,6 +382,7 @@
     <span class="kw">pub</span> <span class="ident">last_range</span>: <span class="ident">Range</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>,
     <span class="kw">pub</span> <span class="ident">parse_progress</span>: <span class="ident">usize</span>,
     <span class="ident">id_provider</span>: <span class="ident">IdProvider</span>,
+    <span class="kw">pub</span> <span class="ident">scope</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
 }
 
 <span class="attribute">#[<span class="ident">macro_export</span>]</span>
@@ -407,6 +410,7 @@
             <span class="ident">last_range</span>: <span class="number">0</span>..<span class="number">0</span>,
             <span class="ident">parse_progress</span>: <span class="number">0</span>,
             <span class="ident">id_provider</span>,
+            <span class="ident">scope</span>: <span class="prelude-val">None</span>,
         };
         <span class="ident">lexer</span>.<span class="ident">advance</span>();
         <span class="ident">lexer</span>

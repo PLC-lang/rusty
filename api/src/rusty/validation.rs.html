@@ -282,6 +282,7 @@
 <span id="282">282</span>
 <span id="283">283</span>
 <span id="284">284</span>
+<span id="285">285</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">ast</span>::{
         <span class="ident">AstStatement</span>, <span class="ident">CompilationUnit</span>, <span class="ident">DataType</span>, <span class="ident">DataTypeDeclaration</span>, <span class="ident">Pou</span>, <span class="ident">SourceRange</span>,
@@ -429,6 +430,7 @@
         <span class="kw">if</span> <span class="kw">let</span> <span class="ident">DataTypeDeclaration::DataTypeDefinition</span> {
             <span class="ident">data_type</span>,
             <span class="ident">location</span>,
+            ..
         } <span class="op">=</span> <span class="ident">declaration</span>
         {
             <span class="self">self</span>.<span class="ident">visit_data_type</span>(<span class="ident">context</span>, <span class="ident">data_type</span>, <span class="ident">location</span>);
