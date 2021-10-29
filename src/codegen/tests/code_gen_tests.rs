@@ -5993,3 +5993,50 @@ fn using_global_consts_in_expressions() {
     // https://github.com/ghaith/rusty/issues/291
     assert_eq!(result, expected);
 }
+
+#[test]
+fn using_cast_statement_as_const_expression() {
+    //GIVEN a array-declaration with an expression using cast-statements
+    let result = codegen(
+        r#"
+        PROGRAM prg
+          VAR
+            x: ARRAY[0 .. INT#16#B + INT#16#2] OF INT;
+          END_VAR
+        END_PROGRAM
+        "#,
+    );
+
+    //THEN the array should be of size 14 (13 + 1 \0 byte)
+    insta::assert_snapshot!(result);
+}
+
+#[test]
+fn using_const_expression_in_range_type() {
+    //GIVEN a range statement with an expression as an upper limit
+    let result = codegen(
+        r#"
+        VAR_GLOBAL CONST
+          MIN : INT := 7;
+        END_VAR 
+
+        FUNCTION CheckRangeSigned: INT 
+          VAR_INPUT
+              value : INT;
+              lower : INT;
+              upper : INT;
+          END_VAR
+          CheckRangeSigned := value;
+        END_FUNCTION
+
+        PROGRAM prg
+          VAR
+            x: INT(0 .. MIN+1);
+          END_VAR
+          x := 5;
+        END_PROGRAM
+        "#,
+    );
+    //assigning to x should call the range-function with 0 and 8 as parameters
+    insta::assert_snapshot!(result);
+}
