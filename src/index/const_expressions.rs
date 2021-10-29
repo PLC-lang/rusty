@@ -65,7 +65,7 @@ impl ConstExpression {
     }
 }
 
-#[derive(Default)]
+#[derive(Default, Debug)]
 pub struct ConstExpressions {
     expressions: Arena<ConstWrapper>,
 }

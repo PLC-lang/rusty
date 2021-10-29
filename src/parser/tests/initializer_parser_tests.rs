@@ -83,6 +83,7 @@ fn initial_scalar_values_can_be_parsed() {
         ],
     },
     initializer: None,
+    scope: None,
 }"#;
     assert_eq!(expected, format!("{:#?}", struct_type).as_str());
 
@@ -100,6 +101,7 @@ fn initial_scalar_values_can_be_parsed() {
             value: 789,
         },
     ),
+    scope: None,
 }"#;
     assert_eq!(expected, format!("{:#?}", my_int_type).as_str());
 
