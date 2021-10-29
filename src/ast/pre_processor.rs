@@ -114,7 +114,7 @@ fn preprocess_return_type(pou: &mut Pou, types: &mut Vec<UserTypeDeclaration>) {
                     data_type,
                     initializer: None,
                     location,
-                    scope
+                    scope,
                 };
                 types.push(data_type);
             }
