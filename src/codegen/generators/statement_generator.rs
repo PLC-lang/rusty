@@ -9,8 +9,8 @@ use crate::{
     index::{ImplementationIndexEntry, Index},
     resolver::AnnotationMap,
     typesystem::{
-        DataTypeInformation, DINT_TYPE, RANGE_CHECK_LS_FN, RANGE_CHECK_LU_FN, RANGE_CHECK_S_FN,
-        RANGE_CHECK_U_FN,
+        DataTypeInformation, StringEncoding, DINT_TYPE, RANGE_CHECK_LS_FN, RANGE_CHECK_LU_FN,
+        RANGE_CHECK_S_FN, RANGE_CHECK_U_FN,
     },
 };
 use inkwell::{
@@ -213,9 +213,60 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
             };
 
         let right_statement = range_checked_right_side.as_ref().unwrap_or(right_statement);
-        self.llvm
-            .builder
-            .build_store(left, exp_gen.generate_expression(right_statement)?);
+        let right_type = exp_gen.get_type_hint_info_for(right_statement)?;
+        //Special string handling
+        //TODO: Should this be done for other types, maybe all non primitive references?
+        if matches!(
+            right_statement,
+            AstStatement::Reference { .. } | AstStatement::QualifiedReference { .. }
+        ) && left_type.is_string()
+            && right_type.is_string()
+        {
+            let target_size = if let DataTypeInformation::String { size, .. } = left_type {
+                size.as_int_value(self.index).map_err(|err| {
+                    CompileError::codegen_error(err, left_statement.get_location())
+                })?
+            } else {
+                unreachable!()
+            };
+            let value_size = if let DataTypeInformation::String { size, .. } = right_type {
+                size.as_int_value(self.index).map_err(|err| {
+                    CompileError::codegen_error(err, right_statement.get_location())
+                })?
+            } else {
+                unreachable!()
+            };
+            let size = std::cmp::min(target_size, value_size) as i64;
+            let right = exp_gen.generate_element_pointer(right_statement)?;
+            let align: u32 = if matches!(
+                left_type,
+                DataTypeInformation::String {
+                    encoding: StringEncoding::Utf8,
+                    ..
+                }
+            ) {
+                1
+            } else {
+                2
+            };
+            //Generate a mem copy
+            self.llvm
+                .builder
+                .build_memcpy(
+                    left,
+                    align,
+                    right,
+                    align,
+                    self.llvm.context.i32_type().const_int(size as u64, true),
+                )
+                .map_err(|err| {
+                    CompileError::codegen_error(err.into(), left_statement.get_location())
+                })?;
+        } else {
+            self.llvm
+                .builder
+                .build_store(left, exp_gen.generate_expression(right_statement)?);
+        }
 
         Ok(())
     }

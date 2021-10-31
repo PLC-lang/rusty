@@ -3,6 +3,7 @@ mod code_gen_tests;
 mod codegen_error_messages_tests;
 mod expression_tests;
 mod statement_codegen_test;
+mod string_tests;
 mod typesystem_test;
 
 fn generate_program_boiler_plate(
