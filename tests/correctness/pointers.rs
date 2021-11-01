@@ -1,8 +1,7 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use crate::compile_and_run;
 
-mod arrays;
-mod complex;
+mod references;
 
 #[allow(dead_code)]
 #[repr(C)]
@@ -12,7 +11,7 @@ struct MainType {}
 fn pointer_test() {
     let function = r"
 TYPE MyStruct: STRUCT  x: DINT; y: DINT; END_STRUCT END_TYPE
-TYPE MyRef : REF_TO REF_TO DINT; END_TYPE;
+TYPE MyRef : REF_TO REF_TO DINT; END_TYPE
 
 FUNCTION main : DINT
 	main := foo();

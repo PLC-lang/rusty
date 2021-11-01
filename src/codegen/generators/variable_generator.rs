@@ -30,7 +30,10 @@ pub fn generate_global_variables<'ctx, 'b>(
             variable,
         )
         .map_err(|err| {
-            if let CompileError::MissingFunctionError { .. } = err {
+            if matches!(
+                err,
+                CompileError::MissingFunctionError { .. } | CompileError::InvalidReference { .. }
+            ) {
                 CompileError::cannot_generate_initializer(name.as_str(), SourceRange::undefined())
             } else {
                 err
@@ -62,21 +65,14 @@ pub fn generate_global_variable<'ctx, 'b>(
         .get_const_expressions()
         .maybe_get_constant_statement(&global_variable.initial_value)
     {
-        let expr_generator = ExpressionCodeGenerator::new_context_free(
-            llvm,
-            global_index,
-            annotations,
-            index,
-            Some(global_index.get_type_information(type_name).unwrap()),
-        );
+        let expr_generator =
+            ExpressionCodeGenerator::new_context_free(llvm, global_index, annotations, index);
 
         //see if this value was compile-time evaluated ...
         if let Some(value) = index.find_constant_value(global_variable.get_qualified_name()) {
-            //Todo cast if necessary
             Some(value)
         } else {
-            let (_, value) = expr_generator.generate_expression(initializer)?;
-            //Todo cast if necessary
+            let value = expr_generator.generate_expression(initializer)?;
             Some(value)
         }
     } else {

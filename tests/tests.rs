@@ -79,7 +79,7 @@ pub fn run<T, U>(exec_engine: &ExecutionEngine, name: &str, params: &mut T) -> U
     unsafe {
         let main: JitFunction<MainFunction<T, U>> = exec_engine.get_function(name).unwrap();
         let main_t_ptr = &mut *params as *mut _;
-        let int_res = main.call(main_t_ptr);
-        int_res
+
+        main.call(main_t_ptr)
     }
 }

@@ -54,6 +54,7 @@ fn simple_struct_type_can_be_parsed() {
             },
             initializer: None,
             location: SourceRange::undefined(),
+            scope: None,
         }
     );
     assert_eq!(ast_string, expected_ast);
@@ -77,6 +78,7 @@ fn simple_enum_type_can_be_parsed() {
         },
         initializer: None,
         location: SourceRange::undefined(),
+        scope: None,
     };
     let expected_string = format!("{:#?}", epxtected_ast);
     assert_eq!(ast_string, expected_string);
@@ -103,6 +105,7 @@ fn type_alias_can_be_parsed() {
             },
             initializer: None,
             location: SourceRange::undefined(),
+            scope: None,
         }
     );
 
@@ -144,6 +147,7 @@ fn array_type_can_be_parsed_test() {
             },
             initializer: None,
             location: SourceRange::undefined(),
+            scope: None,
         }
     );
 
@@ -176,6 +180,7 @@ fn string_type_can_be_parsed_test() {
                 },
                 initializer: None,
                 location: SourceRange::undefined(),
+                scope: None,
             },
             UserTypeDeclaration {
                 data_type: DataType::StringType {
@@ -194,6 +199,7 @@ fn string_type_can_be_parsed_test() {
                     id: 0,
                 }),
                 location: SourceRange::undefined(),
+                scope: None,
             }
         ]
     );
@@ -225,6 +231,7 @@ fn wide_string_type_can_be_parsed_test() {
             },
             initializer: None,
             location: SourceRange::undefined(),
+            scope: None,
         }
     );
 
@@ -262,6 +269,7 @@ fn subrangetype_can_be_parsed() {
                 referenced_type: "UINT".to_string(),
             },
             location: SourceRange::undefined(),
+            scope: None,
         },
         initializer: None,
         location: (0..0).into(),
@@ -311,6 +319,7 @@ fn struct_with_inline_array_can_be_parsed() {
         ],
     },
     initializer: None,
+    scope: None,
 }"#;
     assert_eq!(ast_string, expected_ast);
 }
@@ -335,6 +344,7 @@ fn pointer_type_test() {
         },
         location: SourceRange::undefined(),
         initializer: None,
+        scope: None,
     };
     assert_eq!(
         format!("{:#?}", expected),
@@ -368,6 +378,7 @@ fn ref_type_test() {
         },
         location: SourceRange::undefined(),
         initializer: None,
+        scope: None,
     };
     assert_eq!(
         format!("{:#?}", expected),
@@ -398,6 +409,7 @@ fn global_pointer_declaration() {
                 }),
             },
             location: SourceRange::undefined(),
+            scope: None,
         },
         initializer: None,
         location: (0..0).into(),
@@ -418,6 +430,7 @@ fn global_pointer_declaration() {
                 }),
             },
             location: SourceRange::undefined(),
+            scope: None,
         },
         initializer: None,
         location: (0..0).into(),

@@ -61,6 +61,9 @@ pub const LREAL_TYPE: &str = "LREAL";
 pub const STRING_TYPE: &str = "STRING";
 pub const WSTRING_TYPE: &str = "WSTRING";
 
+pub const CONST_STRING_TYPE: &str = "___CONST_STRING";
+pub const CONST_WSTRING_TYPE: &str = "___CONST_WSTRING";
+
 pub const VOID_TYPE: &str = "VOID";
 
 #[derive(Debug, PartialEq)]
@@ -492,6 +495,22 @@ pub fn get_builtin_types() -> Vec<DataType> {
             },
         },
         DataType {
+            name: CONST_STRING_TYPE.into(),
+            initial_value: None,
+            information: DataTypeInformation::String {
+                size: TypeSize::from_literal(u16::MAX as u32),
+                encoding: StringEncoding::Utf8,
+            },
+        },
+        DataType {
+            name: CONST_WSTRING_TYPE.into(),
+            initial_value: None,
+            information: DataTypeInformation::String {
+                size: TypeSize::from_literal(u16::MAX as u32),
+                encoding: StringEncoding::Utf16,
+            },
+        },
+        DataType {
             name: SHORT_DATE_AND_TIME_TYPE.into(),
             initial_value: None,
             information: DataTypeInformation::Alias {
@@ -526,20 +545,6 @@ pub fn get_builtin_types() -> Vec<DataType> {
     ]
 }
 
-pub fn new_string_information(len: u32) -> DataTypeInformation {
-    DataTypeInformation::String {
-        size: TypeSize::from_literal(len),
-        encoding: StringEncoding::Utf8,
-    }
-}
-
-pub fn new_wide_string_information(len: u32) -> DataTypeInformation {
-    DataTypeInformation::String {
-        size: TypeSize::from_literal(len),
-        encoding: StringEncoding::Utf16,
-    }
-}
-
 fn get_rank(type_information: &DataTypeInformation) -> u32 {
     match type_information {
         DataTypeInformation::Integer { signed, size, .. } => {
@@ -559,60 +564,24 @@ fn is_same_type_nature(ltype: &DataTypeInformation, rtype: &DataTypeInformation)
         || (ltype.is_float() && ltype.is_float() == rtype.is_float())
 }
 
-fn get_real_type() -> DataTypeInformation {
-    DataTypeInformation::Float {
-        name: REAL_TYPE.into(),
-        size: 32,
-    }
-}
-
-fn get_lreal_type() -> DataTypeInformation {
-    DataTypeInformation::Float {
-        name: LREAL_TYPE.into(),
-        size: 64,
-    }
-}
-
-pub fn get_bigger_type(
-    ltype: &DataTypeInformation,
-    rtype: &DataTypeInformation,
-) -> DataTypeInformation {
-    if is_same_type_nature(ltype, rtype) {
-        if get_rank(ltype) < get_rank(rtype) {
-            rtype.clone()
-        } else {
-            ltype.clone()
-        }
-    } else {
-        let real_type = get_real_type();
-        let real_size = real_type.get_size();
-        if ltype.get_size() > real_size || rtype.get_size() > real_size {
-            get_lreal_type()
-        } else {
-            real_type
-        }
-    }
-}
-
-pub fn get_bigger_type_borrow<'t>(
-    ltype: &'t DataTypeInformation,
-    rtype: &'t DataTypeInformation,
+pub fn get_bigger_type<'t>(
+    left_type: &'t DataType,
+    right_type: &'t DataType,
     index: &'t Index,
-) -> &'t DataTypeInformation {
-    if is_same_type_nature(ltype, rtype) {
-        if get_rank(ltype) < get_rank(rtype) {
-            rtype
+) -> &'t DataType {
+    let lt = left_type.get_type_information();
+    let rt = right_type.get_type_information();
+    if is_same_type_nature(lt, rt) {
+        if get_rank(lt) < get_rank(rt) {
+            right_type
         } else {
-            ltype
+            left_type
         }
     } else {
-        let real_type = index
-            .get_type(REAL_TYPE)
-            .map(|it| it.get_type_information())
-            .unwrap();
-        let real_size = real_type.get_size();
-        if ltype.get_size() > real_size || rtype.get_size() > real_size {
-            index.get_type(LREAL_TYPE).unwrap().get_type_information()
+        let real_type = index.get_type(REAL_TYPE).unwrap();
+        let real_size = real_type.get_type_information().get_size();
+        if lt.get_size() > real_size || rt.get_size() > real_size {
+            index.get_type(LREAL_TYPE).unwrap()
         } else {
             real_type
         }
@@ -650,20 +619,18 @@ mod tests {
     use crate::{
         ast::CompilationUnit,
         index::visitor::visit,
+        lexer::IdProvider,
         typesystem::{
             get_signed_type, BYTE_TYPE, DINT_TYPE, DWORD_TYPE, INT_TYPE, LINT_TYPE, LWORD_TYPE,
-            SINT_TYPE, UDINT_TYPE, UINT_TYPE, ULINT_TYPE, USINT_TYPE, WORD_TYPE,
+            SINT_TYPE, STRING_TYPE, UDINT_TYPE, UINT_TYPE, ULINT_TYPE, USINT_TYPE, WORD_TYPE,
         },
     };
 
     macro_rules! assert_signed_type {
         ($expected:expr, $actual:expr, $index:expr) => {
             assert_eq!(
-                $index.find_type_information($expected).as_ref(),
-                get_signed_type(
-                    $index.find_type_information($actual).as_ref().unwrap(),
-                    &$index
-                )
+                $index.find_effective_type_info($expected),
+                get_signed_type($index.find_effective_type_info($actual).unwrap(), &$index)
             );
         };
     }
@@ -671,7 +638,7 @@ mod tests {
     #[test]
     pub fn signed_types_tests() {
         // Given an initialized index
-        let index = visit(&CompilationUnit::default());
+        let index = visit(&CompilationUnit::default(), IdProvider::default());
         assert_signed_type!(SINT_TYPE, BYTE_TYPE, index);
         assert_signed_type!(SINT_TYPE, USINT_TYPE, index);
         assert_signed_type!(INT_TYPE, WORD_TYPE, index);
@@ -684,7 +651,11 @@ mod tests {
         assert_eq!(
             None,
             get_signed_type(
-                index.find_type_information("STRING").as_ref().unwrap(),
+                index
+                    .find_effective_type(STRING_TYPE)
+                    .as_ref()
+                    .unwrap()
+                    .get_type_information(),
                 &index
             )
         );

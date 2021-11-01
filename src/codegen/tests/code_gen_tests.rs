@@ -296,8 +296,10 @@ END_PROGRAM
         "",
         "",
         r#"%load_x = load i16, i16* %x, align 2
-  %tmpVar = add i16 %load_x, 7
-  store i16 %tmpVar, i16* %z, align 2
+  %1 = sext i16 %load_x to i32
+  %tmpVar = add i32 %1, 7
+  %2 = trunc i32 %tmpVar to i16
+  store i16 %2, i16* %z, align 2
   ret void
 "#,
     );
@@ -427,8 +429,10 @@ END_PROGRAM
         "",
         "",
         r#"%load_x = load i16, i16* %x, align 2
-  %tmpVar = add i16 %load_x, 13
-  store i16 %tmpVar, i16* %z, align 2
+  %1 = sext i16 %load_x to i32
+  %tmpVar = add i32 %1, 13
+  %2 = trunc i32 %tmpVar to i16
+  store i16 %2, i16* %z, align 2
   ret void
 "#,
     );
@@ -818,14 +822,13 @@ fn date_comparisons() {
 fn program_with_string_assignment() {
     let result = codegen(
         r#"PROGRAM prg
-VAR
-y : STRING;
-z : WSTRING;
-END_VAR
-y := 'im a genius';
-z := "im a utf16 genius";
-END_PROGRAM
-"#,
+            VAR
+            y : STRING;
+            z : WSTRING;
+            END_VAR
+            y := 'im a genius';
+            z := "im a utf16 genius";
+        END_PROGRAM"#,
     );
 
     insta::assert_snapshot!(result);
@@ -876,7 +879,7 @@ source_filename = "main"
 
 %prg_interface = type { i16, i16, i32 }
 
-@prg_instance = global %prg_interface { i16 0, i32 1, i32 2 }
+@prg_instance = global %prg_interface { i16 0, i16 1, i32 2 }
 
 define void @prg(%prg_interface* %0) {
 entry:
@@ -970,6 +973,129 @@ fn variable_length_strings_can_be_created() {
     );
 
     insta::assert_snapshot!(result);
+}
+
+#[ignore = "https://github.com/PLC-lang/rusty/issues/338"]
+#[test]
+fn assigning_variable_length_string_variables() {
+    let result = codegen(
+        r#"PROGRAM prg
+          VAR
+          y : STRING[15];
+          z : STRING[30] := 'xyz';
+          END_VAR
+          y := z;
+          z := y;
+        END_PROGRAM
+        "#,
+    );
+
+    let expected = r#"; ModuleID = 'main'
+source_filename = "main"
+
+%prg_interface = type { [16 x i8], [4 x i8], [32 x i8], [8 x i8] }
+
+@prg_instance = global %prg_interface { [16 x i8] zeroinitializer, [4 x i8] c"xyz\00", [32 x i8] zeroinitializer, [8 x i8] c"x\00y\00z\00\00\00" }
+
+define void @prg(%prg_interface* %0) {
+entry:
+  %y = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 0
+  %z = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 1
+  store [12 x i8] c"im a genius\00", [16 x i8]* %y, align 1
+  store [24 x i8] c"i\00m\00 \00a\00 \00g\00e\00n\00i\00u\00s\00\00\00", [32 x i8]* %wy, align 1
+  ret void
+}
+"#;
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn function_parameters_string() {
+    let program = codegen(
+        r#"
+        FUNCTION read_string : STRING
+        VAR_INPUT
+            to_read : STRING;
+        END_VAR
+
+        read_string := to_read;
+        END_FUNCTION
+        PROGRAM main
+        VAR
+            text1 : STRING;
+            text2 : STRING;
+            text3 : STRING;
+        END_VAR
+
+            text1 := read_string('abcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabc');
+            text3 := read_string('hello');
+        END_PROGRAM
+        "#,
+    );
+
+    let expected = r#"; ModuleID = 'main'
+source_filename = "main"
+
+%main_interface = type { [81 x i8], [81 x i8], [81 x i8] }
+%read_string_interface = type { [81 x i8] }
+
+@main_instance = global %main_interface zeroinitializer
+
+define [81 x i8] @read_string(%read_string_interface* %0) {
+entry:
+  %to_read = getelementptr inbounds %read_string_interface, %read_string_interface* %0, i32 0, i32 0
+  %read_string = alloca [81 x i8], align 1
+  %load_to_read = load [81 x i8], [81 x i8]* %to_read, align 1
+  store [81 x i8] %load_to_read, [81 x i8]* %read_string, align 1
+  %read_string_ret = load [81 x i8], [81 x i8]* %read_string, align 1
+  ret [81 x i8] %read_string_ret
+}
+
+define void @main(%main_interface* %0) {
+entry:
+  %text1 = getelementptr inbounds %main_interface, %main_interface* %0, i32 0, i32 0
+  %text2 = getelementptr inbounds %main_interface, %main_interface* %0, i32 0, i32 1
+  %text3 = getelementptr inbounds %main_interface, %main_interface* %0, i32 0, i32 2
+  %read_string_instance = alloca %read_string_interface, align 8
+  br label %input
+
+input:                                            ; preds = %entry
+  %1 = getelementptr inbounds %read_string_interface, %read_string_interface* %read_string_instance, i32 0, i32 0
+  store [81 x i8] c"abcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcab\00", [81 x i8]* %1, align 1
+  br label %call
+
+call:                                             ; preds = %input
+  %call1 = call [81 x i8] @read_string(%read_string_interface* %read_string_instance)
+  br label %output
+
+output:                                           ; preds = %call
+  br label %continue
+
+continue:                                         ; preds = %output
+  store [81 x i8] %call1, [81 x i8]* %text1, align 1
+  %read_string_instance2 = alloca %read_string_interface, align 8
+  br label %input3
+
+input3:                                           ; preds = %continue
+  %2 = getelementptr inbounds %read_string_interface, %read_string_interface* %read_string_instance2, i32 0, i32 0
+  store [6 x i8] c"hello\00", [81 x i8]* %2, align 1
+  br label %call4
+
+call4:                                            ; preds = %input3
+  %call7 = call [81 x i8] @read_string(%read_string_interface* %read_string_instance2)
+  br label %output5
+
+output5:                                          ; preds = %call4
+  br label %continue6
+
+continue6:                                        ; preds = %output5
+  store [81 x i8] %call7, [81 x i8]* %text3, align 1
+  ret void
+}
+"#;
+
+    assert_eq!(program, expected);
 }
 
 #[test]
@@ -1217,15 +1343,17 @@ END_PROGRAM
         "",
         "",
         r#"%load_x = load i1, i1* %x, align 1
-  %1 = icmp ne i1 %load_x, false
-  br i1 %1, label %2, label %3
+  %1 = sext i1 %load_x to i32
+  %2 = icmp ne i32 %1, 0
+  br i1 %2, label %3, label %5
 
-2:                                                ; preds = %entry
+3:                                                ; preds = %entry
   %load_y = load i1, i1* %y, align 1
-  br label %3
+  %4 = sext i1 %load_y to i32
+  br label %5
 
-3:                                                ; preds = %2, %entry
-  %4 = phi i1 [ %load_x, %entry ], [ %load_y, %2 ]
+5:                                                ; preds = %3, %entry
+  %6 = phi i32 [ %1, %entry ], [ %4, %3 ]
   ret void
 "#,
     );
@@ -1252,15 +1380,17 @@ END_PROGRAM
         "",
         "",
         r#"%load_x = load i1, i1* %x, align 1
-  %1 = icmp ne i1 %load_x, false
-  br i1 %1, label %3, label %2
+  %1 = sext i1 %load_x to i32
+  %2 = icmp ne i32 %1, 0
+  br i1 %2, label %5, label %3
 
-2:                                                ; preds = %entry
+3:                                                ; preds = %entry
   %load_y = load i1, i1* %y, align 1
-  br label %3
+  %4 = sext i1 %load_y to i32
+  br label %5
 
-3:                                                ; preds = %2, %entry
-  %4 = phi i1 [ %load_x, %entry ], [ %load_y, %2 ]
+5:                                                ; preds = %3, %entry
+  %6 = phi i32 [ %1, %entry ], [ %4, %3 ]
   ret void
 "#,
     );
@@ -1287,8 +1417,10 @@ END_PROGRAM
         "",
         "",
         r#"%load_x = load i1, i1* %x, align 1
+  %1 = sext i1 %load_x to i32
   %load_y = load i1, i1* %y, align 1
-  %tmpVar = xor i1 %load_x, %load_y
+  %2 = sext i1 %load_y to i32
+  %tmpVar = xor i32 %1, %2
   ret void
 "#,
     );
@@ -1318,16 +1450,18 @@ END_PROGRAM
         r#"%load_x = load i1, i1* %x, align 1
   %tmpVar = xor i1 %load_x, true
   %load_x1 = load i1, i1* %x, align 1
-  %1 = icmp ne i1 %load_x1, false
-  br i1 %1, label %2, label %3
+  %1 = sext i1 %load_x1 to i32
+  %2 = icmp ne i32 %1, 0
+  br i1 %2, label %3, label %5
 
-2:                                                ; preds = %entry
+3:                                                ; preds = %entry
   %load_y = load i1, i1* %y, align 1
   %tmpVar2 = xor i1 %load_y, true
-  br label %3
+  %4 = sext i1 %tmpVar2 to i32
+  br label %5
 
-3:                                                ; preds = %2, %entry
-  %4 = phi i1 [ %load_x1, %entry ], [ %tmpVar2, %2 ]
+5:                                                ; preds = %3, %entry
+  %6 = phi i32 [ %1, %entry ], [ %4, %3 ]
   ret void
 "#,
     );
@@ -1355,28 +1489,32 @@ END_PROGRAM
         "",
         "",
         r#"%load_y = load i1, i1* %y, align 1
-  %1 = icmp ne i1 %load_y, false
-  br i1 %1, label %2, label %3
+  %1 = sext i1 %load_y to i32
+  %2 = icmp ne i32 %1, 0
+  br i1 %2, label %3, label %5
 
-2:                                                ; preds = %entry
+3:                                                ; preds = %entry
   %load_z = load i32, i32* %z, align 4
   %tmpVar = icmp sge i32 %load_z, 5
-  br label %3
+  %4 = sext i1 %tmpVar to i32
+  br label %5
 
-3:                                                ; preds = %2, %entry
-  %4 = phi i1 [ %load_y, %entry ], [ %tmpVar, %2 ]
+5:                                                ; preds = %3, %entry
+  %6 = phi i32 [ %1, %entry ], [ %4, %3 ]
   %load_z1 = load i32, i32* %z, align 4
   %tmpVar2 = icmp sle i32 %load_z1, 6
   %tmpVar3 = xor i1 %tmpVar2, true
-  %5 = icmp ne i1 %tmpVar3, false
-  br i1 %5, label %7, label %6
+  %7 = sext i1 %tmpVar3 to i32
+  %8 = icmp ne i32 %7, 0
+  br i1 %8, label %11, label %9
 
-6:                                                ; preds = %3
+9:                                                ; preds = %5
   %load_y4 = load i1, i1* %y, align 1
-  br label %7
+  %10 = sext i1 %load_y4 to i32
+  br label %11
 
-7:                                                ; preds = %6, %3
-  %8 = phi i1 [ %tmpVar3, %3 ], [ %load_y4, %6 ]
+11:                                               ; preds = %9, %5
+  %12 = phi i32 [ %7, %5 ], [ %10, %9 ]
   ret void
 "#,
     );
@@ -1553,23 +1691,25 @@ fn if_with_expression_generator_test() {
         "",
         r#"%load_x = load i32, i32* %x, align 4
   %tmpVar = icmp sgt i32 %load_x, 1
-  %1 = icmp ne i1 %tmpVar, false
-  br i1 %1, label %3, label %2
+  %1 = sext i1 %tmpVar to i32
+  %2 = icmp ne i32 %1, 0
+  br i1 %2, label %5, label %3
 
-condition_body:                                   ; preds = %3
+condition_body:                                   ; preds = %5
   %load_x1 = load i32, i32* %x, align 4
   br label %continue
 
-continue:                                         ; preds = %condition_body, %3
+continue:                                         ; preds = %condition_body, %5
   ret void
 
-2:                                                ; preds = %entry
+3:                                                ; preds = %entry
   %load_b1 = load i1, i1* %b1, align 1
-  br label %3
+  %4 = sext i1 %load_b1 to i32
+  br label %5
 
-3:                                                ; preds = %2, %entry
-  %4 = phi i1 [ %tmpVar, %entry ], [ %load_b1, %2 ]
-  br i1 %4, label %condition_body, label %continue
+5:                                                ; preds = %3, %entry
+  %6 = phi i32 [ %1, %entry ], [ %4, %3 ]
+  br i32 %6, label %condition_body, label %continue
 "#,
     );
 
@@ -1785,8 +1925,10 @@ entry:
   %load_x = load i16, i16* %x, align 2
   store i16 %load_x, i16* %y, align 2
   %load_myMethodLocalVar = load i16, i16* %myMethodLocalVar, align 2
+  %2 = sext i16 %load_myMethodLocalVar to i32
   %load_y = load i16, i16* %y, align 2
-  %tmpVar = icmp eq i16 %load_myMethodLocalVar, %load_y
+  %3 = sext i16 %load_y to i32
+  %tmpVar = icmp eq i32 %2, %3
   ret void
 }
 
@@ -1889,8 +2031,10 @@ entry:
   %load_x = load i16, i16* %x, align 2
   store i16 %load_x, i16* %y, align 2
   %load_myMethodLocalVar = load i16, i16* %myMethodLocalVar, align 2
+  %2 = sext i16 %load_myMethodLocalVar to i32
   %load_y = load i16, i16* %y, align 2
-  %tmpVar = icmp eq i16 %load_myMethodLocalVar, %load_y
+  %3 = sext i16 %load_y to i32
+  %tmpVar = icmp eq i32 %2, %3
   ret void
 }
 
@@ -1973,8 +2117,8 @@ entry:
   %myMethodArg = getelementptr inbounds %MyClass.testMethod_interface, %MyClass.testMethod_interface* %1, i32 0, i32 0
   %MyClass.testMethod = alloca i16, align 2
   store i16 1, i16* %MyClass.testMethod, align 2
-  %testMethod_ret = load i16, i16* %MyClass.testMethod, align 2
-  ret i16 %testMethod_ret
+  %MyClass.testMethod_ret = load i16, i16* %MyClass.testMethod, align 2
+  ret i16 %MyClass.testMethod_ret
 }
 "#;
 
@@ -2052,8 +2196,10 @@ entry:
   %load_x = load i16, i16* %x, align 2
   store i16 %load_x, i16* %y, align 2
   %load_myMethodLocalVar = load i16, i16* %myMethodLocalVar, align 2
+  %2 = sext i16 %load_myMethodLocalVar to i32
   %load_y = load i16, i16* %y, align 2
-  %tmpVar = icmp eq i16 %load_myMethodLocalVar, %load_y
+  %3 = sext i16 %load_y to i32
+  %tmpVar = icmp eq i32 %2, %3
   ret void
 }
 "#;
@@ -4008,9 +4154,10 @@ fn function_called_when_shadowed() {
 
         PROGRAM prg 
         VAR
-            foo : DINT;
+            froo : DINT;
         END_VAR
-        foo := foo();
+        froo := foo();  //the original test was foo := foo() which cannot work!!!
+                        // imagine prg.foo was a FB which can be called.
         END_PROGRAM
         ",
     );
@@ -4033,7 +4180,7 @@ entry:
 
 define void @prg(%prg_interface* %0) {
 entry:
-  %foo = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 0
+  %froo = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 0
   %foo_instance = alloca %foo_interface, align 8
   br label %input
 
@@ -4048,7 +4195,7 @@ output:                                           ; preds = %call
   br label %continue
 
 continue:                                         ; preds = %output
-  store i32 %call1, i32* %foo, align 4
+  store i32 %call1, i32* %froo, align 4
   ret void
 }
 "#;
@@ -4386,6 +4533,43 @@ source_filename = "main"
 @red = global i32 0
 @yellow = global i32 1
 @green = global i32 2
+"#;
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn enums_custom_type_are_generated() {
+    let result = codegen(
+        "
+    TYPE TrafficLight:
+        (White, Red, Yellow, Green);
+    END_TYPE
+
+    PROGRAM main
+    VAR
+        tf1 : TrafficLight;        
+    END_VAR
+    END_PROGRAM
+        ",
+    );
+
+    let expected = r#"; ModuleID = 'main'
+source_filename = "main"
+
+%main_interface = type { i32 }
+
+@main_instance = global %main_interface zeroinitializer
+@White = global i32 0
+@Red = global i32 1
+@Yellow = global i32 2
+@Green = global i32 3
+
+define void @main(%main_interface* %0) {
+entry:
+  %tf1 = getelementptr inbounds %main_interface, %main_interface* %0, i32 0, i32 0
+  ret void
+}
 "#;
 
     assert_eq!(result, expected);
@@ -5159,7 +5343,7 @@ source_filename = "main"
 }
 
 #[test]
-fn initial_values_different_data_types() {
+fn struct_initial_values_different_data_types() {
     let result = codegen(
         "
         TYPE MyStruct:
@@ -5376,7 +5560,7 @@ source_filename = "main"
 }
 
 #[test]
-fn initial_values_in_struct_variable_using_multiplied_statement() {
+fn initial_values_in_struct_variable() {
     let result = codegen(
         "
         TYPE MyStruct: STRUCT
@@ -5792,12 +5976,14 @@ fn using_global_consts_in_expressions() {
 @cB = global i16 2
 @cC = global i16 3",
         r#"%load_cA = load i16, i16* @cA, align 2
+  %1 = sext i16 %load_cA to i32
   %load_cB = load i16, i16* @cB, align 2
-  %tmpVar = add i16 %load_cA, %load_cB
+  %2 = sext i16 %load_cB to i32
+  %tmpVar = add i32 %1, %2
   %load_cC = load i16, i16* @cC, align 2
-  %tmpVar1 = add i16 %tmpVar, %load_cC
-  %1 = sext i16 %tmpVar1 to i32
-  store i32 %1, i32* %z, align 4
+  %3 = sext i16 %load_cC to i32
+  %tmpVar1 = add i32 %tmpVar, %3
+  store i32 %tmpVar1, i32* %z, align 4
   ret void
 "#,
     );
@@ -5806,4 +5992,83 @@ fn using_global_consts_in_expressions() {
     //TODO inline constant values into body-expression
     // https://github.com/ghaith/rusty/issues/291
     assert_eq!(result, expected);
+}
+
+#[test]
+fn using_cast_statement_as_const_expression() {
+    //GIVEN a array-declaration with an expression using cast-statements
+    let result = codegen(
+        r#"
+        PROGRAM prg
+          VAR
+            x: ARRAY[0 .. INT#16#B + INT#16#2] OF INT;
+          END_VAR
+        END_PROGRAM
+        "#,
+    );
+
+    //THEN the array should be of size 14 (13 + 1 \0 byte)
+    insta::assert_snapshot!(result);
+}
+
+#[test]
+fn using_const_expression_in_range_type() {
+    //GIVEN a range statement with an expression as an upper limit
+    let result = codegen(
+        r#"
+        VAR_GLOBAL CONST
+          MIN : INT := 7;
+        END_VAR 
+
+        FUNCTION CheckRangeSigned: INT 
+          VAR_INPUT
+              value : INT;
+              lower : INT;
+              upper : INT;
+          END_VAR
+          CheckRangeSigned := value;
+        END_FUNCTION
+
+        PROGRAM prg
+          VAR
+            x: INT(0 .. MIN+1);
+          END_VAR
+          x := 5;
+        END_PROGRAM
+        "#,
+    );
+    //assigning to x should call the range-function with 0 and 8 as parameters
+    insta::assert_snapshot!(result);
+}
+
+#[test]
+fn inlined_array_size_from_local_scoped_constants() {
+    // GIVEN some an array with const-expr -dimensions
+    // the dimension-constants are defined within the same POU
+    // which means that a & b are only visible from within that PROGRAM
+    let result = codegen(
+        r#"
+        VAR_GLOBAL CONSTANT
+          a : INT := 0;
+          b : INT := 2;
+          c : INT := 5;
+        END_VAR
+
+        PROGRAM aaa
+            VAR CONSTANT
+                a : INT := 3;
+                b : INT := 7;
+            END_VAR 
+
+            VAR
+                arr : ARRAY[a..b] OF BYTE;
+                arr2 : ARRAY[a..c] OF BYTE;
+            END_VAR
+        END_PROGRAM
+       "#,
+    );
+
+    // THEN we expect arr to be of size 5, not size 3
+    // AND we expect arr2 to be of size 3
+    insta::assert_snapshot!(result);
 }

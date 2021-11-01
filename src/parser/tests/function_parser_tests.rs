@@ -132,6 +132,7 @@ fn varargs_parameters_can_be_parsed() {
                             referenced_type: None,
                         },
                         location: SourceRange::undefined(),
+                        scope: Some("foo".into()),
                     },
                     initializer: None,
                     location: SourceRange::undefined(),
@@ -148,6 +149,7 @@ fn varargs_parameters_can_be_parsed() {
                             )),
                         },
                         location: SourceRange::undefined(),
+                        scope: Some("foo".into()),
                     },
                     initializer: None,
                     location: SourceRange::undefined(),
@@ -292,7 +294,8 @@ fn function_inline_enum_return_unsupported() {
                     name: None,
                     elements: vec!["green".into(), "yellow".into(), "red".into()]
                 },
-                location: (15..35).into()
+                location: (15..35).into(),
+                scope: Some("foo".into()),
             }
         )]
     );
@@ -333,7 +336,8 @@ fn function_inline_struct_return_unsupported() {
                         }
                     ],
                 },
-                location: (15..50).into()
+                location: (15..50).into(),
+                scope: Some("foo".into()),
             }
         ))
     );

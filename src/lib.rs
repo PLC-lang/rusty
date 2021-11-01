@@ -97,7 +97,7 @@ pub enum ErrNo {
 
     //type related
     type__literal_out_of_range,
-    type__inompatible_literal_cast,
+    type__incompatible_literal_cast,
     type__incompatible_directaccess,
     type__incompatible_directaccess_variable,
     type__incompatible_directaccess_range,
@@ -180,7 +180,7 @@ impl Diagnostic {
 
     pub fn unrseolved_reference(reference: &str, location: SourceRange) -> Diagnostic {
         Diagnostic::SyntaxError {
-            message: format!("Could not resolve reference to '{:}", reference),
+            message: format!("Could not resolve reference to {:}", reference),
             range: location,
             err_no: ErrNo::reference__unresolved,
         }
@@ -242,7 +242,7 @@ impl Diagnostic {
                 literal_type, cast_type
             ),
             range: location,
-            err_no: ErrNo::type__inompatible_literal_cast,
+            err_no: ErrNo::type__incompatible_literal_cast,
         }
     }
 
@@ -556,7 +556,7 @@ pub fn compile_module<'c, T: SourceContainer>(
     encoding: Option<&'static Encoding>,
 ) -> Result<codegen::CodeGen<'c>, CompileError> {
     let mut full_index = Index::new();
-    let id_provider = IdProvider::new();
+    let id_provider = IdProvider::default();
     let mut files: SimpleFiles<String, String> = SimpleFiles::new();
 
     let mut all_units = Vec::new();
@@ -576,7 +576,7 @@ pub fn compile_module<'c, T: SourceContainer>(
         //pre-process the ast (create inlined types)
         ast::pre_process(&mut parse_result);
         //index the pou
-        full_index.import(index::visitor::visit(&parse_result));
+        full_index.import(index::visitor::visit(&parse_result, id_provider.clone()));
         all_units.push((file_id, diagnostics, parse_result));
     }
 

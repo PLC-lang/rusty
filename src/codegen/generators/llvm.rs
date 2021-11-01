@@ -1,11 +1,5 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-use crate::{
-    ast::SourceRange,
-    codegen::{TypeAndPointer, TypeAndValue},
-    compile_error::CompileError,
-    index::Index,
-    typesystem::{self, VOID_TYPE},
-};
+use crate::{ast::SourceRange, compile_error::CompileError};
 use inkwell::{
     builder::Builder,
     context::Context,
@@ -128,11 +122,8 @@ impl<'a> Llvm<'a> {
     ///
     /// - `lvalue` the pointer and it's datatype
     /// - `name` the name of the temporary variable
-    pub fn load_pointer(&self, lvalue: &TypeAndPointer<'a, '_>, name: &str) -> TypeAndValue<'a> {
-        (
-            lvalue.get_type_information().clone(),
-            self.builder.build_load(lvalue.ptr_value, name),
-        )
+    pub fn load_pointer(&self, lvalue: &PointerValue<'a>, name: &str) -> BasicValueEnum<'a> {
+        self.builder.build_load(lvalue.to_owned(), name)
     }
 
     /// creates a placeholder datatype for a struct with the given name
@@ -151,16 +142,10 @@ impl<'a> Llvm<'a> {
     ///
     /// - `index` the index to obtain the datatypeinformation for BOOL
     /// - `value` the value of the constant bool value
-    pub fn create_const_bool(
-        &self,
-        index: &Index,
-        value: bool,
-    ) -> Result<TypeAndValue<'a>, CompileError> {
+    pub fn create_const_bool(&self, value: bool) -> Result<BasicValueEnum<'a>, CompileError> {
         let itype = self.context.bool_type();
         let value = itype.const_int(value as u64, false);
-
-        let data_type = index.get_type_information("BOOL")?;
-        Ok((data_type, BasicValueEnum::IntValue(value)))
+        Ok(BasicValueEnum::IntValue(value))
     }
 
     /// create a constant int or float with the given value and the given type
@@ -176,6 +161,9 @@ impl<'a> Llvm<'a> {
         match target_type {
             BasicTypeEnum::IntType { 0: int_type } => {
                 let value = int_type.const_int_from_string(value, StringRadix::Decimal);
+                if value.is_none() {
+                    println!("whoops");
+                }
                 Ok(BasicValueEnum::IntValue(value.unwrap()))
             }
             BasicTypeEnum::FloatType { 0: float_type } => {
@@ -190,29 +178,29 @@ impl<'a> Llvm<'a> {
     }
 
     /// create a null pointer
-    pub fn create_null_ptr(&self) -> Result<TypeAndValue<'a>, CompileError> {
+    pub fn create_null_ptr(&self) -> Result<BasicValueEnum<'a>, CompileError> {
         let itype = self.context.i32_type().ptr_type(AddressSpace::Generic);
         let value = itype.const_null();
-
-        let data_type = typesystem::DataTypeInformation::Pointer {
-            name: "VOIDPtr".into(),
-            inner_type_name: VOID_TYPE.into(),
-            auto_deref: false,
-        };
-        Ok((data_type, value.into()))
+        Ok(value.into())
     }
 
     /// create a constant utf8 string-value with the given value
     ///
     /// - `value` the value of the constant string value
-    pub fn create_const_utf8_string(&self, value: &str) -> Result<TypeAndValue<'a>, CompileError> {
+    pub fn create_const_utf8_string(
+        &self,
+        value: &str,
+    ) -> Result<BasicValueEnum<'a>, CompileError> {
         self.create_llvm_const_vec_string(value.as_bytes())
     }
 
     /// create a constant utf16 string-value with the given value
     ///
     /// - `value` the value of the constant string value
-    pub fn create_const_utf16_string(&self, value: &str) -> Result<TypeAndValue<'a>, CompileError> {
+    pub fn create_const_utf16_string(
+        &self,
+        value: &str,
+    ) -> Result<BasicValueEnum<'a>, CompileError> {
         let mut utf16_chars: Vec<u16> = value.encode_utf16().collect();
         //it only contains a single NUL-terminator-byte so we add a second one
         utf16_chars.push(0);
@@ -225,30 +213,22 @@ impl<'a> Llvm<'a> {
     pub fn create_llvm_const_utf16_vec_string(
         &self,
         value: &[u16],
-    ) -> Result<TypeAndValue<'a>, CompileError> {
+    ) -> Result<BasicValueEnum<'a>, CompileError> {
         let values: Vec<IntValue> = value
             .iter()
             .map(|it| self.context.i16_type().const_int(*it as u64, false))
             .collect();
         let vector = self.context.i16_type().const_array(&values);
-        Ok((
-            typesystem::new_wide_string_information(value.len() as u32),
-            BasicValueEnum::ArrayValue(vector),
-            // BasicValueEnum::VectorValue(exp_value),
-        ))
+        Ok(BasicValueEnum::ArrayValue(vector))
     }
-
     /// create a constant utf8 string-value with the given value
     ///
     /// - `value` the value of the constant string value
     pub fn create_llvm_const_vec_string(
         &self,
         value: &[u8],
-    ) -> Result<TypeAndValue<'a>, CompileError> {
+    ) -> Result<BasicValueEnum<'a>, CompileError> {
         let exp_value = self.context.const_string(value, true);
-        Ok((
-            typesystem::new_string_information(value.len() as u32),
-            BasicValueEnum::VectorValue(exp_value),
-        ))
+        Ok(BasicValueEnum::VectorValue(exp_value))
     }
 }

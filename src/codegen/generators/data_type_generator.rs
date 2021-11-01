@@ -97,7 +97,7 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
                 //Avoid generating temp variables in llvm
                 .filter(|var| !var.is_temp())
                 .collect();
-            let ((_, initial_value), member_values) =
+            let (initial_value, member_values) =
                 struct_generator.generate_struct_type(&members, data_type.get_name())?;
             for (member, value) in member_values {
                 let qualified_name = format!("{}.{}", data_type.get_name(), member);
@@ -131,7 +131,7 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
                 let inner_type = self
                     .create_type(
                         inner_type_name,
-                        self.index.find_type(inner_type_name).unwrap(),
+                        self.index.find_effective_type(inner_type_name).unwrap(),
                     )
                     .unwrap();
 
@@ -166,15 +166,19 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
             DataTypeInformation::SubRange {
                 referenced_type, ..
             } => {
-                let ref_type =
-                    self.create_type(name, self.index.find_type(referenced_type).unwrap())?;
+                let ref_type = self.create_type(
+                    name,
+                    self.index.find_effective_type(referenced_type).unwrap(),
+                )?;
                 Ok(ref_type)
             }
             DataTypeInformation::Alias {
                 referenced_type, ..
             } => {
-                let ref_type =
-                    self.create_type(name, self.index.find_type(referenced_type).unwrap())?;
+                let ref_type = self.create_type(
+                    name,
+                    self.index.find_effective_type(referenced_type).unwrap(),
+                )?;
                 Ok(ref_type)
             }
             // REVIEW: Void types are not basic type enums, so we return an int here
@@ -198,7 +202,6 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
             DataTypeInformation::Array { .. } => self
                 .generate_array_initializer(
                     data_type,
-                    data_type.get_name(),
                     |stmt| matches!(stmt, AstStatement::LiteralArray { .. }),
                     "LiteralArray",
                 )
@@ -209,7 +212,6 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
             DataTypeInformation::String { .. } => self
                 .generate_array_initializer(
                     data_type,
-                    data_type.get_name(),
                     |stmt| matches!(stmt, AstStatement::LiteralString { .. }),
                     "LiteralString",
                 )
@@ -244,10 +246,8 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
                 self.index,
                 self.annotations,
                 &self.types_index,
-                None,
             );
-            let (_, initial_value) = generator.generate_expression(initializer).unwrap();
-            Some(initial_value)
+            Some(generator.generate_expression(initializer).unwrap())
         } else {
             // if there's no initializer defined for this alias, we go and check the aliased type for an initial value
             self.index
@@ -261,7 +261,6 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
     fn generate_array_initializer(
         &self,
         data_type: &DataType,
-        name: &str,
         predicate: fn(&AstStatement) -> bool,
         expected_ast: &str,
     ) -> Result<Option<BasicValueEnum<'ink>>, CompileError> {
@@ -271,16 +270,13 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
             .maybe_get_constant_statement(&data_type.initial_value)
         {
             if predicate(initializer) {
-                let array_type = self.index.get_type_information(name)?;
                 let generator = ExpressionCodeGenerator::new_context_free(
                     self.llvm,
                     self.index,
                     self.annotations,
                     &self.types_index,
-                    Some(array_type),
                 );
-                let (_, initial_value) = generator.generate_literal(initializer)?;
-                Ok(Some(initial_value))
+                Ok(Some(generator.generate_literal(initializer)?))
             } else {
                 Err(CompileError::codegen_error(
                     format!("Expected {} but found {:?}", expected_ast, initializer),

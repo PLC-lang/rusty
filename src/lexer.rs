@@ -28,6 +28,7 @@ pub struct ParseSession<'a> {
     pub last_range: Range<usize>,
     pub parse_progress: usize,
     id_provider: IdProvider,
+    pub scope: Option<String>,
 }
 
 #[macro_export]
@@ -55,6 +56,7 @@ impl<'a> ParseSession<'a> {
             last_range: 0..0,
             parse_progress: 0,
             id_provider,
+            scope: None,
         };
         lexer.advance();
         lexer
@@ -310,20 +312,22 @@ pub struct IdProvider {
 }
 
 impl IdProvider {
-    pub fn new() -> Self {
-        IdProvider {
-            current_id: Arc::new(AtomicUsize::new(1)),
-        }
-    }
-
     pub fn next_id(&mut self) -> AstId {
         self.current_id.fetch_add(1, Ordering::Relaxed)
     }
 }
 
+impl Default for IdProvider {
+    fn default() -> Self {
+        IdProvider {
+            current_id: Arc::new(AtomicUsize::new(1)),
+        }
+    }
+}
+
 #[cfg(test)]
 pub fn lex(source: &str) -> ParseSession {
-    ParseSession::new(Token::lexer(source), IdProvider::new())
+    ParseSession::new(Token::lexer(source), IdProvider::default())
 }
 
 pub fn lex_with_ids(source: &str, id_provider: IdProvider) -> ParseSession {
@@ -336,7 +340,7 @@ mod id_tests {
 
     #[test]
     fn id_provider_generates_unique_ids_over_clones() {
-        let mut id1 = IdProvider::new();
+        let mut id1 = IdProvider::default();
 
         assert_eq!(id1.next_id(), 1);
 

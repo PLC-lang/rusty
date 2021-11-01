@@ -145,6 +145,7 @@ impl Validator {
         if let DataTypeDeclaration::DataTypeDefinition {
             data_type,
             location,
+            ..
         } = declaration
         {
             self.visit_data_type(context, data_type, location);
