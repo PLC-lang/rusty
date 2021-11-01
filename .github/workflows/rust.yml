@@ -61,7 +61,8 @@ jobs:
           # Change all uppercase to lowercase
           IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
           docker pull $IMAGE_ID
-          ./scripts/build.sh --build --check --container --container-name=$IMAGE_ID
+          echo "Build command : ./scripts/build.sh --verbose --build --test --container --container-name=$IMAGE_ID"
+          ./scripts/build.sh --verbose --build --test --container --container-name=$IMAGE_ID
           sudo chmod a+rw -R target/debug
 
       - run: mkdir -p ${{ matrix.config.dir }}
@@ -97,7 +98,7 @@ jobs:
           # Change all uppercase to lowercase
           IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
           docker pull $IMAGE_ID
-          ./scripts/build.sh --check --container --container-name=$IMAGE_ID
+          ./scripts/build.sh --check-style --container --container-name=$IMAGE_ID
 
   coverage:
     name: Run Coverage 
