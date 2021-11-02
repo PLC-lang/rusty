@@ -15,6 +15,30 @@ struct MainType {
 }
 
 #[test]
+fn bitaccess_assignment() {
+    let prog = "
+    FUNCTION main : LWORD
+    VAR
+        a : BYTE := 0;
+        b : WORD := 0;
+        c : DWORD := 0;
+        d : LWORD := 0;
+    END_VAR
+    a.1 := TRUE;
+    a.%X0 := TRUE;
+    b.%B0 := a;
+    c.%W0 := b;
+    d.%D0 := c;
+    main := d;
+    END_FUNCTION";
+
+    struct Type {}
+
+    let res :i64 = compile_and_run(prog.to_string(), &mut Type{});
+    assert_eq!(3,res);
+}
+
+#[test]
 fn bitaccess_test() {
     let prog = "
     FUNCTION main : DINT
