@@ -2,17 +2,10 @@
 use super::{
     expression_generator::ExpressionCodeGenerator, llvm::Llvm, pou_generator::PouGenerator,
 };
-use crate::{
-    ast::{flatten_expression_list, AstStatement, ConditionalBlock, Operator, SourceRange},
-    codegen::LlvmTypedIndex,
-    compile_error::CompileError,
-    index::{ImplementationIndexEntry, Index},
-    resolver::AnnotationMap,
-    typesystem::{
+use crate::{ast::{flatten_expression_list, AstStatement, ConditionalBlock, Operator, SourceRange}, codegen::{LlvmTypedIndex, llvm_typesystem}, compile_error::CompileError, index::{ImplementationIndexEntry, Index}, resolver::AnnotationMap, typesystem::{
         DataTypeInformation, DINT_TYPE, RANGE_CHECK_LS_FN, RANGE_CHECK_LU_FN, RANGE_CHECK_S_FN,
         RANGE_CHECK_U_FN,
-    },
-};
+    }};
 use inkwell::{
     basic_block::BasicBlock,
     builder::Builder,
@@ -190,6 +183,10 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         left_statement: &AstStatement,
         right_statement: &AstStatement,
     ) -> Result<(), CompileError> {
+        //TODO: Looks hacky, the strings will be similar so we should look into making the assignment a bit nicer.
+        if left_statement.has_direct_access() {
+            return self.generate_direct_access_assignment(left_statement, right_statement);
+        }
         let exp_gen = self.create_expr_generator();
         let left = exp_gen.generate_element_pointer(left_statement)?;
         let left_type = exp_gen.get_type_hint_info_for(left_statement)?;
@@ -218,6 +215,50 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
             .build_store(left, exp_gen.generate_expression(right_statement)?);
 
         Ok(())
+    }
+
+    fn generate_direct_access_assignment(
+        &self,
+        left_statement: &AstStatement,
+        right_statement: &AstStatement,
+    ) -> Result<(), CompileError> {
+        //TODO : Validation
+        let exp_gen = self.create_expr_generator();
+        if let AstStatement::QualifiedReference{elements, ..} = left_statement {
+            //Access 
+            let (last, qualifer) = elements.split_last().unwrap();
+            //Target
+            let target : Vec<&AstStatement> = qualifer.iter().rev().take_while(|it| {
+                !matches!(*it,&AstStatement::DirectAccess{..})
+            }).collect();
+
+
+            //Left pointer
+            let left = exp_gen.generate_element_pointer_from_elements(qualifer, left_statement.get_location())?;
+            
+            //Generate an expression for the right size
+            let right = exp_gen.generate_expression(right_statement)?;
+            //Cast the right side to the left side type
+            let left_type = self.annotations.get_type_or_void(target.last().unwrap(), self.index);
+            let right_type = self.annotations.get_type_or_void(right_statement, self.index);
+            let lhs = llvm_typesystem::cast_if_needed(self.llvm, self.index, left_type, right, right_type, right_statement).map(BasicValueEnum::into_int_value)?;
+            let rhs = if let AstStatement::DirectAccess {access, index, ..} = last {
+                exp_gen.generate_direct_access_index(access, &index, right_type.get_type_information(), left_type)
+            } else {
+                Err(CompileError::codegen_error(format!("{:?} not a direct access", last), last.get_location()))
+            }?;
+            //Shift left by the direct access
+            let value = self.llvm.builder.build_left_shift(lhs, rhs, "");
+            let left_value = self.llvm.load_pointer(&left, "").into_int_value();
+            //OR the result and store it in the left side
+            let or_value = self.llvm.builder.build_or(left_value, value, "");
+            self.llvm.builder.build_store(left, or_value);
+        } else {
+            unreachable!()
+        }
+
+        Ok(())
+
     }
 
     /// returns the implementation of the sub-range-check-function for a variable of the given dataType

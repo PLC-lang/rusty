@@ -17,24 +17,24 @@ struct MainType {
 #[test]
 fn bitaccess_assignment() {
     let prog = "
-    FUNCTION main : LWORD
+    FUNCTION main : BYTE
     VAR
         a : BYTE := 0;
         b : WORD := 0;
         c : DWORD := 0;
         d : LWORD := 0;
     END_VAR
-    a.1 := TRUE;
-    a.%X0 := TRUE;
+    a.1 := TRUE; //2#0000_0010
+    a.%X0 := TRUE; //2#0000_0011
     b.%B0 := a;
     c.%W0 := b;
     d.%D0 := c;
-    main := d;
+    main := a;
     END_FUNCTION";
 
     struct Type {}
 
-    let res :i64 = compile_and_run(prog.to_string(), &mut Type{});
+    let res :u8 = compile_and_run(prog.to_string(), &mut Type{});
     assert_eq!(3,res);
 }
 
