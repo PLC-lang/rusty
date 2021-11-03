@@ -14,8 +14,8 @@ entry:
   %main = alloca i16, align 2
   store i64 0, i64* %d, align 4
   %1 = load i64, i64* %d, align 4
-  %and = and i64 %1, 0
-  %or = or i64 %and, 11259375
+  %and = and i64 %1, 8589934591
+  %or = or i64 %and, 8589934592
   store i64 %or, i64* %d, align 4
   %main_ret = load i16, i16* %main, align 2
   ret i16 %main_ret

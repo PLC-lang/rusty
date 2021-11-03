@@ -6,10 +6,12 @@ fn bitaccess_assignment() {
     let prog = codegen("
     FUNCTION main : INT
     VAR
-        a : BYTE := 0;
+        a : BYTE;
+        b : INT := 1;
     END_VAR
     a.1 := TRUE;
-    a.%X0 := TRUE;
+    a.%X2 := FALSE;
+    a.%Xb := FALSE;
     END_FUNCTION");
 
     insta::assert_snapshot!(prog);
@@ -49,6 +51,19 @@ fn dwordaccess_assignment() {
         d : LWORD := 0;
     END_VAR
     d.%D0 := 16#AB_CD_EF;
+    END_FUNCTION");
+
+    insta::assert_snapshot!(prog);
+}
+
+#[test]
+fn chained_bit_assignment() {
+    let prog = codegen("
+    FUNCTION main : INT
+    VAR
+        d : LWORD := 0;
+    END_VAR
+    d.%D1.%X1 := TRUE;
     END_FUNCTION");
 
     insta::assert_snapshot!(prog);
