@@ -92,6 +92,7 @@ fn date_literals_are_annotated() {
                 TIME#-12m;
                 TOD#00:00:12;
                 TIME_OF_DAY#04:16:22;
+				TIME_OF_DAY#04:16;
                 DATE_AND_TIME#1984-10-01-16:40:22; 
                 DT#2021-04-20-22:33:14; 
                 DATE#1984-10-01; 
@@ -104,6 +105,7 @@ fn date_literals_are_annotated() {
     let expected_types = vec![
         "TIME",
         "TIME",
+        "TIME_OF_DAY",
         "TIME_OF_DAY",
         "TIME_OF_DAY",
         "DATE_AND_TIME",

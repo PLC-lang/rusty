@@ -979,6 +979,7 @@ fn literal_time_of_day_test() {
             TIME_OF_DAY#04:16:22;
             TIME_OF_DAY#04:16:22.1;
             TIME_OF_DAY#04:16:22.001;
+			TIME_OF_DAY#04:16;
         END_PROGRAM
         ";
     let result = parse(src).0;
@@ -1019,6 +1020,12 @@ fn literal_time_of_day_test() {
         min: 16,
         sec: 22,
         milli: 1,
+    },
+    LiteralTimeOfDay {
+        hour: 4,
+        min: 16,
+        sec: 0,
+        milli: 0,
     },
 ]"#;
     assert_eq!(ast_string, expected_ast);

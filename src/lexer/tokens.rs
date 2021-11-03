@@ -344,7 +344,7 @@ pub enum Token {
     )]
     LiteralDateAndTime,
 
-    #[regex("(TIME_OF_DAY|TOD)#\\d+:\\d+:\\d+(\\.\\d+)?", ignore(case))]
+    #[regex("(TIME_OF_DAY|TOD)#\\d+:\\d+(:\\d+(\\.\\d+)?)?", ignore(case))]
     LiteralTimeOfDay,
 
     #[regex("T(IME)?#-?(\\d+(\\.\\d+)?(d|h|ms|m|s|us|ns))+", ignore(case))]

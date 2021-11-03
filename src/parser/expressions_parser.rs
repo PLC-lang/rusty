@@ -661,7 +661,12 @@ fn parse_literal_time_of_day(lexer: &mut ParseSession) -> Result<AstStatement, D
     let hour = parse_number::<u32>(segments.next().unwrap(), &location)?;
     let min = parse_number::<u32>(segments.next().unwrap(), &location)?;
 
-    let sec = parse_number::<f64>(segments.next().unwrap(), &location)?;
+    // TOD doesn't necessarily have to have seconds, e.g [12:00] is also valid
+    let sec = match segments.next() {
+        Some(v) => parse_number::<f64>(v, &location)?,
+        None => 0.0,
+    };
+
     let milli = (sec.fract() * 1000_f64) as u32;
     Ok(AstStatement::LiteralTimeOfDay {
         hour,

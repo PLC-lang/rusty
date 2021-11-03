@@ -307,7 +307,11 @@ fn date_and_time_literals_test() {
 
 #[test]
 fn time_of_day_literals_test() {
-    let mut lexer = lex("TIME_OF_DAY#20:15:12 TOD#1:1:1 TOD#1:1:1.123");
+    let mut lexer = lex("TIME_OF_DAY#20:15:12 TOD#1:1:1 TOD#1:1:1.123 TIME_OF_DAY#12:13 TOD#10:20");
+    assert_eq!(lexer.token, LiteralTimeOfDay);
+    lexer.advance();
+    assert_eq!(lexer.token, LiteralTimeOfDay);
+    lexer.advance();
     assert_eq!(lexer.token, LiteralTimeOfDay);
     lexer.advance();
     assert_eq!(lexer.token, LiteralTimeOfDay);

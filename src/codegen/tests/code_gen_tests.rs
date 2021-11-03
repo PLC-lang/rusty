@@ -718,6 +718,10 @@ y := TIME_OF_DAY#00:00:00;
 y := TOD#01:00:00;
 y := TIME_OF_DAY#01:00:00.001;
 y := TOD#1:1:1;
+y := TIME_OF_DAY#20:15:00;
+y := TIME_OF_DAY#20:15;
+y := TOD#11:11:00;
+y := TOD#11:11;
 END_PROGRAM
 "#,
     );
@@ -736,6 +740,10 @@ entry:
   store i64 3600000, i64* %y, align 4
   store i64 3600001, i64* %y, align 4
   store i64 3661000, i64* %y, align 4
+  store i64 72900000, i64* %y, align 4
+  store i64 72900000, i64* %y, align 4
+  store i64 40260000, i64* %y, align 4
+  store i64 40260000, i64* %y, align 4
   ret void
 }
 "#;
