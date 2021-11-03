@@ -72,14 +72,10 @@ pub fn generate_data_types<'ink>(
         generator.types_index.associate_type(name, gen_type)?
     }
 
-    // extend the stubbed structs with the member fields
-    for (_, user_type) in types {
-        generator.expand_opaque_types(user_type)?;
-    }
-
     // now since all types should be available in the llvm index, we can think about constructing and associating
     // initial values for the types
     for (name, user_type) in types {
+        generator.expand_opaque_types(user_type)?;
         if let Some(init_value) = generator.generate_initial_value(user_type)? {
             generator
                 .types_index
