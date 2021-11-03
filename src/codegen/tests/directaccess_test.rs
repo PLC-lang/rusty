@@ -3,7 +3,8 @@ use crate::test_utils::tests::codegen;
 
 #[test]
 fn bitaccess_assignment() {
-    let prog = codegen("
+    let prog = codegen(
+        "
     FUNCTION main : INT
     VAR
         a : BYTE;
@@ -12,59 +13,68 @@ fn bitaccess_assignment() {
     a.1 := TRUE;
     a.%X2 := FALSE;
     a.%Xb := FALSE;
-    END_FUNCTION");
+    END_FUNCTION",
+    );
 
     insta::assert_snapshot!(prog);
 }
 
 #[test]
 fn byteaccess_assignment() {
-    let prog = codegen("
+    let prog = codegen(
+        "
     FUNCTION main : INT
     VAR
         b : WORD := 0;
     END_VAR
     b.%B0 := 2;
-    END_FUNCTION");
+    END_FUNCTION",
+    );
 
     insta::assert_snapshot!(prog);
 }
 
 #[test]
 fn wordaccess_assignment() {
-    let prog = codegen("
+    let prog = codegen(
+        "
     FUNCTION main : INT
     VAR
         c : DWORD := 0;
     END_VAR
     c.%W0 := 256;
-    END_FUNCTION");
+    END_FUNCTION",
+    );
 
     insta::assert_snapshot!(prog);
 }
 
 #[test]
 fn dwordaccess_assignment() {
-    let prog = codegen("
+    let prog = codegen(
+        "
     FUNCTION main : INT
     VAR
         d : LWORD := 0;
     END_VAR
     d.%D0 := 16#AB_CD_EF;
-    END_FUNCTION");
+    END_FUNCTION",
+    );
 
     insta::assert_snapshot!(prog);
 }
 
 #[test]
 fn chained_bit_assignment() {
-    let prog = codegen("
+    let prog = codegen(
+        "
     FUNCTION main : INT
     VAR
         d : LWORD := 0;
     END_VAR
     d.%D1.%X1 := TRUE;
-    END_FUNCTION");
+    END_FUNCTION",
+    );
 
     insta::assert_snapshot!(prog);
 }

@@ -35,24 +35,25 @@ fn bitaccess_assignment() {
 
     #[allow(dead_code)]
     #[repr(C)]
-    #[derive(Default,Debug)]
+    #[derive(Default, Debug)]
     struct Type {
-        a : u8,
-        b : u16,
-        c : u32,
-        d : u64,
+        a: u8,
+        b: u16,
+        c: u32,
+        d: u64,
     }
     let mut param = Type::default();
 
+    compile_and_run::<_, i32>(prog.to_string(), &mut param);
 
-    compile_and_run::<_,i32>(prog.to_string(), &mut param);
-    
     assert_eq!(0b0000_0010, param.a);
     assert_eq!(0b0000_0010_0000_0000, param.b);
     assert_eq!(0b0000_0010_0000_0000_0000_0000_0000_0000, param.c);
-    assert_eq!(0b0000_0010_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000, param.d);
+    assert_eq!(
+        0b0000_0010_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000,
+        param.d
+    );
 }
-
 
 #[test]
 fn bitaccess_chained_assignment() {
@@ -68,13 +69,14 @@ fn bitaccess_chained_assignment() {
     main := d;       //2#0000_0010_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000
     END_FUNCTION";
 
-    struct Type {
-    }
+    struct Type {}
 
+    let res: u64 = compile_and_run(prog.to_string(), &mut Type {});
 
-    let res : u64 = compile_and_run(prog.to_string(), &mut Type{});
-    
-    assert_eq!(0b0000_0010_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000, res);
+    assert_eq!(
+        0b0000_0010_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000,
+        res
+    );
 }
 
 #[test]

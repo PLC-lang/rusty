@@ -248,7 +248,8 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
         if let AstStatement::DirectAccess { access, index, .. } = last {
             //Generate and load the index value
             let datatype = self.get_type_hint_info_for(last)?;
-            let rhs = self.generate_direct_access_index(access, &*index, datatype, expression_type)?;
+            let rhs =
+                self.generate_direct_access_index(access, &*index, datatype, expression_type)?;
             //Shift the qualifer value right by the index value
             let shift = self.llvm.builder.build_right_shift(
                 value.into_int_value(),

@@ -1352,7 +1352,6 @@ END_PROGRAM
 "#,
     );
     insta::assert_snapshot!(result);
-   
 }
 
 #[test]
@@ -1383,9 +1382,8 @@ x AND NOT y;
 END_PROGRAM
 "#,
     );
-   
-    insta::assert_snapshot!(result);
 
+    insta::assert_snapshot!(result);
 }
 
 #[test]
@@ -1631,7 +1629,6 @@ fn for_statement_with_continue() {
         ",
     );
     insta::assert_snapshot!(result);
-
 }
 
 #[test]
@@ -2276,8 +2273,7 @@ fn while_with_expression_statement() {
         ",
     );
     insta::assert_snapshot!(result);
-
-  }
+}
 
 #[test]
 fn repeat_statement() {
