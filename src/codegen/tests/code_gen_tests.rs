@@ -5244,29 +5244,7 @@ fn initial_values_in_global_variables_out_of_order() {
         ",
     );
 
-    let expected = r#"; ModuleID = 'main'
-source_filename = "main"
-
-%MyFB_interface = type { i16 }
-%prg_interface = type { %MyFB_interface }
-
-@x = global %MyFB_interface { i16 77 }
-@prg_instance = global %prg_interface { %MyFB_interface { i16 77 } }
-
-define void @prg(%prg_interface* %0) {
-entry:
-  %x = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 0
-  ret void
-}
-
-define void @MyFB(%MyFB_interface* %0) {
-entry:
-  %x = getelementptr inbounds %MyFB_interface, %MyFB_interface* %0, i32 0, i32 0
-  ret void
-}
-"#;
-
-    assert_eq!(result, expected);
+    insta::assert_snapshot!(result);
 }
 
 #[test]
