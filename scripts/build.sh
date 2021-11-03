@@ -294,6 +294,11 @@ if [[ $coverage -ne 0 ]]; then
   run_coverage
 fi
 
+if [[ -d target/]]; then
+	log "Allow access to target folders"
+	chmod a+rw -R $project_location/target/
+fi
+
 if [[ $offline -ne 0 ]]; then
 	log "Removing temporary build directory : $BUILD_DIR"
 	rm -rf "$BUILD_DIR"
