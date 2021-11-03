@@ -6,7 +6,6 @@
 /// - Alias types
 /// - sized Strings
 use crate::ast::SourceRange;
-use crate::codegen::generators::struct_generator;
 use crate::index::{Index, VariableIndexEntry, VariableType};
 use crate::resolver::AnnotationMap;
 use crate::typesystem::{Dimension, StringEncoding};
@@ -25,9 +24,7 @@ use inkwell::{
     AddressSpace,
 };
 
-use super::{
-    expression_generator::ExpressionCodeGenerator, llvm::Llvm, struct_generator::StructGenerator,
-};
+use super::{expression_generator::ExpressionCodeGenerator, llvm::Llvm};
 
 pub struct DataTypeGenerator<'ink, 'b> {
     llvm: &'b Llvm<'ink>,
@@ -78,17 +75,11 @@ pub fn generate_data_types<'ink>(
     // extend the stubbed structs with the member fields
     for (_, user_type) in types {
         generator.expand_opaque_types(user_type)?;
-        /*if let Some(initial_value) = generator.generate_initial_value(user_type) {
-            generator
-                .types_index
-                .associate_initial_value(name, initial_value)?
-        }*/
     }
 
     // now since all types should be available in the llvm index, we can think about constructing and associating
     // initial values for the types
     for (name, user_type) in types {
-        //TODO err handling
         if let Some(init_value) = generator.generate_initial_value(user_type)? {
             generator
                 .types_index
@@ -103,29 +94,21 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
     /// generates the members of an opaque struct and associates its initial values
     fn expand_opaque_types(&mut self, data_type: &DataType) -> Result<(), CompileError> {
         let information = data_type.get_type_information();
-        if let DataTypeInformation::Struct { member_names, .. } = information {
-            let mut struct_generator =
-                StructGenerator::new(self.llvm, self.index, self.annotations, &self.types_index);
-            let members: Vec<&VariableIndexEntry> = member_names
-                .iter()
-                .map(|variable_name| {
-                    self.index
-                        .find_member(data_type.get_name(), variable_name)
-                        .unwrap()
-                })
-                .filter(|var| !var.is_return())
-                //Avoid generating temp variables in llvm
-                .filter(|var| !var.is_temp())
-                .collect();
-            // let (initial_value, member_values) =
-            struct_generator.generate_struct_type(&members, data_type.get_name())?;
-            // for (member, value) in member_values {
-            //     let qualified_name = format!("{}.{}", data_type.get_name(), member);
-            //     self.types_index
-            //         .associate_initial_value(&qualified_name, value)?;
-            // }
-            // self.types_index
-            //     .associate_initial_value(data_type.get_name(), initial_value)?;
+        if let DataTypeInformation::Struct { .. } = information {
+            let members = self
+                .index
+                .get_container_members(data_type.get_name())
+                .into_iter()
+                .filter(|it| !it.is_temp() && !it.is_return())
+                .map(|m| self.types_index.get_associated_type(m.get_type_name()))
+                .collect::<Result<Vec<BasicTypeEnum>, CompileError>>()?;
+
+            let struct_type = self
+                .types_index
+                .get_associated_type(data_type.get_name())
+                .map(BasicTypeEnum::into_struct_type)?;
+
+            struct_type.set_body(members.as_slice(), false);
         }
         Ok(())
     }
@@ -201,7 +184,6 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
                 )?;
                 Ok(ref_type)
             }
-            // REVIEW: Void types are not basic type enums, so we return an int here
             DataTypeInformation::Void => {
                 get_llvm_int_type(self.llvm.context, 32, "Void").map(Into::into)
             }
@@ -223,8 +205,7 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
         match information {
             DataTypeInformation::Struct { .. } => {
                 let members = self.index.get_container_members(data_type.get_name());
-
-                let member_pairs = members
+                let member_names_and_initializers = members
                     .iter()
                     .filter(|it| it.get_variable_type() != VariableType::Temp)
                     .map(|it| {
@@ -234,26 +215,27 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
                                 None => self
                                     .types_index
                                     .get_associated_type(it.get_type_name())
-                                    .map(struct_generator::get_default_for)
+                                    .map(get_default_for)
                                     .map(|v| (it.get_qualified_name(), v)),
                             })
                     })
                     .collect::<Result<Vec<(&str, BasicValueEnum)>, CompileError>>()?;
 
-                for (name, v) in &member_pairs {
+                let mut member_values: Vec<BasicValueEnum> = Vec::new();
+                for (name, v) in &member_names_and_initializers {
                     self.types_index.associate_initial_value(name, *v)?;
+                    member_values.push(*v);
                 }
 
-                let member_values = member_pairs
-                    .iter()
-                    .map(|(_, v)| *v)
-                    .collect::<Vec<BasicValueEnum>>();
-                let st = self
+                let struct_type = self
                     .types_index
                     .get_associated_type(data_type.get_name())?
                     .into_struct_type();
+
                 Ok(Some(
-                    st.const_named_struct(&member_values).as_basic_value_enum(),
+                    struct_type
+                        .const_named_struct(&member_values)
+                        .as_basic_value_enum(),
                 ))
             }
             DataTypeInformation::Array { .. } => self.generate_array_initializer(
@@ -261,9 +243,6 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
                 |stmt| matches!(stmt, AstStatement::LiteralArray { .. }),
                 "LiteralArray",
             ),
-            DataTypeInformation::Integer { .. } => Ok(None),
-            DataTypeInformation::Enum { .. } => Ok(None),
-            DataTypeInformation::Float { .. } => Ok(None),
             DataTypeInformation::String { .. } => self.generate_array_initializer(
                 data_type,
                 |stmt| matches!(stmt, AstStatement::LiteralString { .. }),
@@ -275,23 +254,28 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
             DataTypeInformation::Alias {
                 referenced_type, ..
             } => self.generate_initial_value_for_type(data_type, referenced_type),
-            // Void types are not basic type enums, so we return an int here
-            DataTypeInformation::Void => Ok(None), //get_llvm_int_type(llvm.context, 32, "Void").map(Into::into),
-            DataTypeInformation::Pointer { .. } => Ok(None),
+            //all other types (scalars, pointer and void)
+            _ => Ok(None),
         }
     }
 
+    /// generates and returns an optional inital value at the given declared variable
+    /// if no initial value is defined, it returns the initial value of the variable's
+    /// datatype or Ok(None) if the type also has no declared default value
     fn generate_initial_value_for_variable(
         &mut self,
         variable: &VariableIndexEntry,
     ) -> Result<Option<BasicValueEnum<'ink>>, CompileError> {
-        //is there an initializer defined?
         let initializer = variable.initial_value.and_then(|it| {
             self.index
                 .get_const_expressions()
                 .get_constant_statement(&it)
         });
-        self.generate_initializer(initializer, variable.get_type_name())
+        self.generate_initializer(
+            variable.get_qualified_name(),
+            initializer,
+            variable.get_type_name(),
+        )
     }
 
     /// generates and returns an optional inital value at the given dataType
@@ -303,6 +287,7 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
         referenced_type: &str,
     ) -> Result<Option<BasicValueEnum<'ink>>, CompileError> {
         self.generate_initializer(
+            data_type.get_name(),
             self.index
                 .get_const_expressions()
                 .maybe_get_constant_statement(&data_type.initial_value),
@@ -310,8 +295,13 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
         )
     }
 
+    /// generates the given initializer-statement if one is present
+    /// if no initializer is present, it returns an optional default value
+    /// of the given datatype.
+    /// Errors will be reported using the given qualified_name
     fn generate_initializer(
         &mut self,
+        qualified_name: &str,
         initializer: Option<&AstStatement>,
         data_type_name: &str,
     ) -> Result<Option<BasicValueEnum<'ink>>, CompileError> {
@@ -322,7 +312,15 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
                 self.annotations,
                 &self.types_index,
             );
-            generator.generate_expression(initializer).map(Some)
+            generator
+                .generate_expression(initializer)
+                .map(Some)
+                .map_err(|_| {
+                    CompileError::cannot_generate_initializer(
+                        qualified_name,
+                        initializer.get_location(),
+                    )
+                })
         } else {
             // if there's no initializer defined for this alias, we go and check the aliased type for an initial value
             self.index
@@ -384,5 +382,16 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
             current_type = result.unwrap().into();
         }
         Ok(result.unwrap())
+    }
+}
+
+pub fn get_default_for(basic_type: BasicTypeEnum) -> BasicValueEnum {
+    match basic_type {
+        BasicTypeEnum::ArrayType(t) => t.const_zero().into(),
+        BasicTypeEnum::FloatType(t) => t.const_zero().into(),
+        BasicTypeEnum::IntType(t) => t.const_zero().into(),
+        BasicTypeEnum::PointerType(t) => t.const_zero().into(),
+        BasicTypeEnum::StructType(t) => t.const_zero().into(),
+        BasicTypeEnum::VectorType(t) => t.const_zero().into(),
     }
 }
