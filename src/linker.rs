@@ -13,6 +13,7 @@ trait LinkerInterface {
     fn add_obj(&mut self, path: &str);
     fn add_lib(&mut self, path: &str);
     fn add_lib_path(&mut self, path: &str);
+    fn add_sysroot(&mut self, path: &str);
     fn build_shared_object(&mut self, path: &str);
     fn build_exectuable(&mut self, path: &str);
     fn finalize(&mut self) -> Result<(), LinkerError>;
@@ -49,6 +50,12 @@ impl Linker {
     /// Add a library seaBoxh path to look in for libraries
     pub fn add_lib<'a>(&'a mut self, path: &str) -> &'a mut Self {
         self.linker.add_lib(path);
+        self
+    }
+
+    /// Add path to system root
+    pub fn add_sysroot<'a>(&'a mut self, path: &str) -> &'a mut Self {
+        self.linker.add_sysroot(path);
         self
     }
 
@@ -107,6 +114,10 @@ impl LinkerInterface for LdLinker {
 
     fn add_lib(&mut self, path: &str) {
         self.args.push(format!("-l{}", path));
+    }
+
+    fn add_sysroot(&mut self, path: &str) {
+        self.args.push(format!("--sysroot={}", path));
     }
 
     fn build_shared_object(&mut self, path: &str) {

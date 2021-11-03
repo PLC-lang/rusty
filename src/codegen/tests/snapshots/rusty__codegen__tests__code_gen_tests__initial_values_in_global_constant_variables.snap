@@ -1,0 +1,27 @@
+---
+source: src/codegen/tests/code_gen_tests.rs
+expression: result
+
+---
+; ModuleID = 'main'
+source_filename = "main"
+
+@c_INT = global i16 7
+@c_3c = global i16 21
+@c_BOOL = global i1 true
+@c_not = global i1 false
+@c_str = global [81 x i8] c"Hello\00"
+@c_wstr = global [81 x i16] [i16 87, i16 111, i16 114, i16 108, i16 100, i16 0]
+@c_real = global float 0x40091EB860000000
+@c_lreal = global double 3.141500e+00
+@x = global i16 7
+@y = global i16 14
+@z = global i16 32
+@b = global i1 true
+@nb = global i1 false
+@bb = global i1 false
+@str = global [81 x i8] c"Hello\00"
+@wstr = global [81 x i16] [i16 87, i16 111, i16 114, i16 108, i16 100, i16 0]
+@r = global float 0x3FF91EB860000000
+@tau = global double 6.283000e+00
+

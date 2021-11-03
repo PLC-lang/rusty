@@ -1,0 +1,58 @@
+---
+source: src/codegen/tests/code_gen_tests.rs
+expression: result
+
+---
+; ModuleID = 'main'
+source_filename = "main"
+
+%prg_interface = type { i16 }
+%CheckRangeSigned_interface = type { i16, i16, i16 }
+
+@CONST = global i16 7
+@MIN = global i16 7
+@prg_instance = global %prg_interface zeroinitializer
+
+define i16 @CheckRangeSigned(%CheckRangeSigned_interface* %0) {
+entry:
+  %value = getelementptr inbounds %CheckRangeSigned_interface, %CheckRangeSigned_interface* %0, i32 0, i32 0
+  %lower = getelementptr inbounds %CheckRangeSigned_interface, %CheckRangeSigned_interface* %0, i32 0, i32 1
+  %upper = getelementptr inbounds %CheckRangeSigned_interface, %CheckRangeSigned_interface* %0, i32 0, i32 2
+  %CheckRangeSigned = alloca i16, align 2
+  %load_value = load i16, i16* %value, align 2
+  store i16 %load_value, i16* %CheckRangeSigned, align 2
+  %CheckRangeSigned_ret = load i16, i16* %CheckRangeSigned, align 2
+  ret i16 %CheckRangeSigned_ret
+}
+
+define void @prg(%prg_interface* %0) {
+entry:
+  %x = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 0
+  %CheckRangeSigned_instance = alloca %CheckRangeSigned_interface, align 8
+  br label %input
+
+input:                                            ; preds = %entry
+  %1 = getelementptr inbounds %CheckRangeSigned_interface, %CheckRangeSigned_interface* %CheckRangeSigned_instance, i32 0, i32 0
+  store i16 5, i16* %1, align 2
+  %2 = getelementptr inbounds %CheckRangeSigned_interface, %CheckRangeSigned_interface* %CheckRangeSigned_instance, i32 0, i32 1
+  store i16 0, i16* %2, align 2
+  %3 = getelementptr inbounds %CheckRangeSigned_interface, %CheckRangeSigned_interface* %CheckRangeSigned_instance, i32 0, i32 2
+  %load_MIN = load i16, i16* @MIN, align 2
+  %4 = sext i16 %load_MIN to i32
+  %tmpVar = add i32 %4, 1
+  %5 = trunc i32 %tmpVar to i16
+  store i16 %5, i16* %3, align 2
+  br label %call
+
+call:                                             ; preds = %input
+  %call1 = call i16 @CheckRangeSigned(%CheckRangeSigned_interface* %CheckRangeSigned_instance)
+  br label %output
+
+output:                                           ; preds = %call
+  br label %continue
+
+continue:                                         ; preds = %output
+  store i16 %call1, i16* %x, align 2
+  ret void
+}
+

@@ -4,7 +4,7 @@ use super::{
 };
 use crate::{
     ast::{flatten_expression_list, AstStatement, ConditionalBlock, Operator, SourceRange},
-    codegen::{llvm_typesystem::cast_if_needed, LlvmTypedIndex},
+    codegen::LlvmTypedIndex,
     compile_error::CompileError,
     index::{ImplementationIndexEntry, Index},
     resolver::AnnotationMap,
@@ -15,6 +15,8 @@ use crate::{
 };
 use inkwell::{
     basic_block::BasicBlock,
+    builder::Builder,
+    context::Context,
     values::{BasicValueEnum, FunctionValue},
     IntPredicate,
 };
@@ -77,7 +79,6 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
             self.index,
             self.annotations,
             self.llvm_index,
-            None,
             self.function_context,
         )
     }
@@ -95,11 +96,9 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
     /// building block before the second one, so the don't directly
     /// follow each other. this is what we call a buffer block.
     fn generate_buffer_block(&self) {
-        let builder = &self.llvm.builder;
-        let buffer_block = self
-            .llvm
-            .context
-            .insert_basic_block_after(builder.get_insert_block().unwrap(), "buffer_block");
+        let (builder, _, context) = self.get_llvm_deps();
+        let buffer_block =
+            context.insert_basic_block_after(builder.get_insert_block().unwrap(), "buffer_block");
         builder.position_at_end(buffer_block);
     }
 
@@ -147,12 +146,9 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
             } => {
                 self.generate_case_statement(selector, case_blocks, else_block)?;
             }
-            AstStatement::ReturnStatement { location, .. } => {
-                self.pou_generator.generate_return_statement(
-                    self.function_context,
-                    self.llvm_index,
-                    Some(location.clone()),
-                )?;
+            AstStatement::ReturnStatement { .. } => {
+                self.pou_generator
+                    .generate_return_statement(self.function_context, self.llvm_index)?;
                 self.generate_buffer_block();
             }
             AstStatement::ExitStatement { location, .. } => {
@@ -196,14 +192,16 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
     ) -> Result<(), CompileError> {
         let exp_gen = self.create_expr_generator();
         let left = exp_gen.generate_element_pointer(left_statement)?;
+        let left_type = exp_gen.get_type_hint_info_for(left_statement)?;
         // if the lhs-type is a subrange type we may need to generate a check-call
         // e.g. x := y,  ==> x := CheckSignedInt(y);
         let range_checked_right_side =
-            if let DataTypeInformation::SubRange { sub_range, .. } = left.get_type_information() {
+            if let DataTypeInformation::SubRange { sub_range, .. } = left_type {
                 // there is a sub-range defined, so we need to wrap the right side into the check function if it exists
-                self.find_range_check_impolementation_for(left.get_type_information())
+                self.find_range_check_implementation_for(left_type)
                     .map(|implementation| {
                         create_call_to_check_function_ast(
+                            left_statement,
                             implementation.get_call_name().to_string(),
                             right_statement.clone(),
                             sub_range.clone(),
@@ -214,42 +212,41 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
                 None
             };
 
-        let (right_type, right) = if let Some(check_call) = range_checked_right_side {
-            exp_gen.generate_expression(&check_call)?
-        } else {
-            exp_gen.generate_expression(right_statement)?
-        };
+        let right_statement = range_checked_right_side.as_ref().unwrap_or(right_statement);
+        self.llvm
+            .builder
+            .build_store(left, exp_gen.generate_expression(right_statement)?);
 
-        let cast_value = cast_if_needed(
-            self.llvm,
-            self.index,
-            left.get_type_information(),
-            right,
-            &right_type,
-            right_statement,
-        )?;
-        self.llvm.builder.build_store(left.ptr_value, cast_value);
         Ok(())
     }
 
     /// returns the implementation of the sub-range-check-function for a variable of the given dataType
-    fn find_range_check_impolementation_for(
+    fn find_range_check_implementation_for(
         &self,
-        data_type: &DataTypeInformation,
+        range_type: &DataTypeInformation,
     ) -> Option<&ImplementationIndexEntry> {
-        let effective_type = self.index.find_effective_type_information(data_type);
-        match effective_type {
-            Some(DataTypeInformation::Integer { signed, size, .. }) if *signed && *size <= 32 => {
+        match range_type {
+            DataTypeInformation::Integer { signed, size, .. } if *signed && *size <= 32 => {
                 self.index.find_implementation(RANGE_CHECK_S_FN)
             }
-            Some(DataTypeInformation::Integer { signed, size, .. }) if *signed && *size > 32 => {
+            DataTypeInformation::Integer { signed, size, .. } if *signed && *size > 32 => {
                 self.index.find_implementation(RANGE_CHECK_LS_FN)
             }
-            Some(DataTypeInformation::Integer { signed, size, .. }) if !*signed && *size <= 32 => {
+            DataTypeInformation::Integer { signed, size, .. } if !*signed && *size <= 32 => {
                 self.index.find_implementation(RANGE_CHECK_U_FN)
             }
-            Some(DataTypeInformation::Integer { signed, size, .. }) if !*signed && *size > 32 => {
+            DataTypeInformation::Integer { signed, size, .. } if !*signed && *size > 32 => {
                 self.index.find_implementation(RANGE_CHECK_LU_FN)
+            }
+            DataTypeInformation::Alias { name, .. }
+            | DataTypeInformation::SubRange {
+                referenced_type: name,
+                ..
+            } => {
+                //traverse to the primitive type
+                self.index
+                    .find_effective_type_info(name)
+                    .and_then(|info| self.find_range_check_implementation_for(info))
             }
             _ => None,
         }
@@ -272,25 +269,12 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         by_step: &Option<Box<AstStatement>>,
         body: &[AstStatement],
     ) -> Result<(), CompileError> {
-        let builder = &self.llvm.builder;
-        let current_function = self.function_context.function;
+        let (builder, current_function, context) = self.get_llvm_deps();
         self.generate_assignment_statement(counter, start)?;
-        let condition_check = self
-            .llvm
-            .context
-            .append_basic_block(current_function, "condition_check");
-        let for_body = self
-            .llvm
-            .context
-            .append_basic_block(current_function, "for_body");
-        let increment_block = self
-            .llvm
-            .context
-            .append_basic_block(current_function, "increment");
-        let continue_block = self
-            .llvm
-            .context
-            .append_basic_block(current_function, "continue");
+        let condition_check = context.append_basic_block(current_function, "condition_check");
+        let for_body = context.append_basic_block(current_function, "for_body");
+        let increment_block = context.append_basic_block(current_function, "increment");
+        let continue_block = context.append_basic_block(current_function, "continue");
 
         //Generate an initial jump to the for condition
         builder.build_unconditional_branch(condition_check);
@@ -298,8 +282,8 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         //Check loop condition
         builder.position_at_end(condition_check);
         let exp_gen = self.create_expr_generator();
-        let (_, counter_statement) = exp_gen.generate_expression(counter)?;
-        let (_, end_statement) = exp_gen.generate_expression(end)?;
+        let counter_statement = exp_gen.generate_expression(counter)?;
+        let end_statement = exp_gen.generate_expression(end)?;
 
         let compare = builder.build_int_compare(
             IntPredicate::SLE,
@@ -324,12 +308,10 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         //Increment
         builder.position_at_end(increment_block);
         let expression_generator = self.create_expr_generator();
-        let (_, step_by_value) = by_step.as_ref().map_or_else(
+        let step_by_value = by_step.as_ref().map_or_else(
             || {
-                let value = self
-                    .llvm
-                    .create_const_numeric(&self.llvm_index.get_associated_type(DINT_TYPE)?, "1")?;
-                Ok((self.index.get_type_information(DINT_TYPE)?, value))
+                self.llvm
+                    .create_const_numeric(&self.llvm_index.get_associated_type(DINT_TYPE)?, "1")
             },
             |step| expression_generator.generate_expression(step),
         )?;
@@ -340,9 +322,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
             "tmpVar",
         );
 
-        let ptr = expression_generator
-            .generate_element_pointer(counter)?
-            .ptr_value;
+        let ptr = expression_generator.generate_element_pointer(counter)?;
         builder.build_store(ptr, next);
 
         //Loop back
@@ -370,37 +350,21 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         conditional_blocks: &[ConditionalBlock],
         else_body: &[AstStatement],
     ) -> Result<Option<BasicValueEnum<'a>>, CompileError> {
-        let builder = &self.llvm.builder;
-        let current_function = self.function_context.function;
+        let (builder, current_function, context) = self.get_llvm_deps();
         //Continue
-        let continue_block = self
-            .llvm
-            .context
-            .append_basic_block(current_function, "continue");
+        let continue_block = context.append_basic_block(current_function, "continue");
 
         let basic_block = builder.get_insert_block().unwrap();
         let exp_gen = self.create_expr_generator();
-        let (selector_type, selector_statement) = exp_gen.generate_expression(&*selector)?;
-        //re-brand the expression generator to use the selector's type when generating literals
-        let exp_gen = ExpressionCodeGenerator::new(
-            self.llvm,
-            self.index,
-            self.annotations,
-            self.llvm_index,
-            Some(selector_type),
-            self.function_context,
-        );
+        let selector_statement = exp_gen.generate_expression(&*selector)?;
 
         let mut cases = Vec::new();
-        let else_block = self
-            .llvm
-            .context
-            .append_basic_block(current_function, "else");
+        let else_block = context.append_basic_block(current_function, "else");
         let mut current_else_block = else_block;
 
         for conditional_block in conditional_blocks {
             //craete a block for the case's body
-            let case_block = self.llvm.context.prepend_basic_block(else_block, "case");
+            let case_block = context.prepend_basic_block(else_block, "case");
 
             //flatten the expression list into a vector of expressions
             let expressions = flatten_expression_list(&*conditional_block.condition);
@@ -418,8 +382,8 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
                 } else {
                     // this should be a a literal or a reference to a constant
                     builder.position_at_end(basic_block);
-                    let (_, condition) = exp_gen.generate_expression(s)?; //TODO : Is a type conversion needed here?
-                                                                          // collect all literal case blocks to pass to the llvm switch-statement
+                    let condition = exp_gen.generate_expression(s)?; //TODO : Is a type conversion needed here?
+                                                                     // collect all literal case blocks to pass to the llvm switch-statement
                     cases.push((condition.into_int_value(), case_block));
                 }
             }
@@ -453,48 +417,31 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         end: &AstStatement,
         match_block: BasicBlock,
     ) -> Result<BasicBlock, CompileError> {
-        let builder = &self.llvm.builder;
+        let (builder, _, context) = self.get_llvm_deps();
 
-        let range_then = self
-            .llvm
-            .context
-            .insert_basic_block_after(builder.get_insert_block().unwrap(), "range_then");
-        let range_else = self
-            .llvm
-            .context
-            .insert_basic_block_after(range_then, "range_else");
+        let range_then =
+            context.insert_basic_block_after(builder.get_insert_block().unwrap(), "range_then");
+        let range_else = context.insert_basic_block_after(range_then, "range_else");
         let exp_gen = self.create_expr_generator();
         let lower_bound = {
-            let (type_info, start_val) = exp_gen.generate_expression(start)?;
-            let (_, selector_val) = exp_gen.generate_expression(selector)?;
-            let (_, lower_bound_condition) = exp_gen.create_llvm_int_binary_expression(
+            let start_val = exp_gen.generate_expression(start)?;
+            let selector_val = exp_gen.generate_expression(selector)?;
+            exp_gen.create_llvm_int_binary_expression(
                 &Operator::GreaterOrEqual,
                 selector_val,
                 start_val,
-                &type_info,
-            );
-            lower_bound_condition
+            )
         };
 
         //jmp to continue if the value is smaller than start
         builder.build_conditional_branch(lower_bound.into_int_value(), range_then, range_else);
         builder.position_at_end(range_then);
         let upper_bound = {
-            let (type_info, end_val) = exp_gen.generate_expression(end)?;
-            let (_, selector_val) = exp_gen.generate_expression(selector)?;
-            let (_, upper_bound_condition) = exp_gen.create_llvm_int_binary_expression(
-                &Operator::LessOrEqual,
-                selector_val,
-                end_val,
-                &type_info,
-            );
-            upper_bound_condition
+            let end_val = exp_gen.generate_expression(end)?;
+            let selector_val = exp_gen.generate_expression(selector)?;
+            exp_gen.create_llvm_int_binary_expression(&Operator::LessOrEqual, selector_val, end_val)
         };
-        self.llvm.builder.build_conditional_branch(
-            upper_bound.into_int_value(),
-            match_block,
-            range_else,
-        );
+        builder.build_conditional_branch(upper_bound.into_int_value(), match_block, range_else);
         Ok(range_else)
     }
 
@@ -559,24 +506,14 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         condition: &AstStatement,
         body: &[AstStatement],
     ) -> Result<Option<BasicValueEnum>, CompileError> {
-        let builder = &self.llvm.builder;
-        let current_function = self.function_context.function;
-        let condition_check = self
-            .llvm
-            .context
-            .append_basic_block(current_function, "condition_check");
-        let while_body = self
-            .llvm
-            .context
-            .append_basic_block(current_function, "while_body");
-        let continue_block = self
-            .llvm
-            .context
-            .append_basic_block(current_function, "continue");
+        let (builder, current_function, context) = self.get_llvm_deps();
+        let condition_check = context.append_basic_block(current_function, "condition_check");
+        let while_body = context.append_basic_block(current_function, "while_body");
+        let continue_block = context.append_basic_block(current_function, "continue");
 
         //Check loop condition
         builder.position_at_end(condition_check);
-        let (_, condition_value) = self
+        let condition_value = self
             .create_expr_generator()
             .generate_expression(condition)?;
         builder.build_conditional_branch(
@@ -612,32 +549,21 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         conditional_blocks: &[ConditionalBlock],
         else_body: &[AstStatement],
     ) -> Result<(), CompileError> {
-        let builder = &self.llvm.builder;
+        let (builder, current_function, context) = self.get_llvm_deps();
         let mut blocks = vec![builder.get_insert_block().unwrap()];
-        let current_function = self.function_context.function;
         for _ in 1..conditional_blocks.len() {
-            blocks.push(
-                self.llvm
-                    .context
-                    .append_basic_block(current_function, "branch"),
-            );
+            blocks.push(context.append_basic_block(current_function, "branch"));
         }
 
         let else_block = if !else_body.is_empty() {
-            let result = self
-                .llvm
-                .context
-                .append_basic_block(current_function, "else");
+            let result = context.append_basic_block(current_function, "else");
             blocks.push(result);
             Some(result)
         } else {
             None
         };
         //Continue
-        let continue_block = self
-            .llvm
-            .context
-            .append_basic_block(current_function, "continue");
+        let continue_block = context.append_basic_block(current_function, "continue");
         blocks.push(continue_block);
 
         for (i, block) in conditional_blocks.iter().enumerate() {
@@ -646,13 +572,10 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
 
             builder.position_at_end(then_block);
 
-            let (_, condition) = self
+            let condition = self
                 .create_expr_generator()
                 .generate_expression(&block.condition)?;
-            let conditional_block = self
-                .llvm
-                .context
-                .prepend_basic_block(else_block, "condition_body");
+            let conditional_block = context.prepend_basic_block(else_block, "condition_body");
 
             //Generate if statement condition
             builder.build_conditional_branch(
@@ -678,9 +601,18 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         builder.position_at_end(continue_block);
         Ok(())
     }
+
+    fn get_llvm_deps(&self) -> (&Builder, FunctionValue, &Context) {
+        (
+            &self.llvm.builder,
+            self.function_context.function,
+            self.llvm.context,
+        )
+    }
 }
 
 fn create_call_to_check_function_ast(
+    target: &AstStatement,
     check_function_name: String,
     parameter: AstStatement,
     sub_range: Range<AstStatement>,
@@ -691,13 +623,13 @@ fn create_call_to_check_function_ast(
         operator: Box::new(AstStatement::Reference {
             name: check_function_name,
             location: location.clone(),
-            id: 0, //TODO
+            id: target.get_id(), //TODO
         }),
         parameters: Box::new(Some(AstStatement::ExpressionList {
             expressions: vec![parameter, sub_range.start, sub_range.end],
             id: range_type_id, //use the id so we end up with the same datatype
         })),
         location: location.clone(),
-        id: 0, //TODO
+        id: target.get_id(), //TODO
     }
 }

@@ -112,7 +112,7 @@ impl Validator {
     }
 
     pub fn visit_pou(&mut self, pou: &Pou, context: &ValidationContext) {
-        self.pou_validator.validate_pou(pou);
+        self.pou_validator.validate_pou(pou, context);
 
         for block in &pou.variable_blocks {
             self.visit_variable_container(context, block);
@@ -145,6 +145,7 @@ impl Validator {
         if let DataTypeDeclaration::DataTypeDefinition {
             data_type,
             location,
+            ..
         } = declaration
         {
             self.visit_data_type(context, data_type, location);

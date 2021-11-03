@@ -277,6 +277,7 @@ pub enum DataTypeDeclaration {
     DataTypeDefinition {
         data_type: DataType,
         location: SourceRange,
+        scope: Option<String>,
     },
 }
 
@@ -320,6 +321,8 @@ pub struct UserTypeDeclaration {
     pub data_type: DataType,
     pub initializer: Option<AstStatement>,
     pub location: SourceRange,
+    /// stores the original scope for compiler-generated types
+    pub scope: Option<String>,
 }
 
 impl Debug for UserTypeDeclaration {
@@ -327,6 +330,7 @@ impl Debug for UserTypeDeclaration {
         f.debug_struct("UserTypeDeclaration")
             .field("data_type", &self.data_type)
             .field("initializer", &self.initializer)
+            .field("scope", &self.scope)
             .finish()
     }
 }
@@ -1114,4 +1118,21 @@ pub fn flatten_expression_list(condition: &AstStatement) -> Vec<&AstStatement> {
 
 pub fn pre_process(unit: &mut CompilationUnit) {
     pre_processor::pre_process(unit)
+}
+impl Operator {
+    pub(crate) fn is_bool_type(&self) -> bool {
+        matches!(
+            self,
+            Operator::Equal
+                | Operator::NotEqual
+                | Operator::Less
+                | Operator::Greater
+                | Operator::LessOrEqual
+                | Operator::GreaterOrEqual
+                | Operator::Not
+                | Operator::And
+                | Operator::Or
+                | Operator::Xor
+        )
+    }
 }

@@ -49,17 +49,15 @@ fn create_file_paths(inputs: &[String]) -> Result<Vec<FilePath>, String> {
         let paths =
             glob(input).map_err(|e| format!("Failed to read glob pattern: {}, ({})", input, e))?;
 
-        let source_count_before = sources.len();
         for p in paths {
             let path = p.map_err(|err| format!("Illegal path: {:}", err))?;
             sources.push(FilePath {
                 path: path.to_string_lossy().to_string(),
             });
         }
-
-        if sources.len() <= source_count_before {
-            return Err(format!("No such file(s): {}", input));
-        }
+    }
+    if sources.is_empty() {
+        return Err(format!("No such file(s): {}", inputs.join(",")));
     }
     Ok(sources)
 }
@@ -124,6 +122,10 @@ fn main_compile(parameters: CompileParameters) -> Result<(), String> {
         }
         for library in &parameters.libraries {
             linker.add_lib(library);
+        }
+
+        if let Some(sysroot) = &parameters.sysroot {
+            linker.add_sysroot(sysroot);
         }
 
         if out_format == FormatOption::Static {

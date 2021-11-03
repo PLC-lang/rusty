@@ -18,8 +18,14 @@ mod correctness {
     mod initial_values;
     mod pointers;
     mod sub_range_types;
-    mod sums;
     mod methods;
+    mod math_operators {
+        mod addition;
+        mod division;
+        mod mixed;
+        mod multiplication;
+        mod substraction;
+    }
 }
 
 mod integration {
@@ -74,7 +80,7 @@ pub fn run<T, U>(exec_engine: &ExecutionEngine, name: &str, params: &mut T) -> U
     unsafe {
         let main: JitFunction<MainFunction<T, U>> = exec_engine.get_function(name).unwrap();
         let main_t_ptr = &mut *params as *mut _;
-        let int_res = main.call(main_t_ptr);
-        int_res
+
+        main.call(main_t_ptr)
     }
 }

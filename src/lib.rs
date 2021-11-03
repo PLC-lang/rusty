@@ -21,7 +21,7 @@ use std::fs;
 use std::ops::Range;
 use std::path::Path;
 
-use ast::{PouType, SourceRange};
+use ast::{DataTypeDeclaration, PouType, SourceRange};
 use codespan_reporting::diagnostic::{self, Label};
 use codespan_reporting::files::SimpleFiles;
 use codespan_reporting::term::termcolor::{ColorChoice, StandardStream};
@@ -48,10 +48,12 @@ pub mod index;
 mod lexer;
 mod parser;
 mod resolver;
+mod test_utils;
 mod typesystem;
 mod validation;
 
 #[macro_use]
+#[cfg(test)]
 extern crate pretty_assertions;
 
 #[derive(PartialEq, Debug, Clone)]
@@ -81,20 +83,21 @@ pub enum ErrNo {
     // pou related
     pou__missing_return_type,
     pou__unexpected_return_type,
+    pou__unsupported_return_type,
     pou__empty_variable_block,
 
     //variable related
     var__unresolved_constant,
     var__invalid_constant_block,
+    var__invalid_constant,
     var__cannot_assign_to_const,
 
     //reference related
     reference__unresolved,
-    //variable related
 
     //type related
     type__literal_out_of_range,
-    type__inompatible_literal_cast,
+    type__incompatible_literal_cast,
     type__incompatible_directaccess,
     type__incompatible_directaccess_variable,
     type__incompatible_directaccess_range,
@@ -140,6 +143,17 @@ impl Diagnostic {
         }
     }
 
+    pub fn function_unsupported_return_type(data_type: &DataTypeDeclaration) -> Diagnostic {
+        Diagnostic::SyntaxError {
+            message: format!(
+                "Data Type {:?} not supported as a function return type!",
+                data_type
+            ),
+            range: data_type.get_location(),
+            err_no: ErrNo::pou__unsupported_return_type,
+        }
+    }
+
     pub fn function_return_missing(range: SourceRange) -> Diagnostic {
         Diagnostic::SyntaxError {
             message: "Function Return type missing".into(),
@@ -166,7 +180,7 @@ impl Diagnostic {
 
     pub fn unrseolved_reference(reference: &str, location: SourceRange) -> Diagnostic {
         Diagnostic::SyntaxError {
-            message: format!("Could not resolve reference to '{:}", reference),
+            message: format!("Could not resolve reference to {:}", reference),
             range: location,
             err_no: ErrNo::reference__unresolved,
         }
@@ -228,7 +242,7 @@ impl Diagnostic {
                 literal_type, cast_type
             ),
             range: location,
-            err_no: ErrNo::type__inompatible_literal_cast,
+            err_no: ErrNo::type__incompatible_literal_cast,
         }
     }
 
@@ -283,6 +297,14 @@ impl Diagnostic {
             message: "This variable block does not support the CONSTANT modifier".to_string(),
             range: location,
             err_no: ErrNo::var__invalid_constant_block,
+        }
+    }
+
+    pub fn invalid_constant(constant_name: &str, location: SourceRange) -> Diagnostic {
+        Diagnostic::SyntaxError {
+            message: format!("Invalid constant {:} - Functionblock- and Class-instances cannot be delcared constant", constant_name),
+            range: location,
+            err_no: ErrNo::var__invalid_constant,
         }
     }
 
@@ -534,7 +556,7 @@ pub fn compile_module<'c, T: SourceContainer>(
     encoding: Option<&'static Encoding>,
 ) -> Result<codegen::CodeGen<'c>, CompileError> {
     let mut full_index = Index::new();
-    let id_provider = IdProvider::new();
+    let id_provider = IdProvider::default();
     let mut files: SimpleFiles<String, String> = SimpleFiles::new();
 
     let mut all_units = Vec::new();
@@ -554,7 +576,7 @@ pub fn compile_module<'c, T: SourceContainer>(
         //pre-process the ast (create inlined types)
         ast::pre_process(&mut parse_result);
         //index the pou
-        full_index.import(index::visitor::visit(&parse_result));
+        full_index.import(index::visitor::visit(&parse_result, id_provider.clone()));
         all_units.push((file_id, diagnostics, parse_result));
     }
 

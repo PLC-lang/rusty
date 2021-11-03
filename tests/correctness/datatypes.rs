@@ -48,9 +48,9 @@ fn same_type_addition() {
     let mut maintype = new();
 
     compile_and_run::<_, i32>(function.to_string(), &mut maintype);
-    assert_eq!(false, maintype.bool_1);
-    assert_eq!(true, maintype.bool_2);
-    assert_eq!(false, maintype.bool_3); //Overflow
+    assert!(!maintype.bool_1);
+    assert!(maintype.bool_2);
+    assert!(!maintype.bool_3); //Overflow
 
     assert_eq!(65545, maintype.lword_1);
     assert_eq!(65545, maintype.lint_1);

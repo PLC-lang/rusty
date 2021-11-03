@@ -1,4 +1,5 @@
-use crate::{validation::tests::parse_and_validate, Diagnostic};
+use crate::test_utils::tests::parse_and_validate;
+use crate::Diagnostic;
 
 #[test]
 fn uninitialized_constants_are_reported() {
@@ -132,6 +133,43 @@ fn constant_on_illegal_var_blocks_cause_validation_issue() {
             Diagnostic::invalid_constant_block((447..456).into()), // VAR_INPUT
             Diagnostic::invalid_constant_block((517..527).into()), // VAR_OUTPUT
             Diagnostic::invalid_constant_block((588..598).into()), // VAR_IN_OUT
+        ]
+    );
+}
+
+#[test]
+fn constant_fb_instances_are_illegal() {
+    // GIVEN a couple of constants, including FB instances and class-instances
+    // WHEN it is validated
+    let diagnostics = parse_and_validate(
+        "
+        FUNCTION_BLOCK MyFb
+            ;
+        END_FUNCTION_BLOCK
+
+        CLASS cls
+            METHOD testMethod : INT
+                VAR_INPUT myMethodArg : INT; END_VAR
+                testMethod := 1;
+            END_METHOD
+        END_CLASS
+ 
+        VAR_GLOBAL CONSTANT
+            x : INT := 1;
+            y : MyFb;
+            z : cls;
+        END_VAR
+      ",
+    );
+
+    // THEN everything but VAR and VAR_GLOBALS are reported
+    assert_eq!(
+        diagnostics,
+        vec![
+            Diagnostic::unresolved_constant("y", None, (320..321).into()),
+            Diagnostic::invalid_constant("y", (320..321).into()),
+            Diagnostic::unresolved_constant("z", None, (342..343).into()),
+            Diagnostic::invalid_constant("z", (342..343).into()),
         ]
     );
 }

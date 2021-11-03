@@ -1,29 +1,15 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use pretty_assertions::assert_eq;
 
-use crate::lexer;
-use crate::parser;
+use crate::lexer::IdProvider;
 use crate::parser::tests::literal_int;
+use crate::test_utils::tests::{index, parse};
 use crate::typesystem::TypeSize;
 use crate::{ast::*, index::VariableType, typesystem::DataTypeInformation};
 
-macro_rules! index {
-    ($code:tt) => {{
-        let lexer = crate::lexer::lex($code);
-        let (mut ast, ..) = crate::parser::parse(lexer);
-
-        crate::ast::pre_process(&mut ast);
-        crate::index::visitor::visit(&ast)
-    }};
-}
-
-fn lex(source: &str) -> lexer::ParseSession {
-    lexer::lex(source)
-}
-
 #[test]
 fn index_not_case_sensitive() {
-    let index = index!(
+    let (_, index) = index(
         r#"
         TYPE st : STRUCT
             x : INT;
@@ -43,19 +29,19 @@ fn index_not_case_sensitive() {
                 c,d : INT;
             END_VAR
         END_PROGRAM
-    "#
+    "#,
     );
 
     let entry = index.find_global_variable("A").unwrap();
     assert_eq!("a", entry.name);
-    assert_eq!("INT", entry.information.data_type_name);
+    assert_eq!("INT", entry.data_type_name);
     let entry = index.find_global_variable("X").unwrap();
     assert_eq!("x", entry.name);
-    assert_eq!("ST", entry.information.data_type_name);
+    assert_eq!("ST", entry.data_type_name);
     let entry = index.find_member("ST", "X").unwrap();
     assert_eq!("x", entry.name);
-    assert_eq!("INT", entry.information.data_type_name);
-    let entry = index.find_type("APROGRAM").unwrap();
+    assert_eq!("INT", entry.data_type_name);
+    let entry = index.find_effective_type("APROGRAM").unwrap();
     assert_eq!("aProgram", entry.name);
     let entry = index.find_implementation("Foo").unwrap();
     assert_eq!("foo", entry.call_name);
@@ -64,42 +50,42 @@ fn index_not_case_sensitive() {
 
 #[test]
 fn global_variables_are_indexed() {
-    let index = index!(
+    let (_, index) = index(
         r#"
         VAR_GLOBAL
             a: INT;
             b: BOOL;
         END_VAR
-    "#
+    "#,
     );
 
     let entry_a = index.find_global_variable("a").unwrap();
     assert_eq!("a", entry_a.name);
-    assert_eq!("INT", entry_a.information.data_type_name);
+    assert_eq!("INT", entry_a.data_type_name);
 
     let entry_b = index.find_global_variable("b").unwrap();
     assert_eq!("b", entry_b.name);
-    assert_eq!("BOOL", entry_b.information.data_type_name);
+    assert_eq!("BOOL", entry_b.data_type_name);
 }
 
 #[test]
 fn program_is_indexed() {
-    let index = index!(
+    let (_, index) = index(
         r#"
         PROGRAM myProgram
         END_PROGRAM
-    "#
+    "#,
     );
 
-    index.find_type("myProgram").unwrap();
+    index.find_effective_type("myProgram").unwrap();
     let program_variable = index.find_global_variable("myProgram").unwrap();
 
-    assert_eq!("myProgram", program_variable.information.data_type_name);
+    assert_eq!("myProgram", program_variable.data_type_name);
 }
 
 #[test]
 fn actions_are_indexed() {
-    let index = index!(
+    let (_, index) = index(
         r#"
         PROGRAM myProgram
         END_PROGRAM
@@ -109,7 +95,7 @@ fn actions_are_indexed() {
         END_ACTIONS
         ACTION myProgram.bar
         END_ACTION
-    "#
+    "#,
     );
 
     let foo_impl = index.find_implementation("myProgram.foo").unwrap();
@@ -130,7 +116,7 @@ fn actions_are_indexed() {
         panic!("Wrong variant : {:#?}", info);
     }
     if let crate::typesystem::DataTypeInformation::Struct { name, .. } =
-        index.find_effective_type_information(info).unwrap()
+        index.find_effective_type_info(info.get_name()).unwrap()
     {
         assert_eq!("myProgram_interface", name);
     } else {
@@ -156,7 +142,7 @@ fn actions_are_indexed() {
         panic!("Wrong variant : {:#?}", info);
     }
     if let crate::typesystem::DataTypeInformation::Struct { name, .. } =
-        index.find_effective_type_information(info).unwrap()
+        index.find_effective_type_info(info.get_name()).unwrap()
     {
         assert_eq!("myProgram_interface", name);
     } else {
@@ -166,14 +152,14 @@ fn actions_are_indexed() {
 
 #[test]
 fn fb_methods_are_indexed() {
-    let index = index!(
+    let (_, index) = index(
         r#"
         FUNCTION_BLOCK myFuncBlock
             METHOD foo
                 VAR x : SINT; END_VAR
             END_METHOD
         END_FUNCTION_BLOCK
-    "#
+    "#,
     );
 
     let foo_impl = index.find_implementation("myFuncBlock.foo").unwrap();
@@ -184,9 +170,7 @@ fn fb_methods_are_indexed() {
         .unwrap()
         .get_type_information();
     if let crate::typesystem::DataTypeInformation::Struct {
-        name,
-        member_names,
-        varargs: _,
+        name, member_names, ..
     } = info
     {
         assert_eq!("myFuncBlock.foo_interface", name);
@@ -198,14 +182,14 @@ fn fb_methods_are_indexed() {
 
 #[test]
 fn class_methods_are_indexed() {
-    let index = index!(
+    let (_, index) = index(
         r#"
         CLASS myClass
             METHOD foo
                 VAR y : DINT; END_VAR
             END_METHOD
         END_CLASS
-    "#
+    "#,
     );
 
     let foo_impl = index.find_implementation("myClass.foo").unwrap();
@@ -216,9 +200,7 @@ fn class_methods_are_indexed() {
         .unwrap()
         .get_type_information();
     if let crate::typesystem::DataTypeInformation::Struct {
-        name,
-        member_names,
-        varargs: _,
+        name, member_names, ..
     } = info
     {
         assert_eq!("myClass.foo_interface", name);
@@ -230,31 +212,24 @@ fn class_methods_are_indexed() {
 
 #[test]
 fn function_is_indexed() {
-    let index = index!(
+    let (_, index) = index(
         r#"
         FUNCTION myFunction : INT
         END_FUNCTION
-    "#
+    "#,
     );
 
-    index.find_type("myFunction").unwrap();
+    index.find_effective_type("myFunction").unwrap();
 
     let return_variable = index.find_member("myFunction", "myFunction").unwrap();
     assert_eq!("myFunction", return_variable.name);
-    assert_eq!(
-        Some("myFunction".to_string()),
-        return_variable.information.qualifier
-    );
-    assert_eq!("INT", return_variable.information.data_type_name);
-    assert_eq!(
-        VariableType::Return,
-        return_variable.information.variable_type
-    );
+    assert_eq!("INT", return_variable.data_type_name);
+    assert_eq!(VariableType::Return, return_variable.variable_type);
 }
 
 #[test]
 fn function_with_varargs_param_marked() {
-    let index = index!(
+    let (_, index) = index(
         r#"
         FUNCTION myFunc : INT
         VAR_INPUT
@@ -262,16 +237,16 @@ fn function_with_varargs_param_marked() {
             y : ...;
         END_VAR
         END_FUNCTION
-        "#
+        "#,
     );
-    let function = index.find_type("myFunc").unwrap();
+    let function = index.find_effective_type("myFunc").unwrap();
     assert!(function.get_type_information().is_variadic());
     assert_eq!(None, function.get_type_information().get_variadic_type());
 }
 
 #[test]
 fn function_with_typed_varargs_param_marked() {
-    let index = index!(
+    let (_, index) = index(
         r#"
         FUNCTION myFunc : INT
         VAR_INPUT
@@ -279,9 +254,9 @@ fn function_with_typed_varargs_param_marked() {
             y : INT...;
         END_VAR
         END_FUNCTION
-        "#
+        "#,
     );
-    let function = index.find_type("myFunc").unwrap();
+    let function = index.find_effective_type("myFunc").unwrap();
     assert!(function.get_type_information().is_variadic());
     assert_eq!(
         Some("INT"),
@@ -291,7 +266,7 @@ fn function_with_typed_varargs_param_marked() {
 
 #[test]
 fn pous_are_indexed() {
-    let index = index!(
+    let (_, index) = index(
         r#"
         PROGRAM myProgram
         END_PROGRAM
@@ -301,18 +276,18 @@ fn pous_are_indexed() {
         END_FUNCTION_BLOCK
         CLASS myClass
         END_CLASS
-    "#
+    "#,
     );
 
-    index.find_type("myFunction").unwrap();
-    index.find_type("myProgram").unwrap();
-    index.find_type("myFunctionBlock").unwrap();
-    index.find_type("myClass").unwrap();
+    index.find_effective_type("myFunction").unwrap();
+    index.find_effective_type("myProgram").unwrap();
+    index.find_effective_type("myFunctionBlock").unwrap();
+    index.find_effective_type("myClass").unwrap();
 }
 
 #[test]
 fn implementations_are_indexed() {
-    let index = index!(
+    let (_, index) = index(
         r#"
         PROGRAM myProgram
         END_PROGRAM
@@ -322,7 +297,7 @@ fn implementations_are_indexed() {
         END_FUNCTION_BLOCK
         FUNCTION foo : INT
         END_FUNCTION
-        "#
+        "#,
     );
 
     let my_program = index.find_implementation("myProgram").unwrap();
@@ -341,7 +316,7 @@ fn implementations_are_indexed() {
 
 #[test]
 fn program_members_are_indexed() {
-    let index = index!(
+    let (_, index) = index(
         r#"
         PROGRAM myProgram
         VAR
@@ -352,34 +327,48 @@ fn program_members_are_indexed() {
             c : BOOL;
             d : BOOL;
         END_VAR
+        VAR_TEMP
+            e : INT;
+            f : INT;
+        END_VAR
         END_PROGRAM
-    "#
+    "#,
     );
 
     let variable = index.find_member("myProgram", "a").unwrap();
     assert_eq!("a", variable.name);
-    assert_eq!("INT", variable.information.data_type_name);
-    assert_eq!(VariableType::Local, variable.information.variable_type);
+    assert_eq!("INT", variable.data_type_name);
+    assert_eq!(VariableType::Local, variable.variable_type);
 
     let variable = index.find_member("myProgram", "b").unwrap();
     assert_eq!("b", variable.name);
-    assert_eq!("INT", variable.information.data_type_name);
-    assert_eq!(VariableType::Local, variable.information.variable_type);
+    assert_eq!("INT", variable.data_type_name);
+    assert_eq!(VariableType::Local, variable.variable_type);
 
     let variable = index.find_member("myProgram", "c").unwrap();
     assert_eq!("c", variable.name);
-    assert_eq!("BOOL", variable.information.data_type_name);
-    assert_eq!(VariableType::Input, variable.information.variable_type);
+    assert_eq!("BOOL", variable.data_type_name);
+    assert_eq!(VariableType::Input, variable.variable_type);
 
     let variable = index.find_member("myProgram", "d").unwrap();
     assert_eq!("d", variable.name);
-    assert_eq!("BOOL", variable.information.data_type_name);
-    assert_eq!(VariableType::Input, variable.information.variable_type);
+    assert_eq!("BOOL", variable.data_type_name);
+    assert_eq!(VariableType::Input, variable.variable_type);
+
+    let variable = index.find_member("myProgram", "e").unwrap();
+    assert_eq!("e", variable.name);
+    assert_eq!("INT", variable.data_type_name);
+    assert_eq!(VariableType::Temp, variable.variable_type);
+
+    let variable = index.find_member("myProgram", "f").unwrap();
+    assert_eq!("f", variable.name);
+    assert_eq!("INT", variable.data_type_name);
+    assert_eq!(VariableType::Temp, variable.variable_type);
 }
 
 #[test]
 fn given_set_of_local_global_and_functions_the_index_can_be_retrieved() {
-    let index = index!(
+    let (_, index) = index(
         r#"
         VAR_GLOBAL
             a : INT;
@@ -403,39 +392,34 @@ fn given_set_of_local_global_and_functions_the_index_can_be_retrieved() {
             b : INT;
         END_VAR
         END_FUNCTION
-        "#
+        "#,
     );
 
     //Asking for a variable with no context returns global variables
     let result = index.find_variable(None, &["a"]).unwrap();
-    assert_eq!(VariableType::Global, result.information.variable_type);
+    assert_eq!(VariableType::Global, result.variable_type);
     assert_eq!("a", result.name);
-    assert_eq!(None, result.information.qualifier);
     //Asking for a variable with the POU  context finds a local variable
     let result = index.find_variable(Some("prg"), &["a"]).unwrap();
-    assert_eq!(VariableType::Local, result.information.variable_type);
+    assert_eq!(VariableType::Local, result.variable_type);
     assert_eq!("a", result.name);
-    assert_eq!(Some("prg".to_string()), result.information.qualifier);
     //Asking for a variable with th POU context finds a global variable
     let result = index.find_variable(Some("prg"), &["b"]).unwrap();
-    assert_eq!(VariableType::Global, result.information.variable_type);
+    assert_eq!(VariableType::Global, result.variable_type);
     assert_eq!("b", result.name);
-    assert_eq!(None, result.information.qualifier);
     //Asking for a variable with the function context finds the local variable
     let result = index.find_variable(Some("foo"), &["a"]).unwrap();
-    assert_eq!(VariableType::Local, result.information.variable_type);
+    assert_eq!(VariableType::Local, result.variable_type);
     assert_eq!("a", result.name);
-    assert_eq!(Some("foo".to_string()), result.information.qualifier);
     //Asking for a variable with the function context finds the global variable
     let result = index.find_variable(Some("foo"), &["x"]).unwrap();
-    assert_eq!(VariableType::Global, result.information.variable_type);
+    assert_eq!(VariableType::Global, result.variable_type);
     assert_eq!("x", result.name);
-    assert_eq!(None, result.information.qualifier);
 }
 
 #[test]
 fn index_can_be_retrieved_from_qualified_name() {
-    let index = index!(
+    let (_, index) = index(
         r#"
     FUNCTION_BLOCK fb1
     VAR_INPUT
@@ -462,20 +446,19 @@ fn index_can_be_retrieved_from_qualified_name() {
     PROGRAM prg
         fb1_inst.fb2_inst.fb3_inst.x := 1;
     END_PROGRAM
-    "#
+    "#,
     );
 
     let result = index
         .find_variable(Some("prg"), &["fb1_inst", "fb2_inst", "fb3_inst", "x"])
         .unwrap();
-    assert_eq!(VariableType::Input, result.information.variable_type);
+    assert_eq!(VariableType::Input, result.variable_type);
     assert_eq!("x", result.name);
-    assert_eq!(Some("fb3".to_string()), result.information.qualifier);
 }
 
 #[test]
 fn callable_instances_can_be_retreived() {
-    let index = index!(
+    let (_, index) = index(
         r#"
     FUNCTION_BLOCK fb1
     VAR_INPUT
@@ -514,141 +497,129 @@ fn callable_instances_can_be_retreived() {
     END_VAR
         fb1_inst.fb2_inst.fb3_inst.x := 1;
     END_PROGRAM
-    "#
+    "#,
     );
 
     assert_eq!(
         true,
         index
-            .find_callable_instance_variable(Some("prg"), &["fb1_inst".into()])
+            .find_callable_instance_variable(Some("prg"), &["fb1_inst"])
             .is_some()
     );
     assert_eq!(
         true,
         index
-            .find_callable_instance_variable(Some("prg"), &["fb2_inst".into()])
+            .find_callable_instance_variable(Some("prg"), &["fb2_inst"])
             .is_some()
     );
     assert_eq!(
         true,
         index
-            .find_callable_instance_variable(Some("prg"), &["fb3_inst".into()])
+            .find_callable_instance_variable(Some("prg"), &["fb3_inst"])
             .is_some()
     );
     assert_eq!(
         true,
         index
-            .find_callable_instance_variable(Some("prg"), &["fb1_local".into()])
+            .find_callable_instance_variable(Some("prg"), &["fb1_local"])
             .is_some()
     );
     assert_eq!(
         true,
         index
-            .find_callable_instance_variable(
-                Some("prg"),
-                &["fb1_local".into(), "fb2_inst".into(), "fb3_inst".into()]
-            )
+            .find_callable_instance_variable(Some("prg"), &["fb1_local", "fb2_inst", "fb3_inst"])
             .is_some()
     );
     assert_eq!(
         true,
         index
-            .find_callable_instance_variable(Some("prg"), &["fb1_inst".into(), "fb2_inst".into()])
+            .find_callable_instance_variable(Some("prg"), &["fb1_inst", "fb2_inst"])
             .is_some()
     );
     assert_eq!(
         true,
         index
-            .find_callable_instance_variable(
-                Some("prg"),
-                &["fb1_inst".into(), "fb2_inst".into(), "fb3_inst".into()]
-            )
+            .find_callable_instance_variable(Some("prg"), &["fb1_inst", "fb2_inst", "fb3_inst"])
             .is_some()
     );
     assert_eq!(
         true,
         index
-            .find_callable_instance_variable(Some("prg"), &["foo".into()])
+            .find_callable_instance_variable(Some("prg"), &["foo"])
             .is_none()
     );
     assert_eq!(
         true,
         index
-            .find_callable_instance_variable(Some("prg"), &["a".into()])
+            .find_callable_instance_variable(Some("prg"), &["a"])
             .is_none()
     );
     assert_eq!(
         true,
         index
-            .find_callable_instance_variable(Some("prg"), &["b".into()])
+            .find_callable_instance_variable(Some("prg"), &["b"])
             .is_none()
     );
     assert_eq!(
         true,
         index
-            .find_callable_instance_variable(Some("prg"), &["c".into()])
+            .find_callable_instance_variable(Some("prg"), &["c"])
             .is_none()
     );
     assert_eq!(
         true,
         index
-            .find_callable_instance_variable(Some("prg"), &["d".into()])
+            .find_callable_instance_variable(Some("prg"), &["d"])
             .is_none()
     );
 }
 
 #[test]
-fn find_type_retrieves_directly_registered_type() {
-    let index = index!(
+fn get_type_retrieves_directly_registered_type() {
+    let (_, index) = index(
         r"
             TYPE MyAlias : INT;  END_TYPE
             TYPE MySecondAlias : MyAlias;  END_TYPE
             TYPE MyArray : ARRAY[0..10] OF INT;  END_TYPE
             TYPE MyArrayAlias : MyArray; END_TYPE
-        "
+        ",
     );
 
-    let my_alias = index.find_type("MyAlias").unwrap();
+    let my_alias = index.get_type("MyAlias").unwrap();
     assert_eq!("MyAlias", my_alias.get_name());
 
-    let my_alias = index.find_type("MySecondAlias").unwrap();
+    let my_alias = index.get_type("MySecondAlias").unwrap();
     assert_eq!("MySecondAlias", my_alias.get_name());
 
-    let my_alias = index.find_type("MyArrayAlias").unwrap();
+    let my_alias = index.get_type("MyArrayAlias").unwrap();
     assert_eq!("MyArrayAlias", my_alias.get_name());
 }
 
 #[test]
 fn find_effective_type_finds_the_inner_effective_type() {
-    let index = index!(
+    let (_, index) = index(
         r"
             TYPE MyAlias : INT;  END_TYPE
             TYPE MySecondAlias : MyAlias;  END_TYPE
             TYPE MyArray : ARRAY[0..10] OF INT;  END_TYPE
             TYPE MyArrayAlias : MyArray; END_TYPE
-        "
+        ",
     );
 
-    let my_alias = index.find_type("MyAlias").unwrap().get_type_information();
-    let int = index.find_effective_type_information(my_alias).unwrap();
+    let my_alias = "MyAlias";
+    let int = index.find_effective_type(my_alias).unwrap();
     assert_eq!("INT", int.get_name());
 
-    let my_alias = index
-        .find_type("MySecondAlias")
-        .unwrap()
-        .get_type_information();
-    let int = index.find_effective_type_information(my_alias).unwrap();
+    let my_alias = "MySecondAlias";
+    let int = index.find_effective_type(my_alias).unwrap();
     assert_eq!("INT", int.get_name());
 
-    let my_alias = index
-        .find_type("MyArrayAlias")
-        .unwrap()
-        .get_type_information();
-    let array = index.find_effective_type_information(my_alias).unwrap();
+    let my_alias = "MyArrayAlias";
+    let array = index.find_effective_type(my_alias).unwrap();
     assert_eq!("MyArray", array.get_name());
 
-    let my_alias = index.find_type("MyArray").unwrap().get_type_information();
-    let array = index.find_effective_type_information(my_alias).unwrap();
+    let my_alias = "MyArray";
+    let array = index.find_effective_type(my_alias).unwrap();
     assert_eq!("MyArray", array.get_name());
 }
 
@@ -660,8 +631,7 @@ fn pre_processing_generates_inline_enums_global() {
             inline_enum : (a,b,c);
         END_VAR
         "#;
-    let lexer = lex(src);
-    let (mut ast, ..) = parser::parse(lexer);
+    let (mut ast, ..) = parse(src);
 
     // WHEN the AST ist pre-processed
     crate::ast::pre_process(&mut ast);
@@ -704,12 +674,12 @@ fn pre_processing_generates_inline_enums_global() {
 #[test]
 fn pre_processing_generates_inline_structs_global() {
     // GIVEN a global inline enum
-    let lexer = lex(r#"
+    let src = r#"
         VAR_GLOBAL
             inline_struct: STRUCT a: INT; END_STRUCT
         END_VAR
-        "#);
-    let (mut ast, ..) = parser::parse(lexer);
+        "#;
+    let (mut ast, ..) = parse(src);
 
     // WHEN the AST ist pre-processed
     crate::ast::pre_process(&mut ast);
@@ -754,14 +724,14 @@ fn pre_processing_generates_inline_structs_global() {
 #[test]
 fn pre_processing_generates_inline_enums() {
     // GIVEN a global inline enum
-    let lexer = lex(r#"
+    let src = r#"
         PROGRAM foo
         VAR
             inline_enum : (a,b,c);
         END_VAR
         END_PROGRAM
-        "#);
-    let (mut ast, ..) = parser::parse(lexer);
+        "#;
+    let (mut ast, ..) = parse(src);
 
     // WHEN the AST ist pre-processed
     crate::ast::pre_process(&mut ast);
@@ -791,14 +761,14 @@ fn pre_processing_generates_inline_enums() {
 #[test]
 fn pre_processing_generates_inline_structs() {
     // GIVEN a global inline enum
-    let lexer = lex(r#"
+    let src = r#"
         PROGRAM foo
         VAR
             inline_struct: STRUCT a: INT; END_STRUCT
         END_VAR
         END_PROGRAM
-        "#);
-    let (mut ast, ..) = parser::parse(lexer);
+        "#;
+    let (mut ast, ..) = parse(src);
 
     // WHEN the AST ist pre-processed
     crate::ast::pre_process(&mut ast);
@@ -843,14 +813,14 @@ fn pre_processing_generates_inline_structs() {
 #[test]
 fn pre_processing_generates_inline_pointers() {
     // GIVEN an inline pointer is declared
-    let lexer = lex(r#"
+    let src = r#"
         PROGRAM foo
         VAR
             inline_pointer: REF_TO INT;
         END_VAR
         END_PROGRAM
-        "#);
-    let (mut ast, ..) = parser::parse(lexer);
+        "#;
+    let (mut ast, ..) = parse(src);
 
     // WHEN the AST ist pre-processed
     crate::ast::pre_process(&mut ast);
@@ -869,6 +839,7 @@ fn pre_processing_generates_inline_pointers() {
         },
         location: SourceRange::undefined(),
         initializer: None,
+        scope: Some("foo".into()),
     };
     assert_eq!(format!("{:?}", expected), format!("{:?}", new_pointer_type));
 
@@ -885,10 +856,10 @@ fn pre_processing_generates_inline_pointers() {
 #[test]
 fn pre_processing_generates_pointer_to_pointer_type() {
     // GIVEN an inline pointer is declared
-    let lexer = lex(r#"
+    let src = r#"
         TYPE pointer_to_pointer: REF_TO REF_TO INT; END_TYPE
-        "#);
-    let (mut ast, ..) = parser::parse(lexer);
+        "#;
+    let (mut ast, ..) = parse(src);
 
     // WHEN the AST ist pre-processed
     crate::ast::pre_process(&mut ast);
@@ -908,6 +879,7 @@ fn pre_processing_generates_pointer_to_pointer_type() {
         },
         location: SourceRange::undefined(),
         initializer: None,
+        scope: None,
     };
     assert_eq!(format!("{:?}", expected), format!("{:?}", new_pointer_type));
 
@@ -923,6 +895,7 @@ fn pre_processing_generates_pointer_to_pointer_type() {
         },
         location: SourceRange::undefined(),
         initializer: None,
+        scope: None,
     };
     assert_eq!(format!("{:?}", expected), format!("{:?}", original));
 }
@@ -930,14 +903,14 @@ fn pre_processing_generates_pointer_to_pointer_type() {
 #[test]
 fn pre_processing_generates_inline_pointer_to_pointer() {
     // GIVEN an inline pointer is declared
-    let lexer = lex(r#"
+    let src = r#"
         PROGRAM foo
         VAR
             inline_pointer: REF_TO REF_TO INT;
         END_VAR
         END_PROGRAM
-        "#);
-    let (mut ast, ..) = parser::parse(lexer);
+        "#;
+    let (mut ast, ..) = parse(src);
 
     // WHEN the AST ist pre-processed
     crate::ast::pre_process(&mut ast);
@@ -957,6 +930,7 @@ fn pre_processing_generates_inline_pointer_to_pointer() {
         },
         location: SourceRange::undefined(),
         initializer: None,
+        scope: Some("foo".into()),
     };
     assert_eq!(format!("{:?}", expected), format!("{:?}", new_pointer_type));
 
@@ -972,6 +946,7 @@ fn pre_processing_generates_inline_pointer_to_pointer() {
         },
         location: SourceRange::undefined(),
         initializer: None,
+        scope: Some("foo".into()),
     };
     assert_eq!(format!("{:?}", expected), format!("{:?}", new_pointer_type));
 
@@ -988,14 +963,14 @@ fn pre_processing_generates_inline_pointer_to_pointer() {
 #[test]
 fn pre_processing_generates_inline_arrays() {
     // GIVEN an inline array is declared
-    let lexer = lex(r#"
+    let src = r#"
         PROGRAM foo
         VAR
             inline_array: ARRAY[0..1] OF INT;
         END_VAR
         END_PROGRAM
-        "#);
-    let (mut ast, ..) = parser::parse(lexer);
+        "#;
+    let (mut ast, ..) = parse(src);
 
     // WHEN the AST ist pre-processed
     crate::ast::pre_process(&mut ast);
@@ -1027,6 +1002,7 @@ fn pre_processing_generates_inline_arrays() {
         },
         initializer: None,
         location: (59..77).into(),
+        scope: Some("foo".into()),
     };
     assert_eq!(format!("{:?}", expected), format!("{:?}", new_array_type));
 
@@ -1044,14 +1020,14 @@ fn pre_processing_generates_inline_arrays() {
 #[test]
 fn pre_processing_generates_inline_array_of_array() {
     // GIVEN an inline array is declared
-    let lexer = lex(r#"
+    let src = r#"
         PROGRAM foo
         VAR
             inline_array: ARRAY[0..1] OF ARRAY[0..1] OF INT;
         END_VAR
         END_PROGRAM
-        "#);
-    let (mut ast, ..) = parser::parse(lexer);
+        "#;
+    let (mut ast, ..) = parse(src);
 
     // WHEN the AST ist pre-processed
     crate::ast::pre_process(&mut ast);
@@ -1084,6 +1060,7 @@ fn pre_processing_generates_inline_array_of_array() {
         },
         initializer: None,
         location: (59..92).into(),
+        scope: Some("foo".into()),
     };
     assert_eq!(format!("{:?}", expected), format!("{:?}", new_array_type));
 
@@ -1112,6 +1089,7 @@ fn pre_processing_generates_inline_array_of_array() {
         },
         initializer: None,
         location: (59..92).into(),
+        scope: Some("foo".into()),
     };
     assert_eq!(format!("{:?}", expected), format!("{:?}", new_array_type));
 
@@ -1130,10 +1108,10 @@ fn pre_processing_generates_inline_array_of_array() {
 #[test]
 fn pre_processing_generates_array_of_array_type() {
     // GIVEN an inline pointer is declared
-    let lexer = lex(r#"
+    let src = r#"
         TYPE arr_arr: ARRAY[0..1] OF ARRAY[0..1] OF INT; END_TYPE
-        "#);
-    let (mut ast, ..) = parser::parse(lexer);
+        "#;
+    let (mut ast, ..) = parse(src);
 
     // WHEN the AST ist pre-processed
     crate::ast::pre_process(&mut ast);
@@ -1154,6 +1132,7 @@ fn pre_processing_generates_array_of_array_type() {
         },
         location: SourceRange::undefined(),
         initializer: None,
+        scope: None,
     };
     assert_eq!(format!("{:?}", expected), format!("{:?}", new_type));
 
@@ -1174,13 +1153,14 @@ fn pre_processing_generates_array_of_array_type() {
         },
         location: SourceRange::undefined(),
         initializer: None,
+        scope: None,
     };
     assert_eq!(format!("{:?}", expected), format!("{:?}", original));
 }
 
 #[test]
 fn pre_processing_nested_array_in_struct() {
-    let lexer = lex(r#"
+    let src = r#"
         TYPE MyStruct:
         STRUCT 
           field1 : ARRAY[0..4] OF INT;
@@ -1193,9 +1173,9 @@ fn pre_processing_nested_array_in_struct() {
         END_VAR
           m.field1[3] := 7;
         END_PROGRAM
-        "#);
+        "#;
 
-    let (mut ast, ..) = parser::parse(lexer);
+    let (mut ast, ..) = parse(src);
 
     // WHEN the AST ist pre-processed
     crate::ast::pre_process(&mut ast);
@@ -1219,6 +1199,7 @@ fn pre_processing_nested_array_in_struct() {
         },
         initializer: None,
         location: (14..97).into(),
+        scope: None,
     };
     assert_eq!(format!("{:?}", expected), format!("{:?}", new_array_type));
 
@@ -1247,6 +1228,7 @@ fn pre_processing_nested_array_in_struct() {
         },
         initializer: None,
         location: (59..77).into(),
+        scope: None,
     };
     assert_eq!(format!("{:?}", expected), format!("{:?}", new_array_type));
 }
@@ -1254,14 +1236,14 @@ fn pre_processing_nested_array_in_struct() {
 #[test]
 fn pre_processing_generates_inline_array_of_array_of_array() {
     // GIVEN an inline array is declared
-    let lexer = lex(r#"
+    let src = r#"
         PROGRAM foo
         VAR
             inline_array: ARRAY[0..1] OF ARRAY[0..1] OF ARRAY[0..1] OF INT;
         END_VAR
         END_PROGRAM
-        "#);
-    let (mut ast, ..) = parser::parse(lexer);
+        "#;
+    let (mut ast, ..) = parse(src);
 
     // WHEN the AST ist pre-processed
     crate::ast::pre_process(&mut ast);
@@ -1294,6 +1276,7 @@ fn pre_processing_generates_inline_array_of_array_of_array() {
         },
         initializer: None,
         location: (74..107).into(),
+        scope: Some("foo".into()),
     };
     assert_eq!(format!("{:?}", expected), format!("{:?}", new_array_type));
 
@@ -1322,6 +1305,7 @@ fn pre_processing_generates_inline_array_of_array_of_array() {
         },
         initializer: None,
         location: (59..107).into(),
+        scope: Some("foo".into()),
     };
     assert_eq!(format!("{:?}", expected), format!("{:?}", new_array_type));
 
@@ -1350,6 +1334,7 @@ fn pre_processing_generates_inline_array_of_array_of_array() {
         },
         initializer: None,
         location: (59..107).into(),
+        scope: Some("foo".into()),
     };
     assert_eq!(format!("{:?}", expected), format!("{:?}", new_array_type));
 
@@ -1372,7 +1357,7 @@ fn sub_range_boundaries_are_registered_at_the_index() {
         TYPE MyAliasInt: MyInt; END_TYPE 
         ";
     // WHEN the program is indexed
-    let index = index!(src);
+    let (_, index) = index(src);
 
     // THEN I expect the index to contain the defined range-information for the given type
     let my_int = &index.get_type("MyInt").unwrap().information;
@@ -1413,10 +1398,11 @@ fn global_initializers_are_stored_in_the_const_expression_arena() {
         END_VAR
         ";
     // WHEN the program is indexed
-    let (mut ast, ..) = crate::parser::parse(crate::lexer::lex(src));
+    let ids = IdProvider::default();
+    let (mut ast, ..) = crate::parser::parse(crate::lexer::lex_with_ids(src, ids.clone()));
 
     crate::ast::pre_process(&mut ast);
-    let index = crate::index::visitor::visit(&ast);
+    let index = crate::index::visitor::visit(&ast, ids);
 
     // THEN I expect the index to contain cosntant expressions (x+1), (y+1) and (z+1) as const expressions
     // associated with the initial values of the globals
@@ -1456,10 +1442,11 @@ fn local_initializers_are_stored_in_the_const_expression_arena() {
         END_PROGRAM
         ";
     // WHEN the program is indexed
-    let (mut ast, ..) = crate::parser::parse(crate::lexer::lex(src));
+    let ids = IdProvider::default();
+    let (mut ast, ..) = crate::parser::parse(crate::lexer::lex_with_ids(src, ids.clone()));
 
     crate::ast::pre_process(&mut ast);
-    let index = crate::index::visitor::visit(&ast);
+    let index = crate::index::visitor::visit(&ast, ids);
 
     // THEN I expect the index to contain cosntant expressions (x+1), (y+1) and (z+1) as const expressions
     // associated with the initial values of the members
@@ -1493,19 +1480,23 @@ fn datatype_initializers_are_stored_in_the_const_expression_arena() {
         TYPE MyInt : INT := 7 + x;
         ";
     // WHEN the program is indexed
-    let (mut ast, ..) = crate::parser::parse(crate::lexer::lex(src));
+    let ids = IdProvider::default();
+    let (mut ast, ..) = crate::parser::parse(crate::lexer::lex_with_ids(src, ids.clone()));
 
     crate::ast::pre_process(&mut ast);
-    let index = crate::index::visitor::visit(&ast);
+    let index = crate::index::visitor::visit(&ast, ids);
 
     // THEN I expect the index to contain cosntant expressions (7+x) as const expressions
     // associated with the initial values of the type
     let data_type = &ast.types[0];
-    let initializer = index.find_type("MyInt").and_then(|g| {
-        index
-            .get_const_expressions()
-            .maybe_get_constant_statement(&g.initial_value)
-    });
+    let initializer = index
+        .get_type("MyInt")
+        .map(|g| {
+            index
+                .get_const_expressions()
+                .maybe_get_constant_statement(&g.initial_value)
+        })
+        .unwrap();
     assert_eq!(data_type.initializer.as_ref(), initializer);
 }
 
@@ -1516,18 +1507,19 @@ fn array_dimensions_are_stored_in_the_const_expression_arena() {
         TYPE MyInt : ARRAY[0 .. LEN-1, MIN .. MAX] OF INT;
         ";
     // WHEN the program is indexed
-    let (mut ast, ..) = crate::parser::parse(crate::lexer::lex(src));
+    let ids = IdProvider::default();
+    let (mut ast, ..) = crate::parser::parse(crate::lexer::lex_with_ids(src, ids.clone()));
 
     crate::ast::pre_process(&mut ast);
-    let index = crate::index::visitor::visit(&ast);
+    let index = crate::index::visitor::visit(&ast, ids);
 
     // THEN I expect the index to contain constants expressions used in the array-dimensions
 
     // check first dimensions 0 .. LEN-1
     let (start_0, end_0) = index
-        .find_type_information("MyInt")
+        .find_effective_type_info("MyInt")
         .map(|it| {
-            if let DataTypeInformation::Array { dimensions, .. } = &it {
+            if let DataTypeInformation::Array { dimensions, .. } = it {
                 //return the pair (start, end)
                 (
                     dimensions[0].start_offset.as_int_value(&index).unwrap(),
@@ -1558,7 +1550,7 @@ fn array_dimensions_are_stored_in_the_const_expression_arena() {
 
     //check 2nd dimension MIN .. MAX
     let (start_1, end_1) = index
-        .find_type_information("MyInt")
+        .find_effective_type_info("MyInt")
         .map(|it| {
             if let DataTypeInformation::Array { dimensions, .. } = it {
                 //return the pair (start, end)
@@ -1596,10 +1588,11 @@ fn string_dimensions_are_stored_in_the_const_expression_arena() {
         TYPE MyString : STRING[LEN-1];
         ";
     // WHEN the program is indexed
-    let (mut ast, ..) = crate::parser::parse(crate::lexer::lex(src));
+    let ids = IdProvider::default();
+    let (mut ast, ..) = crate::parser::parse(crate::lexer::lex_with_ids(src, ids.clone()));
 
     crate::ast::pre_process(&mut ast);
-    let index = crate::index::visitor::visit(&ast);
+    let index = crate::index::visitor::visit(&ast, ids);
 
     // THEN I expect the index to contain constants expressions used in the string-len
 
@@ -1612,7 +1605,7 @@ fn string_dimensions_are_stored_in_the_const_expression_arena() {
     if let Some(DataTypeInformation::String {
         size: TypeSize::ConstExpression(expr),
         ..
-    }) = index.find_type_information("MyString")
+    }) = index.find_effective_type_info("MyString")
     {
         assert_eq!(
             format!(
@@ -1628,7 +1621,7 @@ fn string_dimensions_are_stored_in_the_const_expression_arena() {
                 "{:#?}",
                 index
                     .get_const_expressions()
-                    .get_constant_statement(&expr)
+                    .get_constant_statement(expr)
                     .unwrap()
             )
         );

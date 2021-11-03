@@ -1,8 +1,8 @@
-use crate::parser::{parse, tests::lex};
+use crate::test_utils::tests::parse;
 
 #[test]
 fn initial_scalar_values_can_be_parsed() {
-    let lexer = lex("
+    let src = "
             VAR_GLOBAL
                 x : INT := 7;
             END_VAR
@@ -23,8 +23,8 @@ fn initial_scalar_values_can_be_parsed() {
                     y : REAL := 11.3;
                 END_VAR
             END_PROGRAM
-            ");
-    let (parse_result, ..) = parse(lexer);
+            ";
+    let (parse_result, ..) = parse(src);
 
     let x = &parse_result.global_vars[0].variables[0];
     let expected = r#"Variable {
@@ -83,6 +83,7 @@ fn initial_scalar_values_can_be_parsed() {
         ],
     },
     initializer: None,
+    scope: None,
 }"#;
     assert_eq!(expected, format!("{:#?}", struct_type).as_str());
 
@@ -100,6 +101,7 @@ fn initial_scalar_values_can_be_parsed() {
             value: 789,
         },
     ),
+    scope: None,
 }"#;
     assert_eq!(expected, format!("{:#?}", my_int_type).as_str());
 
@@ -121,12 +123,12 @@ fn initial_scalar_values_can_be_parsed() {
 
 #[test]
 fn array_initializer_can_be_parsed() {
-    let lexer = lex("
+    let src = "
             VAR_GLOBAL
                 x : ARRAY[0..2] OF INT := [7,8,9];
             END_VAR
-           ");
-    let (parse_result, ..) = parse(lexer);
+           ";
+    let (parse_result, ..) = parse(src);
     let x = &parse_result.global_vars[0].variables[0];
     let expected = r#"Variable {
     name: "x",
@@ -171,12 +173,12 @@ fn array_initializer_can_be_parsed() {
 
 #[test]
 fn multi_dim_array_initializer_can_be_parsed() {
-    let lexer = lex("
+    let src = "
             VAR_GLOBAL
                 x : MyMultiArray := [[1,2],[3,4],[5,6]];
             END_VAR
-           ");
-    let (parse_result, ..) = parse(lexer);
+           ";
+    let (parse_result, ..) = parse(src);
     let x = &parse_result.global_vars[0].variables[0];
     let expected = r#"Variable {
     name: "x",
@@ -241,12 +243,12 @@ fn multi_dim_array_initializer_can_be_parsed() {
 
 #[test]
 fn array_initializer_multiplier_can_be_parsed() {
-    let lexer = lex("
+    let src = "
             VAR_GLOBAL
                 x : ARRAY[0..2] OF INT := [3(7)];
             END_VAR
-           ");
-    let (parse_result, ..) = parse(lexer);
+           ";
+    let (parse_result, ..) = parse(src);
     let x = &parse_result.global_vars[0].variables[0];
     let expected = r#"Variable {
     name: "x",
@@ -284,12 +286,12 @@ fn array_initializer_multiplier_can_be_parsed() {
 
 #[test]
 fn struct_initializer_can_be_parsed() {
-    let lexer = lex("
+    let src = "
             VAR_GLOBAL
                 x : Point := (x := 1, y:= 2);
             END_VAR
-           ");
-    let (parse_result, ..) = parse(lexer);
+           ";
+    let (parse_result, ..) = parse(src);
     let x = &parse_result.global_vars[0].variables[0];
     let expected = r#"Variable {
     name: "x",
@@ -324,13 +326,15 @@ fn struct_initializer_can_be_parsed() {
 
 #[test]
 fn array_initializer_in_pou_can_be_parsed() {
-    let (result, ..) = parse(lex(r#"
+    let (result, ..) = parse(
+        r#"
             PROGRAM main
             VAR
                 my_array: ARRAY[0..2] OF INT := [5,6,7];
             END_VAR
             END_PROGRAM
-            "#));
+            "#,
+    );
 
     let member = &result.units[0].variable_blocks[0].variables[0];
     if let Some(initializer) = &member.initializer {
@@ -358,9 +362,11 @@ fn array_initializer_in_pou_can_be_parsed() {
 
 #[test]
 fn array_type_initialization_with_literals_can_be_parsed_test() {
-    let (result, ..) = parse(lex(r#"
+    let (result, ..) = parse(
+        r#"
             TYPE MyArray : ARRAY[0..2] OF INT := [1,2,3]; END_TYPE
-            "#));
+            "#,
+    );
 
     let initializer = &result.types[0].initializer;
     let ast_string = format!("{:#?}", &initializer);

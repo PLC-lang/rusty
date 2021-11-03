@@ -16,10 +16,21 @@ pub mod visitor;
 
 #[derive(Debug, PartialEq, Clone)]
 pub struct VariableIndexEntry {
+    /// the name of this variable (e.g. 'x' for 'PLC_PRG.x')
     name: String,
+    /// the fully qualified name of this variable (e.g. PLC_PRG.x)
     qualified_name: String,
+    /// an optional initial value of this variable
     pub initial_value: Option<ConstId>,
-    information: VariableInformation,
+    /// the type of variable
+    variable_type: VariableType,
+    /// true if this variable is a compile-time-constant
+    is_constant: bool,
+    /// the variable's datatype
+    data_type_name: String,
+    /// the index of the member-variable in it's container (e.g. struct). defautls to 0 (Single variables)
+    location_in_parent: u32,
+    /// the location in the original source-file
     pub source_location: SourceRange,
 }
 
@@ -33,31 +44,46 @@ pub struct MemberInfo<'b> {
 
 impl VariableIndexEntry {
     pub fn get_name(&self) -> &str {
-        &self.name
+        self.name.as_str()
     }
 
     pub fn get_qualified_name(&self) -> &str {
-        &self.qualified_name
+        self.qualified_name.as_str()
     }
 
     pub fn get_type_name(&self) -> &str {
-        self.information.data_type_name.as_str()
+        self.data_type_name.as_str()
     }
 
     pub fn get_location_in_parent(&self) -> u32 {
-        self.information.location
+        self.location_in_parent
     }
 
     pub fn is_return(&self) -> bool {
-        self.information.variable_type == VariableType::Return
+        self.variable_type == VariableType::Return
     }
 
     pub fn is_local(&self) -> bool {
-        self.information.variable_type == VariableType::Local
+        self.variable_type == VariableType::Local
+    }
+    pub fn is_temp(&self) -> bool {
+        self.variable_type == VariableType::Temp
     }
 
     pub fn is_constant(&self) -> bool {
-        self.information.is_constant
+        self.is_constant
+    }
+
+    pub fn get_variable_type(&self) -> VariableType {
+        self.variable_type
+    }
+
+    pub(crate) fn is_parameter(&self) -> bool {
+        let vt = self.get_variable_type();
+        matches!(
+            vt,
+            VariableType::Input | VariableType::Output | VariableType::InOut
+        )
     }
 }
 
@@ -84,7 +110,7 @@ pub struct VariableInformation {
     /// the variable's qualifier, None for global variables
     qualifier: Option<String>,
     /// Location in the qualifier defautls to 0 (Single variables)
-    location: u32,
+    location_in_parent: u32,
 }
 
 #[derive(Debug)]
@@ -95,7 +121,7 @@ pub enum DataTypeType {
     AliasType,     // a Custom-Alias-dataType
 }
 
-#[derive(Clone, PartialEq)]
+#[derive(Clone, PartialEq, Debug)]
 pub enum ImplementationType {
     Program,
     Function,
@@ -105,7 +131,7 @@ pub enum ImplementationType {
     Method,
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct ImplementationIndexEntry {
     call_name: String,
     type_name: String,
@@ -202,37 +228,11 @@ impl TypeIndex {
         data_type: &'ret DataType,
     ) -> Option<&'ret DataType> {
         match data_type.get_type_information() {
-            DataTypeInformation::SubRange {
-                referenced_type, ..
-            } => self
-                .find_type(referenced_type)
-                .and_then(|it| self.find_effective_type(it)),
             DataTypeInformation::Alias {
                 referenced_type, ..
             } => self
                 .find_type(referenced_type)
                 .and_then(|it| self.find_effective_type(it)),
-            _ => Some(data_type),
-        }
-    }
-
-    /// Retrieves the "Effective" type-information behind this datatype
-    /// An effective type will be any end type i.e. Structs, Integers, Floats, String and Array
-    pub fn find_effective_type_information<'ret>(
-        &'ret self,
-        data_type: &'ret DataTypeInformation,
-    ) -> Option<&'ret DataTypeInformation> {
-        match data_type {
-            DataTypeInformation::SubRange {
-                referenced_type, ..
-            } => self
-                .find_type(referenced_type)
-                .and_then(|it| self.find_effective_type_information(it.get_type_information())),
-            DataTypeInformation::Alias {
-                referenced_type, ..
-            } => self
-                .find_type(referenced_type)
-                .and_then(|it| self.find_effective_type_information(it.get_type_information())),
             _ => Some(data_type),
         }
     }
@@ -241,8 +241,6 @@ impl TypeIndex {
 /// The global index of the rusty-compiler
 ///
 /// The index contains information about all referencable elements.
-///
-///
 #[derive()]
 pub struct Index {
     /// all global variables
@@ -294,17 +292,12 @@ impl Index {
         }
 
         //enum_global_variables
-        //dont import the const-expressions (initializers) because there are already
-        //covered by the enum_qualified_variables map
-        self.enum_global_variables
-            .extend(other.enum_global_variables);
-
-        //enum qualified variables
-
-        for (name, mut e) in other.enum_qualified_variables.drain(..) {
+        for (name, mut e) in other.enum_global_variables.drain(..) {
             e.initial_value =
                 self.maybe_import_const_expr(&mut other.constant_expressions, &e.initial_value);
-            self.enum_qualified_variables.insert(name, e);
+            self.enum_global_variables.insert(name, e.clone());
+            self.enum_qualified_variables
+                .insert(e.qualified_name.to_lowercase(), e);
         }
 
         //member variables
@@ -355,9 +348,9 @@ impl Index {
         initializer_id
             .as_ref()
             .and_then(|it| import_from.remove(it))
-            .map(|(init, target_type)| {
+            .map(|(init, target_type, scope)| {
                 self.get_mut_const_expressions()
-                    .add_constant_expression(init, target_type)
+                    .add_constant_expression(init, target_type, scope)
             })
     }
 
@@ -372,29 +365,90 @@ impl Index {
             TypeSize::LiteralInteger(_) => type_size.clone(),
             TypeSize::ConstExpression(id) => import_from
                 .remove(id)
-                .map(|(expr, target_type)| {
-                    self.get_mut_const_expressions()
-                        .add_constant_expression(expr, target_type)
+                .map(|(expr, target_type, scope)| {
+                    self.get_mut_const_expressions().add_constant_expression(
+                        expr,
+                        target_type,
+                        scope,
+                    )
                 })
                 .map(TypeSize::from_expression)
                 .unwrap(),
         }
     }
 
+    /// returns the void-type
+    /// the NULL-statement has a type of void.
+    /// void cannot be casted to any other
     pub fn get_void_type(&self) -> &DataType {
         &self.type_index.void_type
     }
 
+    /// returns the `VariableIndexEntry` of the global variable with the given name
     pub fn find_global_variable(&self, name: &str) -> Option<&VariableIndexEntry> {
         self.global_variables
             .get(&name.to_lowercase())
             .or_else(|| self.enum_global_variables.get(&name.to_lowercase()))
     }
 
-    pub fn find_member(&self, pou_name: &str, variable_name: &str) -> Option<&VariableIndexEntry> {
+    /// return the `VariableIndexEntry` with the qualified name: `container_name`.`variable_name`
+    pub fn find_member(
+        &self,
+        container_name: &str,
+        variable_name: &str,
+    ) -> Option<&VariableIndexEntry> {
         self.member_variables
-            .get(&pou_name.to_lowercase())
+            .get(&container_name.to_lowercase())
             .and_then(|map| map.get(&variable_name.to_lowercase()))
+            .or_else(|| {
+                //check qualifier
+                container_name
+                    .rfind('.')
+                    .map(|p| &container_name[..p])
+                    .and_then(|qualifier| self.find_member(qualifier, variable_name))
+            })
+    }
+
+    /// return the `VariableIndexEntry` associated with the given fully qualified name using `.` as
+    /// a delimiter. (e.g. "PLC_PRG.x", or "MyClass.MyMethod.x")
+    pub fn find_fully_qualified_variable(
+        &self,
+        fully_qualified_name: &str,
+    ) -> Option<&VariableIndexEntry> {
+        let segments: Vec<&str> = fully_qualified_name.split('.').collect();
+        let (q, segments) = if segments.len() > 1 {
+            (
+                Some(segments[0]),
+                segments.iter().skip(1).copied().collect::<Vec<&str>>(),
+            )
+        } else {
+            (None, segments)
+        };
+        self.find_variable(q, &segments[..])
+    }
+
+    pub fn find_variable(
+        &self,
+        context: Option<&str>,
+        segments: &[&str],
+    ) -> Option<&VariableIndexEntry> {
+        if segments.is_empty() {
+            return None;
+        }
+        let first_var = segments[0];
+        let mut result = match context {
+            Some(context) => self
+                .find_member(context, first_var)
+                .or_else(|| self.find_global_variable(first_var)),
+            None => self.find_global_variable(first_var),
+        };
+        for segment in segments.iter().skip(1) {
+            result = match result {
+                Some(context) => self.find_member(&context.data_type_name, segment),
+                None => None,
+            };
+        }
+        result
     }
 
     /// returns the index entry of the enum-element `element_name` of the enum-type `enum_name`
@@ -408,25 +462,28 @@ impl Index {
             .get(&format!("{}.{}", enum_name, element_name).to_lowercase())
     }
 
-    pub fn find_local_members(&self, container_name: &str) -> Vec<&VariableIndexEntry> {
+    /// returns all member variables of the given container (e.g. FUNCTION, PROGRAM, STRUCT, etc.)
+    pub fn get_container_members(&self, container_name: &str) -> Vec<&VariableIndexEntry> {
         self.member_variables
             .get(&container_name.to_lowercase())
             .map(|it| it.values().collect())
             .unwrap_or_else(Vec::new)
     }
 
-    /// Returns true if the current index is a VAR_INPUT, VAR_IN_OUT or VAR_OUTPUT that is not a variadic argument
-    pub fn is_declared_parameter(&self, pou_name: &str, index: u32) -> bool {
+    /// returns true if the current index is a VAR_INPUT, VAR_IN_OUT or VAR_OUTPUT that is not a variadic argument
+    /// In other words it returns whether the member variable at `index` of the given container is a possible parameter in
+    /// call to it
+    pub fn is_declared_parameter(&self, container_name: &str, index: u32) -> bool {
         self.member_variables
-            .get(&pou_name.to_lowercase())
+            .get(&container_name.to_lowercase())
             .and_then(|map| {
                 map.values()
                     .filter(|item| {
-                        item.information.variable_type == VariableType::Input
-                            || item.information.variable_type == VariableType::InOut
-                            || item.information.variable_type == VariableType::Output
+                        item.variable_type == VariableType::Input
+                            || item.variable_type == VariableType::InOut
+                            || item.variable_type == VariableType::Output
                     })
-                    .find(|item| item.information.location == index)
+                    .find(|item| item.location_in_parent == index)
             })
             .is_some()
     }
@@ -436,45 +493,24 @@ impl Index {
             .get(&pou_name.to_lowercase())
             .and_then(|map| {
                 map.values()
-                    .filter(|item| item.information.variable_type == VariableType::Input)
-                    .find(|item| item.information.location == index)
+                    .filter(|item| item.variable_type == VariableType::Input)
+                    .find(|item| item.location_in_parent == index)
             })
     }
 
-    pub fn find_variable(
-        &self,
-        context: Option<&str>,
-        segments: &[&str],
-    ) -> Option<&VariableIndexEntry> {
-        if segments.is_empty() {
-            return None;
-        }
-
-        let first_var = segments[0];
-
-        let mut result = match context {
-            Some(context) => self
-                .find_member(context, first_var)
-                .or_else(|| self.find_global_variable(first_var)),
-            None => self.find_global_variable(first_var),
-        };
-        for segment in segments.iter().skip(1) {
-            result = match result {
-                Some(context) => self.find_member(&context.information.data_type_name, segment),
-                None => None,
-            };
-        }
-        result
-    }
-
-    pub fn find_type(&self, type_name: &str) -> Option<&DataType> {
-        self.type_index.find_type(type_name)
-    }
-
-    pub fn find_effective_type_by_name(&self, type_name: &str) -> Option<&DataType> {
+    /// returns the effective DataType of the type with the given name if it exists
+    pub fn find_effective_type(&self, type_name: &str) -> Option<&DataType> {
         self.type_index.find_effective_type_by_name(type_name)
     }
 
+    /// returns the effective DataTypeInformation of the type with the given name if it exists
+    pub fn find_effective_type_info(&self, type_name: &str) -> Option<&DataTypeInformation> {
+        self.find_effective_type(type_name)
+            .map(DataType::get_type_information)
+    }
+
+    /// returns the effective type of the type with the with the given name or the
+    /// void-type if the given name does not exist
     pub fn get_effective_type_by_name(&self, type_name: &str) -> &DataType {
         self.type_index.get_effective_type_by_name(type_name)
     }
@@ -483,53 +519,11 @@ impl Index {
         self.type_index.get_type(type_name)
     }
 
-    /// Retrieves the "Effective" type behind this datatype
-    /// An effective type will be any end type i.e. Structs, Integers, Floats, String and Array
-    pub fn find_effective_type<'ret>(
-        &'ret self,
-        data_type: &'ret DataType,
-    ) -> Option<&'ret DataType> {
-        match data_type.get_type_information() {
-            DataTypeInformation::SubRange {
-                referenced_type, ..
-            } => self
-                .find_type(referenced_type)
-                .and_then(|it| self.find_effective_type(it)),
-            DataTypeInformation::Alias {
-                referenced_type, ..
-            } => self
-                .find_type(referenced_type)
-                .and_then(|it| self.find_effective_type(it)),
-            _ => Some(data_type),
-        }
-    }
-
-    /// Retrieves the "Effective" type-information behind this datatype
-    /// An effective type will be any end type i.e. Structs, Integers, Floats, String and Array
-    pub fn find_effective_type_information<'ret>(
-        &'ret self,
-        data_type: &'ret DataTypeInformation,
-    ) -> Option<&'ret DataTypeInformation> {
-        match data_type {
-            DataTypeInformation::SubRange {
-                referenced_type, ..
-            } => self
-                .find_type(referenced_type)
-                .and_then(|it| self.find_effective_type_information(it.get_type_information())),
-            DataTypeInformation::Alias {
-                referenced_type, ..
-            } => self
-                .find_type(referenced_type)
-                .and_then(|it| self.find_effective_type_information(it.get_type_information())),
-            _ => Some(data_type),
-        }
-    }
-
     pub fn find_return_variable(&self, pou_name: &str) -> Option<&VariableIndexEntry> {
         let members = self.member_variables.get(&pou_name.to_lowercase()); //.ok_or_else(||CompileError::unknown_type(pou_name, 0..0))?;
         if let Some(members) = members {
             for (_, variable) in members {
-                if variable.information.variable_type == VariableType::Return {
+                if variable.variable_type == VariableType::Return {
                     return Some(variable);
                 }
             }
@@ -542,21 +536,8 @@ impl Index {
         variable.map(|it| self.get_type(it.get_type_name()).unwrap())
     }
 
-    pub fn find_type_information(&self, type_name: &str) -> Option<DataTypeInformation> {
-        self.find_type(type_name)
-            .map(|entry| entry.clone_type_information())
-    }
-
-    pub fn get_type_information(
-        &self,
-        type_name: &str,
-    ) -> Result<DataTypeInformation, CompileError> {
-        self.find_type_information(type_name)
-            .ok_or_else(|| CompileError::unknown_type(type_name, SourceRange::undefined()))
-    }
-
     pub fn get_type_information_or_void(&self, type_name: &str) -> &DataTypeInformation {
-        self.find_type(type_name)
+        self.find_effective_type(type_name)
             .map(|it| it.get_type_information())
             .unwrap_or_else(|| self.get_void_type().get_type_information())
     }
@@ -566,21 +547,8 @@ impl Index {
         &self.type_index.types
     }
 
-    pub fn get_type_index(&self) -> &TypeIndex {
-        &self.type_index
-    }
-
     pub fn get_globals(&self) -> &IndexMap<String, VariableIndexEntry> {
         &self.global_variables
-    }
-
-    /// returns globals and member variable index entries
-    pub fn get_all_variable_entries(&self) -> impl Iterator<Item = &VariableIndexEntry> {
-        let members = self.member_variables.values().flat_map(|it| it.values());
-
-        let globals = self.global_variables.values();
-
-        globals.chain(members)
     }
 
     pub fn get_global_qualified_enums(&self) -> &IndexMap<String, VariableIndexEntry> {
@@ -647,13 +615,10 @@ impl Index {
             qualified_name,
             initial_value,
             source_location,
-            information: VariableInformation {
-                variable_type: variable_linkage,
-                data_type_name: variable_type_name.into(),
-                qualifier: Some(container_name.into()),
-                is_constant: member_info.is_constant,
-                location,
-            },
+            variable_type: variable_linkage,
+            data_type_name: variable_type_name.into(),
+            is_constant: member_info.is_constant,
+            location_in_parent: location,
         };
         members.insert(variable_name.to_lowercase(), entry);
     }
@@ -671,13 +636,10 @@ impl Index {
             qualified_name: qualified_name.clone(),
             initial_value,
             source_location,
-            information: VariableInformation {
-                variable_type: VariableType::Global,
-                data_type_name: enum_type_name.into(),
-                is_constant: true,
-                qualifier: None,
-                location: 0,
-            },
+            variable_type: VariableType::Global,
+            data_type_name: enum_type_name.into(),
+            is_constant: true,
+            location_in_parent: 0,
         };
         self.enum_global_variables
             .insert(element_name.to_lowercase(), entry.clone());
@@ -721,20 +683,13 @@ impl Index {
             qualified_name,
             initial_value,
             source_location,
-            information: VariableInformation {
-                variable_type: VariableType::Global,
-                data_type_name: type_name.into(),
-                qualifier: None,
-                is_constant,
-                location: 0,
-            },
+            variable_type: VariableType::Global,
+            data_type_name: type_name.into(),
+            is_constant,
+            location_in_parent: 0,
         };
         self.global_variables
             .insert(association_name.to_lowercase(), entry);
-    }
-
-    pub fn print_global_variables(&self) {
-        println!("{:?}", self.global_variables);
     }
 
     pub fn register_type(
@@ -761,8 +716,7 @@ impl Index {
         //look for a *callable* variable with that name
         self.find_variable(context, reference).filter(|v| {
             //callable means, there is an implementation associated with the variable's datatype
-            self.find_implementation(&v.information.data_type_name)
-                .is_some()
+            self.find_implementation(&v.data_type_name).is_some()
         })
     }
 
@@ -774,10 +728,6 @@ impl Index {
     /// returns all registered ConstExpressions
     pub fn get_const_expressions(&self) -> &ConstExpressions {
         &self.constant_expressions
-    }
-
-    fn insert_type(&mut self, type_name: String, data_type: DataType) {
-        self.type_index.types.insert(type_name, data_type);
     }
 }
 

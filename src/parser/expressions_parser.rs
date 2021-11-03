@@ -7,6 +7,7 @@ use crate::{
     parser::parse_any_in_region,
     Diagnostic,
 };
+use regex::{Captures, Regex};
 use std::str::FromStr;
 
 macro_rules! parse_left_associative_expression {
@@ -779,6 +780,57 @@ fn trim_quotes(quoted_string: &str) -> String {
     quoted_string[1..quoted_string.len() - 1].to_string()
 }
 
+fn handle_special_chars(string: &str, is_wide: bool) -> String {
+    let (re, re_hex) = if is_wide {
+        (
+            Regex::new(r#"(\$([lLnNpPrRtT$"]))"#).unwrap(), //Cannot fail
+            Regex::new(r"(\$([[:xdigit:]]{2}){2})+").unwrap(), //Cannot fail
+        )
+    } else {
+        (
+            Regex::new(r"(\$([lLnNpPrRtT$']))").unwrap(), //Cannot fail
+            Regex::new(r"(\$([[:xdigit:]]{2}))+").unwrap(), //Cannot fail
+        )
+    };
+
+    // separated re and re_hex to minimize copying
+    let res = re.replace_all(string, |caps: &Captures| {
+        let cap_str = &caps[1];
+        match cap_str {
+            "$l" | "$L" => "\n",
+            "$n" | "$N" => "\n",
+            "$p" | "$P" => "\x0C",
+            "$r" | "$R" => "\r",
+            "$t" | "$T" => "\t",
+            "$$" => "$",
+            "$'" => "\'",
+            "$\"" => "\"",
+            _ => unreachable!(),
+        }
+    });
+
+    re_hex
+        .replace_all(&res, |caps: &Captures| {
+            let hex = &caps[0];
+            let hex_vals: Vec<&str> = hex.split('$').filter(|it| !it.is_empty()).collect();
+            let res = if is_wide {
+                let hex_vals: Vec<u16> = hex_vals
+                    .iter()
+                    .map(|it| u16::from_str_radix(*it, 16).unwrap_or_default())
+                    .collect();
+                String::from_utf16_lossy(&hex_vals)
+            } else {
+                let hex_vals: Vec<u8> = hex_vals
+                    .iter()
+                    .map(|it| u8::from_str_radix(*it, 16).unwrap_or_default())
+                    .collect();
+                String::from_utf8_lossy(&hex_vals).to_string()
+            };
+            res
+        })
+        .into()
+}
+
 fn parse_literal_string(
     lexer: &mut ParseSession,
     is_wide: bool,
@@ -786,7 +838,7 @@ fn parse_literal_string(
     let result = lexer.slice();
     let location = lexer.location();
     let string_literal = Ok(AstStatement::LiteralString {
-        value: trim_quotes(result),
+        value: handle_special_chars(&trim_quotes(result), is_wide),
         is_wide,
         location,
         id: lexer.next_id(),
@@ -823,5 +875,36 @@ fn parse_literal_real(
             lexer.slice(),
             lexer.location(),
         ))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::parser::expressions_parser::handle_special_chars;
+
+    #[test]
+    fn replace_all_test() {
+        // following special chars should be replaced
+        let string = "a $l$L b $n$N test $p$P c $r$R d $t$T$$ $'quote$' $57 💖 $F0$9F$92$96";
+        let expected = "a \n\n b \n\n test \x0C\x0C c \r\r d \t\t$ 'quote' W 💖 💖";
+
+        let w_string = r#"a $l$L b $n$N test $p$P c $r$R d $t$T$$ $"double$" $0077 💖 $D83D$DC96"#;
+        let w_expected = "a \n\n b \n\n test \x0C\x0C c \r\r d \t\t$ \"double\" w 💖 💖";
+
+        assert_eq!(handle_special_chars(w_string, true), w_expected);
+        assert_eq!(handle_special_chars(string, false), expected);
+    }
+
+    #[test]
+    fn should_not_replace_test() {
+        // following special chars should not be replaced
+        let string = r#"$0043 $"no replace$""#;
+        let expected = "\u{0}43 $\"no replace$\"";
+
+        let w_string = r#"$57 $'no replace$'"#;
+        let w_expected = "$57 $'no replace$'";
+
+        assert_eq!(handle_special_chars(w_string, true), w_expected);
+        assert_eq!(handle_special_chars(string, false), expected);
     }
 }

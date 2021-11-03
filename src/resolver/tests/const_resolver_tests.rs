@@ -1,8 +1,10 @@
 use crate::ast::{AstStatement, SourceRange};
 use crate::index::const_expressions::ConstExpression;
 use crate::index::Index;
+
 use crate::resolver::const_evaluator::{evaluate_constants, UnresolvableConstant};
-use crate::resolver::tests::parse;
+use crate::test_utils::tests::{annotate, index};
+use crate::typesystem::DataTypeInformation;
 
 const EMPTY: Vec<UnresolvableConstant> = vec![];
 
@@ -75,7 +77,7 @@ fn create_bool_literal(v: bool) -> AstStatement {
 #[test]
 fn const_references_to_int_compile_time_evaluation() {
     // GIVEN some INT index used as initializers
-    let (_, index) = parse(
+    let (_, index) = index(
         "VAR_GLOBAL CONSTANT
             iX : INT := 4;
             rX : LREAL := 4.2;
@@ -130,7 +132,7 @@ fn const_references_to_int_compile_time_evaluation() {
 #[test]
 fn local_const_references_to_int_compile_time_evaluation() {
     // GIVEN some INT index used as initializers
-    let (_, index) = parse(
+    let (_, index) = index(
         "
         PROGRAM prg 
             VAR CONSTANT
@@ -162,10 +164,57 @@ fn local_const_references_to_int_compile_time_evaluation() {
 }
 
 #[test]
+fn local_const_references_to_int_compile_time_evaluation_uses_correct_scopes() {
+    // GIVEN some global and local constants
+    let (_, index) = index(
+        "
+        VAR_GLOBAL CONSTANT
+            a : INT := 5;
+        END_VAR
+
+        VAR_GLOBAL
+            g : INT := a; //should be 5
+            h : INT := prg.a; // should be 4
+        END_VAR
+
+        PROGRAM prg 
+            VAR CONSTANT
+                a : INT := 4;
+            END_VAR
+
+            VAR_INPUT
+                v : INT := a; //should be 4
+            END_VAR
+        END_PROGRAM
+        ",
+    );
+
+    // WHEN compile-time evaluation is applied
+    let (index, unresolvable) = evaluate_constants(index);
+    debug_assert_eq!(EMPTY, unresolvable);
+
+    // THEN g should resolve its inital value to global 'a'
+    debug_assert_eq!(
+        &create_int_literal(5),
+        find_connstant_value(&index, "g").unwrap()
+    );
+    // THEN h should resolve its inital value to 'prg.a'
+    debug_assert_eq!(
+        &create_int_literal(4),
+        find_connstant_value(&index, "h").unwrap()
+    );
+    // AND prg.v should resolve its initial value to 'prg.a'
+    debug_assert_eq!(
+        &create_int_literal(4),
+        find_member_value(&index, "prg", "v").unwrap()
+    );
+}
+
+#[test]
 fn non_const_references_to_int_compile_time_evaluation() {
     // GIVEN some global consts
     // AND some NON-constants
-    let (_, index) = parse(
+    let (_, index) = index(
         "VAR_GLOBAL CONSTANT
             iX : INT := 2;
         END_VAR
@@ -209,7 +258,7 @@ fn non_const_references_to_int_compile_time_evaluation() {
 #[test]
 fn prg_members_initials_compile_time_evaluation() {
     // GIVEN some member variables with const initializers
-    let (_, index) = parse(
+    let (_, index) = index(
         "
         VAR_GLOBAL CONSTANT
             TWO : INT := 2;
@@ -256,7 +305,7 @@ fn prg_members_initials_compile_time_evaluation() {
 #[test]
 fn const_references_to_negative_reference() {
     // GIVEN some INT index used as initializers
-    let (_, index) = parse(
+    let (_, index) = index(
         "VAR_GLOBAL CONSTANT
             iX : INT := 4;
             rX : LREAL := 4.2;
@@ -292,7 +341,7 @@ fn const_references_to_negative_reference() {
 #[test]
 fn const_references_to_int_additions_compile_time_evaluation() {
     // GIVEN some INT index used as initializers
-    let (_, index) = parse(
+    let (_, index) = index(
         "VAR_GLOBAL CONSTANT
             iX : INT := 4;
             rX : LREAL := 4.2;
@@ -347,7 +396,7 @@ fn const_references_to_int_additions_compile_time_evaluation() {
 #[test]
 fn const_references_to_int_subtractions_compile_time_evaluation() {
     // GIVEN some INT index used as initializers
-    let (_, index) = parse(
+    let (_, index) = index(
         "VAR_GLOBAL CONSTANT
             iX : INT := 4;
             rX : LREAL := 4.2;
@@ -402,7 +451,7 @@ fn const_references_to_int_subtractions_compile_time_evaluation() {
 #[test]
 fn const_references_to_int_multiplications_compile_time_evaluation() {
     // GIVEN some INT index used as initializers
-    let (_, index) = parse(
+    let (_, index) = index(
         "VAR_GLOBAL CONSTANT
             iX : INT := 4;
             rX : LREAL := 4.2;
@@ -457,7 +506,7 @@ fn const_references_to_int_multiplications_compile_time_evaluation() {
 #[test]
 fn const_references_to_int_division_compile_time_evaluation() {
     // GIVEN some INT index used as initializers
-    let (_, index) = parse(
+    let (_, index) = index(
         "VAR_GLOBAL CONSTANT
             iX : INT := 40;
             rX : LREAL := 40.2;
@@ -512,7 +561,7 @@ fn const_references_to_int_division_compile_time_evaluation() {
 #[test]
 fn const_references_int_float_type_behavior_evaluation() {
     // GIVEN some INT index used as initializers
-    let (_, index) = parse(
+    let (_, index) = index(
         "VAR_GLOBAL CONSTANT
             // INT - INT
             int_plus_int : INT := 3 + 1;
@@ -748,7 +797,7 @@ fn const_references_int_float_type_behavior_evaluation() {
 #[test]
 fn const_references_bool_bit_functions_behavior_evaluation() {
     // GIVEN some bit-functions used as initializers
-    let (_, index) = parse(
+    let (_, index) = index(
         "VAR_GLOBAL CONSTANT
             _true : BOOL := TRUE;
             _false : BOOL := FALSE;
@@ -795,7 +844,7 @@ fn const_references_bool_bit_functions_behavior_evaluation() {
 #[test]
 fn const_references_int_bit_functions_behavior_evaluation() {
     // GIVEN some bit-functions used as initializers
-    let (_, index) = parse(
+    let (_, index) = index(
         "VAR_GLOBAL CONSTANT
             _0x00ff : WORD := 16#00FF;
         END_VAR
@@ -840,7 +889,7 @@ fn const_references_int_bit_functions_behavior_evaluation() {
 #[test]
 fn illegal_cast_should_not_be_resolved() {
     // GIVEN some bit-functions used as initializers
-    let (_, index) = parse(
+    let (_, index) = index(
         "VAR_GLOBAL CONSTANT
             a : INT := BOOL#16#00FF;
         END_VAR
@@ -863,7 +912,7 @@ fn illegal_cast_should_not_be_resolved() {
 #[test]
 fn division_by_0_should_fail() {
     // GIVEN some bit-functions used as initializers
-    let (_, index) = parse(
+    let (_, index) = index(
         "VAR_GLOBAL CONSTANT
             zero_int : INT := 0;
             zero_real : REAL := 0.0;
@@ -926,7 +975,7 @@ fn division_by_0_should_fail() {
 #[test]
 fn const_references_not_function_with_signed_ints() {
     // GIVEN some bit-functions used as initializers
-    let (_, index) = parse(
+    let (_, index) = index(
         "VAR_GLOBAL CONSTANT
             _0x00ff : INT := 16#00FF; //255
         END_VAR
@@ -977,7 +1026,7 @@ fn const_references_not_function_with_signed_ints() {
 #[test]
 fn const_references_to_bool_compile_time_evaluation() {
     // GIVEN some BOOL index used as initializers
-    let (_, index) = parse(
+    let (_, index) = index(
         "VAR_GLOBAL CONSTANT
             x : BOOL := TRUE;
             y : BOOL := FALSE;
@@ -1014,7 +1063,7 @@ fn const_references_to_bool_compile_time_evaluation() {
 #[test]
 fn not_evaluatable_consts_are_reported() {
     // GIVEN some BOOL index used as initializers
-    let (_, index) = parse(
+    let (_, index) = index(
         "VAR_GLOBAL CONSTANT
             a : INT := 1;
             b : INT := a;
@@ -1038,7 +1087,7 @@ fn not_evaluatable_consts_are_reported() {
 #[test]
 fn evaluating_constants_can_handle_recursion() {
     // GIVEN some BOOL index used as initializers
-    let (_, index) = parse(
+    let (_, index) = index(
         "VAR_GLOBAL CONSTANT
             a : INT := d;
             b : INT := a;
@@ -1077,7 +1126,7 @@ fn evaluating_constants_can_handle_recursion() {
 #[test]
 fn const_string_initializers_should_be_converted() {
     // GIVEN some STRING constants used as initializers
-    let (_, index) = parse(
+    let (_, index) = index(
         r#"VAR_GLOBAL CONSTANT
             a : STRING := 'Hello';
             b : WSTRING := "World";
@@ -1116,4 +1165,327 @@ fn const_string_initializers_should_be_converted() {
             location: SourceRange::undefined()
         })
     );
+}
+
+#[test]
+fn const_lreal_initializers_should_be_resolved_correctly() {
+    // GIVEN some STRING constants used as initializers
+    let (parse_result, index) = index(
+        r#"
+        VAR_GLOBAL CONSTANT
+            clreal : LREAL := 3.1415;
+        END_VAR
+        
+        VAR_GLOBAL CONSTANT
+            tau : LREAL := 2 * clreal;
+        END_VAR
+        "#,
+    );
+
+    // WHEN compile-time evaluation is applied
+    // AND types are resolved
+    let annotations = annotate(&parse_result, &index);
+    let (index, unresolvable) = evaluate_constants(index);
+
+    // THEN all should be resolved
+    debug_assert_eq!(EMPTY, unresolvable);
+
+    // AND the globals should have gotten their values
+    debug_assert_eq!(
+        find_connstant_value(&index, "tau"),
+        Some(AstStatement::LiteralReal {
+            value: "6.283".into(),
+            id: 0,
+            location: SourceRange::undefined()
+        })
+    );
+
+    //AND the type is correctly associated
+    let i = index
+        .find_global_variable("tau")
+        .unwrap()
+        .initial_value
+        .unwrap();
+    assert_eq!(
+        index
+            .get_const_expressions()
+            .find_expression_target_type(&i)
+            .unwrap(),
+        "LREAL"
+    );
+
+    assert_eq!(
+        annotations.get_type(
+            index
+                .get_const_expressions()
+                .get_constant_statement(&i)
+                .unwrap(),
+            &index
+        ),
+        index.find_effective_type("LREAL")
+    );
+}
+
+#[test]
+fn array_size_from_constant() {
+    // GIVEN some an array with const-expr -dimensions
+    let (parse_result, index) = index(
+        r#"
+        PROGRAM aaa
+            VAR CONSTANT
+                a : INT := 3;
+                b : INT := 7;
+            END_VAR 
+
+            VAR
+                arr : ARRAY[a..b] OF BYTE;
+            END_VAR
+        END_PROGRAM
+       "#,
+    );
+
+    // WHEN compile-time evaluation is applied
+    // AND types are resolved
+    annotate(&parse_result, &index);
+    let (_, unresolvable) = evaluate_constants(index);
+
+    debug_assert_eq!(EMPTY, unresolvable);
+}
+
+#[test]
+fn array_literals_type_resolving() {
+    // GIVEN some STRING constants used as initializers
+    let (parse_result, index) = index(
+        r#"
+        VAR_GLOBAL CONSTANT
+            a : ARRAY[0..5] OF BYTE := [1,2,3,4];
+        END_VAR
+       "#,
+    );
+
+    // WHEN compile-time evaluation is applied
+    // AND types are resolved
+    let annotations = annotate(&parse_result, &index);
+    let (index, unresolvable) = evaluate_constants(index);
+
+    // THEN all should be resolved
+    debug_assert_eq!(EMPTY, unresolvable);
+
+    let a = index.find_global_variable("a").unwrap();
+    let i = a.initial_value.unwrap();
+    assert_eq!(
+        index
+            .get_const_expressions()
+            .find_expression_target_type(&i),
+        Some(index.find_global_variable("a").unwrap().get_type_name())
+    );
+
+    // AND the array-literals types are associated correctly
+    if let AstStatement::LiteralArray {
+        elements: Some(elements),
+        ..
+    } = parse_result.global_vars[0].variables[0]
+        .initializer
+        .as_ref()
+        .unwrap()
+    {
+        if let AstStatement::ExpressionList { expressions, .. } = elements.as_ref() {
+            for ele in expressions.iter() {
+                assert_eq!(
+                    annotations.get_type_hint(ele, &index),
+                    index.find_effective_type("BYTE")
+                );
+            }
+        } else {
+            unreachable!();
+        }
+    } else {
+        unreachable!();
+    }
+
+    assert_eq!(
+        annotations.get_type_hint(
+            index
+                .get_const_expressions()
+                .get_constant_statement(&i)
+                .unwrap(),
+            &index
+        ),
+        index.find_effective_type(a.get_type_name())
+    );
+}
+
+#[test]
+fn nested_array_literals_type_resolving() {
+    // GIVEN a multi-nested Array Type with an initializer
+    let (parse_result, index) = index(
+        r#"
+        VAR_GLOBAL CONSTANT
+            a : ARRAY[0..1] OF ARRAY[0..1] OF BYTE  := [[1,2],[3,4]]; 
+        END_VAR
+       "#,
+    );
+
+    // WHEN compile-time evaluation is applied
+    // AND types are resolved
+    let annotations = annotate(&parse_result, &index);
+    let (index, unresolvable) = evaluate_constants(index);
+
+    // THEN all should be resolved
+    debug_assert_eq!(EMPTY, unresolvable);
+
+    //AND the type is correctly associated
+    let a = index.find_global_variable("a").unwrap();
+    let i = a.initial_value.unwrap();
+    assert_eq!(
+        index
+            .get_const_expressions()
+            .find_expression_target_type(&i),
+        Some(index.find_global_variable("a").unwrap().get_type_name())
+    );
+    //check the initializer's type
+    let initializer = index
+        .get_const_expressions()
+        .get_constant_statement(&i)
+        .unwrap();
+    assert_eq!(
+        annotations.get_type_hint(initializer, &index),
+        index.find_effective_type(a.get_type_name())
+    );
+
+    println!("{:#?}", initializer);
+
+    //check the initializer's array-element's types
+    if let AstStatement::LiteralArray {
+        elements: Some(e), ..
+    } = initializer
+    {
+        if let Some(DataTypeInformation::Array {
+            inner_type_name, ..
+        }) = index
+            .find_effective_type(a.get_type_name())
+            .map(|t| t.get_type_information())
+        {
+            //check the type of the expression-list has the same type as the variable itself
+            /*assert_eq!(
+                annotations.get_type_hint(e, &index),
+                index.find_type(a.get_type_name())
+            );*/
+
+            // check if the array's elements have the array's inner type
+            for ele in AstStatement::get_as_list(e) {
+                let element_hint = annotations.get_type_hint(ele, &index).unwrap();
+                assert_eq!(
+                    Some(element_hint),
+                    index.find_effective_type(inner_type_name)
+                )
+            }
+        } else {
+            unreachable!()
+        }
+    } else {
+        unreachable!()
+    }
+}
+
+#[test]
+fn nested_array_literals_multiplied_statement_type_resolving() {
+    // GIVEN a multi-nested Array Type with an initializer
+    let (parse_result, index) = index(
+        r#"
+        VAR_GLOBAL CONSTANT
+            a : ARRAY[0..1] OF ARRAY[0..1] OF BYTE  := [[2(2)],[2(3)]]; 
+        END_VAR
+       "#,
+    );
+
+    // WHEN compile-time evaluation is applied
+    // AND types are resolved
+    let annotations = annotate(&parse_result, &index);
+    let (index, unresolvable) = evaluate_constants(index);
+
+    // THEN all should be resolved
+    debug_assert_eq!(EMPTY, unresolvable);
+
+    //AND the type is correctly associated
+    let a = index.find_global_variable("a").unwrap();
+    let i = a.initial_value.unwrap();
+    assert_eq!(
+        index
+            .get_const_expressions()
+            .find_expression_target_type(&i),
+        Some(index.find_global_variable("a").unwrap().get_type_name())
+    );
+    //check the initializer's type
+    let initializer = index
+        .get_const_expressions()
+        .get_constant_statement(&i)
+        .unwrap();
+
+    assert_eq!(
+        annotations.get_type_hint(initializer, &index),
+        index.find_effective_type(a.get_type_name())
+    );
+
+    //check the initializer's array-element's types
+    // [[2(2)],[2(3)]]
+    if let AstStatement::LiteralArray {
+        elements: Some(outer_expresion_list),
+        ..
+    } = initializer
+    {
+        // outer_expression_list = [2(2)],[2(3)]
+        if let Some(DataTypeInformation::Array {
+            inner_type_name: array_of_byte,
+            ..
+        }) = index
+            .find_effective_type(a.get_type_name())
+            .map(|t| t.get_type_information())
+        {
+            //check the type of the expression-list has the same type as the variable itself
+            assert_eq!(
+                annotations.get_type_hint(outer_expresion_list, &index),
+                index.find_effective_type(a.get_type_name())
+            );
+
+            // check if the array's elements have the array's inner type
+            for inner_array in AstStatement::get_as_list(outer_expresion_list) {
+                // [2(2)]
+                let element_hint = annotations.get_type_hint(inner_array, &index).unwrap();
+                assert_eq!(Some(element_hint), index.find_effective_type(array_of_byte));
+
+                //check if the inner array statement's also got the type-annotations
+                if let AstStatement::LiteralArray {
+                    elements: Some(inner_multiplied_stmt),
+                    ..
+                } = inner_array
+                {
+                    // inner_multiplied_stmt = 2(2)
+                    for inner_multiplied_stmt in AstStatement::get_as_list(inner_multiplied_stmt) {
+                        if let AstStatement::MultipliedStatement {
+                            element: multiplied_element,
+                            ..
+                        } = inner_multiplied_stmt
+                        {
+                            //check if the inner thing really got the BYTE hint
+                            // multiplied-element = 2
+                            println!("{:#?}", multiplied_element.as_ref());
+                            assert_eq!(
+                                annotations.get_type_hint(multiplied_element.as_ref(), &index),
+                                index.find_effective_type("BYTE")
+                            );
+                        } else {
+                            unreachable!()
+                        }
+                    }
+                } else {
+                    unreachable!()
+                }
+            }
+        } else {
+            unreachable!()
+        }
+    } else {
+        unreachable!()
+    }
 }

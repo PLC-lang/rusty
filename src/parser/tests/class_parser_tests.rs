@@ -1,12 +1,9 @@
-use crate::{
-    ast::*,
-    parser::{parse, tests::lex},
-};
+use crate::{ast::*, test_utils::tests::parse};
 
 #[test]
 fn simple_class_with_defaults_can_be_parsed() {
-    let lexer = lex("CLASS MyClass END_CLASS");
-    let unit = parse(lexer).0;
+    let src = "CLASS MyClass END_CLASS";
+    let unit = parse(src).0;
 
     let class = &unit.units[0];
     assert_eq!(class.pou_type, PouType::Class);
@@ -18,8 +15,8 @@ fn simple_class_with_defaults_can_be_parsed() {
 
 #[test]
 fn simple_class_can_be_parsed() {
-    let lexer = lex("CLASS ABSTRACT MyClass END_CLASS");
-    let unit = parse(lexer).0;
+    let src = "CLASS ABSTRACT MyClass END_CLASS";
+    let unit = parse(src).0;
 
     let class = &unit.units[0];
     assert_eq!(class.pou_type, PouType::Class);
@@ -31,8 +28,8 @@ fn simple_class_can_be_parsed() {
 
 #[test]
 fn simple_class2_can_be_parsed() {
-    let lexer = lex("CLASS FINAL MyClass2 END_CLASS");
-    let unit = parse(lexer).0;
+    let src = "CLASS FINAL MyClass2 END_CLASS";
+    let unit = parse(src).0;
 
     let class = &unit.units[0];
     assert_eq!(class.pou_type, PouType::Class);
@@ -44,8 +41,8 @@ fn simple_class2_can_be_parsed() {
 
 #[test]
 fn method_with_defaults_can_be_parsed() {
-    let lexer = lex("CLASS MyClass METHOD testMethod END_METHOD END_CLASS");
-    let unit = parse(lexer).0;
+    let src = "CLASS MyClass METHOD testMethod END_METHOD END_CLASS";
+    let unit = parse(src).0;
 
     let class = &unit.units[0];
     assert_eq!(class.pou_type, PouType::Class);
@@ -69,9 +66,8 @@ fn method_with_defaults_can_be_parsed() {
 
 #[test]
 fn method_can_be_parsed() {
-    let lexer =
-        lex("CLASS MyClass METHOD INTERNAL FINAL OVERRIDE testMethod2 END_METHOD END_CLASS");
-    let unit = parse(lexer).0;
+    let src = "CLASS MyClass METHOD INTERNAL FINAL OVERRIDE testMethod2 END_METHOD END_CLASS";
+    let unit = parse(src).0;
 
     let class = &unit.units[0];
     assert_eq!(class.pou_type, PouType::Class);
@@ -95,9 +91,8 @@ fn method_can_be_parsed() {
 
 #[test]
 fn two_methods_can_be_parsed() {
-    let lexer =
-        lex("CLASS MyClass METHOD INTERNAL testMethod2 END_METHOD METHOD PROTECTED otherMethod VAR_TEMP END_VAR END_METHOD END_CLASS");
-    let unit = parse(lexer).0;
+    let src ="CLASS MyClass METHOD INTERNAL testMethod2 END_METHOD METHOD PROTECTED otherMethod VAR_TEMP END_VAR END_METHOD END_CLASS";
+    let unit = parse(src).0;
 
     let class = &unit.units[0];
     assert_eq!(class.pou_type, PouType::Class);
@@ -114,10 +109,9 @@ fn two_methods_can_be_parsed() {
 
 #[test]
 fn method_with_return_type_can_be_parsed() {
-    let lexer = lex(
-        "CLASS MyClass METHOD PRIVATE ABSTRACT OVERRIDE testMethod3 : SINT END_METHOD END_CLASS",
-    );
-    let unit = parse(lexer).0;
+    let src =
+        "CLASS MyClass METHOD PRIVATE ABSTRACT OVERRIDE testMethod3 : SINT END_METHOD END_CLASS";
+    let unit = parse(src).0;
 
     let class = &unit.units[0];
     assert_eq!(class.pou_type, PouType::Class);
@@ -141,8 +135,8 @@ fn method_with_return_type_can_be_parsed() {
 
 #[test]
 fn class_with_var_default_block() {
-    let lexer = lex("CLASS MyClass VAR END_VAR END_CLASS");
-    let unit = parse(lexer).0;
+    let src = "CLASS MyClass VAR END_VAR END_CLASS";
+    let unit = parse(src).0;
 
     let class = &unit.units[0];
     assert_eq!(class.pou_type, PouType::Class);
@@ -159,8 +153,8 @@ fn class_with_var_default_block() {
 
 #[test]
 fn class_with_var_non_retain_block() {
-    let lexer = lex("CLASS MyClass VAR CONSTANT NON_RETAIN PUBLIC END_VAR END_CLASS");
-    let unit = parse(lexer).0;
+    let src = "CLASS MyClass VAR CONSTANT NON_RETAIN PUBLIC END_VAR END_CLASS";
+    let unit = parse(src).0;
 
     let class = &unit.units[0];
     assert_eq!(class.pou_type, PouType::Class);
@@ -177,8 +171,8 @@ fn class_with_var_non_retain_block() {
 
 #[test]
 fn class_with_var_retain_block() {
-    let lexer = lex("CLASS MyClass VAR RETAIN INTERNAL END_VAR END_CLASS");
-    let unit = parse(lexer).0;
+    let src = "CLASS MyClass VAR RETAIN INTERNAL END_VAR END_CLASS";
+    let unit = parse(src).0;
 
     let class = &unit.units[0];
     assert_eq!(class.pou_type, PouType::Class);
@@ -195,8 +189,8 @@ fn class_with_var_retain_block() {
 
 #[test]
 fn method_with_var_block() {
-    let lexer = lex("CLASS MyClass METHOD testMethod3 VAR_TEMP END_VAR END_METHOD END_CLASS");
-    let unit = parse(lexer).0;
+    let src = "CLASS MyClass METHOD testMethod3 VAR_TEMP END_VAR END_METHOD END_CLASS";
+    let unit = parse(src).0;
 
     let class = &unit.units[0];
     assert_eq!(class.pou_type, PouType::Class);
@@ -213,7 +207,7 @@ fn method_with_var_block() {
 
 #[test]
 fn method_with_var_inout_blocks() {
-    let lexer = lex(r#"
+    let src = r#"
             CLASS MyClass
                 METHOD testMethod3
                     VAR_INPUT CONSTANT
@@ -222,8 +216,8 @@ fn method_with_var_inout_blocks() {
                     VAR_IN_OUT END_VAR
                     VAR_OUTPUT END_VAR
                 END_METHOD
-            END_CLASS"#);
-    let unit = parse(lexer).0;
+            END_CLASS"#;
+    let unit = parse(src).0;
 
     let class = &unit.units[0];
     assert_eq!(class.pou_type, PouType::Class);
@@ -248,12 +242,12 @@ fn method_with_var_inout_blocks() {
 
 #[test]
 fn fb_method_can_be_parsed() {
-    let lexer = lex(r#"
+    let src = r#"
             FUNCTION_BLOCK MyFb
                 METHOD INTERNAL FINAL OVERRIDE testMethod2 END_METHOD
             END_FUNCTION_BLOCK
-        "#);
-    let unit = parse(lexer).0;
+        "#;
+    let unit = parse(src).0;
 
     let class = &unit.units[0];
     assert_eq!(class.pou_type, PouType::FunctionBlock);
@@ -277,13 +271,13 @@ fn fb_method_can_be_parsed() {
 
 #[test]
 fn fb_two_methods_can_be_parsed() {
-    let lexer = lex(r#"
+    let src = r#"
             FUNCTION_BLOCK MyNewFb
                 METHOD INTERNAL testMethod2 END_METHOD
                 METHOD otherMethod VAR_TEMP END_VAR END_METHOD
             END_FUNCTION_BLOCK
-        "#);
-    let unit = parse(lexer).0;
+        "#;
+    let unit = parse(src).0;
 
     let class = &unit.units[0];
     assert_eq!(class.pou_type, PouType::FunctionBlock);
@@ -300,12 +294,12 @@ fn fb_two_methods_can_be_parsed() {
 
 #[test]
 fn fb_method_with_return_type_can_be_parsed() {
-    let lexer = lex(r#"
+    let src = r#"
         FUNCTION_BLOCK MyShinyFb
             METHOD PRIVATE ABSTRACT OVERRIDE testMethod3 : SINT END_METHOD
         END_FUNCTION_BLOCK
-    "#);
-    let unit = parse(lexer).0;
+    "#;
+    let unit = parse(src).0;
 
     let class = &unit.units[0];
     assert_eq!(class.pou_type, PouType::FunctionBlock);

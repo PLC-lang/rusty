@@ -1,13 +1,10 @@
-use crate::{
-    ast::*,
-    parser::{parse, tests::lex, AstStatement::LiteralInteger},
-    Diagnostic,
-};
+use crate::{ast::*, parser::AstStatement::LiteralInteger, test_utils::tests::parse, Diagnostic};
 use pretty_assertions::*;
 
 #[test]
 fn simple_struct_type_can_be_parsed() {
-    let (result, ..) = parse(lex(r#"
+    let (result, ..) = parse(
+        r#"
         TYPE SampleStruct :
             STRUCT
                 One:INT;
@@ -15,7 +12,8 @@ fn simple_struct_type_can_be_parsed() {
                 Three:INT;
             END_STRUCT
         END_TYPE 
-        "#));
+        "#,
+    );
 
     let ast_string = format!("{:#?}", &result.types[0]);
 
@@ -56,6 +54,7 @@ fn simple_struct_type_can_be_parsed() {
             },
             initializer: None,
             location: SourceRange::undefined(),
+            scope: None,
         }
     );
     assert_eq!(ast_string, expected_ast);
@@ -63,10 +62,12 @@ fn simple_struct_type_can_be_parsed() {
 
 #[test]
 fn simple_enum_type_can_be_parsed() {
-    let (result, ..) = parse(lex(r#"
+    let (result, ..) = parse(
+        r#"
         TYPE SampleEnum : (red, yellow, green);
         END_TYPE 
-        "#));
+        "#,
+    );
 
     let ast_string = format!("{:#?}", &result.types[0]);
 
@@ -77,6 +78,7 @@ fn simple_enum_type_can_be_parsed() {
         },
         initializer: None,
         location: SourceRange::undefined(),
+        scope: None,
     };
     let expected_string = format!("{:#?}", epxtected_ast);
     assert_eq!(ast_string, expected_string);
@@ -84,11 +86,13 @@ fn simple_enum_type_can_be_parsed() {
 
 #[test]
 fn type_alias_can_be_parsed() {
-    let (result, ..) = parse(lex(r#"
+    let (result, ..) = parse(
+        r#"
         TYPE 
             MyInt : INT;
         END_TYPE
-        "#));
+        "#,
+    );
 
     let ast_string = format!("{:#?}", &result.types[0]);
     let exptected_ast = format!(
@@ -101,6 +105,7 @@ fn type_alias_can_be_parsed() {
             },
             initializer: None,
             location: SourceRange::undefined(),
+            scope: None,
         }
     );
 
@@ -109,9 +114,11 @@ fn type_alias_can_be_parsed() {
 
 #[test]
 fn array_type_can_be_parsed_test() {
-    let (result, ..) = parse(lex(r#"
+    let (result, ..) = parse(
+        r#"
             TYPE MyArray : ARRAY[0..8] OF INT; END_TYPE
-            "#));
+            "#,
+    );
 
     let ast_string = format!("{:#?}", &result.types[0]);
 
@@ -140,6 +147,7 @@ fn array_type_can_be_parsed_test() {
             },
             initializer: None,
             location: SourceRange::undefined(),
+            scope: None,
         }
     );
 
@@ -148,10 +156,12 @@ fn array_type_can_be_parsed_test() {
 
 #[test]
 fn string_type_can_be_parsed_test() {
-    let (result, ..) = parse(lex(r#"
+    let (result, ..) = parse(
+        r#"
             TYPE MyString : STRING[253]; END_TYPE
             TYPE MyString : STRING[253] := 'abc'; END_TYPE
-            "#));
+            "#,
+    );
 
     let ast_string = format!("{:#?}", &result.types);
 
@@ -170,6 +180,7 @@ fn string_type_can_be_parsed_test() {
                 },
                 initializer: None,
                 location: SourceRange::undefined(),
+                scope: None,
             },
             UserTypeDeclaration {
                 data_type: DataType::StringType {
@@ -188,6 +199,7 @@ fn string_type_can_be_parsed_test() {
                     id: 0,
                 }),
                 location: SourceRange::undefined(),
+                scope: None,
             }
         ]
     );
@@ -197,9 +209,11 @@ fn string_type_can_be_parsed_test() {
 
 #[test]
 fn wide_string_type_can_be_parsed_test() {
-    let (result, ..) = parse(lex(r#"
+    let (result, ..) = parse(
+        r#"
             TYPE MyString : WSTRING[253]; END_TYPE
-            "#));
+            "#,
+    );
 
     let ast_string = format!("{:#?}", &result.types[0]);
 
@@ -217,6 +231,7 @@ fn wide_string_type_can_be_parsed_test() {
             },
             initializer: None,
             location: SourceRange::undefined(),
+            scope: None,
         }
     );
 
@@ -225,12 +240,12 @@ fn wide_string_type_can_be_parsed_test() {
 
 #[test]
 fn subrangetype_can_be_parsed() {
-    let lexer = lex("
+    let src = "
             VAR_GLOBAL
                 x : UINT(0..1000);
             END_VAR
-           ");
-    let (parse_result, ..) = parse(lexer);
+           ";
+    let (parse_result, ..) = parse(src);
 
     let x = &parse_result.global_vars[0].variables[0];
     let expected = Variable {
@@ -254,6 +269,7 @@ fn subrangetype_can_be_parsed() {
                 referenced_type: "UINT".to_string(),
             },
             location: SourceRange::undefined(),
+            scope: None,
         },
         initializer: None,
         location: (0..0).into(),
@@ -263,13 +279,15 @@ fn subrangetype_can_be_parsed() {
 
 #[test]
 fn struct_with_inline_array_can_be_parsed() {
-    let (result, ..) = parse(lex(r#"
+    let (result, ..) = parse(
+        r#"
         TYPE SampleStruct :
             STRUCT
                 One: ARRAY[0..1] OF INT;
             END_STRUCT
         END_TYPE 
-        "#));
+        "#,
+    );
 
     let ast_string = format!("{:#?}", &result.types[0]);
 
@@ -301,17 +319,20 @@ fn struct_with_inline_array_can_be_parsed() {
         ],
     },
     initializer: None,
+    scope: None,
 }"#;
     assert_eq!(ast_string, expected_ast);
 }
 
 #[test]
 fn pointer_type_test() {
-    let (result, diagnostics) = parse(lex(r#"
+    let (result, diagnostics) = parse(
+        r#"
         TYPE SamplePointer :
             POINTER TO INT;
         END_TYPE 
-        "#));
+        "#,
+    );
     let pointer_type = &result.types[0];
     let expected = UserTypeDeclaration {
         data_type: DataType::PointerType {
@@ -323,6 +344,7 @@ fn pointer_type_test() {
         },
         location: SourceRange::undefined(),
         initializer: None,
+        scope: None,
     };
     assert_eq!(
         format!("{:#?}", expected),
@@ -338,11 +360,13 @@ fn pointer_type_test() {
 
 #[test]
 fn ref_type_test() {
-    let (result, diagnostics) = parse(lex(r#"
+    let (result, diagnostics) = parse(
+        r#"
         TYPE SampleReference :
             REF_TO INT;
         END_TYPE 
-        "#));
+        "#,
+    );
     let reference_type = &result.types[0];
     let expected = UserTypeDeclaration {
         data_type: DataType::PointerType {
@@ -354,6 +378,7 @@ fn ref_type_test() {
         },
         location: SourceRange::undefined(),
         initializer: None,
+        scope: None,
     };
     assert_eq!(
         format!("{:#?}", expected),
@@ -364,12 +389,14 @@ fn ref_type_test() {
 
 #[test]
 fn global_pointer_declaration() {
-    let (result, diagnostics) = parse(lex(r#"
+    let (result, diagnostics) = parse(
+        r#"
         VAR_GLOBAL 
             SampleReference : REF_TO INT;
             SamplePointer : POINTER TO INT;
         END_VAR 
-        "#));
+        "#,
+    );
     let reference_type = &result.global_vars[0].variables[0];
     let expected = Variable {
         name: "SampleReference".into(),
@@ -382,6 +409,7 @@ fn global_pointer_declaration() {
                 }),
             },
             location: SourceRange::undefined(),
+            scope: None,
         },
         initializer: None,
         location: (0..0).into(),
@@ -402,6 +430,7 @@ fn global_pointer_declaration() {
                 }),
             },
             location: SourceRange::undefined(),
+            scope: None,
         },
         initializer: None,
         location: (0..0).into(),

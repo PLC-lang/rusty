@@ -1,6 +1,6 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use super::*;
-use crate::codegen;
+use crate::test_utils::tests::codegen;
 
 //Same size operations remain the same
 // Different types smaller than int converted to int (expanded according to sign)
@@ -27,8 +27,8 @@ use crate::codegen;
 */
 
 #[test]
-fn no_type_conversion_if_datatypes_are_the_same() {
-    let result = codegen!(
+fn even_all_sint_expressions_fallback_to_dint() {
+    let result = codegen(
         r#"PROGRAM prg
         VAR
         b : SINT;
@@ -39,7 +39,7 @@ fn no_type_conversion_if_datatypes_are_the_same() {
         x := b + c;
 
         END_PROGRAM
-        "#
+        "#,
     );
 
     let expected = generate_program_boiler_plate(
@@ -49,9 +49,12 @@ fn no_type_conversion_if_datatypes_are_the_same() {
         "",
         "",
         r#"%load_b = load i8, i8* %b, align 1
+  %1 = sext i8 %load_b to i32
   %load_c = load i8, i8* %c, align 1
-  %tmpVar = add i8 %load_b, %load_c
-  store i8 %tmpVar, i8* %x, align 1
+  %2 = sext i8 %load_c to i32
+  %tmpVar = add i32 %1, %2
+  %3 = trunc i32 %tmpVar to i8
+  store i8 %3, i8* %x, align 1
   ret void
 "#,
     );
@@ -61,7 +64,7 @@ fn no_type_conversion_if_datatypes_are_the_same() {
 
 #[test]
 fn datatypes_smaller_than_dint_promoted_to_dint() {
-    let result = codegen!(
+    let result = codegen(
         r#"PROGRAM prg
         VAR
         b : SINT;
@@ -72,7 +75,7 @@ fn datatypes_smaller_than_dint_promoted_to_dint() {
         x := b + c;
 
         END_PROGRAM
-        "#
+        "#,
     );
 
     let expected = generate_program_boiler_plate(
@@ -82,8 +85,8 @@ fn datatypes_smaller_than_dint_promoted_to_dint() {
         "",
         "",
         r#"%load_b = load i8, i8* %b, align 1
-  %load_c = load i32, i32* %c, align 4
   %1 = sext i8 %load_b to i32
+  %load_c = load i32, i32* %c, align 4
   %tmpVar = add i32 %1, %load_c
   store i32 %tmpVar, i32* %x, align 4
   ret void
@@ -95,7 +98,7 @@ fn datatypes_smaller_than_dint_promoted_to_dint() {
 
 #[test]
 fn aliased_datatypes_respect_conversion_rules() {
-    let result = codegen!(
+    let result = codegen(
         r#"
         TYPE MYSINT : SINT; END_TYPE
         TYPE MYDINT : DINT; END_TYPE
@@ -110,7 +113,7 @@ fn aliased_datatypes_respect_conversion_rules() {
         b := c + x;
 
         END_PROGRAM
-        "#
+        "#,
     );
 
     let expected = generate_program_boiler_plate(
@@ -120,8 +123,8 @@ fn aliased_datatypes_respect_conversion_rules() {
         "",
         "",
         r#"%load_b = load i8, i8* %b, align 1
-  %load_c = load i32, i32* %c, align 4
   %1 = sext i8 %load_b to i32
+  %load_c = load i32, i32* %c, align 4
   %tmpVar = add i32 %1, %load_c
   store i32 %tmpVar, i32* %x, align 4
   %load_c1 = load i32, i32* %c, align 4
@@ -138,7 +141,7 @@ fn aliased_datatypes_respect_conversion_rules() {
 
 #[test]
 fn unsingned_datatypes_smaller_than_dint_promoted_to_dint() {
-    let result = codegen!(
+    let result = codegen(
         r#"PROGRAM prg
         VAR
         b : BYTE;
@@ -149,7 +152,7 @@ fn unsingned_datatypes_smaller_than_dint_promoted_to_dint() {
         x := b + c;
 
         END_PROGRAM
-        "#
+        "#,
     );
 
     let expected = generate_program_boiler_plate(
@@ -159,8 +162,8 @@ fn unsingned_datatypes_smaller_than_dint_promoted_to_dint() {
         "",
         "",
         r#"%load_b = load i8, i8* %b, align 1
-  %load_c = load i32, i32* %c, align 4
   %1 = zext i8 %load_b to i32
+  %load_c = load i32, i32* %c, align 4
   %tmpVar = add i32 %1, %load_c
   store i32 %tmpVar, i32* %x, align 4
   ret void
@@ -172,7 +175,7 @@ fn unsingned_datatypes_smaller_than_dint_promoted_to_dint() {
 
 #[test]
 fn datatypes_larger_than_int_promote_the_second_operand() {
-    let result = codegen!(
+    let result = codegen(
         r#"PROGRAM prg
         VAR
         b : DINT;
@@ -183,7 +186,7 @@ fn datatypes_larger_than_int_promote_the_second_operand() {
         x := b + c;
 
         END_PROGRAM
-        "#
+        "#,
     );
 
     let expected = generate_program_boiler_plate(
@@ -193,8 +196,8 @@ fn datatypes_larger_than_int_promote_the_second_operand() {
         "",
         "",
         r#"%load_b = load i32, i32* %b, align 4
-  %load_c = load i64, i64* %c, align 4
   %1 = sext i32 %load_b to i64
+  %load_c = load i64, i64* %c, align 4
   %tmpVar = add i64 %1, %load_c
   store i64 %tmpVar, i64* %x, align 4
   ret void
@@ -206,7 +209,7 @@ fn datatypes_larger_than_int_promote_the_second_operand() {
 
 #[test]
 fn float_and_double_mix_converted_to_double() {
-    let result = codegen!(
+    let result = codegen(
         r#"
         PROGRAM prg
         VAR
@@ -217,7 +220,7 @@ fn float_and_double_mix_converted_to_double() {
 
         c := b + a;
         END_PROGRAM
-        "#
+        "#,
     );
 
     let expected = generate_program_boiler_plate(
@@ -240,7 +243,7 @@ fn float_and_double_mix_converted_to_double() {
 
 #[test]
 fn float_assinged_to_double_to_double() {
-    let result = codegen!(
+    let result = codegen(
         r#"
         PROGRAM prg
         VAR
@@ -250,7 +253,7 @@ fn float_assinged_to_double_to_double() {
 
         b := a;
         END_PROGRAM
-        "#
+        "#,
     );
 
     let expected = generate_program_boiler_plate(
@@ -271,7 +274,7 @@ fn float_assinged_to_double_to_double() {
 
 #[test]
 fn int_assigned_to_float_is_cast() {
-    let result = codegen!(
+    let result = codegen(
         r#"
         PROGRAM prg
         VAR
@@ -282,7 +285,7 @@ fn int_assigned_to_float_is_cast() {
         c := a;
         c := b;
         END_PROGRAM
-        "#
+        "#,
     );
 
     let expected = generate_program_boiler_plate(
@@ -306,7 +309,7 @@ fn int_assigned_to_float_is_cast() {
 
 #[test]
 fn float_assigned_to_int_is_cast() {
-    let result = codegen!(
+    let result = codegen(
         r#"
         PROGRAM prg
         VAR
@@ -317,7 +320,7 @@ fn float_assigned_to_int_is_cast() {
         a := c;
         b := c;
         END_PROGRAM
-        "#
+        "#,
     );
 
     let expected = generate_program_boiler_plate(
@@ -341,7 +344,7 @@ fn float_assigned_to_int_is_cast() {
 
 #[test]
 fn int_smaller_or_equal_to_float_converted_to_float() {
-    let result = codegen!(
+    let result = codegen(
         r#"
         PROGRAM prg
         VAR
@@ -352,7 +355,7 @@ fn int_smaller_or_equal_to_float_converted_to_float() {
 
         c := b + a;
         END_PROGRAM
-        "#
+        "#,
     );
 
     let expected = generate_program_boiler_plate(
@@ -362,8 +365,8 @@ fn int_smaller_or_equal_to_float_converted_to_float() {
         "",
         "",
         r#"%load_b = load i16, i16* %b, align 2
-  %load_a = load float, float* %a, align 4
   %1 = sitofp i16 %load_b to float
+  %load_a = load float, float* %a, align 4
   %tmpVar = fadd float %1, %load_a
   store float %tmpVar, float* %c, align 4
   ret void
@@ -375,7 +378,7 @@ fn int_smaller_or_equal_to_float_converted_to_float() {
 
 #[test]
 fn int_bigger_than_float_converted_to_double() {
-    let result = codegen!(
+    let result = codegen(
         r#"
         PROGRAM prg
         VAR
@@ -385,7 +388,7 @@ fn int_bigger_than_float_converted_to_double() {
 
         b + a;
         END_PROGRAM
-        "#
+        "#,
     );
 
     let expected = generate_program_boiler_plate(
@@ -395,10 +398,42 @@ fn int_bigger_than_float_converted_to_double() {
         "",
         "",
         r#"%load_b = load i64, i64* %b, align 4
-  %load_a = load float, float* %a, align 4
   %1 = sitofp i64 %load_b to double
+  %load_a = load float, float* %a, align 4
   %2 = fpext float %load_a to double
   %tmpVar = fadd double %1, %2
+  ret void
+"#,
+    );
+
+    assert_eq!(result, expected)
+}
+
+#[test]
+fn int_bigger_than_byte_promoted_on_compare_statement() {
+    let result = codegen(
+        r#"
+        PROGRAM prg
+        VAR
+            a : BYTE;
+            b : LINT;
+        END_VAR
+
+        b < a;
+        END_PROGRAM
+        "#,
+    );
+
+    let expected = generate_program_boiler_plate(
+        "prg",
+        &[("i8", "a"), ("i64", "b")],
+        "void",
+        "",
+        "",
+        r#"%load_b = load i64, i64* %b, align 4
+  %load_a = load i8, i8* %a, align 1
+  %1 = zext i8 %load_a to i64
+  %tmpVar = icmp slt i64 %load_b, %1
   ret void
 "#,
     );
