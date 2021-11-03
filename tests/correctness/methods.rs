@@ -16,14 +16,14 @@ PROGRAM prg
 END_PROGRAM
 
 FUNCTION_BLOCK myFB
-VAR
-    x : INT := 10;
-END_VAR
-METHOD test : DINT
-VAR_INPUT a : DINT; END_VAR
-x := a;
-test := x;
-END_METHOD
+    VAR
+        x : INT := 10;
+    END_VAR
+
+    METHOD test : DINT
+        VAR_INPUT a : DINT; END_VAR
+        test := x + a;
+    END_METHOD
 END_FUNCTION_BLOCK
     ";
 
@@ -54,8 +54,7 @@ VAR
 END_VAR
 METHOD test : DINT
 VAR_INPUT a : DINT; END_VAR
-x := a;
-test := x;
+test := a + x;
 END_METHOD
 END_CLASS
     ";

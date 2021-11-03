@@ -19,7 +19,6 @@ pub struct StructGenerator<'a, 'b> {
 /// a touple (name, data_type, initializer) describing the declaration of a variable.
 ///
 type VariableDeclarationInformation<'a> = (String, BasicTypeEnum<'a>, Option<BasicValueEnum<'a>>);
-type StructValue<'a> = BasicValueEnum<'a>;
 
 impl<'a, 'b> StructGenerator<'a, 'b> {
     /// creates a new StructGenerator
@@ -45,7 +44,7 @@ impl<'a, 'b> StructGenerator<'a, 'b> {
         &mut self,
         member_variables: &[&VariableIndexEntry],
         name: &str,
-    //) -> Result<(StructValue<'a>, Vec<(String, BasicValueEnum<'a>)>), CompileError> {
+        //) -> Result<(StructValue<'a>, Vec<(String, BasicValueEnum<'a>)>), CompileError> {
     ) -> Result<(), CompileError> {
         let struct_type = self
             .llvm_index
