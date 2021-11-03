@@ -45,7 +45,8 @@ impl<'a, 'b> StructGenerator<'a, 'b> {
         &mut self,
         member_variables: &[&VariableIndexEntry],
         name: &str,
-    ) -> Result<(StructValue<'a>, Vec<(String, BasicValueEnum<'a>)>), CompileError> {
+    //) -> Result<(StructValue<'a>, Vec<(String, BasicValueEnum<'a>)>), CompileError> {
+    ) -> Result<(), CompileError> {
         let struct_type = self
             .llvm_index
             .get_associated_type(name)
@@ -58,31 +59,31 @@ impl<'a, 'b> StructGenerator<'a, 'b> {
 
         let member_types: Vec<BasicTypeEnum> = members.iter().map(|(_, t, _)| *t).collect();
         struct_type.set_body(member_types.as_slice(), false);
-
+        Ok(())
         //vec(member_name, initial_value)
-        let struct_fields_values = members
-            .iter()
-            .map(|(name, basic_type, initializer)| {
-                initializer
-                    .map(|it| (name, it))
-                    .unwrap_or_else(|| (name, get_default_for(*basic_type)))
-            })
-            .collect::<Vec<(&String, BasicValueEnum)>>();
+        // let struct_fields_values = members
+        //     .iter()
+        //     .map(|(name, basic_type, initializer)| {
+        //         initializer
+        //             .map(|it| (name, it))
+        //             .unwrap_or_else(|| (name, get_default_for(*basic_type)))
+        //     })
+        //     .collect::<Vec<(&String, BasicValueEnum)>>();
 
-        let initial_value = struct_type.const_named_struct(
-            struct_fields_values
-                .iter()
-                .map(|(_, it)| *it)
-                .collect::<Vec<BasicValueEnum<'a>>>()
-                .as_slice(),
-        );
+        // let initial_value = struct_type.const_named_struct(
+        //     struct_fields_values
+        //         .iter()
+        //         .map(|(_, it)| *it)
+        //         .collect::<Vec<BasicValueEnum<'a>>>()
+        //         .as_slice(),
+        // );
 
-        let member_values = struct_fields_values
-            .iter()
-            .map(|(name, value)| (name.to_string(), *value))
-            .collect();
+        // let member_values = struct_fields_values
+        //     .iter()
+        //     .map(|(name, value)| (name.to_string(), *value))
+        //     .collect();
 
-        Ok((initial_value.into(), member_values))
+        // Ok((initial_value.into(), member_values))
     }
 
     /// creates all declaration information for the given variable

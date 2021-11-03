@@ -29,7 +29,7 @@ END_FUNCTION_BLOCK
 
     struct Main {}
 
-    let res : i32 = compile_and_run(src.into(), &mut Main{});
+    let res: i32 = compile_and_run(src.into(), &mut Main {});
     //Expecting it not to fail
     assert_eq!(res, 42);
 }
@@ -62,8 +62,7 @@ END_CLASS
 
     struct Main {}
 
-    let res : i32 = compile_and_run(src.into(), &mut Main{});
+    let res: i32 = compile_and_run(src.into(), &mut Main {});
     //Expecting it not to fail
     assert_eq!(res, 42);
 }
-

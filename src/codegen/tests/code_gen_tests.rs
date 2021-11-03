@@ -5223,7 +5223,7 @@ source_filename = "main"
 
 #[test]
 fn initial_values_in_global_variables_out_of_order() {
-    let result = codegen!(
+    let result = codegen(
         "
         VAR_GLOBAL
         x : MyFB;
@@ -5241,7 +5241,7 @@ fn initial_values_in_global_variables_out_of_order() {
             x : INT := 77;            
           END_VAR
         END_FUNCTION_BLOCK
-        "
+        ",
     );
 
     let expected = r#"; ModuleID = 'main'
@@ -5251,11 +5251,11 @@ source_filename = "main"
 %prg_interface = type { %MyFB_interface }
 
 @x = global %MyFB_interface { i16 77 }
-@prg_instance = global %prg_interface { %MyFB_interface { i16 77 }}
+@prg_instance = global %prg_interface { %MyFB_interface { i16 77 } }
 
 define void @prg(%prg_interface* %0) {
 entry:
-  %x = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32
+  %x = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 0
   ret void
 }
 

@@ -6,6 +6,7 @@
 /// - Alias types
 /// - sized Strings
 use crate::ast::SourceRange;
+use crate::codegen::generators::struct_generator;
 use crate::index::{Index, VariableIndexEntry};
 use crate::resolver::AnnotationMap;
 use crate::typesystem::{Dimension, StringEncoding};
@@ -17,6 +18,7 @@ use crate::{
     },
     typesystem::DataType,
 };
+use inkwell::values::BasicValue;
 use inkwell::{
     types::{ArrayType, BasicType, BasicTypeEnum},
     values::BasicValueEnum,
@@ -54,6 +56,9 @@ pub fn generate_data_types<'ink>(
     };
 
     let types = generator.index.get_types();
+
+    // first create all STUBs for struct types (empty structs) 
+    // and associate them in the llvm index
     for (name, user_type) in types {
         if let DataTypeInformation::Struct {
             name: struct_name, ..
@@ -64,18 +69,32 @@ pub fn generate_data_types<'ink>(
                 .associate_type(name, llvm.create_struct_stub(struct_name).into())?;
         }
     }
+    // now create all other types (enum's, arrays, etc.)
     for (name, user_type) in types {
         let gen_type = generator.create_type(name, user_type)?;
         generator.types_index.associate_type(name, gen_type)?
     }
-    for (name, user_type) in types {
+    
+    // extend the stubbed structs with the member fields
+    for (_, user_type) in types {
         generator.expand_opaque_types(user_type)?;
-        if let Some(initial_value) = generator.generate_initial_value(user_type) {
+        /*if let Some(initial_value) = generator.generate_initial_value(user_type) {
             generator
                 .types_index
                 .associate_initial_value(name, initial_value)?
+        }*/
+    }
+
+
+    // now since all types should be available in the llvm index, we can think about constructing and associating
+    // initial values for the types
+    for (name, user_type) in types {
+        //TODO err handling
+        if let Some(init_value) = generator.generate_initial_value(user_type)? {
+            generator.types_index.associate_initial_value(name, init_value)?;
         }
     }
+
     Ok(generator.types_index)
 }
 
@@ -97,15 +116,15 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
                 //Avoid generating temp variables in llvm
                 .filter(|var| !var.is_temp())
                 .collect();
-            let (initial_value, member_values) =
+            // let (initial_value, member_values) =
                 struct_generator.generate_struct_type(&members, data_type.get_name())?;
-            for (member, value) in member_values {
-                let qualified_name = format!("{}.{}", data_type.get_name(), member);
-                self.types_index
-                    .associate_initial_value(&qualified_name, value)?;
-            }
-            self.types_index
-                .associate_initial_value(data_type.get_name(), initial_value)?;
+            // for (member, value) in member_values {
+            //     let qualified_name = format!("{}.{}", data_type.get_name(), member);
+            //     self.types_index
+            //         .associate_initial_value(&qualified_name, value)?;
+            // }
+            // self.types_index
+            //     .associate_initial_value(data_type.get_name(), initial_value)?;
         }
         Ok(())
     }
@@ -195,64 +214,85 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
         }
     }
 
-    fn generate_initial_value(&self, data_type: &DataType) -> Option<BasicValueEnum<'ink>> {
+    fn generate_initial_value(&self, data_type: &DataType) -> Result<Option<BasicValueEnum<'ink>>, CompileError> {
         let information = data_type.get_type_information();
         match information {
-            DataTypeInformation::Struct { .. } => None, //Done elsewhere
+            DataTypeInformation::Struct { .. } =>{
+                let members = self.index.get_container_members(data_type.get_name());
+                
+                let member_values = members.iter()
+                    .map(|it| 
+                        self.generate_initial_value_for_variable(it)
+                            .and_then(|v| {
+                                match v {
+                                    Some(v) => Ok(v),
+                                    None => self.types_index.get_associated_type(it.get_type_name()).map(struct_generator::get_default_for)
+                                }
+                            }
+                    ))
+                    .collect::<Result<Vec<BasicValueEnum>, CompileError>>()?;
+                    
+                let st = self.types_index.get_associated_type(data_type.get_name())?.into_struct_type();
+                Ok(Some(st.const_named_struct(&member_values).as_basic_value_enum()))
+            } ,
             DataTypeInformation::Array { .. } => self
                 .generate_array_initializer(
                     data_type,
                     |stmt| matches!(stmt, AstStatement::LiteralArray { .. }),
                     "LiteralArray",
-                )
-                .unwrap(),
-            DataTypeInformation::Integer { .. } => None,
-            DataTypeInformation::Enum { .. } => None,
-            DataTypeInformation::Float { .. } => None,
+                ),
+            DataTypeInformation::Integer { .. } => Ok(None),
+            DataTypeInformation::Enum { .. } => Ok(None),
+            DataTypeInformation::Float { .. } => Ok(None),
             DataTypeInformation::String { .. } => self
                 .generate_array_initializer(
                     data_type,
                     |stmt| matches!(stmt, AstStatement::LiteralString { .. }),
                     "LiteralString",
-                )
-                .unwrap(),
+                ),
             DataTypeInformation::SubRange {
                 referenced_type, ..
-            } => self.register_aliased_initial_value(data_type, referenced_type),
+            } => self.generate_initial_value_for_type(data_type, referenced_type),
             DataTypeInformation::Alias {
                 referenced_type, ..
-            } => self.register_aliased_initial_value(data_type, referenced_type),
+            } => self.generate_initial_value_for_type(data_type, referenced_type),
             // Void types are not basic type enums, so we return an int here
-            DataTypeInformation::Void => None, //get_llvm_int_type(llvm.context, 32, "Void").map(Into::into),
-            DataTypeInformation::Pointer { .. } => None,
+            DataTypeInformation::Void => Ok(None), //get_llvm_int_type(llvm.context, 32, "Void").map(Into::into),
+            DataTypeInformation::Pointer { .. } => Ok(None),
         }
+    }
+
+    fn generate_initial_value_for_variable(&self, variable: &VariableIndexEntry) -> Result<Option<BasicValueEnum<'ink>>, CompileError> {
+        //is there an initializer defined?
+        let initializer = variable.initial_value.and_then(|it| self.index.get_const_expressions().get_constant_statement(&it));
+        self.generate_initializer(initializer, variable.get_type_name())
     }
 
     /// generates and returns an optional inital value at the given dataType
     /// if no initial value is defined, it returns  an optional initial value of
     /// the aliased type (referenced_type)
-    fn register_aliased_initial_value(
+    fn generate_initial_value_for_type(
         &self,
         data_type: &DataType,
         referenced_type: &str,
-    ) -> Option<BasicValueEnum<'ink>> {
-        if let Some(initializer) = self
-            .index
-            .get_const_expressions()
-            .maybe_get_constant_statement(&data_type.initial_value)
-        {
+    ) -> Result<Option<BasicValueEnum<'ink>>, CompileError> {
+        self.generate_initializer(self.index.get_const_expressions().maybe_get_constant_statement(&data_type.initial_value), referenced_type)
+    }
+
+    fn generate_initializer(&self, initializer: Option<&AstStatement>, data_type_name: &str) -> Result<Option<BasicValueEnum<'ink>>, CompileError> {
+        if let Some(initializer) = initializer {
             let generator = ExpressionCodeGenerator::new_context_free(
                 self.llvm,
                 self.index,
                 self.annotations,
                 &self.types_index,
             );
-            Some(generator.generate_expression(initializer).unwrap())
+            generator.generate_expression(initializer)
+                .map(|it| Some(it))
         } else {
             // if there's no initializer defined for this alias, we go and check the aliased type for an initial value
             self.index
-                .get_type(referenced_type)
-                .ok()
+                .get_type(data_type_name)
                 .and_then(|referenced_data_type| self.generate_initial_value(referenced_data_type))
         }
     }

@@ -16,9 +16,9 @@ mod correctness {
     mod functions;
     mod global_variables;
     mod initial_values;
+    mod methods;
     mod pointers;
     mod sub_range_types;
-    mod methods;
     mod math_operators {
         mod addition;
         mod division;
