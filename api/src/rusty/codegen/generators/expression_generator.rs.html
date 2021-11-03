@@ -1619,7 +1619,7 @@
     <span class="ident">typesystem</span>::{<span class="ident">DataType</span>, <span class="ident">DataTypeInformation</span>},
 };
 
-<span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">llvm::Llvm</span>, <span class="ident">statement_generator::FunctionContext</span>, <span class="ident">struct_generator</span>};
+<span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">llvm::Llvm</span>, <span class="ident">statement_generator::FunctionContext</span>};
 
 <span class="kw">use</span> <span class="ident">chrono</span>::{<span class="ident">LocalResult</span>, <span class="ident">TimeZone</span>, <span class="ident">Utc</span>};
 
@@ -2104,7 +2104,7 @@
         <span class="ident">function_name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
         <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="ident">AstStatement</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">PointerValue</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>, <span class="ident">CompileError</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">instance_name</span> <span class="op">=</span> <span class="ident">struct_generator::get_pou_instance_variable_name</span>(<span class="ident">function_name</span>);
+        <span class="kw">let</span> <span class="ident">instance_name</span> <span class="op">=</span> <span class="macro">format!</span>(<span class="string">&quot;{}_instance&quot;</span>, <span class="ident">function_name</span>);
         <span class="kw">let</span> <span class="ident">function_type</span> <span class="op">=</span> <span class="self">self</span>
             .<span class="ident">llvm_index</span>
             .<span class="ident">find_associated_type</span>(<span class="ident">function_name</span>) <span class="comment">//Using find instead of get to control the compile error</span>
