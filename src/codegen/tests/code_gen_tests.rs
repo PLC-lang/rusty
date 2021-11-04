@@ -5236,6 +5236,32 @@ source_filename = "main"
 }
 
 #[test]
+fn initial_values_in_global_variables_out_of_order() {
+    let result = codegen(
+        "
+        VAR_GLOBAL
+        x : MyFB;
+        END_VAR
+        
+        PROGRAM prg
+        VAR
+        x : MyFB;            
+        END_VAR
+        END_PROGRAM
+
+        //if this fb is moved to the top, the initializer works
+        FUNCTION_BLOCK MyFB
+          VAR
+            x : INT := 77;            
+          END_VAR
+        END_FUNCTION_BLOCK
+        ",
+    );
+
+    insta::assert_snapshot!(result);
+}
+
+#[test]
 fn initial_values_in_program_pou() {
     let result = codegen(
         "
