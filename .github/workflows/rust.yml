@@ -102,7 +102,7 @@ jobs:
 
       - name: Move artifacts
         env:
-          ARTIFACTS: "rustyc.exe, rustyc.pdb"
+          ARTIFACTS: "rustyc.exe rustyc.pdb"
           OUT_DIR: "windows"
         run: |
           import os
