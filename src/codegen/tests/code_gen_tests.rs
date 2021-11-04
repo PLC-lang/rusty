@@ -574,6 +574,9 @@ y := D#1970-01-01;
 z := DATE_AND_TIME#1984-10-01-20:15:14;
 z := DT#1970-01-01-16:20:04.123;
 z := DT#1970-01-01-16:20:04.123456789;
+z := DATE_AND_TIME#2000-01-01-20:15:00;
+z := DATE_AND_TIME#2000-01-01-20:15;
+z := DT#2000-01-01-20:15;
 END_PROGRAM
 "#,
     );
@@ -600,6 +603,9 @@ entry:
   store i64 465509714000, i64* %z, align 4
   store i64 58804123, i64* %z, align 4
   store i64 58804123, i64* %z, align 4
+  store i64 946757700000, i64* %z, align 4
+  store i64 946757700000, i64* %z, align 4
+  store i64 946757700000, i64* %z, align 4
   ret void
 }
 "#;

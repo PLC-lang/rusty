@@ -7,6 +7,7 @@ use crate::{
     parser::parse_any_in_region,
     Diagnostic,
 };
+use core::str::Split;
 use regex::{Captures, Regex};
 use std::str::FromStr;
 
@@ -620,12 +621,7 @@ fn parse_literal_date_and_time(lexer: &mut ParseSession) -> Result<AstStatement,
 
     //we can safely expect 3 numbers
     let mut segments = time.split(':');
-    let hour = parse_number::<u32>(segments.next().unwrap(), &location)?;
-    let min = parse_number::<u32>(segments.next().unwrap(), &location)?;
-    let sec_fraction = parse_number::<f64>(segments.next().unwrap(), &location)?;
-
-    let sec = sec_fraction as u32;
-    let milli = ((sec_fraction - sec as f64) * 1000_f64) as u32;
+    let (hour, min, sec, milli) = parse_time_of_day(&mut segments, &location)?;
 
     Ok(AstStatement::LiteralDateAndTime {
         location,
@@ -658,24 +654,34 @@ fn parse_literal_time_of_day(lexer: &mut ParseSession) -> Result<AstStatement, D
     let (_, slice) = slice.split_at(hash_location + 1); //get rid of the prefix
 
     let mut segments = slice.split(':');
-    let hour = parse_number::<u32>(segments.next().unwrap(), &location)?;
-    let min = parse_number::<u32>(segments.next().unwrap(), &location)?;
+    let (hour, min, sec, milli) = parse_time_of_day(&mut segments, &location)?;
 
-    // TOD doesn't necessarily have to have seconds, e.g [12:00] is also valid
-    let sec = match segments.next() {
-        Some(v) => parse_number::<f64>(v, &location)?,
-        None => 0.0,
-    };
-
-    let milli = (sec.fract() * 1000_f64) as u32;
     Ok(AstStatement::LiteralTimeOfDay {
         hour,
         min,
-        sec: sec.floor() as u32,
+        sec,
         milli,
         location,
         id: lexer.next_id(),
     })
+}
+
+fn parse_time_of_day(
+    time: &mut Split<char>,
+    location: &SourceRange,
+) -> Result<(u32, u32, u32, u32), Diagnostic> {
+    let hour = parse_number::<u32>(time.next().unwrap(), location)?;
+    let min = parse_number::<u32>(time.next().unwrap(), location)?;
+
+    // doesn't necessarily have to have seconds, e.g [12:00] is also valid
+    let sec = match time.next() {
+        Some(v) => parse_number::<f64>(v, location)?,
+        None => 0.0,
+    };
+
+    let milli = (sec.fract() * 1000_f64) as u32;
+
+    Ok((hour, min, sec.floor() as u32, milli))
 }
 
 fn parse_literal_time(lexer: &mut ParseSession) -> Result<AstStatement, Diagnostic> {

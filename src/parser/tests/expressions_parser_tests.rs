@@ -1038,6 +1038,7 @@ fn literal_date_and_time_test() {
             DATE_AND_TIME#1984-10-01-16:40:22; 
             DT#2021-04-20-22:33:14; 
             DT#2021-04-20-22:33:14.999; 
+			DATE_AND_TIME#2000-01-01-20:15;
         END_PROGRAM
         ";
     let result = parse(src).0;
@@ -1069,6 +1070,15 @@ fn literal_date_and_time_test() {
         min: 33,
         sec: 14,
         milli: 999,
+    },
+    LiteralDateAndTime {
+        year: 2000,
+        month: 1,
+        day: 1,
+        hour: 20,
+        min: 15,
+        sec: 0,
+        milli: 0,
     },
 ]"#;
     assert_eq!(ast_string, expected_ast);
