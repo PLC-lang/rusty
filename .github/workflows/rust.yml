@@ -11,7 +11,7 @@ on:
   
 env:
   IMAGE_NAME: rust-llvm
-  IMAGE_VERSION: 12-1.56
+  IMAGE_VERSION: 12-1.56.1
 
 jobs:
   check: 
@@ -98,7 +98,7 @@ jobs:
           args: -- --nocapture
  
       - run: mkdir -p windows
-      - run: ls target
+      - run: ls target/debug
 
       - name: Move artifacts
         env:
