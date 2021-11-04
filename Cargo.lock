@@ -228,7 +228,7 @@ dependencies = [
 [[package]]
 name = "inkwell"
 version = "0.1.0"
-source = "git+https://github.com/TheDan64/inkwell?branch=master#45d4dcbeabb8b3c074ef40aeb0e816704c293f31"
+source = "git+https://github.com/TheDan64/inkwell?branch=master#f3a78d1e3c95505f6214359f719885571143c2ac"
 dependencies = [
  "either",
  "inkwell_internals",
@@ -241,8 +241,8 @@ dependencies = [
 
 [[package]]
 name = "inkwell_internals"
-version = "0.4.0"
-source = "git+https://github.com/TheDan64/inkwell?branch=master#45d4dcbeabb8b3c074ef40aeb0e816704c293f31"
+version = "0.5.0"
+source = "git+https://github.com/TheDan64/inkwell?branch=master#f3a78d1e3c95505f6214359f719885571143c2ac"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -300,7 +300,7 @@ checksum = "7fb9b38af92608140b86b693604b9ffcc5824240a484d1ecd4795bacb2fe88f3"
 [[package]]
 name = "lld_rs"
 version = "120.0.0"
-source = "git+https://github.com/ghaith/lld-rs?branch=main#58edaac3c2c78126731a539fd6040825f361fecf"
+source = "git+https://github.com/ghaith/lld-rs?branch=main#8cd17040e0906b68a533f1fc1022a460d5bef462"
 dependencies = [
  "cc",
  "lazy_static",
@@ -377,9 +377,9 @@ dependencies = [
 
 [[package]]
 name = "num-bigint"
-version = "0.4.2"
+version = "0.4.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "74e768dff5fb39a41b3bcd30bb25cf989706c90d028d1ad71971987aa309d535"
+checksum = "f93ab6289c7b344a8a9f60f88d80aa20032336fe78da341afc91c8a2341fc75f"
 dependencies = [
  "autocfg",
  "num-integer",
