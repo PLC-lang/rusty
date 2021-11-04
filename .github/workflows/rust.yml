@@ -98,7 +98,7 @@ jobs:
           args: -- --nocapture
  
       - run: mkdir -p windows
-      - run: ls -lah target
+      - run: ls target
 
       - name: Move artifacts
         env:
