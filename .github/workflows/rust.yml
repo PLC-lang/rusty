@@ -30,46 +30,29 @@ jobs:
           docker pull $IMAGE_ID
           ./scripts/build.sh --check --container --container-name=$IMAGE_ID
 
-  test:
-    name: Test
-    runs-on: ${{ matrix.config.os }}
+  test-linux:
+    name: Test Linux
+    runs-on: ubuntu-latest
     needs: check
-    strategy:
-      fail-fast: false
-      matrix:
-        config:
-          - { 
-            os: "ubuntu-latest",
-            dir: linux,
-            arch: linux,
-            artifacts: "rustyc"
-          }
-          - { 
-            os: "windows-latest",
-            dir: windows,
-            arch: win,
-            artifacts: "rustyc.exe rustyc.pdb"
-          }
     steps:
-
       - uses: actions/checkout@v2
 
       - name: Cargo test
         shell: bash
         run: |
-          IMAGE_ID=ghcr.io/${{ github.repository_owner }}/$IMAGE_NAME:$IMAGE_VERSION-${{ matrix.config.arch }}
+          IMAGE_ID=ghcr.io/${{ github.repository_owner }}/$IMAGE_NAME:$IMAGE_VERSION-linux
           # Change all uppercase to lowercase
           IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
           docker pull $IMAGE_ID
           echo "Build command : ./scripts/build.sh --verbose --build --test --container --container-name=$IMAGE_ID"
           ./scripts/build.sh --verbose --build --test --container --container-name=$IMAGE_ID
 
-      - run: mkdir -p ${{ matrix.config.dir }}
+      - run: mkdir -p linux
 
       - name: Move artifacts
         env:
-          ARTIFACTS: ${{ matrix.config.artifacts }}
-          OUT_DIR: ${{ matrix.config.dir }}
+          ARTIFACTS: "rustyc"
+          OUT_DIR: "linux"
         run: |
           import os
           artifacts = os.environ['ARTIFACTS'].split()
@@ -81,8 +64,60 @@ jobs:
 
       - uses: actions/upload-artifact@master
         with:
-          name: ${{ matrix.config.dir }}-debug
-          path: ${{ matrix.config.dir }}
+          name: linux-debug
+          path: linux
+
+  test-windows:
+    name: Test Windows
+    runs-on: windows-latest
+    needs: check
+    shell: bash
+    env:
+      toolchain-version: 1.56
+      llvm-version: 12.0.1
+    steps:
+
+      - uses: actions/checkout@v2
+
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: ${{ env.toolchain-version }}
+          profile: minimal
+          override: true
+
+      - name: Install LLVM
+        uses: ghaith/install-llvm-action@latest
+        with:
+          version: ${{ env.llvm-version }}
+          directory: "./llvm"
+          
+      - name: Cargo test
+        uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: -- --nocapture
+ 
+      - run: mkdir -p windows
+      - run: ls -lah target
+
+      - name: Move artifacts
+        env:
+          ARTIFACTS: "rustyc.exe, rustyc.pdb"
+          OUT_DIR: "windows"
+        run: |
+          import os
+          artifacts = os.environ['ARTIFACTS'].split()
+          for artifact in artifacts:
+            src = "target/debug/%s" % artifact
+            dst = os.environ['OUT_DIR'] + "/" + artifact
+            os.rename(src, dst)
+        shell: python
+
+      - uses: actions/upload-artifact@master
+        with:
+          name: windows-debug
+          path: windows
 
   style:
     name: Check Style
