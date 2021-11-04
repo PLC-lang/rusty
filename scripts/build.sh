@@ -294,7 +294,7 @@ if [[ $coverage -ne 0 ]]; then
   run_coverage
 fi
 
-if [[ -d target/]]; then
+if [[ -d $project_location/target/ ]]; then
 	log "Allow access to target folders"
 	chmod a+rw -R $project_location/target/
 fi
