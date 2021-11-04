@@ -27,7 +27,7 @@ use crate::{
     typesystem::{DataType, DataTypeInformation},
 };
 
-use super::{llvm::Llvm, statement_generator::FunctionContext, struct_generator};
+use super::{llvm::Llvm, statement_generator::FunctionContext};
 
 use chrono::{LocalResult, TimeZone, Utc};
 
@@ -524,7 +524,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
         function_name: &str,
         context: &AstStatement,
     ) -> Result<PointerValue<'a>, CompileError> {
-        let instance_name = struct_generator::get_pou_instance_variable_name(function_name);
+        let instance_name = format!("{}_instance", function_name);
         let function_type = self
             .llvm_index
             .find_associated_type(function_name) //Using find instead of get to control the compile error
