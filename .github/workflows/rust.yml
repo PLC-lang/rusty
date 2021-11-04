@@ -71,7 +71,6 @@ jobs:
     name: Test Windows
     runs-on: windows-latest
     needs: check
-    shell: bash
     env:
       toolchain-version: 1.56
       llvm-version: 12.0.1
@@ -99,7 +98,7 @@ jobs:
           args: -- --nocapture
  
       - run: mkdir -p windows
-      - run: ls -lah target
+      - run: ls target
 
       - name: Move artifacts
         env:
