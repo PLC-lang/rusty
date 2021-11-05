@@ -574,6 +574,9 @@ y := D#1970-01-01;
 z := DATE_AND_TIME#1984-10-01-20:15:14;
 z := DT#1970-01-01-16:20:04.123;
 z := DT#1970-01-01-16:20:04.123456789;
+z := DATE_AND_TIME#2000-01-01-20:15:00;
+z := DATE_AND_TIME#2000-01-01-20:15;
+z := DT#2000-01-01-20:15;
 END_PROGRAM
 "#,
     );
@@ -600,6 +603,9 @@ entry:
   store i64 465509714000, i64* %z, align 4
   store i64 58804123, i64* %z, align 4
   store i64 58804123, i64* %z, align 4
+  store i64 946757700000, i64* %z, align 4
+  store i64 946757700000, i64* %z, align 4
+  store i64 946757700000, i64* %z, align 4
   ret void
 }
 "#;
@@ -718,6 +724,10 @@ y := TIME_OF_DAY#00:00:00;
 y := TOD#01:00:00;
 y := TIME_OF_DAY#01:00:00.001;
 y := TOD#1:1:1;
+y := TIME_OF_DAY#20:15:00;
+y := TIME_OF_DAY#20:15;
+y := TOD#11:11:00;
+y := TOD#11:11;
 END_PROGRAM
 "#,
     );
@@ -736,6 +746,10 @@ entry:
   store i64 3600000, i64* %y, align 4
   store i64 3600001, i64* %y, align 4
   store i64 3661000, i64* %y, align 4
+  store i64 72900000, i64* %y, align 4
+  store i64 72900000, i64* %y, align 4
+  store i64 40260000, i64* %y, align 4
+  store i64 40260000, i64* %y, align 4
   ret void
 }
 "#;
@@ -4400,19 +4414,15 @@ fn structs_are_generated() {
 
         VAR_GLOBAL
           x : MyStruct;
+          y : STRUCT
+            a : BYTE;
+            b : BYTE;
+          END_STRUCT;
         END_VAR
         ",
     );
 
-    let expected = r#"; ModuleID = 'main'
-source_filename = "main"
-
-%MyStruct = type { i32, i32 }
-
-@x = global %MyStruct zeroinitializer
-"#;
-
-    assert_eq!(result, expected);
+    insta::assert_snapshot!(result);
 }
 
 #[test]
@@ -4423,17 +4433,12 @@ fn arrays_are_generated() {
 
         VAR_GLOBAL
           x : MyArray;
+          y : ARRAY[0..5] OF REAL;
         END_VAR
         ",
     );
 
-    let expected = r#"; ModuleID = 'main'
-source_filename = "main"
-
-@x = external global [10 x i16]
-"#;
-
-    assert_eq!(result, expected);
+    insta::assert_snapshot!(result);
 }
 
 #[test]
@@ -4458,20 +4463,7 @@ fn arrays_with_global_const_size_are_generated() {
         ",
     );
 
-    let expected = r#"; ModuleID = 'main'
-source_filename = "main"
-
-@THREE = global i16 3
-@ZERO = global i16 0
-@LEN = global i16 9
-@x = external global [10 x i16]
-@y = external global [11 x i32]
-@z = external global [19 x i8]
-@zz = external global [10 x [10 x i8]]
-@zzz = external global [10 x [8 x i8]]
-"#;
-
-    assert_eq!(result, expected);
+    insta::assert_snapshot!(result);
 }
 
 #[test]
@@ -5555,6 +5547,25 @@ fn initial_values_in_array_of_array_variable() {
 source_filename = "main"
 
 @a = global [2 x [2 x i8]] [[2 x i8] c"\01\02", [2 x i8] c"\03\04"]
+"#;
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn uninitialized_global_array() {
+    let result = codegen(
+        "
+         VAR_GLOBAL 
+           a : ARRAY[0..1] OF BYTE; 
+         END_VAR
+         ",
+    );
+
+    let expected = r#"; ModuleID = 'main'
+source_filename = "main"
+
+@a = global [2 x i8] zeroinitializer
 "#;
 
     assert_eq!(result, expected);
