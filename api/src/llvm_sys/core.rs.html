@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;llvm-sys-110.0.1&#x2F;src&#x2F;core.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>core.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../llvm_sys/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">   1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;usr&#x2F;local&#x2F;cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;llvm-sys-120.2.1&#x2F;src&#x2F;core.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>core.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../llvm_sys/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">   1</span>
 <span id="2">   2</span>
 <span id="3">   3</span>
 <span id="4">   4</span>
@@ -1992,6 +1992,38 @@
 <span id="1992">1992</span>
 <span id="1993">1993</span>
 <span id="1994">1994</span>
+<span id="1995">1995</span>
+<span id="1996">1996</span>
+<span id="1997">1997</span>
+<span id="1998">1998</span>
+<span id="1999">1999</span>
+<span id="2000">2000</span>
+<span id="2001">2001</span>
+<span id="2002">2002</span>
+<span id="2003">2003</span>
+<span id="2004">2004</span>
+<span id="2005">2005</span>
+<span id="2006">2006</span>
+<span id="2007">2007</span>
+<span id="2008">2008</span>
+<span id="2009">2009</span>
+<span id="2010">2010</span>
+<span id="2011">2011</span>
+<span id="2012">2012</span>
+<span id="2013">2013</span>
+<span id="2014">2014</span>
+<span id="2015">2015</span>
+<span id="2016">2016</span>
+<span id="2017">2017</span>
+<span id="2018">2018</span>
+<span id="2019">2019</span>
+<span id="2020">2020</span>
+<span id="2021">2021</span>
+<span id="2022">2022</span>
+<span id="2023">2023</span>
+<span id="2024">2024</span>
+<span id="2025">2025</span>
+<span id="2026">2026</span>
 </pre><pre class="rust"><code><span class="doccomment">//! The LLVM intermediate representation.</span>
 
 <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
@@ -2060,6 +2092,16 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// Returns 0 if none exists.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">LLVMGetEnumAttributeValue</span>(<span class="ident">A</span>: <span class="ident">LLVMAttributeRef</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u64</span>;
+
+    <span class="doccomment">/// Create a type attribute.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">LLVMCreateTypeAttribute</span>(
+        <span class="ident">C</span>: <span class="ident">LLVMContextRef</span>,
+        <span class="ident">KindID</span>: <span class="ident">::libc::c_uint</span>,
+        <span class="ident">type_ref</span>: <span class="ident">LLVMTypeRef</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">LLVMAttributeRef</span>;
+    <span class="doccomment">/// Get the type attribute&#39;s value.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">LLVMGetTypeAttributeValue</span>(<span class="ident">A</span>: <span class="ident">LLVMAttributeRef</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">LLVMTypeRef</span>;
+
     <span class="doccomment">/// Create a string attribute.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">LLVMCreateStringAttribute</span>(
         <span class="ident">C</span>: <span class="ident">LLVMContextRef</span>,
@@ -2080,6 +2122,10 @@
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">::libc::c_char</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">LLVMIsEnumAttribute</span>(<span class="ident">A</span>: <span class="ident">LLVMAttributeRef</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">LLVMBool</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">LLVMIsStringAttribute</span>(<span class="ident">A</span>: <span class="ident">LLVMAttributeRef</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">LLVMBool</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">LLVMIsTypeAttribute</span>(<span class="ident">A</span>: <span class="ident">LLVMAttributeRef</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">LLVMBool</span>;
+
+    <span class="doccomment">/// Obtain a Type from a context by its registered name.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">LLVMGetTypeByName2</span>(<span class="ident">C</span>: <span class="ident">LLVMContextRef</span>, <span class="ident">Name</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">::libc::c_char</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">LLVMTypeRef</span>;
 }
 
 <span class="comment">// Core-&gt;Modules</span>
@@ -2203,6 +2249,7 @@
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">LLVMValueRef</span>;
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">LLVMGetModuleContext</span>(<span class="ident">M</span>: <span class="ident">LLVMModuleRef</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">LLVMContextRef</span>;
+    <span class="attribute">#[<span class="ident">deprecated</span>(<span class="ident">since</span> <span class="op">=</span> <span class="string">&quot;12.0.0&quot;</span>, <span class="ident">note</span> <span class="op">=</span> <span class="string">&quot;Use LLVMGetTypeByName2 instead&quot;</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">LLVMGetTypeByName</span>(<span class="ident">M</span>: <span class="ident">LLVMModuleRef</span>, <span class="ident">Name</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">::libc::c_char</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">LLVMTypeRef</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">LLVMGetFirstNamedMetadata</span>(<span class="ident">M</span>: <span class="ident">LLVMModuleRef</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">LLVMNamedMDNodeRef</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">LLVMGetLastNamedMetadata</span>(<span class="ident">M</span>: <span class="ident">LLVMModuleRef</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">LLVMNamedMDNodeRef</span>;
@@ -2353,17 +2400,29 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">LLVMPointerType</span>(<span class="ident">ElementType</span>: <span class="ident">LLVMTypeRef</span>, <span class="ident">AddressSpace</span>: <span class="ident">::libc::c_uint</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">LLVMTypeRef</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">LLVMGetPointerAddressSpace</span>(<span class="ident">PointerTy</span>: <span class="ident">LLVMTypeRef</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">::libc::c_uint</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">LLVMVectorType</span>(<span class="ident">ElementType</span>: <span class="ident">LLVMTypeRef</span>, <span class="ident">ElementCount</span>: <span class="ident">::libc::c_uint</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">LLVMTypeRef</span>;
+    <span class="doccomment">/// Create a vector type that contains a defined type and has a scalable</span>
+    <span class="doccomment">/// number of elements.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// The created type will exist in the context that its element type</span>
+    <span class="doccomment">/// exists in.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">LLVMScalableVectorType</span>(
+        <span class="ident">ElementType</span>: <span class="ident">LLVMTypeRef</span>,
+        <span class="ident">ElementCount</span>: <span class="ident">::libc::c_uint</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">LLVMTypeRef</span>;
+    <span class="doccomment">/// Obtain the (possibly scalable) number of elements in a vector type.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">LLVMGetVectorSize</span>(<span class="ident">VectorTy</span>: <span class="ident">LLVMTypeRef</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">::libc::c_uint</span>;
 
     <span class="comment">// Core-&gt;Types-&gt;Other</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">LLVMVoidTypeInContext</span>(<span class="ident">C</span>: <span class="ident">LLVMContextRef</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">LLVMTypeRef</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">LLVMLabelTypeInContext</span>(<span class="ident">C</span>: <span class="ident">LLVMContextRef</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">LLVMTypeRef</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">LLVMX86MMXTypeInContext</span>(<span class="ident">C</span>: <span class="ident">LLVMContextRef</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">LLVMTypeRef</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">LLVMX86AMXTypeInContext</span>(<span class="ident">C</span>: <span class="ident">LLVMContextRef</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">LLVMTypeRef</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">LLVMTokenTypeInContext</span>(<span class="ident">C</span>: <span class="ident">LLVMContextRef</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">LLVMTypeRef</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">LLVMMetadataTypeInContext</span>(<span class="ident">C</span>: <span class="ident">LLVMContextRef</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">LLVMTypeRef</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">LLVMVoidType</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">LLVMTypeRef</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">LLVMLabelType</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">LLVMTypeRef</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">LLVMX86MMXType</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">LLVMTypeRef</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">LLVMX86AMXType</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">LLVMTypeRef</span>;
 }
 
 <span class="comment">// Core-&gt;Values</span>
@@ -2393,6 +2452,8 @@
     <span class="doccomment">/// Determine whether the specified value instance is constant.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">LLVMIsConstant</span>(<span class="ident">Val</span>: <span class="ident">LLVMValueRef</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">LLVMBool</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">LLVMIsUndef</span>(<span class="ident">Val</span>: <span class="ident">LLVMValueRef</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">LLVMBool</span>;
+    <span class="doccomment">/// Determine whether a value instance is poisonous.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">LLVMIsPoison</span>(<span class="ident">Val</span>: <span class="ident">LLVMValueRef</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">LLVMBool</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">LLVMIsAMDNode</span>(<span class="ident">Val</span>: <span class="ident">LLVMValueRef</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">LLVMValueRef</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">LLVMIsAMDString</span>(<span class="ident">Val</span>: <span class="ident">LLVMValueRef</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">LLVMValueRef</span>;
 
@@ -2412,6 +2473,8 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">LLVMConstNull</span>(<span class="ident">Ty</span>: <span class="ident">LLVMTypeRef</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">LLVMValueRef</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">LLVMConstAllOnes</span>(<span class="ident">Ty</span>: <span class="ident">LLVMTypeRef</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">LLVMValueRef</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">LLVMGetUndef</span>(<span class="ident">Ty</span>: <span class="ident">LLVMTypeRef</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">LLVMValueRef</span>;
+    <span class="doccomment">/// Obtain a constant value referring to a poison value of a type.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">LLVMGetPoison</span>(<span class="ident">Ty</span>: <span class="ident">LLVMTypeRef</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">LLVMValueRef</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">LLVMIsNull</span>(<span class="ident">Val</span>: <span class="ident">LLVMValueRef</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">LLVMBool</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">LLVMConstPointerNull</span>(<span class="ident">Ty</span>: <span class="ident">LLVMTypeRef</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">LLVMValueRef</span>;
 
@@ -3101,6 +3164,7 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">LLVMIsAFunction</span>(<span class="ident">Val</span>: <span class="ident">LLVMValueRef</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">LLVMValueRef</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">LLVMIsAGlobalVariable</span>(<span class="ident">Val</span>: <span class="ident">LLVMValueRef</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">LLVMValueRef</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">LLVMIsAUndefValue</span>(<span class="ident">Val</span>: <span class="ident">LLVMValueRef</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">LLVMValueRef</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">LLVMIsAPoisonValue</span>(<span class="ident">Val</span>: <span class="ident">LLVMValueRef</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">LLVMValueRef</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">LLVMIsAInstruction</span>(<span class="ident">Val</span>: <span class="ident">LLVMValueRef</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">LLVMValueRef</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">LLVMIsAUnaryOperator</span>(<span class="ident">Val</span>: <span class="ident">LLVMValueRef</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">LLVMValueRef</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">LLVMIsABinaryOperator</span>(<span class="ident">Val</span>: <span class="ident">LLVMValueRef</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">LLVMValueRef</span>;

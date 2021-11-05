@@ -381,7 +381,7 @@
 <span class="kw">use</span> <span class="ident">inkwell::types::StructType</span>;
 <span class="kw">use</span> <span class="ident">inkwell</span>::{
     <span class="ident">module::Module</span>,
-    <span class="ident">types</span>::{<span class="ident">BasicTypeEnum</span>, <span class="ident">FunctionType</span>},
+    <span class="ident">types</span>::{<span class="ident">BasicMetadataTypeEnum</span>, <span class="ident">BasicTypeEnum</span>, <span class="ident">FunctionType</span>},
     <span class="ident">values</span>::{<span class="ident">BasicValueEnum</span>, <span class="ident">FunctionValue</span>},
     <span class="ident">AddressSpace</span>,
 };
@@ -566,7 +566,7 @@
     <span class="doccomment">/// returns the given `return_type`</span>
     <span class="kw">fn</span> <span class="ident">create_llvm_function_type</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">parameters</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">BasicTypeEnum</span><span class="op">&lt;</span><span class="lifetime">&#39;ink</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+        <span class="ident">parameters</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">BasicMetadataTypeEnum</span><span class="op">&lt;</span><span class="lifetime">&#39;ink</span><span class="op">&gt;</span><span class="op">&gt;</span>,
         <span class="ident">is_var_args</span>: <span class="ident">bool</span>,
         <span class="ident">return_type</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">BasicTypeEnum</span><span class="op">&lt;</span><span class="lifetime">&#39;ink</span><span class="op">&gt;</span><span class="op">&gt;</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">FunctionType</span><span class="op">&lt;</span><span class="lifetime">&#39;ink</span><span class="op">&gt;</span>, <span class="ident">CompileError</span><span class="op">&gt;</span> {

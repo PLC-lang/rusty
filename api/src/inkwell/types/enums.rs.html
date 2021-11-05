@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;git&#x2F;checkouts&#x2F;inkwell-946411d814d2c9f8&#x2F;41857f9&#x2F;src&#x2F;types&#x2F;enums.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>enums.rs - source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../inkwell/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;usr&#x2F;local&#x2F;cargo&#x2F;git&#x2F;checkouts&#x2F;inkwell-946411d814d2c9f8&#x2F;f3a78d1&#x2F;src&#x2F;types&#x2F;enums.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>enums.rs - source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../inkwell/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -378,15 +378,129 @@
 <span id="378">378</span>
 <span id="379">379</span>
 <span id="380">380</span>
+<span id="381">381</span>
+<span id="382">382</span>
+<span id="383">383</span>
+<span id="384">384</span>
+<span id="385">385</span>
+<span id="386">386</span>
+<span id="387">387</span>
+<span id="388">388</span>
+<span id="389">389</span>
+<span id="390">390</span>
+<span id="391">391</span>
+<span id="392">392</span>
+<span id="393">393</span>
+<span id="394">394</span>
+<span id="395">395</span>
+<span id="396">396</span>
+<span id="397">397</span>
+<span id="398">398</span>
+<span id="399">399</span>
+<span id="400">400</span>
+<span id="401">401</span>
+<span id="402">402</span>
+<span id="403">403</span>
+<span id="404">404</span>
+<span id="405">405</span>
+<span id="406">406</span>
+<span id="407">407</span>
+<span id="408">408</span>
+<span id="409">409</span>
+<span id="410">410</span>
+<span id="411">411</span>
+<span id="412">412</span>
+<span id="413">413</span>
+<span id="414">414</span>
+<span id="415">415</span>
+<span id="416">416</span>
+<span id="417">417</span>
+<span id="418">418</span>
+<span id="419">419</span>
+<span id="420">420</span>
+<span id="421">421</span>
+<span id="422">422</span>
+<span id="423">423</span>
+<span id="424">424</span>
+<span id="425">425</span>
+<span id="426">426</span>
+<span id="427">427</span>
+<span id="428">428</span>
+<span id="429">429</span>
+<span id="430">430</span>
+<span id="431">431</span>
+<span id="432">432</span>
+<span id="433">433</span>
+<span id="434">434</span>
+<span id="435">435</span>
+<span id="436">436</span>
+<span id="437">437</span>
+<span id="438">438</span>
+<span id="439">439</span>
+<span id="440">440</span>
+<span id="441">441</span>
+<span id="442">442</span>
+<span id="443">443</span>
+<span id="444">444</span>
+<span id="445">445</span>
+<span id="446">446</span>
+<span id="447">447</span>
+<span id="448">448</span>
+<span id="449">449</span>
+<span id="450">450</span>
+<span id="451">451</span>
+<span id="452">452</span>
+<span id="453">453</span>
+<span id="454">454</span>
+<span id="455">455</span>
+<span id="456">456</span>
+<span id="457">457</span>
+<span id="458">458</span>
+<span id="459">459</span>
+<span id="460">460</span>
+<span id="461">461</span>
+<span id="462">462</span>
+<span id="463">463</span>
+<span id="464">464</span>
+<span id="465">465</span>
+<span id="466">466</span>
+<span id="467">467</span>
+<span id="468">468</span>
+<span id="469">469</span>
+<span id="470">470</span>
+<span id="471">471</span>
+<span id="472">472</span>
+<span id="473">473</span>
+<span id="474">474</span>
+<span id="475">475</span>
+<span id="476">476</span>
+<span id="477">477</span>
+<span id="478">478</span>
+<span id="479">479</span>
+<span id="480">480</span>
+<span id="481">481</span>
+<span id="482">482</span>
+<span id="483">483</span>
+<span id="484">484</span>
+<span id="485">485</span>
+<span id="486">486</span>
+<span id="487">487</span>
+<span id="488">488</span>
+<span id="489">489</span>
+<span id="490">490</span>
+<span id="491">491</span>
+<span id="492">492</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">llvm_sys::core::LLVMGetTypeKind</span>;
 <span class="kw">use</span> <span class="ident">llvm_sys::LLVMTypeKind</span>;
 <span class="kw">use</span> <span class="ident">llvm_sys::prelude::LLVMTypeRef</span>;
 
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::types</span>::{<span class="ident">IntType</span>, <span class="ident">VoidType</span>, <span class="ident">FunctionType</span>, <span class="ident">PointerType</span>, <span class="ident">VectorType</span>, <span class="ident">ArrayType</span>, <span class="ident">StructType</span>, <span class="ident">FloatType</span>};
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::types::MetadataType</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::types::traits::AsTypeRef</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::values</span>::{<span class="ident">BasicValue</span>, <span class="ident">BasicValueEnum</span>, <span class="ident">IntValue</span>};
 
 <span class="kw">use</span> <span class="ident">std::convert::TryFrom</span>;
+<span class="kw">use</span> <span class="ident">std::iter::FromIterator</span>;
 
 <span class="macro">macro_rules!</span> <span class="ident">enum_type_set</span> {
     ($(<span class="attribute">#[<span class="macro-nonterminal">$</span><span class="macro-nonterminal">enum_attrs</span>:<span class="ident">meta</span>]</span>)<span class="op">*</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">enum_name</span>:<span class="ident">ident</span>: { $($(<span class="attribute">#[<span class="macro-nonterminal">$</span><span class="macro-nonterminal">variant_attrs</span>:<span class="ident">meta</span>]</span>)<span class="op">*</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">args</span>:<span class="ident">ident</span>,)<span class="op">+</span> }) <span class="op">=</span><span class="op">&gt;</span> (
@@ -468,6 +582,103 @@
         <span class="ident">VectorType</span>,
     }
 }
+<span class="macro">enum_type_set!</span> {
+    <span class="ident">BasicMetadataTypeEnum</span>: {
+        <span class="ident">ArrayType</span>,
+        <span class="ident">FloatType</span>,
+        <span class="ident">IntType</span>,
+        <span class="ident">PointerType</span>,
+        <span class="ident">StructType</span>,
+        <span class="ident">VectorType</span>,
+        <span class="ident">MetadataType</span>,
+    }
+}
+
+<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> <span class="ident">BasicMetadataTypeEnum</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_array_type</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ArrayType</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> {
+        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">BasicMetadataTypeEnum::ArrayType</span>(<span class="ident">t</span>) <span class="op">=</span> <span class="self">self</span> {
+            <span class="ident">t</span>
+        } <span class="kw">else</span> {
+            <span class="macro">panic!</span>(<span class="string">&quot;Found {:?} but expected another variant&quot;</span>, <span class="self">self</span>);
+        }
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_float_type</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">FloatType</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> {
+        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">BasicMetadataTypeEnum::FloatType</span>(<span class="ident">t</span>) <span class="op">=</span> <span class="self">self</span> {
+            <span class="ident">t</span>
+        } <span class="kw">else</span> {
+            <span class="macro">panic!</span>(<span class="string">&quot;Found {:?} but expected another variant&quot;</span>, <span class="self">self</span>);
+        }
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_int_type</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">IntType</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> {
+        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">BasicMetadataTypeEnum::IntType</span>(<span class="ident">t</span>) <span class="op">=</span> <span class="self">self</span> {
+            <span class="ident">t</span>
+        } <span class="kw">else</span> {
+            <span class="macro">panic!</span>(<span class="string">&quot;Found {:?} but expected another variant&quot;</span>, <span class="self">self</span>);
+        }
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_pointer_type</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PointerType</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> {
+        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">BasicMetadataTypeEnum::PointerType</span>(<span class="ident">t</span>) <span class="op">=</span> <span class="self">self</span> {
+            <span class="ident">t</span>
+        } <span class="kw">else</span> {
+            <span class="macro">panic!</span>(<span class="string">&quot;Found {:?} but expected another variant&quot;</span>, <span class="self">self</span>);
+        }
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_struct_type</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">StructType</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> {
+        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">BasicMetadataTypeEnum::StructType</span>(<span class="ident">t</span>) <span class="op">=</span> <span class="self">self</span> {
+            <span class="ident">t</span>
+        } <span class="kw">else</span> {
+            <span class="macro">panic!</span>(<span class="string">&quot;Found {:?} but expected another variant&quot;</span>, <span class="self">self</span>);
+        }
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_vector_type</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">VectorType</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> {
+        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">BasicMetadataTypeEnum::VectorType</span>(<span class="ident">t</span>) <span class="op">=</span> <span class="self">self</span> {
+            <span class="ident">t</span>
+        } <span class="kw">else</span> {
+            <span class="macro">panic!</span>(<span class="string">&quot;Found {:?} but expected another variant&quot;</span>, <span class="self">self</span>);
+        }
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_metadata_type</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">MetadataType</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> {
+        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">BasicMetadataTypeEnum::MetadataType</span>(<span class="ident">t</span>) <span class="op">=</span> <span class="self">self</span> {
+            <span class="ident">t</span>
+        } <span class="kw">else</span> {
+            <span class="macro">panic!</span>(<span class="string">&quot;Found {:?} but expected another variant&quot;</span>, <span class="self">self</span>);
+        }
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_array_type</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+        <span class="macro">matches!</span>(<span class="self">self</span>, <span class="ident">BasicMetadataTypeEnum::ArrayType</span>(<span class="kw">_</span>))
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_float_type</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+        <span class="macro">matches!</span>(<span class="self">self</span>, <span class="ident">BasicMetadataTypeEnum::FloatType</span>(<span class="kw">_</span>))
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_int_type</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+        <span class="macro">matches!</span>(<span class="self">self</span>, <span class="ident">BasicMetadataTypeEnum::IntType</span>(<span class="kw">_</span>))
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_metadata_type</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+        <span class="macro">matches!</span>(<span class="self">self</span>, <span class="ident">BasicMetadataTypeEnum::MetadataType</span>(<span class="kw">_</span>))
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_pointer_type</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+        <span class="macro">matches!</span>(<span class="self">self</span>, <span class="ident">BasicMetadataTypeEnum::PointerType</span>(<span class="kw">_</span>))
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_struct_type</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+        <span class="macro">matches!</span>(<span class="self">self</span>, <span class="ident">BasicMetadataTypeEnum::StructType</span>(<span class="kw">_</span>))
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_vector_type</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+        <span class="macro">matches!</span>(<span class="self">self</span>, <span class="ident">BasicMetadataTypeEnum::VectorType</span>(<span class="kw">_</span>))
+    }
+}
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> <span class="ident">AnyTypeEnum</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> {
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">type_</span>: <span class="ident">LLVMTypeRef</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
@@ -479,7 +690,7 @@
             <span class="ident">LLVMTypeKind::LLVMX86_FP80TypeKind</span> <span class="op">|</span>
             <span class="ident">LLVMTypeKind::LLVMFP128TypeKind</span> <span class="op">|</span>
             <span class="ident">LLVMTypeKind::LLVMPPC_FP128TypeKind</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">AnyTypeEnum::FloatType</span>(<span class="ident">FloatType::new</span>(<span class="ident">type_</span>)),
-            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm11-0&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm12-0&quot;</span>))]</span>
+            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm11-0&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm12-0&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm13-0&quot;</span>))]</span>
             <span class="ident">LLVMTypeKind::LLVMBFloatTypeKind</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">AnyTypeEnum::FloatType</span>(<span class="ident">FloatType::new</span>(<span class="ident">type_</span>)),
             <span class="ident">LLVMTypeKind::LLVMLabelTypeKind</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic!</span>(<span class="string">&quot;FIXME: Unsupported type: Label&quot;</span>),
             <span class="ident">LLVMTypeKind::LLVMIntegerTypeKind</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">AnyTypeEnum::IntType</span>(<span class="ident">IntType::new</span>(<span class="ident">type_</span>)),
@@ -488,11 +699,11 @@
             <span class="ident">LLVMTypeKind::LLVMArrayTypeKind</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">AnyTypeEnum::ArrayType</span>(<span class="ident">ArrayType::new</span>(<span class="ident">type_</span>)),
             <span class="ident">LLVMTypeKind::LLVMPointerTypeKind</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">AnyTypeEnum::PointerType</span>(<span class="ident">PointerType::new</span>(<span class="ident">type_</span>)),
             <span class="ident">LLVMTypeKind::LLVMVectorTypeKind</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">AnyTypeEnum::VectorType</span>(<span class="ident">VectorType::new</span>(<span class="ident">type_</span>)),
-            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm11-0&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm12-0&quot;</span>))]</span>
+            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm11-0&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm12-0&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm13-0&quot;</span>))]</span>
             <span class="ident">LLVMTypeKind::LLVMScalableVectorTypeKind</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">AnyTypeEnum::VectorType</span>(<span class="ident">VectorType::new</span>(<span class="ident">type_</span>)),
-            <span class="ident">LLVMTypeKind::LLVMMetadataTypeKind</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic!</span>(<span class="string">&quot;FIXME: Unsupported type: Metadata&quot;</span>),
+            <span class="ident">LLVMTypeKind::LLVMMetadataTypeKind</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable!</span>(<span class="string">&quot;Metadata type is not supported as AnyType.&quot;</span>),
             <span class="ident">LLVMTypeKind::LLVMX86_MMXTypeKind</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic!</span>(<span class="string">&quot;FIXME: Unsupported type: MMX&quot;</span>),
-            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm12-0&quot;</span>)]</span>
+            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm12-0&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm13-0&quot;</span>))]</span>
             <span class="ident">LLVMTypeKind::LLVMX86_AMXTypeKind</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic!</span>(<span class="string">&quot;FIXME: Unsupported type: AMX&quot;</span>),
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm3-6&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm3-7&quot;</span>)))]</span>
             <span class="ident">LLVMTypeKind::LLVMTokenTypeKind</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic!</span>(<span class="string">&quot;FIXME: Unsupported type: Token&quot;</span>),
@@ -625,20 +836,20 @@
             <span class="ident">LLVMTypeKind::LLVMX86_FP80TypeKind</span> <span class="op">|</span>
             <span class="ident">LLVMTypeKind::LLVMFP128TypeKind</span> <span class="op">|</span>
             <span class="ident">LLVMTypeKind::LLVMPPC_FP128TypeKind</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">BasicTypeEnum::FloatType</span>(<span class="ident">FloatType::new</span>(<span class="ident">type_</span>)),
-            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm11-0&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm12-0&quot;</span>))]</span>
+            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm11-0&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm12-0&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm13-0&quot;</span>))]</span>
             <span class="ident">LLVMTypeKind::LLVMBFloatTypeKind</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">BasicTypeEnum::FloatType</span>(<span class="ident">FloatType::new</span>(<span class="ident">type_</span>)),
             <span class="ident">LLVMTypeKind::LLVMIntegerTypeKind</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">BasicTypeEnum::IntType</span>(<span class="ident">IntType::new</span>(<span class="ident">type_</span>)),
             <span class="ident">LLVMTypeKind::LLVMStructTypeKind</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">BasicTypeEnum::StructType</span>(<span class="ident">StructType::new</span>(<span class="ident">type_</span>)),
             <span class="ident">LLVMTypeKind::LLVMPointerTypeKind</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">BasicTypeEnum::PointerType</span>(<span class="ident">PointerType::new</span>(<span class="ident">type_</span>)),
             <span class="ident">LLVMTypeKind::LLVMArrayTypeKind</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">BasicTypeEnum::ArrayType</span>(<span class="ident">ArrayType::new</span>(<span class="ident">type_</span>)),
             <span class="ident">LLVMTypeKind::LLVMVectorTypeKind</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">BasicTypeEnum::VectorType</span>(<span class="ident">VectorType::new</span>(<span class="ident">type_</span>)),
-            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm11-0&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm12-0&quot;</span>))]</span>
+            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm11-0&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm12-0&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm13-0&quot;</span>))]</span>
             <span class="ident">LLVMTypeKind::LLVMScalableVectorTypeKind</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">BasicTypeEnum::VectorType</span>(<span class="ident">VectorType::new</span>(<span class="ident">type_</span>)),
             <span class="ident">LLVMTypeKind::LLVMMetadataTypeKind</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable!</span>(<span class="string">&quot;Unsupported basic type: Metadata&quot;</span>),
             <span class="comment">// see https://llvm.org/docs/LangRef.html#x86-mmx-type</span>
             <span class="ident">LLVMTypeKind::LLVMX86_MMXTypeKind</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable!</span>(<span class="string">&quot;Unsupported basic type: MMX&quot;</span>),
             <span class="comment">// see https://llvm.org/docs/LangRef.html#x86-amx-type</span>
-            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm12-0&quot;</span>)]</span>
+            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm12-0&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;llvm13-0&quot;</span>))]</span>
             <span class="ident">LLVMTypeKind::LLVMX86_AMXTypeKind</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable!</span>(<span class="string">&quot;Unsupported basic type: AMX&quot;</span>),
             <span class="ident">LLVMTypeKind::LLVMLabelTypeKind</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable!</span>(<span class="string">&quot;Unsupported basic type: Label&quot;</span>),
             <span class="ident">LLVMTypeKind::LLVMVoidTypeKind</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable!</span>(<span class="string">&quot;Unsupported basic type: VoidType&quot;</span>),
@@ -756,6 +967,19 @@
             <span class="ident">AnyTypeEnum::VectorType</span>(<span class="ident">vt</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">vt</span>.<span class="ident">into</span>(),
             <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Err</span>(()),
         })
+    }
+}
+
+<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">BasicTypeEnum</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">BasicMetadataTypeEnum</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">value</span>: <span class="ident">BasicTypeEnum</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+        <span class="kw">match</span> <span class="ident">value</span> {
+            <span class="ident">BasicTypeEnum::ArrayType</span>(<span class="ident">at</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">at</span>.<span class="ident">into</span>(),
+            <span class="ident">BasicTypeEnum::FloatType</span>(<span class="ident">ft</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ft</span>.<span class="ident">into</span>(),
+            <span class="ident">BasicTypeEnum::IntType</span>(<span class="ident">it</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">it</span>.<span class="ident">into</span>(),
+            <span class="ident">BasicTypeEnum::PointerType</span>(<span class="ident">pt</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">pt</span>.<span class="ident">into</span>(),
+            <span class="ident">BasicTypeEnum::StructType</span>(<span class="ident">st</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">st</span>.<span class="ident">into</span>(),
+            <span class="ident">BasicTypeEnum::VectorType</span>(<span class="ident">vt</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">vt</span>.<span class="ident">into</span>(),
+        }
     }
 }
 </code></pre></div>
