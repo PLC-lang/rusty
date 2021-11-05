@@ -244,6 +244,12 @@ pub enum Token {
     #[token("ARRAY", ignore(case))]
     KeywordArray,
 
+    #[token("CHAR", ignore(case))]
+    KeywordChar,
+
+    #[token("WCHAR", ignore(case))]
+    KeywordWideChar,
+
     #[token("STRING", ignore(case))]
     KeywordString,
 
