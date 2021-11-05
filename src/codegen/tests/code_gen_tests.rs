@@ -4414,19 +4414,15 @@ fn structs_are_generated() {
 
         VAR_GLOBAL
           x : MyStruct;
+          y : STRUCT
+            a : BYTE;
+            b : BYTE;
+          END_STRUCT;
         END_VAR
         ",
     );
 
-    let expected = r#"; ModuleID = 'main'
-source_filename = "main"
-
-%MyStruct = type { i32, i32 }
-
-@x = global %MyStruct zeroinitializer
-"#;
-
-    assert_eq!(result, expected);
+    insta::assert_snapshot!(result);
 }
 
 #[test]
@@ -4437,17 +4433,12 @@ fn arrays_are_generated() {
 
         VAR_GLOBAL
           x : MyArray;
+          y : ARRAY[0..5] OF REAL;
         END_VAR
         ",
     );
 
-    let expected = r#"; ModuleID = 'main'
-source_filename = "main"
-
-@x = external global [10 x i16]
-"#;
-
-    assert_eq!(result, expected);
+    insta::assert_snapshot!(result);
 }
 
 #[test]
@@ -4472,20 +4463,7 @@ fn arrays_with_global_const_size_are_generated() {
         ",
     );
 
-    let expected = r#"; ModuleID = 'main'
-source_filename = "main"
-
-@THREE = global i16 3
-@ZERO = global i16 0
-@LEN = global i16 9
-@x = external global [10 x i16]
-@y = external global [11 x i32]
-@z = external global [19 x i8]
-@zz = external global [10 x [10 x i8]]
-@zzz = external global [10 x [8 x i8]]
-"#;
-
-    assert_eq!(result, expected);
+    insta::assert_snapshot!(result);
 }
 
 #[test]
@@ -5569,6 +5547,25 @@ fn initial_values_in_array_of_array_variable() {
 source_filename = "main"
 
 @a = global [2 x [2 x i8]] [[2 x i8] c"\01\02", [2 x i8] c"\03\04"]
+"#;
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn uninitialized_global_array() {
+    let result = codegen(
+        "
+         VAR_GLOBAL 
+           a : ARRAY[0..1] OF BYTE; 
+         END_VAR
+         ",
+    );
+
+    let expected = r#"; ModuleID = 'main'
+source_filename = "main"
+
+@a = global [2 x i8] zeroinitializer
 "#;
 
     assert_eq!(result, expected);
