@@ -706,12 +706,12 @@
     <span class="ident">LiteralDate</span>,
 
     <span class="attribute">#[<span class="ident">regex</span>(
-        <span class="string">&quot;(DATE_AND_TIME|DT)#\\d+-\\d+-\\d+-\\d+:\\d+:\\d+(\\.\\d+)?&quot;</span>,
+        <span class="string">&quot;(DATE_AND_TIME|DT)#\\d+-\\d+-\\d+-\\d+:\\d+(:\\d+(\\.\\d+)?)?&quot;</span>,
         <span class="ident">ignore</span>(<span class="ident">case</span>)
     )]</span>
     <span class="ident">LiteralDateAndTime</span>,
 
-    <span class="attribute">#[<span class="ident">regex</span>(<span class="string">&quot;(TIME_OF_DAY|TOD)#\\d+:\\d+:\\d+(\\.\\d+)?&quot;</span>, <span class="ident">ignore</span>(<span class="ident">case</span>))]</span>
+    <span class="attribute">#[<span class="ident">regex</span>(<span class="string">&quot;(TIME_OF_DAY|TOD)#\\d+:\\d+(:\\d+(\\.\\d+)?)?&quot;</span>, <span class="ident">ignore</span>(<span class="ident">case</span>))]</span>
     <span class="ident">LiteralTimeOfDay</span>,
 
     <span class="attribute">#[<span class="ident">regex</span>(<span class="string">&quot;T(IME)?#-?(\\d+(\\.\\d+)?(d|h|ms|m|s|us|ns))+&quot;</span>, <span class="ident">ignore</span>(<span class="ident">case</span>))]</span>
