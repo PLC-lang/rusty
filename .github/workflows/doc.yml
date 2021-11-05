@@ -6,37 +6,27 @@ on:
     branches: [ master ]
 
 env:
-  toolchain-version: 1.53.0
-  llvm-version: "11.0.1"
+  IMAGE_NAME: rust-llvm
+  IMAGE_VERSION: 12-1.56.1
 
 jobs:
   cargo-docs:
+    name: Build book
     runs-on: ubuntu-latest
-    name: Build API and User Docs
     steps:
       - uses: actions/checkout@v2
-      - name: Install rust toolchain
-        uses: actions-rs/toolchain@v1
         with:
-          toolchain: stable
-      - name: Setup mdbook
-        uses: peaceiris/actions-mdbook@v1
-        with:
-          mdbook-version: 'latest'
-      - name: Install LLVM
-        uses: PLC-lang/install-llvm-action@latest
-        with:
-          version: ${{ env.llvm-version }}
-          directory: "./llvm"
-      - name: Build API documentation
-        uses: actions-rs/cargo@v1
-        with:
-          command: doc
-      - name: Build User documentation
-        working-directory: ./book
+          submodules: true
+
+      - name: Run Documentation Build
         run: |
-          mdbook build
-          mdbook test
+          IMAGE_ID=ghcr.io/${{ github.repository_owner }}/$IMAGE_NAME:$IMAGE_VERSION-linux
+          # Change all uppercase to lowercase
+          IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
+          docker pull $IMAGE_ID
+          ./scripts/build.sh --container --container-name=$IMAGE_ID --doc
+          sudo chmod a+rw -R target/doc
+          sudo chmod a+rw -R book/book
 
       - name: Copy documentation
         run: |
