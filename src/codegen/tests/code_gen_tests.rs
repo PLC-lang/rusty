@@ -574,6 +574,9 @@ y := D#1970-01-01;
 z := DATE_AND_TIME#1984-10-01-20:15:14;
 z := DT#1970-01-01-16:20:04.123;
 z := DT#1970-01-01-16:20:04.123456789;
+z := DATE_AND_TIME#2000-01-01-20:15:00;
+z := DATE_AND_TIME#2000-01-01-20:15;
+z := DT#2000-01-01-20:15;
 END_PROGRAM
 "#,
     );
@@ -600,6 +603,9 @@ entry:
   store i64 465509714000, i64* %z, align 4
   store i64 58804123, i64* %z, align 4
   store i64 58804123, i64* %z, align 4
+  store i64 946757700000, i64* %z, align 4
+  store i64 946757700000, i64* %z, align 4
+  store i64 946757700000, i64* %z, align 4
   ret void
 }
 "#;
@@ -718,6 +724,10 @@ y := TIME_OF_DAY#00:00:00;
 y := TOD#01:00:00;
 y := TIME_OF_DAY#01:00:00.001;
 y := TOD#1:1:1;
+y := TIME_OF_DAY#20:15:00;
+y := TIME_OF_DAY#20:15;
+y := TOD#11:11:00;
+y := TOD#11:11;
 END_PROGRAM
 "#,
     );
@@ -736,6 +746,10 @@ entry:
   store i64 3600000, i64* %y, align 4
   store i64 3600001, i64* %y, align 4
   store i64 3661000, i64* %y, align 4
+  store i64 72900000, i64* %y, align 4
+  store i64 72900000, i64* %y, align 4
+  store i64 40260000, i64* %y, align 4
+  store i64 40260000, i64* %y, align 4
   ret void
 }
 "#;
