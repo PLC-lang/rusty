@@ -78,3 +78,22 @@ fn chained_bit_assignment() {
 
     insta::assert_snapshot!(prog);
 }
+
+#[test]
+fn qualified_reference_assignment() {
+    let prog = codegen(
+        "
+        TYPE myStruct : STRUCT x : BYTE := 1; END_STRUCT END_TYPE
+
+        FUNCTION main : INT
+        VAR
+            str : myStruct;
+        END_VAR
+        str.x.%X0 := FALSE;
+        str.x.%X1 := TRUE;
+        END_FUNCTION
+
+        "
+    );
+    insta::assert_snapshot!(prog);
+}

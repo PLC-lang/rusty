@@ -1,3 +1,5 @@
+use pretty_assertions::assert_eq;
+
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use super::super::*;
 
@@ -73,10 +75,29 @@ fn bitaccess_chained_assignment() {
 
     let res: u64 = compile_and_run(prog.to_string(), &mut Type {});
 
-    assert_eq!(
-        0b0000_0010_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000,
+    assert_eq!( 0b0000_0010_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000,
         res
     );
+}
+
+#[test]
+fn qualified_reference_assignment() {
+    let prog = "
+        TYPE myStruct : STRUCT x : BYTE := 1; END_STRUCT END_TYPE
+
+        FUNCTION main : BYTE
+        VAR
+            str : myStruct;
+        END_VAR
+        str.x.%X0 := FALSE;
+        str.x.%X1 := TRUE;
+        main := str.x;
+        END_FUNCTION
+
+        " ;
+        struct Type {}
+        let res: u8 = compile_and_run(prog.to_string(), &mut Type {});
+        assert_eq!(2,res);
 }
 
 #[test]
