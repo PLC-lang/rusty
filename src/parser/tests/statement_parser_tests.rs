@@ -1,7 +1,4 @@
-use crate::{
-    ast::{AstStatement, DataType, DataTypeDeclaration, SourceRange, Variable},
-    test_utils::tests::parse,
-};
+use crate::{ast::{AstStatement, DataType, DataTypeDeclaration, SourceRange, Variable}, test_utils::tests::{ToRc, parse}};
 use pretty_assertions::*;
 
 #[test]
@@ -149,7 +146,7 @@ fn inline_enum_declaration_can_be_parsed() {
     let ast_string = format!("{:#?}", &result.global_vars[0].variables[0]);
 
     let v = Variable {
-        name: "my_enum".to_string(),
+        name: "my_enum".to_rc(),
         data_type: DataTypeDeclaration::DataTypeDefinition {
             data_type: DataType::EnumType {
                 name: None,

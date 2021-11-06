@@ -931,7 +931,7 @@ fn parse_variable_line(lexer: &mut ParseSession) -> Vec<Variable> {
     if let Some((data_type, initializer)) = parse_full_data_type_definition(lexer, None) {
         for (name, location) in var_names {
             variables.push(Variable {
-                name,
+                name: Rc::new(name),
                 data_type: data_type.clone(),
                 location,
                 initializer: initializer.clone(),

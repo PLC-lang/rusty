@@ -128,7 +128,7 @@ fn varargs_parameters_can_be_parsed() {
             location: SourceRange::undefined(),
             variables: vec![
                 Variable {
-                    name: "args1".into(),
+                    name: "args1".to_rc(),
                     data_type: DataTypeDeclaration::DataTypeDefinition {
                         data_type: DataType::VarArgs {
                             referenced_type: None,
@@ -140,7 +140,7 @@ fn varargs_parameters_can_be_parsed() {
                     location: SourceRange::undefined(),
                 },
                 Variable {
-                    name: "args2".into(),
+                    name: "args2".to_rc(),
                     data_type: DataTypeDeclaration::DataTypeDefinition {
                         data_type: DataType::VarArgs {
                             referenced_type: Some(Box::new(
@@ -319,7 +319,7 @@ fn function_inline_struct_return_unsupported() {
                     name: None,
                     variables: vec![
                         Variable {
-                            name: "x".into(),
+                            name: "x".to_rc(),
                             location: SourceRange::undefined(),
                             data_type: DataTypeDeclaration::DataTypeReference {
                                 location: SourceRange::undefined(),
@@ -328,7 +328,7 @@ fn function_inline_struct_return_unsupported() {
                             initializer: None
                         },
                         Variable {
-                            name: "y".into(),
+                            name: "y".to_rc(),
                             location: SourceRange::undefined(),
                             data_type: DataTypeDeclaration::DataTypeReference {
                                 location: SourceRange::undefined(),

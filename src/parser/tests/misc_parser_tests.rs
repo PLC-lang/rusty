@@ -49,7 +49,7 @@ fn exponent_literals_parsed_as_variables() {
             retain: false,
             location: SourceRange::undefined(),
             variables: vec![Variable {
-                name: "E3".into(),
+                name: "E3".to_rc(),
                 data_type: DataTypeDeclaration::DataTypeReference {
                     referenced_type: "E4".to_rc(),
                     location: SourceRange::undefined(),

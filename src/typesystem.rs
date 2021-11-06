@@ -1,5 +1,5 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-use std::{mem::size_of, ops::Range};
+use std::{mem::size_of, ops::Range, rc::Rc};
 
 use crate::{
     ast::{AstStatement, PouType},
@@ -155,7 +155,7 @@ pub enum StructSource {
 pub enum DataTypeInformation {
     Struct {
         name: String,
-        member_names: Vec<String>,
+        member_names: Vec<Rc<String>>,
         varargs: Option<VarArgs>,
         source: StructSource,
     },

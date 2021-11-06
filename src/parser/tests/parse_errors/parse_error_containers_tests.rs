@@ -258,7 +258,7 @@ fn unclosed_var_container() {
                 variable_block_type: VariableBlockType::Local,
                 location: SourceRange::undefined(),
                 variables: vec![Variable {
-                    name: "a".into(),
+                    name: "a".to_rc(),
                     data_type: crate::ast::DataTypeDeclaration::DataTypeReference {
                         referenced_type: "INT".to_rc(),
                         location: SourceRange::undefined(),

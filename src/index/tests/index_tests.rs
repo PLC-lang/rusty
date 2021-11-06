@@ -176,7 +176,7 @@ fn fb_methods_are_indexed() {
     } = info
     {
         assert_eq!("myFuncBlock.foo_interface", name);
-        assert_eq!(&vec!["x"], member_names);
+        assert_eq!(&vec!["x".to_rc()], member_names);
     } else {
         panic!("Wrong variant : {:#?}", info);
     }
@@ -206,7 +206,7 @@ fn class_methods_are_indexed() {
     } = info
     {
         assert_eq!("myClass.foo_interface", name);
-        assert_eq!(&vec!["y"], member_names);
+        assert_eq!(&vec!["y".to_rc()], member_names);
     } else {
         panic!("Wrong variant : {:#?}", info);
     }
@@ -700,7 +700,7 @@ fn pre_processing_generates_inline_structs_global() {
         &DataType::StructType {
             name: Some("__global_inline_struct".to_string()),
             variables: vec![Variable {
-                name: "a".to_string(),
+                name: "a".to_rc(),
                 data_type: DataTypeDeclaration::DataTypeReference {
                     referenced_type: "INT".to_rc(),
                     location: (57..60).into(),
@@ -789,7 +789,7 @@ fn pre_processing_generates_inline_structs() {
         &DataType::StructType {
             name: Some("__foo_inline_struct".to_string()),
             variables: vec![Variable {
-                name: "a".to_string(),
+                name: "a".to_rc(),
                 data_type: DataTypeDeclaration::DataTypeReference {
                     referenced_type: "INT".to_rc(),
                     location: (70..73).into(),
@@ -1190,7 +1190,7 @@ fn pre_processing_nested_array_in_struct() {
         data_type: DataType::StructType {
             name: Some("MyStruct".to_string()),
             variables: vec![Variable {
-                name: "field1".to_string(),
+                name: "field1".to_rc(),
                 data_type: DataTypeDeclaration::DataTypeReference {
                     referenced_type: "__MyStruct_field1".to_rc(),
                     location: SourceRange::undefined(),

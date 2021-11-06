@@ -1,3 +1,5 @@
+use std::rc::Rc;
+
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use super::VariableType;
 use crate::ast::{
@@ -115,7 +117,7 @@ pub fn visit_pou(index: &mut Index, pou: &Pou) {
 
     //register a function's return type as a member variable
     if let Some(return_type) = &pou.return_type {
-        member_names.push(pou.get_return_name().into());
+        member_names.push(Rc::new(pou.get_return_name().to_string()));
         let source_location = SourceRange::new(pou.location.get_end()..pou.location.get_end());
         index.register_member_variable(
             &MemberInfo {
@@ -222,8 +224,8 @@ fn visit_data_type(
         DataType::StructType { name, variables } => {
             let struct_name = name.as_ref().unwrap();
 
-            let member_names: Vec<String> =
-                variables.iter().map(|it| it.name.to_string()).collect();
+            let member_names: Vec<Rc<String>> =
+                variables.iter().map(|it| it.name.clone()).collect();
 
             let type_name = name.clone().unwrap();
             let information = DataTypeInformation::Struct {

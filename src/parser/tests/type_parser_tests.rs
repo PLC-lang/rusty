@@ -24,7 +24,7 @@ fn simple_struct_type_can_be_parsed() {
                 name: Some("SampleStruct".to_string(),),
                 variables: vec!(
                     Variable {
-                        name: "One".to_string(),
+                        name: "One".to_rc(),
                         data_type: DataTypeDeclaration::DataTypeReference {
                             referenced_type: "INT".to_rc(),
                             location: SourceRange::undefined(),
@@ -33,7 +33,7 @@ fn simple_struct_type_can_be_parsed() {
                         location: SourceRange::undefined(),
                     },
                     Variable {
-                        name: "Two".to_string(),
+                        name: "Two".to_rc(),
                         data_type: DataTypeDeclaration::DataTypeReference {
                             referenced_type: "INT".to_rc(),
                             location: SourceRange::undefined(),
@@ -42,7 +42,7 @@ fn simple_struct_type_can_be_parsed() {
                         location: SourceRange::undefined(),
                     },
                     Variable {
-                        name: "Three".to_string(),
+                        name: "Three".to_rc(),
                         data_type: DataTypeDeclaration::DataTypeReference {
                             referenced_type: "INT".to_rc(),
                             location: SourceRange::undefined(),
@@ -249,7 +249,7 @@ fn subrangetype_can_be_parsed() {
 
     let x = &parse_result.global_vars[0].variables[0];
     let expected = Variable {
-        name: "x".to_string(),
+        name: "x".to_rc(),
         data_type: DataTypeDeclaration::DataTypeDefinition {
             data_type: DataType::SubRangeType {
                 name: None,
@@ -399,7 +399,7 @@ fn global_pointer_declaration() {
     );
     let reference_type = &result.global_vars[0].variables[0];
     let expected = Variable {
-        name: "SampleReference".into(),
+        name: "SampleReference".to_rc(),
         data_type: DataTypeDeclaration::DataTypeDefinition {
             data_type: DataType::PointerType {
                 name: None,
@@ -420,7 +420,7 @@ fn global_pointer_declaration() {
     );
     let pointer_type = &result.global_vars[0].variables[1];
     let expected = Variable {
-        name: "SamplePointer".into(),
+        name: "SamplePointer".to_rc(),
         data_type: DataTypeDeclaration::DataTypeDefinition {
             data_type: DataType::PointerType {
                 name: None,

@@ -190,7 +190,7 @@ impl Debug for VariableBlock {
 
 #[derive(Clone, PartialEq)]
 pub struct Variable {
-    pub name: String,
+    pub name: Rc<String>,
     pub data_type: DataTypeDeclaration,
     pub initializer: Option<AstStatement>,
     pub location: SourceRange,

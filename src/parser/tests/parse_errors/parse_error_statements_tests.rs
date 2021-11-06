@@ -268,7 +268,7 @@ fn invalid_variable_name_error_recovery() {
                 retain: false,
                 location: SourceRange::undefined(),
                 variables: vec![Variable {
-                    name: "c".into(),
+                    name: "c".to_rc(),
                     data_type: DataTypeDeclaration::DataTypeReference {
                         referenced_type: "INT".to_rc(),
                         location: SourceRange::undefined(),
