@@ -7,7 +7,7 @@ fn simple_foo_program_can_be_parsed() {
 
     let prg = &result.units[0];
     assert_eq!(prg.pou_type, PouType::Program);
-    assert_eq!(prg.name, "foo");
+    assert_eq!(prg.name.as_ref(), "foo");
     assert!(prg.return_type.is_none());
 }
 

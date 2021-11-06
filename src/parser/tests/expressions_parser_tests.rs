@@ -1,3 +1,5 @@
+use std::rc::Rc;
+
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use crate::ast::{
     AstStatement, DataType, DataTypeDeclaration, DirectAccessType, Operator, Pou, SourceRange,
@@ -2537,7 +2539,7 @@ fn sized_string_as_function_return() {
     );
 
     let expected = Pou {
-        name: "foo".into(),
+        name: Rc::new("foo".into()),
         poly_mode: None,
         pou_type: crate::ast::PouType::Function,
         return_type: Some(DataTypeDeclaration::DataTypeDefinition {
@@ -2571,7 +2573,7 @@ fn array_type_as_function_return() {
     );
 
     let expected = Pou {
-        name: "foo".into(),
+        name: Rc::new("foo".into()),
         poly_mode: None,
         pou_type: crate::ast::PouType::Function,
         return_type: Some(DataTypeDeclaration::DataTypeDefinition {

@@ -1,7 +1,7 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use crate::Diagnostic;
 use core::panic;
-use std::ops::Range;
+use std::{ops::Range, rc::Rc};
 
 use crate::{ast::*, parser::tests::empty_stmt, test_utils::tests::parse};
 use pretty_assertions::*;
@@ -35,7 +35,7 @@ fn exponent_literals_parsed_as_variables() {
 
     let pou = &parse_result.units[0];
     let expected = Pou {
-        name: "E1".into(),
+        name: Rc::new("E1".into()),
         pou_type: PouType::Function,
         poly_mode: None,
         return_type: Some(DataTypeDeclaration::DataTypeReference {

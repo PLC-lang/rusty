@@ -94,9 +94,9 @@ fn two_programs_can_be_parsed() {
     let result = parse(src).0;
 
     let prg = &result.units[0];
-    assert_eq!(prg.name, "foo");
+    assert_eq!(prg.name.as_ref(), "foo");
     let prg2 = &result.units[1];
-    assert_eq!(prg2.name, "bar");
+    assert_eq!(prg2.name.as_ref(), "bar");
 }
 
 #[test]

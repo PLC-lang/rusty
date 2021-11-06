@@ -1,5 +1,7 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
+use std::rc::Rc;
+
 use crate::ast::AstStatement;
 use generational_arena::{Arena, Iter};
 
@@ -36,7 +38,7 @@ pub enum ConstExpression {
         /// optional qualifier used when evaluating this expression
         /// e.g. a const-expression inside a POU would use this POU's name as a
         /// qualifier.
-        scope: Option<String>,
+        scope: Option<Rc<String>>,
     },
     Resolved(AstStatement),
     Unresolvable {
@@ -85,7 +87,7 @@ impl ConstExpressions {
         &mut self,
         statement: AstStatement,
         target_type_name: String,
-        scope: Option<String>,
+        scope: Option<Rc<String>>,
     ) -> ConstId {
         self.expressions.insert(ConstWrapper {
             expr: ConstExpression::Unresolved { statement, scope },
@@ -116,7 +118,7 @@ impl ConstExpressions {
     }
 
     /// removes the expression from the ConstExpressions and returns all of its elements
-    pub fn remove(&mut self, id: &ConstId) -> Option<(AstStatement, String, Option<String>)> {
+    pub fn remove(&mut self, id: &ConstId) -> Option<(AstStatement, String, Option<Rc<String>>)> {
         self.expressions.remove(*id).map(|it| match it.expr {
             ConstExpression::Unresolved { statement, scope } => {
                 (statement, it.target_type_name, scope)
@@ -161,7 +163,7 @@ impl ConstExpressions {
         &mut self,
         expr: AstStatement,
         target_type: String,
-        scope: Option<String>,
+        scope: Option<Rc<String>>,
     ) -> ConstId {
         self.add_expression(expr, target_type, scope)
     }
@@ -173,7 +175,7 @@ impl ConstExpressions {
         &mut self,
         expr: Option<AstStatement>,
         targe_type_name: &str,
-        scope: Option<String>,
+        scope: Option<Rc<String>>,
     ) -> Option<ConstId> {
         expr.map(|it| self.add_constant_expression(it, targe_type_name.to_string(), scope))
     }

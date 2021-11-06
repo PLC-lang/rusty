@@ -1,3 +1,5 @@
+use std::rc::Rc;
+
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use super::VariableType;
 use crate::ast::{
@@ -254,7 +256,7 @@ fn visit_data_type(
                             data_type: data_type.clone(),
                             initializer: None,
                             location: SourceRange::undefined(),
-                            scope: scope.clone(),
+                            scope: scope.as_ref().map(|it| Rc::new(it.clone())),
                         },
                     )
                 }

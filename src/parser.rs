@@ -1,3 +1,5 @@
+use std::rc::Rc;
+
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use crate::{
     ast::*,
@@ -148,9 +150,9 @@ fn parse_pou(
             _ => None,
         };
 
-        let name = parse_identifier(lexer).unwrap_or_else(|| "".to_string()); // parse POU name
+        let name = Rc::new(parse_identifier(lexer).unwrap_or_else(|| "".to_string())); // parse POU name
 
-        with_scope(lexer, name.clone(), |lexer| {
+        with_scope(lexer, name.as_ref().clone(), |lexer| {
             // TODO: Parse USING directives
             // TODO: Parse EXTENDS specifier
             // TODO: Parse IMPLEMENTS specifier
@@ -333,15 +335,15 @@ fn parse_method(
             ));
         }
 
-        let call_name = format!("{}.{}", class_name, name);
+        let call_name = Rc::new(format!("{}.{}", class_name, name));
         let implementation = parse_implementation(
             lexer,
             linkage,
             PouType::Method {
                 owner_class: class_name.into(),
             },
-            &call_name,
-            &call_name,
+            call_name.as_ref(),
+            call_name.as_ref(),
         );
 
         // parse_implementation() will default-initialize the fields it
@@ -355,7 +357,7 @@ fn parse_method(
         let method_end = lexer.location().get_end();
         Some((
             Pou {
-                name: call_name,
+                name: call_name.clone(),
                 pou_type,
                 variable_blocks,
                 return_type,
@@ -478,7 +480,7 @@ fn parse_type(lexer: &mut ParseSession) -> Option<UserTypeDeclaration> {
             data_type,
             initializer,
             location: (start..end).into(),
-            scope: lexer.scope.clone(),
+            scope: lexer.scope.as_ref().map(|it| Rc::new(it.clone())),
         })
     } else {
         None

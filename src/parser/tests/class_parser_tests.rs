@@ -8,7 +8,7 @@ fn simple_class_with_defaults_can_be_parsed() {
     let class = &unit.units[0];
     assert_eq!(class.pou_type, PouType::Class);
 
-    assert_eq!(class.name, "MyClass");
+    assert_eq!(class.name.as_ref(), "MyClass");
     assert_eq!(class.poly_mode, Some(PolymorphismMode::None));
     assert_eq!(unit.implementations.len(), 0);
 }
@@ -21,7 +21,7 @@ fn simple_class_can_be_parsed() {
     let class = &unit.units[0];
     assert_eq!(class.pou_type, PouType::Class);
 
-    assert_eq!(class.name, "MyClass");
+    assert_eq!(class.name.as_ref(), "MyClass");
     assert_eq!(class.poly_mode, Some(PolymorphismMode::Abstract));
     assert_eq!(unit.implementations.len(), 0);
 }
@@ -34,7 +34,7 @@ fn simple_class2_can_be_parsed() {
     let class = &unit.units[0];
     assert_eq!(class.pou_type, PouType::Class);
 
-    assert_eq!(class.name, "MyClass2");
+    assert_eq!(class.name.as_ref(), "MyClass2");
     assert_eq!(class.poly_mode, Some(PolymorphismMode::Final));
     assert_eq!(unit.implementations.len(), 0);
 }
@@ -57,7 +57,7 @@ fn method_with_defaults_can_be_parsed() {
     );
     let method = &unit.implementations[0];
 
-    assert_eq!(method_pou.name, "MyClass.testMethod");
+    assert_eq!(method_pou.name.as_ref(), "MyClass.testMethod");
     assert_eq!(method.access, Some(AccessModifier::Protected));
     assert_eq!(method_pou.poly_mode, Some(PolymorphismMode::None));
     assert_eq!(method_pou.return_type, None);
@@ -82,7 +82,7 @@ fn method_can_be_parsed() {
     );
     let method = &unit.implementations[0];
 
-    assert_eq!(method_pou.name, "MyClass.testMethod2");
+    assert_eq!(method_pou.name.as_ref(), "MyClass.testMethod2");
     assert_eq!(method.access, Some(AccessModifier::Internal));
     assert_eq!(method_pou.poly_mode, Some(PolymorphismMode::Final));
     assert_eq!(method_pou.return_type, None);
@@ -126,7 +126,7 @@ fn method_with_return_type_can_be_parsed() {
     let method = &unit.implementations[0];
     assert_eq!(unit.implementations.len(), 1);
 
-    assert_eq!(method_pou.name, "MyClass.testMethod3");
+    assert_eq!(method_pou.name.as_ref(), "MyClass.testMethod3");
     assert_eq!(method.access, Some(AccessModifier::Private));
     assert_eq!(method_pou.poly_mode, Some(PolymorphismMode::Abstract));
     assert_ne!(method_pou.return_type, None);
@@ -262,7 +262,7 @@ fn fb_method_can_be_parsed() {
     );
     let method = &unit.implementations[0];
 
-    assert_eq!(method_pou.name, "MyFb.testMethod2");
+    assert_eq!(method_pou.name.as_ref(), "MyFb.testMethod2");
     assert_eq!(method.access, Some(AccessModifier::Internal));
     assert_eq!(method_pou.poly_mode, Some(PolymorphismMode::Final));
     assert_eq!(method_pou.return_type, None);
@@ -314,7 +314,7 @@ fn fb_method_with_return_type_can_be_parsed() {
     let method = &unit.implementations[0];
     assert_eq!(unit.implementations.len(), 2);
 
-    assert_eq!(method_pou.name, "MyShinyFb.testMethod3");
+    assert_eq!(method_pou.name.as_ref(), "MyShinyFb.testMethod3");
     assert_eq!(method.access, Some(AccessModifier::Private));
     assert_eq!(method_pou.poly_mode, Some(PolymorphismMode::Abstract));
     assert_ne!(method_pou.return_type, None);

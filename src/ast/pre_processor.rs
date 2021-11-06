@@ -4,7 +4,7 @@ use super::{
     super::ast::{CompilationUnit, DataType, DataTypeDeclaration, UserTypeDeclaration, Variable},
     Pou, SourceRange,
 };
-use std::vec;
+use std::{rc::Rc, vec};
 
 pub fn pre_process(unit: &mut CompilationUnit) {
     //process all local variables from POUs
@@ -81,7 +81,7 @@ pub fn pre_process(unit: &mut CompilationUnit) {
                             data_type,
                             initializer: None,
                             location,
-                            scope,
+                            scope: scope.map(|it| Rc::new(it.clone())),
                         };
                         new_types.push(data_type);
                     }
@@ -114,7 +114,7 @@ fn preprocess_return_type(pou: &mut Pou, types: &mut Vec<UserTypeDeclaration>) {
                     data_type,
                     initializer: None,
                     location,
-                    scope,
+                    scope: scope.map(|it| Rc::new(it.clone())),
                 };
                 types.push(data_type);
             }
@@ -156,7 +156,7 @@ fn pre_process_variable_data_type(
             data_type,
             initializer: None,
             location,
-            scope,
+            scope: scope.map(|it| Rc::new(it.clone())),
         });
     }
     //make sure it gets generated
@@ -186,7 +186,7 @@ fn add_nested_datatypes(
             data_type,
             initializer: None,
             location: location.clone(),
-            scope,
+            scope: scope.map(|it| Rc::new(it.clone())),
         });
     }
 }

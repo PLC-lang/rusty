@@ -1,3 +1,5 @@
+use std::rc::Rc;
+
 use crate::{ast::*, test_utils::tests::parse, Diagnostic};
 use pretty_assertions::*;
 
@@ -8,7 +10,7 @@ fn simple_foo_function_can_be_parsed() {
 
     let prg = &result.units[0];
     assert_eq!(prg.pou_type, PouType::Function);
-    assert_eq!(prg.name, "foo");
+    assert_eq!(prg.name.as_ref(), "foo");
     assert_eq!(
         prg.return_type.as_ref().unwrap(),
         &DataTypeDeclaration::DataTypeReference {
@@ -25,7 +27,7 @@ fn simple_foo_function_block_can_be_parsed() {
 
     let prg = &result.units[0];
     assert_eq!(prg.pou_type, PouType::FunctionBlock);
-    assert_eq!(prg.name, "foo");
+    assert_eq!(prg.name.as_ref(), "foo");
     assert!(prg.return_type.is_none());
 }
 
@@ -112,7 +114,7 @@ fn varargs_parameters_can_be_parsed() {
 
     let x = &parse_result.units[0];
     let expected = Pou {
-        name: "foo".into(),
+        name: Rc::new("foo".into()),
         pou_type: PouType::Function,
         return_type: Some(DataTypeDeclaration::DataTypeReference {
             referenced_type: "DINT".into(),

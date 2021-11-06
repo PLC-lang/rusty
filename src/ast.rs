@@ -1,18 +1,13 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use crate::typesystem::DataTypeInformation;
-use std::{
-    fmt::{Debug, Display, Formatter, Result},
-    iter,
-    ops::Range,
-    unimplemented,
-};
+use std::{fmt::{Debug, Display, Formatter, Result}, iter, ops::Range, rc::Rc, unimplemented};
 mod pre_processor;
 
 pub type AstId = usize;
 
 #[derive(PartialEq)]
 pub struct Pou {
-    pub name: String,
+    pub name: Rc<String>,
     pub variable_blocks: Vec<VariableBlock>,
     pub pou_type: PouType,
     pub return_type: Option<DataTypeDeclaration>,
@@ -322,7 +317,7 @@ pub struct UserTypeDeclaration {
     pub initializer: Option<AstStatement>,
     pub location: SourceRange,
     /// stores the original scope for compiler-generated types
-    pub scope: Option<String>,
+    pub scope: Option<Rc<String>>,
 }
 
 impl Debug for UserTypeDeclaration {

@@ -1,3 +1,5 @@
+use std::rc::Rc;
+
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use pretty_assertions::assert_eq;
 
@@ -839,7 +841,7 @@ fn pre_processing_generates_inline_pointers() {
         },
         location: SourceRange::undefined(),
         initializer: None,
-        scope: Some("foo".into()),
+        scope: Some(Rc::new("foo".into())),
     };
     assert_eq!(format!("{:?}", expected), format!("{:?}", new_pointer_type));
 
@@ -930,7 +932,7 @@ fn pre_processing_generates_inline_pointer_to_pointer() {
         },
         location: SourceRange::undefined(),
         initializer: None,
-        scope: Some("foo".into()),
+        scope: Some(Rc::new("foo".into())),
     };
     assert_eq!(format!("{:?}", expected), format!("{:?}", new_pointer_type));
 
@@ -946,7 +948,7 @@ fn pre_processing_generates_inline_pointer_to_pointer() {
         },
         location: SourceRange::undefined(),
         initializer: None,
-        scope: Some("foo".into()),
+        scope: Some(Rc::new("foo".into())),
     };
     assert_eq!(format!("{:?}", expected), format!("{:?}", new_pointer_type));
 
@@ -1002,7 +1004,7 @@ fn pre_processing_generates_inline_arrays() {
         },
         initializer: None,
         location: (59..77).into(),
-        scope: Some("foo".into()),
+        scope: Some(Rc::new("foo".into())),
     };
     assert_eq!(format!("{:?}", expected), format!("{:?}", new_array_type));
 
@@ -1060,7 +1062,7 @@ fn pre_processing_generates_inline_array_of_array() {
         },
         initializer: None,
         location: (59..92).into(),
-        scope: Some("foo".into()),
+        scope: Some(Rc::new("foo".into())),
     };
     assert_eq!(format!("{:?}", expected), format!("{:?}", new_array_type));
 
@@ -1089,7 +1091,7 @@ fn pre_processing_generates_inline_array_of_array() {
         },
         initializer: None,
         location: (59..92).into(),
-        scope: Some("foo".into()),
+        scope: Some(Rc::new("foo".into())),
     };
     assert_eq!(format!("{:?}", expected), format!("{:?}", new_array_type));
 
@@ -1276,7 +1278,7 @@ fn pre_processing_generates_inline_array_of_array_of_array() {
         },
         initializer: None,
         location: (74..107).into(),
-        scope: Some("foo".into()),
+        scope: Some(Rc::new("foo".into())),
     };
     assert_eq!(format!("{:?}", expected), format!("{:?}", new_array_type));
 
@@ -1305,7 +1307,7 @@ fn pre_processing_generates_inline_array_of_array_of_array() {
         },
         initializer: None,
         location: (59..107).into(),
-        scope: Some("foo".into()),
+        scope: Some(Rc::new("foo".into())),
     };
     assert_eq!(format!("{:?}", expected), format!("{:?}", new_array_type));
 
@@ -1334,7 +1336,7 @@ fn pre_processing_generates_inline_array_of_array_of_array() {
         },
         initializer: None,
         location: (59..107).into(),
-        scope: Some("foo".into()),
+        scope: Some(Rc::new("foo".into())),
     };
     assert_eq!(format!("{:?}", expected), format!("{:?}", new_array_type));
 
