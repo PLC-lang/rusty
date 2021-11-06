@@ -1,6 +1,19 @@
 #[cfg(test)]
 pub mod tests {
 
+
+    pub trait ToRc<T> {
+        fn to_rc(&self) -> Rc<T>;
+    }
+
+    impl ToRc<String> for str {
+        fn to_rc(&self) -> Rc<String> {
+            Rc::new(self.to_string())
+        }
+    }
+
+    use std::rc::Rc;
+
     use crate::{
         ast::{self, CompilationUnit},
         compile_error::CompileError,

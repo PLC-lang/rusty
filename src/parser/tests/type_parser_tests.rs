@@ -1,4 +1,4 @@
-use crate::{ast::*, parser::AstStatement::LiteralInteger, test_utils::tests::parse, Diagnostic};
+use crate::{Diagnostic, ast::*, parser::AstStatement::LiteralInteger, test_utils::tests::{ToRc, parse}};
 use pretty_assertions::*;
 
 #[test]
@@ -26,7 +26,7 @@ fn simple_struct_type_can_be_parsed() {
                     Variable {
                         name: "One".to_string(),
                         data_type: DataTypeDeclaration::DataTypeReference {
-                            referenced_type: "INT".to_string(),
+                            referenced_type: "INT".to_rc(),
                             location: SourceRange::undefined(),
                         },
                         initializer: None,
@@ -35,7 +35,7 @@ fn simple_struct_type_can_be_parsed() {
                     Variable {
                         name: "Two".to_string(),
                         data_type: DataTypeDeclaration::DataTypeReference {
-                            referenced_type: "INT".to_string(),
+                            referenced_type: "INT".to_rc(),
                             location: SourceRange::undefined(),
                         },
                         initializer: None,
@@ -44,7 +44,7 @@ fn simple_struct_type_can_be_parsed() {
                     Variable {
                         name: "Three".to_string(),
                         data_type: DataTypeDeclaration::DataTypeReference {
-                            referenced_type: "INT".to_string(),
+                            referenced_type: "INT".to_rc(),
                             location: SourceRange::undefined(),
                         },
                         initializer: None,
@@ -141,7 +141,7 @@ fn array_type_can_be_parsed_test() {
                     id: 0,
                 },
                 referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
-                    referenced_type: "INT".to_string(),
+                    referenced_type: "INT".to_rc(),
                     location: SourceRange::undefined(),
                 }),
             },
@@ -338,7 +338,7 @@ fn pointer_type_test() {
         data_type: DataType::PointerType {
             name: Some("SamplePointer".into()),
             referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
-                referenced_type: "INT".to_string(),
+                referenced_type: "INT".to_rc(),
                 location: SourceRange::undefined(),
             }),
         },
@@ -372,7 +372,7 @@ fn ref_type_test() {
         data_type: DataType::PointerType {
             name: Some("SampleReference".into()),
             referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
-                referenced_type: "INT".to_string(),
+                referenced_type: "INT".to_rc(),
                 location: SourceRange::undefined(),
             }),
         },
@@ -404,7 +404,7 @@ fn global_pointer_declaration() {
             data_type: DataType::PointerType {
                 name: None,
                 referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
-                    referenced_type: "INT".to_string(),
+                    referenced_type: "INT".to_rc(),
                     location: SourceRange::undefined(),
                 }),
             },
@@ -425,7 +425,7 @@ fn global_pointer_declaration() {
             data_type: DataType::PointerType {
                 name: None,
                 referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
-                    referenced_type: "INT".to_string(),
+                    referenced_type: "INT".to_rc(),
                     location: SourceRange::undefined(),
                 }),
             },

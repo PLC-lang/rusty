@@ -1,5 +1,5 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-use crate::Diagnostic;
+use crate::{Diagnostic, test_utils::tests::ToRc};
 use core::panic;
 use std::{ops::Range, rc::Rc};
 
@@ -39,7 +39,7 @@ fn exponent_literals_parsed_as_variables() {
         pou_type: PouType::Function,
         poly_mode: None,
         return_type: Some(DataTypeDeclaration::DataTypeReference {
-            referenced_type: "E2".into(),
+            referenced_type: "E2".to_rc(),
             location: SourceRange::undefined(),
         }),
         variable_blocks: vec![VariableBlock {
@@ -51,7 +51,7 @@ fn exponent_literals_parsed_as_variables() {
             variables: vec![Variable {
                 name: "E3".into(),
                 data_type: DataTypeDeclaration::DataTypeReference {
-                    referenced_type: "E4".into(),
+                    referenced_type: "E4".to_rc(),
                     location: SourceRange::undefined(),
                 },
                 initializer: None,

@@ -1,6 +1,6 @@
 use std::rc::Rc;
 
-use crate::{ast::*, test_utils::tests::parse, Diagnostic};
+use crate::{Diagnostic, ast::*, test_utils::tests::{ToRc, parse}};
 use pretty_assertions::*;
 
 #[test]
@@ -14,7 +14,7 @@ fn simple_foo_function_can_be_parsed() {
     assert_eq!(
         prg.return_type.as_ref().unwrap(),
         &DataTypeDeclaration::DataTypeReference {
-            referenced_type: "INT".to_string(),
+            referenced_type: "INT".to_rc(),
             location: (15..18).into(),
         }
     );
@@ -117,7 +117,7 @@ fn varargs_parameters_can_be_parsed() {
         name: Rc::new("foo".into()),
         pou_type: PouType::Function,
         return_type: Some(DataTypeDeclaration::DataTypeReference {
-            referenced_type: "DINT".into(),
+            referenced_type: "DINT".to_rc(),
             location: SourceRange::undefined(),
         }),
         variable_blocks: vec![VariableBlock {
@@ -134,7 +134,7 @@ fn varargs_parameters_can_be_parsed() {
                             referenced_type: None,
                         },
                         location: SourceRange::undefined(),
-                        scope: Some("foo".into()),
+                        scope: Some("foo".to_rc()),
                     },
                     initializer: None,
                     location: SourceRange::undefined(),
@@ -145,13 +145,13 @@ fn varargs_parameters_can_be_parsed() {
                         data_type: DataType::VarArgs {
                             referenced_type: Some(Box::new(
                                 DataTypeDeclaration::DataTypeReference {
-                                    referenced_type: "INT".into(),
+                                    referenced_type: "INT".to_rc(),
                                     location: SourceRange::undefined(),
                                 },
                             )),
                         },
                         location: SourceRange::undefined(),
-                        scope: Some("foo".into()),
+                        scope: Some("foo".to_rc()),
                     },
                     initializer: None,
                     location: SourceRange::undefined(),
@@ -297,7 +297,7 @@ fn function_inline_enum_return_unsupported() {
                     elements: vec!["green".into(), "yellow".into(), "red".into()]
                 },
                 location: (15..35).into(),
-                scope: Some("foo".into()),
+                scope: Some("foo".to_rc()),
             }
         )]
     );
@@ -323,7 +323,7 @@ fn function_inline_struct_return_unsupported() {
                             location: SourceRange::undefined(),
                             data_type: DataTypeDeclaration::DataTypeReference {
                                 location: SourceRange::undefined(),
-                                referenced_type: "INT".into()
+                                referenced_type: "INT".to_rc()
                             },
                             initializer: None
                         },
@@ -332,14 +332,14 @@ fn function_inline_struct_return_unsupported() {
                             location: SourceRange::undefined(),
                             data_type: DataTypeDeclaration::DataTypeReference {
                                 location: SourceRange::undefined(),
-                                referenced_type: "INT".into()
+                                referenced_type: "INT".to_rc()
                             },
                             initializer: None
                         }
                     ],
                 },
                 location: (15..50).into(),
-                scope: Some("foo".into()),
+                scope: Some("foo".to_rc()),
             }
         ))
     );

@@ -1,5 +1,5 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-use crate::{ast::*, lexer::Token, test_utils::tests::parse, Diagnostic};
+use crate::{Diagnostic, ast::*, lexer::Token, test_utils::tests::{ToRc, parse}};
 use pretty_assertions::*;
 
 /*
@@ -260,7 +260,7 @@ fn unclosed_var_container() {
                 variables: vec![Variable {
                     name: "a".into(),
                     data_type: crate::ast::DataTypeDeclaration::DataTypeReference {
-                        referenced_type: "INT".into(),
+                        referenced_type: "INT".to_rc(),
                         location: SourceRange::undefined(),
                     },
                     initializer: None,

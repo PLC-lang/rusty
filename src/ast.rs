@@ -216,7 +216,7 @@ impl Debug for Variable {
 impl Variable {
     pub fn replace_data_type_with_reference_to(
         &mut self,
-        type_name: String,
+        type_name: Rc<String>,
     ) -> DataTypeDeclaration {
         let new_data_type = DataTypeDeclaration::DataTypeReference {
             referenced_type: type_name,
@@ -266,13 +266,13 @@ impl From<std::ops::Range<usize>> for SourceRange {
 #[derive(Clone, PartialEq)]
 pub enum DataTypeDeclaration {
     DataTypeReference {
-        referenced_type: String,
+        referenced_type: Rc<String>,
         location: SourceRange,
     },
     DataTypeDefinition {
         data_type: DataType,
         location: SourceRange,
-        scope: Option<String>,
+        scope: Option<Rc<String>>,
     },
 }
 
@@ -451,7 +451,7 @@ impl DataType {
     //Attempts to replace the inner type with a reference. Returns the old type if replaceable
     pub fn replace_data_type_with_reference_to(
         &mut self,
-        type_name: String,
+        type_name: Rc<String>,
         location: &SourceRange,
     ) -> Option<DataTypeDeclaration> {
         match self {
@@ -468,7 +468,7 @@ impl DataType {
 
 fn replace_reference(
     referenced_type: &mut Box<DataTypeDeclaration>,
-    type_name: String,
+    type_name: Rc<String>,
     location: &SourceRange,
 ) -> Option<DataTypeDeclaration> {
     if let DataTypeDeclaration::DataTypeReference { .. } = **referenced_type {

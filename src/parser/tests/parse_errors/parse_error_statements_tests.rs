@@ -1,11 +1,5 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-use crate::{
-    ast::*,
-    lexer::Token,
-    parser::tests::{empty_stmt, ref_to},
-    test_utils::tests::parse,
-    Diagnostic,
-};
+use crate::{Diagnostic, ast::*, lexer::Token, parser::tests::{empty_stmt, ref_to}, test_utils::tests::{ToRc, parse}};
 use pretty_assertions::*;
 
 /*
@@ -276,7 +270,7 @@ fn invalid_variable_name_error_recovery() {
                 variables: vec![Variable {
                     name: "c".into(),
                     data_type: DataTypeDeclaration::DataTypeReference {
-                        referenced_type: "INT".into(),
+                        referenced_type: "INT".to_rc(),
                         location: SourceRange::undefined(),
                     },
                     initializer: None,
@@ -1027,7 +1021,7 @@ fn pointer_type_without_to_test() {
         data_type: DataType::PointerType {
             name: Some("SamplePointer".into()),
             referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
-                referenced_type: "INT".to_string(),
+                referenced_type: "INT".to_rc(),
                 location: SourceRange::undefined(),
             }),
         },
@@ -1065,7 +1059,7 @@ fn pointer_type_with_wrong_keyword_to_test() {
         data_type: DataType::PointerType {
             name: Some("SamplePointer".into()),
             referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
-                referenced_type: "tu".to_string(),
+                referenced_type: "tu".to_rc(),
                 location: SourceRange::undefined(),
             }),
         },

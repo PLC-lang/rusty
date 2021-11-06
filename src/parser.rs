@@ -506,7 +506,7 @@ fn parse_full_data_type_definition(
                         referenced_type: None,
                     },
                     location: lexer.last_range.clone().into(),
-                    scope: lexer.scope.clone(),
+                    scope: lexer.scope.as_ref().map(|it|Rc::new(it.clone())),
                 },
                 None,
             ))
@@ -519,7 +519,7 @@ fn parse_full_data_type_definition(
                                 referenced_type: Some(Box::new(type_def)),
                             },
                             location: lexer.last_range.clone().into(),
-                            scope: lexer.scope.clone(),
+                            scope: lexer.scope.as_ref().map(|it|Rc::new(it.clone())),
                         },
                         None,
                     )
@@ -544,7 +544,7 @@ fn parse_data_type_definition(
             DataTypeDeclaration::DataTypeDefinition {
                 data_type: DataType::StructType { name, variables },
                 location: (start..lexer.range().end).into(),
-                scope: lexer.scope.clone(),
+                scope: lexer.scope.as_ref().map(|it|Rc::new(it.clone())),
             },
             None,
         ))
@@ -595,7 +595,7 @@ fn parse_pointer_definition(
                     referenced_type: Box::new(decl),
                 },
                 location: (start_pos..lexer.last_range.end).into(),
-                scope: lexer.scope.clone(),
+                scope: lexer.scope.as_ref().map(|it|Rc::new(it.clone())),
             },
             initializer,
         )
@@ -608,7 +608,7 @@ fn parse_type_reference_type_definition(
 ) -> Option<(DataTypeDeclaration, Option<AstStatement>)> {
     let start = lexer.location().get_start();
     //Subrange
-    let referenced_type = lexer.slice_and_advance();
+    let referenced_type = Rc::new(lexer.slice_and_advance());
 
     let bounds = if lexer.allow(&KeywordParensOpen) {
         // INT (..) :=
@@ -631,17 +631,17 @@ fn parse_type_reference_type_definition(
         let data_type = DataTypeDeclaration::DataTypeDefinition {
             data_type: DataType::SubRangeType {
                 name,
-                referenced_type,
+                referenced_type: referenced_type.as_ref().clone(),
                 bounds,
             },
             location: (start..end).into(),
-            scope: lexer.scope.clone(),
+            scope: lexer.scope.as_ref().map(|it|Rc::new(it.clone())),
         };
         Some((data_type, initial_value))
     } else {
         Some((
             DataTypeDeclaration::DataTypeReference {
-                referenced_type,
+                referenced_type : referenced_type.clone(),
                 location: (start..end).into(),
             },
             initial_value,
@@ -699,7 +699,7 @@ fn parse_string_type_definition(
                 size,
             },
             location: (start..end).into(),
-            scope: lexer.scope.clone(),
+            scope: lexer.scope.as_ref().map(|it|Rc::new(it.clone())),
         },
         lexer
             .allow(&KeywordAssignment)
@@ -732,7 +732,7 @@ fn parse_enum_type_definition(
         DataTypeDeclaration::DataTypeDefinition {
             data_type: DataType::EnumType { name, elements },
             location: (start..lexer.last_range.end).into(),
-            scope: lexer.scope.clone(),
+            scope: lexer.scope.as_ref().map(|it|Rc::new(it.clone())),
         },
         None,
     ))
@@ -768,7 +768,7 @@ fn parse_array_type_definition(
                     referenced_type: Box::new(reference),
                 },
                 location,
-                scope: lexer.scope.clone(),
+                scope: lexer.scope.as_ref().map(|it|Rc::new(it.clone())),
             },
             initializer,
         )

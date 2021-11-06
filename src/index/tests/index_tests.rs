@@ -5,7 +5,7 @@ use pretty_assertions::assert_eq;
 
 use crate::lexer::IdProvider;
 use crate::parser::tests::literal_int;
-use crate::test_utils::tests::{index, parse};
+use crate::test_utils::tests::{ToRc, index, parse};
 use crate::typesystem::TypeSize;
 use crate::{ast::*, index::VariableType, typesystem::DataTypeInformation};
 
@@ -653,7 +653,7 @@ fn pre_processing_generates_inline_enums_global() {
     let var_data_type = &ast.global_vars[0].variables[0].data_type;
     assert_eq!(
         &DataTypeDeclaration::DataTypeReference {
-            referenced_type: "__global_inline_enum".to_string(),
+            referenced_type: "__global_inline_enum".to_rc(),
             location: (46..53).into(),
         },
         var_data_type
@@ -702,7 +702,7 @@ fn pre_processing_generates_inline_structs_global() {
             variables: vec![Variable {
                 name: "a".to_string(),
                 data_type: DataTypeDeclaration::DataTypeReference {
-                    referenced_type: "INT".to_string(),
+                    referenced_type: "INT".to_rc(),
                     location: (57..60).into(),
                 },
                 location: (54..55).into(),
@@ -716,7 +716,7 @@ fn pre_processing_generates_inline_structs_global() {
     let var_data_type = &ast.global_vars[0].variables[0].data_type;
     assert_eq!(
         &DataTypeDeclaration::DataTypeReference {
-            referenced_type: "__global_inline_struct".to_string(),
+            referenced_type: "__global_inline_struct".to_rc(),
             location: (47..72).into(),
         },
         var_data_type
@@ -753,7 +753,7 @@ fn pre_processing_generates_inline_enums() {
     let var_data_type = &ast.units[0].variable_blocks[0].variables[0].data_type;
     assert_eq!(
         &DataTypeDeclaration::DataTypeReference {
-            referenced_type: "__foo_inline_enum".to_string(),
+            referenced_type: "__foo_inline_enum".to_rc(),
             location: (59..66).into(),
         },
         var_data_type
@@ -791,7 +791,7 @@ fn pre_processing_generates_inline_structs() {
             variables: vec![Variable {
                 name: "a".to_string(),
                 data_type: DataTypeDeclaration::DataTypeReference {
-                    referenced_type: "INT".to_string(),
+                    referenced_type: "INT".to_rc(),
                     location: (70..73).into(),
                 },
                 location: (67..68).into(),
@@ -805,7 +805,7 @@ fn pre_processing_generates_inline_structs() {
     let var_data_type = &ast.units[0].variable_blocks[0].variables[0].data_type;
     assert_eq!(
         &DataTypeDeclaration::DataTypeReference {
-            referenced_type: "__foo_inline_struct".to_string(),
+            referenced_type: "__foo_inline_struct".to_rc(),
             location: (60..85).into(),
         },
         var_data_type
@@ -835,7 +835,7 @@ fn pre_processing_generates_inline_pointers() {
         data_type: DataType::PointerType {
             name: Some("__foo_inline_pointer".to_string()),
             referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
-                referenced_type: "INT".to_string(),
+                referenced_type: "INT".to_rc(),
                 location: SourceRange::undefined(),
             }),
         },
@@ -848,7 +848,7 @@ fn pre_processing_generates_inline_pointers() {
     // AND the original variable should now point to the new DataType
     let var_data_type = &ast.units[0].variable_blocks[0].variables[0].data_type;
     let expected = &DataTypeDeclaration::DataTypeReference {
-        referenced_type: "__foo_inline_pointer".to_string(),
+        referenced_type: "__foo_inline_pointer".to_rc(),
         location: SourceRange::undefined(),
     };
 
@@ -875,7 +875,7 @@ fn pre_processing_generates_pointer_to_pointer_type() {
         data_type: DataType::PointerType {
             name: Some("__pointer_to_pointer".to_string()),
             referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
-                referenced_type: "INT".to_string(),
+                referenced_type: "INT".to_rc(),
                 location: SourceRange::undefined(),
             }),
         },
@@ -891,7 +891,7 @@ fn pre_processing_generates_pointer_to_pointer_type() {
         data_type: DataType::PointerType {
             name: Some("pointer_to_pointer".to_string()),
             referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
-                referenced_type: "__pointer_to_pointer".to_string(),
+                referenced_type: "__pointer_to_pointer".to_rc(),
                 location: SourceRange::undefined(),
             }),
         },
@@ -926,7 +926,7 @@ fn pre_processing_generates_inline_pointer_to_pointer() {
         data_type: DataType::PointerType {
             name: Some("__foo_inline_pointer_".to_string()),
             referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
-                referenced_type: "INT".to_string(),
+                referenced_type: "INT".to_rc(),
                 location: SourceRange::undefined(),
             }),
         },
@@ -942,7 +942,7 @@ fn pre_processing_generates_inline_pointer_to_pointer() {
         data_type: DataType::PointerType {
             name: Some("__foo_inline_pointer".to_string()),
             referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
-                referenced_type: "__foo_inline_pointer_".to_string(),
+                referenced_type: "__foo_inline_pointer_".to_rc(),
                 location: SourceRange::undefined(),
             }),
         },
@@ -956,7 +956,7 @@ fn pre_processing_generates_inline_pointer_to_pointer() {
     let var_data_type = &ast.units[0].variable_blocks[0].variables[0].data_type;
 
     let expected = &DataTypeDeclaration::DataTypeReference {
-        referenced_type: "__foo_inline_pointer".to_string(),
+        referenced_type: "__foo_inline_pointer".to_rc(),
         location: SourceRange::undefined(),
     };
     assert_eq!(format!("{:?}", expected), format!("{:?}", var_data_type));
@@ -998,7 +998,7 @@ fn pre_processing_generates_inline_arrays() {
                 id: 0,
             },
             referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
-                referenced_type: "INT".to_string(),
+                referenced_type: "INT".to_rc(),
                 location: SourceRange::undefined(),
             }),
         },
@@ -1012,7 +1012,7 @@ fn pre_processing_generates_inline_arrays() {
     let var_data_type = &ast.units[0].variable_blocks[0].variables[0].data_type;
     assert_eq!(
         &DataTypeDeclaration::DataTypeReference {
-            referenced_type: "__foo_inline_array".to_string(),
+            referenced_type: "__foo_inline_array".to_rc(),
             location: (59..77).into(),
         },
         var_data_type
@@ -1056,7 +1056,7 @@ fn pre_processing_generates_inline_array_of_array() {
                 id: 0,
             },
             referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
-                referenced_type: "INT".to_string(),
+                referenced_type: "INT".to_rc(),
                 location: SourceRange::undefined(),
             }),
         },
@@ -1085,7 +1085,7 @@ fn pre_processing_generates_inline_array_of_array() {
                 id: 0,
             },
             referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
-                referenced_type: "__foo_inline_array_".to_string(),
+                referenced_type: "__foo_inline_array_".to_rc(),
                 location: SourceRange::undefined(),
             }),
         },
@@ -1100,7 +1100,7 @@ fn pre_processing_generates_inline_array_of_array() {
     println!("{:#?}", var_data_type.get_location());
     assert_eq!(
         &DataTypeDeclaration::DataTypeReference {
-            referenced_type: "__foo_inline_array".to_string(),
+            referenced_type: "__foo_inline_array".to_rc(),
             location: (59..92).into(),
         },
         var_data_type
@@ -1128,7 +1128,7 @@ fn pre_processing_generates_array_of_array_type() {
                 end: Box::new(literal_int(1)),
             },
             referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
-                referenced_type: "INT".to_string(),
+                referenced_type: "INT".to_rc(),
                 location: SourceRange::undefined(),
             }),
         },
@@ -1149,7 +1149,7 @@ fn pre_processing_generates_array_of_array_type() {
                 end: Box::new(literal_int(1)),
             },
             referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
-                referenced_type: "__arr_arr".to_string(),
+                referenced_type: "__arr_arr".to_rc(),
                 location: SourceRange::undefined(),
             }),
         },
@@ -1192,7 +1192,7 @@ fn pre_processing_nested_array_in_struct() {
             variables: vec![Variable {
                 name: "field1".to_string(),
                 data_type: DataTypeDeclaration::DataTypeReference {
-                    referenced_type: "__MyStruct_field1".to_string(),
+                    referenced_type: "__MyStruct_field1".to_rc(),
                     location: SourceRange::undefined(),
                 },
                 location: SourceRange::undefined(),
@@ -1224,7 +1224,7 @@ fn pre_processing_nested_array_in_struct() {
                 id: 0,
             },
             referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
-                referenced_type: "INT".to_string(),
+                referenced_type: "INT".to_rc(),
                 location: SourceRange::undefined(),
             }),
         },
@@ -1272,7 +1272,7 @@ fn pre_processing_generates_inline_array_of_array_of_array() {
                 id: 0,
             },
             referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
-                referenced_type: "INT".to_string(),
+                referenced_type: "INT".to_rc(),
                 location: SourceRange::undefined(),
             }),
         },
@@ -1301,7 +1301,7 @@ fn pre_processing_generates_inline_array_of_array_of_array() {
                 id: 0,
             },
             referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
-                referenced_type: "__foo_inline_array__".to_string(),
+                referenced_type: "__foo_inline_array__".to_rc(),
                 location: SourceRange::undefined(),
             }),
         },
@@ -1330,7 +1330,7 @@ fn pre_processing_generates_inline_array_of_array_of_array() {
                 id: 0,
             },
             referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
-                referenced_type: "__foo_inline_array_".to_string(),
+                referenced_type: "__foo_inline_array_".to_rc(),
                 location: SourceRange::undefined(),
             }),
         },
@@ -1344,7 +1344,7 @@ fn pre_processing_generates_inline_array_of_array_of_array() {
     let var_data_type = &ast.units[0].variable_blocks[0].variables[0].data_type;
     assert_eq!(
         &DataTypeDeclaration::DataTypeReference {
-            referenced_type: "__foo_inline_array".to_string(),
+            referenced_type: "__foo_inline_array".to_rc(),
             location: (59..107).into(),
         },
         var_data_type

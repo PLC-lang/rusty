@@ -5,7 +5,7 @@ use crate::ast::{
     AstStatement, DataType, DataTypeDeclaration, DirectAccessType, Operator, Pou, SourceRange,
 };
 use crate::parser::tests::{literal_int, ref_to};
-use crate::test_utils::tests::parse;
+use crate::test_utils::tests::{ToRc, parse};
 use pretty_assertions::*;
 
 #[test]
@@ -2553,7 +2553,7 @@ fn sized_string_as_function_return() {
                 }),
             },
             location: SourceRange::undefined(),
-            scope: Some("foo".into()),
+            scope: Some("foo".to_rc()),
         }),
         variable_blocks: vec![],
         location: SourceRange::undefined(),
@@ -2579,7 +2579,7 @@ fn array_type_as_function_return() {
         return_type: Some(DataTypeDeclaration::DataTypeDefinition {
             data_type: DataType::ArrayType {
                 referenced_type: Box::new(DataTypeDeclaration::DataTypeReference {
-                    referenced_type: "INT".into(),
+                    referenced_type: "INT".to_rc(),
                     location: SourceRange::undefined(),
                 }),
                 bounds: AstStatement::RangeStatement {
@@ -2598,7 +2598,7 @@ fn array_type_as_function_return() {
                 name: None,
             },
             location: SourceRange::undefined(),
-            scope: Some("foo".into()),
+            scope: Some("foo".to_rc()),
         }),
         variable_blocks: vec![],
         location: SourceRange::undefined(),

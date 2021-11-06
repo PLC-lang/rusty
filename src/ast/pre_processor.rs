@@ -63,7 +63,7 @@ pub fn pre_process(unit: &mut CompilationUnit) {
                 } if should_generate_implicit(referenced_type) => {
                     let name: &str = name.as_ref().map(|it| it.as_str()).unwrap_or("undefined");
 
-                    let type_name = format!("__{}", name);
+                    let type_name = Rc::new(format!("__{}", name));
                     let type_ref = DataTypeDeclaration::DataTypeReference {
                         referenced_type: type_name.clone(),
                         location: SourceRange::undefined(), //return_type.get_location(),
@@ -75,13 +75,13 @@ pub fn pre_process(unit: &mut CompilationUnit) {
                         scope,
                     } = *datatype
                     {
-                        data_type.set_name(type_name);
+                        data_type.set_name(type_name.as_ref().clone());
                         add_nested_datatypes(name, &mut data_type, &mut new_types, &location);
                         let data_type = UserTypeDeclaration {
                             data_type,
                             initializer: None,
                             location,
-                            scope: scope.map(|it| Rc::new(it.clone())),
+                            scope: scope.clone()
                         };
                         new_types.push(data_type);
                     }
@@ -96,7 +96,7 @@ pub fn pre_process(unit: &mut CompilationUnit) {
 fn preprocess_return_type(pou: &mut Pou, types: &mut Vec<UserTypeDeclaration>) {
     if let Some(return_type) = &pou.return_type {
         if should_generate_implicit(return_type) {
-            let type_name = format!("__{}_return", &pou.name);
+            let type_name = Rc::new(format!("__{}_return", &pou.name));
             let type_ref = DataTypeDeclaration::DataTypeReference {
                 referenced_type: type_name.clone(),
                 location: return_type.get_location(),
@@ -108,13 +108,13 @@ fn preprocess_return_type(pou: &mut Pou, types: &mut Vec<UserTypeDeclaration>) {
                 scope,
             }) = datatype
             {
-                data_type.set_name(type_name);
+                data_type.set_name(type_name.as_ref().clone());
                 add_nested_datatypes(pou.name.as_str(), &mut data_type, types, &location);
                 let data_type = UserTypeDeclaration {
                     data_type,
                     initializer: None,
                     location,
-                    scope: scope.map(|it| Rc::new(it.clone())),
+                    scope: scope.clone()
                 };
                 types.push(data_type);
             }
@@ -142,7 +142,7 @@ fn pre_process_variable_data_type(
     variable: &mut Variable,
     types: &mut Vec<UserTypeDeclaration>,
 ) {
-    let new_type_name = format!("__{}_{}", container_name, variable.name);
+    let new_type_name = Rc::new(format!("__{}_{}", container_name, variable.name));
     if let DataTypeDeclaration::DataTypeDefinition {
         mut data_type,
         location,
@@ -151,12 +151,12 @@ fn pre_process_variable_data_type(
     {
         // create index entry
         add_nested_datatypes(new_type_name.as_str(), &mut data_type, types, &location);
-        data_type.set_name(new_type_name);
+        data_type.set_name(new_type_name.as_ref().clone());
         types.push(UserTypeDeclaration {
             data_type,
             initializer: None,
             location,
-            scope: scope.map(|it| Rc::new(it.clone())),
+            scope: scope.clone()
         });
     }
     //make sure it gets generated
@@ -168,14 +168,14 @@ fn add_nested_datatypes(
     types: &mut Vec<UserTypeDeclaration>,
     location: &SourceRange,
 ) {
-    let new_type_name = format!("{}_", container_name);
+    let new_type_name = Rc::new(format!("{}_", container_name));
     if let Some(DataTypeDeclaration::DataTypeDefinition {
         mut data_type,
         location: inner_location,
         scope,
     }) = datatype.replace_data_type_with_reference_to(new_type_name.clone(), location)
     {
-        data_type.set_name(new_type_name.clone());
+        data_type.set_name(new_type_name.as_ref().clone());
         add_nested_datatypes(
             new_type_name.as_str(),
             &mut data_type,
@@ -186,7 +186,7 @@ fn add_nested_datatypes(
             data_type,
             initializer: None,
             location: location.clone(),
-            scope: scope.map(|it| Rc::new(it.clone())),
+            scope: scope.clone()
         });
     }
 }
