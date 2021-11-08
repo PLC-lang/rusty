@@ -487,6 +487,7 @@ fn fb_call() {
       STRUCT
         field_1 : INT := 0;
       END_STRUCT
+      END_TYPE
       
       TYPE datatype_2 :
       STRUCT
@@ -734,7 +735,7 @@ fn fb_call() {
         fb_0.out_var5.a_end_point[2] <> 1700 THEN
       b_ret_out_val := TRUE;
   END_IF
-    END_PROGRAM
+  END_PROGRAM
       ";
       
       let mut newFbCall: MainTypeCallFb = newWithFbCall();
