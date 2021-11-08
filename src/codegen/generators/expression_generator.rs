@@ -15,7 +15,7 @@ use inkwell::{
     },
     AddressSpace, FloatPredicate, IntPredicate,
 };
-use std::{collections::HashSet, convert::TryInto};
+use std::collections::HashSet;
 
 use crate::{
     ast::{flatten_expression_list, AstStatement, Operator},
@@ -280,55 +280,38 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
         access_type: &DataTypeInformation,
         target_type: &DataType,
     ) -> Result<IntValue<'a>, CompileError> {
-        let rhs = match index {
-            AstStatement::LiteralInteger { value, .. } => {
-                //Convert into the target literal
-                let value: u64 = (*value).try_into().unwrap_or_default();
-                let index = access.get_bit_width() * value;
-                let rhs = self
-                    .llvm_index
-                    .get_associated_type(target_type.get_name())
-                    .unwrap()
-                    .into_int_type()
-                    .const_int(index, false);
-                rhs
-            }
-            AstStatement::Reference { location, .. } => {
-                //Load the reference
-                let reference = self.generate_expression(index)?;
-                if reference.is_int_value() {
-                    //TODO why is this cast necessary???
-                    //did the annotator not annotate 'index' correctly?
-                    let reference = cast_if_needed(
-                        self.llvm,
-                        self.index,
-                        target_type,
-                        reference,
-                        self.get_type_hint_for(index)?,
-                        index,
-                    )
-                    .map(BasicValueEnum::into_int_value)?;
-                    //Multiply by the bitwitdh
-                    if access.get_bit_width() > 1 {
-                        let bitwidth = reference
-                            .get_type()
-                            .const_int(access.get_bit_width(), access_type.is_signed_int());
+        let reference = self.generate_expression(index)?;
+        //Load the reference
+        if reference.is_int_value() {
+            //TODO why is this cast necessary???
+            //did the annotator not annotate 'index' correctly?
+            let reference = cast_if_needed(
+                self.llvm,
+                self.index,
+                target_type,
+                reference,
+                self.get_type_hint_for(index)?,
+                index,
+            )
+            .map(BasicValueEnum::into_int_value)?;
+            // let reference = reference.into_int_value();
+            //Multiply by the bitwitdh
+            if access.get_bit_width() > 1 {
+                let bitwidth = reference
+                    .get_type()
+                    .const_int(access.get_bit_width(), access_type.is_signed_int());
 
-                        self.llvm.builder.build_int_mul(reference, bitwidth, "")
-                    } else {
-                        reference
-                    }
-                } else {
-                    return Err(CompileError::casting_error(
-                        access_type.get_name(),
-                        "Integer Type",
-                        location.clone(),
-                    ));
-                }
+                Ok(self.llvm.builder.build_int_mul(reference, bitwidth, ""))
+            } else {
+                Ok(reference)
             }
-            _ => unreachable!("Unexpected index : {:?}", *index),
-        };
-        Ok(rhs)
+        } else {
+            Err(CompileError::casting_error(
+                access_type.get_name(),
+                "Integer Type",
+                index.get_location(),
+            ))
+        }
     }
 
     /// generates a Unary-Expression e.g. -<expr> or !<expr>

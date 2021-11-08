@@ -354,12 +354,11 @@ pub fn parse_qualified_reference(lexer: &mut ParseSession) -> Result<AstStatemen
             LiteralInteger => {
                 let number = parse_strict_literal_integer(lexer)?;
                 let location = number.get_location().clone();
-                let id = number.get_id();
                 Ok(AstStatement::DirectAccess {
                     access: crate::ast::DirectAccessType::Bit,
                     index: Box::new(number),
                     location,
-                    id,
+                    id: lexer.next_id(),
                 })
             }
             //Is this a direct access?
