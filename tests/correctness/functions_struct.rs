@@ -518,7 +518,7 @@ fn fb_call() {
       END_STRUCT
       END_TYPE
 
-      FUNCTION_BLOCK function_block_0
+      FUNCTION_BLOCK fb_0
       VAR_INPUT
         in_var0    : datatype_0;
         in_var1    : datatype_1;
