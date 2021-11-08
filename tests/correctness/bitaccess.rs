@@ -75,7 +75,8 @@ fn bitaccess_chained_assignment() {
 
     let res: u64 = compile_and_run(prog.to_string(), &mut Type {});
 
-    assert_eq!( 0b0000_0010_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000,
+    assert_eq!(
+        0b0000_0010_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000,
         res
     );
 }
@@ -94,10 +95,10 @@ fn qualified_reference_assignment() {
         main := str.x;
         END_FUNCTION
 
-        " ;
-        struct Type {}
-        let res: u8 = compile_and_run(prog.to_string(), &mut Type {});
-        assert_eq!(2,res);
+        ";
+    struct Type {}
+    let res: u8 = compile_and_run(prog.to_string(), &mut Type {});
+    assert_eq!(2, res);
 }
 
 #[test]

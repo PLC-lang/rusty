@@ -93,7 +93,7 @@ fn qualified_reference_assignment() {
         str.x.%X1 := TRUE;
         END_FUNCTION
 
-        "
+        ",
     );
     insta::assert_snapshot!(prog);
 }
