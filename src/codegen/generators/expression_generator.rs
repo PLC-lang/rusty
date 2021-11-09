@@ -283,8 +283,10 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
         let reference = self.generate_expression(index)?;
         //Load the reference
         if reference.is_int_value() {
-            //TODO why is this cast necessary???
-            //did the annotator not annotate 'index' correctly?
+            //This cast is needed to convert the index/reference to the type of original expression
+            //being accessed.
+            //The reason is that llvm expects a shift operation to happen on the same type, and
+            //this is what the direct access will eventually end up in.
             let reference = cast_if_needed(
                 self.llvm,
                 self.index,
