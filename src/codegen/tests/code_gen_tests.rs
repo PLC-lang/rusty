@@ -1350,29 +1350,7 @@ x AND y;
 END_PROGRAM
 "#,
     );
-    let expected = generate_program_boiler_plate(
-        "prg",
-        &[("i1", "x"), ("i1", "y")],
-        "void",
-        "",
-        "",
-        r#"%load_x = load i1, i1* %x, align 1
-  %1 = sext i1 %load_x to i32
-  %2 = icmp ne i32 %1, 0
-  br i1 %2, label %3, label %5
-
-3:                                                ; preds = %entry
-  %load_y = load i1, i1* %y, align 1
-  %4 = sext i1 %load_y to i32
-  br label %5
-
-5:                                                ; preds = %3, %entry
-  %6 = phi i32 [ %1, %entry ], [ %4, %3 ]
-  ret void
-"#,
-    );
-
-    assert_eq!(result, expected);
+    insta::assert_snapshot!(result);
 }
 
 #[test]
@@ -1387,29 +1365,7 @@ x OR y;
 END_PROGRAM
 "#,
     );
-    let expected = generate_program_boiler_plate(
-        "prg",
-        &[("i1", "x"), ("i1", "y")],
-        "void",
-        "",
-        "",
-        r#"%load_x = load i1, i1* %x, align 1
-  %1 = sext i1 %load_x to i32
-  %2 = icmp ne i32 %1, 0
-  br i1 %2, label %5, label %3
-
-3:                                                ; preds = %entry
-  %load_y = load i1, i1* %y, align 1
-  %4 = sext i1 %load_y to i32
-  br label %5
-
-5:                                                ; preds = %3, %entry
-  %6 = phi i32 [ %1, %entry ], [ %4, %3 ]
-  ret void
-"#,
-    );
-
-    assert_eq!(result, expected);
+    insta::assert_snapshot!(result);
 }
 
 #[test]
@@ -1424,22 +1380,7 @@ x XOR y;
 END_PROGRAM
 "#,
     );
-    let expected = generate_program_boiler_plate(
-        "prg",
-        &[("i1", "x"), ("i1", "y")],
-        "void",
-        "",
-        "",
-        r#"%load_x = load i1, i1* %x, align 1
-  %1 = sext i1 %load_x to i32
-  %load_y = load i1, i1* %y, align 1
-  %2 = sext i1 %load_y to i32
-  %tmpVar = xor i32 %1, %2
-  ret void
-"#,
-    );
-
-    assert_eq!(result, expected);
+    insta::assert_snapshot!(result);
 }
 
 #[test]
@@ -1455,32 +1396,8 @@ x AND NOT y;
 END_PROGRAM
 "#,
     );
-    let expected = generate_program_boiler_plate(
-        "prg",
-        &[("i1", "x"), ("i1", "y")],
-        "void",
-        "",
-        "",
-        r#"%load_x = load i1, i1* %x, align 1
-  %tmpVar = xor i1 %load_x, true
-  %load_x1 = load i1, i1* %x, align 1
-  %1 = sext i1 %load_x1 to i32
-  %2 = icmp ne i32 %1, 0
-  br i1 %2, label %3, label %5
 
-3:                                                ; preds = %entry
-  %load_y = load i1, i1* %y, align 1
-  %tmpVar2 = xor i1 %load_y, true
-  %4 = sext i1 %tmpVar2 to i32
-  br label %5
-
-5:                                                ; preds = %3, %entry
-  %6 = phi i32 [ %1, %entry ], [ %4, %3 ]
-  ret void
-"#,
-    );
-
-    assert_eq!(result, expected);
+    insta::assert_snapshot!(result);
 }
 
 #[test]
@@ -1496,44 +1413,7 @@ NOT (z <= 6) OR y;
 END_PROGRAM
 "#,
     );
-    let expected = generate_program_boiler_plate(
-        "prg",
-        &[("i32", "z"), ("i1", "y")],
-        "void",
-        "",
-        "",
-        r#"%load_y = load i1, i1* %y, align 1
-  %1 = sext i1 %load_y to i32
-  %2 = icmp ne i32 %1, 0
-  br i1 %2, label %3, label %5
-
-3:                                                ; preds = %entry
-  %load_z = load i32, i32* %z, align 4
-  %tmpVar = icmp sge i32 %load_z, 5
-  %4 = sext i1 %tmpVar to i32
-  br label %5
-
-5:                                                ; preds = %3, %entry
-  %6 = phi i32 [ %1, %entry ], [ %4, %3 ]
-  %load_z1 = load i32, i32* %z, align 4
-  %tmpVar2 = icmp sle i32 %load_z1, 6
-  %tmpVar3 = xor i1 %tmpVar2, true
-  %7 = sext i1 %tmpVar3 to i32
-  %8 = icmp ne i32 %7, 0
-  br i1 %8, label %11, label %9
-
-9:                                                ; preds = %5
-  %load_y4 = load i1, i1* %y, align 1
-  %10 = sext i1 %load_y4 to i32
-  br label %11
-
-11:                                               ; preds = %9, %5
-  %12 = phi i32 [ %7, %5 ], [ %10, %9 ]
-  ret void
-"#,
-    );
-
-    assert_eq!(result, expected);
+    insta::assert_snapshot!(result);
 }
 
 #[test]
@@ -1697,37 +1577,7 @@ fn if_with_expression_generator_test() {
         END_PROGRAM
         ",
     );
-    let expected = generate_program_boiler_plate(
-        "prg",
-        &[("i32", "x"), ("i1", "b1")],
-        "void",
-        "",
-        "",
-        r#"%load_x = load i32, i32* %x, align 4
-  %tmpVar = icmp sgt i32 %load_x, 1
-  %1 = sext i1 %tmpVar to i32
-  %2 = icmp ne i32 %1, 0
-  br i1 %2, label %5, label %3
-
-condition_body:                                   ; preds = %5
-  %load_x1 = load i32, i32* %x, align 4
-  br label %continue
-
-continue:                                         ; preds = %condition_body, %5
-  ret void
-
-3:                                                ; preds = %entry
-  %load_b1 = load i1, i1* %b1, align 1
-  %4 = sext i1 %load_b1 to i32
-  br label %5
-
-5:                                                ; preds = %3, %entry
-  %6 = phi i32 [ %1, %entry ], [ %4, %3 ]
-  br i32 %6, label %condition_body, label %continue
-"#,
-    );
-
-    assert_eq!(result, expected);
+    insta::assert_snapshot!(result);
 }
 
 #[test]
@@ -1792,44 +1642,7 @@ fn for_statement_with_continue() {
         END_PROGRAM
         ",
     );
-
-    let expected = generate_program_boiler_plate(
-        "prg",
-        &[("i32", "x")],
-        "void",
-        "",
-        "",
-        r#"store i32 3, i32* %x, align 4
-  br label %condition_check
-
-condition_check:                                  ; preds = %increment, %entry
-  %load_x = load i32, i32* %x, align 4
-  %tmpVar = icmp sle i32 %load_x, 10
-  br i1 %tmpVar, label %for_body, label %continue
-
-for_body:                                         ; preds = %condition_check
-  %load_x1 = load i32, i32* %x, align 4
-  %tmpVar2 = add i32 %load_x1, 1
-  store i32 %tmpVar2, i32* %x, align 4
-  br label %increment
-
-buffer_block:                                     ; No predecessors!
-  %load_x3 = load i32, i32* %x, align 4
-  %tmpVar4 = sub i32 %load_x3, 1
-  store i32 %tmpVar4, i32* %x, align 4
-  br label %increment
-
-increment:                                        ; preds = %buffer_block, %for_body
-  %tmpVar5 = add i32 %load_x, 7
-  store i32 %tmpVar5, i32* %x, align 4
-  br label %condition_check
-
-continue:                                         ; preds = %condition_check
-  ret void
-"#,
-    );
-
-    assert_eq!(result, expected);
+    insta::assert_snapshot!(result);
 }
 
 #[test]
@@ -2473,31 +2286,7 @@ fn while_with_expression_statement() {
         END_PROGRAM
         ",
     );
-
-    let expected = generate_program_boiler_plate(
-        "prg",
-        &[("i1", "x")],
-        "void",
-        "",
-        "",
-        r#"br label %condition_check
-
-condition_check:                                  ; preds = %entry, %while_body
-  %load_x = load i1, i1* %x, align 1
-  %1 = sext i1 %load_x to i32
-  %tmpVar = icmp eq i32 %1, 0
-  br i1 %tmpVar, label %while_body, label %continue
-
-while_body:                                       ; preds = %condition_check
-  %load_x1 = load i1, i1* %x, align 1
-  br label %condition_check
-
-continue:                                         ; preds = %condition_check
-  ret void
-"#,
-    );
-
-    assert_eq!(result, expected);
+    insta::assert_snapshot!(result);
 }
 
 #[test]

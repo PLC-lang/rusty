@@ -4,7 +4,7 @@ use super::{
 };
 use crate::{
     ast::{flatten_expression_list, AstStatement, ConditionalBlock, Operator, SourceRange},
-    codegen::LlvmTypedIndex,
+    codegen::{llvm_typesystem, LlvmTypedIndex},
     compile_error::CompileError,
     index::{ImplementationIndexEntry, Index},
     resolver::AnnotationMap,
@@ -190,6 +190,10 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         left_statement: &AstStatement,
         right_statement: &AstStatement,
     ) -> Result<(), CompileError> {
+        //TODO: Looks hacky, the strings will be similar so we should look into making the assignment a bit nicer.
+        if left_statement.has_direct_access() {
+            return self.generate_direct_access_assignment(left_statement, right_statement);
+        }
         let exp_gen = self.create_expr_generator();
         let left = exp_gen.generate_element_pointer(left_statement)?;
         let left_type = exp_gen.get_type_hint_info_for(left_statement)?;
@@ -216,6 +220,101 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         self.llvm
             .builder
             .build_store(left, exp_gen.generate_expression(right_statement)?);
+
+        Ok(())
+    }
+
+    fn generate_direct_access_assignment(
+        &self,
+        left_statement: &AstStatement,
+        right_statement: &AstStatement,
+    ) -> Result<(), CompileError> {
+        //TODO : Validation
+        let exp_gen = self.create_expr_generator();
+        if let AstStatement::QualifiedReference { elements, .. } = left_statement {
+            //Target
+            let target: Vec<AstStatement> = elements
+                .iter()
+                .take_while(|it| !matches!(*it, &AstStatement::DirectAccess { .. }))
+                .cloned()
+                .collect();
+            let id = target.last().unwrap().get_id();
+            let target = AstStatement::QualifiedReference {
+                elements: target.to_vec(),
+                id,
+            };
+
+            //Access
+            let direct_access: Vec<&AstStatement> = elements
+                .iter()
+                .skip_while(|it| !matches!(*it, &AstStatement::DirectAccess { .. }))
+                .collect();
+            let left_type = exp_gen.get_type_hint_for(&target)?;
+            let right_type = exp_gen.get_type_hint_for(right_statement)?;
+            //Build index
+            if let Some((element, direct_access)) = direct_access.split_first() {
+                let mut rhs = if let AstStatement::DirectAccess { access, index, .. } = element {
+                    exp_gen.generate_direct_access_index(
+                        access,
+                        index,
+                        right_type.get_type_information(),
+                        left_type,
+                    )
+                } else {
+                    Err(CompileError::codegen_error(
+                        format!("{:?} not a direct access", element),
+                        element.get_location(),
+                    ))
+                }?;
+                for element in direct_access {
+                    let next = if let AstStatement::DirectAccess { access, index, .. } = element {
+                        exp_gen.generate_direct_access_index(
+                            access,
+                            index,
+                            right_type.get_type_information(),
+                            left_type,
+                        )
+                    } else {
+                        Err(CompileError::codegen_error(
+                            format!("{:?} not a direct access", element),
+                            element.get_location(),
+                        ))
+                    }?;
+                    rhs = self.llvm.builder.build_int_add(rhs, next, "");
+                }
+                //Build mask for the index
+                let mask = rhs.get_type().const_all_ones();
+                let mask = self.llvm.builder.build_left_shift(mask, rhs, "mask");
+                let mask = self.llvm.builder.build_not(mask, "not");
+
+                //Left pointer
+                let left = exp_gen.generate_element_pointer(&target)?;
+                //Generate an expression for the right size
+                let right = exp_gen.generate_expression(right_statement)?;
+                //Cast the right side to the left side type
+                let lhs = llvm_typesystem::cast_if_needed(
+                    self.llvm,
+                    self.index,
+                    left_type,
+                    right,
+                    right_type,
+                    right_statement,
+                )
+                .map(BasicValueEnum::into_int_value)?;
+                //Shift left by the direct access
+                let value = self.llvm.builder.build_left_shift(lhs, rhs, "value");
+                let left_value = self.llvm.load_pointer(&left, "").into_int_value();
+                //And the result with the mask
+                let and_value = self.llvm.builder.build_and(left_value, mask, "and");
+                //OR the result and store it in the left side
+                let or_value = self.llvm.builder.build_or(and_value, value, "or");
+                self.llvm.builder.build_store(left, or_value);
+            } else {
+                unreachable!();
+            }
+        } else {
+            unreachable!()
+        }
 
         Ok(())
     }

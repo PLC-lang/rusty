@@ -314,7 +314,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
             initial_value: None,
             information: DataTypeInformation::Integer {
                 name: BOOL_TYPE.into(),
-                signed: true,
+                signed: false,
                 size: BOOL_SIZE,
             },
         },

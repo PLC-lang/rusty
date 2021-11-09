@@ -1,0 +1,23 @@
+---
+source: src/codegen/tests/directaccess_test.rs
+expression: prog
+
+---
+; ModuleID = 'main'
+source_filename = "main"
+
+%main_interface = type { i16 }
+
+define i16 @main(%main_interface* %0) {
+entry:
+  %b = getelementptr inbounds %main_interface, %main_interface* %0, i32 0, i32 0
+  %main = alloca i16, align 2
+  store i16 0, i16* %b, align 2
+  %1 = load i16, i16* %b, align 2
+  %and = and i16 %1, 0
+  %or = or i16 %and, 2
+  store i16 %or, i16* %b, align 2
+  %main_ret = load i16, i16* %main, align 2
+  ret i16 %main_ret
+}
+

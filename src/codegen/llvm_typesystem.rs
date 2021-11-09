@@ -117,6 +117,7 @@ pub fn cast_if_needed<'ctx>(
     target_type: &DataType,
     value: BasicValueEnum<'ctx>,
     value_type: &DataType,
+    //TODO: Could be location
     statement: &AstStatement,
 ) -> Result<BasicValueEnum<'ctx>, CompileError> {
     let builder = &llvm.builder;
