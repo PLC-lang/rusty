@@ -918,7 +918,6 @@
 <span id="918">918</span>
 <span id="919">919</span>
 <span id="920">920</span>
-<span id="921">921</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
@@ -1275,12 +1274,11 @@
             <span class="ident">LiteralInteger</span> <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">let</span> <span class="ident">number</span> <span class="op">=</span> <span class="ident">parse_strict_literal_integer</span>(<span class="ident">lexer</span>)<span class="question-mark">?</span>;
                 <span class="kw">let</span> <span class="ident">location</span> <span class="op">=</span> <span class="ident">number</span>.<span class="ident">get_location</span>().<span class="ident">clone</span>();
-                <span class="kw">let</span> <span class="ident">id</span> <span class="op">=</span> <span class="ident">number</span>.<span class="ident">get_id</span>();
                 <span class="prelude-val">Ok</span>(<span class="ident">AstStatement::DirectAccess</span> {
                     <span class="ident">access</span>: <span class="ident"><span class="kw">crate</span>::ast::DirectAccessType::Bit</span>,
                     <span class="ident">index</span>: <span class="ident">Box::new</span>(<span class="ident">number</span>),
                     <span class="ident">location</span>,
-                    <span class="ident">id</span>,
+                    <span class="ident">id</span>: <span class="ident">lexer</span>.<span class="ident">next_id</span>(),
                 })
             }
             <span class="comment">//Is this a direct access?</span>

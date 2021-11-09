@@ -1589,10 +1589,9 @@
 <span id="1589">1589</span>
 <span id="1590">1590</span>
 <span id="1591">1591</span>
-<span id="1592">1592</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 <span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">ast::SourceRange</span>,
+    <span class="ident">ast</span>::{<span class="ident">DirectAccessType</span>, <span class="ident">SourceRange</span>},
     <span class="ident">codegen::llvm_typesystem</span>,
     <span class="ident">index</span>::{<span class="ident">ImplementationType</span>, <span class="ident">Index</span>, <span class="ident">VariableIndexEntry</span>},
     <span class="ident">resolver</span>::{<span class="ident">AnnotationMap</span>, <span class="ident">StatementAnnotation</span>},
@@ -1607,7 +1606,7 @@
     },
     <span class="ident">AddressSpace</span>, <span class="ident">FloatPredicate</span>, <span class="ident">IntPredicate</span>,
 };
-<span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">collections::HashSet</span>, <span class="ident">convert::TryInto</span>};
+<span class="kw">use</span> <span class="ident">std::collections::HashSet</span>;
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">ast</span>::{<span class="ident">flatten_expression_list</span>, <span class="ident">AstStatement</span>, <span class="ident">Operator</span>},
@@ -1753,7 +1752,7 @@
             }
             <span class="ident">AstStatement::QualifiedReference</span> { <span class="ident">elements</span>, .. } <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="comment">//If direct access, don&#39;t load pointers</span>
-                <span class="kw">if</span> <span class="ident">has_direct_access</span>(<span class="ident">expression</span>) {
+                <span class="kw">if</span> <span class="ident">expression</span>.<span class="ident">has_direct_access</span>() {
                     <span class="comment">//Split the qualified reference at the last element</span>
                     <span class="self">self</span>.<span class="ident">generate_directaccess</span>(<span class="ident">elements</span>)
                 } <span class="kw">else</span> {
@@ -1838,56 +1837,10 @@
         <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">generate_expression</span>(<span class="kw-2">&amp;</span><span class="ident">expression</span>)<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">expression_type</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_type_hint_for</span>(<span class="kw-2">&amp;</span><span class="ident">expression</span>)<span class="question-mark">?</span>;
         <span class="kw">if</span> <span class="kw">let</span> <span class="ident">AstStatement::DirectAccess</span> { <span class="ident">access</span>, <span class="ident">index</span>, .. } <span class="op">=</span> <span class="ident">last</span> {
-            <span class="kw">let</span> <span class="ident">datatype</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_type_hint_info_for</span>(<span class="ident">last</span>)<span class="question-mark">?</span>;
             <span class="comment">//Generate and load the index value</span>
-            <span class="kw">let</span> <span class="ident">rhs</span> <span class="op">=</span> <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="kw-2">*</span><span class="ident">index</span> {
-                <span class="ident">AstStatement::LiteralInteger</span> { <span class="ident">value</span>, .. } <span class="op">=</span><span class="op">&gt;</span> {
-                    <span class="comment">//Convert into the target literal</span>
-                    <span class="kw">let</span> <span class="ident">value</span>: <span class="ident">u64</span> <span class="op">=</span> (<span class="kw-2">*</span><span class="ident">value</span>).<span class="ident">try_into</span>().<span class="ident">unwrap_or_default</span>();
-                    <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="ident">access</span>.<span class="ident">get_bit_width</span>() <span class="op">*</span> <span class="ident">value</span>;
-                    <span class="kw">let</span> <span class="ident">rhs</span> <span class="op">=</span> <span class="self">self</span>
-                        .<span class="ident">llvm_index</span>
-                        .<span class="ident">get_associated_type</span>(<span class="ident">expression_type</span>.<span class="ident">get_name</span>())
-                        .<span class="ident">unwrap</span>()
-                        .<span class="ident">into_int_type</span>()
-                        .<span class="ident">const_int</span>(<span class="ident">index</span>, <span class="bool-val">false</span>);
-                    <span class="ident">rhs</span>
-                }
-                <span class="ident">AstStatement::Reference</span> { <span class="ident">location</span>, .. } <span class="op">=</span><span class="op">&gt;</span> {
-                    <span class="comment">//Load the reference</span>
-                    <span class="kw">let</span> <span class="ident">reference</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">generate_expression</span>(<span class="ident">index</span>)<span class="question-mark">?</span>;
-                    <span class="kw">if</span> <span class="ident">reference</span>.<span class="ident">is_int_value</span>() {
-                        <span class="comment">//TODO why is this cast necessary???</span>
-                        <span class="comment">//did the annotator not annotate &#39;index&#39; correctly?</span>
-                        <span class="kw">let</span> <span class="ident">reference</span> <span class="op">=</span> <span class="ident">cast_if_needed</span>(
-                            <span class="self">self</span>.<span class="ident">llvm</span>,
-                            <span class="self">self</span>.<span class="ident">index</span>,
-                            <span class="ident">expression_type</span>,
-                            <span class="ident">reference</span>,
-                            <span class="self">self</span>.<span class="ident">get_type_hint_for</span>(<span class="ident">index</span>)<span class="question-mark">?</span>,
-                            <span class="ident">index</span>,
-                        )
-                        .<span class="ident">map</span>(<span class="ident">BasicValueEnum::into_int_value</span>)<span class="question-mark">?</span>;
-                        <span class="comment">//Multiply by the bitwitdh</span>
-                        <span class="kw">if</span> <span class="ident">access</span>.<span class="ident">get_bit_width</span>() <span class="op">&gt;</span> <span class="number">1</span> {
-                            <span class="kw">let</span> <span class="ident">bitwidth</span> <span class="op">=</span> <span class="ident">reference</span>
-                                .<span class="ident">get_type</span>()
-                                .<span class="ident">const_int</span>(<span class="ident">access</span>.<span class="ident">get_bit_width</span>(), <span class="ident">datatype</span>.<span class="ident">is_signed_int</span>());
-
-                            <span class="self">self</span>.<span class="ident">llvm</span>.<span class="ident">builder</span>.<span class="ident">build_int_mul</span>(<span class="ident">reference</span>, <span class="ident">bitwidth</span>, <span class="string">&quot;&quot;</span>)
-                        } <span class="kw">else</span> {
-                            <span class="ident">reference</span>
-                        }
-                    } <span class="kw">else</span> {
-                        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">CompileError::casting_error</span>(
-                            <span class="ident">datatype</span>.<span class="ident">get_name</span>(),
-                            <span class="string">&quot;Integer Type&quot;</span>,
-                            <span class="ident">location</span>.<span class="ident">clone</span>(),
-                        ));
-                    }
-                }
-                <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable!</span>(<span class="string">&quot;Unexpected index : {:?}&quot;</span>, <span class="kw-2">*</span><span class="ident">index</span>),
-            };
+            <span class="kw">let</span> <span class="ident">datatype</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_type_hint_info_for</span>(<span class="ident">last</span>)<span class="question-mark">?</span>;
+            <span class="kw">let</span> <span class="ident">rhs</span> <span class="op">=</span>
+                <span class="self">self</span>.<span class="ident">generate_direct_access_index</span>(<span class="ident">access</span>, <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">index</span>, <span class="ident">datatype</span>, <span class="ident">expression_type</span>)<span class="question-mark">?</span>;
             <span class="comment">//Shift the qualifer value right by the index value</span>
             <span class="kw">let</span> <span class="ident">shift</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">llvm</span>.<span class="ident">builder</span>.<span class="ident">build_right_shift</span>(
                 <span class="ident">value</span>.<span class="ident">into_int_value</span>(),
@@ -1908,6 +1861,49 @@
             <span class="prelude-val">Ok</span>(<span class="ident">result</span>.<span class="ident">as_basic_value_enum</span>())
         } <span class="kw">else</span> {
             <span class="macro">unreachable!</span>()
+        }
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">generate_direct_access_index</span>(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        <span class="ident">access</span>: <span class="kw-2">&amp;</span><span class="ident">DirectAccessType</span>,
+        <span class="ident">index</span>: <span class="kw-2">&amp;</span><span class="ident">AstStatement</span>,
+        <span class="ident">access_type</span>: <span class="kw-2">&amp;</span><span class="ident">DataTypeInformation</span>,
+        <span class="ident">target_type</span>: <span class="kw-2">&amp;</span><span class="ident">DataType</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">IntValue</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>, <span class="ident">CompileError</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="ident">reference</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">generate_expression</span>(<span class="ident">index</span>)<span class="question-mark">?</span>;
+        <span class="comment">//Load the reference</span>
+        <span class="kw">if</span> <span class="ident">reference</span>.<span class="ident">is_int_value</span>() {
+            <span class="comment">//This cast is needed to convert the index/reference to the type of original expression</span>
+            <span class="comment">//being accessed.</span>
+            <span class="comment">//The reason is that llvm expects a shift operation to happen on the same type, and</span>
+            <span class="comment">//this is what the direct access will eventually end up in.</span>
+            <span class="kw">let</span> <span class="ident">reference</span> <span class="op">=</span> <span class="ident">cast_if_needed</span>(
+                <span class="self">self</span>.<span class="ident">llvm</span>,
+                <span class="self">self</span>.<span class="ident">index</span>,
+                <span class="ident">target_type</span>,
+                <span class="ident">reference</span>,
+                <span class="self">self</span>.<span class="ident">get_type_hint_for</span>(<span class="ident">index</span>)<span class="question-mark">?</span>,
+                <span class="ident">index</span>,
+            )
+            .<span class="ident">map</span>(<span class="ident">BasicValueEnum::into_int_value</span>)<span class="question-mark">?</span>;
+            <span class="comment">// let reference = reference.into_int_value();</span>
+            <span class="comment">//Multiply by the bitwitdh</span>
+            <span class="kw">if</span> <span class="ident">access</span>.<span class="ident">get_bit_width</span>() <span class="op">&gt;</span> <span class="number">1</span> {
+                <span class="kw">let</span> <span class="ident">bitwidth</span> <span class="op">=</span> <span class="ident">reference</span>
+                    .<span class="ident">get_type</span>()
+                    .<span class="ident">const_int</span>(<span class="ident">access</span>.<span class="ident">get_bit_width</span>(), <span class="ident">access_type</span>.<span class="ident">is_signed_int</span>());
+
+                <span class="prelude-val">Ok</span>(<span class="self">self</span>.<span class="ident">llvm</span>.<span class="ident">builder</span>.<span class="ident">build_int_mul</span>(<span class="ident">reference</span>, <span class="ident">bitwidth</span>, <span class="string">&quot;&quot;</span>))
+            } <span class="kw">else</span> {
+                <span class="prelude-val">Ok</span>(<span class="ident">reference</span>)
+            }
+        } <span class="kw">else</span> {
+            <span class="prelude-val">Err</span>(<span class="ident">CompileError::casting_error</span>(
+                <span class="ident">access_type</span>.<span class="ident">get_name</span>(),
+                <span class="string">&quot;Integer Type&quot;</span>,
+                <span class="ident">index</span>.<span class="ident">get_location</span>(),
+            ))
         }
     }
 
@@ -2346,19 +2342,30 @@
         <span class="ident">reference_statement</span>: <span class="kw-2">&amp;</span><span class="ident">AstStatement</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">PointerValue</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>, <span class="ident">CompileError</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="kw">let</span> <span class="ident">AstStatement::QualifiedReference</span> { <span class="ident">elements</span>, .. } <span class="op">=</span> <span class="ident">reference_statement</span> {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">qualifier</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">PointerValue</span><span class="op">&gt;</span> <span class="op">=</span> <span class="prelude-val">None</span>;
-            <span class="kw">for</span> <span class="ident">e</span> <span class="kw">in</span> <span class="ident">elements</span> {
-                <span class="ident">qualifier</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="self">self</span>.<span class="ident">do_generate_element_pointer</span>(<span class="ident">qualifier</span>, <span class="ident">e</span>)<span class="question-mark">?</span>);
-            }
-            <span class="ident">qualifier</span>.<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
-                <span class="ident">CompileError::codegen_error</span>(
-                    <span class="macro">format!</span>(<span class="string">&quot;Cannot generate a LValue for {:?}&quot;</span>, <span class="ident">reference_statement</span>),
-                    <span class="ident">reference_statement</span>.<span class="ident">get_location</span>(),
-                )
-            })
+            <span class="self">self</span>.<span class="ident">generate_element_pointer_from_elements</span>(
+                <span class="ident">elements</span>,
+                <span class="ident">reference_statement</span>.<span class="ident">get_location</span>(),
+            )
         } <span class="kw">else</span> {
             <span class="self">self</span>.<span class="ident">do_generate_element_pointer</span>(<span class="prelude-val">None</span>, <span class="ident">reference_statement</span>)
         }
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">generate_element_pointer_from_elements</span>(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        <span class="ident">elements</span>: <span class="kw-2">&amp;</span>[<span class="ident">AstStatement</span>],
+        <span class="ident">location</span>: <span class="ident">SourceRange</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">PointerValue</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>, <span class="ident">CompileError</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">qualifier</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">PointerValue</span><span class="op">&gt;</span> <span class="op">=</span> <span class="prelude-val">None</span>;
+        <span class="kw">for</span> <span class="ident">e</span> <span class="kw">in</span> <span class="ident">elements</span> {
+            <span class="ident">qualifier</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="self">self</span>.<span class="ident">do_generate_element_pointer</span>(<span class="ident">qualifier</span>, <span class="ident">e</span>)<span class="question-mark">?</span>);
+        }
+        <span class="ident">qualifier</span>.<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
+            <span class="ident">CompileError::codegen_error</span>(
+                <span class="macro">format!</span>(<span class="string">&quot;Cannot generate a LValue for {:?}&quot;</span>, <span class="ident">elements</span>),
+                <span class="ident">location</span>,
+            )
+        })
     }
 
     <span class="kw">fn</span> <span class="ident">do_generate_element_pointer</span>(
@@ -3172,15 +3179,6 @@
         <span class="string">&quot;Invalid Date {}-{}-{}-{}:{}:{}.{}&quot;</span>,
         <span class="ident">year</span>, <span class="ident">month</span>, <span class="ident">day</span>, <span class="ident">hour</span>, <span class="ident">min</span>, <span class="ident">sec</span>, <span class="ident">milli</span>
     ))
-}
-
-<span class="doccomment">/// Returns true if the current statement has a return access.</span>
-<span class="kw">fn</span> <span class="ident">has_direct_access</span>(<span class="ident">statement</span>: <span class="kw-2">&amp;</span><span class="ident">AstStatement</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-    <span class="kw">if</span> <span class="kw">let</span> <span class="ident">AstStatement::QualifiedReference</span> { <span class="ident">elements</span>, .. } <span class="op">=</span> <span class="ident">statement</span> {
-        <span class="macro">matches!</span>(<span class="ident">elements</span>.<span class="ident">last</span>(), <span class="prelude-val">Some</span>(<span class="ident">AstStatement::DirectAccess</span> { .. }))
-    } <span class="kw">else</span> {
-        <span class="bool-val">false</span>
-    }
 }
 </code></pre></div>
 </section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="rusty" data-search-index-js="../../../../search-index.js" data-search-js="../../../../search.js"></div>

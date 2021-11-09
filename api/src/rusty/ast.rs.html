@@ -1136,6 +1136,14 @@
 <span id="1136">1136</span>
 <span id="1137">1137</span>
 <span id="1138">1138</span>
+<span id="1139">1139</span>
+<span id="1140">1140</span>
+<span id="1141">1141</span>
+<span id="1142">1142</span>
+<span id="1143">1143</span>
+<span id="1144">1144</span>
+<span id="1145">1145</span>
+<span id="1146">1146</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::typesystem::DataTypeInformation</span>;
 <span class="kw">use</span> <span class="ident">std</span>::{
@@ -2195,6 +2203,14 @@
             <span class="ident">AstStatement::ContinueStatement</span> { <span class="ident">id</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="ident">id</span>,
             <span class="ident">AstStatement::ExitStatement</span> { <span class="ident">id</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="ident">id</span>,
             <span class="ident">AstStatement::CastStatement</span> { <span class="ident">id</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="ident">id</span>,
+        }
+    }
+    <span class="doccomment">/// Returns true if the current statement has a return access.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">has_direct_access</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">AstStatement::QualifiedReference</span> { <span class="ident">elements</span>, .. } <span class="op">=</span> <span class="self">self</span> {
+            <span class="macro">matches!</span>(<span class="ident">elements</span>.<span class="ident">last</span>(), <span class="prelude-val">Some</span>(<span class="ident">AstStatement::DirectAccess</span> { .. }))
+        } <span class="kw">else</span> {
+            <span class="bool-val">false</span>
         }
     }
 }
