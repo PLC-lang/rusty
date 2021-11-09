@@ -611,7 +611,7 @@ pub fn get_signed_type<'t>(
             .ok()
             .map(|t| t.get_type_information());
     }
-    None
+    Some(data_type)
 }
 
 #[cfg(test)]
@@ -649,7 +649,13 @@ mod tests {
         assert_signed_type!(LINT_TYPE, LWORD_TYPE, index);
 
         assert_eq!(
-            None,
+            Some(
+                index
+                    .find_effective_type(STRING_TYPE)
+                    .as_ref()
+                    .unwrap()
+                    .get_type_information()
+            ),
             get_signed_type(
                 index
                     .find_effective_type(STRING_TYPE)

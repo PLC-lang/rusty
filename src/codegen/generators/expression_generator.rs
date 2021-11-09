@@ -323,24 +323,44 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
         expression: &AstStatement,
     ) -> Result<BasicValueEnum<'a>, CompileError> {
         let value = match unary_operator {
-            Operator::Not => self.llvm.builder.build_not(
-                self.generate_expression(expression)?.into_int_value(),
-                "tmpVar",
-            ),
-            Operator::Minus => self.llvm.builder.build_int_neg(
-                self.generate_expression(expression)?.into_int_value(),
-                "tmpVar",
-            ),
+            Operator::Not => Ok(self
+                .llvm
+                .builder
+                .build_not(
+                    self.generate_expression(expression)?.into_int_value(),
+                    "tmpVar",
+                )
+                .as_basic_value_enum()),
+            Operator::Minus => {
+                let generated_exp = self.generate_expression(expression)?;
+                if generated_exp.is_float_value() {
+                    Ok(self
+                        .llvm
+                        .builder
+                        .build_float_neg(generated_exp.into_float_value(), "tmpVar")
+                        .as_basic_value_enum())
+                } else if generated_exp.is_int_value() {
+                    Ok(self
+                        .llvm
+                        .builder
+                        .build_int_neg(generated_exp.into_int_value(), "tmpVar")
+                        .as_basic_value_enum())
+                } else {
+                    Err(CompileError::codegen_error(
+                        "Negated expression must be numeric".into(),
+                        expression.get_location(),
+                    ))
+                }
+            }
             Operator::Address => {
                 //datatype is a pointer to the address
                 //value is the address
-                return self
-                    .generate_element_pointer(expression)
-                    .map(|result| result.as_basic_value_enum());
+                self.generate_element_pointer(expression)
+                    .map(|result| result.as_basic_value_enum())
             }
             _ => unimplemented!(),
         };
-        Ok(BasicValueEnum::IntValue(value))
+        value
     }
 
     /// generates the given call-statement <operator>(<parameters>)

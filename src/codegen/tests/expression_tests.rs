@@ -23,3 +23,19 @@ fn structs_in_function_return() {
     );
     insta::assert_snapshot!(result);
 }
+
+#[test]
+fn unary_expressions_can_be_real() {
+    let result = codegen(
+        r#"
+            PROGRAM prg
+            VAR
+                a,b : REAL;
+            END_VAR
+                b := -2.0;
+                a := -b;
+            END_PROGRAM
+        "#,
+    );
+    insta::assert_snapshot!(result);
+}
