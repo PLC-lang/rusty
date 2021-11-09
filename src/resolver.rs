@@ -950,7 +950,7 @@ impl<'i> TypeAnnotator<'i> {
                         );
                     }
                 } else {
-                    println!("{:#?}", self.annotation_map.get(operator));
+                    dbg!(self.annotation_map.get(operator));
                 }
             }
             AstStatement::CastStatement {

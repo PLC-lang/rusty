@@ -410,7 +410,9 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         let step_by_value = by_step.as_ref().map_or_else(
             || {
                 self.llvm
-                    .create_const_numeric(&self.llvm_index.get_associated_type(DINT_TYPE)?, "1")
+                    .create_const_numeric(&self.llvm_index.get_associated_type(DINT_TYPE)?, "1",
+                    SourceRange::undefined(),
+                )
             },
             |step| expression_generator.generate_expression(step),
         )?;

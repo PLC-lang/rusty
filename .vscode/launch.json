@@ -39,7 +39,7 @@
                     "kind": "bin"
                 }
             },
-            "args": ["--ir", "examples/encoding.st"],
+            "args": ["--ir", "examples/oscat/*.st"],
             "cwd": "${workspaceFolder}"
         },
         {

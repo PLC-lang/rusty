@@ -1156,8 +1156,8 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
         let literal_type = self
             .get_type_hint_for(stmt)
             .map(DataType::get_name)
-            .and_then(|name| self.llvm_index.get_associated_type(name))?;
-        self.llvm.create_const_numeric(&literal_type, number)
+            .and_then(|name| self.llvm_index.get_associated_type(dbg!(name)))?;
+        self.llvm.create_const_numeric(&literal_type, number, stmt.get_location())
     }
 
     /// generates the literal statement and returns the resulting value
@@ -1560,6 +1560,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
         let value = self.llvm.create_const_numeric(
             &self.llvm_index.get_associated_type(LINT_TYPE)?,
             value.to_string().as_str(),
+            SourceRange::undefined(),
         )?;
         Ok(value)
     }
