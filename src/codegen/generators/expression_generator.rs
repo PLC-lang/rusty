@@ -4,7 +4,7 @@ use crate::{
     codegen::llvm_typesystem,
     index::{ImplementationType, Index, VariableIndexEntry},
     resolver::{AnnotationMap, StatementAnnotation},
-    typesystem::{Dimension, StringEncoding, INT_SIZE, INT_TYPE, LINT_TYPE},
+    typesystem::{is_same_type_nature, Dimension, StringEncoding, INT_SIZE, INT_TYPE, LINT_TYPE},
 };
 use inkwell::{
     basic_block::BasicBlock,
@@ -1153,11 +1153,22 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
         stmt: &AstStatement,
         number: &str,
     ) -> Result<BasicValueEnum<'a>, CompileError> {
+        let type_hint = self.get_type_hint_for(stmt)?;
+        let actual_type = self.annotations.get_type_or_void(stmt, self.index);
+        let literal_type = if is_same_type_nature(
+            type_hint.get_type_information(),
+            actual_type.get_type_information(),
+            self.index,
+        ) {
+            type_hint
+        } else {
+            actual_type
+        };
         let literal_type = self
-            .get_type_hint_for(stmt)
-            .map(DataType::get_name)
-            .and_then(|name| self.llvm_index.get_associated_type(dbg!(name)))?;
-        self.llvm.create_const_numeric(&literal_type, number, stmt.get_location())
+            .llvm_index
+            .get_associated_type(literal_type.get_name())?;
+        self.llvm
+            .create_const_numeric(&literal_type, number, stmt.get_location())
     }
 
     /// generates the literal statement and returns the resulting value

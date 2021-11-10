@@ -157,17 +157,15 @@ impl<'a> Llvm<'a> {
         &self,
         target_type: &BasicTypeEnum<'a>,
         value: &str,
-        location: SourceRange
+        location: SourceRange,
     ) -> Result<BasicValueEnum<'a>, CompileError> {
         match target_type {
-            BasicTypeEnum::IntType { 0: int_type } => {
-                let value : f64 = value.parse().map_err(|it| CompileError::codegen_error(format!("{:?}", it), location.clone()))?;
-                let value = (value as i64).to_string();
-                int_type.const_int_from_string(&value, StringRadix::Decimal)
-                .ok_or_else(||
+            BasicTypeEnum::IntType { 0: int_type } => int_type
+                .const_int_from_string(value, StringRadix::Decimal)
+                .ok_or_else(|| {
                     CompileError::codegen_error(format!("Cannot parse {} as int", value), location)
-                ).map(BasicValueEnum::IntValue)
-            }
+                })
+                .map(BasicValueEnum::IntValue),
             BasicTypeEnum::FloatType { 0: float_type } => {
                 let value = float_type.const_float_from_string(value);
                 Ok(BasicValueEnum::FloatValue(value))

@@ -42,7 +42,8 @@ fn unary_expressions_can_be_real() {
 
 #[test]
 fn type_mix_in_call() {
-    let result = codegen("
+    let result = codegen(
+        "
         FUNCTION foo : INT
         VAR_INPUT
             in : INT;
@@ -51,7 +52,8 @@ fn type_mix_in_call() {
         FUNCTION baz : INT
             foo(1.5);
         END_FUNCTION
-    ");
+    ",
+    );
 
     insta::assert_snapshot!(result);
 }

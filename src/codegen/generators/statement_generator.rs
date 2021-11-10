@@ -409,8 +409,9 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         let expression_generator = self.create_expr_generator();
         let step_by_value = by_step.as_ref().map_or_else(
             || {
-                self.llvm
-                    .create_const_numeric(&self.llvm_index.get_associated_type(DINT_TYPE)?, "1",
+                self.llvm.create_const_numeric(
+                    &self.llvm_index.get_associated_type(DINT_TYPE)?,
+                    "1",
                     SourceRange::undefined(),
                 )
             },

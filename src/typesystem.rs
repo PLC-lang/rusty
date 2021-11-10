@@ -559,9 +559,60 @@ fn get_rank(type_information: &DataTypeInformation) -> u32 {
     }
 }
 
-fn is_same_type_nature(ltype: &DataTypeInformation, rtype: &DataTypeInformation) -> bool {
-    (ltype.is_int() && ltype.is_int() == rtype.is_int())
-        || (ltype.is_float() && ltype.is_float() == rtype.is_float())
+pub fn is_same_type_nature(
+    ltype: &DataTypeInformation,
+    rtype: &DataTypeInformation,
+    index: &Index,
+) -> bool {
+    let ltype = find_inner_type_recursive(ltype, index);
+    let rtype = find_inner_type_recursive(rtype, index);
+    match ltype {
+        DataTypeInformation::Struct { name: lname, .. } => {
+            matches!(rtype, DataTypeInformation::Struct { name, ..} if name == lname)
+        }
+        DataTypeInformation::Array { name: lname, .. } => {
+            matches!(rtype, DataTypeInformation::Array { name, ..} if name == lname)
+        }
+        DataTypeInformation::Pointer {
+            inner_type_name: lname,
+            ..
+        } => {
+            matches!(rtype, DataTypeInformation::Pointer{ inner_type_name, ..} if inner_type_name == lname)
+        }
+        DataTypeInformation::Integer { .. } => matches!(rtype, DataTypeInformation::Integer { .. }),
+        DataTypeInformation::Enum { .. } => matches!(rtype, DataTypeInformation::Enum { .. }),
+        DataTypeInformation::Float { .. } => matches!(rtype, DataTypeInformation::Float { .. }),
+        DataTypeInformation::String {
+            size: lsize,
+            encoding: lencoding,
+        } => {
+            matches!(rtype,DataTypeInformation::String { size, encoding } if lsize == size && lencoding == encoding)
+        }
+        DataTypeInformation::Void => matches!(rtype, DataTypeInformation::Void),
+        _ => false,
+    }
+}
+
+fn find_inner_type_recursive<'t>(
+    initial_type: &'t DataTypeInformation,
+    index: &'t Index,
+) -> &'t DataTypeInformation {
+    match initial_type {
+        DataTypeInformation::SubRange { .. } | DataTypeInformation::Alias { .. } => {
+            let inner_type_name = match initial_type {
+                DataTypeInformation::SubRange {
+                    referenced_type, ..
+                } => referenced_type,
+                _ => initial_type.get_name(),
+            };
+            if let Some(inner_type) = index.find_effective_type_info(inner_type_name) {
+                find_inner_type_recursive(inner_type, index)
+            } else {
+                initial_type
+            }
+        }
+        _ => initial_type,
+    }
 }
 
 pub fn get_bigger_type<'t>(
@@ -571,7 +622,7 @@ pub fn get_bigger_type<'t>(
 ) -> &'t DataType {
     let lt = left_type.get_type_information();
     let rt = right_type.get_type_information();
-    if is_same_type_nature(lt, rt) {
+    if is_same_type_nature(lt, rt, index) {
         if get_rank(lt) < get_rank(rt) {
             right_type
         } else {
