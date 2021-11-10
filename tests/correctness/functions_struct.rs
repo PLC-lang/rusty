@@ -1,5 +1,6 @@
-use super::super::*;
 // Copyright (c) 2021 Daniel Schwenniger
+
+use super::super::*;
 use crate::compile_and_run;
 
 #[allow(dead_code)]
@@ -890,3 +891,269 @@ fn prg_init() {
       assert_eq!(false, newPrgInit.b_ret1);
 }
 
+#[allow(dead_code)]
+#[repr(C)]
+#[derive(Default)]
+struct MainTypePrgCall {
+  b_ret0    : bool,
+  b_ret1    : bool,
+}
+
+fn newWIthPrgCall() -> MainTypePrgCall {
+  MainTypePrgCall::default()
+}
+
+#[test]
+fn prg_call() {
+    let function = r"
+
+      TYPE datatype_1 :
+      STRUCT
+        field_1 : INT := 0;
+      END_STRUCT
+      END_TYPE
+      
+      TYPE datatype_2 :
+      STRUCT
+        field_2 : INT := 0;
+      END_STRUCT
+      END_TYPE
+
+      TYPE datatype_3 :
+      STRUCT
+          field_3 : INT := 0;
+      END_STRUCT
+      END_TYPE
+
+      TYPE datatype_4 :
+      STRUCT
+        field_4 : INT := 0;
+      END_STRUCT
+      END_TYPE
+  
+      TYPE datatype_5 :
+      STRUCT
+        a_start_point : ARRAY [1..2] OF INT;
+        a_point1     : ARRAY [1..2] OF INT;
+        a_point2     : ARRAY [1..2] OF INT;
+        a_point3     : ARRAY [1..2] OF INT;
+        a_point4     : ARRAY [1..2] OF INT;
+        a_end_point   : ARRAY [1..2] OF INT;		
+      END_STRUCT
+      END_TYPE
+
+      PROGRAM program_1
+      VAR_INPUT
+          in_var1    : datatype_1;
+          in_var2    : datatype_2;
+          in_var3    : datatype_3;
+          in_var4    : datatype_4;
+          in_var5    : datatype_5;
+      END_VAR
+      VAR_IN_OUT
+          in_out_var1    : datatype_1;
+          in_out_var2    : datatype_2;
+          in_out_var3    : datatype_3;
+          in_out_var4    : datatype_4;
+          in_out_var5    : datatype_5;
+      END_VAR
+      VAR_OUTPUT
+          out_var1    : datatype_1;
+          out_var2    : datatype_2;
+          out_var3    : datatype_3;
+          out_var4    : datatype_4;
+          out_var5    : datatype_5;
+          b_ret_in_val    : BOOL;
+          b_ret_in_out_val    : BOOL;
+      END_VAR
+      VAR
+      END_VAR
+
+      IF in_var1.field_1 <> 20 OR in_var2.field_2 <> 30 OR in_var3.field_3 <> 40 OR in_var4.field_4 <> 50 THEN
+          b_ret_in_val := TRUE;
+      ELSIF in_var5.a_start_point[1] <> 60 OR 
+            in_var5.a_start_point[2] <> 70 OR 
+            in_var5.a_point1[1] <> 80 OR 
+            in_var5.a_point1[2] <> 90 OR 
+            in_var5.a_point2[1] <> 100 OR 
+            in_var5.a_point2[2] <> 110 OR 
+            in_var5.a_point3[1] <> 120 OR 
+            in_var5.a_point3[2] <> 130 OR 
+            in_var5.a_point4[1] <> 140 OR 
+            in_var5.a_point4[2] <> 150 OR 
+            in_var5.a_end_point[1] <> 160 OR 
+            in_var5.a_end_point[2] <> 170 THEN
+          b_ret_in_val := FALSE;
+      END_IF
+
+      IF in_out_var1.field_1 <> 20 OR in_out_var2.field_2 <> 30 OR in_out_var3.field_3 <> 40 OR in_out_var4.field_4 <> 50 THEN
+          b_ret_in_out_val := TRUE;
+      ELSIF in_out_var5.a_start_point[1] <> 60 OR 
+            in_out_var5.a_start_point[2] <> 70 OR 
+            in_out_var5.a_point1[1] <> 80 OR 
+            in_out_var5.a_point1[2] <> 90 OR 
+            in_out_var5.a_point2[1] <> 100 OR 
+            in_out_var5.a_point2[2] <> 110 OR 
+            in_out_var5.a_point3[1] <> 120 OR 
+            in_out_var5.a_point3[2] <> 130 OR 
+            in_out_var5.a_point4[1] <> 140 OR 
+            in_out_var5.a_point4[2] <> 150 OR 
+            in_out_var5.a_end_point[1] <> 160 OR 
+            in_out_var5.a_end_point[2] <> 170 THEN
+          b_ret_in_out_val := FALSE;
+      END_IF
+
+      in_out_var1.field_1 := in_out_var1.field_1 + 1;
+      in_out_var2.field_2 := in_out_var2.field_2 + 1;
+      in_out_var3.field_3 := in_out_var3.field_3 + 1;
+      in_out_var4.field_4 := in_out_var4.field_4 + 1;
+      in_out_var5.a_start_point[1] := in_out_var5.a_start_point[1] + 1;
+      in_out_var5.a_start_point[2] := in_out_var5.a_start_point[2] + 1;
+      in_out_var5.a_point1[1] := in_out_var5.a_point1[1] + 1;
+      in_out_var5.a_point1[2] := in_out_var5.a_point1[2] + 1;
+      in_out_var5.a_point2[1] := in_out_var5.a_point2[1] + 1;
+      in_out_var5.a_point2[2] := in_out_var5.a_point2[2] + 1;
+      in_out_var5.a_point3[1] := in_out_var5.a_point3[1] + 1;
+      in_out_var5.a_point3[2] := in_out_var5.a_point3[2] + 1;
+      in_out_var5.a_point4[1] := in_out_var5.a_point4[1] + 1;
+      in_out_var5.a_point4[2] := in_out_var5.a_point4[2] + 1;
+      in_out_var5.a_end_point[1] := in_out_var5.a_end_point[1] + 1;
+      in_out_var5.a_end_point[2] := in_out_var5.a_end_point[2] + 1;
+
+      out_var1.field_1 := 200;
+      out_var2.field_2 := 300;
+      out_var3.field_3 := 400;
+      out_var4.field_4 := 500;
+      out_var5.a_start_point[1] := 600;
+      out_var5.a_start_point[2] := 700;
+      out_var5.a_point1[1] := 800;
+      out_var5.a_point1[2] := 900;
+      out_var5.a_point2[1] := 1000;
+      out_var5.a_point2[2] := 1100;
+      out_var5.a_point3[1] := 1200;
+      out_var5.a_point3[2] := 1300;
+      out_var5.a_point4[1] := 1400;
+      out_var5.a_point4[2] := 1500;
+      out_var5.a_end_point[1] := 1600;
+      out_var5.a_end_point[2] := 1700;
+      END_PROGRAM
+
+      PROGRAM main
+      VAR
+        in_var1    : datatype_1;
+        in_var2    : datatype_2;
+        in_var3    : datatype_3;
+        in_var4    : datatype_4;
+        in_var5    : datatype_5;
+        in_out_var1    : datatype_1;
+        in_out_var2    : datatype_2;
+        in_out_var3    : datatype_3;
+        in_out_var4    : datatype_4;
+        in_out_var5    : datatype_5;
+        out_var1    : datatype_1;
+        out_var2    : datatype_2;
+        out_var3    : datatype_3;
+        out_var4    : datatype_4;
+        out_var5    : datatype_5;
+        b_ret_in_val    : BOOL;
+        b_ret_in_out_val    : BOOL;
+        b_ret_out_val    : BOOL;
+    END_VAR
+  
+    in_var1.field_1 := 20;
+    in_var2.field_2 := 30;
+    in_var3.field_3 := 40;
+    in_var4.field_4 := 50;
+    in_var5.a_start_point[1] := 60;
+    in_var5.a_start_point[2] := 70;
+    in_var5.a_point1[1] := 80;
+    in_var5.a_point1[2] := 90;
+    in_var5.a_point2[1] := 100;
+    in_var5.a_point2[2] := 110;
+    in_var5.a_point3[1] := 120;
+    in_var5.a_point3[2] := 130;
+    in_var5.a_point4[1] := 140;
+    in_var5.a_point4[2] := 150;
+    in_var5.a_end_point[1] := 160;
+    in_var5.a_end_point[2] := 170;
+    
+    in_out_var1.field_1 := 20;
+    in_out_var2.field_2 := 30;
+    in_out_var3.field_3 := 40;
+    in_out_var4.field_4 := 50;
+    in_out_var5.a_start_point[1] := 60;
+    in_out_var5.a_start_point[2] := 70;
+    in_out_var5.a_point1[1] := 80;
+    in_out_var5.a_point1[2] := 90;
+    in_out_var5.a_point2[1] := 100;
+    in_out_var5.a_point2[2] := 110;
+    in_out_var5.a_point3[1] := 120;
+    in_out_var5.a_point3[2] := 130;
+    in_out_var5.a_point4[1] := 140;
+    in_out_var5.a_point4[2] := 150;
+    in_out_var5.a_end_point[1] := 160;
+    in_out_var5.a_end_point[2] := 170;
+    
+    program_1(
+        in_var1 := in_var1,
+        in_var2 := in_var2,
+        in_var3 := in_var3,
+        in_var4 := in_var4,
+        in_var5 := in_var5,
+        in_out_var1 := in_out_var1,
+        in_out_var2 := in_out_var2,
+        in_out_var3 := in_out_var3,
+        in_out_var4 := in_out_var4,
+        in_out_var5 := in_out_var5,
+        out_var1 => out_var1,
+        out_var2 => out_var2,
+        out_var3 => out_var3,
+        out_var4 => out_var4,
+        out_var5 => out_var5,
+        b_ret_in_val => b_ret_in_val,
+        b_ret_in_out_val => b_ret_in_out_val);
+    
+    IF in_out_var1.field_1 <> 21 OR in_out_var2.field_2 <> 31 OR in_out_var3.field_3 <> 41 OR in_out_var4.field_4 <> 51 THEN
+        b_ret_in_out_val := TRUE;
+    ELSIF in_out_var5.a_start_point[1] <> 61 OR 
+          in_out_var5.a_start_point[2] <> 71 OR 
+          in_out_var5.a_point1[1] <> 81 OR 
+          in_out_var5.a_point1[2] <> 91 OR 
+          in_out_var5.a_point2[1] <> 101 OR 
+          in_out_var5.a_point2[2] <> 111 OR 
+          in_out_var5.a_point3[1] <> 121 OR 
+          in_out_var5.a_point3[2] <> 131 OR 
+          in_out_var5.a_point4[1] <> 141 OR 
+          in_out_var5.a_point4[2] <> 151 OR
+          in_out_var5.a_end_point[1] <> 161 OR
+          in_out_var5.a_end_point[2] <> 171 THEN
+        b_ret_in_out_val := TRUE;
+    END_IF
+    
+    IF out_var1.field_1 <> 200 OR out_var2.field_2 <> 300 OR out_var3.field_3 <> 400 OR out_var4.field_4 <> 500 THEN
+        b_ret_out_val := TRUE;
+    ELSIF out_var5.a_start_point[1] <> 600 OR 
+          out_var5.a_start_point[2] <> 700 OR 
+          out_var5.a_point1[1] <> 800 OR 
+          out_var5.a_point1[2] <> 900 OR 
+          out_var5.a_point2[1] <> 1000 OR 
+          out_var5.a_point2[2] <> 1100 OR 
+          out_var5.a_point3[1] <> 1200 OR 
+          out_var5.a_point3[2] <> 1300 OR 
+          out_var5.a_point4[1] <> 1400 OR 
+          out_var5.a_point4[2] <> 1500 OR
+          out_var5.a_end_point[1] <> 1600 OR
+          out_var5.a_end_point[2] <> 1700 THEN
+        b_ret_out_val := TRUE;
+    END_IF
+  
+    END_PROGRAM
+      ";
+      
+      let mut newPrgCall: MainTypePrgCall = newWIthPrgCall();
+      
+      compile_and_run::<_, i32>(function.to_string(), &mut newPrgCall);
+      
+      assert_eq!(false, newPrgCall.b_ret0);
+      assert_eq!(false, newPrgCall.b_ret1);
+}
