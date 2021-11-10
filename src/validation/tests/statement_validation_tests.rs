@@ -76,3 +76,39 @@ fn assignment_to_enum_literals_results_in_error() {
         ]
     );
 }
+
+#[test]
+fn invalid_char_assignments() {
+    // GIVEN invalid assignments to CHAR/WCHAR
+    // WHEN it is validated
+    let diagnostics = parse_and_validate(
+        r#"
+		PROGRAM mainProg
+		VAR
+			x : CHAR;
+			y : WCHAR;
+		END_VAR
+			x := 'AJK%&/231';
+			y := "898JKAN";
+			x := y;
+			y := x;
+		END_PROGRAM"#,
+    );
+
+    // THEN every assignment should be reported
+    assert_eq!(
+        diagnostics,
+        vec![
+            Diagnostic::syntax_error(
+                "Value: 'AJK%&/231' exceeds length for type: CHAR",
+                (71..82).into()
+            ),
+            Diagnostic::syntax_error(
+                "Value: '898JKAN' exceeds length for type: WCHAR",
+                (92..101).into()
+            ),
+            Diagnostic::syntax_error("Cannot assign WCHAR to CHAR !", (106..112).into()),
+            Diagnostic::syntax_error("Cannot assign CHAR to WCHAR !", (117..123).into()),
+        ]
+    );
+}

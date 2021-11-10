@@ -89,18 +89,59 @@ impl StatementValidator {
                     }
                 }
             }
-            AstStatement::Assignment { left, .. } => {
-                // check if we assign to a constant variable
+            AstStatement::Assignment { left, right, .. } => {
                 if let Some(StatementAnnotation::Variable {
-                    constant: true,
-                    qualified_name,
+                    constant,
+                    qualified_name: l_qualified_name,
+                    resulting_type: l_resulting_type,
                     ..
                 }) = context.ast_annotation.get(left.as_ref())
                 {
-                    self.diagnostics.push(Diagnostic::cannot_assign_to_constant(
-                        qualified_name.as_str(),
-                        left.get_location(),
-                    ));
+                    // check if we assign to a constant variable
+                    if *constant {
+                        self.diagnostics.push(Diagnostic::cannot_assign_to_constant(
+                            l_qualified_name.as_str(),
+                            left.get_location(),
+                        ));
+                    }
+                    // check if we assign to a char variable
+                    if l_resulting_type.as_str() == "CHAR" || l_resulting_type.as_str() == "WCHAR" {
+                        // check if we assign a LiteralString longer than 1 char
+                        if let AstStatement::LiteralString {
+                            value, location, ..
+                        } = right.as_ref()
+                        {
+                            if value.len() > 1 {
+                                self.diagnostics.push(Diagnostic::syntax_error(
+                                    format!(
+                                        "Value: '{}' exceeds length for type: {}",
+                                        value, l_resulting_type
+                                    )
+                                    .as_str(),
+                                    location.clone(),
+                                ));
+                            }
+                        }
+                        // check if left type matches right type, char := wchar is invalid
+                        if let Some(StatementAnnotation::Variable {
+                            resulting_type: r_resulting_type,
+                            ..
+                        }) = context.ast_annotation.get(right.as_ref())
+                        {
+                            if l_resulting_type != r_resulting_type {
+                                self.diagnostics.push(Diagnostic::syntax_error(
+                                    format!(
+                                        "Cannot assign {} to {} !",
+                                        r_resulting_type, l_resulting_type
+                                    )
+                                    .as_str(),
+                                    (left.get_location().get_start()
+                                        ..right.get_location().get_end())
+                                        .into(),
+                                ));
+                            }
+                        }
+                    }
                 }
             }
             _ => (),
