@@ -41,14 +41,26 @@ field_4: i16,
 #[allow(dead_code)]
 #[repr(C)]
 #[derive(Default)]
-struct MainTypeInit {
-    local_var0: datatype_0,
-    local_var1: datatype_1,
-    local_var2: datatype_2,
-    local_var3: datatype_3,
-    local_var4: datatype_4,
-    b_ret0: bool,
+struct  datatype_5 {
+  a_start_point : [i16; 2],
+  a_point1     : [i16; 2],
+  a_point2     : [i16; 2],
+  a_point3     : [i16; 2],
+  a_point4     : [i16; 2],
+  a_end_point   :[i16; 2],
 }
+
+#[allow(dead_code)]
+#[repr(C)]
+#[derive(Default)]
+struct MainTypeInit {
+  local_var0    : datatype_0,
+  local_var1    : datatype_1,
+  local_var2    : datatype_2,
+  local_var3    : datatype_3,
+  local_var4    : datatype_4,
+  local_var5    : datatype_5,
+  b_ret0    : bool,}
 
 fn new() -> MainTypeInit {
   MainTypeInit::default()
@@ -68,6 +80,7 @@ fn function_init() {
     STRUCT
       field_1 : INT := 0;
     END_STRUCT
+    END_TYPE
      
     TYPE datatype_2 :
     STRUCT
@@ -87,40 +100,96 @@ fn function_init() {
     END_STRUCT
     END_TYPE
 
+    TYPE datatype_5 :
+    STRUCT
+      a_start_point : ARRAY [1..2] OF INT;
+      a_point1     : ARRAY [1..2] OF INT;
+      a_point2     : ARRAY [1..2] OF INT;
+      a_point3     : ARRAY [1..2] OF INT;
+      a_point4     : ARRAY [1..2] OF INT;
+      a_end_point   : ARRAY [1..2] OF INT;		
+    END_STRUCT
+    END_TYPE
+
     FUNCTION function_0 : BOOL
     VAR_INPUT
-        in_var0: datatype_0 := (field_0 := 100);
-        in_var1: datatype_1 := (field_1 := 200);
-        in_var2: datatype_2 := (field_2 := 300);
-        in_var3: datatype_3 := (field_3 := 400);
-        in_var4: datatype_4 := (field_4 := 500); 
+      in_var0    : datatype_0 := (field_0 := 100);
+      in_var1    : datatype_1 := (field_1 := 200);
+      in_var2    : datatype_2 := (field_2 := 300);
+      in_var3    : datatype_3 := (field_3 := 400);
+      in_var4    : datatype_4 := (field_4 := 500);
+      in_var5    : datatype_5 := (a_start_point := 3,3, a_point1 := 5,2, a_point2 := 7,3,  
+                                  a_point3 := 8,5, a_point4 := 5,7, a_end_point:=3,5);
     END_VAR
 
-      IF in_var0.field_0 = 100 OR in_var1.field_1 = 200 OR in_var2.field_2 = 300 OR in_var3.field_3 = 400 OR in_var4.field_4 = 500 THEN
-          function_0 := TRUE;
-      ELSIF in_var0.field_0 <> 10 OR in_var1.field_1 <> 20 OR in_var2.field_2 <> 30 OR in_var3.field_3 <> 40 OR in_var4.field_4 <> 50 THEN
-          function_0 := TRUE;
-      END_IF
+    IF in_var0.field_0 = 100 OR in_var1.field_1 = 200 OR in_var2.field_2 = 300 OR in_var3.field_3 = 400 OR in_var4.field_4 = 500 THEN
+        function_0 := TRUE;
+    ELSIF in_var0.field_0 <> 10 OR in_var1.field_1 <> 20 OR in_var2.field_2 <> 30 OR in_var3.field_3 <> 40 OR in_var4.field_4 <> 50 THEN
+        function_0 := TRUE;
+    ELSIF in_var5.a_start_point[1] = 3 OR 
+          in_var5.a_start_point[2] = 3 OR 
+          in_var5.a_point1[1] = 5 OR 
+          in_var5.a_point1[2] = 2 OR 
+          in_var5.a_point2[1] = 7 OR 
+          in_var5.a_point2[2] = 3 OR 
+          in_var5.a_point3[1] = 8 OR 
+          in_var5.a_point3[2] = 5 OR 
+          in_var5.a_point4[1] = 5 OR 
+          in_var5.a_point4[2] = 7 OR 
+          in_var5.a_end_point[1] = 3 OR 
+          in_var5.a_end_point[2] = 5 THEN
+        function_0 := TRUE;
+    ELSIF in_var5.a_start_point[1] <> 60 OR 
+      in_var5.a_start_point[2] <> 70 OR 
+      in_var5.a_point1[1] <> 80 OR 
+      in_var5.a_point1[2] <> 90 OR 
+      in_var5.a_point2[1] <> 100 OR 
+      in_var5.a_point2[2] <> 110 OR 
+      in_var5.a_point3[1] <> 120 OR 
+      in_var5.a_point3[2] <> 130 OR 
+      in_var5.a_point4[1] <> 140 OR 
+      in_var5.a_point4[2] <> 150 OR 
+      in_var5.a_end_point[1] <> 160 OR 
+      in_var5.a_end_point[2] <> 170 THEN
+        function_0 := TRUE;
+    END_IF
 
-      function_0 := FALSE;
+    function_0 := FALSE;
+
     END_FUNCTION
 
     PROGRAM main
     VAR
-        local_var0: datatype_0;
-        local_var1: datatype_1;
-        local_var2: datatype_2;
-        local_var3: datatype_3;
-        local_var4: datatype_4;
-        b_ret0: BOOL;
+      local_var0    : datatype_0;
+      local_var1    : datatype_1;
+      local_var2    : datatype_2;
+      local_var3    : datatype_3;
+      local_var4    : datatype_4;
+      local_var5    : datatype_5;
+
+      b_ret0    : BOOL;
     END_VAR
 
     local_var0.field_0 := 10;
     local_var1.field_1 := 20;
     local_var2.field_2 := 30;
-    local_var4.field_4:= 40;
+    local_var3.field_3 := 40;
+    local_var4.field_4 := 50;
+    local_var5.a_start_point[1] := 60;
+    local_var5.a_start_point[2] := 70;
+    local_var5.a_point1[1] := 80;
+    local_var5.a_point1[2] := 90;
+    local_var5.a_point2[1] := 100;
+    local_var5.a_point2[2] := 110;
+    local_var5.a_point3[1] := 120;
+    local_var5.a_point3[2] := 130;
+    local_var5.a_point4[1] := 140;
+    local_var5.a_point4[2] := 150;
+    local_var5.a_end_point[1] := 160;
+    local_var5.a_end_point[2] := 170;
 
-    b_ret0 := function_0(in_var0 := local_var0, in_var1 := local_var1, in_var2 := local_var2, in_var3 := local_var3, in_var4 := local_var4);
+    b_ret0 := function_0(in_var0 := local_var0, in_var1 := local_var1, in_var2 := local_var2, in_var3 := local_var3, in_var4 := local_var4, in_var5 := local_var5);
+
     END_PROGRAM
   ";
 
@@ -162,6 +231,7 @@ fn function_call_struct() {
     STRUCT
       field_1 : INT := 0;
     END_STRUCT
+    END_TYPE
     
     TYPE datatype_2 :
     STRUCT
@@ -232,18 +302,6 @@ END_PROGRAM
 #[allow(dead_code)]
 #[repr(C)]
 #[derive(Default)]
-struct  datatype_5 {
-  a_start_point : [i16; 2],
-  a_point1     : [i16; 2],
-  a_point2     : [i16; 2],
-  a_point3     : [i16; 2],
-  a_point4     : [i16; 2],
-  a_end_point   :[i16; 2],
-}
-
-#[allow(dead_code)]
-#[repr(C)]
-#[derive(Default)]
 struct function_block_0 {
   in_var0    : datatype_0,
   in_var1    : datatype_1,
@@ -287,6 +345,7 @@ fn fb_init() {
     STRUCT
       field_1 : INT := 0;
     END_STRUCT
+    END_TYPE
     
     TYPE datatype_2 :
     STRUCT
