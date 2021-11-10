@@ -460,14 +460,6 @@ impl<'i> TypeAnnotator<'i> {
                     )
                 }
             }
-            // AstStatement::LiteralString { .. } => {
-            //     //special case -> promote a literal-String directly, not via type-hint
-            //     // (avoid later cast)
-            //     self.annotation_map.annotate(
-            //         statement,
-            //         StatementAnnotation::value(expected_type.get_name()),
-            //     )
-            // }
             _ => {
                 //annotate the statement, whatever it is
                 self.annotation_map.annotate_type_hint(
