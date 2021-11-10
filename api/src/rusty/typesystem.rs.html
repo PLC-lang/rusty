@@ -661,6 +661,12 @@
 <span id="661">661</span>
 <span id="662">662</span>
 <span id="663">663</span>
+<span id="664">664</span>
+<span id="665">665</span>
+<span id="666">666</span>
+<span id="667">667</span>
+<span id="668">668</span>
+<span id="669">669</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 <span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">mem::size_of</span>, <span class="ident">ops::Range</span>};
 
@@ -1274,7 +1280,7 @@
             .<span class="ident">ok</span>()
             .<span class="ident">map</span>(<span class="op">|</span><span class="ident">t</span><span class="op">|</span> <span class="ident">t</span>.<span class="ident">get_type_information</span>());
     }
-    <span class="prelude-val">None</span>
+    <span class="prelude-val">Some</span>(<span class="ident">data_type</span>)
 }
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
@@ -1312,7 +1318,13 @@
         <span class="macro">assert_signed_type!</span>(<span class="ident">LINT_TYPE</span>, <span class="ident">LWORD_TYPE</span>, <span class="ident">index</span>);
 
         <span class="macro">assert_eq!</span>(
-            <span class="prelude-val">None</span>,
+            <span class="prelude-val">Some</span>(
+                <span class="ident">index</span>
+                    .<span class="ident">find_effective_type</span>(<span class="ident">STRING_TYPE</span>)
+                    .<span class="ident">as_ref</span>()
+                    .<span class="ident">unwrap</span>()
+                    .<span class="ident">get_type_information</span>()
+            ),
             <span class="ident">get_signed_type</span>(
                 <span class="ident">index</span>
                     .<span class="ident">find_effective_type</span>(<span class="ident">STRING_TYPE</span>)

@@ -1589,6 +1589,26 @@
 <span id="1589">1589</span>
 <span id="1590">1590</span>
 <span id="1591">1591</span>
+<span id="1592">1592</span>
+<span id="1593">1593</span>
+<span id="1594">1594</span>
+<span id="1595">1595</span>
+<span id="1596">1596</span>
+<span id="1597">1597</span>
+<span id="1598">1598</span>
+<span id="1599">1599</span>
+<span id="1600">1600</span>
+<span id="1601">1601</span>
+<span id="1602">1602</span>
+<span id="1603">1603</span>
+<span id="1604">1604</span>
+<span id="1605">1605</span>
+<span id="1606">1606</span>
+<span id="1607">1607</span>
+<span id="1608">1608</span>
+<span id="1609">1609</span>
+<span id="1610">1610</span>
+<span id="1611">1611</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">ast</span>::{<span class="ident">DirectAccessType</span>, <span class="ident">SourceRange</span>},
@@ -1914,24 +1934,44 @@
         <span class="ident">expression</span>: <span class="kw-2">&amp;</span><span class="ident">AstStatement</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">BasicValueEnum</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>, <span class="ident">CompileError</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">unary_operator</span> {
-            <span class="ident">Operator::Not</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">llvm</span>.<span class="ident">builder</span>.<span class="ident">build_not</span>(
-                <span class="self">self</span>.<span class="ident">generate_expression</span>(<span class="ident">expression</span>)<span class="question-mark">?</span>.<span class="ident">into_int_value</span>(),
-                <span class="string">&quot;tmpVar&quot;</span>,
-            ),
-            <span class="ident">Operator::Minus</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">llvm</span>.<span class="ident">builder</span>.<span class="ident">build_int_neg</span>(
-                <span class="self">self</span>.<span class="ident">generate_expression</span>(<span class="ident">expression</span>)<span class="question-mark">?</span>.<span class="ident">into_int_value</span>(),
-                <span class="string">&quot;tmpVar&quot;</span>,
-            ),
+            <span class="ident">Operator::Not</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="self">self</span>
+                .<span class="ident">llvm</span>
+                .<span class="ident">builder</span>
+                .<span class="ident">build_not</span>(
+                    <span class="self">self</span>.<span class="ident">generate_expression</span>(<span class="ident">expression</span>)<span class="question-mark">?</span>.<span class="ident">into_int_value</span>(),
+                    <span class="string">&quot;tmpVar&quot;</span>,
+                )
+                .<span class="ident">as_basic_value_enum</span>()),
+            <span class="ident">Operator::Minus</span> <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="kw">let</span> <span class="ident">generated_exp</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">generate_expression</span>(<span class="ident">expression</span>)<span class="question-mark">?</span>;
+                <span class="kw">if</span> <span class="ident">generated_exp</span>.<span class="ident">is_float_value</span>() {
+                    <span class="prelude-val">Ok</span>(<span class="self">self</span>
+                        .<span class="ident">llvm</span>
+                        .<span class="ident">builder</span>
+                        .<span class="ident">build_float_neg</span>(<span class="ident">generated_exp</span>.<span class="ident">into_float_value</span>(), <span class="string">&quot;tmpVar&quot;</span>)
+                        .<span class="ident">as_basic_value_enum</span>())
+                } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">generated_exp</span>.<span class="ident">is_int_value</span>() {
+                    <span class="prelude-val">Ok</span>(<span class="self">self</span>
+                        .<span class="ident">llvm</span>
+                        .<span class="ident">builder</span>
+                        .<span class="ident">build_int_neg</span>(<span class="ident">generated_exp</span>.<span class="ident">into_int_value</span>(), <span class="string">&quot;tmpVar&quot;</span>)
+                        .<span class="ident">as_basic_value_enum</span>())
+                } <span class="kw">else</span> {
+                    <span class="prelude-val">Err</span>(<span class="ident">CompileError::codegen_error</span>(
+                        <span class="string">&quot;Negated expression must be numeric&quot;</span>.<span class="ident">into</span>(),
+                        <span class="ident">expression</span>.<span class="ident">get_location</span>(),
+                    ))
+                }
+            }
             <span class="ident">Operator::Address</span> <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="comment">//datatype is a pointer to the address</span>
                 <span class="comment">//value is the address</span>
-                <span class="kw">return</span> <span class="self">self</span>
-                    .<span class="ident">generate_element_pointer</span>(<span class="ident">expression</span>)
-                    .<span class="ident">map</span>(<span class="op">|</span><span class="ident">result</span><span class="op">|</span> <span class="ident">result</span>.<span class="ident">as_basic_value_enum</span>());
+                <span class="self">self</span>.<span class="ident">generate_element_pointer</span>(<span class="ident">expression</span>)
+                    .<span class="ident">map</span>(<span class="op">|</span><span class="ident">result</span><span class="op">|</span> <span class="ident">result</span>.<span class="ident">as_basic_value_enum</span>())
             }
             <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unimplemented!</span>(),
         };
-        <span class="prelude-val">Ok</span>(<span class="ident">BasicValueEnum::IntValue</span>(<span class="ident">value</span>))
+        <span class="ident">value</span>
     }
 
     <span class="doccomment">/// generates the given call-statement &lt;operator&gt;(&lt;parameters&gt;)</span>
