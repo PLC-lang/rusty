@@ -2,21 +2,21 @@
 
 ## Prerequisites
 To be able to build the source code, you will need to [install Rust](https://www.rust-lang.org/tools/install)
-and LLVM 11, along with the standard build tools (`build-essential`) and `libz-dev` on your machine.
-For Linux the package manager version of LLVM (e.g. `llvm-11-dev`, `liblld-11-dev` for apt) will work fine, for Windows, you need a
-[special build](https://github.com/PLC-lang/llvm-package-windows/releases/tag/v11.0.1). If you want to
+and LLVM 12, along with the standard build tools (`build-essential`) and `libz-dev` on your machine.
+For Linux the package manager version of LLVM (e.g. `llvm-12-dev`, `liblld-12-dev` for apt) will work fine, for Windows, you need a
+[special build](https://github.com/PLC-lang/llvm-package-windows/releases/tag/v12.0.1). If you want to
 clone and work on the repository, you'll also need _git_.
 
 ### Tips for troubleshooting
 * Because of weak compatibility guarantees of the LLVM API, the LLVM installation must exactly match the
-major version of the `llvm-sys` crate. Currently you will need to install LLVM 11 to satisfy this constraint.
+major version of the `llvm-sys` crate. Currently you will need to install LLVM 12 to satisfy this constraint.
 [Read more](https://crates.io/crates/llvm-sys)
 * To avoid installation conflicts on Linux/Ubuntu, make sure you don't have a default installation available
 (like just installing `llvm-dev`), which may break things. If you do, make sure you have set
-the appropriate environment variable (`LLVM_SYS_110_PREFIX=/usr/lib/llvm-11` for LLVM 11), so
+the appropriate environment variable (`LLVM_SYS_120_PREFIX=/usr/lib/llvm-12` for LLVM 12), so
 the build of the `llvm-sys` crate knows what files to grab.
 * If you get an error stating that the `native static library 'Polly'` cannot be found, you might want to
-install the `libclang-common-11-dev` package, which includes this library in the form of a static library.
+install the `libclang-common-12-dev` package, which includes this library in the form of a static library.
 Alternatively, building LLVM from source should also provide you with that file. Building from source may
 take a while, though.
 
