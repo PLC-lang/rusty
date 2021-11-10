@@ -356,13 +356,16 @@ impl Index {
 
     /// imports the corresponding TypeSize (according to the given initializer-id) from the given ConstExpressions
     /// into self's const-expressions and returns the new Id
+    ///
+    /// panics if the import fails (e.g. the given TypeSice::ConstExpression(id) does not exist in this Index)
+    /// this problem would indicate a programming mistake
     fn import_type_size(
         &mut self,
         import_from: &mut ConstExpressions,
         type_size: &TypeSize,
     ) -> TypeSize {
-        match type_size {
-            TypeSize::LiteralInteger(_) => type_size.clone(),
+        let ts = match type_size {
+            TypeSize::LiteralInteger(_) => Some(type_size.clone()),
             TypeSize::ConstExpression(id) => import_from
                 .remove(id)
                 .map(|(expr, target_type, scope)| {
@@ -372,8 +375,17 @@ impl Index {
                         scope,
                     )
                 })
-                .map(TypeSize::from_expression)
-                .unwrap(),
+                .map(TypeSize::from_expression),
+        };
+
+        match ts {
+            Some(it) => it,
+            None => {
+                unreachable!(
+                    "requested type-size is not part of the given ConstExpressions. Cannot import '{:?}', from {:?}",
+                    type_size, import_from
+                );
+            }
         }
     }
 
@@ -519,6 +531,11 @@ impl Index {
         self.type_index.get_type(type_name)
     }
 
+    /// expect a built-in type
+    pub fn get_type_or_panic(&self, type_name: &str) -> &DataType {
+        self.type_index.get_type(type_name).unwrap_or_else(|_| panic!("{} not found", type_name))
+    }
+
     pub fn find_return_variable(&self, pou_name: &str) -> Option<&VariableIndexEntry> {
         let members = self.member_variables.get(&pou_name.to_lowercase()); //.ok_or_else(||CompileError::unknown_type(pou_name, 0..0))?;
         if let Some(members) = members {
@@ -533,7 +550,7 @@ impl Index {
 
     pub fn find_return_type(&self, pou_name: &str) -> Option<&DataType> {
         let variable = self.find_return_variable(pou_name);
-        variable.map(|it| self.get_type(it.get_type_name()).unwrap())
+        variable.and_then(|it| self.get_type(it.get_type_name()).ok())
     }
 
     pub fn get_type_information_or_void(&self, type_name: &str) -> &DataTypeInformation {

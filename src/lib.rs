@@ -397,8 +397,7 @@ fn create_source_code<T: Read>(
 pub fn get_target_triple(triple: Option<String>) -> TargetTriple {
     triple
         .map(|it| TargetTriple::create(it.as_str()))
-        .or_else(|| Some(TargetMachine::get_default_triple()))
-        .unwrap()
+        .unwrap_or_else(|| TargetMachine::get_default_triple())
 }
 
 ///
@@ -414,7 +413,12 @@ fn compile_to_obj<T: SourceContainer>(
     let initialization_config = &InitializationConfig::default();
     Target::initialize_all(initialization_config);
 
-    let target = Target::from_triple(&triple).unwrap();
+    let target = Target::from_triple(&triple).map_err(|it| {
+        CompileError::codegen_error(
+            format!("Invalid target-tripple '{:}' - {:?}", triple, it),
+            SourceRange::undefined(),
+        )
+    })?;
     let machine = target
         .create_target_machine(
             &triple,
@@ -426,15 +430,19 @@ fn compile_to_obj<T: SourceContainer>(
             reloc,
             CodeModel::Default,
         )
-        .unwrap();
+        .ok_or_else(|| {
+            CompileError::codegen_error(
+                "Cannot create target machine.".into(),
+                SourceRange::undefined(),
+            )
+        });
 
     let c = Context::create();
     let code_generator = compile_module(&c, sources, encoding)?;
-    machine
-        .write_to_file(&code_generator.module, FileType::Object, Path::new(output))
-        .unwrap();
-
-    Ok(())
+    machine.and_then(|it| {
+        it.write_to_file(&code_generator.module, FileType::Object, Path::new(output))
+            .map_err(|it| it.into())
+    })
 }
 
 /// Compiles a given source string to a static object and saves the output.
@@ -657,15 +665,6 @@ mod tests {
                 .to_str()
                 .unwrap()
         );
-
-        // let triple = get_target_triple(Some("abcdef".into()));
-        // assert_eq!(
-        //     triple.as_str().to_str().unwrap(),
-        //     TargetMachine::get_default_triple()
-        //         .as_str()
-        //         .to_str()
-        //         .unwrap()
-        // );
 
         let triple = get_target_triple(Some("x86_64-pc-linux-gnu".into()));
         assert_eq!(triple.as_str().to_str().unwrap(), "x86_64-pc-linux-gnu");

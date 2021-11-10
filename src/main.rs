@@ -17,11 +17,12 @@
 //! [`ST`]: https://en.wikipedia.org/wiki/Structured_text
 //! [`IEC61131-3`]: https://en.wikipedia.org/wiki/IEC_61131-3
 //! [`IR`]: https://llvm.org/docs/LangRef.html
-use std::path::Path;
+use std::{path::Path, str::Utf8Error};
 
 use glob::glob;
 use rusty::{
     cli::{CompileParameters, FormatOption, ParameterError},
+    compile_error::CompileError,
     compile_to_bitcode, compile_to_ir, compile_to_shared_object, compile_to_shared_pic_object,
     compile_to_static_obj, get_target_triple, FilePath,
 };
@@ -65,45 +66,37 @@ fn create_file_paths(inputs: &[String]) -> Result<Vec<FilePath>, String> {
 fn main_compile(parameters: CompileParameters) -> Result<(), String> {
     let sources = create_file_paths(&parameters.input)?;
 
-    let output_filename = parameters.output_name().unwrap();
+    let output_filename = parameters
+        .output_name()
+        .ok_or_else(|| "Missing parameter: output-name".to_string())?;
     let encoding = parameters.encoding;
 
     let out_format = parameters.output_format_or_default();
-    match out_format {
-        FormatOption::Static => {
-            compile_to_static_obj(
-                sources,
-                encoding,
-                output_filename.as_str(),
-                parameters.target.clone(),
-            )
-            .unwrap();
-        }
-        FormatOption::Shared => {
-            compile_to_shared_object(
-                sources,
-                encoding,
-                output_filename.as_str(),
-                parameters.target.clone(),
-            )
-            .unwrap();
-        }
-        FormatOption::PIC => {
-            compile_to_shared_pic_object(
-                sources,
-                encoding,
-                output_filename.as_str(),
-                parameters.target.clone(),
-            )
-            .unwrap();
-        }
-        FormatOption::Bitcode => {
-            compile_to_bitcode(sources, encoding, output_filename.as_str()).unwrap();
-        }
-        FormatOption::IR => {
-            compile_to_ir(sources, encoding, &output_filename).unwrap();
-        }
-    }
+    let compile_result = match out_format {
+        FormatOption::Static => compile_to_static_obj(
+            sources,
+            encoding,
+            output_filename.as_str(),
+            parameters.target.clone(),
+        ),
+        FormatOption::Shared => compile_to_shared_object(
+            sources,
+            encoding,
+            output_filename.as_str(),
+            parameters.target.clone(),
+        ),
+        FormatOption::PIC => compile_to_shared_pic_object(
+            sources,
+            encoding,
+            output_filename.as_str(),
+            parameters.target.clone(),
+        ),
+        FormatOption::Bitcode => compile_to_bitcode(sources, encoding, output_filename.as_str()),
+        FormatOption::IR => compile_to_ir(sources, encoding, &output_filename),
+    };
+
+    //unwrap a potential error
+    compile_result.map_err(|compile_err| compile_err.to_string())?;
 
     let linkable_formats = vec![
         FormatOption::Static,
@@ -112,7 +105,11 @@ fn main_compile(parameters: CompileParameters) -> Result<(), String> {
     ];
     if linkable_formats.contains(&out_format) && !parameters.skip_linking {
         let triple = get_target_triple(parameters.target);
-        let mut linker = linker::Linker::new(triple.as_str().to_str().unwrap())?;
+        let mut linker = triple
+            .as_str()
+            .to_str()
+            .map_err(|e| e.to_string())
+            .and_then(|triple| linker::Linker::new(triple).map_err(|e| e.into()))?;
         linker
             .add_lib_path(".")
             .add_obj(Path::new(&output_filename));

@@ -1,6 +1,9 @@
 // Copyright (c) 2021 Ghaith Hachem and Mathias Rieder
 use encoding_rs::Encoding;
-use std::path::Path;
+use std::{
+    ffi::{OsStr, OsString},
+    path::Path,
+};
 use structopt::{clap::ArgGroup, StructOpt};
 
 #[derive(PartialEq, Debug)]
@@ -14,6 +17,7 @@ pub enum FormatOption {
 
 // => Set the default output format here:
 const DEFAULT_FORMAT: FormatOption = FormatOption::Static;
+const DEFAULT_OUTPUT_NAME: &str = "out";
 
 pub type ParameterError = structopt::clap::Error;
 
@@ -151,8 +155,11 @@ impl CompileParameters {
                 FormatOption::IR => ".ir",
             };
 
-            let output_name = self.input.first().unwrap();
-            let basename = Path::new(output_name).file_stem()?.to_str()?;
+            let output_name = self.input.first().map(String::as_str);
+            let basename = output_name
+                .and_then(|it| Path::new(it).file_stem())
+                .and_then(OsStr::to_str)
+                .unwrap_or(DEFAULT_OUTPUT_NAME);
             Some(format!("{}{}", basename, ending))
         }
     }
