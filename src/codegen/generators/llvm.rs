@@ -231,4 +231,30 @@ impl<'a> Llvm<'a> {
         let exp_value = self.context.const_string(value, true);
         Ok(BasicValueEnum::VectorValue(exp_value))
     }
+
+    /// create a constant i8 character (IntValue) with the given value
+    ///
+    /// - `value` the value of the constant char value
+    pub fn create_llvm_const_i8_char(
+        &self,
+        value: &str,
+    ) -> Result<BasicValueEnum<'a>, CompileError> {
+        let arr = value.as_bytes();
+        let char = arr.get(0).unwrap(); // TODO: should only be 1 char, validation needed
+        let value = self.context.i8_type().const_int(*char as u64, false);
+        Ok(BasicValueEnum::IntValue(value))
+    }
+
+    /// create a constant i16 character (IntValue) with the given value
+    ///
+    /// - `value` the value of the constant char value
+    pub fn create_llvm_const_i16_char(
+        &self,
+        value: &str,
+    ) -> Result<BasicValueEnum<'a>, CompileError> {
+        let vec: Vec<u16> = value.encode_utf16().collect();
+        let char = vec.get(0).unwrap(); // TODO: should only be 1 char, validation needed
+        let value = self.context.i16_type().const_int(*char as u64, false);
+        Ok(BasicValueEnum::IntValue(value))
+    }
 }

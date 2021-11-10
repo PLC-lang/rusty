@@ -6098,3 +6098,45 @@ fn inlined_array_size_from_local_scoped_constants() {
     // AND we expect arr2 to be of size 3
     insta::assert_snapshot!(result);
 }
+
+#[test]
+fn program_with_chars() {
+    let result = codegen(
+        r#"
+		PROGRAM mainPROG
+		VAR
+			x : CHAR;
+			y : WCHAR;
+		END_VAR
+			x := 'a';
+			x := ' ';
+
+			y := "A";
+			y := " ";
+			y := "'";
+			y := "$"";
+		END_PROGRAM
+		"#,
+    );
+    let expected = r#"; ModuleID = 'main'
+source_filename = "main"
+
+%mainPROG_interface = type { i8, i16 }
+
+@mainPROG_instance = global %mainPROG_interface zeroinitializer
+
+define void @mainPROG(%mainPROG_interface* %0) {
+entry:
+  %x = getelementptr inbounds %mainPROG_interface, %mainPROG_interface* %0, i32 0, i32 0
+  %y = getelementptr inbounds %mainPROG_interface, %mainPROG_interface* %0, i32 0, i32 1
+  store i8 97, i8* %x, align 1
+  store i8 32, i8* %x, align 1
+  store i16 65, i16* %y, align 2
+  store i16 32, i16* %y, align 2
+  store i16 39, i16* %y, align 2
+  store i16 34, i16* %y, align 2
+  ret void
+}
+"#;
+    assert_eq!(result, expected);
+}

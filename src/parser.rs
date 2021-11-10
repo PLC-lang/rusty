@@ -567,7 +567,10 @@ fn parse_data_type_definition(
         parse_enum_type_definition(lexer, name)
     } else if lexer.token == KeywordString || lexer.token == KeywordWideString {
         parse_string_type_definition(lexer, name)
-    } else if lexer.token == Identifier {
+    } else if lexer.token == Identifier
+        || lexer.token == KeywordChar
+        || lexer.token == KeywordWideChar
+    {
         parse_type_reference_type_definition(lexer, name)
     } else {
         //no datatype?

@@ -1211,12 +1211,22 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                             self.llvm.create_const_utf16_string(value.as_str())
                         }
                     }
+                } else if let DataTypeInformation::Integer { name, size, .. } = expected_type {
+                    if name == "CHAR" || name == "WCHAR" {
+                        match size {
+                            8 => self.llvm.create_llvm_const_i8_char(value.as_str()),
+                            16 => self.llvm.create_llvm_const_i16_char(value.as_str()),
+                            _ => unreachable!(), // CHAR, WCHAR can only have size 8, 16 defined in typesystem.rs
+                        }
+                    } else {
+                        Err(CompileError::cannot_generate_string_literal(
+                            expected_type.get_name(),
+                            location.clone(),
+                        ))
+                    }
                 } else {
-                    Err(CompileError::codegen_error(
-                        format!(
-                            "Cannot generate String-Literal for type {}",
-                            expected_type.get_name()
-                        ),
+                    Err(CompileError::cannot_generate_string_literal(
+                        expected_type.get_name(),
                         location.clone(),
                     ))
                 }

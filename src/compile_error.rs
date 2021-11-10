@@ -78,6 +78,13 @@ impl CompileError {
         CompileError::CodeGenError { message, location }
     }
 
+    pub fn cannot_generate_string_literal(type_name: &str, location: SourceRange) -> CompileError {
+        CompileError::codegen_error(
+            format!("Cannot generate String-Literal for type {}", type_name),
+            location,
+        )
+    }
+
     pub fn cannot_generate_initializer(variable_name: &str, location: SourceRange) -> CompileError {
         CompileError::codegen_error(
             format!(
