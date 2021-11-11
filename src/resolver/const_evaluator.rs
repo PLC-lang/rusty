@@ -226,7 +226,7 @@ pub fn evaluate_constants(mut index: Index) -> (Index, Vec<UnresolvableConstant>
                                     value: masked_value,
                                 },
                             )
-                            .unwrap(); //panic if we dont know the id
+                            .expect("unknown id for const-expression"); //panic if we dont know the id
                         failed_tries = 0;
                     }
 
@@ -242,7 +242,7 @@ pub fn evaluate_constants(mut index: Index) -> (Index, Vec<UnresolvableConstant>
                         index
                             .get_mut_const_expressions()
                             .mark_resolved(&candidate, literal)
-                            .unwrap(); //panic if we dont know the id
+                            .expect("unknown id for const-expression"); //panic if we dont know the id
                         failed_tries = 0;
                     }
 
@@ -258,7 +258,7 @@ pub fn evaluate_constants(mut index: Index) -> (Index, Vec<UnresolvableConstant>
                         index
                             .get_mut_const_expressions()
                             .mark_unresolvable(&candidate, err_msg.as_str())
-                            .unwrap(); //panic at unknown Id
+                            .expect("unknown id for const-expression"); //panic if we dont know the id
 
                         unresolvable.push(UnresolvableConstant::new(candidate, err_msg.as_str()))
                     }

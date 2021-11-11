@@ -515,6 +515,12 @@ impl Index {
         self.type_index.find_effective_type_by_name(type_name)
     }
 
+    /// returns the effective DataType of the type with the given name or an Error
+    pub fn get_effective_type(&self, type_name: &str) -> Result<&DataType, CompileError> {
+        self.type_index.find_effective_type_by_name(type_name)
+            .ok_or_else(|| CompileError::unknown_type(type_name, SourceRange::undefined()))
+    }
+
     /// returns the effective DataTypeInformation of the type with the given name if it exists
     pub fn find_effective_type_info(&self, type_name: &str) -> Option<&DataTypeInformation> {
         self.find_effective_type(type_name)

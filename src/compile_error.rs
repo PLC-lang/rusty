@@ -4,6 +4,8 @@ use thiserror::Error;
 
 use crate::ast::SourceRange;
 
+pub const INTERNAL_LLVM_ERROR: &str = "internal llvm codegen error";
+
 #[derive(Error, Debug, PartialEq)]
 pub enum CompileError {
     #[error("Unknown reference '{reference}' at {location:?}")]
@@ -42,6 +44,7 @@ pub enum CompileError {
 
     #[error("Cannot link: {reason:}")]
     LinkerError { reason: String },
+
 }
 
 impl CompileError {
@@ -106,6 +109,10 @@ impl CompileError {
 
     pub fn literal_or_constant_int_expected(location: SourceRange) -> CompileError {
         CompileError::codegen_error("Expected integer literal or constant".to_string(), location)
+    }
+
+    pub fn relocate(e: &CompileError, location: SourceRange) -> CompileError {
+        CompileError::codegen_error(e.to_string(), location)
     }
 }
 
