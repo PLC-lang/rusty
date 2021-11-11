@@ -7,63 +7,64 @@ use crate::compile_and_run;
 #[repr(C)]
 #[derive(Default)]
 struct datatype_0 {
-field_0: i16,
+    field_0: i16,
 }
 
 #[allow(dead_code)]
 #[repr(C)]
 #[derive(Default)]
 struct datatype_1 {
-field_1: i16,
+    field_1: i16,
 }
 
 #[allow(dead_code)]
 #[repr(C)]
 #[derive(Default)]
 struct datatype_2 {
-field_2: i16,
+    field_2: i16,
 }
 
 #[allow(dead_code)]
 #[repr(C)]
 #[derive(Default)]
 struct datatype_3 {
-field_3: i16,
+    field_3: i16,
 }
 
 #[allow(dead_code)]
 #[repr(C)]
 #[derive(Default)]
 struct datatype_4 {
-field_4: i16,
+    field_4: i16,
 }
 
 #[allow(dead_code)]
 #[repr(C)]
 #[derive(Default)]
-struct  datatype_5 {
-  a_start_point : [i16; 2],
-  a_point1     : [i16; 2],
-  a_point2     : [i16; 2],
-  a_point3     : [i16; 2],
-  a_point4     : [i16; 2],
-  a_end_point   :[i16; 2],
+struct datatype_5 {
+    a_start_point: [i16; 2],
+    a_point1: [i16; 2],
+    a_point2: [i16; 2],
+    a_point3: [i16; 2],
+    a_point4: [i16; 2],
+    a_end_point: [i16; 2],
 }
 
 #[allow(dead_code)]
 #[repr(C)]
 #[derive(Default)]
-struct MainTypeInit {
-  local_var0    : datatype_0,
-  local_var1    : datatype_1,
-  local_var2    : datatype_2,
-  local_var3    : datatype_3,
-  local_var4    : datatype_4,
-  local_var5    : datatype_5,
-  b_ret0    : bool,}
+struct main_type_init {
+    local_var0: datatype_0,
+    local_var1: datatype_1,
+    local_var2: datatype_2,
+    local_var3: datatype_3,
+    local_var4: datatype_4,
+    local_var5: datatype_5,
+    b_ret0: bool,
+}
 
-fn new() -> MainTypeInit {
-  MainTypeInit::default()
+fn new() -> main_type_init {
+    main_type_init::default()
 }
 
 #[test]
@@ -193,28 +194,27 @@ fn function_init() {
     END_PROGRAM
   ";
 
-    let mut MainTypeInit = new();
+    let mut main_type_init = new();
 
-    compile_and_run::<_, i32>(function.to_string(), &mut MainTypeInit);
+    compile_and_run::<_, i32>(function.to_string(), &mut main_type_init);
 
-    assert_eq!(true, MainTypeInit.b_ret0);
-
+    assert_eq!(true, main_type_init.b_ret0);
 }
 
 #[allow(dead_code)]
 #[repr(C)]
 #[derive(Default)]
 struct MainTypeStruct {
-  local_var0    : datatype_0,
-  local_var1    : datatype_1,
-  local_var2    : datatype_2,
-  local_var3    : datatype_3,
-  local_var4    : datatype_4,
-  local_var5    : datatype_5,
-  b_ret0    : bool,
+    local_var0: datatype_0,
+    local_var1: datatype_1,
+    local_var2: datatype_2,
+    local_var3: datatype_3,
+    local_var4: datatype_4,
+    local_var5: datatype_5,
+    b_ret0: bool,
 }
 
-fn newWithStruct() -> MainTypeStruct {
+fn new_with_struct() -> MainTypeStruct {
     MainTypeStruct::default()
 }
 
@@ -330,43 +330,43 @@ fn function_call_struct() {
     END_PROGRAM
     ";
 
-    let mut newWithStruct: MainTypeStruct = newWithStruct();
+    let mut new_with_struct: MainTypeStruct = new_with_struct();
 
-    compile_and_run::<_, i32>(function.to_string(), &mut newWithStruct);
+    compile_and_run::<_, i32>(function.to_string(), &mut new_with_struct);
 
-    assert_eq!(false, newWithStruct.b_ret0);
+    assert_eq!(false, new_with_struct.b_ret0);
 }
 
 #[allow(dead_code)]
 #[repr(C)]
 #[derive(Default)]
 struct function_block_0 {
-  in_var0    : datatype_0,
-  in_var1    : datatype_1,
-  in_var2    : datatype_2,
-  in_var3    : datatype_3,
-  in_var4    : datatype_4,
-  in_var5    : datatype_5,
-  ret_val    : bool,
-  out_var0    : datatype_0,
-  out_var1    : datatype_1,
-  out_var2    : datatype_2,
-  out_var3    : datatype_3,
-  out_var4    : datatype_4,
-  out_var5    : datatype_5,
+    in_var0: datatype_0,
+    in_var1: datatype_1,
+    in_var2: datatype_2,
+    in_var3: datatype_3,
+    in_var4: datatype_4,
+    in_var5: datatype_5,
+    ret_val: bool,
+    out_var0: datatype_0,
+    out_var1: datatype_1,
+    out_var2: datatype_2,
+    out_var3: datatype_3,
+    out_var4: datatype_4,
+    out_var5: datatype_5,
 }
 
 #[allow(dead_code)]
 #[repr(C)]
 #[derive(Default)]
 struct MainTypeFbInit {
-  fb_0: function_block_0,
-  b_ret0: bool,
-  b_ret1: bool,
+    fb_0: function_block_0,
+    b_ret0: bool,
+    b_ret1: bool,
 }
 
-fn newWithFbInit() -> MainTypeFbInit {
-  MainTypeFbInit::default()
+fn new_with_fb_init() -> MainTypeFbInit {
+    MainTypeFbInit::default()
 }
 
 #[test]
@@ -505,70 +505,70 @@ fn fb_init() {
     END_PROGRAM
    ";
 
-    let mut newFbInit: MainTypeFbInit = newWithFbInit();
+    let mut new_fb_init: MainTypeFbInit = new_with_fb_init();
 
-    compile_and_run::<_, i32>(function.to_string(), &mut newFbInit);
+    compile_and_run::<_, i32>(function.to_string(), &mut new_fb_init);
 
-    assert_eq!(false, newFbInit.b_ret0);
-    assert_eq!(false, newFbInit.b_ret1);
+    assert_eq!(false, new_fb_init.b_ret0);
+    assert_eq!(false, new_fb_init.b_ret1);
 }
 
 #[allow(dead_code)]
 #[repr(C)]
 #[derive(Default)]
 struct fb_0 {
-  in_var0    : datatype_0,
-  in_var1    : datatype_1,
-  in_var2    : datatype_2,
-  in_var3    : datatype_3,
-  in_var4    : datatype_4,
-  in_var5    : datatype_5,
-  in_out_var0    : datatype_0,
-  in_out_var1    : datatype_1,
-  in_out_var2    : datatype_2,
-  in_out_var3    : datatype_3,
-  in_out_var4    : datatype_4,
-  in_out_var5    : datatype_5,
-  out_var0    : datatype_0,
-  out_var1    : datatype_1,
-  out_var2    : datatype_2,
-  out_var3    : datatype_3,
-  out_var4    : datatype_4,
-  out_var5    : datatype_5,
-  b_ret_in_val    : bool,
-  b_ret_in_out_val    : bool,
+    in_var0: datatype_0,
+    in_var1: datatype_1,
+    in_var2: datatype_2,
+    in_var3: datatype_3,
+    in_var4: datatype_4,
+    in_var5: datatype_5,
+    in_out_var0: datatype_0,
+    in_out_var1: datatype_1,
+    in_out_var2: datatype_2,
+    in_out_var3: datatype_3,
+    in_out_var4: datatype_4,
+    in_out_var5: datatype_5,
+    out_var0: datatype_0,
+    out_var1: datatype_1,
+    out_var2: datatype_2,
+    out_var3: datatype_3,
+    out_var4: datatype_4,
+    out_var5: datatype_5,
+    b_ret_in_val: bool,
+    b_ret_in_out_val: bool,
 }
 
 #[allow(dead_code)]
 #[repr(C)]
 #[derive(Default)]
 struct MainTypeCallFb {
-  fb_0    : fb_0,
-  in_var0    : datatype_0,
-  in_var1    : datatype_1,
-  in_var2    : datatype_2,
-  in_var3    : datatype_3,
-  in_var4    : datatype_4,
-  in_var5    : datatype_5,
-  in_out_var0    : datatype_0,
-  in_out_var1    : datatype_1,
-  in_out_var2    : datatype_2,
-  in_out_var3    : datatype_3,
-  in_out_var4    : datatype_4,
-  in_out_var5    : datatype_5,
-  out_var0    : datatype_0,
-  out_var1    : datatype_1,
-  out_var2    : datatype_2,
-  out_var3    : datatype_3,
-  out_var4    : datatype_4,
-  out_var5    : datatype_5,
-  b_ret_in_val    : bool,
-  b_ret_in_out_val    : bool,
-  b_ret_out_val    : bool,
+    fb_0: fb_0,
+    in_var0: datatype_0,
+    in_var1: datatype_1,
+    in_var2: datatype_2,
+    in_var3: datatype_3,
+    in_var4: datatype_4,
+    in_var5: datatype_5,
+    in_out_var0: datatype_0,
+    in_out_var1: datatype_1,
+    in_out_var2: datatype_2,
+    in_out_var3: datatype_3,
+    in_out_var4: datatype_4,
+    in_out_var5: datatype_5,
+    out_var0: datatype_0,
+    out_var1: datatype_1,
+    out_var2: datatype_2,
+    out_var3: datatype_3,
+    out_var4: datatype_4,
+    out_var5: datatype_5,
+    b_ret_in_val: bool,
+    b_ret_in_out_val: bool,
+    b_ret_out_val: bool,
 }
 
-fn newWithFbCall() -> MainTypeCallFb {
-  MainTypeCallFb::default()
+fn new_with_fb_call() -> MainTypeCallFb {
+    MainTypeCallFb::default()
 }
 
 #[test]
@@ -835,26 +835,26 @@ fn fb_call() {
   END_IF
   END_PROGRAM
       ";
-      
-      let mut newFbCall: MainTypeCallFb = newWithFbCall();
-      
-      compile_and_run::<_, i32>(function.to_string(), &mut newFbCall);
-      
-      assert_eq!(false, newFbCall.b_ret_in_val);
-      assert_eq!(false, newFbCall.b_ret_in_out_val);
-      assert_eq!(false, newFbCall.b_ret_out_val);
+
+    let mut new_with_fb_call: MainTypeCallFb = new_with_fb_call();
+
+    compile_and_run::<_, i32>(function.to_string(), &mut new_with_fb_call);
+
+    assert_eq!(false, new_with_fb_call.b_ret_in_val);
+    assert_eq!(false, new_with_fb_call.b_ret_in_out_val);
+    assert_eq!(false, new_with_fb_call.b_ret_out_val);
 }
 
 #[allow(dead_code)]
 #[repr(C)]
 #[derive(Default)]
 struct MainTypePrgInit {
-  b_ret0    : bool,
-  b_ret1    : bool,
+    b_ret0: bool,
+    b_ret1: bool,
 }
 
-fn newWIthPrgInit() -> MainTypePrgInit {
-  MainTypePrgInit::default()
+fn new_with_prg_init() -> MainTypePrgInit {
+    MainTypePrgInit::default()
 }
 
 #[test]
@@ -979,25 +979,25 @@ fn prg_init() {
 
     END_PROGRAM
       ";
-      
-      let mut newPrgInit: MainTypePrgInit = newWIthPrgInit();
-      
-      compile_and_run::<_, i32>(function.to_string(), &mut newPrgInit);
-      
-      assert_eq!(false, newPrgInit.b_ret0);
-      assert_eq!(false, newPrgInit.b_ret1);
+
+    let mut new_prg_init: MainTypePrgInit = new_with_prg_init();
+
+    compile_and_run::<_, i32>(function.to_string(), &mut new_prg_init);
+
+    assert_eq!(false, new_prg_init.b_ret0);
+    assert_eq!(false, new_prg_init.b_ret1);
 }
 
 #[allow(dead_code)]
 #[repr(C)]
 #[derive(Default)]
 struct MainTypePrgCall {
-  b_ret0    : bool,
-  b_ret1    : bool,
+    b_ret0: bool,
+    b_ret1: bool,
 }
 
-fn newWIthPrgCall() -> MainTypePrgCall {
-  MainTypePrgCall::default()
+fn new_with_prg_call() -> MainTypePrgCall {
+    MainTypePrgCall::default()
 }
 
 #[test]
@@ -1246,11 +1246,11 @@ fn prg_call() {
   
     END_PROGRAM
       ";
-      
-      let mut newPrgCall: MainTypePrgCall = newWIthPrgCall();
-      
-      compile_and_run::<_, i32>(function.to_string(), &mut newPrgCall);
-      
-      assert_eq!(false, newPrgCall.b_ret0);
-      assert_eq!(false, newPrgCall.b_ret1);
+
+    let mut new_prg_call: MainTypePrgCall = new_with_prg_call();
+
+    compile_and_run::<_, i32>(function.to_string(), &mut new_with_prg_call);
+
+    assert_eq!(false, new_prg_call.b_ret0);
+    assert_eq!(false, new_prg_call.b_ret1);
 }
