@@ -755,6 +755,30 @@ impl Index {
     pub fn get_const_expressions(&self) -> &ConstExpressions {
         &self.constant_expressions
     }
+
+    /// returns the intrinsic (built-in) type represented by the given type-information
+    /// this will return the built-in type behind alias and range-types
+    pub fn find_intrinsic_type<'idx>(
+        &'idx self,
+        initial_type: &'idx DataTypeInformation,
+    ) -> &'idx DataTypeInformation {
+        match initial_type {
+            DataTypeInformation::SubRange { .. } | DataTypeInformation::Alias { .. } => {
+                let inner_type_name = match initial_type {
+                    DataTypeInformation::SubRange {
+                        referenced_type, ..
+                    } => referenced_type,
+                    _ => initial_type.get_name(),
+                };
+                if let Some(inner_type) = self.find_effective_type_info(inner_type_name) {
+                    self.find_intrinsic_type(inner_type)
+                } else {
+                    initial_type
+                }
+            }
+            _ => initial_type,
+        }
+    }
 }
 
 impl Default for Index {
