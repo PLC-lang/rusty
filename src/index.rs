@@ -357,7 +357,7 @@ impl Index {
     /// imports the corresponding TypeSize (according to the given initializer-id) from the given ConstExpressions
     /// into self's const-expressions and returns the new Id
     ///
-    /// panics if the import fails (e.g. the given TypeSice::ConstExpression(id) does not exist in this Index)
+    /// panics if the import fails (e.g. the given TypeSize::ConstExpression(id) does not exist in this Index)
     /// this problem would indicate a programming mistake
     fn import_type_size(
         &mut self,

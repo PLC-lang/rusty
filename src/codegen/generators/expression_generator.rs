@@ -1591,7 +1591,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
             self.get_type_hint_for(right)?,
             self.generate_expression(right)?,
         );
-        let final_right_block = builder.get_insert_block().expect("internal");
+        let final_right_block = builder.get_insert_block().expect(INTERNAL_LLVM_ERROR);
         let rhs = right_value;
         builder.build_unconditional_branch(continue_branch);
 

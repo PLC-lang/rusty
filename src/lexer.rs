@@ -240,7 +240,7 @@ impl<'a> ParseSession<'a> {
                 let closing = self
                     .closing_keywords
                     .last()
-                    .expect("Prase-recovery has no closing-keyword to recover from."); //illegal state! invalid use of perser-recovery?
+                    .expect("parse-recovery has no closing-keyword to recover from."); //illegal state! invalid use of parser-recovery?
                 let expected_tokens = format!("{:?}", closing);
                 self.accept_diagnostic(Diagnostic::missing_token(
                     expected_tokens.as_str(),

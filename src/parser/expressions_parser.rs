@@ -585,11 +585,11 @@ fn parse_date_from_string(
     let month = segments
         .next()
         .map(|s| parse_number::<u32>(s, &location))
-        .expect("year-segment - tokenizer broken?")?;
+        .expect("month-segment - tokenizer broken?")?;
     let day = segments
         .next()
         .map(|s| parse_number::<u32>(s, &location))
-        .expect("year-segment - tokenizer broken?")?;
+        .expect("day-segment - tokenizer broken?")?;
 
     Ok(AstStatement::LiteralDate {
         year,
