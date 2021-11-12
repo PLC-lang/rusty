@@ -559,9 +559,18 @@ fn get_rank(type_information: &DataTypeInformation) -> u32 {
     }
 }
 
-fn is_same_type_nature(ltype: &DataTypeInformation, rtype: &DataTypeInformation) -> bool {
-    (ltype.is_int() && ltype.is_int() == rtype.is_int())
-        || (ltype.is_float() && ltype.is_float() == rtype.is_float())
+pub fn is_same_type_nature(
+    ltype: &DataTypeInformation,
+    rtype: &DataTypeInformation,
+    index: &Index,
+) -> bool {
+    let ltype = index.find_intrinsic_type(ltype);
+    let rtype = index.find_intrinsic_type(rtype);
+    match ltype {
+        DataTypeInformation::Integer { .. } => matches!(rtype, DataTypeInformation::Integer { .. }),
+        DataTypeInformation::Float { .. } => matches!(rtype, DataTypeInformation::Float { .. }),
+        _ => ltype == rtype,
+    }
 }
 
 pub fn get_bigger_type<'t>(
@@ -571,7 +580,7 @@ pub fn get_bigger_type<'t>(
 ) -> &'t DataType {
     let lt = left_type.get_type_information();
     let rt = right_type.get_type_information();
-    if is_same_type_nature(lt, rt) {
+    if is_same_type_nature(lt, rt, index) {
         if get_rank(lt) < get_rank(rt) {
             right_type
         } else {
