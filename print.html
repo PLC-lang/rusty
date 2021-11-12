@@ -201,23 +201,26 @@ supporting at least the features in 2nd edition IEC 61131 standard. </p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="building-and-installing"><a class="header" href="#building-and-installing">Building and Installing</a></h1>
 <h2 id="prerequisites"><a class="header" href="#prerequisites">Prerequisites</a></h2>
 <p>To be able to build the source code, you will need to <a href="https://www.rust-lang.org/tools/install">install Rust</a>
-and LLVM 11, along with the standard build tools (<code>build-essential</code>) and <code>libz-dev</code> on your machine.
-For Linux the package manager version of LLVM (e.g. <code>llvm-11-dev</code>, <code>liblld-11-dev</code> for apt) will work fine, for Windows, you need a
-<a href="https://github.com/PLC-lang/llvm-package-windows/releases/tag/v11.0.1">special build</a>. If you want to
-clone and work on the repository, you'll also need <em>git</em>.</p>
+and the following dependencies:</p>
+<ul>
+<li>the usual <strong>standard build tools</strong> (aka <code>build-essential</code>)</li>
+<li><strong>LLVM 12</strong>: On Ubuntu, the package manager version of LLVM (e.g. <code>llvm-12-dev</code>, <code>liblld-12-dev</code>) will work fine,
+on debian you'll need to add additional repository sources (<code>deb http://apt.llvm.org/bullseye/ llvm-toolchain-bullseye-12 main</code>), since Debian 11 (latest) only includes LLVM packages up to version 11. For Windows, you need a
+<a href="https://github.com/PLC-lang/llvm-package-windows/releases/tag/v12.0.1">special build</a>.</li>
+<li><strong>zlib</strong> (apt: <code>libz-dev</code>)</li>
+<li><strong>Polly</strong> in the form of a static library (included in apt package <code>libclang-common-12-dev</code>). Alternatively,
+building LLVM from source should also provide you with that file. Building from source may take a while, though.</li>
+<li>If you want to clone and work on the repository, you'll also need <strong>git</strong>.</li>
+</ul>
 <h3 id="tips-for-troubleshooting"><a class="header" href="#tips-for-troubleshooting">Tips for troubleshooting</a></h3>
 <ul>
 <li>Because of weak compatibility guarantees of the LLVM API, the LLVM installation must exactly match the
-major version of the <code>llvm-sys</code> crate. Currently you will need to install LLVM 11 to satisfy this constraint.
+major version of the <code>llvm-sys</code> crate. Currently you will need to install LLVM 12 to satisfy this constraint.
 <a href="https://crates.io/crates/llvm-sys">Read more</a></li>
 <li>To avoid installation conflicts on Linux/Ubuntu, make sure you don't have a default installation available
-(like just installing <code>llvm-dev</code>), which may break things. If you do, make sure you have set
-the appropriate environment variable (<code>LLVM_SYS_110_PREFIX=/usr/lib/llvm-11</code> for LLVM 11), so
+(like you get by just installing <code>llvm-dev</code>), which may break things. If you do, make sure you have set
+the appropriate environment variable (<code>LLVM_SYS_120_PREFIX=/usr/lib/llvm-12</code> for LLVM 12), so
 the build of the <code>llvm-sys</code> crate knows what files to grab.</li>
-<li>If you get an error stating that the <code>native static library 'Polly'</code> cannot be found, you might want to
-install the <code>libclang-common-11-dev</code> package, which includes this library in the form of a static library.
-Alternatively, building LLVM from source should also provide you with that file. Building from source may
-take a while, though.</li>
 </ul>
 <h2 id="cloning-the-repository"><a class="header" href="#cloning-the-repository">Cloning the repository</a></h2>
 <p>On your local computer, open up a shell and clone the repository.</p>
