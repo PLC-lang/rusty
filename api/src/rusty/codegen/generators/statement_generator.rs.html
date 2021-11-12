@@ -735,14 +735,26 @@
 <span id="735">735</span>
 <span id="736">736</span>
 <span id="737">737</span>
+<span id="738">738</span>
+<span id="739">739</span>
+<span id="740">740</span>
+<span id="741">741</span>
+<span id="742">742</span>
+<span id="743">743</span>
+<span id="744">744</span>
+<span id="745">745</span>
+<span id="746">746</span>
+<span id="747">747</span>
+<span id="748">748</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 <span class="kw">use</span> <span class="kw">super</span>::{
     <span class="ident">expression_generator::ExpressionCodeGenerator</span>, <span class="ident">llvm::Llvm</span>, <span class="ident">pou_generator::PouGenerator</span>,
 };
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">ast</span>::{<span class="ident">flatten_expression_list</span>, <span class="ident">AstStatement</span>, <span class="ident">ConditionalBlock</span>, <span class="ident">Operator</span>, <span class="ident">SourceRange</span>},
-    <span class="ident">codegen</span>::{<span class="ident">llvm_typesystem</span>, <span class="ident">LlvmTypedIndex</span>},
-    <span class="ident">compile_error::CompileError</span>,
+    <span class="ident">codegen::llvm_typesystem</span>,
+    <span class="ident">codegen::LlvmTypedIndex</span>,
+    <span class="ident">compile_error</span>::{<span class="ident">CompileError</span>, <span class="ident">INTERNAL_LLVM_ERROR</span>},
     <span class="ident">index</span>::{<span class="ident">ImplementationIndexEntry</span>, <span class="ident">Index</span>},
     <span class="ident">resolver::AnnotationMap</span>,
     <span class="ident">typesystem</span>::{
@@ -834,8 +846,10 @@
     <span class="doccomment">/// follow each other. this is what we call a buffer block.</span>
     <span class="kw">fn</span> <span class="ident">generate_buffer_block</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) {
         <span class="kw">let</span> (<span class="ident">builder</span>, <span class="kw">_</span>, <span class="ident">context</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_llvm_deps</span>();
-        <span class="kw">let</span> <span class="ident">buffer_block</span> <span class="op">=</span>
-            <span class="ident">context</span>.<span class="ident">insert_basic_block_after</span>(<span class="ident">builder</span>.<span class="ident">get_insert_block</span>().<span class="ident">unwrap</span>(), <span class="string">&quot;buffer_block&quot;</span>);
+        <span class="kw">let</span> <span class="ident">buffer_block</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">insert_basic_block_after</span>(
+            <span class="ident">builder</span>.<span class="ident">get_insert_block</span>().<span class="ident">expect</span>(<span class="ident">INTERNAL_LLVM_ERROR</span>),
+            <span class="string">&quot;buffer_block&quot;</span>,
+        );
         <span class="ident">builder</span>.<span class="ident">position_at_end</span>(<span class="ident">buffer_block</span>);
     }
 
@@ -1193,7 +1207,7 @@
         <span class="comment">//Continue</span>
         <span class="kw">let</span> <span class="ident">continue_block</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">append_basic_block</span>(<span class="ident">current_function</span>, <span class="string">&quot;continue&quot;</span>);
 
-        <span class="kw">let</span> <span class="ident">basic_block</span> <span class="op">=</span> <span class="ident">builder</span>.<span class="ident">get_insert_block</span>().<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="ident">basic_block</span> <span class="op">=</span> <span class="ident">builder</span>.<span class="ident">get_insert_block</span>().<span class="ident">expect</span>(<span class="ident">INTERNAL_LLVM_ERROR</span>);
         <span class="kw">let</span> <span class="ident">exp_gen</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">create_expr_generator</span>();
         <span class="kw">let</span> <span class="ident">selector_statement</span> <span class="op">=</span> <span class="ident">exp_gen</span>.<span class="ident">generate_expression</span>(<span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">selector</span>)<span class="question-mark">?</span>;
 
@@ -1236,7 +1250,9 @@
         <span class="ident">builder</span>.<span class="ident">position_at_end</span>(<span class="ident">current_else_block</span>);
         <span class="self">self</span>.<span class="ident">generate_body</span>(<span class="ident">else_body</span>)<span class="question-mark">?</span>;
         <span class="ident">builder</span>.<span class="ident">build_unconditional_branch</span>(<span class="ident">continue_block</span>);
-        <span class="ident">continue_block</span>.<span class="ident">move_after</span>(<span class="ident">current_else_block</span>).<span class="ident">unwrap</span>();
+        <span class="ident">continue_block</span>
+            .<span class="ident">move_after</span>(<span class="ident">current_else_block</span>)
+            .<span class="ident">expect</span>(<span class="ident">INTERNAL_LLVM_ERROR</span>);
 
         <span class="comment">// now that we collected all cases, go back to the initial block and generate the switch-statement</span>
         <span class="ident">builder</span>.<span class="ident">position_at_end</span>(<span class="ident">basic_block</span>);
@@ -1258,8 +1274,10 @@
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">BasicBlock</span>, <span class="ident">CompileError</span><span class="op">&gt;</span> {
         <span class="kw">let</span> (<span class="ident">builder</span>, <span class="kw">_</span>, <span class="ident">context</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_llvm_deps</span>();
 
-        <span class="kw">let</span> <span class="ident">range_then</span> <span class="op">=</span>
-            <span class="ident">context</span>.<span class="ident">insert_basic_block_after</span>(<span class="ident">builder</span>.<span class="ident">get_insert_block</span>().<span class="ident">unwrap</span>(), <span class="string">&quot;range_then&quot;</span>);
+        <span class="kw">let</span> <span class="ident">range_then</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">insert_basic_block_after</span>(
+            <span class="ident">builder</span>.<span class="ident">get_insert_block</span>().<span class="ident">expect</span>(<span class="ident">INTERNAL_LLVM_ERROR</span>),
+            <span class="string">&quot;range_then&quot;</span>,
+        );
         <span class="kw">let</span> <span class="ident">range_else</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">insert_basic_block_after</span>(<span class="ident">range_then</span>, <span class="string">&quot;range_else&quot;</span>);
         <span class="kw">let</span> <span class="ident">exp_gen</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">create_expr_generator</span>();
         <span class="kw">let</span> <span class="ident">lower_bound</span> <span class="op">=</span> {
@@ -1298,12 +1316,14 @@
         <span class="ident">body</span>: <span class="kw-2">&amp;</span>[<span class="ident">AstStatement</span>],
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">BasicValueEnum</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span>, <span class="ident">CompileError</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">builder</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">llvm</span>.<span class="ident">builder</span>;
-        <span class="kw">let</span> <span class="ident">basic_block</span> <span class="op">=</span> <span class="ident">builder</span>.<span class="ident">get_insert_block</span>().<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="ident">basic_block</span> <span class="op">=</span> <span class="ident">builder</span>.<span class="ident">get_insert_block</span>().<span class="ident">expect</span>(<span class="ident">INTERNAL_LLVM_ERROR</span>);
         <span class="self">self</span>.<span class="ident">generate_base_while_statement</span>(<span class="ident">condition</span>, <span class="ident">body</span>)<span class="question-mark">?</span>;
 
-        <span class="kw">let</span> <span class="ident">continue_block</span> <span class="op">=</span> <span class="ident">builder</span>.<span class="ident">get_insert_block</span>().<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="ident">continue_block</span> <span class="op">=</span> <span class="ident">builder</span>.<span class="ident">get_insert_block</span>().<span class="ident">expect</span>(<span class="ident">INTERNAL_LLVM_ERROR</span>);
 
-        <span class="kw">let</span> <span class="ident">condition_block</span> <span class="op">=</span> <span class="ident">basic_block</span>.<span class="ident">get_next_basic_block</span>().<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="ident">condition_block</span> <span class="op">=</span> <span class="ident">basic_block</span>
+            .<span class="ident">get_next_basic_block</span>()
+            .<span class="ident">expect</span>(<span class="ident">INTERNAL_LLVM_ERROR</span>);
         <span class="ident">builder</span>.<span class="ident">position_at_end</span>(<span class="ident">basic_block</span>);
         <span class="ident">builder</span>.<span class="ident">build_unconditional_branch</span>(<span class="ident">condition_block</span>);
 
@@ -1326,12 +1346,14 @@
         <span class="ident">body</span>: <span class="kw-2">&amp;</span>[<span class="ident">AstStatement</span>],
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">BasicValueEnum</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span>, <span class="ident">CompileError</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">builder</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">llvm</span>.<span class="ident">builder</span>;
-        <span class="kw">let</span> <span class="ident">basic_block</span> <span class="op">=</span> <span class="ident">builder</span>.<span class="ident">get_insert_block</span>().<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="ident">basic_block</span> <span class="op">=</span> <span class="ident">builder</span>.<span class="ident">get_insert_block</span>().<span class="ident">expect</span>(<span class="ident">INTERNAL_LLVM_ERROR</span>);
         <span class="self">self</span>.<span class="ident">generate_base_while_statement</span>(<span class="ident">condition</span>, <span class="ident">body</span>)<span class="question-mark">?</span>;
 
-        <span class="kw">let</span> <span class="ident">continue_block</span> <span class="op">=</span> <span class="ident">builder</span>.<span class="ident">get_insert_block</span>().<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="ident">continue_block</span> <span class="op">=</span> <span class="ident">builder</span>.<span class="ident">get_insert_block</span>().<span class="ident">expect</span>(<span class="ident">INTERNAL_LLVM_ERROR</span>);
 
-        <span class="kw">let</span> <span class="ident">while_block</span> <span class="op">=</span> <span class="ident">continue_block</span>.<span class="ident">get_previous_basic_block</span>().<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="ident">while_block</span> <span class="op">=</span> <span class="ident">continue_block</span>
+            .<span class="ident">get_previous_basic_block</span>()
+            .<span class="ident">expect</span>(<span class="ident">INTERNAL_LLVM_ERROR</span>);
         <span class="ident">builder</span>.<span class="ident">position_at_end</span>(<span class="ident">basic_block</span>);
         <span class="ident">builder</span>.<span class="ident">build_unconditional_branch</span>(<span class="ident">while_block</span>);
 
@@ -1389,7 +1411,7 @@
         <span class="ident">else_body</span>: <span class="kw-2">&amp;</span>[<span class="ident">AstStatement</span>],
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">CompileError</span><span class="op">&gt;</span> {
         <span class="kw">let</span> (<span class="ident">builder</span>, <span class="ident">current_function</span>, <span class="ident">context</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_llvm_deps</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">blocks</span> <span class="op">=</span> <span class="macro">vec!</span>[<span class="ident">builder</span>.<span class="ident">get_insert_block</span>().<span class="ident">unwrap</span>()];
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">blocks</span> <span class="op">=</span> <span class="macro">vec!</span>[<span class="ident">builder</span>.<span class="ident">get_insert_block</span>().<span class="ident">expect</span>(<span class="ident">INTERNAL_LLVM_ERROR</span>)];
         <span class="kw">for</span> <span class="kw">_</span> <span class="kw">in</span> <span class="number">1</span>..<span class="ident">conditional_blocks</span>.<span class="ident">len</span>() {
             <span class="ident">blocks</span>.<span class="ident">push</span>(<span class="ident">context</span>.<span class="ident">append_basic_block</span>(<span class="ident">current_function</span>, <span class="string">&quot;branch&quot;</span>));
         }

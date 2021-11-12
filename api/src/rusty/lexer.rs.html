@@ -352,6 +352,7 @@
 <span id="352">352</span>
 <span id="353">353</span>
 <span id="354">354</span>
+<span id="355">355</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 <span class="kw">use</span> <span class="ident">core::ops::Range</span>;
 <span class="kw">use</span> <span class="ident">logos::Filter</span>;
@@ -591,7 +592,10 @@
 
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">hit</span>) <span class="op">=</span> <span class="ident">hit</span> {
             <span class="kw">if</span> <span class="self">self</span>.<span class="ident">closing_keywords</span>.<span class="ident">len</span>() <span class="op">&gt;</span> <span class="ident">hit</span> <span class="op">+</span> <span class="number">1</span> {
-                <span class="kw">let</span> <span class="ident">closing</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">closing_keywords</span>.<span class="ident">last</span>().<span class="ident">unwrap</span>();
+                <span class="kw">let</span> <span class="ident">closing</span> <span class="op">=</span> <span class="self">self</span>
+                    .<span class="ident">closing_keywords</span>
+                    .<span class="ident">last</span>()
+                    .<span class="ident">expect</span>(<span class="string">&quot;parse-recovery has no closing-keyword to recover from.&quot;</span>); <span class="comment">//illegal state! invalid use of parser-recovery?</span>
                 <span class="kw">let</span> <span class="ident">expected_tokens</span> <span class="op">=</span> <span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="ident">closing</span>);
                 <span class="self">self</span>.<span class="ident">accept_diagnostic</span>(<span class="ident">Diagnostic::missing_token</span>(
                     <span class="ident">expected_tokens</span>.<span class="ident">as_str</span>(),
@@ -651,11 +655,9 @@
             <span class="string">&#39;b&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident"><span class="kw">crate</span>::ast::DirectAccessType::Byte</span>),
             <span class="string">&#39;w&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident"><span class="kw">crate</span>::ast::DirectAccessType::Word</span>),
             <span class="string">&#39;d&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident"><span class="kw">crate</span>::ast::DirectAccessType::DWord</span>),
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="macro">unreachable!</span>()
-            }
+            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
         })
-        .<span class="ident">unwrap</span>(); <span class="comment">//Cannot fail</span>
+        .<span class="ident">expect</span>(<span class="string">&quot;Unknown access type - tokenizer/grammar incomplete?&quot;</span>);
 
     <span class="prelude-val">Some</span>(<span class="ident">access</span>)
 }

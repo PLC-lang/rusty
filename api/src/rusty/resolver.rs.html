@@ -1834,7 +1834,7 @@
                 <span class="kw">if</span> <span class="ident">left_type</span>.<span class="ident">get_type_information</span>().<span class="ident">is_numerical</span>()
                     <span class="op">&amp;&amp;</span> <span class="ident">right_type</span>.<span class="ident">get_type_information</span>().<span class="ident">is_numerical</span>()
                 {
-                    <span class="kw">let</span> <span class="ident">dint</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">index</span>.<span class="ident">find_effective_type</span>(<span class="ident">DINT_TYPE</span>).<span class="ident">unwrap</span>();
+                    <span class="kw">let</span> <span class="ident">dint</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">index</span>.<span class="ident">get_type_or_panic</span>(<span class="ident">DINT_TYPE</span>);
                     <span class="kw">let</span> <span class="ident">bigger_type</span> <span class="op">=</span> <span class="ident">get_bigger_type</span>(
                         <span class="ident">get_bigger_type</span>(<span class="ident">left_type</span>, <span class="ident">right_type</span>, <span class="self">self</span>.<span class="ident">index</span>),
                         <span class="ident">dint</span>,
@@ -1905,7 +1905,7 @@
                                     <span class="comment">// ... then check if we&#39;re in a method and we&#39;re referencing</span>
                                     <span class="comment">// a member variable of the corresponding class</span>
                                     <span class="self">self</span>.<span class="ident">index</span>
-                                        .<span class="ident">find_implementation</span>(<span class="ident">ctx</span>.<span class="ident">pou</span>.<span class="ident">unwrap</span>())
+                                        .<span class="ident">find_implementation</span>(<span class="ident">qualifier</span>)
                                         .<span class="ident">and_then</span>(
                                             <span class="ident">ImplementationIndexEntry::get_associated_class_name</span>,
                                         )

@@ -349,6 +349,8 @@
 <span id="349">349</span>
 <span id="350">350</span>
 <span id="351">351</span>
+<span id="352">352</span>
+<span id="353">353</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 <span class="kw">use</span> <span class="ident">inkwell</span>::{
     <span class="ident">builder::Builder</span>,
@@ -373,7 +375,7 @@
     <span class="ident">lvalue</span>: <span class="ident">BasicValueEnum</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span>,
     <span class="ident">ltype</span>: <span class="kw-2">&amp;</span><span class="ident">DataTypeInformation</span>,
     <span class="ident">target_type</span>: <span class="kw-2">&amp;</span><span class="ident">DataTypeInformation</span>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">BasicValueEnum</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> {
+) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">BasicValueEnum</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span>, <span class="ident">CompileError</span><span class="op">&gt;</span> {
     <span class="comment">//Is the target type int</span>
     <span class="comment">//Expand the current type to the target size</span>
     <span class="comment">//Is the target type float</span>
@@ -388,15 +390,15 @@
             <span class="comment">// INT --&gt; INT</span>
             <span class="kw">let</span> <span class="ident">int_value</span> <span class="op">=</span> <span class="ident">lvalue</span>.<span class="ident">into_int_value</span>();
             <span class="kw">if</span> <span class="ident">int_value</span>.<span class="ident">get_type</span>().<span class="ident">get_bit_width</span>() <span class="op">&lt;</span> <span class="kw-2">*</span><span class="ident">target_size</span> {
-                <span class="ident">create_llvm_extend_int_value</span>(
+                <span class="prelude-val">Ok</span>(<span class="ident">create_llvm_extend_int_value</span>(
                     <span class="ident">builder</span>,
                     <span class="ident">int_value</span>,
                     <span class="ident">ltype</span>,
-                    <span class="ident">get_llvm_int_type</span>(<span class="ident">context</span>, <span class="kw-2">*</span><span class="ident">target_size</span>, <span class="string">&quot;Integer&quot;</span>).<span class="ident">unwrap</span>(),
+                    <span class="ident">get_llvm_int_type</span>(<span class="ident">context</span>, <span class="kw-2">*</span><span class="ident">target_size</span>, <span class="string">&quot;Integer&quot;</span>)<span class="question-mark">?</span>,
                 )
-                .<span class="ident">into</span>()
+                .<span class="ident">into</span>())
             } <span class="kw">else</span> {
-                <span class="ident">lvalue</span>
+                <span class="prelude-val">Ok</span>(<span class="ident">lvalue</span>)
             }
         }
         <span class="ident">DataTypeInformation::Float</span> {
@@ -406,35 +408,35 @@
                 <span class="comment">// INT --&gt; FLOAT</span>
                 <span class="kw">let</span> <span class="ident">int_value</span> <span class="op">=</span> <span class="ident">lvalue</span>.<span class="ident">into_int_value</span>();
                 <span class="kw">if</span> <span class="ident">ltype</span>.<span class="ident">is_signed_int</span>() {
-                    <span class="ident">builder</span>
+                    <span class="prelude-val">Ok</span>(<span class="ident">builder</span>
                         .<span class="ident">build_signed_int_to_float</span>(
                             <span class="ident">int_value</span>,
-                            <span class="ident">get_llvm_float_type</span>(<span class="ident">context</span>, <span class="kw-2">*</span><span class="ident">target_size</span>, <span class="string">&quot;Float&quot;</span>).<span class="ident">unwrap</span>(),
+                            <span class="ident">get_llvm_float_type</span>(<span class="ident">context</span>, <span class="kw-2">*</span><span class="ident">target_size</span>, <span class="string">&quot;Float&quot;</span>)<span class="question-mark">?</span>,
                             <span class="string">&quot;&quot;</span>,
                         )
-                        .<span class="ident">into</span>()
+                        .<span class="ident">into</span>())
                 } <span class="kw">else</span> {
-                    <span class="ident">builder</span>
+                    <span class="prelude-val">Ok</span>(<span class="ident">builder</span>
                         .<span class="ident">build_unsigned_int_to_float</span>(
                             <span class="ident">int_value</span>,
-                            <span class="ident">get_llvm_float_type</span>(<span class="ident">context</span>, <span class="kw-2">*</span><span class="ident">target_size</span>, <span class="string">&quot;Float&quot;</span>).<span class="ident">unwrap</span>(),
+                            <span class="ident">get_llvm_float_type</span>(<span class="ident">context</span>, <span class="kw-2">*</span><span class="ident">target_size</span>, <span class="string">&quot;Float&quot;</span>)<span class="question-mark">?</span>,
                             <span class="string">&quot;&quot;</span>,
                         )
-                        .<span class="ident">into</span>()
+                        .<span class="ident">into</span>())
                 }
             } <span class="kw">else</span> {
                 <span class="comment">// FLOAT --&gt; FLOAT</span>
                 <span class="kw">if</span> <span class="kw">let</span> <span class="ident">DataTypeInformation::Float</span> { <span class="ident">size</span>, .. } <span class="op">=</span> <span class="ident">ltype</span> {
                     <span class="kw">if</span> <span class="ident">target_size</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">size</span> {
-                        <span class="ident">lvalue</span>
+                        <span class="prelude-val">Ok</span>(<span class="ident">lvalue</span>)
                     } <span class="kw">else</span> {
-                        <span class="ident">builder</span>
+                        <span class="prelude-val">Ok</span>(<span class="ident">builder</span>
                             .<span class="ident">build_float_ext</span>(
                                 <span class="ident">lvalue</span>.<span class="ident">into_float_value</span>(),
-                                <span class="ident">get_llvm_float_type</span>(<span class="ident">context</span>, <span class="kw-2">*</span><span class="ident">target_size</span>, <span class="string">&quot;Float&quot;</span>).<span class="ident">unwrap</span>(),
+                                <span class="ident">get_llvm_float_type</span>(<span class="ident">context</span>, <span class="kw-2">*</span><span class="ident">target_size</span>, <span class="string">&quot;Float&quot;</span>)<span class="question-mark">?</span>,
                                 <span class="string">&quot;&quot;</span>,
                             )
-                            .<span class="ident">into</span>()
+                            .<span class="ident">into</span>())
                     }
                 } <span class="kw">else</span> {
                     <span class="macro">unreachable!</span>()
@@ -494,19 +496,20 @@
                             .<span class="ident">builder</span>
                             .<span class="ident">build_int_truncate_or_bit_cast</span>(
                                 <span class="ident">value</span>.<span class="ident">into_int_value</span>(),
-                                <span class="ident">get_llvm_int_type</span>(<span class="ident">llvm</span>.<span class="ident">context</span>, <span class="kw-2">*</span><span class="ident">lsize</span>, <span class="string">&quot;Integer&quot;</span>).<span class="ident">unwrap</span>(),
+                                <span class="ident">get_llvm_int_type</span>(<span class="ident">llvm</span>.<span class="ident">context</span>, <span class="kw-2">*</span><span class="ident">lsize</span>, <span class="string">&quot;Integer&quot;</span>)<span class="question-mark">?</span>,
                                 <span class="string">&quot;&quot;</span>,
                             )
                             .<span class="ident">into</span>())
                     } <span class="kw">else</span> {
                         <span class="comment">//Expand</span>
-                        <span class="prelude-val">Ok</span>(<span class="ident">promote_value_if_needed</span>(
+                        <span class="ident">promote_value_if_needed</span>(
                             <span class="ident">llvm</span>.<span class="ident">context</span>,
                             <span class="kw-2">&amp;</span><span class="ident">llvm</span>.<span class="ident">builder</span>,
                             <span class="ident">value</span>,
                             <span class="ident">value_type</span>,
                             <span class="ident">target_type</span>,
-                        ))
+                        )
+                        .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">it</span><span class="op">|</span> <span class="ident">CompileError::relocate</span>(<span class="kw-2">&amp;</span><span class="ident">it</span>, <span class="ident">statement</span>.<span class="ident">get_location</span>()))
                     }
                 }
                 <span class="ident">DataTypeInformation::Float</span> { <span class="ident">size</span>: <span class="ident">_rsize</span>, .. } <span class="op">=</span><span class="op">&gt;</span> {
@@ -515,7 +518,7 @@
                             .<span class="ident">builder</span>
                             .<span class="ident">build_float_to_signed_int</span>(
                                 <span class="ident">value</span>.<span class="ident">into_float_value</span>(),
-                                <span class="ident">get_llvm_int_type</span>(<span class="ident">llvm</span>.<span class="ident">context</span>, <span class="kw-2">*</span><span class="ident">lsize</span>, <span class="string">&quot;Integer&quot;</span>).<span class="ident">unwrap</span>(),
+                                <span class="ident">get_llvm_int_type</span>(<span class="ident">llvm</span>.<span class="ident">context</span>, <span class="kw-2">*</span><span class="ident">lsize</span>, <span class="string">&quot;Integer&quot;</span>)<span class="question-mark">?</span>,
                                 <span class="string">&quot;&quot;</span>,
                             )
                             .<span class="ident">into</span>())
@@ -523,7 +526,7 @@
                         <span class="prelude-val">Ok</span>(<span class="ident">builder</span>
                             .<span class="ident">build_float_to_unsigned_int</span>(
                                 <span class="ident">value</span>.<span class="ident">into_float_value</span>(),
-                                <span class="ident">get_llvm_int_type</span>(<span class="ident">llvm</span>.<span class="ident">context</span>, <span class="kw-2">*</span><span class="ident">lsize</span>, <span class="string">&quot;Integer&quot;</span>).<span class="ident">unwrap</span>(),
+                                <span class="ident">get_llvm_int_type</span>(<span class="ident">llvm</span>.<span class="ident">context</span>, <span class="kw-2">*</span><span class="ident">lsize</span>, <span class="string">&quot;Integer&quot;</span>)<span class="question-mark">?</span>,
                                 <span class="string">&quot;&quot;</span>,
                             )
                             .<span class="ident">into</span>())
@@ -547,7 +550,7 @@
                     <span class="prelude-val">Ok</span>(<span class="ident">builder</span>
                         .<span class="ident">build_signed_int_to_float</span>(
                             <span class="ident">value</span>.<span class="ident">into_int_value</span>(),
-                            <span class="ident">get_llvm_float_type</span>(<span class="ident">llvm</span>.<span class="ident">context</span>, <span class="kw-2">*</span><span class="ident">lsize</span>, <span class="string">&quot;Float&quot;</span>).<span class="ident">unwrap</span>(),
+                            <span class="ident">get_llvm_float_type</span>(<span class="ident">llvm</span>.<span class="ident">context</span>, <span class="kw-2">*</span><span class="ident">lsize</span>, <span class="string">&quot;Float&quot;</span>)<span class="question-mark">?</span>,
                             <span class="string">&quot;&quot;</span>,
                         )
                         .<span class="ident">into</span>())
@@ -555,7 +558,7 @@
                     <span class="prelude-val">Ok</span>(<span class="ident">builder</span>
                         .<span class="ident">build_unsigned_int_to_float</span>(
                             <span class="ident">value</span>.<span class="ident">into_int_value</span>(),
-                            <span class="ident">get_llvm_float_type</span>(<span class="ident">llvm</span>.<span class="ident">context</span>, <span class="kw-2">*</span><span class="ident">lsize</span>, <span class="string">&quot;Float&quot;</span>).<span class="ident">unwrap</span>(),
+                            <span class="ident">get_llvm_float_type</span>(<span class="ident">llvm</span>.<span class="ident">context</span>, <span class="kw-2">*</span><span class="ident">lsize</span>, <span class="string">&quot;Float&quot;</span>)<span class="question-mark">?</span>,
                             <span class="string">&quot;&quot;</span>,
                         )
                         .<span class="ident">into</span>())
@@ -566,18 +569,19 @@
                     <span class="prelude-val">Ok</span>(<span class="ident">builder</span>
                         .<span class="ident">build_float_trunc</span>(
                             <span class="ident">value</span>.<span class="ident">into_float_value</span>(),
-                            <span class="ident">get_llvm_float_type</span>(<span class="ident">llvm</span>.<span class="ident">context</span>, <span class="kw-2">*</span><span class="ident">lsize</span>, <span class="string">&quot;Float&quot;</span>).<span class="ident">unwrap</span>(),
+                            <span class="ident">get_llvm_float_type</span>(<span class="ident">llvm</span>.<span class="ident">context</span>, <span class="kw-2">*</span><span class="ident">lsize</span>, <span class="string">&quot;Float&quot;</span>)<span class="question-mark">?</span>,
                             <span class="string">&quot;&quot;</span>,
                         )
                         .<span class="ident">into</span>())
                 } <span class="kw">else</span> {
-                    <span class="prelude-val">Ok</span>(<span class="ident">promote_value_if_needed</span>(
+                    <span class="ident">promote_value_if_needed</span>(
                         <span class="ident">llvm</span>.<span class="ident">context</span>,
                         <span class="kw-2">&amp;</span><span class="ident">llvm</span>.<span class="ident">builder</span>,
                         <span class="ident">value</span>,
                         <span class="ident">value_type</span>,
                         <span class="ident">target_type</span>,
-                    ))
+                    )
+                    .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">it</span><span class="op">|</span> <span class="ident">CompileError::relocate</span>(<span class="kw-2">&amp;</span><span class="ident">it</span>, <span class="ident">statement</span>.<span class="ident">get_location</span>()))
                 }
             }
             <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">CompileError::casting_error</span>(
