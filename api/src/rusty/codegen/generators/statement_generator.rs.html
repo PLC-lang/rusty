@@ -732,6 +732,9 @@
 <span id="732">732</span>
 <span id="733">733</span>
 <span id="734">734</span>
+<span id="735">735</span>
+<span id="736">736</span>
+<span id="737">737</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 <span class="kw">use</span> <span class="kw">super</span>::{
     <span class="ident">expression_generator::ExpressionCodeGenerator</span>, <span class="ident">llvm::Llvm</span>, <span class="ident">pou_generator::PouGenerator</span>,
@@ -1143,8 +1146,11 @@
         <span class="kw">let</span> <span class="ident">expression_generator</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">create_expr_generator</span>();
         <span class="kw">let</span> <span class="ident">step_by_value</span> <span class="op">=</span> <span class="ident">by_step</span>.<span class="ident">as_ref</span>().<span class="ident">map_or_else</span>(
             <span class="op">|</span><span class="op">|</span> {
-                <span class="self">self</span>.<span class="ident">llvm</span>
-                    .<span class="ident">create_const_numeric</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">llvm_index</span>.<span class="ident">get_associated_type</span>(<span class="ident">DINT_TYPE</span>)<span class="question-mark">?</span>, <span class="string">&quot;1&quot;</span>)
+                <span class="self">self</span>.<span class="ident">llvm</span>.<span class="ident">create_const_numeric</span>(
+                    <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">llvm_index</span>.<span class="ident">get_associated_type</span>(<span class="ident">DINT_TYPE</span>)<span class="question-mark">?</span>,
+                    <span class="string">&quot;1&quot;</span>,
+                    <span class="ident">SourceRange::undefined</span>(),
+                )
             },
             <span class="op">|</span><span class="ident">step</span><span class="op">|</span> <span class="ident">expression_generator</span>.<span class="ident">generate_expression</span>(<span class="ident">step</span>),
         )<span class="question-mark">?</span>;

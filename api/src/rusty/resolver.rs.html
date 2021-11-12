@@ -1133,8 +1133,6 @@
 <span id="1133">1133</span>
 <span id="1134">1134</span>
 <span id="1135">1135</span>
-<span id="1136">1136</span>
-<span id="1137">1137</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2021 Ghaith Hachem and Mathias Rieder</span>
 
 <span class="doccomment">//! Resolves (partial) expressions &amp; statements and annotates the resulting types</span>
@@ -2086,8 +2084,6 @@
                             <span class="ident">StatementAnnotation::value</span>(<span class="ident">return_type</span>.<span class="ident">get_name</span>()),
                         );
                     }
-                } <span class="kw">else</span> {
-                    <span class="macro">println!</span>(<span class="string">&quot;{:#?}&quot;</span>, <span class="self">self</span>.<span class="ident">annotation_map</span>.<span class="ident">get</span>(<span class="ident">operator</span>));
                 }
             }
             <span class="ident">AstStatement::CastStatement</span> {
