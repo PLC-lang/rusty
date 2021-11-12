@@ -1,0 +1,36 @@
+---
+source: src/codegen/tests/directaccess_test.rs
+expression: prog
+
+---
+; ModuleID = 'main'
+source_filename = "main"
+
+%main_interface = type { i8, i16 }
+
+define i16 @main(%main_interface* %0) {
+entry:
+  %a = getelementptr inbounds %main_interface, %main_interface* %0, i32 0, i32 0
+  %b = getelementptr inbounds %main_interface, %main_interface* %0, i32 0, i32 1
+  %main = alloca i16, align 2
+  store i16 1, i16* %b, align 2
+  %1 = load i8, i8* %a, align 1
+  %and = and i8 %1, 1
+  %or = or i8 %and, 2
+  store i8 %or, i8* %a, align 1
+  %2 = load i8, i8* %a, align 1
+  %and1 = and i8 %2, 3
+  store i8 %and1, i8* %a, align 1
+  %load_b = load i16, i16* %b, align 2
+  %3 = trunc i16 %load_b to i8
+  %mask = shl i8 -1, %3
+  %not = xor i8 %mask, -1
+  %value = shl i8 0, %3
+  %4 = load i8, i8* %a, align 1
+  %and2 = and i8 %4, %not
+  %or3 = or i8 %and2, %value
+  store i8 %or3, i8* %a, align 1
+  %main_ret = load i16, i16* %main, align 2
+  ret i16 %main_ret
+}
+

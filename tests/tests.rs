@@ -12,6 +12,7 @@ mod correctness {
     mod control_flow;
     mod custom_datatypes;
     mod datatypes;
+    mod expressions;
     mod external_functions;
     mod functions;
     mod functions_struct;

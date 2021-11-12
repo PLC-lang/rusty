@@ -132,7 +132,6 @@ impl LinkerInterface for LdLinker {
     }
 
     fn finalize(&mut self) -> Result<(), LinkerError> {
-        println!("{:?}", self.args);
         lld_rs::link(lld_rs::LldFlavor::Elf, &self.args)
             .ok()
             .map_err(LinkerError::Link)
