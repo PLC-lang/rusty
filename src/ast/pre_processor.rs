@@ -44,13 +44,7 @@ pub fn pre_process(unit: &mut CompilationUnit) {
                     variables
                         .iter_mut()
                         .filter(|it| should_generate_implicit_type(it))
-                        .for_each(|var| {
-                            pre_process_variable_data_type(
-                                name,
-                                var,
-                                &mut new_types,
-                            )
-                        });
+                        .for_each(|var| pre_process_variable_data_type(name, var, &mut new_types));
                 }
                 DataType::ArrayType {
                     name,

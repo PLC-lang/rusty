@@ -15,7 +15,7 @@ use crate::{
 /// - generates a function for the pou
 /// - declares a global instance if the POU is a PROGRAM
 use crate::index::{ImplementationIndexEntry, VariableIndexEntry};
-use crate::typesystem::*;
+
 use crate::{
     ast::{Implementation, PouType, SourceRange},
     compile_error::CompileError,
@@ -104,11 +104,11 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
             .map(|it| it.into_struct_type())?;
         parameters.push(instance_struct_type.ptr_type(AddressSpace::Generic).into());
 
-        let return_type: Option<&DataType> =
-            global_index.find_return_type(implementation.get_type_name());
-        let return_type = return_type
-            .map(DataType::get_name)
-            .map(|it| self.llvm_index.get_associated_type(it).unwrap());
+        let return_type = match global_index.find_return_type(implementation.get_type_name()) {
+            Some(r_type) => Some(self.llvm_index.get_associated_type(r_type.get_name())?),
+            None => None,
+        };
+
         let variadic = global_index
             .find_effective_type_info(implementation.get_type_name())
             .map(|it| it.is_variadic())
@@ -359,10 +359,8 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                         format!("Cannot generate return variable for {:}", call_name),
                         SourceRange::undefined(),
                     )
-                });
-            let loaded_value = self
-                .llvm
-                .load_pointer(value_ptr.as_ref().unwrap(), var_name.as_str());
+                })?;
+            let loaded_value = self.llvm.load_pointer(&value_ptr, var_name.as_str());
             self.llvm.builder.build_return(Some(&loaded_value));
         } else {
             self.llvm.builder.build_return(None);

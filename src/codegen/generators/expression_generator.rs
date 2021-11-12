@@ -1,5 +1,12 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-use crate::{ast::SourceRange, codegen::llvm_typesystem, compile_error::INTERNAL_LLVM_ERROR, index::{ImplementationIndexEntry, ImplementationType, Index, VariableIndexEntry}, resolver::{AnnotationMap, StatementAnnotation}, typesystem::{Dimension, StringEncoding, INT_SIZE, INT_TYPE, LINT_TYPE}};
+use crate::{
+    ast::SourceRange,
+    codegen::llvm_typesystem,
+    compile_error::INTERNAL_LLVM_ERROR,
+    index::{ImplementationIndexEntry, ImplementationType, Index, VariableIndexEntry},
+    resolver::{AnnotationMap, StatementAnnotation},
+    typesystem::{Dimension, StringEncoding, INT_SIZE, INT_TYPE, LINT_TYPE},
+};
 use inkwell::{
     basic_block::BasicBlock,
     types::BasicTypeEnum,
@@ -707,9 +714,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
         let builder = &self.llvm.builder;
         let function_name = param_context.function_name;
         let parameter_struct = param_context.parameter_struct;
-        let current_block = builder
-            .get_insert_block()
-            .expect(INTERNAL_LLVM_ERROR);
+        let current_block = builder.get_insert_block().expect(INTERNAL_LLVM_ERROR);
 
         builder.position_at_end(*output_block);
         if let AstStatement::Reference { name, .. } = left {

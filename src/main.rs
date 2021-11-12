@@ -17,12 +17,11 @@
 //! [`ST`]: https://en.wikipedia.org/wiki/Structured_text
 //! [`IEC61131-3`]: https://en.wikipedia.org/wiki/IEC_61131-3
 //! [`IR`]: https://llvm.org/docs/LangRef.html
-use std::{path::Path, str::Utf8Error};
+use std::path::Path;
 
 use glob::glob;
 use rusty::{
     cli::{CompileParameters, FormatOption, ParameterError},
-    compile_error::CompileError,
     compile_to_bitcode, compile_to_ir, compile_to_shared_object, compile_to_shared_pic_object,
     compile_to_static_obj, get_target_triple, FilePath,
 };

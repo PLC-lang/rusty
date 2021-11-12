@@ -397,7 +397,7 @@ fn create_source_code<T: Read>(
 pub fn get_target_triple(triple: Option<String>) -> TargetTriple {
     triple
         .map(|it| TargetTriple::create(it.as_str()))
-        .unwrap_or_else(|| TargetMachine::get_default_triple())
+        .unwrap_or_else(TargetMachine::get_default_triple)
 }
 
 ///

@@ -1,9 +1,6 @@
 // Copyright (c) 2021 Ghaith Hachem and Mathias Rieder
 use encoding_rs::Encoding;
-use std::{
-    ffi::{OsStr, OsString},
-    path::Path,
-};
+use std::{ffi::OsStr, path::Path};
 use structopt::{clap::ArgGroup, StructOpt};
 
 #[derive(PartialEq, Debug)]

@@ -154,7 +154,8 @@ pub fn cast_if_needed<'ctx>(
                             value,
                             value_type,
                             target_type,
-                        ).map_err(|it| CompileError::relocate(&it, statement.get_location()))
+                        )
+                        .map_err(|it| CompileError::relocate(&it, statement.get_location()))
                     }
                 }
                 DataTypeInformation::Float { size: _rsize, .. } => {
@@ -225,7 +226,8 @@ pub fn cast_if_needed<'ctx>(
                         value,
                         value_type,
                         target_type,
-                    ).map_err(|it| CompileError::relocate(&it, statement.get_location()))
+                    )
+                    .map_err(|it| CompileError::relocate(&it, statement.get_location()))
                 }
             }
             _ => Err(CompileError::casting_error(

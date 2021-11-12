@@ -2,10 +2,17 @@
 use super::{
     expression_generator::ExpressionCodeGenerator, llvm::Llvm, pou_generator::PouGenerator,
 };
-use crate::{ast::{flatten_expression_list, AstStatement, ConditionalBlock, Operator, SourceRange}, codegen::LlvmTypedIndex, compile_error::{CompileError, INTERNAL_LLVM_ERROR}, index::{ImplementationIndexEntry, Index}, resolver::AnnotationMap, typesystem::{
+use crate::{
+    ast::{flatten_expression_list, AstStatement, ConditionalBlock, Operator, SourceRange},
+    codegen::LlvmTypedIndex,
+    compile_error::{CompileError, INTERNAL_LLVM_ERROR},
+    index::{ImplementationIndexEntry, Index},
+    resolver::AnnotationMap,
+    typesystem::{
         DataTypeInformation, DINT_TYPE, RANGE_CHECK_LS_FN, RANGE_CHECK_LU_FN, RANGE_CHECK_S_FN,
         RANGE_CHECK_U_FN,
-    }};
+    },
+};
 use inkwell::{
     basic_block::BasicBlock,
     builder::Builder,
@@ -90,8 +97,10 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
     /// follow each other. this is what we call a buffer block.
     fn generate_buffer_block(&self) {
         let (builder, _, context) = self.get_llvm_deps();
-        let buffer_block =
-            context.insert_basic_block_after(builder.get_insert_block().expect(INTERNAL_LLVM_ERROR), "buffer_block");
+        let buffer_block = context.insert_basic_block_after(
+            builder.get_insert_block().expect(INTERNAL_LLVM_ERROR),
+            "buffer_block",
+        );
         builder.position_at_end(buffer_block);
     }
 
@@ -390,7 +399,9 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         builder.position_at_end(current_else_block);
         self.generate_body(else_body)?;
         builder.build_unconditional_branch(continue_block);
-        continue_block.move_after(current_else_block).expect(INTERNAL_LLVM_ERROR);
+        continue_block
+            .move_after(current_else_block)
+            .expect(INTERNAL_LLVM_ERROR);
 
         // now that we collected all cases, go back to the initial block and generate the switch-statement
         builder.position_at_end(basic_block);
@@ -412,8 +423,10 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
     ) -> Result<BasicBlock, CompileError> {
         let (builder, _, context) = self.get_llvm_deps();
 
-        let range_then =
-            context.insert_basic_block_after(builder.get_insert_block().expect(INTERNAL_LLVM_ERROR), "range_then");
+        let range_then = context.insert_basic_block_after(
+            builder.get_insert_block().expect(INTERNAL_LLVM_ERROR),
+            "range_then",
+        );
         let range_else = context.insert_basic_block_after(range_then, "range_else");
         let exp_gen = self.create_expr_generator();
         let lower_bound = {
@@ -457,7 +470,9 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
 
         let continue_block = builder.get_insert_block().expect(INTERNAL_LLVM_ERROR);
 
-        let condition_block = basic_block.get_next_basic_block().expect(INTERNAL_LLVM_ERROR);
+        let condition_block = basic_block
+            .get_next_basic_block()
+            .expect(INTERNAL_LLVM_ERROR);
         builder.position_at_end(basic_block);
         builder.build_unconditional_branch(condition_block);
 
@@ -485,7 +500,9 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
 
         let continue_block = builder.get_insert_block().expect(INTERNAL_LLVM_ERROR);
 
-        let while_block = continue_block.get_previous_basic_block().expect(INTERNAL_LLVM_ERROR);
+        let while_block = continue_block
+            .get_previous_basic_block()
+            .expect(INTERNAL_LLVM_ERROR);
         builder.position_at_end(basic_block);
         builder.build_unconditional_branch(while_block);
 

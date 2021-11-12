@@ -300,9 +300,7 @@ fn parse_access_type(lexer: &mut Lexer<Token>) -> Option<DirectAccessType> {
             'b' => Some(crate::ast::DirectAccessType::Byte),
             'w' => Some(crate::ast::DirectAccessType::Word),
             'd' => Some(crate::ast::DirectAccessType::DWord),
-            _ => {
-                None
-            }
+            _ => None,
         })
         .expect("Unknown access type - tokenizer/grammar incomplete?");
 

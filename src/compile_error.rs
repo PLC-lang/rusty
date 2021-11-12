@@ -44,7 +44,6 @@ pub enum CompileError {
 
     #[error("Cannot link: {reason:}")]
     LinkerError { reason: String },
-
 }
 
 impl CompileError {
@@ -118,6 +117,9 @@ impl CompileError {
 
 impl From<LLVMString> for CompileError {
     fn from(it: LLVMString) -> Self {
-        CompileError::codegen_error(format!("Internal llvm error: {:}", it.to_string()), SourceRange::undefined())
+        CompileError::codegen_error(
+            format!("Internal llvm error: {:}", it.to_string()),
+            SourceRange::undefined(),
+        )
     }
 }

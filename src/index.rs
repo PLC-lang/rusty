@@ -517,7 +517,8 @@ impl Index {
 
     /// returns the effective DataType of the type with the given name or an Error
     pub fn get_effective_type(&self, type_name: &str) -> Result<&DataType, CompileError> {
-        self.type_index.find_effective_type_by_name(type_name)
+        self.type_index
+            .find_effective_type_by_name(type_name)
             .ok_or_else(|| CompileError::unknown_type(type_name, SourceRange::undefined()))
     }
 
@@ -539,7 +540,9 @@ impl Index {
 
     /// expect a built-in type
     pub fn get_type_or_panic(&self, type_name: &str) -> &DataType {
-        self.type_index.get_type(type_name).unwrap_or_else(|_| panic!("{} not found", type_name))
+        self.type_index
+            .get_type(type_name)
+            .unwrap_or_else(|_| panic!("{} not found", type_name))
     }
 
     pub fn find_return_variable(&self, pou_name: &str) -> Option<&VariableIndexEntry> {
