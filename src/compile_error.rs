@@ -1,7 +1,10 @@
+use inkwell::support::LLVMString;
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use thiserror::Error;
 
 use crate::ast::SourceRange;
+
+pub const INTERNAL_LLVM_ERROR: &str = "internal llvm codegen error";
 
 #[derive(Error, Debug, PartialEq)]
 pub enum CompileError {
@@ -105,5 +108,18 @@ impl CompileError {
 
     pub fn literal_or_constant_int_expected(location: SourceRange) -> CompileError {
         CompileError::codegen_error("Expected integer literal or constant".to_string(), location)
+    }
+
+    pub fn relocate(e: &CompileError, location: SourceRange) -> CompileError {
+        CompileError::codegen_error(e.to_string(), location)
+    }
+}
+
+impl From<LLVMString> for CompileError {
+    fn from(it: LLVMString) -> Self {
+        CompileError::codegen_error(
+            format!("Internal llvm error: {:}", it.to_string()),
+            SourceRange::undefined(),
+        )
     }
 }

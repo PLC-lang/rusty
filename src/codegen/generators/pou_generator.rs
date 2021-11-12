@@ -5,8 +5,8 @@ use super::{
     statement_generator::{FunctionContext, StatementCodeGenerator},
 };
 use crate::{
-    ast::Pou, codegen::llvm_index::LlvmTypedIndex, index::ImplementationType,
-    resolver::AnnotationMap,
+    ast::Pou, codegen::llvm_index::LlvmTypedIndex, compile_error::INTERNAL_LLVM_ERROR,
+    index::ImplementationType, resolver::AnnotationMap,
 };
 
 /// The pou_generator contains functions to generate the code for POUs (PROGRAM, FUNCTION, FUNCTION_BLOCK)
@@ -15,7 +15,7 @@ use crate::{
 /// - generates a function for the pou
 /// - declares a global instance if the POU is a PROGRAM
 use crate::index::{ImplementationIndexEntry, VariableIndexEntry};
-use crate::typesystem::*;
+
 use crate::{
     ast::{Implementation, PouType, SourceRange},
     compile_error::CompileError,
@@ -84,7 +84,9 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
 
         let mut parameters = vec![];
         if implementation.get_implementation_type() == &ImplementationType::Method {
-            let class_name = implementation.get_associated_class_name().unwrap();
+            let class_name = implementation
+                .get_associated_class_name()
+                .expect("Method needs to have a class-name");
             let instance_members_struct_type: StructType = self
                 .llvm_index
                 .get_associated_type(class_name)
@@ -102,11 +104,11 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
             .map(|it| it.into_struct_type())?;
         parameters.push(instance_struct_type.ptr_type(AddressSpace::Generic).into());
 
-        let return_type: Option<&DataType> =
-            global_index.find_return_type(implementation.get_type_name());
-        let return_type = return_type
-            .map(DataType::get_name)
-            .map(|it| self.llvm_index.get_associated_type(it).unwrap());
+        let return_type = match global_index.find_return_type(implementation.get_type_name()) {
+            Some(r_type) => Some(self.llvm_index.get_associated_type(r_type.get_name())?),
+            None => None,
+        };
+
         let variadic = global_index
             .find_effective_type_info(implementation.get_type_name())
             .map(|it| it.is_variadic())
@@ -276,7 +278,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                     self.llvm
                         .builder
                         .build_struct_gep(ptr_value, i as u32, parameter_name)
-                        .unwrap(),
+                        .expect(INTERNAL_LLVM_ERROR),
                 )
             };
 
@@ -304,7 +306,12 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                 .index
                 .get_const_expressions()
                 .maybe_get_constant_statement(&variable.initial_value)
-                .unwrap();
+                .ok_or_else(|| {
+                    CompileError::cannot_generate_initializer(
+                        variable.get_qualified_name(),
+                        SourceRange::undefined(),
+                    )
+                })?;
 
             //get the loaded_ptr for the parameter and store right in it
             if let Some(left) = local_llvm_index
@@ -342,12 +349,18 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
             .index
             .find_return_variable(function_context.linking_context.get_type_name())
         {
-            let var_name = format!("{}_ret", function_context.linking_context.get_call_name());
+            let call_name = function_context.linking_context.get_call_name();
+            let var_name = format!("{}_ret", call_name);
             let ret_name = ret_v.get_qualified_name();
-            let value_ptr = local_index.find_loaded_associated_variable_value(ret_name);
-            let loaded_value = self
-                .llvm
-                .load_pointer(value_ptr.as_ref().unwrap(), var_name.as_str());
+            let value_ptr = local_index
+                .find_loaded_associated_variable_value(ret_name)
+                .ok_or_else(|| {
+                    CompileError::codegen_error(
+                        format!("Cannot generate return variable for {:}", call_name),
+                        SourceRange::undefined(),
+                    )
+                })?;
+            let loaded_value = self.llvm.load_pointer(&value_ptr, var_name.as_str());
             self.llvm.builder.build_return(Some(&loaded_value));
         } else {
             self.llvm.builder.build_return(None);

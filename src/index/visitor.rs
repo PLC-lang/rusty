@@ -2,7 +2,7 @@
 use super::VariableType;
 use crate::ast::{
     self, AstStatement, CompilationUnit, DataType, DataTypeDeclaration, Implementation, Pou,
-    PouType, SourceRange, UserTypeDeclaration, Variable, VariableBlock, VariableBlockType,
+    PouType, SourceRange, UserTypeDeclaration, VariableBlock, VariableBlockType,
 };
 use crate::compile_error::CompileError;
 use crate::index::{Index, MemberInfo};
@@ -83,11 +83,12 @@ pub fn visit_pou(index: &mut Index, pou: &Pou) {
             }
             member_names.push(var.name.clone());
 
+            let var_type_name = var.data_type.get_name().expect("named datatype");
             let type_name = if block_type == VariableType::InOut {
                 //register a pointer type for the var_in_out
-                register_inout_pointer_type_for(index, var)
+                register_inout_pointer_type_for(index, var_type_name)
             } else {
-                var.data_type.get_name().unwrap().to_string()
+                var_type_name.to_string()
             };
             let initial_value = index
                 .get_mut_const_expressions()
@@ -164,8 +165,7 @@ fn visit_implementation(index: &mut Index, implementation: &Implementation) {
     }
 }
 
-fn register_inout_pointer_type_for(index: &mut Index, var: &Variable) -> String {
-    let inner_type_name = var.data_type.get_name().unwrap().to_string();
+fn register_inout_pointer_type_for(index: &mut Index, inner_type_name: &str) -> String {
     //get unique name
     let type_name = format!("pointer_to_{}", inner_type_name);
 
@@ -175,7 +175,7 @@ fn register_inout_pointer_type_for(index: &mut Index, var: &Variable) -> String 
         None,
         DataTypeInformation::Pointer {
             name: type_name.clone(),
-            inner_type_name,
+            inner_type_name: inner_type_name.to_string(),
             auto_deref: true,
         },
     );
@@ -191,7 +191,7 @@ fn visit_global_var_block(index: &mut Index, block: &VariableBlock) {
             .maybe_add_constant_expression(var.initializer.clone(), target_type, None);
         index.register_global_variable(
             &var.name,
-            var.data_type.get_name().unwrap(),
+            var.data_type.get_name().expect("named variable datatype"),
             initializer,
             block.constant,
             var.location.clone(),
@@ -219,13 +219,16 @@ fn visit_data_type(
     let scope = &type_declaration.scope;
     //names should not be empty
     match data_type {
-        DataType::StructType { name, variables } => {
-            let struct_name = name.as_ref().unwrap();
+        DataType::StructType {
+            name: Some(name),
+            variables,
+        } => {
+            let struct_name = name.as_str();
 
             let member_names: Vec<String> =
                 variables.iter().map(|it| it.name.to_string()).collect();
 
-            let type_name = name.clone().unwrap();
+            let type_name = name.clone();
             let information = DataTypeInformation::Struct {
                 name: type_name.clone(),
                 member_names,
@@ -240,7 +243,7 @@ fn visit_data_type(
                     type_name.as_str(),
                     scope.clone(),
                 );
-            index.register_type(name.as_ref().unwrap(), init, information);
+            index.register_type(name, init, information);
             for (count, var) in variables.iter().enumerate() {
                 if let DataTypeDeclaration::DataTypeDefinition {
                     data_type, scope, ..
@@ -259,7 +262,7 @@ fn visit_data_type(
                     )
                 }
 
-                let member_type = var.data_type.get_name().unwrap();
+                let member_type = var.data_type.get_name().expect("named variable datatype");
                 let init = index
                     .get_mut_const_expressions()
                     .maybe_add_constant_expression(
@@ -282,10 +285,13 @@ fn visit_data_type(
             }
         }
 
-        DataType::EnumType { name, elements } => {
-            let enum_name = name.as_ref().unwrap();
+        DataType::EnumType {
+            name: Some(name),
+            elements,
+        } => {
+            let enum_name = name.as_str();
             let information = DataTypeInformation::Enum {
-                name: enum_name.clone(),
+                name: enum_name.to_string(),
                 elements: elements.clone(),
             };
 
@@ -293,10 +299,10 @@ fn visit_data_type(
                 .get_mut_const_expressions()
                 .maybe_add_constant_expression(
                     type_declaration.initializer.clone(),
-                    enum_name.as_str(),
+                    enum_name,
                     scope.clone(),
                 );
-            index.register_type(enum_name.as_str(), init, information);
+            index.register_type(enum_name, init, information);
 
             elements.iter().enumerate().for_each(|(i, v)| {
                 let enum_literal = ast::AstStatement::LiteralInteger {
@@ -310,30 +316,25 @@ fn visit_data_type(
                     scope.clone(),
                 );
 
-                index.register_enum_element(
-                    v,
-                    enum_name.as_str(),
-                    Some(init),
-                    SourceRange::undefined(),
-                )
+                index.register_enum_element(v, enum_name, Some(init), SourceRange::undefined())
             }); //TODO : Enum locations
         }
 
         DataType::SubRangeType {
-            name,
+            name: Some(name),
             referenced_type,
             bounds,
         } => {
             let information = if let Some(AstStatement::RangeStatement { start, end, .. }) = bounds
             {
                 DataTypeInformation::SubRange {
-                    name: name.as_ref().unwrap().into(),
+                    name: name.into(),
                     referenced_type: referenced_type.into(),
                     sub_range: (*start.clone()..*end.clone()),
                 }
             } else {
                 DataTypeInformation::Alias {
-                    name: name.as_ref().unwrap().into(),
+                    name: name.into(),
                     referenced_type: referenced_type.into(),
                 }
             };
@@ -342,13 +343,13 @@ fn visit_data_type(
                 .get_mut_const_expressions()
                 .maybe_add_constant_expression(
                     type_declaration.initializer.clone(),
-                    name.as_ref().unwrap(),
+                    name,
                     scope.clone(),
                 );
-            index.register_type(name.as_ref().unwrap(), init, information)
+            index.register_type(name, init, information)
         }
         DataType::ArrayType {
-            name,
+            name: Some(name),
             referenced_type,
             bounds,
         } => {
@@ -383,9 +384,9 @@ fn visit_data_type(
                 })
                 .collect();
             let dimensions = dimensions.unwrap(); //TODO hmm we need to talk about all this unwrapping :-/
-            let referenced_type_name = referenced_type.get_name().unwrap();
+            let referenced_type_name = referenced_type.get_name().expect("named datatype");
             let information = DataTypeInformation::Array {
-                name: name.as_ref().unwrap().clone(),
+                name: name.clone(),
                 inner_type_name: referenced_type_name.to_string(),
                 dimensions,
             };
@@ -394,19 +395,19 @@ fn visit_data_type(
                 .get_mut_const_expressions()
                 .maybe_add_constant_expression(
                     type_declaration.initializer.clone(),
-                    name.as_ref().unwrap(),
+                    name,
                     scope.clone(),
                 );
-            index.register_type(name.as_ref().unwrap(), init, information)
+            index.register_type(name, init, information)
         }
         DataType::PointerType {
-            name,
+            name: Some(name),
             referenced_type,
             ..
         } => {
-            let inner_type_name = referenced_type.get_name().unwrap();
+            let inner_type_name = referenced_type.get_name().expect("named datatype");
             let information = DataTypeInformation::Pointer {
-                name: name.as_ref().unwrap().clone(),
+                name: name.clone(),
                 inner_type_name: inner_type_name.into(),
                 auto_deref: false,
             };
@@ -415,18 +416,18 @@ fn visit_data_type(
                 .get_mut_const_expressions()
                 .maybe_add_constant_expression(
                     type_declaration.initializer.clone(),
-                    name.as_ref().unwrap(),
+                    name,
                     scope.clone(),
                 );
-            index.register_type(name.as_ref().unwrap(), init, information)
+            index.register_type(name, init, information)
         }
         DataType::StringType {
-            name,
+            name: Some(name),
             size,
             is_wide,
             ..
         } => {
-            let type_name = name.as_ref().unwrap();
+            let type_name = name;
             let encoding = if *is_wide {
                 StringEncoding::Utf16
             } else {
@@ -468,8 +469,9 @@ fn visit_data_type(
                     type_name,
                     scope.clone(),
                 );
-            index.register_type(name.as_ref().unwrap(), init, information)
+            index.register_type(name, init, information)
         }
         DataType::VarArgs { .. } => {} //Varargs are not indexed
+        _ => { /* unnamed datatypes are ignored */ }
     };
 }

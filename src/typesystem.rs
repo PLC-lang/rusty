@@ -587,10 +587,10 @@ pub fn get_bigger_type<'t>(
             left_type
         }
     } else {
-        let real_type = index.get_type(REAL_TYPE).unwrap();
+        let real_type = index.get_type_or_panic(REAL_TYPE);
         let real_size = real_type.get_type_information().get_size();
         if lt.get_size() > real_size || rt.get_size() > real_size {
-            index.get_type(LREAL_TYPE).unwrap()
+            index.get_type_or_panic(LREAL_TYPE)
         } else {
             real_type
         }

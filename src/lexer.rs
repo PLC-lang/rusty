@@ -237,7 +237,10 @@ impl<'a> ParseSession<'a> {
 
         if let Some(hit) = hit {
             if self.closing_keywords.len() > hit + 1 {
-                let closing = self.closing_keywords.last().unwrap();
+                let closing = self
+                    .closing_keywords
+                    .last()
+                    .expect("parse-recovery has no closing-keyword to recover from."); //illegal state! invalid use of parser-recovery?
                 let expected_tokens = format!("{:?}", closing);
                 self.accept_diagnostic(Diagnostic::missing_token(
                     expected_tokens.as_str(),
@@ -297,11 +300,9 @@ fn parse_access_type(lexer: &mut Lexer<Token>) -> Option<DirectAccessType> {
             'b' => Some(crate::ast::DirectAccessType::Byte),
             'w' => Some(crate::ast::DirectAccessType::Word),
             'd' => Some(crate::ast::DirectAccessType::DWord),
-            _ => {
-                unreachable!()
-            }
+            _ => None,
         })
-        .unwrap(); //Cannot fail
+        .expect("Unknown access type - tokenizer/grammar incomplete?");
 
     Some(access)
 }

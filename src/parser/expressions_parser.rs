@@ -370,13 +370,12 @@ pub fn parse_qualified_reference(lexer: &mut ParseSession) -> Result<AstStatemen
         reference_elements.push(segment);
     }
 
-    let reference = if reference_elements.len() == 1 {
-        reference_elements.pop().unwrap()
-    } else {
-        AstStatement::QualifiedReference {
+    let reference = match &reference_elements[..] {
+        [single_element] => single_element.clone(),
+        [_elements @ ..] => AstStatement::QualifiedReference {
             elements: reference_elements,
             id: lexer.next_id(),
-        }
+        },
     };
 
     if lexer.allow(&KeywordParensOpen) {
@@ -475,12 +474,11 @@ fn parse_literal_number_with_modifier(
     // been matched using regular expressions
     let location = lexer.location();
     let token = lexer.slice_and_advance();
-    let number_str = token.split('#').last().unwrap();
+    let number_str = token.split('#').last().expect("token with '#'");
     let number_str = number_str.replace("_", "");
 
     // again, the parsed number can be safely unwrapped.
-
-    let value = i128::from_str_radix(number_str.as_str(), radix).unwrap();
+    let value = i128::from_str_radix(number_str.as_str(), radix).expect("valid i128");
     let value = if is_negative { -value } else { value };
     Ok(AstStatement::LiteralInteger {
         value,
@@ -530,7 +528,7 @@ fn parse_literal_number(
     // parsed number value can be safely unwrapped
     let result = result.replace("_", "");
 
-    let value = result.parse::<i128>().unwrap();
+    let value = result.parse::<i128>().expect("valid i128");
     let value = if is_negative { -value } else { value };
 
     Ok(AstStatement::LiteralInteger {
@@ -554,7 +552,7 @@ fn parse_strict_literal_integer(lexer: &mut ParseSession) -> Result<AstStatement
             location,
         ))
     } else {
-        let value = result.parse::<i128>().unwrap();
+        let value = result.parse::<i128>().expect("valid i128");
         Ok(AstStatement::LiteralInteger {
             value,
             location,
@@ -583,15 +581,15 @@ fn parse_date_from_string(
     let year = segments
         .next()
         .map(|s| parse_number::<i32>(s, &location))
-        .unwrap()?;
+        .expect("year-segment - tokenizer broken?")?;
     let month = segments
         .next()
         .map(|s| parse_number::<u32>(s, &location))
-        .unwrap()?;
+        .expect("month-segment - tokenizer broken?")?;
     let day = segments
         .next()
         .map(|s| parse_number::<u32>(s, &location))
-        .unwrap()?;
+        .expect("day-segment - tokenizer broken?")?;
 
     Ok(AstStatement::LiteralDate {
         year,
@@ -607,16 +605,25 @@ fn parse_literal_date_and_time(lexer: &mut ParseSession) -> Result<AstStatement,
     //get rid of D# or DATE#
     let slice = lexer.slice_and_advance();
     let hash_location = slice.find('#').unwrap_or_default();
-    let last_minus_location = slice.rfind('-').unwrap();
+    let last_minus_location = slice.rfind('-').expect("unexpected date-and-time syntax");
 
     let (_, date_and_time) = slice.split_at(hash_location + 1); //get rid of the prefix
     let (date, time) = date_and_time.split_at(last_minus_location - hash_location);
 
     //we can safely expect 3 numbers
     let mut segments = date.split('-');
-    let year = parse_number::<i32>(segments.next().unwrap(), &location)?;
-    let month = parse_number::<u32>(segments.next().unwrap(), &location)?;
-    let day = parse_number::<u32>(segments.next().unwrap(), &location)?;
+    let year = parse_number::<i32>(
+        segments.next().expect("unexpected date-and-time syntax"),
+        &location,
+    )?;
+    let month = parse_number::<u32>(
+        segments.next().expect("unexpected date-and-time syntax"),
+        &location,
+    )?;
+    let day = parse_number::<u32>(
+        segments.next().expect("unexpected date-and-time syntax"),
+        &location,
+    )?;
 
     //we can safely expect 3 numbers
     let mut segments = time.split(':');
@@ -669,8 +676,8 @@ fn parse_time_of_day(
     time: &mut Split<char>,
     location: &SourceRange,
 ) -> Result<(u32, u32, u32, u32), Diagnostic> {
-    let hour = parse_number::<u32>(time.next().unwrap(), location)?;
-    let min = parse_number::<u32>(time.next().unwrap(), location)?;
+    let hour = parse_number::<u32>(time.next().expect("valid u32"), location)?;
+    let min = parse_number::<u32>(time.next().expect("valid u32"), location)?;
 
     // doesn't necessarily have to have seconds, e.g [12:00] is also valid
     let sec = match time.next() {
@@ -710,7 +717,7 @@ fn parse_literal_time(lexer: &mut ParseSession) -> Result<AstStatement, Diagnost
     while char.is_some() {
         //expect a number
         let number = {
-            let start = char.unwrap().0;
+            let start = char.expect("char").0;
             //just eat all the digits
             char = chars.find(|(_, ch)| !ch.is_digit(10) && !ch.eq(&'.'));
             char.ok_or_else(|| {
@@ -793,13 +800,13 @@ fn trim_quotes(quoted_string: &str) -> String {
 fn handle_special_chars(string: &str, is_wide: bool) -> String {
     let (re, re_hex) = if is_wide {
         (
-            Regex::new(r#"(\$([lLnNpPrRtT$"]))"#).unwrap(), //Cannot fail
-            Regex::new(r"(\$([[:xdigit:]]{2}){2})+").unwrap(), //Cannot fail
+            Regex::new(r#"(\$([lLnNpPrRtT$"]))"#).expect("valid regex"), //Cannot fail
+            Regex::new(r"(\$([[:xdigit:]]{2}){2})+").expect("valid regex"), //Cannot fail
         )
     } else {
         (
-            Regex::new(r"(\$([lLnNpPrRtT$']))").unwrap(), //Cannot fail
-            Regex::new(r"(\$([[:xdigit:]]{2}))+").unwrap(), //Cannot fail
+            Regex::new(r"(\$([lLnNpPrRtT$']))").expect("valid regex"), //Cannot fail
+            Regex::new(r"(\$([[:xdigit:]]{2}))+").expect("valid regex"), //Cannot fail
         )
     };
 
