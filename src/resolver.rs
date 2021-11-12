@@ -949,8 +949,6 @@ impl<'i> TypeAnnotator<'i> {
                             StatementAnnotation::value(return_type.get_name()),
                         );
                     }
-                } else {
-                    dbg!(self.annotation_map.get(operator));
                 }
             }
             AstStatement::CastStatement {
