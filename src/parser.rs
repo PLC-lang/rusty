@@ -151,7 +151,7 @@ fn parse_pou(
 
         let name = parse_identifier(lexer).unwrap_or_else(|| "".to_string()); // parse POU name
 
-        let generics = HashMap::new();
+        let generics = parse_generics(lexer);
 
         with_scope(lexer, name.clone(), |lexer| {
             // TODO: Parse USING directives
@@ -238,6 +238,31 @@ fn parse_pou(
     pou
 }
 
+fn parse_generics(lexer: &mut ParseSession) -> HashMap<String, String> {
+    if lexer.allow(&Token::OperatorLess) {
+        parse_any_in_region(lexer, vec![Token::OperatorGreater], |lexer| {
+            let mut generics = HashMap::new();
+            loop {
+                //identifier
+                if let Some(identifier) = parse_identifier(lexer) {
+                    lexer.consume_or_report(Token::KeywordColon);
+                    if let Some(nature) = parse_identifier(lexer) {
+                        generics.insert(identifier, nature);
+                    }
+                }
+
+                if !lexer.allow(&Token::KeywordComma) || lexer.allow(&Token::OperatorGreater) {
+                    break;
+                }
+            }
+
+            generics
+        })
+    } else {
+        HashMap::new()
+    }
+}
+
 fn parse_polymorphism_mode(
     lexer: &mut ParseSession,
     pou_type: &PouType,
@@ -322,8 +347,8 @@ fn parse_method(
         let poly_mode = parse_polymorphism_mode(lexer, &pou_type);
         let overriding = lexer.allow(&KeywordOverride);
         let name = parse_identifier(lexer)?;
+        let generics = parse_generics(lexer);
         let return_type = parse_return_type(lexer, &pou_type);
-        let generics = HashMap::new();
 
         let mut variable_blocks = vec![];
         while lexer.token == KeywordVar
@@ -542,12 +567,16 @@ fn parse_data_type_definition(
 ) -> Option<DataTypeWithInitializer> {
     let start = lexer.location().get_start();
     if lexer.allow(&KeywordStruct) {
+        let generics = parse_generics(lexer);
         // Parse struct
-        let generics = HashMap::new();
         let variables = parse_variable_list(lexer);
         Some((
             DataTypeDeclaration::DataTypeDefinition {
-                data_type: DataType::StructType { name, variables, generics},
+                data_type: DataType::StructType {
+                    name,
+                    variables,
+                    generics,
+                },
                 location: (start..lexer.range().end).into(),
                 scope: lexer.scope.clone(),
             },

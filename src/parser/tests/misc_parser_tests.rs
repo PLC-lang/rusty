@@ -1,8 +1,8 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use crate::Diagnostic;
 use core::panic;
-use std::ops::Range;
 use std::collections::HashMap;
+use std::ops::Range;
 
 use crate::{ast::*, parser::tests::empty_stmt, test_utils::tests::parse};
 use pretty_assertions::*;

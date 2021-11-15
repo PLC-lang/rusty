@@ -39,7 +39,9 @@ pub fn pre_process(unit: &mut CompilationUnit) {
     for dt in unit.types.iter_mut() {
         {
             match &mut dt.data_type {
-                DataType::StructType { name, variables, .. } => {
+                DataType::StructType {
+                    name, variables, ..
+                } => {
                     let name: &str = name.as_ref().map(|it| it.as_str()).unwrap_or("undefined");
                     variables
                         .iter_mut()

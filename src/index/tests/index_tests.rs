@@ -706,9 +706,8 @@ fn pre_processing_generates_inline_structs_global() {
                 },
                 location: (54..55).into(),
                 initializer: None,
-            },
-        ],
-        generics: HashMap::new()
+            },],
+            generics: HashMap::new()
         },
         new_struct_type
     );
