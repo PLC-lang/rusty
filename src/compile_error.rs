@@ -2,12 +2,13 @@ use inkwell::support::LLVMString;
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use thiserror::Error;
 
-use crate::ast::SourceRange;
+use crate::{ast::SourceRange, diagnostics::Diagnostic};
 
-pub const INTERNAL_LLVM_ERROR: &str = "internal llvm codegen error";
 
+
+pub type CompileError = Diagnostic;
 #[derive(Error, Debug, PartialEq)]
-pub enum CompileError {
+pub enum CXompileError {
     #[error("Unknown reference '{reference}' at {location:?}")]
     InvalidReference {
         reference: String,
@@ -47,9 +48,6 @@ pub enum CompileError {
 }
 
 impl CompileError {
-    pub fn missing_function(location: SourceRange) -> CompileError {
-        CompileError::MissingFunctionError { location }
-    }
 
     pub fn casting_error(
         type_name: &str,
@@ -75,20 +73,6 @@ impl CompileError {
             type_name: type_name.to_string(),
             location,
         }
-    }
-
-    pub fn codegen_error(message: String, location: SourceRange) -> CompileError {
-        CompileError::CodeGenError { message, location }
-    }
-
-    pub fn cannot_generate_initializer(variable_name: &str, location: SourceRange) -> CompileError {
-        CompileError::codegen_error(
-            format!(
-                "Cannot generate literal initializer for '{:}': Value can not be derived",
-                variable_name
-            ),
-            location,
-        )
     }
 
     pub fn io_read_error(path: String, reason: String) -> CompileError {

@@ -1,7 +1,12 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
 /// offers operations to generate global variables
-use crate::{ast::SourceRange, index::Index, resolver::AnnotationMap};
+use crate::{
+    ast::SourceRange,
+    diagnostics::{Diagnostic, ErrNo},
+    index::Index,
+    resolver::AnnotationMap,
+};
 use inkwell::{module::Module, values::GlobalValue};
 
 use crate::{
@@ -31,15 +36,11 @@ pub fn generate_global_variables<'ctx, 'b>(
             types_index,
             variable,
         )
-        .map_err(|err| {
-            if matches!(
-                err,
-                CompileError::MissingFunctionError { .. } | CompileError::InvalidReference { .. }
-            ) {
-                CompileError::cannot_generate_initializer(name.as_str(), SourceRange::undefined())
-            } else {
-                err
+        .map_err(|err| match err.get_type() {
+            ErrNo::codegen__missing_function | ErrNo::reference__unresolved => {
+                Diagnostic::cannot_generate_initializer(name.as_str(), SourceRange::undefined())
             }
+            _ => err,
         })?;
         index.associate_global(name, global_variable)?
     }

@@ -206,7 +206,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                     ))
                 } else {
                     Err(CompileError::codegen_error(
-                        format!(
+                        &format!(
                             "invalid types, cannot generate binary expression for {:?}",
                             self.get_type_hint_info_for(expression)?
                         ),
@@ -249,7 +249,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
             }
             _ => {
                 return Err(CompileError::codegen_error(
-                    format!("Invalid direct-access: {:?}", elements),
+                    &format!("Invalid direct-access: {:?}", elements),
                     SourceRange::undefined(),
                 ));
             }
@@ -394,10 +394,10 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
         ) -> Result<&'i ImplementationIndexEntry, CompileError> {
             index
                 .find_implementation(type_name)
-                .ok_or_else(|| CompileError::CodeGenError {
-                    message: format!("cannot find callable type for {:?}", type_name),
-                    location: context.get_location(),
-                })
+                .ok_or_else(|| CompileError::codegen_error(
+                     &format!("Cannot find callable type for {:?}", type_name),
+                    context.get_location()
+                ))
         }
 
         let function_context = self.get_function_context(operator)?;
@@ -422,10 +422,9 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                             .find_loaded_associated_variable_value(
                                 variable_instance.get_qualified_name(),
                             )
-                            .ok_or_else(|| CompileError::CodeGenError {
-                                message: format!("cannot find callable type for {:?}", operator),
-                                location: operator.get_location(),
-                            })?,
+                            .ok_or_else(|| CompileError::codegen_error(
+                                 &format!("Cannot find callable type for {:?}", operator),
+                                operator.get_location()))?,
                     )
                 } else {
                     let implementation = self.index.find_implementation(name);
@@ -481,10 +480,9 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                             };
                             (class_struct, method_struct, implementation)
                         })
-                        .ok_or_else(|| CompileError::CodeGenError {
-                            message: format!("cannot generate call statement for {:?}", operator),
-                            location: operator.get_location(),
-                        })
+                        .ok_or_else(|| CompileError::codegen_error(&format!("cannot generate call statement for {:?}", operator),
+                            operator.get_location())
+                        )
                 })?
             }
             _ => Err(CompileError::CodeGenError {
