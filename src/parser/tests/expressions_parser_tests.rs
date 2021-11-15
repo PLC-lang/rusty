@@ -5,6 +5,7 @@ use crate::ast::{
 use crate::parser::tests::{literal_int, ref_to};
 use crate::test_utils::tests::parse;
 use pretty_assertions::*;
+use std::collections::HashMap;
 
 #[test]
 fn single_statement_parsed() {
@@ -2555,6 +2556,7 @@ fn sized_string_as_function_return() {
         }),
         variable_blocks: vec![],
         location: SourceRange::undefined(),
+        generics: HashMap::new(),
     };
 
     assert_eq!(format!("{:?}", ast.units[0]), format!("{:?}", expected));
@@ -2600,6 +2602,7 @@ fn array_type_as_function_return() {
         }),
         variable_blocks: vec![],
         location: SourceRange::undefined(),
+        generics: HashMap::new(),
     };
 
     assert_eq!(format!("{:?}", ast.units[0]), format!("{:?}", expected));

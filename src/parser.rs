@@ -5,6 +5,7 @@ use crate::{
     lexer::{ParseSession, Token, Token::*},
     Diagnostic,
 };
+use std::collections::HashMap;
 
 use self::{control_parser::parse_control_statement, expressions_parser::parse_expression};
 
@@ -150,6 +151,8 @@ fn parse_pou(
 
         let name = parse_identifier(lexer).unwrap_or_else(|| "".to_string()); // parse POU name
 
+        let generics = HashMap::new();
+
         with_scope(lexer, name.clone(), |lexer| {
             // TODO: Parse USING directives
             // TODO: Parse EXTENDS specifier
@@ -216,6 +219,7 @@ fn parse_pou(
                 return_type,
                 location: SourceRange::new(start..lexer.range().end),
                 poly_mode,
+                generics,
             }];
             pous.append(&mut impl_pous);
 
@@ -319,6 +323,7 @@ fn parse_method(
         let overriding = lexer.allow(&KeywordOverride);
         let name = parse_identifier(lexer)?;
         let return_type = parse_return_type(lexer, &pou_type);
+        let generics = HashMap::new();
 
         let mut variable_blocks = vec![];
         while lexer.token == KeywordVar
@@ -361,6 +366,7 @@ fn parse_method(
                 return_type,
                 location: SourceRange::new(method_start..method_end),
                 poly_mode,
+                generics,
             },
             implementation,
         ))
@@ -537,10 +543,11 @@ fn parse_data_type_definition(
     let start = lexer.location().get_start();
     if lexer.allow(&KeywordStruct) {
         // Parse struct
+        let generics = HashMap::new();
         let variables = parse_variable_list(lexer);
         Some((
             DataTypeDeclaration::DataTypeDefinition {
-                data_type: DataType::StructType { name, variables },
+                data_type: DataType::StructType { name, variables, generics},
                 location: (start..lexer.range().end).into(),
                 scope: lexer.scope.clone(),
             },

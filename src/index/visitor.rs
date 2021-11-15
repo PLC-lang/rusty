@@ -222,6 +222,7 @@ fn visit_data_type(
         DataType::StructType {
             name: Some(name),
             variables,
+            generics: _,
         } => {
             let struct_name = name.as_str();
 

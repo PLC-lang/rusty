@@ -1,6 +1,7 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use crate::typesystem::DataTypeInformation;
 use std::{
+    collections::HashMap,
     fmt::{Debug, Display, Formatter, Result},
     iter,
     ops::Range,
@@ -18,6 +19,7 @@ pub struct Pou {
     pub return_type: Option<DataTypeDeclaration>,
     pub location: SourceRange,
     pub poly_mode: Option<PolymorphismMode>,
+    pub generics: HashMap<String, String>,
 }
 
 #[derive(Debug, PartialEq)]
@@ -64,12 +66,15 @@ impl DirectAccessType {
 
 impl Debug for Pou {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
-        f.debug_struct("POU")
-            .field("name", &self.name)
+        let mut str = f.debug_struct("POU");
+        str.field("name", &self.name)
             .field("variable_blocks", &self.variable_blocks)
             .field("pou_type", &self.pou_type)
-            .field("return_type", &self.return_type)
-            .finish()
+            .field("return_type", &self.return_type);
+        if !self.generics.is_empty() {
+            str.field("generics", &self.generics);
+        }
+        str.finish()
     }
 }
 
@@ -340,6 +345,7 @@ pub enum DataType {
     StructType {
         name: Option<String>, //maybe None for inline structs
         variables: Vec<Variable>,
+        generics: HashMap<String, String>,
     },
     EnumType {
         name: Option<String>, //maybe empty for inline enums
@@ -372,11 +378,18 @@ pub enum DataType {
 impl Debug for DataType {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
         match self {
-            DataType::StructType { name, variables } => f
-                .debug_struct("StructType")
-                .field("name", name)
-                .field("variables", variables)
-                .finish(),
+            DataType::StructType {
+                name,
+                variables,
+                generics,
+            } => {
+                let mut str = f.debug_struct("StructType");
+                str.field("name", name).field("variables", variables);
+                if !generics.is_empty() {
+                    str.field("generics", generics);
+                }
+                str.finish()
+            }
             DataType::EnumType { name, elements } => f
                 .debug_struct("EnumType")
                 .field("name", name)
@@ -431,8 +444,8 @@ impl Debug for DataType {
 impl DataType {
     pub fn set_name(&mut self, new_name: String) {
         match self {
-            DataType::StructType { name, variables: _ } => *name = Some(new_name),
-            DataType::EnumType { name, elements: _ } => *name = Some(new_name),
+            DataType::StructType { name, .. } => *name = Some(new_name),
+            DataType::EnumType { name, .. } => *name = Some(new_name),
             DataType::SubRangeType { name, .. } => *name = Some(new_name),
             DataType::ArrayType { name, .. } => *name = Some(new_name),
             DataType::PointerType { name, .. } => *name = Some(new_name),
@@ -443,8 +456,8 @@ impl DataType {
 
     pub fn get_name(&self) -> Option<&str> {
         match self {
-            DataType::StructType { name, variables: _ } => name.as_ref().map(|x| x.as_str()),
-            DataType::EnumType { name, elements: _ } => name.as_ref().map(|x| x.as_str()),
+            DataType::StructType { name, .. } => name.as_ref().map(|x| x.as_str()),
+            DataType::EnumType { name, .. } => name.as_ref().map(|x| x.as_str()),
             DataType::ArrayType { name, .. } => name.as_ref().map(|x| x.as_str()),
             DataType::PointerType { name, .. } => name.as_ref().map(|x| x.as_str()),
             DataType::StringType { name, .. } => name.as_ref().map(|x| x.as_str()),

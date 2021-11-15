@@ -2,6 +2,7 @@
 use crate::Diagnostic;
 use core::panic;
 use std::ops::Range;
+use std::collections::HashMap;
 
 use crate::{ast::*, parser::tests::empty_stmt, test_utils::tests::parse};
 use pretty_assertions::*;
@@ -59,6 +60,7 @@ fn exponent_literals_parsed_as_variables() {
             }],
         }],
         location: SourceRange::undefined(),
+        generics: HashMap::new(),
     };
     assert_eq!(format!("{:#?}", expected), format!("{:#?}", pou).as_str());
     let implementation = &parse_result.implementations[0];

@@ -6,6 +6,7 @@ use crate::parser::tests::literal_int;
 use crate::test_utils::tests::{index, parse};
 use crate::typesystem::TypeSize;
 use crate::{ast::*, index::VariableType, typesystem::DataTypeInformation};
+use std::collections::HashMap;
 
 #[test]
 fn index_not_case_sensitive() {
@@ -705,7 +706,9 @@ fn pre_processing_generates_inline_structs_global() {
                 },
                 location: (54..55).into(),
                 initializer: None,
-            }]
+            },
+        ],
+        generics: HashMap::new()
         },
         new_struct_type
     );
@@ -794,7 +797,8 @@ fn pre_processing_generates_inline_structs() {
                 },
                 location: (67..68).into(),
                 initializer: None,
-            }]
+            }],
+            generics: HashMap::new(),
         },
         new_struct_type
     );
@@ -1196,6 +1200,7 @@ fn pre_processing_nested_array_in_struct() {
                 location: SourceRange::undefined(),
                 initializer: None,
             }],
+            generics: HashMap::new(),
         },
         initializer: None,
         location: (14..97).into(),
