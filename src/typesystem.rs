@@ -290,6 +290,14 @@ impl DataTypeInformation {
             DataTypeInformation::Enum { .. } => DINT_SIZE,
         }
     }
+
+    pub fn get_alignment(&self) -> u32 {
+        match self {
+            DataTypeInformation::String { encoding, .. } if encoding == &StringEncoding::Utf8 => 1,
+            DataTypeInformation::String { encoding, .. } if encoding == &StringEncoding::Utf16 => 1,
+            _ => unimplemented!("Alignment for {}", self.get_name()),
+        }
+    }
 }
 
 #[derive(Debug, Clone, PartialEq)]

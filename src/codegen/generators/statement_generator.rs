@@ -10,8 +10,8 @@ use crate::{
     index::{ImplementationIndexEntry, Index},
     resolver::AnnotationMap,
     typesystem::{
-        DataTypeInformation, StringEncoding, DINT_TYPE, RANGE_CHECK_LS_FN, RANGE_CHECK_LU_FN,
-        RANGE_CHECK_S_FN, RANGE_CHECK_U_FN,
+        DataTypeInformation, DINT_TYPE, RANGE_CHECK_LS_FN, RANGE_CHECK_LU_FN, RANGE_CHECK_S_FN,
+        RANGE_CHECK_U_FN,
     },
 };
 use inkwell::{
@@ -222,40 +222,17 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         let right_statement = range_checked_right_side.as_ref().unwrap_or(right_statement);
         let right_type = exp_gen.get_type_hint_info_for(right_statement)?;
         //Special string handling
-        //TODO: Should this be done for other types, maybe all non primitive references?
         if matches!(
             right_statement,
             AstStatement::Reference { .. } | AstStatement::QualifiedReference { .. }
         ) && left_type.is_string()
             && right_type.is_string()
         {
-            let target_size = if let DataTypeInformation::String { size, .. } = left_type {
-                size.as_int_value(self.index).map_err(|err| {
-                    CompileError::codegen_error(err, left_statement.get_location())
-                })?
-            } else {
-                unreachable!()
-            };
-            let value_size = if let DataTypeInformation::String { size, .. } = right_type {
-                size.as_int_value(self.index).map_err(|err| {
-                    CompileError::codegen_error(err, right_statement.get_location())
-                })?
-            } else {
-                unreachable!()
-            };
+            let target_size = self.get_string_size(left_type, left_statement.get_location())?;
+            let value_size = self.get_string_size(right_type, right_statement.get_location())?;
             let size = std::cmp::min(target_size, value_size) as i64;
             let right = exp_gen.generate_element_pointer(right_statement)?;
-            let align: u32 = if matches!(
-                left_type,
-                DataTypeInformation::String {
-                    encoding: StringEncoding::Utf8,
-                    ..
-                }
-            ) {
-                1
-            } else {
-                2
-            };
+            let align = left_type.get_alignment();
             //Generate a mem copy
             self.llvm
                 .builder
@@ -276,6 +253,22 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         }
 
         Ok(())
+    }
+
+    fn get_string_size(
+        &self,
+        datatype: &DataTypeInformation,
+        location: SourceRange,
+    ) -> Result<i64, CompileError> {
+        if let DataTypeInformation::String { size, .. } = datatype {
+            size.as_int_value(self.index)
+                .map_err(|err| CompileError::codegen_error(err, location))
+        } else {
+            Err(CompileError::codegen_error(
+                format!("{} is not a String", datatype.get_name()),
+                location,
+            ))
+        }
     }
 
     fn generate_direct_access_assignment(
