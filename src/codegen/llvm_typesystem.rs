@@ -9,7 +9,7 @@ use inkwell::{
 use crate::{
     ast::AstStatement,
     ast::SourceRange,
-    compile_error::CompileError,
+    diagnostics::Diagnostic,
     index::Index,
     typesystem::{DataType, DataTypeInformation},
 };
@@ -22,7 +22,7 @@ pub fn promote_value_if_needed<'ctx>(
     lvalue: BasicValueEnum<'ctx>,
     ltype: &DataTypeInformation,
     target_type: &DataTypeInformation,
-) -> Result<BasicValueEnum<'ctx>, CompileError> {
+) -> Result<BasicValueEnum<'ctx>, Diagnostic> {
     //Is the target type int
     //Expand the current type to the target size
     //Is the target type float
@@ -119,7 +119,7 @@ pub fn cast_if_needed<'ctx>(
     value_type: &DataType,
     //TODO: Could be location
     statement: &AstStatement,
-) -> Result<BasicValueEnum<'ctx>, CompileError> {
+) -> Result<BasicValueEnum<'ctx>, Diagnostic> {
     let builder = &llvm.builder;
     let target_type = index
         .find_effective_type_info(target_type.get_name())
@@ -156,7 +156,7 @@ pub fn cast_if_needed<'ctx>(
                             value_type,
                             target_type,
                         )
-                        .map_err(|it| CompileError::relocate(&it, statement.get_location()))
+                        .map_err(|it| Diagnostic::relocate(it, statement.get_location()))
                     }
                 }
                 DataTypeInformation::Float { size: _rsize, .. } => {
@@ -179,7 +179,7 @@ pub fn cast_if_needed<'ctx>(
                             .into())
                     }
                 }
-                _ => Err(CompileError::casting_error(
+                _ => Err(Diagnostic::casting_error(
                     value_type.get_name(),
                     target_type.get_name(),
                     statement.get_location(),
@@ -228,10 +228,10 @@ pub fn cast_if_needed<'ctx>(
                         value_type,
                         target_type,
                     )
-                    .map_err(|it| CompileError::relocate(&it, statement.get_location()))
+                    .map_err(|it| Diagnostic::relocate(it, statement.get_location()))
                 }
             }
-            _ => Err(CompileError::casting_error(
+            _ => Err(Diagnostic::casting_error(
                 value_type.get_name(),
                 target_type.get_name(),
                 statement.get_location(),
@@ -243,20 +243,18 @@ pub fn cast_if_needed<'ctx>(
                 encoding: value_encoding,
             } => {
                 if encoding != value_encoding {
-                    return Err(CompileError::casting_error(
+                    return Err(Diagnostic::casting_error(
                         value_type.get_name(),
                         target_type.get_name(),
                         statement.get_location(),
                     ));
                 }
-                let size = size
-                    .as_int_value(index)
-                    .map_err(|msg| CompileError::codegen_error(msg, SourceRange::undefined()))?
-                    as u32;
-                let value_size = value_size
-                    .as_int_value(index)
-                    .map_err(|msg| CompileError::codegen_error(msg, SourceRange::undefined()))?
-                    as u32;
+                let size = size.as_int_value(index).map_err(|msg| {
+                    Diagnostic::codegen_error(msg.as_str(), SourceRange::undefined())
+                })? as u32;
+                let value_size = value_size.as_int_value(index).map_err(|msg| {
+                    Diagnostic::codegen_error(msg.as_str(), SourceRange::undefined())
+                })? as u32;
 
                 if size < value_size {
                     //we need to downcast the size of the string
@@ -297,7 +295,7 @@ pub fn cast_if_needed<'ctx>(
                                 Ok(value)
                             }
                         } else {
-                            Err(CompileError::casting_error(
+                            Err(Diagnostic::casting_error(
                                 value_type.get_name(),
                                 target_type.get_name(),
                                 statement.get_location(),
@@ -308,7 +306,7 @@ pub fn cast_if_needed<'ctx>(
                     Ok(value)
                 }
             }
-            _ => Err(CompileError::casting_error(
+            _ => Err(Diagnostic::casting_error(
                 value_type.get_name(),
                 target_type.get_name(),
                 statement.get_location(),
@@ -322,7 +320,7 @@ pub fn get_llvm_int_type<'a>(
     context: &'a Context,
     size: u32,
     name: &str,
-) -> Result<IntType<'a>, CompileError> {
+) -> Result<IntType<'a>, Diagnostic> {
     match size {
         1 => Ok(context.bool_type()),
         8 => Ok(context.i8_type()),
@@ -330,8 +328,8 @@ pub fn get_llvm_int_type<'a>(
         32 => Ok(context.i32_type()),
         64 => Ok(context.i64_type()),
         128 => Ok(context.i128_type()),
-        _ => Err(CompileError::codegen_error(
-            format!("Invalid size for type : '{}' at {}", name, size),
+        _ => Err(Diagnostic::codegen_error(
+            &format!("Invalid size for type : '{}' at {}", name, size),
             SourceRange::undefined(),
         )),
     }
@@ -341,12 +339,12 @@ pub fn get_llvm_float_type<'a>(
     context: &'a Context,
     size: u32,
     name: &str,
-) -> Result<FloatType<'a>, CompileError> {
+) -> Result<FloatType<'a>, Diagnostic> {
     match size {
         32 => Ok(context.f32_type()),
         64 => Ok(context.f64_type()),
-        _ => Err(CompileError::codegen_error(
-            format!("Invalid size for type : '{}' at {}", name, size),
+        _ => Err(Diagnostic::codegen_error(
+            &format!("Invalid size for type : '{}' at {}", name, size),
             SourceRange::undefined(),
         )),
     }

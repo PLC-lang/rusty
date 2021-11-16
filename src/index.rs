@@ -3,7 +3,7 @@ use indexmap::IndexMap;
 
 use crate::{
     ast::{Implementation, PouType, SourceRange},
-    compile_error::CompileError,
+    diagnostics::Diagnostic,
     typesystem::*,
 };
 
@@ -216,9 +216,9 @@ impl TypeIndex {
             .unwrap_or(&self.void_type)
     }
 
-    pub fn get_type(&self, type_name: &str) -> Result<&DataType, CompileError> {
+    pub fn get_type(&self, type_name: &str) -> Result<&DataType, Diagnostic> {
         self.find_type(type_name)
-            .ok_or_else(|| CompileError::unknown_type(type_name, SourceRange::undefined()))
+            .ok_or_else(|| Diagnostic::unknown_type(type_name, SourceRange::undefined()))
     }
 
     /// Retrieves the "Effective" type behind this datatype
@@ -516,10 +516,10 @@ impl Index {
     }
 
     /// returns the effective DataType of the type with the given name or an Error
-    pub fn get_effective_type(&self, type_name: &str) -> Result<&DataType, CompileError> {
+    pub fn get_effective_type(&self, type_name: &str) -> Result<&DataType, Diagnostic> {
         self.type_index
             .find_effective_type_by_name(type_name)
-            .ok_or_else(|| CompileError::unknown_type(type_name, SourceRange::undefined()))
+            .ok_or_else(|| Diagnostic::unknown_type(type_name, SourceRange::undefined()))
     }
 
     /// returns the effective DataTypeInformation of the type with the given name if it exists
@@ -534,7 +534,7 @@ impl Index {
         self.type_index.get_effective_type_by_name(type_name)
     }
 
-    pub fn get_type(&self, type_name: &str) -> Result<&DataType, CompileError> {
+    pub fn get_type(&self, type_name: &str) -> Result<&DataType, Diagnostic> {
         self.type_index.get_type(type_name)
     }
 
@@ -546,7 +546,7 @@ impl Index {
     }
 
     pub fn find_return_variable(&self, pou_name: &str) -> Option<&VariableIndexEntry> {
-        let members = self.member_variables.get(&pou_name.to_lowercase()); //.ok_or_else(||CompileError::unknown_type(pou_name, 0..0))?;
+        let members = self.member_variables.get(&pou_name.to_lowercase()); //.ok_or_else(||Diagnostic::unknown_type(pou_name, 0..0))?;
         if let Some(members) = members {
             for (_, variable) in members {
                 if variable.variable_type == VariableType::Return {

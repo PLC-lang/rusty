@@ -1,7 +1,5 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-use crate::{
-    ast::SourceRange, compile_error::CompileError, test_utils::tests::codegen_without_unwrap,
-};
+use crate::{ast::SourceRange, diagnostics::Diagnostic, test_utils::tests::codegen_without_unwrap};
 use pretty_assertions::assert_eq;
 
 #[test]
@@ -17,7 +15,10 @@ fn unknown_reference_should_be_reported_with_line_number() {
         ",
     );
     if let Err(msg) = result {
-        assert_eq!(CompileError::invalid_reference("y", (100..101).into()), msg);
+        assert_eq!(
+            Diagnostic::unresolved_reference("y", (100..101).into()),
+            msg
+        );
     } else {
         panic!("expected code-gen error but got none")
     }
@@ -37,10 +38,10 @@ fn exit_not_in_loop() {
     );
     if let Err(msg) = result {
         assert_eq!(
-            CompileError::CodeGenError {
-                message: "Cannot break out of loop when not inside a loop".into(),
-                location: crate::ast::SourceRange::new(95..99),
-            },
+            Diagnostic::codegen_error(
+                "Cannot break out of loop when not inside a loop",
+                (95..99).into()
+            ),
             msg
         );
     } else {
@@ -62,10 +63,10 @@ fn continue_not_in_loop() {
     );
     if let Err(msg) = result {
         assert_eq!(
-            CompileError::CodeGenError {
-                message: "Cannot continue loop when not inside a loop".into(),
-                location: crate::ast::SourceRange::new(95..103),
-            },
+            Diagnostic::codegen_error(
+                "Cannot continue loop when not inside a loop",
+                (95..103).into()
+            ),
             msg
         );
     } else {
@@ -90,7 +91,7 @@ fn unknown_type_should_be_reported_with_line_number() {
         // that's not perfect yet, the error is reported for the region of the variable
         // but better than nothing
         assert_eq!(
-            CompileError::unknown_type("unknown_type", (17..18).into()),
+            Diagnostic::unknown_type("unknown_type", (17..18).into()),
             msg
         );
     } else {
@@ -122,7 +123,7 @@ fn unknown_struct_field_should_be_reported_with_line_number() {
     );
     if let Err(msg) = result {
         assert_eq!(
-            CompileError::invalid_reference("MyStruct.c", (264..265).into()),
+            Diagnostic::unresolved_reference("MyStruct.c", (264..265).into()),
             msg
         );
     } else {
@@ -146,7 +147,7 @@ fn invalid_array_access_should_be_reported_with_line_number() {
         // that's not perfect yet, the error is reported for the region of the variable
         // but better than nothing
         assert_eq!(
-            CompileError::codegen_error("Invalid array access".to_string(), (97..98).into()),
+            Diagnostic::codegen_error("Invalid array access", (97..98).into()),
             msg
         );
     } else {
@@ -175,7 +176,7 @@ fn invalid_array_access_in_struct_should_be_reported_with_line_number() {
     );
     if let Err(msg) = result {
         assert_eq!(
-            CompileError::codegen_error("Invalid array access".to_string(), (228..229).into()),
+            Diagnostic::codegen_error("Invalid array access", (228..229).into()),
             msg
         );
     } else {
@@ -199,7 +200,7 @@ fn invalid_struct_access_in_array_should_be_reported_with_line_number() {
     if let Err(msg) = result {
         // that's not perfect yet, we need display-names for generated datatypes
         assert_eq!(
-            CompileError::invalid_reference("INT.a", (114..115).into()),
+            Diagnostic::unresolved_reference("INT.a", (114..115).into()),
             msg
         )
     } else {
@@ -224,7 +225,7 @@ fn invalid_struct_access_in_array_access_should_be_reported_with_line_number() {
     if let Err(msg) = result {
         // that's not perfect yet, we need display-names for generated datatypes
         assert_eq!(
-            CompileError::invalid_reference("INT.index", (139..144).into()),
+            Diagnostic::unresolved_reference("INT.index", (139..144).into()),
             msg
         )
     } else {
@@ -255,9 +256,8 @@ fn invalid_initial_constant_values_in_pou_variables() {
 
     if let Err(msg) = result {
         assert_eq!(
-            CompileError::codegen_error(
-                "Cannot generate literal initializer for 'prg.my_len': Value can not be derived"
-                    .to_string(),
+            Diagnostic::codegen_error(
+                "Cannot generate literal initializer for 'prg.my_len': Value can not be derived",
                 (214..221).into()
             ),
             msg
@@ -280,8 +280,8 @@ fn constants_without_initialization() {
 
     if let Err(msg) = result {
         assert_eq!(
-            CompileError::codegen_error(
-                "Cannot generate literal initializer for 'b': Value can not be derived".to_string(),
+            Diagnostic::codegen_error(
+                "Cannot generate literal initializer for 'b': Value can not be derived",
                 SourceRange::undefined()
             ),
             msg
@@ -304,8 +304,8 @@ fn recursive_initial_constant_values() {
 
     if let Err(msg) = result {
         assert_eq!(
-            CompileError::codegen_error(
-                "Cannot generate literal initializer for 'a': Value can not be derived".to_string(),
+            Diagnostic::codegen_error(
+                "Cannot generate literal initializer for 'a': Value can not be derived",
                 SourceRange::undefined()
             ),
             msg

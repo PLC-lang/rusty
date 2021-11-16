@@ -4,7 +4,13 @@ use super::{
     llvm::Llvm,
     statement_generator::{FunctionContext, StatementCodeGenerator},
 };
-use crate::{ast::Pou, codegen::llvm_index::LlvmTypedIndex, diagnostics::{Diagnostic, INTERNAL_LLVM_ERROR}, index::ImplementationType, resolver::AnnotationMap};
+use crate::{
+    ast::Pou,
+    codegen::llvm_index::LlvmTypedIndex,
+    diagnostics::{Diagnostic, INTERNAL_LLVM_ERROR},
+    index::ImplementationType,
+    resolver::AnnotationMap,
+};
 
 /// The pou_generator contains functions to generate the code for POUs (PROGRAM, FUNCTION, FUNCTION_BLOCK)
 /// # responsibilities

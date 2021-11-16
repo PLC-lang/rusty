@@ -95,7 +95,7 @@ fn main_compile(parameters: CompileParameters) -> Result<(), String> {
     };
 
     //unwrap a potential error
-    compile_result.map_err(|compile_err| compile_err.to_string())?;
+    compile_result.map_err(|compile_err| compile_err.get_message().to_string())?;
 
     let linkable_formats = vec![
         FormatOption::Static,

@@ -1,5 +1,6 @@
-
 use std::ops::Range;
+
+use inkwell::support::LLVMString;
 
 use crate::ast::{DataTypeDeclaration, PouType, SourceRange};
 
@@ -12,6 +13,10 @@ pub enum Diagnostic {
         range: SourceRange,
         err_no: ErrNo,
     },
+    GeneralError {
+        message: String,
+        err_no: ErrNo,
+    },
     ImprovementSuggestion {
         message: String,
         range: SourceRange,
@@ -22,6 +27,9 @@ pub enum Diagnostic {
 #[derive(PartialEq, Debug, Clone)]
 pub enum ErrNo {
     undefined,
+
+    //general
+    general__io_err,
 
     //syntax
     syntax__generic_error,
@@ -40,12 +48,13 @@ pub enum ErrNo {
     var__invalid_constant_block,
     var__invalid_constant,
     var__cannot_assign_to_const,
-    var__cannot_generate_initializer,
 
     //reference related
     reference__unresolved,
 
     //type related
+    type__cast_error,
+    type__unknown_type,
     type__literal_out_of_range,
     type__incompatible_literal_cast,
     type__incompatible_directaccess,
@@ -140,11 +149,27 @@ impl Diagnostic {
         }
     }
 
-    pub fn unrseolved_reference(reference: &str, location: SourceRange) -> Diagnostic {
+    pub fn unresolved_reference(reference: &str, location: SourceRange) -> Diagnostic {
         Diagnostic::SyntaxError {
             message: format!("Could not resolve reference to {:}", reference),
             range: location,
             err_no: ErrNo::reference__unresolved,
+        }
+    }
+
+    pub fn unknown_type(type_name: &str, location: SourceRange) -> Diagnostic {
+        Diagnostic::SyntaxError {
+            message: format!("Unknown type: {:}", type_name),
+            range: location,
+            err_no: ErrNo::type__unknown_type,
+        }
+    }
+
+    pub fn casting_error(type_name: &str, target_type: &str, location: SourceRange) -> Diagnostic {
+        Diagnostic::SyntaxError {
+            message: format!("Cannot cast from {:} to {:}", type_name, target_type),
+            range: location,
+            err_no: ErrNo::type__cast_error,
         }
     }
 
@@ -279,14 +304,13 @@ impl Diagnostic {
     }
 
     pub fn cannot_generate_initializer(variable_name: &str, location: SourceRange) -> Diagnostic {
-        Diagnostic::SyntaxError {
-            message: format!(
+        Self::codegen_error(
+            &format!(
                 "Cannot generate literal initializer for '{:}': Value can not be derived",
                 variable_name
             ),
-            range: location,
-            err_no: ErrNo::var__cannot_generate_initializer,
-        }
+            location,
+        )
     }
 
     pub fn codegen_error(message: &str, location: SourceRange) -> Diagnostic {
@@ -297,26 +321,75 @@ impl Diagnostic {
         }
     }
 
+    pub fn io_read_error(file: &str, reason: &str) -> Diagnostic {
+        Diagnostic::GeneralError {
+            message: format!("Cannot read file '{:}': {:}'", file, reason),
+            err_no: ErrNo::general__io_err,
+        }
+    }
+
+    pub fn io_write_error(file: &str, reason: &str) -> Diagnostic {
+        Diagnostic::GeneralError {
+            message: format!("Cannot write file '{:}': {:}'", file, reason),
+            err_no: ErrNo::general__io_err,
+        }
+    }
+
+    pub fn llvm_error(file: &str, llvm_error: &LLVMString) -> Diagnostic {
+        Diagnostic::GeneralError {
+            message: format!(
+                "{:}: Internal llvm error: {:}",
+                file,
+                llvm_error.to_string()
+            ),
+            err_no: ErrNo::general__io_err,
+        }
+    }
+
     pub fn get_message(&self) -> &str {
         match self {
-            Diagnostic::SyntaxError { message, .. } => message.as_str(),
-            Diagnostic::ImprovementSuggestion { message, .. } => message.as_str(),
+            Diagnostic::SyntaxError { message, .. }
+            | Diagnostic::ImprovementSuggestion { message, .. }
+            | Diagnostic::GeneralError { message, .. } => message.as_str(),
         }
     }
 
     pub fn get_location(&self) -> SourceRange {
         match self {
-            Diagnostic::SyntaxError { range, .. } => range.clone(),
-            Diagnostic::ImprovementSuggestion { range, .. } => range.clone(),
+            Diagnostic::SyntaxError { range, .. }
+            | Diagnostic::ImprovementSuggestion { range, .. } => range.clone(),
+            Diagnostic::GeneralError { .. } => SourceRange::undefined(),
         }
     }
 
     pub fn get_type(&self) -> &ErrNo {
         match self {
-            Diagnostic::SyntaxError {err_no, .. } => err_no,
+            Diagnostic::SyntaxError { err_no, .. } | Diagnostic::GeneralError { err_no, .. } => {
+                err_no
+            }
             Diagnostic::ImprovementSuggestion { .. } => &ErrNo::undefined,
         }
     }
 
-    
+    /**
+     * relocates the given diagnostic to the given location if possible and returns it back
+     */
+    pub fn relocate(it: Diagnostic, new_location: SourceRange) -> Diagnostic {
+        match it {
+            Diagnostic::SyntaxError {
+                message, err_no, ..
+            } => Diagnostic::SyntaxError {
+                message,
+                range: new_location,
+                err_no,
+            },
+            Diagnostic::ImprovementSuggestion { message, .. } => {
+                Diagnostic::ImprovementSuggestion {
+                    message,
+                    range: new_location,
+                }
+            }
+            _ => it,
+        }
+    }
 }

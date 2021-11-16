@@ -10,7 +10,7 @@ use self::{
     },
     llvm_index::LlvmTypedIndex,
 };
-use crate::{compile_error::CompileError, resolver::AnnotationMap};
+use crate::{diagnostics::Diagnostic, resolver::AnnotationMap};
 
 use super::ast::*;
 use super::index::*;
@@ -44,7 +44,7 @@ impl<'ink> CodeGen<'ink> {
         module: &Module<'ink>,
         annotations: &AnnotationMap,
         global_index: &Index,
-    ) -> Result<LlvmTypedIndex<'ink>, CompileError> {
+    ) -> Result<LlvmTypedIndex<'ink>, Diagnostic> {
         let llvm = Llvm::new(self.context, self.context.create_builder());
         let mut index = LlvmTypedIndex::new();
         //Generate types index, and any global variables associated with them.
@@ -81,7 +81,7 @@ impl<'ink> CodeGen<'ink> {
         unit: &CompilationUnit,
         annotations: &AnnotationMap,
         global_index: &Index,
-    ) -> Result<String, CompileError> {
+    ) -> Result<String, Diagnostic> {
         //Associate the index type with LLVM types
         let llvm_index = self.generate_llvm_index(&self.module, annotations, global_index)?;
 

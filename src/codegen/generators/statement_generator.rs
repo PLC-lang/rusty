@@ -2,10 +2,18 @@
 use super::{
     expression_generator::ExpressionCodeGenerator, llvm::Llvm, pou_generator::PouGenerator,
 };
-use crate::{ast::{flatten_expression_list, AstStatement, ConditionalBlock, Operator, SourceRange}, codegen::LlvmTypedIndex, codegen::llvm_typesystem, diagnostics::{Diagnostic, INTERNAL_LLVM_ERROR}, index::{ImplementationIndexEntry, Index}, resolver::AnnotationMap, typesystem::{
+use crate::{
+    ast::{flatten_expression_list, AstStatement, ConditionalBlock, Operator, SourceRange},
+    codegen::llvm_typesystem,
+    codegen::LlvmTypedIndex,
+    diagnostics::{Diagnostic, INTERNAL_LLVM_ERROR},
+    index::{ImplementationIndexEntry, Index},
+    resolver::AnnotationMap,
+    typesystem::{
         DataTypeInformation, DINT_TYPE, RANGE_CHECK_LS_FN, RANGE_CHECK_LU_FN, RANGE_CHECK_S_FN,
         RANGE_CHECK_U_FN,
-    }};
+    },
+};
 use inkwell::{
     basic_block::BasicBlock,
     builder::Builder,

@@ -170,10 +170,7 @@ impl<'a> Llvm<'a> {
                 let value = float_type.const_float_from_string(value);
                 Ok(BasicValueEnum::FloatValue(value))
             }
-            _ => Err(Diagnostic::codegen_error(
-                "expected numeric type".into(),
-                location,
-            )),
+            _ => Err(Diagnostic::codegen_error("expected numeric type", location)),
         }
     }
 
@@ -187,20 +184,14 @@ impl<'a> Llvm<'a> {
     /// create a constant utf8 string-value with the given value
     ///
     /// - `value` the value of the constant string value
-    pub fn create_const_utf8_string(
-        &self,
-        value: &str,
-    ) -> Result<BasicValueEnum<'a>, Diagnostic> {
+    pub fn create_const_utf8_string(&self, value: &str) -> Result<BasicValueEnum<'a>, Diagnostic> {
         self.create_llvm_const_vec_string(value.as_bytes())
     }
 
     /// create a constant utf16 string-value with the given value
     ///
     /// - `value` the value of the constant string value
-    pub fn create_const_utf16_string(
-        &self,
-        value: &str,
-    ) -> Result<BasicValueEnum<'a>, Diagnostic> {
+    pub fn create_const_utf16_string(&self, value: &str) -> Result<BasicValueEnum<'a>, Diagnostic> {
         let mut utf16_chars: Vec<u16> = value.encode_utf16().collect();
         //it only contains a single NUL-terminator-byte so we add a second one
         utf16_chars.push(0);

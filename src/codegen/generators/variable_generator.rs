@@ -9,9 +9,7 @@ use crate::{
 };
 use inkwell::{module::Module, values::GlobalValue};
 
-use crate::{
-    codegen::llvm_index::LlvmTypedIndex, compile_error::CompileError, index::VariableIndexEntry,
-};
+use crate::{codegen::llvm_index::LlvmTypedIndex, index::VariableIndexEntry};
 
 use super::{
     data_type_generator::get_default_for, expression_generator::ExpressionCodeGenerator, llvm::Llvm,
@@ -23,7 +21,7 @@ pub fn generate_global_variables<'ctx, 'b>(
     global_index: &'b Index,
     annotations: &'b AnnotationMap,
     types_index: &'b LlvmTypedIndex<'ctx>,
-) -> Result<LlvmTypedIndex<'ctx>, CompileError> {
+) -> Result<LlvmTypedIndex<'ctx>, Diagnostic> {
     let mut index = LlvmTypedIndex::new();
     let globals = global_index.get_globals();
     let enums = global_index.get_global_qualified_enums();
@@ -60,7 +58,7 @@ pub fn generate_global_variable<'ctx, 'b>(
     annotations: &'b AnnotationMap,
     index: &'b LlvmTypedIndex<'ctx>,
     global_variable: &VariableIndexEntry,
-) -> Result<GlobalValue<'ctx>, CompileError> {
+) -> Result<GlobalValue<'ctx>, Diagnostic> {
     let type_name = global_variable.get_type_name();
     let variable_type = index.get_associated_type(type_name)?;
 

@@ -3,12 +3,12 @@ pub mod tests {
 
     use crate::{
         ast::{self, CompilationUnit},
-        compile_error::CompileError,
+        diagnostics::Diagnostic,
         index::{self, Index},
         lexer::{self, IdProvider},
         parser,
         resolver::{const_evaluator::evaluate_constants, AnnotationMap, TypeAnnotator},
-        Diagnostic, Validator,
+        Validator,
     };
 
     pub fn parse(src: &str) -> (CompilationUnit, Vec<Diagnostic>) {
@@ -38,7 +38,7 @@ pub mod tests {
         validator.diagnostics()
     }
 
-    pub fn codegen_without_unwrap(src: &str) -> Result<String, CompileError> {
+    pub fn codegen_without_unwrap(src: &str) -> Result<String, Diagnostic> {
         let (unit, index) = index(src);
 
         let (index, ..) = evaluate_constants(index);

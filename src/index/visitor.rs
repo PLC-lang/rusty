@@ -4,7 +4,7 @@ use crate::ast::{
     self, AstStatement, CompilationUnit, DataType, DataTypeDeclaration, Implementation, Pou,
     PouType, SourceRange, UserTypeDeclaration, VariableBlock, VariableBlockType,
 };
-use crate::compile_error::CompileError;
+use crate::diagnostics::Diagnostic;
 use crate::index::{Index, MemberInfo};
 use crate::lexer::IdProvider;
 use crate::typesystem::{self, *};
@@ -353,7 +353,7 @@ fn visit_data_type(
             referenced_type,
             bounds,
         } => {
-            let dimensions: Result<Vec<Dimension>, CompileError> = bounds
+            let dimensions: Result<Vec<Dimension>, Diagnostic> = bounds
                 .get_as_list()
                 .iter()
                 .map(|it| {
@@ -376,8 +376,8 @@ fn visit_data_type(
                             ),
                         })
                     } else {
-                        Err(CompileError::codegen_error(
-                            "Invalid array definition: RangeStatement expected".into(),
+                        Err(Diagnostic::codegen_error(
+                            "Invalid array definition: RangeStatement expected",
                             it.get_location(),
                         ))
                     }

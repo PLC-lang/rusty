@@ -22,11 +22,10 @@ use std::fs;
 use std::path::Path;
 
 use ast::{PouType, SourceRange};
-use codespan_reporting::diagnostic::{self, Label};
+use codespan_reporting::diagnostic::Label;
 use codespan_reporting::files::SimpleFiles;
 use codespan_reporting::term::termcolor::{ColorChoice, StandardStream};
 use codespan_reporting::term::{self, Chars, Styles};
-use compile_error::CompileError;
 use diagnostics::Diagnostic;
 use encoding_rs::Encoding;
 use encoding_rs_io::DecodeReaderBytesBuilder;
@@ -44,7 +43,6 @@ use crate::resolver::{AnnotationMap, TypeAnnotator};
 mod ast;
 pub mod cli;
 mod codegen;
-pub mod compile_error;
 mod diagnostics;
 pub mod index;
 mod lexer;
@@ -136,13 +134,13 @@ fn compile_to_obj<T: SourceContainer>(
     output: &str,
     reloc: RelocMode,
     triple: TargetTriple,
-) -> Result<(), CompileError> {
+) -> Result<(), Diagnostic> {
     let initialization_config = &InitializationConfig::default();
     Target::initialize_all(initialization_config);
 
     let target = Target::from_triple(&triple).map_err(|it| {
-        CompileError::codegen_error(
-            format!("Invalid target-tripple '{:}' - {:?}", triple, it),
+        Diagnostic::codegen_error(
+            &format!("Invalid target-tripple '{:}' - {:?}", triple, it),
             SourceRange::undefined(),
         )
     })?;
@@ -158,17 +156,14 @@ fn compile_to_obj<T: SourceContainer>(
             CodeModel::Default,
         )
         .ok_or_else(|| {
-            CompileError::codegen_error(
-                "Cannot create target machine.".into(),
-                SourceRange::undefined(),
-            )
+            Diagnostic::codegen_error("Cannot create target machine.", SourceRange::undefined())
         });
 
     let c = Context::create();
     let code_generator = compile_module(&c, sources, encoding)?;
     machine.and_then(|it| {
         it.write_to_file(&code_generator.module, FileType::Object, Path::new(output))
-            .map_err(|it| it.into())
+            .map_err(|it| Diagnostic::llvm_error(output, &it))
     })
 }
 
@@ -185,7 +180,7 @@ pub fn compile_to_static_obj<T: SourceContainer>(
     encoding: Option<&'static Encoding>,
     output: &str,
     target: Option<String>,
-) -> Result<(), CompileError> {
+) -> Result<(), Diagnostic> {
     compile_to_obj(
         sources,
         encoding,
@@ -208,7 +203,7 @@ pub fn compile_to_shared_pic_object<T: SourceContainer>(
     encoding: Option<&'static Encoding>,
     output: &str,
     target: Option<String>,
-) -> Result<(), CompileError> {
+) -> Result<(), Diagnostic> {
     compile_to_obj(
         sources,
         encoding,
@@ -231,7 +226,7 @@ pub fn compile_to_shared_object<T: SourceContainer>(
     encoding: Option<&'static Encoding>,
     output: &str,
     target: Option<String>,
-) -> Result<(), CompileError> {
+) -> Result<(), Diagnostic> {
     compile_to_obj(
         sources,
         encoding,
@@ -252,7 +247,7 @@ pub fn compile_to_bitcode<T: SourceContainer>(
     sources: Vec<T>,
     encoding: Option<&'static Encoding>,
     output: &str,
-) -> Result<(), CompileError> {
+) -> Result<(), Diagnostic> {
     let path = Path::new(output);
     let c = Context::create();
     let code_generator = compile_module(&c, sources, encoding)?;
@@ -270,12 +265,11 @@ pub fn compile_to_ir<T: SourceContainer>(
     sources: Vec<T>,
     encoding: Option<&'static Encoding>,
     output: &str,
-) -> Result<(), CompileError> {
+) -> Result<(), Diagnostic> {
     let c = Context::create();
     let code_gen = compile_module(&c, sources, encoding)?;
     let ir = code_gen.module.print_to_string().to_string();
-    fs::write(output, ir)
-        .map_err(|err| CompileError::io_write_error(output.into(), err.to_string()))
+    fs::write(output, ir).map_err(|err| Diagnostic::io_write_error(output, &err.to_string()))
 }
 
 ///
@@ -289,7 +283,7 @@ pub fn compile_module<'c, T: SourceContainer>(
     context: &'c Context,
     sources: Vec<T>,
     encoding: Option<&'static Encoding>,
-) -> Result<codegen::CodeGen<'c>, CompileError> {
+) -> Result<codegen::CodeGen<'c>, Diagnostic> {
     let mut full_index = Index::new();
     let id_provider = IdProvider::default();
     let mut files: SimpleFiles<String, String> = SimpleFiles::new();
@@ -302,7 +296,7 @@ pub fn compile_module<'c, T: SourceContainer>(
         let location: String = container.get_location().into();
         let e = container
             .load_source(encoding)
-            .map_err(|err| CompileError::io_read_error(err, location.clone()))?;
+            .map_err(|err| Diagnostic::io_read_error(location.as_str(), err.as_str()))?;
         let file_id = files.add(location.clone(), e.source.clone());
 
         let (mut parse_result, diagnostics) =
@@ -348,9 +342,9 @@ fn report_diagnostics(
     file_id: usize,
     semantic_diagnostics: std::slice::Iter<Diagnostic>,
     files: &SimpleFiles<String, String>,
-) -> Result<(), CompileError> {
+) -> Result<(), Diagnostic> {
     for error in semantic_diagnostics {
-        let diag = diagnostic::Diagnostic::error()
+        let diag = codespan_reporting::diagnostic::Diagnostic::error()
             .with_message(error.get_message())
             .with_labels(vec![Label::primary(
                 file_id,
@@ -367,8 +361,8 @@ fn report_diagnostics(
         };
 
         term::emit(&mut writer.lock(), &config, files, &diag).map_err(|err| {
-            CompileError::codegen_error(
-                format!("Cannot print errors {:#?}", err),
+            Diagnostic::codegen_error(
+                &format!("Cannot print errors {:#?}", err),
                 SourceRange::undefined(),
             )
         })?;
