@@ -157,22 +157,22 @@ impl<'a> Llvm<'a> {
         &self,
         target_type: &BasicTypeEnum<'a>,
         value: &str,
+        location: SourceRange,
     ) -> Result<BasicValueEnum<'a>, CompileError> {
         match target_type {
-            BasicTypeEnum::IntType { 0: int_type } => {
-                let value = int_type.const_int_from_string(value, StringRadix::Decimal);
-                if value.is_none() {
-                    println!("whoops");
-                }
-                Ok(BasicValueEnum::IntValue(value.unwrap()))
-            }
+            BasicTypeEnum::IntType { 0: int_type } => int_type
+                .const_int_from_string(value, StringRadix::Decimal)
+                .ok_or_else(|| {
+                    CompileError::codegen_error(format!("Cannot parse {} as int", value), location)
+                })
+                .map(BasicValueEnum::IntValue),
             BasicTypeEnum::FloatType { 0: float_type } => {
                 let value = float_type.const_float_from_string(value);
                 Ok(BasicValueEnum::FloatValue(value))
             }
             _ => Err(CompileError::codegen_error(
                 "expected numeric type".into(),
-                SourceRange::undefined(),
+                location,
             )),
         }
     }

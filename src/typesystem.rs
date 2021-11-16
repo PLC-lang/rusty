@@ -327,7 +327,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
             initial_value: None,
             information: DataTypeInformation::Integer {
                 name: BOOL_TYPE.into(),
-                signed: true,
+                signed: false,
                 size: BOOL_SIZE,
             },
         },
@@ -590,9 +590,18 @@ fn get_rank(type_information: &DataTypeInformation) -> u32 {
     }
 }
 
-fn is_same_type_nature(ltype: &DataTypeInformation, rtype: &DataTypeInformation) -> bool {
-    (ltype.is_int() && ltype.is_int() == rtype.is_int())
-        || (ltype.is_float() && ltype.is_float() == rtype.is_float())
+pub fn is_same_type_nature(
+    ltype: &DataTypeInformation,
+    rtype: &DataTypeInformation,
+    index: &Index,
+) -> bool {
+    let ltype = index.find_intrinsic_type(ltype);
+    let rtype = index.find_intrinsic_type(rtype);
+    match ltype {
+        DataTypeInformation::Integer { .. } => matches!(rtype, DataTypeInformation::Integer { .. }),
+        DataTypeInformation::Float { .. } => matches!(rtype, DataTypeInformation::Float { .. }),
+        _ => ltype == rtype,
+    }
 }
 
 pub fn get_bigger_type<'t>(
@@ -602,17 +611,17 @@ pub fn get_bigger_type<'t>(
 ) -> &'t DataType {
     let lt = left_type.get_type_information();
     let rt = right_type.get_type_information();
-    if is_same_type_nature(lt, rt) {
+    if is_same_type_nature(lt, rt, index) {
         if get_rank(lt) < get_rank(rt) {
             right_type
         } else {
             left_type
         }
     } else {
-        let real_type = index.get_type(REAL_TYPE).unwrap();
+        let real_type = index.get_type_or_panic(REAL_TYPE);
         let real_size = real_type.get_type_information().get_size();
         if lt.get_size() > real_size || rt.get_size() > real_size {
-            index.get_type(LREAL_TYPE).unwrap()
+            index.get_type_or_panic(LREAL_TYPE)
         } else {
             real_type
         }
@@ -642,7 +651,7 @@ pub fn get_signed_type<'t>(
             .ok()
             .map(|t| t.get_type_information());
     }
-    None
+    Some(data_type)
 }
 
 #[cfg(test)]
@@ -680,7 +689,13 @@ mod tests {
         assert_signed_type!(LINT_TYPE, LWORD_TYPE, index);
 
         assert_eq!(
-            None,
+            Some(
+                index
+                    .find_effective_type(STRING_TYPE)
+                    .as_ref()
+                    .unwrap()
+                    .get_type_information()
+            ),
             get_signed_type(
                 index
                     .find_effective_type(STRING_TYPE)

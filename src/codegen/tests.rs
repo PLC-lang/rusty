@@ -5,6 +5,8 @@ mod expression_tests;
 mod statement_codegen_test;
 mod typesystem_test;
 
+mod directaccess_test;
+
 fn generate_program_boiler_plate(
     pou_name: &str,
     type_list: &[(&str, &str)],

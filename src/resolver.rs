@@ -460,14 +460,6 @@ impl<'i> TypeAnnotator<'i> {
                     )
                 }
             }
-            // AstStatement::LiteralString { .. } => {
-            //     //special case -> promote a literal-String directly, not via type-hint
-            //     // (avoid later cast)
-            //     self.annotation_map.annotate(
-            //         statement,
-            //         StatementAnnotation::value(expected_type.get_name()),
-            //     )
-            // }
             _ => {
                 //annotate the statement, whatever it is
                 self.annotation_map.annotate_type_hint(
@@ -707,7 +699,7 @@ impl<'i> TypeAnnotator<'i> {
                 if left_type.get_type_information().is_numerical()
                     && right_type.get_type_information().is_numerical()
                 {
-                    let dint = self.index.find_effective_type(DINT_TYPE).unwrap();
+                    let dint = self.index.get_type_or_panic(DINT_TYPE);
                     let bigger_type = get_bigger_type(
                         get_bigger_type(left_type, right_type, self.index),
                         dint,
@@ -778,7 +770,7 @@ impl<'i> TypeAnnotator<'i> {
                                     // ... then check if we're in a method and we're referencing
                                     // a member variable of the corresponding class
                                     self.index
-                                        .find_implementation(ctx.pou.unwrap())
+                                        .find_implementation(qualifier)
                                         .and_then(
                                             ImplementationIndexEntry::get_associated_class_name,
                                         )
@@ -957,8 +949,6 @@ impl<'i> TypeAnnotator<'i> {
                             StatementAnnotation::value(return_type.get_name()),
                         );
                     }
-                } else {
-                    println!("{:#?}", self.annotation_map.get(operator));
                 }
             }
             AstStatement::CastStatement {

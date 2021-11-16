@@ -8,7 +8,9 @@ use crate::{
     codegen::llvm_index::LlvmTypedIndex, compile_error::CompileError, index::VariableIndexEntry,
 };
 
-use super::{expression_generator::ExpressionCodeGenerator, llvm::Llvm};
+use super::{
+    data_type_generator::get_default_for, expression_generator::ExpressionCodeGenerator, llvm::Llvm,
+};
 
 pub fn generate_global_variables<'ctx, 'b>(
     module: &'b Module<'ctx>,
@@ -78,7 +80,11 @@ pub fn generate_global_variable<'ctx, 'b>(
     } else {
         None
     };
-    let initial_value = initial_value.or_else(|| index.find_associated_initial_value(type_name));
+    let initial_value = initial_value
+        // 2nd try: find an associated default value for the declared type
+        .or_else(|| index.find_associated_initial_value(type_name))
+        // 3rd try: get the compiler's default for the given type (zero-initializer)
+        .or_else(|| index.find_associated_type(type_name).map(get_default_for));
     let global_ir_variable = llvm.create_global_variable(
         module,
         global_variable.get_name(),

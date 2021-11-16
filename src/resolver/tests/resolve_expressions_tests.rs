@@ -164,12 +164,13 @@ fn unary_expressions_resolves_types() {
         "PROGRAM PRG
             NOT TRUE;
             -(2+3);
+            -0.2;
         END_PROGRAM",
     );
     let annotations = TypeAnnotator::visit_unit(&index, &unit);
     let statements = &unit.implementations[0].statements;
 
-    let expected_types = vec!["BOOL", "DINT"];
+    let expected_types = vec!["BOOL", "DINT", "REAL"];
 
     let types: Vec<&str> = statements
         .iter()
