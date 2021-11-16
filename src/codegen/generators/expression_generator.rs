@@ -1141,8 +1141,21 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
     ) -> Result<BasicValueEnum<'a>, CompileError> {
         match literal_statement {
             AstStatement::LiteralBool { value, .. } => self.llvm.create_const_bool(*value),
-            AstStatement::LiteralInteger { value, .. } => {
-                self.generate_numeric_literal(literal_statement, value.to_string().as_str())
+            AstStatement::LiteralInteger {
+                value, location, ..
+            } => {
+                let expected_type = self.get_type_hint_for(literal_statement)?;
+                if expected_type.get_name() == "CHAR" || expected_type.get_name() == "WCHAR" {
+                    Err(CompileError::codegen_error(
+                        format!(
+                            "Cannot generate Integer-Literal for type {}",
+                            expected_type.get_name()
+                        ),
+                        location.clone(),
+                    ))
+                } else {
+                    self.generate_numeric_literal(literal_statement, value.to_string().as_str())
+                }
             }
             AstStatement::LiteralReal { value, .. } => {
                 self.generate_numeric_literal(literal_statement, value)

@@ -87,11 +87,15 @@ fn invalid_char_assignments() {
 		VAR
 			x : CHAR;
 			y : WCHAR;
+			z : INT;
 		END_VAR
 			x := 'AJK%&/231';
 			y := "898JKAN";
 			x := y;
 			y := x;
+
+			z := 54;
+			x := z;
 		END_PROGRAM"#,
     );
 
@@ -101,14 +105,15 @@ fn invalid_char_assignments() {
         vec![
             Diagnostic::syntax_error(
                 "Value: 'AJK%&/231' exceeds length for type: CHAR",
-                (71..82).into()
+                (83..94).into()
             ),
             Diagnostic::syntax_error(
                 "Value: '898JKAN' exceeds length for type: WCHAR",
-                (92..101).into()
+                (104..113).into()
             ),
-            Diagnostic::syntax_error("Cannot assign WCHAR to CHAR !", (106..112).into()),
-            Diagnostic::syntax_error("Cannot assign CHAR to WCHAR !", (117..123).into()),
+            Diagnostic::syntax_error("Cannot assign WCHAR to CHAR !", (118..124).into()),
+            Diagnostic::syntax_error("Cannot assign CHAR to WCHAR !", (129..135).into()),
+            Diagnostic::syntax_error("Cannot assign INT to CHAR !", (153..159).into()),
         ]
     );
 }

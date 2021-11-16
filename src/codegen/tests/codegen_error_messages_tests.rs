@@ -316,7 +316,7 @@ fn recursive_initial_constant_values() {
 }
 
 #[test]
-fn char_assigning_wstring_literal_results_in_casting_errors() {
+fn char_assigning_wstring_literal_results_in_casting_error() {
     // GIVEN program with char variable trying to assign a wide string literal
     // WHEN codegen
     let result = codegen_without_unwrap(
@@ -340,7 +340,7 @@ fn char_assigning_wstring_literal_results_in_casting_errors() {
 }
 
 #[test]
-fn wchar_assigning_string_literal_results_in_casting_errors() {
+fn wchar_assigning_string_literal_results_in_casting_error() {
     // GIVEN program with wchar variable trying to assing a string literal
     // WHEN codegen
     let result = codegen_without_unwrap(
@@ -356,6 +356,60 @@ fn wchar_assigning_string_literal_results_in_casting_errors() {
     if let Err(msg) = result {
         assert_eq!(
             CompileError::casting_error("STRING".into(), "WCHAR".into(), (53..56).into()),
+            msg
+        )
+    } else {
+        panic!("expected code-gen error but got none")
+    }
+}
+
+#[test]
+fn assigning_string_literal_to_int_variable_results_in_casting_error() {
+    // GIVEN program with an int variable trying to assing a string literal
+    // WHEN codegen
+    let result = codegen_without_unwrap(
+        r#"
+	PROGRAM mainProg
+	VAR
+		x : INT;
+	END_VAR
+		x := 'A';
+	END_PROGRAM"#,
+    );
+    // THEN result shoud be a casting error
+    if let Err(msg) = result {
+        assert_eq!(
+            CompileError::codegen_error(
+                "Cannot generate String-Literal for type INT".to_string(),
+                (51..54).into(),
+            ),
+            msg
+        )
+    } else {
+        panic!("expected code-gen error but got none")
+    }
+}
+
+#[test]
+fn assigning_integer_literal_to_char_variable_results_in_casting_error() {
+    // GIVEN program with a char variable trying to assing an integer literal
+    // WHEN codegen
+    let result = codegen_without_unwrap(
+        r#"
+	PROGRAM mainProg
+	VAR
+		x : CHAR;
+	END_VAR
+		x := 12;
+	END_PROGRAM"#,
+    );
+    // THEN result shoud be a casting error
+    if let Err(msg) = result {
+        assert_eq!(
+            CompileError::codegen_error(
+                "Cannot generate Integer-Literal for type CHAR".to_string(),
+                (52..54).into(),
+            ),
             msg
         )
     } else {
