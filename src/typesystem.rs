@@ -223,6 +223,23 @@ impl DataTypeInformation {
         }
     }
 
+    pub fn is_string(&self) -> bool {
+        matches!(self, DataTypeInformation::String { .. })
+    }
+
+    pub fn is_character(&self) -> bool {
+        match self {
+            DataTypeInformation::Integer { name, .. } => {
+                if name == "WCHAR" || name == "CHAR" {
+                    return true;
+                } else {
+                    false
+                }
+            }
+            _ => return false,
+        }
+    }
+
     pub fn is_int(&self) -> bool {
         // internally an enum is represented as a DINT
         matches!(

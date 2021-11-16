@@ -6140,3 +6140,36 @@ entry:
 "#;
     assert_eq!(result, expected);
 }
+
+#[test]
+fn program_with_casted_chars_assignment() {
+    let result = codegen(
+        r#"
+		PROGRAM mainPROG
+		VAR
+			x : CHAR;
+			y : WCHAR;
+		END_VAR
+			x := CHAR#"A";
+			y := WCHAR#'A';
+		END_PROGRAM
+		"#,
+    );
+    let expected = r#"; ModuleID = 'main'
+source_filename = "main"
+
+%mainPROG_interface = type { i8, i16 }
+
+@mainPROG_instance = global %mainPROG_interface zeroinitializer
+
+define void @mainPROG(%mainPROG_interface* %0) {
+entry:
+  %x = getelementptr inbounds %mainPROG_interface, %mainPROG_interface* %0, i32 0, i32 0
+  %y = getelementptr inbounds %mainPROG_interface, %mainPROG_interface* %0, i32 0, i32 1
+  store i8 65, i8* %x, align 1
+  store i16 65, i16* %y, align 2
+  ret void
+}
+"#;
+    assert_eq!(result, expected);
+}

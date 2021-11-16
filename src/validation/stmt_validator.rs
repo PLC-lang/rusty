@@ -262,6 +262,16 @@ impl StatementValidator {
                     location.clone(),
                 ));
             }
+        } else if cast_type.is_character() && literal_type.is_string() {
+            let value = StatementValidator::get_literal_value(literal);
+            // value contains "" / ''
+            if value.len() > 3 {
+                self.diagnostics.push(Diagnostic::literal_out_of_range(
+                    value.as_str(),
+                    cast_type.get_name(),
+                    location.clone(),
+                ));
+            }
         } else if discriminant(cast_type) != discriminant(literal_type) {
             // different types
             // REAL#100 is fine, other differences are not
