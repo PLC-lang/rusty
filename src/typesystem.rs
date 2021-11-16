@@ -229,14 +229,8 @@ impl DataTypeInformation {
 
     pub fn is_character(&self) -> bool {
         match self {
-            DataTypeInformation::Integer { name, .. } => {
-                if name == "WCHAR" || name == "CHAR" {
-                    return true;
-                } else {
-                    false
-                }
-            }
-            _ => return false,
+            DataTypeInformation::Integer { name, .. } => name == "WCHAR" || name == "CHAR",
+            _ => false,
         }
     }
 
