@@ -704,23 +704,3 @@ fn lowercase_keywords_accepted() {
         result.advance();
     }
 }
-
-#[test]
-fn char_keyword_test() {
-    let mut result = lex("CHAR char");
-
-    assert_eq!(result.token, KeywordChar);
-    result.advance();
-    assert_eq!(result.token, KeywordChar);
-    result.advance();
-}
-
-#[test]
-fn wide_char_keyword_test() {
-    let mut result = lex("WCHAR wchar");
-
-    assert_eq!(result.token, KeywordWideChar);
-    result.advance();
-    assert_eq!(result.token, KeywordWideChar);
-    result.advance();
-}
