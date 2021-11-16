@@ -574,6 +574,9 @@ y := D#1970-01-01;
 z := DATE_AND_TIME#1984-10-01-20:15:14;
 z := DT#1970-01-01-16:20:04.123;
 z := DT#1970-01-01-16:20:04.123456789;
+z := DATE_AND_TIME#2000-01-01-20:15:00;
+z := DATE_AND_TIME#2000-01-01-20:15;
+z := DT#2000-01-01-20:15;
 END_PROGRAM
 "#,
     );
@@ -600,6 +603,9 @@ entry:
   store i64 465509714000, i64* %z, align 4
   store i64 58804123, i64* %z, align 4
   store i64 58804123, i64* %z, align 4
+  store i64 946757700000, i64* %z, align 4
+  store i64 946757700000, i64* %z, align 4
+  store i64 946757700000, i64* %z, align 4
   ret void
 }
 "#;
@@ -718,6 +724,10 @@ y := TIME_OF_DAY#00:00:00;
 y := TOD#01:00:00;
 y := TIME_OF_DAY#01:00:00.001;
 y := TOD#1:1:1;
+y := TIME_OF_DAY#20:15:00;
+y := TIME_OF_DAY#20:15;
+y := TOD#11:11:00;
+y := TOD#11:11;
 END_PROGRAM
 "#,
     );
@@ -736,6 +746,10 @@ entry:
   store i64 3600000, i64* %y, align 4
   store i64 3600001, i64* %y, align 4
   store i64 3661000, i64* %y, align 4
+  store i64 72900000, i64* %y, align 4
+  store i64 72900000, i64* %y, align 4
+  store i64 40260000, i64* %y, align 4
+  store i64 40260000, i64* %y, align 4
   ret void
 }
 "#;
@@ -1106,29 +1120,7 @@ x AND y;
 END_PROGRAM
 "#,
     );
-    let expected = generate_program_boiler_plate(
-        "prg",
-        &[("i1", "x"), ("i1", "y")],
-        "void",
-        "",
-        "",
-        r#"%load_x = load i1, i1* %x, align 1
-  %1 = sext i1 %load_x to i32
-  %2 = icmp ne i32 %1, 0
-  br i1 %2, label %3, label %5
-
-3:                                                ; preds = %entry
-  %load_y = load i1, i1* %y, align 1
-  %4 = sext i1 %load_y to i32
-  br label %5
-
-5:                                                ; preds = %3, %entry
-  %6 = phi i32 [ %1, %entry ], [ %4, %3 ]
-  ret void
-"#,
-    );
-
-    assert_eq!(result, expected);
+    insta::assert_snapshot!(result);
 }
 
 #[test]
@@ -1143,29 +1135,7 @@ x OR y;
 END_PROGRAM
 "#,
     );
-    let expected = generate_program_boiler_plate(
-        "prg",
-        &[("i1", "x"), ("i1", "y")],
-        "void",
-        "",
-        "",
-        r#"%load_x = load i1, i1* %x, align 1
-  %1 = sext i1 %load_x to i32
-  %2 = icmp ne i32 %1, 0
-  br i1 %2, label %5, label %3
-
-3:                                                ; preds = %entry
-  %load_y = load i1, i1* %y, align 1
-  %4 = sext i1 %load_y to i32
-  br label %5
-
-5:                                                ; preds = %3, %entry
-  %6 = phi i32 [ %1, %entry ], [ %4, %3 ]
-  ret void
-"#,
-    );
-
-    assert_eq!(result, expected);
+    insta::assert_snapshot!(result);
 }
 
 #[test]
@@ -1180,22 +1150,7 @@ x XOR y;
 END_PROGRAM
 "#,
     );
-    let expected = generate_program_boiler_plate(
-        "prg",
-        &[("i1", "x"), ("i1", "y")],
-        "void",
-        "",
-        "",
-        r#"%load_x = load i1, i1* %x, align 1
-  %1 = sext i1 %load_x to i32
-  %load_y = load i1, i1* %y, align 1
-  %2 = sext i1 %load_y to i32
-  %tmpVar = xor i32 %1, %2
-  ret void
-"#,
-    );
-
-    assert_eq!(result, expected);
+    insta::assert_snapshot!(result);
 }
 
 #[test]
@@ -1211,32 +1166,8 @@ x AND NOT y;
 END_PROGRAM
 "#,
     );
-    let expected = generate_program_boiler_plate(
-        "prg",
-        &[("i1", "x"), ("i1", "y")],
-        "void",
-        "",
-        "",
-        r#"%load_x = load i1, i1* %x, align 1
-  %tmpVar = xor i1 %load_x, true
-  %load_x1 = load i1, i1* %x, align 1
-  %1 = sext i1 %load_x1 to i32
-  %2 = icmp ne i32 %1, 0
-  br i1 %2, label %3, label %5
 
-3:                                                ; preds = %entry
-  %load_y = load i1, i1* %y, align 1
-  %tmpVar2 = xor i1 %load_y, true
-  %4 = sext i1 %tmpVar2 to i32
-  br label %5
-
-5:                                                ; preds = %3, %entry
-  %6 = phi i32 [ %1, %entry ], [ %4, %3 ]
-  ret void
-"#,
-    );
-
-    assert_eq!(result, expected);
+    insta::assert_snapshot!(result);
 }
 
 #[test]
@@ -1252,44 +1183,7 @@ NOT (z <= 6) OR y;
 END_PROGRAM
 "#,
     );
-    let expected = generate_program_boiler_plate(
-        "prg",
-        &[("i32", "z"), ("i1", "y")],
-        "void",
-        "",
-        "",
-        r#"%load_y = load i1, i1* %y, align 1
-  %1 = sext i1 %load_y to i32
-  %2 = icmp ne i32 %1, 0
-  br i1 %2, label %3, label %5
-
-3:                                                ; preds = %entry
-  %load_z = load i32, i32* %z, align 4
-  %tmpVar = icmp sge i32 %load_z, 5
-  %4 = sext i1 %tmpVar to i32
-  br label %5
-
-5:                                                ; preds = %3, %entry
-  %6 = phi i32 [ %1, %entry ], [ %4, %3 ]
-  %load_z1 = load i32, i32* %z, align 4
-  %tmpVar2 = icmp sle i32 %load_z1, 6
-  %tmpVar3 = xor i1 %tmpVar2, true
-  %7 = sext i1 %tmpVar3 to i32
-  %8 = icmp ne i32 %7, 0
-  br i1 %8, label %11, label %9
-
-9:                                                ; preds = %5
-  %load_y4 = load i1, i1* %y, align 1
-  %10 = sext i1 %load_y4 to i32
-  br label %11
-
-11:                                               ; preds = %9, %5
-  %12 = phi i32 [ %7, %5 ], [ %10, %9 ]
-  ret void
-"#,
-    );
-
-    assert_eq!(result, expected);
+    insta::assert_snapshot!(result);
 }
 
 #[test]
@@ -1453,37 +1347,7 @@ fn if_with_expression_generator_test() {
         END_PROGRAM
         ",
     );
-    let expected = generate_program_boiler_plate(
-        "prg",
-        &[("i32", "x"), ("i1", "b1")],
-        "void",
-        "",
-        "",
-        r#"%load_x = load i32, i32* %x, align 4
-  %tmpVar = icmp sgt i32 %load_x, 1
-  %1 = sext i1 %tmpVar to i32
-  %2 = icmp ne i32 %1, 0
-  br i1 %2, label %5, label %3
-
-condition_body:                                   ; preds = %5
-  %load_x1 = load i32, i32* %x, align 4
-  br label %continue
-
-continue:                                         ; preds = %condition_body, %5
-  ret void
-
-3:                                                ; preds = %entry
-  %load_b1 = load i1, i1* %b1, align 1
-  %4 = sext i1 %load_b1 to i32
-  br label %5
-
-5:                                                ; preds = %3, %entry
-  %6 = phi i32 [ %1, %entry ], [ %4, %3 ]
-  br i32 %6, label %condition_body, label %continue
-"#,
-    );
-
-    assert_eq!(result, expected);
+    insta::assert_snapshot!(result);
 }
 
 #[test]
@@ -1548,44 +1412,7 @@ fn for_statement_with_continue() {
         END_PROGRAM
         ",
     );
-
-    let expected = generate_program_boiler_plate(
-        "prg",
-        &[("i32", "x")],
-        "void",
-        "",
-        "",
-        r#"store i32 3, i32* %x, align 4
-  br label %condition_check
-
-condition_check:                                  ; preds = %increment, %entry
-  %load_x = load i32, i32* %x, align 4
-  %tmpVar = icmp sle i32 %load_x, 10
-  br i1 %tmpVar, label %for_body, label %continue
-
-for_body:                                         ; preds = %condition_check
-  %load_x1 = load i32, i32* %x, align 4
-  %tmpVar2 = add i32 %load_x1, 1
-  store i32 %tmpVar2, i32* %x, align 4
-  br label %increment
-
-buffer_block:                                     ; No predecessors!
-  %load_x3 = load i32, i32* %x, align 4
-  %tmpVar4 = sub i32 %load_x3, 1
-  store i32 %tmpVar4, i32* %x, align 4
-  br label %increment
-
-increment:                                        ; preds = %buffer_block, %for_body
-  %tmpVar5 = add i32 %load_x, 7
-  store i32 %tmpVar5, i32* %x, align 4
-  br label %condition_check
-
-continue:                                         ; preds = %condition_check
-  ret void
-"#,
-    );
-
-    assert_eq!(result, expected);
+    insta::assert_snapshot!(result);
 }
 
 #[test]
@@ -2229,31 +2056,7 @@ fn while_with_expression_statement() {
         END_PROGRAM
         ",
     );
-
-    let expected = generate_program_boiler_plate(
-        "prg",
-        &[("i1", "x")],
-        "void",
-        "",
-        "",
-        r#"br label %condition_check
-
-condition_check:                                  ; preds = %entry, %while_body
-  %load_x = load i1, i1* %x, align 1
-  %1 = sext i1 %load_x to i32
-  %tmpVar = icmp eq i32 %1, 0
-  br i1 %tmpVar, label %while_body, label %continue
-
-while_body:                                       ; preds = %condition_check
-  %load_x1 = load i1, i1* %x, align 1
-  br label %condition_check
-
-continue:                                         ; preds = %condition_check
-  ret void
-"#,
-    );
-
-    assert_eq!(result, expected);
+    insta::assert_snapshot!(result);
 }
 
 #[test]
@@ -4170,19 +3973,15 @@ fn structs_are_generated() {
 
         VAR_GLOBAL
           x : MyStruct;
+          y : STRUCT
+            a : BYTE;
+            b : BYTE;
+          END_STRUCT;
         END_VAR
         ",
     );
 
-    let expected = r#"; ModuleID = 'main'
-source_filename = "main"
-
-%MyStruct = type { i32, i32 }
-
-@x = global %MyStruct zeroinitializer
-"#;
-
-    assert_eq!(result, expected);
+    insta::assert_snapshot!(result);
 }
 
 #[test]
@@ -4193,17 +3992,12 @@ fn arrays_are_generated() {
 
         VAR_GLOBAL
           x : MyArray;
+          y : ARRAY[0..5] OF REAL;
         END_VAR
         ",
     );
 
-    let expected = r#"; ModuleID = 'main'
-source_filename = "main"
-
-@x = external global [10 x i16]
-"#;
-
-    assert_eq!(result, expected);
+    insta::assert_snapshot!(result);
 }
 
 #[test]
@@ -4228,20 +4022,7 @@ fn arrays_with_global_const_size_are_generated() {
         ",
     );
 
-    let expected = r#"; ModuleID = 'main'
-source_filename = "main"
-
-@THREE = global i16 3
-@ZERO = global i16 0
-@LEN = global i16 9
-@x = external global [10 x i16]
-@y = external global [11 x i32]
-@z = external global [19 x i8]
-@zz = external global [10 x [10 x i8]]
-@zzz = external global [10 x [8 x i8]]
-"#;
-
-    assert_eq!(result, expected);
+    insta::assert_snapshot!(result);
 }
 
 #[test]
@@ -4992,6 +4773,32 @@ source_filename = "main"
 }
 
 #[test]
+fn initial_values_in_global_variables_out_of_order() {
+    let result = codegen(
+        "
+        VAR_GLOBAL
+        x : MyFB;
+        END_VAR
+        
+        PROGRAM prg
+        VAR
+        x : MyFB;            
+        END_VAR
+        END_PROGRAM
+
+        //if this fb is moved to the top, the initializer works
+        FUNCTION_BLOCK MyFB
+          VAR
+            x : INT := 77;            
+          END_VAR
+        END_FUNCTION_BLOCK
+        ",
+    );
+
+    insta::assert_snapshot!(result);
+}
+
+#[test]
 fn initial_values_in_program_pou() {
     let result = codegen(
         "
@@ -5299,6 +5106,25 @@ fn initial_values_in_array_of_array_variable() {
 source_filename = "main"
 
 @a = global [2 x [2 x i8]] [[2 x i8] c"\01\02", [2 x i8] c"\03\04"]
+"#;
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn uninitialized_global_array() {
+    let result = codegen(
+        "
+         VAR_GLOBAL 
+           a : ARRAY[0..1] OF BYTE; 
+         END_VAR
+         ",
+    );
+
+    let expected = r#"; ModuleID = 'main'
+source_filename = "main"
+
+@a = global [2 x i8] zeroinitializer
 "#;
 
     assert_eq!(result, expected);

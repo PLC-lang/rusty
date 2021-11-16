@@ -356,13 +356,16 @@ impl Index {
 
     /// imports the corresponding TypeSize (according to the given initializer-id) from the given ConstExpressions
     /// into self's const-expressions and returns the new Id
+    ///
+    /// panics if the import fails (e.g. the given TypeSize::ConstExpression(id) does not exist in this Index)
+    /// this problem would indicate a programming mistake
     fn import_type_size(
         &mut self,
         import_from: &mut ConstExpressions,
         type_size: &TypeSize,
     ) -> TypeSize {
-        match type_size {
-            TypeSize::LiteralInteger(_) => type_size.clone(),
+        let ts = match type_size {
+            TypeSize::LiteralInteger(_) => Some(type_size.clone()),
             TypeSize::ConstExpression(id) => import_from
                 .remove(id)
                 .map(|(expr, target_type, scope)| {
@@ -372,8 +375,17 @@ impl Index {
                         scope,
                     )
                 })
-                .map(TypeSize::from_expression)
-                .unwrap(),
+                .map(TypeSize::from_expression),
+        };
+
+        match ts {
+            Some(it) => it,
+            None => {
+                unreachable!(
+                    "requested type-size is not part of the given ConstExpressions. Cannot import '{:?}', from {:?}",
+                    type_size, import_from
+                );
+            }
         }
     }
 
@@ -503,6 +515,13 @@ impl Index {
         self.type_index.find_effective_type_by_name(type_name)
     }
 
+    /// returns the effective DataType of the type with the given name or an Error
+    pub fn get_effective_type(&self, type_name: &str) -> Result<&DataType, CompileError> {
+        self.type_index
+            .find_effective_type_by_name(type_name)
+            .ok_or_else(|| CompileError::unknown_type(type_name, SourceRange::undefined()))
+    }
+
     /// returns the effective DataTypeInformation of the type with the given name if it exists
     pub fn find_effective_type_info(&self, type_name: &str) -> Option<&DataTypeInformation> {
         self.find_effective_type(type_name)
@@ -519,6 +538,13 @@ impl Index {
         self.type_index.get_type(type_name)
     }
 
+    /// expect a built-in type
+    pub fn get_type_or_panic(&self, type_name: &str) -> &DataType {
+        self.type_index
+            .get_type(type_name)
+            .unwrap_or_else(|_| panic!("{} not found", type_name))
+    }
+
     pub fn find_return_variable(&self, pou_name: &str) -> Option<&VariableIndexEntry> {
         let members = self.member_variables.get(&pou_name.to_lowercase()); //.ok_or_else(||CompileError::unknown_type(pou_name, 0..0))?;
         if let Some(members) = members {
@@ -533,7 +559,7 @@ impl Index {
 
     pub fn find_return_type(&self, pou_name: &str) -> Option<&DataType> {
         let variable = self.find_return_variable(pou_name);
-        variable.map(|it| self.get_type(it.get_type_name()).unwrap())
+        variable.and_then(|it| self.get_type(it.get_type_name()).ok())
     }
 
     pub fn get_type_information_or_void(&self, type_name: &str) -> &DataTypeInformation {
@@ -728,6 +754,30 @@ impl Index {
     /// returns all registered ConstExpressions
     pub fn get_const_expressions(&self) -> &ConstExpressions {
         &self.constant_expressions
+    }
+
+    /// returns the intrinsic (built-in) type represented by the given type-information
+    /// this will return the built-in type behind alias and range-types
+    pub fn find_intrinsic_type<'idx>(
+        &'idx self,
+        initial_type: &'idx DataTypeInformation,
+    ) -> &'idx DataTypeInformation {
+        match initial_type {
+            DataTypeInformation::SubRange { .. } | DataTypeInformation::Alias { .. } => {
+                let inner_type_name = match initial_type {
+                    DataTypeInformation::SubRange {
+                        referenced_type, ..
+                    } => referenced_type,
+                    _ => initial_type.get_name(),
+                };
+                if let Some(inner_type) = self.find_effective_type_info(inner_type_name) {
+                    self.find_intrinsic_type(inner_type)
+                } else {
+                    initial_type
+                }
+            }
+            _ => initial_type,
+        }
     }
 }
 

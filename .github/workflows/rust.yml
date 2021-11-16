@@ -8,10 +8,10 @@ on:
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
-
+  
 env:
-  toolchain-version: 1.54.0
-  llvm-version: "11.0.1"
+  IMAGE_NAME: rust-llvm
+  IMAGE_VERSION: 12-1.56.1
 
 jobs:
   check: 
@@ -22,42 +22,58 @@ jobs:
         with:
           submodules: true
 
-      - name: Install Rust
-        uses: actions-rs/toolchain@v1
-        with:
-          toolchain: ${{ env.toolchain-version }}
-          profile: minimal
-          override: true
+      - name: Run Check
+        run: |
+          IMAGE_ID=ghcr.io/${{ github.repository_owner }}/$IMAGE_NAME:$IMAGE_VERSION-linux
+          # Change all uppercase to lowercase
+          IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
+          docker pull $IMAGE_ID
+          ./scripts/build.sh --check --container --container-name=$IMAGE_ID
 
-      - name: Install LLVM
-        uses: PLC-lang/install-llvm-action@latest
-        with:
-          version: ${{ env.llvm-version }}
-          directory: "./llvm"
-
-      - name: Cargo check
-        uses: actions-rs/cargo@v1
-        with:
-          command: check
-
-  test:
-    name: Test
-    runs-on: ${{ matrix.config.os }}
+  test-linux:
+    name: Test Linux
+    runs-on: ubuntu-latest
     needs: check
-    strategy:
-      fail-fast: false
-      matrix:
-        config:
-          - { 
-            os: "ubuntu-latest",
-            dir: linux,
-            artifacts: "rustyc"
-          }
-          - { 
-            os: "windows-latest",
-            dir: windows,
-            artifacts: "rustyc.exe rustyc.pdb"
-          }
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Cargo test
+        shell: bash
+        run: |
+          IMAGE_ID=ghcr.io/${{ github.repository_owner }}/$IMAGE_NAME:$IMAGE_VERSION-linux
+          # Change all uppercase to lowercase
+          IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
+          docker pull $IMAGE_ID
+          echo "Build command : ./scripts/build.sh --verbose --build --test --container --container-name=$IMAGE_ID"
+          ./scripts/build.sh --verbose --build --test --container --container-name=$IMAGE_ID
+
+      - run: mkdir -p linux
+
+      - name: Move artifacts
+        env:
+          ARTIFACTS: "rustyc"
+          OUT_DIR: "linux"
+        run: |
+          import os
+          artifacts = os.environ['ARTIFACTS'].split()
+          for artifact in artifacts:
+            src = "target/debug/%s" % artifact
+            dst = os.environ['OUT_DIR'] + "/" + artifact
+            os.rename(src, dst)
+        shell: python
+
+      - uses: actions/upload-artifact@master
+        with:
+          name: linux-debug
+          path: linux
+
+  test-windows:
+    name: Test Windows
+    runs-on: windows-latest
+    needs: check
+    env:
+      toolchain-version: 1.56
+      llvm-version: 12.0.1
     steps:
 
       - uses: actions/checkout@v2
@@ -80,13 +96,14 @@ jobs:
         with:
           command: test
           args: -- --nocapture
-
-      - run: mkdir -p ${{ matrix.config.dir }}
+ 
+      - run: mkdir -p windows
+      - run: ls target/debug
 
       - name: Move artifacts
         env:
-          ARTIFACTS: ${{ matrix.config.artifacts }}
-          OUT_DIR: ${{ matrix.config.dir }}
+          ARTIFACTS: "rustyc.exe rustyc.pdb"
+          OUT_DIR: "windows"
         run: |
           import os
           artifacts = os.environ['ARTIFACTS'].split()
@@ -98,97 +115,38 @@ jobs:
 
       - uses: actions/upload-artifact@master
         with:
-          name: ${{ matrix.config.dir }}-debug
-          path: ${{ matrix.config.dir }}
+          name: windows-debug
+          path: windows
 
   style:
     name: Check Style
     runs-on: ubuntu-latest
+    needs: check
     steps:
       - uses: actions/checkout@v2
 
-      - name: Install stable toolchain
-        uses: actions-rs/toolchain@v1
-        with:
-          toolchain: ${{ env.toolchain-version }}
-          profile: minimal
-          override: true
-          components: clippy, rustfmt
-
-      - name: Install LLVM
-        uses: ghaith/install-llvm-action@latest
-        with:
-          version: ${{ env.llvm-version }}
-          directory: "./llvm"
-
-      - name: Run cargo fmt
-        uses: actions-rs/cargo@v1
-        with:
-          command: fmt
-          args: --all -- --check
-
-      - name: Run cargo clippy
-        uses: actions-rs/clippy-check@v1
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          args: --all-features -- -D warnings
+      - name: Run Checks
+        run: |
+          IMAGE_ID=ghcr.io/${{ github.repository_owner }}/$IMAGE_NAME:$IMAGE_VERSION-linux
+          # Change all uppercase to lowercase
+          IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
+          docker pull $IMAGE_ID
+          ./scripts/build.sh --check-style --container --container-name=$IMAGE_ID
 
   coverage:
     name: Run Coverage 
     runs-on: ubuntu-latest
     needs: check
-    env:
-      RUSTFLAGS: "-Zinstrument-coverage"
-      LLVM_PROFILE_FILE: "rusty-%p-%m.profraw"
-
     steps:
       - uses: actions/checkout@v2
 
-      - uses: actions-rs/toolchain@v1
-        with:
-          toolchain: nightly
-          components: llvm-tools-preview
-          override: true
-
-      - name: Install LLVM
-        uses: ghaith/install-llvm-action@latest
-        with:
-          version: ${{ env.llvm-version }}
-
-      - name: Clean
-        uses: actions-rs/cargo@v1
-        with:
-          command: clean
-
-      - name: Build
-        uses: actions-rs/cargo@v1
-        with:
-          command: build
-          args: --verbose
-
-      - name: Run Tests for Coverage
-        uses: actions-rs/cargo@v1
-        with:
-          command: test
-          args: --all-features --no-fail-fast --verbose
-      
-      - name: Install grcov
-        uses: actions-rs/install@v0.1
-        with:
-          crate: grcov
-          version: latest
-          use-tool-cache: true
-      
-      - name: Generate coverage report
+      - name: Run Checks
         run: |
-          grcov . --binary-path ./target/debug/ -s . -t lcov --branch \
-            --ignore "/*" \
-            --ignore "src/main.rs" \
-            --ignore "src/*/tests.rs" \
-            --ignore "src/*/tests/*" \
-            --ignore "src/lexer/tokens.rs" \
-            --ignore-not-existing -o lcov.info
-
+          IMAGE_ID=ghcr.io/${{ github.repository_owner }}/$IMAGE_NAME:$IMAGE_VERSION-linux
+          # Change all uppercase to lowercase
+          IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
+          docker pull $IMAGE_ID
+          ./scripts/build.sh --container --container-name=$IMAGE_ID --coverage
 
       - name: Upload to codecov.io
         uses: codecov/codecov-action@v1

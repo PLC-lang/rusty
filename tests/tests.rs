@@ -12,10 +12,12 @@ mod correctness {
     mod control_flow;
     mod custom_datatypes;
     mod datatypes;
+    mod expressions;
     mod external_functions;
     mod functions;
     mod global_variables;
     mod initial_values;
+    mod methods;
     mod pointers;
     mod sub_range_types;
     mod math_operators {
