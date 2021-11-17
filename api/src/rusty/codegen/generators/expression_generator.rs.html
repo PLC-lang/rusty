@@ -1670,6 +1670,14 @@
 <span id="1670">1670</span>
 <span id="1671">1671</span>
 <span id="1672">1672</span>
+<span id="1673">1673</span>
+<span id="1674">1674</span>
+<span id="1675">1675</span>
+<span id="1676">1676</span>
+<span id="1677">1677</span>
+<span id="1678">1678</span>
+<span id="1679">1679</span>
+<span id="1680">1680</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">ast</span>::{<span class="ident">DirectAccessType</span>, <span class="ident">SourceRange</span>},
@@ -2959,21 +2967,29 @@
                 <span class="ident">value</span>, <span class="ident">location</span>, ..
             } <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">let</span> <span class="ident">expected_type</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_type_hint_info_for</span>(<span class="ident">literal_statement</span>)<span class="question-mark">?</span>;
-                <span class="kw">if</span> <span class="kw">let</span> <span class="ident">DataTypeInformation::String</span> { <span class="ident">encoding</span>, .. } <span class="op">=</span> <span class="ident">expected_type</span> {
-                    <span class="kw">match</span> <span class="ident">encoding</span> {
+                <span class="kw">match</span> <span class="ident">expected_type</span> {
+                    <span class="ident">DataTypeInformation::String</span> { <span class="ident">encoding</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident">encoding</span> {
                         <span class="ident">StringEncoding::Utf8</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">llvm</span>.<span class="ident">create_const_utf8_string</span>(<span class="ident">value</span>.<span class="ident">as_str</span>()),
                         <span class="ident">StringEncoding::Utf16</span> <span class="op">=</span><span class="op">&gt;</span> {
                             <span class="self">self</span>.<span class="ident">llvm</span>.<span class="ident">create_const_utf16_string</span>(<span class="ident">value</span>.<span class="ident">as_str</span>())
                         }
+                    },
+                    <span class="ident">DataTypeInformation::Integer</span> { <span class="ident">size</span>: <span class="number">8</span>, .. }
+                        <span class="kw">if</span> <span class="ident">expected_type</span>.<span class="ident">is_character</span>() <span class="op">=</span><span class="op">&gt;</span>
+                    {
+                        <span class="self">self</span>.<span class="ident">llvm</span>
+                            .<span class="ident">create_llvm_const_i8_char</span>(<span class="ident">value</span>.<span class="ident">as_str</span>(), <span class="ident">location</span>)
                     }
-                } <span class="kw">else</span> {
-                    <span class="prelude-val">Err</span>(<span class="ident">CompileError::codegen_error</span>(
-                        <span class="macro">format!</span>(
-                            <span class="string">&quot;Cannot generate String-Literal for type {}&quot;</span>,
-                            <span class="ident">expected_type</span>.<span class="ident">get_name</span>()
-                        ),
+                    <span class="ident">DataTypeInformation::Integer</span> { <span class="ident">size</span>: <span class="number">16</span>, .. }
+                        <span class="kw">if</span> <span class="ident">expected_type</span>.<span class="ident">is_character</span>() <span class="op">=</span><span class="op">&gt;</span>
+                    {
+                        <span class="self">self</span>.<span class="ident">llvm</span>
+                            .<span class="ident">create_llvm_const_i16_char</span>(<span class="ident">value</span>.<span class="ident">as_str</span>(), <span class="ident">location</span>)
+                    }
+                    <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">CompileError::cannot_generate_string_literal</span>(
+                        <span class="ident">expected_type</span>.<span class="ident">get_name</span>(),
                         <span class="ident">location</span>.<span class="ident">clone</span>(),
-                    ))
+                    )),
                 }
             }
             <span class="ident">AstStatement::LiteralArray</span> {
