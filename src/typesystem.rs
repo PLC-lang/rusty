@@ -60,6 +60,8 @@ pub const REAL_TYPE: &str = "REAL";
 pub const LREAL_TYPE: &str = "LREAL";
 pub const STRING_TYPE: &str = "STRING";
 pub const WSTRING_TYPE: &str = "WSTRING";
+pub const CHAR_TYPE: &str = "CHAR";
+pub const WCHAR_TYPE: &str = "WCHAR";
 
 pub const CONST_STRING_TYPE: &str = "___CONST_STRING";
 pub const CONST_WSTRING_TYPE: &str = "___CONST_WSTRING";
@@ -221,6 +223,17 @@ impl DataTypeInformation {
         }
     }
 
+    pub fn is_string(&self) -> bool {
+        matches!(self, DataTypeInformation::String { .. })
+    }
+
+    pub fn is_character(&self) -> bool {
+        match self {
+            DataTypeInformation::Integer { name, .. } => name == WCHAR_TYPE || name == CHAR_TYPE,
+            _ => false,
+        }
+    }
+
     pub fn is_int(&self) -> bool {
         // internally an enum is represented as a DINT
         matches!(
@@ -248,10 +261,6 @@ impl DataTypeInformation {
                 | DataTypeInformation::Float { .. }
                 | &DataTypeInformation::Enum { .. } // internally an enum is represented as a DINT
         )
-    }
-
-    pub fn is_string(&self) -> bool {
-        matches!(self, &DataTypeInformation::String { .. })
     }
 
     pub fn is_variadic(&self) -> bool {
@@ -552,6 +561,24 @@ pub fn get_builtin_types() -> Vec<DataType> {
             information: DataTypeInformation::Alias {
                 name: SHORT_TIME_TYPE.into(),
                 referenced_type: TIME_TYPE.into(),
+            },
+        },
+        DataType {
+            name: CHAR_TYPE.into(),
+            initial_value: None,
+            information: DataTypeInformation::Integer {
+                name: CHAR_TYPE.into(),
+                signed: false,
+                size: 8,
+            },
+        },
+        DataType {
+            name: WCHAR_TYPE.into(),
+            initial_value: None,
+            information: DataTypeInformation::Integer {
+                name: WCHAR_TYPE.into(),
+                signed: false,
+                size: 16,
             },
         },
     ]

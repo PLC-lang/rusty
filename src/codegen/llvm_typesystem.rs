@@ -11,7 +11,7 @@ use crate::{
     ast::SourceRange,
     compile_error::CompileError,
     index::Index,
-    typesystem::{DataType, DataTypeInformation},
+    typesystem::{DataType, DataTypeInformation, StringEncoding},
 };
 
 use super::generators::llvm::Llvm;
@@ -178,6 +178,25 @@ pub fn cast_if_needed<'ctx>(
                             )
                             .into())
                     }
+                }
+                DataTypeInformation::String { encoding, .. } => {
+                    if (*lsize == 8 && matches!(encoding, StringEncoding::Utf16))
+                        || (*lsize == 16 && matches!(encoding, StringEncoding::Utf8))
+                    {
+                        return Err(CompileError::casting_error(
+                            value_type.get_name(),
+                            target_type.get_name(),
+                            statement.get_location(),
+                        ));
+                    };
+                    Ok(llvm
+                        .builder
+                        .build_int_truncate_or_bit_cast(
+                            value.into_int_value(),
+                            get_llvm_int_type(llvm.context, *lsize, "Integer").unwrap(),
+                            "",
+                        )
+                        .into())
                 }
                 _ => Err(CompileError::casting_error(
                     value_type.get_name(),

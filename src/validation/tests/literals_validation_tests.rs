@@ -198,3 +198,28 @@ fn date_literal_casts_are_validated() {
         ]
     );
 }
+
+#[test]
+fn char_cast_validate() {
+    let diagnostics = parse_and_validate(
+        r#"
+        PROGRAM prg
+            
+            CHAR#"A";
+            WCHAR#'B';
+
+			CHAR#"XY";
+			WCHAR#'YZ';
+
+        END_PROGRAM
+       "#,
+    );
+
+    assert_eq!(
+        diagnostics,
+        vec![
+            Diagnostic::literal_out_of_range(r#""XY""#, "CHAR", (83..92).into()),
+            Diagnostic::literal_out_of_range("'YZ'", "WCHAR", (97..107).into())
+        ]
+    );
+}

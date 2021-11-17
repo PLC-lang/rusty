@@ -5668,3 +5668,42 @@ fn inlined_array_size_from_local_scoped_constants() {
     // AND we expect arr2 to be of size 3
     insta::assert_snapshot!(result);
 }
+
+#[test]
+fn program_with_chars() {
+    let result = codegen(
+        r#"
+		PROGRAM mainPROG
+		VAR
+			x : CHAR;
+			y : WCHAR;
+		END_VAR
+			x := 'a';
+			x := ' ';
+
+			y := "A";
+			y := " ";
+			y := "'";
+			y := "$"";
+		END_PROGRAM
+		"#,
+    );
+    insta::assert_snapshot!(result);
+}
+
+#[test]
+fn program_with_casted_chars_assignment() {
+    let result = codegen(
+        r#"
+		PROGRAM mainPROG
+		VAR
+			x : CHAR;
+			y : WCHAR;
+		END_VAR
+			x := CHAR#"A";
+			y := WCHAR#'B';
+		END_PROGRAM
+		"#,
+    );
+    insta::assert_snapshot!(result);
+}
