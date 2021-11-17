@@ -316,11 +316,7 @@ pub fn cast_if_needed<'ctx>(
                                 Ok(value)
                             }
                         } else {
-                            Err(CompileError::casting_error(
-                                value_type.get_name(),
-                                target_type.get_name(),
-                                statement.get_location(),
-                            ))
+                            unreachable!()
                         }
                     }
                 } else {

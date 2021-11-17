@@ -263,6 +263,10 @@ impl DataTypeInformation {
         )
     }
 
+    pub fn is_string(&self) -> bool {
+        matches!(self, &DataTypeInformation::String { .. })
+    }
+
     pub fn is_variadic(&self) -> bool {
         matches!(
             self,
@@ -297,6 +301,14 @@ impl DataTypeInformation {
             DataTypeInformation::Alias { .. } => unimplemented!("alias"),
             DataTypeInformation::Void => 0,
             DataTypeInformation::Enum { .. } => DINT_SIZE,
+        }
+    }
+
+    pub fn get_alignment(&self) -> u32 {
+        match self {
+            DataTypeInformation::String { encoding, .. } if encoding == &StringEncoding::Utf8 => 1,
+            DataTypeInformation::String { encoding, .. } if encoding == &StringEncoding::Utf16 => 1,
+            _ => unimplemented!("Alignment for {}", self.get_name()),
         }
     }
 }
