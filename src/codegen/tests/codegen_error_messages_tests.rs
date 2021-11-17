@@ -391,8 +391,8 @@ fn assigning_string_literal_to_int_variable_results_in_casting_error() {
 }
 
 #[test]
-fn assigning_integer_literal_to_char_variable_results_in_casting_error() {
-    // GIVEN program with a char variable trying to assing an integer literal
+fn assigning_empty_string_literal_to_char_results_in_error() {
+    // GIVEN program with a char variable trying to assing an empty string literal
     // WHEN codegen
     let result = codegen_without_unwrap(
         r#"
@@ -400,16 +400,37 @@ fn assigning_integer_literal_to_char_variable_results_in_casting_error() {
 	VAR
 		x : CHAR;
 	END_VAR
-		x := 12;
+		x := '';
 	END_PROGRAM"#,
     );
-    // THEN result shoud be a casting error
+    // THEN result shoud be an error
     if let Err(msg) = result {
         assert_eq!(
-            CompileError::codegen_error(
-                "Cannot generate Integer-Literal for type CHAR".to_string(),
-                (52..54).into(),
-            ),
+            CompileError::cannot_generate_from_empty_literal("CHAR", (52..54).into()),
+            msg
+        )
+    } else {
+        panic!("expected code-gen error but got none")
+    }
+}
+
+#[test]
+fn assigning_empty_string_literal_to_wide_char_results_in_error() {
+    // GIVEN program with a wide-char variable trying to assing an empty string literal
+    // WHEN codegen
+    let result = codegen_without_unwrap(
+        r#"
+	PROGRAM mainProg
+	VAR
+		x : WCHAR;
+	END_VAR
+		x := "";
+	END_PROGRAM"#,
+    );
+    // THEN result shoud be an error
+    if let Err(msg) = result {
+        assert_eq!(
+            CompileError::cannot_generate_from_empty_literal("WCHAR", (53..55).into()),
             msg
         )
     } else {

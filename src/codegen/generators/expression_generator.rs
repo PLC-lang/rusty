@@ -1224,21 +1224,8 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
     ) -> Result<BasicValueEnum<'a>, CompileError> {
         match literal_statement {
             AstStatement::LiteralBool { value, .. } => self.llvm.create_const_bool(*value),
-            AstStatement::LiteralInteger {
-                value, location, ..
-            } => {
-                let expected_type = self.get_type_hint_for(literal_statement)?;
-                if expected_type.get_name() == "CHAR" || expected_type.get_name() == "WCHAR" {
-                    Err(CompileError::codegen_error(
-                        format!(
-                            "Cannot generate Integer-Literal for type {}",
-                            expected_type.get_name()
-                        ),
-                        location.clone(),
-                    ))
-                } else {
-                    self.generate_numeric_literal(literal_statement, value.to_string().as_str())
-                }
+            AstStatement::LiteralInteger { value, .. } => {
+                self.generate_numeric_literal(literal_statement, value.to_string().as_str())
             }
             AstStatement::LiteralReal { value, .. } => {
                 self.generate_numeric_literal(literal_statement, value)
@@ -1300,31 +1287,29 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                 value, location, ..
             } => {
                 let expected_type = self.get_type_hint_info_for(literal_statement)?;
-                if let DataTypeInformation::String { encoding, .. } = expected_type {
-                    match encoding {
+                match expected_type {
+                    DataTypeInformation::String { encoding, .. } => match encoding {
                         StringEncoding::Utf8 => self.llvm.create_const_utf8_string(value.as_str()),
                         StringEncoding::Utf16 => {
                             self.llvm.create_const_utf16_string(value.as_str())
                         }
+                    },
+                    DataTypeInformation::Integer { size: 8, .. }
+                        if expected_type.is_character() =>
+                    {
+                        self.llvm
+                            .create_llvm_const_i8_char(value.as_str(), location)
                     }
-                } else if let DataTypeInformation::Integer { name, size, .. } = expected_type {
-                    if name == "CHAR" || name == "WCHAR" {
-                        match size {
-                            8 => self.llvm.create_llvm_const_i8_char(value.as_str()),
-                            16 => self.llvm.create_llvm_const_i16_char(value.as_str()),
-                            _ => unreachable!(), // CHAR, WCHAR can only have size 8, 16 defined in typesystem.rs
-                        }
-                    } else {
-                        Err(CompileError::cannot_generate_string_literal(
-                            expected_type.get_name(),
-                            location.clone(),
-                        ))
+                    DataTypeInformation::Integer { size: 16, .. }
+                        if expected_type.is_character() =>
+                    {
+                        self.llvm
+                            .create_llvm_const_i16_char(value.as_str(), location)
                     }
-                } else {
-                    Err(CompileError::cannot_generate_string_literal(
+                    _ => Err(CompileError::cannot_generate_string_literal(
                         expected_type.get_name(),
                         location.clone(),
-                    ))
+                    )),
                 }
             }
             AstStatement::LiteralArray {

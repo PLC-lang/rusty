@@ -85,17 +85,37 @@ fn invalid_char_assignments() {
         r#"
 		PROGRAM mainProg
 		VAR
-			x : CHAR;
-			y : WCHAR;
-			z : INT;
+			c : CHAR;
+			c2 : CHAR;
+			wc : WCHAR;
+			wc2 : WCHAR;
+			i : INT;
+			s : STRING;
 		END_VAR
-			x := 'AJK%&/231';
-			y := "898JKAN";
-			x := y;
-			y := x;
+			c := 'AJK%&/231'; // invalid
+			wc := "898JKAN"; // invalid
 
-			z := 54;
-			x := z;
+			c := wc; // invalid
+			wc := c; // invalid
+
+			i := 54;
+			c := i; // invalid
+			c := 42; // invalid
+
+			s := 'ABC';
+			c := s; // invalid
+			wc := s; // invalid
+
+			i := c; // invalid
+			s := c; // invalid
+
+			c := 'A';
+			c2 := 'B';
+			c := c2;
+
+			wc := "A";
+			wc2 := "B";
+			wc := wc2;
 		END_PROGRAM"#,
     );
 
@@ -105,15 +125,20 @@ fn invalid_char_assignments() {
         vec![
             Diagnostic::syntax_error(
                 "Value: 'AJK%&/231' exceeds length for type: CHAR",
-                (83..94).into()
+                (129..140).into()
             ),
             Diagnostic::syntax_error(
                 "Value: '898JKAN' exceeds length for type: WCHAR",
-                (104..113).into()
+                (162..171).into()
             ),
-            Diagnostic::syntax_error("Cannot assign WCHAR to CHAR !", (118..124).into()),
-            Diagnostic::syntax_error("Cannot assign CHAR to WCHAR !", (129..135).into()),
-            Diagnostic::syntax_error("Cannot assign INT to CHAR !", (153..159).into()),
+            Diagnostic::invalid_assignment("WCHAR", "CHAR", (188..195).into()),
+            Diagnostic::invalid_assignment("CHAR", "WCHAR", (211..218).into()),
+            Diagnostic::invalid_assignment("INT", "CHAR", (247..253).into()),
+            Diagnostic::invalid_assignment("DINT", "CHAR", (269..276).into()),
+            Diagnostic::invalid_assignment("STRING", "CHAR", (308..314).into()),
+            Diagnostic::invalid_assignment("STRING", "WCHAR", (330..337).into()),
+            Diagnostic::invalid_assignment("CHAR", "INT", (354..360).into()),
+            Diagnostic::invalid_assignment("CHAR", "STRING", (376..382).into()),
         ]
     );
 }

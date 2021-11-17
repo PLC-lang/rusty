@@ -105,13 +105,23 @@ impl StatementValidator {
                         ));
                     }
 
-                    // check if we assign to a char variable
-                    if l_resulting_type.as_str() == "CHAR" || l_resulting_type.as_str() == "WCHAR" {
-                        // check if we assign a LiteralString longer than 1 char
+                    let l_effective_type = context
+                        .index
+                        .get_effective_type_by_name(l_resulting_type)
+                        .get_type_information();
+                    let r_effective_type = context
+                        .ast_annotation
+                        .get_type_or_void(right, context.index)
+                        .get_type_information();
+
+                    // valid assignments -> char := literalString, char := char
+                    // check if we assign to a character variable -> char := ..
+                    if l_effective_type.is_character() {
                         if let AstStatement::LiteralString {
                             value, location, ..
                         } = right.as_ref()
                         {
+                            // literalString may only be 1 character long
                             if value.len() > 1 {
                                 self.diagnostics.push(Diagnostic::syntax_error(
                                     format!(
@@ -122,33 +132,22 @@ impl StatementValidator {
                                     location.clone(),
                                 ));
                             }
-                        }
-                    }
-
-                    if let Some(StatementAnnotation::Variable {
-                        resulting_type: r_resulting_type,
-                        ..
-                    }) = context.ast_annotation.get(right.as_ref())
-                    {
-                        // if we try to assign a character variabla or to a character variable
-                        // we need to make sure that left and right type are the same
-                        // e.g (char := int, int := char, ...) are invalid assignments
-                        if (r_resulting_type.as_str() == "CHAR"
-                            || r_resulting_type.as_str() == "WCHAR"
-                            || l_resulting_type.as_str() == "CHAR"
-                            || l_resulting_type.as_str() == "WCHAR")
-                            && (l_resulting_type != r_resulting_type)
-                        {
-                            self.diagnostics.push(Diagnostic::syntax_error(
-                                format!(
-                                    "Cannot assign {} to {} !",
-                                    r_resulting_type, l_resulting_type
-                                )
-                                .as_str(),
-                                (left.get_location().get_start()..right.get_location().get_end())
-                                    .into(),
+                        } else if l_effective_type != r_effective_type {
+                            // invalid assignment
+                            self.diagnostics.push(Diagnostic::invalid_assignment(
+                                r_effective_type.get_name(),
+                                l_effective_type.get_name(),
+                                statement.get_location(),
                             ));
                         }
+                    } else if r_effective_type.is_character() {
+                        // if we try to assign a character variable -> .. := char
+                        // and didn't match the first if, left and right won't have the same type -> invalid assignment
+                        self.diagnostics.push(Diagnostic::invalid_assignment(
+                            r_effective_type.get_name(),
+                            l_effective_type.get_name(),
+                            statement.get_location(),
+                        ));
                     }
                 }
             }
