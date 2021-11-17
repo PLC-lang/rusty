@@ -347,10 +347,6 @@
 <span id="347">347</span>
 <span id="348">348</span>
 <span id="349">349</span>
-<span id="350">350</span>
-<span id="351">351</span>
-<span id="352">352</span>
-<span id="353">353</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 <span class="kw">use</span> <span class="ident">inkwell</span>::{
     <span class="ident">builder::Builder</span>,
@@ -650,11 +646,7 @@
                                 <span class="prelude-val">Ok</span>(<span class="ident">value</span>)
                             }
                         } <span class="kw">else</span> {
-                            <span class="prelude-val">Err</span>(<span class="ident">CompileError::casting_error</span>(
-                                <span class="ident">value_type</span>.<span class="ident">get_name</span>(),
-                                <span class="ident">target_type</span>.<span class="ident">get_name</span>(),
-                                <span class="ident">statement</span>.<span class="ident">get_location</span>(),
-                            ))
+                            <span class="macro">unreachable!</span>()
                         }
                     }
                 } <span class="kw">else</span> {
