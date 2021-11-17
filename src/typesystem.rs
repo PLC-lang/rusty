@@ -263,10 +263,6 @@ impl DataTypeInformation {
         )
     }
 
-    pub fn is_string(&self) -> bool {
-        matches!(self, &DataTypeInformation::String { .. })
-    }
-
     pub fn is_variadic(&self) -> bool {
         matches!(
             self,
