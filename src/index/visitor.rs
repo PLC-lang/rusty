@@ -140,6 +140,7 @@ pub fn visit_pou(index: &mut Index, pou: &Pou) {
             member_names,
             varargs,
             source: StructSource::Pou(pou.pou_type.clone()),
+            generics: pou.generics.clone(),
         },
     );
 }
@@ -222,7 +223,6 @@ fn visit_data_type(
         DataType::StructType {
             name: Some(name),
             variables,
-            generics: _,
         } => {
             let struct_name = name.as_str();
 
@@ -235,6 +235,7 @@ fn visit_data_type(
                 member_names,
                 varargs: None,
                 source: StructSource::OriginalDeclaration,
+                generics: vec![],
             };
 
             let init = index

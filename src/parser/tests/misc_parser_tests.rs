@@ -1,7 +1,6 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use crate::Diagnostic;
 use core::panic;
-use std::collections::HashMap;
 use std::ops::Range;
 
 use crate::{ast::*, parser::tests::empty_stmt, test_utils::tests::parse};
@@ -60,7 +59,7 @@ fn exponent_literals_parsed_as_variables() {
             }],
         }],
         location: SourceRange::undefined(),
-        generics: HashMap::new(),
+        generics: vec![],
     };
     assert_eq!(format!("{:#?}", expected), format!("{:#?}", pou).as_str());
     let implementation = &parse_result.implementations[0];

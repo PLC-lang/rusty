@@ -1,6 +1,5 @@
 use crate::{ast::*, test_utils::tests::parse, Diagnostic};
 use pretty_assertions::*;
-use std::collections::HashMap;
 
 #[test]
 fn simple_foo_function_can_be_parsed() {
@@ -159,7 +158,7 @@ fn varargs_parameters_can_be_parsed() {
         }],
         location: SourceRange::undefined(),
         poly_mode: None,
-        generics: HashMap::new(),
+        generics: vec![],
     };
     assert_eq!(format!("{:#?}", expected), format!("{:#?}", x).as_str());
 }
@@ -337,7 +336,6 @@ fn function_inline_struct_return_unsupported() {
                             initializer: None
                         }
                     ],
-                    generics: HashMap::new(),
                 },
                 location: (15..50).into(),
                 scope: Some("foo".into()),

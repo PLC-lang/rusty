@@ -1,6 +1,5 @@
 use crate::{ast::*, parser::AstStatement::LiteralInteger, test_utils::tests::parse, Diagnostic};
 use pretty_assertions::*;
-use std::collections::HashMap;
 
 #[test]
 fn simple_struct_type_can_be_parsed() {
@@ -52,7 +51,6 @@ fn simple_struct_type_can_be_parsed() {
                         location: SourceRange::undefined(),
                     },
                 ),
-                generics: HashMap::new(),
             },
             initializer: None,
             location: SourceRange::undefined(),

@@ -1,7 +1,6 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use crate::typesystem::DataTypeInformation;
 use std::{
-    collections::HashMap,
     fmt::{Debug, Display, Formatter, Result},
     iter,
     ops::Range,
@@ -11,6 +10,12 @@ mod pre_processor;
 
 pub type AstId = usize;
 
+#[derive(Clone, Debug, PartialEq)]
+pub struct GenericBinding {
+    pub name : String,
+    pub nature: String,
+}
+
 #[derive(PartialEq)]
 pub struct Pou {
     pub name: String,
@@ -19,7 +24,7 @@ pub struct Pou {
     pub return_type: Option<DataTypeDeclaration>,
     pub location: SourceRange,
     pub poly_mode: Option<PolymorphismMode>,
-    pub generics: HashMap<String, String>,
+    pub generics: Vec<GenericBinding>,
 }
 
 #[derive(Debug, PartialEq)]
@@ -345,7 +350,6 @@ pub enum DataType {
     StructType {
         name: Option<String>, //maybe None for inline structs
         variables: Vec<Variable>,
-        generics: HashMap<String, String>,
     },
     EnumType {
         name: Option<String>, //maybe empty for inline enums
@@ -381,14 +385,10 @@ impl Debug for DataType {
             DataType::StructType {
                 name,
                 variables,
-                generics,
             } => {
-                let mut str = f.debug_struct("StructType");
-                str.field("name", name).field("variables", variables);
-                if !generics.is_empty() {
-                    str.field("generics", generics);
-                }
-                str.finish()
+                f.debug_struct("StructType")
+                .field("name", name).field("variables", variables)
+                .finish()
             }
             DataType::EnumType { name, elements } => f
                 .debug_struct("EnumType")

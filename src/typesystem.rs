@@ -1,10 +1,7 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use std::{mem::size_of, ops::Range};
 
-use crate::{
-    ast::{AstStatement, PouType},
-    index::{const_expressions::ConstId, Index},
-};
+use crate::{ast::{AstStatement, GenericBinding, PouType}, index::{const_expressions::ConstId, Index}};
 
 pub const DEFAULT_STRING_LEN: u32 = 80;
 
@@ -158,6 +155,7 @@ pub enum DataTypeInformation {
         member_names: Vec<String>,
         varargs: Option<VarArgs>,
         source: StructSource,
+        generics: Vec<GenericBinding>,
     },
     Array {
         name: String,
@@ -270,6 +268,12 @@ impl DataTypeInformation {
         } else {
             None
         }
+    }
+
+    pub fn is_generic(&self) -> bool {
+        matches!(self, 
+            DataTypeInformation::Struct{ generics, .. } if !generics.is_empty()
+        )
     }
 
     pub fn get_size(&self) -> u32 {

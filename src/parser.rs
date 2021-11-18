@@ -5,7 +5,6 @@ use crate::{
     lexer::{ParseSession, Token, Token::*},
     Diagnostic,
 };
-use std::collections::HashMap;
 
 use self::{control_parser::parse_control_statement, expressions_parser::parse_expression};
 
@@ -238,16 +237,16 @@ fn parse_pou(
     pou
 }
 
-fn parse_generics(lexer: &mut ParseSession) -> HashMap<String, String> {
+fn parse_generics(lexer: &mut ParseSession) -> Vec<GenericBinding> {
     if lexer.allow(&Token::OperatorLess) {
         parse_any_in_region(lexer, vec![Token::OperatorGreater], |lexer| {
-            let mut generics = HashMap::new();
+            let mut generics = vec![];
             loop {
                 //identifier
-                if let Some(identifier) = parse_identifier(lexer) {
+                if let Some(name) = parse_identifier(lexer) {
                     lexer.consume_or_report(Token::KeywordColon);
                     if let Some(nature) = parse_identifier(lexer) {
-                        generics.insert(identifier, nature);
+                        generics.push(GenericBinding{ name, nature });
                     }
                 }
 
@@ -259,7 +258,7 @@ fn parse_generics(lexer: &mut ParseSession) -> HashMap<String, String> {
             generics
         })
     } else {
-        HashMap::new()
+        vec![]
     }
 }
 
@@ -567,7 +566,6 @@ fn parse_data_type_definition(
 ) -> Option<DataTypeWithInitializer> {
     let start = lexer.location().get_start();
     if lexer.allow(&KeywordStruct) {
-        let generics = parse_generics(lexer);
         // Parse struct
         let variables = parse_variable_list(lexer);
         Some((
@@ -575,7 +573,6 @@ fn parse_data_type_definition(
                 data_type: DataType::StructType {
                     name,
                     variables,
-                    generics,
                 },
                 location: (start..lexer.range().end).into(),
                 scope: lexer.scope.clone(),
