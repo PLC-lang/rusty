@@ -11,7 +11,7 @@ use crate::{
     ast::SourceRange,
     compile_error::CompileError,
     index::Index,
-    typesystem::{DataType, DataTypeInformation},
+    typesystem::{DataType, DataTypeInformation, StringEncoding},
 };
 
 use super::generators::llvm::Llvm;
@@ -22,7 +22,7 @@ pub fn promote_value_if_needed<'ctx>(
     lvalue: BasicValueEnum<'ctx>,
     ltype: &DataTypeInformation,
     target_type: &DataTypeInformation,
-) -> BasicValueEnum<'ctx> {
+) -> Result<BasicValueEnum<'ctx>, CompileError> {
     //Is the target type int
     //Expand the current type to the target size
     //Is the target type float
@@ -37,15 +37,15 @@ pub fn promote_value_if_needed<'ctx>(
             // INT --> INT
             let int_value = lvalue.into_int_value();
             if int_value.get_type().get_bit_width() < *target_size {
-                create_llvm_extend_int_value(
+                Ok(create_llvm_extend_int_value(
                     builder,
                     int_value,
                     ltype,
-                    get_llvm_int_type(context, *target_size, "Integer").unwrap(),
+                    get_llvm_int_type(context, *target_size, "Integer")?,
                 )
-                .into()
+                .into())
             } else {
-                lvalue
+                Ok(lvalue)
             }
         }
         DataTypeInformation::Float {
@@ -55,35 +55,35 @@ pub fn promote_value_if_needed<'ctx>(
                 // INT --> FLOAT
                 let int_value = lvalue.into_int_value();
                 if ltype.is_signed_int() {
-                    builder
+                    Ok(builder
                         .build_signed_int_to_float(
                             int_value,
-                            get_llvm_float_type(context, *target_size, "Float").unwrap(),
+                            get_llvm_float_type(context, *target_size, "Float")?,
                             "",
                         )
-                        .into()
+                        .into())
                 } else {
-                    builder
+                    Ok(builder
                         .build_unsigned_int_to_float(
                             int_value,
-                            get_llvm_float_type(context, *target_size, "Float").unwrap(),
+                            get_llvm_float_type(context, *target_size, "Float")?,
                             "",
                         )
-                        .into()
+                        .into())
                 }
             } else {
                 // FLOAT --> FLOAT
                 if let DataTypeInformation::Float { size, .. } = ltype {
                     if target_size <= size {
-                        lvalue
+                        Ok(lvalue)
                     } else {
-                        builder
+                        Ok(builder
                             .build_float_ext(
                                 lvalue.into_float_value(),
-                                get_llvm_float_type(context, *target_size, "Float").unwrap(),
+                                get_llvm_float_type(context, *target_size, "Float")?,
                                 "",
                             )
-                            .into()
+                            .into())
                     }
                 } else {
                     unreachable!()
@@ -143,19 +143,20 @@ pub fn cast_if_needed<'ctx>(
                             .builder
                             .build_int_truncate_or_bit_cast(
                                 value.into_int_value(),
-                                get_llvm_int_type(llvm.context, *lsize, "Integer").unwrap(),
+                                get_llvm_int_type(llvm.context, *lsize, "Integer")?,
                                 "",
                             )
                             .into())
                     } else {
                         //Expand
-                        Ok(promote_value_if_needed(
+                        promote_value_if_needed(
                             llvm.context,
                             &llvm.builder,
                             value,
                             value_type,
                             target_type,
-                        ))
+                        )
+                        .map_err(|it| CompileError::relocate(&it, statement.get_location()))
                     }
                 }
                 DataTypeInformation::Float { size: _rsize, .. } => {
@@ -164,7 +165,7 @@ pub fn cast_if_needed<'ctx>(
                             .builder
                             .build_float_to_signed_int(
                                 value.into_float_value(),
-                                get_llvm_int_type(llvm.context, *lsize, "Integer").unwrap(),
+                                get_llvm_int_type(llvm.context, *lsize, "Integer")?,
                                 "",
                             )
                             .into())
@@ -172,11 +173,30 @@ pub fn cast_if_needed<'ctx>(
                         Ok(builder
                             .build_float_to_unsigned_int(
                                 value.into_float_value(),
-                                get_llvm_int_type(llvm.context, *lsize, "Integer").unwrap(),
+                                get_llvm_int_type(llvm.context, *lsize, "Integer")?,
                                 "",
                             )
                             .into())
                     }
+                }
+                DataTypeInformation::String { encoding, .. } => {
+                    if (*lsize == 8 && matches!(encoding, StringEncoding::Utf16))
+                        || (*lsize == 16 && matches!(encoding, StringEncoding::Utf8))
+                    {
+                        return Err(CompileError::casting_error(
+                            value_type.get_name(),
+                            target_type.get_name(),
+                            statement.get_location(),
+                        ));
+                    };
+                    Ok(llvm
+                        .builder
+                        .build_int_truncate_or_bit_cast(
+                            value.into_int_value(),
+                            get_llvm_int_type(llvm.context, *lsize, "Integer").unwrap(),
+                            "",
+                        )
+                        .into())
                 }
                 _ => Err(CompileError::casting_error(
                     value_type.get_name(),
@@ -196,7 +216,7 @@ pub fn cast_if_needed<'ctx>(
                     Ok(builder
                         .build_signed_int_to_float(
                             value.into_int_value(),
-                            get_llvm_float_type(llvm.context, *lsize, "Float").unwrap(),
+                            get_llvm_float_type(llvm.context, *lsize, "Float")?,
                             "",
                         )
                         .into())
@@ -204,7 +224,7 @@ pub fn cast_if_needed<'ctx>(
                     Ok(builder
                         .build_unsigned_int_to_float(
                             value.into_int_value(),
-                            get_llvm_float_type(llvm.context, *lsize, "Float").unwrap(),
+                            get_llvm_float_type(llvm.context, *lsize, "Float")?,
                             "",
                         )
                         .into())
@@ -215,18 +235,19 @@ pub fn cast_if_needed<'ctx>(
                     Ok(builder
                         .build_float_trunc(
                             value.into_float_value(),
-                            get_llvm_float_type(llvm.context, *lsize, "Float").unwrap(),
+                            get_llvm_float_type(llvm.context, *lsize, "Float")?,
                             "",
                         )
                         .into())
                 } else {
-                    Ok(promote_value_if_needed(
+                    promote_value_if_needed(
                         llvm.context,
                         &llvm.builder,
                         value,
                         value_type,
                         target_type,
-                    ))
+                    )
+                    .map_err(|it| CompileError::relocate(&it, statement.get_location()))
                 }
             }
             _ => Err(CompileError::casting_error(
@@ -295,11 +316,7 @@ pub fn cast_if_needed<'ctx>(
                                 Ok(value)
                             }
                         } else {
-                            Err(CompileError::casting_error(
-                                value_type.get_name(),
-                                target_type.get_name(),
-                                statement.get_location(),
-                            ))
+                            unreachable!()
                         }
                     }
                 } else {

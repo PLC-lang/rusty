@@ -40,16 +40,11 @@ pub fn pre_process(unit: &mut CompilationUnit) {
         {
             match &mut dt.data_type {
                 DataType::StructType { name, variables } => {
+                    let name: &str = name.as_ref().map(|it| it.as_str()).unwrap_or("undefined");
                     variables
                         .iter_mut()
                         .filter(|it| should_generate_implicit_type(it))
-                        .for_each(|var| {
-                            pre_process_variable_data_type(
-                                name.as_ref().unwrap().as_str(),
-                                var,
-                                &mut new_types,
-                            )
-                        });
+                        .for_each(|var| pre_process_variable_data_type(name, var, &mut new_types));
                 }
                 DataType::ArrayType {
                     name,

@@ -1,4 +1,5 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
+use crate::typesystem::{CHAR_TYPE, WCHAR_TYPE};
 use crate::{ast::SourceRange, compile_error::CompileError};
 use inkwell::{
     builder::Builder,
@@ -230,5 +231,45 @@ impl<'a> Llvm<'a> {
     ) -> Result<BasicValueEnum<'a>, CompileError> {
         let exp_value = self.context.const_string(value, true);
         Ok(BasicValueEnum::VectorValue(exp_value))
+    }
+
+    /// create a constant i8 character (IntValue) with the given value
+    ///
+    /// - `value` the value of the constant char value
+    pub fn create_llvm_const_i8_char(
+        &self,
+        value: &str,
+        location: &SourceRange,
+    ) -> Result<BasicValueEnum<'a>, CompileError> {
+        let arr = value.as_bytes();
+        if let [first, ..] = arr {
+            let value = self.context.i8_type().const_int(*first as u64, false);
+            Ok(BasicValueEnum::IntValue(value))
+        } else {
+            Err(CompileError::cannot_generate_from_empty_literal(
+                CHAR_TYPE,
+                location.clone(),
+            ))
+        }
+    }
+
+    /// create a constant i16 character (IntValue) with the given value
+    ///
+    /// - `value` the value of the constant char value
+    pub fn create_llvm_const_i16_char(
+        &self,
+        value: &str,
+        location: &SourceRange,
+    ) -> Result<BasicValueEnum<'a>, CompileError> {
+        match value.encode_utf16().next() {
+            Some(first) => {
+                let value = self.context.i16_type().const_int(first as u64, false);
+                Ok(BasicValueEnum::IntValue(value))
+            }
+            None => Err(CompileError::cannot_generate_from_empty_literal(
+                WCHAR_TYPE,
+                location.clone(),
+            )),
+        }
     }
 }

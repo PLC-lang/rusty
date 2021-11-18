@@ -1,3 +1,5 @@
+use std::convert::TryInto;
+
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 /// the data_type_generator generates user defined data-types
 /// - Structures
@@ -126,19 +128,12 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
                 inner_type_name,
                 dimensions,
                 ..
-            } => {
-                let inner_type = self
-                    .create_type(
-                        inner_type_name,
-                        self.index.find_effective_type(inner_type_name).unwrap(),
-                    )
-                    .unwrap();
-
-                self.create_nested_array_type(inner_type, dimensions)
-                    .map(|it| it.as_basic_type_enum())
-                    .map_err(|err| CompileError::codegen_error(err, SourceRange::undefined()))
-                //TODO error location
-            }
+            } => self
+                .index
+                .get_effective_type(inner_type_name)
+                .and_then(|inner_type| self.create_type(inner_type_name, inner_type))
+                .and_then(|inner_type| self.create_nested_array_type(inner_type, dimensions))
+                .map(|it| it.as_basic_type_enum()),
             DataTypeInformation::Integer { size, .. } => {
                 get_llvm_int_type(self.llvm.context, *size, name).map(|it| it.into())
             }
@@ -164,22 +159,13 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
             }
             DataTypeInformation::SubRange {
                 referenced_type, ..
-            } => {
-                let ref_type = self.create_type(
-                    name,
-                    self.index.find_effective_type(referenced_type).unwrap(),
-                )?;
-                Ok(ref_type)
             }
-            DataTypeInformation::Alias {
+            | DataTypeInformation::Alias {
                 referenced_type, ..
-            } => {
-                let ref_type = self.create_type(
-                    name,
-                    self.index.find_effective_type(referenced_type).unwrap(),
-                )?;
-                Ok(ref_type)
-            }
+            } => self
+                .index
+                .get_effective_type(referenced_type)
+                .and_then(|data_type| self.create_type(name, data_type)),
             DataTypeInformation::Void => {
                 get_llvm_int_type(self.llvm.context, 32, "Void").map(Into::into)
             }
@@ -361,23 +347,35 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
         &self,
         end_type: BasicTypeEnum<'ink>,
         dimensions: &[Dimension],
-    ) -> Result<ArrayType<'ink>, String> {
-        let mut result: Option<ArrayType> = None;
-        let mut current_type = end_type;
+    ) -> Result<ArrayType<'ink>, CompileError> {
+        let dimensions: Vec<u32> = dimensions
+            .iter()
+            .map(|dimension| {
+                dimension
+                    .get_length(self.index)
+                    .map_err(|it| CompileError::codegen_error(it, SourceRange::undefined()))
+            })
+            .collect::<Result<Vec<u32>, CompileError>>()?;
 
-        for dimension in dimensions.iter().rev() {
-            let len = dimension.get_length(self.index)?;
-            result = Some(match current_type {
-                BasicTypeEnum::IntType(..) => current_type.into_int_type().array_type(len),
-                BasicTypeEnum::FloatType(..) => current_type.into_float_type().array_type(len),
-                BasicTypeEnum::StructType(..) => current_type.into_struct_type().array_type(len),
-                BasicTypeEnum::ArrayType(..) => current_type.into_array_type().array_type(len),
-                BasicTypeEnum::PointerType(..) => current_type.into_pointer_type().array_type(len),
-                BasicTypeEnum::VectorType(..) => current_type.into_vector_type().array_type(len),
-            });
-            current_type = result.unwrap().into();
-        }
-        Ok(result.unwrap())
+        let result = dimensions.iter().rev().fold(end_type, |current_type, len| {
+            match current_type {
+                BasicTypeEnum::IntType(..) => current_type.into_int_type().array_type(*len),
+                BasicTypeEnum::FloatType(..) => current_type.into_float_type().array_type(*len),
+                BasicTypeEnum::StructType(..) => current_type.into_struct_type().array_type(*len),
+                BasicTypeEnum::ArrayType(..) => current_type.into_array_type().array_type(*len),
+                BasicTypeEnum::PointerType(..) => current_type.into_pointer_type().array_type(*len),
+                BasicTypeEnum::VectorType(..) => current_type.into_vector_type().array_type(*len),
+            }
+            .as_basic_type_enum()
+        });
+
+        let array_result: Result<ArrayType, _> = result.try_into();
+        array_result.map_err(|_| {
+            CompileError::codegen_error(
+                format!("Expected ArrayType but found {:#?}", result),
+                SourceRange::undefined(),
+            )
+        })
     }
 }
 
