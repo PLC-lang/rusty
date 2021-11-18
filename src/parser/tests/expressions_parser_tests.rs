@@ -1191,6 +1191,8 @@ fn literal_cast_parse_test() {
             BOOL#FALSE;
             STRING#"abc";
             WSTRING#'xyz';
+			CHAR#"A";
+			WCHAR#'B';
         END_PROGRAM
         "#;
     let result = parse(src).0;
@@ -1259,6 +1261,28 @@ fn literal_cast_parse_test() {
                         id: 0,
                         location: (0..0).into(),
                         value: "xyz".to_string(),
+                        is_wide: false,
+                    })
+                },
+                AstStatement::CastStatement {
+                    id: 0,
+                    location: (0..0).into(),
+                    type_name: "CHAR".into(),
+                    target: Box::new(AstStatement::LiteralString {
+                        id: 0,
+                        location: (0..0).into(),
+                        value: "A".to_string(),
+                        is_wide: true,
+                    })
+                },
+                AstStatement::CastStatement {
+                    id: 0,
+                    location: (0..0).into(),
+                    type_name: "WCHAR".into(),
+                    target: Box::new(AstStatement::LiteralString {
+                        id: 0,
+                        location: (0..0).into(),
+                        value: "B".to_string(),
                         is_wide: false,
                     })
                 },

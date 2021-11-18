@@ -91,6 +91,7 @@ pub enum ErrNo {
     var__invalid_constant_block,
     var__invalid_constant,
     var__cannot_assign_to_const,
+    var__invalid_assignment,
 
     //reference related
     reference__unresolved,
@@ -313,6 +314,21 @@ impl Diagnostic {
             message: format!("Cannot assign to CONSTANT '{:}'", qualified_name),
             range: location,
             err_no: ErrNo::var__cannot_assign_to_const,
+        }
+    }
+
+    pub fn invalid_assignment(
+        right_type: &str,
+        left_type: &str,
+        location: SourceRange,
+    ) -> Diagnostic {
+        Diagnostic::SyntaxError {
+            message: format!(
+                "Invalid assignment: cannot assign '{:}' to '{:}'",
+                right_type, left_type
+            ),
+            range: location,
+            err_no: ErrNo::var__invalid_assignment,
         }
     }
 

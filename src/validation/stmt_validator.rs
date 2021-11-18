@@ -89,18 +89,66 @@ impl StatementValidator {
                     }
                 }
             }
-            AstStatement::Assignment { left, .. } => {
-                // check if we assign to a constant variable
+            AstStatement::Assignment { left, right, .. } => {
                 if let Some(StatementAnnotation::Variable {
-                    constant: true,
-                    qualified_name,
+                    constant,
+                    qualified_name: l_qualified_name,
+                    resulting_type: l_resulting_type,
                     ..
                 }) = context.ast_annotation.get(left.as_ref())
                 {
-                    self.diagnostics.push(Diagnostic::cannot_assign_to_constant(
-                        qualified_name.as_str(),
-                        left.get_location(),
-                    ));
+                    // check if we assign to a constant variable
+                    if *constant {
+                        self.diagnostics.push(Diagnostic::cannot_assign_to_constant(
+                            l_qualified_name.as_str(),
+                            left.get_location(),
+                        ));
+                    }
+
+                    let l_effective_type = context
+                        .index
+                        .get_effective_type_by_name(l_resulting_type)
+                        .get_type_information();
+                    let r_effective_type = context
+                        .ast_annotation
+                        .get_type_or_void(right, context.index)
+                        .get_type_information();
+
+                    // valid assignments -> char := literalString, char := char
+                    // check if we assign to a character variable -> char := ..
+                    if l_effective_type.is_character() {
+                        if let AstStatement::LiteralString {
+                            value, location, ..
+                        } = right.as_ref()
+                        {
+                            // literalString may only be 1 character long
+                            if value.len() > 1 {
+                                self.diagnostics.push(Diagnostic::syntax_error(
+                                    format!(
+                                        "Value: '{}' exceeds length for type: {}",
+                                        value, l_resulting_type
+                                    )
+                                    .as_str(),
+                                    location.clone(),
+                                ));
+                            }
+                        } else if l_effective_type != r_effective_type {
+                            // invalid assignment
+                            self.diagnostics.push(Diagnostic::invalid_assignment(
+                                r_effective_type.get_name(),
+                                l_effective_type.get_name(),
+                                statement.get_location(),
+                            ));
+                        }
+                    } else if r_effective_type.is_character() {
+                        // if we try to assign a character variable -> .. := char
+                        // and didn't match the first if, left and right won't have the same type -> invalid assignment
+                        self.diagnostics.push(Diagnostic::invalid_assignment(
+                            r_effective_type.get_name(),
+                            l_effective_type.get_name(),
+                            statement.get_location(),
+                        ));
+                    }
                 }
             }
             _ => (),
@@ -209,6 +257,16 @@ impl StatementValidator {
             if cast_type.get_size() < literal_type.get_size() {
                 self.diagnostics.push(Diagnostic::literal_out_of_range(
                     StatementValidator::get_literal_value(literal).as_str(),
+                    cast_type.get_name(),
+                    location.clone(),
+                ));
+            }
+        } else if cast_type.is_character() && literal_type.is_string() {
+            let value = StatementValidator::get_literal_value(literal);
+            // value contains "" / ''
+            if value.len() > 3 {
+                self.diagnostics.push(Diagnostic::literal_out_of_range(
+                    value.as_str(),
                     cast_type.get_name(),
                     location.clone(),
                 ));
