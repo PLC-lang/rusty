@@ -5,6 +5,7 @@ mod expression_tests;
 mod statement_codegen_test;
 mod string_tests;
 mod typesystem_test;
+mod generics_test;
 
 mod directaccess_test;
 
