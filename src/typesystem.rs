@@ -1,7 +1,10 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use std::{mem::size_of, ops::Range};
 
-use crate::{ast::{AstStatement, GenericBinding, PouType}, index::{const_expressions::ConstId, Index}};
+use crate::{
+    ast::{AstStatement, GenericBinding, PouType},
+    index::{const_expressions::ConstId, Index},
+};
 
 pub const DEFAULT_STRING_LEN: u32 = 80;
 
@@ -195,17 +198,26 @@ pub enum DataTypeInformation {
         name: String,
         referenced_type: String,
     },
+    Generic {
+        name: String,
+        generic_symbol: String,
+        nature: String,
+    },
     Void,
 }
 
 impl DataTypeInformation {
     pub fn get_name(&self) -> &str {
         match self {
-            DataTypeInformation::Struct { name, .. } => name,
-            DataTypeInformation::Array { name, .. } => name,
-            DataTypeInformation::Pointer { name, .. } => name,
-            DataTypeInformation::Integer { name, .. } => name,
-            DataTypeInformation::Float { name, .. } => name,
+            DataTypeInformation::Struct { name, .. }
+            | DataTypeInformation::Array { name, .. }
+            | DataTypeInformation::Pointer { name, .. }
+            | DataTypeInformation::Integer { name, .. }
+            | DataTypeInformation::Float { name, .. }
+            | DataTypeInformation::SubRange { name, .. }
+            | DataTypeInformation::Alias { name, .. }
+            | DataTypeInformation::Enum { name, .. }
+            | DataTypeInformation::Generic { name, .. } => name,
             DataTypeInformation::String {
                 encoding: StringEncoding::Utf8,
                 ..
@@ -214,10 +226,7 @@ impl DataTypeInformation {
                 encoding: StringEncoding::Utf16,
                 ..
             } => "WSTRING",
-            DataTypeInformation::SubRange { name, .. } => name,
             DataTypeInformation::Void => "VOID",
-            DataTypeInformation::Alias { name, .. } => name,
-            DataTypeInformation::Enum { name, .. } => name,
         }
     }
 
@@ -284,7 +293,7 @@ impl DataTypeInformation {
     }
 
     pub fn is_generic(&self) -> bool {
-        matches!(self, 
+        matches!(self,
             DataTypeInformation::Struct{ generics, .. } if !generics.is_empty()
         )
     }
@@ -301,6 +310,7 @@ impl DataTypeInformation {
             DataTypeInformation::Alias { .. } => unimplemented!("alias"),
             DataTypeInformation::Void => 0,
             DataTypeInformation::Enum { .. } => DINT_SIZE,
+            DataTypeInformation::Generic { .. } => unimplemented!("generics"),
         }
     }
 

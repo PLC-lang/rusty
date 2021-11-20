@@ -1350,6 +1350,109 @@ fn pre_processing_generates_inline_array_of_array_of_array() {
 }
 
 #[test]
+fn pre_processing_generates_generic_types() {
+    // GIVEN a function with a generic type G: ANY
+    let src = "
+        FUNCTION myFunc<G : ANY> : G
+        VAR_INPUT
+            in1 : G;
+            in2 : INT;
+        END_VAR
+        END_FUNCTION
+        ";
+    let (mut ast, ..) = parse(src);
+
+    // WHEN the AST ist pre-processed
+    crate::ast::pre_process(&mut ast);
+
+    assert_eq!(1, ast.types.len());
+    //A type __myFunc__G is created
+    let expected = UserTypeDeclaration {
+        data_type: DataType::GenericType {
+            name: "__myFunc__G".into(),
+            generic_symbol: "G".into(),
+            nature: "ANY".into(),
+        },
+        initializer: None,
+        location: SourceRange::undefined(),
+        scope: Some("myFunc".into()),
+    };
+
+    assert_eq!(format!("{:?}", expected), format!("{:?}", ast.types[0]));
+
+    //The variables with type G now have type __myFunc__G
+    let pou = &ast.units[0];
+    assert_eq!(
+        pou.variable_blocks[0].variables[0]
+            .data_type
+            .get_name()
+            .unwrap(),
+        "__myFunc__G"
+    );
+    assert_eq!(
+        pou.variable_blocks[0].variables[1]
+            .data_type
+            .get_name()
+            .unwrap(),
+        "INT"
+    );
+    assert_eq!(
+        pou.return_type.as_ref().unwrap().get_name().unwrap(),
+        "__myFunc__G"
+    );
+}
+
+#[test]
+fn pre_processing_generates_nested_generic_types() {
+    // GIVEN a function with a generic type G: ANY
+    let src = "
+        FUNCTION myFunc<G : ANY> : REF_TO G
+        VAR_INPUT
+            in1 : ARRAY[0..1] OF G;
+            in2 : INT;
+        END_VAR
+        END_FUNCTION
+        ";
+    let (mut ast, ..) = parse(src);
+
+    // WHEN the AST ist pre-processed
+    crate::ast::pre_process(&mut ast);
+
+    //A type __myFunc__G is created
+    let expected = UserTypeDeclaration {
+        data_type: DataType::GenericType {
+            name: "__myFunc__G".into(),
+            generic_symbol: "G".into(),
+            nature: "ANY".into(),
+        },
+        initializer: None,
+        location: SourceRange::undefined(),
+        scope: Some("myFunc".into()),
+    };
+
+    assert_eq!(format!("{:?}", expected), format!("{:?}", ast.types[0]));
+    //Additional types created
+    assert_eq!(3, ast.types.len());
+    //referenced types of additional types are the new type
+    if let DataType::ArrayType {
+        referenced_type, ..
+    } = &ast.types[1].data_type
+    {
+        assert_eq!(referenced_type.get_name().unwrap(), "__myFunc__G");
+    } else {
+        panic!("expected array");
+    }
+    if let DataType::PointerType {
+        referenced_type, ..
+    } = &ast.types[2].data_type
+    {
+        assert_eq!(referenced_type.get_name().unwrap(), "__myFunc__G");
+    } else {
+        panic!("expected pointer");
+    }
+}
+
+#[test]
 fn sub_range_boundaries_are_registered_at_the_index() {
     // GIVEN a Subrange INT from 7 to 1000
     let src = "
@@ -1628,4 +1731,30 @@ fn string_dimensions_are_stored_in_the_const_expression_arena() {
     } else {
         unreachable!()
     }
+}
+
+#[test]
+fn generic_datatypes_indexed() {
+    let source = "FUNCTION gen<G: ANY, X : ANY_BIT> : INT END_FUNCTION";
+    let (_, index) = index(source);
+
+    //Expecting a datatype entry for G and a datatype entry for X
+    let g = index.get_type("__gen__G").unwrap();
+    assert_eq!(
+        g.get_type_information(),
+        &DataTypeInformation::Generic {
+            name: "__gen__G".into(),
+            generic_symbol: "G".into(),
+            nature: "ANY".into()
+        }
+    );
+    let g = index.get_type("__gen__X").unwrap();
+    assert_eq!(
+        g.get_type_information(),
+        &DataTypeInformation::Generic {
+            name: "__gen__X".into(),
+            generic_symbol: "X".into(),
+            nature: "ANY_BIT".into()
+        }
+    );
 }

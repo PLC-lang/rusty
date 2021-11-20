@@ -11,9 +11,21 @@ fn generic_markers_on_pou_added() {
     let generics = &function.generics;
     assert!(!generics.is_empty());
     let t = &generics[0];
-    assert_eq!(&GenericBinding{ name: "T".into(), nature: "ANY".into()}, t);
+    assert_eq!(
+        &GenericBinding {
+            name: "T".into(),
+            nature: "ANY".into()
+        },
+        t
+    );
     let r = &generics[1];
-    assert_eq!(&GenericBinding{ name: "R".into(), nature: "ANY_NUMBER".into()}, r);
+    assert_eq!(
+        &GenericBinding {
+            name: "R".into(),
+            nature: "ANY_NUMBER".into()
+        },
+        r
+    );
 }
 
 #[test]
@@ -25,9 +37,21 @@ fn generic_markers_on_method_added() {
     let generics = &function.generics;
     assert!(!generics.is_empty());
     let t = &generics[0];
-    assert_eq!(&GenericBinding{ name: "T".into(), nature: "ANY".into()}, t);
+    assert_eq!(
+        &GenericBinding {
+            name: "T".into(),
+            nature: "ANY".into()
+        },
+        t
+    );
     let r = &generics[1];
-    assert_eq!(&GenericBinding{ name: "R".into(), nature: "ANY_NUMBER".into()}, r);
+    assert_eq!(
+        &GenericBinding {
+            name: "R".into(),
+            nature: "ANY_NUMBER".into()
+        },
+        r
+    );
 }
 
 #[test]
@@ -92,4 +116,3 @@ fn generic_method_parameters_are_datatypes() {
         variables
     );
 }
-

@@ -246,7 +246,7 @@ fn parse_generics(lexer: &mut ParseSession) -> Vec<GenericBinding> {
                 if let Some(name) = parse_identifier(lexer) {
                     lexer.consume_or_report(Token::KeywordColon);
                     if let Some(nature) = parse_identifier(lexer) {
-                        generics.push(GenericBinding{ name, nature });
+                        generics.push(GenericBinding { name, nature });
                     }
                 }
 
@@ -570,10 +570,7 @@ fn parse_data_type_definition(
         let variables = parse_variable_list(lexer);
         Some((
             DataTypeDeclaration::DataTypeDefinition {
-                data_type: DataType::StructType {
-                    name,
-                    variables,
-                },
+                data_type: DataType::StructType { name, variables },
                 location: (start..lexer.range().end).into(),
                 scope: lexer.scope.clone(),
             },

@@ -473,7 +473,20 @@ fn visit_data_type(
                 );
             index.register_type(name, init, information)
         }
-        DataType::VarArgs { .. } => {} //Varargs are not indexed
+        DataType::VarArgs { .. } => {} //Varargs are not indexed,
+        DataType::GenericType {
+            name,
+            generic_symbol,
+            nature,
+        } => {
+            let information = DataTypeInformation::Generic {
+                name: name.clone(),
+                generic_symbol: generic_symbol.clone(),
+                nature: nature.clone(),
+            };
+            index.register_type(name, None, information);
+        }
+
         _ => { /* unnamed datatypes are ignored */ }
     };
 }

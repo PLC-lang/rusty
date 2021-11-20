@@ -176,6 +176,9 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
                     self.create_type(inner_type_name, self.index.get_type(inner_type_name)?)?;
                 Ok(inner_type.ptr_type(AddressSpace::Generic).into())
             }
+            DataTypeInformation::Generic { .. } => {
+                unreachable!("Generic types should not be generated")
+            }
         }
     }
 
