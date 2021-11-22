@@ -22,10 +22,7 @@ use std::fs;
 use std::path::Path;
 
 use ast::{PouType, SourceRange};
-use codespan_reporting::diagnostic::Label;
 use codespan_reporting::files::SimpleFiles;
-use codespan_reporting::term::termcolor::{ColorChoice, StandardStream};
-use codespan_reporting::term::{self, Chars, Styles};
 use diagnostics::Diagnostic;
 use encoding_rs::Encoding;
 use encoding_rs_io::DecodeReaderBytesBuilder;
@@ -39,6 +36,7 @@ use std::{fs::File, io::Read};
 use validation::Validator;
 
 use crate::ast::CompilationUnit;
+use crate::diagnostics::{DiagnosticReporter, StdOutDiagnosticReporter};
 use crate::resolver::{AnnotationMap, TypeAnnotator};
 mod ast;
 pub mod cli;
@@ -309,6 +307,8 @@ pub fn compile_module<'c, T: SourceContainer>(
         all_units.push((file_id, diagnostics, parse_result));
     }
 
+    let reporter = StdOutDiagnosticReporter::new(files);
+
     // ### PHASE 1.1 resolve constant literal values
     let (full_index, _unresolvables) = resolver::const_evaluator::evaluate_constants(full_index);
 
@@ -322,9 +322,8 @@ pub fn compile_module<'c, T: SourceContainer>(
         let mut validator = Validator::new();
         validator.visit_unit(&annotations, &full_index, unit);
         //log errors
-        report_diagnostics(*file_id, syntax_errors.iter(), &files)?;
-        report_diagnostics(*file_id, validator.diagnostics().iter(), &files)?;
-
+        reporter.report(syntax_errors, *file_id);
+        reporter.report(&validator.diagnostics(), *file_id);
         annotated_units.push((unit, annotations));
     }
 
@@ -338,37 +337,6 @@ pub fn compile_module<'c, T: SourceContainer>(
     Ok(code_generator)
 }
 
-fn report_diagnostics(
-    file_id: usize,
-    semantic_diagnostics: std::slice::Iter<Diagnostic>,
-    files: &SimpleFiles<String, String>,
-) -> Result<(), Diagnostic> {
-    for error in semantic_diagnostics {
-        let diag = codespan_reporting::diagnostic::Diagnostic::error()
-            .with_message(error.get_message())
-            .with_labels(vec![Label::primary(
-                file_id,
-                error.get_location().get_start()..error.get_location().get_end(),
-            )]);
-        let writer = StandardStream::stderr(ColorChoice::Always);
-        let config = codespan_reporting::term::Config {
-            display_style: term::DisplayStyle::Rich,
-            tab_width: 2,
-            styles: Styles::default(),
-            chars: Chars::default(),
-            start_context_lines: 5,
-            end_context_lines: 3,
-        };
-
-        term::emit(&mut writer.lock(), &config, files, &diag).map_err(|err| {
-            Diagnostic::codegen_error(
-                &format!("Cannot print errors {:#?}", err),
-                SourceRange::undefined(),
-            )
-        })?;
-    }
-    Ok(())
-}
 
 #[cfg(test)]
 mod tests {

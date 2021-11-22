@@ -1,5 +1,6 @@
 use std::ops::Range;
 
+use codespan_reporting::{diagnostic::Label, files::{Files, SimpleFiles}, term::termcolor::{ColorChoice, StandardStream}};
 use inkwell::support::LLVMString;
 
 use crate::ast::{DataTypeDeclaration, PouType, SourceRange};
@@ -390,6 +391,73 @@ impl Diagnostic {
                 }
             }
             _ => it,
+        }
+    }
+}
+
+pub enum Severity {
+    Error, Warning, _Info
+}
+
+trait DiagnosticAssessor {
+    /// determines the severity of the given diagnostic
+    fn assess_diagnostic(d: &Diagnostic) -> Severity;
+}
+
+pub trait DiagnosticReporter {
+    /// reports the given diagnostic
+    fn report(&self, diagnostics: &[Diagnostic], file_id: usize);
+}
+
+struct DefaultDiagnosticAssessor {
+}
+
+impl DiagnosticAssessor for DefaultDiagnosticAssessor {
+    fn assess_diagnostic(d: &Diagnostic) -> Severity {
+        match d {
+            // improvements become warnings
+            Diagnostic::ImprovementSuggestion { .. } => Severity::Warning,
+            // everything else becomes an error
+            _ => Severity::Error
+        }
+    }
+}
+
+pub struct StdOutDiagnosticReporter {
+    files: SimpleFiles<String, String>,
+}
+
+impl StdOutDiagnosticReporter {
+    pub fn new(files: SimpleFiles<String, String>) -> Self {
+        StdOutDiagnosticReporter{
+            files
+        }
+    }
+}
+
+impl DiagnosticReporter for StdOutDiagnosticReporter {
+    fn report(&self, diagnostics: &[Diagnostic], file_id: usize) {
+        let writer = StandardStream::stderr(ColorChoice::Always);
+        let config = codespan_reporting::term::Config {
+            display_style: codespan_reporting::term::DisplayStyle::Rich,
+            tab_width: 2,
+            styles: codespan_reporting::term::Styles::default(),
+            chars: codespan_reporting::term::Chars::default(),
+            start_context_lines: 5,
+            end_context_lines: 3,
+        };
+
+        for d in diagnostics {
+            let diag = codespan_reporting::diagnostic::Diagnostic::error()
+            .with_message(d.get_message())
+            .with_labels(vec![Label::primary(
+                file_id,
+                d.get_location().get_start()..d.get_location().get_end(),
+            )]);        
+            let result = codespan_reporting::term::emit(&mut writer.lock(), &config, &self.files, &diag);
+            if let Err(err) = result {
+                println!("Unable to report diagnostics: {}", err);
+            }
         }
     }
 }
