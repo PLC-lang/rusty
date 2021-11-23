@@ -1,15 +1,7 @@
 #[cfg(test)]
 pub mod tests {
 
-    use crate::{
-        ast::{self, CompilationUnit},
-        compile_error::CompileError,
-        index::{self, Index},
-        lexer::{self, IdProvider},
-        parser,
-        resolver::{const_evaluator::evaluate_constants, AnnotationMap, TypeAnnotator},
-        Diagnostic, Validator,
-    };
+    use crate::{Diagnostic, Validator, ast::{self, CompilationUnit}, compile_error::CompileError, index::{self, Index}, lexer::{self, IdProvider}, parser, resolver::{const_evaluator::evaluate_constants, AnnotationMap, TypeAnnotator}};
 
     pub fn parse(src: &str) -> (CompilationUnit, Vec<Diagnostic>) {
         parser::parse(lexer::lex_with_ids(src, IdProvider::default()))

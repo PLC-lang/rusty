@@ -396,6 +396,12 @@ impl SourceContainer for SourceCode {
     }
 }
 
+impl From<&str> for SourceCode {
+    fn from(src: &str) -> Self {
+        SourceCode { source: src.into(), path: "<undefined>".into() }
+    }
+}
+
 fn create_source_code<T: Read>(
     reader: &mut T,
     encoding: Option<&'static Encoding>,
@@ -466,6 +472,7 @@ fn compile_to_obj<T: SourceContainer>(
 /// # Arguments
 ///
 /// * `sources` - the source to be compiled
+/// * `encoding` - The encoding to parse the files, None for UTF-8
 /// * `output` - the location on disk to save the output
 /// * `target` - an optional llvm target triple
 ///     If not provided, the machine's triple will be used.
@@ -489,6 +496,7 @@ pub fn compile_to_static_obj<T: SourceContainer>(
 /// # Arguments
 ///
 /// * `sources` - the source to be compiled
+/// * `encoding` - The encoding to parse the files, None for UTF-8
 /// * `output` - the location on disk to save the output
 /// * `target` - an optional llvm target triple
 ///     If not provided, the machine's triple will be used.
@@ -512,6 +520,7 @@ pub fn compile_to_shared_pic_object<T: SourceContainer>(
 /// # Arguments
 ///
 /// * `sources` - the source to be compiled
+/// * `encoding` - The encoding to parse the files, None for UTF-8
 /// * `output` - the location on disk to save the output
 /// * `target` - an optional llvm target triple
 ///     If not provided, the machine's triple will be used.
@@ -550,21 +559,37 @@ pub fn compile_to_bitcode<T: SourceContainer>(
 }
 
 ///
-/// Compiles the given source into LLVM IR and returns it
+/// Compiles the given source into LLVM IR and saves it to the given output location
 ///
 /// # Arguments
 ///
 /// * `sources` - the source to be compiled
+/// * `encoding` - The encoding to parse the files, None for UTF-8
+/// * `output`  - The location to save the generated ir file
 pub fn compile_to_ir<T: SourceContainer>(
     sources: Vec<T>,
     encoding: Option<&'static Encoding>,
     output: &str,
 ) -> Result<(), CompileError> {
-    let c = Context::create();
-    let code_gen = compile_module(&c, sources, encoding)?;
-    let ir = code_gen.module.print_to_string().to_string();
+    let ir = compile_to_string(sources, encoding)?; 
     fs::write(output, ir)
         .map_err(|err| CompileError::io_write_error(output.into(), err.to_string()))
+}
+
+///
+/// Compiles the given source into LLVM IR and returns it
+///
+/// # Arguments
+///
+/// * `sources` - the source to be compiled
+/// * `encoding` - The encoding to parse the files, None for UTF-8
+pub fn compile_to_string<T: SourceContainer> (
+    sources: Vec<T>,
+    encoding: Option<&'static Encoding>,
+) -> Result<String, CompileError> {
+    let c = Context::create();
+    let code_gen = compile_module(&c, sources, encoding)?;
+    Ok(code_gen.module.print_to_string().to_string())
 }
 
 ///
@@ -574,6 +599,7 @@ pub fn compile_to_ir<T: SourceContainer>(
 ///
 /// * `context` - the LLVM Context to be used for the compilation
 /// * `sources` - the source to be compiled
+/// * `encoding` - The encoding to parse the files, None for UTF-8
 pub fn compile_module<'c, T: SourceContainer>(
     context: &'c Context,
     sources: Vec<T>,
@@ -667,6 +693,8 @@ fn report_diagnostics(
 
 #[cfg(test)]
 mod tests {
+    mod multi_files;
+
     use inkwell::targets::TargetMachine;
 
     use crate::{create_source_code, get_target_triple};
