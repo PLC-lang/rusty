@@ -36,7 +36,9 @@ use std::{fs::File, io::Read};
 use validation::Validator;
 
 use crate::ast::CompilationUnit;
-use crate::diagnostics::{DiagnosticReporter, StdOutDiagnosticReporter};
+use crate::diagnostics::{
+    DefaultDiagnostician, DiagnosticAssessor, DiagnosticReporter, StdOutDiagnosticReporter,
+};
 use crate::resolver::{AnnotationMap, TypeAnnotator};
 mod ast;
 pub mod cli;
@@ -307,6 +309,7 @@ pub fn compile_module<'c, T: SourceContainer>(
         all_units.push((file_id, diagnostics, parse_result));
     }
 
+    let diagnostician = DefaultDiagnostician::new();
     let reporter = StdOutDiagnosticReporter::new(files);
 
     // ### PHASE 1.1 resolve constant literal values
@@ -314,16 +317,17 @@ pub fn compile_module<'c, T: SourceContainer>(
 
     // ### PHASE 2 ###
     // annotation & validation everything
-    type AnnotatedAst<'a> = (&'a CompilationUnit, AnnotationMap);
+    type AnnotatedAst = (CompilationUnit, AnnotationMap);
     let mut annotated_units: Vec<AnnotatedAst> = Vec::new();
-    for (file_id, syntax_errors, unit) in all_units.iter() {
-        let annotations = TypeAnnotator::visit_unit(&full_index, unit);
-
+    for (file_id, syntax_errors, unit) in all_units.into_iter() {
+        // type-annotate (and therefore also resolve links)
+        let annotations = TypeAnnotator::visit_unit(&full_index, &unit);
+        //validate
         let mut validator = Validator::new();
-        validator.visit_unit(&annotations, &full_index, unit);
+        validator.visit_unit(&annotations, &full_index, &unit);
         //log errors
-        reporter.report(syntax_errors, *file_id);
-        reporter.report(&validator.diagnostics(), *file_id);
+        reporter.report(&diagnostician.assess_all(syntax_errors), file_id);
+        reporter.report(&diagnostician.assess_all(validator.diagnostics()), file_id);
         annotated_units.push((unit, annotations));
     }
 
@@ -332,11 +336,10 @@ pub fn compile_module<'c, T: SourceContainer>(
     let code_generator = codegen::CodeGen::new(context, "main");
 
     for (unit, annotations) in annotated_units {
-        code_generator.generate(unit, &annotations, &full_index)?;
+        code_generator.generate(&unit, &annotations, &full_index)?;
     }
     Ok(code_generator)
 }
-
 
 #[cfg(test)]
 mod tests {
