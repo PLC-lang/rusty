@@ -1,7 +1,15 @@
 #[cfg(test)]
 pub mod tests {
 
-    use crate::{Diagnostic, Validator, ast::{self, CompilationUnit}, compile_error::CompileError, index::{self, Index}, lexer::{self, IdProvider}, parser, resolver::{const_evaluator::evaluate_constants, AnnotationMap, TypeAnnotator}};
+    use crate::{
+        ast::{self, CompilationUnit},
+        compile_error::CompileError,
+        index::{self, Index},
+        lexer::{self, IdProvider},
+        parser,
+        resolver::{const_evaluator::evaluate_constants, AnnotationMap, TypeAnnotator},
+        Diagnostic, Validator,
+    };
 
     pub fn parse(src: &str) -> (CompilationUnit, Vec<Diagnostic>) {
         parser::parse(lexer::lex_with_ids(src, IdProvider::default()))
@@ -38,7 +46,8 @@ pub mod tests {
 
         let context = inkwell::context::Context::create();
         let code_generator = crate::codegen::CodeGen::new(&context, "main");
-        code_generator.generate(&unit, &annotations, &index)
+        let llvm_index = code_generator.generate_llvm_index(&annotations, &index)?;
+        code_generator.generate(&unit, &annotations, &index, &llvm_index)
     }
 
     pub fn codegen(src: &str) -> String {

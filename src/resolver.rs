@@ -151,6 +151,11 @@ impl AnnotationMap {
         }
     }
 
+    pub fn import(&mut self, other: AnnotationMap) {
+        self.type_map.extend(other.type_map);
+        self.type_hint_map.extend(other.type_hint_map);
+    }
+
     /// annotates the given statement (using it's `get_id()`) with the given type-name
     pub fn annotate(&mut self, s: &AstStatement, annotation: StatementAnnotation) {
         self.type_map.insert(s.get_id(), annotation);

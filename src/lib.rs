@@ -398,7 +398,10 @@ impl SourceContainer for SourceCode {
 
 impl From<&str> for SourceCode {
     fn from(src: &str) -> Self {
-        SourceCode { source: src.into(), path: "<undefined>".into() }
+        SourceCode {
+            source: src.into(),
+            path: "<undefined>".into(),
+        }
     }
 }
 
@@ -571,7 +574,7 @@ pub fn compile_to_ir<T: SourceContainer>(
     encoding: Option<&'static Encoding>,
     output: &str,
 ) -> Result<(), CompileError> {
-    let ir = compile_to_string(sources, encoding)?; 
+    let ir = compile_to_string(sources, encoding)?;
     fs::write(output, ir)
         .map_err(|err| CompileError::io_write_error(output.into(), err.to_string()))
 }
@@ -583,7 +586,7 @@ pub fn compile_to_ir<T: SourceContainer>(
 ///
 /// * `sources` - the source to be compiled
 /// * `encoding` - The encoding to parse the files, None for UTF-8
-pub fn compile_to_string<T: SourceContainer> (
+pub fn compile_to_string<T: SourceContainer>(
     sources: Vec<T>,
     encoding: Option<&'static Encoding>,
 ) -> Result<String, CompileError> {
@@ -635,8 +638,9 @@ pub fn compile_module<'c, T: SourceContainer>(
 
     // ### PHASE 2 ###
     // annotation & validation everything
-    type AnnotatedAst<'a> = (&'a CompilationUnit, AnnotationMap);
-    let mut annotated_units: Vec<AnnotatedAst> = Vec::new();
+    // type AnnotatedAst<'a> = (&'a CompilationUnit, AnnotationMap);
+    let mut annotated_units: Vec<&CompilationUnit> = Vec::new();
+    let mut all_annotations = AnnotationMap::default();
     for (file_id, syntax_errors, unit) in all_units.iter() {
         let annotations = TypeAnnotator::visit_unit(&full_index, unit);
 
@@ -646,15 +650,17 @@ pub fn compile_module<'c, T: SourceContainer>(
         report_diagnostics(*file_id, syntax_errors.iter(), &files)?;
         report_diagnostics(*file_id, validator.diagnostics().iter(), &files)?;
 
-        annotated_units.push((unit, annotations));
+        annotated_units.push(unit);
+        all_annotations.import(annotations);
     }
 
     // ### PHASE 3 ###
     // - codegen
     let code_generator = codegen::CodeGen::new(context, "main");
-
-    for (unit, annotations) in annotated_units {
-        code_generator.generate(unit, &annotations, &full_index)?;
+    //Associate the index type with LLVM types
+    let llvm_index = code_generator.generate_llvm_index(&all_annotations, &full_index)?;
+    for unit in annotated_units {
+        code_generator.generate(unit, &all_annotations, &full_index, &llvm_index)?;
     }
     Ok(code_generator)
 }

@@ -45,7 +45,7 @@ pub fn generate_implementation_stubs<'ink>(
     annotations: &AnnotationMap,
     types_index: &LlvmTypedIndex<'ink>,
 ) -> Result<LlvmTypedIndex<'ink>, CompileError> {
-    let mut llvm_index = LlvmTypedIndex::new();
+    let mut llvm_index = LlvmTypedIndex::default();
     let pou_generator = PouGenerator::new(llvm, index, annotations, types_index);
     for (name, implementation) in index.get_implementations() {
         let curr_f = pou_generator.generate_implementation_stub(implementation, module)?;

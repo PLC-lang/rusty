@@ -79,7 +79,7 @@ pub fn compile(context: &Context, source: String) -> ExecutionEngine {
 }
 
 pub fn compile_and_run<T, U>(source: String, params: &mut T) -> U {
-    compile_and_run_multi::<T,U, SourceCode>(vec![source.as_str().into()], params)
+    compile_and_run_multi::<T, U, SourceCode>(vec![source.as_str().into()], params)
 }
 
 pub fn run<T, U>(exec_engine: &ExecutionEngine, name: &str, params: &mut T) -> U {
@@ -98,7 +98,7 @@ pub fn run<T, U>(exec_engine: &ExecutionEngine, name: &str, params: &mut T) -> U
 /// The int is the return value which can be verified
 /// The string will eventually be the Stdout of the function.
 ///
-pub fn compile_multi<T : SourceContainer> (context: &Context, source: Vec<T>) -> ExecutionEngine {
+pub fn compile_multi<T: SourceContainer>(context: &Context, source: Vec<T>) -> ExecutionEngine {
     // let source : Vec<SourceCode> = source.iter().map(String::as_str).map(Into::into).collect();
     let code_gen = compile_module(context, source, None).unwrap();
     println!("{}", code_gen.module.print_to_string());
