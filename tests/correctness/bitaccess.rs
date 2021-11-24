@@ -47,7 +47,7 @@ fn bitaccess_assignment() {
     }
     let mut param = Type::default();
 
-    let _ : i32 = compile_and_run(prog, &mut param);
+    let _: i32 = compile_and_run(prog, &mut param);
 
     assert_eq!(0b0000_0010, param.a);
     assert_eq!(0b0000_0010_0000_0000, param.b);
@@ -123,7 +123,7 @@ fn bitaccess_test() {
     ";
     let mut main_type = MainType::default();
 
-    let _ : i32 = compile_and_run(prog, &mut main_type);
+    let _: i32 = compile_and_run(prog, &mut main_type);
     assert_eq!(
         main_type,
         MainType {
@@ -166,7 +166,7 @@ fn bitaccess_with_var_test() {
     ";
     let mut main_type = MainType::default();
 
-    let _ : i32 = compile_and_run(prog, &mut main_type);
+    let _: i32 = compile_and_run(prog, &mut main_type);
     assert_eq!(
         main_type,
         MainType {

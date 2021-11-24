@@ -132,7 +132,7 @@ END_PROGRAM
 
     let mut maintype = new();
 
-    let _ : i32 = compile_and_run(function.to_string(), &mut maintype);
+    let _: i32 = compile_and_run(function.to_string(), &mut maintype);
 
     assert_eq!(true, maintype.b_result_a);
     assert_eq!(true, maintype.b_result_b);
@@ -277,7 +277,7 @@ END_PROGRAM
 
     let mut new_with_struct: MainTypeWithStruct = MainTypeWithStruct::default();
 
-    let _ : i32 = compile_and_run(function.to_string(), &mut new_with_struct);
+    let _: i32 = compile_and_run(function.to_string(), &mut new_with_struct);
 
     assert_eq!(true, new_with_struct.b_result_a);
     assert_eq!(100, new_with_struct.b_result_b);
@@ -432,7 +432,7 @@ fn reference_call_array() {
 
     let mut new_with_array: MainTypeWithArray = MainTypeWithArray::default();
 
-    let _ : i32 = compile_and_run(function.to_string(), &mut new_with_array);
+    let _: i32 = compile_and_run(function.to_string(), &mut new_with_array);
 
     assert_eq!(100, new_with_array.b_result_a);
     assert_eq!(0, new_with_array.b_result_b);

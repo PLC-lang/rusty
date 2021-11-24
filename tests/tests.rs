@@ -80,7 +80,7 @@ fn get_test_file(name: &str) -> String {
 }
 
 pub trait Compilable {
-    type T : SourceContainer;
+    type T: SourceContainer;
     fn containers(self) -> Vec<Self::T>;
 }
 
@@ -100,13 +100,12 @@ impl Compilable for String {
     }
 }
 
-impl<S : SourceContainer> Compilable for Vec<S> {
+impl<S: SourceContainer> Compilable for Vec<S> {
     type T = S;
     fn containers(self) -> Vec<Self::T> {
         self
     }
 }
-
 
 ///
 /// Compiles and runs the given source
@@ -150,7 +149,7 @@ pub fn compile<T: Compilable>(context: &Context, source: T) -> ExecutionEngine {
         .unwrap()
 }
 
-pub fn compile_and_run<T, U, S : Compilable>(source: S, params: &mut T) -> U {
+pub fn compile_and_run<T, U, S: Compilable>(source: S, params: &mut T) -> U {
     let context: Context = Context::create();
     let exec_engine = compile(&context, source);
     run::<T, U>(&exec_engine, "main", params)
