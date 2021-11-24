@@ -93,18 +93,7 @@ pub fn compile(context: &Context, source: String) -> ExecutionEngine {
 }
 
 pub fn compile_and_run<T, U>(source: String, params: &mut T) -> U {
-    let context: Context = Context::create();
-    // let source: Vec<SourceCode> = vec![source.as_str().into()];
-    // compile_multi::<SourceCode>(context, source)
-    let src: Vec<SourceCode> = vec![source.as_str().into()];
-    let exec_engine = compile_multi(&context, src);
-    // let exec_engine = compile(&context, source);
-    let int_arr: [i32; 100] = [0; 100];
-    eprintln!("{:?}", int_arr);
-    let res = run::<T, U>(&exec_engine, "main", params);
-    eprintln!("{:?}", int_arr);
-    res
-    // compile_and_run_multi::<T, U, SourceCode>(vec![source.as_str().into()], params)
+    compile_and_run_multi::<T, U, SourceCode>(vec![source.as_str().into()], params)
 }
 
 pub fn run<T, U>(exec_engine: &ExecutionEngine, name: &str, params: &mut T) -> U {
