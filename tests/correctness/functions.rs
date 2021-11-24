@@ -212,7 +212,7 @@ fn function_block_instances_save_state_per_instance() {
         f: FooType { i: 0 },
         j: FooType { i: 0 },
     };
-    compile_and_run::<_, i32>(function.to_string(), &mut interface);
+    let _ : i32 = compile_and_run(function.to_string(), &mut interface);
     assert_eq!(interface.f.i, 2);
     assert_eq!(interface.j.i, 7);
 }
@@ -270,7 +270,7 @@ fn functions_can_be_called_out_of_order() {
     "#;
 
     let mut interface = MainType { f: 0 };
-    compile_and_run::<_, i32>(function.to_string(), &mut interface);
+    let _ : i32 = compile_and_run(function.to_string(), &mut interface);
 
     assert_eq!(7, interface.f);
 }
@@ -336,7 +336,7 @@ fn function_block_instances_save_state_per_instance_2() {
             baz: BazType { i: 0 },
         },
     };
-    compile_and_run::<_, i32>(function.to_string(), &mut interface);
+    let _ : i32 = compile_and_run(function.to_string(), &mut interface);
 
     assert_eq!(2, interface.f.baz.i);
     assert_eq!(4, interface.j.baz.i);
@@ -378,7 +378,7 @@ fn function_call_inout_variable() {
     "#;
 
     let mut interface = MainType { baz: 7 };
-    compile_and_run::<_, i32>(function.to_string(), &mut interface);
+    let _ : i32 = compile_and_run(function.to_string(), &mut interface);
 
     assert_eq!(64, interface.baz);
 }
@@ -429,7 +429,7 @@ fn inouts_behave_like_pointers() {
         p2: 0,
         p3: 0,
     };
-    compile_and_run::<_, i32>(function.to_string(), &mut interface);
+    let _ : i32 = compile_and_run(function.to_string(), &mut interface);
 
     assert_eq!(7, interface.p1);
     assert_eq!(8, interface.p2);

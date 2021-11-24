@@ -405,6 +405,15 @@ impl From<&str> for SourceCode {
     }
 }
 
+impl From<String> for SourceCode {
+    fn from(source: String) -> Self {
+        SourceCode {
+            source,
+            path: "external_file.st".into(),
+        }
+    }
+}
+
 fn create_source_code<T: Read>(
     reader: &mut T,
     encoding: Option<&'static Encoding>,

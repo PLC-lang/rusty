@@ -27,7 +27,7 @@ FUNCTION_BLOCK myFB
 END_FUNCTION_BLOCK
     ";
 
-    let res: i32 = compile_and_run(src.into(), &mut MainType::default());
+    let res: i32 = compile_and_run(src, &mut MainType::default());
     //Expecting it not to fail
     assert_eq!(res, 42);
 }
@@ -57,7 +57,7 @@ END_METHOD
 END_CLASS
     ";
 
-    let res: i32 = compile_and_run(src.into(), &mut MainType::default());
+    let res: i32 = compile_and_run(src, &mut MainType::default());
     //Expecting it not to fail
     assert_eq!(res, 42);
 }

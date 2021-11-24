@@ -1,6 +1,6 @@
 use rusty::FilePath;
 
-use crate::{compile_and_run_multi, get_test_file};
+use crate::{compile_and_run, get_test_file};
 
 #[test]
 fn sources_accross_multiple_files_compiled() {
@@ -11,6 +11,6 @@ fn sources_accross_multiple_files_compiled() {
         path: get_test_file("multi/prog.st"),
     };
 
-    let res: i32 = compile_and_run_multi(vec![file1, file2], &mut ());
+    let res: i32 = compile_and_run(vec![file1, file2], &mut ());
     assert_eq!(42, res);
 }

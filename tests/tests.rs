@@ -79,6 +79,35 @@ fn get_test_file(name: &str) -> String {
     data_path.display().to_string()
 }
 
+pub trait Compilable {
+    type T : SourceContainer;
+    fn containers(self) -> Vec<Self::T>;
+}
+
+impl Compilable for &str {
+    type T = SourceCode;
+    fn containers(self) -> Vec<Self::T> {
+        let code = Self::T::from(self);
+        vec![code]
+    }
+}
+
+impl Compilable for String {
+    type T = SourceCode;
+    fn containers(self) -> Vec<Self::T> {
+        let code = self.into();
+        vec![code]
+    }
+}
+
+impl<S : SourceContainer> Compilable for Vec<S> {
+    type T = S;
+    fn containers(self) -> Vec<Self::T> {
+        self
+    }
+}
+
+
 ///
 /// Compiles and runs the given source
 /// Returns the std result as String
@@ -86,15 +115,14 @@ fn get_test_file(name: &str) -> String {
 /// The int is the return value which can be verified
 /// The string will eventually be the Stdout of the function.
 ///
-#[inline(always)]
-pub fn compile(context: &Context, source: String) -> ExecutionEngine {
-    let source: Vec<SourceCode> = vec![source.as_str().into()];
-    compile_multi(context, source)
-}
+// pub fn compile(context: &Context, source: String) -> ExecutionEngine {
+//     let source: Vec<SourceCode> = vec![source.as_str().into()];
+//     compile_multi(context, source)
+// }
 
-pub fn compile_and_run<T, U>(source: String, params: &mut T) -> U {
-    compile_and_run_multi::<T, U, SourceCode>(vec![source.as_str().into()], params)
-}
+// pub fn compile_and_run<T, U>(source: String, params: &mut T) -> U {
+//     compile_and_run_multi::<T, U, SourceCode>(vec![source.as_str().into()], params)
+// }
 
 pub fn run<T, U>(exec_engine: &ExecutionEngine, name: &str, params: &mut T) -> U {
     unsafe {
@@ -112,8 +140,8 @@ pub fn run<T, U>(exec_engine: &ExecutionEngine, name: &str, params: &mut T) -> U
 /// The int is the return value which can be verified
 /// The string will eventually be the Stdout of the function.
 ///
-pub fn compile_multi<T: SourceContainer>(context: &Context, source: Vec<T>) -> ExecutionEngine {
-    // let source : Vec<SourceCode> = source.iter().map(String::as_str).map(Into::into).collect();
+pub fn compile<T: Compilable>(context: &Context, source: T) -> ExecutionEngine {
+    let source = source.containers();
     let code_gen = compile_module(context, source, None).unwrap();
     println!("{}", code_gen.module.print_to_string());
     code_gen
@@ -122,8 +150,8 @@ pub fn compile_multi<T: SourceContainer>(context: &Context, source: Vec<T>) -> E
         .unwrap()
 }
 
-pub fn compile_and_run_multi<T, U, S: SourceContainer>(source: Vec<S>, params: &mut T) -> U {
+pub fn compile_and_run<T, U, S : Compilable>(source: S, params: &mut T) -> U {
     let context: Context = Context::create();
-    let exec_engine = compile_multi(&context, source);
+    let exec_engine = compile(&context, source);
     run::<T, U>(&exec_engine, "main", params)
 }

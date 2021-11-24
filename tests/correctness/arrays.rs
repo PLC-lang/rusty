@@ -41,7 +41,7 @@ fn array_assignments() {
 
     let mut maintype = new();
 
-    compile_and_run::<_, i32>(function.to_string(), &mut maintype);
+    let _ : i32 = compile_and_run(function.to_string(), &mut maintype);
 
     for index in 0..5 {
         assert_eq!((index + 10) as i16, maintype.int_array[index]);
@@ -74,7 +74,7 @@ fn array_declaration_using_constants() {
 
     let mut maintype = new();
 
-    compile_and_run::<_, i32>(function.to_string(), &mut maintype);
+    let _ : i32 = compile_and_run(function.to_string(), &mut maintype);
 
     for index in 0..5 {
         assert_eq!((index + 10) as i16, maintype.int_array[index]);
@@ -103,7 +103,7 @@ fn matrix_array_assignments() {
 
     let mut maintype = new();
 
-    compile_and_run::<_, i32>(function.to_string(), &mut maintype);
+    let _ : i32 = compile_and_run(function.to_string(), &mut maintype);
     for x in 0..5 {
         for y in 0..5 {
             assert_eq!((x * y) as i16, maintype.matrix[x][y]);
@@ -179,7 +179,7 @@ fn matrix_array_assignments2() {
 
     let mut maintype = new();
 
-    compile_and_run::<_, i32>(function.to_string(), &mut maintype);
+    let _ : i32 = compile_and_run(function.to_string(), &mut maintype);
     for x in 0..5 {
         for y in 0..5 {
             assert_eq!((x * y) as i16, maintype.matrix[x][y]);
@@ -212,7 +212,7 @@ fn cube_array_assignments_array_of_array_of_array() {
 
     let mut maintype = new();
 
-    compile_and_run::<_, i32>(function.to_string(), &mut maintype);
+    let _ : i32 = compile_and_run(function.to_string(), &mut maintype);
     for x in 0..5 {
         for y in 0..5 {
             for z in 0..5 {
@@ -247,7 +247,7 @@ fn cube_array_assignments2() {
 
     let mut maintype = new();
 
-    compile_and_run::<_, i32>(function.to_string(), &mut maintype);
+    let _ : i32 = compile_and_run(function.to_string(), &mut maintype);
     for x in 0..5 {
         for y in 0..5 {
             for z in 0..5 {
