@@ -1,6 +1,7 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use inkwell::context::Context;
 use inkwell::execution_engine::{ExecutionEngine, JitFunction};
+use rusty::diagnostics::Diagnostician;
 use rusty::*;
 
 type MainFunction<T, U> = unsafe extern "C" fn(*mut T) -> U;
@@ -63,7 +64,15 @@ pub fn compile(context: &Context, source: String) -> ExecutionEngine {
         path: "external_test.st".to_string(),
         source,
     };
-    let code_gen = compile_module(context, vec![source], None).unwrap();
+
+    let code_gen = compile_module(
+        context,
+        vec![source],
+        None,
+        Diagnostician::null_diagnostician(),
+    )
+    .unwrap();
+
     println!("{}", code_gen.module.print_to_string());
     code_gen
         .module

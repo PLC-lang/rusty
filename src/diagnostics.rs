@@ -399,12 +399,16 @@ impl Diagnostic {
     }
 }
 
+/// a diagnostics severity
 pub enum Severity {
     Error,
     Warning,
     _Info,
 }
 
+/// the assessor determins the severity of a diagnostic
+/// this trait allows for different implementations for different usecases
+/// (e.g. default, compiler-settings, tests)
 pub trait DiagnosticAssessor {
     /// determines the severity of the given diagnostic
     fn assess(&self, d: Diagnostic) -> AssessedDiagnostic;
@@ -413,20 +417,17 @@ pub trait DiagnosticAssessor {
     }
 }
 
-pub struct DefaultDiagnostician {}
-
-impl DefaultDiagnostician {
-    pub fn new() -> Self {
-        DefaultDiagnostician {}
-    }
-}
+/// the default assessor will treat ImprovementSuggestions as warnings
+/// and everything else as errors
+#[derive(Default)]
+pub struct DefaultDiagnosticAssessor {}
 
 pub struct AssessedDiagnostic {
     pub diagnostic: Diagnostic,
     pub severity: Severity,
 }
 
-impl DiagnosticAssessor for DefaultDiagnostician {
+impl DiagnosticAssessor for DefaultDiagnosticAssessor {
     fn assess(&self, d: Diagnostic) -> AssessedDiagnostic {
         let severity = match d {
             // improvements become warnings
@@ -442,33 +443,54 @@ impl DiagnosticAssessor for DefaultDiagnostician {
     }
 }
 
+/// the DiagnosticReporter decides on the format and where to report the diagnostic to.
+/// possible implementsions could print to either std-out, std-err or a file
 pub trait DiagnosticReporter {
     /// reports the given diagnostic
     fn report(&self, diagnostics: &[AssessedDiagnostic], file_id: usize);
+    /// register the given path & src and returns an ID to indicate
+    /// a relationship the given src (diagnostics for this src need
+    /// to use this id)
+    fn register(&mut self, path: String, src: String) -> usize;
 }
 
-pub struct StdOutDiagnosticReporter {
+/// a DiagnosticReporter that reports diagnostics using codespan_reporting
+pub struct CodeSpanDiagnosticReporter {
     files: SimpleFiles<String, String>,
+    config: codespan_reporting::term::Config,
+    writer: StandardStream,
 }
 
-impl StdOutDiagnosticReporter {
-    pub fn new(files: SimpleFiles<String, String>) -> Self {
-        StdOutDiagnosticReporter { files }
+impl CodeSpanDiagnosticReporter {
+    /// creates a new reporter with the given codespan_reporting configuration
+    fn new(config: codespan_reporting::term::Config, writer: StandardStream) -> Self {
+        CodeSpanDiagnosticReporter {
+            files: SimpleFiles::new(),
+            config,
+            writer,
+        }
     }
 }
 
-impl DiagnosticReporter for StdOutDiagnosticReporter {
-    fn report(&self, diagnostics: &[AssessedDiagnostic], file_id: usize) {
-        let writer = StandardStream::stderr(ColorChoice::Always);
-        let config = codespan_reporting::term::Config {
-            display_style: codespan_reporting::term::DisplayStyle::Rich,
-            tab_width: 2,
-            styles: codespan_reporting::term::Styles::default(),
-            chars: codespan_reporting::term::Chars::default(),
-            start_context_lines: 5,
-            end_context_lines: 3,
-        };
+impl Default for CodeSpanDiagnosticReporter {
+    /// creates the default CodeSpanDiagnosticReporter reporting to StdErr, with colors
+    fn default() -> Self {
+        Self::new(
+            codespan_reporting::term::Config {
+                display_style: codespan_reporting::term::DisplayStyle::Rich,
+                tab_width: 2,
+                styles: codespan_reporting::term::Styles::default(),
+                chars: codespan_reporting::term::Chars::default(),
+                start_context_lines: 5,
+                end_context_lines: 3,
+            },
+            StandardStream::stderr(ColorChoice::Always),
+        )
+    }
+}
 
+impl DiagnosticReporter for CodeSpanDiagnosticReporter {
+    fn report(&self, diagnostics: &[AssessedDiagnostic], file_id: usize) {
         for ad in diagnostics {
             let d = &ad.diagnostic;
             let location = d.get_location();
@@ -486,10 +508,89 @@ impl DiagnosticReporter for StdOutDiagnosticReporter {
                     location.get_start()..location.get_end(),
                 )]);
             let result =
-                codespan_reporting::term::emit(&mut writer.lock(), &config, &self.files, &diag);
+                codespan_reporting::term::emit(&mut self.writer.lock(), &self.config, &self.files, &diag);
             if let Err(err) = result {
-                println!("Unable to report diagnostics: {}", err);
+                eprintln!("Unable to report diagnostics: {}", err);
             }
+        }
+    }
+
+    fn register(&mut self, path: String, src: String) -> usize {
+        self.files.add(path, src)
+    }
+}
+
+/// a DiagnosticReporter that swallows all diagnostics
+#[derive(Default)]
+pub struct NullDiagnosticReporter {
+    last_id: usize,
+}
+
+impl DiagnosticReporter for NullDiagnosticReporter {
+    fn report(&self, _diagnostics: &[AssessedDiagnostic], _file_id: usize) {
+        //ignore
+    }
+
+    fn register(&mut self, _path: String, _src: String) -> usize {
+        // at least provide some unique ids
+        self.last_id += 1;
+        self.last_id
+    }
+}
+
+/// the Diagnostician handle's Diangostics with the help of a
+/// assessor and a reporter
+pub struct Diagnostician {
+    pub reporter: Box<dyn DiagnosticReporter>,
+    pub assessor: Box<dyn DiagnosticAssessor>,
+}
+
+impl Diagnostician {
+    /// registers the given source-code at the diagnostician, so it can
+    /// preview errors in the source
+    /// returns the id to use to reference the given file
+    pub fn register_file(&mut self, id: String, src: String) -> usize {
+        self.reporter.register(id, src)
+    }
+
+    /// creates a null-diagnostician that does not report diagnostics
+    pub fn null_diagnostician() -> Diagnostician {
+        Diagnostician {
+            assessor: Box::new(DefaultDiagnosticAssessor::default()),
+            reporter: Box::new(NullDiagnosticReporter::default()),
+        }
+    }
+
+    /// assess and reports the given diagnostics
+    pub fn handle(&self, diagnostics: Vec<Diagnostic>, file_id: usize) {
+        self.report(&self.assess_all(diagnostics), file_id);
+    }
+}
+
+impl DiagnosticReporter for Diagnostician {
+    fn report(&self, diagnostics: &[AssessedDiagnostic], file_id: usize) {
+        //delegate to reporter
+        self.reporter.report(diagnostics, file_id);
+    }
+
+    fn register(&mut self, path: String, src: String) -> usize {
+        //delegate to reporter
+        self.reporter.register(path, src)
+    }
+}
+
+impl DiagnosticAssessor for Diagnostician {
+    fn assess(&self, d: Diagnostic) -> AssessedDiagnostic {
+        //delegate to assesor
+        self.assessor.assess(d)
+    }
+}
+
+impl Default for Diagnostician {
+    fn default() -> Self {
+        Self {
+            reporter: Box::new(CodeSpanDiagnosticReporter::default()),
+            assessor: Box::new(DefaultDiagnosticAssessor::default()),
         }
     }
 }

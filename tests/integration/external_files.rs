@@ -5,7 +5,7 @@ use std::{env, fs, path::PathBuf};
 use encoding_rs::Encoding;
 use rusty::{
     compile_to_bitcode, compile_to_ir, compile_to_shared_object, compile_to_shared_pic_object,
-    compile_to_static_obj, FilePath,
+    compile_to_static_obj, diagnostics::Diagnostician, FilePath,
 };
 
 fn compile_all(name: &str, encoding: Option<&'static Encoding>) {
@@ -14,16 +14,48 @@ fn compile_all(name: &str, encoding: Option<&'static Encoding>) {
     let out_name = format!("{}.out", &name);
     out.push(out_name);
     let out = out.into_os_string().into_string().unwrap();
-    compile_to_ir(vec![FilePath { path: path.clone() }], encoding, &out).unwrap();
+    compile_to_ir(
+        vec![FilePath { path: path.clone() }],
+        encoding,
+        &out,
+        Diagnostician::default(),
+    )
+    .unwrap();
     fs::remove_file(&out).unwrap();
-    compile_to_bitcode(vec![FilePath { path: path.clone() }], encoding, &out).unwrap();
+    compile_to_bitcode(
+        vec![FilePath { path: path.clone() }],
+        encoding,
+        &out,
+        Diagnostician::default(),
+    )
+    .unwrap();
     fs::remove_file(&out).unwrap();
-    compile_to_shared_object(vec![FilePath { path: path.clone() }], encoding, &out, None).unwrap();
+    compile_to_shared_object(
+        vec![FilePath { path: path.clone() }],
+        encoding,
+        &out,
+        None,
+        Diagnostician::default(),
+    )
+    .unwrap();
     fs::remove_file(&out).unwrap();
-    compile_to_shared_pic_object(vec![FilePath { path: path.clone() }], encoding, &out, None)
-        .unwrap();
+    compile_to_shared_pic_object(
+        vec![FilePath { path: path.clone() }],
+        encoding,
+        &out,
+        None,
+        Diagnostician::default(),
+    )
+    .unwrap();
     fs::remove_file(&out).unwrap();
-    compile_to_static_obj(vec![FilePath { path }], encoding, &out, None).unwrap();
+    compile_to_static_obj(
+        vec![FilePath { path }],
+        encoding,
+        &out,
+        None,
+        Diagnostician::default(),
+    )
+    .unwrap();
     fs::remove_file(&out).unwrap();
 }
 
