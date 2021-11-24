@@ -43,6 +43,7 @@ fn bitaccess_assignment() {
         b: u16,
         c: u32,
         d: u64,
+        two: i16,
     }
     let mut param = Type::default();
 

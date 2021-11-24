@@ -400,7 +400,7 @@ impl From<&str> for SourceCode {
     fn from(src: &str) -> Self {
         SourceCode {
             source: src.into(),
-            path: "<undefined>".into(),
+            path: "external_file.st".into(),
         }
     }
 }

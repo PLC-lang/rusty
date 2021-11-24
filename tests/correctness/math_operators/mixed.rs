@@ -124,14 +124,6 @@ fn mixed_math_usint_type() {
 
 #[test]
 fn mixed_math_time_basic() {
-    #[derive(Default)]
-    #[allow(dead_code)]
-    #[repr(C)]
-    struct MainType {
-        t1: i32,
-        time_var2: i32,
-        time_var3: i32,
-    }
     let prog = "
     FUNCTION main : TIME
     VAR
@@ -151,14 +143,6 @@ fn mixed_math_time_basic() {
 
 #[test]
 fn mixed_math_tod_basic() {
-    #[derive(Default)]
-    #[allow(dead_code)]
-    #[repr(C)]
-    struct MainType {
-        t1: i32,
-        t2: i32,
-        t3: i32,
-    }
     let prog = "
     FUNCTION main : TOD
     VAR
@@ -178,15 +162,6 @@ fn mixed_math_tod_basic() {
 
 #[test]
 fn mixed_math_date_basic() {
-    #[derive(Default)]
-    #[allow(dead_code)]
-    #[repr(C)]
-    struct MainType {
-        date: i32,
-        date_10_days: i32,
-        date_1_day: i32,
-        result: i32,
-    }
     let prog = "
     FUNCTION main : DATE
     VAR
@@ -208,15 +183,6 @@ fn mixed_math_date_basic() {
 
 #[test]
 fn mixed_math_dt_basic() {
-    #[derive(Default)]
-    #[allow(dead_code)]
-    #[repr(C)]
-    struct MainType {
-        date: i32,
-        date_10_days: i32,
-        date_1_day: i32,
-        result: i32,
-    }
     let prog = "
     FUNCTION main : DT
     VAR

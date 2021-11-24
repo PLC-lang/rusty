@@ -7,6 +7,18 @@ use rusty::*;
 
 type MainFunction<T, U> = unsafe extern "C" fn(*mut T) -> U;
 
+#[allow(dead_code)]
+#[repr(C)]
+pub struct MainType {
+    a: [usize; 1000],
+}
+
+impl Default for MainType {
+    fn default() -> Self {
+        MainType { a: [0; 1000] }
+    }
+}
+
 mod correctness {
     mod arrays;
     mod bitaccess;
@@ -74,12 +86,25 @@ fn get_test_file(name: &str) -> String {
 /// The int is the return value which can be verified
 /// The string will eventually be the Stdout of the function.
 ///
+#[inline(always)]
 pub fn compile(context: &Context, source: String) -> ExecutionEngine {
-    compile_multi::<SourceCode>(context, vec![source.as_str().into()])
+    let source: Vec<SourceCode> = vec![source.as_str().into()];
+    compile_multi(context, source)
 }
 
 pub fn compile_and_run<T, U>(source: String, params: &mut T) -> U {
-    compile_and_run_multi::<T, U, SourceCode>(vec![source.as_str().into()], params)
+    let context: Context = Context::create();
+    // let source: Vec<SourceCode> = vec![source.as_str().into()];
+    // compile_multi::<SourceCode>(context, source)
+    let src: Vec<SourceCode> = vec![source.as_str().into()];
+    let exec_engine = compile_multi(&context, src);
+    // let exec_engine = compile(&context, source);
+    let int_arr: [i32; 100] = [0; 100];
+    eprintln!("{:?}", int_arr);
+    let res = run::<T, U>(&exec_engine, "main", params);
+    eprintln!("{:?}", int_arr);
+    res
+    // compile_and_run_multi::<T, U, SourceCode>(vec![source.as_str().into()], params)
 }
 
 pub fn run<T, U>(exec_engine: &ExecutionEngine, name: &str, params: &mut T) -> U {
