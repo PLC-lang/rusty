@@ -76,3 +76,69 @@ fn assignment_to_enum_literals_results_in_error() {
         ]
     );
 }
+
+#[test]
+fn invalid_char_assignments() {
+    // GIVEN invalid assignments to CHAR/WCHAR
+    // WHEN it is validated
+    let diagnostics = parse_and_validate(
+        r#"
+		PROGRAM mainProg
+		VAR
+			c : CHAR;
+			c2 : CHAR;
+			wc : WCHAR;
+			wc2 : WCHAR;
+			i : INT;
+			s : STRING;
+		END_VAR
+			c := 'AJK%&/231'; // invalid
+			wc := "898JKAN"; // invalid
+
+			c := wc; // invalid
+			wc := c; // invalid
+
+			i := 54;
+			c := i; // invalid
+			c := 42; // invalid
+
+			s := 'ABC';
+			c := s; // invalid
+			wc := s; // invalid
+
+			i := c; // invalid
+			s := c; // invalid
+
+			c := 'A';
+			c2 := 'B';
+			c := c2;
+
+			wc := "A";
+			wc2 := "B";
+			wc := wc2;
+		END_PROGRAM"#,
+    );
+
+    // THEN every assignment should be reported
+    assert_eq!(
+        diagnostics,
+        vec![
+            Diagnostic::syntax_error(
+                "Value: 'AJK%&/231' exceeds length for type: CHAR",
+                (129..140).into()
+            ),
+            Diagnostic::syntax_error(
+                "Value: '898JKAN' exceeds length for type: WCHAR",
+                (162..171).into()
+            ),
+            Diagnostic::invalid_assignment("WCHAR", "CHAR", (188..195).into()),
+            Diagnostic::invalid_assignment("CHAR", "WCHAR", (211..218).into()),
+            Diagnostic::invalid_assignment("INT", "CHAR", (247..253).into()),
+            Diagnostic::invalid_assignment("DINT", "CHAR", (269..276).into()),
+            Diagnostic::invalid_assignment("STRING", "CHAR", (308..314).into()),
+            Diagnostic::invalid_assignment("STRING", "WCHAR", (330..337).into()),
+            Diagnostic::invalid_assignment("CHAR", "INT", (354..360).into()),
+            Diagnostic::invalid_assignment("CHAR", "STRING", (376..382).into()),
+        ]
+    );
+}

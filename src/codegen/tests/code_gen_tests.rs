@@ -908,236 +908,6 @@ entry:
 }
 
 #[test]
-fn program_with_casted_string_assignment() {
-    let result = codegen(
-        r#"PROGRAM prg
-VAR
-  y : STRING;
-  z : WSTRING;
-END_VAR
-
-// cast a WSTRING to a STRING
-y := STRING#"im a genius"; 
-// cast a STRING to a WSTRING
-z := WSTRING#'im a utf16 genius'; 
-END_PROGRAM
-"#,
-    );
-    insta::assert_snapshot!(result);
-}
-
-#[test]
-fn generate_with_invalid_casted_string_assignment() {
-    let result = codegen_without_unwrap(
-        r#"PROGRAM prg
-VAR
-  y : INT;
-END_VAR
-y := INT#"seven"; 
-END_PROGRAM
-"#,
-    );
-
-    assert_eq!(
-        result,
-        Err(Diagnostic::codegen_error(
-            "Cannot generate String-Literal for type INT",
-            (44..51).into()
-        ))
-    );
-}
-
-#[test]
-fn program_with_string_type_assignment() {
-    let result = codegen(
-        r#"
-TYPE MyString: STRING[99] := 'abc'; END_TYPE
-TYPE MyWString: WSTRING[99] := "abc"; END_TYPE
-
-PROGRAM prg
-VAR
-y : STRING;
-z : MyString;
-zz : MyWString;
-END_VAR
-y := 'im a genius';
-z := 'im also a genius';
-zz := "im also a genius";
-END_PROGRAM
-"#,
-    );
-
-    insta::assert_snapshot!(result);
-}
-
-#[test]
-fn variable_length_strings_can_be_created() {
-    let result = codegen(
-        r#"PROGRAM prg
-          VAR
-          y : STRING[15];
-          z : STRING[3] := 'xyz';
-          wy : WSTRING[15];
-          wz : WSTRING[3] := "xyz";
-          END_VAR
-          y := 'im a genius';
-          wy := "im a genius";
-        END_PROGRAM
-        "#,
-    );
-
-    insta::assert_snapshot!(result);
-}
-
-#[ignore = "https://github.com/PLC-lang/rusty/issues/338"]
-#[test]
-fn assigning_variable_length_string_variables() {
-    let result = codegen(
-        r#"PROGRAM prg
-          VAR
-          y : STRING[15];
-          z : STRING[30] := 'xyz';
-          END_VAR
-          y := z;
-          z := y;
-        END_PROGRAM
-        "#,
-    );
-
-    let expected = r#"; ModuleID = 'main'
-source_filename = "main"
-
-%prg_interface = type { [16 x i8], [4 x i8], [32 x i8], [8 x i8] }
-
-@prg_instance = global %prg_interface { [16 x i8] zeroinitializer, [4 x i8] c"xyz\00", [32 x i8] zeroinitializer, [8 x i8] c"x\00y\00z\00\00\00" }
-
-define void @prg(%prg_interface* %0) {
-entry:
-  %y = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 0
-  %z = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 1
-  store [12 x i8] c"im a genius\00", [16 x i8]* %y, align 1
-  store [24 x i8] c"i\00m\00 \00a\00 \00g\00e\00n\00i\00u\00s\00\00\00", [32 x i8]* %wy, align 1
-  ret void
-}
-"#;
-
-    assert_eq!(result, expected);
-}
-
-#[test]
-fn function_parameters_string() {
-    let program = codegen(
-        r#"
-        FUNCTION read_string : STRING
-        VAR_INPUT
-            to_read : STRING;
-        END_VAR
-
-        read_string := to_read;
-        END_FUNCTION
-        PROGRAM main
-        VAR
-            text1 : STRING;
-            text2 : STRING;
-            text3 : STRING;
-        END_VAR
-
-            text1 := read_string('abcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabc');
-            text3 := read_string('hello');
-        END_PROGRAM
-        "#,
-    );
-
-    let expected = r#"; ModuleID = 'main'
-source_filename = "main"
-
-%main_interface = type { [81 x i8], [81 x i8], [81 x i8] }
-%read_string_interface = type { [81 x i8] }
-
-@main_instance = global %main_interface zeroinitializer
-
-define [81 x i8] @read_string(%read_string_interface* %0) {
-entry:
-  %to_read = getelementptr inbounds %read_string_interface, %read_string_interface* %0, i32 0, i32 0
-  %read_string = alloca [81 x i8], align 1
-  %load_to_read = load [81 x i8], [81 x i8]* %to_read, align 1
-  store [81 x i8] %load_to_read, [81 x i8]* %read_string, align 1
-  %read_string_ret = load [81 x i8], [81 x i8]* %read_string, align 1
-  ret [81 x i8] %read_string_ret
-}
-
-define void @main(%main_interface* %0) {
-entry:
-  %text1 = getelementptr inbounds %main_interface, %main_interface* %0, i32 0, i32 0
-  %text2 = getelementptr inbounds %main_interface, %main_interface* %0, i32 0, i32 1
-  %text3 = getelementptr inbounds %main_interface, %main_interface* %0, i32 0, i32 2
-  %read_string_instance = alloca %read_string_interface, align 8
-  br label %input
-
-input:                                            ; preds = %entry
-  %1 = getelementptr inbounds %read_string_interface, %read_string_interface* %read_string_instance, i32 0, i32 0
-  store [81 x i8] c"abcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcab\00", [81 x i8]* %1, align 1
-  br label %call
-
-call:                                             ; preds = %input
-  %call1 = call [81 x i8] @read_string(%read_string_interface* %read_string_instance)
-  br label %output
-
-output:                                           ; preds = %call
-  br label %continue
-
-continue:                                         ; preds = %output
-  store [81 x i8] %call1, [81 x i8]* %text1, align 1
-  %read_string_instance2 = alloca %read_string_interface, align 8
-  br label %input3
-
-input3:                                           ; preds = %continue
-  %2 = getelementptr inbounds %read_string_interface, %read_string_interface* %read_string_instance2, i32 0, i32 0
-  store [6 x i8] c"hello\00", [81 x i8]* %2, align 1
-  br label %call4
-
-call4:                                            ; preds = %input3
-  %call7 = call [81 x i8] @read_string(%read_string_interface* %read_string_instance2)
-  br label %output5
-
-output5:                                          ; preds = %call4
-  br label %continue6
-
-continue6:                                        ; preds = %output5
-  store [81 x i8] %call7, [81 x i8]* %text3, align 1
-  ret void
-}
-"#;
-
-    assert_eq!(program, expected);
-}
-
-#[test]
-fn variable_length_strings_using_constants_can_be_created() {
-    let result = codegen(
-        r#"
-        VAR_GLOBAL CONSTANT
-          LONG_STRING : INT := 15; 
-          SHORT_STRING : INT := 3; 
-        END_VAR
-        
-        PROGRAM prg
-          VAR
-          y : STRING[LONG_STRING];
-          z : STRING[SHORT_STRING] := 'xyz';
-          wy : WSTRING[2 * LONG_STRING];
-          wz : WSTRING[2 * SHORT_STRING] := "xyz";
-          END_VAR
-          y := 'im a genius';
-          wy := "im a genius";
-        END_PROGRAM
-        "#,
-    );
-
-    insta::assert_snapshot!(result);
-}
-
-#[test]
 fn program_with_real_additions() {
     let result = codegen(
         r#"PROGRAM prg
@@ -5895,5 +5665,44 @@ fn inlined_array_size_from_local_scoped_constants() {
 
     // THEN we expect arr to be of size 5, not size 3
     // AND we expect arr2 to be of size 3
+    insta::assert_snapshot!(result);
+}
+
+#[test]
+fn program_with_chars() {
+    let result = codegen(
+        r#"
+		PROGRAM mainPROG
+		VAR
+			x : CHAR;
+			y : WCHAR;
+		END_VAR
+			x := 'a';
+			x := ' ';
+
+			y := "A";
+			y := " ";
+			y := "'";
+			y := "$"";
+		END_PROGRAM
+		"#,
+    );
+    insta::assert_snapshot!(result);
+}
+
+#[test]
+fn program_with_casted_chars_assignment() {
+    let result = codegen(
+        r#"
+		PROGRAM mainPROG
+		VAR
+			x : CHAR;
+			y : WCHAR;
+		END_VAR
+			x := CHAR#"A";
+			y := WCHAR#'B';
+		END_PROGRAM
+		"#,
+    );
     insta::assert_snapshot!(result);
 }

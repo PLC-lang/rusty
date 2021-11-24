@@ -53,6 +53,7 @@ pub enum ErrNo {
     var__invalid_constant_block,
     var__invalid_constant,
     var__cannot_assign_to_const,
+    var__invalid_assignment,
 
     //reference related
     reference__unresolved,
@@ -351,6 +352,38 @@ impl Diagnostic {
         }
     }
 
+    pub fn cannot_generate_from_empty_literal(
+        type_name: &str,
+        location: SourceRange,
+    ) -> Diagnostic {
+        Diagnostic::codegen_error(
+            format!("Cannot generate {} from empty literal", type_name).as_str(),
+            location,
+        )
+    }
+
+    pub fn cannot_generate_string_literal(type_name: &str, location: SourceRange) -> Diagnostic {
+        Diagnostic::codegen_error(
+            format!("Cannot generate String-Literal for type {}", type_name).as_str(),
+            location,
+        )
+    }
+
+    pub fn invalid_assignment(
+        right_type: &str,
+        left_type: &str,
+        location: SourceRange,
+    ) -> Diagnostic {
+        Diagnostic::SyntaxError {
+            message: format!(
+                "Invalid assignment: cannot assign '{:}' to '{:}'",
+                right_type, left_type
+            ),
+            range: location,
+            err_no: ErrNo::var__invalid_assignment,
+        }
+    }
+
     pub fn get_message(&self) -> &str {
         match self {
             Diagnostic::SyntaxError { message, .. }
@@ -507,8 +540,12 @@ impl DiagnosticReporter for CodeSpanDiagnosticReporter {
                     file_id,
                     location.get_start()..location.get_end(),
                 )]);
-            let result =
-                codespan_reporting::term::emit(&mut self.writer.lock(), &self.config, &self.files, &diag);
+            let result = codespan_reporting::term::emit(
+                &mut self.writer.lock(),
+                &self.config,
+                &self.files,
+                &diag,
+            );
             if let Err(err) = result {
                 eprintln!("Unable to report diagnostics: {}", err);
             }

@@ -1,0 +1,25 @@
+---
+source: src/codegen/tests/code_gen_tests.rs
+expression: result
+
+---
+; ModuleID = 'main'
+source_filename = "main"
+
+%mainPROG_interface = type { i8, i16 }
+
+@mainPROG_instance = global %mainPROG_interface zeroinitializer
+
+define void @mainPROG(%mainPROG_interface* %0) {
+entry:
+  %x = getelementptr inbounds %mainPROG_interface, %mainPROG_interface* %0, i32 0, i32 0
+  %y = getelementptr inbounds %mainPROG_interface, %mainPROG_interface* %0, i32 0, i32 1
+  store i8 97, i8* %x, align 1
+  store i8 32, i8* %x, align 1
+  store i16 65, i16* %y, align 2
+  store i16 32, i16* %y, align 2
+  store i16 39, i16* %y, align 2
+  store i16 34, i16* %y, align 2
+  ret void
+}
+

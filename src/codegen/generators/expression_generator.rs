@@ -400,103 +400,69 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
         }
 
         let function_context = self.get_function_context(operator)?;
-        let instance_and_index_entry = match operator {
-            AstStatement::Reference { name, .. } => {
-                //Get associated Variable or generate a variable for the type with the same name
-                let variable = self.index.find_callable_instance_variable(
-                    Some(function_context.linking_context.get_type_name()),
-                    &[name],
-                );
-
-                let (implementation, callable_reference) = if let Some(variable_instance) = variable
-                {
-                    let implementation = try_find_implementation(
-                        self.index,
-                        variable_instance.get_type_name(),
-                        operator,
-                    )?;
-                    (
-                        implementation,
-                        self.llvm_index
-                            .find_loaded_associated_variable_value(
-                                variable_instance.get_qualified_name(),
-                            )
-                            .ok_or_else(|| {
-                                Diagnostic::codegen_error(
-                                    &format!("Cannot find callable type for {:?}", operator),
-                                    operator.get_location(),
-                                )
-                            })?,
-                    )
+        //find call name
+        let implementation = self
+            .annotations
+            .get_call_name(operator)
+            //find implementationIndexEntry for the name
+            .and_then(|it| self.index.find_implementation(it))
+            //If that fails, try to find an implementation from the reference name
+            .or_else(|| {
+                if let AstStatement::Reference { name, .. } = operator {
+                    try_find_implementation(self.index, name, operator).ok()
                 } else {
-                    let implementation = self.index.find_implementation(name);
-                    if let Some(implementation) = implementation {
-                        (
-                            implementation,
-                            self.allocate_function_struct_instance(
-                                implementation.get_call_name(),
-                                operator,
-                            )?,
-                        )
-                    } else {
-                        //Look for a possible action
-                        let qualified_name = format!(
-                            "{}.{}",
-                            function_context.linking_context.get_type_name(),
-                            name
-                        );
-                        let function = function_context.function;
-                        let ptr = function.get_first_param().unwrap();
-                        (
-                            try_find_implementation(self.index, qualified_name.as_str(), operator)?,
-                            ptr.into_pointer_value(),
-                        )
-                    }
-                };
+                    None
+                }
+            })
+            .ok_or_else(|| {
+                Diagnostic::codegen_error(
+                    &format!("cannot generate call statement for {:?}", operator),
+                    operator.get_location(),
+                )
+            })?;
 
-                Ok((None, callable_reference, implementation))
+        let (class_ptr, call_ptr) = match implementation {
+            ImplementationIndexEntry {
+                implementation_type: ImplementationType::Function,
+                ..
+            } => {
+                let call_ptr = self
+                    .allocate_function_struct_instance(implementation.get_call_name(), operator)?;
+                (None, call_ptr)
             }
-            AstStatement::QualifiedReference { .. } => {
-                let loaded_value = self.generate_element_pointer(operator);
-                loaded_value.map(|ptr_value| {
-                    //find call name
-                    self.annotations
-                        .get_call_name(operator)
-                        //find implementationIndexEntry for the name
-                        .and_then(|it| self.index.find_implementation(it))
-                        .map(|implementation| {
-                            let (class_struct, method_struct) = if matches!(
-                                implementation.get_implementation_type(),
-                                &ImplementationType::Method
-                            ) {
-                                (
-                                    Some(ptr_value),
-                                    self.allocate_function_struct_instance(
-                                        implementation.get_call_name(),
-                                        operator,
-                                    )
-                                    .unwrap(),
-                                )
-                            } else {
-                                (None, ptr_value)
-                            };
-                            (class_struct, method_struct, implementation)
-                        })
-                        .ok_or_else(|| {
-                            Diagnostic::codegen_error(
-                                &format!("cannot generate call statement for {:?}", operator),
-                                operator.get_location(),
-                            )
-                        })
-                })?
+            ImplementationIndexEntry {
+                implementation_type: ImplementationType::Method,
+                ..
+            } => {
+                let class_ptr = self.generate_element_pointer(operator)?;
+                let call_ptr = self
+                    .allocate_function_struct_instance(implementation.get_call_name(), operator)?;
+                (Some(class_ptr), call_ptr)
             }
-            _ => Err(Diagnostic::codegen_error(
-                &format!("cannot generate call statement for {:?}", operator),
-                operator.get_location(),
-            )),
+            ImplementationIndexEntry {
+                implementation_type: ImplementationType::Action,
+                ..
+            } if matches!(operator, AstStatement::Reference { .. }) => {
+                //Special handling for local actions, get the parameter from the function context
+                if let Some(call_ptr) = function_context.function.get_first_param() {
+                    (None, call_ptr.into_pointer_value())
+                } else {
+                    return Err(Diagnostic::codegen_error(
+                        &format!(
+                            "cannot find parameter for {}",
+                            implementation.get_call_name()
+                        ),
+                        operator.get_location(),
+                    ));
+                }
+            }
+            _ => {
+                let class_ptr = self.generate_element_pointer(operator)?;
+                (None, class_ptr)
+            }
         };
 
-        let (class_struct, instance, index_entry) = instance_and_index_entry?;
+        let (class_struct, instance, index_entry) = (class_ptr, call_ptr, implementation);
         let function_name = index_entry.get_call_name();
         //Create parameters for input and output blocks
         let current_f = function_context.function;
@@ -1295,21 +1261,29 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                 value, location, ..
             } => {
                 let expected_type = self.get_type_hint_info_for(literal_statement)?;
-                if let DataTypeInformation::String { encoding, .. } = expected_type {
-                    match encoding {
+                match expected_type {
+                    DataTypeInformation::String { encoding, .. } => match encoding {
                         StringEncoding::Utf8 => self.llvm.create_const_utf8_string(value.as_str()),
                         StringEncoding::Utf16 => {
                             self.llvm.create_const_utf16_string(value.as_str())
                         }
+                    },
+                    DataTypeInformation::Integer { size: 8, .. }
+                        if expected_type.is_character() =>
+                    {
+                        self.llvm
+                            .create_llvm_const_i8_char(value.as_str(), location)
                     }
-                } else {
-                    Err(Diagnostic::codegen_error(
-                        &format!(
-                            "Cannot generate String-Literal for type {}",
-                            expected_type.get_name()
-                        ),
+                    DataTypeInformation::Integer { size: 16, .. }
+                        if expected_type.is_character() =>
+                    {
+                        self.llvm
+                            .create_llvm_const_i16_char(value.as_str(), location)
+                    }
+                    _ => Err(Diagnostic::cannot_generate_string_literal(
+                        expected_type.get_name(),
                         location.clone(),
-                    ))
+                    )),
                 }
             }
             AstStatement::LiteralArray {

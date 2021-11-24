@@ -136,7 +136,7 @@ pub struct ImplementationIndexEntry {
     call_name: String,
     type_name: String,
     associated_class: Option<String>,
-    implementation_type: ImplementationType,
+    pub(crate) implementation_type: ImplementationType,
 }
 
 impl ImplementationIndexEntry {

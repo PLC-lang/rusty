@@ -220,11 +220,53 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
             };
 
         let right_statement = range_checked_right_side.as_ref().unwrap_or(right_statement);
-        self.llvm
-            .builder
-            .build_store(left, exp_gen.generate_expression(right_statement)?);
+        let right_type = exp_gen.get_type_hint_info_for(right_statement)?;
+        //Special string handling
+        if matches!(
+            right_statement,
+            AstStatement::Reference { .. } | AstStatement::QualifiedReference { .. }
+        ) && left_type.is_string()
+            && right_type.is_string()
+        {
+            let target_size = self.get_string_size(left_type, left_statement.get_location())?;
+            let value_size = self.get_string_size(right_type, right_statement.get_location())?;
+            let size = std::cmp::min(target_size, value_size) as i64;
+            let right = exp_gen.generate_element_pointer(right_statement)?;
+            let align = left_type.get_alignment();
+            //Generate a mem copy
+            self.llvm
+                .builder
+                .build_memcpy(
+                    left,
+                    align,
+                    right,
+                    align,
+                    self.llvm.context.i32_type().const_int(size as u64, true),
+                )
+                .map_err(|err| Diagnostic::codegen_error(err, left_statement.get_location()))?;
+        } else {
+            self.llvm
+                .builder
+                .build_store(left, exp_gen.generate_expression(right_statement)?);
+        }
 
         Ok(())
+    }
+
+    fn get_string_size(
+        &self,
+        datatype: &DataTypeInformation,
+        location: SourceRange,
+    ) -> Result<i64, Diagnostic> {
+        if let DataTypeInformation::String { size, .. } = datatype {
+            size.as_int_value(self.index)
+                .map_err(|err| Diagnostic::codegen_error(err.as_str(), location))
+        } else {
+            Err(Diagnostic::codegen_error(
+                format!("{} is not a String", datatype.get_name()).as_str(),
+                location,
+            ))
+        }
     }
 
     fn generate_direct_access_assignment(
