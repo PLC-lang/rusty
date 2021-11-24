@@ -132,7 +132,7 @@ pub fn visit_pou(index: &mut Index, pou: &Pou) {
         )
     }
 
-    index.register_type(
+    index.register_pou_type(
         &pou.name,
         None,
         DataTypeInformation::Struct {

@@ -185,6 +185,7 @@ impl From<&PouType> for ImplementationType {
 pub struct TypeIndex {
     /// all types (structs, enums, type, POUs, etc.)
     types: IndexMap<String, DataType>,
+    pou_types: IndexMap<String, DataType>,
 
     void_type: DataType,
 }
@@ -193,6 +194,7 @@ impl TypeIndex {
     fn new() -> Self {
         TypeIndex {
             types: IndexMap::new(),
+            pou_types: IndexMap::new(),
             void_type: DataType {
                 name: VOID_TYPE.into(),
                 initial_value: None,
@@ -332,6 +334,11 @@ impl Index {
                 _ => {}
             }
             self.type_index.types.insert(name, e);
+        }
+        for (name, mut e) in other.type_index.pou_types.drain(..) {
+            e.initial_value =
+                self.maybe_import_const_expr(&mut other.constant_expressions, &e.initial_value);
+            self.type_index.pou_types.insert(name, e);
         }
 
         //implementations
@@ -731,6 +738,22 @@ impl Index {
         };
         self.type_index
             .types
+            .insert(type_name.to_lowercase(), index_entry);
+    }
+
+    pub fn register_pou_type(
+        &mut self,
+        type_name: &str,
+        initial_value: Option<ConstId>,
+        information: DataTypeInformation,
+    ) {
+        let index_entry = DataType {
+            name: type_name.into(),
+            initial_value,
+            information,
+        };
+        self.type_index
+            .pou_types
             .insert(type_name.to_lowercase(), index_entry);
     }
 
