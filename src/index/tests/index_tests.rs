@@ -41,7 +41,7 @@ fn index_not_case_sensitive() {
     let entry = index.find_member("ST", "X").unwrap();
     assert_eq!("x", entry.name);
     assert_eq!("INT", entry.data_type_name);
-    let entry = index.find_effective_type("APROGRAM").unwrap();
+    let entry = index.find_effective_pou_type("APROGRAM").unwrap();
     assert_eq!("aProgram", entry.name);
     let entry = index.find_implementation("Foo").unwrap();
     assert_eq!("foo", entry.call_name);
@@ -77,7 +77,7 @@ fn program_is_indexed() {
     "#,
     );
 
-    index.find_effective_type("myProgram").unwrap();
+    index.find_effective_pou_type("myProgram").unwrap();
     let program_variable = index.find_global_variable("myProgram").unwrap();
 
     assert_eq!("myProgram", program_variable.data_type_name);
@@ -102,7 +102,7 @@ fn actions_are_indexed() {
     assert_eq!("myProgram.foo", foo_impl.call_name);
     assert_eq!("myProgram", foo_impl.type_name);
     let info = index
-        .get_type("myProgram.foo")
+        .get_pou_type("myProgram.foo")
         .unwrap()
         .get_type_information();
     if let crate::typesystem::DataTypeInformation::Alias {
@@ -116,7 +116,7 @@ fn actions_are_indexed() {
         panic!("Wrong variant : {:#?}", info);
     }
     if let crate::typesystem::DataTypeInformation::Struct { name, .. } =
-        index.find_effective_type_info(info.get_name()).unwrap()
+        index.find_effective_pou_type_info(info.get_name()).unwrap()
     {
         assert_eq!("myProgram_interface", name);
     } else {
@@ -128,7 +128,7 @@ fn actions_are_indexed() {
     assert_eq!("myProgram", bar.type_name);
 
     let info = index
-        .get_type("myProgram.bar")
+        .get_pou_type("myProgram.bar")
         .unwrap()
         .get_type_information();
     if let crate::typesystem::DataTypeInformation::Alias {
@@ -142,7 +142,7 @@ fn actions_are_indexed() {
         panic!("Wrong variant : {:#?}", info);
     }
     if let crate::typesystem::DataTypeInformation::Struct { name, .. } =
-        index.find_effective_type_info(info.get_name()).unwrap()
+        index.find_effective_pou_type_info(info.get_name()).unwrap()
     {
         assert_eq!("myProgram_interface", name);
     } else {
@@ -166,7 +166,7 @@ fn fb_methods_are_indexed() {
     assert_eq!("myFuncBlock.foo", foo_impl.call_name);
     assert_eq!("myFuncBlock.foo", foo_impl.type_name);
     let info = index
-        .get_type("myFuncBlock.foo")
+        .get_pou_type("myFuncBlock.foo")
         .unwrap()
         .get_type_information();
     if let crate::typesystem::DataTypeInformation::Struct {
@@ -196,7 +196,7 @@ fn class_methods_are_indexed() {
     assert_eq!("myClass.foo", foo_impl.call_name);
     assert_eq!("myClass.foo", foo_impl.type_name);
     let info = index
-        .get_type("myClass.foo")
+        .get_pou_type("myClass.foo")
         .unwrap()
         .get_type_information();
     if let crate::typesystem::DataTypeInformation::Struct {
@@ -219,7 +219,7 @@ fn function_is_indexed() {
     "#,
     );
 
-    index.find_effective_type("myFunction").unwrap();
+    index.find_effective_pou_type("myFunction").unwrap();
 
     let return_variable = index.find_member("myFunction", "myFunction").unwrap();
     assert_eq!("myFunction", return_variable.name);
@@ -239,7 +239,7 @@ fn function_with_varargs_param_marked() {
         END_FUNCTION
         "#,
     );
-    let function = index.find_effective_type("myFunc").unwrap();
+    let function = index.find_effective_pou_type("myFunc").unwrap();
     assert!(function.get_type_information().is_variadic());
     assert_eq!(None, function.get_type_information().get_variadic_type());
 }
@@ -256,7 +256,7 @@ fn function_with_typed_varargs_param_marked() {
         END_FUNCTION
         "#,
     );
-    let function = index.find_effective_type("myFunc").unwrap();
+    let function = index.find_effective_pou_type("myFunc").unwrap();
     assert!(function.get_type_information().is_variadic());
     assert_eq!(
         Some("INT"),
@@ -279,10 +279,10 @@ fn pous_are_indexed() {
     "#,
     );
 
-    index.find_effective_type("myFunction").unwrap();
-    index.find_effective_type("myProgram").unwrap();
-    index.find_effective_type("myFunctionBlock").unwrap();
-    index.find_effective_type("myClass").unwrap();
+    index.find_effective_pou_type("myFunction").unwrap();
+    index.find_effective_pou_type("myProgram").unwrap();
+    index.find_effective_pou_type("myFunctionBlock").unwrap();
+    index.find_effective_pou_type("myClass").unwrap();
 }
 
 #[test]
