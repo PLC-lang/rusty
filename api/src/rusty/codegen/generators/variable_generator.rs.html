@@ -114,7 +114,7 @@
     <span class="ident">annotations</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="ident">AnnotationMap</span>,
     <span class="ident">types_index</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="ident">LlvmTypedIndex</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span>,
 ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">LlvmTypedIndex</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span>, <span class="ident">CompileError</span><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">index</span> <span class="op">=</span> <span class="ident">LlvmTypedIndex::new</span>();
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">index</span> <span class="op">=</span> <span class="ident">LlvmTypedIndex::default</span>();
     <span class="kw">let</span> <span class="ident">globals</span> <span class="op">=</span> <span class="ident">global_index</span>.<span class="ident">get_globals</span>();
     <span class="kw">let</span> <span class="ident">enums</span> <span class="op">=</span> <span class="ident">global_index</span>.<span class="ident">get_global_qualified_enums</span>();
     <span class="kw">for</span> (<span class="ident">name</span>, <span class="ident">variable</span>) <span class="kw">in</span> <span class="ident">globals</span>.<span class="ident">into_iter</span>().<span class="ident">chain</span>(<span class="ident">enums</span>.<span class="ident">into_iter</span>()) {

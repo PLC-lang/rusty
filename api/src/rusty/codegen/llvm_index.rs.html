@@ -185,17 +185,6 @@
 <span id="185">185</span>
 <span id="186">186</span>
 <span id="187">187</span>
-<span id="188">188</span>
-<span id="189">189</span>
-<span id="190">190</span>
-<span id="191">191</span>
-<span id="192">192</span>
-<span id="193">193</span>
-<span id="194">194</span>
-<span id="195">195</span>
-<span id="196">196</span>
-<span id="197">197</span>
-<span id="198">198</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 <span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">ast::SourceRange</span>, <span class="ident">compile_error::CompileError</span>};
 <span class="kw">use</span> <span class="ident">inkwell::types::BasicTypeEnum</span>;
@@ -204,7 +193,7 @@
 
 <span class="doccomment">/// Index view containing declared values for the current context</span>
 <span class="doccomment">/// Parent Index is the a fallback lookup index for values not declared locally</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Default</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">LlvmTypedIndex</span><span class="op">&lt;</span><span class="lifetime">&#39;ink</span><span class="op">&gt;</span> {
     <span class="ident">parent_index</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;ink</span> <span class="ident">LlvmTypedIndex</span><span class="op">&lt;</span><span class="lifetime">&#39;ink</span><span class="op">&gt;</span><span class="op">&gt;</span>,
     <span class="ident">type_associations</span>: <span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">BasicTypeEnum</span><span class="op">&lt;</span><span class="lifetime">&#39;ink</span><span class="op">&gt;</span><span class="op">&gt;</span>,
@@ -215,17 +204,6 @@
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;ink</span><span class="op">&gt;</span> <span class="ident">LlvmTypedIndex</span><span class="op">&lt;</span><span class="lifetime">&#39;ink</span><span class="op">&gt;</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">LlvmTypedIndex</span><span class="op">&lt;</span><span class="lifetime">&#39;ink</span><span class="op">&gt;</span> {
-        <span class="ident">LlvmTypedIndex</span> {
-            <span class="ident">parent_index</span>: <span class="prelude-val">None</span>,
-            <span class="ident">type_associations</span>: <span class="ident">HashMap::new</span>(),
-            <span class="ident">initial_value_associations</span>: <span class="ident">HashMap::new</span>(),
-            <span class="ident">loaded_variable_associations</span>: <span class="ident">HashMap::new</span>(),
-            <span class="ident">implementations</span>: <span class="ident">HashMap::new</span>(),
-            <span class="ident">constants</span>: <span class="ident">HashMap::new</span>(),
-        }
-    }
-
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">create_child</span>(<span class="ident">parent</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ink</span> <span class="ident">LlvmTypedIndex</span><span class="op">&lt;</span><span class="lifetime">&#39;ink</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">LlvmTypedIndex</span><span class="op">&lt;</span><span class="lifetime">&#39;ink</span><span class="op">&gt;</span> {
         <span class="ident">LlvmTypedIndex</span> {
             <span class="ident">parent_index</span>: <span class="prelude-val">Some</span>(<span class="ident">parent</span>),

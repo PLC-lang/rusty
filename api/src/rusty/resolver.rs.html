@@ -1133,6 +1133,11 @@
 <span id="1133">1133</span>
 <span id="1134">1134</span>
 <span id="1135">1135</span>
+<span id="1136">1136</span>
+<span id="1137">1137</span>
+<span id="1138">1138</span>
+<span id="1139">1139</span>
+<span id="1140">1140</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2021 Ghaith Hachem and Mathias Rieder</span>
 
 <span class="doccomment">//! Resolves (partial) expressions &amp; statements and annotates the resulting types</span>
@@ -1284,6 +1289,11 @@
             <span class="ident">type_map</span>: <span class="ident">IndexMap::new</span>(),
             <span class="ident">type_hint_map</span>: <span class="ident">IndexMap::new</span>(),
         }
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">import</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">other</span>: <span class="ident">AnnotationMap</span>) {
+        <span class="self">self</span>.<span class="ident">type_map</span>.<span class="ident">extend</span>(<span class="ident">other</span>.<span class="ident">type_map</span>);
+        <span class="self">self</span>.<span class="ident">type_hint_map</span>.<span class="ident">extend</span>(<span class="ident">other</span>.<span class="ident">type_hint_map</span>);
     }
 
     <span class="doccomment">/// annotates the given statement (using it&#39;s `get_id()`) with the given type-name</span>

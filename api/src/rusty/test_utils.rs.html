@@ -58,6 +58,7 @@
 <span id="58">58</span>
 <span id="59">59</span>
 <span id="60">60</span>
+<span id="61">61</span>
 </pre><pre class="rust"><code><span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">tests</span> {
 
@@ -106,7 +107,8 @@
 
         <span class="kw">let</span> <span class="ident">context</span> <span class="op">=</span> <span class="ident">inkwell::context::Context::create</span>();
         <span class="kw">let</span> <span class="ident">code_generator</span> <span class="op">=</span> <span class="ident"><span class="kw">crate</span>::codegen::CodeGen::new</span>(<span class="kw-2">&amp;</span><span class="ident">context</span>, <span class="string">&quot;main&quot;</span>);
-        <span class="ident">code_generator</span>.<span class="ident">generate</span>(<span class="kw-2">&amp;</span><span class="ident">unit</span>, <span class="kw-2">&amp;</span><span class="ident">annotations</span>, <span class="kw-2">&amp;</span><span class="ident">index</span>)
+        <span class="kw">let</span> <span class="ident">llvm_index</span> <span class="op">=</span> <span class="ident">code_generator</span>.<span class="ident">generate_llvm_index</span>(<span class="kw-2">&amp;</span><span class="ident">annotations</span>, <span class="kw-2">&amp;</span><span class="ident">index</span>)<span class="question-mark">?</span>;
+        <span class="ident">code_generator</span>.<span class="ident">generate</span>(<span class="kw-2">&amp;</span><span class="ident">unit</span>, <span class="kw-2">&amp;</span><span class="ident">annotations</span>, <span class="kw-2">&amp;</span><span class="ident">index</span>, <span class="kw-2">&amp;</span><span class="ident">llvm_index</span>)
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">codegen</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">String</span> {
