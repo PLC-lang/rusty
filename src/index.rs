@@ -616,6 +616,9 @@ impl Index {
     pub fn get_types(&self) -> &IndexMap<String, DataType> {
         &self.type_index.types
     }
+    pub fn get_pou_types(&self) -> &IndexMap<String, DataType> {
+        &self.type_index.pou_types
+    }
 
     pub fn get_globals(&self) -> &IndexMap<String, VariableIndexEntry> {
         &self.global_variables

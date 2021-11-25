@@ -55,6 +55,7 @@ pub fn generate_data_types<'ink>(
     };
 
     let types = generator.index.get_types();
+    let pou_types = generator.index.get_pou_types();
 
     // first create all STUBs for struct types (empty structs)
     // and associate them in the llvm index
@@ -66,6 +67,17 @@ pub fn generate_data_types<'ink>(
             generator
                 .types_index
                 .associate_type(name, llvm.create_struct_stub(struct_name).into())?;
+        }
+    }
+    // pou_types will always be struct
+    for (name, user_type) in pou_types {
+        if let DataTypeInformation::Struct {
+            name: struct_name, ..
+        } = user_type.get_type_information()
+        {
+            generator
+                .types_index
+                .associate_pou_type(name, llvm.create_struct_stub(struct_name).into())?;
         }
     }
     // now create all other types (enum's, arrays, etc.)
