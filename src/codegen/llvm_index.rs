@@ -115,6 +115,7 @@ impl<'ink> LlvmTypedIndex<'ink> {
                     .map(|it| it.find_associated_type(type_name))
                     .flatten()
             })
+            .or_else(|| self.find_associated_pou_type(type_name))
     }
 
     pub fn find_associated_pou_type(&self, type_name: &str) -> Option<BasicTypeEnum<'ink>> {
@@ -133,7 +134,6 @@ impl<'ink> LlvmTypedIndex<'ink> {
         type_name: &str,
     ) -> Result<BasicTypeEnum<'ink>, CompileError> {
         self.find_associated_type(type_name)
-            .or_else(|| self.find_associated_pou_type(type_name))
             .ok_or_else(|| CompileError::unknown_type(type_name, SourceRange::undefined()))
     }
 
