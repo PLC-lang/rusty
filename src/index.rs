@@ -204,7 +204,9 @@ impl TypeIndex {
     }
 
     pub fn find_type(&self, type_name: &str) -> Option<&DataType> {
-        self.types.get(&type_name.to_lowercase())
+        self.types
+            .get(&type_name.to_lowercase())
+            .or_else(|| self.find_pou_type(type_name))
     }
 
     pub fn find_pou_type(&self, type_name: &str) -> Option<&DataType> {
@@ -215,10 +217,6 @@ impl TypeIndex {
         self.find_type(type_name)
             .and_then(|it| self.find_effective_type(it))
     }
-    pub fn find_effective_pou_type_by_name(&self, type_name: &str) -> Option<&DataType> {
-        self.find_pou_type(type_name)
-            .and_then(|it| self.find_effective_pou_type(it))
-    }
 
     pub fn get_effective_type_by_name(&self, type_name: &str) -> &DataType {
         self.find_type(type_name)
@@ -228,11 +226,6 @@ impl TypeIndex {
 
     pub fn get_type(&self, type_name: &str) -> Result<&DataType, CompileError> {
         self.find_type(type_name)
-            .ok_or_else(|| CompileError::unknown_type(type_name, SourceRange::undefined()))
-    }
-
-    pub fn get_pou_type(&self, type_name: &str) -> Result<&DataType, CompileError> {
-        self.find_pou_type(type_name)
             .ok_or_else(|| CompileError::unknown_type(type_name, SourceRange::undefined()))
     }
 
@@ -248,19 +241,6 @@ impl TypeIndex {
             } => self
                 .find_type(referenced_type)
                 .and_then(|it| self.find_effective_type(it)),
-            _ => Some(data_type),
-        }
-    }
-    pub fn find_effective_pou_type<'ret>(
-        &'ret self,
-        data_type: &'ret DataType,
-    ) -> Option<&'ret DataType> {
-        match data_type.get_type_information() {
-            DataTypeInformation::Alias {
-                referenced_type, ..
-            } => self
-                .find_pou_type(referenced_type)
-                .and_then(|it| self.find_effective_pou_type(it)),
             _ => Some(data_type),
         }
     }
@@ -547,9 +527,6 @@ impl Index {
     pub fn find_effective_type(&self, type_name: &str) -> Option<&DataType> {
         self.type_index.find_effective_type_by_name(type_name)
     }
-    pub fn find_effective_pou_type(&self, type_name: &str) -> Option<&DataType> {
-        self.type_index.find_effective_pou_type_by_name(type_name)
-    }
 
     /// returns the effective DataType of the type with the given name or an Error
     pub fn get_effective_type(&self, type_name: &str) -> Result<&DataType, CompileError> {
@@ -563,10 +540,6 @@ impl Index {
         self.find_effective_type(type_name)
             .map(DataType::get_type_information)
     }
-    pub fn find_effective_pou_type_info(&self, type_name: &str) -> Option<&DataTypeInformation> {
-        self.find_effective_pou_type(type_name)
-            .map(DataType::get_type_information)
-    }
 
     /// returns the effective type of the type with the with the given name or the
     /// void-type if the given name does not exist
@@ -576,10 +549,6 @@ impl Index {
 
     pub fn get_type(&self, type_name: &str) -> Result<&DataType, CompileError> {
         self.type_index.get_type(type_name)
-    }
-
-    pub fn get_pou_type(&self, type_name: &str) -> Result<&DataType, CompileError> {
-        self.type_index.get_pou_type(type_name)
     }
 
     /// expect a built-in type

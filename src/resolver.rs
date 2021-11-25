@@ -214,10 +214,7 @@ impl AnnotationMap {
             })
             // first search in types if none then in pou_types
             // TODO: function name = datytype name ?
-            .and_then(|type_name| match index.get_type(type_name).ok() {
-                Some(res) => Some(res),
-                None => index.get_pou_type(type_name).ok(),
-            })
+            .and_then(|type_name| index.get_type(type_name).ok())
     }
 
     /// reutrns the name of the callable that is refered by the given statemt
@@ -1082,11 +1079,9 @@ fn to_variable_annotation(
 ) -> StatementAnnotation {
     // first search in types if none then in pou_types if both return none use void type
     // TODO: function name = datytype name ?
-    let v_type = match index.find_effective_type(v.get_type_name()) {
-        Some(res) => Some(res),
-        None => index.find_effective_pou_type(v.get_type_name()),
-    }
-    .unwrap_or_else(|| index.get_void_type());
+    let v_type = index
+        .find_effective_type(v.get_type_name())
+        .unwrap_or_else(|| index.get_void_type());
 
     //see if this is an auto-deref variable
     let (effective_type_name, is_auto_deref) = if let DataTypeInformation::Pointer {
