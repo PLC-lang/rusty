@@ -39,14 +39,13 @@ impl<'ink> CodeGen<'ink> {
         CodeGen { context, module }
     }
 
-    fn generate_llvm_index(
+    pub fn generate_llvm_index(
         &self,
-        module: &Module<'ink>,
         annotations: &AnnotationMap,
         global_index: &Index,
     ) -> Result<LlvmTypedIndex<'ink>, CompileError> {
         let llvm = Llvm::new(self.context, self.context.create_builder());
-        let mut index = LlvmTypedIndex::new();
+        let mut index = LlvmTypedIndex::default();
         //Generate types index, and any global variables associated with them.
         let llvm_type_index =
             data_type_generator::generate_data_types(&llvm, global_index, annotations)?;
@@ -54,7 +53,7 @@ impl<'ink> CodeGen<'ink> {
 
         //Generate global variables
         let llvm_gv_index = variable_generator::generate_global_variables(
-            module,
+            &self.module,
             &llvm,
             global_index,
             annotations,
@@ -65,7 +64,7 @@ impl<'ink> CodeGen<'ink> {
         //Generate opaque functions for implementations and associate them with their types
         let llvm = Llvm::new(self.context, self.context.create_builder());
         let llvm_impl_index = pou_generator::generate_implementation_stubs(
-            module,
+            &self.module,
             llvm,
             global_index,
             annotations,
@@ -81,13 +80,11 @@ impl<'ink> CodeGen<'ink> {
         unit: &CompilationUnit,
         annotations: &AnnotationMap,
         global_index: &Index,
+        llvm_index: &LlvmTypedIndex,
     ) -> Result<String, CompileError> {
-        //Associate the index type with LLVM types
-        let llvm_index = self.generate_llvm_index(&self.module, annotations, global_index)?;
-
         //generate all pous
         let llvm = Llvm::new(self.context, self.context.create_builder());
-        let pou_generator = PouGenerator::new(llvm, global_index, annotations, &llvm_index);
+        let pou_generator = PouGenerator::new(llvm, global_index, annotations, llvm_index);
 
         //Generate the POU stubs in the first go to make sure they can be referenced.
         for implementation in &unit.implementations {

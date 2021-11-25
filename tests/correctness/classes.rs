@@ -46,8 +46,7 @@ fn class_reference_in_pou() {
         x := cl.testMethod(myMethodArg:= x);
         main := x;
         END_FUNCTION
-        "
-    .into();
+        ";
 
     let res: i32 = compile_and_run(
         source,

@@ -396,6 +396,24 @@ impl SourceContainer for SourceCode {
     }
 }
 
+impl From<&str> for SourceCode {
+    fn from(src: &str) -> Self {
+        SourceCode {
+            source: src.into(),
+            path: "external_file.st".into(),
+        }
+    }
+}
+
+impl From<String> for SourceCode {
+    fn from(source: String) -> Self {
+        SourceCode {
+            source,
+            path: "external_file.st".into(),
+        }
+    }
+}
+
 fn create_source_code<T: Read>(
     reader: &mut T,
     encoding: Option<&'static Encoding>,
@@ -466,6 +484,7 @@ fn compile_to_obj<T: SourceContainer>(
 /// # Arguments
 ///
 /// * `sources` - the source to be compiled
+/// * `encoding` - The encoding to parse the files, None for UTF-8
 /// * `output` - the location on disk to save the output
 /// * `target` - an optional llvm target triple
 ///     If not provided, the machine's triple will be used.
@@ -489,6 +508,7 @@ pub fn compile_to_static_obj<T: SourceContainer>(
 /// # Arguments
 ///
 /// * `sources` - the source to be compiled
+/// * `encoding` - The encoding to parse the files, None for UTF-8
 /// * `output` - the location on disk to save the output
 /// * `target` - an optional llvm target triple
 ///     If not provided, the machine's triple will be used.
@@ -512,6 +532,7 @@ pub fn compile_to_shared_pic_object<T: SourceContainer>(
 /// # Arguments
 ///
 /// * `sources` - the source to be compiled
+/// * `encoding` - The encoding to parse the files, None for UTF-8
 /// * `output` - the location on disk to save the output
 /// * `target` - an optional llvm target triple
 ///     If not provided, the machine's triple will be used.
@@ -550,21 +571,37 @@ pub fn compile_to_bitcode<T: SourceContainer>(
 }
 
 ///
-/// Compiles the given source into LLVM IR and returns it
+/// Compiles the given source into LLVM IR and saves it to the given output location
 ///
 /// # Arguments
 ///
 /// * `sources` - the source to be compiled
+/// * `encoding` - The encoding to parse the files, None for UTF-8
+/// * `output`  - The location to save the generated ir file
 pub fn compile_to_ir<T: SourceContainer>(
     sources: Vec<T>,
     encoding: Option<&'static Encoding>,
     output: &str,
 ) -> Result<(), CompileError> {
-    let c = Context::create();
-    let code_gen = compile_module(&c, sources, encoding)?;
-    let ir = code_gen.module.print_to_string().to_string();
+    let ir = compile_to_string(sources, encoding)?;
     fs::write(output, ir)
         .map_err(|err| CompileError::io_write_error(output.into(), err.to_string()))
+}
+
+///
+/// Compiles the given source into LLVM IR and returns it
+///
+/// # Arguments
+///
+/// * `sources` - the source to be compiled
+/// * `encoding` - The encoding to parse the files, None for UTF-8
+pub fn compile_to_string<T: SourceContainer>(
+    sources: Vec<T>,
+    encoding: Option<&'static Encoding>,
+) -> Result<String, CompileError> {
+    let c = Context::create();
+    let code_gen = compile_module(&c, sources, encoding)?;
+    Ok(code_gen.module.print_to_string().to_string())
 }
 
 ///
@@ -574,6 +611,7 @@ pub fn compile_to_ir<T: SourceContainer>(
 ///
 /// * `context` - the LLVM Context to be used for the compilation
 /// * `sources` - the source to be compiled
+/// * `encoding` - The encoding to parse the files, None for UTF-8
 pub fn compile_module<'c, T: SourceContainer>(
     context: &'c Context,
     sources: Vec<T>,
@@ -609,8 +647,9 @@ pub fn compile_module<'c, T: SourceContainer>(
 
     // ### PHASE 2 ###
     // annotation & validation everything
-    type AnnotatedAst<'a> = (&'a CompilationUnit, AnnotationMap);
-    let mut annotated_units: Vec<AnnotatedAst> = Vec::new();
+    // type AnnotatedAst<'a> = (&'a CompilationUnit, AnnotationMap);
+    let mut annotated_units: Vec<&CompilationUnit> = Vec::new();
+    let mut all_annotations = AnnotationMap::default();
     for (file_id, syntax_errors, unit) in all_units.iter() {
         let annotations = TypeAnnotator::visit_unit(&full_index, unit);
 
@@ -620,15 +659,17 @@ pub fn compile_module<'c, T: SourceContainer>(
         report_diagnostics(*file_id, syntax_errors.iter(), &files)?;
         report_diagnostics(*file_id, validator.diagnostics().iter(), &files)?;
 
-        annotated_units.push((unit, annotations));
+        annotated_units.push(unit);
+        all_annotations.import(annotations);
     }
 
     // ### PHASE 3 ###
     // - codegen
     let code_generator = codegen::CodeGen::new(context, "main");
-
-    for (unit, annotations) in annotated_units {
-        code_generator.generate(unit, &annotations, &full_index)?;
+    //Associate the index type with LLVM types
+    let llvm_index = code_generator.generate_llvm_index(&all_annotations, &full_index)?;
+    for unit in annotated_units {
+        code_generator.generate(unit, &all_annotations, &full_index, &llvm_index)?;
     }
     Ok(code_generator)
 }
@@ -667,6 +708,8 @@ fn report_diagnostics(
 
 #[cfg(test)]
 mod tests {
+    mod multi_files;
+
     use inkwell::targets::TargetMachine;
 
     use crate::{create_source_code, get_target_triple};

@@ -1,11 +1,7 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-use crate::compile_and_run;
+use crate::{compile_and_run, MainType};
 
 mod references;
-
-#[allow(dead_code)]
-#[repr(C)]
-struct MainType {}
 
 #[test]
 fn pointer_test() {
@@ -38,7 +34,7 @@ foo := y^;
 END_FUNCTION
  ";
 
-    let mut maintype = MainType {};
+    let mut maintype = MainType::default();
 
     let res: i32 = compile_and_run(function.to_string(), &mut maintype);
 

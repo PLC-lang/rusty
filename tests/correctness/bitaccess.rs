@@ -43,10 +43,11 @@ fn bitaccess_assignment() {
         b: u16,
         c: u32,
         d: u64,
+        two: i16,
     }
     let mut param = Type::default();
 
-    compile_and_run::<_, i32>(prog.to_string(), &mut param);
+    let _: i32 = compile_and_run(prog, &mut param);
 
     assert_eq!(0b0000_0010, param.a);
     assert_eq!(0b0000_0010_0000_0000, param.b);
@@ -71,9 +72,7 @@ fn bitaccess_chained_assignment() {
     main := d;       //2#0000_0010_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000
     END_FUNCTION";
 
-    struct Type {}
-
-    let res: u64 = compile_and_run(prog.to_string(), &mut Type {});
+    let res: u64 = compile_and_run(prog, &mut MainType::default());
 
     assert_eq!(
         0b0000_0010_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000,
@@ -96,8 +95,7 @@ fn qualified_reference_assignment() {
         END_FUNCTION
 
         ";
-    struct Type {}
-    let res: u8 = compile_and_run(prog.to_string(), &mut Type {});
+    let res: u8 = compile_and_run(prog, &mut MainType::default);
     assert_eq!(2, res);
 }
 
@@ -125,7 +123,7 @@ fn bitaccess_test() {
     ";
     let mut main_type = MainType::default();
 
-    compile_and_run::<_, i32>(prog.to_string(), &mut main_type);
+    let _: i32 = compile_and_run(prog, &mut main_type);
     assert_eq!(
         main_type,
         MainType {
@@ -168,7 +166,7 @@ fn bitaccess_with_var_test() {
     ";
     let mut main_type = MainType::default();
 
-    compile_and_run::<_, i32>(prog.to_string(), &mut main_type);
+    let _: i32 = compile_and_run(prog, &mut main_type);
     assert_eq!(
         main_type,
         MainType {
