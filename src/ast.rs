@@ -1124,6 +1124,29 @@ pub fn flatten_expression_list(condition: &AstStatement) -> Vec<&AstStatement> {
     }
 }
 
+/// helper function that creates a call-statement
+pub fn create_call_to(
+    function_name: String,
+    parameters: Vec<AstStatement>,
+    function_id: usize,
+    parameter_list_id: usize,
+    location: &SourceRange,
+) -> AstStatement {
+    AstStatement::CallStatement {
+        operator: Box::new(AstStatement::Reference {
+            name: function_name,
+            location: location.clone(),
+            id: function_id, 
+        }),
+        parameters: Box::new(Some(AstStatement::ExpressionList {
+            expressions: parameters,
+            id: parameter_list_id, //use the id so we end up with the same datatype
+        })),
+        location: location.clone(),
+        id: function_id, 
+    }
+}
+
 pub fn pre_process(unit: &mut CompilationUnit) {
     pre_processor::pre_process(unit)
 }

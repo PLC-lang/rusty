@@ -2461,3 +2461,54 @@ fn null_statement_should_get_a_valid_type_hint() {
         unreachable!();
     }
 }
+
+#[test]
+fn int_compare_should_resolve_to_bool() {
+    //GIVEN a NULL assignment to a pointer
+    let (unit, index) = index(
+        r#"
+        PROGRAM Main
+        3 = 5;
+        END_PROGRAM
+        "#,
+    );
+
+    // THEN we want the hint for 'NULL' to be POINTER TO BYTE
+    let annotations = annotate(&unit, &index);
+    let a_eq_b = &unit.implementations[0].statements[0];
+    assert_eq!(
+        Some(&StatementAnnotation::Value {
+            resulting_type: "BOOL".to_string(),
+        }),
+        annotations.get_annotation(a_eq_b),
+    );
+}
+
+#[test]
+fn string_compare_should_resolve_to_compare_function() {
+    //GIVEN a NULL assignment to a pointer
+    let (unit, index) = index(
+        r#"
+        FUNCTION STRING_EQUAL: BOOL 
+        VAR a,b : STRING; END_VAR
+
+        END_FUNCTION;
+
+        PROGRAM Main
+        VAR
+            a,b: STRING;
+        END_VAR 
+        a = b;
+        END_PROGRAM
+        "#,
+    );
+
+    // THEN we want the hint for 'NULL' to be POINTER TO BYTE
+    let annotations = annotate(&unit, &index);
+    let a_eq_b = &unit.implementations[1].statements[0];
+    dbg!(a_eq_b);
+    assert_eq!(
+        Some(&StatementAnnotation::value("BOOL")),
+        annotations.get_annotation(a_eq_b),
+    );
+}

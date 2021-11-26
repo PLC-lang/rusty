@@ -724,6 +724,9 @@ impl<'i> TypeAnnotator<'i> {
                     };
                     self.annotation_map
                         .annotate(statement, StatementAnnotation::value(target_name));
+                } else if operator.is_bool_type() {
+                    self.annotation_map
+                        .annotate(statement, StatementAnnotation::value(BOOL_TYPE));
                 }
             }
             AstStatement::UnaryExpression {
@@ -1048,6 +1051,7 @@ impl<'i> TypeAnnotator<'i> {
         }
     }
 }
+
 fn find_implementation_annotation(name: &str, index: &Index) -> Option<StatementAnnotation> {
     index
         .find_implementation(name)

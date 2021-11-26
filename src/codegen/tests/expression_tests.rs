@@ -57,3 +57,49 @@ fn type_mix_in_call() {
 
     insta::assert_snapshot!(result);
 }
+
+
+
+#[test]
+fn string_comparison_test() {
+    let result = codegen(
+        r#"
+        FUNCTION STRING_EQUAL : BOOL
+            VAR_INPUT op1, op2: STRING[1024] END_VAR
+
+        END_FUNCTION
+
+        FUNCTION baz : INT
+            VAR a,b : STRING; END_VAR
+            VAR result : BOOL; END_VAR
+
+            result := 'a' = 'b';
+            result := a = b;
+        END_FUNCTION
+    "#,
+    );
+
+    insta::assert_snapshot!(result);
+}
+
+
+#[test]
+fn string_comparison_with_constant_test() {
+    let result = codegen(
+        r#"
+        FUNCTION STRING_EQUAL : BOOL
+            VAR_INPUT op1, op2: STRING[1024] END_VAR
+        END_FUNCTION
+
+        FUNCTION baz : INT
+            VAR a,b : STRING; END_VAR
+            VAR result : BOOL; END_VAR
+
+            result := a = 'b';
+            result := 'a' = b;
+        END_FUNCTION
+    "#,
+    );
+
+    insta::assert_snapshot!(result);
+}

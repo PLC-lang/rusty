@@ -1,12 +1,5 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-use crate::{
-    ast::{DirectAccessType, SourceRange},
-    codegen::llvm_typesystem,
-    compile_error::INTERNAL_LLVM_ERROR,
-    index::{ImplementationIndexEntry, ImplementationType, Index, VariableIndexEntry},
-    resolver::{AnnotationMap, StatementAnnotation},
-    typesystem::{is_same_type_nature, Dimension, StringEncoding, INT_SIZE, INT_TYPE, LINT_TYPE},
-};
+use crate::{ast::{DirectAccessType, SourceRange}, codegen::llvm_typesystem, compile_error::INTERNAL_LLVM_ERROR, index::{ImplementationIndexEntry, ImplementationType, Index, VariableIndexEntry}, resolver::{AnnotationMap, StatementAnnotation}, typesystem::{self, BOOL_TYPE, Dimension, INT_SIZE, INT_TYPE, LINT_TYPE, StringEncoding, is_same_type_nature}};
 use inkwell::{
     basic_block::BasicBlock,
     types::BasicTypeEnum,
@@ -16,7 +9,7 @@ use inkwell::{
     },
     AddressSpace, FloatPredicate, IntPredicate,
 };
-use std::collections::HashSet;
+use std::{any::Any, collections::HashSet};
 
 use crate::{
     ast::{flatten_expression_list, AstStatement, Operator},
@@ -205,13 +198,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                         self.generate_expression(right)?,
                     ))
                 } else {
-                    Err(CompileError::codegen_error(
-                        format!(
-                            "invalid types, cannot generate binary expression for {:?}",
-                            self.get_type_hint_info_for(expression)?
-                        ),
-                        left.get_location(),
-                    ))
+                    self.create_llvm_generic_binary_expression(operator, left, right, expression)
                 }
             }
             AstStatement::CallStatement {
@@ -1599,6 +1586,41 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
             SourceRange::undefined(),
         )?;
         Ok(value)
+    }
+
+    fn create_llvm_generic_binary_expression(
+        &self,
+        operator: &Operator,
+        left: &AstStatement,
+        right: &AstStatement,
+        binary_statement: &AstStatement,
+    ) -> Result<BasicValueEnum<'a>, CompileError> {
+
+
+        if let Some(StatementAnnotation::Value{..}) = self.annotations.get(binary_statement) {
+            let left_type = self.get_type_hint_for(left)?;
+
+            // we trust that the validator only passed us valid parameters (so right should be same type)
+            let equal_function_name =
+                typesystem::get_equals_function_name_for(left_type.get_type_information().get_name(), operator);
+            let call_statement = crate::ast::create_call_to(
+                equal_function_name,
+                vec![left.clone(), right.clone()],
+                binary_statement.get_id(),
+                left.get_id(),
+                &binary_statement.get_location(),
+            );
+            self.generate_expression(&call_statement)
+        } else{
+            Err(CompileError::codegen_error(
+                format!(
+                    "Invalid types, cannot generate binary expression for {:?} and {:?}",
+                    self.get_type_hint_for(left)?.get_name(),
+                    self.get_type_hint_for(right)?.get_name(),
+                ),
+                left.get_location(),
+            ))
+        }
     }
 }
 

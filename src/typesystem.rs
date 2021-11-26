@@ -1,17 +1,20 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use std::{mem::size_of, ops::Range};
 
-use crate::{
-    ast::{AstStatement, PouType},
-    index::{const_expressions::ConstId, Index},
-};
+use crate::{ast::{AstStatement, Operator, PouType}, index::{const_expressions::ConstId, Index}};
 
 pub const DEFAULT_STRING_LEN: u32 = 80;
 
+// Ranged type check functions names
 pub const RANGE_CHECK_S_FN: &str = "CheckRangeSigned";
 pub const RANGE_CHECK_LS_FN: &str = "CheckLRangeSigned";
 pub const RANGE_CHECK_U_FN: &str = "CheckRangeUnsigned";
 pub const RANGE_CHECK_LU_FN: &str = "CheckLRangeUnsigned";
+
+// Equality-Check functions names
+pub const EQUAL_FN_SUFFIX : &str = "_EQUAL";
+pub const EUQUAL_FN_STRING : &str = "STRING_EQUAL";
+
 
 pub type NativeSintType = i8;
 pub type NativeIntType = i16;
@@ -662,17 +665,13 @@ pub fn get_signed_type<'t>(
     Some(data_type)
 }
 
+pub fn get_equals_function_name_for(type_name: &str, _operator: &Operator) -> String {
+    format!("{}{}", type_name, EQUAL_FN_SUFFIX)
+}
+
 #[cfg(test)]
 mod tests {
-    use crate::{
-        ast::CompilationUnit,
-        index::visitor::visit,
-        lexer::IdProvider,
-        typesystem::{
-            get_signed_type, BYTE_TYPE, DINT_TYPE, DWORD_TYPE, INT_TYPE, LINT_TYPE, LWORD_TYPE,
-            SINT_TYPE, STRING_TYPE, UDINT_TYPE, UINT_TYPE, ULINT_TYPE, USINT_TYPE, WORD_TYPE,
-        },
-    };
+    use crate::{ast::{CompilationUnit, Operator}, index::visitor::visit, lexer::IdProvider, typesystem::{BYTE_TYPE, DINT_TYPE, DWORD_TYPE, INT_TYPE, LINT_TYPE, LWORD_TYPE, SINT_TYPE, STRING_TYPE, UDINT_TYPE, UINT_TYPE, ULINT_TYPE, USINT_TYPE, WORD_TYPE, get_equals_function_name_for, get_signed_type}};
 
     macro_rules! assert_signed_type {
         ($expected:expr, $actual:expr, $index:expr) => {
@@ -713,5 +712,11 @@ mod tests {
                 &index
             )
         );
+    }
+
+    #[test]
+    pub fn equal_method_function_names() {
+        assert_eq!("STRING_EQUAL".to_string(), get_equals_function_name_for("STRING", &Operator::Equal));
+        assert_eq!("MY_TYPE_EQUAL".to_string(), get_equals_function_name_for("MY_TYPE", &Operator::Equal));
     }
 }
