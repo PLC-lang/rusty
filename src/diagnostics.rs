@@ -47,6 +47,7 @@ pub enum ErrNo {
     pou__unexpected_return_type,
     pou__unsupported_return_type,
     pou__empty_variable_block,
+    pou__missing_action_container,
 
     //variable related
     var__unresolved_constant,
@@ -151,7 +152,7 @@ impl Diagnostic {
         Diagnostic::SyntaxError {
             message: "Missing Actions Container Name".to_string(),
             range,
-            err_no: ErrNo::undefined,
+            err_no: ErrNo::pou__missing_action_container,
         }
     }
 
@@ -477,7 +478,7 @@ impl DiagnosticAssessor for DefaultDiagnosticAssessor {
 }
 
 /// the DiagnosticReporter decides on the format and where to report the diagnostic to.
-/// possible implementsions could print to either std-out, std-err or a file
+/// possible implementations could print to either std-out, std-err or a file, etc.
 pub trait DiagnosticReporter {
     /// reports the given diagnostic
     fn report(&self, diagnostics: &[AssessedDiagnostic], file_id: usize);
