@@ -46,7 +46,8 @@ pub mod tests {
 
         let context = inkwell::context::Context::create();
         let code_generator = crate::codegen::CodeGen::new(&context, "main");
-        code_generator.generate(&unit, &annotations, &index)
+        let llvm_index = code_generator.generate_llvm_index(&annotations, &index)?;
+        code_generator.generate(&unit, &annotations, &index, &llvm_index)
     }
 
     pub fn codegen(src: &str) -> String {

@@ -51,7 +51,7 @@ pub fn generate_data_types<'ink>(
         llvm,
         index,
         annotations,
-        types_index: LlvmTypedIndex::new(),
+        types_index: LlvmTypedIndex::default(),
     };
 
     let types = generator.index.get_types();

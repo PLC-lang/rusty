@@ -1,6 +1,6 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
-use std::{env, fs, path::PathBuf};
+use std::{env, fs};
 
 use encoding_rs::Encoding;
 use rusty::{
@@ -8,8 +8,10 @@ use rusty::{
     compile_to_static_obj, diagnostics::Diagnostician, FilePath,
 };
 
+use crate::get_test_file;
+
 fn compile_all(name: &str, encoding: Option<&'static Encoding>) {
-    let path = get_file(name);
+    let path = get_test_file(name);
     let mut out = env::temp_dir();
     let out_name = format!("{}.out", &name);
     out.push(out_name);
@@ -57,18 +59,6 @@ fn compile_all(name: &str, encoding: Option<&'static Encoding>) {
     )
     .unwrap();
     fs::remove_file(&out).unwrap();
-}
-
-fn get_file(name: &str) -> String {
-    let mut data_path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-    data_path.push("tests");
-    data_path.push("integration");
-    data_path.push("data");
-    data_path.push(name);
-
-    assert!(data_path.exists());
-
-    data_path.display().to_string()
 }
 
 #[test]

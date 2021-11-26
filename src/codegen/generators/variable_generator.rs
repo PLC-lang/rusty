@@ -22,7 +22,7 @@ pub fn generate_global_variables<'ctx, 'b>(
     annotations: &'b AnnotationMap,
     types_index: &'b LlvmTypedIndex<'ctx>,
 ) -> Result<LlvmTypedIndex<'ctx>, Diagnostic> {
-    let mut index = LlvmTypedIndex::new();
+    let mut index = LlvmTypedIndex::default();
     let globals = global_index.get_globals();
     let enums = global_index.get_global_qualified_enums();
     for (name, variable) in globals.into_iter().chain(enums.into_iter()) {

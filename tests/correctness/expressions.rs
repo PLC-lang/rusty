@@ -25,7 +25,7 @@ fn real_negation() {
             END_FUNCTION
     ";
     let mut maintype = MainType::default();
-    compile_and_run::<_, i32>(function.to_string(), &mut maintype);
+    let _: i32 = compile_and_run(function, &mut maintype);
     assert_eq!(-2.0, maintype.a);
     assert_eq!(2.0, maintype.b);
     assert_eq!(-3.0, maintype.c);

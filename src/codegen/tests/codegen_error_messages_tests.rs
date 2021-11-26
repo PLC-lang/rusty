@@ -331,7 +331,7 @@ fn char_assigning_wstring_literal_results_in_casting_error() {
     // THEN result should be a casting error
     if let Err(msg) = result {
         assert_eq!(
-            Diagnostic::casting_error("WSTRING".into(), "CHAR".into(), (52..55).into()),
+            Diagnostic::casting_error("WSTRING", "CHAR", (52..55).into()),
             msg
         )
     } else {
@@ -355,7 +355,7 @@ fn wchar_assigning_string_literal_results_in_casting_error() {
     // THEN result shoud be a casting error
     if let Err(msg) = result {
         assert_eq!(
-            Diagnostic::casting_error("STRING".into(), "WCHAR".into(), (53..56).into()),
+            Diagnostic::casting_error("STRING", "WCHAR", (53..56).into()),
             msg
         )
     } else {
