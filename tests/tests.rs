@@ -3,6 +3,7 @@ use std::path::PathBuf;
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use inkwell::context::Context;
 use inkwell::execution_engine::{ExecutionEngine, JitFunction};
+use rusty::diagnostics::Diagnostician;
 use rusty::*;
 
 type MainFunction<T, U> = unsafe extern "C" fn(*mut T) -> U;
@@ -141,7 +142,8 @@ pub fn run<T, U>(exec_engine: &ExecutionEngine, name: &str, params: &mut T) -> U
 ///
 pub fn compile<T: Compilable>(context: &Context, source: T) -> ExecutionEngine {
     let source = source.containers();
-    let code_gen = compile_module(context, source, None).unwrap();
+    let code_gen =
+        compile_module(context, source, None, Diagnostician::null_diagnostician()).unwrap();
     println!("{}", code_gen.module.print_to_string());
     code_gen
         .module

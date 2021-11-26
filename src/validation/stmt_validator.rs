@@ -200,7 +200,7 @@ impl StatementValidator {
     ) {
         if !context.ast_annotation.has_type_annotation(id) {
             self.diagnostics
-                .push(Diagnostic::unrseolved_reference(ref_name, location.clone()));
+                .push(Diagnostic::unresolved_reference(ref_name, location.clone()));
         }
     }
 

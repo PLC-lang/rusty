@@ -20,6 +20,7 @@
 use std::path::Path;
 
 use glob::glob;
+use rusty::diagnostics::Diagnostician;
 use rusty::{
     cli::{CompileParameters, FormatOption, ParameterError},
     compile_to_bitcode, compile_to_ir, compile_to_shared_object, compile_to_shared_pic_object,
@@ -71,31 +72,37 @@ fn main_compile(parameters: CompileParameters) -> Result<(), String> {
     let encoding = parameters.encoding;
 
     let out_format = parameters.output_format_or_default();
+    let diagnostician = Diagnostician::default();
     let compile_result = match out_format {
         FormatOption::Static => compile_to_static_obj(
             sources,
             encoding,
             output_filename.as_str(),
             parameters.target.clone(),
+            diagnostician,
         ),
         FormatOption::Shared => compile_to_shared_object(
             sources,
             encoding,
             output_filename.as_str(),
             parameters.target.clone(),
+            diagnostician,
         ),
         FormatOption::PIC => compile_to_shared_pic_object(
             sources,
             encoding,
             output_filename.as_str(),
             parameters.target.clone(),
+            diagnostician,
         ),
-        FormatOption::Bitcode => compile_to_bitcode(sources, encoding, output_filename.as_str()),
-        FormatOption::IR => compile_to_ir(sources, encoding, &output_filename),
+        FormatOption::Bitcode => {
+            compile_to_bitcode(sources, encoding, output_filename.as_str(), diagnostician)
+        }
+        FormatOption::IR => compile_to_ir(sources, encoding, &output_filename, diagnostician),
     };
 
     //unwrap a potential error
-    compile_result.map_err(|compile_err| compile_err.to_string())?;
+    compile_result.map_err(|compile_err| compile_err.get_message().to_string())?;
 
     let linkable_formats = vec![
         FormatOption::Static,
