@@ -791,7 +791,7 @@
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">ast</span>::{<span class="ident">Implementation</span>, <span class="ident">PouType</span>, <span class="ident">SourceRange</span>},
-    <span class="ident">compile_error::CompileError</span>,
+    <span class="ident">diagnostics::Diagnostic</span>,
     <span class="ident">typesystem</span>::<span class="kw-2">*</span>,
 };
 
@@ -1004,9 +1004,9 @@
             .<span class="ident">unwrap_or</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">void_type</span>)
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_type</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">type_name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">DataType</span>, <span class="ident">CompileError</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_type</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">type_name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">DataType</span>, <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">find_type</span>(<span class="ident">type_name</span>)
-            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">CompileError::unknown_type</span>(<span class="ident">type_name</span>, <span class="ident">SourceRange::undefined</span>()))
+            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">Diagnostic::unknown_type</span>(<span class="ident">type_name</span>, <span class="ident">SourceRange::undefined</span>()))
     }
 
     <span class="doccomment">/// Retrieves the &quot;Effective&quot; type behind this datatype</span>
@@ -1304,10 +1304,10 @@
     }
 
     <span class="doccomment">/// returns the effective DataType of the type with the given name or an Error</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_effective_type</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">type_name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">DataType</span>, <span class="ident">CompileError</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_effective_type</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">type_name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">DataType</span>, <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">type_index</span>
             .<span class="ident">find_effective_type_by_name</span>(<span class="ident">type_name</span>)
-            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">CompileError::unknown_type</span>(<span class="ident">type_name</span>, <span class="ident">SourceRange::undefined</span>()))
+            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">Diagnostic::unknown_type</span>(<span class="ident">type_name</span>, <span class="ident">SourceRange::undefined</span>()))
     }
 
     <span class="doccomment">/// returns the effective DataTypeInformation of the type with the given name if it exists</span>
@@ -1322,7 +1322,7 @@
         <span class="self">self</span>.<span class="ident">type_index</span>.<span class="ident">get_effective_type_by_name</span>(<span class="ident">type_name</span>)
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_type</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">type_name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">DataType</span>, <span class="ident">CompileError</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_type</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">type_name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">DataType</span>, <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">type_index</span>.<span class="ident">get_type</span>(<span class="ident">type_name</span>)
     }
 
@@ -1334,7 +1334,7 @@
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">find_return_variable</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">pou_name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">VariableIndexEntry</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">members</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">member_variables</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">pou_name</span>.<span class="ident">to_lowercase</span>()); <span class="comment">//.ok_or_else(||CompileError::unknown_type(pou_name, 0..0))?;</span>
+        <span class="kw">let</span> <span class="ident">members</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">member_variables</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">pou_name</span>.<span class="ident">to_lowercase</span>()); <span class="comment">//.ok_or_else(||Diagnostic::unknown_type(pou_name, 0..0))?;</span>
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">members</span>) <span class="op">=</span> <span class="ident">members</span> {
             <span class="kw">for</span> (<span class="kw">_</span>, <span class="ident">variable</span>) <span class="kw">in</span> <span class="ident">members</span> {
                 <span class="kw">if</span> <span class="ident">variable</span>.<span class="ident">variable_type</span> <span class="op">=</span><span class="op">=</span> <span class="ident">VariableType::Return</span> {

@@ -562,7 +562,7 @@
     ) {
         <span class="kw">if</span> <span class="op">!</span><span class="ident">context</span>.<span class="ident">ast_annotation</span>.<span class="ident">has_type_annotation</span>(<span class="ident">id</span>) {
             <span class="self">self</span>.<span class="ident">diagnostics</span>
-                .<span class="ident">push</span>(<span class="ident">Diagnostic::unrseolved_reference</span>(<span class="ident">ref_name</span>, <span class="ident">location</span>.<span class="ident">clone</span>()));
+                .<span class="ident">push</span>(<span class="ident">Diagnostic::unresolved_reference</span>(<span class="ident">ref_name</span>, <span class="ident">location</span>.<span class="ident">clone</span>()));
         }
     }
 

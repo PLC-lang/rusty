@@ -183,10 +183,9 @@
 <span id="183">183</span>
 <span id="184">184</span>
 <span id="185">185</span>
-<span id="186">186</span>
-<span id="187">187</span>
-</pre><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
-<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">ast::SourceRange</span>, <span class="ident">compile_error::CompileError</span>};
+</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::diagnostics::Diagnostic</span>;
+<span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::ast::SourceRange</span>;
 <span class="kw">use</span> <span class="ident">inkwell::types::BasicTypeEnum</span>;
 <span class="kw">use</span> <span class="ident">inkwell::values</span>::{<span class="ident">BasicValueEnum</span>, <span class="ident">FunctionValue</span>, <span class="ident">GlobalValue</span>, <span class="ident">PointerValue</span>};
 <span class="kw">use</span> <span class="ident">std::collections::HashMap</span>;
@@ -238,7 +237,7 @@
         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
         <span class="ident">type_name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
         <span class="ident">target_type</span>: <span class="ident">BasicTypeEnum</span><span class="op">&lt;</span><span class="lifetime">&#39;ink</span><span class="op">&gt;</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">CompileError</span><span class="op">&gt;</span> {
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">type_associations</span>
             .<span class="ident">insert</span>(<span class="ident">type_name</span>.<span class="ident">to_lowercase</span>(), <span class="ident">target_type</span>);
         <span class="prelude-val">Ok</span>(())
@@ -248,7 +247,7 @@
         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
         <span class="ident">type_name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
         <span class="ident">initial_value</span>: <span class="ident">BasicValueEnum</span><span class="op">&lt;</span><span class="lifetime">&#39;ink</span><span class="op">&gt;</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">CompileError</span><span class="op">&gt;</span> {
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">initial_value_associations</span>
             .<span class="ident">insert</span>(<span class="ident">type_name</span>.<span class="ident">to_lowercase</span>(), <span class="ident">initial_value</span>);
         <span class="prelude-val">Ok</span>(())
@@ -259,7 +258,7 @@
         <span class="ident">container_name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
         <span class="ident">variable_name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
         <span class="ident">target_value</span>: <span class="ident">PointerValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ink</span><span class="op">&gt;</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">CompileError</span><span class="op">&gt;</span> {
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">qualified_name</span> <span class="op">=</span> <span class="macro">format!</span>(<span class="string">&quot;{}.{}&quot;</span>, <span class="ident">container_name</span>, <span class="ident">variable_name</span>);
         <span class="self">self</span>.<span class="ident">loaded_variable_associations</span>
             .<span class="ident">insert</span>(<span class="ident">qualified_name</span>.<span class="ident">to_lowercase</span>(), <span class="ident">target_value</span>);
@@ -277,12 +276,9 @@
             })
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_associated_type</span>(
-        <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">type_name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">BasicTypeEnum</span><span class="op">&lt;</span><span class="lifetime">&#39;ink</span><span class="op">&gt;</span>, <span class="ident">CompileError</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_associated_type</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">type_name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">BasicTypeEnum</span><span class="op">&lt;</span><span class="lifetime">&#39;ink</span><span class="op">&gt;</span>, <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">find_associated_type</span>(<span class="ident">type_name</span>)
-            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">CompileError::unknown_type</span>(<span class="ident">type_name</span>, <span class="ident">SourceRange::undefined</span>()))
+            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">Diagnostic::unknown_type</span>(<span class="ident">type_name</span>, <span class="ident">SourceRange::undefined</span>()))
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">find_associated_initial_value</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">type_name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">BasicValueEnum</span><span class="op">&lt;</span><span class="lifetime">&#39;ink</span><span class="op">&gt;</span><span class="op">&gt;</span> {
@@ -300,7 +296,7 @@
         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
         <span class="ident">variable_name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
         <span class="ident">global_variable</span>: <span class="ident">GlobalValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ink</span><span class="op">&gt;</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">CompileError</span><span class="op">&gt;</span> {
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">initial_value_associations</span>.<span class="ident">insert</span>(
             <span class="ident">variable_name</span>.<span class="ident">to_lowercase</span>(),
             <span class="ident">global_variable</span>.<span class="ident">as_pointer_value</span>().<span class="ident">into</span>(),
@@ -312,7 +308,7 @@
         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
         <span class="ident">callable_name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
         <span class="ident">function_value</span>: <span class="ident">FunctionValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ink</span><span class="op">&gt;</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">CompileError</span><span class="op">&gt;</span> {
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">implementations</span>
             .<span class="ident">insert</span>(<span class="ident">callable_name</span>.<span class="ident">to_lowercase</span>(), <span class="ident">function_value</span>);
         <span class="prelude-val">Ok</span>(())

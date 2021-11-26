@@ -481,7 +481,7 @@
     <span class="self">self</span>, <span class="ident">AstStatement</span>, <span class="ident">CompilationUnit</span>, <span class="ident">DataType</span>, <span class="ident">DataTypeDeclaration</span>, <span class="ident">Implementation</span>, <span class="ident">Pou</span>,
     <span class="ident">PouType</span>, <span class="ident">SourceRange</span>, <span class="ident">UserTypeDeclaration</span>, <span class="ident">VariableBlock</span>, <span class="ident">VariableBlockType</span>,
 };
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::compile_error::CompileError</span>;
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::diagnostics::Diagnostic</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::index</span>::{<span class="ident">Index</span>, <span class="ident">MemberInfo</span>};
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::lexer::IdProvider</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::typesystem</span>::{<span class="self">self</span>, <span class="kw-2">*</span>};
@@ -830,7 +830,7 @@
             <span class="ident">referenced_type</span>,
             <span class="ident">bounds</span>,
         } <span class="op">=</span><span class="op">&gt;</span> {
-            <span class="kw">let</span> <span class="ident">dimensions</span>: <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Dimension</span><span class="op">&gt;</span>, <span class="ident">CompileError</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">bounds</span>
+            <span class="kw">let</span> <span class="ident">dimensions</span>: <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Dimension</span><span class="op">&gt;</span>, <span class="ident">Diagnostic</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">bounds</span>
                 .<span class="ident">get_as_list</span>()
                 .<span class="ident">iter</span>()
                 .<span class="ident">map</span>(<span class="op">|</span><span class="ident">it</span><span class="op">|</span> {
@@ -853,8 +853,8 @@
                             ),
                         })
                     } <span class="kw">else</span> {
-                        <span class="prelude-val">Err</span>(<span class="ident">CompileError::codegen_error</span>(
-                            <span class="string">&quot;Invalid array definition: RangeStatement expected&quot;</span>.<span class="ident">into</span>(),
+                        <span class="prelude-val">Err</span>(<span class="ident">Diagnostic::codegen_error</span>(
+                            <span class="string">&quot;Invalid array definition: RangeStatement expected&quot;</span>,
                             <span class="ident">it</span>.<span class="ident">get_location</span>(),
                         ))
                     }

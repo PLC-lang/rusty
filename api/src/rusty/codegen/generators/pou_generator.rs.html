@@ -375,8 +375,11 @@
     <span class="ident">statement_generator</span>::{<span class="ident">FunctionContext</span>, <span class="ident">StatementCodeGenerator</span>},
 };
 <span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">ast::Pou</span>, <span class="ident">codegen::llvm_index::LlvmTypedIndex</span>, <span class="ident">compile_error::INTERNAL_LLVM_ERROR</span>,
-    <span class="ident">index::ImplementationType</span>, <span class="ident">resolver::AnnotationMap</span>,
+    <span class="ident">ast::Pou</span>,
+    <span class="ident">codegen::llvm_index::LlvmTypedIndex</span>,
+    <span class="ident">diagnostics</span>::{<span class="ident">Diagnostic</span>, <span class="ident">INTERNAL_LLVM_ERROR</span>},
+    <span class="ident">index::ImplementationType</span>,
+    <span class="ident">resolver::AnnotationMap</span>,
 };
 
 <span class="doccomment">/// The pou_generator contains functions to generate the code for POUs (PROGRAM, FUNCTION, FUNCTION_BLOCK)</span>
@@ -388,7 +391,6 @@
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">ast</span>::{<span class="ident">Implementation</span>, <span class="ident">PouType</span>, <span class="ident">SourceRange</span>},
-    <span class="ident">compile_error::CompileError</span>,
     <span class="ident">index::Index</span>,
 };
 <span class="kw">use</span> <span class="ident">inkwell::types::StructType</span>;
@@ -414,7 +416,7 @@
     <span class="ident">index</span>: <span class="kw-2">&amp;</span><span class="ident">Index</span>,
     <span class="ident">annotations</span>: <span class="kw-2">&amp;</span><span class="ident">AnnotationMap</span>,
     <span class="ident">types_index</span>: <span class="kw-2">&amp;</span><span class="ident">LlvmTypedIndex</span><span class="op">&lt;</span><span class="lifetime">&#39;ink</span><span class="op">&gt;</span>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">LlvmTypedIndex</span><span class="op">&lt;</span><span class="lifetime">&#39;ink</span><span class="op">&gt;</span>, <span class="ident">CompileError</span><span class="op">&gt;</span> {
+) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">LlvmTypedIndex</span><span class="op">&lt;</span><span class="lifetime">&#39;ink</span><span class="op">&gt;</span>, <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">llvm_index</span> <span class="op">=</span> <span class="ident">LlvmTypedIndex::default</span>();
     <span class="kw">let</span> <span class="ident">pou_generator</span> <span class="op">=</span> <span class="ident">PouGenerator::new</span>(<span class="ident">llvm</span>, <span class="ident">index</span>, <span class="ident">annotations</span>, <span class="ident">types_index</span>);
     <span class="kw">for</span> (<span class="ident">name</span>, <span class="ident">implementation</span>) <span class="kw">in</span> <span class="ident">index</span>.<span class="ident">get_implementations</span>() {
@@ -447,7 +449,7 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">implementation</span>: <span class="kw-2">&amp;</span><span class="ident">ImplementationIndexEntry</span>,
         <span class="ident">module</span>: <span class="kw-2">&amp;</span><span class="ident">Module</span><span class="op">&lt;</span><span class="lifetime">&#39;ink</span><span class="op">&gt;</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">FunctionValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ink</span><span class="op">&gt;</span>, <span class="ident">CompileError</span><span class="op">&gt;</span> {
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">FunctionValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ink</span><span class="op">&gt;</span>, <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">global_index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">index</span>;
         <span class="comment">//generate a function that takes a instance-struct parameter</span>
         <span class="kw">let</span> <span class="ident">pou_name</span> <span class="op">=</span> <span class="ident">implementation</span>.<span class="ident">get_call_name</span>();
@@ -495,7 +497,7 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">generate_implementation</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">implementation</span>: <span class="kw-2">&amp;</span><span class="ident">Implementation</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">CompileError</span><span class="op">&gt;</span> {
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">context</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">llvm</span>.<span class="ident">context</span>;
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">local_index</span> <span class="op">=</span> <span class="ident">LlvmTypedIndex::create_child</span>(<span class="self">self</span>.<span class="ident">llvm_index</span>);
 
@@ -505,8 +507,8 @@
             .<span class="ident">llvm_index</span>
             .<span class="ident">find_associated_implementation</span>(<span class="ident">pou_name</span>)
             .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
-                <span class="ident">CompileError::codegen_error</span>(
-                    <span class="macro">format!</span>(<span class="string">&quot;Could not find generated stub for {}&quot;</span>, <span class="ident">pou_name</span>),
+                <span class="ident">Diagnostic::codegen_error</span>(
+                    <span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;Could not find generated stub for {}&quot;</span>, <span class="ident">pou_name</span>),
                     <span class="ident">implementation</span>.<span class="ident">location</span>.<span class="ident">clone</span>(),
                 )
             })<span class="question-mark">?</span>;
@@ -584,7 +586,7 @@
         <span class="ident">parameters</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">BasicMetadataTypeEnum</span><span class="op">&lt;</span><span class="lifetime">&#39;ink</span><span class="op">&gt;</span><span class="op">&gt;</span>,
         <span class="ident">is_var_args</span>: <span class="ident">bool</span>,
         <span class="ident">return_type</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">BasicTypeEnum</span><span class="op">&lt;</span><span class="lifetime">&#39;ink</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">FunctionType</span><span class="op">&lt;</span><span class="lifetime">&#39;ink</span><span class="op">&gt;</span>, <span class="ident">CompileError</span><span class="op">&gt;</span> {
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">FunctionType</span><span class="op">&lt;</span><span class="lifetime">&#39;ink</span><span class="op">&gt;</span>, <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">params</span> <span class="op">=</span> <span class="ident">parameters</span>.<span class="ident">as_slice</span>();
         <span class="kw">match</span> <span class="ident">return_type</span> {
             <span class="prelude-val">Some</span>(<span class="ident">enum_type</span>) <span class="kw">if</span> <span class="ident">enum_type</span>.<span class="ident">is_int_type</span>() <span class="op">=</span><span class="op">&gt;</span> {
@@ -603,8 +605,8 @@
                 <span class="prelude-val">Ok</span>(<span class="ident">enum_type</span>.<span class="ident">into_struct_type</span>().<span class="ident">fn_type</span>(<span class="ident">params</span>, <span class="ident">is_var_args</span>))
             }
             <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="self">self</span>.<span class="ident">llvm</span>.<span class="ident">context</span>.<span class="ident">void_type</span>().<span class="ident">fn_type</span>(<span class="ident">params</span>, <span class="ident">is_var_args</span>)),
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">CompileError::codegen_error</span>(
-                <span class="macro">format!</span>(<span class="string">&quot;Unsupported return type {:?}&quot;</span>, <span class="ident">return_type</span>),
+            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">Diagnostic::codegen_error</span>(
+                <span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;Unsupported return type {:?}&quot;</span>, <span class="ident">return_type</span>),
                 <span class="ident">SourceRange::undefined</span>(),
             )),
         }
@@ -618,7 +620,7 @@
         <span class="ident">type_name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
         <span class="ident">current_function</span>: <span class="ident">FunctionValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ink</span><span class="op">&gt;</span>,
         <span class="ident">members</span>: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><span class="ident">VariableIndexEntry</span>],
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">CompileError</span><span class="op">&gt;</span> {
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
         <span class="comment">//Generate reference to parameter</span>
         <span class="kw">for</span> (<span class="ident">i</span>, <span class="ident">m</span>) <span class="kw">in</span> <span class="ident">members</span>.<span class="ident">iter</span>().<span class="ident">enumerate</span>() {
             <span class="kw">let</span> <span class="ident">parameter_name</span> <span class="op">=</span> <span class="ident">m</span>.<span class="ident">get_name</span>();
@@ -639,9 +641,7 @@
                 <span class="kw">let</span> <span class="ident">ptr_value</span> <span class="op">=</span> <span class="ident">current_function</span>
                     .<span class="ident">get_nth_param</span>(<span class="ident">arg_index</span>)
                     .<span class="ident">map</span>(<span class="ident">BasicValueEnum::into_pointer_value</span>)
-                    .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">CompileError::MissingFunctionError</span> {
-                        <span class="ident">location</span>: <span class="ident">m</span>.<span class="ident">source_location</span>.<span class="ident">clone</span>(),
-                    })<span class="question-mark">?</span>;
+                    .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">Diagnostic::missing_function</span>(<span class="ident">m</span>.<span class="ident">source_location</span>.<span class="ident">clone</span>()))<span class="question-mark">?</span>;
 
                 (
                     <span class="ident">parameter_name</span>,
@@ -665,7 +665,7 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">variables</span>: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><span class="ident">VariableIndexEntry</span>],
         <span class="ident">local_llvm_index</span>: <span class="kw-2">&amp;</span><span class="ident">LlvmTypedIndex</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">CompileError</span><span class="op">&gt;</span> {
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">variables_with_initializers</span> <span class="op">=</span> <span class="ident">variables</span>
             .<span class="ident">iter</span>()
             .<span class="ident">filter</span>(<span class="op">|</span><span class="ident">it</span><span class="op">|</span> <span class="ident">it</span>.<span class="ident">is_local</span>() <span class="op">|</span><span class="op">|</span> <span class="ident">it</span>.<span class="ident">is_temp</span>())
@@ -677,7 +677,7 @@
                 .<span class="ident">get_const_expressions</span>()
                 .<span class="ident">maybe_get_constant_statement</span>(<span class="kw-2">&amp;</span><span class="ident">variable</span>.<span class="ident">initial_value</span>)
                 .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
-                    <span class="ident">CompileError::cannot_generate_initializer</span>(
+                    <span class="ident">Diagnostic::cannot_generate_initializer</span>(
                         <span class="ident">variable</span>.<span class="ident">get_qualified_name</span>(),
                         <span class="ident">SourceRange::undefined</span>(),
                     )
@@ -698,7 +698,7 @@
                     .<span class="ident">builder</span>
                     .<span class="ident">build_store</span>(<span class="ident">left</span>, <span class="ident">exp_gen</span>.<span class="ident">generate_expression</span>(<span class="ident">right</span>)<span class="question-mark">?</span>);
             } <span class="kw">else</span> {
-                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">CompileError::cannot_generate_initializer</span>(
+                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Diagnostic::cannot_generate_initializer</span>(
                     <span class="ident">variable</span>.<span class="ident">get_qualified_name</span>(),
                     <span class="ident">variable</span>.<span class="ident">source_location</span>.<span class="ident">clone</span>(),
                 ));
@@ -714,7 +714,7 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">function_context</span>: <span class="kw-2">&amp;</span><span class="ident">FunctionContext</span><span class="op">&lt;</span><span class="lifetime">&#39;ink</span><span class="op">&gt;</span>,
         <span class="ident">local_index</span>: <span class="kw-2">&amp;</span><span class="ident">LlvmTypedIndex</span><span class="op">&lt;</span><span class="lifetime">&#39;ink</span><span class="op">&gt;</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">CompileError</span><span class="op">&gt;</span> {
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">ret_v</span>) <span class="op">=</span> <span class="self">self</span>
             .<span class="ident">index</span>
             .<span class="ident">find_return_variable</span>(<span class="ident">function_context</span>.<span class="ident">linking_context</span>.<span class="ident">get_type_name</span>())
@@ -725,8 +725,8 @@
             <span class="kw">let</span> <span class="ident">value_ptr</span> <span class="op">=</span> <span class="ident">local_index</span>
                 .<span class="ident">find_loaded_associated_variable_value</span>(<span class="ident">ret_name</span>)
                 .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
-                    <span class="ident">CompileError::codegen_error</span>(
-                        <span class="macro">format!</span>(<span class="string">&quot;Cannot generate return variable for {:}&quot;</span>, <span class="ident">call_name</span>),
+                    <span class="ident">Diagnostic::codegen_error</span>(
+                        <span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;Cannot generate return variable for {:}&quot;</span>, <span class="ident">call_name</span>),
                         <span class="ident">SourceRange::undefined</span>(),
                     )
                 })<span class="question-mark">?</span>;
