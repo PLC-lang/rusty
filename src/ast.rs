@@ -1147,6 +1147,32 @@ pub fn create_call_to(
     }
 }
 
+/// helper function that creates an or-expression
+pub fn create_or_expression(
+    left: AstStatement, 
+    right: AstStatement,
+) -> AstStatement {
+    AstStatement::BinaryExpression {
+        id: left.get_id(),
+        left: Box::new(left),
+        right: Box::new(right),
+        operator: Operator::Or
+    }
+}
+
+/// helper function that creates an or-expression
+pub fn create_not_expression(
+    operator: AstStatement, 
+    location: SourceRange
+) -> AstStatement {
+    AstStatement::UnaryExpression {
+        id: operator.get_id(),
+        value: Box::new(operator),
+        location,
+        operator: Operator::Not
+    }
+}
+
 pub fn pre_process(unit: &mut CompilationUnit) {
     pre_processor::pre_process(unit)
 }

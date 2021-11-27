@@ -1,6 +1,6 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use crate::{
-    ast::{DirectAccessType, SourceRange},
+    ast::{self, DirectAccessType, SourceRange},
     codegen::llvm_typesystem,
     diagnostics::{Diagnostic, INTERNAL_LLVM_ERROR},
     index::{ImplementationIndexEntry, ImplementationType, Index, VariableIndexEntry},
@@ -1608,20 +1608,48 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
         binary_statement: &AstStatement,
     ) -> Result<BasicValueEnum<'a>, Diagnostic> {
         if let Some(StatementAnnotation::Value { .. }) = self.annotations.get(binary_statement) {
-            let left_type = self.get_type_hint_for(left)?;
-
             // we trust that the validator only passed us valid parameters (so right should be same type)
-            let equal_function_name = crate::typesystem::get_equals_function_name_for(
-                left_type.get_type_information().get_name(),
-                operator,
-            );
-            let call_statement = crate::ast::create_call_to(
-                equal_function_name,
-                vec![left.clone(), right.clone()],
-                binary_statement.get_id(),
-                left.get_id(),
-                &binary_statement.get_location(),
-            );
+
+            let call_statement = match operator {
+                Operator::NotEqual => ast::create_not_expression(
+                    self.create_compare_call_statement(
+                        &Operator::Equal,
+                        left,
+                        right,
+                        binary_statement,
+                    )?,
+                    binary_statement.get_location(),
+                ),
+                Operator::LessOrEqual => ast::create_or_expression(
+                    self.create_compare_call_statement(
+                        &Operator::Equal,
+                        left,
+                        right,
+                        binary_statement,
+                    )?,
+                    self.create_compare_call_statement(
+                        &Operator::Less,
+                        left,
+                        right,
+                        binary_statement,
+                    )?,
+                ),
+                Operator::GreaterOrEqual => ast::create_or_expression(
+                    self.create_compare_call_statement(
+                        &Operator::Equal,
+                        left,
+                        right,
+                        binary_statement,
+                    )?,
+                    self.create_compare_call_statement(
+                        &Operator::Greater,
+                        left,
+                        right,
+                        binary_statement,
+                    )?,
+                ),
+                _ => self.create_compare_call_statement(operator, left, right, binary_statement)?,
+            };
             self.generate_expression(&call_statement)
         } else {
             Err(Diagnostic::codegen_error(
@@ -1634,6 +1662,44 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                 left.get_location(),
             ))
         }
+    }
+
+    fn create_compare_call_statement(
+        &self,
+        operator: &Operator,
+        left: &AstStatement,
+        right: &AstStatement,
+        binary_statement: &AstStatement,
+    ) -> Result<AstStatement, Diagnostic> {
+        let left_type = self.get_type_hint_for(left)?;
+        let right_type = self.get_type_hint_for(right)?;
+        let equal_function_name = crate::typesystem::get_equals_function_name_for(
+            left_type.get_type_information().get_name(),
+            operator,
+        );
+
+        equal_function_name
+            .map(|name| {
+                crate::ast::create_call_to(
+                    name,
+                    vec![left.clone(), right.clone()],
+                    binary_statement.get_id(),
+                    left.get_id(),
+                    &binary_statement.get_location(),
+                )
+            })
+            .ok_or_else(|| {
+                Diagnostic::codegen_error(
+                    format!(
+                        "Invalid operator {} for types {} and {}",
+                        operator,
+                        left_type.get_name(),
+                        right_type.get_name()
+                    )
+                    .as_str(),
+                    binary_statement.get_location(),
+                )
+            })
     }
 }
 

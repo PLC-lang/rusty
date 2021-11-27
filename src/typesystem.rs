@@ -14,10 +14,6 @@ pub const RANGE_CHECK_LS_FN: &str = "CheckLRangeSigned";
 pub const RANGE_CHECK_U_FN: &str = "CheckRangeUnsigned";
 pub const RANGE_CHECK_LU_FN: &str = "CheckLRangeUnsigned";
 
-// Equality-Check functions names
-pub const EQUAL_FN_SUFFIX: &str = "_EQUAL";
-pub const EUQUAL_FN_STRING: &str = "STRING_EQUAL";
-
 pub type NativeSintType = i8;
 pub type NativeIntType = i16;
 pub type NativeDintType = i32;
@@ -667,8 +663,21 @@ pub fn get_signed_type<'t>(
     Some(data_type)
 }
 
-pub fn get_equals_function_name_for(type_name: &str, _operator: &Operator) -> String {
-    format!("{}{}", type_name, EQUAL_FN_SUFFIX)
+/**
+ * returns the compare-function name for the given type and operator.
+ * Returns None if the given operator is no comparison operator
+ */
+pub fn get_equals_function_name_for(type_name: &str, operator: &Operator) -> Option<String> {
+    let suffix = match operator {
+        Operator::Equal => Some("EQUAL"),
+        Operator::Less => Some("LESS"),
+        Operator::Greater => Some("GREATER"),
+        _ => None
+    };
+
+    suffix.map(|suffix| 
+        format!("{}_{}", type_name, suffix))
+
 }
 
 #[cfg(test)]
@@ -728,12 +737,28 @@ mod tests {
     #[test]
     pub fn equal_method_function_names() {
         assert_eq!(
-            "STRING_EQUAL".to_string(),
+            Some("STRING_EQUAL".to_string()),
             get_equals_function_name_for("STRING", &Operator::Equal)
         );
         assert_eq!(
-            "MY_TYPE_EQUAL".to_string(),
+            Some("MY_TYPE_EQUAL".to_string()),
             get_equals_function_name_for("MY_TYPE", &Operator::Equal)
+        );
+        assert_eq!(
+            Some("STRING_LESS".to_string()),
+            get_equals_function_name_for("STRING", &Operator::Less)
+        );
+        assert_eq!(
+            Some("MY_TYPE_LESS".to_string()),
+            get_equals_function_name_for("MY_TYPE", &Operator::Less)
+        );
+        assert_eq!(
+            Some("STRING_GREATER".to_string()),
+            get_equals_function_name_for("STRING", &Operator::Greater)
+        );
+        assert_eq!(
+            Some("MY_TYPE_GREATER".to_string()),
+            get_equals_function_name_for("MY_TYPE", &Operator::Greater)
         );
     }
 }
