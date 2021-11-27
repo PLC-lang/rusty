@@ -5,8 +5,11 @@ use super::{
     statement_generator::{FunctionContext, StatementCodeGenerator},
 };
 use crate::{
-    ast::Pou, codegen::llvm_index::LlvmTypedIndex, compile_error::INTERNAL_LLVM_ERROR,
-    index::ImplementationType, resolver::AnnotationMap,
+    ast::Pou,
+    codegen::llvm_index::LlvmTypedIndex,
+    diagnostics::{Diagnostic, INTERNAL_LLVM_ERROR},
+    index::ImplementationType,
+    resolver::AnnotationMap,
 };
 
 /// The pou_generator contains functions to generate the code for POUs (PROGRAM, FUNCTION, FUNCTION_BLOCK)
@@ -18,7 +21,6 @@ use crate::index::{ImplementationIndexEntry, VariableIndexEntry};
 
 use crate::{
     ast::{Implementation, PouType, SourceRange},
-    compile_error::CompileError,
     index::Index,
 };
 use inkwell::types::StructType;
@@ -44,8 +46,8 @@ pub fn generate_implementation_stubs<'ink>(
     index: &Index,
     annotations: &AnnotationMap,
     types_index: &LlvmTypedIndex<'ink>,
-) -> Result<LlvmTypedIndex<'ink>, CompileError> {
-    let mut llvm_index = LlvmTypedIndex::new();
+) -> Result<LlvmTypedIndex<'ink>, Diagnostic> {
+    let mut llvm_index = LlvmTypedIndex::default();
     let pou_generator = PouGenerator::new(llvm, index, annotations, types_index);
     for (name, implementation) in index.get_implementations() {
         let type_info = index.get_type_information_or_void(implementation.get_type_name());
@@ -80,7 +82,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         &self,
         implementation: &ImplementationIndexEntry,
         module: &Module<'ink>,
-    ) -> Result<FunctionValue<'ink>, CompileError> {
+    ) -> Result<FunctionValue<'ink>, Diagnostic> {
         let global_index = self.index;
         //generate a function that takes a instance-struct parameter
         let pou_name = implementation.get_call_name();
@@ -128,7 +130,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
     pub fn generate_implementation(
         &self,
         implementation: &Implementation,
-    ) -> Result<(), CompileError> {
+    ) -> Result<(), Diagnostic> {
         let context = self.llvm.context;
         let mut local_index = LlvmTypedIndex::create_child(self.llvm_index);
 
@@ -138,8 +140,8 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
             .llvm_index
             .find_associated_implementation(pou_name)
             .ok_or_else(|| {
-                CompileError::codegen_error(
-                    format!("Could not find generated stub for {}", pou_name),
+                Diagnostic::codegen_error(
+                    &format!("Could not find generated stub for {}", pou_name),
                     implementation.location.clone(),
                 )
             })?;
@@ -217,7 +219,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         parameters: Vec<BasicMetadataTypeEnum<'ink>>,
         is_var_args: bool,
         return_type: Option<BasicTypeEnum<'ink>>,
-    ) -> Result<FunctionType<'ink>, CompileError> {
+    ) -> Result<FunctionType<'ink>, Diagnostic> {
         let params = parameters.as_slice();
         match return_type {
             Some(enum_type) if enum_type.is_int_type() => {
@@ -236,8 +238,8 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                 Ok(enum_type.into_struct_type().fn_type(params, is_var_args))
             }
             None => Ok(self.llvm.context.void_type().fn_type(params, is_var_args)),
-            _ => Err(CompileError::codegen_error(
-                format!("Unsupported return type {:?}", return_type),
+            _ => Err(Diagnostic::codegen_error(
+                &format!("Unsupported return type {:?}", return_type),
                 SourceRange::undefined(),
             )),
         }
@@ -251,7 +253,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         type_name: &str,
         current_function: FunctionValue<'ink>,
         members: &[&VariableIndexEntry],
-    ) -> Result<(), CompileError> {
+    ) -> Result<(), Diagnostic> {
         //Generate reference to parameter
         for (i, m) in members.iter().enumerate() {
             let parameter_name = m.get_name();
@@ -272,9 +274,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                 let ptr_value = current_function
                     .get_nth_param(arg_index)
                     .map(BasicValueEnum::into_pointer_value)
-                    .ok_or_else(|| CompileError::MissingFunctionError {
-                        location: m.source_location.clone(),
-                    })?;
+                    .ok_or_else(|| Diagnostic::missing_function(m.source_location.clone()))?;
 
                 (
                     parameter_name,
@@ -298,7 +298,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         &self,
         variables: &[&VariableIndexEntry],
         local_llvm_index: &LlvmTypedIndex,
-    ) -> Result<(), CompileError> {
+    ) -> Result<(), Diagnostic> {
         let variables_with_initializers = variables
             .iter()
             .filter(|it| it.is_local() || it.is_temp())
@@ -310,7 +310,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                 .get_const_expressions()
                 .maybe_get_constant_statement(&variable.initial_value)
                 .ok_or_else(|| {
-                    CompileError::cannot_generate_initializer(
+                    Diagnostic::cannot_generate_initializer(
                         variable.get_qualified_name(),
                         SourceRange::undefined(),
                     )
@@ -331,7 +331,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                     .builder
                     .build_store(left, exp_gen.generate_expression(right)?);
             } else {
-                return Err(CompileError::cannot_generate_initializer(
+                return Err(Diagnostic::cannot_generate_initializer(
                     variable.get_qualified_name(),
                     variable.source_location.clone(),
                 ));
@@ -347,7 +347,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         &self,
         function_context: &FunctionContext<'ink>,
         local_index: &LlvmTypedIndex<'ink>,
-    ) -> Result<(), CompileError> {
+    ) -> Result<(), Diagnostic> {
         if let Some(ret_v) = self
             .index
             .find_return_variable(function_context.linking_context.get_type_name())
@@ -358,8 +358,8 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
             let value_ptr = local_index
                 .find_loaded_associated_variable_value(ret_name)
                 .ok_or_else(|| {
-                    CompileError::codegen_error(
-                        format!("Cannot generate return variable for {:}", call_name),
+                    Diagnostic::codegen_error(
+                        &format!("Cannot generate return variable for {:}", call_name),
                         SourceRange::undefined(),
                     )
                 })?;

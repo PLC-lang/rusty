@@ -1,0 +1,6 @@
+PROGRAM mainProg
+VAR
+	a: DINT := 0;
+END_VAR
+a := 42;
+END_PROGRAM

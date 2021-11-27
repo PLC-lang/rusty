@@ -5,11 +5,11 @@ use inkwell::targets::{InitializationConfig, Target};
 #[allow(dead_code)]
 #[repr(C)]
 struct MainType {
-    ret: i32,
+    val: i32,
 }
 
 extern "C" fn times_two(param: &MainType) -> i32 {
-    param.ret * 2
+    param.val * 2
 }
 
 #[test]
@@ -34,7 +34,7 @@ fn test_external_function_called() {
         path: "external_test.st".to_string(),
         source: prog.to_string(),
     };
-    let code_gen = compile_module(&context, vec![source], None).unwrap();
+    let code_gen = compile_module(&context, vec![source], None, Diagnostician::default()).unwrap();
     let exec_engine = code_gen
         .module
         .create_jit_execution_engine(inkwell::OptimizationLevel::None)
@@ -43,7 +43,7 @@ fn test_external_function_called() {
     let fn_value = code_gen.module.get_function("times_two").unwrap();
 
     exec_engine.add_global_mapping(&fn_value, times_two as usize);
-    let res: i32 = run(&exec_engine, "main", &mut MainType { ret: 0 });
+    let res: i32 = run(&exec_engine, "main", &mut MainType { val: 0 });
     assert_eq!(res, 200)
 
     //Call that function
