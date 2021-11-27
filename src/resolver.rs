@@ -191,6 +191,15 @@ impl AnnotationMap {
         self.get_from_map(s, &self.type_hint_map, index)
     }
 
+    pub fn get_hint_or_void<'i>(
+        &self,
+        s: &AstStatement,
+        index: &'i Index,
+    ) -> &'i typesystem::DataType {
+        self.get_from_map(s, &self.type_hint_map, index)
+            .unwrap_or_else(|| index.get_void_type())
+    }
+
     /// returns the annotated type
     pub fn get_type<'i>(
         &self,

@@ -2,7 +2,8 @@ use std::{convert::TryInto, mem::discriminant};
 
 use super::ValidationContext;
 use crate::{
-    ast::{AstStatement, DirectAccessType, SourceRange},
+    ast::{AstStatement, DirectAccessType, Operator, SourceRange},
+    index::{VariableIndexEntry, VariableType},
     resolver::StatementAnnotation,
     typesystem::{
         DataType, DataTypeInformation, BOOL_TYPE, DATE_AND_TIME_TYPE, DATE_TYPE, DINT_TYPE,
@@ -151,6 +152,53 @@ impl StatementValidator {
                     }
                 }
             }
+            AstStatement::BinaryExpression {
+                operator,
+                left,
+                right,
+                ..
+            } => match operator {
+                Operator::NotEqual => self.validate_binary_expression(
+                    context,
+                    &Operator::Equal,
+                    left,
+                    right,
+                    statement,
+                ),
+                Operator::GreaterOrEqual => {
+                    self.validate_binary_expression(
+                        context,
+                        &Operator::Greater,
+                        left,
+                        right,
+                        statement,
+                    );
+                    self.validate_binary_expression(
+                        context,
+                        &Operator::Equal,
+                        left,
+                        right,
+                        statement,
+                    );
+                }
+                Operator::LessOrEqual => {
+                    self.validate_binary_expression(
+                        context,
+                        &Operator::Less,
+                        left,
+                        right,
+                        statement,
+                    );
+                    self.validate_binary_expression(
+                        context,
+                        &Operator::Equal,
+                        left,
+                        right,
+                        statement,
+                    );
+                }
+                _ => self.validate_binary_expression(context, operator, left, right, statement),
+            },
             _ => (),
         }
     }
@@ -335,6 +383,89 @@ impl StatementValidator {
             _ => None,
         }
     }
+
+    fn validate_binary_expression(
+        &mut self,
+        context: &ValidationContext,
+        operator: &Operator,
+        left: &AstStatement,
+        right: &AstStatement,
+        binary_statement: &AstStatement,
+    ) {
+        let left_type = context
+            .ast_annotation
+            .get_type_or_void(left, context.index)
+            .get_type_information();
+        let right_type = context
+            .ast_annotation
+            .get_type_or_void(right, context.index)
+            .get_type_information();
+
+        if left_type.is_numerical() && right_type.is_numerical() {
+        } else if std::mem::discriminant(left_type) == std::mem::discriminant(right_type) {
+            //see if we have the right compare-function
+            if operator.is_comparison_operator()
+                && !compare_function_exists(left_type.get_name(), operator, context)
+            {
+                self.diagnostics.push(Diagnostic::missing_compare_function(
+                    crate::typesystem::get_equals_function_name_for(left_type.get_name(), operator)
+                        .unwrap_or_default()
+                        .as_str(),
+                    left_type.get_name(),
+                    binary_statement.get_location(),
+                ));
+            }
+        }
+    }
+}
+
+fn compare_function_exists(
+    type_name: &str,
+    operator: &Operator,
+    context: &ValidationContext,
+) -> bool {
+    if let Some(function_name) =
+        crate::typesystem::get_equals_function_name_for(type_name, operator).as_ref()
+    {
+        if let Some(implementation) = context.index.find_implementation(function_name) {
+            let members = context
+                .index
+                .get_container_members(implementation.get_type_name());
+
+            //we expect two input parameters with the same type
+            if let [VariableIndexEntry {
+                data_type_name: type_name_1,
+                variable_type: VariableType::Input,
+                ..
+            }, VariableIndexEntry {
+                data_type_name: type_name_2,
+                variable_type: VariableType::Input,
+                ..
+            }, VariableIndexEntry {
+                data_type_name: return_type,
+                variable_type: VariableType::Return,
+                ..
+            }] = members.as_slice()
+            {
+                let type_name_1 = context
+                    .index
+                    .get_effective_type_by_name(type_name_1)
+                    .get_type_information()
+                    .get_name();
+                let type_name_2 = context
+                    .index
+                    .get_effective_type_by_name(type_name_2)
+                    .get_type_information()
+                    .get_name();
+                if type_name_1 == type_name && type_name_2 == type_name && return_type == BOOL_TYPE
+                {
+                    return true;
+                }
+            }
+        }
+    }
+
+    false
 }
 
 fn is_date_or_time_type(cast_type: &crate::typesystem::DataTypeInformation) -> bool {

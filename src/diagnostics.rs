@@ -72,6 +72,7 @@ pub enum ErrNo {
     //codegen related
     codegen__general,
     codegen__missing_function,
+    codegen__missing_compare_function,
 }
 
 impl Diagnostic {
@@ -137,6 +138,21 @@ impl Diagnostic {
             message: "Cannot generate code outside of function context.".into(),
             range: location,
             err_no: ErrNo::codegen__missing_function,
+        }
+    }
+
+    pub fn missing_compare_function(
+        function_name: &str,
+        data_type: &str,
+        location: SourceRange,
+    ) -> Diagnostic {
+        Diagnostic::SyntaxError {
+            message: format!(
+                "Missing compare function 'FUNCTION {} : BOOL VAR_INPUT a,b : {}; END_VAR ...'.",
+                function_name, data_type
+            ),
+            range: location,
+            err_no: ErrNo::codegen__missing_compare_function,
         }
     }
 

@@ -38,9 +38,7 @@ fn equal_comparison_with_arbitrary_datatypes() {
         results: [i32; 2],
     }
 
-    let mut main = Main {
-        results: [0, 0]
-    };
+    let mut main = Main { results: [0, 0] };
 
     let function = "
             FUNCTION STRING_EQUAL : BOOL
@@ -81,9 +79,7 @@ fn less_or_equal_comparison_with_arbitrary_datatypes() {
         results: [i32; 3],
     }
 
-    let mut main = Main {
-        results: [0, 0, 0]
-    };
+    let mut main = Main { results: [0, 0, 0] };
 
     let function = "
             FUNCTION STRING_EQUAL : BOOL
@@ -136,9 +132,7 @@ fn greater_or_equal_comparison_with_arbitrary_datatypes() {
         results: [i32; 3],
     }
 
-    let mut main = Main {
-        results: [0, 0, 0]
-    };
+    let mut main = Main { results: [0, 0, 0] };
 
     let function = "
             FUNCTION STRING_EQUAL : BOOL

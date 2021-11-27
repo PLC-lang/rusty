@@ -672,12 +672,10 @@ pub fn get_equals_function_name_for(type_name: &str, operator: &Operator) -> Opt
         Operator::Equal => Some("EQUAL"),
         Operator::Less => Some("LESS"),
         Operator::Greater => Some("GREATER"),
-        _ => None
+        _ => None,
     };
 
-    suffix.map(|suffix| 
-        format!("{}_{}", type_name, suffix))
-
+    suffix.map(|suffix| format!("{}_{}", type_name, suffix))
 }
 
 #[cfg(test)]

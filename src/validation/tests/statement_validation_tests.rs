@@ -142,3 +142,144 @@ fn invalid_char_assignments() {
         ]
     );
 }
+
+#[test]
+fn missing_string_compare_function_causes_error() {
+    // GIVEN assignment statements to constants, some to writable variables
+    // WHEN it is validated
+    let diagnostics = parse_and_validate(
+        "
+        PROGRAM prg
+            'a' =  'b'; // missing compare function :-(
+            'a' <> 'b'; // missing compare function :-(
+            'a' <  'b'; // missing compare function :-(
+            'a' >  'b'; // missing compare function :-(
+            'a' <= 'b'; // missing compare function :-(
+            'a' >= 'b'; // missing compare function :-(
+        END_PROGRAM
+      ",
+    );
+
+    // THEN everything but VAR and VAR_GLOBALS are reported
+    assert_eq!(
+        diagnostics,
+        vec![
+            Diagnostic::missing_compare_function("STRING_EQUAL", "STRING", (33..43).into()),
+            Diagnostic::missing_compare_function("STRING_EQUAL", "STRING", (89..99).into()),
+            Diagnostic::missing_compare_function("STRING_LESS", "STRING", (145..155).into()),
+            Diagnostic::missing_compare_function("STRING_GREATER", "STRING", (201..211).into()),
+            Diagnostic::missing_compare_function("STRING_LESS", "STRING", (257..267).into()),
+            Diagnostic::missing_compare_function("STRING_EQUAL", "STRING", (257..267).into()),
+            Diagnostic::missing_compare_function("STRING_GREATER", "STRING", (313..323).into()),
+            Diagnostic::missing_compare_function("STRING_EQUAL", "STRING", (313..323).into()),
+        ]
+    );
+}
+
+#[test]
+fn string_compare_function_cause_no_error_if_functions_exist() {
+    // GIVEN assignment statements to constants, some to writable variables
+    // WHEN it is validated
+    let diagnostics = parse_and_validate(
+        "
+        FUNCTION STRING_EQUAL : BOOL VAR_INPUT a,b : STRING END_VAR END_FUNCTION
+        FUNCTION STRING_GREATER : BOOL VAR_INPUT a,b : STRING END_VAR END_FUNCTION
+        FUNCTION STRING_LESS : BOOL VAR_INPUT a,b : STRING END_VAR END_FUNCTION
+
+        PROGRAM prg
+            'a' =  'b'; // missing compare function :-(
+            'a' <> 'b'; // missing compare function :-(
+            'a' <  'b'; // missing compare function :-(
+            'a' >  'b'; // missing compare function :-(
+            'a' <= 'b'; // missing compare function :-(
+            'a' >= 'b'; // missing compare function :-(
+        END_PROGRAM
+      ",
+    );
+
+    // THEN everything but VAR and VAR_GLOBALS are reported
+    assert_eq!(diagnostics, vec![]);
+}
+
+#[test]
+fn string_compare_function_with_wrong_signature_causes_error() {
+    // GIVEN assignment statements to constants, some to writable variables
+    // WHEN it is validated
+    let diagnostics = parse_and_validate(
+        "
+        FUNCTION STRING_EQUAL : BOOL VAR_INPUT a : STRING END_VAR END_FUNCTION
+
+        PROGRAM prg
+            'a' =  'b'; // missing compare function :-(
+        END_PROGRAM
+      ",
+    );
+
+    // THEN everything but VAR and VAR_GLOBALS are reported
+    assert_eq!(
+        diagnostics,
+        vec![Diagnostic::missing_compare_function(
+            "STRING_EQUAL",
+            "STRING",
+            (113..123).into()
+        ),]
+    );
+}
+
+#[test]
+fn missing_wstring_compare_function_causes_error() {
+    // GIVEN assignment statements to constants, some to writable variables
+    // WHEN it is validated
+    let diagnostics = parse_and_validate(
+        r#"
+        PROGRAM prg
+            "a" =  "b"; // missing compare function :-(
+            "a" <> "b"; // missing compare function :-(
+            "a" <  "b"; // missing compare function :-(
+            "a" >  "b"; // missing compare function :-(
+            "a" <= "b"; // missing compare function :-(
+            "a" >= "b"; // missing compare function :-(
+        END_PROGRAM
+      "#,
+    );
+
+    // THEN everything but VAR and VAR_GLOBALS are reported
+    assert_eq!(
+        diagnostics,
+        vec![
+            Diagnostic::missing_compare_function("WSTRING_EQUAL", "WSTRING", (33..43).into()),
+            Diagnostic::missing_compare_function("WSTRING_EQUAL", "WSTRING", (89..99).into()),
+            Diagnostic::missing_compare_function("WSTRING_LESS", "WSTRING", (145..155).into()),
+            Diagnostic::missing_compare_function("WSTRING_GREATER", "WSTRING", (201..211).into()),
+            Diagnostic::missing_compare_function("WSTRING_LESS", "WSTRING", (257..267).into()),
+            Diagnostic::missing_compare_function("WSTRING_EQUAL", "WSTRING", (257..267).into()),
+            Diagnostic::missing_compare_function("WSTRING_GREATER", "WSTRING", (313..323).into()),
+            Diagnostic::missing_compare_function("WSTRING_EQUAL", "WSTRING", (313..323).into()),
+        ]
+    );
+}
+
+#[test]
+fn wstring_compare_function_cause_no_error_if_functions_exist() {
+    // GIVEN assignment statements to constants, some to writable variables
+    // WHEN it is validated
+    let diagnostics = parse_and_validate(
+        r#"
+        FUNCTION WSTRING_EQUAL : BOOL VAR_INPUT a,b : WSTRING END_VAR END_FUNCTION
+        FUNCTION WSTRING_GREATER : BOOL VAR_INPUT a,b : WSTRING END_VAR END_FUNCTION
+        FUNCTION WSTRING_LESS : BOOL VAR_INPUT a,b : WSTRING END_VAR END_FUNCTION
+
+        PROGRAM prg
+            "a" =  "b"; // missing compare function :-(
+            "a" <> "b"; // missing compare function :-(
+            "a" <  "b"; // missing compare function :-(
+            "a" >  "b"; // missing compare function :-(
+            "a" <= "b"; // missing compare function :-(
+            "a" >= "b"; // missing compare function :-(
+        END_PROGRAM
+      "#,
+    );
+
+    // THEN everything but VAR and VAR_GLOBALS are reported
+    assert_eq!(diagnostics, vec![]);
+}

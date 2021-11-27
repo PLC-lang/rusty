@@ -161,7 +161,6 @@ fn string_not_equal_with_constant_test() {
     insta::assert_snapshot!(result);
 }
 
-
 #[test]
 fn string_smaller_or_equal_with_constant_test() {
     let result = codegen(

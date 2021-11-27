@@ -23,11 +23,11 @@ pub struct VariableIndexEntry {
     /// an optional initial value of this variable
     pub initial_value: Option<ConstId>,
     /// the type of variable
-    variable_type: VariableType,
+    pub variable_type: VariableType,
     /// true if this variable is a compile-time-constant
     is_constant: bool,
     /// the variable's datatype
-    data_type_name: String,
+    pub data_type_name: String,
     /// the index of the member-variable in it's container (e.g. struct). defautls to 0 (Single variables)
     location_in_parent: u32,
     /// the location in the original source-file

@@ -1148,28 +1148,22 @@ pub fn create_call_to(
 }
 
 /// helper function that creates an or-expression
-pub fn create_or_expression(
-    left: AstStatement, 
-    right: AstStatement,
-) -> AstStatement {
+pub fn create_or_expression(left: AstStatement, right: AstStatement) -> AstStatement {
     AstStatement::BinaryExpression {
         id: left.get_id(),
         left: Box::new(left),
         right: Box::new(right),
-        operator: Operator::Or
+        operator: Operator::Or,
     }
 }
 
 /// helper function that creates an or-expression
-pub fn create_not_expression(
-    operator: AstStatement, 
-    location: SourceRange
-) -> AstStatement {
+pub fn create_not_expression(operator: AstStatement, location: SourceRange) -> AstStatement {
     AstStatement::UnaryExpression {
         id: operator.get_id(),
         value: Box::new(operator),
         location,
-        operator: Operator::Not
+        operator: Operator::Not,
     }
 }
 
@@ -1190,6 +1184,18 @@ impl Operator {
                 | Operator::And
                 | Operator::Or
                 | Operator::Xor
+        )
+    }
+
+    pub(crate) fn is_comparison_operator(&self) -> bool {
+        matches!(
+            self,
+            Operator::Equal
+                | Operator::NotEqual
+                | Operator::Less
+                | Operator::Greater
+                | Operator::LessOrEqual
+                | Operator::GreaterOrEqual
         )
     }
 }
