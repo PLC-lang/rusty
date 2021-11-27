@@ -1024,8 +1024,8 @@ impl<'i> TypeAnnotator<'i> {
         &mut self,
         generics_candidates: HashMap<&str, Vec<&str>>,
         operator_qualifier: &str,
-        operator: &Box<AstStatement>,
-        parameters: &Box<Option<AstStatement>>,
+        operator: &AstStatement,
+        parameters: &Option<AstStatement>,
         ctx: VisitorContext,
     ) {
         let operator_type = self
@@ -1101,9 +1101,9 @@ impl<'i> TypeAnnotator<'i> {
 
     fn annotate_generic_function(
         &self,
-        generics: &Vec<GenericBinding>,
-        qualified_name: &String,
-        return_type: &String,
+        generics: &[GenericBinding],
+        qualified_name: &str,
+        return_type: &str,
         generic_map: &HashMap<String, String>,
     ) -> StatementAnnotation {
         let generic_name = generics
@@ -1122,11 +1122,12 @@ impl<'i> TypeAnnotator<'i> {
         {
             generic_map
                 .get(generic_symbol)
+                .map(String::as_str)
                 .unwrap_or(return_type)
-                .clone()
         } else {
-            return_type.clone()
-        };
+            return_type
+        }
+        .to_string();
         StatementAnnotation::Function {
             qualified_name: function_name,
             return_type,
