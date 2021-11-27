@@ -34,7 +34,6 @@ use lexer::IdProvider;
 use std::{fs::File, io::Read};
 use validation::Validator;
 
-use crate::ast::CompilationUnit;
 use crate::diagnostics::Diagnostician;
 use crate::resolver::{AnnotationMap, TypeAnnotator};
 mod ast;
@@ -362,19 +361,24 @@ pub fn compile_module<'c, T: SourceContainer>(
 
     // ### PHASE 2 ###
     // annotation & validation everything
-    let mut annotated_units: Vec<CompilationUnit> = Vec::new();
     let mut all_annotations = AnnotationMap::default();
-    for (file_id, syntax_errors, unit) in all_units.into_iter() {
-        let annotations = TypeAnnotator::visit_unit(&full_index, &unit);
+    for (_, _, unit) in all_units.iter() {
+        let annotations = TypeAnnotator::visit_unit(&full_index, unit);
+        all_annotations.import(annotations);
+    }
 
+    //TODO: Do index consolidation here
+
+    // ### PHASE 2.1 ###
+    // Validate all units
+    let mut annotated_units = Vec::new();
+    for (file_id, syntax_errors, unit) in all_units.into_iter() {
         let mut validator = Validator::new();
-        validator.visit_unit(&annotations, &full_index, &unit);
+        validator.visit_unit(&all_annotations, &full_index, &unit);
         //log errors
         diagnostician.handle(syntax_errors, file_id);
         diagnostician.handle(validator.diagnostics(), file_id);
-
         annotated_units.push(unit);
-        all_annotations.import(annotations);
     }
 
     // ### PHASE 3 ###

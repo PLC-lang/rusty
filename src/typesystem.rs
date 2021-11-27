@@ -296,9 +296,11 @@ impl DataTypeInformation {
     }
 
     pub fn is_generic(&self) -> bool {
-        matches!(self,
-            DataTypeInformation::Struct{ generics, .. } if !generics.is_empty()
-        )
+        match self {
+            DataTypeInformation::Struct { generics, .. } => !generics.is_empty(),
+            DataTypeInformation::Generic { .. } => true,
+            _ => false,
+        }
     }
 
     pub fn get_size(&self) -> u32 {
