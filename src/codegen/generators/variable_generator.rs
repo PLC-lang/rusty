@@ -1,12 +1,15 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
 /// offers operations to generate global variables
-use crate::{ast::SourceRange, index::Index, resolver::AnnotationMap};
+use crate::{
+    ast::SourceRange,
+    diagnostics::{Diagnostic, ErrNo},
+    index::Index,
+    resolver::AnnotationMap,
+};
 use inkwell::{module::Module, values::GlobalValue};
 
-use crate::{
-    codegen::llvm_index::LlvmTypedIndex, compile_error::CompileError, index::VariableIndexEntry,
-};
+use crate::{codegen::llvm_index::LlvmTypedIndex, index::VariableIndexEntry};
 
 use super::{
     data_type_generator::get_default_for, expression_generator::ExpressionCodeGenerator, llvm::Llvm,
@@ -18,7 +21,7 @@ pub fn generate_global_variables<'ctx, 'b>(
     global_index: &'b Index,
     annotations: &'b AnnotationMap,
     types_index: &'b LlvmTypedIndex<'ctx>,
-) -> Result<LlvmTypedIndex<'ctx>, CompileError> {
+) -> Result<LlvmTypedIndex<'ctx>, Diagnostic> {
     let mut index = LlvmTypedIndex::default();
     let globals = global_index.get_globals();
     let enums = global_index.get_global_qualified_enums();
@@ -31,15 +34,11 @@ pub fn generate_global_variables<'ctx, 'b>(
             types_index,
             variable,
         )
-        .map_err(|err| {
-            if matches!(
-                err,
-                CompileError::MissingFunctionError { .. } | CompileError::InvalidReference { .. }
-            ) {
-                CompileError::cannot_generate_initializer(name.as_str(), SourceRange::undefined())
-            } else {
-                err
+        .map_err(|err| match err.get_type() {
+            ErrNo::codegen__missing_function | ErrNo::reference__unresolved => {
+                Diagnostic::cannot_generate_initializer(name.as_str(), SourceRange::undefined())
             }
+            _ => err,
         })?;
         index.associate_global(name, global_variable)?
     }
@@ -59,7 +58,7 @@ pub fn generate_global_variable<'ctx, 'b>(
     annotations: &'b AnnotationMap,
     index: &'b LlvmTypedIndex<'ctx>,
     global_variable: &VariableIndexEntry,
-) -> Result<GlobalValue<'ctx>, CompileError> {
+) -> Result<GlobalValue<'ctx>, Diagnostic> {
     let type_name = global_variable.get_type_name();
     let variable_type = index.get_associated_type(type_name)?;
 

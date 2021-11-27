@@ -58,8 +58,6 @@ fn type_mix_in_call() {
     insta::assert_snapshot!(result);
 }
 
-
-
 #[test]
 fn string_comparison_test() {
     let result = codegen(
@@ -81,7 +79,6 @@ fn string_comparison_test() {
 
     insta::assert_snapshot!(result);
 }
-
 
 #[test]
 fn string_comparison_with_constant_test() {

@@ -1136,14 +1136,14 @@ pub fn create_call_to(
         operator: Box::new(AstStatement::Reference {
             name: function_name,
             location: location.clone(),
-            id: function_id, 
+            id: function_id,
         }),
         parameters: Box::new(Some(AstStatement::ExpressionList {
             expressions: parameters,
             id: parameter_list_id, //use the id so we end up with the same datatype
         })),
         location: location.clone(),
-        id: function_id, 
+        id: function_id,
     }
 }
 

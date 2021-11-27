@@ -10,7 +10,7 @@ use self::{
     },
     llvm_index::LlvmTypedIndex,
 };
-use crate::{compile_error::CompileError, resolver::AnnotationMap};
+use crate::{diagnostics::Diagnostic, resolver::AnnotationMap};
 
 use super::ast::*;
 use super::index::*;
@@ -43,7 +43,7 @@ impl<'ink> CodeGen<'ink> {
         &self,
         annotations: &AnnotationMap,
         global_index: &Index,
-    ) -> Result<LlvmTypedIndex<'ink>, CompileError> {
+    ) -> Result<LlvmTypedIndex<'ink>, Diagnostic> {
         let llvm = Llvm::new(self.context, self.context.create_builder());
         let mut index = LlvmTypedIndex::default();
         //Generate types index, and any global variables associated with them.
@@ -81,7 +81,7 @@ impl<'ink> CodeGen<'ink> {
         annotations: &AnnotationMap,
         global_index: &Index,
         llvm_index: &LlvmTypedIndex,
-    ) -> Result<String, CompileError> {
+    ) -> Result<String, Diagnostic> {
         //generate all pous
         let llvm = Llvm::new(self.context, self.context.create_builder());
         let pou_generator = PouGenerator::new(llvm, global_index, annotations, llvm_index);

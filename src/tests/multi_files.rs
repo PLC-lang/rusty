@@ -1,4 +1,4 @@
-use crate::{compile_to_string, SourceCode};
+use crate::{compile_to_string, diagnostics::Diagnostician, SourceCode};
 
 #[test]
 fn multiple_source_files_generated() {
@@ -25,7 +25,8 @@ fn multiple_source_files_generated() {
     "
     .into();
     //When the are generated
-    let res = compile_to_string(vec![src1, src2], None).unwrap();
+    let res =
+        compile_to_string(vec![src1, src2], None, Diagnostician::null_diagnostician()).unwrap();
     //The datatypes do not conflics
     //The functions are defined correctly
     insta::assert_snapshot!(res);

@@ -1,6 +1,6 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use crate::{
-    compile_error::CompileError,
+    diagnostics::Diagnostic,
     test_utils::tests::{codegen, codegen_without_unwrap},
 };
 
@@ -56,8 +56,8 @@ END_PROGRAM
 
     assert_eq!(
         result,
-        Err(CompileError::codegen_error(
-            "Cannot generate String-Literal for type INT".to_string(),
+        Err(Diagnostic::codegen_error(
+            "Cannot generate String-Literal for type INT",
             (44..51).into()
         ))
     );

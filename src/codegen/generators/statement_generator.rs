@@ -6,7 +6,7 @@ use crate::{
     ast::{flatten_expression_list, AstStatement, ConditionalBlock, Operator, SourceRange},
     codegen::llvm_typesystem,
     codegen::LlvmTypedIndex,
-    compile_error::{CompileError, INTERNAL_LLVM_ERROR},
+    diagnostics::{Diagnostic, INTERNAL_LLVM_ERROR},
     index::{ImplementationIndexEntry, Index},
     resolver::AnnotationMap,
     typesystem::{
@@ -85,7 +85,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
     }
 
     /// generates a list of statements
-    pub fn generate_body(&self, statements: &[AstStatement]) -> Result<(), CompileError> {
+    pub fn generate_body(&self, statements: &[AstStatement]) -> Result<(), Diagnostic> {
         for s in statements {
             self.generate_statement(s)?;
         }
@@ -108,7 +108,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
     /// genertes a single statement
     ///
     /// - `statement` the statement to be generated
-    pub fn generate_statement(&self, statement: &AstStatement) -> Result<(), CompileError> {
+    pub fn generate_statement(&self, statement: &AstStatement) -> Result<(), Diagnostic> {
         match statement {
             AstStatement::EmptyStatement { .. } => {
                 //nothing to generate
@@ -159,10 +159,10 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
                     self.llvm.builder.build_unconditional_branch(*exit_block);
                     self.generate_buffer_block();
                 } else {
-                    return Err(CompileError::CodeGenError {
-                        message: "Cannot break out of loop when not inside a loop".into(),
-                        location: location.clone(),
-                    });
+                    return Err(Diagnostic::codegen_error(
+                        "Cannot break out of loop when not inside a loop",
+                        location.clone(),
+                    ));
                 }
             }
             AstStatement::ContinueStatement { location, .. } => {
@@ -170,10 +170,10 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
                     self.llvm.builder.build_unconditional_branch(*cont_block);
                     self.generate_buffer_block();
                 } else {
-                    return Err(CompileError::CodeGenError {
-                        message: "Cannot continue loop when not inside a loop".into(),
-                        location: location.clone(),
-                    });
+                    return Err(Diagnostic::codegen_error(
+                        "Cannot continue loop when not inside a loop",
+                        location.clone(),
+                    ));
                 }
             }
             _ => {
@@ -192,7 +192,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         &self,
         left_statement: &AstStatement,
         right_statement: &AstStatement,
-    ) -> Result<(), CompileError> {
+    ) -> Result<(), Diagnostic> {
         //TODO: Looks hacky, the strings will be similar so we should look into making the assignment a bit nicer.
         if left_statement.has_direct_access() {
             return self.generate_direct_access_assignment(left_statement, right_statement);
@@ -243,9 +243,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
                     align,
                     self.llvm.context.i32_type().const_int(size as u64, true),
                 )
-                .map_err(|err| {
-                    CompileError::codegen_error(err.into(), left_statement.get_location())
-                })?;
+                .map_err(|err| Diagnostic::codegen_error(err, left_statement.get_location()))?;
         } else {
             self.llvm
                 .builder
@@ -259,13 +257,13 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         &self,
         datatype: &DataTypeInformation,
         location: SourceRange,
-    ) -> Result<i64, CompileError> {
+    ) -> Result<i64, Diagnostic> {
         if let DataTypeInformation::String { size, .. } = datatype {
             size.as_int_value(self.index)
-                .map_err(|err| CompileError::codegen_error(err, location))
+                .map_err(|err| Diagnostic::codegen_error(err.as_str(), location))
         } else {
-            Err(CompileError::codegen_error(
-                format!("{} is not a String", datatype.get_name()),
+            Err(Diagnostic::codegen_error(
+                format!("{} is not a String", datatype.get_name()).as_str(),
                 location,
             ))
         }
@@ -275,7 +273,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         &self,
         left_statement: &AstStatement,
         right_statement: &AstStatement,
-    ) -> Result<(), CompileError> {
+    ) -> Result<(), Diagnostic> {
         //TODO : Validation
         let exp_gen = self.create_expr_generator();
         if let AstStatement::QualifiedReference { elements, .. } = left_statement {
@@ -308,8 +306,8 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
                         left_type,
                     )
                 } else {
-                    Err(CompileError::codegen_error(
-                        format!("{:?} not a direct access", element),
+                    Err(Diagnostic::syntax_error(
+                        &format!("{:?} not a direct access", element),
                         element.get_location(),
                     ))
                 }?;
@@ -322,8 +320,8 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
                             left_type,
                         )
                     } else {
-                        Err(CompileError::codegen_error(
-                            format!("{:?} not a direct access", element),
+                        Err(Diagnostic::syntax_error(
+                            &format!("{:?} not a direct access", element),
                             element.get_location(),
                         ))
                     }?;
@@ -414,7 +412,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         end: &AstStatement,
         by_step: &Option<Box<AstStatement>>,
         body: &[AstStatement],
-    ) -> Result<(), CompileError> {
+    ) -> Result<(), Diagnostic> {
         let (builder, current_function, context) = self.get_llvm_deps();
         self.generate_assignment_statement(counter, start)?;
         let condition_check = context.append_basic_block(current_function, "condition_check");
@@ -498,7 +496,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         selector: &AstStatement,
         conditional_blocks: &[ConditionalBlock],
         else_body: &[AstStatement],
-    ) -> Result<Option<BasicValueEnum<'a>>, CompileError> {
+    ) -> Result<Option<BasicValueEnum<'a>>, Diagnostic> {
         let (builder, current_function, context) = self.get_llvm_deps();
         //Continue
         let continue_block = context.append_basic_block(current_function, "continue");
@@ -567,7 +565,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         start: &AstStatement,
         end: &AstStatement,
         match_block: BasicBlock,
-    ) -> Result<BasicBlock, CompileError> {
+    ) -> Result<BasicBlock, Diagnostic> {
         let (builder, _, context) = self.get_llvm_deps();
 
         let range_then = context.insert_basic_block_after(
@@ -610,7 +608,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         &self,
         condition: &AstStatement,
         body: &[AstStatement],
-    ) -> Result<Option<BasicValueEnum<'a>>, CompileError> {
+    ) -> Result<Option<BasicValueEnum<'a>>, Diagnostic> {
         let builder = &self.llvm.builder;
         let basic_block = builder.get_insert_block().expect(INTERNAL_LLVM_ERROR);
         self.generate_base_while_statement(condition, body)?;
@@ -640,7 +638,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         &self,
         condition: &AstStatement,
         body: &[AstStatement],
-    ) -> Result<Option<BasicValueEnum<'a>>, CompileError> {
+    ) -> Result<Option<BasicValueEnum<'a>>, Diagnostic> {
         let builder = &self.llvm.builder;
         let basic_block = builder.get_insert_block().expect(INTERNAL_LLVM_ERROR);
         self.generate_base_while_statement(condition, body)?;
@@ -662,7 +660,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         &self,
         condition: &AstStatement,
         body: &[AstStatement],
-    ) -> Result<Option<BasicValueEnum>, CompileError> {
+    ) -> Result<Option<BasicValueEnum>, Diagnostic> {
         let (builder, current_function, context) = self.get_llvm_deps();
         let condition_check = context.append_basic_block(current_function, "condition_check");
         let while_body = context.append_basic_block(current_function, "while_body");
@@ -705,7 +703,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         &self,
         conditional_blocks: &[ConditionalBlock],
         else_body: &[AstStatement],
-    ) -> Result<(), CompileError> {
+    ) -> Result<(), Diagnostic> {
         let (builder, current_function, context) = self.get_llvm_deps();
         let mut blocks = vec![builder.get_insert_block().expect(INTERNAL_LLVM_ERROR)];
         for _ in 1..conditional_blocks.len() {
