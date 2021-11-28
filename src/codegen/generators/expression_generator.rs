@@ -1600,6 +1600,11 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
         Ok(value)
     }
 
+    /// creates a binary expression (left op right) with generic
+    /// left & right expressions (non-numerics)
+    /// this function attempts to call optional
+    /// EQUAL_XXX, LESS_XXX or GREATER_XXX functions for comparison
+    /// expressions
     fn create_llvm_generic_binary_expression(
         &self,
         operator: &Operator,
@@ -1608,11 +1613,11 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
         binary_statement: &AstStatement,
     ) -> Result<BasicValueEnum<'a>, Diagnostic> {
         if let Some(StatementAnnotation::Value { .. }) = self.annotations.get(binary_statement) {
-            // we trust that the validator only passed us valid parameters (so right should be same type)
-
+            // we trust that the validator only passed us valid parameters (so left & right should be same type)
             let call_statement = match operator {
+                // a <> b expression is handled as Not(Equal(a,b))
                 Operator::NotEqual => ast::create_not_expression(
-                    self.create_compare_call_statement(
+                    self.create_typed_compare_call_statement(
                         &Operator::Equal,
                         left,
                         right,
@@ -1620,35 +1625,42 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                     )?,
                     binary_statement.get_location(),
                 ),
+                // a <= b expression is handled as a = b OR a < b
                 Operator::LessOrEqual => ast::create_or_expression(
-                    self.create_compare_call_statement(
+                    self.create_typed_compare_call_statement(
                         &Operator::Equal,
                         left,
                         right,
                         binary_statement,
                     )?,
-                    self.create_compare_call_statement(
+                    self.create_typed_compare_call_statement(
                         &Operator::Less,
                         left,
                         right,
                         binary_statement,
                     )?,
                 ),
+                // a >= b expression is handled as a = b OR a > b
                 Operator::GreaterOrEqual => ast::create_or_expression(
-                    self.create_compare_call_statement(
+                    self.create_typed_compare_call_statement(
                         &Operator::Equal,
                         left,
                         right,
                         binary_statement,
                     )?,
-                    self.create_compare_call_statement(
+                    self.create_typed_compare_call_statement(
                         &Operator::Greater,
                         left,
                         right,
                         binary_statement,
                     )?,
                 ),
-                _ => self.create_compare_call_statement(operator, left, right, binary_statement)?,
+                _ => self.create_typed_compare_call_statement(
+                    operator,
+                    left,
+                    right,
+                    binary_statement,
+                )?,
             };
             self.generate_expression(&call_statement)
         } else {
@@ -1664,7 +1676,9 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
         }
     }
 
-    fn create_compare_call_statement(
+    /// tries to call one of the EQUAL_XXX, LESS_XXX, GREATER_XXX functions for the
+    /// given type (of left). The given operator has to be a comparison-operator
+    fn create_typed_compare_call_statement(
         &self,
         operator: &Operator,
         left: &AstStatement,
@@ -1673,12 +1687,12 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
     ) -> Result<AstStatement, Diagnostic> {
         let left_type = self.get_type_hint_for(left)?;
         let right_type = self.get_type_hint_for(right)?;
-        let equal_function_name = crate::typesystem::get_equals_function_name_for(
+        let cmp_function_name = crate::typesystem::get_equals_function_name_for(
             left_type.get_type_information().get_name(),
             operator,
         );
 
-        equal_function_name
+        cmp_function_name
             .map(|name| {
                 crate::ast::create_call_to(
                     name,

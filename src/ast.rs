@@ -1140,7 +1140,7 @@ pub fn create_call_to(
         }),
         parameters: Box::new(Some(AstStatement::ExpressionList {
             expressions: parameters,
-            id: parameter_list_id, //use the id so we end up with the same datatype
+            id: parameter_list_id,
         })),
         location: location.clone(),
         id: function_id,
@@ -1157,7 +1157,7 @@ pub fn create_or_expression(left: AstStatement, right: AstStatement) -> AstState
     }
 }
 
-/// helper function that creates an or-expression
+/// helper function that creates an not-expression
 pub fn create_not_expression(operator: AstStatement, location: SourceRange) -> AstStatement {
     AstStatement::UnaryExpression {
         id: operator.get_id(),
@@ -1171,6 +1171,7 @@ pub fn pre_process(unit: &mut CompilationUnit) {
     pre_processor::pre_process(unit)
 }
 impl Operator {
+    /// returns true, if this operator results in a bool value
     pub(crate) fn is_bool_type(&self) -> bool {
         matches!(
             self,
@@ -1187,6 +1188,8 @@ impl Operator {
         )
     }
 
+    /// returns true, if this operator is a comparison operator
+    /// (=, <>, >, <, >=, <=)
     pub(crate) fn is_comparison_operator(&self) -> bool {
         matches!(
             self,

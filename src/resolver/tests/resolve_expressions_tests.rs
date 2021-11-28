@@ -2485,7 +2485,7 @@ fn int_compare_should_resolve_to_bool() {
 }
 
 #[test]
-fn string_compare_should_resolve_to_compare_function() {
+fn string_compare_should_resolve_to_bool() {
     //GIVEN a NULL assignment to a pointer
     let (unit, index) = index(
         r#"
