@@ -93,8 +93,8 @@ impl DataType {
     }
 
     pub fn has_nature(&self, nature: TypeNature, index: &Index) -> bool{
-        let effective_type = index.find_effective_type(self);
-        effective_type.natures.contains(&nature)
+        let intrinsic_type = index.get_intrinsic_type_by_name(self.get_name());
+        intrinsic_type.natures.contains(&nature)
     }
 }
 

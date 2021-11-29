@@ -188,7 +188,7 @@ pub fn evaluate_constants(mut index: Index) -> (Index, Vec<UnresolvableConstant>
                     .find_expression_target_type(&candidate),
             ) {
                 let candidates_type = target_type
-                    .and_then(|type_name| index.find_effective_type_by_name(type_name))
+                    .and_then(|type_name| index.find_effective_type(type_name))
                     .map(DataType::get_type_information);
 
                 let initial_value_literal = evaluate(
@@ -287,7 +287,7 @@ fn cast_if_necessary(
     target_type_name: &Option<&str>,
     index: &Index,
 ) -> AstStatement {
-    if let Some(data_type) = target_type_name.and_then(|it| index.find_effective_type_by_name(it)) {
+    if let Some(data_type) = target_type_name.and_then(|it| index.find_effective_type(it)) {
         match &literal {
             AstStatement::LiteralInteger {
                 value,
@@ -600,7 +600,7 @@ fn get_cast_statement_literal(
     index: &Index,
 ) -> Result<AstStatement, String> {
     match index
-        .find_effective_type_by_name(type_name)
+        .find_effective_type(type_name)
         .map(DataType::get_type_information)
     {
         Some(&crate::typesystem::DataTypeInformation::Integer { size, signed, .. }) => {

@@ -36,14 +36,14 @@ pub fn signed_types_tests() {
     assert_eq!(
         Some(
             index
-                .find_effective_type_by_name(STRING_TYPE)
+                .find_effective_type(STRING_TYPE)
                 .as_ref()
                 .unwrap()
                 .get_type_information()
         ),
         get_signed_type(
             index
-                .find_effective_type_by_name(STRING_TYPE)
+                .find_effective_type(STRING_TYPE)
                 .as_ref()
                 .unwrap()
                 .get_type_information(),

@@ -679,7 +679,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                 .or_else(|| {
                     self.index
                         .find_input_parameter(function_name, index as u32)
-                        .and_then(|var| self.index.find_effective_type_by_name(var.get_type_name()))
+                        .and_then(|var| self.index.find_effective_type(var.get_type_name()))
                 })
                 .map(|var| var.get_type_information());
             let generated_exp = if let Some(DataTypeInformation::Pointer {
@@ -720,11 +720,11 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
             let index = parameter.get_location_in_parent();
             let param_type = self
                 .index
-                .find_effective_type_by_name(parameter.get_type_name())
+                .find_effective_type(parameter.get_type_name())
                 .or_else(|| {
                     self.index
                         .find_input_parameter(function_name, index as u32)
-                        .and_then(|var| self.index.find_effective_type_by_name(var.get_type_name()))
+                        .and_then(|var| self.index.find_effective_type(var.get_type_name()))
                 })
                 .ok_or_else(|| {
                     Diagnostic::unknown_type(parameter.get_type_name(), left.get_location())
@@ -768,7 +768,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                 .find_member(function_name, name)
                 .ok_or_else(|| Diagnostic::unresolved_reference(name, left.get_location()))?;
             let index = parameter.get_location_in_parent();
-            let param_type = self.index.find_effective_type_by_name(parameter.get_type_name());
+            let param_type = self.index.find_effective_type(parameter.get_type_name());
             self.generate_single_parameter(
                 &ParameterContext {
                     assignment_statement: right,

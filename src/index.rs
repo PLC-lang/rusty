@@ -512,13 +512,8 @@ impl Index {
     }
 
     /// returns the effective DataType of the type with the given name if it exists
-    pub fn find_effective_type_by_name(&self, type_name: &str) -> Option<&DataType> {
+    pub fn find_effective_type(&self, type_name: &str) -> Option<&DataType> {
         self.type_index.find_effective_type_by_name(type_name)
-    }
-
-    /// returns the effective DataType of the type or the type itself 
-    pub fn find_effective_type<'idx> (&'idx self, datatype: &'idx DataType) -> &'idx DataType {
-        self.type_index.find_effective_type(datatype).unwrap_or(datatype)
     }
 
     /// returns the effective DataType of the type with the given name or an Error
@@ -530,7 +525,7 @@ impl Index {
 
     /// returns the effective DataTypeInformation of the type with the given name if it exists
     pub fn find_effective_type_info(&self, type_name: &str) -> Option<&DataTypeInformation> {
-        self.find_effective_type_by_name(type_name)
+        self.find_effective_type(type_name)
             .map(DataType::get_type_information)
     }
 
@@ -585,7 +580,7 @@ impl Index {
     }
 
     pub fn get_type_information_or_void(&self, type_name: &str) -> &DataTypeInformation {
-        self.find_effective_type_by_name(type_name)
+        self.find_effective_type(type_name)
             .map(|it| it.get_type_information())
             .unwrap_or_else(|| self.get_void_type().get_type_information())
     }
