@@ -18,15 +18,11 @@
 //! [`IEC61131-3`]: https://en.wikipedia.org/wiki/IEC_61131-3
 //! [`IR`]: https://llvm.org/docs/LangRef.html
 use std::fs;
-use std::ops::Range;
+
 use std::path::Path;
 
-use ast::{DataTypeDeclaration, PouType, SourceRange};
-use codespan_reporting::diagnostic::{self, Label};
-use codespan_reporting::files::SimpleFiles;
-use codespan_reporting::term::termcolor::{ColorChoice, StandardStream};
-use codespan_reporting::term::{self, Chars, Styles};
-use compile_error::CompileError;
+use ast::{PouType, SourceRange};
+use diagnostics::Diagnostic;
 use encoding_rs::Encoding;
 use encoding_rs_io::DecodeReaderBytesBuilder;
 use index::Index;
@@ -39,11 +35,12 @@ use std::{fs::File, io::Read};
 use validation::Validator;
 
 use crate::ast::CompilationUnit;
+use crate::diagnostics::Diagnostician;
 use crate::resolver::{AnnotationMap, TypeAnnotator};
 mod ast;
 pub mod cli;
 mod codegen;
-pub mod compile_error;
+pub mod diagnostics;
 pub mod index;
 mod lexer;
 mod parser;
@@ -55,297 +52,6 @@ mod validation;
 #[macro_use]
 #[cfg(test)]
 extern crate pretty_assertions;
-
-#[derive(PartialEq, Debug, Clone)]
-pub enum Diagnostic {
-    SyntaxError {
-        message: String,
-        range: SourceRange,
-        err_no: ErrNo,
-    },
-    ImprovementSuggestion {
-        message: String,
-        range: SourceRange,
-    },
-}
-
-#[allow(non_camel_case_types)]
-#[derive(PartialEq, Debug, Clone)]
-pub enum ErrNo {
-    undefined,
-
-    //syntax
-    syntax__generic_error,
-    syntax__missing_token,
-    syntax__unexpected_token,
-
-    //semantic
-    // pou related
-    pou__missing_return_type,
-    pou__unexpected_return_type,
-    pou__unsupported_return_type,
-    pou__empty_variable_block,
-
-    //variable related
-    var__unresolved_constant,
-    var__invalid_constant_block,
-    var__invalid_constant,
-    var__cannot_assign_to_const,
-    var__invalid_assignment,
-
-    //reference related
-    reference__unresolved,
-
-    //type related
-    type__literal_out_of_range,
-    type__incompatible_literal_cast,
-    type__incompatible_directaccess,
-    type__incompatible_directaccess_variable,
-    type__incompatible_directaccess_range,
-    type__expected_literal,
-}
-
-impl Diagnostic {
-    pub fn syntax_error(message: &str, range: SourceRange) -> Diagnostic {
-        Diagnostic::SyntaxError {
-            message: message.to_string(),
-            range,
-            err_no: ErrNo::syntax__generic_error,
-        }
-    }
-
-    pub fn unexpected_token_found(expected: &str, found: &str, range: SourceRange) -> Diagnostic {
-        Diagnostic::SyntaxError {
-            message: format!(
-                "Unexpected token: expected {} but found {}",
-                expected, found
-            ),
-            range,
-            err_no: ErrNo::syntax__unexpected_token,
-        }
-    }
-
-    pub fn unexpected_initializer_on_function_return(range: SourceRange) -> Diagnostic {
-        Diagnostic::SyntaxError {
-            message: "Return types cannot have a default value".into(),
-            range,
-            err_no: ErrNo::syntax__unexpected_token,
-        }
-    }
-
-    pub fn return_type_not_supported(pou_type: &PouType, range: SourceRange) -> Diagnostic {
-        Diagnostic::SyntaxError {
-            message: format!(
-                "POU Type {:?} does not support a return type. Did you mean Function?",
-                pou_type
-            ),
-            range,
-            err_no: ErrNo::pou__unexpected_return_type,
-        }
-    }
-
-    pub fn function_unsupported_return_type(data_type: &DataTypeDeclaration) -> Diagnostic {
-        Diagnostic::SyntaxError {
-            message: format!(
-                "Data Type {:?} not supported as a function return type!",
-                data_type
-            ),
-            range: data_type.get_location(),
-            err_no: ErrNo::pou__unsupported_return_type,
-        }
-    }
-
-    pub fn function_return_missing(range: SourceRange) -> Diagnostic {
-        Diagnostic::SyntaxError {
-            message: "Function Return type missing".into(),
-            range,
-            err_no: ErrNo::pou__missing_return_type,
-        }
-    }
-
-    pub fn missing_token(epxected_token: &str, range: SourceRange) -> Diagnostic {
-        Diagnostic::SyntaxError {
-            message: format!("Missing expected Token {}", epxected_token),
-            range,
-            err_no: ErrNo::syntax__missing_token,
-        }
-    }
-
-    pub fn missing_action_container(range: SourceRange) -> Diagnostic {
-        Diagnostic::SyntaxError {
-            message: "Missing Actions Container Name".to_string(),
-            range,
-            err_no: ErrNo::undefined,
-        }
-    }
-
-    pub fn unrseolved_reference(reference: &str, location: SourceRange) -> Diagnostic {
-        Diagnostic::SyntaxError {
-            message: format!("Could not resolve reference to {:}", reference),
-            range: location,
-            err_no: ErrNo::reference__unresolved,
-        }
-    }
-
-    pub fn incompatible_directaccess(
-        access_type: &str,
-        access_size: u64,
-        location: SourceRange,
-    ) -> Diagnostic {
-        Diagnostic::SyntaxError {
-            message: format!(
-                "{}-Wise access requires a Numerical type larger than {} bits",
-                access_type, access_size
-            ),
-            range: location,
-            err_no: ErrNo::type__incompatible_directaccess,
-        }
-    }
-
-    pub fn incompatible_directaccess_range(
-        access_type: &str,
-        target_type: &str,
-        access_range: Range<u64>,
-        location: SourceRange,
-    ) -> Diagnostic {
-        Diagnostic::SyntaxError {
-            message: format!(
-                "{}-Wise access for type {} must be in the range {}..{}",
-                access_type, target_type, access_range.start, access_range.end
-            ),
-            range: location,
-            err_no: ErrNo::type__incompatible_directaccess_range,
-        }
-    }
-
-    pub fn incompatible_directaccess_variable(
-        access_type: &str,
-        location: SourceRange,
-    ) -> Diagnostic {
-        Diagnostic::SyntaxError {
-            message: format!(
-                "Invalid type {} for direct variable access. Only variables of Integer types are allowed",
-                access_type
-            ),
-            range: location,
-            err_no: ErrNo::type__incompatible_directaccess_variable,
-        }
-    }
-
-    pub fn incompatible_literal_cast(
-        cast_type: &str,
-        literal_type: &str,
-        location: SourceRange,
-    ) -> Diagnostic {
-        Diagnostic::SyntaxError {
-            message: format!(
-                "Literal {:} is not campatible to {:}",
-                literal_type, cast_type
-            ),
-            range: location,
-            err_no: ErrNo::type__incompatible_literal_cast,
-        }
-    }
-
-    pub fn literal_expected(location: SourceRange) -> Diagnostic {
-        Diagnostic::SyntaxError {
-            message: "Expected literal".into(),
-            range: location,
-            err_no: ErrNo::type__expected_literal,
-        }
-    }
-
-    pub fn literal_out_of_range(
-        literal: &str,
-        range_hint: &str,
-        location: SourceRange,
-    ) -> Diagnostic {
-        Diagnostic::SyntaxError {
-            message: format!("Literal {:} out of range ({})", literal, range_hint),
-            range: location,
-            err_no: ErrNo::type__literal_out_of_range,
-        }
-    }
-
-    pub fn empty_variable_block(location: SourceRange) -> Diagnostic {
-        Diagnostic::SyntaxError {
-            message: "Variable block is empty".into(),
-            range: location,
-            err_no: ErrNo::pou__empty_variable_block,
-        }
-    }
-
-    pub fn unresolved_constant(
-        constant_name: &str,
-        reason: Option<&str>,
-        location: SourceRange,
-    ) -> Diagnostic {
-        Diagnostic::SyntaxError {
-            message: format!(
-                "Unresolved constant '{:}' variable{:}",
-                constant_name,
-                reason
-                    .map(|it| format!(": {:}", it))
-                    .unwrap_or_else(|| "".into()),
-            ),
-            range: location,
-            err_no: ErrNo::pou__empty_variable_block,
-        }
-    }
-
-    pub fn invalid_constant_block(location: SourceRange) -> Diagnostic {
-        Diagnostic::SyntaxError {
-            message: "This variable block does not support the CONSTANT modifier".to_string(),
-            range: location,
-            err_no: ErrNo::var__invalid_constant_block,
-        }
-    }
-
-    pub fn invalid_constant(constant_name: &str, location: SourceRange) -> Diagnostic {
-        Diagnostic::SyntaxError {
-            message: format!("Invalid constant {:} - Functionblock- and Class-instances cannot be delcared constant", constant_name),
-            range: location,
-            err_no: ErrNo::var__invalid_constant,
-        }
-    }
-
-    pub fn cannot_assign_to_constant(qualified_name: &str, location: SourceRange) -> Diagnostic {
-        Diagnostic::SyntaxError {
-            message: format!("Cannot assign to CONSTANT '{:}'", qualified_name),
-            range: location,
-            err_no: ErrNo::var__cannot_assign_to_const,
-        }
-    }
-
-    pub fn invalid_assignment(
-        right_type: &str,
-        left_type: &str,
-        location: SourceRange,
-    ) -> Diagnostic {
-        Diagnostic::SyntaxError {
-            message: format!(
-                "Invalid assignment: cannot assign '{:}' to '{:}'",
-                right_type, left_type
-            ),
-            range: location,
-            err_no: ErrNo::var__invalid_assignment,
-        }
-    }
-
-    pub fn get_message(&self) -> &str {
-        match self {
-            Diagnostic::SyntaxError { message, .. } => message.as_str(),
-            Diagnostic::ImprovementSuggestion { message, .. } => message.as_str(),
-        }
-    }
-
-    pub fn get_location(&self) -> SourceRange {
-        match self {
-            Diagnostic::SyntaxError { range, .. } => range.clone(),
-            Diagnostic::ImprovementSuggestion { range, .. } => range.clone(),
-        }
-    }
-}
 
 /// SourceContainers offer source-code to be compiled via the load_source function.
 /// Furthermore it offers a location-String used when reporting diagnostics.
@@ -396,6 +102,24 @@ impl SourceContainer for SourceCode {
     }
 }
 
+impl From<&str> for SourceCode {
+    fn from(src: &str) -> Self {
+        SourceCode {
+            source: src.into(),
+            path: "external_file.st".into(),
+        }
+    }
+}
+
+impl From<String> for SourceCode {
+    fn from(source: String) -> Self {
+        SourceCode {
+            source,
+            path: "external_file.st".into(),
+        }
+    }
+}
+
 fn create_source_code<T: Read>(
     reader: &mut T,
     encoding: Option<&'static Encoding>,
@@ -425,13 +149,14 @@ fn compile_to_obj<T: SourceContainer>(
     output: &str,
     reloc: RelocMode,
     triple: TargetTriple,
-) -> Result<(), CompileError> {
+    diagnostician: Diagnostician,
+) -> Result<(), Diagnostic> {
     let initialization_config = &InitializationConfig::default();
     Target::initialize_all(initialization_config);
 
     let target = Target::from_triple(&triple).map_err(|it| {
-        CompileError::codegen_error(
-            format!("Invalid target-tripple '{:}' - {:?}", triple, it),
+        Diagnostic::codegen_error(
+            &format!("Invalid target-tripple '{:}' - {:?}", triple, it),
             SourceRange::undefined(),
         )
     })?;
@@ -447,17 +172,14 @@ fn compile_to_obj<T: SourceContainer>(
             CodeModel::Default,
         )
         .ok_or_else(|| {
-            CompileError::codegen_error(
-                "Cannot create target machine.".into(),
-                SourceRange::undefined(),
-            )
+            Diagnostic::codegen_error("Cannot create target machine.", SourceRange::undefined())
         });
 
     let c = Context::create();
-    let code_generator = compile_module(&c, sources, encoding)?;
+    let code_generator = compile_module(&c, sources, encoding, diagnostician)?;
     machine.and_then(|it| {
         it.write_to_file(&code_generator.module, FileType::Object, Path::new(output))
-            .map_err(|it| it.into())
+            .map_err(|it| Diagnostic::llvm_error(output, &it))
     })
 }
 
@@ -466,6 +188,7 @@ fn compile_to_obj<T: SourceContainer>(
 /// # Arguments
 ///
 /// * `sources` - the source to be compiled
+/// * `encoding` - The encoding to parse the files, None for UTF-8
 /// * `output` - the location on disk to save the output
 /// * `target` - an optional llvm target triple
 ///     If not provided, the machine's triple will be used.
@@ -474,13 +197,15 @@ pub fn compile_to_static_obj<T: SourceContainer>(
     encoding: Option<&'static Encoding>,
     output: &str,
     target: Option<String>,
-) -> Result<(), CompileError> {
+    diagnostician: Diagnostician,
+) -> Result<(), Diagnostic> {
     compile_to_obj(
         sources,
         encoding,
         output,
         RelocMode::Default,
         get_target_triple(target),
+        diagnostician,
     )
 }
 
@@ -489,6 +214,7 @@ pub fn compile_to_static_obj<T: SourceContainer>(
 /// # Arguments
 ///
 /// * `sources` - the source to be compiled
+/// * `encoding` - The encoding to parse the files, None for UTF-8
 /// * `output` - the location on disk to save the output
 /// * `target` - an optional llvm target triple
 ///     If not provided, the machine's triple will be used.
@@ -497,13 +223,15 @@ pub fn compile_to_shared_pic_object<T: SourceContainer>(
     encoding: Option<&'static Encoding>,
     output: &str,
     target: Option<String>,
-) -> Result<(), CompileError> {
+    diagnostician: Diagnostician,
+) -> Result<(), Diagnostic> {
     compile_to_obj(
         sources,
         encoding,
         output,
         RelocMode::PIC,
         get_target_triple(target),
+        diagnostician,
     )
 }
 
@@ -512,6 +240,7 @@ pub fn compile_to_shared_pic_object<T: SourceContainer>(
 /// # Arguments
 ///
 /// * `sources` - the source to be compiled
+/// * `encoding` - The encoding to parse the files, None for UTF-8
 /// * `output` - the location on disk to save the output
 /// * `target` - an optional llvm target triple
 ///     If not provided, the machine's triple will be used.
@@ -520,13 +249,15 @@ pub fn compile_to_shared_object<T: SourceContainer>(
     encoding: Option<&'static Encoding>,
     output: &str,
     target: Option<String>,
-) -> Result<(), CompileError> {
+    diagnostician: Diagnostician,
+) -> Result<(), Diagnostic> {
     compile_to_obj(
         sources,
         encoding,
         output,
         RelocMode::DynamicNoPic,
         get_target_triple(target),
+        diagnostician,
     )
 }
 
@@ -541,12 +272,32 @@ pub fn compile_to_bitcode<T: SourceContainer>(
     sources: Vec<T>,
     encoding: Option<&'static Encoding>,
     output: &str,
-) -> Result<(), CompileError> {
+    diagnostician: Diagnostician,
+) -> Result<(), Diagnostic> {
     let path = Path::new(output);
     let c = Context::create();
-    let code_generator = compile_module(&c, sources, encoding)?;
+    let code_generator = compile_module(&c, sources, encoding, diagnostician)?;
     code_generator.module.write_bitcode_to_path(path);
     Ok(())
+}
+
+///
+/// Compiles the given source into LLVM IR and saves it to the given output location
+///
+/// # Arguments
+///
+/// * `sources` - the source to be compiled
+/// * `encoding` - The encoding to parse the files, None for UTF-8
+/// * `output`  - The location to save the generated ir file
+pub fn compile_to_ir<T: SourceContainer>(
+    sources: Vec<T>,
+    encoding: Option<&'static Encoding>,
+    output: &str,
+    diagnostician: Diagnostician,
+) -> Result<(), Diagnostic> {
+    let ir = compile_to_string(sources, encoding, diagnostician)?;
+    fs::write(output, ir)
+        .map_err(|err| Diagnostic::io_write_error(output, err.to_string().as_str()))
 }
 
 ///
@@ -555,16 +306,15 @@ pub fn compile_to_bitcode<T: SourceContainer>(
 /// # Arguments
 ///
 /// * `sources` - the source to be compiled
-pub fn compile_to_ir<T: SourceContainer>(
+/// * `encoding` - The encoding to parse the files, None for UTF-8
+pub fn compile_to_string<T: SourceContainer>(
     sources: Vec<T>,
     encoding: Option<&'static Encoding>,
-    output: &str,
-) -> Result<(), CompileError> {
+    diagnostician: Diagnostician,
+) -> Result<String, Diagnostic> {
     let c = Context::create();
-    let code_gen = compile_module(&c, sources, encoding)?;
-    let ir = code_gen.module.print_to_string().to_string();
-    fs::write(output, ir)
-        .map_err(|err| CompileError::io_write_error(output.into(), err.to_string()))
+    let code_gen = compile_module(&c, sources, encoding, diagnostician)?;
+    Ok(code_gen.module.print_to_string().to_string())
 }
 
 ///
@@ -574,14 +324,15 @@ pub fn compile_to_ir<T: SourceContainer>(
 ///
 /// * `context` - the LLVM Context to be used for the compilation
 /// * `sources` - the source to be compiled
+/// * `encoding` - The encoding to parse the files, None for UTF-8
 pub fn compile_module<'c, T: SourceContainer>(
     context: &'c Context,
     sources: Vec<T>,
     encoding: Option<&'static Encoding>,
-) -> Result<codegen::CodeGen<'c>, CompileError> {
+    mut diagnostician: Diagnostician,
+) -> Result<codegen::CodeGen<'c>, Diagnostic> {
     let mut full_index = Index::new();
     let id_provider = IdProvider::default();
-    let mut files: SimpleFiles<String, String> = SimpleFiles::new();
 
     let mut all_units = Vec::new();
 
@@ -591,8 +342,7 @@ pub fn compile_module<'c, T: SourceContainer>(
         let location: String = container.get_location().into();
         let e = container
             .load_source(encoding)
-            .map_err(|err| CompileError::io_read_error(err, location.clone()))?;
-        let file_id = files.add(location.clone(), e.source.clone());
+            .map_err(|err| Diagnostic::io_read_error(location.as_str(), err.as_str()))?;
 
         let (mut parse_result, diagnostics) =
             parser::parse(lexer::lex_with_ids(e.source.as_str(), id_provider.clone()));
@@ -601,6 +351,9 @@ pub fn compile_module<'c, T: SourceContainer>(
         ast::pre_process(&mut parse_result);
         //index the pou
         full_index.import(index::visitor::visit(&parse_result, id_provider.clone()));
+
+        //register the file with the diagnstician, so diagnostics are later able to show snippets from the code
+        let file_id = diagnostician.register_file(location.clone(), e.source);
         all_units.push((file_id, diagnostics, parse_result));
     }
 
@@ -609,64 +362,36 @@ pub fn compile_module<'c, T: SourceContainer>(
 
     // ### PHASE 2 ###
     // annotation & validation everything
-    type AnnotatedAst<'a> = (&'a CompilationUnit, AnnotationMap);
-    let mut annotated_units: Vec<AnnotatedAst> = Vec::new();
-    for (file_id, syntax_errors, unit) in all_units.iter() {
-        let annotations = TypeAnnotator::visit_unit(&full_index, unit);
+    let mut annotated_units: Vec<CompilationUnit> = Vec::new();
+    let mut all_annotations = AnnotationMap::default();
+    for (file_id, syntax_errors, unit) in all_units.into_iter() {
+        let annotations = TypeAnnotator::visit_unit(&full_index, &unit);
 
         let mut validator = Validator::new();
-        validator.visit_unit(&annotations, &full_index, unit);
+        validator.visit_unit(&annotations, &full_index, &unit);
         //log errors
-        report_diagnostics(*file_id, syntax_errors.iter(), &files)?;
-        report_diagnostics(*file_id, validator.diagnostics().iter(), &files)?;
+        diagnostician.handle(syntax_errors, file_id);
+        diagnostician.handle(validator.diagnostics(), file_id);
 
-        annotated_units.push((unit, annotations));
+        annotated_units.push(unit);
+        all_annotations.import(annotations);
     }
 
     // ### PHASE 3 ###
     // - codegen
     let code_generator = codegen::CodeGen::new(context, "main");
-
-    for (unit, annotations) in annotated_units {
-        code_generator.generate(unit, &annotations, &full_index)?;
+    //Associate the index type with LLVM types
+    let llvm_index = code_generator.generate_llvm_index(&all_annotations, &full_index)?;
+    for unit in annotated_units {
+        code_generator.generate(&unit, &all_annotations, &full_index, &llvm_index)?;
     }
     Ok(code_generator)
 }
 
-fn report_diagnostics(
-    file_id: usize,
-    semantic_diagnostics: std::slice::Iter<Diagnostic>,
-    files: &SimpleFiles<String, String>,
-) -> Result<(), CompileError> {
-    for error in semantic_diagnostics {
-        let diag = diagnostic::Diagnostic::error()
-            .with_message(error.get_message())
-            .with_labels(vec![Label::primary(
-                file_id,
-                error.get_location().get_start()..error.get_location().get_end(),
-            )]);
-        let writer = StandardStream::stderr(ColorChoice::Always);
-        let config = codespan_reporting::term::Config {
-            display_style: term::DisplayStyle::Rich,
-            tab_width: 2,
-            styles: Styles::default(),
-            chars: Chars::default(),
-            start_context_lines: 5,
-            end_context_lines: 3,
-        };
-
-        term::emit(&mut writer.lock(), &config, files, &diag).map_err(|err| {
-            CompileError::codegen_error(
-                format!("Cannot print errors {:#?}", err),
-                SourceRange::undefined(),
-            )
-        })?;
-    }
-    Ok(())
-}
-
 #[cfg(test)]
 mod tests {
+    mod multi_files;
+
     use inkwell::targets::TargetMachine;
 
     use crate::{create_source_code, get_target_triple};

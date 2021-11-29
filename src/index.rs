@@ -3,7 +3,7 @@ use indexmap::IndexMap;
 
 use crate::{
     ast::{Implementation, PouType, SourceRange},
-    compile_error::CompileError,
+    diagnostics::Diagnostic,
     typesystem::*,
 };
 
@@ -23,11 +23,11 @@ pub struct VariableIndexEntry {
     /// an optional initial value of this variable
     pub initial_value: Option<ConstId>,
     /// the type of variable
-    variable_type: VariableType,
+    pub variable_type: VariableType,
     /// true if this variable is a compile-time-constant
     is_constant: bool,
     /// the variable's datatype
-    data_type_name: String,
+    pub data_type_name: String,
     /// the index of the member-variable in it's container (e.g. struct). defautls to 0 (Single variables)
     location_in_parent: u32,
     /// the location in the original source-file
@@ -224,9 +224,9 @@ impl TypeIndex {
             .unwrap_or(&self.void_type)
     }
 
-    pub fn get_type(&self, type_name: &str) -> Result<&DataType, CompileError> {
+    pub fn get_type(&self, type_name: &str) -> Result<&DataType, Diagnostic> {
         self.find_type(type_name)
-            .ok_or_else(|| CompileError::unknown_type(type_name, SourceRange::undefined()))
+            .ok_or_else(|| Diagnostic::unknown_type(type_name, SourceRange::undefined()))
     }
 
     /// Retrieves the "Effective" type behind this datatype
@@ -531,10 +531,10 @@ impl Index {
     }
 
     /// returns the effective DataType of the type with the given name or an Error
-    pub fn get_effective_type(&self, type_name: &str) -> Result<&DataType, CompileError> {
+    pub fn get_effective_type(&self, type_name: &str) -> Result<&DataType, Diagnostic> {
         self.type_index
             .find_effective_type_by_name(type_name)
-            .ok_or_else(|| CompileError::unknown_type(type_name, SourceRange::undefined()))
+            .ok_or_else(|| Diagnostic::unknown_type(type_name, SourceRange::undefined()))
     }
 
     /// returns the effective DataTypeInformation of the type with the given name if it exists
@@ -549,7 +549,23 @@ impl Index {
         self.type_index.get_effective_type_by_name(type_name)
     }
 
-    pub fn get_type(&self, type_name: &str) -> Result<&DataType, CompileError> {
+    /// returns the intrinsic type of the type with the given name or the
+    /// void-type if the given name does not exist
+    /// returns the real type behind aliases and subRanges (while effective_types will only
+    /// resolve aliases)
+    pub fn get_intrinsic_type_by_name(&self, type_name: &str) -> &DataType {
+        let effective_type = self.type_index.get_effective_type_by_name(type_name);
+        if let DataTypeInformation::SubRange {
+            referenced_type, ..
+        } = effective_type.get_type_information()
+        {
+            self.get_intrinsic_type_by_name(referenced_type.as_str())
+        } else {
+            effective_type
+        }
+    }
+
+    pub fn get_type(&self, type_name: &str) -> Result<&DataType, Diagnostic> {
         self.type_index.get_type(type_name)
     }
 
@@ -561,7 +577,7 @@ impl Index {
     }
 
     pub fn find_return_variable(&self, pou_name: &str) -> Option<&VariableIndexEntry> {
-        let members = self.member_variables.get(&pou_name.to_lowercase()); //.ok_or_else(||CompileError::unknown_type(pou_name, 0..0))?;
+        let members = self.member_variables.get(&pou_name.to_lowercase()); //.ok_or_else(||Diagnostic::unknown_type(pou_name, 0..0))?;
         if let Some(members) = members {
             for (_, variable) in members {
                 if variable.variable_type == VariableType::Return {

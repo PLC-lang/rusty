@@ -151,6 +151,11 @@ impl AnnotationMap {
         }
     }
 
+    pub fn import(&mut self, other: AnnotationMap) {
+        self.type_map.extend(other.type_map);
+        self.type_hint_map.extend(other.type_hint_map);
+    }
+
     /// annotates the given statement (using it's `get_id()`) with the given type-name
     pub fn annotate(&mut self, s: &AstStatement, annotation: StatementAnnotation) {
         self.type_map.insert(s.get_id(), annotation);
@@ -184,6 +189,15 @@ impl AnnotationMap {
         index: &'i Index,
     ) -> Option<&'i typesystem::DataType> {
         self.get_from_map(s, &self.type_hint_map, index)
+    }
+
+    pub fn get_hint_or_void<'i>(
+        &self,
+        s: &AstStatement,
+        index: &'i Index,
+    ) -> &'i typesystem::DataType {
+        self.get_from_map(s, &self.type_hint_map, index)
+            .unwrap_or_else(|| index.get_void_type())
     }
 
     /// returns the annotated type
@@ -719,6 +733,9 @@ impl<'i> TypeAnnotator<'i> {
                     };
                     self.annotation_map
                         .annotate(statement, StatementAnnotation::value(target_name));
+                } else if operator.is_bool_type() {
+                    self.annotation_map
+                        .annotate(statement, StatementAnnotation::value(BOOL_TYPE));
                 }
             }
             AstStatement::UnaryExpression {
@@ -1043,6 +1060,7 @@ impl<'i> TypeAnnotator<'i> {
         }
     }
 }
+
 fn find_implementation_annotation(name: &str, index: &Index) -> Option<StatementAnnotation> {
     index
         .find_implementation(name)

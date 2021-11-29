@@ -1,12 +1,13 @@
+use crate::diagnostics::Diagnostic;
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-use crate::{ast::SourceRange, compile_error::CompileError};
+use crate::ast::SourceRange;
 use inkwell::types::BasicTypeEnum;
 use inkwell::values::{BasicValueEnum, FunctionValue, GlobalValue, PointerValue};
 use std::collections::HashMap;
 
 /// Index view containing declared values for the current context
 /// Parent Index is the a fallback lookup index for values not declared locally
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub struct LlvmTypedIndex<'ink> {
     parent_index: Option<&'ink LlvmTypedIndex<'ink>>,
     type_associations: HashMap<String, BasicTypeEnum<'ink>>,
@@ -68,7 +69,7 @@ impl<'ink> LlvmTypedIndex<'ink> {
         &mut self,
         type_name: &str,
         target_type: BasicTypeEnum<'ink>,
-    ) -> Result<(), CompileError> {
+    ) -> Result<(), Diagnostic> {
         self.type_associations
             .insert(type_name.to_lowercase(), target_type);
         Ok(())
@@ -88,7 +89,7 @@ impl<'ink> LlvmTypedIndex<'ink> {
         &mut self,
         type_name: &str,
         initial_value: BasicValueEnum<'ink>,
-    ) -> Result<(), CompileError> {
+    ) -> Result<(), Diagnostic> {
         self.initial_value_associations
             .insert(type_name.to_lowercase(), initial_value);
         Ok(())
@@ -99,7 +100,7 @@ impl<'ink> LlvmTypedIndex<'ink> {
         container_name: &str,
         variable_name: &str,
         target_value: PointerValue<'ink>,
-    ) -> Result<(), CompileError> {
+    ) -> Result<(), Diagnostic> {
         let qualified_name = format!("{}.{}", container_name, variable_name);
         self.loaded_variable_associations
             .insert(qualified_name.to_lowercase(), target_value);
@@ -129,12 +130,9 @@ impl<'ink> LlvmTypedIndex<'ink> {
             })
     }
 
-    pub fn get_associated_type(
-        &self,
-        type_name: &str,
-    ) -> Result<BasicTypeEnum<'ink>, CompileError> {
+    pub fn get_associated_type(&self, type_name: &str) -> Result<BasicTypeEnum<'ink>, Diagnostic> {
         self.find_associated_type(type_name)
-            .ok_or_else(|| CompileError::unknown_type(type_name, SourceRange::undefined()))
+            .ok_or_else(|| Diagnostic::unknown_type(type_name, SourceRange::undefined()))
     }
 
     pub fn get_associated_pou_type(
@@ -160,7 +158,7 @@ impl<'ink> LlvmTypedIndex<'ink> {
         &mut self,
         variable_name: &str,
         global_variable: GlobalValue<'ink>,
-    ) -> Result<(), CompileError> {
+    ) -> Result<(), Diagnostic> {
         self.initial_value_associations.insert(
             variable_name.to_lowercase(),
             global_variable.as_pointer_value().into(),
@@ -172,7 +170,7 @@ impl<'ink> LlvmTypedIndex<'ink> {
         &mut self,
         callable_name: &str,
         function_value: FunctionValue<'ink>,
-    ) -> Result<(), CompileError> {
+    ) -> Result<(), Diagnostic> {
         self.implementations
             .insert(callable_name.to_lowercase(), function_value);
         Ok(())

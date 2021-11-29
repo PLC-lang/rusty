@@ -1,6 +1,6 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use crate::{
-    compile_error::CompileError,
+    diagnostics::Diagnostic,
     test_utils::tests::{codegen, codegen_without_unwrap, generate_with_empty_program},
 };
 use pretty_assertions::assert_eq;
@@ -5265,9 +5265,8 @@ fn struct_initializer_needs_assignments() {
     let result = codegen_without_unwrap(source);
     assert_eq!(
         result,
-        Err(CompileError::codegen_error(
-            "struct literal must consist of explicit assignments in the form of member := value"
-                .to_string(),
+        Err(Diagnostic::codegen_error(
+            "struct literal must consist of explicit assignments in the form of member := value",
             (185..186).into()
         ))
     );
