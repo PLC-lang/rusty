@@ -1,11 +1,11 @@
 use crate::{
-    ast::{CompilationUnit, TypeNature},
+    ast::{CompilationUnit, Operator, TypeNature},
     index::visitor::visit,
     lexer::IdProvider,
     typesystem::{
-        self, get_signed_type, Dimension, BYTE_TYPE, DINT_TYPE, DWORD_TYPE, INT_TYPE, LINT_TYPE,
-        LREAL_TYPE, LWORD_TYPE, REAL_TYPE, SINT_TYPE, STRING_TYPE, UDINT_TYPE, UINT_TYPE,
-        ULINT_TYPE, USINT_TYPE, WORD_TYPE,
+        self, get_equals_function_name_for, get_signed_type, Dimension, BYTE_TYPE, DINT_TYPE,
+        DWORD_TYPE, INT_TYPE, LINT_TYPE, LREAL_TYPE, LWORD_TYPE, REAL_TYPE, SINT_TYPE, STRING_TYPE,
+        UDINT_TYPE, UINT_TYPE, ULINT_TYPE, USINT_TYPE, WORD_TYPE,
     },
 };
 
@@ -49,6 +49,34 @@ pub fn signed_types_tests() {
                 .get_type_information(),
             &index
         )
+    );
+}
+
+#[test]
+pub fn equal_method_function_names() {
+    assert_eq!(
+        Some("STRING_EQUAL".to_string()),
+        get_equals_function_name_for("STRING", &Operator::Equal)
+    );
+    assert_eq!(
+        Some("MY_TYPE_EQUAL".to_string()),
+        get_equals_function_name_for("MY_TYPE", &Operator::Equal)
+    );
+    assert_eq!(
+        Some("STRING_LESS".to_string()),
+        get_equals_function_name_for("STRING", &Operator::Less)
+    );
+    assert_eq!(
+        Some("MY_TYPE_LESS".to_string()),
+        get_equals_function_name_for("MY_TYPE", &Operator::Less)
+    );
+    assert_eq!(
+        Some("STRING_GREATER".to_string()),
+        get_equals_function_name_for("STRING", &Operator::Greater)
+    );
+    assert_eq!(
+        Some("MY_TYPE_GREATER".to_string()),
+        get_equals_function_name_for("MY_TYPE", &Operator::Greater)
     );
 }
 

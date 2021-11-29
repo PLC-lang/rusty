@@ -23,11 +23,11 @@ pub struct VariableIndexEntry {
     /// an optional initial value of this variable
     pub initial_value: Option<ConstId>,
     /// the type of variable
-    variable_type: VariableType,
+    pub variable_type: VariableType,
     /// true if this variable is a compile-time-constant
     is_constant: bool,
     /// the variable's datatype
-    data_type_name: String,
+    pub data_type_name: String,
     /// the index of the member-variable in it's container (e.g. struct). defautls to 0 (Single variables)
     location_in_parent: u32,
     /// the location in the original source-file
@@ -538,6 +538,22 @@ impl Index {
     /// void-type if the given name does not exist
     pub fn get_effective_type_by_name(&self, type_name: &str) -> &DataType {
         self.type_index.get_effective_type_by_name(type_name)
+    }
+
+    /// returns the intrinsic type of the type with the given name or the
+    /// void-type if the given name does not exist
+    /// returns the real type behind aliases and subRanges (while effective_types will only
+    /// resolve aliases)
+    pub fn get_intrinsic_type_by_name(&self, type_name: &str) -> &DataType {
+        let effective_type = self.type_index.get_effective_type_by_name(type_name);
+        if let DataTypeInformation::SubRange {
+            referenced_type, ..
+        } = effective_type.get_type_information()
+        {
+            self.get_intrinsic_type_by_name(referenced_type.as_str())
+        } else {
+            effective_type
+        }
     }
 
     pub fn get_type(&self, type_name: &str) -> Result<&DataType, Diagnostic> {

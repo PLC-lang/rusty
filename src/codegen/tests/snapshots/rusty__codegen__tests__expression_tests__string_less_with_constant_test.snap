@@ -1,0 +1,49 @@
+---
+source: src/codegen/tests/expression_tests.rs
+expression: result
+
+---
+; ModuleID = 'main'
+source_filename = "main"
+
+%STRING_LESS_interface = type { [1025 x i8], [1025 x i8] }
+%baz_interface = type { [81 x i8], i1 }
+
+define i1 @STRING_LESS(%STRING_LESS_interface* %0) {
+entry:
+  %op1 = getelementptr inbounds %STRING_LESS_interface, %STRING_LESS_interface* %0, i32 0, i32 0
+  %op2 = getelementptr inbounds %STRING_LESS_interface, %STRING_LESS_interface* %0, i32 0, i32 1
+  %STRING_LESS = alloca i1, align 1
+  %STRING_LESS_ret = load i1, i1* %STRING_LESS, align 1
+  ret i1 %STRING_LESS_ret
+}
+
+define i16 @baz(%baz_interface* %0) {
+entry:
+  %a = getelementptr inbounds %baz_interface, %baz_interface* %0, i32 0, i32 0
+  %result = getelementptr inbounds %baz_interface, %baz_interface* %0, i32 0, i32 1
+  %baz = alloca i16, align 2
+  %STRING_LESS_instance = alloca %STRING_LESS_interface, align 8
+  br label %input
+
+input:                                            ; preds = %entry
+  %1 = getelementptr inbounds %STRING_LESS_interface, %STRING_LESS_interface* %STRING_LESS_instance, i32 0, i32 0
+  %load_a = load [81 x i8], [81 x i8]* %a, align 1
+  store [81 x i8] %load_a, [1025 x i8]* %1, align 1
+  %2 = getelementptr inbounds %STRING_LESS_interface, %STRING_LESS_interface* %STRING_LESS_instance, i32 0, i32 1
+  store [2 x i8] c"b\00", [1025 x i8]* %2, align 1
+  br label %call
+
+call:                                             ; preds = %input
+  %call1 = call i1 @STRING_LESS(%STRING_LESS_interface* %STRING_LESS_instance)
+  br label %output
+
+output:                                           ; preds = %call
+  br label %continue
+
+continue:                                         ; preds = %output
+  store i1 %call1, i1* %result, align 1
+  %baz_ret = load i16, i16* %baz, align 2
+  ret i16 %baz_ret
+}
+

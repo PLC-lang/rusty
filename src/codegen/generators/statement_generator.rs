@@ -774,17 +774,12 @@ fn create_call_to_check_function_ast(
     location: &SourceRange,
 ) -> AstStatement {
     let range_type_id = sub_range.start.get_id();
-    AstStatement::CallStatement {
-        operator: Box::new(AstStatement::Reference {
-            name: check_function_name,
-            location: location.clone(),
-            id: target.get_id(), //TODO
-        }),
-        parameters: Box::new(Some(AstStatement::ExpressionList {
-            expressions: vec![parameter, sub_range.start, sub_range.end],
-            id: range_type_id, //use the id so we end up with the same datatype
-        })),
-        location: location.clone(),
-        id: target.get_id(), //TODO
-    }
+    let target_id = target.get_id();
+    crate::ast::create_call_to(
+        check_function_name,
+        vec![parameter, sub_range.start, sub_range.end],
+        target_id,
+        range_type_id,
+        location,
+    )
 }

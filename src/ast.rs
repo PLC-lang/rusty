@@ -1101,10 +1101,54 @@ pub fn flatten_expression_list(condition: &AstStatement) -> Vec<&AstStatement> {
     }
 }
 
+/// helper function that creates a call-statement
+pub fn create_call_to(
+    function_name: String,
+    parameters: Vec<AstStatement>,
+    function_id: usize,
+    parameter_list_id: usize,
+    location: &SourceRange,
+) -> AstStatement {
+    AstStatement::CallStatement {
+        operator: Box::new(AstStatement::Reference {
+            name: function_name,
+            location: location.clone(),
+            id: function_id,
+        }),
+        parameters: Box::new(Some(AstStatement::ExpressionList {
+            expressions: parameters,
+            id: parameter_list_id,
+        })),
+        location: location.clone(),
+        id: function_id,
+    }
+}
+
+/// helper function that creates an or-expression
+pub fn create_or_expression(left: AstStatement, right: AstStatement) -> AstStatement {
+    AstStatement::BinaryExpression {
+        id: left.get_id(),
+        left: Box::new(left),
+        right: Box::new(right),
+        operator: Operator::Or,
+    }
+}
+
+/// helper function that creates an not-expression
+pub fn create_not_expression(operator: AstStatement, location: SourceRange) -> AstStatement {
+    AstStatement::UnaryExpression {
+        id: operator.get_id(),
+        value: Box::new(operator),
+        location,
+        operator: Operator::Not,
+    }
+}
+
 pub fn pre_process(unit: &mut CompilationUnit) {
     pre_processor::pre_process(unit)
 }
 impl Operator {
+    /// returns true, if this operator results in a bool value
     pub(crate) fn is_bool_type(&self) -> bool {
         matches!(
             self,
@@ -1118,6 +1162,20 @@ impl Operator {
                 | Operator::And
                 | Operator::Or
                 | Operator::Xor
+        )
+    }
+
+    /// returns true, if this operator is a comparison operator
+    /// (=, <>, >, <, >=, <=)
+    pub(crate) fn is_comparison_operator(&self) -> bool {
+        matches!(
+            self,
+            Operator::Equal
+                | Operator::NotEqual
+                | Operator::Less
+                | Operator::Greater
+                | Operator::LessOrEqual
+                | Operator::GreaterOrEqual
         )
     }
 }
