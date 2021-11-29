@@ -2,12 +2,13 @@
 use std::{mem::size_of, ops::Range};
 
 use crate::{
-    ast::{AstStatement, PouType},
+    ast::{AstStatement, Operator, PouType},
     index::{const_expressions::ConstId, Index},
 };
 
 pub const DEFAULT_STRING_LEN: u32 = 80;
 
+// Ranged type check functions names
 pub const RANGE_CHECK_S_FN: &str = "CheckRangeSigned";
 pub const RANGE_CHECK_LS_FN: &str = "CheckLRangeSigned";
 pub const RANGE_CHECK_U_FN: &str = "CheckRangeUnsigned";
@@ -662,15 +663,31 @@ pub fn get_signed_type<'t>(
     Some(data_type)
 }
 
+/**
+ * returns the compare-function name for the given type and operator.
+ * Returns None if the given operator is no comparison operator
+ */
+pub fn get_equals_function_name_for(type_name: &str, operator: &Operator) -> Option<String> {
+    let suffix = match operator {
+        Operator::Equal => Some("EQUAL"),
+        Operator::Less => Some("LESS"),
+        Operator::Greater => Some("GREATER"),
+        _ => None,
+    };
+
+    suffix.map(|suffix| format!("{}_{}", type_name, suffix))
+}
+
 #[cfg(test)]
 mod tests {
     use crate::{
-        ast::CompilationUnit,
+        ast::{CompilationUnit, Operator},
         index::visitor::visit,
         lexer::IdProvider,
         typesystem::{
-            get_signed_type, BYTE_TYPE, DINT_TYPE, DWORD_TYPE, INT_TYPE, LINT_TYPE, LWORD_TYPE,
-            SINT_TYPE, STRING_TYPE, UDINT_TYPE, UINT_TYPE, ULINT_TYPE, USINT_TYPE, WORD_TYPE,
+            get_equals_function_name_for, get_signed_type, BYTE_TYPE, DINT_TYPE, DWORD_TYPE,
+            INT_TYPE, LINT_TYPE, LWORD_TYPE, SINT_TYPE, STRING_TYPE, UDINT_TYPE, UINT_TYPE,
+            ULINT_TYPE, USINT_TYPE, WORD_TYPE,
         },
     };
 
@@ -712,6 +729,34 @@ mod tests {
                     .get_type_information(),
                 &index
             )
+        );
+    }
+
+    #[test]
+    pub fn equal_method_function_names() {
+        assert_eq!(
+            Some("STRING_EQUAL".to_string()),
+            get_equals_function_name_for("STRING", &Operator::Equal)
+        );
+        assert_eq!(
+            Some("MY_TYPE_EQUAL".to_string()),
+            get_equals_function_name_for("MY_TYPE", &Operator::Equal)
+        );
+        assert_eq!(
+            Some("STRING_LESS".to_string()),
+            get_equals_function_name_for("STRING", &Operator::Less)
+        );
+        assert_eq!(
+            Some("MY_TYPE_LESS".to_string()),
+            get_equals_function_name_for("MY_TYPE", &Operator::Less)
+        );
+        assert_eq!(
+            Some("STRING_GREATER".to_string()),
+            get_equals_function_name_for("STRING", &Operator::Greater)
+        );
+        assert_eq!(
+            Some("MY_TYPE_GREATER".to_string()),
+            get_equals_function_name_for("MY_TYPE", &Operator::Greater)
         );
     }
 }

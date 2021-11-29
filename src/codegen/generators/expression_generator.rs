@@ -1,6 +1,6 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use crate::{
-    ast::{DirectAccessType, SourceRange},
+    ast::{self, DirectAccessType, SourceRange},
     codegen::llvm_typesystem,
     diagnostics::{Diagnostic, INTERNAL_LLVM_ERROR},
     index::{ImplementationIndexEntry, ImplementationType, Index, VariableIndexEntry},
@@ -188,8 +188,17 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                     return self.generate_short_circuit_boolean_expression(operator, left, right);
                 }
 
-                let ltype = self.get_type_hint_info_for(left)?;
-                let rtype = self.get_type_hint_info_for(right)?;
+                let l_type_hint = self.get_type_hint_for(left)?;
+                let ltype = self
+                    .index
+                    .get_intrinsic_type_by_name(l_type_hint.get_name())
+                    .get_type_information();
+
+                let r_type_hint = self.get_type_hint_for(right)?;
+                let rtype = self
+                    .index
+                    .get_intrinsic_type_by_name(r_type_hint.get_name())
+                    .get_type_information();
 
                 if ltype.is_int() && rtype.is_int() {
                     Ok(self.create_llvm_int_binary_expression(
@@ -204,13 +213,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                         self.generate_expression(right)?,
                     ))
                 } else {
-                    Err(Diagnostic::codegen_error(
-                        &format!(
-                            "invalid types, cannot generate binary expression for {:?}",
-                            self.get_type_hint_info_for(expression)?
-                        ),
-                        left.get_location(),
-                    ))
+                    self.create_llvm_generic_binary_expression(operator, left, right, expression)
                 }
             }
             AstStatement::CallStatement {
@@ -1604,6 +1607,122 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
             SourceRange::undefined(),
         )?;
         Ok(value)
+    }
+
+    /// creates a binary expression (left op right) with generic
+    /// left & right expressions (non-numerics)
+    /// this function attempts to call optional
+    /// EQUAL_XXX, LESS_XXX or GREATER_XXX functions for comparison
+    /// expressions
+    fn create_llvm_generic_binary_expression(
+        &self,
+        operator: &Operator,
+        left: &AstStatement,
+        right: &AstStatement,
+        binary_statement: &AstStatement,
+    ) -> Result<BasicValueEnum<'a>, Diagnostic> {
+        if let Some(StatementAnnotation::Value { .. }) = self.annotations.get(binary_statement) {
+            // we trust that the validator only passed us valid parameters (so left & right should be same type)
+            let call_statement = match operator {
+                // a <> b expression is handled as Not(Equal(a,b))
+                Operator::NotEqual => ast::create_not_expression(
+                    self.create_typed_compare_call_statement(
+                        &Operator::Equal,
+                        left,
+                        right,
+                        binary_statement,
+                    )?,
+                    binary_statement.get_location(),
+                ),
+                // a <= b expression is handled as a = b OR a < b
+                Operator::LessOrEqual => ast::create_or_expression(
+                    self.create_typed_compare_call_statement(
+                        &Operator::Equal,
+                        left,
+                        right,
+                        binary_statement,
+                    )?,
+                    self.create_typed_compare_call_statement(
+                        &Operator::Less,
+                        left,
+                        right,
+                        binary_statement,
+                    )?,
+                ),
+                // a >= b expression is handled as a = b OR a > b
+                Operator::GreaterOrEqual => ast::create_or_expression(
+                    self.create_typed_compare_call_statement(
+                        &Operator::Equal,
+                        left,
+                        right,
+                        binary_statement,
+                    )?,
+                    self.create_typed_compare_call_statement(
+                        &Operator::Greater,
+                        left,
+                        right,
+                        binary_statement,
+                    )?,
+                ),
+                _ => self.create_typed_compare_call_statement(
+                    operator,
+                    left,
+                    right,
+                    binary_statement,
+                )?,
+            };
+            self.generate_expression(&call_statement)
+        } else {
+            Err(Diagnostic::codegen_error(
+                format!(
+                    "Invalid types, cannot generate binary expression for {:?} and {:?}",
+                    self.get_type_hint_for(left)?.get_name(),
+                    self.get_type_hint_for(right)?.get_name(),
+                )
+                .as_str(),
+                left.get_location(),
+            ))
+        }
+    }
+
+    /// tries to call one of the EQUAL_XXX, LESS_XXX, GREATER_XXX functions for the
+    /// given type (of left). The given operator has to be a comparison-operator
+    fn create_typed_compare_call_statement(
+        &self,
+        operator: &Operator,
+        left: &AstStatement,
+        right: &AstStatement,
+        binary_statement: &AstStatement,
+    ) -> Result<AstStatement, Diagnostic> {
+        let left_type = self.get_type_hint_for(left)?;
+        let right_type = self.get_type_hint_for(right)?;
+        let cmp_function_name = crate::typesystem::get_equals_function_name_for(
+            left_type.get_type_information().get_name(),
+            operator,
+        );
+
+        cmp_function_name
+            .map(|name| {
+                crate::ast::create_call_to(
+                    name,
+                    vec![left.clone(), right.clone()],
+                    binary_statement.get_id(),
+                    left.get_id(),
+                    &binary_statement.get_location(),
+                )
+            })
+            .ok_or_else(|| {
+                Diagnostic::codegen_error(
+                    format!(
+                        "Invalid operator {} for types {} and {}",
+                        operator,
+                        left_type.get_name(),
+                        right_type.get_name()
+                    )
+                    .as_str(),
+                    binary_statement.get_location(),
+                )
+            })
     }
 }
 
