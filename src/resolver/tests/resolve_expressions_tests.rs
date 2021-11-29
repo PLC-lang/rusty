@@ -2461,3 +2461,35 @@ fn null_statement_should_get_a_valid_type_hint() {
         unreachable!();
     }
 }
+
+#[test]
+fn resolve_function_with_same_name_as_return_type() {
+    //GIVEN a reference to a function with the same name as the return type
+    let (unit, index) = index(
+        "
+        FUNCTION time : TIME
+        END_FUNCTION
+
+        PROGRAM PRG
+            time();
+        END_PROGRAM
+        ",
+    );
+
+    //WHEN the AST is annotated
+    let annotations = TypeAnnotator::visit_unit(&index, &unit);
+    let statements = &unit.implementations[1].statements;
+
+    // THEN we expect it to be annotated with the function itself
+    let function_annotation = annotations.get_annotation(&statements[0]);
+    assert_eq!(
+        Some(&StatementAnnotation::Value {
+            resulting_type: "TIME".into()
+        }),
+        function_annotation
+    );
+
+    // AND we expect no type to be associated with the expression
+    let associated_type = annotations.get_type(&statements[0], &index);
+    assert_eq!(index.find_effective_type("TIME"), associated_type);
+}

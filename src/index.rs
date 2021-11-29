@@ -341,6 +341,8 @@ impl Index {
             }
             self.type_index.types.insert(name, e);
         }
+
+        //pou_types
         for (name, mut e) in other.type_index.pou_types.drain(..) {
             e.initial_value =
                 self.maybe_import_const_expr(&mut other.constant_expressions, &e.initial_value);

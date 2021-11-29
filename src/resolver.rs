@@ -212,8 +212,6 @@ impl AnnotationMap {
                 StatementAnnotation::Type { .. } => None,
                 StatementAnnotation::Program { .. } => None,
             })
-            // first search in types if none then in pou_types
-            // TODO: function name = datytype name ?
             .and_then(|type_name| index.get_type(type_name).ok())
     }
 
@@ -1077,11 +1075,7 @@ fn to_variable_annotation(
     index: &Index,
     constant_override: bool,
 ) -> StatementAnnotation {
-    // first search in types if none then in pou_types if both return none use void type
-    // TODO: function name = datytype name ?
-    let v_type = index
-        .find_effective_type(v.get_type_name())
-        .unwrap_or_else(|| index.get_void_type());
+    let v_type = index.get_effective_type_by_name(v.get_type_name());
 
     //see if this is an auto-deref variable
     let (effective_type_name, is_auto_deref) = if let DataTypeInformation::Pointer {

@@ -110,7 +110,6 @@ impl VariableValidator {
 
 /// returns whether this data_type is a function block, a class or an array/pointer of/to these
 fn data_type_is_fb_or_class_instance(type_name: &str, index: &Index) -> bool {
-    // fb/class are POUs it can only be in pou_types
     let data_type = index.find_effective_type(type_name).map_or_else(
         || index.get_void_type().get_type_information(),
         crate::typesystem::DataType::get_type_information,

@@ -10,7 +10,7 @@ use std::convert::TryInto;
 use crate::ast::SourceRange;
 use crate::index::{Index, VariableIndexEntry, VariableType};
 use crate::resolver::AnnotationMap;
-use crate::typesystem::{Dimension, StringEncoding};
+use crate::typesystem::{Dimension, StringEncoding, StructSource};
 use crate::{ast::AstStatement, compile_error::CompileError, typesystem::DataTypeInformation};
 use crate::{
     codegen::{
@@ -116,7 +116,7 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
     /// generates the members of an opaque struct and associates its initial values
     fn expand_opaque_types(&mut self, data_type: &DataType) -> Result<(), CompileError> {
         let information = data_type.get_type_information();
-        if let DataTypeInformation::Struct { .. } = information {
+        if let DataTypeInformation::Struct { source, .. } = information {
             let members = self
                 .index
                 .get_container_members(data_type.get_name())
@@ -125,10 +125,15 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
                 .map(|m| self.types_index.get_associated_type(m.get_type_name()))
                 .collect::<Result<Vec<BasicTypeEnum>, CompileError>>()?;
 
-            let struct_type = self
-                .types_index
-                .get_associated_type(data_type.get_name())
-                .map(BasicTypeEnum::into_struct_type)?;
+            let struct_type = match source {
+                StructSource::Pou(..) => self
+                    .types_index
+                    .get_associated_pou_type(data_type.get_name()),
+                StructSource::OriginalDeclaration => {
+                    self.types_index.get_associated_type(data_type.get_name())
+                }
+            }
+            .map(BasicTypeEnum::into_struct_type)?;
 
             struct_type.set_body(members.as_slice(), false);
         }
@@ -145,9 +150,14 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
     ) -> Result<BasicTypeEnum<'ink>, CompileError> {
         let information = data_type.get_type_information();
         match information {
-            DataTypeInformation::Struct { .. } => {
-                self.types_index.get_associated_type(data_type.get_name())
-            }
+            DataTypeInformation::Struct { source, .. } => match source {
+                StructSource::Pou(..) => self
+                    .types_index
+                    .get_associated_pou_type(data_type.get_name()),
+                StructSource::OriginalDeclaration => {
+                    self.types_index.get_associated_type(data_type.get_name())
+                }
+            },
             DataTypeInformation::Array {
                 inner_type_name,
                 dimensions,
@@ -209,7 +219,7 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
     ) -> Result<Option<BasicValueEnum<'ink>>, CompileError> {
         let information = data_type.get_type_information();
         match information {
-            DataTypeInformation::Struct { .. } => {
+            DataTypeInformation::Struct { source, .. } => {
                 let members = self.index.get_container_members(data_type.get_name());
                 let member_names_and_initializers = members
                     .iter()
@@ -233,10 +243,15 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
                     member_values.push(*v);
                 }
 
-                let struct_type = self
-                    .types_index
-                    .get_associated_type(data_type.get_name())?
-                    .into_struct_type();
+                let struct_type = match source {
+                    StructSource::Pou(..) => self
+                        .types_index
+                        .get_associated_pou_type(data_type.get_name()),
+                    StructSource::OriginalDeclaration => {
+                        self.types_index.get_associated_type(data_type.get_name())
+                    }
+                }?
+                .into_struct_type();
 
                 Ok(Some(
                     struct_type

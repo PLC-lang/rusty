@@ -5707,3 +5707,20 @@ fn program_with_casted_chars_assignment() {
     );
     insta::assert_snapshot!(result);
 }
+
+#[test]
+fn function_call_with_same_name_as_return_type() {
+    let result = codegen(
+        "
+		FUNCTION time : TIME
+		END_FUNCTION
+
+		PROGRAM prg
+		VAR
+		END_VAR
+			time();
+		END_PROGRAM
+		",
+    );
+    insta::assert_snapshot!(result);
+}
