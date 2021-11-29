@@ -13,7 +13,7 @@ pub type AstId = usize;
 #[derive(Clone, Debug, PartialEq)]
 pub struct GenericBinding {
     pub name: String,
-    pub nature: String,
+    pub nature: TypeNature,
 }
 
 #[derive(PartialEq)]
@@ -40,6 +40,25 @@ pub enum DirectAccessType {
     Byte,
     Word,
     DWord,
+}
+
+#[derive(Debug, PartialEq, Clone, Copy)]
+pub enum TypeNature {
+    Any,
+    Derived,
+    Elementary,
+    Magnitude,
+    Num,
+    Real,
+    Int,
+    Signed,
+    Unsigned,
+    Duration,
+    Bit,
+    Chars,
+    String,
+    Char,
+    Date,
 }
 
 impl DirectAccessType {
@@ -380,7 +399,7 @@ pub enum DataType {
     GenericType {
         name: String,
         generic_symbol: String,
-        nature: String,
+        nature: TypeNature,
     },
 }
 

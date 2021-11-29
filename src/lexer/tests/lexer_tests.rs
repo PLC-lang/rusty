@@ -1,10 +1,7 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use pretty_assertions::{assert_eq, assert_ne};
 
-use crate::{
-    ast::{DirectAccessType, SourceRange},
-    lexer::{lex, Token::*},
-};
+use crate::{ast::{DirectAccessType, SourceRange, TypeNature}, lexer::{lex, Token::*}};
 
 #[test]
 fn generic_properties() {
@@ -652,6 +649,57 @@ fn direct_access_test() {
     assert_eq!(lexer.token, LiteralInteger);
     lexer.advance();
     assert_eq!(lexer.token, End);
+}
+
+#[test]
+fn any_tokens_accepted() {
+    let mut lexer = lex(r"
+        ANY 
+            ANY_DERIVED
+            ANY_ELEMENTARY 
+                ANY_MAGNITUDE
+                    ANY_NUM 
+                        ANY_REAL 
+                        ANY_INT 
+                            ANY_SIGNED
+                            ANY_UNSIGNED
+                    ANY_DURATION
+                ANY_BIT 
+                ANY_CHARS
+                    ANY_STRING
+                    ANY_CHAR
+                ANY_DATE
+    ");
+    assert_eq!(lexer.token, Nature(TypeNature::Any));
+    lexer.advance();
+    assert_eq!(lexer.token, Nature(TypeNature::Derived));
+    lexer.advance();
+    assert_eq!(lexer.token, Nature(TypeNature::Elementary));
+    lexer.advance();
+    assert_eq!(lexer.token, Nature(TypeNature::Magnitude));
+    lexer.advance();
+    assert_eq!(lexer.token, Nature(TypeNature::Num));
+    lexer.advance();
+    assert_eq!(lexer.token, Nature(TypeNature::Real));
+    lexer.advance();
+    assert_eq!(lexer.token, Nature(TypeNature::Int));
+    lexer.advance();
+    assert_eq!(lexer.token, Nature(TypeNature::Signed));
+    lexer.advance();
+    assert_eq!(lexer.token, Nature(TypeNature::Unsigned));
+    lexer.advance();
+    assert_eq!(lexer.token, Nature(TypeNature::Duration));
+    lexer.advance();
+    assert_eq!(lexer.token, Nature(TypeNature::Bit));
+    lexer.advance();
+    assert_eq!(lexer.token, Nature(TypeNature::Chars));
+    lexer.advance();
+    assert_eq!(lexer.token, Nature(TypeNature::String));
+    lexer.advance();
+    assert_eq!(lexer.token, Nature(TypeNature::Char));
+    lexer.advance();
+    assert_eq!(lexer.token, Nature(TypeNature::Date));
+    lexer.advance();
 }
 
 #[test]

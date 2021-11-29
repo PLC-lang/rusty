@@ -1,10 +1,7 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use std::{mem::size_of, ops::Range};
 
-use crate::{
-    ast::{AstStatement, GenericBinding, PouType},
-    index::{const_expressions::ConstId, Index},
-};
+use crate::{ast::{AstStatement, GenericBinding, PouType, TypeNature}, index::{const_expressions::ConstId, Index}};
 
 pub const DEFAULT_STRING_LEN: u32 = 80;
 
@@ -77,6 +74,7 @@ pub struct DataType {
     /// the initial value defined on the TYPE-declration
     pub initial_value: Option<ConstId>,
     pub information: DataTypeInformation,
+    pub natures: Vec<TypeNature>,
     //TODO : Add location information
 }
 
@@ -91,6 +89,11 @@ impl DataType {
 
     pub fn clone_type_information(&self) -> DataTypeInformation {
         self.information.clone()
+    }
+
+    pub fn has_nature(&self, nature: TypeNature, index: &Index) -> bool{
+        let effective_type = index.find_effective_type(self);
+        effective_type.natures.contains(&nature)
     }
 }
 
@@ -204,7 +207,7 @@ pub enum DataTypeInformation {
     Generic {
         name: String,
         generic_symbol: String,
-        nature: String,
+        nature: TypeNature,
     },
     Void,
 }
@@ -326,6 +329,7 @@ impl DataTypeInformation {
             _ => unimplemented!("Alignment for {}", self.get_name()),
         }
     }
+
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -370,6 +374,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
             name: "__VOID".into(),
             initial_value: None,
             information: DataTypeInformation::Void,
+            natures: vec![],
         },
         DataType {
             name: BOOL_TYPE.into(),
@@ -379,6 +384,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
                 signed: false,
                 size: BOOL_SIZE,
             },
+            natures: vec![TypeNature::Any, TypeNature::Elementary, TypeNature::Bit],
         },
         DataType {
             name: BYTE_TYPE.into(),
@@ -388,6 +394,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
                 signed: false,
                 size: BYTE_SIZE,
             },
+            natures: vec![TypeNature::Any, TypeNature::Elementary, TypeNature::Bit],
         },
         DataType {
             name: SINT_TYPE.into(),
@@ -397,6 +404,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
                 signed: true,
                 size: SINT_SIZE,
             },
+            natures: vec![TypeNature::Any, TypeNature::Elementary, TypeNature::Num, TypeNature::Int, TypeNature::Signed],
         },
         DataType {
             name: USINT_TYPE.into(),
@@ -406,6 +414,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
                 signed: false,
                 size: SINT_SIZE,
             },
+            natures: vec![TypeNature::Any, TypeNature::Elementary, TypeNature::Num, TypeNature::Int, TypeNature::Unsigned],
         },
         DataType {
             name: WORD_TYPE.into(),
@@ -415,6 +424,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
                 signed: false,
                 size: INT_SIZE,
             },
+            natures: vec![TypeNature::Any, TypeNature::Elementary, TypeNature::Bit],
         },
         DataType {
             name: INT_TYPE.into(),
@@ -424,6 +434,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
                 signed: true,
                 size: INT_SIZE,
             },
+            natures: vec![TypeNature::Any, TypeNature::Elementary, TypeNature::Num, TypeNature::Int, TypeNature::Signed],
         },
         DataType {
             name: UINT_TYPE.into(),
@@ -433,6 +444,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
                 signed: false,
                 size: INT_SIZE,
             },
+            natures: vec![TypeNature::Any, TypeNature::Elementary, TypeNature::Num, TypeNature::Int, TypeNature::Unsigned],
         },
         DataType {
             name: DWORD_TYPE.into(),
@@ -442,6 +454,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
                 signed: false,
                 size: DINT_SIZE,
             },
+            natures: vec![TypeNature::Any, TypeNature::Elementary, TypeNature::Bit],
         },
         DataType {
             name: DINT_TYPE.into(),
@@ -451,6 +464,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
                 signed: true,
                 size: DINT_SIZE,
             },
+            natures: vec![TypeNature::Any, TypeNature::Elementary, TypeNature::Num, TypeNature::Int, TypeNature::Signed],
         },
         DataType {
             name: UDINT_TYPE.into(),
@@ -460,6 +474,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
                 signed: false,
                 size: DINT_SIZE,
             },
+            natures: vec![TypeNature::Any, TypeNature::Elementary, TypeNature::Num, TypeNature::Int, TypeNature::Unsigned],
         },
         DataType {
             name: LWORD_TYPE.into(),
@@ -469,6 +484,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
                 signed: false,
                 size: LINT_SIZE,
             },
+            natures: vec![TypeNature::Any, TypeNature::Elementary, TypeNature::Bit],
         },
         DataType {
             name: LINT_TYPE.into(),
@@ -478,6 +494,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
                 signed: true,
                 size: LINT_SIZE,
             },
+            natures: vec![TypeNature::Any, TypeNature::Elementary, TypeNature::Num, TypeNature::Int, TypeNature::Signed],
         },
         DataType {
             name: DATE_TYPE.into(),
@@ -487,6 +504,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
                 signed: true,
                 size: DATE_TIME_SIZE,
             },
+            natures: vec![TypeNature::Any, TypeNature::Elementary, TypeNature::Date],
         },
         DataType {
             name: TIME_TYPE.into(),
@@ -496,6 +514,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
                 signed: true,
                 size: DATE_TIME_SIZE,
             },
+            natures: vec![TypeNature::Any, TypeNature::Elementary, TypeNature::Num, TypeNature::Duration],
         },
         DataType {
             name: DATE_AND_TIME_TYPE.into(),
@@ -505,6 +524,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
                 signed: true,
                 size: DATE_TIME_SIZE,
             },
+            natures: vec![TypeNature::Any, TypeNature::Elementary, TypeNature::Date],
         },
         DataType {
             name: TIME_OF_DAY_TYPE.into(),
@@ -514,6 +534,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
                 signed: true,
                 size: DATE_TIME_SIZE,
             },
+            natures: vec![TypeNature::Any, TypeNature::Elementary, TypeNature::Date],
         },
         DataType {
             name: ULINT_TYPE.into(),
@@ -523,6 +544,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
                 signed: false,
                 size: LINT_SIZE,
             },
+            natures: vec![TypeNature::Any, TypeNature::Elementary, TypeNature::Num, TypeNature::Int, TypeNature::Unsigned],
         },
         DataType {
             name: REAL_TYPE.into(),
@@ -531,6 +553,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
                 name: REAL_TYPE.into(),
                 size: REAL_SIZE,
             },
+            natures: vec![TypeNature::Any, TypeNature::Elementary, TypeNature::Num, TypeNature::Real],
         },
         DataType {
             name: LREAL_TYPE.into(),
@@ -539,6 +562,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
                 name: LREAL_TYPE.into(),
                 size: LREAL_SIZE,
             },
+            natures: vec![TypeNature::Any, TypeNature::Elementary, TypeNature::Num, TypeNature::Real],
         },
         DataType {
             name: STRING_TYPE.into(),
@@ -547,6 +571,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
                 size: TypeSize::from_literal(DEFAULT_STRING_LEN + 1),
                 encoding: StringEncoding::Utf8,
             },
+            natures: vec![TypeNature::Any, TypeNature::Elementary, TypeNature::Num, TypeNature::Chars, TypeNature::String],
         },
         DataType {
             name: WSTRING_TYPE.into(),
@@ -555,6 +580,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
                 size: TypeSize::from_literal(DEFAULT_STRING_LEN + 1),
                 encoding: StringEncoding::Utf16,
             },
+            natures: vec![TypeNature::Any, TypeNature::Elementary, TypeNature::Num, TypeNature::Chars, TypeNature::String],
         },
         DataType {
             name: CONST_STRING_TYPE.into(),
@@ -563,6 +589,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
                 size: TypeSize::from_literal(u16::MAX as u32),
                 encoding: StringEncoding::Utf8,
             },
+            natures: vec![TypeNature::Any, TypeNature::Elementary, TypeNature::Num, TypeNature::Chars, TypeNature::String],
         },
         DataType {
             name: CONST_WSTRING_TYPE.into(),
@@ -571,6 +598,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
                 size: TypeSize::from_literal(u16::MAX as u32),
                 encoding: StringEncoding::Utf16,
             },
+            natures: vec![TypeNature::Any, TypeNature::Elementary, TypeNature::Num, TypeNature::Chars, TypeNature::String],
         },
         DataType {
             name: SHORT_DATE_AND_TIME_TYPE.into(),
@@ -579,6 +607,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
                 name: SHORT_DATE_AND_TIME_TYPE.into(),
                 referenced_type: DATE_AND_TIME_TYPE.into(),
             },
+            natures: vec![],
         },
         DataType {
             name: SHORT_DATE_TYPE.into(),
@@ -587,6 +616,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
                 name: SHORT_DATE_TYPE.into(),
                 referenced_type: DATE_TYPE.into(),
             },
+            natures: vec![],
         },
         DataType {
             name: SHORT_TIME_OF_DAY_TYPE.into(),
@@ -595,6 +625,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
                 name: SHORT_TIME_OF_DAY_TYPE.into(),
                 referenced_type: TIME_OF_DAY_TYPE.into(),
             },
+            natures: vec![],
         },
         DataType {
             name: SHORT_TIME_TYPE.into(),
@@ -603,6 +634,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
                 name: SHORT_TIME_TYPE.into(),
                 referenced_type: TIME_TYPE.into(),
             },
+            natures: vec![],
         },
         DataType {
             name: CHAR_TYPE.into(),
@@ -612,6 +644,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
                 signed: false,
                 size: 8,
             },
+            natures: vec![TypeNature::Any, TypeNature::Elementary, TypeNature::Num, TypeNature::Chars, TypeNature::Char],
         },
         DataType {
             name: WCHAR_TYPE.into(),
@@ -621,6 +654,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
                 signed: false,
                 size: 16,
             },
+            natures: vec![TypeNature::Any, TypeNature::Elementary, TypeNature::Num, TypeNature::Chars, TypeNature::Char],
         },
     ]
 }
@@ -645,7 +679,7 @@ fn get_rank(type_information: &DataTypeInformation) -> u32 {
 
 /// Returns true if provided types have the same type nature
 /// i.e. Both are numeric or both are floats
-pub fn is_same_type_nature(
+pub fn is_same_type_class(
     ltype: &DataTypeInformation,
     rtype: &DataTypeInformation,
     index: &Index,
@@ -673,7 +707,7 @@ pub fn get_bigger_type<
 ) -> T {
     let lt = left_type.get_type_information();
     let rt = right_type.get_type_information();
-    if is_same_type_nature(lt, rt, index) {
+    if is_same_type_class(lt, rt, index) {
         if get_rank(lt) < get_rank(rt) {
             right_type
         } else {

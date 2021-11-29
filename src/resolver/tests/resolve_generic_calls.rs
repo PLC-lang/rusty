@@ -10,7 +10,7 @@ use crate::{
 fn generic_call_annotated_with_correct_type() {
     let (unit, index) = index(
         "
-        FUNCTION myFunc<G: ANY_NUMBER> : G
+        FUNCTION myFunc<G: ANY_NUM> : G
         VAR_INPUT
             x : G;
         END_VAR
@@ -101,7 +101,7 @@ fn generic_call_annotated_with_correct_type() {
 fn generic_call_multi_params_annotated_with_correct_type() {
     let (unit, index) = index(
         "
-        FUNCTION myFunc<G: ANY_NUMBER, F : ANY_INT> : G
+        FUNCTION myFunc<G: ANY_NUM, F : ANY_INT> : G
         VAR_INPUT
             x,y : G;
             z : F;

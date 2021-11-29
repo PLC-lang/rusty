@@ -1,5 +1,5 @@
 use crate::{
-    ast::CompilationUnit,
+    ast::{CompilationUnit, TypeNature},
     index::visitor::visit,
     lexer::IdProvider,
     typesystem::{
@@ -36,14 +36,14 @@ pub fn signed_types_tests() {
     assert_eq!(
         Some(
             index
-                .find_effective_type(STRING_TYPE)
+                .find_effective_type_by_name(STRING_TYPE)
                 .as_ref()
                 .unwrap()
                 .get_type_information()
         ),
         get_signed_type(
             index
-                .find_effective_type(STRING_TYPE)
+                .find_effective_type_by_name(STRING_TYPE)
                 .as_ref()
                 .unwrap()
                 .get_type_information(),
@@ -204,6 +204,13 @@ fn get_bigger_size_string_test() {
             size: TypeSize::LiteralInteger(1024),
             encoding: typesystem::StringEncoding::Utf8,
         },
+        natures: vec![
+            TypeNature::Any,
+            TypeNature::Elementary,
+            TypeNature::Num,
+            TypeNature::Chars,
+            TypeNature::String,
+        ],
     };
     let string_30 = typesystem::DataType {
         name: "STRING_30".into(),
@@ -212,6 +219,13 @@ fn get_bigger_size_string_test() {
             size: TypeSize::LiteralInteger(30),
             encoding: typesystem::StringEncoding::Utf8,
         },
+        natures: vec![
+            TypeNature::Any,
+            TypeNature::Elementary,
+            TypeNature::Num,
+            TypeNature::Chars,
+            TypeNature::String,
+        ],
     };
     //The string with the bigger length is the bigger string
     assert_eq!(
@@ -242,6 +256,7 @@ fn get_bigger_size_array_test_returns_first() {
                 end_offset: TypeSize::LiteralInteger(1023),
             }],
         },
+        natures: vec![TypeNature::Any],
     };
     let array_30 = typesystem::DataType {
         name: "ARRAY_30".into(),
@@ -254,6 +269,7 @@ fn get_bigger_size_array_test_returns_first() {
                 end_offset: TypeSize::LiteralInteger(30),
             }],
         },
+        natures: vec![TypeNature::Any],
     };
     //The array with the most elements is bigger
     assert_eq!(
@@ -280,6 +296,13 @@ fn get_bigger_size_mixed_test_no_() {
             size: TypeSize::LiteralInteger(1024),
             encoding: typesystem::StringEncoding::Utf8,
         },
+        natures: vec![
+            TypeNature::Any,
+            TypeNature::Elementary,
+            TypeNature::Num,
+            TypeNature::Chars,
+            TypeNature::String,
+        ],
     };
     let wstring_1024 = typesystem::DataType {
         name: "WSTRING_1024".into(),
@@ -288,6 +311,13 @@ fn get_bigger_size_mixed_test_no_() {
             size: TypeSize::LiteralInteger(1024),
             encoding: typesystem::StringEncoding::Utf16,
         },
+        natures: vec![
+            TypeNature::Any,
+            TypeNature::Elementary,
+            TypeNature::Num,
+            TypeNature::Chars,
+            TypeNature::String,
+        ],
     };
     //Array of string
     let array_string_30 = typesystem::DataType {
@@ -301,6 +331,7 @@ fn get_bigger_size_mixed_test_no_() {
                 end_offset: TypeSize::LiteralInteger(30),
             }],
         },
+        natures: vec![TypeNature::Any],
     };
     //Array of int
     let array_30 = typesystem::DataType {
@@ -314,6 +345,7 @@ fn get_bigger_size_mixed_test_no_() {
                 end_offset: TypeSize::LiteralInteger(30),
             }],
         },
+        natures: vec![TypeNature::Any],
     };
     //2-dim array of int
     let array_30_30 = typesystem::DataType {
@@ -333,6 +365,7 @@ fn get_bigger_size_mixed_test_no_() {
                 },
             ],
         },
+        natures: vec![TypeNature::Any],
     };
 
     //Given two incompatible types

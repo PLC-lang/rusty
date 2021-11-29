@@ -20,7 +20,7 @@ pub fn pre_process(unit: &mut CompilationUnit) {
                 data_type: DataType::GenericType {
                     name: new_name.clone(),
                     generic_symbol: binding.name.clone(),
-                    nature: binding.nature.clone(),
+                    nature: binding.nature,
                 },
                 initializer: None,
                 scope: Some(pou.name.clone()),

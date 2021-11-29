@@ -17,7 +17,7 @@ fn generics_saved_in_index() {
         assert_eq!(
             &GenericBinding {
                 name: "T".into(),
-                nature: "ANY".into()
+                nature: crate::ast::TypeNature::Any,
             },
             t
         );

@@ -11,18 +11,11 @@ use indexmap::IndexMap;
 
 pub mod const_evaluator;
 
-use crate::{
-    ast::{
-        self, AstId, AstStatement, CompilationUnit, DataType, DataTypeDeclaration, GenericBinding,
-        Operator, Pou, UserTypeDeclaration, Variable,
-    },
-    index::{ImplementationIndexEntry, ImplementationType, Index, VariableIndexEntry},
-    typesystem::{
+use crate::{ast::{self, AstId, AstStatement, CompilationUnit, DataType, DataTypeDeclaration, GenericBinding, Operator, Pou, TypeNature, UserTypeDeclaration, Variable}, index::{ImplementationIndexEntry, ImplementationType, Index, VariableIndexEntry}, typesystem::{
         self, get_bigger_type, DataTypeInformation, BOOL_TYPE, BYTE_TYPE, CONST_STRING_TYPE,
         CONST_WSTRING_TYPE, DATE_AND_TIME_TYPE, DATE_TYPE, DINT_TYPE, DWORD_TYPE, LINT_TYPE,
         REAL_TYPE, TIME_OF_DAY_TYPE, TIME_TYPE, VOID_TYPE, WORD_TYPE,
-    },
-};
+    }};
 
 #[cfg(test)]
 mod tests;
@@ -129,6 +122,7 @@ impl StatementAnnotation {
         }
     }
 }
+
 #[derive(Default)]
 pub struct AnnotationMap {
     /// maps a statement to the type it resolves to
@@ -142,6 +136,9 @@ pub struct AnnotationMap {
     /// if the type-hint is equal to the actual type, or there is no
     /// useful type-hint to resolve, there is no mapping in this map
     type_hint_map: IndexMap<AstId, StatementAnnotation>,
+
+    /// A map from a call to the generic function name of that call
+    generic_nature_map: IndexMap<AstId, TypeNature>,
 }
 
 impl AnnotationMap {
@@ -162,6 +159,11 @@ impl AnnotationMap {
 
     pub fn annotate_type_hint(&mut self, s: &AstStatement, annotation: StatementAnnotation) {
         self.type_hint_map.insert(s.get_id(), annotation);
+    }
+
+    /// Annotates the ast statement with its original generic nature
+    pub fn add_generic_nature(&mut self, s: &AstStatement, nature : TypeNature) {
+        self.generic_nature_map.insert(s.get_id(), nature);
     }
 
     pub fn get(&self, s: &AstStatement) -> Option<&StatementAnnotation> {
@@ -242,6 +244,10 @@ impl AnnotationMap {
     pub fn has_type_annotation(&self, id: &usize) -> bool {
         self.type_map.contains_key(id)
     }
+
+    pub fn get_generic_nature(&self, s: &AstStatement) -> Option<&TypeNature> {
+        self.generic_nature_map.get(&s.get_id())
+    }
 }
 
 impl<'i> TypeAnnotator<'i> {
@@ -317,7 +323,7 @@ impl<'i> TypeAnnotator<'i> {
                 self.visit_statement(ctx, initializer);
 
                 //update the type-hint for the initializer
-                if let Some(right_type) = self.index.find_effective_type(name) {
+                if let Some(right_type) = self.index.find_effective_type_by_name(name) {
                     self.update_expected_types(right_type, initializer);
                 }
             }
@@ -389,7 +395,7 @@ impl<'i> TypeAnnotator<'i> {
                     inner_type_name, ..
                 } = expected_type.get_type_information()
                 {
-                    if let Some(inner_type) = self.index.find_effective_type(inner_type_name) {
+                    if let Some(inner_type) = self.index.find_effective_type_by_name(inner_type_name) {
                         self.update_expected_types(inner_type, elements);
                     }
                 }
@@ -408,7 +414,7 @@ impl<'i> TypeAnnotator<'i> {
                 ) = (expected_type.get_type_information(), left.as_ref())
                 {
                     if let Some(v) = self.index.find_member(qualifier, variable_name) {
-                        if let Some(target_type) = self.index.find_effective_type(v.get_type_name())
+                        if let Some(target_type) = self.index.find_effective_type_by_name(v.get_type_name())
                         {
                             self.annotation_map.annotate(
                                 left.as_ref(),
@@ -481,7 +487,7 @@ impl<'i> TypeAnnotator<'i> {
                     ctx.qualifier.as_deref().or(ctx.pou),
                     &[variable.name.as_str()],
                 )
-                .and_then(|ve| self.index.find_effective_type(ve.get_type_name()))
+                .and_then(|ve| self.index.find_effective_type_by_name(ve.get_type_name()))
             {
                 self.annotation_map.annotate_type_hint(
                     initializer,
@@ -525,7 +531,7 @@ impl<'i> TypeAnnotator<'i> {
                 bounds: Some(bounds),
                 ..
             } => {
-                if let Some(expected_type) = self.index.find_effective_type(referenced_type) {
+                if let Some(expected_type) = self.index.find_effective_type_by_name(referenced_type) {
                     self.visit_statement(ctx, bounds);
                     self.update_expected_types(expected_type, bounds);
                 }
@@ -950,7 +956,7 @@ impl<'i> TypeAnnotator<'i> {
                 if let Some(StatementAnnotation::Function { return_type, .. }) =
                     self.annotation_map.get(operator)
                 {
-                    if let Some(return_type) = self.index.find_effective_type(return_type) {
+                    if let Some(return_type) = self.index.find_effective_type_by_name(return_type) {
                         self.annotation_map.annotate(
                             statement,
                             StatementAnnotation::value(return_type.get_name()),
@@ -1042,7 +1048,7 @@ impl<'i> TypeAnnotator<'i> {
                 }) = self.annotation_map.get_annotation(operator)
                 {
                     //Figure out the new name for the call
-                    let annotation = self.annotate_generic_function(
+                    let annotation = self.get_generic_function_annotation(
                         generics,
                         qualified_name,
                         return_type,
@@ -1072,18 +1078,19 @@ impl<'i> TypeAnnotator<'i> {
         for (i, m) in members.enumerate() {
             if let Some(p) = parameters.get(i) {
                 //if the member is generic
-                if let Some(DataTypeInformation::Generic { generic_symbol, .. }) =
+                if let Some(DataTypeInformation::Generic { generic_symbol, nature, .. }) =
                     self.index.find_effective_type_info(m.get_type_name())
                 {
                     if let Some(real_type) = generic_map.get(generic_symbol) {
                         //Add a type hint with the new derived type
                         if let Some(effective_member_type) =
-                            self.index.find_effective_type(real_type)
+                            self.index.find_effective_type_by_name(real_type)
                         {
                             self.annotation_map.annotate_type_hint(
                                 p,
                                 StatementAnnotation::value(effective_member_type.get_name()),
                             );
+                            self.annotation_map.add_generic_nature(p, *nature);
                             //If assginment, annotate the left side with the new type
                             if let AstStatement::Assignment { left, right, .. } = p {
                                 self.annotation_map.annotate(
@@ -1099,7 +1106,7 @@ impl<'i> TypeAnnotator<'i> {
         }
     }
 
-    fn annotate_generic_function(
+    fn get_generic_function_annotation(
         &self,
         generics: &[GenericBinding],
         qualified_name: &str,
@@ -1136,7 +1143,7 @@ impl<'i> TypeAnnotator<'i> {
 
     fn annotate_parameters(&mut self, p: &AstStatement, type_name: &str) {
         if !matches!(p, AstStatement::Assignment { .. }) {
-            if let Some(effective_member_type) = self.index.find_effective_type(type_name) {
+            if let Some(effective_member_type) = self.index.find_effective_type_by_name(type_name) {
                 //update the type hint
                 self.annotation_map.annotate_type_hint(
                     p,

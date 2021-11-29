@@ -1,6 +1,6 @@
 use logos::Logos;
 
-use crate::ast::DirectAccessType;
+use crate::ast::{DirectAccessType, TypeNature};
 
 #[derive(Debug, PartialEq, Logos, Clone)]
 pub enum Token {
@@ -361,6 +361,9 @@ pub enum Token {
 
     #[regex("[a-zA-Z_][a-zA-Z_0-9]*#")]
     TypeCastPrefix,
+
+    #[regex("ANY(?:_(DERIVED|ELEMENTARY|MAGNITUDE|NUM|REAL|INT|SIGNED|UNSIGNED|DURATION|BIT|CHARS|STRING|CHAR|DATE)+)?", super::parse_type_nature)]
+    Nature(TypeNature),
 
     #[regex(r"[ \t\n\f]+", logos::skip)]
     End,

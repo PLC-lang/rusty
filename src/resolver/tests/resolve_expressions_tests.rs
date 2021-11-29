@@ -468,7 +468,7 @@ fn necessary_promotions_should_be_type_hinted() {
     if let AstStatement::BinaryExpression { left, .. } = &statements[0] {
         assert_eq!(
             annotations.get_type(&statements[0], &index),
-            index.find_effective_type("DINT")
+            index.find_effective_type_by_name("DINT")
         );
         assert_eq!(
             (
@@ -476,8 +476,8 @@ fn necessary_promotions_should_be_type_hinted() {
                 annotations.get_type_hint(left.as_ref(), &index)
             ),
             (
-                index.find_effective_type("BYTE"),
-                index.find_effective_type("DINT")
+                index.find_effective_type_by_name("BYTE"),
+                index.find_effective_type_by_name("DINT")
             )
         );
     } else {
@@ -488,7 +488,7 @@ fn necessary_promotions_should_be_type_hinted() {
     if let AstStatement::BinaryExpression { left, .. } = &statements[1] {
         assert_eq!(
             annotations.get_type(&statements[1], &index),
-            index.find_effective_type("BOOL")
+            index.find_effective_type_by_name("BOOL")
         );
         assert_eq!(
             (
@@ -496,8 +496,8 @@ fn necessary_promotions_should_be_type_hinted() {
                 annotations.get_type_hint(left.as_ref(), &index)
             ),
             (
-                index.find_effective_type("BYTE"),
-                index.find_effective_type("DINT")
+                index.find_effective_type_by_name("BYTE"),
+                index.find_effective_type_by_name("DINT")
             )
         );
     } else {
@@ -527,7 +527,7 @@ fn necessary_promotions_between_real_and_literal_should_be_type_hinted() {
     if let AstStatement::BinaryExpression { right, .. } = &statements[0] {
         assert_eq!(
             annotations.get_type(&statements[0], &index),
-            index.find_effective_type("BOOL")
+            index.find_effective_type_by_name("BOOL")
         );
 
         assert_type_and_hint!(&annotations, &index, &statements[0], BOOL_TYPE, None);
@@ -978,7 +978,7 @@ fn function_call_expression_resolves_to_the_function_itself_not_its_return_type(
 
     // AND we expect no type to be associated with the expression
     let associated_type = annotations.get_type(&statements[0], &index);
-    assert_eq!(index.find_effective_type("INT"), associated_type);
+    assert_eq!(index.find_effective_type_by_name("INT"), associated_type);
 }
 
 #[test]
@@ -1296,7 +1296,7 @@ fn type_initial_values_are_resolved() {
         assert_eq!(
             Some(&StatementAnnotation::value(
                 index
-                    .find_effective_type(CONST_STRING_TYPE)
+                    .find_effective_type_by_name(CONST_STRING_TYPE)
                     .unwrap()
                     .get_name()
             )),
@@ -1877,7 +1877,7 @@ fn data_type_initializers_multiplied_statement_type_hint_test() {
             } = multiplied_statement.as_ref()
             {
                 assert_eq!(
-                    index.find_effective_type(BYTE_TYPE),
+                    index.find_effective_type_by_name(BYTE_TYPE),
                     annotations.get_type_hint(literal_seven, &index)
                 );
             }
@@ -1892,7 +1892,7 @@ fn data_type_initializers_multiplied_statement_type_hint_test() {
     if let Some(a_initializer) = &unit.global_vars[0].variables[0].initializer {
         let global = index.find_global_variable("a").unwrap();
         assert_eq!(
-            index.find_effective_type(global.get_type_name()),
+            index.find_effective_type_by_name(global.get_type_name()),
             annotations.get_type_hint(a_initializer, &index)
         );
 
@@ -1911,7 +1911,7 @@ fn data_type_initializers_multiplied_statement_type_hint_test() {
             } = multiplied_statement.as_ref()
             {
                 assert_eq!(
-                    index.find_effective_type(BYTE_TYPE),
+                    index.find_effective_type_by_name(BYTE_TYPE),
                     annotations.get_type_hint(literal_seven, &index)
                 );
             }
@@ -1992,21 +1992,21 @@ fn range_type_min_max_type_hint_test() {
         //lets see if start and end got their type-annotations
         assert_eq!(
             annotations.get_type(start.as_ref(), &index),
-            index.find_effective_type(DINT_TYPE)
+            index.find_effective_type_by_name(DINT_TYPE)
         );
         assert_eq!(
             annotations.get_type(end.as_ref(), &index),
-            index.find_effective_type(DINT_TYPE)
+            index.find_effective_type_by_name(DINT_TYPE)
         );
 
         //lets see if start and end got their type-HINT-annotations
         assert_eq!(
             annotations.get_type_hint(start.as_ref(), &index),
-            index.find_effective_type(SINT_TYPE)
+            index.find_effective_type_by_name(SINT_TYPE)
         );
         assert_eq!(
             annotations.get_type_hint(end.as_ref(), &index),
-            index.find_effective_type(SINT_TYPE)
+            index.find_effective_type_by_name(SINT_TYPE)
         );
     }
 }
@@ -2041,7 +2041,7 @@ fn struct_variable_initialization_annotates_initializer() {
 
         assert_eq!(
             annotations.get_type_hint(initializer, &index),
-            index.find_effective_type("MyStruct")
+            index.find_effective_type_by_name("MyStruct")
         );
     }
     {
@@ -2054,7 +2054,7 @@ fn struct_variable_initialization_annotates_initializer() {
 
         assert_eq!(
             annotations.get_type_hint(initializer, &index),
-            index.find_effective_type("MyStruct")
+            index.find_effective_type_by_name("MyStruct")
         );
     }
 }
@@ -2093,7 +2093,7 @@ fn deep_struct_variable_initialization_annotates_initializer() {
 
     assert_eq!(
         annotations.get_type_hint(initializer, &index),
-        index.find_effective_type("MyStruct")
+        index.find_effective_type_by_name("MyStruct")
     );
 
     //check the initializer-part
@@ -2102,11 +2102,11 @@ fn deep_struct_variable_initialization_annotates_initializer() {
         if let AstStatement::Assignment { left, right, .. } = &expressions[0] {
             assert_eq!(
                 annotations.get_type(left, &index),
-                index.find_effective_type("Point")
+                index.find_effective_type_by_name("Point")
             );
             assert_eq!(
                 annotations.get_type_hint(right, &index),
-                index.find_effective_type("Point")
+                index.find_effective_type_by_name("Point")
             );
 
             // (a := 1, b := 2)
@@ -2115,11 +2115,11 @@ fn deep_struct_variable_initialization_annotates_initializer() {
                 if let AstStatement::Assignment { left, right, .. } = &expressions[0] {
                     assert_eq!(
                         annotations.get_type(left.as_ref(), &index),
-                        index.find_effective_type("BYTE")
+                        index.find_effective_type_by_name("BYTE")
                     );
                     assert_eq!(
                         annotations.get_type_hint(right.as_ref(), &index),
-                        index.find_effective_type("BYTE")
+                        index.find_effective_type_by_name("BYTE")
                     );
                 } else {
                     unreachable!()
@@ -2129,11 +2129,11 @@ fn deep_struct_variable_initialization_annotates_initializer() {
                 if let AstStatement::Assignment { left, right, .. } = &expressions[1] {
                     assert_eq!(
                         annotations.get_type(left.as_ref(), &index),
-                        index.find_effective_type("SINT")
+                        index.find_effective_type_by_name("SINT")
                     );
                     assert_eq!(
                         annotations.get_type_hint(right.as_ref(), &index),
-                        index.find_effective_type("SINT")
+                        index.find_effective_type_by_name("SINT")
                     );
                 } else {
                     unreachable!()

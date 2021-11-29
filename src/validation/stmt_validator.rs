@@ -153,6 +153,20 @@ impl StatementValidator {
             }
             _ => (),
         }
+        self.validate_type_nature(statement, context);
+    }
+
+    /// Validates that the assigned type and type hint are compatible with the nature for this
+    /// statement
+    fn validate_type_nature(&mut self, statement : &AstStatement, context: &ValidationContext) {
+        if let Some(nature) = context.ast_annotation.get_generic_nature(statement) {
+
+            if let Some(statement_type) = context.ast_annotation.get_type(statement, context.index) {
+            }
+            if let Some(statement_type_hint) = context.ast_annotation.get_type_hint(statement, context.index) {
+            }
+            todo!("Generic type validation");
+        }
     }
 
     fn validate_access_index(
