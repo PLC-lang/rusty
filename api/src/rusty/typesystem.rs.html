@@ -715,16 +715,62 @@
 <span id="715">715</span>
 <span id="716">716</span>
 <span id="717">717</span>
+<span id="718">718</span>
+<span id="719">719</span>
+<span id="720">720</span>
+<span id="721">721</span>
+<span id="722">722</span>
+<span id="723">723</span>
+<span id="724">724</span>
+<span id="725">725</span>
+<span id="726">726</span>
+<span id="727">727</span>
+<span id="728">728</span>
+<span id="729">729</span>
+<span id="730">730</span>
+<span id="731">731</span>
+<span id="732">732</span>
+<span id="733">733</span>
+<span id="734">734</span>
+<span id="735">735</span>
+<span id="736">736</span>
+<span id="737">737</span>
+<span id="738">738</span>
+<span id="739">739</span>
+<span id="740">740</span>
+<span id="741">741</span>
+<span id="742">742</span>
+<span id="743">743</span>
+<span id="744">744</span>
+<span id="745">745</span>
+<span id="746">746</span>
+<span id="747">747</span>
+<span id="748">748</span>
+<span id="749">749</span>
+<span id="750">750</span>
+<span id="751">751</span>
+<span id="752">752</span>
+<span id="753">753</span>
+<span id="754">754</span>
+<span id="755">755</span>
+<span id="756">756</span>
+<span id="757">757</span>
+<span id="758">758</span>
+<span id="759">759</span>
+<span id="760">760</span>
+<span id="761">761</span>
+<span id="762">762</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 <span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">mem::size_of</span>, <span class="ident">ops::Range</span>};
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">ast</span>::{<span class="ident">AstStatement</span>, <span class="ident">PouType</span>},
+    <span class="ident">ast</span>::{<span class="ident">AstStatement</span>, <span class="ident">Operator</span>, <span class="ident">PouType</span>},
     <span class="ident">index</span>::{<span class="ident">const_expressions::ConstId</span>, <span class="ident">Index</span>},
 };
 
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">DEFAULT_STRING_LEN</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">80</span>;
 
+<span class="comment">// Ranged type check functions names</span>
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">RANGE_CHECK_S_FN</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;CheckRangeSigned&quot;</span>;
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">RANGE_CHECK_LS_FN</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;CheckLRangeSigned&quot;</span>;
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">RANGE_CHECK_U_FN</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;CheckRangeUnsigned&quot;</span>;
@@ -1379,15 +1425,31 @@
     <span class="prelude-val">Some</span>(<span class="ident">data_type</span>)
 }
 
+<span class="doccomment">/**
+ * returns the compare-function name for the given type and operator.
+ * Returns None if the given operator is no comparison operator
+ */</span>
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_equals_function_name_for</span>(<span class="ident">type_name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">operator</span>: <span class="kw-2">&amp;</span><span class="ident">Operator</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span> {
+    <span class="kw">let</span> <span class="ident">suffix</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">operator</span> {
+        <span class="ident">Operator::Equal</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="string">&quot;EQUAL&quot;</span>),
+        <span class="ident">Operator::Less</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="string">&quot;LESS&quot;</span>),
+        <span class="ident">Operator::Greater</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="string">&quot;GREATER&quot;</span>),
+        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
+    };
+
+    <span class="ident">suffix</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">suffix</span><span class="op">|</span> <span class="macro">format!</span>(<span class="string">&quot;{}_{}&quot;</span>, <span class="ident">type_name</span>, <span class="ident">suffix</span>))
+}
+
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">tests</span> {
     <span class="kw">use</span> <span class="kw">crate</span>::{
-        <span class="ident">ast::CompilationUnit</span>,
+        <span class="ident">ast</span>::{<span class="ident">CompilationUnit</span>, <span class="ident">Operator</span>},
         <span class="ident">index::visitor::visit</span>,
         <span class="ident">lexer::IdProvider</span>,
         <span class="ident">typesystem</span>::{
-            <span class="ident">get_signed_type</span>, <span class="ident">BYTE_TYPE</span>, <span class="ident">DINT_TYPE</span>, <span class="ident">DWORD_TYPE</span>, <span class="ident">INT_TYPE</span>, <span class="ident">LINT_TYPE</span>, <span class="ident">LWORD_TYPE</span>,
-            <span class="ident">SINT_TYPE</span>, <span class="ident">STRING_TYPE</span>, <span class="ident">UDINT_TYPE</span>, <span class="ident">UINT_TYPE</span>, <span class="ident">ULINT_TYPE</span>, <span class="ident">USINT_TYPE</span>, <span class="ident">WORD_TYPE</span>,
+            <span class="ident">get_equals_function_name_for</span>, <span class="ident">get_signed_type</span>, <span class="ident">BYTE_TYPE</span>, <span class="ident">DINT_TYPE</span>, <span class="ident">DWORD_TYPE</span>,
+            <span class="ident">INT_TYPE</span>, <span class="ident">LINT_TYPE</span>, <span class="ident">LWORD_TYPE</span>, <span class="ident">SINT_TYPE</span>, <span class="ident">STRING_TYPE</span>, <span class="ident">UDINT_TYPE</span>, <span class="ident">UINT_TYPE</span>,
+            <span class="ident">ULINT_TYPE</span>, <span class="ident">USINT_TYPE</span>, <span class="ident">WORD_TYPE</span>,
         },
     };
 
@@ -1429,6 +1491,34 @@
                     .<span class="ident">get_type_information</span>(),
                 <span class="kw-2">&amp;</span><span class="ident">index</span>
             )
+        );
+    }
+
+    <span class="attribute">#[<span class="ident">test</span>]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">equal_method_function_names</span>() {
+        <span class="macro">assert_eq!</span>(
+            <span class="prelude-val">Some</span>(<span class="string">&quot;STRING_EQUAL&quot;</span>.<span class="ident">to_string</span>()),
+            <span class="ident">get_equals_function_name_for</span>(<span class="string">&quot;STRING&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">Operator::Equal</span>)
+        );
+        <span class="macro">assert_eq!</span>(
+            <span class="prelude-val">Some</span>(<span class="string">&quot;MY_TYPE_EQUAL&quot;</span>.<span class="ident">to_string</span>()),
+            <span class="ident">get_equals_function_name_for</span>(<span class="string">&quot;MY_TYPE&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">Operator::Equal</span>)
+        );
+        <span class="macro">assert_eq!</span>(
+            <span class="prelude-val">Some</span>(<span class="string">&quot;STRING_LESS&quot;</span>.<span class="ident">to_string</span>()),
+            <span class="ident">get_equals_function_name_for</span>(<span class="string">&quot;STRING&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">Operator::Less</span>)
+        );
+        <span class="macro">assert_eq!</span>(
+            <span class="prelude-val">Some</span>(<span class="string">&quot;MY_TYPE_LESS&quot;</span>.<span class="ident">to_string</span>()),
+            <span class="ident">get_equals_function_name_for</span>(<span class="string">&quot;MY_TYPE&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">Operator::Less</span>)
+        );
+        <span class="macro">assert_eq!</span>(
+            <span class="prelude-val">Some</span>(<span class="string">&quot;STRING_GREATER&quot;</span>.<span class="ident">to_string</span>()),
+            <span class="ident">get_equals_function_name_for</span>(<span class="string">&quot;STRING&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">Operator::Greater</span>)
+        );
+        <span class="macro">assert_eq!</span>(
+            <span class="prelude-val">Some</span>(<span class="string">&quot;MY_TYPE_GREATER&quot;</span>.<span class="ident">to_string</span>()),
+            <span class="ident">get_equals_function_name_for</span>(<span class="string">&quot;MY_TYPE&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">Operator::Greater</span>)
         );
     }
 }
