@@ -79,7 +79,7 @@ impl<'ink> LlvmTypedIndex<'ink> {
         &mut self,
         type_name: &str,
         target_type: BasicTypeEnum<'ink>,
-    ) -> Result<(), CompileError> {
+    ) -> Result<(), Diagnostic> {
         self.pou_type_associations
             .insert(type_name.to_lowercase(), target_type);
         Ok(())
@@ -138,9 +138,9 @@ impl<'ink> LlvmTypedIndex<'ink> {
     pub fn get_associated_pou_type(
         &self,
         type_name: &str,
-    ) -> Result<BasicTypeEnum<'ink>, CompileError> {
+    ) -> Result<BasicTypeEnum<'ink>, Diagnostic> {
         self.find_associated_pou_type(type_name)
-            .ok_or_else(|| CompileError::unknown_type(type_name, SourceRange::undefined()))
+            .ok_or_else(|| Diagnostic::unknown_type(type_name, SourceRange::undefined()))
     }
 
     pub fn find_associated_initial_value(&self, type_name: &str) -> Option<BasicValueEnum<'ink>> {

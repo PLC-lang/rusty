@@ -11,7 +11,8 @@ use crate::ast::SourceRange;
 use crate::index::{Index, VariableIndexEntry, VariableType};
 use crate::resolver::AnnotationMap;
 use crate::typesystem::{Dimension, StringEncoding, StructSource};
-use crate::{ast::AstStatement, compile_error::CompileError, typesystem::DataTypeInformation};
+use crate::Diagnostic;
+use crate::{ast::AstStatement, typesystem::DataTypeInformation};
 use crate::{
     codegen::{
         llvm_index::LlvmTypedIndex,
@@ -19,10 +20,9 @@ use crate::{
     },
     typesystem::DataType,
 };
-use inkwell::values::BasicValue;
 use inkwell::{
     types::{ArrayType, BasicType, BasicTypeEnum},
-    values::BasicValueEnum,
+    values::{BasicValue, BasicValueEnum},
     AddressSpace,
 };
 
