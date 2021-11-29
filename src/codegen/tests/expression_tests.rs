@@ -206,3 +206,60 @@ fn string_greater_or_equal_with_constant_test() {
 
     insta::assert_snapshot!(result);
 }
+
+#[test]
+fn ranged_number_type_comparing_test() {
+    let result = codegen(
+        r#"
+        FUNCTION baz : INT
+            VAR x,y : INT(0..500); END_VAR;
+
+            x = 3;
+            x < y;
+            y <= 0;
+        END_FUNCTION
+    "#,
+    );
+
+    //should result in normal number-comparisons
+    insta::assert_snapshot!(result);
+}
+
+#[test]
+fn aliased_ranged_number_type_comparing_test() {
+    let result = codegen(
+        r#"
+        TYPE MyInt: INT(0..500); END_TYPE
+        FUNCTION baz : INT
+            VAR x,y : MyInt; END_VAR;
+
+            x = 3;
+            x < y;
+            y <= 0;
+        END_FUNCTION
+    "#,
+    );
+
+    //should result in normal number-comparisons
+    insta::assert_snapshot!(result);
+}
+
+#[test]
+fn aliased_number_type_comparing_test() {
+    let result = codegen(
+        r#"
+        TYPE MyInt: INT; END_TYPE
+
+        FUNCTION baz : INT
+            VAR x,y : MyInt; END_VAR;
+
+            x = 3;
+            x < y;
+            y <= 0;
+        END_FUNCTION
+    "#,
+    );
+
+    //should result in normal number-comparisons
+    insta::assert_snapshot!(result);
+}

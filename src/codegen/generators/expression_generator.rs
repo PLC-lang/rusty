@@ -188,8 +188,17 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                     return self.generate_short_circuit_boolean_expression(operator, left, right);
                 }
 
-                let ltype = self.get_type_hint_info_for(left)?;
-                let rtype = self.get_type_hint_info_for(right)?;
+                let l_type_hint = self.get_type_hint_for(left)?;
+                let ltype = self
+                    .index
+                    .get_intrinsic_type_by_name(l_type_hint.get_name())
+                    .get_type_information();
+
+                let r_type_hint = self.get_type_hint_for(right)?;
+                let rtype = self
+                    .index
+                    .get_intrinsic_type_by_name(r_type_hint.get_name())
+                    .get_type_information();
 
                 if ltype.is_int() && rtype.is_int() {
                     Ok(self.create_llvm_int_binary_expression(

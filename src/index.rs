@@ -534,6 +534,22 @@ impl Index {
         self.type_index.get_effective_type_by_name(type_name)
     }
 
+    /// returns the intrinsic type of the type with the given name or the
+    /// void-type if the given name does not exist
+    /// returns the real type behind aliases and subRanges (while effective_types will only
+    /// resolve aliases)
+    pub fn get_intrinsic_type_by_name(&self, type_name: &str) -> &DataType {
+        let effective_type = self.type_index.get_effective_type_by_name(type_name);
+        if let DataTypeInformation::SubRange {
+            referenced_type, ..
+        } = effective_type.get_type_information()
+        {
+            self.get_intrinsic_type_by_name(referenced_type.as_str())
+        } else {
+            effective_type
+        }
+    }
+
     pub fn get_type(&self, type_name: &str) -> Result<&DataType, Diagnostic> {
         self.type_index.get_type(type_name)
     }
