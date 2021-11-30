@@ -537,7 +537,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
         let instance_name = format!("{}_instance", function_name);
         let function_type = self
             .llvm_index
-            .find_associated_type(function_name) //Using find instead of get to control the compile error
+            .find_associated_pou_type(function_name) //Using find instead of get to control the compile error
             .ok_or_else(|| {
                 Diagnostic::codegen_error(
                     &format!("No type associated with '{:}'", instance_name),

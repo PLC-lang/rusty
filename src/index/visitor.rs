@@ -132,7 +132,7 @@ pub fn visit_pou(index: &mut Index, pou: &Pou) {
         )
     }
 
-    index.register_type(
+    index.register_pou_type(
         &pou.name,
         None,
         DataTypeInformation::Struct {
@@ -154,7 +154,7 @@ fn visit_implementation(index: &mut Index, implementation: &Implementation) {
     );
     //if we are registing an action, also register a datatype for it
     if pou_type == &PouType::Action {
-        index.register_type(
+        index.register_pou_type(
             &implementation.name,
             None,
             DataTypeInformation::Alias {

@@ -1629,3 +1629,27 @@ fn string_dimensions_are_stored_in_the_const_expression_arena() {
         unreachable!()
     }
 }
+
+#[test]
+fn function_name_equals_return_type() {
+    // GIVEN function with the same name as the return type
+    // WHEN the function is indexed
+    let (_, index) = index(
+        "
+		FUNCTION TIME : TIME
+		END_FUNCTION",
+    );
+
+    // THEN there should be a indexed pou_type
+    let data_type = index.type_index.find_pou_type("TIME").unwrap();
+    // with the name "time"
+    assert_eq!(data_type.get_name(), "TIME");
+    // and DataTypeInformation of the type struct
+    assert_eq!(
+        true,
+        matches!(
+            data_type.get_type_information(),
+            DataTypeInformation::Struct { .. }
+        )
+    );
+}
