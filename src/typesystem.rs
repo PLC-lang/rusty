@@ -72,7 +72,7 @@ pub const VOID_TYPE: &str = "VOID";
 #[cfg(test)]
 mod tests;
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct DataType {
     pub name: String,
     /// the initial value defined on the TYPE-declration

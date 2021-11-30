@@ -14,7 +14,7 @@ fn bool_literals_are_annotated() {
                 FALSE;
             END_PROGRAM",
     );
-    let annotations = TypeAnnotator::visit_unit_without_index(&index, &unit);
+    let annotations = TypeAnnotator::visit_unit(&index, &unit);
     let statements = &unit.implementations[0].statements;
 
     assert_eq!(
@@ -39,7 +39,7 @@ fn string_literals_are_annotated() {
                 'xyz';
             END_PROGRAM"#,
     );
-    let annotations = TypeAnnotator::visit_unit_without_index(&index, &unit);
+    let annotations = TypeAnnotator::visit_unit(&index, &unit);
     let statements = &unit.implementations[0].statements;
 
     assert_type_and_hint!(
@@ -71,7 +71,7 @@ fn int_literals_are_annotated() {
                 2147483648;
             END_PROGRAM",
     );
-    let annotations = TypeAnnotator::visit_unit_without_index(&index, &unit);
+    let annotations = TypeAnnotator::visit_unit(&index, &unit);
     let statements = &unit.implementations[0].statements;
 
     let expected_types = vec!["DINT", "DINT", "DINT", "DINT", "DINT", "DINT", "LINT"];
@@ -100,7 +100,7 @@ fn date_literals_are_annotated() {
                 D#2021-04-20; 
             END_PROGRAM",
     );
-    let annotations = TypeAnnotator::visit_unit_without_index(&index, &unit);
+    let annotations = TypeAnnotator::visit_unit(&index, &unit);
     let statements = &unit.implementations[0].statements;
 
     let expected_types = vec![
@@ -133,7 +133,7 @@ fn real_literals_are_annotated() {
                 1.0;
             END_PROGRAM",
     );
-    let annotations = TypeAnnotator::visit_unit_without_index(&index, &unit);
+    let annotations = TypeAnnotator::visit_unit(&index, &unit);
     let statements = &unit.implementations[0].statements;
 
     let expected_types = vec!["REAL", "REAL"];
@@ -161,7 +161,7 @@ fn casted_literals_are_annotated() {
                 BOOL#FALSE;
             END_PROGRAM",
     );
-    let annotations = TypeAnnotator::visit_unit_without_index(&index, &unit);
+    let annotations = TypeAnnotator::visit_unit(&index, &unit);
     let statements = &unit.implementations[0].statements;
 
     let expected_types = vec![
@@ -210,7 +210,7 @@ fn enum_literals_are_annotated() {
 
             END_PROGRAM",
     );
-    let annotations = TypeAnnotator::visit_unit_without_index(&index, &unit);
+    let annotations = TypeAnnotator::visit_unit(&index, &unit);
     let statements = &unit.implementations[0].statements;
 
     let actual_resolves: Vec<&str> = statements
@@ -236,7 +236,7 @@ fn enum_literals_target_are_annotated() {
                 Color#Red;
             END_PROGRAM",
     );
-    let annotations = TypeAnnotator::visit_unit_without_index(&index, &unit);
+    let annotations = TypeAnnotator::visit_unit(&index, &unit);
     let color_red = &unit.implementations[0].statements[0];
 
     assert_eq!(
@@ -278,7 +278,7 @@ fn casted_inner_literals_are_annotated() {
                 BOOL#FALSE;
             END_PROGRAM",
     );
-    let annotations = TypeAnnotator::visit_unit_without_index(&index, &unit);
+    let annotations = TypeAnnotator::visit_unit(&index, &unit);
     let statements = &unit.implementations[0].statements;
 
     let expected_types = vec![

@@ -131,11 +131,11 @@ pub enum ImplementationType {
     Method,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct ImplementationIndexEntry {
-    call_name: String,
-    type_name: String,
-    associated_class: Option<String>,
+    pub(crate) call_name: String,
+    pub(crate) type_name: String,
+    pub(crate) associated_class: Option<String>,
     pub(crate) implementation_type: ImplementationType,
 }
 

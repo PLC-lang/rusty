@@ -5,7 +5,10 @@
 //! Recursively visits all statements and expressions of a `CompilationUnit` and
 //! records all resulting types associated with the statement's id.
 
-use std::{collections::HashMap, rc::{Rc, Weak}};
+use std::{
+    collections::HashMap,
+    rc::{Rc, Weak},
+};
 
 use indexmap::IndexMap;
 
@@ -60,9 +63,6 @@ struct VisitorContext<'s> {
     /// e.g. true for `x` if x is declared in a constant block
     /// e.g. true for `a.b.c` if either a,b or c is declared in a constant block
     constant: bool,
-
-    /// New index derived from resolving the unit
-    new_index: Weak<Index>,
 }
 
 impl<'s> VisitorContext<'s> {
@@ -73,7 +73,6 @@ impl<'s> VisitorContext<'s> {
             qualifier: Some(qualifier),
             call: self.call,
             constant: false,
-            new_index: self.new_index.clone(),
         }
     }
 
@@ -84,7 +83,6 @@ impl<'s> VisitorContext<'s> {
             qualifier: self.qualifier.clone(),
             call: self.call,
             constant: false,
-            new_index: self.new_index.clone(),
         }
     }
 
@@ -95,7 +93,6 @@ impl<'s> VisitorContext<'s> {
             qualifier: self.qualifier.clone(),
             call: Some(lhs_pou),
             constant: false,
-            new_index: self.new_index.clone(),
         }
     }
 }
@@ -103,7 +100,6 @@ impl<'s> VisitorContext<'s> {
 pub struct TypeAnnotator<'i> {
     index: &'i Index,
     annotation_map: AnnotationMap,
-    //context: VisitorContext<'i>,
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -152,6 +148,9 @@ pub struct AnnotationMap {
 
     /// A map from a call to the generic function name of that call
     generic_nature_map: IndexMap<AstId, TypeNature>,
+
+    //An index of newly created types
+    new_index: Index,
 }
 
 impl AnnotationMap {
@@ -163,6 +162,7 @@ impl AnnotationMap {
     pub fn import(&mut self, other: AnnotationMap) {
         self.type_map.extend(other.type_map);
         self.type_hint_map.extend(other.type_hint_map);
+        self.new_index.import(other.new_index);
     }
 
     /// annotates the given statement (using it's `get_id()`) with the given type-name
@@ -281,14 +281,9 @@ impl<'i> TypeAnnotator<'i> {
         }
     }
 
-    #[cfg(test)]
-    pub fn visit_unit_without_index(index: &Index, unit: &'i CompilationUnit) -> AnnotationMap {
-        TypeAnnotator::visit_unit(index, unit).0
-    }
-
     /// annotates the given AST elements with the type-name resulting for the statements/expressions.
     /// Returns an AnnotationMap with the resulting types for all visited Statements. See `AnnotationMap`
-    pub fn visit_unit(index: &Index, unit: &'i CompilationUnit) -> (AnnotationMap, Index) {
+    pub fn visit_unit(index: &Index, unit: &'i CompilationUnit) -> AnnotationMap {
         let mut visitor = TypeAnnotator::new(index);
         let new_index = Rc::new(Index::default());
 
@@ -297,7 +292,6 @@ impl<'i> TypeAnnotator<'i> {
             qualifier: None,
             call: None,
             constant: false,
-            new_index: Rc::downgrade(&new_index),
         };
 
         for global_variable in unit.global_vars.iter().flat_map(|it| it.variables.iter()) {
@@ -333,12 +327,7 @@ impl<'i> TypeAnnotator<'i> {
             }
         }
 
-        (
-            visitor.annotation_map,
-            Rc::try_unwrap(new_index)
-                .map_err(|rc| format!("Rc Count : {}", Rc::strong_count(&rc)))
-                .expect("There only be one reference to new_index remaining."),
-        )
+        visitor.annotation_map
     }
 
     fn visit_user_type_declaration(
@@ -653,7 +642,6 @@ impl<'i> TypeAnnotator<'i> {
                         constant: false,
                         pou: ctx.pou,
                         qualifier: None,
-                        new_index: ctx.new_index.clone(),
                     },
                     access,
                 );
@@ -1086,12 +1074,25 @@ impl<'i> TypeAnnotator<'i> {
                 }) = self.annotation_map.get_annotation(operator)
                 {
                     //Figure out the new name for the call
-                    let annotation = self.get_generic_function_annotation(
+                    let (name, annotation) = self.get_generic_function_annotation(
                         generics,
                         qualified_name,
                         return_type,
                         generic_map,
                     );
+                    //Create a new pou and implementation for the function
+                    if let Some((pou, implementation)) = self
+                        .index
+                        .find_effective_type(qualified_name)
+                        .zip(self.index.find_implementation(qualified_name))
+                    {
+                        self.annotation_map.new_index.register_implementation(
+                            &name,
+                            &name,
+                            implementation.get_associated_class_name(),
+                            implementation.get_implementation_type().clone(),
+                        );
+                    }
                     self.annotation_map.annotate(operator, annotation);
                 }
                 //Adjust annotations on the inner statement
@@ -1153,7 +1154,7 @@ impl<'i> TypeAnnotator<'i> {
         qualified_name: &str,
         return_type: &str,
         generic_map: &HashMap<String, String>,
-    ) -> StatementAnnotation {
+    ) -> (String, StatementAnnotation) {
         let generic_name = generics
             .iter()
             .map(|it| {
@@ -1176,10 +1177,13 @@ impl<'i> TypeAnnotator<'i> {
             return_type
         }
         .to_string();
-        StatementAnnotation::Function {
-            qualified_name: function_name,
-            return_type,
-        }
+        (
+            function_name.clone(),
+            StatementAnnotation::Function {
+                qualified_name: function_name,
+                return_type,
+            },
+        )
     }
 
     fn annotate_parameters(&mut self, p: &AstStatement, type_name: &str) {

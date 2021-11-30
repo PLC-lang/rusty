@@ -7,6 +7,42 @@ use crate::{
 };
 
 #[test]
+fn resolved_generic_call_added_to_index() {
+    let (unit, index) = index(
+        "
+        FUNCTION myFunc<G: ANY_NUM> : G
+        VAR_INPUT
+            x : G;
+        END_VAR
+        END_FUNCTION
+
+        PROGRAM PRG
+            VAR
+                a : INT;
+            END_VAR
+            myFunc(x := a);
+            myFunc(6);
+            myFunc(1.0);
+        END_PROGRAM",
+    );
+    let annotations = TypeAnnotator::visit_unit(&index, &unit);
+    //The implementations are added to the index
+    let implementations = dbg!(annotations.new_index.get_implementations());
+    assert_eq!(3, implementations.len());
+    assert!(implementations.contains_key("myfunc__int"));
+    assert!(implementations.contains_key("myfunc__dint"));
+    assert!(implementations.contains_key("myfunc__real"));
+
+    //The pous are added to the index
+    let pous = annotations.new_index.get_pou_types();
+    assert_eq!(3, pous.len());
+    assert!(pous.contains_key("myfunc__int"));
+    assert!(pous.contains_key("myfunc__dint"));
+    assert!(pous.contains_key("myfunc__real"));
+
+}
+
+#[test]
 fn generic_call_annotated_with_correct_type() {
     let (unit, index) = index(
         "
@@ -25,7 +61,7 @@ fn generic_call_annotated_with_correct_type() {
             myFunc(1.0);
         END_PROGRAM",
     );
-    let annotations = TypeAnnotator::visit_unit_without_index(&index, &unit);
+    let annotations = TypeAnnotator::visit_unit(&index, &unit);
     let call = &unit.implementations[1].statements[0];
 
     //The return type should have the correct type
@@ -119,7 +155,7 @@ fn generic_call_multi_params_annotated_with_correct_type() {
             myFunc(1.0, 2, BYTE#2);
         END_PROGRAM",
     );
-    let annotations = TypeAnnotator::visit_unit_without_index(&index, &unit);
+    let annotations = TypeAnnotator::visit_unit(&index, &unit);
 
     let call = &unit.implementations[1].statements[0];
 
