@@ -11,6 +11,7 @@ use std::collections::HashMap;
 pub struct LlvmTypedIndex<'ink> {
     parent_index: Option<&'ink LlvmTypedIndex<'ink>>,
     type_associations: HashMap<String, BasicTypeEnum<'ink>>,
+    pou_type_associations: HashMap<String, BasicTypeEnum<'ink>>,
     initial_value_associations: HashMap<String, BasicValueEnum<'ink>>,
     loaded_variable_associations: HashMap<String, PointerValue<'ink>>,
     implementations: HashMap<String, FunctionValue<'ink>>,
@@ -22,6 +23,7 @@ impl<'ink> LlvmTypedIndex<'ink> {
         LlvmTypedIndex {
             parent_index: Some(parent),
             type_associations: HashMap::new(),
+            pou_type_associations: HashMap::new(),
             initial_value_associations: HashMap::new(),
             loaded_variable_associations: HashMap::new(),
             implementations: HashMap::new(),
@@ -32,6 +34,9 @@ impl<'ink> LlvmTypedIndex<'ink> {
     pub fn merge(&mut self, mut other: LlvmTypedIndex<'ink>) {
         for (name, assocication) in other.type_associations.drain() {
             self.type_associations.insert(name, assocication);
+        }
+        for (name, assocication) in other.pou_type_associations.drain() {
+            self.pou_type_associations.insert(name, assocication);
         }
         for (name, assocication) in other.initial_value_associations.drain() {
             self.initial_value_associations.insert(name, assocication);
@@ -54,6 +59,16 @@ impl<'ink> LlvmTypedIndex<'ink> {
         target_type: BasicTypeEnum<'ink>,
     ) -> Result<(), Diagnostic> {
         self.type_associations
+            .insert(type_name.to_lowercase(), target_type);
+        Ok(())
+    }
+
+    pub fn associate_pou_type(
+        &mut self,
+        type_name: &str,
+        target_type: BasicTypeEnum<'ink>,
+    ) -> Result<(), Diagnostic> {
+        self.pou_type_associations
             .insert(type_name.to_lowercase(), target_type);
         Ok(())
     }
@@ -89,10 +104,30 @@ impl<'ink> LlvmTypedIndex<'ink> {
                     .map(|it| it.find_associated_type(type_name))
                     .flatten()
             })
+            .or_else(|| self.find_associated_pou_type(type_name))
+    }
+
+    pub fn find_associated_pou_type(&self, type_name: &str) -> Option<BasicTypeEnum<'ink>> {
+        self.pou_type_associations
+            .get(&type_name.to_lowercase())
+            .copied()
+            .or_else(|| {
+                self.parent_index
+                    .map(|it| it.find_associated_pou_type(type_name))
+                    .flatten()
+            })
     }
 
     pub fn get_associated_type(&self, type_name: &str) -> Result<BasicTypeEnum<'ink>, Diagnostic> {
         self.find_associated_type(type_name)
+            .ok_or_else(|| Diagnostic::unknown_type(type_name, SourceRange::undefined()))
+    }
+
+    pub fn get_associated_pou_type(
+        &self,
+        type_name: &str,
+    ) -> Result<BasicTypeEnum<'ink>, Diagnostic> {
+        self.find_associated_pou_type(type_name)
             .ok_or_else(|| Diagnostic::unknown_type(type_name, SourceRange::undefined()))
     }
 

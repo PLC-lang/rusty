@@ -105,7 +105,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
 
         let instance_struct_type: StructType = self
             .llvm_index
-            .get_associated_type(implementation.get_type_name())
+            .get_associated_pou_type(implementation.get_type_name())
             .map(|it| it.into_struct_type())?;
         parameters.push(instance_struct_type.ptr_type(AddressSpace::Generic).into());
 

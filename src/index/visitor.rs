@@ -140,7 +140,7 @@ pub fn visit_pou(index: &mut Index, pou: &Pou) {
         },
         nature: TypeNature::Any,
     };
-    index.register_type(datatype);
+    index.register_pou_type(datatype);
 }
 
 fn visit_implementation(index: &mut Index, implementation: &Implementation) {
@@ -162,7 +162,7 @@ fn visit_implementation(index: &mut Index, implementation: &Implementation) {
             },
             nature: TypeNature::Derived,
         };
-        index.register_type(datatype);
+        index.register_pou_type(datatype);
     }
 }
 

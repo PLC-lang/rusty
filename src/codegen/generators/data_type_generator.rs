@@ -10,8 +10,9 @@ use std::convert::TryInto;
 use crate::ast::SourceRange;
 use crate::index::{Index, VariableIndexEntry, VariableType};
 use crate::resolver::AnnotationMap;
-use crate::typesystem::{Dimension, StringEncoding};
-use crate::{ast::AstStatement, diagnostics::Diagnostic, typesystem::DataTypeInformation};
+use crate::typesystem::{Dimension, StringEncoding, StructSource};
+use crate::Diagnostic;
+use crate::{ast::AstStatement, typesystem::DataTypeInformation};
 use crate::{
     codegen::{
         llvm_index::LlvmTypedIndex,
@@ -19,10 +20,9 @@ use crate::{
     },
     typesystem::DataType,
 };
-use inkwell::values::BasicValue;
 use inkwell::{
     types::{ArrayType, BasicType, BasicTypeEnum},
-    values::BasicValueEnum,
+    values::{BasicValue, BasicValueEnum},
     AddressSpace,
 };
 
@@ -61,6 +61,11 @@ pub fn generate_data_types<'ink>(
         .filter(|(_, it)| !it.get_type_information().is_generic())
         .map(|(a, b)| (a.as_str(), b))
         .collect::<Vec<(&str, &DataType)>>();
+    let pou_types = generator.index.get_pou_types()
+        .iter()
+        .filter(|(_, it)| !it.get_type_information().is_generic())
+        .map(|(a, b)| (a.as_str(), b))
+        .collect::<Vec<(&str, &DataType)>>();
 
     // first create all STUBs for struct types (empty structs)
     // and associate them in the llvm index
@@ -74,15 +79,38 @@ pub fn generate_data_types<'ink>(
                 .associate_type(name, llvm.create_struct_stub(struct_name).into())?;
         }
     }
+    // pou_types will always be struct
+    for (name, user_type) in &pou_types {
+        if let DataTypeInformation::Struct {
+            name: struct_name, ..
+        } = user_type.get_type_information()
+        {
+            generator
+                .types_index
+                .associate_pou_type(name, llvm.create_struct_stub(struct_name).into())?;
+        }
+    }
     // now create all other types (enum's, arrays, etc.)
     for (name, user_type) in &types {
         let gen_type = generator.create_type(name, user_type)?;
         generator.types_index.associate_type(name, gen_type)?
     }
+    for (name, user_type) in &pou_types {
+        let gen_type = generator.create_type(name, user_type)?;
+        generator.types_index.associate_pou_type(name, gen_type)?
+    }
 
     // now since all types should be available in the llvm index, we can think about constructing and associating
     // initial values for the types
     for (name, user_type) in &types {
+        generator.expand_opaque_types(user_type)?;
+        if let Some(init_value) = generator.generate_initial_value(user_type)? {
+            generator
+                .types_index
+                .associate_initial_value(name, init_value)?;
+        }
+    }
+    for (name, user_type) in &pou_types {
         generator.expand_opaque_types(user_type)?;
         if let Some(init_value) = generator.generate_initial_value(user_type)? {
             generator
@@ -98,7 +126,7 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
     /// generates the members of an opaque struct and associates its initial values
     fn expand_opaque_types(&mut self, data_type: &DataType) -> Result<(), Diagnostic> {
         let information = data_type.get_type_information();
-        if let DataTypeInformation::Struct { .. } = information {
+        if let DataTypeInformation::Struct { source, .. } = information {
             let members = self
                 .index
                 .get_container_members(data_type.get_name())
@@ -107,10 +135,15 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
                 .map(|m| self.types_index.get_associated_type(m.get_type_name()))
                 .collect::<Result<Vec<BasicTypeEnum>, Diagnostic>>()?;
 
-            let struct_type = self
-                .types_index
-                .get_associated_type(data_type.get_name())
-                .map(BasicTypeEnum::into_struct_type)?;
+            let struct_type = match source {
+                StructSource::Pou(..) => self
+                    .types_index
+                    .get_associated_pou_type(data_type.get_name()),
+                StructSource::OriginalDeclaration => {
+                    self.types_index.get_associated_type(data_type.get_name())
+                }
+            }
+            .map(BasicTypeEnum::into_struct_type)?;
 
             struct_type.set_body(members.as_slice(), false);
         }
@@ -127,9 +160,14 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
     ) -> Result<BasicTypeEnum<'ink>, Diagnostic> {
         let information = data_type.get_type_information();
         match information {
-            DataTypeInformation::Struct { .. } => {
-                self.types_index.get_associated_type(data_type.get_name())
-            }
+            DataTypeInformation::Struct { source, .. } => match source {
+                StructSource::Pou(..) => self
+                    .types_index
+                    .get_associated_pou_type(data_type.get_name()),
+                StructSource::OriginalDeclaration => {
+                    self.types_index.get_associated_type(data_type.get_name())
+                }
+            },
             DataTypeInformation::Array {
                 inner_type_name,
                 dimensions,
@@ -193,7 +231,7 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
     ) -> Result<Option<BasicValueEnum<'ink>>, Diagnostic> {
         let information = data_type.get_type_information();
         match information {
-            DataTypeInformation::Struct { .. } => {
+            DataTypeInformation::Struct { source, .. } => {
                 let members = self.index.get_container_members(data_type.get_name());
                 let member_names_and_initializers = members
                     .iter()
@@ -217,10 +255,15 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
                     member_values.push(*v);
                 }
 
-                let struct_type = self
-                    .types_index
-                    .get_associated_type(data_type.get_name())?
-                    .into_struct_type();
+                let struct_type = match source {
+                    StructSource::Pou(..) => self
+                        .types_index
+                        .get_associated_pou_type(data_type.get_name()),
+                    StructSource::OriginalDeclaration => {
+                        self.types_index.get_associated_type(data_type.get_name())
+                    }
+                }?
+                .into_struct_type();
 
                 Ok(Some(
                     struct_type

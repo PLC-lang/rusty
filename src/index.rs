@@ -185,6 +185,7 @@ impl From<&PouType> for ImplementationType {
 pub struct TypeIndex {
     /// all types (structs, enums, type, POUs, etc.)
     types: IndexMap<String, DataType>,
+    pou_types: IndexMap<String, DataType>,
 
     void_type: DataType,
 }
@@ -193,6 +194,7 @@ impl TypeIndex {
     fn new() -> Self {
         TypeIndex {
             types: IndexMap::new(),
+            pou_types: IndexMap::new(),
             void_type: DataType {
                 name: VOID_TYPE.into(),
                 initial_value: None,
@@ -203,7 +205,13 @@ impl TypeIndex {
     }
 
     pub fn find_type(&self, type_name: &str) -> Option<&DataType> {
-        self.types.get(&type_name.to_lowercase())
+        self.types
+            .get(&type_name.to_lowercase())
+            .or_else(|| self.find_pou_type(type_name))
+    }
+
+    pub fn find_pou_type(&self, type_name: &str) -> Option<&DataType> {
+        self.pou_types.get(&type_name.to_lowercase())
     }
 
     pub fn find_effective_type_by_name(&self, type_name: &str) -> Option<&DataType> {
@@ -333,6 +341,13 @@ impl Index {
                 _ => {}
             }
             self.type_index.types.insert(name, e);
+        }
+
+        //pou_types
+        for (name, mut e) in other.type_index.pou_types.drain(..) {
+            e.initial_value =
+                self.maybe_import_const_expr(&mut other.constant_expressions, &e.initial_value);
+            self.type_index.pou_types.insert(name, e);
         }
 
         //implementations
@@ -589,6 +604,9 @@ impl Index {
     pub fn get_types(&self) -> &IndexMap<String, DataType> {
         &self.type_index.types
     }
+    pub fn get_pou_types(&self) -> &IndexMap<String, DataType> {
+        &self.type_index.pou_types
+    }
 
     pub fn get_globals(&self) -> &IndexMap<String, VariableIndexEntry> {
         &self.global_variables
@@ -738,6 +756,15 @@ impl Index {
     pub fn register_type(&mut self, datatype: DataType) {
         self.type_index
             .types
+            .insert(datatype.get_name().to_lowercase(), datatype);
+    }
+
+    pub fn register_pou_type(
+        &mut self,
+        datatype: DataType,
+    ) {
+        self.type_index
+            .pou_types
             .insert(datatype.get_name().to_lowercase(), datatype);
     }
 

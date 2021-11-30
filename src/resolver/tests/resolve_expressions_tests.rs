@@ -6,8 +6,8 @@ use crate::{
     resolver::{AnnotationMap, StatementAnnotation},
     test_utils::tests::annotate,
     typesystem::{
-        BOOL_TYPE, BYTE_TYPE, CONST_STRING_TYPE, DINT_TYPE, INT_TYPE, REAL_TYPE, SINT_TYPE,
-        UINT_TYPE, USINT_TYPE, VOID_TYPE,
+        DataTypeInformation, BOOL_TYPE, BYTE_TYPE, CONST_STRING_TYPE, DINT_TYPE, INT_TYPE,
+        REAL_TYPE, SINT_TYPE, UINT_TYPE, USINT_TYPE, VOID_TYPE,
     },
 };
 
@@ -2460,6 +2460,47 @@ fn null_statement_should_get_a_valid_type_hint() {
     } else {
         unreachable!();
     }
+}
+
+#[test]
+fn resolve_function_with_same_name_as_return_type() {
+    //GIVEN a reference to a function with the same name as the return type
+    let (unit, index) = index(
+        "
+        FUNCTION TIME : TIME
+        END_FUNCTION
+
+        PROGRAM PRG
+            TIME();
+        END_PROGRAM
+        ",
+    );
+
+    //WHEN the AST is annotated
+    let annotations = TypeAnnotator::visit_unit_without_index(&index, &unit);
+    let statements = &unit.implementations[1].statements;
+
+    // THEN we expect it to be annotated with the function itself
+    let function_annotation = annotations.get_annotation(&statements[0]);
+    assert_eq!(
+        Some(&StatementAnnotation::Value {
+            resulting_type: "TIME".into()
+        }),
+        function_annotation
+    );
+
+    // AND we expect no type to be associated with the expression
+    let associated_type = annotations.get_type(&statements[0], &index).unwrap();
+    let effective_type = index.find_effective_type("TIME").unwrap();
+    assert_eq!(effective_type, associated_type);
+    // AND should be Integer
+    assert_eq!(
+        true,
+        matches!(
+            effective_type.get_type_information(),
+            DataTypeInformation::Integer { .. }
+        )
+    )
 }
 
 #[test]
