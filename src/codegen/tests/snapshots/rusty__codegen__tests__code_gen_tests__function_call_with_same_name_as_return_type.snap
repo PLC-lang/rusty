@@ -7,27 +7,27 @@ expression: result
 source_filename = "main"
 
 %prg_interface = type {}
-%time_interface = type {}
+%TIME_interface = type {}
 
 @prg_instance = global %prg_interface zeroinitializer
 
-define i64 @time(%time_interface* %0) {
+define i64 @TIME(%TIME_interface* %0) {
 entry:
-  %time = alloca i64, align 8
-  %time_ret = load i64, i64* %time, align 4
-  ret i64 %time_ret
+  %TIME = alloca i64, align 8
+  %TIME_ret = load i64, i64* %TIME, align 4
+  ret i64 %TIME_ret
 }
 
 define void @prg(%prg_interface* %0) {
 entry:
-  %time_instance = alloca %time_interface, align 8
+  %TIME_instance = alloca %TIME_interface, align 8
   br label %input
 
 input:                                            ; preds = %entry
   br label %call
 
 call:                                             ; preds = %input
-  %call1 = call i64 @time(%time_interface* %time_instance)
+  %call1 = call i64 @TIME(%TIME_interface* %TIME_instance)
   br label %output
 
 output:                                           ; preds = %call

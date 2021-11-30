@@ -5711,14 +5711,48 @@ fn program_with_casted_chars_assignment() {
 fn function_call_with_same_name_as_return_type() {
     let result = codegen(
         "
-		FUNCTION time : TIME
+		FUNCTION TIME : TIME
 		END_FUNCTION
 
 		PROGRAM prg
 		VAR
 		END_VAR
-			time();
+			TIME();
 		END_PROGRAM
+		",
+    );
+    insta::assert_snapshot!(result);
+}
+
+#[test]
+fn variable_with_same_name_as_data_type() {
+    let result = codegen(
+        "
+		FUNCTION func : TIME
+		VAR
+			TIME : TIME;
+		END_VAR
+		END_FUNCTION
+
+		PROGRAM prog
+		VAR
+			TIME : TIME;
+		END_VAR
+		END_PROGRAM
+		",
+    );
+    insta::assert_snapshot!(result);
+}
+
+#[test]
+fn variable_with_same_name_as_function() {
+    let result = codegen(
+        "
+		FUNCTION TIME : TIME
+		VAR
+			TIME : TIME;
+		END_VAR
+		END_FUNCTION
 		",
     );
     insta::assert_snapshot!(result);

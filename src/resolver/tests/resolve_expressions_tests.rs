@@ -6,8 +6,8 @@ use crate::{
     resolver::{AnnotationMap, StatementAnnotation},
     test_utils::tests::annotate,
     typesystem::{
-        BOOL_TYPE, BYTE_TYPE, CONST_STRING_TYPE, DINT_TYPE, INT_TYPE, REAL_TYPE, SINT_TYPE,
-        UINT_TYPE, USINT_TYPE, VOID_TYPE,
+        DataTypeInformation, BOOL_TYPE, BYTE_TYPE, CONST_STRING_TYPE, DINT_TYPE, INT_TYPE,
+        REAL_TYPE, SINT_TYPE, UINT_TYPE, USINT_TYPE, VOID_TYPE,
     },
 };
 
@@ -2467,11 +2467,11 @@ fn resolve_function_with_same_name_as_return_type() {
     //GIVEN a reference to a function with the same name as the return type
     let (unit, index) = index(
         "
-        FUNCTION time : TIME
+        FUNCTION TIME : TIME
         END_FUNCTION
 
         PROGRAM PRG
-            time();
+            TIME();
         END_PROGRAM
         ",
     );
@@ -2490,8 +2490,17 @@ fn resolve_function_with_same_name_as_return_type() {
     );
 
     // AND we expect no type to be associated with the expression
-    let associated_type = annotations.get_type(&statements[0], &index);
-    assert_eq!(index.find_effective_type("TIME"), associated_type);
+    let associated_type = annotations.get_type(&statements[0], &index).unwrap();
+    let effective_type = index.find_effective_type("TIME").unwrap();
+    assert_eq!(effective_type, associated_type);
+    // AND should be Integer
+    assert_eq!(
+        true,
+        matches!(
+            effective_type.get_type_information(),
+            DataTypeInformation::Integer { .. }
+        )
+    )
 }
 
 #[test]

@@ -1636,14 +1636,14 @@ fn function_name_equals_return_type() {
     // WHEN the function is indexed
     let (_, index) = index(
         "
-		FUNCTION time : TIME
+		FUNCTION TIME : TIME
 		END_FUNCTION",
     );
 
     // THEN there should be a indexed pou_type
-    let data_type = index.type_index.find_pou_type("time").unwrap();
+    let data_type = index.type_index.find_pou_type("TIME").unwrap();
     // with the name "time"
-    assert_eq!(data_type.get_name(), "time");
+    assert_eq!(data_type.get_name(), "TIME");
     // and DataTypeInformation of the type struct
     assert_eq!(
         true,
