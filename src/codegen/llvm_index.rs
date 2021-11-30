@@ -19,18 +19,6 @@ pub struct LlvmTypedIndex<'ink> {
 }
 
 impl<'ink> LlvmTypedIndex<'ink> {
-    pub fn new() -> LlvmTypedIndex<'ink> {
-        LlvmTypedIndex {
-            parent_index: None,
-            type_associations: HashMap::new(),
-            pou_type_associations: HashMap::new(),
-            initial_value_associations: HashMap::new(),
-            loaded_variable_associations: HashMap::new(),
-            implementations: HashMap::new(),
-            constants: HashMap::new(),
-        }
-    }
-
     pub fn create_child(parent: &'ink LlvmTypedIndex<'ink>) -> LlvmTypedIndex<'ink> {
         LlvmTypedIndex {
             parent_index: Some(parent),
