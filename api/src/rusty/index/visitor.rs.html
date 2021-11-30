@@ -609,7 +609,7 @@
         )
     }
 
-    <span class="ident">index</span>.<span class="ident">register_type</span>(
+    <span class="ident">index</span>.<span class="ident">register_pou_type</span>(
         <span class="kw-2">&amp;</span><span class="ident">pou</span>.<span class="ident">name</span>,
         <span class="prelude-val">None</span>,
         <span class="ident">DataTypeInformation::Struct</span> {
@@ -631,7 +631,7 @@
     );
     <span class="comment">//if we are registing an action, also register a datatype for it</span>
     <span class="kw">if</span> <span class="ident">pou_type</span> <span class="op">=</span><span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">PouType::Action</span> {
-        <span class="ident">index</span>.<span class="ident">register_type</span>(
+        <span class="ident">index</span>.<span class="ident">register_pou_type</span>(
             <span class="kw-2">&amp;</span><span class="ident">implementation</span>.<span class="ident">name</span>,
             <span class="prelude-val">None</span>,
             <span class="ident">DataTypeInformation::Alias</span> {

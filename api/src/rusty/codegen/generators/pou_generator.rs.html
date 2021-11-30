@@ -472,7 +472,7 @@
 
         <span class="kw">let</span> <span class="ident">instance_struct_type</span>: <span class="ident">StructType</span> <span class="op">=</span> <span class="self">self</span>
             .<span class="ident">llvm_index</span>
-            .<span class="ident">get_associated_type</span>(<span class="ident">implementation</span>.<span class="ident">get_type_name</span>())
+            .<span class="ident">get_associated_pou_type</span>(<span class="ident">implementation</span>.<span class="ident">get_type_name</span>())
             .<span class="ident">map</span>(<span class="op">|</span><span class="ident">it</span><span class="op">|</span> <span class="ident">it</span>.<span class="ident">into_struct_type</span>())<span class="question-mark">?</span>;
         <span class="ident">parameters</span>.<span class="ident">push</span>(<span class="ident">instance_struct_type</span>.<span class="ident">ptr_type</span>(<span class="ident">AddressSpace::Generic</span>).<span class="ident">into</span>());
 

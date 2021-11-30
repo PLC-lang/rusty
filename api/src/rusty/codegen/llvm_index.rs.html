@@ -183,6 +183,41 @@
 <span id="183">183</span>
 <span id="184">184</span>
 <span id="185">185</span>
+<span id="186">186</span>
+<span id="187">187</span>
+<span id="188">188</span>
+<span id="189">189</span>
+<span id="190">190</span>
+<span id="191">191</span>
+<span id="192">192</span>
+<span id="193">193</span>
+<span id="194">194</span>
+<span id="195">195</span>
+<span id="196">196</span>
+<span id="197">197</span>
+<span id="198">198</span>
+<span id="199">199</span>
+<span id="200">200</span>
+<span id="201">201</span>
+<span id="202">202</span>
+<span id="203">203</span>
+<span id="204">204</span>
+<span id="205">205</span>
+<span id="206">206</span>
+<span id="207">207</span>
+<span id="208">208</span>
+<span id="209">209</span>
+<span id="210">210</span>
+<span id="211">211</span>
+<span id="212">212</span>
+<span id="213">213</span>
+<span id="214">214</span>
+<span id="215">215</span>
+<span id="216">216</span>
+<span id="217">217</span>
+<span id="218">218</span>
+<span id="219">219</span>
+<span id="220">220</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::diagnostics::Diagnostic</span>;
 <span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::ast::SourceRange</span>;
@@ -196,6 +231,7 @@
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">LlvmTypedIndex</span><span class="op">&lt;</span><span class="lifetime">&#39;ink</span><span class="op">&gt;</span> {
     <span class="ident">parent_index</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;ink</span> <span class="ident">LlvmTypedIndex</span><span class="op">&lt;</span><span class="lifetime">&#39;ink</span><span class="op">&gt;</span><span class="op">&gt;</span>,
     <span class="ident">type_associations</span>: <span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">BasicTypeEnum</span><span class="op">&lt;</span><span class="lifetime">&#39;ink</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="ident">pou_type_associations</span>: <span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">BasicTypeEnum</span><span class="op">&lt;</span><span class="lifetime">&#39;ink</span><span class="op">&gt;</span><span class="op">&gt;</span>,
     <span class="ident">initial_value_associations</span>: <span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">BasicValueEnum</span><span class="op">&lt;</span><span class="lifetime">&#39;ink</span><span class="op">&gt;</span><span class="op">&gt;</span>,
     <span class="ident">loaded_variable_associations</span>: <span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">PointerValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ink</span><span class="op">&gt;</span><span class="op">&gt;</span>,
     <span class="ident">implementations</span>: <span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">FunctionValue</span><span class="op">&lt;</span><span class="lifetime">&#39;ink</span><span class="op">&gt;</span><span class="op">&gt;</span>,
@@ -207,6 +243,7 @@
         <span class="ident">LlvmTypedIndex</span> {
             <span class="ident">parent_index</span>: <span class="prelude-val">Some</span>(<span class="ident">parent</span>),
             <span class="ident">type_associations</span>: <span class="ident">HashMap::new</span>(),
+            <span class="ident">pou_type_associations</span>: <span class="ident">HashMap::new</span>(),
             <span class="ident">initial_value_associations</span>: <span class="ident">HashMap::new</span>(),
             <span class="ident">loaded_variable_associations</span>: <span class="ident">HashMap::new</span>(),
             <span class="ident">implementations</span>: <span class="ident">HashMap::new</span>(),
@@ -217,6 +254,9 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">merge</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="kw-2">mut</span> <span class="ident">other</span>: <span class="ident">LlvmTypedIndex</span><span class="op">&lt;</span><span class="lifetime">&#39;ink</span><span class="op">&gt;</span>) {
         <span class="kw">for</span> (<span class="ident">name</span>, <span class="ident">assocication</span>) <span class="kw">in</span> <span class="ident">other</span>.<span class="ident">type_associations</span>.<span class="ident">drain</span>() {
             <span class="self">self</span>.<span class="ident">type_associations</span>.<span class="ident">insert</span>(<span class="ident">name</span>, <span class="ident">assocication</span>);
+        }
+        <span class="kw">for</span> (<span class="ident">name</span>, <span class="ident">assocication</span>) <span class="kw">in</span> <span class="ident">other</span>.<span class="ident">pou_type_associations</span>.<span class="ident">drain</span>() {
+            <span class="self">self</span>.<span class="ident">pou_type_associations</span>.<span class="ident">insert</span>(<span class="ident">name</span>, <span class="ident">assocication</span>);
         }
         <span class="kw">for</span> (<span class="ident">name</span>, <span class="ident">assocication</span>) <span class="kw">in</span> <span class="ident">other</span>.<span class="ident">initial_value_associations</span>.<span class="ident">drain</span>() {
             <span class="self">self</span>.<span class="ident">initial_value_associations</span>.<span class="ident">insert</span>(<span class="ident">name</span>, <span class="ident">assocication</span>);
@@ -239,6 +279,16 @@
         <span class="ident">target_type</span>: <span class="ident">BasicTypeEnum</span><span class="op">&lt;</span><span class="lifetime">&#39;ink</span><span class="op">&gt;</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">type_associations</span>
+            .<span class="ident">insert</span>(<span class="ident">type_name</span>.<span class="ident">to_lowercase</span>(), <span class="ident">target_type</span>);
+        <span class="prelude-val">Ok</span>(())
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">associate_pou_type</span>(
+        <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
+        <span class="ident">type_name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
+        <span class="ident">target_type</span>: <span class="ident">BasicTypeEnum</span><span class="op">&lt;</span><span class="lifetime">&#39;ink</span><span class="op">&gt;</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
+        <span class="self">self</span>.<span class="ident">pou_type_associations</span>
             .<span class="ident">insert</span>(<span class="ident">type_name</span>.<span class="ident">to_lowercase</span>(), <span class="ident">target_type</span>);
         <span class="prelude-val">Ok</span>(())
     }
@@ -274,10 +324,30 @@
                     .<span class="ident">map</span>(<span class="op">|</span><span class="ident">it</span><span class="op">|</span> <span class="ident">it</span>.<span class="ident">find_associated_type</span>(<span class="ident">type_name</span>))
                     .<span class="ident">flatten</span>()
             })
+            .<span class="ident">or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">find_associated_pou_type</span>(<span class="ident">type_name</span>))
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">find_associated_pou_type</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">type_name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">BasicTypeEnum</span><span class="op">&lt;</span><span class="lifetime">&#39;ink</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+        <span class="self">self</span>.<span class="ident">pou_type_associations</span>
+            .<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">type_name</span>.<span class="ident">to_lowercase</span>())
+            .<span class="ident">copied</span>()
+            .<span class="ident">or_else</span>(<span class="op">|</span><span class="op">|</span> {
+                <span class="self">self</span>.<span class="ident">parent_index</span>
+                    .<span class="ident">map</span>(<span class="op">|</span><span class="ident">it</span><span class="op">|</span> <span class="ident">it</span>.<span class="ident">find_associated_pou_type</span>(<span class="ident">type_name</span>))
+                    .<span class="ident">flatten</span>()
+            })
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_associated_type</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">type_name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">BasicTypeEnum</span><span class="op">&lt;</span><span class="lifetime">&#39;ink</span><span class="op">&gt;</span>, <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">find_associated_type</span>(<span class="ident">type_name</span>)
+            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">Diagnostic::unknown_type</span>(<span class="ident">type_name</span>, <span class="ident">SourceRange::undefined</span>()))
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_associated_pou_type</span>(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        <span class="ident">type_name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">BasicTypeEnum</span><span class="op">&lt;</span><span class="lifetime">&#39;ink</span><span class="op">&gt;</span>, <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
+        <span class="self">self</span>.<span class="ident">find_associated_pou_type</span>(<span class="ident">type_name</span>)
             .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">Diagnostic::unknown_type</span>(<span class="ident">type_name</span>, <span class="ident">SourceRange::undefined</span>()))
     }
 
