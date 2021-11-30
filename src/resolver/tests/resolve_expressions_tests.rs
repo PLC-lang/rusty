@@ -6,8 +6,8 @@ use crate::{
     resolver::{AnnotationMap, StatementAnnotation},
     test_utils::tests::annotate,
     typesystem::{
-        DataTypeInformation, BOOL_TYPE, BYTE_TYPE, CONST_STRING_TYPE, DINT_TYPE, INT_TYPE,
-        REAL_TYPE, SINT_TYPE, UINT_TYPE, USINT_TYPE, VOID_TYPE,
+        DataTypeInformation, BOOL_TYPE, BYTE_TYPE, CONST_STRING_TYPE, DINT_TYPE, DWORD_TYPE,
+        INT_TYPE, REAL_TYPE, SINT_TYPE, UINT_TYPE, USINT_TYPE, VOID_TYPE,
     },
 };
 
@@ -52,13 +52,13 @@ fn binary_expressions_resolves_types() {
 
 #[test]
 fn binary_expressions_resolves_types_for_mixed_signed_ints() {
-    let (unit, index) = index(
+    let (unit, mut index) = index(
         "PROGRAM PRG
             VAR a : INT; END_VAR
             a + UINT#7;
         END_PROGRAM",
     );
-    let annotations = annotate(&unit, &index);
+    let annotations = annotate(&unit, &mut index);
     let statements = &unit.implementations[0].statements;
 
     if let AstStatement::BinaryExpression { left, right, .. } = &statements[0] {
@@ -72,14 +72,14 @@ fn binary_expressions_resolves_types_for_mixed_signed_ints() {
 
 #[test]
 fn binary_expressions_resolves_types_for_literals_directly() {
-    let (unit, index) = index(
+    let (unit, mut index) = index(
         "PROGRAM PRG
             VAR a : BYTE; END_VAR
             a := a + 7;
             a := 7;
         END_PROGRAM",
     );
-    let annotations = annotate(&unit, &index);
+    let annotations = annotate(&unit, &mut index);
     let statements = &unit.implementations[0].statements;
 
     if let AstStatement::Assignment {
@@ -114,7 +114,7 @@ fn binary_expressions_resolves_types_for_literals_directly() {
 
 #[test]
 fn complex_expressions_resolves_types_for_literals_directly() {
-    let (unit, index) = index(
+    let (unit, mut index) = index(
         "PROGRAM PRG
             VAR 
                 a : BYTE; 
@@ -124,7 +124,7 @@ fn complex_expressions_resolves_types_for_literals_directly() {
             a := ((b + USINT#7) - c);
         END_PROGRAM",
     );
-    let annotations = annotate(&unit, &index);
+    let annotations = annotate(&unit, &mut index);
     let statements = &unit.implementations[0].statements;
 
     if let AstStatement::Assignment { right, .. } = &statements[0] {
@@ -206,7 +206,7 @@ fn binary_expressions_resolves_types_with_floats() {
 #[test]
 fn binary_expressions_resolves_types_with_float_comparisons() {
     //GIVEN some comparison expressions with floats
-    let (unit, index) = index(
+    let (unit, mut index) = index(
         "PROGRAM PRG
             VAR a, b : REAL END_VAR
                 a < b;
@@ -216,7 +216,7 @@ fn binary_expressions_resolves_types_with_float_comparisons() {
     );
 
     //WHEN I annotate the code
-    let annotations = annotate(&unit, &index);
+    let annotations = annotate(&unit, &mut index);
     let statements = &unit.implementations[0].statements;
 
     //I want the expressions to be of type BOOL, the left and right of type REAL
@@ -235,7 +235,7 @@ fn binary_expressions_resolves_types_with_float_comparisons() {
 #[test]
 fn binary_expressions_resolves_types_of_literals_with_float_comparisons() {
     //GIVEN some comparison expressions with floats
-    let (unit, index) = index(
+    let (unit, mut index) = index(
         "PROGRAM PRG
             VAR a : REAL END_VAR
                 a < 1;
@@ -243,7 +243,7 @@ fn binary_expressions_resolves_types_of_literals_with_float_comparisons() {
     );
 
     //WHEN I annotate the code
-    let annotations = annotate(&unit, &index);
+    let annotations = annotate(&unit, &mut index);
     let statements = &unit.implementations[0].statements;
 
     //I want the '1' to be treated as a real right away (no casting involved)
@@ -447,7 +447,7 @@ fn resolve_binary_expressions() {
 #[test]
 fn necessary_promotions_should_be_type_hinted() {
     // GIVEN  BYTE + DINT, BYTE < DINT
-    let (unit, index) = index(
+    let (unit, mut index) = index(
         "
         VAR_GLOBAL
             b : BYTE;
@@ -461,7 +461,7 @@ fn necessary_promotions_should_be_type_hinted() {
     );
 
     //WHEN it gets annotated
-    let annotations = annotate(&unit, &index);
+    let annotations = annotate(&unit, &mut index);
     let statements = &unit.implementations[0].statements;
 
     // THEN we want a hint to promote b to DINT, BYTE + DINT should be treated as DINT
@@ -508,7 +508,7 @@ fn necessary_promotions_should_be_type_hinted() {
 #[test]
 fn necessary_promotions_between_real_and_literal_should_be_type_hinted() {
     // GIVEN  REAL > DINT
-    let (unit, index) = index(
+    let (unit, mut index) = index(
         "
         VAR_GLOBAL
             f : REAL;
@@ -520,7 +520,7 @@ fn necessary_promotions_between_real_and_literal_should_be_type_hinted() {
     );
 
     //WHEN it gets annotated
-    let annotations = annotate(&unit, &index);
+    let annotations = annotate(&unit, &mut index);
     let statements = &unit.implementations[0].statements;
 
     // THEN we want '0' to be treated as a REAL right away, the result of f > 0 should be type bool
@@ -983,7 +983,7 @@ fn function_call_expression_resolves_to_the_function_itself_not_its_return_type(
 
 #[test]
 fn shadowed_function_is_annotated_correctly() {
-    let (unit, index) = index(
+    let (unit, mut index) = index(
         "
         FUNCTION foo : DINT
         END_FUNCTION
@@ -994,7 +994,7 @@ fn shadowed_function_is_annotated_correctly() {
         ",
     );
     //WHEN the AST is annotated
-    let annotations = annotate(&unit, &index);
+    let annotations = annotate(&unit, &mut index);
     let statements = &unit.implementations[1].statements;
 
     // THEN we expect it to be annotated with the function itself
@@ -1697,12 +1697,12 @@ fn const_flag_is_calculated_when_resolving_enum_literals() {
 
 #[test]
 fn global_enums_type_resolving() {
-    let (unit, index) = index(
+    let (unit, mut index) = index(
         "VAR_GLOBAL
             x : (a,b,c);
         END_VAR",
     );
-    let annotations = annotate(&unit, &index);
+    let annotations = annotate(&unit, &mut index);
 
     for (_, ele) in index.get_global_qualified_enums() {
         let const_exp = index
@@ -1717,7 +1717,7 @@ fn global_enums_type_resolving() {
 #[test]
 fn struct_members_initializers_type_hint_test() {
     //GIVEN a struct with some initialization
-    let (unit, index) = index(
+    let (unit, mut index) = index(
         "
         TYPE MyStruct:
         STRUCT
@@ -1732,7 +1732,7 @@ fn struct_members_initializers_type_hint_test() {
     );
 
     // WHEN this type is annotated
-    let annotations = annotate(&unit, &index);
+    let annotations = annotate(&unit, &mut index);
 
     // THEN the members's initializers have correct type-hints
     if let DataType::StructType { variables, .. } = &unit.types[0].data_type {
@@ -1755,7 +1755,7 @@ fn struct_members_initializers_type_hint_test() {
 #[test]
 fn program_members_initializers_type_hint_test() {
     //GIVEN a pou with some initialization
-    let (unit, index) = index(
+    let (unit, mut index) = index(
         "
         PROGRAM prg
       	  VAR_INPUT
@@ -1770,7 +1770,7 @@ fn program_members_initializers_type_hint_test() {
     );
 
     // WHEN it is annotated
-    let annotations = annotate(&unit, &index);
+    let annotations = annotate(&unit, &mut index);
 
     // THEN the members's initializers have correct type-hints
     let Pou {
@@ -1794,14 +1794,14 @@ fn program_members_initializers_type_hint_test() {
 #[test]
 fn data_type_initializers_type_hint_test() {
     //GIVEN a struct with some initialization
-    let (unit, index) = index(
+    let (unit, mut index) = index(
         "
         TYPE MyArray : ARRAY[0..2] OF INT := [1, 2, 3]; END_TYPE
        ",
     );
 
     // WHEN this type is annotated
-    let annotations = annotate(&unit, &index);
+    let annotations = annotate(&unit, &mut index);
 
     // THEN the members's initializers have correct type-hints
     if let Some(initializer) = &unit.types[0].initializer {
@@ -1844,7 +1844,7 @@ fn data_type_initializers_type_hint_test() {
 #[test]
 fn data_type_initializers_multiplied_statement_type_hint_test() {
     //GIVEN a struct with some initialization
-    let (unit, index) = index(
+    let (unit, mut index) = index(
         "
         TYPE MyArray : ARRAY[0..2] OF BYTE := [3(7)]; END_TYPE
         VAR_GLOBAL a : ARRAY[0..2] OF BYTE := [3(7)]; END_VAR
@@ -1852,7 +1852,7 @@ fn data_type_initializers_multiplied_statement_type_hint_test() {
     );
 
     // WHEN this type is annotated
-    let annotations = annotate(&unit, &index);
+    let annotations = annotate(&unit, &mut index);
 
     // THEN the members's initializers have correct type-hints
     if let Some(my_array_initializer) = &unit.types[0].initializer {
@@ -1926,7 +1926,7 @@ fn data_type_initializers_multiplied_statement_type_hint_test() {
 #[test]
 fn case_conditions_type_hint_test() {
     //GIVEN a Switch-Case statement
-    let (unit, index) = index(
+    let (unit, mut index) = index(
         "
         PROGRAM prg 
         VAR
@@ -1945,7 +1945,7 @@ fn case_conditions_type_hint_test() {
     );
 
     // WHEN this code is annotated
-    let annotations = annotate(&unit, &index);
+    let annotations = annotate(&unit, &mut index);
 
     // THEN we want the case-bocks (1:, 2: , 3:) to have the type hint of the case-selector (x) - in this case BYTE
 
@@ -1974,14 +1974,14 @@ fn case_conditions_type_hint_test() {
 #[test]
 fn range_type_min_max_type_hint_test() {
     //GIVEN a Switch-Case statement
-    let (unit, index) = index(
+    let (unit, mut index) = index(
         "
             TYPE MyInt: SINT(0..100); END_TYPE
         ",
     );
 
     // WHEN this code is annotated
-    let annotations = annotate(&unit, &index);
+    let annotations = annotate(&unit, &mut index);
 
     // THEN we want the range-limits (0 and 100) to have proper type-associations
     if let DataType::SubRangeType {
@@ -2014,7 +2014,7 @@ fn range_type_min_max_type_hint_test() {
 #[test]
 fn struct_variable_initialization_annotates_initializer() {
     //GIVEN a STRUCT type and global variables of this type
-    let (unit, index) = index(
+    let (unit, mut index) = index(
         "
         TYPE MyStruct: STRUCT
           a: DINT; b: DINT;
@@ -2028,7 +2028,7 @@ fn struct_variable_initialization_annotates_initializer() {
     );
 
     // WHEN this code is annotated
-    let annotations = annotate(&unit, &index);
+    let annotations = annotate(&unit, &mut index);
 
     // THEN we want the whole initializer to have a type-hint of 'MyStruct'
     {
@@ -2062,7 +2062,7 @@ fn struct_variable_initialization_annotates_initializer() {
 #[test]
 fn deep_struct_variable_initialization_annotates_initializer() {
     //GIVEN a 2 lvl-STRUCT type and global variables of this type
-    let (unit, index) = index(
+    let (unit, mut index) = index(
         "
         TYPE Point: STRUCT
           a: BYTE; b: SINT;
@@ -2081,7 +2081,7 @@ fn deep_struct_variable_initialization_annotates_initializer() {
     );
 
     // WHEN this code is annotated
-    let annotations = annotate(&unit, &index);
+    let annotations = annotate(&unit, &mut index);
 
     // THEN we want the whole initializer to have a type-hint of 'MyStruct'
     let initializer = index
@@ -2152,7 +2152,7 @@ fn deep_struct_variable_initialization_annotates_initializer() {
 #[test]
 fn inouts_should_be_annotated_according_to_auto_deref() {
     //a program with in-out variables that get auto-deref'd
-    let (unit, index) = index(
+    let (unit, mut index) = index(
         "
         PROGRAM foo 
             VAR_IN_OUT
@@ -2165,7 +2165,7 @@ fn inouts_should_be_annotated_according_to_auto_deref() {
     );
 
     // WHEN this code is annotated
-    let annotations = annotate(&unit, &index);
+    let annotations = annotate(&unit, &mut index);
     let inout_ref = &unit.implementations[0].statements[0];
 
     // then accessing inout should be annotated with DINT, because it is auto-dereferenced
@@ -2175,7 +2175,7 @@ fn inouts_should_be_annotated_according_to_auto_deref() {
 #[test]
 fn action_call_should_be_annotated() {
     //a program with in-out variables that get auto-deref'd
-    let (unit, index) = index(
+    let (unit, mut index) = index(
         "
         PROGRAM prg 
         VAR
@@ -2191,7 +2191,7 @@ fn action_call_should_be_annotated() {
     );
 
     // WHEN this code is annotated
-    let annotations = annotate(&unit, &index);
+    let annotations = annotate(&unit, &mut index);
     let action_call = &unit.implementations[0].statements[0];
 
     // then accessing inout should be annotated with DINT, because it is auto-dereferenced
@@ -2209,7 +2209,7 @@ fn action_call_should_be_annotated() {
 #[test]
 fn action_body_gets_resolved() {
     //a program with an action in it
-    let (unit, index) = index(
+    let (unit, mut index) = index(
         "
         PROGRAM prg 
             VAR
@@ -2226,7 +2226,7 @@ fn action_body_gets_resolved() {
     );
 
     // WHEN this code is annotated
-    let annotations = annotate(&unit, &index);
+    let annotations = annotate(&unit, &mut index);
     let x_assignment = &unit.implementations[1].statements[0];
 
     // then accessing inout should be annotated with DINT, because it is auto-dereferenced
@@ -2250,7 +2250,7 @@ fn action_body_gets_resolved() {
 #[test]
 fn class_method_gets_annotated() {
     //a class with a method with class-variables and method-variables
-    let (unit, index) = index(
+    let (unit, mut index) = index(
         "
     CLASS MyClass
         VAR
@@ -2271,7 +2271,7 @@ fn class_method_gets_annotated() {
     );
 
     // WHEN this code is annotated
-    let annotations = annotate(&unit, &index);
+    let annotations = annotate(&unit, &mut index);
     let body = &unit.implementations[0].statements;
 
     // then accessing inout should be annotated with DINT, because it is auto-dereferenced
@@ -2283,7 +2283,7 @@ fn class_method_gets_annotated() {
 
 #[test]
 fn nested_bitwise_access_resolves_correctly() {
-    let (unit, index) = index(
+    let (unit, mut index) = index(
         r#"PROGRAM prg
         VAR
         a : BOOL;
@@ -2296,7 +2296,7 @@ fn nested_bitwise_access_resolves_correctly() {
     );
 
     // WHEN this code is annotated
-    let annotations = annotate(&unit, &index);
+    let annotations = annotate(&unit, &mut index);
     let assignment = &unit.implementations[0].statements[0];
 
     if let AstStatement::Assignment { right, .. } = assignment {
@@ -2326,7 +2326,7 @@ fn nested_bitwise_access_resolves_correctly() {
 
 #[test]
 fn literals_passed_to_function_get_annotated() {
-    let (unit, index) = index(
+    let (unit, mut index) = index(
         r#"
         FUNCTION foo : STRING
             VAR_INPUT b : BYTE; in : STRING END_VAR
@@ -2341,7 +2341,7 @@ fn literals_passed_to_function_get_annotated() {
     );
 
     // WHEN this code is annotated
-    let annotations = annotate(&unit, &index);
+    let annotations = annotate(&unit, &mut index);
     let call_stmt = &unit.implementations[1].statements[0];
 
     if let AstStatement::CallStatement { parameters, .. } = call_stmt {
@@ -2367,7 +2367,7 @@ fn literals_passed_to_function_get_annotated() {
 
 #[test]
 fn array_accessor_in_struct_array_is_annotated() {
-    let (unit, index) = index(
+    let (unit, mut index) = index(
         r#"
         TYPE MyStruct:
         STRUCT
@@ -2388,7 +2388,7 @@ fn array_accessor_in_struct_array_is_annotated() {
     );
 
     // WHEN this code is annotated
-    let annotations = annotate(&unit, &index);
+    let annotations = annotate(&unit, &mut index);
     let qr = &unit.implementations[0].statements[0];
 
     if let AstStatement::QualifiedReference { elements, .. } = qr {
@@ -2405,7 +2405,7 @@ fn array_accessor_in_struct_array_is_annotated() {
 #[test]
 fn type_hint_should_not_hint_to_the_effective_type_but_to_the_original() {
     //GIVEN a aliased type to INT and a variable declared as myInt
-    let (unit, index) = index(
+    let (unit, mut index) = index(
         r#"
         TYPE MyInt: INT(0..100); END_TYPE
 
@@ -2421,7 +2421,7 @@ fn type_hint_should_not_hint_to_the_effective_type_but_to_the_original() {
     //WHEN we assign to this variable (x := 7)
 
     // THEN we want the hint for '7' to be MyInt, not INT
-    let annotations = annotate(&unit, &index);
+    let annotations = annotate(&unit, &mut index);
     let stmt = &unit.implementations[0].statements[0];
 
     if let AstStatement::Assignment { left, right, .. } = stmt {
@@ -2435,7 +2435,7 @@ fn type_hint_should_not_hint_to_the_effective_type_but_to_the_original() {
 #[test]
 fn null_statement_should_get_a_valid_type_hint() {
     //GIVEN a NULL assignment to a pointer
-    let (unit, index) = index(
+    let (unit, mut index) = index(
         r#"
         PROGRAM Main
         VAR
@@ -2447,7 +2447,7 @@ fn null_statement_should_get_a_valid_type_hint() {
     );
 
     // THEN we want the hint for 'NULL' to be POINTER TO BYTE
-    let annotations = annotate(&unit, &index);
+    let annotations = annotate(&unit, &mut index);
     let stmt = &unit.implementations[0].statements[0];
 
     let var_x_type = &unit.units[0].variable_blocks[0].variables[0]
@@ -2506,7 +2506,7 @@ fn resolve_function_with_same_name_as_return_type() {
 #[test]
 fn int_compare_should_resolve_to_bool() {
     //GIVEN a NULL assignment to a pointer
-    let (unit, index) = index(
+    let (unit, mut index) = index(
         r#"
         PROGRAM Main
         3 = 5;
@@ -2515,7 +2515,7 @@ fn int_compare_should_resolve_to_bool() {
     );
 
     // THEN we want the hint for 'NULL' to be POINTER TO BYTE
-    let annotations = annotate(&unit, &index);
+    let annotations = annotate(&unit, &mut index);
     let a_eq_b = &unit.implementations[0].statements[0];
     assert_eq!(
         Some(&StatementAnnotation::Value {
@@ -2528,7 +2528,7 @@ fn int_compare_should_resolve_to_bool() {
 #[test]
 fn string_compare_should_resolve_to_bool() {
     //GIVEN a NULL assignment to a pointer
-    let (unit, index) = index(
+    let (unit, mut index) = index(
         r#"
         FUNCTION STRING_EQUAL: BOOL 
         VAR a,b : STRING; END_VAR
@@ -2545,10 +2545,138 @@ fn string_compare_should_resolve_to_bool() {
     );
 
     // THEN we want the hint for 'NULL' to be POINTER TO BYTE
-    let annotations = annotate(&unit, &index);
+    let annotations = annotate(&unit, &mut index);
     let a_eq_b = &unit.implementations[1].statements[0];
     assert_eq!(
         Some(&StatementAnnotation::value("BOOL")),
         annotations.get_annotation(a_eq_b),
     );
+}
+
+#[test]
+fn assigning_lword_to_ptr_will_annotate_correctly() {
+    //GIVEN a NULL assignment to a pointer
+    let (unit, mut index) = index(
+        r#"
+        PROGRAM Main
+        VAR
+            a : POINTER TO INT;
+            b : DWORD;
+        END_VAR 
+        b := a;
+        END_PROGRAM
+        "#,
+    );
+
+    // THEN we want the hint for 'NULL' to be POINTER TO BYTE
+    let annotations = annotate(&unit, &mut index);
+    let a_eq_b = &unit.implementations[0].statements[0];
+
+    let ptr_type = unit.units[0].variable_blocks[0].variables[0]
+        .data_type
+        .get_name()
+        .unwrap();
+
+    if let AstStatement::Assignment { left, right, .. } = a_eq_b {
+        assert_type_and_hint!(&annotations, &index, left, DWORD_TYPE, None);
+        assert_type_and_hint!(&annotations, &index, right, ptr_type, Some(DWORD_TYPE));
+    }
+}
+
+#[test]
+fn assigning_ptr_to_lword_will_annotate_correctly() {
+    //GIVEN a NULL assignment to a pointer
+    let (unit, mut index) = index(
+        r#"
+        PROGRAM Main
+        VAR
+            a : POINTER TO INT;
+            b : DWORD;
+        END_VAR 
+        a := b;
+        END_PROGRAM
+        "#,
+    );
+
+    // THEN we want the hint for 'NULL' to be POINTER TO BYTE
+    let annotations = annotate(&unit, &mut index);
+    let a_eq_b = &unit.implementations[0].statements[0];
+
+    let ptr_type = unit.units[0].variable_blocks[0].variables[0]
+        .data_type
+        .get_name()
+        .unwrap();
+
+    if let AstStatement::Assignment { left, right, .. } = a_eq_b {
+        assert_type_and_hint!(&annotations, &index, left, ptr_type, None);
+        assert_type_and_hint!(&annotations, &index, right, DWORD_TYPE, Some(ptr_type));
+    }
+}
+
+#[test]
+fn assigning_ptr_to_lword_will_annotate_correctly2() {
+    //GIVEN a NULL assignment to a pointer
+    let (unit, mut index) = index(
+        r#"
+        PROGRAM Main
+        VAR
+            a : POINTER TO INT;
+            b : DWORD;
+        END_VAR 
+        b := a^;
+        END_PROGRAM
+        "#,
+    );
+
+    // THEN we want the hint for 'NULL' to be POINTER TO BYTE
+    let annotations = annotate(&unit, &mut index);
+    let a_eq_b = &unit.implementations[0].statements[0];
+
+    let ptr_type = unit.units[0].variable_blocks[0].variables[0]
+        .data_type
+        .get_name()
+        .unwrap();
+
+    if let AstStatement::Assignment { left, right, .. } = a_eq_b {
+        assert_type_and_hint!(&annotations, &index, left, DWORD_TYPE, None);
+        assert_type_and_hint!(&annotations, &index, right, INT_TYPE, Some(DWORD_TYPE));
+
+        if let AstStatement::PointerAccess { reference, .. } = right.as_ref() {
+            assert_type_and_hint!(&annotations, &index, reference, ptr_type, None);
+        }
+    } else {
+        unreachable!()
+    }
+}
+
+#[test]
+fn adress_of_is_annotated_correctly() {
+    //GIVEN a NULL assignment to a pointer
+    let (unit, mut index) = index(
+        r#"
+        PROGRAM Main
+        VAR
+            b : INT;
+        END_VAR 
+        &b;
+        END_PROGRAM
+        "#,
+    );
+
+    // THEN we want the hint for 'NULL' to be POINTER TO BYTE
+    let annotations = annotate(&unit, &mut index);
+
+    let s = &unit.implementations[0].statements[0];
+    if let &Some(&StatementAnnotation::Value { resulting_type }) = &annotations.get(s).as_ref() {
+        assert_eq!(
+            Some(&DataTypeInformation::Pointer {
+                auto_deref: false,
+                inner_type_name: "INT".to_string(),
+                name: "POINTER_TO_INT".to_string(),
+            }),
+            index.find_effective_type_info(resulting_type),
+        );
+    } else {
+        unreachable!()
+    }
 }

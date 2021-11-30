@@ -1170,7 +1170,7 @@ fn const_string_initializers_should_be_converted() {
 #[test]
 fn const_lreal_initializers_should_be_resolved_correctly() {
     // GIVEN some STRING constants used as initializers
-    let (parse_result, index) = index(
+    let (parse_result, mut index) = index(
         r#"
         VAR_GLOBAL CONSTANT
             clreal : LREAL := 3.1415;
@@ -1184,7 +1184,7 @@ fn const_lreal_initializers_should_be_resolved_correctly() {
 
     // WHEN compile-time evaluation is applied
     // AND types are resolved
-    let annotations = annotate(&parse_result, &index);
+    let annotations = annotate(&parse_result, &mut index);
     let (index, unresolvable) = evaluate_constants(index);
 
     // THEN all should be resolved
@@ -1229,7 +1229,7 @@ fn const_lreal_initializers_should_be_resolved_correctly() {
 #[test]
 fn array_size_from_constant() {
     // GIVEN some an array with const-expr -dimensions
-    let (parse_result, index) = index(
+    let (parse_result, mut index) = index(
         r#"
         PROGRAM aaa
             VAR CONSTANT
@@ -1246,7 +1246,7 @@ fn array_size_from_constant() {
 
     // WHEN compile-time evaluation is applied
     // AND types are resolved
-    annotate(&parse_result, &index);
+    annotate(&parse_result, &mut index);
     let (_, unresolvable) = evaluate_constants(index);
 
     debug_assert_eq!(EMPTY, unresolvable);
@@ -1255,7 +1255,7 @@ fn array_size_from_constant() {
 #[test]
 fn array_literals_type_resolving() {
     // GIVEN some STRING constants used as initializers
-    let (parse_result, index) = index(
+    let (parse_result, mut index) = index(
         r#"
         VAR_GLOBAL CONSTANT
             a : ARRAY[0..5] OF BYTE := [1,2,3,4];
@@ -1265,7 +1265,7 @@ fn array_literals_type_resolving() {
 
     // WHEN compile-time evaluation is applied
     // AND types are resolved
-    let annotations = annotate(&parse_result, &index);
+    let annotations = annotate(&parse_result, &mut index);
     let (index, unresolvable) = evaluate_constants(index);
 
     // THEN all should be resolved
@@ -1318,7 +1318,7 @@ fn array_literals_type_resolving() {
 #[test]
 fn nested_array_literals_type_resolving() {
     // GIVEN a multi-nested Array Type with an initializer
-    let (parse_result, index) = index(
+    let (parse_result, mut index) = index(
         r#"
         VAR_GLOBAL CONSTANT
             a : ARRAY[0..1] OF ARRAY[0..1] OF BYTE  := [[1,2],[3,4]]; 
@@ -1328,7 +1328,7 @@ fn nested_array_literals_type_resolving() {
 
     // WHEN compile-time evaluation is applied
     // AND types are resolved
-    let annotations = annotate(&parse_result, &index);
+    let annotations = annotate(&parse_result, &mut index);
     let (index, unresolvable) = evaluate_constants(index);
 
     // THEN all should be resolved
@@ -1391,7 +1391,7 @@ fn nested_array_literals_type_resolving() {
 #[test]
 fn nested_array_literals_multiplied_statement_type_resolving() {
     // GIVEN a multi-nested Array Type with an initializer
-    let (parse_result, index) = index(
+    let (parse_result, mut index) = index(
         r#"
         VAR_GLOBAL CONSTANT
             a : ARRAY[0..1] OF ARRAY[0..1] OF BYTE  := [[2(2)],[2(3)]]; 
@@ -1401,7 +1401,7 @@ fn nested_array_literals_multiplied_statement_type_resolving() {
 
     // WHEN compile-time evaluation is applied
     // AND types are resolved
-    let annotations = annotate(&parse_result, &index);
+    let annotations = annotate(&parse_result, &mut index);
     let (index, unresolvable) = evaluate_constants(index);
 
     // THEN all should be resolved
