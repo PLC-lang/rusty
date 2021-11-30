@@ -1,11 +1,12 @@
 use crate::{
     ast::{CompilationUnit, Operator, TypeNature},
-    index::visitor::visit,
+    index::{visitor::visit, Index},
     lexer::IdProvider,
     typesystem::{
-        self, get_equals_function_name_for, get_signed_type, Dimension, BYTE_TYPE, DINT_TYPE,
-        DWORD_TYPE, INT_TYPE, LINT_TYPE, LREAL_TYPE, LWORD_TYPE, REAL_TYPE, SINT_TYPE, STRING_TYPE,
-        UDINT_TYPE, UINT_TYPE, ULINT_TYPE, USINT_TYPE, WORD_TYPE,
+        self, get_equals_function_name_for, get_signed_type, Dimension, BOOL_TYPE, BYTE_TYPE,
+        CHAR_TYPE, DATE_AND_TIME_TYPE, DATE_TYPE, DINT_TYPE, DWORD_TYPE, INT_TYPE, LINT_TYPE,
+        LREAL_TYPE, LWORD_TYPE, REAL_TYPE, SINT_TYPE, STRING_TYPE, TIME_OF_DAY_TYPE, TIME_TYPE,
+        UDINT_TYPE, UINT_TYPE, ULINT_TYPE, USINT_TYPE, WCHAR_TYPE, WORD_TYPE, WSTRING_TYPE,
     },
 };
 
@@ -232,13 +233,8 @@ fn get_bigger_size_string_test() {
             size: TypeSize::LiteralInteger(1024),
             encoding: typesystem::StringEncoding::Utf8,
         },
-        natures: vec![
-            TypeNature::Any,
-            TypeNature::Elementary,
-            TypeNature::Num,
-            TypeNature::Chars,
-            TypeNature::String,
-        ],
+
+        nature: TypeNature::String,
     };
     let string_30 = typesystem::DataType {
         name: "STRING_30".into(),
@@ -247,13 +243,7 @@ fn get_bigger_size_string_test() {
             size: TypeSize::LiteralInteger(30),
             encoding: typesystem::StringEncoding::Utf8,
         },
-        natures: vec![
-            TypeNature::Any,
-            TypeNature::Elementary,
-            TypeNature::Num,
-            TypeNature::Chars,
-            TypeNature::String,
-        ],
+        nature: TypeNature::String,
     };
     //The string with the bigger length is the bigger string
     assert_eq!(
@@ -274,7 +264,7 @@ fn get_bigger_size_array_test_returns_first() {
     let index = visit(&CompilationUnit::default(), IdProvider::default());
     //Given two ARRAY of the same type and dimensions
     let array_1024 = typesystem::DataType {
-        name: "ARRAYG_1024".into(),
+        name: "ARRAY_1024".into(),
         initial_value: None,
         information: typesystem::DataTypeInformation::Array {
             name: "ARRAY_1024".into(),
@@ -284,7 +274,7 @@ fn get_bigger_size_array_test_returns_first() {
                 end_offset: TypeSize::LiteralInteger(1023),
             }],
         },
-        natures: vec![TypeNature::Any],
+        nature: TypeNature::Any,
     };
     let array_30 = typesystem::DataType {
         name: "ARRAY_30".into(),
@@ -297,7 +287,7 @@ fn get_bigger_size_array_test_returns_first() {
                 end_offset: TypeSize::LiteralInteger(30),
             }],
         },
-        natures: vec![TypeNature::Any],
+        nature: TypeNature::Any,
     };
     //The array with the most elements is bigger
     assert_eq!(
@@ -324,13 +314,7 @@ fn get_bigger_size_mixed_test_no_() {
             size: TypeSize::LiteralInteger(1024),
             encoding: typesystem::StringEncoding::Utf8,
         },
-        natures: vec![
-            TypeNature::Any,
-            TypeNature::Elementary,
-            TypeNature::Num,
-            TypeNature::Chars,
-            TypeNature::String,
-        ],
+        nature: TypeNature::String,
     };
     let wstring_1024 = typesystem::DataType {
         name: "WSTRING_1024".into(),
@@ -339,13 +323,7 @@ fn get_bigger_size_mixed_test_no_() {
             size: TypeSize::LiteralInteger(1024),
             encoding: typesystem::StringEncoding::Utf16,
         },
-        natures: vec![
-            TypeNature::Any,
-            TypeNature::Elementary,
-            TypeNature::Num,
-            TypeNature::Chars,
-            TypeNature::String,
-        ],
+        nature: TypeNature::String,
     };
     //Array of string
     let array_string_30 = typesystem::DataType {
@@ -359,7 +337,7 @@ fn get_bigger_size_mixed_test_no_() {
                 end_offset: TypeSize::LiteralInteger(30),
             }],
         },
-        natures: vec![TypeNature::Any],
+        nature: TypeNature::Any,
     };
     //Array of int
     let array_30 = typesystem::DataType {
@@ -373,7 +351,7 @@ fn get_bigger_size_mixed_test_no_() {
                 end_offset: TypeSize::LiteralInteger(30),
             }],
         },
-        natures: vec![TypeNature::Any],
+        nature: TypeNature::Any,
     };
     //2-dim array of int
     let array_30_30 = typesystem::DataType {
@@ -393,7 +371,7 @@ fn get_bigger_size_mixed_test_no_() {
                 },
             ],
         },
-        natures: vec![TypeNature::Any],
+        nature: TypeNature::Any,
     };
 
     //Given two incompatible types
@@ -422,4 +400,213 @@ fn get_bigger_size_mixed_test_no_() {
         int_type,
         typesystem::get_bigger_type(int_type, &array_30, &index)
     );
+}
+
+fn get_index() -> Index {
+    let mut index = Index::default();
+    for t in typesystem::get_builtin_types() {
+        index.register_type(t)
+    }
+    index
+}
+
+#[test]
+fn any_signed_type_test() {
+    let index = get_index();
+    let sint = index.get_type_or_panic(SINT_TYPE);
+    let int = index.get_type_or_panic(INT_TYPE);
+    let dint = index.get_type_or_panic(DINT_TYPE);
+    let lint = index.get_type_or_panic(LINT_TYPE);
+
+    assert!(sint.has_nature(TypeNature::Signed, &index));
+    assert!(int.has_nature(TypeNature::Signed, &index));
+    assert!(dint.has_nature(TypeNature::Signed, &index));
+    assert!(lint.has_nature(TypeNature::Signed, &index));
+
+    assert!(sint.has_nature(TypeNature::Int, &index));
+    assert!(int.has_nature(TypeNature::Int, &index));
+    assert!(dint.has_nature(TypeNature::Int, &index));
+    assert!(lint.has_nature(TypeNature::Int, &index));
+
+    assert!(sint.has_nature(TypeNature::Num, &index));
+    assert!(int.has_nature(TypeNature::Num, &index));
+    assert!(dint.has_nature(TypeNature::Num, &index));
+    assert!(lint.has_nature(TypeNature::Num, &index));
+
+    assert!(sint.has_nature(TypeNature::Magnitude, &index));
+    assert!(int.has_nature(TypeNature::Magnitude, &index));
+    assert!(dint.has_nature(TypeNature::Magnitude, &index));
+    assert!(lint.has_nature(TypeNature::Magnitude, &index));
+
+    assert!(sint.has_nature(TypeNature::Elementary, &index));
+    assert!(int.has_nature(TypeNature::Elementary, &index));
+    assert!(dint.has_nature(TypeNature::Elementary, &index));
+    assert!(lint.has_nature(TypeNature::Elementary, &index));
+
+    assert!(sint.has_nature(TypeNature::Any, &index));
+    assert!(int.has_nature(TypeNature::Any, &index));
+    assert!(dint.has_nature(TypeNature::Any, &index));
+    assert!(lint.has_nature(TypeNature::Any, &index));
+}
+
+#[test]
+fn any_unsigned_type_test() {
+    let index = get_index();
+    let usint = index.get_type_or_panic(USINT_TYPE);
+    let uint = index.get_type_or_panic(UINT_TYPE);
+    let udint = index.get_type_or_panic(UDINT_TYPE);
+    let ulint = index.get_type_or_panic(ULINT_TYPE);
+
+    assert!(usint.has_nature(TypeNature::Unsigned, &index));
+    assert!(uint.has_nature(TypeNature::Unsigned, &index));
+    assert!(udint.has_nature(TypeNature::Unsigned, &index));
+    assert!(ulint.has_nature(TypeNature::Unsigned, &index));
+
+    assert!(usint.has_nature(TypeNature::Int, &index));
+    assert!(uint.has_nature(TypeNature::Int, &index));
+    assert!(udint.has_nature(TypeNature::Int, &index));
+    assert!(ulint.has_nature(TypeNature::Int, &index));
+
+    assert!(usint.has_nature(TypeNature::Num, &index));
+    assert!(uint.has_nature(TypeNature::Num, &index));
+    assert!(udint.has_nature(TypeNature::Num, &index));
+    assert!(ulint.has_nature(TypeNature::Num, &index));
+
+    assert!(usint.has_nature(TypeNature::Magnitude, &index));
+    assert!(uint.has_nature(TypeNature::Magnitude, &index));
+    assert!(udint.has_nature(TypeNature::Magnitude, &index));
+    assert!(ulint.has_nature(TypeNature::Magnitude, &index));
+
+    assert!(usint.has_nature(TypeNature::Elementary, &index));
+    assert!(uint.has_nature(TypeNature::Elementary, &index));
+    assert!(udint.has_nature(TypeNature::Elementary, &index));
+    assert!(ulint.has_nature(TypeNature::Elementary, &index));
+
+    assert!(usint.has_nature(TypeNature::Any, &index));
+    assert!(uint.has_nature(TypeNature::Any, &index));
+    assert!(udint.has_nature(TypeNature::Any, &index));
+    assert!(ulint.has_nature(TypeNature::Any, &index));
+}
+
+#[test]
+fn any_real_type_test() {
+    let index = get_index();
+    let real = index.get_type_or_panic(REAL_TYPE);
+    let lreal = index.get_type_or_panic(LREAL_TYPE);
+
+    assert!(real.has_nature(TypeNature::Real, &index));
+    assert!(lreal.has_nature(TypeNature::Real, &index));
+
+    assert!(real.has_nature(TypeNature::Num, &index));
+    assert!(lreal.has_nature(TypeNature::Num, &index));
+
+    assert!(real.has_nature(TypeNature::Magnitude, &index));
+    assert!(lreal.has_nature(TypeNature::Magnitude, &index));
+
+    assert!(real.has_nature(TypeNature::Elementary, &index));
+    assert!(lreal.has_nature(TypeNature::Elementary, &index));
+
+    assert!(real.has_nature(TypeNature::Any, &index));
+    assert!(lreal.has_nature(TypeNature::Any, &index));
+}
+
+#[test]
+fn any_duration_type_test() {
+    let index = get_index();
+    let time = index.get_type_or_panic(TIME_TYPE);
+    // let ltime = index.get_type_or_panic(LTIME_TYTE);
+
+    assert!(time.has_nature(TypeNature::Duration, &index));
+
+    assert!(time.has_nature(TypeNature::Magnitude, &index));
+
+    assert!(time.has_nature(TypeNature::Elementary, &index));
+
+    assert!(time.has_nature(TypeNature::Any, &index));
+}
+
+#[test]
+fn any_bit_type_test() {
+    let index = get_index();
+    let bool_type = index.get_type_or_panic(BOOL_TYPE);
+    let byte = index.get_type_or_panic(BYTE_TYPE);
+    let word = index.get_type_or_panic(WORD_TYPE);
+    let dword = index.get_type_or_panic(DWORD_TYPE);
+    let lword = index.get_type_or_panic(LWORD_TYPE);
+
+    assert!(bool_type.has_nature(TypeNature::Bit, &index));
+    assert!(byte.has_nature(TypeNature::Bit, &index));
+    assert!(word.has_nature(TypeNature::Bit, &index));
+    assert!(dword.has_nature(TypeNature::Bit, &index));
+    assert!(lword.has_nature(TypeNature::Bit, &index));
+
+    assert!(bool_type.has_nature(TypeNature::Elementary, &index));
+    assert!(byte.has_nature(TypeNature::Elementary, &index));
+    assert!(word.has_nature(TypeNature::Elementary, &index));
+    assert!(dword.has_nature(TypeNature::Elementary, &index));
+    assert!(lword.has_nature(TypeNature::Elementary, &index));
+
+    assert!(bool_type.has_nature(TypeNature::Any, &index));
+    assert!(byte.has_nature(TypeNature::Any, &index));
+    assert!(word.has_nature(TypeNature::Any, &index));
+    assert!(dword.has_nature(TypeNature::Any, &index));
+    assert!(lword.has_nature(TypeNature::Any, &index));
+}
+
+#[test]
+fn any_string_type_test() {
+    let index = get_index();
+    let string = index.get_type_or_panic(STRING_TYPE);
+    let wstring = index.get_type_or_panic(WSTRING_TYPE);
+
+    assert!(string.has_nature(TypeNature::Chars, &index));
+    assert!(wstring.has_nature(TypeNature::Chars, &index));
+
+    assert!(string.has_nature(TypeNature::String, &index));
+    assert!(wstring.has_nature(TypeNature::String, &index));
+
+    assert!(string.has_nature(TypeNature::Elementary, &index));
+    assert!(wstring.has_nature(TypeNature::Elementary, &index));
+
+    assert!(string.has_nature(TypeNature::Any, &index));
+    assert!(wstring.has_nature(TypeNature::Any, &index));
+}
+
+#[test]
+fn any_char_type_test() {
+    let index = get_index();
+    let char = index.get_type_or_panic(CHAR_TYPE);
+    let wchar = index.get_type_or_panic(WCHAR_TYPE);
+
+    assert!(char.has_nature(TypeNature::Chars, &index));
+    assert!(wchar.has_nature(TypeNature::Chars, &index));
+
+    assert!(char.has_nature(TypeNature::Char, &index));
+    assert!(wchar.has_nature(TypeNature::Char, &index));
+
+    assert!(char.has_nature(TypeNature::Elementary, &index));
+    assert!(wchar.has_nature(TypeNature::Elementary, &index));
+
+    assert!(char.has_nature(TypeNature::Any, &index));
+    assert!(wchar.has_nature(TypeNature::Any, &index));
+}
+
+#[test]
+fn any_date_type_test() {
+    let index = get_index();
+    let date = index.get_type_or_panic(DATE_TYPE);
+    let date_time = index.get_type_or_panic(DATE_AND_TIME_TYPE);
+    let tod = index.get_type_or_panic(TIME_OF_DAY_TYPE);
+
+    assert!(date.has_nature(TypeNature::Date, &index));
+    assert!(date_time.has_nature(TypeNature::Date, &index));
+    assert!(tod.has_nature(TypeNature::Date, &index));
+
+    assert!(date.has_nature(TypeNature::Elementary, &index));
+    assert!(date_time.has_nature(TypeNature::Elementary, &index));
+    assert!(tod.has_nature(TypeNature::Elementary, &index));
+
+    assert!(date.has_nature(TypeNature::Any, &index));
+    assert!(date_time.has_nature(TypeNature::Any, &index));
+    assert!(tod.has_nature(TypeNature::Any, &index));
 }

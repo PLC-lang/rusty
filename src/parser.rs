@@ -245,14 +245,17 @@ fn parse_generics(lexer: &mut ParseSession) -> Vec<GenericBinding> {
                 //identifier
                 if let Some(name) = parse_identifier(lexer) {
                     lexer.consume_or_report(Token::KeywordColon);
-                    
+
                     //Expect a type nature
                     match lexer.token {
                         Nature(nature) => {
                             generics.push(GenericBinding { name, nature });
                             lexer.advance();
-                        },
-                        _ => lexer.accept_diagnostic(Diagnostic::missing_token("Type Nature", lexer.location())) ,
+                        }
+                        _ => lexer.accept_diagnostic(Diagnostic::missing_token(
+                            "Type Nature",
+                            lexer.location(),
+                        )),
                     }
                 }
 

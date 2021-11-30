@@ -1,7 +1,10 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use pretty_assertions::{assert_eq, assert_ne};
 
-use crate::{ast::{DirectAccessType, SourceRange, TypeNature}, lexer::{lex, Token::*}};
+use crate::{
+    ast::{DirectAccessType, SourceRange, TypeNature},
+    lexer::{lex, Token::*},
+};
 
 #[test]
 fn generic_properties() {

@@ -175,8 +175,7 @@ fn generic_markers_on_method_added() {
 
 #[test]
 fn generic_parameters_are_datatypes() {
-    let src =
-        "FUNCTION test<T: ANY, R : ANY_NUM> : R VAR_INPUT x : T; y : R; END_VAR END_FUNCTION";
+    let src = "FUNCTION test<T: ANY, R : ANY_NUM> : R VAR_INPUT x : T; y : R; END_VAR END_FUNCTION";
     let (parse_result, _) = dbg!(parse(src));
     let function = &parse_result.units[0];
     let variables = &function.variable_blocks[0].variables;

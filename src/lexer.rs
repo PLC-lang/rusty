@@ -11,8 +11,8 @@ pub use tokens::Token;
 use crate::ast::AstId;
 use crate::ast::DirectAccessType;
 use crate::ast::SourceRange;
-use crate::Diagnostic;
 use crate::ast::TypeNature;
+use crate::Diagnostic;
 
 #[cfg(test)]
 mod tests;
@@ -326,7 +326,7 @@ fn parse_type_nature(lexer: &mut Lexer<Token>) -> Option<TypeNature> {
         "ANY_STRING" => Some(TypeNature::String),
         "ANY_CHAR" => Some(TypeNature::Char),
         "ANY_DATE" => Some(TypeNature::Date),
-        _ => None
+        _ => None,
     }
 }
 

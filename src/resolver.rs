@@ -11,11 +11,18 @@ use indexmap::IndexMap;
 
 pub mod const_evaluator;
 
-use crate::{ast::{self, AstId, AstStatement, CompilationUnit, DataType, DataTypeDeclaration, GenericBinding, Operator, Pou, TypeNature, UserTypeDeclaration, Variable}, index::{ImplementationIndexEntry, ImplementationType, Index, VariableIndexEntry}, typesystem::{
+use crate::{
+    ast::{
+        self, AstId, AstStatement, CompilationUnit, DataType, DataTypeDeclaration, GenericBinding,
+        Operator, Pou, TypeNature, UserTypeDeclaration, Variable,
+    },
+    index::{ImplementationIndexEntry, ImplementationType, Index, VariableIndexEntry},
+    typesystem::{
         self, get_bigger_type, DataTypeInformation, BOOL_TYPE, BYTE_TYPE, CONST_STRING_TYPE,
         CONST_WSTRING_TYPE, DATE_AND_TIME_TYPE, DATE_TYPE, DINT_TYPE, DWORD_TYPE, LINT_TYPE,
         REAL_TYPE, TIME_OF_DAY_TYPE, TIME_TYPE, VOID_TYPE, WORD_TYPE,
-    }};
+    },
+};
 
 #[cfg(test)]
 mod tests;
@@ -162,7 +169,7 @@ impl AnnotationMap {
     }
 
     /// Annotates the ast statement with its original generic nature
-    pub fn add_generic_nature(&mut self, s: &AstStatement, nature : TypeNature) {
+    pub fn add_generic_nature(&mut self, s: &AstStatement, nature: TypeNature) {
         self.generic_nature_map.insert(s.get_id(), nature);
     }
 
@@ -1090,8 +1097,11 @@ impl<'i> TypeAnnotator<'i> {
         for (i, m) in members.enumerate() {
             if let Some(p) = parameters.get(i) {
                 //if the member is generic
-                if let Some(DataTypeInformation::Generic { generic_symbol, nature, .. }) =
-                    self.index.find_effective_type_info(m.get_type_name())
+                if let Some(DataTypeInformation::Generic {
+                    generic_symbol,
+                    nature,
+                    ..
+                }) = self.index.find_effective_type_info(m.get_type_name())
                 {
                     if let Some(real_type) = generic_map.get(generic_symbol) {
                         //Add a type hint with the new derived type

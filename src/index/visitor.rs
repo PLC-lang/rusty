@@ -138,7 +138,7 @@ pub fn visit_pou(index: &mut Index, pou: &Pou) {
             source: StructSource::Pou(pou.pou_type.clone()),
             generics: pou.generics.clone(),
         },
-        natures: vec![TypeNature::Any],
+        nature: TypeNature::Any,
     };
     index.register_type(datatype);
 }
@@ -160,7 +160,7 @@ fn visit_implementation(index: &mut Index, implementation: &Implementation) {
                 name: implementation.name.clone(),
                 referenced_type: implementation.type_name.clone(),
             },
-            natures: vec![],
+            nature: TypeNature::Derived,
         };
         index.register_type(datatype);
     }
@@ -179,7 +179,7 @@ fn register_inout_pointer_type_for(index: &mut Index, inner_type_name: &str) -> 
             inner_type_name: inner_type_name.to_string(),
             auto_deref: true,
         },
-        natures: vec![TypeNature::Any],
+        nature: TypeNature::Any,
     });
 
     type_name
@@ -250,7 +250,7 @@ fn visit_data_type(
                 name: name.to_string(),
                 initial_value: init,
                 information,
-                natures: vec![TypeNature::Any, TypeNature::Derived],
+                nature: TypeNature::Derived,
             });
             for (count, var) in variables.iter().enumerate() {
                 if let DataTypeDeclaration::DataTypeDefinition {
@@ -314,7 +314,7 @@ fn visit_data_type(
                 name: enum_name.to_string(),
                 initial_value: init,
                 information,
-                natures: vec![TypeNature::Any],
+                nature: TypeNature::Any,
             });
 
             elements.iter().enumerate().for_each(|(i, v)| {
@@ -363,7 +363,7 @@ fn visit_data_type(
                 name: name.to_string(),
                 initial_value: init,
                 information,
-                natures: vec![],
+                nature: TypeNature::Any,
             });
         }
         DataType::ArrayType {
@@ -420,7 +420,7 @@ fn visit_data_type(
                 name: name.to_string(),
                 initial_value: init,
                 information,
-                natures: vec![TypeNature::Any],
+                nature: TypeNature::Any,
             });
         }
         DataType::PointerType {
@@ -446,7 +446,7 @@ fn visit_data_type(
                 name: name.to_string(),
                 initial_value: init,
                 information,
-                natures: vec![TypeNature::Any],
+                nature: TypeNature::Any,
             });
         }
         DataType::StringType {
@@ -501,13 +501,7 @@ fn visit_data_type(
                 name: name.to_string(),
                 initial_value: init,
                 information,
-                natures: vec![
-                    TypeNature::Any,
-                    TypeNature::Elementary,
-                    TypeNature::Num,
-                    TypeNature::Chars,
-                    TypeNature::String,
-                ],
+                nature: TypeNature::String,
             });
         }
         DataType::VarArgs { .. } => {} //Varargs are not indexed,
@@ -519,13 +513,13 @@ fn visit_data_type(
             let information = DataTypeInformation::Generic {
                 name: name.clone(),
                 generic_symbol: generic_symbol.clone(),
-                nature: nature.clone(),
+                nature: *nature,
             };
             index.register_type(typesystem::DataType {
                 name: name.to_string(),
                 initial_value: None,
                 information,
-                natures: vec![],
+                nature: TypeNature::Any,
             });
         }
 

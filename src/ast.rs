@@ -61,6 +61,76 @@ pub enum TypeNature {
     Date,
 }
 
+impl TypeNature {
+    pub fn derives(self, other: TypeNature) -> bool {
+        if other == self {
+            true
+        } else {
+            match self {
+                TypeNature::Any => true,
+                TypeNature::Derived => matches!(other, TypeNature::Any),
+                TypeNature::Elementary => matches!(other, TypeNature::Any),
+                TypeNature::Magnitude => matches!(other, TypeNature::Elementary | TypeNature::Any),
+                TypeNature::Num => matches!(
+                    other,
+                    TypeNature::Magnitude | TypeNature::Elementary | TypeNature::Any
+                ),
+                TypeNature::Real => matches!(
+                    other,
+                    TypeNature::Num
+                        | TypeNature::Magnitude
+                        | TypeNature::Elementary
+                        | TypeNature::Any
+                ),
+                TypeNature::Int => matches!(
+                    other,
+                    TypeNature::Num
+                        | TypeNature::Magnitude
+                        | TypeNature::Elementary
+                        | TypeNature::Any
+                ),
+                TypeNature::Signed => matches!(
+                    other,
+                    TypeNature::Int
+                        | TypeNature::Num
+                        | TypeNature::Magnitude
+                        | TypeNature::Elementary
+                        | TypeNature::Any
+                ),
+                TypeNature::Unsigned => matches!(
+                    other,
+                    TypeNature::Int
+                        | TypeNature::Num
+                        | TypeNature::Magnitude
+                        | TypeNature::Elementary
+                        | TypeNature::Any
+                ),
+                TypeNature::Duration => matches!(
+                    other,
+                    TypeNature::Num
+                        | TypeNature::Magnitude
+                        | TypeNature::Elementary
+                        | TypeNature::Any
+                ),
+                TypeNature::Bit => matches!(
+                    other,
+                    TypeNature::Magnitude | TypeNature::Elementary | TypeNature::Any
+                ),
+                TypeNature::Chars => matches!(other, TypeNature::Elementary | TypeNature::Any),
+                TypeNature::String => matches!(
+                    other,
+                    TypeNature::Chars | TypeNature::Elementary | TypeNature::Any
+                ),
+                TypeNature::Char => matches!(
+                    other,
+                    TypeNature::Chars | TypeNature::Elementary | TypeNature::Any
+                ),
+                TypeNature::Date => matches!(other, TypeNature::Elementary | TypeNature::Any),
+            }
+        }
+    }
+}
+
 impl DirectAccessType {
     /// Returns true if the current index is in the range for the given type
     pub fn is_in_range(&self, index: u64, data_type: &DataTypeInformation) -> bool {

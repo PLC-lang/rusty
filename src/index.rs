@@ -2,7 +2,7 @@
 use indexmap::IndexMap;
 
 use crate::{
-    ast::{Implementation, PouType, SourceRange},
+    ast::{Implementation, PouType, SourceRange, TypeNature},
     diagnostics::Diagnostic,
     typesystem::*,
 };
@@ -197,7 +197,7 @@ impl TypeIndex {
                 name: VOID_TYPE.into(),
                 initial_value: None,
                 information: DataTypeInformation::Void,
-                natures: vec![],
+                nature: TypeNature::Any,
             },
         }
     }
@@ -735,10 +735,7 @@ impl Index {
             .insert(association_name.to_lowercase(), entry);
     }
 
-    pub fn register_type(
-        &mut self,
-        datatype : DataType
-    ) {
+    pub fn register_type(&mut self, datatype: DataType) {
         self.type_index
             .types
             .insert(datatype.get_name().to_lowercase(), datatype);
