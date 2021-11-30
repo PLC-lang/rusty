@@ -24,17 +24,18 @@ pub mod tests {
     }
 
     pub fn annotate(parse_result: &CompilationUnit, index: &Index) -> AnnotationMap {
-        TypeAnnotator::visit_unit(index, parse_result)
+        let (result, _) = TypeAnnotator::visit_unit(index, parse_result);
+        result
     }
 
     pub fn parse_and_validate(src: &str) -> Vec<Diagnostic> {
         let (unit, index) = index(src);
 
         let (index, ..) = evaluate_constants(index);
-        let annotations = TypeAnnotator::visit_unit(&index, &unit);
+        let (annotations, new_index) = TypeAnnotator::visit_unit(&index, &unit);
 
         let mut validator = Validator::new();
-        validator.visit_unit(&annotations, &index, &unit);
+        validator.visit_unit(&annotations, &index, &new_index, &unit);
         validator.diagnostics()
     }
 
@@ -42,7 +43,7 @@ pub mod tests {
         let (unit, index) = index(src);
 
         let (index, ..) = evaluate_constants(index);
-        let annotations = TypeAnnotator::visit_unit(&index, &unit);
+        let annotations  = TypeAnnotator::visit_unit_without_index(&index, &unit);
 
         let context = inkwell::context::Context::create();
         let code_generator = crate::codegen::CodeGen::new(&context, "main");

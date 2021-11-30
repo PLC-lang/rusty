@@ -25,7 +25,7 @@ fn generic_call_annotated_with_correct_type() {
             myFunc(1.0);
         END_PROGRAM",
     );
-    let annotations = TypeAnnotator::visit_unit(&index, &unit);
+    let annotations = TypeAnnotator::visit_unit_without_index(&index, &unit);
     let call = &unit.implementations[1].statements[0];
 
     //The return type should have the correct type
@@ -119,7 +119,7 @@ fn generic_call_multi_params_annotated_with_correct_type() {
             myFunc(1.0, 2, BYTE#2);
         END_PROGRAM",
     );
-    let annotations = TypeAnnotator::visit_unit(&index, &unit);
+    let annotations = TypeAnnotator::visit_unit_without_index(&index, &unit);
 
     let call = &unit.implementations[1].statements[0];
 

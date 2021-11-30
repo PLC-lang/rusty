@@ -65,6 +65,7 @@ impl Validator {
         &mut self,
         annotations: &AnnotationMap,
         index: &Index,
+        _new_index: &Index,
         unit: &CompilationUnit,
     ) {
         for pou in &unit.units {

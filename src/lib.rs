@@ -363,19 +363,24 @@ pub fn compile_module<'c, T: SourceContainer>(
     // ### PHASE 2 ###
     // annotation & validation everything
     let mut annotated_units: Vec<CompilationUnit> = Vec::new();
+    let mut generated_index: Vec<Index> = Vec::new();
     let mut all_annotations = AnnotationMap::default();
     for (file_id, syntax_errors, unit) in all_units.into_iter() {
-        let annotations = TypeAnnotator::visit_unit(&full_index, &unit);
+        let (annotations, index) = TypeAnnotator::visit_unit(&full_index, &unit);
 
         let mut validator = Validator::new();
-        validator.visit_unit(&annotations, &full_index, &unit);
+        validator.visit_unit(&annotations, &full_index, &index, &unit);
         //log errors
         diagnostician.handle(syntax_errors, file_id);
         diagnostician.handle(validator.diagnostics(), file_id);
 
         annotated_units.push(unit);
+        generated_index.push(index);
         all_annotations.import(annotations);
     }
+
+
+    //Merge the new indices with the full index
 
     // ### PHASE 3 ###
     // - codegen

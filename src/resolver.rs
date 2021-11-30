@@ -5,7 +5,7 @@
 //! Recursively visits all statements and expressions of a `CompilationUnit` and
 //! records all resulting types associated with the statement's id.
 
-use std::collections::HashMap;
+use std::{collections::HashMap, rc::{Rc, Weak}};
 
 use indexmap::IndexMap;
 
@@ -60,6 +60,9 @@ struct VisitorContext<'s> {
     /// e.g. true for `x` if x is declared in a constant block
     /// e.g. true for `a.b.c` if either a,b or c is declared in a constant block
     constant: bool,
+
+    /// New index derived from resolving the unit
+    new_index: Weak<Index>,
 }
 
 impl<'s> VisitorContext<'s> {
@@ -70,6 +73,7 @@ impl<'s> VisitorContext<'s> {
             qualifier: Some(qualifier),
             call: self.call,
             constant: false,
+            new_index: self.new_index.clone(),
         }
     }
 
@@ -80,6 +84,7 @@ impl<'s> VisitorContext<'s> {
             qualifier: self.qualifier.clone(),
             call: self.call,
             constant: false,
+            new_index: self.new_index.clone(),
         }
     }
 
@@ -90,6 +95,7 @@ impl<'s> VisitorContext<'s> {
             qualifier: self.qualifier.clone(),
             call: Some(lhs_pou),
             constant: false,
+            new_index: self.new_index.clone(),
         }
     }
 }
@@ -275,16 +281,23 @@ impl<'i> TypeAnnotator<'i> {
         }
     }
 
+    #[cfg(test)]
+    pub fn visit_unit_without_index(index: &Index, unit: &'i CompilationUnit) -> AnnotationMap {
+        TypeAnnotator::visit_unit(index, unit).0
+    }
+
     /// annotates the given AST elements with the type-name resulting for the statements/expressions.
     /// Returns an AnnotationMap with the resulting types for all visited Statements. See `AnnotationMap`
-    pub fn visit_unit(index: &Index, unit: &'i CompilationUnit) -> AnnotationMap {
+    pub fn visit_unit(index: &Index, unit: &'i CompilationUnit) -> (AnnotationMap, Index) {
         let mut visitor = TypeAnnotator::new(index);
+        let new_index = Rc::new(Index::default());
 
         let ctx = &VisitorContext {
             pou: None,
             qualifier: None,
             call: None,
             constant: false,
+            new_index: Rc::downgrade(&new_index),
         };
 
         for global_variable in unit.global_vars.iter().flat_map(|it| it.variables.iter()) {
@@ -320,7 +333,12 @@ impl<'i> TypeAnnotator<'i> {
             }
         }
 
-        visitor.annotation_map
+        (
+            visitor.annotation_map,
+            Rc::try_unwrap(new_index)
+                .map_err(|rc| format!("Rc Count : {}", Rc::strong_count(&rc)))
+                .expect("There only be one reference to new_index remaining."),
+        )
     }
 
     fn visit_user_type_declaration(
@@ -635,6 +653,7 @@ impl<'i> TypeAnnotator<'i> {
                         constant: false,
                         pou: ctx.pou,
                         qualifier: None,
+                        new_index: ctx.new_index.clone(),
                     },
                     access,
                 );

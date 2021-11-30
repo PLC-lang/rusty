@@ -12,7 +12,7 @@ fn binary_expressions_resolves_types() {
                 END_FOR
         END_PROGRAM",
     );
-    let annotations = TypeAnnotator::visit_unit(&index, &unit);
+    let annotations = TypeAnnotator::visit_unit_without_index(&index, &unit);
     let statements = &unit.implementations[0].statements;
 
     if let AstStatement::ForLoopStatement {
