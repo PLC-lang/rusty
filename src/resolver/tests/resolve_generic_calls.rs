@@ -288,3 +288,160 @@ fn generic_call_multi_params_annotated_with_correct_type() {
         }
     }
 }
+
+#[test]
+fn call_order_of_parameters_does_not_change_annotations() {
+    let (unit, index) = index(
+        "
+        FUNCTION myFunc : INT
+        VAR_INPUT
+            x,y : DINT;
+            z : INT;
+        END_VAR
+        END_FUNCTION
+
+        PROGRAM PRG
+            VAR
+                a : INT;
+                b : DINT;
+                c : INT;
+            END_VAR
+            myFunc(x := a, y := b, z := c);
+            myFunc(y := b, x := a, z := c);
+            myFunc(z := c, y := b, x := a);
+        END_PROGRAM",
+    );
+    let annotations = TypeAnnotator::visit_unit(&index, &unit);
+
+    fn get_parameter_with_name<'a>(
+        parameters_list: &[&'a AstStatement],
+        expected_name: &str,
+    ) -> &'a AstStatement {
+        parameters_list.iter().find(|it| matches!(it, AstStatement::Assignment { left, .. } 
+                        if { matches!(&**left, AstStatement::Reference{name, ..} if {name == expected_name})})).unwrap()
+    }
+
+    // all three call-statements should give the exact same annotations
+    // the order of the parameters should not matter
+    for call in &unit.implementations[1].statements {
+        if let AstStatement::CallStatement {
+            operator,
+            parameters,
+            ..
+        } = call
+        {
+            //The call name should nave the correct type
+            assert_eq!(Some("myFunc"), annotations.get_call_name(operator));
+            //parameters should have the correct type
+            if let Some(parameters) = &**parameters {
+                let parameters_list = ast::flatten_expression_list(parameters);
+                let [x, y, z] = [
+                    get_parameter_with_name(&parameters_list, "x"),
+                    get_parameter_with_name(&parameters_list, "y"),
+                    get_parameter_with_name(&parameters_list, "z"),
+                ];
+                if let [AstStatement::Assignment {
+                    left: x, right: a, ..
+                }, AstStatement::Assignment {
+                    left: y, right: b, ..
+                }, AstStatement::Assignment {
+                    left: z, right: c, ..
+                }] = [x, y, z]
+                {
+                    assert_type_and_hint!(&annotations, &index, x, DINT_TYPE, None);
+                    assert_type_and_hint!(&annotations, &index, a, INT_TYPE, Some(DINT_TYPE));
+
+                    assert_type_and_hint!(&annotations, &index, y, DINT_TYPE, None);
+                    assert_type_and_hint!(&annotations, &index, b, DINT_TYPE, Some(DINT_TYPE));
+
+                    assert_type_and_hint!(&annotations, &index, z, INT_TYPE, None);
+                    assert_type_and_hint!(&annotations, &index, c, INT_TYPE, Some(INT_TYPE));
+                } else {
+                    unreachable!("Not an assignment");
+                }
+            } else {
+                unreachable!("No parameters")
+            }
+        }
+    }
+}
+
+
+#[test]
+fn call_order_of_generic_parameters_does_not_change_annotations() {
+    let (unit, index) = index(
+        "
+        FUNCTION myFunc<G: ANY_NUM, F : ANY_INT> : G
+        VAR_INPUT
+            x,y : G;
+            z : F;
+        END_VAR
+        END_FUNCTION
+
+        PROGRAM PRG
+            VAR
+                a : INT;
+                b : DINT;
+                c : INT;
+            END_VAR
+            myFunc(x := a, y := b, z := c);
+            myFunc(y := b, x := a, z := c);
+            myFunc(z := c, y := b, x := a);
+        END_PROGRAM",
+    );
+    let annotations = TypeAnnotator::visit_unit(&index, &unit);
+
+    fn get_parameter_with_name<'a>(
+        parameters_list: &[&'a AstStatement],
+        expected_name: &str,
+    ) -> &'a AstStatement {
+        parameters_list.iter().find(|it| matches!(it, AstStatement::Assignment { left, .. } 
+                        if { matches!(&**left, AstStatement::Reference{name, ..} if {name == expected_name})})).unwrap()
+    }
+
+    // all three call-statements should give the exact same annotations
+    // the order of the parameters should not matter
+    for call in &unit.implementations[1].statements {
+        if let AstStatement::CallStatement {
+            operator,
+            parameters,
+            ..
+        } = call
+        {
+            //The call name should nave the correct type
+            assert_eq!(Some("myFunc__DINT__INT"), annotations.get_call_name(operator));
+            //parameters should have the correct type
+            if let Some(parameters) = &**parameters {
+                let parameters_list = ast::flatten_expression_list(parameters);
+                let [x, y, z] = [
+                    get_parameter_with_name(&parameters_list, "x"),
+                    get_parameter_with_name(&parameters_list, "y"),
+                    get_parameter_with_name(&parameters_list, "z"),
+                ];
+                if let [AstStatement::Assignment {
+                    left: x, right: a, ..
+                }, AstStatement::Assignment {
+                    left: y, right: b, ..
+                }, AstStatement::Assignment {
+                    left: z, right: c, ..
+                }] = [x, y, z]
+                {
+                    assert_type_and_hint!(&annotations, &index, x, DINT_TYPE, None);
+                    assert_type_and_hint!(&annotations, &index, a, INT_TYPE, Some(DINT_TYPE));
+
+                    assert_type_and_hint!(&annotations, &index, y, DINT_TYPE, None);
+                    assert_type_and_hint!(&annotations, &index, b, DINT_TYPE, Some(DINT_TYPE));
+
+                    assert_type_and_hint!(&annotations, &index, z, INT_TYPE, None);
+                    assert_type_and_hint!(&annotations, &index, c, INT_TYPE, Some(INT_TYPE));
+                } else {
+                    unreachable!("Not an assignment");
+                }
+            } else {
+                unreachable!("No parameters")
+            }
+        }
+    }
+}
+
+
