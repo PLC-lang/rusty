@@ -228,7 +228,7 @@ impl StatementValidator {
                     statement.get_location(),
                 ))
             } else if let Some(nature) = context.ast_annotation.get_generic_nature(statement) {
-                if !dbg!(statement_type).has_nature(*dbg!(nature), context.index) {
+                if !statement_type.has_nature(*nature, context.index) {
                     self.diagnostics.push(Diagnostic::invalid_type_nature(
                         statement_type.get_name(),
                         format!("{:?}", nature).as_str(),

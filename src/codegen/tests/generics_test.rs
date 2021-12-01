@@ -16,8 +16,6 @@ fn generic_function_call_generates_real_type_call() {
     let prg = codegen(
         r"
         @EXTERNAL FUNCTION MAX<T : ANY_NUM> : T VAR_INPUT in1, in2 : T END_VAR END_FUNCTION
-        @EXTERNAL FUNCTION MAX__INT : INT VAR_INPUT in1, in2 : INT END_VAR END_FUNCTION
-        @EXTERNAL FUNCTION MAX__DINT : DINT VAR_INPUT in1, in2 : DINT END_VAR END_FUNCTION
 
         PROGRAM prg 
         VAR

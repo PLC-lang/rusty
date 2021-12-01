@@ -5,10 +5,7 @@
 //! Recursively visits all statements and expressions of a `CompilationUnit` and
 //! records all resulting types associated with the statement's id.
 
-use std::{
-    collections::HashMap,
-    rc::{Rc, Weak},
-};
+use std::collections::HashMap;
 
 use indexmap::IndexMap;
 
@@ -150,7 +147,7 @@ pub struct AnnotationMap {
     generic_nature_map: IndexMap<AstId, TypeNature>,
 
     //An index of newly created types
-    new_index: Index,
+    pub new_index: Index,
 }
 
 impl AnnotationMap {
@@ -285,8 +282,6 @@ impl<'i> TypeAnnotator<'i> {
     /// Returns an AnnotationMap with the resulting types for all visited Statements. See `AnnotationMap`
     pub fn visit_unit(index: &Index, unit: &'i CompilationUnit) -> AnnotationMap {
         let mut visitor = TypeAnnotator::new(index);
-        let new_index = Rc::new(Index::default());
-
         let ctx = &VisitorContext {
             pou: None,
             qualifier: None,
@@ -1092,17 +1087,75 @@ impl<'i> TypeAnnotator<'i> {
                             implementation.get_associated_class_name(),
                             implementation.get_implementation_type().clone(),
                         );
+                        self.index_generic_type(pou, &name, generic_map);
                     }
                     self.annotation_map.annotate(operator, annotation);
                 }
                 //Adjust annotations on the inner statement
                 if let Some(s) = parameters.as_ref() {
                     self.visit_statement(&ctx, s);
-
                     self.update_generic_function_parameters(s, operator_qualifier, generic_map);
                 }
             }
         }
+    }
+
+    /// Only works for Structs
+    pub fn index_generic_type(
+        &mut self,
+        generic_type: &typesystem::DataType,
+        specific_name: &str,
+        generics: &HashMap<String, String>,
+    ) {
+        let information = if let DataTypeInformation::Struct {
+            member_names,
+            source,
+            varargs,
+            ..
+        } = &generic_type.get_type_information()
+        {
+            let interface_name = format!("{}_interface", specific_name);
+            let information = DataTypeInformation::Struct {
+                name: interface_name,
+                member_names: member_names.clone(),
+                varargs: varargs.clone(),
+                source: source.clone(),
+                generics: vec![],
+            };
+            for member in member_names {
+                if let Some(generic_entry) = self.index.find_member(generic_type.get_name(), member)
+                {
+                    let new_name = if let Some(old_type) = self
+                        .index
+                        .find_effective_type(generic_entry.get_type_name())
+                    {
+                        match old_type.get_type_information() {
+                            DataTypeInformation::Generic { generic_symbol, .. } => generics
+                                .get(generic_symbol)
+                                .map(String::as_str)
+                                .unwrap_or_else(|| old_type.get_name()),
+                            _ => old_type.get_name(),
+                        }
+                    } else {
+                        unreachable!("Member not indexed")
+                    };
+                    let entry = generic_entry.to_specific(specific_name, new_name);
+                    self.annotation_map
+                        .new_index
+                        .register_member_entry(specific_name, entry);
+                }
+            }
+            information
+        } else {
+            unreachable!("Not a struct");
+        };
+        let datatype = typesystem::DataType {
+            name: specific_name.to_string(),
+            initial_value: generic_type.initial_value,
+            nature: generic_type.nature,
+            information,
+        };
+        self.annotation_map.new_index.register_pou_type(datatype);
     }
 
     fn update_generic_function_parameters(

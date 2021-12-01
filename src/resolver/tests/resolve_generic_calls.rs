@@ -27,7 +27,7 @@ fn resolved_generic_call_added_to_index() {
     );
     let annotations = TypeAnnotator::visit_unit(&index, &unit);
     //The implementations are added to the index
-    let implementations = dbg!(annotations.new_index.get_implementations());
+    let implementations = annotations.new_index.get_implementations();
     assert_eq!(3, implementations.len());
     assert!(implementations.contains_key("myfunc__int"));
     assert!(implementations.contains_key("myfunc__dint"));
@@ -40,6 +40,31 @@ fn resolved_generic_call_added_to_index() {
     assert!(pous.contains_key("myfunc__dint"));
     assert!(pous.contains_key("myfunc__real"));
 
+    //Each POU has members
+    assert_eq!(
+        "INT",
+        annotations
+            .new_index
+            .find_member("myfunc__int", "x")
+            .unwrap()
+            .get_type_name()
+    );
+    assert_eq!(
+        "DINT",
+        annotations
+            .new_index
+            .find_member("myfunc__dint", "x")
+            .unwrap()
+            .get_type_name()
+    );
+    assert_eq!(
+        "REAL",
+        annotations
+            .new_index
+            .find_member("myfunc__real", "x")
+            .unwrap()
+            .get_type_name()
+    );
 }
 
 #[test]

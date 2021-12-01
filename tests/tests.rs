@@ -30,6 +30,7 @@ mod correctness {
     mod expressions;
     mod external_functions;
     mod functions;
+    mod generic_functions;
     mod global_variables;
     mod initial_values;
     mod methods;

@@ -43,6 +43,14 @@ pub struct MemberInfo<'b> {
 }
 
 impl VariableIndexEntry {
+    pub fn to_specific(&self, container: &str, new_type: &str) -> Self {
+        VariableIndexEntry {
+            qualified_name: format!("{}.{}", container, self.name),
+            data_type_name: new_type.to_string(),
+            ..self.to_owned()
+        }
+    }
+
     pub fn get_name(&self) -> &str {
         self.name.as_str()
     }
@@ -182,6 +190,7 @@ impl From<&PouType> for ImplementationType {
 /// the TypeIndex carries all types.
 /// it is extracted into its seaprate struct so it can be
 /// internally borrowed individually from the other maps
+#[derive(Debug)]
 pub struct TypeIndex {
     /// all types (structs, enums, type, POUs, etc.)
     types: IndexMap<String, DataType>,
@@ -250,7 +259,7 @@ impl TypeIndex {
 /// The global index of the rusty-compiler
 ///
 /// The index contains information about all referencable elements.
-#[derive()]
+#[derive(Debug)]
 pub struct Index {
     /// all global variables
     global_variables: IndexMap<String, VariableIndexEntry>,
@@ -664,11 +673,6 @@ impl Index {
         let variable_linkage = member_info.variable_linkage;
         let variable_type_name = member_info.variable_type_name;
 
-        let members = self
-            .member_variables
-            .entry(container_name.to_lowercase())
-            .or_insert_with(IndexMap::new);
-
         let qualified_name = format!("{}.{}", container_name, variable_name);
 
         let entry = VariableIndexEntry {
@@ -681,7 +685,14 @@ impl Index {
             is_constant: member_info.is_constant,
             location_in_parent: location,
         };
-        members.insert(variable_name.to_lowercase(), entry);
+        self.register_member_entry(container_name, entry);
+    }
+    pub fn register_member_entry(&mut self, container_name: &str, entry: VariableIndexEntry) {
+        let members = self
+            .member_variables
+            .entry(container_name.to_lowercase())
+            .or_insert_with(IndexMap::new);
+        members.insert(entry.name.to_lowercase(), entry);
     }
 
     pub fn register_enum_element(
@@ -759,10 +770,7 @@ impl Index {
             .insert(datatype.get_name().to_lowercase(), datatype);
     }
 
-    pub fn register_pou_type(
-        &mut self,
-        datatype: DataType,
-    ) {
+    pub fn register_pou_type(&mut self, datatype: DataType) {
         self.type_index
             .pou_types
             .insert(datatype.get_name().to_lowercase(), datatype);
