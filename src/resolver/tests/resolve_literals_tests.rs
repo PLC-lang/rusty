@@ -418,3 +418,63 @@ fn array_initialization_is_annotated_correctly() {
         t.get_name()
     )
 }
+
+#[test]
+fn expression_list_as_array_initilization_is_annotated_correctly() {
+    // GIVEN two global variables beeing initialized with expression lists
+    let (unit, index) = index(
+        "
+			VAR_GLOBAL
+				a : ARRAY[0..2] OF INT := 1+1,2;
+				b : ARRAY[0..2] OF STRING := 'ABC','DEF';
+			END_VAR
+		",
+    );
+
+    // WHEN annotation is done
+    let annotations = annotate(&unit, &index);
+
+    // THEN for the first statement
+    let a_init = unit.global_vars[0].variables[0]
+        .initializer
+        .as_ref()
+        .unwrap();
+    // all expressions should be annotated with the right type [INT]
+    if let AstStatement::ExpressionList { expressions, .. } = a_init {
+        for exp in expressions {
+            if let Some(data_type) = annotations.get_type_hint(exp, &index) {
+                let type_info = data_type.get_type_information();
+                assert_eq!(
+                    true,
+                    matches!(type_info, DataTypeInformation::Integer { .. })
+                )
+            } else {
+                unreachable!();
+            }
+        }
+    } else {
+        unreachable!();
+    }
+
+    // AND for the second statement
+    let b_init = unit.global_vars[0].variables[1]
+        .initializer
+        .as_ref()
+        .unwrap();
+    // all expressions should be annotated with the right type [STRING]
+    if let AstStatement::ExpressionList { expressions, .. } = b_init {
+        for exp in expressions {
+            if let Some(data_type) = annotations.get_type_hint(exp, &index) {
+                let type_info = data_type.get_type_information();
+                assert_eq!(
+                    true,
+                    matches!(type_info, DataTypeInformation::String { .. })
+                )
+            } else {
+                unreachable!();
+            }
+        }
+    } else {
+        unreachable!();
+    }
+}
