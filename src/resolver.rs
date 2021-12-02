@@ -480,8 +480,8 @@ impl<'i> TypeAnnotator<'i> {
                     )
                 }
             }
-            AstStatement::LiteralString { .. } => {
-                // needed if we try to initialize an array with an expression-list of literal-strings
+            AstStatement::LiteralString { .. } | AstStatement::BinaryExpression { .. } => {
+                // needed if we try to initialize an array with an expression-list
                 // without we would annotate a false type this would leed to an error in expression_generator
                 if let DataTypeInformation::Array {
                     inner_type_name, ..

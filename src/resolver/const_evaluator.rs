@@ -525,6 +525,20 @@ pub fn evaluate(
                 location: location.clone(),
             })
         }
+        AstStatement::ExpressionList { expressions, id } => {
+            let inner_elements = expressions
+                .iter()
+                .map(|e| evaluate(e, scope, index))
+                .collect::<Result<Vec<Option<AstStatement>>, String>>()?
+                .into_iter()
+                .collect::<Option<Vec<AstStatement>>>();
+
+            //return a new array, or return none if one was not resolvable
+            inner_elements.map(|ie| AstStatement::ExpressionList {
+                expressions: ie,
+                id: *id,
+            })
+        }
         AstStatement::MultipliedStatement {
             element,
             id,
