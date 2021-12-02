@@ -366,7 +366,6 @@ fn call_order_of_parameters_does_not_change_annotations() {
     }
 }
 
-
 #[test]
 fn call_order_of_generic_parameters_does_not_change_annotations() {
     let (unit, index) = index(
@@ -395,8 +394,16 @@ fn call_order_of_generic_parameters_does_not_change_annotations() {
         parameters_list: &[&'a AstStatement],
         expected_name: &str,
     ) -> &'a AstStatement {
-        parameters_list.iter().find(|it| matches!(it, AstStatement::Assignment { left, .. } 
-                        if { matches!(&**left, AstStatement::Reference{name, ..} if {name == expected_name})})).unwrap()
+        parameters_list
+            .iter()
+            .find(|it| {
+                matches!(it, AstStatement::Assignment { left, .. }
+                        if { matches!(&**left, AstStatement::Reference{name, ..}
+                            if {name == expected_name}
+                    )}
+                )
+            })
+            .unwrap()
     }
 
     // all three call-statements should give the exact same annotations
@@ -409,7 +416,10 @@ fn call_order_of_generic_parameters_does_not_change_annotations() {
         } = call
         {
             //The call name should nave the correct type
-            assert_eq!(Some("myFunc__DINT__INT"), annotations.get_call_name(operator));
+            assert_eq!(
+                Some("myFunc__DINT__INT"),
+                annotations.get_call_name(operator)
+            );
             //parameters should have the correct type
             if let Some(parameters) = &**parameters {
                 let parameters_list = ast::flatten_expression_list(parameters);
@@ -443,5 +453,3 @@ fn call_order_of_generic_parameters_does_not_change_annotations() {
         }
     }
 }
-
-

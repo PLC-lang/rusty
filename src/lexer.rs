@@ -11,7 +11,6 @@ pub use tokens::Token;
 use crate::ast::AstId;
 use crate::ast::DirectAccessType;
 use crate::ast::SourceRange;
-use crate::ast::TypeNature;
 use crate::Diagnostic;
 
 #[cfg(test)]
@@ -306,28 +305,6 @@ fn parse_access_type(lexer: &mut Lexer<Token>) -> Option<DirectAccessType> {
         .expect("Unknown access type - tokenizer/grammar incomplete?");
 
     Some(access)
-}
-
-fn parse_type_nature(lexer: &mut Lexer<Token>) -> Option<TypeNature> {
-    let nature = lexer.slice();
-    match nature {
-        "ANY" => Some(TypeNature::Any),
-        "ANY_DERIVED" => Some(TypeNature::Derived),
-        "ANY_ELEMENTARY" => Some(TypeNature::Elementary),
-        "ANY_MAGNITUDE" => Some(TypeNature::Magnitude),
-        "ANY_NUM" => Some(TypeNature::Num),
-        "ANY_REAL" => Some(TypeNature::Real),
-        "ANY_INT" => Some(TypeNature::Int),
-        "ANY_SIGNED" => Some(TypeNature::Signed),
-        "ANY_UNSIGNED" => Some(TypeNature::Unsigned),
-        "ANY_DURATION" => Some(TypeNature::Duration),
-        "ANY_BIT" => Some(TypeNature::Bit),
-        "ANY_CHARS" => Some(TypeNature::Chars),
-        "ANY_STRING" => Some(TypeNature::String),
-        "ANY_CHAR" => Some(TypeNature::Char),
-        "ANY_DATE" => Some(TypeNature::Date),
-        _ => None,
-    }
 }
 
 #[derive(Clone)]

@@ -247,15 +247,10 @@ fn parse_generics(lexer: &mut ParseSession) -> Vec<GenericBinding> {
                     lexer.consume_or_report(Token::KeywordColon);
 
                     //Expect a type nature
-                    match lexer.token {
-                        Nature(nature) => {
-                            generics.push(GenericBinding { name, nature });
-                            lexer.advance();
-                        }
-                        _ => lexer.accept_diagnostic(Diagnostic::missing_token(
-                            "Type Nature",
-                            lexer.location(),
-                        )),
+                    if let Some(nature) =
+                        parse_identifier(lexer).map(|it| parse_type_nature(lexer, &it))
+                    {
+                        generics.push(GenericBinding { name, nature });
                     }
                 }
 
@@ -268,6 +263,30 @@ fn parse_generics(lexer: &mut ParseSession) -> Vec<GenericBinding> {
         })
     } else {
         vec![]
+    }
+}
+
+fn parse_type_nature(lexer: &mut ParseSession, nature: &str) -> TypeNature {
+    match nature {
+        "ANY" => TypeNature::Any,
+        "ANY_DERIVED" => TypeNature::Derived,
+        "ANY_ELEMENTARY" => TypeNature::Elementary,
+        "ANY_MAGNITUDE" => TypeNature::Magnitude,
+        "ANY_NUM" => TypeNature::Num,
+        "ANY_REAL" => TypeNature::Real,
+        "ANY_INT" => TypeNature::Int,
+        "ANY_SIGNED" => TypeNature::Signed,
+        "ANY_UNSIGNED" => TypeNature::Unsigned,
+        "ANY_DURATION" => TypeNature::Duration,
+        "ANY_BIT" => TypeNature::Bit,
+        "ANY_CHARS" => TypeNature::Chars,
+        "ANY_STRING" => TypeNature::String,
+        "ANY_CHAR" => TypeNature::Char,
+        "ANY_DATE" => TypeNature::Date,
+        _ => {
+            lexer.accept_diagnostic(Diagnostic::unknown_type_nature(nature, lexer.location()));
+            TypeNature::Any
+        }
     }
 }
 

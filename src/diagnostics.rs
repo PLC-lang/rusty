@@ -69,6 +69,7 @@ pub enum ErrNo {
     type__incompatible_directaccess_range,
     type__expected_literal,
     type__invalid_nature,
+    type__unknown_nature,
     type__unresolved_generic,
 
     //codegen related
@@ -426,6 +427,14 @@ impl Diagnostic {
             ),
             range: location,
             err_no: ErrNo::type__invalid_nature,
+        }
+    }
+
+    pub fn unknown_type_nature(nature: &str, location: SourceRange) -> Diagnostic {
+        Diagnostic::SyntaxError {
+            message: format!("Unknown type nature {}.", nature),
+            range: location,
+            err_no: ErrNo::type__unknown_nature,
         }
     }
 

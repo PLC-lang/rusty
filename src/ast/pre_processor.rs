@@ -4,7 +4,7 @@ use crate::ast::DataTypeDeclaration;
 
 use super::{
     super::ast::{CompilationUnit, DataType, UserTypeDeclaration, Variable},
-    Pou, SourceRange, 
+    Pou, SourceRange,
 };
 use std::{collections::HashMap, vec};
 
