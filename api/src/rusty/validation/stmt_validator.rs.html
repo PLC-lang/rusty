@@ -499,6 +499,38 @@
 <span id="499">499</span>
 <span id="500">500</span>
 <span id="501">501</span>
+<span id="502">502</span>
+<span id="503">503</span>
+<span id="504">504</span>
+<span id="505">505</span>
+<span id="506">506</span>
+<span id="507">507</span>
+<span id="508">508</span>
+<span id="509">509</span>
+<span id="510">510</span>
+<span id="511">511</span>
+<span id="512">512</span>
+<span id="513">513</span>
+<span id="514">514</span>
+<span id="515">515</span>
+<span id="516">516</span>
+<span id="517">517</span>
+<span id="518">518</span>
+<span id="519">519</span>
+<span id="520">520</span>
+<span id="521">521</span>
+<span id="522">522</span>
+<span id="523">523</span>
+<span id="524">524</span>
+<span id="525">525</span>
+<span id="526">526</span>
+<span id="527">527</span>
+<span id="528">528</span>
+<span id="529">529</span>
+<span id="530">530</span>
+<span id="531">531</span>
+<span id="532">532</span>
+<span id="533">533</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">convert::TryInto</span>, <span class="ident">mem::discriminant</span>};
 
 <span class="kw">use</span> <span class="ident"><span class="kw">super</span>::ValidationContext</span>;
@@ -705,6 +737,38 @@
                 <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">validate_binary_expression</span>(<span class="ident">context</span>, <span class="ident">operator</span>, <span class="ident">left</span>, <span class="ident">right</span>, <span class="ident">statement</span>),
             },
             <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> (),
+        }
+        <span class="self">self</span>.<span class="ident">validate_type_nature</span>(<span class="ident">statement</span>, <span class="ident">context</span>);
+    }
+
+    <span class="doccomment">/// Validates that the assigned type and type hint are compatible with the nature for this</span>
+    <span class="doccomment">/// statement</span>
+    <span class="kw">fn</span> <span class="ident">validate_type_nature</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">statement</span>: <span class="kw-2">&amp;</span><span class="ident">AstStatement</span>, <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="ident">ValidationContext</span>) {
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">statement_type</span>) <span class="op">=</span> <span class="ident">context</span>
+            .<span class="ident">ast_annotation</span>
+            .<span class="ident">get_type_hint</span>(<span class="ident">statement</span>, <span class="ident">context</span>.<span class="ident">index</span>)
+            .<span class="ident">or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">context</span>.<span class="ident">ast_annotation</span>.<span class="ident">get_type</span>(<span class="ident">statement</span>, <span class="ident">context</span>.<span class="ident">index</span>))
+        {
+            <span class="kw">if</span> <span class="kw">let</span> <span class="ident">DataTypeInformation::Generic</span> {
+                <span class="ident">generic_symbol</span>,
+                <span class="ident">nature</span>,
+                ..
+            } <span class="op">=</span> <span class="ident">statement_type</span>.<span class="ident">get_type_information</span>()
+            {
+                <span class="self">self</span>.<span class="ident">diagnostics</span>.<span class="ident">push</span>(<span class="ident">Diagnostic::unresolved_generic_type</span>(
+                    <span class="ident">generic_symbol</span>,
+                    <span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="ident">nature</span>),
+                    <span class="ident">statement</span>.<span class="ident">get_location</span>(),
+                ))
+            } <span class="kw">else</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">nature</span>) <span class="op">=</span> <span class="ident">context</span>.<span class="ident">ast_annotation</span>.<span class="ident">get_generic_nature</span>(<span class="ident">statement</span>) {
+                <span class="kw">if</span> <span class="op">!</span><span class="ident">statement_type</span>.<span class="ident">has_nature</span>(<span class="kw-2">*</span><span class="ident">nature</span>, <span class="ident">context</span>.<span class="ident">index</span>) {
+                    <span class="self">self</span>.<span class="ident">diagnostics</span>.<span class="ident">push</span>(<span class="ident">Diagnostic::invalid_type_nature</span>(
+                        <span class="ident">statement_type</span>.<span class="ident">get_name</span>(),
+                        <span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="ident">nature</span>).<span class="ident">as_str</span>(),
+                        <span class="ident">statement</span>.<span class="ident">get_location</span>(),
+                    ));
+                }
+            }
         }
     }
 

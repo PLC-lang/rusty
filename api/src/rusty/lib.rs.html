@@ -449,6 +449,10 @@
 <span id="449">449</span>
 <span id="450">450</span>
 <span id="451">451</span>
+<span id="452">452</span>
+<span id="453">453</span>
+<span id="454">454</span>
+<span id="455">455</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 <span class="doccomment">//! A Structured Text LLVM Frontent</span>
 <span class="doccomment">//!</span>
@@ -809,7 +813,8 @@
     }
 
     <span class="comment">// ### PHASE 1.1 resolve constant literal values</span>
-    <span class="kw">let</span> (<span class="ident">full_index</span>, <span class="ident">_unresolvables</span>) <span class="op">=</span> <span class="ident">resolver::const_evaluator::evaluate_constants</span>(<span class="ident">full_index</span>);
+    <span class="kw">let</span> (<span class="kw-2">mut</span> <span class="ident">full_index</span>, <span class="ident">_unresolvables</span>) <span class="op">=</span>
+        <span class="ident">resolver::const_evaluator::evaluate_constants</span>(<span class="ident">full_index</span>);
 
     <span class="comment">// ### PHASE 2 ###</span>
     <span class="comment">// annotation &amp; validation everything</span>
@@ -827,6 +832,9 @@
         <span class="ident">annotated_units</span>.<span class="ident">push</span>(<span class="ident">unit</span>);
         <span class="ident">all_annotations</span>.<span class="ident">import</span>(<span class="ident">annotations</span>);
     }
+
+    <span class="comment">//Merge the new indices with the full index</span>
+    <span class="ident">full_index</span>.<span class="ident">import</span>(<span class="ident">std::mem::take</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">all_annotations</span>.<span class="ident">new_index</span>));
 
     <span class="comment">// ### PHASE 3 ###</span>
     <span class="comment">// - codegen</span>

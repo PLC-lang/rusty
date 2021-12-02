@@ -427,6 +427,21 @@
 <span id="427">427</span>
 <span id="428">428</span>
 <span id="429">429</span>
+<span id="430">430</span>
+<span id="431">431</span>
+<span id="432">432</span>
+<span id="433">433</span>
+<span id="434">434</span>
+<span id="435">435</span>
+<span id="436">436</span>
+<span id="437">437</span>
+<span id="438">438</span>
+<span id="439">439</span>
+<span id="440">440</span>
+<span id="441">441</span>
+<span id="442">442</span>
+<span id="443">443</span>
+<span id="444">444</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std::convert::TryInto</span>;
 
 <span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
@@ -483,12 +498,24 @@
         <span class="ident">types_index</span>: <span class="ident">LlvmTypedIndex::default</span>(),
     };
 
-    <span class="kw">let</span> <span class="ident">types</span> <span class="op">=</span> <span class="ident">generator</span>.<span class="ident">index</span>.<span class="ident">get_types</span>();
-    <span class="kw">let</span> <span class="ident">pou_types</span> <span class="op">=</span> <span class="ident">generator</span>.<span class="ident">index</span>.<span class="ident">get_pou_types</span>();
+    <span class="kw">let</span> <span class="ident">types</span> <span class="op">=</span> <span class="ident">generator</span>
+        .<span class="ident">index</span>
+        .<span class="ident">get_types</span>()
+        .<span class="ident">iter</span>()
+        .<span class="ident">filter</span>(<span class="op">|</span>(<span class="kw">_</span>, <span class="ident">it</span>)<span class="op">|</span> <span class="op">!</span><span class="ident">it</span>.<span class="ident">get_type_information</span>().<span class="ident">is_generic</span>())
+        .<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">a</span>, <span class="ident">b</span>)<span class="op">|</span> (<span class="ident">a</span>.<span class="ident">as_str</span>(), <span class="ident">b</span>))
+        .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span>(<span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="kw-2">&amp;</span><span class="ident">DataType</span>)<span class="op">&gt;</span><span class="op">&gt;</span>();
+    <span class="kw">let</span> <span class="ident">pou_types</span> <span class="op">=</span> <span class="ident">generator</span>
+        .<span class="ident">index</span>
+        .<span class="ident">get_pou_types</span>()
+        .<span class="ident">iter</span>()
+        .<span class="ident">filter</span>(<span class="op">|</span>(<span class="kw">_</span>, <span class="ident">it</span>)<span class="op">|</span> <span class="op">!</span><span class="ident">it</span>.<span class="ident">get_type_information</span>().<span class="ident">is_generic</span>())
+        .<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">a</span>, <span class="ident">b</span>)<span class="op">|</span> (<span class="ident">a</span>.<span class="ident">as_str</span>(), <span class="ident">b</span>))
+        .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span>(<span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="kw-2">&amp;</span><span class="ident">DataType</span>)<span class="op">&gt;</span><span class="op">&gt;</span>();
 
     <span class="comment">// first create all STUBs for struct types (empty structs)</span>
     <span class="comment">// and associate them in the llvm index</span>
-    <span class="kw">for</span> (<span class="ident">name</span>, <span class="ident">user_type</span>) <span class="kw">in</span> <span class="ident">types</span> {
+    <span class="kw">for</span> (<span class="ident">name</span>, <span class="ident">user_type</span>) <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">types</span> {
         <span class="kw">if</span> <span class="kw">let</span> <span class="ident">DataTypeInformation::Struct</span> {
             <span class="ident">name</span>: <span class="ident">struct_name</span>, ..
         } <span class="op">=</span> <span class="ident">user_type</span>.<span class="ident">get_type_information</span>()
@@ -499,7 +526,7 @@
         }
     }
     <span class="comment">// pou_types will always be struct</span>
-    <span class="kw">for</span> (<span class="ident">name</span>, <span class="ident">user_type</span>) <span class="kw">in</span> <span class="ident">pou_types</span> {
+    <span class="kw">for</span> (<span class="ident">name</span>, <span class="ident">user_type</span>) <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">pou_types</span> {
         <span class="kw">if</span> <span class="kw">let</span> <span class="ident">DataTypeInformation::Struct</span> {
             <span class="ident">name</span>: <span class="ident">struct_name</span>, ..
         } <span class="op">=</span> <span class="ident">user_type</span>.<span class="ident">get_type_information</span>()
@@ -510,18 +537,18 @@
         }
     }
     <span class="comment">// now create all other types (enum&#39;s, arrays, etc.)</span>
-    <span class="kw">for</span> (<span class="ident">name</span>, <span class="ident">user_type</span>) <span class="kw">in</span> <span class="ident">types</span> {
+    <span class="kw">for</span> (<span class="ident">name</span>, <span class="ident">user_type</span>) <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">types</span> {
         <span class="kw">let</span> <span class="ident">gen_type</span> <span class="op">=</span> <span class="ident">generator</span>.<span class="ident">create_type</span>(<span class="ident">name</span>, <span class="ident">user_type</span>)<span class="question-mark">?</span>;
         <span class="ident">generator</span>.<span class="ident">types_index</span>.<span class="ident">associate_type</span>(<span class="ident">name</span>, <span class="ident">gen_type</span>)<span class="question-mark">?</span>
     }
-    <span class="kw">for</span> (<span class="ident">name</span>, <span class="ident">user_type</span>) <span class="kw">in</span> <span class="ident">pou_types</span> {
+    <span class="kw">for</span> (<span class="ident">name</span>, <span class="ident">user_type</span>) <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">pou_types</span> {
         <span class="kw">let</span> <span class="ident">gen_type</span> <span class="op">=</span> <span class="ident">generator</span>.<span class="ident">create_type</span>(<span class="ident">name</span>, <span class="ident">user_type</span>)<span class="question-mark">?</span>;
         <span class="ident">generator</span>.<span class="ident">types_index</span>.<span class="ident">associate_pou_type</span>(<span class="ident">name</span>, <span class="ident">gen_type</span>)<span class="question-mark">?</span>
     }
 
     <span class="comment">// now since all types should be available in the llvm index, we can think about constructing and associating</span>
     <span class="comment">// initial values for the types</span>
-    <span class="kw">for</span> (<span class="ident">name</span>, <span class="ident">user_type</span>) <span class="kw">in</span> <span class="ident">types</span> {
+    <span class="kw">for</span> (<span class="ident">name</span>, <span class="ident">user_type</span>) <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">types</span> {
         <span class="ident">generator</span>.<span class="ident">expand_opaque_types</span>(<span class="ident">user_type</span>)<span class="question-mark">?</span>;
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">init_value</span>) <span class="op">=</span> <span class="ident">generator</span>.<span class="ident">generate_initial_value</span>(<span class="ident">user_type</span>)<span class="question-mark">?</span> {
             <span class="ident">generator</span>
@@ -529,7 +556,7 @@
                 .<span class="ident">associate_initial_value</span>(<span class="ident">name</span>, <span class="ident">init_value</span>)<span class="question-mark">?</span>;
         }
     }
-    <span class="kw">for</span> (<span class="ident">name</span>, <span class="ident">user_type</span>) <span class="kw">in</span> <span class="ident">pou_types</span> {
+    <span class="kw">for</span> (<span class="ident">name</span>, <span class="ident">user_type</span>) <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">pou_types</span> {
         <span class="ident">generator</span>.<span class="ident">expand_opaque_types</span>(<span class="ident">user_type</span>)<span class="question-mark">?</span>;
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">init_value</span>) <span class="op">=</span> <span class="ident">generator</span>.<span class="ident">generate_initial_value</span>(<span class="ident">user_type</span>)<span class="question-mark">?</span> {
             <span class="ident">generator</span>
@@ -637,6 +664,9 @@
                 <span class="kw">let</span> <span class="ident">inner_type</span> <span class="op">=</span>
                     <span class="self">self</span>.<span class="ident">create_type</span>(<span class="ident">inner_type_name</span>, <span class="self">self</span>.<span class="ident">index</span>.<span class="ident">get_type</span>(<span class="ident">inner_type_name</span>)<span class="question-mark">?</span>)<span class="question-mark">?</span>;
                 <span class="prelude-val">Ok</span>(<span class="ident">inner_type</span>.<span class="ident">ptr_type</span>(<span class="ident">AddressSpace::Generic</span>).<span class="ident">into</span>())
+            }
+            <span class="ident">DataTypeInformation::Generic</span> { .. } <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="macro">unreachable!</span>(<span class="string">&quot;Generic types should not be generated&quot;</span>)
             }
         }
     }

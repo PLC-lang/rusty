@@ -59,6 +59,7 @@
 <span id="59">59</span>
 <span id="60">60</span>
 <span id="61">61</span>
+<span id="62">62</span>
 </pre><pre class="rust"><code><span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">tests</span> {
 
@@ -102,8 +103,9 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">codegen_without_unwrap</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
         <span class="kw">let</span> (<span class="ident">unit</span>, <span class="ident">index</span>) <span class="op">=</span> <span class="ident">index</span>(<span class="ident">src</span>);
 
-        <span class="kw">let</span> (<span class="ident">index</span>, ..) <span class="op">=</span> <span class="ident">evaluate_constants</span>(<span class="ident">index</span>);
-        <span class="kw">let</span> <span class="ident">annotations</span> <span class="op">=</span> <span class="ident">TypeAnnotator::visit_unit</span>(<span class="kw-2">&amp;</span><span class="ident">index</span>, <span class="kw-2">&amp;</span><span class="ident">unit</span>);
+        <span class="kw">let</span> (<span class="kw-2">mut</span> <span class="ident">index</span>, ..) <span class="op">=</span> <span class="ident">evaluate_constants</span>(<span class="ident">index</span>);
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">annotations</span> <span class="op">=</span> <span class="ident">TypeAnnotator::visit_unit</span>(<span class="kw-2">&amp;</span><span class="ident">index</span>, <span class="kw-2">&amp;</span><span class="ident">unit</span>);
+        <span class="ident">index</span>.<span class="ident">import</span>(<span class="ident">std::mem::take</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">annotations</span>.<span class="ident">new_index</span>));
 
         <span class="kw">let</span> <span class="ident">context</span> <span class="op">=</span> <span class="ident">inkwell::context::Context::create</span>();
         <span class="kw">let</span> <span class="ident">code_generator</span> <span class="op">=</span> <span class="ident"><span class="kw">crate</span>::codegen::CodeGen::new</span>(<span class="kw-2">&amp;</span><span class="ident">context</span>, <span class="string">&quot;main&quot;</span>);
