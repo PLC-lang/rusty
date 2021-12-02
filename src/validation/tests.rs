@@ -5,3 +5,5 @@ mod reference_resolve_tests;
 mod variable_validation_tests;
 
 mod statement_validation_tests;
+
+mod generic_validation_tests;

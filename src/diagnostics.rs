@@ -68,6 +68,9 @@ pub enum ErrNo {
     type__incompatible_directaccess_variable,
     type__incompatible_directaccess_range,
     type__expected_literal,
+    type__invalid_nature,
+    type__unknown_nature,
+    type__unresolved_generic,
 
     //codegen related
     codegen__general,
@@ -177,6 +180,21 @@ impl Diagnostic {
             message: format!("Could not resolve reference to {:}", reference),
             range: location,
             err_no: ErrNo::reference__unresolved,
+        }
+    }
+
+    pub fn unresolved_generic_type(
+        symbol: &str,
+        nature: &str,
+        location: SourceRange,
+    ) -> Diagnostic {
+        Diagnostic::SyntaxError {
+            message: format!(
+                "Could not resolve generic type {} with nature {}",
+                symbol, nature
+            ),
+            range: location,
+            err_no: ErrNo::type__unresolved_generic,
         }
     }
 
@@ -398,6 +416,25 @@ impl Diagnostic {
             ),
             range: location,
             err_no: ErrNo::var__invalid_assignment,
+        }
+    }
+
+    pub fn invalid_type_nature(type_name: &str, nature: &str, location: SourceRange) -> Diagnostic {
+        Diagnostic::SyntaxError {
+            message: format!(
+                "Invalid type nature for generic argument. {} is no {}.",
+                type_name, nature
+            ),
+            range: location,
+            err_no: ErrNo::type__invalid_nature,
+        }
+    }
+
+    pub fn unknown_type_nature(nature: &str, location: SourceRange) -> Diagnostic {
+        Diagnostic::SyntaxError {
+            message: format!("Unknown type nature {}.", nature),
+            range: location,
+            err_no: ErrNo::type__unknown_nature,
         }
     }
 

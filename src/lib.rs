@@ -358,7 +358,8 @@ pub fn compile_module<'c, T: SourceContainer>(
     }
 
     // ### PHASE 1.1 resolve constant literal values
-    let (full_index, _unresolvables) = resolver::const_evaluator::evaluate_constants(full_index);
+    let (mut full_index, _unresolvables) =
+        resolver::const_evaluator::evaluate_constants(full_index);
 
     // ### PHASE 2 ###
     // annotation & validation everything
@@ -376,6 +377,9 @@ pub fn compile_module<'c, T: SourceContainer>(
         annotated_units.push(unit);
         all_annotations.import(annotations);
     }
+
+    //Merge the new indices with the full index
+    full_index.import(std::mem::take(&mut all_annotations.new_index));
 
     // ### PHASE 3 ###
     // - codegen

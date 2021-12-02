@@ -5,14 +5,16 @@
 //! Recursively visits all statements and expressions of a `CompilationUnit` and
 //! records all resulting types associated with the statement's id.
 
+use std::collections::HashMap;
+
 use indexmap::IndexMap;
 
 pub mod const_evaluator;
 
 use crate::{
     ast::{
-        self, AstId, AstStatement, CompilationUnit, DataType, DataTypeDeclaration, Operator, Pou,
-        UserTypeDeclaration, Variable,
+        self, AstId, AstStatement, CompilationUnit, DataType, DataTypeDeclaration, GenericBinding,
+        Operator, Pou, TypeNature, UserTypeDeclaration, Variable,
     },
     index::{ImplementationIndexEntry, ImplementationType, Index, VariableIndexEntry},
     typesystem::{
@@ -95,7 +97,6 @@ impl<'s> VisitorContext<'s> {
 pub struct TypeAnnotator<'i> {
     index: &'i Index,
     annotation_map: AnnotationMap,
-    //context: VisitorContext<'i>,
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -128,6 +129,7 @@ impl StatementAnnotation {
     }
 }
 
+#[derive(Default)]
 pub struct AnnotationMap {
     /// maps a statement to the type it resolves to
     type_map: IndexMap<AstId, StatementAnnotation>,
@@ -140,20 +142,24 @@ pub struct AnnotationMap {
     /// if the type-hint is equal to the actual type, or there is no
     /// useful type-hint to resolve, there is no mapping in this map
     type_hint_map: IndexMap<AstId, StatementAnnotation>,
+
+    /// A map from a call to the generic function name of that call
+    generic_nature_map: IndexMap<AstId, TypeNature>,
+
+    //An index of newly created types
+    pub new_index: Index,
 }
 
 impl AnnotationMap {
     /// creates a new empty AnnotationMap
     pub fn new() -> Self {
-        AnnotationMap {
-            type_map: IndexMap::new(),
-            type_hint_map: IndexMap::new(),
-        }
+        Default::default()
     }
 
     pub fn import(&mut self, other: AnnotationMap) {
         self.type_map.extend(other.type_map);
         self.type_hint_map.extend(other.type_hint_map);
+        self.new_index.import(other.new_index);
     }
 
     /// annotates the given statement (using it's `get_id()`) with the given type-name
@@ -163,6 +169,11 @@ impl AnnotationMap {
 
     pub fn annotate_type_hint(&mut self, s: &AstStatement, annotation: StatementAnnotation) {
         self.type_hint_map.insert(s.get_id(), annotation);
+    }
+
+    /// Annotates the ast statement with its original generic nature
+    pub fn add_generic_nature(&mut self, s: &AstStatement, nature: TypeNature) {
+        self.generic_nature_map.insert(s.get_id(), nature);
     }
 
     pub fn get(&self, s: &AstStatement) -> Option<&StatementAnnotation> {
@@ -252,11 +263,9 @@ impl AnnotationMap {
     pub fn has_type_annotation(&self, id: &usize) -> bool {
         self.type_map.contains_key(id)
     }
-}
 
-impl Default for AnnotationMap {
-    fn default() -> Self {
-        Self::new()
+    pub fn get_generic_nature(&self, s: &AstStatement) -> Option<&TypeNature> {
+        self.generic_nature_map.get(&s.get_id())
     }
 }
 
@@ -273,7 +282,6 @@ impl<'i> TypeAnnotator<'i> {
     /// Returns an AnnotationMap with the resulting types for all visited Statements. See `AnnotationMap`
     pub fn visit_unit(index: &Index, unit: &'i CompilationUnit) -> AnnotationMap {
         let mut visitor = TypeAnnotator::new(index);
-
         let ctx = &VisitorContext {
             pou: None,
             qualifier: None,
@@ -902,10 +910,10 @@ impl<'i> TypeAnnotator<'i> {
                 if let Some(lhs) = ctx.call {
                     //special context for left hand side
                     self.visit_statement(&ctx.with_pou(lhs), left);
-                    // give a type hint that we want the right side to be stored in the left's type
                 } else {
                     self.visit_statement(ctx, left);
                 }
+                // give a type hint that we want the right side to be stored in the left's type
                 self.update_right_hand_side_expected_type(left, right);
             }
             AstStatement::OutputAssignment { left, right, .. } => {
@@ -924,61 +932,70 @@ impl<'i> TypeAnnotator<'i> {
                 ..
             } => {
                 self.visit_statement(ctx, operator);
-                if let Some(s) = parameters.as_ref() {
-                    let operator_qualifier = self
-                        .annotation_map
-                        .get_annotation(operator)
-                        .and_then(|it| match it {
-                            StatementAnnotation::Function { qualified_name, .. } => {
-                                Some(qualified_name.clone())
-                            }
-                            StatementAnnotation::Program { qualified_name } => {
-                                Some(qualified_name.clone())
-                            }
-                            StatementAnnotation::Variable { resulting_type, .. } => {
-                                //lets see if this is a FB
-                                if let Some(implementation) =
-                                    self.index.find_implementation(resulting_type.as_str())
+                let operator_qualifier = self
+                    .annotation_map
+                    .get_annotation(operator)
+                    .and_then(|it| match it {
+                        StatementAnnotation::Function { qualified_name, .. } => {
+                            Some(qualified_name.clone())
+                        }
+                        StatementAnnotation::Program { qualified_name } => {
+                            Some(qualified_name.clone())
+                        }
+                        StatementAnnotation::Variable { resulting_type, .. } => {
+                            //lets see if this is a FB
+                            if let Some(implementation) =
+                                self.index.find_implementation(resulting_type.as_str())
+                            {
+                                if let ImplementationType::FunctionBlock {} =
+                                    implementation.get_implementation_type()
                                 {
-                                    if let ImplementationType::FunctionBlock {} =
-                                        implementation.get_implementation_type()
-                                    {
-                                        return Some(resulting_type.clone());
-                                    }
+                                    return Some(resulting_type.clone());
                                 }
-                                None
                             }
-                            _ => None,
-                        })
-                        .unwrap_or_else(|| VOID_TYPE.to_string());
-                    let ctx = ctx.with_call(operator_qualifier.as_str());
-                    //need to clone the qualifier string because of borrow checker :-( - //todo look into this
+                            None
+                        }
+                        _ => None,
+                    })
+                    .unwrap_or_else(|| VOID_TYPE.to_string());
+                let ctx = ctx.with_call(operator_qualifier.as_str());
+                let mut generics_candidates: HashMap<&str, Vec<&str>> = HashMap::new();
+                if let Some(s) = parameters.as_ref() {
                     self.visit_statement(&ctx, s);
-
-                    let parameters = ast::flatten_expression_list(s);
-                    let all_members = self
-                        .index
-                        .get_container_members(operator_qualifier.as_str());
-                    let members = all_members.iter().filter(|it| it.is_parameter());
-
-                    for (i, m) in members.enumerate() {
-                        if let Some(p) = parameters.get(i) {
-                            if !matches!(p, AstStatement::Assignment { .. }) {
-                                if let Some(effective_member_type) =
-                                    self.index.find_effective_type(m.get_type_name())
-                                {
-                                    //update the type hint
-                                    self.annotation_map.annotate_type_hint(
-                                        p,
-                                        StatementAnnotation::value(
-                                            effective_member_type.get_name(),
-                                        ),
-                                    )
+                    if let Some(s) = parameters.as_ref() {
+                        let parameters = ast::flatten_expression_list(s);
+                        let all_members = self.index.get_container_members(&operator_qualifier);
+                        let members = all_members.iter().filter(|it| it.is_parameter());
+                        for (i, m) in members.enumerate() {
+                            if let Some(p) = parameters.get(i) {
+                                //Add a possible generic candidate
+                                if let Some((key, candidate)) = TypeAnnotator::get_generic_candidate(
+                                    self.index,
+                                    &self.annotation_map,
+                                    m,
+                                    p,
+                                ) {
+                                    generics_candidates
+                                        .entry(key)
+                                        .or_insert_with(std::vec::Vec::new)
+                                        .push(candidate);
+                                } else {
+                                    //Don't do this for generics
+                                    self.annotate_parameters(*p, m.get_type_name());
                                 }
                             }
                         }
                     }
                 }
+
+                //Attempt to resolve the generic signature here
+                self.update_generic_call_statement(
+                    generics_candidates,
+                    &operator_qualifier,
+                    operator,
+                    parameters,
+                    ctx,
+                );
 
                 if let Some(StatementAnnotation::Function { return_type, .. }) =
                     self.annotation_map.get(operator)
@@ -1020,6 +1037,278 @@ impl<'i> TypeAnnotator<'i> {
             }
             _ => {
                 self.visit_statement_literals(ctx, statement);
+            }
+        }
+    }
+    // Returns a possible generic for the current statement
+    fn get_generic_candidate<'idx>(
+        index: &'idx Index,
+        annotation_map: &AnnotationMap,
+        member: &VariableIndexEntry,
+        statement: &AstStatement,
+    ) -> Option<(&'idx str, &'idx str)> {
+        //If generic add a generic annotation
+        if let Some(DataTypeInformation::Generic { generic_symbol, .. }) =
+            index.find_effective_type_info(member.get_type_name())
+        {
+            let statement = match statement {
+                //The right side of the assignment is the source of truth
+                AstStatement::Assignment { right, .. } => right,
+                _ => statement,
+            };
+            //Find the statement's type
+            annotation_map
+                .get_type(statement, index)
+                .map(|it| it.get_name())
+                .map(|name| (generic_symbol.as_str(), name))
+        } else {
+            None
+        }
+    }
+
+    /// Updates the generic information of a function call
+    /// It collects all candidates for a generic function
+    /// Then chooses the best fitting function signature
+    /// And reannotates the function with the found information
+    fn update_generic_call_statement(
+        &mut self,
+        generics_candidates: HashMap<&str, Vec<&str>>,
+        implementation_name: &str,
+        operator: &AstStatement,
+        parameters: &Option<AstStatement>,
+        ctx: VisitorContext,
+    ) {
+        let operator_type = self
+            .index
+            .get_effective_type_by_name(implementation_name)
+            .get_type_information();
+        if let DataTypeInformation::Struct { generics, .. } = operator_type {
+            if !generics.is_empty() {
+                let generic_map = &self.derive_generic_types(generics, generics_candidates);
+                //Annotate the statement with the new function call
+                if let Some(StatementAnnotation::Function {
+                    qualified_name,
+                    return_type,
+                }) = self.annotation_map.get_annotation(operator)
+                {
+                    //Figure out the new name for the call
+                    let (name, annotation) = self.get_generic_function_annotation(
+                        generics,
+                        qualified_name,
+                        return_type,
+                        generic_map,
+                    );
+                    //Create a new pou and implementation for the function
+                    if let Some((pou, implementation)) = self
+                        .index
+                        .find_effective_type(qualified_name)
+                        .zip(self.index.find_implementation(qualified_name))
+                    {
+                        self.annotation_map.new_index.register_implementation(
+                            &name,
+                            &name,
+                            implementation.get_associated_class_name(),
+                            implementation.get_implementation_type().clone(),
+                        );
+                        self.index_generic_type(pou, &name, generic_map);
+                    }
+                    self.annotation_map.annotate(operator, annotation);
+                }
+                //Adjust annotations on the inner statement
+                if let Some(s) = parameters.as_ref() {
+                    self.visit_statement(&ctx, s);
+                    self.update_generic_function_parameters(s, implementation_name, generic_map);
+                }
+            }
+        }
+    }
+
+    /// Only works for Structs
+    pub fn index_generic_type(
+        &mut self,
+        generic_type: &typesystem::DataType,
+        specific_name: &str,
+        generics: &HashMap<String, String>,
+    ) {
+        let information = if let DataTypeInformation::Struct {
+            member_names,
+            source,
+            varargs,
+            ..
+        } = &generic_type.get_type_information()
+        {
+            let interface_name = format!("{}_interface", specific_name);
+            let information = DataTypeInformation::Struct {
+                name: interface_name,
+                member_names: member_names.clone(),
+                varargs: varargs.clone(),
+                source: source.clone(),
+                generics: vec![],
+            };
+            for member in member_names {
+                if let Some(generic_entry) = self.index.find_member(generic_type.get_name(), member)
+                {
+                    let new_name = if let Some(old_type) = self
+                        .index
+                        .find_effective_type(generic_entry.get_type_name())
+                    {
+                        match old_type.get_type_information() {
+                            DataTypeInformation::Generic { generic_symbol, .. } => generics
+                                .get(generic_symbol)
+                                .map(String::as_str)
+                                .unwrap_or_else(|| old_type.get_name()),
+                            _ => old_type.get_name(),
+                        }
+                    } else {
+                        unreachable!("Member not indexed")
+                    };
+                    let entry = generic_entry.into_typed(specific_name, new_name);
+                    self.annotation_map
+                        .new_index
+                        .register_member_entry(specific_name, entry);
+                }
+            }
+            information
+        } else {
+            unreachable!("Not a struct");
+        };
+        let datatype = typesystem::DataType {
+            name: specific_name.to_string(),
+            initial_value: generic_type.initial_value,
+            nature: generic_type.nature,
+            information,
+        };
+        self.annotation_map.new_index.register_pou_type(datatype);
+    }
+
+    fn update_generic_function_parameters(
+        &mut self,
+        s: &AstStatement,
+        function_name: &str,
+        generic_map: &HashMap<String, String>,
+    ) {
+        /// An internal struct used to hold the type and nature of a generic parameter
+        struct TypeAndNature<'a> {
+            datatype: &'a typesystem::DataType,
+            nature: TypeNature,
+        }
+
+        // Map the input or output parameters of the function into a list of Index Entry with an optional generic type discription
+        let parameters = ast::flatten_expression_list(s);
+        let all_members = self.index.get_container_members(function_name);
+        let members: Vec<(&VariableIndexEntry, Option<TypeAndNature>)> = all_members
+            .iter()
+            .filter(|it| it.is_parameter())
+            .copied()
+            .map(|it| {
+                //if the member is generic
+                if let Some(DataTypeInformation::Generic {
+                    generic_symbol,
+                    nature,
+                    ..
+                }) = self.index.find_effective_type_info(it.get_type_name())
+                {
+                    let real_type = generic_map
+                        .get(generic_symbol)
+                        .and_then(|it| self.index.find_effective_type(it))
+                        .map(|datatype| TypeAndNature {
+                            datatype,
+                            nature: *nature,
+                        });
+                    (it, real_type)
+                } else {
+                    (it, None)
+                }
+            })
+            .collect();
+
+        //See if parameters have assignments, as they need to be treated differently
+        if parameters.iter().any(|it| {
+            matches!(
+                it,
+                AstStatement::Assignment { .. } | AstStatement::OutputAssignment { .. }
+            )
+        }) {
+            for p in parameters {
+                match p {
+                    AstStatement::Assignment { left, right, .. }
+                    | AstStatement::OutputAssignment { left, right, .. } => {
+                        if let AstStatement::Reference { name, .. } = &**left {
+                            //Find the member with that name
+                            if let Some((_, Some(TypeAndNature { datatype, nature }))) =
+                                members.iter().find(|(it, _)| it.get_name() == name)
+                            {
+                                self.annotation_map.add_generic_nature(p, *nature);
+                                self.annotation_map.annotate(
+                                    left,
+                                    StatementAnnotation::value(datatype.get_name()),
+                                );
+                                self.update_right_hand_side_expected_type(left, right);
+                            }
+                        }
+                    }
+                    _ => { /*do nothing*/ }
+                }
+            }
+        } else {
+            for (i, (_, dt)) in members.iter().enumerate() {
+                if let Some(p) = parameters.get(i) {
+                    if let Some(TypeAndNature { datatype, nature }) = dt {
+                        self.annotation_map.add_generic_nature(p, *nature);
+                        self.annotation_map
+                            .annotate_type_hint(p, StatementAnnotation::value(datatype.get_name()));
+                    }
+                }
+            }
+        }
+    }
+
+    fn get_generic_function_annotation(
+        &self,
+        generics: &[GenericBinding],
+        qualified_name: &str,
+        return_type: &str,
+        generic_map: &HashMap<String, String>,
+    ) -> (String, StatementAnnotation) {
+        let generic_name = generics
+            .iter()
+            .map(|it| {
+                generic_map
+                    .get(&it.name)
+                    .map(String::as_str)
+                    .unwrap_or_else(|| it.name.as_str())
+            })
+            .collect::<Vec<&str>>()
+            .join("__");
+        let function_name = format!("{}__{}", qualified_name, generic_name);
+        let return_type = if let DataTypeInformation::Generic { generic_symbol, .. } =
+            self.index.get_type_information_or_void(return_type)
+        {
+            generic_map
+                .get(generic_symbol)
+                .map(String::as_str)
+                .unwrap_or(return_type)
+        } else {
+            return_type
+        }
+        .to_string();
+        (
+            function_name.clone(),
+            StatementAnnotation::Function {
+                qualified_name: function_name,
+                return_type,
+            },
+        )
+    }
+
+    fn annotate_parameters(&mut self, p: &AstStatement, type_name: &str) {
+        if !matches!(p, AstStatement::Assignment { .. }) {
+            if let Some(effective_member_type) = self.index.find_effective_type(type_name) {
+                //update the type hint
+                self.annotation_map.annotate_type_hint(
+                    p,
+                    StatementAnnotation::value(effective_member_type.get_name()),
+                )
             }
         }
     }
@@ -1081,6 +1370,42 @@ impl<'i> TypeAnnotator<'i> {
 
             _ => {}
         }
+    }
+
+    fn derive_generic_types(
+        &self,
+        generics: &[GenericBinding],
+        generics_candidates: HashMap<&str, Vec<&str>>,
+    ) -> HashMap<String, String> {
+        let mut generic_map: HashMap<String, String> = HashMap::new();
+        for GenericBinding { name, .. } in generics {
+            //Get the current binding
+            if let Some(candidates) = generics_candidates.get(name.as_str()) {
+                //Find the best suiting type
+                let winner = candidates
+                    .iter()
+                    .fold(
+                        None,
+                        |previous_type: Option<&DataTypeInformation>, current| {
+                            let current_type = self
+                                .index
+                                .find_effective_type_info(current)
+                                .map(|it| self.index.find_intrinsic_type(it));
+                            //Find bigger
+                            if let Some((previous, current)) = previous_type.zip(current_type) {
+                                Some(typesystem::get_bigger_type(previous, current, self.index))
+                            } else {
+                                current_type
+                            }
+                        },
+                    )
+                    .map(DataTypeInformation::get_name);
+                if let Some(winner) = winner {
+                    generic_map.insert(name.into(), winner.into());
+                }
+            }
+        }
+        generic_map
     }
 }
 

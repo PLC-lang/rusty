@@ -2,7 +2,7 @@
 use std::{mem::size_of, ops::Range};
 
 use crate::{
-    ast::{AstStatement, Operator, PouType},
+    ast::{AstStatement, GenericBinding, Operator, PouType, TypeNature},
     index::{const_expressions::ConstId, Index},
 };
 
@@ -69,13 +69,16 @@ pub const CONST_WSTRING_TYPE: &str = "___CONST_WSTRING";
 
 pub const VOID_TYPE: &str = "VOID";
 
-#[derive(Debug, PartialEq)]
+#[cfg(test)]
+mod tests;
+
+#[derive(Debug, Clone, PartialEq)]
 pub struct DataType {
     pub name: String,
     /// the initial value defined on the TYPE-declration
     pub initial_value: Option<ConstId>,
     pub information: DataTypeInformation,
-    //TODO : Add location information
+    pub nature: TypeNature,
 }
 
 impl DataType {
@@ -89,6 +92,11 @@ impl DataType {
 
     pub fn clone_type_information(&self) -> DataTypeInformation {
         self.information.clone()
+    }
+
+    pub fn has_nature(&self, nature: TypeNature, index: &Index) -> bool {
+        let type_nature = index.get_intrinsic_type_by_name(self.get_name()).nature;
+        type_nature.derives(nature)
     }
 }
 
@@ -161,6 +169,7 @@ pub enum DataTypeInformation {
         member_names: Vec<String>,
         varargs: Option<VarArgs>,
         source: StructSource,
+        generics: Vec<GenericBinding>,
     },
     Array {
         name: String,
@@ -198,17 +207,26 @@ pub enum DataTypeInformation {
         name: String,
         referenced_type: String,
     },
+    Generic {
+        name: String,
+        generic_symbol: String,
+        nature: TypeNature,
+    },
     Void,
 }
 
 impl DataTypeInformation {
     pub fn get_name(&self) -> &str {
         match self {
-            DataTypeInformation::Struct { name, .. } => name,
-            DataTypeInformation::Array { name, .. } => name,
-            DataTypeInformation::Pointer { name, .. } => name,
-            DataTypeInformation::Integer { name, .. } => name,
-            DataTypeInformation::Float { name, .. } => name,
+            DataTypeInformation::Struct { name, .. }
+            | DataTypeInformation::Array { name, .. }
+            | DataTypeInformation::Pointer { name, .. }
+            | DataTypeInformation::Integer { name, .. }
+            | DataTypeInformation::Float { name, .. }
+            | DataTypeInformation::SubRange { name, .. }
+            | DataTypeInformation::Alias { name, .. }
+            | DataTypeInformation::Enum { name, .. }
+            | DataTypeInformation::Generic { name, .. } => name,
             DataTypeInformation::String {
                 encoding: StringEncoding::Utf8,
                 ..
@@ -217,10 +235,7 @@ impl DataTypeInformation {
                 encoding: StringEncoding::Utf16,
                 ..
             } => "WSTRING",
-            DataTypeInformation::SubRange { name, .. } => name,
             DataTypeInformation::Void => "VOID",
-            DataTypeInformation::Alias { name, .. } => name,
-            DataTypeInformation::Enum { name, .. } => name,
         }
     }
 
@@ -286,6 +301,14 @@ impl DataTypeInformation {
         }
     }
 
+    pub fn is_generic(&self) -> bool {
+        match self {
+            DataTypeInformation::Struct { generics, .. } => !generics.is_empty(),
+            DataTypeInformation::Generic { .. } => true,
+            _ => false,
+        }
+    }
+
     pub fn get_size(&self) -> u32 {
         match self {
             DataTypeInformation::Integer { size, .. } => *size,
@@ -298,6 +321,7 @@ impl DataTypeInformation {
             DataTypeInformation::Alias { .. } => unimplemented!("alias"),
             DataTypeInformation::Void => 0,
             DataTypeInformation::Enum { .. } => DINT_SIZE,
+            DataTypeInformation::Generic { .. } => unimplemented!("generics"),
         }
     }
 
@@ -324,12 +348,35 @@ impl Dimension {
     }
 }
 
+pub trait DataTypeInformationProvider<'a>: Into<&'a DataTypeInformation> {
+    fn get_type_information(&self) -> &DataTypeInformation;
+}
+
+impl<'a> DataTypeInformationProvider<'a> for &'a DataTypeInformation {
+    fn get_type_information(&self) -> &'a DataTypeInformation {
+        self
+    }
+}
+
+impl<'a> From<&'a DataType> for &'a DataTypeInformation {
+    fn from(dt: &'a DataType) -> Self {
+        dt.get_type_information()
+    }
+}
+
+impl<'a> DataTypeInformationProvider<'a> for &'a DataType {
+    fn get_type_information(&self) -> &DataTypeInformation {
+        DataType::get_type_information(self)
+    }
+}
+
 pub fn get_builtin_types() -> Vec<DataType> {
     vec![
         DataType {
             name: "__VOID".into(),
             initial_value: None,
             information: DataTypeInformation::Void,
+            nature: TypeNature::Any,
         },
         DataType {
             name: BOOL_TYPE.into(),
@@ -339,6 +386,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
                 signed: false,
                 size: BOOL_SIZE,
             },
+            nature: TypeNature::Bit,
         },
         DataType {
             name: BYTE_TYPE.into(),
@@ -348,6 +396,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
                 signed: false,
                 size: BYTE_SIZE,
             },
+            nature: TypeNature::Bit,
         },
         DataType {
             name: SINT_TYPE.into(),
@@ -357,6 +406,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
                 signed: true,
                 size: SINT_SIZE,
             },
+            nature: TypeNature::Signed,
         },
         DataType {
             name: USINT_TYPE.into(),
@@ -366,6 +416,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
                 signed: false,
                 size: SINT_SIZE,
             },
+            nature: TypeNature::Unsigned,
         },
         DataType {
             name: WORD_TYPE.into(),
@@ -375,6 +426,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
                 signed: false,
                 size: INT_SIZE,
             },
+            nature: TypeNature::Bit,
         },
         DataType {
             name: INT_TYPE.into(),
@@ -384,6 +436,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
                 signed: true,
                 size: INT_SIZE,
             },
+            nature: TypeNature::Signed,
         },
         DataType {
             name: UINT_TYPE.into(),
@@ -393,6 +446,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
                 signed: false,
                 size: INT_SIZE,
             },
+            nature: TypeNature::Unsigned,
         },
         DataType {
             name: DWORD_TYPE.into(),
@@ -402,6 +456,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
                 signed: false,
                 size: DINT_SIZE,
             },
+            nature: TypeNature::Bit,
         },
         DataType {
             name: DINT_TYPE.into(),
@@ -411,6 +466,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
                 signed: true,
                 size: DINT_SIZE,
             },
+            nature: TypeNature::Signed,
         },
         DataType {
             name: UDINT_TYPE.into(),
@@ -420,6 +476,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
                 signed: false,
                 size: DINT_SIZE,
             },
+            nature: TypeNature::Unsigned,
         },
         DataType {
             name: LWORD_TYPE.into(),
@@ -429,6 +486,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
                 signed: false,
                 size: LINT_SIZE,
             },
+            nature: TypeNature::Bit,
         },
         DataType {
             name: LINT_TYPE.into(),
@@ -438,6 +496,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
                 signed: true,
                 size: LINT_SIZE,
             },
+            nature: TypeNature::Signed,
         },
         DataType {
             name: DATE_TYPE.into(),
@@ -447,6 +506,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
                 signed: true,
                 size: DATE_TIME_SIZE,
             },
+            nature: TypeNature::Date,
         },
         DataType {
             name: TIME_TYPE.into(),
@@ -456,6 +516,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
                 signed: true,
                 size: DATE_TIME_SIZE,
             },
+            nature: TypeNature::Duration,
         },
         DataType {
             name: DATE_AND_TIME_TYPE.into(),
@@ -465,6 +526,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
                 signed: true,
                 size: DATE_TIME_SIZE,
             },
+            nature: TypeNature::Date,
         },
         DataType {
             name: TIME_OF_DAY_TYPE.into(),
@@ -474,6 +536,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
                 signed: true,
                 size: DATE_TIME_SIZE,
             },
+            nature: TypeNature::Date,
         },
         DataType {
             name: ULINT_TYPE.into(),
@@ -483,6 +546,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
                 signed: false,
                 size: LINT_SIZE,
             },
+            nature: TypeNature::Unsigned,
         },
         DataType {
             name: REAL_TYPE.into(),
@@ -491,6 +555,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
                 name: REAL_TYPE.into(),
                 size: REAL_SIZE,
             },
+            nature: TypeNature::Real,
         },
         DataType {
             name: LREAL_TYPE.into(),
@@ -499,6 +564,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
                 name: LREAL_TYPE.into(),
                 size: LREAL_SIZE,
             },
+            nature: TypeNature::Real,
         },
         DataType {
             name: STRING_TYPE.into(),
@@ -507,6 +573,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
                 size: TypeSize::from_literal(DEFAULT_STRING_LEN + 1),
                 encoding: StringEncoding::Utf8,
             },
+            nature: TypeNature::String,
         },
         DataType {
             name: WSTRING_TYPE.into(),
@@ -515,6 +582,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
                 size: TypeSize::from_literal(DEFAULT_STRING_LEN + 1),
                 encoding: StringEncoding::Utf16,
             },
+            nature: TypeNature::String,
         },
         DataType {
             name: CONST_STRING_TYPE.into(),
@@ -523,6 +591,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
                 size: TypeSize::from_literal(u16::MAX as u32),
                 encoding: StringEncoding::Utf8,
             },
+            nature: TypeNature::String,
         },
         DataType {
             name: CONST_WSTRING_TYPE.into(),
@@ -531,6 +600,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
                 size: TypeSize::from_literal(u16::MAX as u32),
                 encoding: StringEncoding::Utf16,
             },
+            nature: TypeNature::String,
         },
         DataType {
             name: SHORT_DATE_AND_TIME_TYPE.into(),
@@ -539,6 +609,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
                 name: SHORT_DATE_AND_TIME_TYPE.into(),
                 referenced_type: DATE_AND_TIME_TYPE.into(),
             },
+            nature: TypeNature::Date,
         },
         DataType {
             name: SHORT_DATE_TYPE.into(),
@@ -547,6 +618,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
                 name: SHORT_DATE_TYPE.into(),
                 referenced_type: DATE_TYPE.into(),
             },
+            nature: TypeNature::Date,
         },
         DataType {
             name: SHORT_TIME_OF_DAY_TYPE.into(),
@@ -555,6 +627,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
                 name: SHORT_TIME_OF_DAY_TYPE.into(),
                 referenced_type: TIME_OF_DAY_TYPE.into(),
             },
+            nature: TypeNature::Date,
         },
         DataType {
             name: SHORT_TIME_TYPE.into(),
@@ -563,6 +636,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
                 name: SHORT_TIME_TYPE.into(),
                 referenced_type: TIME_TYPE.into(),
             },
+            nature: TypeNature::Duration,
         },
         DataType {
             name: CHAR_TYPE.into(),
@@ -572,6 +646,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
                 signed: false,
                 size: 8,
             },
+            nature: TypeNature::Char,
         },
         DataType {
             name: WCHAR_TYPE.into(),
@@ -581,6 +656,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
                 signed: false,
                 size: 16,
             },
+            nature: TypeNature::Char,
         },
     ]
 }
@@ -595,11 +671,17 @@ fn get_rank(type_information: &DataTypeInformation) -> u32 {
             }
         }
         DataTypeInformation::Float { size, .. } => size + 1000,
-        _ => unreachable!(),
+        DataTypeInformation::String { size, .. } => match size {
+            TypeSize::LiteralInteger(size) => *size,
+            TypeSize::ConstExpression(_) => todo!("String rank with CONSTANTS"),
+        },
+        _ => todo!("{:?}", type_information),
     }
 }
 
-pub fn is_same_type_nature(
+/// Returns true if provided types have the same type nature
+/// i.e. Both are numeric or both are floats
+pub fn is_same_type_class(
     ltype: &DataTypeInformation,
     rtype: &DataTypeInformation,
     index: &Index,
@@ -609,31 +691,41 @@ pub fn is_same_type_nature(
     match ltype {
         DataTypeInformation::Integer { .. } => matches!(rtype, DataTypeInformation::Integer { .. }),
         DataTypeInformation::Float { .. } => matches!(rtype, DataTypeInformation::Float { .. }),
+        DataTypeInformation::String { encoding: lenc, .. } => {
+            matches!(rtype, DataTypeInformation::String { encoding, .. } if encoding == lenc)
+        }
         _ => ltype == rtype,
     }
 }
 
-pub fn get_bigger_type<'t>(
-    left_type: &'t DataType,
-    right_type: &'t DataType,
+/// Returns the bigger of the two provided types
+pub fn get_bigger_type<
+    't,
+    T: DataTypeInformationProvider<'t> + std::convert::From<&'t DataType>,
+>(
+    left_type: T,
+    right_type: T,
     index: &'t Index,
-) -> &'t DataType {
+) -> T {
     let lt = left_type.get_type_information();
     let rt = right_type.get_type_information();
-    if is_same_type_nature(lt, rt, index) {
+    if is_same_type_class(lt, rt, index) {
         if get_rank(lt) < get_rank(rt) {
             right_type
         } else {
             left_type
         }
-    } else {
+    } else if lt.is_numerical() && rt.is_numerical() {
         let real_type = index.get_type_or_panic(REAL_TYPE);
         let real_size = real_type.get_type_information().get_size();
         if lt.get_size() > real_size || rt.get_size() > real_size {
-            index.get_type_or_panic(LREAL_TYPE)
+            index.get_type_or_panic(LREAL_TYPE).into()
         } else {
-            real_type
+            real_type.into()
         }
+    } else {
+        //Return the first
+        left_type
     }
 }
 
@@ -676,87 +768,4 @@ pub fn get_equals_function_name_for(type_name: &str, operator: &Operator) -> Opt
     };
 
     suffix.map(|suffix| format!("{}_{}", type_name, suffix))
-}
-
-#[cfg(test)]
-mod tests {
-    use crate::{
-        ast::{CompilationUnit, Operator},
-        index::visitor::visit,
-        lexer::IdProvider,
-        typesystem::{
-            get_equals_function_name_for, get_signed_type, BYTE_TYPE, DINT_TYPE, DWORD_TYPE,
-            INT_TYPE, LINT_TYPE, LWORD_TYPE, SINT_TYPE, STRING_TYPE, UDINT_TYPE, UINT_TYPE,
-            ULINT_TYPE, USINT_TYPE, WORD_TYPE,
-        },
-    };
-
-    macro_rules! assert_signed_type {
-        ($expected:expr, $actual:expr, $index:expr) => {
-            assert_eq!(
-                $index.find_effective_type_info($expected),
-                get_signed_type($index.find_effective_type_info($actual).unwrap(), &$index)
-            );
-        };
-    }
-
-    #[test]
-    pub fn signed_types_tests() {
-        // Given an initialized index
-        let index = visit(&CompilationUnit::default(), IdProvider::default());
-        assert_signed_type!(SINT_TYPE, BYTE_TYPE, index);
-        assert_signed_type!(SINT_TYPE, USINT_TYPE, index);
-        assert_signed_type!(INT_TYPE, WORD_TYPE, index);
-        assert_signed_type!(INT_TYPE, UINT_TYPE, index);
-        assert_signed_type!(DINT_TYPE, DWORD_TYPE, index);
-        assert_signed_type!(DINT_TYPE, UDINT_TYPE, index);
-        assert_signed_type!(LINT_TYPE, ULINT_TYPE, index);
-        assert_signed_type!(LINT_TYPE, LWORD_TYPE, index);
-
-        assert_eq!(
-            Some(
-                index
-                    .find_effective_type(STRING_TYPE)
-                    .as_ref()
-                    .unwrap()
-                    .get_type_information()
-            ),
-            get_signed_type(
-                index
-                    .find_effective_type(STRING_TYPE)
-                    .as_ref()
-                    .unwrap()
-                    .get_type_information(),
-                &index
-            )
-        );
-    }
-
-    #[test]
-    pub fn equal_method_function_names() {
-        assert_eq!(
-            Some("STRING_EQUAL".to_string()),
-            get_equals_function_name_for("STRING", &Operator::Equal)
-        );
-        assert_eq!(
-            Some("MY_TYPE_EQUAL".to_string()),
-            get_equals_function_name_for("MY_TYPE", &Operator::Equal)
-        );
-        assert_eq!(
-            Some("STRING_LESS".to_string()),
-            get_equals_function_name_for("STRING", &Operator::Less)
-        );
-        assert_eq!(
-            Some("MY_TYPE_LESS".to_string()),
-            get_equals_function_name_for("MY_TYPE", &Operator::Less)
-        );
-        assert_eq!(
-            Some("STRING_GREATER".to_string()),
-            get_equals_function_name_for("STRING", &Operator::Greater)
-        );
-        assert_eq!(
-            Some("MY_TYPE_GREATER".to_string()),
-            get_equals_function_name_for("MY_TYPE", &Operator::Greater)
-        );
-    }
 }

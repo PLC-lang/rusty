@@ -59,6 +59,7 @@ fn exponent_literals_parsed_as_variables() {
             }],
         }],
         location: SourceRange::undefined(),
+        generics: vec![],
     };
     assert_eq!(format!("{:#?}", expected), format!("{:#?}", pou).as_str());
     let implementation = &parse_result.implementations[0];

@@ -2547,7 +2547,6 @@ fn string_compare_should_resolve_to_bool() {
     // THEN we want the hint for 'NULL' to be POINTER TO BYTE
     let annotations = annotate(&unit, &index);
     let a_eq_b = &unit.implementations[1].statements[0];
-    dbg!(a_eq_b);
     assert_eq!(
         Some(&StatementAnnotation::value("BOOL")),
         annotations.get_annotation(a_eq_b),
