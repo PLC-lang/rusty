@@ -314,7 +314,7 @@ fn visit_data_type(
                 name: enum_name.to_string(),
                 initial_value: init,
                 information,
-                nature: TypeNature::Any,
+                nature: TypeNature::Int,
             });
 
             elements.iter().enumerate().for_each(|(i, v)| {
@@ -363,7 +363,7 @@ fn visit_data_type(
                 name: name.to_string(),
                 initial_value: init,
                 information,
-                nature: TypeNature::Any,
+                nature: TypeNature::Int,
             });
         }
         DataType::ArrayType {

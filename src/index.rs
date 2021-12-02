@@ -43,7 +43,9 @@ pub struct MemberInfo<'b> {
 }
 
 impl VariableIndexEntry {
-    pub fn to_specific(&self, container: &str, new_type: &str) -> Self {
+    /// Creates a new VariableIndexEntry from the current entry with a new container and type
+    /// This is used to create new entries from previously generic entries
+    pub fn into_typed(&self, container: &str, new_type: &str) -> Self {
         VariableIndexEntry {
             qualified_name: format!("{}.{}", container, self.name),
             data_type_name: new_type.to_string(),

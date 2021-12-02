@@ -4,7 +4,7 @@ use crate::ast::DataTypeDeclaration;
 
 use super::{
     super::ast::{CompilationUnit, DataType, UserTypeDeclaration, Variable},
-    Pou, SourceRange,
+    Pou, SourceRange, 
 };
 use std::{collections::HashMap, vec};
 
@@ -12,36 +12,8 @@ pub fn pre_process(unit: &mut CompilationUnit) {
     //process all local variables from POUs
     for mut pou in unit.units.iter_mut() {
         //Find all generic types in that pou
-        let mut generic_types = HashMap::new();
-        for binding in &pou.generics {
-            let new_name = format!("__{}__{}", pou.name, binding.name);
-            //Generate a type for the generic
-            let data_type = UserTypeDeclaration {
-                data_type: DataType::GenericType {
-                    name: new_name.clone(),
-                    generic_symbol: binding.name.clone(),
-                    nature: binding.nature,
-                },
-                initializer: None,
-                scope: Some(pou.name.clone()),
-                location: pou.location.clone(),
-            };
-            unit.types.push(data_type);
-            generic_types.insert(binding.name.clone(), new_name);
-        }
-        //Find all variables that reference a generic type
-        //Replace the reference with the generic type's name
-        for var in pou
-            .variable_blocks
-            .iter_mut()
-            .flat_map(|it| it.variables.iter_mut())
-        {
-            replace_generic_type_name(&mut var.data_type, &generic_types);
-        }
-        //Replace the return type's reference if needed
-        if let Some(datatype) = pou.return_type.as_mut() {
-            replace_generic_type_name(datatype, &generic_types);
-        }
+        let generic_types = preprocess_generic_structs(&mut pou);
+        unit.types.extend(generic_types);
 
         let all_variables = pou
             .variable_blocks
@@ -122,6 +94,38 @@ pub fn pre_process(unit: &mut CompilationUnit) {
         }
     }
     unit.types.append(&mut new_types);
+}
+
+fn preprocess_generic_structs(pou: &mut Pou) -> Vec<UserTypeDeclaration> {
+    let mut generic_types = HashMap::new();
+    let mut types = vec![];
+    for binding in &pou.generics {
+        let new_name = format!("__{}__{}", pou.name, binding.name);
+        //Generate a type for the generic
+        let data_type = UserTypeDeclaration {
+            data_type: DataType::GenericType {
+                name: new_name.clone(),
+                generic_symbol: binding.name.clone(),
+                nature: binding.nature,
+            },
+            initializer: None,
+            scope: Some(pou.name.clone()),
+            location: pou.location.clone(),
+        };
+        types.push(data_type);
+        generic_types.insert(binding.name.clone(), new_name);
+    }
+    for var in pou
+        .variable_blocks
+        .iter_mut()
+        .flat_map(|it| it.variables.iter_mut())
+    {
+        replace_generic_type_name(&mut var.data_type, &generic_types);
+    }
+    if let Some(datatype) = pou.return_type.as_mut() {
+        replace_generic_type_name(datatype, &generic_types);
+    };
+    types
 }
 
 fn preprocess_return_type(pou: &mut Pou, types: &mut Vec<UserTypeDeclaration>) {
