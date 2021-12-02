@@ -466,6 +466,12 @@ impl<'i> TypeAnnotator<'i> {
                         statement,
                         StatementAnnotation::value(expected_type.get_name()),
                     )
+                } else if let DataTypeInformation::Array {
+                    inner_type_name, ..
+                } = expected_type.get_type_information()
+                {
+                    self.annotation_map
+                        .annotate(statement, StatementAnnotation::value(inner_type_name))
                 } else {
                     //annotate the statement, whatever it is
                     self.annotation_map.annotate_type_hint(

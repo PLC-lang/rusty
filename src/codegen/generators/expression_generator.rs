@@ -1297,9 +1297,18 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                 self.generate_literal_array(literal_statement)
             }
             AstStatement::LiteralNull { .. } => self.llvm.create_null_ptr(),
-            // if there is an expression-list this might be a struct-initialization
+            // if there is an expression-list this might be a struct-initialization or array-initialization
             AstStatement::ExpressionList { .. } => {
-                self.generate_literal_struct(literal_statement, &literal_statement.get_location())
+                let type_hint = self.get_type_hint_info_for(literal_statement)?;
+                match type_hint {
+                    DataTypeInformation::Array { .. } => {
+                        self.generate_literal_array(literal_statement)
+                    }
+                    _ => self.generate_literal_struct(
+                        literal_statement,
+                        &literal_statement.get_location(),
+                    ),
+                }
             }
             // if there is just one assignment, this may be an struct-initialization (TODO this is not very elegant :-/ )
             AstStatement::Assignment { .. } => {
