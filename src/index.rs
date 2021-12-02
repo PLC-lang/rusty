@@ -2,7 +2,7 @@
 use indexmap::IndexMap;
 
 use crate::{
-    ast::{Implementation, PouType, SourceRange},
+    ast::{Implementation, PouType, SourceRange, TypeNature},
     diagnostics::Diagnostic,
     typesystem::*,
 };
@@ -43,6 +43,16 @@ pub struct MemberInfo<'b> {
 }
 
 impl VariableIndexEntry {
+    /// Creates a new VariableIndexEntry from the current entry with a new container and type
+    /// This is used to create new entries from previously generic entries
+    pub fn into_typed(&self, container: &str, new_type: &str) -> Self {
+        VariableIndexEntry {
+            qualified_name: format!("{}.{}", container, self.name),
+            data_type_name: new_type.to_string(),
+            ..self.to_owned()
+        }
+    }
+
     pub fn get_name(&self) -> &str {
         self.name.as_str()
     }
@@ -131,11 +141,11 @@ pub enum ImplementationType {
     Method,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct ImplementationIndexEntry {
-    call_name: String,
-    type_name: String,
-    associated_class: Option<String>,
+    pub(crate) call_name: String,
+    pub(crate) type_name: String,
+    pub(crate) associated_class: Option<String>,
     pub(crate) implementation_type: ImplementationType,
 }
 
@@ -182,6 +192,7 @@ impl From<&PouType> for ImplementationType {
 /// the TypeIndex carries all types.
 /// it is extracted into its seaprate struct so it can be
 /// internally borrowed individually from the other maps
+#[derive(Debug)]
 pub struct TypeIndex {
     /// all types (structs, enums, type, POUs, etc.)
     types: IndexMap<String, DataType>,
@@ -199,6 +210,7 @@ impl TypeIndex {
                 name: VOID_TYPE.into(),
                 initial_value: None,
                 information: DataTypeInformation::Void,
+                nature: TypeNature::Any,
             },
         }
     }
@@ -249,7 +261,7 @@ impl TypeIndex {
 /// The global index of the rusty-compiler
 ///
 /// The index contains information about all referencable elements.
-#[derive()]
+#[derive(Debug)]
 pub struct Index {
     /// all global variables
     global_variables: IndexMap<String, VariableIndexEntry>,
@@ -663,11 +675,6 @@ impl Index {
         let variable_linkage = member_info.variable_linkage;
         let variable_type_name = member_info.variable_type_name;
 
-        let members = self
-            .member_variables
-            .entry(container_name.to_lowercase())
-            .or_insert_with(IndexMap::new);
-
         let qualified_name = format!("{}.{}", container_name, variable_name);
 
         let entry = VariableIndexEntry {
@@ -680,7 +687,14 @@ impl Index {
             is_constant: member_info.is_constant,
             location_in_parent: location,
         };
-        members.insert(variable_name.to_lowercase(), entry);
+        self.register_member_entry(container_name, entry);
+    }
+    pub fn register_member_entry(&mut self, container_name: &str, entry: VariableIndexEntry) {
+        let members = self
+            .member_variables
+            .entry(container_name.to_lowercase())
+            .or_insert_with(IndexMap::new);
+        members.insert(entry.name.to_lowercase(), entry);
     }
 
     pub fn register_enum_element(
@@ -752,36 +766,16 @@ impl Index {
             .insert(association_name.to_lowercase(), entry);
     }
 
-    pub fn register_type(
-        &mut self,
-        type_name: &str,
-        initial_value: Option<ConstId>,
-        information: DataTypeInformation,
-    ) {
-        let index_entry = DataType {
-            name: type_name.into(),
-            initial_value,
-            information,
-        };
+    pub fn register_type(&mut self, datatype: DataType) {
         self.type_index
             .types
-            .insert(type_name.to_lowercase(), index_entry);
+            .insert(datatype.get_name().to_lowercase(), datatype);
     }
 
-    pub fn register_pou_type(
-        &mut self,
-        type_name: &str,
-        initial_value: Option<ConstId>,
-        information: DataTypeInformation,
-    ) {
-        let index_entry = DataType {
-            name: type_name.into(),
-            initial_value,
-            information,
-        };
+    pub fn register_pou_type(&mut self, datatype: DataType) {
         self.type_index
             .pou_types
-            .insert(type_name.to_lowercase(), index_entry);
+            .insert(datatype.get_name().to_lowercase(), datatype);
     }
 
     pub fn find_callable_instance_variable(

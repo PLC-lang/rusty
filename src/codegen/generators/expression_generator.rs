@@ -5,7 +5,7 @@ use crate::{
     diagnostics::{Diagnostic, INTERNAL_LLVM_ERROR},
     index::{ImplementationIndexEntry, ImplementationType, Index, VariableIndexEntry},
     resolver::{AnnotationMap, StatementAnnotation},
-    typesystem::{is_same_type_nature, Dimension, StringEncoding, INT_SIZE, INT_TYPE, LINT_TYPE},
+    typesystem::{is_same_type_class, Dimension, StringEncoding, INT_SIZE, INT_TYPE, LINT_TYPE},
 };
 use inkwell::{
     basic_block::BasicBlock,
@@ -1176,7 +1176,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
     ) -> Result<BasicValueEnum<'a>, Diagnostic> {
         let type_hint = self.get_type_hint_for(stmt)?;
         let actual_type = self.annotations.get_type_or_void(stmt, self.index);
-        let literal_type = if is_same_type_nature(
+        let literal_type = if is_same_type_class(
             type_hint.get_type_information(),
             actual_type.get_type_information(),
             self.index,
