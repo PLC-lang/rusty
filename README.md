@@ -25,9 +25,9 @@ Structured Text is a popular langauge in the domain of automation. A standardize
 
 Several automation platform suppliers built proprietary compilers and runtime libraries, native to the vendor's hard- and software platform.
 
-RuSTy is aiming towards a *fast*, *modern* and *open-source* industry-grade ST compiler for a wide range of plattforms, sticking close to the standard.
+RuSTy is aiming towards a *fast*, *modern* and *open-source* industry-grade ST compiler for a wide range of platforms, sticking close to the standard.
 
 ## Dependencies
-We use the [_logos_](https://crates.io/crates/logos/0.8.0)
+We use the [_logos_](https://crates.io/crates/logos/)
 crate library to perform lexical analysis before a handwritten recursive decent parser creates the AST. 
 Generating LLVM IR is accomplished with the help of [_inkwell_](https://github.com/TheDan64/inkwell), a Rust-wrapper around the native LLVM C-API.
