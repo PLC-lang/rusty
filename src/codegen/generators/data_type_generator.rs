@@ -54,12 +54,24 @@ pub fn generate_data_types<'ink>(
         types_index: LlvmTypedIndex::default(),
     };
 
-    let types = generator.index.get_types();
-    let pou_types = generator.index.get_pou_types();
+    let types = generator
+        .index
+        .get_types()
+        .iter()
+        .filter(|(_, it)| !it.get_type_information().is_generic())
+        .map(|(a, b)| (a.as_str(), b))
+        .collect::<Vec<(&str, &DataType)>>();
+    let pou_types = generator
+        .index
+        .get_pou_types()
+        .iter()
+        .filter(|(_, it)| !it.get_type_information().is_generic())
+        .map(|(a, b)| (a.as_str(), b))
+        .collect::<Vec<(&str, &DataType)>>();
 
     // first create all STUBs for struct types (empty structs)
     // and associate them in the llvm index
-    for (name, user_type) in types {
+    for (name, user_type) in &types {
         if let DataTypeInformation::Struct {
             name: struct_name, ..
         } = user_type.get_type_information()
@@ -70,7 +82,7 @@ pub fn generate_data_types<'ink>(
         }
     }
     // pou_types will always be struct
-    for (name, user_type) in pou_types {
+    for (name, user_type) in &pou_types {
         if let DataTypeInformation::Struct {
             name: struct_name, ..
         } = user_type.get_type_information()
@@ -81,18 +93,18 @@ pub fn generate_data_types<'ink>(
         }
     }
     // now create all other types (enum's, arrays, etc.)
-    for (name, user_type) in types {
+    for (name, user_type) in &types {
         let gen_type = generator.create_type(name, user_type)?;
         generator.types_index.associate_type(name, gen_type)?
     }
-    for (name, user_type) in pou_types {
+    for (name, user_type) in &pou_types {
         let gen_type = generator.create_type(name, user_type)?;
         generator.types_index.associate_pou_type(name, gen_type)?
     }
 
     // now since all types should be available in the llvm index, we can think about constructing and associating
     // initial values for the types
-    for (name, user_type) in types {
+    for (name, user_type) in &types {
         generator.expand_opaque_types(user_type)?;
         if let Some(init_value) = generator.generate_initial_value(user_type)? {
             generator
@@ -100,7 +112,7 @@ pub fn generate_data_types<'ink>(
                 .associate_initial_value(name, init_value)?;
         }
     }
-    for (name, user_type) in pou_types {
+    for (name, user_type) in &pou_types {
         generator.expand_opaque_types(user_type)?;
         if let Some(init_value) = generator.generate_initial_value(user_type)? {
             generator
@@ -208,6 +220,9 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
                 let inner_type =
                     self.create_type(inner_type_name, self.index.get_type(inner_type_name)?)?;
                 Ok(inner_type.ptr_type(AddressSpace::Generic).into())
+            }
+            DataTypeInformation::Generic { .. } => {
+                unreachable!("Generic types should not be generated")
             }
         }
     }

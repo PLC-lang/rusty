@@ -2,6 +2,7 @@
 mod code_gen_tests;
 mod codegen_error_messages_tests;
 mod expression_tests;
+mod generics_test;
 mod statement_codegen_test;
 mod string_tests;
 mod typesystem_test;

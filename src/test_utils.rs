@@ -41,8 +41,9 @@ pub mod tests {
     pub fn codegen_without_unwrap(src: &str) -> Result<String, Diagnostic> {
         let (unit, index) = index(src);
 
-        let (index, ..) = evaluate_constants(index);
-        let annotations = TypeAnnotator::visit_unit(&index, &unit);
+        let (mut index, ..) = evaluate_constants(index);
+        let mut annotations = TypeAnnotator::visit_unit(&index, &unit);
+        index.import(std::mem::take(&mut annotations.new_index));
 
         let context = inkwell::context::Context::create();
         let code_generator = crate::codegen::CodeGen::new(&context, "main");
