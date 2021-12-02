@@ -23,12 +23,11 @@ If you want to contribute to the project you should look for some [beginner-frie
 ## Why RuSTy
 Structured Text is a popular langauge in the domain of automation. A standardized specification of the language ([IEC 61131](https://en.wikipedia.org/wiki/IEC_61131))  was published in the 90s. It was updated several times in the meantime, while its initial spirit - beeing built for cyclic, robust and deterministic automation applications - still applies. 
 
-Several automation plattforms suppliers built proprietary compilers and runtime libraries, native to the vendor's hard- and software platform.
+Several automation platform suppliers built proprietary compilers and runtime libraries, native to the vendor's hard- and software platform.
 
 RuSTy is aiming towards a *fast*, *modern* and *open-source* industry-grade ST compiler for a wide range of plattforms, sticking close to the standard.
 
 ## Dependencies
 We use the [_logos_](https://crates.io/crates/logos/0.8.0)
 crate library to perform lexical analysis before a handwritten recursive decent parser creates the AST. 
-Generating LLVM IR is accomplished with the help of [_inkwell_](https://github.com/TheDan64/inkwell), a Rust-wrapper for the native LLVM C++ API.
-
+Generating LLVM IR is accomplished with the help of [_inkwell_](https://github.com/TheDan64/inkwell), a Rust-wrapper around the native LLVM C-API.
