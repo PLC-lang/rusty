@@ -158,6 +158,9 @@ fn needs_evaluation(expr: &AstStatement) -> bool {
             }
             _ => needs_evaluation(elements.as_ref()),
         },
+        AstStatement::ExpressionList { expressions, .. } => {
+            expressions.iter().any(|it| needs_evaluation(it))
+        }
         _ => true,
     }
 }
@@ -520,6 +523,20 @@ pub fn evaluate(
                     id: *id,
                 })),
                 location: location.clone(),
+            })
+        }
+        AstStatement::ExpressionList { expressions, id } => {
+            let inner_elements = expressions
+                .iter()
+                .map(|e| evaluate(e, scope, index))
+                .collect::<Result<Vec<Option<AstStatement>>, String>>()?
+                .into_iter()
+                .collect::<Option<Vec<AstStatement>>>();
+
+            //return a new array, or return none if one was not resolvable
+            inner_elements.map(|ie| AstStatement::ExpressionList {
+                expressions: ie,
+                id: *id,
             })
         }
         AstStatement::MultipliedStatement {
