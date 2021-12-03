@@ -158,6 +158,7 @@ fn varargs_parameters_can_be_parsed() {
         }],
         location: SourceRange::undefined(),
         poly_mode: None,
+        generics: vec![],
     };
     assert_eq!(format!("{:#?}", expected), format!("{:#?}", x).as_str());
 }

@@ -2,7 +2,7 @@
 use super::VariableType;
 use crate::ast::{
     self, AstStatement, CompilationUnit, DataType, DataTypeDeclaration, Implementation, Pou,
-    PouType, SourceRange, UserTypeDeclaration, VariableBlock, VariableBlockType,
+    PouType, SourceRange, TypeNature, UserTypeDeclaration, VariableBlock, VariableBlockType,
 };
 use crate::diagnostics::Diagnostic;
 use crate::index::{Index, MemberInfo};
@@ -15,11 +15,7 @@ pub fn visit(unit: &CompilationUnit, mut id_provider: IdProvider) -> Index {
     //Create the typesystem
     let builtins = get_builtin_types();
     for data_type in builtins {
-        index.register_type(
-            data_type.get_name(),
-            data_type.initial_value,
-            data_type.clone_type_information(),
-        );
+        index.register_type(data_type);
     }
 
     //Create user defined datatypes
@@ -132,16 +128,19 @@ pub fn visit_pou(index: &mut Index, pou: &Pou) {
         )
     }
 
-    index.register_pou_type(
-        &pou.name,
-        None,
-        DataTypeInformation::Struct {
+    let datatype = typesystem::DataType {
+        name: pou.name.to_string(),
+        initial_value: None,
+        information: DataTypeInformation::Struct {
             name: interface_name,
             member_names,
             varargs,
             source: StructSource::Pou(pou.pou_type.clone()),
+            generics: pou.generics.clone(),
         },
-    );
+        nature: TypeNature::Any,
+    };
+    index.register_pou_type(datatype);
 }
 
 fn visit_implementation(index: &mut Index, implementation: &Implementation) {
@@ -154,14 +153,16 @@ fn visit_implementation(index: &mut Index, implementation: &Implementation) {
     );
     //if we are registing an action, also register a datatype for it
     if pou_type == &PouType::Action {
-        index.register_pou_type(
-            &implementation.name,
-            None,
-            DataTypeInformation::Alias {
+        let datatype = typesystem::DataType {
+            name: implementation.name.to_string(),
+            initial_value: None,
+            information: DataTypeInformation::Alias {
                 name: implementation.name.clone(),
                 referenced_type: implementation.type_name.clone(),
             },
-        );
+            nature: TypeNature::Derived,
+        };
+        index.register_pou_type(datatype);
     }
 }
 
@@ -170,15 +171,16 @@ fn register_inout_pointer_type_for(index: &mut Index, inner_type_name: &str) -> 
     let type_name = format!("pointer_to_{}", inner_type_name);
 
     //generate a pointertype for the variable
-    index.register_type(
-        &type_name,
-        None,
-        DataTypeInformation::Pointer {
+    index.register_type(typesystem::DataType {
+        name: type_name.clone(),
+        initial_value: None,
+        information: DataTypeInformation::Pointer {
             name: type_name.clone(),
             inner_type_name: inner_type_name.to_string(),
             auto_deref: true,
         },
-    );
+        nature: TypeNature::Any,
+    });
 
     type_name
 }
@@ -234,6 +236,7 @@ fn visit_data_type(
                 member_names,
                 varargs: None,
                 source: StructSource::OriginalDeclaration,
+                generics: vec![],
             };
 
             let init = index
@@ -243,7 +246,12 @@ fn visit_data_type(
                     type_name.as_str(),
                     scope.clone(),
                 );
-            index.register_type(name, init, information);
+            index.register_type(typesystem::DataType {
+                name: name.to_string(),
+                initial_value: init,
+                information,
+                nature: TypeNature::Derived,
+            });
             for (count, var) in variables.iter().enumerate() {
                 if let DataTypeDeclaration::DataTypeDefinition {
                     data_type, scope, ..
@@ -302,7 +310,12 @@ fn visit_data_type(
                     enum_name,
                     scope.clone(),
                 );
-            index.register_type(enum_name, init, information);
+            index.register_type(typesystem::DataType {
+                name: enum_name.to_string(),
+                initial_value: init,
+                information,
+                nature: TypeNature::Int,
+            });
 
             elements.iter().enumerate().for_each(|(i, v)| {
                 let enum_literal = ast::AstStatement::LiteralInteger {
@@ -346,7 +359,12 @@ fn visit_data_type(
                     name,
                     scope.clone(),
                 );
-            index.register_type(name, init, information)
+            index.register_type(typesystem::DataType {
+                name: name.to_string(),
+                initial_value: init,
+                information,
+                nature: TypeNature::Int,
+            });
         }
         DataType::ArrayType {
             name: Some(name),
@@ -398,7 +416,12 @@ fn visit_data_type(
                     name,
                     scope.clone(),
                 );
-            index.register_type(name, init, information)
+            index.register_type(typesystem::DataType {
+                name: name.to_string(),
+                initial_value: init,
+                information,
+                nature: TypeNature::Any,
+            });
         }
         DataType::PointerType {
             name: Some(name),
@@ -419,7 +442,12 @@ fn visit_data_type(
                     name,
                     scope.clone(),
                 );
-            index.register_type(name, init, information)
+            index.register_type(typesystem::DataType {
+                name: name.to_string(),
+                initial_value: init,
+                information,
+                nature: TypeNature::Any,
+            });
         }
         DataType::StringType {
             name: Some(name),
@@ -469,9 +497,32 @@ fn visit_data_type(
                     type_name,
                     scope.clone(),
                 );
-            index.register_type(name, init, information)
+            index.register_type(typesystem::DataType {
+                name: name.to_string(),
+                initial_value: init,
+                information,
+                nature: TypeNature::String,
+            });
         }
-        DataType::VarArgs { .. } => {} //Varargs are not indexed
+        DataType::VarArgs { .. } => {} //Varargs are not indexed,
+        DataType::GenericType {
+            name,
+            generic_symbol,
+            nature,
+        } => {
+            let information = DataTypeInformation::Generic {
+                name: name.clone(),
+                generic_symbol: generic_symbol.clone(),
+                nature: *nature,
+            };
+            index.register_type(typesystem::DataType {
+                name: name.to_string(),
+                initial_value: None,
+                information,
+                nature: TypeNature::Any,
+            });
+        }
+
         _ => { /* unnamed datatypes are ignored */ }
     };
 }

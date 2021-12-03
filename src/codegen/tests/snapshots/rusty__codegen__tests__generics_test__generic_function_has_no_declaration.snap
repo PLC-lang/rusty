@@ -1,0 +1,8 @@
+---
+source: src/codegen/tests/generics_test.rs
+expression: prg
+
+---
+; ModuleID = 'main'
+source_filename = "main"
+

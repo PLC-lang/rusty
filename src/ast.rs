@@ -10,6 +10,12 @@ mod pre_processor;
 
 pub type AstId = usize;
 
+#[derive(Clone, Debug, PartialEq)]
+pub struct GenericBinding {
+    pub name: String,
+    pub nature: TypeNature,
+}
+
 #[derive(PartialEq)]
 pub struct Pou {
     pub name: String,
@@ -18,6 +24,7 @@ pub struct Pou {
     pub return_type: Option<DataTypeDeclaration>,
     pub location: SourceRange,
     pub poly_mode: Option<PolymorphismMode>,
+    pub generics: Vec<GenericBinding>,
 }
 
 #[derive(Debug, PartialEq)]
@@ -33,6 +40,95 @@ pub enum DirectAccessType {
     Byte,
     Word,
     DWord,
+}
+
+#[derive(Debug, PartialEq, Clone, Copy)]
+pub enum TypeNature {
+    Any,
+    Derived,
+    Elementary,
+    Magnitude,
+    Num,
+    Real,
+    Int,
+    Signed,
+    Unsigned,
+    Duration,
+    Bit,
+    Chars,
+    String,
+    Char,
+    Date,
+}
+
+impl TypeNature {
+    pub fn derives(self, other: TypeNature) -> bool {
+        if other == self {
+            true
+        } else {
+            match self {
+                TypeNature::Any => true,
+                TypeNature::Derived => matches!(other, TypeNature::Any),
+                TypeNature::Elementary => matches!(other, TypeNature::Any),
+                TypeNature::Magnitude => matches!(other, TypeNature::Elementary | TypeNature::Any),
+                TypeNature::Num => matches!(
+                    other,
+                    TypeNature::Magnitude | TypeNature::Elementary | TypeNature::Any
+                ),
+                TypeNature::Real => matches!(
+                    other,
+                    TypeNature::Num
+                        | TypeNature::Magnitude
+                        | TypeNature::Elementary
+                        | TypeNature::Any
+                ),
+                TypeNature::Int => matches!(
+                    other,
+                    TypeNature::Num
+                        | TypeNature::Magnitude
+                        | TypeNature::Elementary
+                        | TypeNature::Any
+                ),
+                TypeNature::Signed => matches!(
+                    other,
+                    TypeNature::Int
+                        | TypeNature::Num
+                        | TypeNature::Magnitude
+                        | TypeNature::Elementary
+                        | TypeNature::Any
+                ),
+                TypeNature::Unsigned => matches!(
+                    other,
+                    TypeNature::Int
+                        | TypeNature::Num
+                        | TypeNature::Magnitude
+                        | TypeNature::Elementary
+                        | TypeNature::Any
+                ),
+                TypeNature::Duration => matches!(
+                    other,
+                    TypeNature::Num
+                        | TypeNature::Magnitude
+                        | TypeNature::Elementary
+                        | TypeNature::Any
+                ),
+                TypeNature::Bit => matches!(
+                    other,
+                    TypeNature::Magnitude | TypeNature::Elementary | TypeNature::Any
+                ),
+                TypeNature::Chars => matches!(other, TypeNature::Elementary | TypeNature::Any),
+                TypeNature::String => matches!(
+                    other,
+                    TypeNature::Chars | TypeNature::Elementary | TypeNature::Any
+                ),
+                TypeNature::Char => matches!(
+                    other,
+                    TypeNature::Chars | TypeNature::Elementary | TypeNature::Any
+                ),
+                TypeNature::Date => matches!(other, TypeNature::Elementary | TypeNature::Any),
+            }
+        }
+    }
 }
 
 impl DirectAccessType {
@@ -64,12 +160,15 @@ impl DirectAccessType {
 
 impl Debug for Pou {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
-        f.debug_struct("POU")
-            .field("name", &self.name)
+        let mut str = f.debug_struct("POU");
+        str.field("name", &self.name)
             .field("variable_blocks", &self.variable_blocks)
             .field("pou_type", &self.pou_type)
-            .field("return_type", &self.return_type)
-            .finish()
+            .field("return_type", &self.return_type);
+        if !self.generics.is_empty() {
+            str.field("generics", &self.generics);
+        }
+        str.finish()
     }
 }
 
@@ -335,7 +434,7 @@ impl Debug for UserTypeDeclaration {
     }
 }
 
-#[derive(Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum DataType {
     StructType {
         name: Option<String>, //maybe None for inline structs
@@ -367,88 +466,36 @@ pub enum DataType {
     VarArgs {
         referenced_type: Option<Box<DataTypeDeclaration>>,
     },
-}
-
-impl Debug for DataType {
-    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
-        match self {
-            DataType::StructType { name, variables } => f
-                .debug_struct("StructType")
-                .field("name", name)
-                .field("variables", variables)
-                .finish(),
-            DataType::EnumType { name, elements } => f
-                .debug_struct("EnumType")
-                .field("name", name)
-                .field("elements", elements)
-                .finish(),
-            DataType::SubRangeType {
-                name,
-                referenced_type,
-                bounds,
-            } => f
-                .debug_struct("SubRangeType")
-                .field("name", name)
-                .field("referenced_type", referenced_type)
-                .field("bounds", bounds)
-                .finish(),
-            DataType::ArrayType {
-                name,
-                bounds,
-                referenced_type,
-            } => f
-                .debug_struct("ArrayType")
-                .field("name", name)
-                .field("bounds", bounds)
-                .field("referenced_type", referenced_type)
-                .finish(),
-            DataType::PointerType {
-                name,
-                referenced_type,
-            } => f
-                .debug_struct("PointerType")
-                .field("name", name)
-                .field("referenced_type", referenced_type)
-                .finish(),
-            DataType::StringType {
-                name,
-                is_wide,
-                size,
-            } => f
-                .debug_struct("StringType")
-                .field("name", name)
-                .field("is_wide", is_wide)
-                .field("size", size)
-                .finish(),
-            DataType::VarArgs { referenced_type } => f
-                .debug_struct("VarArgs")
-                .field("referenced_type", referenced_type)
-                .finish(),
-        }
-    }
+    GenericType {
+        name: String,
+        generic_symbol: String,
+        nature: TypeNature,
+    },
 }
 
 impl DataType {
     pub fn set_name(&mut self, new_name: String) {
         match self {
-            DataType::StructType { name, variables: _ } => *name = Some(new_name),
-            DataType::EnumType { name, elements: _ } => *name = Some(new_name),
-            DataType::SubRangeType { name, .. } => *name = Some(new_name),
-            DataType::ArrayType { name, .. } => *name = Some(new_name),
-            DataType::PointerType { name, .. } => *name = Some(new_name),
-            DataType::StringType { name, .. } => *name = Some(new_name),
+            DataType::StructType { name, .. }
+            | DataType::EnumType { name, .. }
+            | DataType::SubRangeType { name, .. }
+            | DataType::ArrayType { name, .. }
+            | DataType::PointerType { name, .. }
+            | DataType::StringType { name, .. } => *name = Some(new_name),
+            DataType::GenericType { name, .. } => *name = new_name,
             DataType::VarArgs { .. } => {} //No names on varargs
         }
     }
 
     pub fn get_name(&self) -> Option<&str> {
-        match self {
-            DataType::StructType { name, variables: _ } => name.as_ref().map(|x| x.as_str()),
-            DataType::EnumType { name, elements: _ } => name.as_ref().map(|x| x.as_str()),
-            DataType::ArrayType { name, .. } => name.as_ref().map(|x| x.as_str()),
-            DataType::PointerType { name, .. } => name.as_ref().map(|x| x.as_str()),
-            DataType::StringType { name, .. } => name.as_ref().map(|x| x.as_str()),
-            DataType::SubRangeType { name, .. } => name.as_ref().map(|x| x.as_str()),
+        match &self {
+            DataType::StructType { name, .. }
+            | DataType::EnumType { name, .. }
+            | DataType::ArrayType { name, .. }
+            | DataType::PointerType { name, .. }
+            | DataType::StringType { name, .. }
+            | DataType::SubRangeType { name, .. } => name.as_ref().map(|x| x.as_str()),
+            DataType::GenericType { name, .. } => Some(name.as_str()),
             DataType::VarArgs { .. } => None,
         }
     }
