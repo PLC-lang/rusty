@@ -1476,6 +1476,29 @@
 <span id="1476">1476</span>
 <span id="1477">1477</span>
 <span id="1478">1478</span>
+<span id="1479">1479</span>
+<span id="1480">1480</span>
+<span id="1481">1481</span>
+<span id="1482">1482</span>
+<span id="1483">1483</span>
+<span id="1484">1484</span>
+<span id="1485">1485</span>
+<span id="1486">1486</span>
+<span id="1487">1487</span>
+<span id="1488">1488</span>
+<span id="1489">1489</span>
+<span id="1490">1490</span>
+<span id="1491">1491</span>
+<span id="1492">1492</span>
+<span id="1493">1493</span>
+<span id="1494">1494</span>
+<span id="1495">1495</span>
+<span id="1496">1496</span>
+<span id="1497">1497</span>
+<span id="1498">1498</span>
+<span id="1499">1499</span>
+<span id="1500">1500</span>
+<span id="1501">1501</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2021 Ghaith Hachem and Mathias Rieder</span>
 
 <span class="doccomment">//! Resolves (partial) expressions &amp; statements and annotates the resulting types</span>
@@ -1952,6 +1975,29 @@
                         <span class="ident">statement</span>,
                         <span class="ident">StatementAnnotation::value</span>(<span class="ident">expected_type</span>.<span class="ident">get_name</span>()),
                     )
+                } <span class="kw">else</span> <span class="kw">if</span> <span class="kw">let</span> <span class="ident">DataTypeInformation::Array</span> {
+                    <span class="ident">inner_type_name</span>, ..
+                } <span class="op">=</span> <span class="ident">expected_type</span>.<span class="ident">get_type_information</span>()
+                {
+                    <span class="self">self</span>.<span class="ident">annotation_map</span>
+                        .<span class="ident">annotate_type_hint</span>(<span class="ident">statement</span>, <span class="ident">StatementAnnotation::value</span>(<span class="ident">inner_type_name</span>))
+                } <span class="kw">else</span> {
+                    <span class="comment">//annotate the statement, whatever it is</span>
+                    <span class="self">self</span>.<span class="ident">annotation_map</span>.<span class="ident">annotate_type_hint</span>(
+                        <span class="ident">statement</span>,
+                        <span class="ident">StatementAnnotation::value</span>(<span class="ident">expected_type</span>.<span class="ident">get_name</span>()),
+                    )
+                }
+            }
+            <span class="ident">AstStatement::LiteralString</span> { .. } <span class="op">|</span> <span class="ident">AstStatement::BinaryExpression</span> { .. } <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="comment">// needed if we try to initialize an array with an expression-list</span>
+                <span class="comment">// without we would annotate a false type this would leed to an error in expression_generator</span>
+                <span class="kw">if</span> <span class="kw">let</span> <span class="ident">DataTypeInformation::Array</span> {
+                    <span class="ident">inner_type_name</span>, ..
+                } <span class="op">=</span> <span class="ident">expected_type</span>.<span class="ident">get_type_information</span>()
+                {
+                    <span class="self">self</span>.<span class="ident">annotation_map</span>
+                        .<span class="ident">annotate_type_hint</span>(<span class="ident">statement</span>, <span class="ident">StatementAnnotation::value</span>(<span class="ident">inner_type_name</span>))
                 } <span class="kw">else</span> {
                     <span class="comment">//annotate the statement, whatever it is</span>
                     <span class="self">self</span>.<span class="ident">annotation_map</span>.<span class="ident">annotate_type_hint</span>(

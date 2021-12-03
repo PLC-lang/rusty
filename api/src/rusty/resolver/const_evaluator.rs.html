@@ -654,6 +654,23 @@
 <span id="654">654</span>
 <span id="655">655</span>
 <span id="656">656</span>
+<span id="657">657</span>
+<span id="658">658</span>
+<span id="659">659</span>
+<span id="660">660</span>
+<span id="661">661</span>
+<span id="662">662</span>
+<span id="663">663</span>
+<span id="664">664</span>
+<span id="665">665</span>
+<span id="666">666</span>
+<span id="667">667</span>
+<span id="668">668</span>
+<span id="669">669</span>
+<span id="670">670</span>
+<span id="671">671</span>
+<span id="672">672</span>
+<span id="673">673</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std::collections::VecDeque</span>;
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
@@ -814,6 +831,9 @@
             }
             <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">needs_evaluation</span>(<span class="ident">elements</span>.<span class="ident">as_ref</span>()),
         },
+        <span class="ident">AstStatement::ExpressionList</span> { <span class="ident">expressions</span>, .. } <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">expressions</span>.<span class="ident">iter</span>().<span class="ident">any</span>(<span class="op">|</span><span class="ident">it</span><span class="op">|</span> <span class="ident">needs_evaluation</span>(<span class="ident">it</span>))
+        }
         <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">true</span>,
     }
 }
@@ -1176,6 +1196,20 @@
                     <span class="ident">id</span>: <span class="kw-2">*</span><span class="ident">id</span>,
                 })),
                 <span class="ident">location</span>: <span class="ident">location</span>.<span class="ident">clone</span>(),
+            })
+        }
+        <span class="ident">AstStatement::ExpressionList</span> { <span class="ident">expressions</span>, <span class="ident">id</span> } <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="kw">let</span> <span class="ident">inner_elements</span> <span class="op">=</span> <span class="ident">expressions</span>
+                .<span class="ident">iter</span>()
+                .<span class="ident">map</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">evaluate</span>(<span class="ident">e</span>, <span class="ident">scope</span>, <span class="ident">index</span>))
+                .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">AstStatement</span><span class="op">&gt;</span><span class="op">&gt;</span>, <span class="ident">String</span><span class="op">&gt;</span><span class="op">&gt;</span>()<span class="question-mark">?</span>
+                .<span class="ident">into_iter</span>()
+                .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">AstStatement</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>();
+
+            <span class="comment">//return a new array, or return none if one was not resolvable</span>
+            <span class="ident">inner_elements</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">ie</span><span class="op">|</span> <span class="ident">AstStatement::ExpressionList</span> {
+                <span class="ident">expressions</span>: <span class="ident">ie</span>,
+                <span class="ident">id</span>: <span class="kw-2">*</span><span class="ident">id</span>,
             })
         }
         <span class="ident">AstStatement::MultipliedStatement</span> {

@@ -1770,6 +1770,15 @@
 <span id="1770">1770</span>
 <span id="1771">1771</span>
 <span id="1772">1772</span>
+<span id="1773">1773</span>
+<span id="1774">1774</span>
+<span id="1775">1775</span>
+<span id="1776">1776</span>
+<span id="1777">1777</span>
+<span id="1778">1778</span>
+<span id="1779">1779</span>
+<span id="1780">1780</span>
+<span id="1781">1781</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">ast</span>::{<span class="self">self</span>, <span class="ident">DirectAccessType</span>, <span class="ident">SourceRange</span>},
@@ -3069,9 +3078,18 @@
                 <span class="self">self</span>.<span class="ident">generate_literal_array</span>(<span class="ident">literal_statement</span>)
             }
             <span class="ident">AstStatement::LiteralNull</span> { .. } <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">llvm</span>.<span class="ident">create_null_ptr</span>(),
-            <span class="comment">// if there is an expression-list this might be a struct-initialization</span>
+            <span class="comment">// if there is an expression-list this might be a struct-initialization or array-initialization</span>
             <span class="ident">AstStatement::ExpressionList</span> { .. } <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="self">self</span>.<span class="ident">generate_literal_struct</span>(<span class="ident">literal_statement</span>, <span class="kw-2">&amp;</span><span class="ident">literal_statement</span>.<span class="ident">get_location</span>())
+                <span class="kw">let</span> <span class="ident">type_hint</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_type_hint_info_for</span>(<span class="ident">literal_statement</span>)<span class="question-mark">?</span>;
+                <span class="kw">match</span> <span class="ident">type_hint</span> {
+                    <span class="ident">DataTypeInformation::Array</span> { .. } <span class="op">=</span><span class="op">&gt;</span> {
+                        <span class="self">self</span>.<span class="ident">generate_literal_array</span>(<span class="ident">literal_statement</span>)
+                    }
+                    <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">generate_literal_struct</span>(
+                        <span class="ident">literal_statement</span>,
+                        <span class="kw-2">&amp;</span><span class="ident">literal_statement</span>.<span class="ident">get_location</span>(),
+                    ),
+                }
             }
             <span class="comment">// if there is just one assignment, this may be an struct-initialization (TODO this is not very elegant :-/ )</span>
             <span class="ident">AstStatement::Assignment</span> { .. } <span class="op">=</span><span class="op">&gt;</span> {
