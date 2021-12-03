@@ -233,3 +233,27 @@ END_PROGRAM
 
     assert_eq!(result, expected);
 }
+
+#[test]
+fn function_result_assignment_on_string() {
+
+    let result = codegen(
+        r#"
+        @EXTERNAL
+        FUNCTION CONCAT : STRING[1024]
+        VAR_INPUT a,b : STRING[1024]; END_VAR
+        END_FUNCTION
+
+        FUNCTION LIST_ADD : BOOL
+        VAR_INPUT
+            INS : STRING[1000];
+            sx : STRING[1] := ' ';
+        END_VAR
+
+        INS := CONCAT(sx, INS);
+        END_FUNCTION
+        "#,
+    );
+
+    insta::assert_snapshot!(result);
+}
