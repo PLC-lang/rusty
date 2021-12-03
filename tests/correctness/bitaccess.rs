@@ -180,3 +180,26 @@ fn bitaccess_with_var_test() {
         }
     )
 }
+
+#[test]
+fn bitaccess_assignment_should_not_override_current_values() {
+    let prog = "
+    FUNCTION main : DINT
+    VAR_TEMP
+        a,b : BYTE := 0;
+        c : BOOL := TRUE;
+    END_VAR
+    b := 1;
+    a.%Xb := c;
+    b := 0;
+    a.%Xb := c;
+    b := 2;
+    a.%Xb := c;
+    main := a;
+    END_FUNCTION
+    ";
+    struct MainType {
+    }
+    let res: i32 = compile_and_run(prog, &mut MainType{});
+    assert_eq!(res,7);
+}

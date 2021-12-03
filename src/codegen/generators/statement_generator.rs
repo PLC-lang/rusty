@@ -273,7 +273,6 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         left_statement: &AstStatement,
         right_statement: &AstStatement,
     ) -> Result<(), Diagnostic> {
-        //TODO : Validation
         let exp_gen = self.create_expr_generator();
         if let AstStatement::QualifiedReference { elements, .. } = left_statement {
             //Target
@@ -326,8 +325,41 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
                     }?;
                     rhs = self.llvm.builder.build_int_add(rhs, next, "");
                 }
+
+                //negate the value
+                let right = exp_gen.generate_expression(right_statement)?;
+                let original_right_type = right.into_int_value().get_type();
+                let right = llvm_typesystem::cast_if_needed(
+                    self.llvm,
+                    self.index,
+                    left_type,
+                    right,
+                    right_type,
+                    right_statement,
+                )
+                .map(BasicValueEnum::into_int_value)?;
+                let negated =
+                    self.llvm
+                        .builder
+                        .build_int_sub(right.get_type().const_zero(), right, "");
+                //xor with right
+                // let left_value = exp_gen.generate_expression(&target).map(BasicValueEnum::into_int_value)?;
+                // let xor = self.llvm.builder.build_xor(negated, left_value, "");
+                // //shift index to location
+                // //Build mask for the index
+                // let mask = original_right_type.const_all_ones();
+                // let mask = self.llvm.builder.build_int_z_extend(mask, rhs.get_type(), "");
+                // let mask = self.llvm.builder.build_left_shift(mask, rhs, "mask");
+                // //and index with xor
+                // let rhs = self.llvm.builder.build_and(mask, xor, "");
+                // //Xor the result
+                // let xor = self.llvm.builder.build_xor(left_value, rhs, "");
+                // let left = exp_gen.generate_element_pointer(&target)?;
+                // self.llvm.builder.build_store(left, xor);
+
                 //Build mask for the index
                 let mask = rhs.get_type().const_all_ones();
+                let mask = self.llvm.builder.build_int_z_extend(mask, rhs.get_type(), "");
                 let mask = self.llvm.builder.build_left_shift(mask, rhs, "mask");
                 let mask = self.llvm.builder.build_not(mask, "not");
 
