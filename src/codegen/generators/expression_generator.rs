@@ -4,7 +4,7 @@ use crate::{
     codegen::llvm_typesystem,
     diagnostics::{Diagnostic, INTERNAL_LLVM_ERROR},
     index::{ImplementationIndexEntry, ImplementationType, Index, VariableIndexEntry},
-    resolver::{AnnotationMap, StatementAnnotation},
+    resolver::{AnnotationMap, AstAnnotations, StatementAnnotation},
     typesystem::{is_same_type_class, Dimension, StringEncoding, INT_SIZE, INT_TYPE, LINT_TYPE},
 };
 use inkwell::{
@@ -35,7 +35,7 @@ use chrono::{LocalResult, TimeZone, Utc};
 pub struct ExpressionCodeGenerator<'a, 'b> {
     llvm: &'b Llvm<'a>,
     index: &'b Index,
-    annotations: &'b AnnotationMap,
+    annotations: &'b AstAnnotations,
     llvm_index: &'b LlvmTypedIndex<'a>,
     /// the current function to create blocks in
     function_context: Option<&'b FunctionContext<'a>>,
@@ -65,7 +65,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
     pub fn new(
         llvm: &'b Llvm<'a>,
         index: &'b Index,
-        annotations: &'b AnnotationMap,
+        annotations: &'b AstAnnotations,
         llvm_index: &'b LlvmTypedIndex<'a>,
         function_context: &'b FunctionContext<'a>,
     ) -> ExpressionCodeGenerator<'a, 'b> {
@@ -90,7 +90,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
     pub fn new_context_free(
         llvm: &'b Llvm<'a>,
         index: &'b Index,
-        annotations: &'b AnnotationMap,
+        annotations: &'b AstAnnotations,
         llvm_index: &'b LlvmTypedIndex<'a>,
     ) -> ExpressionCodeGenerator<'a, 'b> {
         ExpressionCodeGenerator {
@@ -142,7 +142,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
     ) -> Result<BasicValueEnum<'a>, Diagnostic> {
         //see if this is a constant - maybe we can short curcuit this codegen
         if let Some(StatementAnnotation::Variable { qualified_name, .. }) =
-            self.annotations.get_annotation(expression)
+            self.annotations.get(expression)
         {
             if let Some(basic_value_enum) = self.llvm_index.find_constant_value(qualified_name) {
                 //this is a constant and we have a value for it
@@ -859,7 +859,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
         if let Some(qualifier) = qualifier {
             //if we're loading a reference like PLC_PRG.ACTION we already loaded PLC_PRG pointer into qualifier,
             //so we should not load anything in addition for the action (or the method)
-            match self.annotations.get_annotation(context) {
+            match self.annotations.get(context) {
                 Some(StatementAnnotation::Function { qualified_name, .. })
                 | Some(StatementAnnotation::Program { qualified_name, .. }) => {
                     if self.index.find_implementation(qualified_name).is_some() {
@@ -924,7 +924,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
         if let Some(StatementAnnotation::Variable {
             is_auto_deref: true,
             ..
-        }) = self.annotations.get_annotation(statement)
+        }) = self.annotations.get(statement)
         {
             Ok(self.deref(accessor_ptr))
         } else {

@@ -1,7 +1,7 @@
 use crate::{
     assert_type_and_hint,
     ast::{self, AstStatement},
-    resolver::TypeAnnotator,
+    resolver::{AnnotationMap, TypeAnnotator},
     test_utils::tests::index,
     typesystem::{BYTE_TYPE, DINT_TYPE, INT_TYPE, REAL_TYPE},
 };

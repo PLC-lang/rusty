@@ -31,12 +31,13 @@ use inkwell::targets::{
     CodeModel, FileType, InitializationConfig, RelocMode, Target, TargetMachine, TargetTriple,
 };
 use lexer::IdProvider;
+use resolver::AstAnnotations;
 use std::{fs::File, io::Read};
 use validation::Validator;
 
 use crate::ast::CompilationUnit;
 use crate::diagnostics::Diagnostician;
-use crate::resolver::{AnnotationMap, TypeAnnotator};
+use crate::resolver::{AnnotationMapImpl, TypeAnnotator};
 mod ast;
 pub mod cli;
 mod codegen;
@@ -332,7 +333,7 @@ pub fn compile_module<'c, T: SourceContainer>(
     mut diagnostician: Diagnostician,
 ) -> Result<codegen::CodeGen<'c>, Diagnostic> {
     let mut full_index = Index::new();
-    let id_provider = IdProvider::default();
+    let mut id_provider = IdProvider::default();
 
     let mut all_units = Vec::new();
 
@@ -364,7 +365,7 @@ pub fn compile_module<'c, T: SourceContainer>(
     // ### PHASE 2 ###
     // annotation & validation everything
     let mut annotated_units: Vec<CompilationUnit> = Vec::new();
-    let mut all_annotations = AnnotationMap::default();
+    let mut all_annotations = AnnotationMapImpl::default();
     for (file_id, syntax_errors, unit) in all_units.into_iter() {
         let annotations = TypeAnnotator::visit_unit(&full_index, &unit);
 
@@ -384,10 +385,12 @@ pub fn compile_module<'c, T: SourceContainer>(
     // ### PHASE 3 ###
     // - codegen
     let code_generator = codegen::CodeGen::new(context, "main");
+
+    let annotations = AstAnnotations::new(all_annotations, id_provider.next_id());
     //Associate the index type with LLVM types
-    let llvm_index = code_generator.generate_llvm_index(&all_annotations, &full_index)?;
+    let llvm_index = code_generator.generate_llvm_index(&annotations, &full_index)?;
     for unit in annotated_units {
-        code_generator.generate(&unit, &all_annotations, &full_index, &llvm_index)?;
+        code_generator.generate(&unit, &annotations, &full_index, &llvm_index)?;
     }
     Ok(code_generator)
 }

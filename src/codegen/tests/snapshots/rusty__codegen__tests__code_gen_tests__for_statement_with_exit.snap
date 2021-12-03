@@ -25,22 +25,22 @@ condition_check:                                  ; preds = %increment, %entry
 
 for_body:                                         ; preds = %4
   %load_x8 = load i32, i32* %x, align 4
-  %tmpVar9 = add i32 %load_x8, 1
+  %tmpVar9 = add i32 %load_x8, 2
   store i32 %tmpVar9, i32* %x, align 4
-  br label %increment
+  br label %continue
 
 buffer_block:                                     ; No predecessors!
   %load_x10 = load i32, i32* %x, align 4
-  %tmpVar11 = sub i32 %load_x10, 1
+  %tmpVar11 = add i32 %load_x10, 5
   store i32 %tmpVar11, i32* %x, align 4
   br label %increment
 
-increment:                                        ; preds = %buffer_block, %for_body
+increment:                                        ; preds = %buffer_block
   %tmpVar12 = add i32 %load_x, 7
   store i32 %tmpVar12, i32* %x, align 4
   br label %condition_check
 
-continue:                                         ; preds = %4
+continue:                                         ; preds = %for_body, %4
   ret void
 
 2:                                                ; preds = %7

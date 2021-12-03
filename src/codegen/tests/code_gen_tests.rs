@@ -1365,35 +1365,7 @@ fn for_statement_with_steps_test() {
         ",
     );
 
-    let expected = generate_program_boiler_plate(
-        "prg",
-        &[("i32", "x")],
-        "void",
-        "",
-        "",
-        r#"store i32 3, i32* %x, align 4
-  br label %condition_check
-
-condition_check:                                  ; preds = %increment, %entry
-  %load_x = load i32, i32* %x, align 4
-  %tmpVar = icmp sle i32 %load_x, 10
-  br i1 %tmpVar, label %for_body, label %continue
-
-for_body:                                         ; preds = %condition_check
-  %load_x1 = load i32, i32* %x, align 4
-  br label %increment
-
-increment:                                        ; preds = %for_body
-  %tmpVar2 = add i32 %load_x, 7
-  store i32 %tmpVar2, i32* %x, align 4
-  br label %condition_check
-
-continue:                                         ; preds = %condition_check
-  ret void
-"#,
-    );
-
-    assert_eq!(result, expected);
+    insta::assert_snapshot!(result);
 }
 
 #[test]
@@ -1432,43 +1404,7 @@ fn for_statement_with_exit() {
         ",
     );
 
-    let expected = generate_program_boiler_plate(
-        "prg",
-        &[("i32", "x")],
-        "void",
-        "",
-        "",
-        r#"store i32 3, i32* %x, align 4
-  br label %condition_check
-
-condition_check:                                  ; preds = %increment, %entry
-  %load_x = load i32, i32* %x, align 4
-  %tmpVar = icmp sle i32 %load_x, 10
-  br i1 %tmpVar, label %for_body, label %continue
-
-for_body:                                         ; preds = %condition_check
-  %load_x1 = load i32, i32* %x, align 4
-  %tmpVar2 = add i32 %load_x1, 2
-  store i32 %tmpVar2, i32* %x, align 4
-  br label %continue
-
-buffer_block:                                     ; No predecessors!
-  %load_x3 = load i32, i32* %x, align 4
-  %tmpVar4 = add i32 %load_x3, 5
-  store i32 %tmpVar4, i32* %x, align 4
-  br label %increment
-
-increment:                                        ; preds = %buffer_block
-  %tmpVar5 = add i32 %load_x, 7
-  store i32 %tmpVar5, i32* %x, align 4
-  br label %condition_check
-
-continue:                                         ; preds = %for_body, %condition_check
-  ret void
-"#,
-    );
-
-    assert_eq!(result, expected);
+    insta::assert_snapshot!(result);
 }
 
 #[test]
@@ -1874,35 +1810,61 @@ fn for_statement_without_steps_test() {
         ",
     );
 
-    let expected = generate_program_boiler_plate(
-        "prg",
-        &[("i32", "x")],
-        "void",
-        "",
-        "",
-        r#"store i32 3, i32* %x, align 4
-  br label %condition_check
+    insta::assert_snapshot!(result);
+}
 
-condition_check:                                  ; preds = %increment, %entry
-  %load_x = load i32, i32* %x, align 4
-  %tmpVar = icmp sle i32 %load_x, 10
-  br i1 %tmpVar, label %for_body, label %continue
-
-for_body:                                         ; preds = %condition_check
-  %load_x1 = load i32, i32* %x, align 4
-  br label %increment
-
-increment:                                        ; preds = %for_body
-  %tmpVar2 = add i32 %load_x, 1
-  store i32 %tmpVar2, i32* %x, align 4
-  br label %condition_check
-
-continue:                                         ; preds = %condition_check
-  ret void
-"#,
+#[test]
+fn for_statement_sint() {
+    let result = codegen(
+        "
+        PROGRAM prg 
+        VAR
+            x : SINT;
+        END_VAR
+        FOR x := 3 TO 10 DO 
+            x;
+        END_FOR
+        END_PROGRAM
+        ",
     );
 
-    assert_eq!(result, expected);
+    insta::assert_snapshot!(result);
+}
+
+#[test]
+fn for_statement_int() {
+    let result = codegen(
+        "
+        PROGRAM prg 
+        VAR
+            x : INT;
+        END_VAR
+        FOR x := 3 TO 10 DO 
+            x;
+        END_FOR
+        END_PROGRAM
+        ",
+    );
+
+    insta::assert_snapshot!(result);
+}
+
+#[test]
+fn for_statement_lint() {
+    let result = codegen(
+        "
+        PROGRAM prg 
+        VAR
+            x : LINT;
+        END_VAR
+        FOR x := 3 TO 10 DO 
+            x;
+        END_FOR
+        END_PROGRAM
+        ",
+    );
+
+    insta::assert_snapshot!(result);
 }
 
 #[test]
@@ -1920,35 +1882,7 @@ fn for_statement_continue() {
         ",
     );
 
-    let expected = generate_program_boiler_plate(
-        "prg",
-        &[("i32", "x")],
-        "void",
-        "",
-        "",
-        r#"store i32 3, i32* %x, align 4
-  br label %condition_check
-
-condition_check:                                  ; preds = %increment, %entry
-  %load_x = load i32, i32* %x, align 4
-  %tmpVar = icmp sle i32 %load_x, 10
-  br i1 %tmpVar, label %for_body, label %continue
-
-for_body:                                         ; preds = %condition_check
-  br label %increment
-
-increment:                                        ; preds = %for_body
-  %tmpVar1 = add i32 %load_x, 1
-  store i32 %tmpVar1, i32* %x, align 4
-  br label %condition_check
-
-continue:                                         ; preds = %condition_check
-  %load_x2 = load i32, i32* %x, align 4
-  ret void
-"#,
-    );
-
-    assert_eq!(result, expected);
+    insta::assert_snapshot!(result);
 }
 
 #[test]
@@ -1969,38 +1903,7 @@ fn for_statement_with_references_steps_test() {
         ",
     );
 
-    let expected = generate_program_boiler_plate(
-        "prg",
-        &[("i32", "step"), ("i32", "x"), ("i32", "y"), ("i32", "z")],
-        "void",
-        "",
-        "",
-        r#"%load_y = load i32, i32* %y, align 4
-  store i32 %load_y, i32* %x, align 4
-  br label %condition_check
-
-condition_check:                                  ; preds = %increment, %entry
-  %load_x = load i32, i32* %x, align 4
-  %load_z = load i32, i32* %z, align 4
-  %tmpVar = icmp sle i32 %load_x, %load_z
-  br i1 %tmpVar, label %for_body, label %continue
-
-for_body:                                         ; preds = %condition_check
-  %load_x1 = load i32, i32* %x, align 4
-  br label %increment
-
-increment:                                        ; preds = %for_body
-  %load_step = load i32, i32* %step, align 4
-  %tmpVar2 = add i32 %load_x, %load_step
-  store i32 %tmpVar2, i32* %x, align 4
-  br label %condition_check
-
-continue:                                         ; preds = %condition_check
-  ret void
-"#,
-    );
-
-    assert_eq!(result, expected);
+    insta::assert_snapshot!(result);
 }
 
 #[test]

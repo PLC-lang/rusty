@@ -8,9 +8,9 @@ use crate::{
     codegen::LlvmTypedIndex,
     diagnostics::{Diagnostic, INTERNAL_LLVM_ERROR},
     index::{ImplementationIndexEntry, Index},
-    resolver::AnnotationMap,
+    resolver::AstAnnotations,
     typesystem::{
-        DataTypeInformation, DINT_TYPE, RANGE_CHECK_LS_FN, RANGE_CHECK_LU_FN, RANGE_CHECK_S_FN,
+        DataTypeInformation, RANGE_CHECK_LS_FN, RANGE_CHECK_LU_FN, RANGE_CHECK_S_FN,
         RANGE_CHECK_U_FN,
     },
 };
@@ -19,7 +19,6 @@ use inkwell::{
     builder::Builder,
     context::Context,
     values::{BasicValueEnum, FunctionValue},
-    IntPredicate,
 };
 use std::ops::Range;
 
@@ -35,7 +34,7 @@ pub struct FunctionContext<'a> {
 pub struct StatementCodeGenerator<'a, 'b> {
     llvm: &'b Llvm<'a>,
     index: &'b Index,
-    annotations: &'b AnnotationMap,
+    annotations: &'b AstAnnotations,
     pou_generator: &'b PouGenerator<'a, 'b>,
     llvm_index: &'b LlvmTypedIndex<'a>,
     function_context: &'b FunctionContext<'a>,
@@ -54,7 +53,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
     pub fn new(
         llvm: &'b Llvm<'a>,
         index: &'b Index,
-        annotations: &'b AnnotationMap,
+        annotations: &'b AstAnnotations,
         pou_generator: &'b PouGenerator<'a, 'b>,
         llvm_index: &'b LlvmTypedIndex<'a>,
         linking_context: &'b FunctionContext<'a>,
@@ -427,15 +426,13 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         builder.position_at_end(condition_check);
         let exp_gen = self.create_expr_generator();
         let counter_statement = exp_gen.generate_expression(counter)?;
-        let end_statement = exp_gen.generate_expression(end)?;
 
-        let compare = builder.build_int_compare(
-            IntPredicate::SLE,
-            counter_statement.into_int_value(),
-            end_statement.into_int_value(),
-            "tmpVar",
-        );
-        builder.build_conditional_branch(compare, for_body, continue_block);
+        //.                                                           /            and_2                \
+        //.                  /             and 1               \
+        // (counter_end_le && counter_start_ge) || (counter_end_ge && counter_start_le)
+        let or_eval = self.fun_name(counter, end, start, &exp_gen)?;
+
+        builder.build_conditional_branch(or_eval.into_int_value(), for_body, continue_block);
 
         //Enter the for loop
         builder.position_at_end(for_body);
@@ -455,7 +452,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         let step_by_value = by_step.as_ref().map_or_else(
             || {
                 self.llvm.create_const_numeric(
-                    &self.llvm_index.get_associated_type(DINT_TYPE)?,
+                    &counter_statement.get_type(),
                     "1",
                     SourceRange::undefined(),
                 )
@@ -479,6 +476,59 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         builder.position_at_end(continue_block);
 
         Ok(())
+    }
+
+    fn fun_name(
+        &'a self,
+        counter: &AstStatement,
+        end: &AstStatement,
+        start: &AstStatement,
+        exp_gen: &'a ExpressionCodeGenerator,
+    ) -> Result<BasicValueEnum<'a>, Diagnostic> {
+        let counter_end_ge = AstStatement::BinaryExpression {
+            id: self.annotations.get_bool_id(),
+            operator: Operator::GreaterOrEqual,
+            left: Box::new(counter.to_owned()),
+            right: Box::new(end.to_owned()),
+        };
+        let counter_start_ge = AstStatement::BinaryExpression {
+            id: self.annotations.get_bool_id(),
+            operator: Operator::GreaterOrEqual,
+            left: Box::new(counter.to_owned()),
+            right: Box::new(start.to_owned()),
+        };
+        let counter_end_le = AstStatement::BinaryExpression {
+            id: self.annotations.get_bool_id(),
+            operator: Operator::LessOrEqual,
+            left: Box::new(counter.to_owned()),
+            right: Box::new(end.to_owned()),
+        };
+        let counter_start_le = AstStatement::BinaryExpression {
+            id: self.annotations.get_bool_id(),
+            operator: Operator::LessOrEqual,
+            left: Box::new(counter.to_owned()),
+            right: Box::new(start.to_owned()),
+        };
+        let and_1 = AstStatement::BinaryExpression {
+            id: self.annotations.get_bool_id(),
+            operator: Operator::And,
+            left: Box::new(counter_end_le),
+            right: Box::new(counter_start_ge),
+        };
+        let and_2 = AstStatement::BinaryExpression {
+            id: self.annotations.get_bool_id(),
+            operator: Operator::And,
+            left: Box::new(counter_end_ge),
+            right: Box::new(counter_start_le),
+        };
+        let or = AstStatement::BinaryExpression {
+            id: self.annotations.get_bool_id(),
+            operator: Operator::Or,
+            left: Box::new(and_1),
+            right: Box::new(and_2),
+        };
+        let or_eval = exp_gen.generate_expression(&or)?;
+        Ok(or_eval)
     }
 
     /// genertes a case statement
@@ -611,13 +661,10 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
     ) -> Result<Option<BasicValueEnum<'a>>, Diagnostic> {
         let builder = &self.llvm.builder;
         let basic_block = builder.get_insert_block().expect(INTERNAL_LLVM_ERROR);
-        self.generate_base_while_statement(condition, body)?;
+        let (condition_block, _) = self.generate_base_while_statement(condition, body)?;
 
         let continue_block = builder.get_insert_block().expect(INTERNAL_LLVM_ERROR);
 
-        let condition_block = basic_block
-            .get_next_basic_block()
-            .expect(INTERNAL_LLVM_ERROR);
         builder.position_at_end(basic_block);
         builder.build_unconditional_branch(condition_block);
 
@@ -641,13 +688,10 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
     ) -> Result<Option<BasicValueEnum<'a>>, Diagnostic> {
         let builder = &self.llvm.builder;
         let basic_block = builder.get_insert_block().expect(INTERNAL_LLVM_ERROR);
-        self.generate_base_while_statement(condition, body)?;
+        let (_, while_block) = self.generate_base_while_statement(condition, body)?;
 
         let continue_block = builder.get_insert_block().expect(INTERNAL_LLVM_ERROR);
 
-        let while_block = continue_block
-            .get_previous_basic_block()
-            .expect(INTERNAL_LLVM_ERROR);
         builder.position_at_end(basic_block);
         builder.build_unconditional_branch(while_block);
 
@@ -660,7 +704,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         &self,
         condition: &AstStatement,
         body: &[AstStatement],
-    ) -> Result<Option<BasicValueEnum>, Diagnostic> {
+    ) -> Result<(BasicBlock, BasicBlock), Diagnostic> {
         let (builder, current_function, context) = self.get_llvm_deps();
         let condition_check = context.append_basic_block(current_function, "condition_check");
         let while_body = context.append_basic_block(current_function, "while_body");
@@ -692,7 +736,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
 
         //Continue
         builder.position_at_end(continue_block);
-        Ok(None)
+        Ok((condition_check, while_body))
     }
 
     /// generates an IF-Statement
