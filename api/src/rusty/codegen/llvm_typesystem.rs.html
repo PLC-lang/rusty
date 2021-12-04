@@ -364,6 +364,40 @@
 <span id="364">364</span>
 <span id="365">365</span>
 <span id="366">366</span>
+<span id="367">367</span>
+<span id="368">368</span>
+<span id="369">369</span>
+<span id="370">370</span>
+<span id="371">371</span>
+<span id="372">372</span>
+<span id="373">373</span>
+<span id="374">374</span>
+<span id="375">375</span>
+<span id="376">376</span>
+<span id="377">377</span>
+<span id="378">378</span>
+<span id="379">379</span>
+<span id="380">380</span>
+<span id="381">381</span>
+<span id="382">382</span>
+<span id="383">383</span>
+<span id="384">384</span>
+<span id="385">385</span>
+<span id="386">386</span>
+<span id="387">387</span>
+<span id="388">388</span>
+<span id="389">389</span>
+<span id="390">390</span>
+<span id="391">391</span>
+<span id="392">392</span>
+<span id="393">393</span>
+<span id="394">394</span>
+<span id="395">395</span>
+<span id="396">396</span>
+<span id="397">397</span>
+<span id="398">398</span>
+<span id="399">399</span>
+<span id="400">400</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 <span class="kw">use</span> <span class="ident">inkwell</span>::{
     <span class="ident">builder::Builder</span>,
@@ -380,7 +414,7 @@
     <span class="ident">typesystem</span>::{<span class="ident">DataType</span>, <span class="ident">DataTypeInformation</span>, <span class="ident">StringEncoding</span>},
 };
 
-<span class="kw">use</span> <span class="ident"><span class="kw">super</span>::generators::llvm::Llvm</span>;
+<span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">generators::llvm::Llvm</span>, <span class="ident">llvm_index::LlvmTypedIndex</span>};
 
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">promote_value_if_needed</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span>(
     <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ctx</span> <span class="ident">Context</span>,
@@ -480,6 +514,7 @@
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">cast_if_needed</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span>(
     <span class="ident">llvm</span>: <span class="kw-2">&amp;</span><span class="ident">Llvm</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span>,
     <span class="ident">index</span>: <span class="kw-2">&amp;</span><span class="ident">Index</span>,
+    <span class="ident">llvm_type_index</span>: <span class="kw-2">&amp;</span><span class="ident">LlvmTypedIndex</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span>,
     <span class="ident">target_type</span>: <span class="kw-2">&amp;</span><span class="ident">DataType</span>,
     <span class="ident">value</span>: <span class="ident">BasicValueEnum</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span>,
     <span class="ident">value_type</span>: <span class="kw-2">&amp;</span><span class="ident">DataType</span>,
@@ -564,6 +599,16 @@
                         )
                         .<span class="ident">into</span>())
                 }
+                <span class="ident">DataTypeInformation::Pointer</span> {
+                    <span class="ident">auto_deref</span>: <span class="bool-val">false</span>, ..
+                } <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">llvm</span>
+                    .<span class="ident">builder</span>
+                    .<span class="ident">build_ptr_to_int</span>(
+                        <span class="ident">value</span>.<span class="ident">into_pointer_value</span>(),
+                        <span class="ident">get_llvm_int_type</span>(<span class="ident">llvm</span>.<span class="ident">context</span>, <span class="kw-2">*</span><span class="ident">lsize</span>, <span class="string">&quot;&quot;</span>)<span class="question-mark">?</span>,
+                        <span class="string">&quot;&quot;</span>,
+                    )
+                    .<span class="ident">into</span>()),
                 <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">Diagnostic::casting_error</span>(
                     <span class="ident">value_type</span>.<span class="ident">get_name</span>(),
                     <span class="ident">target_type</span>.<span class="ident">get_name</span>(),
@@ -686,6 +731,29 @@
                 } <span class="kw">else</span> {
                     <span class="prelude-val">Ok</span>(<span class="ident">value</span>)
                 }
+            }
+            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">Diagnostic::casting_error</span>(
+                <span class="ident">value_type</span>.<span class="ident">get_name</span>(),
+                <span class="ident">target_type</span>.<span class="ident">get_name</span>(),
+                <span class="ident">statement</span>.<span class="ident">get_location</span>(),
+            )),
+        },
+        <span class="ident">DataTypeInformation::Pointer</span> {
+            <span class="ident">auto_deref</span>: <span class="bool-val">false</span>, ..
+        } <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident">value_type</span> {
+            <span class="ident">DataTypeInformation::Integer</span> { .. } <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">llvm</span>
+                .<span class="ident">builder</span>
+                .<span class="ident">build_int_to_ptr</span>(
+                    <span class="ident">value</span>.<span class="ident">into_int_value</span>(),
+                    <span class="ident">llvm_type_index</span>
+                        .<span class="ident">get_associated_type</span>(<span class="ident">target_type</span>.<span class="ident">get_name</span>())<span class="question-mark">?</span>
+                        .<span class="ident">into_pointer_type</span>(),
+                    <span class="string">&quot;&quot;</span>,
+                )
+                .<span class="ident">into</span>()),
+            <span class="ident">DataTypeInformation::Pointer</span> { .. } <span class="op">|</span> <span class="ident">DataTypeInformation::Void</span> { .. } <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="comment">//this is ok, no cast required</span>
+                <span class="prelude-val">Ok</span>(<span class="ident">value</span>)
             }
             <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">Diagnostic::casting_error</span>(
                 <span class="ident">value_type</span>.<span class="ident">get_name</span>(),

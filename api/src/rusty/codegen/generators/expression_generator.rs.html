@@ -1779,6 +1779,9 @@
 <span id="1779">1779</span>
 <span id="1780">1780</span>
 <span id="1781">1781</span>
+<span id="1782">1782</span>
+<span id="1783">1783</span>
+<span id="1784">1784</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">ast</span>::{<span class="self">self</span>, <span class="ident">DirectAccessType</span>, <span class="ident">SourceRange</span>},
@@ -1907,6 +1910,7 @@
             <span class="prelude-val">Ok</span>(<span class="ident">llvm_typesystem::cast_if_needed</span>(
                 <span class="self">self</span>.<span class="ident">llvm</span>,
                 <span class="self">self</span>.<span class="ident">index</span>,
+                <span class="self">self</span>.<span class="ident">llvm_index</span>,
                 <span class="ident">target_type</span>,
                 <span class="ident">v</span>,
                 <span class="ident">actual_type</span>,
@@ -2086,6 +2090,7 @@
             <span class="kw">let</span> <span class="ident">reference</span> <span class="op">=</span> <span class="ident">cast_if_needed</span>(
                 <span class="self">self</span>.<span class="ident">llvm</span>,
                 <span class="self">self</span>.<span class="ident">index</span>,
+                <span class="self">self</span>.<span class="ident">llvm_index</span>,
                 <span class="ident">target_type</span>,
                 <span class="ident">reference</span>,
                 <span class="self">self</span>.<span class="ident">get_type_hint_for</span>(<span class="ident">index</span>)<span class="question-mark">?</span>,
@@ -2520,6 +2525,7 @@
             <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">cast_if_needed</span>(
                 <span class="self">self</span>.<span class="ident">llvm</span>,
                 <span class="self">self</span>.<span class="ident">index</span>,
+                <span class="self">self</span>.<span class="ident">llvm_index</span>,
                 <span class="self">self</span>.<span class="ident">get_type_hint_for</span>(<span class="ident">right</span>)<span class="question-mark">?</span>,
                 <span class="ident">loaded_value</span>,
                 <span class="ident">param_type</span>,
