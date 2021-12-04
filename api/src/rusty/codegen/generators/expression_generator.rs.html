@@ -1788,7 +1788,7 @@
     <span class="ident">codegen::llvm_typesystem</span>,
     <span class="ident">diagnostics</span>::{<span class="ident">Diagnostic</span>, <span class="ident">INTERNAL_LLVM_ERROR</span>},
     <span class="ident">index</span>::{<span class="ident">ImplementationIndexEntry</span>, <span class="ident">ImplementationType</span>, <span class="ident">Index</span>, <span class="ident">VariableIndexEntry</span>},
-    <span class="ident">resolver</span>::{<span class="ident">AnnotationMap</span>, <span class="ident">StatementAnnotation</span>},
+    <span class="ident">resolver</span>::{<span class="ident">AnnotationMap</span>, <span class="ident">AstAnnotations</span>, <span class="ident">StatementAnnotation</span>},
     <span class="ident">typesystem</span>::{<span class="ident">is_same_type_class</span>, <span class="ident">Dimension</span>, <span class="ident">StringEncoding</span>, <span class="ident">INT_SIZE</span>, <span class="ident">INT_TYPE</span>, <span class="ident">LINT_TYPE</span>},
 };
 <span class="kw">use</span> <span class="ident">inkwell</span>::{
@@ -1819,7 +1819,7 @@
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ExpressionCodeGenerator</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span><span class="op">&gt;</span> {
     <span class="ident">llvm</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="ident">Llvm</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
     <span class="ident">index</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="ident">Index</span>,
-    <span class="ident">annotations</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="ident">AnnotationMap</span>,
+    <span class="ident">annotations</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="ident">AstAnnotations</span>,
     <span class="ident">llvm_index</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="ident">LlvmTypedIndex</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
     <span class="doccomment">/// the current function to create blocks in</span>
     <span class="ident">function_context</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="ident">FunctionContext</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span>,
@@ -1849,7 +1849,7 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(
         <span class="ident">llvm</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="ident">Llvm</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
         <span class="ident">index</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="ident">Index</span>,
-        <span class="ident">annotations</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="ident">AnnotationMap</span>,
+        <span class="ident">annotations</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="ident">AstAnnotations</span>,
         <span class="ident">llvm_index</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="ident">LlvmTypedIndex</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
         <span class="ident">function_context</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="ident">FunctionContext</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ExpressionCodeGenerator</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span><span class="op">&gt;</span> {
@@ -1874,7 +1874,7 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_context_free</span>(
         <span class="ident">llvm</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="ident">Llvm</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
         <span class="ident">index</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="ident">Index</span>,
-        <span class="ident">annotations</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="ident">AnnotationMap</span>,
+        <span class="ident">annotations</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="ident">AstAnnotations</span>,
         <span class="ident">llvm_index</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="ident">LlvmTypedIndex</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ExpressionCodeGenerator</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span><span class="op">&gt;</span> {
         <span class="ident">ExpressionCodeGenerator</span> {
@@ -1927,7 +1927,7 @@
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">BasicValueEnum</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>, <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
         <span class="comment">//see if this is a constant - maybe we can short curcuit this codegen</span>
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">StatementAnnotation::Variable</span> { <span class="ident">qualified_name</span>, .. }) <span class="op">=</span>
-            <span class="self">self</span>.<span class="ident">annotations</span>.<span class="ident">get_annotation</span>(<span class="ident">expression</span>)
+            <span class="self">self</span>.<span class="ident">annotations</span>.<span class="ident">get</span>(<span class="ident">expression</span>)
         {
             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">basic_value_enum</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">llvm_index</span>.<span class="ident">find_constant_value</span>(<span class="ident">qualified_name</span>) {
                 <span class="comment">//this is a constant and we have a value for it</span>
@@ -2646,7 +2646,7 @@
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">qualifier</span>) <span class="op">=</span> <span class="ident">qualifier</span> {
             <span class="comment">//if we&#39;re loading a reference like PLC_PRG.ACTION we already loaded PLC_PRG pointer into qualifier,</span>
             <span class="comment">//so we should not load anything in addition for the action (or the method)</span>
-            <span class="kw">match</span> <span class="self">self</span>.<span class="ident">annotations</span>.<span class="ident">get_annotation</span>(<span class="ident">context</span>) {
+            <span class="kw">match</span> <span class="self">self</span>.<span class="ident">annotations</span>.<span class="ident">get</span>(<span class="ident">context</span>) {
                 <span class="prelude-val">Some</span>(<span class="ident">StatementAnnotation::Function</span> { <span class="ident">qualified_name</span>, .. })
                 <span class="op">|</span> <span class="prelude-val">Some</span>(<span class="ident">StatementAnnotation::Program</span> { <span class="ident">qualified_name</span>, .. }) <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="kw">if</span> <span class="self">self</span>.<span class="ident">index</span>.<span class="ident">find_implementation</span>(<span class="ident">qualified_name</span>).<span class="ident">is_some</span>() {
@@ -2711,7 +2711,7 @@
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">StatementAnnotation::Variable</span> {
             <span class="ident">is_auto_deref</span>: <span class="bool-val">true</span>,
             ..
-        }) <span class="op">=</span> <span class="self">self</span>.<span class="ident">annotations</span>.<span class="ident">get_annotation</span>(<span class="ident">statement</span>)
+        }) <span class="op">=</span> <span class="self">self</span>.<span class="ident">annotations</span>.<span class="ident">get</span>(<span class="ident">statement</span>)
         {
             <span class="prelude-val">Ok</span>(<span class="self">self</span>.<span class="ident">deref</span>(<span class="ident">accessor_ptr</span>))
         } <span class="kw">else</span> {

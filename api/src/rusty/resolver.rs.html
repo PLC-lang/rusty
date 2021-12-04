@@ -1521,6 +1521,45 @@
 <span id="1521">1521</span>
 <span id="1522">1522</span>
 <span id="1523">1523</span>
+<span id="1524">1524</span>
+<span id="1525">1525</span>
+<span id="1526">1526</span>
+<span id="1527">1527</span>
+<span id="1528">1528</span>
+<span id="1529">1529</span>
+<span id="1530">1530</span>
+<span id="1531">1531</span>
+<span id="1532">1532</span>
+<span id="1533">1533</span>
+<span id="1534">1534</span>
+<span id="1535">1535</span>
+<span id="1536">1536</span>
+<span id="1537">1537</span>
+<span id="1538">1538</span>
+<span id="1539">1539</span>
+<span id="1540">1540</span>
+<span id="1541">1541</span>
+<span id="1542">1542</span>
+<span id="1543">1543</span>
+<span id="1544">1544</span>
+<span id="1545">1545</span>
+<span id="1546">1546</span>
+<span id="1547">1547</span>
+<span id="1548">1548</span>
+<span id="1549">1549</span>
+<span id="1550">1550</span>
+<span id="1551">1551</span>
+<span id="1552">1552</span>
+<span id="1553">1553</span>
+<span id="1554">1554</span>
+<span id="1555">1555</span>
+<span id="1556">1556</span>
+<span id="1557">1557</span>
+<span id="1558">1558</span>
+<span id="1559">1559</span>
+<span id="1560">1560</span>
+<span id="1561">1561</span>
+<span id="1562">1562</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2021 Ghaith Hachem and Mathias Rieder</span>
 
 <span class="doccomment">//! Resolves (partial) expressions &amp; statements and annotates the resulting types</span>
@@ -1619,7 +1658,7 @@
 
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">TypeAnnotator</span><span class="op">&lt;</span><span class="lifetime">&#39;i</span><span class="op">&gt;</span> {
     <span class="ident">index</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;i</span> <span class="ident">Index</span>,
-    <span class="ident">annotation_map</span>: <span class="ident">AnnotationMap</span>,
+    <span class="ident">annotation_map</span>: <span class="ident">AnnotationMapImpl</span>,
 }
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">PartialEq</span>)]</span>
@@ -1652,8 +1691,106 @@
     }
 }
 
+<span class="kw">fn</span> <span class="ident">get_type_for_annotation</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(
+    <span class="ident">index</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Index</span>,
+    <span class="ident">annotation</span>: <span class="kw-2">&amp;</span><span class="ident">StatementAnnotation</span>,
+) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">typesystem::DataType</span><span class="op">&gt;</span> {
+    <span class="kw">match</span> <span class="ident">annotation</span> {
+        <span class="ident">StatementAnnotation::Value</span> { <span class="ident">resulting_type</span> } <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">resulting_type</span>.<span class="ident">as_str</span>()),
+        <span class="ident">StatementAnnotation::Variable</span> { <span class="ident">resulting_type</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">resulting_type</span>.<span class="ident">as_str</span>()),
+        <span class="ident">StatementAnnotation::Function</span> { .. } <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
+        <span class="ident">StatementAnnotation::Type</span> { .. } <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
+        <span class="ident">StatementAnnotation::Program</span> { .. } <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
+    }
+    .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">type_name</span><span class="op">|</span> <span class="ident">index</span>.<span class="ident">get_type</span>(<span class="ident">type_name</span>).<span class="ident">ok</span>())
+}
+
+<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">AnnotationMap</span> {
+    <span class="kw">fn</span> <span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">AstStatement</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">StatementAnnotation</span><span class="op">&gt;</span>;
+
+    <span class="kw">fn</span> <span class="ident">get_hint</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">AstStatement</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">StatementAnnotation</span><span class="op">&gt;</span>;
+
+    <span class="kw">fn</span> <span class="ident">get_type_or_void</span><span class="op">&lt;</span><span class="lifetime">&#39;i</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">AstStatement</span>, <span class="ident">index</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;i</span> <span class="ident">Index</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;i</span> <span class="ident">typesystem::DataType</span> {
+        <span class="self">self</span>.<span class="ident">get_type</span>(<span class="ident">s</span>, <span class="ident">index</span>)
+            .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">index</span>.<span class="ident">get_void_type</span>())
+    }
+
+    <span class="kw">fn</span> <span class="ident">get_hint_or_void</span><span class="op">&lt;</span><span class="lifetime">&#39;i</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">AstStatement</span>, <span class="ident">index</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;i</span> <span class="ident">Index</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;i</span> <span class="ident">typesystem::DataType</span> {
+        <span class="self">self</span>.<span class="ident">get_type_hint</span>(<span class="ident">s</span>, <span class="ident">index</span>)
+            .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">index</span>.<span class="ident">get_void_type</span>())
+    }
+
+    <span class="kw">fn</span> <span class="ident">get_type_hint</span><span class="op">&lt;</span><span class="lifetime">&#39;i</span><span class="op">&gt;</span>(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        <span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">AstStatement</span>,
+        <span class="ident">index</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;i</span> <span class="ident">Index</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;i</span> <span class="ident">typesystem::DataType</span><span class="op">&gt;</span> {
+        <span class="self">self</span>.<span class="ident">get_hint</span>(<span class="ident">s</span>)
+            .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">it</span><span class="op">|</span> <span class="ident">get_type_for_annotation</span>(<span class="ident">index</span>, <span class="ident">it</span>))
+    }
+
+    <span class="kw">fn</span> <span class="ident">get_type</span><span class="op">&lt;</span><span class="lifetime">&#39;i</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">AstStatement</span>, <span class="ident">index</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;i</span> <span class="ident">Index</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;i</span> <span class="ident">typesystem::DataType</span><span class="op">&gt;</span> {
+        <span class="self">self</span>.<span class="ident">get</span>(<span class="ident">s</span>)
+            .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">it</span><span class="op">|</span> <span class="ident">get_type_for_annotation</span>(<span class="ident">index</span>, <span class="ident">it</span>))
+    }
+
+    <span class="doccomment">/// returns the name of the callable that is refered by the given statemt</span>
+    <span class="doccomment">/// or none if this thing may not be callable</span>
+    <span class="kw">fn</span> <span class="ident">get_call_name</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">AstStatement</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span> {
+        <span class="kw">match</span> <span class="self">self</span>.<span class="ident">get</span>(<span class="ident">s</span>) {
+            <span class="prelude-val">Some</span>(<span class="ident">StatementAnnotation::Function</span> { <span class="ident">qualified_name</span>, .. }) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="prelude-val">Some</span>(<span class="ident">qualified_name</span>.<span class="ident">as_str</span>())
+            }
+            <span class="prelude-val">Some</span>(<span class="ident">StatementAnnotation::Program</span> { <span class="ident">qualified_name</span> }) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">qualified_name</span>.<span class="ident">as_str</span>()),
+            <span class="prelude-val">Some</span>(<span class="ident">StatementAnnotation::Variable</span> { <span class="ident">resulting_type</span>, .. }) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="prelude-val">Some</span>(<span class="ident">resulting_type</span>.<span class="ident">as_str</span>())
+            }
+            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
+        }
+    }
+}
+
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">AstAnnotations</span> {
+    <span class="ident">annotation_map</span>: <span class="ident">AnnotationMapImpl</span>,
+    <span class="ident">bool_id</span>: <span class="ident">AstId</span>,
+
+    <span class="ident">bool_annotation</span>: <span class="ident">StatementAnnotation</span>,
+}
+
+<span class="kw">impl</span> <span class="ident">AnnotationMap</span> <span class="kw">for</span> <span class="ident">AstAnnotations</span> {
+    <span class="kw">fn</span> <span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">AstStatement</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">StatementAnnotation</span><span class="op">&gt;</span> {
+        <span class="kw">if</span> <span class="ident">s</span>.<span class="ident">get_id</span>() <span class="op">=</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">bool_id</span> {
+            <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">bool_annotation</span>)
+        } <span class="kw">else</span> {
+            <span class="self">self</span>.<span class="ident">annotation_map</span>.<span class="ident">get</span>(<span class="ident">s</span>)
+        }
+    }
+
+    <span class="kw">fn</span> <span class="ident">get_hint</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">AstStatement</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">StatementAnnotation</span><span class="op">&gt;</span> {
+        <span class="kw">if</span> <span class="ident">s</span>.<span class="ident">get_id</span>() <span class="op">=</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">bool_id</span> {
+            <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">bool_annotation</span>)
+        } <span class="kw">else</span> {
+            <span class="self">self</span>.<span class="ident">annotation_map</span>.<span class="ident">get_hint</span>(<span class="ident">s</span>)
+        }
+    }
+}
+
+<span class="kw">impl</span> <span class="ident">AstAnnotations</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">annotation_map</span>: <span class="ident">AnnotationMapImpl</span>, <span class="ident">bool_id</span>: <span class="ident">AstId</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+        <span class="ident">AstAnnotations</span> {
+            <span class="ident">annotation_map</span>,
+            <span class="ident">bool_id</span>,
+            <span class="ident">bool_annotation</span>: <span class="ident">StatementAnnotation::value</span>(<span class="ident">BOOL_TYPE</span>),
+        }
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_bool_id</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">AstId</span> {
+        <span class="self">self</span>.<span class="ident">bool_id</span>
+    }
+}
+
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Default</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">AnnotationMap</span> {
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">AnnotationMapImpl</span> {
     <span class="doccomment">/// maps a statement to the type it resolves to</span>
     <span class="ident">type_map</span>: <span class="ident">IndexMap</span><span class="op">&lt;</span><span class="ident">AstId</span>, <span class="ident">StatementAnnotation</span><span class="op">&gt;</span>,
 
@@ -1673,13 +1810,13 @@
     <span class="kw">pub</span> <span class="ident">new_index</span>: <span class="ident">Index</span>,
 }
 
-<span class="kw">impl</span> <span class="ident">AnnotationMap</span> {
+<span class="kw">impl</span> <span class="ident">AnnotationMapImpl</span> {
     <span class="doccomment">/// creates a new empty AnnotationMap</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">Default::default</span>()
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">import</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">other</span>: <span class="ident">AnnotationMap</span>) {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">import</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">other</span>: <span class="ident">AnnotationMapImpl</span>) {
         <span class="self">self</span>.<span class="ident">type_map</span>.<span class="ident">extend</span>(<span class="ident">other</span>.<span class="ident">type_map</span>);
         <span class="self">self</span>.<span class="ident">type_hint_map</span>.<span class="ident">extend</span>(<span class="ident">other</span>.<span class="ident">type_hint_map</span>);
         <span class="self">self</span>.<span class="ident">new_index</span>.<span class="ident">import</span>(<span class="ident">other</span>.<span class="ident">new_index</span>);
@@ -1699,90 +1836,6 @@
         <span class="self">self</span>.<span class="ident">generic_nature_map</span>.<span class="ident">insert</span>(<span class="ident">s</span>.<span class="ident">get_id</span>(), <span class="ident">nature</span>);
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">AstStatement</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">StatementAnnotation</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">type_map</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">s</span>.<span class="ident">get_id</span>())
-    }
-
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_hint</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">AstStatement</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">StatementAnnotation</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">type_hint_map</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">s</span>.<span class="ident">get_id</span>())
-    }
-
-    <span class="doccomment">/// returns the annotated type or void if none was annotated</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_type_or_void</span><span class="op">&lt;</span><span class="lifetime">&#39;i</span><span class="op">&gt;</span>(
-        <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">AstStatement</span>,
-        <span class="ident">index</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;i</span> <span class="ident">Index</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;i</span> <span class="ident">typesystem::DataType</span> {
-        <span class="self">self</span>.<span class="ident">get_type</span>(<span class="ident">s</span>, <span class="ident">index</span>)
-            .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">index</span>.<span class="ident">get_void_type</span>())
-    }
-
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_type_hint</span><span class="op">&lt;</span><span class="lifetime">&#39;i</span><span class="op">&gt;</span>(
-        <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">AstStatement</span>,
-        <span class="ident">index</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;i</span> <span class="ident">Index</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;i</span> <span class="ident">typesystem::DataType</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">get_from_map</span>(<span class="ident">s</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">type_hint_map</span>, <span class="ident">index</span>)
-    }
-
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_hint_or_void</span><span class="op">&lt;</span><span class="lifetime">&#39;i</span><span class="op">&gt;</span>(
-        <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">AstStatement</span>,
-        <span class="ident">index</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;i</span> <span class="ident">Index</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;i</span> <span class="ident">typesystem::DataType</span> {
-        <span class="self">self</span>.<span class="ident">get_from_map</span>(<span class="ident">s</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">type_hint_map</span>, <span class="ident">index</span>)
-            .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">index</span>.<span class="ident">get_void_type</span>())
-    }
-
-    <span class="doccomment">/// returns the annotated type</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_type</span><span class="op">&lt;</span><span class="lifetime">&#39;i</span><span class="op">&gt;</span>(
-        <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">AstStatement</span>,
-        <span class="ident">index</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;i</span> <span class="ident">Index</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;i</span> <span class="ident">typesystem::DataType</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">get_from_map</span>(<span class="ident">s</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">type_map</span>, <span class="ident">index</span>)
-    }
-
-    <span class="doccomment">/// returns the annotated type from the given map</span>
-    <span class="kw">fn</span> <span class="ident">get_from_map</span><span class="op">&lt;</span><span class="lifetime">&#39;i</span><span class="op">&gt;</span>(
-        <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">AstStatement</span>,
-        <span class="ident">map</span>: <span class="kw-2">&amp;</span><span class="ident">IndexMap</span><span class="op">&lt;</span><span class="ident">AstId</span>, <span class="ident">StatementAnnotation</span><span class="op">&gt;</span>,
-        <span class="ident">index</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;i</span> <span class="ident">Index</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;i</span> <span class="ident">typesystem::DataType</span><span class="op">&gt;</span> {
-        <span class="ident">map</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">s</span>.<span class="ident">get_id</span>())
-            .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">annotation</span><span class="op">|</span> <span class="kw">match</span> <span class="ident">annotation</span> {
-                <span class="ident">StatementAnnotation::Value</span> { <span class="ident">resulting_type</span> } <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">resulting_type</span>.<span class="ident">as_str</span>()),
-                <span class="ident">StatementAnnotation::Variable</span> { <span class="ident">resulting_type</span>, .. } <span class="op">=</span><span class="op">&gt;</span> {
-                    <span class="prelude-val">Some</span>(<span class="ident">resulting_type</span>.<span class="ident">as_str</span>())
-                }
-                <span class="ident">StatementAnnotation::Function</span> { .. } <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
-                <span class="ident">StatementAnnotation::Type</span> { .. } <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
-                <span class="ident">StatementAnnotation::Program</span> { .. } <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
-            })
-            .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">type_name</span><span class="op">|</span> <span class="ident">index</span>.<span class="ident">get_type</span>(<span class="ident">type_name</span>).<span class="ident">ok</span>())
-    }
-
-    <span class="doccomment">/// reutrns the name of the callable that is refered by the given statemt</span>
-    <span class="doccomment">/// or none if this thing may not be callable</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_call_name</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">AstStatement</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> <span class="self">self</span>.<span class="ident">type_map</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">s</span>.<span class="ident">get_id</span>()) {
-            <span class="prelude-val">Some</span>(<span class="ident">StatementAnnotation::Function</span> { <span class="ident">qualified_name</span>, .. }) <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="prelude-val">Some</span>(<span class="ident">qualified_name</span>.<span class="ident">as_str</span>())
-            }
-            <span class="prelude-val">Some</span>(<span class="ident">StatementAnnotation::Program</span> { <span class="ident">qualified_name</span> }) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">qualified_name</span>.<span class="ident">as_str</span>()),
-            <span class="prelude-val">Some</span>(<span class="ident">StatementAnnotation::Variable</span> { <span class="ident">resulting_type</span>, .. }) <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="prelude-val">Some</span>(<span class="ident">resulting_type</span>.<span class="ident">as_str</span>())
-            }
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
-        }
-    }
-
-    <span class="doccomment">/// returns the annotation of the given statement or none if it was not annotated</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_annotation</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">AstStatement</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">StatementAnnotation</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">type_map</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">s</span>.<span class="ident">get_id</span>())
-    }
-
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">has_type_annotation</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">id</span>: <span class="kw-2">&amp;</span><span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
         <span class="self">self</span>.<span class="ident">type_map</span>.<span class="ident">contains_key</span>(<span class="ident">id</span>)
     }
@@ -1792,18 +1845,28 @@
     }
 }
 
+<span class="kw">impl</span> <span class="ident">AnnotationMap</span> <span class="kw">for</span> <span class="ident">AnnotationMapImpl</span> {
+    <span class="kw">fn</span> <span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">AstStatement</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">StatementAnnotation</span><span class="op">&gt;</span> {
+        <span class="self">self</span>.<span class="ident">type_map</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">s</span>.<span class="ident">get_id</span>())
+    }
+
+    <span class="kw">fn</span> <span class="ident">get_hint</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">AstStatement</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">StatementAnnotation</span><span class="op">&gt;</span> {
+        <span class="self">self</span>.<span class="ident">type_hint_map</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">s</span>.<span class="ident">get_id</span>())
+    }
+}
+
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;i</span><span class="op">&gt;</span> <span class="ident">TypeAnnotator</span><span class="op">&lt;</span><span class="lifetime">&#39;i</span><span class="op">&gt;</span> {
     <span class="doccomment">/// constructs a new TypeAnnotater that works with the given index for type-lookups</span>
     <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">index</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;i</span> <span class="ident">Index</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TypeAnnotator</span><span class="op">&lt;</span><span class="lifetime">&#39;i</span><span class="op">&gt;</span> {
         <span class="ident">TypeAnnotator</span> {
-            <span class="ident">annotation_map</span>: <span class="ident">AnnotationMap::new</span>(),
+            <span class="ident">annotation_map</span>: <span class="ident">AnnotationMapImpl::new</span>(),
             <span class="ident">index</span>,
         }
     }
 
     <span class="doccomment">/// annotates the given AST elements with the type-name resulting for the statements/expressions.</span>
     <span class="doccomment">/// Returns an AnnotationMap with the resulting types for all visited Statements. See `AnnotationMap`</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">visit_unit</span>(<span class="ident">index</span>: <span class="kw-2">&amp;</span><span class="ident">Index</span>, <span class="ident">unit</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;i</span> <span class="ident">CompilationUnit</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">AnnotationMap</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">visit_unit</span>(<span class="ident">index</span>: <span class="kw-2">&amp;</span><span class="ident">Index</span>, <span class="ident">unit</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;i</span> <span class="ident">CompilationUnit</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">AnnotationMapImpl</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">visitor</span> <span class="op">=</span> <span class="ident">TypeAnnotator::new</span>(<span class="ident">index</span>);
         <span class="kw">let</span> <span class="ident">ctx</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">VisitorContext</span> {
             <span class="ident">pou</span>: <span class="prelude-val">None</span>,
@@ -2132,6 +2195,21 @@
                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">by_step</span>) <span class="op">=</span> <span class="ident">by_step</span> {
                     <span class="self">self</span>.<span class="ident">visit_statement</span>(<span class="ident">ctx</span>, <span class="ident">by_step</span>);
                 }
+                <span class="comment">//Hint annotate start, end and step with the counter&#39;s real type</span>
+                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">type_name</span>) <span class="op">=</span> <span class="self">self</span>
+                    .<span class="ident">annotation_map</span>
+                    .<span class="ident">get_type</span>(<span class="ident">counter</span>, <span class="self">self</span>.<span class="ident">index</span>)
+                    .<span class="ident">map</span>(<span class="ident">typesystem::DataType::get_name</span>)
+                {
+                    <span class="kw">let</span> <span class="ident">annotation</span> <span class="op">=</span> <span class="ident">StatementAnnotation::value</span>(<span class="ident">type_name</span>);
+                    <span class="self">self</span>.<span class="ident">annotation_map</span>
+                        .<span class="ident">annotate_type_hint</span>(<span class="ident">start</span>, <span class="ident">annotation</span>.<span class="ident">clone</span>());
+                    <span class="self">self</span>.<span class="ident">annotation_map</span>
+                        .<span class="ident">annotate_type_hint</span>(<span class="ident">end</span>, <span class="ident">annotation</span>.<span class="ident">clone</span>());
+                    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">by_step</span>) <span class="op">=</span> <span class="ident">by_step</span> {
+                        <span class="self">self</span>.<span class="ident">annotation_map</span>.<span class="ident">annotate_type_hint</span>(<span class="ident">by_step</span>, <span class="ident">annotation</span>);
+                    }
+                }
                 <span class="ident">body</span>.<span class="ident">iter</span>().<span class="ident">for_each</span>(<span class="op">|</span><span class="ident">s</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">visit_statement</span>(<span class="ident">ctx</span>, <span class="ident">s</span>));
             }
             <span class="ident">AstStatement::WhileLoopStatement</span> {
@@ -2398,7 +2476,7 @@
 
                     <span class="kw">let</span> (<span class="ident">qualifier</span>, <span class="ident">constant</span>) <span class="op">=</span> <span class="self">self</span>
                         .<span class="ident">annotation_map</span>
-                        .<span class="ident">get_annotation</span>(<span class="ident">s</span>)
+                        .<span class="ident">get</span>(<span class="ident">s</span>)
                         .<span class="ident">map</span>(<span class="op">|</span><span class="ident">it</span><span class="op">|</span> <span class="kw">match</span> <span class="ident">it</span> {
                             <span class="ident">StatementAnnotation::Value</span> { <span class="ident">resulting_type</span> } <span class="op">=</span><span class="op">&gt;</span> {
                                 (<span class="ident">resulting_type</span>.<span class="ident">as_str</span>(), <span class="bool-val">false</span>)
@@ -2422,7 +2500,7 @@
 
                 <span class="comment">//the last guy represents the type of the whole qualified expression</span>
                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">last</span>) <span class="op">=</span> <span class="ident">elements</span>.<span class="ident">last</span>() {
-                    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">annotation</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">annotation_map</span>.<span class="ident">get_annotation</span>(<span class="ident">last</span>).<span class="ident">cloned</span>() {
+                    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">annotation</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">annotation_map</span>.<span class="ident">get</span>(<span class="ident">last</span>).<span class="ident">cloned</span>() {
                         <span class="self">self</span>.<span class="ident">annotation_map</span>.<span class="ident">annotate</span>(<span class="ident">statement</span>, <span class="ident">annotation</span>);
                     }
                 }
@@ -2463,7 +2541,7 @@
                 <span class="self">self</span>.<span class="ident">visit_statement</span>(<span class="ident">ctx</span>, <span class="ident">operator</span>);
                 <span class="kw">let</span> <span class="ident">operator_qualifier</span> <span class="op">=</span> <span class="self">self</span>
                     .<span class="ident">annotation_map</span>
-                    .<span class="ident">get_annotation</span>(<span class="ident">operator</span>)
+                    .<span class="ident">get</span>(<span class="ident">operator</span>)
                     .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">it</span><span class="op">|</span> <span class="kw">match</span> <span class="ident">it</span> {
                         <span class="ident">StatementAnnotation::Function</span> { <span class="ident">qualified_name</span>, .. } <span class="op">=</span><span class="op">&gt;</span> {
                             <span class="prelude-val">Some</span>(<span class="ident">qualified_name</span>.<span class="ident">clone</span>())
@@ -2572,7 +2650,7 @@
     <span class="comment">// Returns a possible generic for the current statement</span>
     <span class="kw">fn</span> <span class="ident">get_generic_candidate</span><span class="op">&lt;</span><span class="lifetime">&#39;idx</span><span class="op">&gt;</span>(
         <span class="ident">index</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;idx</span> <span class="ident">Index</span>,
-        <span class="ident">annotation_map</span>: <span class="kw-2">&amp;</span><span class="ident">AnnotationMap</span>,
+        <span class="ident">annotation_map</span>: <span class="kw-2">&amp;</span><span class="ident">AnnotationMapImpl</span>,
         <span class="ident">member</span>: <span class="kw-2">&amp;</span><span class="ident">VariableIndexEntry</span>,
         <span class="ident">statement</span>: <span class="kw-2">&amp;</span><span class="ident">AstStatement</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;idx</span> <span class="ident">str</span>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;idx</span> <span class="ident">str</span>)<span class="op">&gt;</span> {
@@ -2618,7 +2696,7 @@
                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">StatementAnnotation::Function</span> {
                     <span class="ident">qualified_name</span>,
                     <span class="ident">return_type</span>,
-                }) <span class="op">=</span> <span class="self">self</span>.<span class="ident">annotation_map</span>.<span class="ident">get_annotation</span>(<span class="ident">operator</span>)
+                }) <span class="op">=</span> <span class="self">self</span>.<span class="ident">annotation_map</span>.<span class="ident">get</span>(<span class="ident">operator</span>)
                 {
                     <span class="comment">//Figure out the new name for the call</span>
                     <span class="kw">let</span> (<span class="ident">name</span>, <span class="ident">annotation</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_generic_function_annotation</span>(
