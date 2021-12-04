@@ -126,6 +126,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
             Ok(llvm_typesystem::cast_if_needed(
                 self.llvm,
                 self.index,
+                self.llvm_index,
                 target_type,
                 v,
                 actual_type,
@@ -305,6 +306,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
             let reference = cast_if_needed(
                 self.llvm,
                 self.index,
+                self.llvm_index,
                 target_type,
                 reference,
                 self.get_type_hint_for(index)?,
@@ -739,6 +741,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
             let value = cast_if_needed(
                 self.llvm,
                 self.index,
+                self.llvm_index,
                 self.get_type_hint_for(right)?,
                 loaded_value,
                 param_type,

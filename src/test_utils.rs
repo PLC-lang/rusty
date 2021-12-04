@@ -23,15 +23,18 @@ pub mod tests {
         (unit, index)
     }
 
-    pub fn annotate(parse_result: &CompilationUnit, index: &Index) -> AnnotationMap {
-        TypeAnnotator::visit_unit(index, parse_result)
+    pub fn annotate(parse_result: &CompilationUnit, index: &mut Index) -> AnnotationMap {
+        let mut annotations = TypeAnnotator::visit_unit(index, parse_result);
+        index.import(std::mem::take(&mut annotations.new_index));
+        annotations
     }
 
     pub fn parse_and_validate(src: &str) -> Vec<Diagnostic> {
         let (unit, index) = index(src);
 
-        let (index, ..) = evaluate_constants(index);
-        let annotations = TypeAnnotator::visit_unit(&index, &unit);
+        let (mut index, ..) = evaluate_constants(index);
+        let mut annotations = TypeAnnotator::visit_unit(&index, &unit);
+        index.import(std::mem::take(&mut annotations.new_index));
 
         let mut validator = Validator::new();
         validator.visit_unit(&annotations, &index, &unit);

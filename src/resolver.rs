@@ -783,6 +783,12 @@ impl<'i> TypeAnnotator<'i> {
                         self.annotation_map
                             .annotate(statement, StatementAnnotation::value(target.get_name()));
                     }
+                } else if operator == &Operator::Address {
+                    //this becomes a pointer to the given type:
+                    let pointer_type_name =
+                        add_pointer_type(&mut self.annotation_map.new_index, inner_type);
+                    self.annotation_map
+                        .annotate(statement, StatementAnnotation::value(&pointer_type_name));
                 } else {
                     //TODO: The adderss operator should report a correct pointer type. We need to have reproducable type names for that first.
                     self.annotation_map
@@ -1407,6 +1413,22 @@ impl<'i> TypeAnnotator<'i> {
         }
         generic_map
     }
+}
+
+/// adds a pointer to the given inner_type to the given index and return's its name
+fn add_pointer_type(index: &mut Index, inner_type: &DataTypeInformation) -> String {
+    let new_type_name = format!("POINTER_TO_{}", inner_type.get_name());
+    index.register_type(crate::typesystem::DataType {
+        name: new_type_name.clone(),
+        initial_value: None,
+        nature: TypeNature::Any,
+        information: crate::typesystem::DataTypeInformation::Pointer {
+            auto_deref: false,
+            inner_type_name: inner_type.get_name().into(),
+            name: new_type_name.clone(),
+        },
+    });
+    new_type_name
 }
 
 fn find_implementation_annotation(name: &str, index: &Index) -> Option<StatementAnnotation> {
