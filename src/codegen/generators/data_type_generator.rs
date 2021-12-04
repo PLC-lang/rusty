@@ -9,7 +9,7 @@ use std::convert::TryInto;
 /// - sized Strings
 use crate::ast::SourceRange;
 use crate::index::{Index, VariableIndexEntry, VariableType};
-use crate::resolver::AnnotationMap;
+use crate::resolver::AstAnnotations;
 use crate::typesystem::{Dimension, StringEncoding, StructSource};
 use crate::Diagnostic;
 use crate::{ast::AstStatement, typesystem::DataTypeInformation};
@@ -31,7 +31,7 @@ use super::{expression_generator::ExpressionCodeGenerator, llvm::Llvm};
 pub struct DataTypeGenerator<'ink, 'b> {
     llvm: &'b Llvm<'ink>,
     index: &'b Index,
-    annotations: &'b AnnotationMap,
+    annotations: &'b AstAnnotations,
     types_index: LlvmTypedIndex<'ink>,
 }
 
@@ -45,7 +45,7 @@ pub struct DataTypeGenerator<'ink, 'b> {
 pub fn generate_data_types<'ink>(
     llvm: &Llvm<'ink>,
     index: &Index,
-    annotations: &AnnotationMap,
+    annotations: &AstAnnotations,
 ) -> Result<LlvmTypedIndex<'ink>, Diagnostic> {
     let mut generator = DataTypeGenerator {
         llvm,

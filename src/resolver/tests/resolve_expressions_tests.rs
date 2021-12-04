@@ -3,7 +3,7 @@ use core::panic;
 use crate::{
     ast::{self, AstStatement, DataType, Pou, UserTypeDeclaration},
     index::Index,
-    resolver::{AnnotationMap, StatementAnnotation},
+    resolver::{AnnotationMap, AnnotationMapImpl, StatementAnnotation},
     test_utils::tests::annotate,
     typesystem::{
         DataTypeInformation, BOOL_TYPE, BYTE_TYPE, CONST_STRING_TYPE, DINT_TYPE, DWORD_TYPE,
@@ -18,8 +18,8 @@ macro_rules! assert_type_and_hint {
     ($annotations:expr, $index:expr, $stmt:expr, $expected_type:expr, $expected_type_hint:expr) => {
         assert_eq!(
             (
-                $annotations.get_type($stmt, $index),
-                $annotations.get_type_hint($stmt, $index)
+                crate::resolver::AnnotationMap::get_type($annotations, $stmt, $index),
+                crate::resolver::AnnotationMap::get_type_hint($annotations, $stmt, $index),
             ),
             (
                 $index.get_type($expected_type).ok(),
@@ -744,20 +744,20 @@ fn pou_expressions_resolve_types() {
         Some(&StatementAnnotation::Program {
             qualified_name: "OtherPrg".into()
         }),
-        annotations.get_annotation(&statements[0])
+        annotations.get(&statements[0])
     );
     assert_eq!(
         Some(&StatementAnnotation::Function {
             qualified_name: "OtherFunc".into(),
             return_type: "INT".into()
         }),
-        annotations.get_annotation(&statements[1])
+        annotations.get(&statements[1])
     );
     assert_eq!(
         Some(&StatementAnnotation::Type {
             type_name: "OtherFuncBlock".into()
         }),
-        annotations.get_annotation(&statements[2])
+        annotations.get(&statements[2])
     );
 }
 
@@ -924,7 +924,7 @@ fn function_expression_resolves_to_the_function_itself_not_its_return_type() {
     let statements = &unit.implementations[1].statements;
 
     // THEN we expect it to be annotated with the function itself
-    let foo_annotation = annotations.get_annotation(&statements[0]);
+    let foo_annotation = annotations.get(&statements[0]);
     assert_eq!(
         Some(&StatementAnnotation::Function {
             qualified_name: "foo".into(),
@@ -937,7 +937,7 @@ fn function_expression_resolves_to_the_function_itself_not_its_return_type() {
     assert_eq!(None, associated_type);
 
     let statements = &unit.implementations[0].statements;
-    let foo_annotation = annotations.get_annotation(&statements[0]);
+    let foo_annotation = annotations.get(&statements[0]);
     assert_eq!(
         Some(&StatementAnnotation::Variable {
             qualified_name: "foo.foo".into(),
@@ -968,7 +968,7 @@ fn function_call_expression_resolves_to_the_function_itself_not_its_return_type(
     let statements = &unit.implementations[1].statements;
 
     // THEN we expect it to be annotated with the function itself
-    let foo_annotation = annotations.get_annotation(&statements[0]);
+    let foo_annotation = annotations.get(&statements[0]);
     assert_eq!(
         Some(&StatementAnnotation::Value {
             resulting_type: "INT".into()
@@ -1123,7 +1123,7 @@ fn qualified_expressions_dont_fallback_to_globals() {
     let annotations = TypeAnnotator::visit_unit(&index, &unit);
     let statements = &unit.implementations[0].statements;
 
-    assert_eq!(None, annotations.get_annotation(&statements[0]));
+    assert_eq!(None, annotations.get(&statements[0]));
     assert_eq!(
         Some(&StatementAnnotation::Variable {
             qualified_name: "MyStruct.y".into(),
@@ -1131,7 +1131,7 @@ fn qualified_expressions_dont_fallback_to_globals() {
             constant: false,
             is_auto_deref: false
         }),
-        annotations.get_annotation(&statements[1])
+        annotations.get(&statements[1])
     );
 }
 
@@ -1166,7 +1166,7 @@ fn function_parameter_assignments_resolve_types() {
         "INT"
     );
     assert_eq!(
-        annotations.get_annotation(&statements[0]),
+        annotations.get(&statements[0]),
         Some(&StatementAnnotation::value("INT"))
     );
     if let AstStatement::CallStatement {
@@ -1181,7 +1181,7 @@ fn function_parameter_assignments_resolve_types() {
             VOID_TYPE
         );
         assert_eq!(
-            annotations.get_annotation(operator),
+            annotations.get(operator),
             Some(&StatementAnnotation::Function {
                 qualified_name: "foo".into(),
                 return_type: "MyType".into()
@@ -1329,7 +1329,7 @@ fn actions_are_resolved() {
 
     let annotations = TypeAnnotator::visit_unit(&index, &unit);
     let foo_reference = &unit.implementations[0].statements[0];
-    let annotation = annotations.get_annotation(foo_reference);
+    let annotation = annotations.get(foo_reference);
     assert_eq!(
         Some(&StatementAnnotation::Program {
             qualified_name: "prg.foo".into(),
@@ -1337,7 +1337,7 @@ fn actions_are_resolved() {
         annotation
     );
     let foo_reference = &unit.implementations[0].statements[1];
-    let annotation = annotations.get_annotation(foo_reference);
+    let annotation = annotations.get(foo_reference);
     assert_eq!(
         Some(&StatementAnnotation::Program {
             qualified_name: "prg.foo".into(),
@@ -1376,7 +1376,7 @@ fn method_references_are_resolved() {
 
     let annotations = TypeAnnotator::visit_unit(&index, &unit);
     let foo_reference = &unit.implementations[0].statements[0];
-    let annotation = annotations.get_annotation(foo_reference);
+    let annotation = annotations.get(foo_reference);
     assert_eq!(
         Some(&StatementAnnotation::Variable {
             qualified_name: "cls.foo.foo".into(),
@@ -1481,7 +1481,7 @@ fn assert_parameter_assignment(
     param_index: usize,
     left_type: &str,
     right_type: &str,
-    annotations: &AnnotationMap,
+    annotations: &AnnotationMapImpl,
     index: &Index,
 ) {
     if let Some(AstStatement::ExpressionList { expressions, .. }) = parameters {
@@ -2196,7 +2196,7 @@ fn action_call_should_be_annotated() {
 
     // then accessing inout should be annotated with DINT, because it is auto-dereferenced
     if let AstStatement::CallStatement { operator, .. } = action_call {
-        let a = annotations.get_annotation(operator);
+        let a = annotations.get(operator);
         assert_eq!(
             Some(&StatementAnnotation::Program {
                 qualified_name: "prg.foo".to_string()
@@ -2231,7 +2231,7 @@ fn action_body_gets_resolved() {
 
     // then accessing inout should be annotated with DINT, because it is auto-dereferenced
     if let AstStatement::Assignment { left, right, .. } = x_assignment {
-        let a = annotations.get_annotation(left);
+        let a = annotations.get(left);
         assert_eq!(
             Some(&StatementAnnotation::Variable {
                 qualified_name: "prg.x".to_string(),
@@ -2242,7 +2242,7 @@ fn action_body_gets_resolved() {
             a
         );
 
-        let two = annotations.get_annotation(right);
+        let two = annotations.get(right);
         assert_eq!(Some(&StatementAnnotation::value(DINT_TYPE)), two);
     }
 }
@@ -2481,7 +2481,7 @@ fn resolve_function_with_same_name_as_return_type() {
     let statements = &unit.implementations[1].statements;
 
     // THEN we expect it to be annotated with the function itself
-    let function_annotation = annotations.get_annotation(&statements[0]);
+    let function_annotation = annotations.get(&statements[0]);
     assert_eq!(
         Some(&StatementAnnotation::Value {
             resulting_type: "TIME".into()
@@ -2521,7 +2521,7 @@ fn int_compare_should_resolve_to_bool() {
         Some(&StatementAnnotation::Value {
             resulting_type: "BOOL".to_string(),
         }),
-        annotations.get_annotation(a_eq_b),
+        annotations.get(a_eq_b),
     );
 }
 
@@ -2549,7 +2549,7 @@ fn string_compare_should_resolve_to_bool() {
     let a_eq_b = &unit.implementations[1].statements[0];
     assert_eq!(
         Some(&StatementAnnotation::value("BOOL")),
-        annotations.get_annotation(a_eq_b),
+        annotations.get(a_eq_b),
     );
 }
 
