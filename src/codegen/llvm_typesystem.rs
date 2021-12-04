@@ -14,7 +14,7 @@ use crate::{
     typesystem::{DataType, DataTypeInformation, StringEncoding},
 };
 
-use super::generators::llvm::Llvm;
+use super::{generators::llvm::Llvm, llvm_index::LlvmTypedIndex};
 
 pub fn promote_value_if_needed<'ctx>(
     context: &'ctx Context,
@@ -114,6 +114,7 @@ fn create_llvm_extend_int_value<'a>(
 pub fn cast_if_needed<'ctx>(
     llvm: &Llvm<'ctx>,
     index: &Index,
+    llvm_type_index: &LlvmTypedIndex<'ctx>,
     target_type: &DataType,
     value: BasicValueEnum<'ctx>,
     value_type: &DataType,
@@ -198,6 +199,16 @@ pub fn cast_if_needed<'ctx>(
                         )
                         .into())
                 }
+                DataTypeInformation::Pointer {
+                    auto_deref: false, ..
+                } => Ok(llvm
+                    .builder
+                    .build_ptr_to_int(
+                        value.into_pointer_value(),
+                        get_llvm_int_type(llvm.context, *lsize, "")?,
+                        "",
+                    )
+                    .into()),
                 _ => Err(Diagnostic::casting_error(
                     value_type.get_name(),
                     target_type.get_name(),
@@ -320,6 +331,29 @@ pub fn cast_if_needed<'ctx>(
                 } else {
                     Ok(value)
                 }
+            }
+            _ => Err(Diagnostic::casting_error(
+                value_type.get_name(),
+                target_type.get_name(),
+                statement.get_location(),
+            )),
+        },
+        DataTypeInformation::Pointer {
+            auto_deref: false, ..
+        } => match value_type {
+            DataTypeInformation::Integer { .. } => Ok(llvm
+                .builder
+                .build_int_to_ptr(
+                    value.into_int_value(),
+                    llvm_type_index
+                        .get_associated_type(target_type.get_name())?
+                        .into_pointer_type(),
+                    "",
+                )
+                .into()),
+            DataTypeInformation::Pointer { .. } | DataTypeInformation::Void { .. } => {
+                //this is ok, no cast required
+                Ok(value)
             }
             _ => Err(Diagnostic::casting_error(
                 value_type.get_name(),

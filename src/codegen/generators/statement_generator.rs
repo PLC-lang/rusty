@@ -339,6 +339,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
                 let lhs = llvm_typesystem::cast_if_needed(
                     self.llvm,
                     self.index,
+                    self.llvm_index,
                     left_type,
                     right,
                     right_type,
