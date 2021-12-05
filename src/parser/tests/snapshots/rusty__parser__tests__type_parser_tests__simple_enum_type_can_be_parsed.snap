@@ -8,7 +8,7 @@ UserTypeDeclaration {
         name: Some(
             "SampleEnum",
         ),
-        numeric_type: None,
+        numeric_type: "DINT",
         elements: ExpressionList {
             expressions: [
                 Reference {

@@ -13,9 +13,7 @@ POU {
                     data_type: DataTypeDefinition {
                         data_type: EnumType {
                             name: None,
-                            numeric_type: Some(
-                                "INT",
-                            ),
+                            numeric_type: "INT",
                             elements: ExpressionList {
                                 expressions: [
                                     Assignment {

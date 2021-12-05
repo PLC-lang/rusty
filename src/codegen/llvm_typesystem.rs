@@ -123,12 +123,12 @@ pub fn cast_if_needed<'ctx>(
 ) -> Result<BasicValueEnum<'ctx>, Diagnostic> {
     let builder = &llvm.builder;
     let target_type = index
-        .find_effective_type_info(target_type.get_name())
-        .unwrap_or_else(|| index.get_void_type().get_type_information());
+        .get_intrinsic_type_by_name(target_type.get_name())
+        .get_type_information();
 
     let value_type = index
-        .find_effective_type_info(value_type.get_name())
-        .unwrap_or_else(|| index.get_void_type().get_type_information());
+        .get_intrinsic_type_by_name(value_type.get_name())
+        .get_type_information();
 
     match target_type {
         DataTypeInformation::Integer {

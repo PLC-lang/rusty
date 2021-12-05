@@ -1704,13 +1704,16 @@ fn global_enums_type_resolving() {
     );
     let annotations = annotate(&unit, &mut index);
 
+    dbg!(&unit.global_vars[0].variables[0]);
+    &dbg!(unit.types);
+
     for (_, ele) in index.get_global_qualified_enums() {
         let const_exp = index
             .get_const_expressions()
             .get_constant_statement(ele.initial_value.as_ref().unwrap())
             .unwrap();
-        let a = annotations.get_type_or_void(const_exp, &index);
-        assert_eq!(a.get_name(), "DINT");
+        let a = annotations.get_type_hint(const_exp, &index).unwrap();
+        assert_eq!(a.get_name(), "__global_x");
     }
 }
 

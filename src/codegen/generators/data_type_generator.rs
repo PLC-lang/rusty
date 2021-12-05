@@ -10,7 +10,7 @@ use std::convert::TryInto;
 use crate::ast::SourceRange;
 use crate::index::{Index, VariableIndexEntry, VariableType};
 use crate::resolver::AstAnnotations;
-use crate::typesystem::{Dimension, StringEncoding, StructSource, DINT_TYPE};
+use crate::typesystem::{Dimension, StringEncoding, StructSource};
 use crate::Diagnostic;
 use crate::{ast::AstStatement, typesystem::DataTypeInformation};
 use crate::{
@@ -190,12 +190,7 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
             } => {
                 let effective_type = self
                     .index
-                    .get_effective_type_by_name(
-                        referenced_type
-                            .as_ref()
-                            .map(|it| it.as_str())
-                            .unwrap_or_else(|| DINT_TYPE),
-                    )
+                    .get_effective_type_by_name(referenced_type)
                     .get_type_information();
                 if let DataTypeInformation::Integer {
                     size: enum_size, ..

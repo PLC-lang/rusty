@@ -2,6 +2,7 @@ use crate::{
     ast::{AstStatement, DataType, DataTypeDeclaration, SourceRange, Variable},
     parser::tests::ref_to,
     test_utils::tests::parse,
+    typesystem::DINT_TYPE,
 };
 use pretty_assertions::*;
 
@@ -154,7 +155,7 @@ fn inline_enum_declaration_can_be_parsed() {
         data_type: DataTypeDeclaration::DataTypeDefinition {
             data_type: DataType::EnumType {
                 name: None,
-                numeric_type: None,
+                numeric_type: DINT_TYPE.to_string(),
                 elements: AstStatement::ExpressionList {
                     expressions: vec![ref_to("red"), ref_to("yellow"), ref_to("green")],
                     id: 0,

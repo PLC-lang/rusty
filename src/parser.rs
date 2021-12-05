@@ -3,6 +3,7 @@ use crate::{
     ast::*,
     expect_token, lexer,
     lexer::{ParseSession, Token, Token::*},
+    typesystem::DINT_TYPE,
     Diagnostic,
 };
 
@@ -694,7 +695,7 @@ fn parse_type_reference_type_definition(
                 DataTypeDeclaration::DataTypeDefinition {
                     data_type: DataType::EnumType {
                         name,
-                        numeric_type: Some(referenced_type),
+                        numeric_type: referenced_type,
                         elements: AstStatement::ExpressionList { expressions, id },
                     },
                     location: (start..end).into(),
@@ -706,7 +707,7 @@ fn parse_type_reference_type_definition(
                 DataTypeDeclaration::DataTypeDefinition {
                     data_type: DataType::EnumType {
                         name,
-                        numeric_type: Some(referenced_type),
+                        numeric_type: referenced_type,
                         elements: bounds.unwrap(),
                     },
                     location: (start..end).into(),
@@ -810,7 +811,7 @@ fn parse_enum_type_definition(
             data_type: DataType::EnumType {
                 name,
                 elements,
-                numeric_type: None,
+                numeric_type: DINT_TYPE.to_string(),
             },
             location: (start..lexer.last_range.end).into(),
             scope: lexer.scope.clone(),

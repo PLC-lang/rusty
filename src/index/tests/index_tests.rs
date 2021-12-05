@@ -2,7 +2,7 @@
 use pretty_assertions::assert_eq;
 
 use crate::lexer::IdProvider;
-use crate::parser::tests::{literal_int, ref_to};
+use crate::parser::tests::literal_int;
 use crate::test_utils::tests::{index, parse};
 use crate::typesystem::TypeSize;
 use crate::{ast::*, index::VariableType, typesystem::DataTypeInformation};

@@ -7,7 +7,7 @@ EnumType {
     name: Some(
         "__foo_inline_enum",
     ),
-    numeric_type: None,
+    numeric_type: "DINT",
     elements: ExpressionList {
         expressions: [
             Reference {

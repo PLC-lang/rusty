@@ -14,7 +14,7 @@ Variable {
                     data_type: DataTypeDefinition {
                         data_type: EnumType {
                             name: None,
-                            numeric_type: None,
+                            numeric_type: "DINT",
                             elements: ExpressionList {
                                 expressions: [
                                     Reference {

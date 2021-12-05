@@ -8,9 +8,7 @@ UserTypeDeclaration {
         name: Some(
             "SampleEnum",
         ),
-        numeric_type: Some(
-            "INT",
-        ),
+        numeric_type: "INT",
         elements: Reference {
             name: "red",
         },

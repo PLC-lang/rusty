@@ -188,7 +188,7 @@ pub enum DataTypeInformation {
     },
     Enum {
         name: String,
-        referenced_type: Option<String>,
+        referenced_type: String,
         elements: Vec<String>,
     },
     Float {
@@ -678,9 +678,8 @@ fn get_rank(type_information: &DataTypeInformation, index: &Index) -> u32 {
         },
         DataTypeInformation::Enum {
             referenced_type, ..
-        } => referenced_type
-            .as_ref()
-            .and_then(|it| index.find_effective_type_info(it))
+        } => index
+            .find_effective_type_info(referenced_type)
             .map(|it| get_rank(it, index))
             .unwrap_or(DINT_SIZE),
         _ => todo!("{:?}", type_information),

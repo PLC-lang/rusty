@@ -3,7 +3,7 @@ use crate::{
     ast::AstStatement,
     resolver::{AnnotationMap, TypeAnnotator},
     test_utils::tests::{annotate, index},
-    typesystem::{DataTypeInformation, CONST_STRING_TYPE, CONST_WSTRING_TYPE},
+    typesystem::{DataTypeInformation, CONST_STRING_TYPE, CONST_WSTRING_TYPE, DINT_TYPE},
 };
 
 #[test]
@@ -243,7 +243,7 @@ fn enum_literals_target_are_annotated() {
         &DataTypeInformation::Enum {
             name: "Color".into(),
             elements: vec!["Green".into(), "Yellow".into(), "Red".into()],
-            referenced_type: None,
+            referenced_type: DINT_TYPE.into(),
         },
         annotations
             .get_type_or_void(color_red, &index)
@@ -255,7 +255,7 @@ fn enum_literals_target_are_annotated() {
             &DataTypeInformation::Enum {
                 name: "Color".into(),
                 elements: vec!["Green".into(), "Yellow".into(), "Red".into()],
-                referenced_type: None,
+                referenced_type: DINT_TYPE.into(),
             },
             annotations
                 .get_type_or_void(target, &index)

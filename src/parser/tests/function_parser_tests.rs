@@ -1,4 +1,6 @@
-use crate::{ast::*, parser::tests::ref_to, test_utils::tests::parse, Diagnostic};
+use crate::{
+    ast::*, parser::tests::ref_to, test_utils::tests::parse, typesystem::DINT_TYPE, Diagnostic,
+};
 use pretty_assertions::*;
 
 #[test]
@@ -293,7 +295,7 @@ fn function_inline_enum_return_unsupported() {
             &DataTypeDeclaration::DataTypeDefinition {
                 data_type: DataType::EnumType {
                     name: None,
-                    numeric_type: None,
+                    numeric_type: DINT_TYPE.to_string(),
                     elements: AstStatement::ExpressionList {
                         expressions: vec![ref_to("green"), ref_to("yellow"), ref_to("red")],
                         id: 0,
