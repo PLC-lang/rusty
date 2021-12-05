@@ -2,7 +2,7 @@
 use pretty_assertions::assert_eq;
 
 use crate::lexer::IdProvider;
-use crate::parser::tests::literal_int;
+use crate::parser::tests::{literal_int, ref_to};
 use crate::test_utils::tests::{index, parse};
 use crate::typesystem::TypeSize;
 use crate::{ast::*, index::VariableType, typesystem::DataTypeInformation};
@@ -638,14 +638,7 @@ fn pre_processing_generates_inline_enums_global() {
 
     //ENUM
     // THEN an implicit datatype should have been generated for the enum
-    let new_enum_type = &ast.types[0].data_type;
-    assert_eq!(
-        &DataType::EnumType {
-            name: Some("__global_inline_enum".to_string()),
-            elements: ["a".to_string(), "b".to_string(), "c".to_string()].to_vec()
-        },
-        new_enum_type
-    );
+    insta::assert_debug_snapshot!(ast.types[0].data_type);
 
     // AND the original variable should now point to the new DataType
     let var_data_type = &ast.global_vars[0].variables[0].data_type;
@@ -737,16 +730,7 @@ fn pre_processing_generates_inline_enums() {
     crate::ast::pre_process(&mut ast);
 
     //ENUM
-    // THEN an implicit datatype should have been generated for the enum
-    let new_enum_type = &ast.types[0].data_type;
-    assert_eq!(
-        &DataType::EnumType {
-            name: Some("__foo_inline_enum".to_string()),
-            elements: ["a".to_string(), "b".to_string(), "c".to_string()].to_vec()
-        },
-        new_enum_type
-    );
-
+    //
     // AND the original variable should now point to the new DataType
     let var_data_type = &ast.units[0].variable_blocks[0].variables[0].data_type;
     assert_eq!(
@@ -756,6 +740,10 @@ fn pre_processing_generates_inline_enums() {
         },
         var_data_type
     );
+
+    // THEN an implicit datatype should have been generated for the enum
+    let new_enum_type = &ast.types[0].data_type;
+    insta::assert_debug_snapshot!(new_enum_type);
 }
 
 #[test]

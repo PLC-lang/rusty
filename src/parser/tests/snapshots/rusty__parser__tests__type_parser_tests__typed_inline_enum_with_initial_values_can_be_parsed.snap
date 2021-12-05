@@ -1,0 +1,56 @@
+---
+source: src/parser/tests/type_parser_tests.rs
+expression: "result.units[0]"
+
+---
+POU {
+    name: "prg",
+    variable_blocks: [
+        VariableBlock {
+            variables: [
+                Variable {
+                    name: "x",
+                    data_type: DataTypeDefinition {
+                        data_type: EnumType {
+                            name: None,
+                            numeric_type: Some(
+                                "INT",
+                            ),
+                            elements: ExpressionList {
+                                expressions: [
+                                    Assignment {
+                                        left: Reference {
+                                            name: "red",
+                                        },
+                                        right: LiteralInteger {
+                                            value: 1,
+                                        },
+                                    },
+                                    Assignment {
+                                        left: Reference {
+                                            name: "yellow",
+                                        },
+                                        right: LiteralInteger {
+                                            value: 2,
+                                        },
+                                    },
+                                    Assignment {
+                                        left: Reference {
+                                            name: "green",
+                                        },
+                                        right: LiteralInteger {
+                                            value: 4,
+                                        },
+                                    },
+                                ],
+                            },
+                        },
+                    },
+                },
+            ],
+            variable_block_type: Local,
+        },
+    ],
+    pou_type: Program,
+    return_type: None,
+}

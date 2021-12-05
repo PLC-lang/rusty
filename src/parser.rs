@@ -6,7 +6,10 @@ use crate::{
     Diagnostic,
 };
 
-use self::{control_parser::parse_control_statement, expressions_parser::parse_expression};
+use self::{
+    control_parser::parse_control_statement,
+    expressions_parser::{parse_expression, parse_expression_list},
+};
 
 mod control_parser;
 mod expressions_parser;
@@ -622,6 +625,7 @@ fn parse_data_type_definition(
     } else if lexer.allow(&KeywordRef) {
         parse_pointer_definition(lexer, name, lexer.last_range.start)
     } else if lexer.allow(&KeywordParensOpen) {
+        //enum without datatype
         parse_enum_type_definition(lexer, name)
     } else if lexer.token == KeywordString || lexer.token == KeywordWideString {
         parse_string_type_definition(lexer, name)
@@ -684,14 +688,41 @@ fn parse_type_reference_type_definition(
 
     let end = lexer.last_range.end;
     if name.is_some() || bounds.is_some() {
-        let data_type = DataTypeDeclaration::DataTypeDefinition {
-            data_type: DataType::SubRangeType {
-                name,
-                referenced_type,
-                bounds,
+        let data_type = match bounds {
+            Some(AstStatement::ExpressionList { expressions, id }) => {
+                //this is an enum
+                DataTypeDeclaration::DataTypeDefinition {
+                    data_type: DataType::EnumType {
+                        name,
+                        numeric_type: Some(referenced_type),
+                        elements: AstStatement::ExpressionList { expressions, id },
+                    },
+                    location: (start..end).into(),
+                    scope: lexer.scope.clone(),
+                }
+            }
+            Some(AstStatement::Reference { .. }) => {
+                // a enum with just one element
+                DataTypeDeclaration::DataTypeDefinition {
+                    data_type: DataType::EnumType {
+                        name,
+                        numeric_type: Some(referenced_type),
+                        elements: bounds.unwrap(),
+                    },
+                    location: (start..end).into(),
+                    scope: lexer.scope.clone(),
+                }
+            }
+            _ => DataTypeDeclaration::DataTypeDefinition {
+                //something else inside the brackets -> probably a subrange?
+                data_type: DataType::SubRangeType {
+                    name,
+                    referenced_type,
+                    bounds,
+                },
+                location: (start..end).into(),
+                scope: lexer.scope.clone(),
             },
-            location: (start..end).into(),
-            scope: lexer.scope.clone(),
         };
         Some((data_type, initial_value))
     } else {
@@ -770,23 +801,17 @@ fn parse_enum_type_definition(
     let start = lexer.last_range.start;
     let elements = parse_any_in_region(lexer, vec![KeywordParensClose], |lexer| {
         // Parse Enum - we expect at least one element
-
-        let mut elements = Vec::new();
-        //we expect at least one element
-        if lexer.token == Identifier {
-            elements.push(lexer.slice_and_advance());
-        }
-        //parse additional elements separated by ,
-        while lexer.allow(&KeywordComma) {
-            expect_token!(lexer, Identifier, None);
-            elements.push(lexer.slice_and_advance());
-        }
+        let elements = parse_expression_list(lexer);
         Some(elements)
     })?;
 
     Some((
         DataTypeDeclaration::DataTypeDefinition {
-            data_type: DataType::EnumType { name, elements },
+            data_type: DataType::EnumType {
+                name,
+                elements,
+                numeric_type: None,
+            },
             location: (start..lexer.last_range.end).into(),
             scope: lexer.scope.clone(),
         },

@@ -1,0 +1,24 @@
+---
+source: src/index/tests/index_tests.rs
+expression: new_enum_type
+
+---
+EnumType {
+    name: Some(
+        "__foo_inline_enum",
+    ),
+    numeric_type: None,
+    elements: ExpressionList {
+        expressions: [
+            Reference {
+                name: "a",
+            },
+            Reference {
+                name: "b",
+            },
+            Reference {
+                name: "c",
+            },
+        ],
+    },
+}

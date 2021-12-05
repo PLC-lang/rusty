@@ -1,0 +1,20 @@
+---
+source: src/parser/tests/type_parser_tests.rs
+expression: "result.types[0]"
+
+---
+UserTypeDeclaration {
+    data_type: EnumType {
+        name: Some(
+            "SampleEnum",
+        ),
+        numeric_type: Some(
+            "INT",
+        ),
+        elements: Reference {
+            name: "red",
+        },
+    },
+    initializer: None,
+    scope: None,
+}

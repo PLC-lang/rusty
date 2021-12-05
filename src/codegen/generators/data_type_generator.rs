@@ -10,7 +10,7 @@ use std::convert::TryInto;
 use crate::ast::SourceRange;
 use crate::index::{Index, VariableIndexEntry, VariableType};
 use crate::resolver::AstAnnotations;
-use crate::typesystem::{Dimension, StringEncoding, StructSource};
+use crate::typesystem::{Dimension, StringEncoding, StructSource, DINT_TYPE};
 use crate::Diagnostic;
 use crate::{ast::AstStatement, typesystem::DataTypeInformation};
 use crate::{
@@ -183,9 +183,32 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
             DataTypeInformation::Integer { size, .. } => {
                 get_llvm_int_type(self.llvm.context, *size, name).map(|it| it.into())
             }
-            DataTypeInformation::Enum { name, .. } => {
-                let enum_size = information.get_size();
-                get_llvm_int_type(self.llvm.context, enum_size, name).map(|it| it.into())
+            DataTypeInformation::Enum {
+                name,
+                referenced_type,
+                ..
+            } => {
+                let effective_type = self
+                    .index
+                    .get_effective_type_by_name(
+                        referenced_type
+                            .as_ref()
+                            .map(|it| it.as_str())
+                            .unwrap_or_else(|| DINT_TYPE),
+                    )
+                    .get_type_information();
+                if let DataTypeInformation::Integer {
+                    size: enum_size, ..
+                } = effective_type
+                {
+                    get_llvm_int_type(self.llvm.context, *enum_size, name).map(|it| it.into())
+                } else {
+                    Err(Diagnostic::invalid_type_nature(
+                        effective_type.get_name(),
+                        "ANY_INT",
+                        SourceRange::undefined(),
+                    ))
+                }
             }
             DataTypeInformation::Float { size, .. } => {
                 get_llvm_float_type(self.llvm.context, *size, name).map(|it| it.into())

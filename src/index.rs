@@ -820,6 +820,14 @@ impl Index {
                     initial_type
                 }
             }
+            DataTypeInformation::Enum {
+                referenced_type, ..
+            } => referenced_type
+                .as_ref()
+                .map(|it| it.as_str())
+                .or(Some(DINT_TYPE))
+                .and_then(|referenced_type| self.find_effective_type_info(referenced_type))
+                .unwrap_or(initial_type),
             _ => initial_type,
         }
     }

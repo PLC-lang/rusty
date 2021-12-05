@@ -1,6 +1,6 @@
 use crate::{
     ast::{
-        DataType, DataTypeDeclaration, PouType, SourceRange, Variable, VariableBlock,
+        AstStatement, DataType, DataTypeDeclaration, PouType, SourceRange, Variable, VariableBlock,
         VariableBlockType,
     },
     index::{const_expressions::ConstExpression, Index},
@@ -97,11 +97,12 @@ impl VariableValidator {
                         .push(Diagnostic::empty_variable_block(location.clone()));
                 }
             }
-            DataType::EnumType { elements, .. } => {
-                if elements.is_empty() {
-                    self.diagnostics
-                        .push(Diagnostic::empty_variable_block(location.clone()));
-                }
+            DataType::EnumType {
+                elements: AstStatement::EmptyStatement { .. },
+                ..
+            } => {
+                self.diagnostics
+                    .push(Diagnostic::empty_variable_block(location.clone()));
             }
             _ => {}
         }

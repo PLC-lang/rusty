@@ -242,7 +242,8 @@ fn enum_literals_target_are_annotated() {
     assert_eq!(
         &DataTypeInformation::Enum {
             name: "Color".into(),
-            elements: vec!["Green".into(), "Yellow".into(), "Red".into()]
+            elements: vec!["Green".into(), "Yellow".into(), "Red".into()],
+            referenced_type: None,
         },
         annotations
             .get_type_or_void(color_red, &index)
@@ -253,7 +254,8 @@ fn enum_literals_target_are_annotated() {
         assert_eq!(
             &DataTypeInformation::Enum {
                 name: "Color".into(),
-                elements: vec!["Green".into(), "Yellow".into(), "Red".into()]
+                elements: vec!["Green".into(), "Yellow".into(), "Red".into()],
+                referenced_type: None,
             },
             annotations
                 .get_type_or_void(target, &index)

@@ -1,4 +1,4 @@
-use crate::{ast::*, test_utils::tests::parse, Diagnostic};
+use crate::{ast::*, parser::tests::ref_to, test_utils::tests::parse, Diagnostic};
 use pretty_assertions::*;
 
 #[test]
@@ -293,7 +293,11 @@ fn function_inline_enum_return_unsupported() {
             &DataTypeDeclaration::DataTypeDefinition {
                 data_type: DataType::EnumType {
                     name: None,
-                    elements: vec!["green".into(), "yellow".into(), "red".into()]
+                    numeric_type: None,
+                    elements: AstStatement::ExpressionList {
+                        expressions: vec![ref_to("green"), ref_to("yellow"), ref_to("red")],
+                        id: 0,
+                    }
                 },
                 location: (15..35).into(),
                 scope: Some("foo".into()),

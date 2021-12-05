@@ -441,8 +441,9 @@ pub enum DataType {
         variables: Vec<Variable>,
     },
     EnumType {
-        name: Option<String>, //maybe empty for inline enums
-        elements: Vec<String>,
+        name: Option<String>,         //maybe empty for inline enums
+        numeric_type: Option<String>, //optional datatype to use to backup the enum
+        elements: AstStatement,       //a single Ref, or an ExpressionList with Refs
     },
     SubRangeType {
         name: Option<String>,
