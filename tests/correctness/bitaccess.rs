@@ -89,6 +89,7 @@ fn qualified_reference_assignment() {
         VAR
             str : myStruct;
         END_VAR
+        str.x := 1;
         str.x.%X0 := FALSE;
         str.x.%X1 := TRUE;
         main := str.x;
