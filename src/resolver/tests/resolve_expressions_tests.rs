@@ -1704,17 +1704,91 @@ fn global_enums_type_resolving() {
     );
     let annotations = annotate(&unit, &mut index);
 
-    dbg!(&unit.global_vars[0].variables[0]);
-    &dbg!(unit.types);
+    //check the type-annotation of a,b,c's implicit initializers
 
-    for (_, ele) in index.get_global_qualified_enums() {
-        let const_exp = index
-            .get_const_expressions()
-            .get_constant_statement(ele.initial_value.as_ref().unwrap())
-            .unwrap();
-        let a = annotations.get_type_hint(const_exp, &index).unwrap();
-        assert_eq!(a.get_name(), "__global_x");
+    let initalizer_types = index.get_global_qualified_enums().values()
+        .map(|it| {
+            let const_exp = index
+                .get_const_expressions()
+                .get_constant_statement(it.initial_value.as_ref().unwrap())
+                .unwrap();
+            annotations.get_type(const_exp, &index).map(|it| it.get_name())
+        }).collect::<Vec<Option<&str>>>();
+
+    assert_eq!(
+        vec![Some("DINT"), Some("__global_x"), Some("__global_x")],
+        initalizer_types
+    );
+}
+
+#[test]
+fn global_enums_type_resolving2() {
+    let (unit, mut index) = index(
+        " TYPE MyEnum : BYTE (zero, aa, bb := 7, cc); END_TYPE",
+    );
+    let annotations = annotate(&unit, &mut index);
+
+    //check the type-annotation of a,b,c's implicit initializers
+
+    let initalizer_types = index.get_global_qualified_enums().values()
+        .map(|it| {
+            let const_exp = index
+                .get_const_expressions()
+                .get_constant_statement(it.initial_value.as_ref().unwrap())
+                .unwrap();
+            annotations.get_type(const_exp, &index).map(|it| it.get_name())
+        }).collect::<Vec<Option<&str>>>();
+
+    assert_eq!(
+        vec![Some("DINT"), Some("MyEnum"), Some("DINT"), Some("MyEnum")],
+        initalizer_types
+    );
+}
+
+#[test]
+fn enum_initialization_is_annotated_correctly() {
+    let (unit, mut index) = index(
+        " TYPE MyEnum : BYTE (zero, aa, bb := 7, cc); END_TYPE
+        
+        PROGRAM PRG
+            VAR_TEMP
+                x : MyEnum := 1;
+                y : MyEnum := bb;
+                z : MyEnum := cc;
+            END_VAR
+
+
+            x := aa;
+            x := bb;
+            x := cc;
+        END_PROGRAM
+        ",
+    );
+    let annotations = annotate(&unit, &mut index);
+
+    let variables = &unit.units[0].variable_blocks[0].variables;
+
+    assert_type_and_hint!(&annotations, &index, variables[0].initializer.as_ref().unwrap(), "DINT", Some("MyEnum"));
+    assert_type_and_hint!(&annotations, &index, variables[1].initializer.as_ref().unwrap(), "MyEnum", Some("MyEnum"));
+    assert_type_and_hint!(&annotations, &index, variables[2].initializer.as_ref().unwrap(), "MyEnum", Some("MyEnum"));
+
+    let statements = &unit.implementations[0].statements;
+    if let AstStatement::Assignment{right, ..} = &statements[0] {
+        assert_type_and_hint!(&annotations, &index, right.as_ref(), "MyEnum", Some("MyEnum"));
+    }else{
+        unreachable!()
     }
+    if let AstStatement::Assignment{right, ..} = &statements[1] {
+        assert_type_and_hint!(&annotations, &index, right.as_ref(), "MyEnum", Some("MyEnum"));
+    }else{
+        unreachable!()
+    }
+    if let AstStatement::Assignment{right, ..} = &statements[2] {
+        assert_type_and_hint!(&annotations, &index, right.as_ref(), "MyEnum", Some("MyEnum"));
+    }else{
+        unreachable!()
+    }
+
 }
 
 #[test]

@@ -200,12 +200,12 @@ fn enums_can_be_compared() {
             VAR a,b,c : BOOL; END_VAR
 
             VAR_TEMP
-                x : MyEnum := 1;
-                y : MyEnum := bb;
+                //x : MyEnum := 1;
+                //y : MyEnum := bb;
                 z : MyEnum := cc;
             END_VAR
 
-            IF x = aa THEN
+/*            IF x = aa THEN
                 a := TRUE;
             END_IF
 
@@ -216,7 +216,7 @@ fn enums_can_be_compared() {
             IF z = 8 THEN
                 c := TRUE;
             END_IF
-
+*/
         END_FUNCTION 
     ";
     let _: i32 = compile_and_run(function, &mut main);

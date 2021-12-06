@@ -4,7 +4,7 @@ use crate::ast::DataTypeDeclaration;
 
 use super::{
     super::ast::{CompilationUnit, DataType, UserTypeDeclaration, Variable},
-    Pou, SourceRange,
+    Pou, SourceRange, 
 };
 use std::{collections::HashMap, vec};
 
@@ -89,6 +89,58 @@ pub fn pre_process(unit: &mut CompilationUnit) {
                         new_types.push(data_type);
                     }
                 }
+                DataType::EnumType{elements, ..} => {
+
+            // let elements = ast::flatten_expression_list(elements)
+            //     .iter()
+            //     .map(|it| match it {
+            //         AstStatement::Reference { name, .. } => (name.clone(), None),
+            //         AstStatement::Assignment { left, right, .. } => {
+            //             let name = if let AstStatement::Reference { name, .. } = left.as_ref() {
+            //                 name.clone()
+            //             } else {
+            //                 "<undefined>".to_string()
+            //             };
+            //             (name, Some(*right.clone()))
+            //         }
+            //         _ => ("<undefined>".to_string(), None),
+            //     })
+            //     .collect::<Vec<(String, Option<AstStatement>)>>();
+            //        let mut last_name: Option<String> = None;
+            // elements.into_iter().for_each(|(name, v)| {
+            //     let enum_literal = v.unwrap_or_else(|| {
+            //         if let Some(last_element) = last_name.as_ref() {
+            //             // generate a `enum#last + 1` statement
+            //             ast::AstStatement::BinaryExpression {
+            //                 id: id_provider.next_id(),
+            //                 operator: ast::Operator::Plus,
+            //                 left: Box::new(AstStatement::CastStatement {
+            //                     target: Box::new(AstStatement::Reference {
+            //                         id: id_provider.next_id(),
+            //                         location: SourceRange::undefined(),
+            //                         name: last_element.clone(),
+            //                     }),
+            //                     id: id_provider.next_id(),
+            //                     location: SourceRange::undefined(),
+            //                     type_name: enum_name.to_string(),
+            //                 }),
+            //                 right: Box::new(ast::AstStatement::LiteralInteger {
+            //                     value: 1,
+            //                     location: SourceRange::undefined(),
+            //                     id: id_provider.next_id(),
+            //                 }),
+            //             }
+            //         } else {
+            //             ast::AstStatement::LiteralInteger {
+            //                 value: 0,
+            //                 location: SourceRange::undefined(),
+            //                 id: id_provider.next_id(),
+            //             }
+            //         }
+            //     }); 
+            //     })
+            }
+                
                 _ => {}
             }
         }
