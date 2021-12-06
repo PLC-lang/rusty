@@ -95,6 +95,12 @@ fn qualified_reference_assignment() {
         END_FUNCTION
 
         ";
+
+    #[derive(Default)]
+    #[allow(dead_code)]
+    struct MainType {
+        x: u8,
+    }
     let res: u8 = compile_and_run(prog, &mut MainType::default);
     assert_eq!(2, res);
 }
