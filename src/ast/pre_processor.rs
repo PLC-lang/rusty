@@ -4,6 +4,7 @@ use crate::{ast::DataTypeDeclaration, lexer::IdProvider};
 
 use super::{
     super::ast::{CompilationUnit, UserTypeDeclaration, Variable},
+    create_binary_expression, create_cast_statement, create_literal_int, create_reference,
     flatten_expression_list, AstStatement, DataType, Operator, Pou, SourceRange,
 };
 use std::{collections::HashMap, vec};
@@ -106,83 +107,81 @@ pub fn pre_process(unit: &mut CompilationUnit, mut id_provider: IdProvider) {
                     name: Some(enum_name),
                     ..
                 } if !matches!(original_elements, AstStatement::EmptyStatement { .. }) => {
-                    
-
                     let mut last_name: Option<String> = None;
-                    let elements = flatten_expression_list(original_elements)
+                    let initialized_enum_elements = flatten_expression_list(original_elements)
                         .iter()
                         .map(|it| match it {
-                            AstStatement::Reference { name, location, .. } => {
-                                (name.clone(), None, location.clone())
+                            AstStatement::Reference { name, .. } => {
+                                (name.clone(), None, it.get_location())
                             }
                             AstStatement::Assignment { left, right, .. } => {
                                 let name =
                                     if let AstStatement::Reference { name, .. } = left.as_ref() {
                                         name.clone()
                                     } else {
-                                        "<undefined>".to_string()
+                                        unreachable!("expected reference, got {:?}", left.as_ref())
                                     };
+                                //<element-name, initializer, location>
                                 (name, Some(*right.clone()), it.get_location())
                             }
-                            _ => ("<undefined>".to_string(), None, SourceRange::undefined()),
+                            _ => unreachable!("expected assignment, got {:?}", it),
                         })
-                        .map(|(name, v, location)| {
-                            let enum_literal = v.unwrap_or_else(|| {
-                                if let Some(last_element) = last_name.as_ref() {
-                                    // generate a `enum#last + 1` statement
-                                    AstStatement::BinaryExpression {
-                                        id: id_provider.next_id(),
-                                        operator: Operator::Plus,
-                                        left: Box::new(AstStatement::CastStatement {
-                                            target: Box::new(AstStatement::Reference {
-                                                id: id_provider.next_id(),
-                                                location: location.clone(),
-                                                name: last_element.clone(),
-                                            }),
-                                            id: id_provider.next_id(),
-                                            location: location.clone(),
-                                            type_name: enum_name.to_string(),
-                                        }),
-                                        right: Box::new(AstStatement::LiteralInteger {
-                                            value: 1,
-                                            location: location.clone(),
-                                            id: id_provider.next_id(),
-                                        }),
-                                    }
-                                } else {
-                                    AstStatement::LiteralInteger {
-                                        value: 0,
-                                        location: location.clone(),
-                                        id: id_provider.next_id(),
-                                    }
-                                }
+                        .map(|(element_name, initializer, location)| {
+                            let enum_literal = initializer.unwrap_or_else(|| {
+                                build_enum_initializer(
+                                    &last_name,
+                                    &location,
+                                    &mut id_provider,
+                                    enum_name,
+                                )
                             });
-                            last_name = Some(name.clone());
+                            last_name = Some(element_name.clone());
                             AstStatement::Assignment {
                                 id: id_provider.next_id(),
                                 left: Box::new(AstStatement::Reference {
                                     id: id_provider.next_id(),
-                                    name,
+                                    name: element_name,
                                     location,
                                 }),
                                 right: Box::new(enum_literal),
                             }
                         })
                         .collect::<Vec<AstStatement>>();
-                    if !elements.is_empty() {
+                    // if the enum is empty, we dont change anything
+                    if !initialized_enum_elements.is_empty() {
+                        //swap the expression list with our new Assignments
                         let expression = AstStatement::ExpressionList {
-                            expressions: elements,
+                            expressions: initialized_enum_elements,
                             id: id_provider.next_id(),
                         };
                         let _ = std::mem::replace(original_elements, expression);
                     }
                 }
-
                 _ => {}
             }
         }
     }
     unit.types.append(&mut new_types);
+}
+
+fn build_enum_initializer(
+    last_name: &Option<String>,
+    location: &SourceRange,
+    id_provider: &mut IdProvider,
+    enum_name: &mut String,
+) -> AstStatement {
+    if let Some(last_element) = last_name.as_ref() {
+        // generate a `enum#last + 1` statement
+        let enum_ref = create_reference(last_element, location, id_provider.next_id());
+        create_binary_expression(
+            create_cast_statement(enum_name, enum_ref, location, id_provider.next_id()),
+            Operator::Plus,
+            create_literal_int(1, location, id_provider.next_id()),
+            id_provider.next_id(),
+        )
+    } else {
+        create_literal_int(0, location, id_provider.next_id())
+    }
 }
 
 fn preprocess_generic_structs(pou: &mut Pou) -> Vec<UserTypeDeclaration> {

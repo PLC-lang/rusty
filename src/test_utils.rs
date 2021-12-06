@@ -1,8 +1,6 @@
 #[cfg(test)]
 pub mod tests {
 
-    
-
     use crate::{
         ast::{self, CompilationUnit},
         diagnostics::Diagnostic,

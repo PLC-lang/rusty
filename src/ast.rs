@@ -1250,6 +1250,50 @@ pub fn create_not_expression(operator: AstStatement, location: SourceRange) -> A
     }
 }
 
+pub fn create_reference(name: &str, location: &SourceRange, id: AstId) -> AstStatement {
+    AstStatement::Reference {
+        id,
+        location: location.clone(),
+        name: name.to_string(),
+    }
+}
+
+pub fn create_literal_int(value: i128, location: &SourceRange, id: AstId) -> AstStatement {
+    AstStatement::LiteralInteger {
+        id,
+        location: location.clone(),
+        value,
+    }
+}
+
+pub fn create_binary_expression(
+    left: AstStatement,
+    operator: Operator,
+    right: AstStatement,
+    id: AstId,
+) -> AstStatement {
+    AstStatement::BinaryExpression {
+        id,
+        left: Box::new(left),
+        operator,
+        right: Box::new(right),
+    }
+}
+
+pub fn create_cast_statement(
+    type_name: &str,
+    stmt: AstStatement,
+    location: &SourceRange,
+    id: AstId,
+) -> AstStatement {
+    AstStatement::CastStatement {
+        id,
+        location: location.clone(),
+        type_name: type_name.to_string(),
+        target: Box::new(stmt),
+    }
+}
+
 pub fn pre_process(unit: &mut CompilationUnit, id_provider: IdProvider) {
     pre_processor::pre_process(unit, id_provider)
 }
