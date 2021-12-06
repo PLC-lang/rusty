@@ -14,8 +14,8 @@ entry:
   %main = alloca i16, align 2
   store i32 0, i32* %c, align 4
   %1 = load i32, i32* %c, align 4
-  %and = and i32 %1, 0
-  %or = or i32 %and, 256
+  %erase = and i32 %1, -65536
+  %or = or i32 %erase, 256
   store i32 %or, i32* %c, align 4
   %main_ret = load i16, i16* %main, align 2
   ret i16 %main_ret

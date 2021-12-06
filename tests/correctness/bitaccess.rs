@@ -198,8 +198,25 @@ fn bitaccess_assignment_should_not_override_current_values() {
     main := a;
     END_FUNCTION
     ";
-    struct MainType {
-    }
-    let res: i32 = compile_and_run(prog, &mut MainType{});
-    assert_eq!(res,7);
+    struct MainType {}
+    let res: i32 = compile_and_run(prog, &mut MainType {});
+    assert_eq!(res, 7);
+}
+
+#[test]
+fn byteaccess_assignment_should_not_override_current_values() {
+    let prog = "
+    FUNCTION main : DINT
+    VAR_TEMP
+        a : DINT := 0;
+    END_VAR
+    a.%B1 := 2#1010_1010;
+    a.%B0 := 2#0101_0101;
+    a.%B2 := 2#1100_0011;
+    main := a;
+    END_FUNCTION
+    ";
+    struct MainType {}
+    let res: i32 = compile_and_run(prog, &mut MainType {});
+    assert_eq!(res, 0b0000_0000_1100_0011_1010_1010_0101_0101);
 }
