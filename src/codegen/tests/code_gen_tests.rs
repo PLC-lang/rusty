@@ -1517,6 +1517,7 @@ entry:
   %y = getelementptr inbounds %MyClass_interface, %MyClass_interface* %0, i32 0, i32 1
   %myMethodArg = getelementptr inbounds %MyClass.testMethod_interface, %MyClass.testMethod_interface* %1, i32 0, i32 0
   %myMethodLocalVar = getelementptr inbounds %MyClass.testMethod_interface, %MyClass.testMethod_interface* %1, i32 0, i32 1
+  store i16 0, i16* %myMethodLocalVar, align 2
   %load_myMethodArg = load i16, i16* %myMethodArg, align 2
   store i16 %load_myMethodArg, i16* %x, align 2
   %load_x = load i16, i16* %x, align 2
@@ -1623,6 +1624,7 @@ entry:
   %y = getelementptr inbounds %MyClass_interface, %MyClass_interface* %0, i32 0, i32 1
   %myMethodArg = getelementptr inbounds %MyClass.testMethod_interface, %MyClass.testMethod_interface* %1, i32 0, i32 0
   %myMethodLocalVar = getelementptr inbounds %MyClass.testMethod_interface, %MyClass.testMethod_interface* %1, i32 0, i32 1
+  store i16 0, i16* %myMethodLocalVar, align 2
   %load_myMethodArg = load i16, i16* %myMethodArg, align 2
   store i16 %load_myMethodArg, i16* %x, align 2
   %load_x = load i16, i16* %x, align 2
@@ -1747,6 +1749,7 @@ define void @MyClass.testMethod(%MyClass_interface* %0, %MyClass.testMethod_inte
 entry:
   %myMethodArg = getelementptr inbounds %MyClass.testMethod_interface, %MyClass.testMethod_interface* %1, i32 0, i32 0
   %myMethodLocalVar = getelementptr inbounds %MyClass.testMethod_interface, %MyClass.testMethod_interface* %1, i32 0, i32 1
+  store i16 0, i16* %myMethodLocalVar, align 2
   store i16 1, i16* %myMethodLocalVar, align 2
   ret void
 }
@@ -1788,6 +1791,7 @@ entry:
   %y = getelementptr inbounds %MyClass_interface, %MyClass_interface* %0, i32 0, i32 1
   %myMethodArg = getelementptr inbounds %MyClass.testMethod_interface, %MyClass.testMethod_interface* %1, i32 0, i32 0
   %myMethodLocalVar = getelementptr inbounds %MyClass.testMethod_interface, %MyClass.testMethod_interface* %1, i32 0, i32 1
+  store i16 0, i16* %myMethodLocalVar, align 2
   %load_myMethodArg = load i16, i16* %myMethodArg, align 2
   store i16 %load_myMethodArg, i16* %x, align 2
   %load_x = load i16, i16* %x, align 2

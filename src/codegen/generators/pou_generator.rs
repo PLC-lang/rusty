@@ -1,5 +1,6 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use super::{
+    data_type_generator::get_default_for,
     expression_generator::ExpressionCodeGenerator,
     llvm::Llvm,
     statement_generator::{FunctionContext, StatementCodeGenerator},
@@ -299,22 +300,26 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         variables: &[&VariableIndexEntry],
         local_llvm_index: &LlvmTypedIndex,
     ) -> Result<(), Diagnostic> {
-        let variables_with_initializers = variables
-            .iter()
-            .filter(|it| it.is_local() || it.is_temp())
-            .filter(|it| it.initial_value.is_some());
+        let variables_with_initializers =
+            variables.iter().filter(|it| it.is_local() || it.is_temp());
+        //.filter(|it| it.initial_value.is_some());
 
         for variable in variables_with_initializers {
-            let right = self
-                .index
-                .get_const_expressions()
-                .maybe_get_constant_statement(&variable.initial_value)
-                .ok_or_else(|| {
-                    Diagnostic::cannot_generate_initializer(
-                        variable.get_qualified_name(),
-                        SourceRange::undefined(),
-                    )
-                })?;
+            let right = if variable.initial_value.is_some() {
+                Some(
+                    self.index
+                        .get_const_expressions()
+                        .maybe_get_constant_statement(&variable.initial_value)
+                        .ok_or_else(|| {
+                            Diagnostic::cannot_generate_initializer(
+                                variable.get_qualified_name(),
+                                SourceRange::undefined(),
+                            )
+                        })?,
+                )
+            } else {
+                None
+            };
 
             //get the loaded_ptr for the parameter and store right in it
             if let Some(left) = local_llvm_index
@@ -326,10 +331,21 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                     self.annotations,
                     local_llvm_index,
                 );
+                let right_exp = if let Some(right) = right {
+                    exp_gen.generate_expression(right)?
+                } else {
+                    self.llvm_index
+                        .find_associated_type(variable.get_type_name())
+                        .map(get_default_for)
+                        .ok_or_else(|| {
+                            Diagnostic::cannot_generate_initializer(
+                                variable.get_qualified_name(),
+                                SourceRange::undefined(),
+                            )
+                        })?
+                };
 
-                self.llvm
-                    .builder
-                    .build_store(left, exp_gen.generate_expression(right)?);
+                self.llvm.builder.build_store(left, right_exp);
             } else {
                 return Err(Diagnostic::cannot_generate_initializer(
                     variable.get_qualified_name(),

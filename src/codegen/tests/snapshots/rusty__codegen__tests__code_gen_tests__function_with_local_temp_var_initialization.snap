@@ -19,6 +19,7 @@ entry:
   %z = alloca i16, align 2
   %foo = alloca i32, align 4
   store i16 7, i16* %x, align 2
+  store i16 0, i16* %y, align 2
   store i16 9, i16* %z, align 2
   %load_z = load i16, i16* %z, align 2
   %1 = sext i16 %load_z to i32

@@ -13,6 +13,7 @@ entry:
   %a = getelementptr inbounds %main_interface, %main_interface* %0, i32 0, i32 0
   %b = getelementptr inbounds %main_interface, %main_interface* %0, i32 0, i32 1
   %main = alloca i16, align 2
+  store i8 0, i8* %a, align 1
   store i16 1, i16* %b, align 2
   %1 = load i8, i8* %a, align 1
   %and = and i8 %1, 1
