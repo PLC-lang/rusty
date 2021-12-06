@@ -3,7 +3,7 @@ use pretty_assertions::assert_eq;
 
 use crate::lexer::IdProvider;
 use crate::parser::tests::literal_int;
-use crate::test_utils::tests::{index, parse};
+use crate::test_utils::tests::{index, parse_and_preprocess};
 use crate::typesystem::TypeSize;
 use crate::{ast::*, index::VariableType, typesystem::DataTypeInformation};
 
@@ -631,10 +631,7 @@ fn pre_processing_generates_inline_enums_global() {
             inline_enum : (a,b,c);
         END_VAR
         "#;
-    let (mut ast, ..) = parse(src);
-
-    // WHEN the AST ist pre-processed
-    crate::ast::pre_process(&mut ast);
+    let (ast, ..) = parse_and_preprocess(src);
 
     //ENUM
     // THEN an implicit datatype should have been generated for the enum
@@ -672,10 +669,7 @@ fn pre_processing_generates_inline_structs_global() {
             inline_struct: STRUCT a: INT; END_STRUCT
         END_VAR
         "#;
-    let (mut ast, ..) = parse(src);
-
-    // WHEN the AST ist pre-processed
-    crate::ast::pre_process(&mut ast);
+    let (ast, ..) = parse_and_preprocess(src);
 
     //STRUCT
     //THEN an implicit datatype should have been generated for the struct
@@ -724,10 +718,7 @@ fn pre_processing_generates_inline_enums() {
         END_VAR
         END_PROGRAM
         "#;
-    let (mut ast, ..) = parse(src);
-
-    // WHEN the AST ist pre-processed
-    crate::ast::pre_process(&mut ast);
+    let (ast, ..) = parse_and_preprocess(src);
 
     //ENUM
     //
@@ -756,10 +747,7 @@ fn pre_processing_generates_inline_structs() {
         END_VAR
         END_PROGRAM
         "#;
-    let (mut ast, ..) = parse(src);
-
-    // WHEN the AST ist pre-processed
-    crate::ast::pre_process(&mut ast);
+    let (ast, ..) = parse_and_preprocess(src);
 
     //STRUCT
     //THEN an implicit datatype should have been generated for the struct
@@ -808,10 +796,7 @@ fn pre_processing_generates_inline_pointers() {
         END_VAR
         END_PROGRAM
         "#;
-    let (mut ast, ..) = parse(src);
-
-    // WHEN the AST ist pre-processed
-    crate::ast::pre_process(&mut ast);
+    let (ast, ..) = parse_and_preprocess(src);
 
     //Pointer
     //THEN an implicit datatype should have been generated for the array
@@ -847,10 +832,7 @@ fn pre_processing_generates_pointer_to_pointer_type() {
     let src = r#"
         TYPE pointer_to_pointer: REF_TO REF_TO INT; END_TYPE
         "#;
-    let (mut ast, ..) = parse(src);
-
-    // WHEN the AST ist pre-processed
-    crate::ast::pre_process(&mut ast);
+    let (ast, ..) = parse_and_preprocess(src);
 
     //Pointer
     //THEN an implicit datatype should have been generated for the pointer
@@ -898,10 +880,7 @@ fn pre_processing_generates_inline_pointer_to_pointer() {
         END_VAR
         END_PROGRAM
         "#;
-    let (mut ast, ..) = parse(src);
-
-    // WHEN the AST ist pre-processed
-    crate::ast::pre_process(&mut ast);
+    let (ast, ..) = parse_and_preprocess(src);
 
     //Pointer
     //THEN an implicit datatype should have been generated for the pointer
@@ -958,10 +937,7 @@ fn pre_processing_generates_inline_arrays() {
         END_VAR
         END_PROGRAM
         "#;
-    let (mut ast, ..) = parse(src);
-
-    // WHEN the AST ist pre-processed
-    crate::ast::pre_process(&mut ast);
+    let (ast, ..) = parse_and_preprocess(src);
 
     //ARRAY
     //THEN an implicit datatype should have been generated for the array
@@ -1015,10 +991,7 @@ fn pre_processing_generates_inline_array_of_array() {
         END_VAR
         END_PROGRAM
         "#;
-    let (mut ast, ..) = parse(src);
-
-    // WHEN the AST ist pre-processed
-    crate::ast::pre_process(&mut ast);
+    let (ast, ..) = parse_and_preprocess(src);
 
     //ARRAY
     //THEN an implicit datatype should have been generated for the array
@@ -1099,10 +1072,7 @@ fn pre_processing_generates_array_of_array_type() {
     let src = r#"
         TYPE arr_arr: ARRAY[0..1] OF ARRAY[0..1] OF INT; END_TYPE
         "#;
-    let (mut ast, ..) = parse(src);
-
-    // WHEN the AST ist pre-processed
-    crate::ast::pre_process(&mut ast);
+    let (ast, ..) = parse_and_preprocess(src);
 
     let new_type = &ast.types[1];
     let expected = &UserTypeDeclaration {
@@ -1163,10 +1133,7 @@ fn pre_processing_nested_array_in_struct() {
         END_PROGRAM
         "#;
 
-    let (mut ast, ..) = parse(src);
-
-    // WHEN the AST ist pre-processed
-    crate::ast::pre_process(&mut ast);
+    let (ast, ..) = parse_and_preprocess(src);
 
     //THEN an implicit datatype should have been generated for the array
 
@@ -1231,10 +1198,7 @@ fn pre_processing_generates_inline_array_of_array_of_array() {
         END_VAR
         END_PROGRAM
         "#;
-    let (mut ast, ..) = parse(src);
-
-    // WHEN the AST ist pre-processed
-    crate::ast::pre_process(&mut ast);
+    let (ast, ..) = parse_and_preprocess(src);
 
     //ARRAY
     //THEN an implicit datatype should have been generated for the array
@@ -1348,10 +1312,7 @@ fn pre_processing_generates_generic_types() {
         END_VAR
         END_FUNCTION
         ";
-    let (mut ast, ..) = parse(src);
-
-    // WHEN the AST ist pre-processed
-    crate::ast::pre_process(&mut ast);
+    let (ast, ..) = parse_and_preprocess(src);
 
     assert_eq!(1, ast.types.len());
     //A type __myFunc__G is created
@@ -1401,10 +1362,7 @@ fn pre_processing_generates_nested_generic_types() {
         END_VAR
         END_FUNCTION
         ";
-    let (mut ast, ..) = parse(src);
-
-    // WHEN the AST ist pre-processed
-    crate::ast::pre_process(&mut ast);
+    let (ast, ..) = parse_and_preprocess(src);
 
     //A type __myFunc__G is created
     let expected = UserTypeDeclaration {
@@ -1492,7 +1450,7 @@ fn global_initializers_are_stored_in_the_const_expression_arena() {
     let ids = IdProvider::default();
     let (mut ast, ..) = crate::parser::parse(crate::lexer::lex_with_ids(src, ids.clone()));
 
-    crate::ast::pre_process(&mut ast);
+    crate::ast::pre_process(&mut ast, ids.clone());
     let index = crate::index::visitor::visit(&ast, ids);
 
     // THEN I expect the index to contain cosntant expressions (x+1), (y+1) and (z+1) as const expressions
@@ -1536,7 +1494,7 @@ fn local_initializers_are_stored_in_the_const_expression_arena() {
     let ids = IdProvider::default();
     let (mut ast, ..) = crate::parser::parse(crate::lexer::lex_with_ids(src, ids.clone()));
 
-    crate::ast::pre_process(&mut ast);
+    crate::ast::pre_process(&mut ast, ids.clone());
     let index = crate::index::visitor::visit(&ast, ids);
 
     // THEN I expect the index to contain cosntant expressions (x+1), (y+1) and (z+1) as const expressions
@@ -1574,7 +1532,7 @@ fn datatype_initializers_are_stored_in_the_const_expression_arena() {
     let ids = IdProvider::default();
     let (mut ast, ..) = crate::parser::parse(crate::lexer::lex_with_ids(src, ids.clone()));
 
-    crate::ast::pre_process(&mut ast);
+    crate::ast::pre_process(&mut ast, ids.clone());
     let index = crate::index::visitor::visit(&ast, ids);
 
     // THEN I expect the index to contain cosntant expressions (7+x) as const expressions
@@ -1601,7 +1559,7 @@ fn array_dimensions_are_stored_in_the_const_expression_arena() {
     let ids = IdProvider::default();
     let (mut ast, ..) = crate::parser::parse(crate::lexer::lex_with_ids(src, ids.clone()));
 
-    crate::ast::pre_process(&mut ast);
+    crate::ast::pre_process(&mut ast, ids.clone());
     let index = crate::index::visitor::visit(&ast, ids);
 
     // THEN I expect the index to contain constants expressions used in the array-dimensions
@@ -1682,7 +1640,7 @@ fn string_dimensions_are_stored_in_the_const_expression_arena() {
     let ids = IdProvider::default();
     let (mut ast, ..) = crate::parser::parse(crate::lexer::lex_with_ids(src, ids.clone()));
 
-    crate::ast::pre_process(&mut ast);
+    crate::ast::pre_process(&mut ast, ids.clone());
     let index = crate::index::visitor::visit(&ast, ids);
 
     // THEN I expect the index to contain constants expressions used in the string-len

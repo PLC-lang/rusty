@@ -10,14 +10,47 @@ EnumType {
     numeric_type: "DINT",
     elements: ExpressionList {
         expressions: [
-            Reference {
-                name: "a",
+            Assignment {
+                left: Reference {
+                    name: "a",
+                },
+                right: LiteralInteger {
+                    value: 0,
+                },
             },
-            Reference {
-                name: "b",
+            Assignment {
+                left: Reference {
+                    name: "b",
+                },
+                right: BinaryExpression {
+                    operator: Plus,
+                    left: CastStatement {
+                        type_name: "__global_inline_enum",
+                        target: Reference {
+                            name: "a",
+                        },
+                    },
+                    right: LiteralInteger {
+                        value: 1,
+                    },
+                },
             },
-            Reference {
-                name: "c",
+            Assignment {
+                left: Reference {
+                    name: "c",
+                },
+                right: BinaryExpression {
+                    operator: Plus,
+                    left: CastStatement {
+                        type_name: "__global_inline_enum",
+                        target: Reference {
+                            name: "b",
+                        },
+                    },
+                    right: LiteralInteger {
+                        value: 1,
+                    },
+                },
             },
         ],
     },

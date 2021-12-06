@@ -1,14 +1,14 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
-use crate::ast::DataTypeDeclaration;
+use crate::{ast::DataTypeDeclaration, lexer::IdProvider};
 
 use super::{
-    super::ast::{CompilationUnit, DataType, UserTypeDeclaration, Variable},
-    Pou, SourceRange, 
+    super::ast::{CompilationUnit, UserTypeDeclaration, Variable},
+    flatten_expression_list, AstStatement, DataType, Operator, Pou, SourceRange,
 };
 use std::{collections::HashMap, vec};
 
-pub fn pre_process(unit: &mut CompilationUnit) {
+pub fn pre_process(unit: &mut CompilationUnit, mut id_provider: IdProvider) {
     //process all local variables from POUs
     for mut pou in unit.units.iter_mut() {
         //Find all generic types in that pou
@@ -89,58 +89,95 @@ pub fn pre_process(unit: &mut CompilationUnit) {
                         new_types.push(data_type);
                     }
                 }
-                DataType::EnumType{elements, ..} => {
+                DataType::EnumType { elements, .. }
+                    if matches!(elements, AstStatement::EmptyStatement { .. }) =>
+                {
+                    //avoid empty statements, just use an empty expression list to make it easier to work with
+                    let _ = std::mem::replace(
+                        elements,
+                        AstStatement::ExpressionList {
+                            expressions: vec![],
+                            id: id_provider.next_id(),
+                        },
+                    );
+                }
+                DataType::EnumType {
+                    elements: original_elements,
+                    name: Some(enum_name),
+                    ..
+                } if !matches!(original_elements, AstStatement::EmptyStatement { .. }) => {
+                    
 
-            // let elements = ast::flatten_expression_list(elements)
-            //     .iter()
-            //     .map(|it| match it {
-            //         AstStatement::Reference { name, .. } => (name.clone(), None),
-            //         AstStatement::Assignment { left, right, .. } => {
-            //             let name = if let AstStatement::Reference { name, .. } = left.as_ref() {
-            //                 name.clone()
-            //             } else {
-            //                 "<undefined>".to_string()
-            //             };
-            //             (name, Some(*right.clone()))
-            //         }
-            //         _ => ("<undefined>".to_string(), None),
-            //     })
-            //     .collect::<Vec<(String, Option<AstStatement>)>>();
-            //        let mut last_name: Option<String> = None;
-            // elements.into_iter().for_each(|(name, v)| {
-            //     let enum_literal = v.unwrap_or_else(|| {
-            //         if let Some(last_element) = last_name.as_ref() {
-            //             // generate a `enum#last + 1` statement
-            //             ast::AstStatement::BinaryExpression {
-            //                 id: id_provider.next_id(),
-            //                 operator: ast::Operator::Plus,
-            //                 left: Box::new(AstStatement::CastStatement {
-            //                     target: Box::new(AstStatement::Reference {
-            //                         id: id_provider.next_id(),
-            //                         location: SourceRange::undefined(),
-            //                         name: last_element.clone(),
-            //                     }),
-            //                     id: id_provider.next_id(),
-            //                     location: SourceRange::undefined(),
-            //                     type_name: enum_name.to_string(),
-            //                 }),
-            //                 right: Box::new(ast::AstStatement::LiteralInteger {
-            //                     value: 1,
-            //                     location: SourceRange::undefined(),
-            //                     id: id_provider.next_id(),
-            //                 }),
-            //             }
-            //         } else {
-            //             ast::AstStatement::LiteralInteger {
-            //                 value: 0,
-            //                 location: SourceRange::undefined(),
-            //                 id: id_provider.next_id(),
-            //             }
-            //         }
-            //     }); 
-            //     })
-            }
-                
+                    let mut last_name: Option<String> = None;
+                    let elements = flatten_expression_list(original_elements)
+                        .iter()
+                        .map(|it| match it {
+                            AstStatement::Reference { name, location, .. } => {
+                                (name.clone(), None, location.clone())
+                            }
+                            AstStatement::Assignment { left, right, .. } => {
+                                let name =
+                                    if let AstStatement::Reference { name, .. } = left.as_ref() {
+                                        name.clone()
+                                    } else {
+                                        "<undefined>".to_string()
+                                    };
+                                (name, Some(*right.clone()), it.get_location())
+                            }
+                            _ => ("<undefined>".to_string(), None, SourceRange::undefined()),
+                        })
+                        .map(|(name, v, location)| {
+                            let enum_literal = v.unwrap_or_else(|| {
+                                if let Some(last_element) = last_name.as_ref() {
+                                    // generate a `enum#last + 1` statement
+                                    AstStatement::BinaryExpression {
+                                        id: id_provider.next_id(),
+                                        operator: Operator::Plus,
+                                        left: Box::new(AstStatement::CastStatement {
+                                            target: Box::new(AstStatement::Reference {
+                                                id: id_provider.next_id(),
+                                                location: location.clone(),
+                                                name: last_element.clone(),
+                                            }),
+                                            id: id_provider.next_id(),
+                                            location: location.clone(),
+                                            type_name: enum_name.to_string(),
+                                        }),
+                                        right: Box::new(AstStatement::LiteralInteger {
+                                            value: 1,
+                                            location: location.clone(),
+                                            id: id_provider.next_id(),
+                                        }),
+                                    }
+                                } else {
+                                    AstStatement::LiteralInteger {
+                                        value: 0,
+                                        location: location.clone(),
+                                        id: id_provider.next_id(),
+                                    }
+                                }
+                            });
+                            last_name = Some(name.clone());
+                            AstStatement::Assignment {
+                                id: id_provider.next_id(),
+                                left: Box::new(AstStatement::Reference {
+                                    id: id_provider.next_id(),
+                                    name,
+                                    location,
+                                }),
+                                right: Box::new(enum_literal),
+                            }
+                        })
+                        .collect::<Vec<AstStatement>>();
+                    if !elements.is_empty() {
+                        let expression = AstStatement::ExpressionList {
+                            expressions: elements,
+                            id: id_provider.next_id(),
+                        };
+                        let _ = std::mem::replace(original_elements, expression);
+                    }
+                }
+
                 _ => {}
             }
         }

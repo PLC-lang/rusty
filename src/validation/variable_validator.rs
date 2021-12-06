@@ -98,9 +98,9 @@ impl VariableValidator {
                 }
             }
             DataType::EnumType {
-                elements: AstStatement::EmptyStatement { .. },
+                elements: AstStatement::ExpressionList { expressions, .. },
                 ..
-            } => {
+            } if expressions.is_empty() => {
                 self.diagnostics
                     .push(Diagnostic::empty_variable_block(location.clone()));
             }
