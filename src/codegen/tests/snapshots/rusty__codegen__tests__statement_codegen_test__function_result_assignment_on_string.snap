@@ -1,0 +1,43 @@
+---
+source: src/codegen/tests/statement_codegen_test.rs
+expression: result
+
+---
+; ModuleID = 'main'
+source_filename = "main"
+
+%CONCAT_interface = type { [1025 x i8], [1025 x i8] }
+%LIST_ADD_interface = type { [1001 x i8], [2 x i8] }
+
+declare [1025 x i8] @CONCAT(%CONCAT_interface*)
+
+define i1 @LIST_ADD(%LIST_ADD_interface* %0) {
+entry:
+  %INS = getelementptr inbounds %LIST_ADD_interface, %LIST_ADD_interface* %0, i32 0, i32 0
+  %sx = getelementptr inbounds %LIST_ADD_interface, %LIST_ADD_interface* %0, i32 0, i32 1
+  %LIST_ADD = alloca i1, align 1
+  %CONCAT_instance = alloca %CONCAT_interface, align 8
+  br label %input
+
+input:                                            ; preds = %entry
+  %1 = getelementptr inbounds %CONCAT_interface, %CONCAT_interface* %CONCAT_instance, i32 0, i32 0
+  %load_sx = load [2 x i8], [2 x i8]* %sx, align 1
+  store [2 x i8] %load_sx, [1025 x i8]* %1, align 1
+  %2 = getelementptr inbounds %CONCAT_interface, %CONCAT_interface* %CONCAT_instance, i32 0, i32 1
+  %load_INS = load [1001 x i8], [1001 x i8]* %INS, align 1
+  store [1001 x i8] %load_INS, [1025 x i8]* %2, align 1
+  br label %call
+
+call:                                             ; preds = %input
+  %call1 = call [1025 x i8] @CONCAT(%CONCAT_interface* %CONCAT_instance)
+  br label %output
+
+output:                                           ; preds = %call
+  br label %continue
+
+continue:                                         ; preds = %output
+  store [1025 x i8] %call1, [1001 x i8]* %INS, align 1
+  %LIST_ADD_ret = load i1, i1* %LIST_ADD, align 1
+  ret i1 %LIST_ADD_ret
+}
+
