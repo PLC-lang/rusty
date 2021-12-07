@@ -295,6 +295,9 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
                 .collect();
             let left_type = exp_gen.get_type_hint_for(&target)?;
             let right_type = exp_gen.get_type_hint_for(right_statement)?;
+            //Left pointer
+            let left = exp_gen.generate_element_pointer(&target)?;
+            let left_value = self.llvm.load_pointer(&left, "").into_int_value();
             //Build index
             if let Some((element, direct_access)) = direct_access.split_first() {
                 let mut rhs = if let AstStatement::DirectAccess { access, index, .. } = element {
@@ -311,7 +314,8 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
                     ))
                 }?;
                 for element in direct_access {
-                    let next = if let AstStatement::DirectAccess { access, index, .. } = element {
+                    let rhs_next = if let AstStatement::DirectAccess { access, index, .. } = element
+                    {
                         exp_gen.generate_direct_access_index(
                             access,
                             index,
@@ -324,15 +328,30 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
                             element.get_location(),
                         ))
                     }?;
-                    rhs = self.llvm.builder.build_int_add(rhs, next, "");
+                    rhs = self.llvm.builder.build_int_add(rhs, rhs_next, "");
                 }
                 //Build mask for the index
-                let mask = rhs.get_type().const_all_ones();
-                let mask = self.llvm.builder.build_left_shift(mask, rhs, "mask");
-                let mask = self.llvm.builder.build_not(mask, "not");
+                //Get the target bit type as all ones
+                let rhs_type = self
+                    .llvm_index
+                    .get_associated_type(right_type.get_name())?
+                    .into_int_type();
+                let ones = rhs_type.const_all_ones();
+                //Extend the mask to the target type
+                let extended_mask =
+                    self.llvm
+                        .builder
+                        .build_int_z_extend(ones, left_value.get_type(), "ext");
+                //Position the ones in their correct locations
+                let shifted_mask = self
+                    .llvm
+                    .builder
+                    .build_left_shift(extended_mask, rhs, "shift");
+                //Invert the mask
+                let mask = self.llvm.builder.build_not(shifted_mask, "invert");
+                //And the result with the mask to erase the set bits at the target location
+                let and_value = self.llvm.builder.build_and(left_value, mask, "erase");
 
-                //Left pointer
-                let left = exp_gen.generate_element_pointer(&target)?;
                 //Generate an expression for the right size
                 let right = exp_gen.generate_expression(right_statement)?;
                 //Cast the right side to the left side type
@@ -348,9 +367,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
                 .map(BasicValueEnum::into_int_value)?;
                 //Shift left by the direct access
                 let value = self.llvm.builder.build_left_shift(lhs, rhs, "value");
-                let left_value = self.llvm.load_pointer(&left, "").into_int_value();
-                //And the result with the mask
-                let and_value = self.llvm.builder.build_and(left_value, mask, "and");
+
                 //OR the result and store it in the left side
                 let or_value = self.llvm.builder.build_or(and_value, value, "or");
                 self.llvm.builder.build_store(left, or_value);

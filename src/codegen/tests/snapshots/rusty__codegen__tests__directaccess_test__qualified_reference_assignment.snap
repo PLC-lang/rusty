@@ -15,12 +15,12 @@ entry:
   %main = alloca i16, align 2
   %x = getelementptr inbounds %myStruct, %myStruct* %str, i32 0, i32 0
   %1 = load i8, i8* %x, align 1
-  %and = and i8 %1, 0
-  store i8 %and, i8* %x, align 1
+  %erase = and i8 %1, -2
+  store i8 %erase, i8* %x, align 1
   %x1 = getelementptr inbounds %myStruct, %myStruct* %str, i32 0, i32 0
   %2 = load i8, i8* %x1, align 1
-  %and2 = and i8 %2, 1
-  %or = or i8 %and2, 2
+  %erase2 = and i8 %2, -3
+  %or = or i8 %erase2, 2
   store i8 %or, i8* %x1, align 1
   %main_ret = load i16, i16* %main, align 2
   ret i16 %main_ret
