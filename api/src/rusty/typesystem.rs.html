@@ -769,6 +769,13 @@
 <span id="769">769</span>
 <span id="770">770</span>
 <span id="771">771</span>
+<span id="772">772</span>
+<span id="773">773</span>
+<span id="774">774</span>
+<span id="775">775</span>
+<span id="776">776</span>
+<span id="777">777</span>
+<span id="778">778</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 <span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">mem::size_of</span>, <span class="ident">ops::Range</span>};
 
@@ -959,6 +966,7 @@
     },
     <span class="ident">Enum</span> {
         <span class="ident">name</span>: <span class="ident">String</span>,
+        <span class="ident">referenced_type</span>: <span class="ident">String</span>,
         <span class="ident">elements</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
     },
     <span class="ident">Float</span> {
@@ -1432,7 +1440,7 @@
     ]
 }
 
-<span class="kw">fn</span> <span class="ident">get_rank</span>(<span class="ident">type_information</span>: <span class="kw-2">&amp;</span><span class="ident">DataTypeInformation</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span> {
+<span class="kw">fn</span> <span class="ident">get_rank</span>(<span class="ident">type_information</span>: <span class="kw-2">&amp;</span><span class="ident">DataTypeInformation</span>, <span class="ident">index</span>: <span class="kw-2">&amp;</span><span class="ident">Index</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span> {
     <span class="kw">match</span> <span class="ident">type_information</span> {
         <span class="ident">DataTypeInformation::Integer</span> { <span class="ident">signed</span>, <span class="ident">size</span>, .. } <span class="op">=</span><span class="op">&gt;</span> {
             <span class="kw">if</span> <span class="kw-2">*</span><span class="ident">signed</span> {
@@ -1446,6 +1454,12 @@
             <span class="ident">TypeSize::LiteralInteger</span>(<span class="ident">size</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="ident">size</span>,
             <span class="ident">TypeSize::ConstExpression</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">todo!</span>(<span class="string">&quot;String rank with CONSTANTS&quot;</span>),
         },
+        <span class="ident">DataTypeInformation::Enum</span> {
+            <span class="ident">referenced_type</span>, ..
+        } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">index</span>
+            .<span class="ident">find_effective_type_info</span>(<span class="ident">referenced_type</span>)
+            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">it</span><span class="op">|</span> <span class="ident">get_rank</span>(<span class="ident">it</span>, <span class="ident">index</span>))
+            .<span class="ident">unwrap_or</span>(<span class="ident">DINT_SIZE</span>),
         <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">todo!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="ident">type_information</span>),
     }
 }
@@ -1481,7 +1495,7 @@
     <span class="kw">let</span> <span class="ident">lt</span> <span class="op">=</span> <span class="ident">left_type</span>.<span class="ident">get_type_information</span>();
     <span class="kw">let</span> <span class="ident">rt</span> <span class="op">=</span> <span class="ident">right_type</span>.<span class="ident">get_type_information</span>();
     <span class="kw">if</span> <span class="ident">is_same_type_class</span>(<span class="ident">lt</span>, <span class="ident">rt</span>, <span class="ident">index</span>) {
-        <span class="kw">if</span> <span class="ident">get_rank</span>(<span class="ident">lt</span>) <span class="op">&lt;</span> <span class="ident">get_rank</span>(<span class="ident">rt</span>) {
+        <span class="kw">if</span> <span class="ident">get_rank</span>(<span class="ident">lt</span>, <span class="ident">index</span>) <span class="op">&lt;</span> <span class="ident">get_rank</span>(<span class="ident">rt</span>, <span class="ident">index</span>) {
             <span class="ident">right_type</span>
         } <span class="kw">else</span> {
             <span class="ident">left_type</span>

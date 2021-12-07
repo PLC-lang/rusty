@@ -202,9 +202,10 @@
 <span id="202">202</span>
 <span id="203">203</span>
 <span id="204">204</span>
+<span id="205">205</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">ast</span>::{
-        <span class="ident">DataType</span>, <span class="ident">DataTypeDeclaration</span>, <span class="ident">PouType</span>, <span class="ident">SourceRange</span>, <span class="ident">Variable</span>, <span class="ident">VariableBlock</span>,
+        <span class="ident">AstStatement</span>, <span class="ident">DataType</span>, <span class="ident">DataTypeDeclaration</span>, <span class="ident">PouType</span>, <span class="ident">SourceRange</span>, <span class="ident">Variable</span>, <span class="ident">VariableBlock</span>,
         <span class="ident">VariableBlockType</span>,
     },
     <span class="ident">index</span>::{<span class="ident">const_expressions::ConstExpression</span>, <span class="ident">Index</span>},
@@ -301,11 +302,12 @@
                         .<span class="ident">push</span>(<span class="ident">Diagnostic::empty_variable_block</span>(<span class="ident">location</span>.<span class="ident">clone</span>()));
                 }
             }
-            <span class="ident">DataType::EnumType</span> { <span class="ident">elements</span>, .. } <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="kw">if</span> <span class="ident">elements</span>.<span class="ident">is_empty</span>() {
-                    <span class="self">self</span>.<span class="ident">diagnostics</span>
-                        .<span class="ident">push</span>(<span class="ident">Diagnostic::empty_variable_block</span>(<span class="ident">location</span>.<span class="ident">clone</span>()));
-                }
+            <span class="ident">DataType::EnumType</span> {
+                <span class="ident">elements</span>: <span class="ident">AstStatement::ExpressionList</span> { <span class="ident">expressions</span>, .. },
+                ..
+            } <span class="kw">if</span> <span class="ident">expressions</span>.<span class="ident">is_empty</span>() <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="self">self</span>.<span class="ident">diagnostics</span>
+                    .<span class="ident">push</span>(<span class="ident">Diagnostic::empty_variable_block</span>(<span class="ident">location</span>.<span class="ident">clone</span>()));
             }
             <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {}
         }

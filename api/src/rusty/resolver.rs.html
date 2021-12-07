@@ -1560,6 +1560,9 @@
 <span id="1560">1560</span>
 <span id="1561">1561</span>
 <span id="1562">1562</span>
+<span id="1563">1563</span>
+<span id="1564">1564</span>
+<span id="1565">1565</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2021 Ghaith Hachem and Mathias Rieder</span>
 
 <span class="doccomment">//! Resolves (partial) expressions &amp; statements and annotates the resulting types</span>
@@ -2162,6 +2165,9 @@
                     <span class="self">self</span>.<span class="ident">visit_statement</span>(<span class="ident">ctx</span>, <span class="ident">bounds</span>);
                     <span class="self">self</span>.<span class="ident">update_expected_types</span>(<span class="ident">expected_type</span>, <span class="ident">bounds</span>);
                 }
+            }
+            <span class="ident">DataType::EnumType</span> { <span class="ident">elements</span>, .. } <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="self">self</span>.<span class="ident">visit_statement</span>(<span class="ident">ctx</span>, <span class="ident">elements</span>);
             }
             <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {}
         }
