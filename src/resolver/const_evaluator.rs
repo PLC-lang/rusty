@@ -373,7 +373,26 @@ pub fn evaluate(
     let literal = match initial {
         AstStatement::CastStatement {
             target, type_name, ..
-        } => Some(get_cast_statement_literal(target, type_name, scope, index)?),
+        } => match index.find_effective_type_info(type_name) {
+            Some(DataTypeInformation::Enum {
+                name: enum_name, ..
+            }) => {
+                if let AstStatement::Reference { name: ref_name, .. } = target.as_ref() {
+                    return index
+                        .find_enum_element(enum_name, ref_name)
+                        .map(|v| resolve_const_reference(Some(v), ref_name, index))
+                        .unwrap_or_else(|| {
+                            Err(format!(
+                                "Cannot resolve constant enum {}#{}.",
+                                enum_name, ref_name
+                            ))
+                        });
+                } else {
+                    return Err("Cannot resolve unknown constant.".to_string());
+                }
+            }
+            _ => Some(get_cast_statement_literal(target, type_name, scope, index)?),
+        },
         AstStatement::Reference { name, .. } => {
             let variable = index.find_variable(scope, std::slice::from_ref(&name.as_str()));
             resolve_const_reference(variable, name, index)?
@@ -664,6 +683,7 @@ fn get_cast_statement_literal(
                 ))
             }
         }
+
         //Some(&crate::typesystem::DataTypeInformation::Float{..}) => {},
         _ => Err(format!(
             "Cannot resolve constant: {:}#{:?}",

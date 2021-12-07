@@ -188,6 +188,7 @@ pub enum DataTypeInformation {
     },
     Enum {
         name: String,
+        referenced_type: String,
         elements: Vec<String>,
     },
     Float {
@@ -661,7 +662,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
     ]
 }
 
-fn get_rank(type_information: &DataTypeInformation) -> u32 {
+fn get_rank(type_information: &DataTypeInformation, index: &Index) -> u32 {
     match type_information {
         DataTypeInformation::Integer { signed, size, .. } => {
             if *signed {
@@ -675,6 +676,12 @@ fn get_rank(type_information: &DataTypeInformation) -> u32 {
             TypeSize::LiteralInteger(size) => *size,
             TypeSize::ConstExpression(_) => todo!("String rank with CONSTANTS"),
         },
+        DataTypeInformation::Enum {
+            referenced_type, ..
+        } => index
+            .find_effective_type_info(referenced_type)
+            .map(|it| get_rank(it, index))
+            .unwrap_or(DINT_SIZE),
         _ => todo!("{:?}", type_information),
     }
 }
@@ -710,7 +717,7 @@ pub fn get_bigger_type<
     let lt = left_type.get_type_information();
     let rt = right_type.get_type_information();
     if is_same_type_class(lt, rt, index) {
-        if get_rank(lt) < get_rank(rt) {
+        if get_rank(lt, index) < get_rank(rt, index) {
             right_type
         } else {
             left_type

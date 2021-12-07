@@ -17,9 +17,16 @@ pub mod tests {
         parser::parse(lexer::lex_with_ids(src, IdProvider::default()))
     }
 
+    pub fn parse_and_preprocess(src: &str) -> (CompilationUnit, Vec<Diagnostic>) {
+        let id_provider = IdProvider::default();
+        let (mut unit, diagnostic) = parser::parse(lexer::lex_with_ids(src, id_provider.clone()));
+        ast::pre_process(&mut unit, id_provider);
+        (unit, diagnostic)
+    }
+
     fn do_index(src: &str, id_provider: IdProvider) -> (CompilationUnit, Index) {
         let (mut unit, ..) = parser::parse(lexer::lex_with_ids(src, id_provider.clone()));
-        ast::pre_process(&mut unit);
+        ast::pre_process(&mut unit, id_provider.clone());
         let index = index::visitor::visit(&unit, id_provider);
         (unit, index)
     }

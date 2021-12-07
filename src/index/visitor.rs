@@ -296,12 +296,35 @@ fn visit_data_type(
         DataType::EnumType {
             name: Some(name),
             elements,
+            numeric_type,
+            ..
         } => {
             let enum_name = name.as_str();
+
             let information = DataTypeInformation::Enum {
                 name: enum_name.to_string(),
-                elements: elements.clone(),
+                elements: ast::get_enum_element_names(elements),
+                referenced_type: numeric_type.clone(),
             };
+
+            for ele in ast::flatten_expression_list(elements) {
+                let element_name = ast::get_enum_element_name(ele);
+                if let AstStatement::Assignment { right, .. } = ele {
+                    let init = index.get_mut_const_expressions().add_constant_expression(
+                        right.as_ref().clone(),
+                        numeric_type.clone(),
+                        scope.clone(),
+                    );
+                    index.register_enum_element(
+                        &element_name,
+                        enum_name,
+                        Some(init),
+                        ele.get_location(),
+                    )
+                } else {
+                    unreachable!("the preprocessor should have provided explicit assignments for enum values")
+                }
+            }
 
             let init = index
                 .get_mut_const_expressions()
@@ -316,21 +339,6 @@ fn visit_data_type(
                 information,
                 nature: TypeNature::Int,
             });
-
-            elements.iter().enumerate().for_each(|(i, v)| {
-                let enum_literal = ast::AstStatement::LiteralInteger {
-                    value: i as i128,
-                    location: SourceRange::undefined(),
-                    id: id_provider.next_id(),
-                };
-                let init = index.get_mut_const_expressions().add_constant_expression(
-                    enum_literal,
-                    typesystem::INT_TYPE.to_string(),
-                    scope.clone(),
-                );
-
-                index.register_enum_element(v, enum_name, Some(init), SourceRange::undefined())
-            }); //TODO : Enum locations
         }
 
         DataType::SubRangeType {

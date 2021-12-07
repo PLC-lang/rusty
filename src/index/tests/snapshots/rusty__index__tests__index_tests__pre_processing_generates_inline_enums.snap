@@ -1,0 +1,57 @@
+---
+source: src/index/tests/index_tests.rs
+expression: new_enum_type
+
+---
+EnumType {
+    name: Some(
+        "__foo_inline_enum",
+    ),
+    numeric_type: "DINT",
+    elements: ExpressionList {
+        expressions: [
+            Assignment {
+                left: Reference {
+                    name: "a",
+                },
+                right: LiteralInteger {
+                    value: 0,
+                },
+            },
+            Assignment {
+                left: Reference {
+                    name: "b",
+                },
+                right: BinaryExpression {
+                    operator: Plus,
+                    left: CastStatement {
+                        type_name: "__foo_inline_enum",
+                        target: Reference {
+                            name: "a",
+                        },
+                    },
+                    right: LiteralInteger {
+                        value: 1,
+                    },
+                },
+            },
+            Assignment {
+                left: Reference {
+                    name: "c",
+                },
+                right: BinaryExpression {
+                    operator: Plus,
+                    left: CastStatement {
+                        type_name: "__foo_inline_enum",
+                        target: Reference {
+                            name: "b",
+                        },
+                    },
+                    right: LiteralInteger {
+                        value: 1,
+                    },
+                },
+            },
+        ],
+    },
+}
