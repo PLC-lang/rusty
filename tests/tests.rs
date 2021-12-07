@@ -35,8 +35,8 @@ mod correctness {
     mod initial_values;
     mod methods;
     mod pointers;
-    mod sub_range_types;
     mod strings;
+    mod sub_range_types;
     mod math_operators {
         mod addition;
         mod division;

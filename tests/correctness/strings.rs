@@ -13,15 +13,12 @@ fn string_assignment_from_smaller_literal() {
 
     #[allow(dead_code)]
     struct MainType {
-        x : [u8; 7],
+        x: [u8; 7],
     }
-    let mut main_type = MainType{
-        x : [0; 7],
-    };
-
+    let mut main_type = MainType { x: [0; 7] };
 
     let _: i32 = compile_and_run(src, &mut main_type);
-    assert_eq!("hello\0\0".as_bytes(),&main_type.x);
+    assert_eq!("hello\0\0".as_bytes(), &main_type.x);
 }
 
 #[test]
@@ -35,15 +32,12 @@ fn string_assignment_from_bigger_literal() {
 
     #[allow(dead_code)]
     struct MainType {
-        x : [u8; 5],
+        x: [u8; 5],
     }
-    let mut main_type = MainType{
-        x : [0; 5],
-    };
-
+    let mut main_type = MainType { x: [0; 5] };
 
     let _: i32 = compile_and_run(src, &mut main_type);
-    assert_eq!("hell\0".as_bytes(),&main_type.x);
+    assert_eq!("hell\0".as_bytes(), &main_type.x);
 }
 #[test]
 fn string_assignment_from_smaller_string() {
@@ -57,17 +51,16 @@ fn string_assignment_from_smaller_string() {
 
     #[allow(dead_code)]
     struct MainType {
-        x : [u8; 7],
-        y : [u8; 6],
+        x: [u8; 7],
+        y: [u8; 6],
     }
-    let mut main_type = MainType{
-        x : [0; 7],
-        y : [0; 6],
+    let mut main_type = MainType {
+        x: [0; 7],
+        y: [0; 6],
     };
 
-
     let _: i32 = compile_and_run(src, &mut main_type);
-    assert_eq!("hello\0\0".as_bytes(),&main_type.x);
+    assert_eq!("hello\0\0".as_bytes(), &main_type.x);
 }
 
 #[test]
@@ -82,17 +75,16 @@ fn string_assignment_from_bigger_string() {
 
     #[allow(dead_code)]
     struct MainType {
-        x : [u8; 5],
-        y : [u8; 6],
+        x: [u8; 5],
+        y: [u8; 6],
     }
-    let mut main_type = MainType{
-        x : [0; 5],
-        y : [0; 6],
+    let mut main_type = MainType {
+        x: [0; 5],
+        y: [0; 6],
     };
 
-
     let _: i32 = compile_and_run(src, &mut main_type);
-    assert_eq!("hello".as_bytes(),&main_type.x); //TODO: Should this be "hell\0"?
+    assert_eq!("hello".as_bytes(), &main_type.x); //TODO: Should this be "hell\0"?
 }
 
 #[test]
@@ -110,15 +102,12 @@ fn string_assignment_from_smaller_function() {
 
     #[allow(dead_code)]
     struct MainType {
-        x : [u8; 7],
+        x: [u8; 7],
     }
-    let mut main_type = MainType{
-        x : [0; 7],
-    };
-
+    let mut main_type = MainType { x: [0; 7] };
 
     let _: i32 = compile_and_run(src, &mut main_type);
-    assert_eq!("hello\0\0".as_bytes(),&main_type.x);
+    assert_eq!("hello\0\0".as_bytes(), &main_type.x);
 }
 
 #[test]
@@ -136,16 +125,12 @@ fn string_assignment_from_bigger_function() {
 
     #[allow(dead_code)]
     struct MainType {
-        x : [u8; 5],
+        x: [u8; 5],
     }
-    let mut main_type = MainType{
-        x : [0; 5],
-    };
-
+    let mut main_type = MainType { x: [0; 5] };
 
     let _: i32 = compile_and_run(src, &mut main_type);
-    assert_eq!("hello".as_bytes(),&main_type.x); //TODO: Should this be "hell\0"?
-    
+    assert_eq!("hello".as_bytes(), &main_type.x); //TODO: Should this be "hell\0"?
 }
 
 #[test]
@@ -159,17 +144,16 @@ fn string_assignment_from_bigger_literal_do_not_leak() {
 
     #[allow(dead_code)]
     struct MainType {
-        x : [u8; 5],
-        y : [u8; 5],
+        x: [u8; 5],
+        y: [u8; 5],
     }
-    let mut main_type = MainType{
-        x : [0; 5],
-        y : [0; 5],
+    let mut main_type = MainType {
+        x: [0; 5],
+        y: [0; 5],
     };
 
-
     let _: i32 = compile_and_run(src, &mut main_type);
-    assert_eq!(&[0;5], &main_type.y);
+    assert_eq!(&[0; 5], &main_type.y);
 }
 
 #[test]
@@ -184,18 +168,18 @@ fn string_assignment_from_bigger_string_does_not_leak() {
 
     #[allow(dead_code)]
     struct MainType {
-        x : [u8; 5],
-        y : [u8; 5],
-        z : [u8; 11],
+        x: [u8; 5],
+        y: [u8; 5],
+        z: [u8; 11],
     }
-    let mut main_type = MainType{
-        x : [0; 5],
-        y : [0; 5],
-        z : [0; 11],
+    let mut main_type = MainType {
+        x: [0; 5],
+        y: [0; 5],
+        z: [0; 11],
     };
 
     let _: i32 = compile_and_run(src, &mut main_type);
-    assert_eq!(&[0;5], &main_type.y);
+    assert_eq!(&[0; 5], &main_type.y);
 }
 
 #[test]
@@ -213,16 +197,14 @@ fn string_assignment_from_bigger_function_does_not_leak() {
 
     #[allow(dead_code)]
     struct MainType {
-        x : [u8; 5],
-        y : [u8; 5],
+        x: [u8; 5],
+        y: [u8; 5],
     }
-    let mut main_type = MainType{
-        x : [0; 5],
-        y : [0; 5],
+    let mut main_type = MainType {
+        x: [0; 5],
+        y: [0; 5],
     };
 
-
     let _: i32 = compile_and_run(src, &mut main_type);
-    assert_eq!(&[0;5], &main_type.y);
-    
+    assert_eq!(&[0; 5], &main_type.y);
 }

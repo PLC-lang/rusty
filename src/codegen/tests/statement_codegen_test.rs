@@ -236,7 +236,6 @@ END_PROGRAM
 
 #[test]
 fn function_result_assignment_on_string() {
-
     let result = codegen(
         r#"
         @EXTERNAL
