@@ -159,7 +159,7 @@ fn needs_evaluation(expr: &AstStatement) -> bool {
             _ => needs_evaluation(elements.as_ref()),
         },
         AstStatement::ExpressionList { expressions, .. } => {
-            expressions.iter().any(|it| needs_evaluation(it))
+            expressions.iter().any(needs_evaluation)
         }
         _ => true,
     }
