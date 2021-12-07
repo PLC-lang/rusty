@@ -8,7 +8,7 @@ use crate::{
     codegen::LlvmTypedIndex,
     diagnostics::{Diagnostic, INTERNAL_LLVM_ERROR},
     index::{ImplementationIndexEntry, Index},
-    resolver::AstAnnotations,
+    resolver::{AnnotationMap, AstAnnotations},
     typesystem::{
         DataTypeInformation, RANGE_CHECK_LS_FN, RANGE_CHECK_LU_FN, RANGE_CHECK_S_FN,
         RANGE_CHECK_U_FN,
@@ -219,34 +219,49 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
             };
 
         let right_statement = range_checked_right_side.as_ref().unwrap_or(right_statement);
-        let right_type = exp_gen.get_type_hint_info_for(right_statement)?;
+        //Get the original expression type, not its hint
+        let right_type = self
+            .annotations
+            .get_type_or_void(right_statement, self.index)
+            .get_type_information();
         //Special string handling
-        if matches!(
-            right_statement,
-            AstStatement::Reference { .. } | AstStatement::QualifiedReference { .. }
-        ) && left_type.is_string()
-            && right_type.is_string()
+        if left_type.is_string()
+            && right_type.is_string() &&
+                //Only handle assignments and references here, we have no chance of handling other
+                //types
+            matches!(dbg!(right_statement),
+                AstStatement::QualifiedReference {..} | AstStatement::Reference{..} | AstStatement::CallStatement{..})
         {
+            let right = match right_statement {
+                AstStatement::QualifiedReference { .. } | AstStatement::Reference { .. } => {
+                    exp_gen.generate_element_pointer(right_statement)?
+                }
+                _ => {
+                    let expression = exp_gen.generate_expression(right_statement)?;
+                    let right = self.llvm.builder.build_alloca(expression.get_type(), "");
+                    self.llvm.builder.build_store(right, expression);
+
+                    right
+                }
+            };
             let target_size = self.get_string_size(left_type, left_statement.get_location())?;
             let value_size = self.get_string_size(right_type, right_statement.get_location())?;
             let size = std::cmp::min(target_size, value_size) as i64;
-            let right = exp_gen.generate_element_pointer(right_statement)?;
-            let align = left_type.get_alignment();
-            //Generate a mem copy
+            let align_left = left_type.get_alignment();
+            let align_right = right_type.get_alignment();
             self.llvm
                 .builder
                 .build_memcpy(
                     left,
-                    align,
+                    align_left,
                     right,
-                    align,
+                    align_right,
                     self.llvm.context.i32_type().const_int(size as u64, true),
                 )
                 .map_err(|err| Diagnostic::codegen_error(err, left_statement.get_location()))?;
         } else {
-            self.llvm
-                .builder
-                .build_store(left, exp_gen.generate_expression(right_statement)?);
+            let expression = exp_gen.generate_expression(right_statement)?;
+            self.llvm.builder.build_store(left, expression);
         }
 
         Ok(())
