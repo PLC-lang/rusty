@@ -5761,3 +5761,20 @@ fn variable_with_same_name_as_function() {
     );
     insta::assert_snapshot!(result);
 }
+
+#[test]
+fn default_values_for_not_initialized_function_vars() {
+    let result = codegen(
+        "
+		FUNCTION func : INT
+		VAR
+			int_var : INT;
+			arr_var : ARRAY[0..2] OF DINT;
+			ptr_var	: REF_TO DINT;
+			float_var	: REAL;
+		END_VAR
+		END_FUNCTION
+		",
+    );
+    insta::assert_snapshot!(result);
+}

@@ -302,25 +302,8 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
     ) -> Result<(), Diagnostic> {
         let variables_with_initializers =
             variables.iter().filter(|it| it.is_local() || it.is_temp());
-        //.filter(|it| it.initial_value.is_some());
 
         for variable in variables_with_initializers {
-            let right = if variable.initial_value.is_some() {
-                Some(
-                    self.index
-                        .get_const_expressions()
-                        .maybe_get_constant_statement(&variable.initial_value)
-                        .ok_or_else(|| {
-                            Diagnostic::cannot_generate_initializer(
-                                variable.get_qualified_name(),
-                                SourceRange::undefined(),
-                            )
-                        })?,
-                )
-            } else {
-                None
-            };
-
             //get the loaded_ptr for the parameter and store right in it
             if let Some(left) = local_llvm_index
                 .find_loaded_associated_variable_value(variable.get_qualified_name())
@@ -331,10 +314,26 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                     self.annotations,
                     local_llvm_index,
                 );
-                let right_exp = if let Some(right) = right {
-                    exp_gen.generate_expression(right)?
-                } else {
-                    self.llvm_index
+
+                let right_stmt = match variable.initial_value {
+                    Some(..) => Some(
+                        self.index
+                            .get_const_expressions()
+                            .maybe_get_constant_statement(&variable.initial_value)
+                            .ok_or_else(|| {
+                                Diagnostic::cannot_generate_initializer(
+                                    variable.get_qualified_name(),
+                                    SourceRange::undefined(),
+                                )
+                            })?,
+                    ),
+                    None => None,
+                };
+
+                let right_exp = match right_stmt {
+                    Some(stmt) => exp_gen.generate_expression(stmt)?,
+                    None => self
+                        .llvm_index
                         .find_associated_type(variable.get_type_name())
                         .map(get_default_for)
                         .ok_or_else(|| {
@@ -342,7 +341,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                                 variable.get_qualified_name(),
                                 SourceRange::undefined(),
                             )
-                        })?
+                        })?,
                 };
 
                 self.llvm.builder.build_store(left, right_exp);
