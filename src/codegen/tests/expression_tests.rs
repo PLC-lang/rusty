@@ -263,3 +263,41 @@ fn aliased_number_type_comparing_test() {
     //should result in normal number-comparisons
     insta::assert_snapshot!(result);
 }
+
+#[test]
+fn cast_pointer_to_lword() {
+    let result = codegen(
+        r#"
+        FUNCTION baz : INT
+            VAR 
+                ptr_x : POINTER TO INT; 
+                y : LWORD; 
+            END_VAR;
+
+            y := ptr_x;
+        END_FUNCTION
+    "#,
+    );
+
+    //should result in normal number-comparisons
+    insta::assert_snapshot!(result);
+}
+
+#[test]
+fn cast_lword_to_pointer() {
+    let result = codegen(
+        r#"
+        FUNCTION baz : INT
+            VAR 
+                ptr_x : POINTER TO INT; 
+                y : LWORD; 
+            END_VAR;
+
+            ptr_x := y;
+        END_FUNCTION
+    "#,
+    );
+
+    //should result in normal number-comparisons
+    insta::assert_snapshot!(result);
+}

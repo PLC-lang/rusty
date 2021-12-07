@@ -10,7 +10,7 @@ use crate::{
     codegen::llvm_index::LlvmTypedIndex,
     diagnostics::{Diagnostic, INTERNAL_LLVM_ERROR},
     index::ImplementationType,
-    resolver::AnnotationMap,
+    resolver::AstAnnotations,
 };
 
 /// The pou_generator contains functions to generate the code for POUs (PROGRAM, FUNCTION, FUNCTION_BLOCK)
@@ -35,7 +35,7 @@ use inkwell::{
 pub struct PouGenerator<'ink, 'cg> {
     llvm: Llvm<'ink>,
     index: &'cg Index,
-    annotations: &'cg AnnotationMap,
+    annotations: &'cg AstAnnotations,
     llvm_index: &'cg LlvmTypedIndex<'ink>,
 }
 
@@ -45,7 +45,7 @@ pub fn generate_implementation_stubs<'ink>(
     module: &Module<'ink>,
     llvm: Llvm<'ink>,
     index: &Index,
-    annotations: &AnnotationMap,
+    annotations: &AstAnnotations,
     types_index: &LlvmTypedIndex<'ink>,
 ) -> Result<LlvmTypedIndex<'ink>, Diagnostic> {
     let mut llvm_index = LlvmTypedIndex::default();
@@ -68,7 +68,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
     pub fn new(
         llvm: Llvm<'ink>,
         index: &'cg Index,
-        annotations: &'cg AnnotationMap,
+        annotations: &'cg AstAnnotations,
         llvm_index: &'cg LlvmTypedIndex<'ink>,
     ) -> PouGenerator<'ink, 'cg> {
         PouGenerator {

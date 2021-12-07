@@ -96,7 +96,7 @@ impl<'s> VisitorContext<'s> {
 
 pub struct TypeAnnotator<'i> {
     index: &'i Index,
-    annotation_map: AnnotationMap,
+    annotation_map: AnnotationMapImpl,
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -129,8 +129,106 @@ impl StatementAnnotation {
     }
 }
 
+fn get_type_for_annotation<'a>(
+    index: &'a Index,
+    annotation: &StatementAnnotation,
+) -> Option<&'a typesystem::DataType> {
+    match annotation {
+        StatementAnnotation::Value { resulting_type } => Some(resulting_type.as_str()),
+        StatementAnnotation::Variable { resulting_type, .. } => Some(resulting_type.as_str()),
+        StatementAnnotation::Function { .. } => None,
+        StatementAnnotation::Type { .. } => None,
+        StatementAnnotation::Program { .. } => None,
+    }
+    .and_then(|type_name| index.get_type(type_name).ok())
+}
+
+pub trait AnnotationMap {
+    fn get(&self, s: &AstStatement) -> Option<&StatementAnnotation>;
+
+    fn get_hint(&self, s: &AstStatement) -> Option<&StatementAnnotation>;
+
+    fn get_type_or_void<'i>(&self, s: &AstStatement, index: &'i Index) -> &'i typesystem::DataType {
+        self.get_type(s, index)
+            .unwrap_or_else(|| index.get_void_type())
+    }
+
+    fn get_hint_or_void<'i>(&self, s: &AstStatement, index: &'i Index) -> &'i typesystem::DataType {
+        self.get_type_hint(s, index)
+            .unwrap_or_else(|| index.get_void_type())
+    }
+
+    fn get_type_hint<'i>(
+        &self,
+        s: &AstStatement,
+        index: &'i Index,
+    ) -> Option<&'i typesystem::DataType> {
+        self.get_hint(s)
+            .and_then(|it| get_type_for_annotation(index, it))
+    }
+
+    fn get_type<'i>(&self, s: &AstStatement, index: &'i Index) -> Option<&'i typesystem::DataType> {
+        self.get(s)
+            .and_then(|it| get_type_for_annotation(index, it))
+    }
+
+    /// returns the name of the callable that is refered by the given statemt
+    /// or none if this thing may not be callable
+    fn get_call_name(&self, s: &AstStatement) -> Option<&str> {
+        match self.get(s) {
+            Some(StatementAnnotation::Function { qualified_name, .. }) => {
+                Some(qualified_name.as_str())
+            }
+            Some(StatementAnnotation::Program { qualified_name }) => Some(qualified_name.as_str()),
+            Some(StatementAnnotation::Variable { resulting_type, .. }) => {
+                Some(resulting_type.as_str())
+            }
+            _ => None,
+        }
+    }
+}
+
+pub struct AstAnnotations {
+    annotation_map: AnnotationMapImpl,
+    bool_id: AstId,
+
+    bool_annotation: StatementAnnotation,
+}
+
+impl AnnotationMap for AstAnnotations {
+    fn get(&self, s: &AstStatement) -> Option<&StatementAnnotation> {
+        if s.get_id() == self.bool_id {
+            Some(&self.bool_annotation)
+        } else {
+            self.annotation_map.get(s)
+        }
+    }
+
+    fn get_hint(&self, s: &AstStatement) -> Option<&StatementAnnotation> {
+        if s.get_id() == self.bool_id {
+            Some(&self.bool_annotation)
+        } else {
+            self.annotation_map.get_hint(s)
+        }
+    }
+}
+
+impl AstAnnotations {
+    pub fn new(annotation_map: AnnotationMapImpl, bool_id: AstId) -> Self {
+        AstAnnotations {
+            annotation_map,
+            bool_id,
+            bool_annotation: StatementAnnotation::value(BOOL_TYPE),
+        }
+    }
+
+    pub fn get_bool_id(&self) -> AstId {
+        self.bool_id
+    }
+}
+
 #[derive(Default)]
-pub struct AnnotationMap {
+pub struct AnnotationMapImpl {
     /// maps a statement to the type it resolves to
     type_map: IndexMap<AstId, StatementAnnotation>,
 
@@ -150,13 +248,13 @@ pub struct AnnotationMap {
     pub new_index: Index,
 }
 
-impl AnnotationMap {
+impl AnnotationMapImpl {
     /// creates a new empty AnnotationMap
     pub fn new() -> Self {
         Default::default()
     }
 
-    pub fn import(&mut self, other: AnnotationMap) {
+    pub fn import(&mut self, other: AnnotationMapImpl) {
         self.type_map.extend(other.type_map);
         self.type_hint_map.extend(other.type_hint_map);
         self.new_index.import(other.new_index);
@@ -176,90 +274,6 @@ impl AnnotationMap {
         self.generic_nature_map.insert(s.get_id(), nature);
     }
 
-    pub fn get(&self, s: &AstStatement) -> Option<&StatementAnnotation> {
-        self.type_map.get(&s.get_id())
-    }
-
-    pub fn get_hint(&self, s: &AstStatement) -> Option<&StatementAnnotation> {
-        self.type_hint_map.get(&s.get_id())
-    }
-
-    /// returns the annotated type or void if none was annotated
-    pub fn get_type_or_void<'i>(
-        &self,
-        s: &AstStatement,
-        index: &'i Index,
-    ) -> &'i typesystem::DataType {
-        self.get_type(s, index)
-            .unwrap_or_else(|| index.get_void_type())
-    }
-
-    pub fn get_type_hint<'i>(
-        &self,
-        s: &AstStatement,
-        index: &'i Index,
-    ) -> Option<&'i typesystem::DataType> {
-        self.get_from_map(s, &self.type_hint_map, index)
-    }
-
-    pub fn get_hint_or_void<'i>(
-        &self,
-        s: &AstStatement,
-        index: &'i Index,
-    ) -> &'i typesystem::DataType {
-        self.get_from_map(s, &self.type_hint_map, index)
-            .unwrap_or_else(|| index.get_void_type())
-    }
-
-    /// returns the annotated type
-    pub fn get_type<'i>(
-        &self,
-        s: &AstStatement,
-        index: &'i Index,
-    ) -> Option<&'i typesystem::DataType> {
-        self.get_from_map(s, &self.type_map, index)
-    }
-
-    /// returns the annotated type from the given map
-    fn get_from_map<'i>(
-        &self,
-        s: &AstStatement,
-        map: &IndexMap<AstId, StatementAnnotation>,
-        index: &'i Index,
-    ) -> Option<&'i typesystem::DataType> {
-        map.get(&s.get_id())
-            .and_then(|annotation| match annotation {
-                StatementAnnotation::Value { resulting_type } => Some(resulting_type.as_str()),
-                StatementAnnotation::Variable { resulting_type, .. } => {
-                    Some(resulting_type.as_str())
-                }
-                StatementAnnotation::Function { .. } => None,
-                StatementAnnotation::Type { .. } => None,
-                StatementAnnotation::Program { .. } => None,
-            })
-            .and_then(|type_name| index.get_type(type_name).ok())
-    }
-
-    /// reutrns the name of the callable that is refered by the given statemt
-    /// or none if this thing may not be callable
-    pub fn get_call_name(&self, s: &AstStatement) -> Option<&str> {
-        match self.type_map.get(&s.get_id()) {
-            Some(StatementAnnotation::Function { qualified_name, .. }) => {
-                Some(qualified_name.as_str())
-            }
-            Some(StatementAnnotation::Program { qualified_name }) => Some(qualified_name.as_str()),
-            Some(StatementAnnotation::Variable { resulting_type, .. }) => {
-                Some(resulting_type.as_str())
-            }
-            _ => None,
-        }
-    }
-
-    /// returns the annotation of the given statement or none if it was not annotated
-    pub fn get_annotation(&self, s: &AstStatement) -> Option<&StatementAnnotation> {
-        self.type_map.get(&s.get_id())
-    }
-
     pub fn has_type_annotation(&self, id: &usize) -> bool {
         self.type_map.contains_key(id)
     }
@@ -269,18 +283,28 @@ impl AnnotationMap {
     }
 }
 
+impl AnnotationMap for AnnotationMapImpl {
+    fn get(&self, s: &AstStatement) -> Option<&StatementAnnotation> {
+        self.type_map.get(&s.get_id())
+    }
+
+    fn get_hint(&self, s: &AstStatement) -> Option<&StatementAnnotation> {
+        self.type_hint_map.get(&s.get_id())
+    }
+}
+
 impl<'i> TypeAnnotator<'i> {
     /// constructs a new TypeAnnotater that works with the given index for type-lookups
     fn new(index: &'i Index) -> TypeAnnotator<'i> {
         TypeAnnotator {
-            annotation_map: AnnotationMap::new(),
+            annotation_map: AnnotationMapImpl::new(),
             index,
         }
     }
 
     /// annotates the given AST elements with the type-name resulting for the statements/expressions.
     /// Returns an AnnotationMap with the resulting types for all visited Statements. See `AnnotationMap`
-    pub fn visit_unit(index: &Index, unit: &'i CompilationUnit) -> AnnotationMap {
+    pub fn visit_unit(index: &Index, unit: &'i CompilationUnit) -> AnnotationMapImpl {
         let mut visitor = TypeAnnotator::new(index);
         let ctx = &VisitorContext {
             pou: None,
@@ -474,6 +498,29 @@ impl<'i> TypeAnnotator<'i> {
                         statement,
                         StatementAnnotation::value(expected_type.get_name()),
                     )
+                } else if let DataTypeInformation::Array {
+                    inner_type_name, ..
+                } = expected_type.get_type_information()
+                {
+                    self.annotation_map
+                        .annotate_type_hint(statement, StatementAnnotation::value(inner_type_name))
+                } else {
+                    //annotate the statement, whatever it is
+                    self.annotation_map.annotate_type_hint(
+                        statement,
+                        StatementAnnotation::value(expected_type.get_name()),
+                    )
+                }
+            }
+            AstStatement::LiteralString { .. } | AstStatement::BinaryExpression { .. } => {
+                // needed if we try to initialize an array with an expression-list
+                // without we would annotate a false type this would leed to an error in expression_generator
+                if let DataTypeInformation::Array {
+                    inner_type_name, ..
+                } = expected_type.get_type_information()
+                {
+                    self.annotation_map
+                        .annotate_type_hint(statement, StatementAnnotation::value(inner_type_name))
                 } else {
                     //annotate the statement, whatever it is
                     self.annotation_map.annotate_type_hint(
@@ -554,6 +601,9 @@ impl<'i> TypeAnnotator<'i> {
                     self.update_expected_types(expected_type, bounds);
                 }
             }
+            DataType::EnumType { elements, .. } => {
+                self.visit_statement(ctx, elements);
+            }
             _ => {}
         }
     }
@@ -585,6 +635,21 @@ impl<'i> TypeAnnotator<'i> {
                 visit_all_statements!(self, ctx, counter, start, end);
                 if let Some(by_step) = by_step {
                     self.visit_statement(ctx, by_step);
+                }
+                //Hint annotate start, end and step with the counter's real type
+                if let Some(type_name) = self
+                    .annotation_map
+                    .get_type(counter, self.index)
+                    .map(typesystem::DataType::get_name)
+                {
+                    let annotation = StatementAnnotation::value(type_name);
+                    self.annotation_map
+                        .annotate_type_hint(start, annotation.clone());
+                    self.annotation_map
+                        .annotate_type_hint(end, annotation.clone());
+                    if let Some(by_step) = by_step {
+                        self.annotation_map.annotate_type_hint(by_step, annotation);
+                    }
                 }
                 body.iter().for_each(|s| self.visit_statement(ctx, s));
             }
@@ -760,6 +825,12 @@ impl<'i> TypeAnnotator<'i> {
                         self.annotation_map
                             .annotate(statement, StatementAnnotation::value(target.get_name()));
                     }
+                } else if operator == &Operator::Address {
+                    //this becomes a pointer to the given type:
+                    let pointer_type_name =
+                        add_pointer_type(&mut self.annotation_map.new_index, inner_type);
+                    self.annotation_map
+                        .annotate(statement, StatementAnnotation::value(&pointer_type_name));
                 } else {
                     //TODO: The adderss operator should report a correct pointer type. We need to have reproducable type names for that first.
                     self.annotation_map
@@ -846,7 +917,7 @@ impl<'i> TypeAnnotator<'i> {
 
                     let (qualifier, constant) = self
                         .annotation_map
-                        .get_annotation(s)
+                        .get(s)
                         .map(|it| match it {
                             StatementAnnotation::Value { resulting_type } => {
                                 (resulting_type.as_str(), false)
@@ -870,7 +941,7 @@ impl<'i> TypeAnnotator<'i> {
 
                 //the last guy represents the type of the whole qualified expression
                 if let Some(last) = elements.last() {
-                    if let Some(annotation) = self.annotation_map.get_annotation(last).cloned() {
+                    if let Some(annotation) = self.annotation_map.get(last).cloned() {
                         self.annotation_map.annotate(statement, annotation);
                     }
                 }
@@ -911,7 +982,7 @@ impl<'i> TypeAnnotator<'i> {
                 self.visit_statement(ctx, operator);
                 let operator_qualifier = self
                     .annotation_map
-                    .get_annotation(operator)
+                    .get(operator)
                     .and_then(|it| match it {
                         StatementAnnotation::Function { qualified_name, .. } => {
                             Some(qualified_name.clone())
@@ -1020,7 +1091,7 @@ impl<'i> TypeAnnotator<'i> {
     // Returns a possible generic for the current statement
     fn get_generic_candidate<'idx>(
         index: &'idx Index,
-        annotation_map: &AnnotationMap,
+        annotation_map: &AnnotationMapImpl,
         member: &VariableIndexEntry,
         statement: &AstStatement,
     ) -> Option<(&'idx str, &'idx str)> {
@@ -1066,7 +1137,7 @@ impl<'i> TypeAnnotator<'i> {
                 if let Some(StatementAnnotation::Function {
                     qualified_name,
                     return_type,
-                }) = self.annotation_map.get_annotation(operator)
+                }) = self.annotation_map.get(operator)
                 {
                     //Figure out the new name for the call
                     let (name, annotation) = self.get_generic_function_annotation(
@@ -1384,6 +1455,22 @@ impl<'i> TypeAnnotator<'i> {
         }
         generic_map
     }
+}
+
+/// adds a pointer to the given inner_type to the given index and return's its name
+fn add_pointer_type(index: &mut Index, inner_type: &DataTypeInformation) -> String {
+    let new_type_name = format!("POINTER_TO_{}", inner_type.get_name());
+    index.register_type(crate::typesystem::DataType {
+        name: new_type_name.clone(),
+        initial_value: None,
+        nature: TypeNature::Any,
+        information: crate::typesystem::DataTypeInformation::Pointer {
+            auto_deref: false,
+            inner_type_name: inner_type.get_name().into(),
+            name: new_type_name.clone(),
+        },
+    });
+    new_type_name
 }
 
 fn find_implementation_annotation(name: &str, index: &Index) -> Option<StatementAnnotation> {

@@ -89,12 +89,19 @@ fn qualified_reference_assignment() {
         VAR
             str : myStruct;
         END_VAR
+        str.x := 1;
         str.x.%X0 := FALSE;
         str.x.%X1 := TRUE;
         main := str.x;
         END_FUNCTION
 
         ";
+
+    #[derive(Default)]
+    #[allow(dead_code)]
+    struct MainType {
+        x: u8,
+    }
     let res: u8 = compile_and_run(prog, &mut MainType::default);
     assert_eq!(2, res);
 }
@@ -179,4 +186,44 @@ fn bitaccess_with_var_test() {
             bit_target2: true,
         }
     )
+}
+
+#[test]
+fn bitaccess_assignment_should_not_override_current_values() {
+    let prog = "
+    FUNCTION main : DINT
+    VAR_TEMP
+        a,b : BYTE := 0;
+        c : BOOL := TRUE;
+    END_VAR
+    b := 1;
+    a.%Xb := c;
+    b := 0;
+    a.%Xb := c;
+    b := 2;
+    a.%Xb := c;
+    main := a;
+    END_FUNCTION
+    ";
+    struct MainType {}
+    let res: i32 = compile_and_run(prog, &mut MainType {});
+    assert_eq!(res, 7);
+}
+
+#[test]
+fn byteaccess_assignment_should_not_override_current_values() {
+    let prog = "
+    FUNCTION main : DINT
+    VAR_TEMP
+        a : DINT := 0;
+    END_VAR
+    a.%B1 := 2#1010_1010;
+    a.%B0 := 2#0101_0101;
+    a.%B2 := 2#1100_0011;
+    main := a;
+    END_FUNCTION
+    ";
+    struct MainType {}
+    let res: i32 = compile_and_run(prog, &mut MainType {});
+    assert_eq!(res, 0b0000_0000_1100_0011_1010_1010_0101_0101);
 }

@@ -1,0 +1,21 @@
+---
+source: src/codegen/tests/code_gen_tests.rs
+expression: result
+
+---
+; ModuleID = 'main'
+source_filename = "main"
+
+@twenty = global i16 20
+@x = global i8 0
+@red = global i8 7
+@yellow = global i8 8
+@green = global i8 9
+@a = global i8 0
+@b = global i8 1
+@c = global i8 7
+@d = global i8 8
+@e = global i8 9
+@f = global i8 20
+@g = global i8 21
+

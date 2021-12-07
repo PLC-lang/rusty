@@ -4,7 +4,7 @@ use crate::{
         UserTypeDeclaration, Variable, VariableBlock,
     },
     index::Index,
-    resolver::AnnotationMap,
+    resolver::AnnotationMapImpl,
     Diagnostic,
 };
 
@@ -32,7 +32,7 @@ macro_rules! visit_all_statements {
    }
 
 pub struct ValidationContext<'s> {
-    ast_annotation: &'s AnnotationMap,
+    ast_annotation: &'s AnnotationMapImpl,
     index: &'s Index,
     qualifier: Option<&'s str>,
 }
@@ -63,7 +63,7 @@ impl Validator {
 
     pub fn visit_unit(
         &mut self,
-        annotations: &AnnotationMap,
+        annotations: &AnnotationMapImpl,
         index: &Index,
         unit: &CompilationUnit,
     ) {

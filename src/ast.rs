@@ -1,5 +1,5 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-use crate::typesystem::DataTypeInformation;
+use crate::{lexer::IdProvider, typesystem::DataTypeInformation};
 use std::{
     fmt::{Debug, Display, Formatter, Result},
     iter,
@@ -431,7 +431,8 @@ pub enum DataType {
     },
     EnumType {
         name: Option<String>, //maybe empty for inline enums
-        elements: Vec<String>,
+        numeric_type: String,
+        elements: AstStatement, //a single Ref, or an ExpressionList with Refs
     },
     SubRangeType {
         name: Option<String>,
@@ -1139,6 +1140,41 @@ impl Display for Operator {
     }
 }
 
+/// enum_elements should be the statement between then enum's brackets ( )
+/// e.g. x : ( this, that, etc)
+pub fn get_enum_element_names(enum_elements: &AstStatement) -> Vec<String> {
+    flatten_expression_list(enum_elements)
+        .into_iter()
+        .filter(|it| {
+            matches!(
+                it,
+                AstStatement::Reference { .. } | AstStatement::Assignment { .. }
+            )
+        })
+        .map(get_enum_element_name)
+        .collect()
+}
+
+/// expects a Reference or an Assignment
+pub fn get_enum_element_name(enum_element: &AstStatement) -> String {
+    match enum_element {
+        AstStatement::Reference { name, .. } => name.to_string(),
+        AstStatement::Assignment { left, .. } => {
+            if let AstStatement::Reference { name, .. } = left.as_ref() {
+                name.to_string()
+            } else {
+                unreachable!("left of assignment not a reference")
+            }
+        }
+        _ => {
+            unreachable!(
+                "expected {:?} to be a Reference or Assignment",
+                enum_element
+            );
+        }
+    }
+}
+
 /// flattens expression-lists and MultipliedStatements into a vec of statements.
 /// It can also handle nested structures like 2(3(4,5))
 pub fn flatten_expression_list(condition: &AstStatement) -> Vec<&AstStatement> {
@@ -1203,8 +1239,52 @@ pub fn create_not_expression(operator: AstStatement, location: SourceRange) -> A
     }
 }
 
-pub fn pre_process(unit: &mut CompilationUnit) {
-    pre_processor::pre_process(unit)
+pub fn create_reference(name: &str, location: &SourceRange, id: AstId) -> AstStatement {
+    AstStatement::Reference {
+        id,
+        location: location.clone(),
+        name: name.to_string(),
+    }
+}
+
+pub fn create_literal_int(value: i128, location: &SourceRange, id: AstId) -> AstStatement {
+    AstStatement::LiteralInteger {
+        id,
+        location: location.clone(),
+        value,
+    }
+}
+
+pub fn create_binary_expression(
+    left: AstStatement,
+    operator: Operator,
+    right: AstStatement,
+    id: AstId,
+) -> AstStatement {
+    AstStatement::BinaryExpression {
+        id,
+        left: Box::new(left),
+        operator,
+        right: Box::new(right),
+    }
+}
+
+pub fn create_cast_statement(
+    type_name: &str,
+    stmt: AstStatement,
+    location: &SourceRange,
+    id: AstId,
+) -> AstStatement {
+    AstStatement::CastStatement {
+        id,
+        location: location.clone(),
+        type_name: type_name.to_string(),
+        target: Box::new(stmt),
+    }
+}
+
+pub fn pre_process(unit: &mut CompilationUnit, id_provider: IdProvider) {
+    pre_processor::pre_process(unit, id_provider)
 }
 impl Operator {
     /// returns true, if this operator results in a bool value

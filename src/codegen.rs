@@ -10,7 +10,7 @@ use self::{
     },
     llvm_index::LlvmTypedIndex,
 };
-use crate::{diagnostics::Diagnostic, resolver::AnnotationMap};
+use crate::{diagnostics::Diagnostic, resolver::AstAnnotations};
 
 use super::ast::*;
 use super::index::*;
@@ -41,7 +41,7 @@ impl<'ink> CodeGen<'ink> {
 
     pub fn generate_llvm_index(
         &self,
-        annotations: &AnnotationMap,
+        annotations: &AstAnnotations,
         global_index: &Index,
     ) -> Result<LlvmTypedIndex<'ink>, Diagnostic> {
         let llvm = Llvm::new(self.context, self.context.create_builder());
@@ -78,7 +78,7 @@ impl<'ink> CodeGen<'ink> {
     pub fn generate(
         &self,
         unit: &CompilationUnit,
-        annotations: &AnnotationMap,
+        annotations: &AstAnnotations,
         global_index: &Index,
         llvm_index: &LlvmTypedIndex,
     ) -> Result<String, Diagnostic> {

@@ -4,7 +4,7 @@ use super::ValidationContext;
 use crate::{
     ast::{AstStatement, DirectAccessType, Operator, SourceRange},
     index::{VariableIndexEntry, VariableType},
-    resolver::StatementAnnotation,
+    resolver::{AnnotationMap, StatementAnnotation},
     typesystem::{
         DataType, DataTypeInformation, BOOL_TYPE, DATE_AND_TIME_TYPE, DATE_TYPE, DINT_TYPE,
         INT_TYPE, LINT_TYPE, LREAL_TYPE, SINT_TYPE, STRING_TYPE, TIME_OF_DAY_TYPE, TIME_TYPE,
