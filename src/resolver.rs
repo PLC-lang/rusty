@@ -601,6 +601,9 @@ impl<'i> TypeAnnotator<'i> {
                     self.update_expected_types(expected_type, bounds);
                 }
             }
+            DataType::EnumType { elements, .. } => {
+                self.visit_statement(ctx, elements);
+            }
             _ => {}
         }
     }

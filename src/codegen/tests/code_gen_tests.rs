@@ -3993,6 +3993,77 @@ source_filename = "main"
 }
 
 #[test]
+fn typed_enums_are_generated() {
+    let result = codegen(
+        "
+        TYPE MyEnum: BYTE(red, yellow, green);
+        END_TYPE
+
+        TYPE MyEnum2: UINT(red, yellow, green);
+        END_TYPE
+        
+        TYPE MyEnum3: DINT(red, yellow, green);
+        END_TYPE
+
+        VAR_GLOBAL
+          x : MyEnum;
+          y : MyEnum2;
+          z : MyEnum3;
+        END_VAR
+        ",
+    );
+
+    insta::assert_snapshot!(result);
+}
+
+#[test]
+fn typed_enums_with_initializers_are_generated() {
+    let result = codegen(
+        "
+        TYPE MyEnum: BYTE(red := 1, yellow := 2, green := 3);
+        END_TYPE
+
+        TYPE MyEnum2: UINT(red := 10, yellow := 11, green := 12);
+        END_TYPE
+        
+        TYPE MyEnum3: DINT(red := 22, yellow := 33, green := 44);
+        END_TYPE
+
+        VAR_GLOBAL
+          x : MyEnum;
+          y : MyEnum2;
+          z : MyEnum3;
+        END_VAR
+        ",
+    );
+
+    insta::assert_snapshot!(result);
+}
+
+#[test]
+fn typed_enums_with_partly_initializers_are_generated() {
+    let result = codegen(
+        "
+        VAR_GLOBAL CONSTANT
+          twenty : INT := 20;
+        END_VAR
+
+        TYPE MyEnum: BYTE(red := 7, yellow, green);
+        END_TYPE
+
+        TYPE MyEnum: BYTE(a,b,c:=7,d,e,f:=twenty,g);
+        END_TYPE
+
+        VAR_GLOBAL
+          x : MyEnum;
+        END_VAR
+        ",
+    );
+
+    insta::assert_snapshot!(result);
+}
+
+#[test]
 fn enums_custom_type_are_generated() {
     let result = codegen(
         "

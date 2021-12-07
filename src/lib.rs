@@ -349,7 +349,7 @@ pub fn compile_module<'c, T: SourceContainer>(
             parser::parse(lexer::lex_with_ids(e.source.as_str(), id_provider.clone()));
 
         //pre-process the ast (create inlined types)
-        ast::pre_process(&mut parse_result);
+        ast::pre_process(&mut parse_result, id_provider.clone());
         //index the pou
         full_index.import(index::visitor::visit(&parse_result, id_provider.clone()));
 

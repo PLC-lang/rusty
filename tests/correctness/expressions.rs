@@ -178,3 +178,47 @@ fn greater_or_equal_comparison_with_arbitrary_datatypes() {
     let _: i32 = compile_and_run(function, &mut main);
     assert_eq!([-1, 1, 1], main.results);
 }
+
+#[test]
+fn enums_can_be_compared() {
+    struct Main {
+        a: bool,
+        b: bool,
+        c: bool,
+    }
+
+    let mut main = Main {
+        a: false,
+        b: false,
+        c: false,
+    };
+
+    let function = "
+        TYPE MyEnum : BYTE (zero, aa, bb := 7, cc); END_TYPE
+
+        FUNCTION main : DINT 
+            VAR a,b,c : BOOL; END_VAR
+
+            VAR_TEMP
+                x : MyEnum := 1;
+                y : MyEnum := bb;
+                z : MyEnum := cc;
+            END_VAR
+
+            IF x = aa THEN
+                a := TRUE;
+            END_IF
+
+            IF y = 7 THEN
+                b := TRUE;
+            END_IF
+            
+            IF z = 8 THEN
+                c := TRUE;
+            END_IF
+
+        END_FUNCTION 
+    ";
+    let _: i32 = compile_and_run(function, &mut main);
+    assert_eq!([true, true, true], [main.a, main.b, main.c]);
+}

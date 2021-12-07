@@ -567,13 +567,15 @@ impl Index {
     /// resolve aliases)
     pub fn get_intrinsic_type_by_name(&self, type_name: &str) -> &DataType {
         let effective_type = self.type_index.get_effective_type_by_name(type_name);
-        if let DataTypeInformation::SubRange {
-            referenced_type, ..
-        } = effective_type.get_type_information()
-        {
-            self.get_intrinsic_type_by_name(referenced_type.as_str())
-        } else {
-            effective_type
+
+        match effective_type.get_type_information() {
+            DataTypeInformation::SubRange {
+                referenced_type, ..
+            } => self.get_intrinsic_type_by_name(referenced_type.as_str()),
+            DataTypeInformation::Enum {
+                referenced_type, ..
+            } => self.get_intrinsic_type_by_name(referenced_type),
+            _ => effective_type,
         }
     }
 
@@ -820,6 +822,11 @@ impl Index {
                     initial_type
                 }
             }
+            DataTypeInformation::Enum {
+                referenced_type, ..
+            } => self
+                .find_effective_type_info(referenced_type)
+                .unwrap_or(initial_type),
             _ => initial_type,
         }
     }
