@@ -9,7 +9,7 @@ use std::convert::TryInto;
 /// - sized Strings
 use crate::ast::SourceRange;
 use crate::index::{Index, VariableIndexEntry, VariableType};
-use crate::resolver::AnnotationMap;
+use crate::resolver::AstAnnotations;
 use crate::typesystem::{Dimension, StringEncoding, StructSource};
 use crate::Diagnostic;
 use crate::{ast::AstStatement, typesystem::DataTypeInformation};
@@ -31,7 +31,7 @@ use super::{expression_generator::ExpressionCodeGenerator, llvm::Llvm};
 pub struct DataTypeGenerator<'ink, 'b> {
     llvm: &'b Llvm<'ink>,
     index: &'b Index,
-    annotations: &'b AnnotationMap,
+    annotations: &'b AstAnnotations,
     types_index: LlvmTypedIndex<'ink>,
 }
 
@@ -45,7 +45,7 @@ pub struct DataTypeGenerator<'ink, 'b> {
 pub fn generate_data_types<'ink>(
     llvm: &Llvm<'ink>,
     index: &Index,
-    annotations: &AnnotationMap,
+    annotations: &AstAnnotations,
 ) -> Result<LlvmTypedIndex<'ink>, Diagnostic> {
     let mut generator = DataTypeGenerator {
         llvm,
@@ -183,9 +183,27 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
             DataTypeInformation::Integer { size, .. } => {
                 get_llvm_int_type(self.llvm.context, *size, name).map(|it| it.into())
             }
-            DataTypeInformation::Enum { name, .. } => {
-                let enum_size = information.get_size();
-                get_llvm_int_type(self.llvm.context, enum_size, name).map(|it| it.into())
+            DataTypeInformation::Enum {
+                name,
+                referenced_type,
+                ..
+            } => {
+                let effective_type = self
+                    .index
+                    .get_effective_type_by_name(referenced_type)
+                    .get_type_information();
+                if let DataTypeInformation::Integer {
+                    size: enum_size, ..
+                } = effective_type
+                {
+                    get_llvm_int_type(self.llvm.context, *enum_size, name).map(|it| it.into())
+                } else {
+                    Err(Diagnostic::invalid_type_nature(
+                        effective_type.get_name(),
+                        "ANY_INT",
+                        SourceRange::undefined(),
+                    ))
+                }
             }
             DataTypeInformation::Float { size, .. } => {
                 get_llvm_float_type(self.llvm.context, *size, name).map(|it| it.into())

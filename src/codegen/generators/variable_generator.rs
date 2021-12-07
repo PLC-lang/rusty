@@ -5,7 +5,7 @@ use crate::{
     ast::SourceRange,
     diagnostics::{Diagnostic, ErrNo},
     index::Index,
-    resolver::AnnotationMap,
+    resolver::AstAnnotations,
 };
 use inkwell::{module::Module, values::GlobalValue};
 
@@ -19,7 +19,7 @@ pub fn generate_global_variables<'ctx, 'b>(
     module: &'b Module<'ctx>,
     llvm: &'b Llvm<'ctx>,
     global_index: &'b Index,
-    annotations: &'b AnnotationMap,
+    annotations: &'b AstAnnotations,
     types_index: &'b LlvmTypedIndex<'ctx>,
 ) -> Result<LlvmTypedIndex<'ctx>, Diagnostic> {
     let mut index = LlvmTypedIndex::default();
@@ -55,7 +55,7 @@ pub fn generate_global_variable<'ctx, 'b>(
     module: &'b Module<'ctx>,
     llvm: &'b Llvm<'ctx>,
     global_index: &'b Index,
-    annotations: &'b AnnotationMap,
+    annotations: &'b AstAnnotations,
     index: &'b LlvmTypedIndex<'ctx>,
     global_variable: &VariableIndexEntry,
 ) -> Result<GlobalValue<'ctx>, Diagnostic> {

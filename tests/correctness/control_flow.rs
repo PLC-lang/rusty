@@ -166,6 +166,48 @@ fn while_continue_test() {
 }
 
 #[test]
+fn for_loop_exit_test() {
+    #[allow(dead_code)]
+    #[repr(C)]
+    struct MainType {
+        ret: i32,
+    }
+
+    let function = r#"
+    FUNCTION main : DINT
+    FOR main := 100 TO 1000 BY 7 DO
+        EXIT;
+        main := 200; 
+    END_FOR
+    "#;
+
+    let res: i32 = compile_and_run(function.to_string(), &mut MainType { ret: 0 });
+    assert_eq!(res, 100);
+}
+
+#[test]
+fn while_loop_exit_test() {
+    #[allow(dead_code)]
+    #[repr(C)]
+    struct MainType {
+        ret: i32,
+    }
+
+    let function = r#"
+    FUNCTION main : DINT
+    main := 100;
+    WHILE main > 50 DO
+        EXIT;
+        main := 200;
+    END_WHILE
+    END_FUNCTION
+    "#;
+
+    let res: i32 = compile_and_run(function.to_string(), &mut MainType { ret: 0 });
+    assert_eq!(res, 100);
+}
+
+#[test]
 fn loop_exit_test() {
     #[allow(dead_code)]
     #[repr(C)]
@@ -213,6 +255,218 @@ fn for_loop_and_increment_10_times() {
 
     let res: i32 = compile_and_run(function.to_string(), &mut MainType { i: 0, ret: 0 });
     assert_eq!(res, 110);
+}
+
+#[test]
+fn for_loop_and_decrement_10_times() {
+    #[allow(dead_code)]
+    #[repr(C)]
+    struct MainType {
+        i: i16,
+        ret: i32,
+    }
+
+    let function = r#"
+    FUNCTION main : DINT
+    VAR
+        i : INT;
+    END_VAR
+    main := 100;
+    FOR i:= 10 TO 1 BY -1 DO
+        main := main + 1;
+    END_FOR
+    END_FUNCTION
+    "#;
+
+    let res: i32 = compile_and_run(function.to_string(), &mut MainType { i: 0, ret: 0 });
+    assert_eq!(res, 110);
+}
+
+#[test]
+fn for_loop_and_increment_10_times_change_vars() {
+    #[allow(dead_code)]
+    #[repr(C)]
+    struct MainType {
+        i: i16,
+        ret: i32,
+    }
+
+    let function = r#"
+    FUNCTION main : DINT
+    VAR
+        i, : INT := 0;
+    END_VAR
+    VAR_TEMP
+        start, end : INT; 
+    END_VAR
+    main := 100;
+    start := 1;
+    end := 2;
+    FOR i:= start TO end BY 1 DO
+        main := main + 1;
+        end := 10;
+    END_FOR
+    END_FUNCTION
+    "#;
+
+    let res: i32 = compile_and_run(function.to_string(), &mut MainType { i: 0, ret: 0 });
+    assert_eq!(res, 110);
+}
+
+#[test]
+fn for_loop_overflow() {
+    #[allow(dead_code)]
+    #[repr(C)]
+    struct MainType {
+        i: i16,
+        ret: i32,
+    }
+
+    let function = r#"
+    FUNCTION main : DINT
+    VAR
+        i : INT;
+    END_VAR
+    main := 100;
+    FOR i:= 1 TO 0 BY -2 DO
+        main := main + 1;
+    END_FOR
+    END_FUNCTION
+    "#;
+
+    let mut main = MainType { i: 0, ret: 0 };
+
+    let res: i32 = compile_and_run(function.to_string(), &mut main);
+    assert_eq!(res, 101);
+    assert_eq!(-1, main.i);
+}
+
+#[test]
+fn for_loop_variable_does_not_affect_other_variables_dint() {
+    #[allow(dead_code)]
+    #[repr(C)]
+    struct MainType {
+        a: i32,
+        i: i32,
+        b: i32,
+    }
+
+    let function = r#"
+    FUNCTION main : DINT
+    VAR
+        a,i,b : DINT;
+    END_VAR
+    a := 16#FFFF_FFFF;
+    b := 16#FFFF_FFFF;
+    main := 100;
+    FOR i:= 1 TO 10 DO
+        main := main + 1;
+    END_FOR
+    END_FUNCTION
+    "#;
+
+    let mut main = MainType { a: 0, i: 0, b: 0 };
+
+    let res: i32 = compile_and_run(function.to_string(), &mut main);
+    assert_eq!(res, 110);
+    assert_eq!(-1, main.a);
+    assert_eq!(-1, main.b);
+}
+
+#[test]
+fn for_loop_variable_does_not_affect_other_variables_int() {
+    #[allow(dead_code)]
+    #[repr(C)]
+    struct MainType {
+        a: i16,
+        i: i16,
+        b: i16,
+    }
+
+    let function = r#"
+    FUNCTION main : DINT
+    VAR
+        a,i,b : INT;
+    END_VAR
+    a := 16#FFFF;
+    b := 16#FFFF;
+    main := 100;
+    FOR i:= 1 TO 10 DO
+        main := main + 1;
+    END_FOR
+    END_FUNCTION
+    "#;
+
+    let mut main = MainType { a: 0, i: 0, b: 0 };
+
+    let res: i32 = compile_and_run(function.to_string(), &mut main);
+    assert_eq!(res, 110);
+    assert_eq!(-1, main.a);
+    assert_eq!(-1, main.b);
+}
+
+#[test]
+fn for_loop_variable_does_not_affect_other_variables_sint() {
+    #[allow(dead_code)]
+    #[repr(C)]
+    struct MainType {
+        a: i8,
+        i: i8,
+        b: i8,
+    }
+
+    let function = r#"
+    FUNCTION main : DINT
+    VAR
+        a,i,b : SINT;
+    END_VAR
+    a := 16#FF;
+    b := 16#FF;
+    main := 100;
+    FOR i:= 1 TO 10 DO
+        main := main + 1;
+    END_FOR
+    END_FUNCTION
+    "#;
+
+    let mut main = MainType { a: 0, i: 0, b: 0 };
+
+    let res: i32 = compile_and_run(function.to_string(), &mut main);
+    assert_eq!(res, 110);
+    assert_eq!(-1, main.a);
+    assert_eq!(-1, main.b);
+}
+
+#[test]
+fn for_loop_variable_does_not_affect_other_variables_lint() {
+    #[allow(dead_code)]
+    #[repr(C)]
+    struct MainType {
+        a: i64,
+        i: i64,
+        b: i64,
+    }
+
+    let function = r#"
+    FUNCTION main : DINT
+    VAR
+        a,i,b : LINT;
+    END_VAR
+    a := 16#FFFF_FFFF_FFFF_FFFF;
+    b := 16#FFFF_FFFF_FFFF_FFFF;
+    main := 100;
+    FOR i:= 1 TO 10 DO
+        main := main + 1;
+    END_FOR
+    END_FUNCTION
+    "#;
+
+    let mut main = MainType { a: 0, i: 0, b: 0 };
+
+    let res: i32 = compile_and_run(function.to_string(), &mut main);
+    assert_eq!(res, 110);
+    assert_eq!(-1, main.a);
+    assert_eq!(-1, main.b);
 }
 
 #[test]

@@ -1,6 +1,8 @@
 use crate::{
     ast::{AstStatement, DataType, DataTypeDeclaration, SourceRange, Variable},
+    parser::tests::ref_to,
     test_utils::tests::parse,
+    typesystem::DINT_TYPE,
 };
 use pretty_assertions::*;
 
@@ -153,7 +155,11 @@ fn inline_enum_declaration_can_be_parsed() {
         data_type: DataTypeDeclaration::DataTypeDefinition {
             data_type: DataType::EnumType {
                 name: None,
-                elements: vec!["red".to_string(), "yellow".to_string(), "green".to_string()],
+                numeric_type: DINT_TYPE.to_string(),
+                elements: AstStatement::ExpressionList {
+                    expressions: vec![ref_to("red"), ref_to("yellow"), ref_to("green")],
+                    id: 0,
+                },
             },
             location: SourceRange::undefined(),
             scope: None,
@@ -181,47 +187,7 @@ fn multilevel_inline_struct_and_enum_declaration_can_be_parsed() {
     );
 
     let ast_string = format!("{:#?}", &result.global_vars[0].variables[0]);
-    let expected_ast = r#"Variable {
-    name: "my_struct",
-    data_type: DataTypeDefinition {
-        data_type: StructType {
-            name: None,
-            variables: [
-                Variable {
-                    name: "inner_enum",
-                    data_type: DataTypeDefinition {
-                        data_type: EnumType {
-                            name: None,
-                            elements: [
-                                "red",
-                                "yellow",
-                                "green",
-                            ],
-                        },
-                    },
-                },
-                Variable {
-                    name: "inner_struct",
-                    data_type: DataTypeDefinition {
-                        data_type: StructType {
-                            name: None,
-                            variables: [
-                                Variable {
-                                    name: "field",
-                                    data_type: DataTypeReference {
-                                        referenced_type: "INT",
-                                    },
-                                },
-                            ],
-                        },
-                    },
-                },
-            ],
-        },
-    },
-}"#;
-
-    assert_eq!(ast_string, expected_ast);
+    insta::assert_snapshot!(ast_string);
 }
 
 #[test]

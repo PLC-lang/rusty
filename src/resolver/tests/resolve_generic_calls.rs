@@ -1,7 +1,7 @@
 use crate::{
     assert_type_and_hint,
     ast::{self, AstStatement},
-    resolver::TypeAnnotator,
+    resolver::{AnnotationMap, TypeAnnotator},
     test_utils::tests::index,
     typesystem::{BYTE_TYPE, DINT_TYPE, INT_TYPE, REAL_TYPE},
 };
@@ -397,11 +397,8 @@ fn call_order_of_generic_parameters_does_not_change_annotations() {
         parameters_list
             .iter()
             .find(|it| {
-                matches!(it, AstStatement::Assignment { left, .. }
-                        if { matches!(&**left, AstStatement::Reference{name, ..}
-                            if {name == expected_name}
-                    )}
-                )
+                matches!(it, AstStatement::Assignment { left, .. } 
+            if { matches!(&**left, AstStatement::Reference{name, ..} if {name == expected_name})})
             })
             .unwrap()
     }
