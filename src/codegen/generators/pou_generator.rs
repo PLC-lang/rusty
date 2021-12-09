@@ -323,7 +323,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                             .ok_or_else(|| {
                                 Diagnostic::cannot_generate_initializer(
                                     variable.get_qualified_name(),
-                                    SourceRange::undefined(),
+                                    variable.source_location.clone(),
                                 )
                             })?,
                     ),
@@ -339,7 +339,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                         .ok_or_else(|| {
                             Diagnostic::cannot_generate_initializer(
                                 variable.get_qualified_name(),
-                                SourceRange::undefined(),
+                                variable.source_location.clone(),
                             )
                         })?,
                 };
