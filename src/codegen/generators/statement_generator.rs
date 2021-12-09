@@ -229,7 +229,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
             && right_type.is_string() &&
                 //Only handle assignments and references here, we have no chance of handling other
                 //types
-            matches!(dbg!(right_statement),
+            matches!(right_statement,
                 AstStatement::QualifiedReference {..} | AstStatement::Reference{..} | AstStatement::CallStatement{..})
         {
             let right = match right_statement {
