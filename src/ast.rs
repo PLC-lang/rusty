@@ -229,7 +229,7 @@ impl PouType {
     }
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Default)]
 pub struct CompilationUnit {
     pub global_vars: Vec<VariableBlock>,
     pub units: Vec<Pou>,
@@ -249,17 +249,6 @@ impl CompilationUnit {
         self.units.extend(other.units);
         self.implementations.extend(other.implementations);
         self.types.extend(other.types);
-    }
-}
-
-impl Default for CompilationUnit {
-    fn default() -> Self {
-        CompilationUnit {
-            global_vars: Vec::new(),
-            units: Vec::new(),
-            implementations: Vec::new(),
-            types: Vec::new(),
-        }
     }
 }
 
@@ -1193,7 +1182,7 @@ pub fn flatten_expression_list(condition: &AstStatement) -> Vec<&AstStatement> {
         AstStatement::ExpressionList { expressions, .. } => expressions
             .iter()
             .by_ref()
-            .flat_map(|statement| flatten_expression_list(statement))
+            .flat_map(flatten_expression_list)
             .collect(),
         AstStatement::MultipliedStatement {
             multiplier,

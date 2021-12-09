@@ -701,7 +701,7 @@ fn case_statement() {
     }
     let function = r#"
     FUNCTION main : DINT
-    VAR
+    VAR_INPUT
         i : INT;
     END_VAR
     main := 1;
