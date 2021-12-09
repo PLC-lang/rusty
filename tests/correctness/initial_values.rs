@@ -763,3 +763,64 @@ fn initialization_of_string_variables() {
     ); // QWERT
     assert_eq!(maintype.string3[7..21], [0; 14]); // rest is blank
 }
+
+struct FourInts {
+    a: i32,
+    b: i32,
+    c: i32,
+    d: i32,
+}
+
+#[test]
+fn initialization_of_function_variables() {
+    let function = r"
+        FUNCTION other : DINT
+        VAR
+            a   : DINT;
+            b   : DINT := 10;
+            c   : ARRAY[0..2] OF DINT := [10,20];
+			d   : ARRAY[0..2] OF DINT;
+        END_VAR
+        VAR_INPUT
+            index : INT;
+        END_VAR
+
+            IF index = 0 THEN
+                other := a;
+            ELSIF index = 1 THEN
+                other := b;
+            ELSIF index = 2 THEN
+				other := c[1];
+			ELSE
+                other := d[0];
+            END_IF
+        END_FUNCTION
+
+        PROGRAM main
+        VAR
+            a : DINT;
+            b : DINT;
+            c : DINT;
+			d : DINT;
+        END_VAR
+            a := other(index := 0);
+            b := other(index := 1);
+            c := other(index := 2);
+			d := other(index := 3);
+        END_PROGRAM
+        ";
+
+    let mut maintype = FourInts {
+        a: 0,
+        b: 0,
+        c: 0,
+        d: 0,
+    };
+
+    let _: i32 = compile_and_run(function.to_string(), &mut maintype);
+
+    assert_eq!(0, maintype.a);
+    assert_eq!(10, maintype.b);
+    assert_eq!(20, maintype.c);
+    assert_eq!(0, maintype.d);
+}

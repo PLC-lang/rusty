@@ -859,7 +859,7 @@ fn parse_array_type_definition(
 
 /// parse a body and recovers until the given `end_keywords`
 fn parse_body_in_region(lexer: &mut ParseSession, end_keywords: Vec<Token>) -> Vec<AstStatement> {
-    parse_any_in_region(lexer, end_keywords, |lexer| parse_body_standalone(lexer))
+    parse_any_in_region(lexer, end_keywords, parse_body_standalone)
 }
 
 fn parse_body_standalone(lexer: &mut ParseSession) -> Vec<AstStatement> {

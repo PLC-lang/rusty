@@ -13,6 +13,8 @@ entry:
   %x = getelementptr inbounds %baz_interface, %baz_interface* %0, i32 0, i32 0
   %y = getelementptr inbounds %baz_interface, %baz_interface* %0, i32 0, i32 1
   %baz = alloca i16, align 2
+  store i16 0, i16* %x, align 2
+  store i16 0, i16* %y, align 2
   %load_x = load i16, i16* %x, align 2
   %tmpVar = icmp eq i16 %load_x, i32 3
   %load_x1 = load i16, i16* %x, align 2

@@ -154,12 +154,12 @@ fn needs_evaluation(expr: &AstStatement) -> bool {
             ..
         } => match elements.as_ref() {
             AstStatement::ExpressionList { expressions, .. } => {
-                expressions.iter().any(|it| needs_evaluation(it))
+                expressions.iter().any(needs_evaluation)
             }
             _ => needs_evaluation(elements.as_ref()),
         },
         AstStatement::ExpressionList { expressions, .. } => {
-            expressions.iter().any(|it| needs_evaluation(it))
+            expressions.iter().any(needs_evaluation)
         }
         _ => true,
     }
@@ -277,7 +277,7 @@ pub fn evaluate_constants(mut index: Index) -> (Index, Vec<UnresolvableConstant>
     unresolvable.extend(
         remaining_constants
             .iter()
-            .map(|it| UnresolvableConstant::incomplete_initialzation(it)),
+            .map(UnresolvableConstant::incomplete_initialzation),
     );
 
     (index, unresolvable)

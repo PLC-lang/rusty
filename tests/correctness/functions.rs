@@ -26,7 +26,7 @@ fn max_function() {
     END_FUNCTION
 
     FUNCTION main : DINT
-    VAR
+    VAR_INPUT
         theA : INT;
         theB : INT;
     END_VAR
