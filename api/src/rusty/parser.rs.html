@@ -1883,7 +1883,7 @@
 
 <span class="doccomment">/// parse a body and recovers until the given `end_keywords`</span>
 <span class="kw">fn</span> <span class="ident">parse_body_in_region</span>(<span class="ident">lexer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ParseSession</span>, <span class="ident">end_keywords</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Token</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">AstStatement</span><span class="op">&gt;</span> {
-    <span class="ident">parse_any_in_region</span>(<span class="ident">lexer</span>, <span class="ident">end_keywords</span>, <span class="op">|</span><span class="ident">lexer</span><span class="op">|</span> <span class="ident">parse_body_standalone</span>(<span class="ident">lexer</span>))
+    <span class="ident">parse_any_in_region</span>(<span class="ident">lexer</span>, <span class="ident">end_keywords</span>, <span class="ident">parse_body_standalone</span>)
 }
 
 <span class="kw">fn</span> <span class="ident">parse_body_standalone</span>(<span class="ident">lexer</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ParseSession</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">AstStatement</span><span class="op">&gt;</span> {

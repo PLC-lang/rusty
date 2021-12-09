@@ -847,12 +847,12 @@
             ..
         } <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident">elements</span>.<span class="ident">as_ref</span>() {
             <span class="ident">AstStatement::ExpressionList</span> { <span class="ident">expressions</span>, .. } <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="ident">expressions</span>.<span class="ident">iter</span>().<span class="ident">any</span>(<span class="op">|</span><span class="ident">it</span><span class="op">|</span> <span class="ident">needs_evaluation</span>(<span class="ident">it</span>))
+                <span class="ident">expressions</span>.<span class="ident">iter</span>().<span class="ident">any</span>(<span class="ident">needs_evaluation</span>)
             }
             <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">needs_evaluation</span>(<span class="ident">elements</span>.<span class="ident">as_ref</span>()),
         },
         <span class="ident">AstStatement::ExpressionList</span> { <span class="ident">expressions</span>, .. } <span class="op">=</span><span class="op">&gt;</span> {
-            <span class="ident">expressions</span>.<span class="ident">iter</span>().<span class="ident">any</span>(<span class="op">|</span><span class="ident">it</span><span class="op">|</span> <span class="ident">needs_evaluation</span>(<span class="ident">it</span>))
+            <span class="ident">expressions</span>.<span class="ident">iter</span>().<span class="ident">any</span>(<span class="ident">needs_evaluation</span>)
         }
         <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">true</span>,
     }
@@ -970,7 +970,7 @@
     <span class="ident">unresolvable</span>.<span class="ident">extend</span>(
         <span class="ident">remaining_constants</span>
             .<span class="ident">iter</span>()
-            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">it</span><span class="op">|</span> <span class="ident">UnresolvableConstant::incomplete_initialzation</span>(<span class="ident">it</span>)),
+            .<span class="ident">map</span>(<span class="ident">UnresolvableConstant::incomplete_initialzation</span>),
     );
 
     (<span class="ident">index</span>, <span class="ident">unresolvable</span>)

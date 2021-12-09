@@ -1318,17 +1318,6 @@
 <span id="1318">1318</span>
 <span id="1319">1319</span>
 <span id="1320">1320</span>
-<span id="1321">1321</span>
-<span id="1322">1322</span>
-<span id="1323">1323</span>
-<span id="1324">1324</span>
-<span id="1325">1325</span>
-<span id="1326">1326</span>
-<span id="1327">1327</span>
-<span id="1328">1328</span>
-<span id="1329">1329</span>
-<span id="1330">1330</span>
-<span id="1331">1331</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 <span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">lexer::IdProvider</span>, <span class="ident">typesystem::DataTypeInformation</span>};
 <span class="kw">use</span> <span class="ident">std</span>::{
@@ -1560,7 +1549,7 @@
     }
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Default</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">CompilationUnit</span> {
     <span class="kw">pub</span> <span class="ident">global_vars</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">VariableBlock</span><span class="op">&gt;</span>,
     <span class="kw">pub</span> <span class="ident">units</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Pou</span><span class="op">&gt;</span>,
@@ -1580,17 +1569,6 @@
         <span class="self">self</span>.<span class="ident">units</span>.<span class="ident">extend</span>(<span class="ident">other</span>.<span class="ident">units</span>);
         <span class="self">self</span>.<span class="ident">implementations</span>.<span class="ident">extend</span>(<span class="ident">other</span>.<span class="ident">implementations</span>);
         <span class="self">self</span>.<span class="ident">types</span>.<span class="ident">extend</span>(<span class="ident">other</span>.<span class="ident">types</span>);
-    }
-}
-
-<span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">CompilationUnit</span> {
-    <span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="ident">CompilationUnit</span> {
-            <span class="ident">global_vars</span>: <span class="ident">Vec::new</span>(),
-            <span class="ident">units</span>: <span class="ident">Vec::new</span>(),
-            <span class="ident">implementations</span>: <span class="ident">Vec::new</span>(),
-            <span class="ident">types</span>: <span class="ident">Vec::new</span>(),
-        }
     }
 }
 
@@ -2524,7 +2502,7 @@
         <span class="ident">AstStatement::ExpressionList</span> { <span class="ident">expressions</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">expressions</span>
             .<span class="ident">iter</span>()
             .<span class="ident">by_ref</span>()
-            .<span class="ident">flat_map</span>(<span class="op">|</span><span class="ident">statement</span><span class="op">|</span> <span class="ident">flatten_expression_list</span>(<span class="ident">statement</span>))
+            .<span class="ident">flat_map</span>(<span class="ident">flatten_expression_list</span>)
             .<span class="ident">collect</span>(),
         <span class="ident">AstStatement::MultipliedStatement</span> {
             <span class="ident">multiplier</span>,
