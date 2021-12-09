@@ -34,6 +34,9 @@ entry:
   %b = getelementptr inbounds %baz_interface, %baz_interface* %0, i32 0, i32 1
   %result = getelementptr inbounds %baz_interface, %baz_interface* %0, i32 0, i32 2
   %baz = alloca i16, align 2
+  store [81 x i8] zeroinitializer, [81 x i8]* %a, align 1
+  store [81 x i8] zeroinitializer, [81 x i8]* %b, align 1
+  store i1 false, i1* %result, align 1
   %STRING_EQUAL_instance = alloca %STRING_EQUAL_interface, align 8
   br label %input
 

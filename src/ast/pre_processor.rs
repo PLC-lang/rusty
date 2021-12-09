@@ -11,9 +11,9 @@ use std::{collections::HashMap, vec};
 
 pub fn pre_process(unit: &mut CompilationUnit, mut id_provider: IdProvider) {
     //process all local variables from POUs
-    for mut pou in unit.units.iter_mut() {
+    for pou in unit.units.iter_mut() {
         //Find all generic types in that pou
-        let generic_types = preprocess_generic_structs(&mut pou);
+        let generic_types = preprocess_generic_structs(pou);
         unit.types.extend(generic_types);
 
         let all_variables = pou
@@ -27,7 +27,7 @@ pub fn pre_process(unit: &mut CompilationUnit, mut id_provider: IdProvider) {
         }
 
         //Generate implicit type for returns
-        preprocess_return_type(&mut pou, &mut unit.types);
+        preprocess_return_type(pou, &mut unit.types);
     }
 
     //process all variables from GVLs
