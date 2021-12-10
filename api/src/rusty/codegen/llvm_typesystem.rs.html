@@ -725,7 +725,7 @@
                                 <span class="prelude-val">Ok</span>(<span class="ident">value</span>)
                             }
                         } <span class="kw">else</span> {
-                            <span class="macro">unreachable!</span>()
+                            <span class="prelude-val">Ok</span>(<span class="ident">value</span>) <span class="comment">//Don&#39;t break, just don&#39;t cast</span>
                         }
                     }
                 } <span class="kw">else</span> {
