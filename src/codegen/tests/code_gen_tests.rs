@@ -3954,9 +3954,10 @@ fn structs_members_can_be_referenced() {
     let expected = r#"; ModuleID = 'main'
 source_filename = "main"
 
-%MainProg_interface = type { %MyStruct }
 %MyStruct = type { i32, i32 }
+%MainProg_interface = type { %MyStruct }
 
+@MyStruct__init = global %MyStruct zeroinitializer
 @MainProg_instance = global %MainProg_interface zeroinitializer
 
 define void @MainProg(%MainProg_interface* %0) {
@@ -4167,6 +4168,7 @@ source_filename = "main"
 
 %__global_x = type { i32, i32 }
 
+@__global_x__init = global %__global_x zeroinitializer
 @x = global %__global_x zeroinitializer
 "#;
 
@@ -4205,10 +4207,12 @@ fn accessing_nested_structs() {
     let expected = r#"; ModuleID = 'main'
 source_filename = "main"
 
-%Main_interface = type { %OuterStruct }
-%OuterStruct = type { %InnerStruct, %InnerStruct }
 %InnerStruct = type { i16, i16 }
+%OuterStruct = type { %InnerStruct, %InnerStruct }
+%Main_interface = type { %OuterStruct }
 
+@InnerStruct__init = global %InnerStruct zeroinitializer
+@OuterStruct__init = global %OuterStruct zeroinitializer
 @Main_instance = global %Main_interface zeroinitializer
 
 define void @Main(%Main_interface* %0) {
@@ -4709,9 +4713,10 @@ fn accessing_nested_array_in_struct() {
     let expected = r#"; ModuleID = 'main'
 source_filename = "main"
 
-%Main_interface = type { %MyStruct }
 %MyStruct = type { [5 x i16] }
+%Main_interface = type { %MyStruct }
 
+@MyStruct__init = global %MyStruct zeroinitializer
 @Main_instance = global %Main_interface zeroinitializer
 
 define void @Main(%Main_interface* %0) {
@@ -4891,6 +4896,7 @@ source_filename = "main"
 
 %MyStruct = type { i16, i16, i1, i1, float, float }
 
+@MyStruct__init = global %MyStruct { i16 7, i16 0, i1 true, i1 false, float 0x400921CAC0000000, float 0.000000e+00 }
 @x = global %MyStruct { i16 7, i16 0, i1 true, i1 false, float 0x400921CAC0000000, float 0.000000e+00 }
 "#;
 
@@ -4929,6 +4935,7 @@ source_filename = "main"
 
 %MyStruct = type { i8, i8, i8, i16, i16, i16, i32, i32, i32, i64, i64, i64, float, double }
 
+@MyStruct__init = global %MyStruct { i8 7, i8 7, i8 7, i16 7, i16 7, i16 7, i32 7, i32 7, i32 7, i64 7, i64 7, i64 7, float 0x401ECCCCC0000000, double 7.700000e+00 }
 @x = global %MyStruct { i8 7, i8 7, i8 7, i16 7, i16 7, i16 7, i32 7, i32 7, i32 7, i64 7, i64 7, i64 7, float 0x401ECCCCC0000000, double 7.700000e+00 }
 "#;
 
@@ -5155,6 +5162,7 @@ source_filename = "main"
 
 %MyStruct = type { i32, i32 }
 
+@MyStruct__init = global %MyStruct zeroinitializer
 @a = global %MyStruct { i32 3, i32 5 }
 @b = global %MyStruct { i32 5, i32 3 }
 "#;
@@ -5192,9 +5200,11 @@ fn complex_initial_values_in_struct_variable_using_multiplied_statement() {
     let expected = r#"; ModuleID = 'main'
 source_filename = "main"
 
-%MyStruct = type { %MyPoint, [4 x i16], i32 }
 %MyPoint = type { i32, i32 }
+%MyStruct = type { %MyPoint, [4 x i16], i32 }
 
+@MyPoint__init = global %MyPoint zeroinitializer
+@MyStruct__init = global %MyStruct zeroinitializer
 @a = global %MyStruct { %MyPoint { i32 1, i32 2 }, [4 x i16] [i16 0, i16 1, i16 2, i16 3], i32 7 }
 "#;
 
@@ -5221,6 +5231,7 @@ source_filename = "main"
 
 %MyPoint = type { i32 }
 
+@MyPoint__init = global %MyPoint zeroinitializer
 @a = global %MyPoint { i32 7 }
 "#;
 
@@ -5280,6 +5291,7 @@ source_filename = "main"
 
 %Point = type { i32, i32, i32 }
 
+@Point__init = global %Point { i32 0, i32 0, i32 7 }
 @x = global %Point { i32 1, i32 2, i32 7 }
 "#;
     assert_eq!(expected, result);
@@ -5306,6 +5318,7 @@ source_filename = "main"
 
 %Point = type { i32, i32, i32 }
 
+@Point__init = global %Point { i32 0, i32 0, i32 3 }
 @x = global %Point { i32 1, i32 2, i32 3 }
 "#;
     assert_eq!(expected, result);

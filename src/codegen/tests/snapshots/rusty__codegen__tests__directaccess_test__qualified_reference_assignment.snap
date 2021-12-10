@@ -6,8 +6,10 @@ expression: prog
 ; ModuleID = 'main'
 source_filename = "main"
 
-%main_interface = type { %myStruct }
 %myStruct = type { i8 }
+%main_interface = type { %myStruct }
+
+@myStruct__init = global %myStruct { i8 1 }
 
 define i16 @main(%main_interface* %0) {
 entry:

@@ -252,6 +252,14 @@ fn visit_data_type(
                 information,
                 nature: TypeNature::Derived,
             });
+            let global_struct_name = format!("{}__init", name);
+            index.register_global_variable(
+                global_struct_name.as_str(),
+                type_name.as_str(),
+                init,
+                false, // TODO when true ?
+                type_declaration.location.clone(),
+            );
             for (count, var) in variables.iter().enumerate() {
                 if let DataTypeDeclaration::DataTypeDefinition {
                     data_type, scope, ..
