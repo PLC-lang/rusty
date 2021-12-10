@@ -325,7 +325,7 @@ pub fn cast_if_needed<'ctx>(
                                 Ok(value)
                             }
                         } else {
-                            unreachable!()
+                            Ok(value) //Don't break, just don't cast
                         }
                     }
                 } else {
