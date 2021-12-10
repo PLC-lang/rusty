@@ -256,3 +256,29 @@ fn function_result_assignment_on_string() {
 
     insta::assert_snapshot!(result);
 }
+
+#[test]
+fn function_result_assignment_on_aliased_string() {
+    let result = codegen(
+        r#"
+        TYPE MyStr : STRING[1000]; END_TYPE
+        TYPE LongStr : STRING[1024]; END_TYPE
+
+        @EXTERNAL
+        FUNCTION CONCAT : LongStr
+        VAR_INPUT a,b : LongStr; END_VAR
+        END_FUNCTION
+
+        FUNCTION LIST_ADD : BOOL
+        VAR_INPUT
+            INS : MyStr;
+            sx : STRING[1] := ' ';
+        END_VAR
+
+        INS := CONCAT(sx, INS);
+        END_FUNCTION
+        "#,
+    );
+
+    insta::assert_snapshot!(result);
+}
