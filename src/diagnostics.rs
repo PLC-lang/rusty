@@ -35,6 +35,7 @@ pub enum ErrNo {
 
     //general
     general__io_err,
+    general__param_err,
 
     //syntax
     syntax__generic_error,
@@ -76,6 +77,9 @@ pub enum ErrNo {
     codegen__general,
     codegen__missing_function,
     codegen__missing_compare_function,
+
+    //linker
+    linker__generic_error,
 }
 
 impl Diagnostic {
@@ -376,6 +380,13 @@ impl Diagnostic {
         }
     }
 
+    pub fn param_error(reason: &str) -> Diagnostic {
+        Diagnostic::GeneralError {
+            message: reason.to_string(),
+            err_no: ErrNo::general__param_err,
+        }
+    }
+
     pub fn llvm_error(file: &str, llvm_error: &LLVMString) -> Diagnostic {
         Diagnostic::GeneralError {
             message: format!(
@@ -435,6 +446,13 @@ impl Diagnostic {
             message: format!("Unknown type nature {}.", nature),
             range: location,
             err_no: ErrNo::type__unknown_nature,
+        }
+    }
+
+    pub fn link_error(error: &str) -> Diagnostic {
+        Diagnostic::GeneralError {
+            err_no: ErrNo::linker__generic_error,
+            message: error.to_string(),
         }
     }
 

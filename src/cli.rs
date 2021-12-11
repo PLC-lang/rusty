@@ -3,14 +3,7 @@ use encoding_rs::Encoding;
 use std::{ffi::OsStr, path::Path};
 use structopt::{clap::ArgGroup, StructOpt};
 
-#[derive(PartialEq, Debug)]
-pub enum FormatOption {
-    Static,
-    PIC,
-    Shared,
-    Bitcode,
-    IR,
-}
+use crate::FormatOption;
 
 // => Set the default output format here:
 const DEFAULT_FORMAT: FormatOption = FormatOption::Static;
@@ -55,6 +48,13 @@ pub struct CompileParameters {
 
     #[structopt(long = "static", group = "format", help = "Emit an object as output")]
     pub output_obj_code: bool,
+
+    #[structopt(
+        long = "relocatable",
+        group = "format",
+        help = "Emit an object as output"
+    )]
+    pub output_reloc_code: bool,
 
     #[structopt(
         long = "bc",
@@ -126,6 +126,8 @@ impl CompileParameters {
             Some(FormatOption::Shared)
         } else if self.output_obj_code {
             Some(FormatOption::Static)
+        } else if self.output_reloc_code {
+            Some(FormatOption::Relocatable)
         } else {
             None
         }
@@ -146,6 +148,7 @@ impl CompileParameters {
         } else {
             let ending = match out_format {
                 FormatOption::Bitcode => ".bc",
+                FormatOption::Relocatable => ".o",
                 FormatOption::Static if self.skip_linking => ".o",
                 FormatOption::Static => "",
                 FormatOption::Shared | FormatOption::PIC => ".so",
@@ -164,7 +167,8 @@ impl CompileParameters {
 
 #[cfg(test)]
 mod cli_tests {
-    use super::{CompileParameters, FormatOption, ParameterError};
+    use super::{CompileParameters, ParameterError};
+    use crate::FormatOption;
     use pretty_assertions::assert_eq;
     use structopt::clap::ErrorKind;
 
@@ -336,6 +340,7 @@ mod cli_tests {
         assert_eq!(parameters.output_obj_code, false);
         assert_eq!(parameters.output_pic_obj, false);
         assert_eq!(parameters.output_shared_obj, false);
+        assert_eq!(parameters.output_reloc_code, false);
 
         let parameters = CompileParameters::parse(vec_of_strings!("input.st", "--bc")).unwrap();
         assert_eq!(parameters.output_ir, false);
@@ -343,6 +348,7 @@ mod cli_tests {
         assert_eq!(parameters.output_obj_code, false);
         assert_eq!(parameters.output_pic_obj, false);
         assert_eq!(parameters.output_shared_obj, false);
+        assert_eq!(parameters.output_reloc_code, false);
 
         let parameters = CompileParameters::parse(vec_of_strings!("input.st", "--static")).unwrap();
         assert_eq!(parameters.output_ir, false);
@@ -350,6 +356,7 @@ mod cli_tests {
         assert_eq!(parameters.output_obj_code, true);
         assert_eq!(parameters.output_pic_obj, false);
         assert_eq!(parameters.output_shared_obj, false);
+        assert_eq!(parameters.output_reloc_code, false);
 
         let parameters = CompileParameters::parse(vec_of_strings!("input.st", "--pic")).unwrap();
         assert_eq!(parameters.output_ir, false);
@@ -357,6 +364,7 @@ mod cli_tests {
         assert_eq!(parameters.output_obj_code, false);
         assert_eq!(parameters.output_pic_obj, true);
         assert_eq!(parameters.output_shared_obj, false);
+        assert_eq!(parameters.output_reloc_code, false);
 
         let parameters = CompileParameters::parse(vec_of_strings!("input.st", "--shared")).unwrap();
         assert_eq!(parameters.output_ir, false);
@@ -364,6 +372,16 @@ mod cli_tests {
         assert_eq!(parameters.output_obj_code, false);
         assert_eq!(parameters.output_pic_obj, false);
         assert_eq!(parameters.output_shared_obj, true);
+        assert_eq!(parameters.output_reloc_code, false);
+
+        let parameters =
+            CompileParameters::parse(vec_of_strings!("input.st", "--relocatable")).unwrap();
+        assert_eq!(parameters.output_ir, false);
+        assert_eq!(parameters.output_bit_code, false);
+        assert_eq!(parameters.output_obj_code, false);
+        assert_eq!(parameters.output_pic_obj, false);
+        assert_eq!(parameters.output_shared_obj, false);
+        assert_eq!(parameters.output_reloc_code, true);
 
         let parameters = CompileParameters::parse(vec_of_strings!("input.st")).unwrap();
         assert_eq!(parameters.output_ir, false);
@@ -371,6 +389,7 @@ mod cli_tests {
         assert_eq!(parameters.output_obj_code, false);
         assert_eq!(parameters.output_pic_obj, false);
         assert_eq!(parameters.output_shared_obj, false);
+        assert_eq!(parameters.output_reloc_code, false);
     }
 
     #[test]
