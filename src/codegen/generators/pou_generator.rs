@@ -11,7 +11,6 @@ use crate::{
     diagnostics::{Diagnostic, INTERNAL_LLVM_ERROR},
     index::ImplementationType,
     resolver::AstAnnotations,
-    typesystem::DataTypeInformation,
 };
 
 /// The pou_generator contains functions to generate the code for POUs (PROGRAM, FUNCTION, FUNCTION_BLOCK)
@@ -318,40 +317,49 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
 
                 // for struct initializations we have a global struct variable with the initial values
                 // the idea is to memcpy the global struct variable
-                if let DataTypeInformation::Struct { .. } = self
+                let left_type_info = self
                     .index
-                    .get_type_information_or_void(variable.get_type_name())
-                {
-                    let struct_init_name = format!("{}__init", variable.get_type_name());
-                    let struct_init = self
-                        .llvm_index
-                        .find_associated_initial_value(struct_init_name.as_str())
-                        .ok_or_else(|| {
-                            Diagnostic::codegen_error(
-                                format!(
-                                    "Couldn't find struct initalizer for {}",
-                                    variable.get_type_name()
+                    .get_type_information_or_void(variable.get_type_name());
+                let struct_init_name = format!("{}__init", variable.get_type_name());
+                let struct_init = self
+                    .llvm_index
+                    .find_associated_initial_value(struct_init_name.as_str());
+                // first check if we have a global init var, class references are also structs but don't have an init var
+                if let Some(struct_init) = struct_init {
+                    if left_type_info.is_struct() {
+                        let size = self
+                            .llvm_index
+                            .find_associated_type(variable.get_type_name())
+                            .ok_or_else(|| {
+                                Diagnostic::codegen_error(
+                                    format!(
+                                        "Couldn't find associated type for {}",
+                                        variable.get_type_name()
+                                    )
+                                    .as_str(),
+                                    variable.source_location.clone(),
                                 )
-                                .as_str(),
-                                variable.source_location.clone(),
-                            )
-                        })?
-                        .into_pointer_value();
+                            })?
+                            .into_struct_type()
+                            .size_of()
+                            .ok_or_else(|| {
+                                Diagnostic::codegen_error(
+                                    format!(
+                                        "Couldn't get type size of {}",
+                                        variable.get_type_name()
+                                    )
+                                    .as_str(),
+                                    variable.source_location.clone(),
+                                )
+                            })?;
 
-                    let size = std::cmp::min(32, 32) as i64; // TODO: correct size
-
-                    self.llvm
-                        .builder
-                        .build_memcpy(
-                            left,
-                            1,
-                            struct_init,
-                            1,
-                            self.llvm.context.i32_type().const_int(size as u64, true),
-                        )
-                        .map_err(|err| {
-                            Diagnostic::codegen_error(err, variable.source_location.clone())
-                        })?;
+                        self.llvm
+                            .builder
+                            .build_memcpy(left, 1, struct_init.into_pointer_value(), 1, size)
+                            .map_err(|err| {
+                                Diagnostic::codegen_error(err, variable.source_location.clone())
+                            })?;
+                    }
                 } else {
                     let right_stmt = match variable.initial_value {
                         Some(..) => Some(
