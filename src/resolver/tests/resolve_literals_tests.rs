@@ -3,7 +3,10 @@ use crate::{
     ast::AstStatement,
     resolver::{AnnotationMap, TypeAnnotator},
     test_utils::tests::{annotate, index},
-    typesystem::{DataTypeInformation, CONST_STRING_TYPE, CONST_WSTRING_TYPE, DINT_TYPE},
+    typesystem::{
+        DataTypeInformation, StringEncoding, TypeSize, CONST_STRING_TYPE, CONST_WSTRING_TYPE,
+        DINT_TYPE,
+    },
 };
 
 #[test]
@@ -428,7 +431,7 @@ fn expression_list_as_array_initilization_is_annotated_correctly() {
         "
 			VAR_GLOBAL
 				a : ARRAY[0..2] OF INT := 1+1,2;
-				b : ARRAY[0..2] OF STRING := 'ABC','DEF';
+				b : ARRAY[0..2] OF STRING[3] := 'ABC','D';
 			END_VAR
 		",
     );
@@ -466,15 +469,15 @@ fn expression_list_as_array_initilization_is_annotated_correctly() {
     // all expressions should be annotated with the right type [STRING]
     if let AstStatement::ExpressionList { expressions, .. } = b_init {
         for exp in expressions {
-            if let Some(data_type) = annotations.get_type_hint(exp, &index) {
-                let type_info = data_type.get_type_information();
-                assert_eq!(
-                    true,
-                    matches!(type_info, DataTypeInformation::String { .. })
-                )
-            } else {
-                unreachable!();
-            }
+            let data_type = annotations.get_type_hint(exp, &index).unwrap();
+            let type_info = data_type.get_type_information();
+            assert_eq!(
+                type_info,
+                &DataTypeInformation::String {
+                    encoding: StringEncoding::Utf8,
+                    size: TypeSize::from_literal(4),
+                }
+            )
         }
     } else {
         unreachable!();

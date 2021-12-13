@@ -1,0 +1,10 @@
+---
+source: src/codegen/tests/code_gen_tests.rs
+expression: result
+
+---
+; ModuleID = 'main'
+source_filename = "main"
+
+@b = global [11 x i8] c"Monday\00"
+

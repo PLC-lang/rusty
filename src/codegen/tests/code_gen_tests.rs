@@ -5163,6 +5163,37 @@ source_filename = "main"
 }
 
 #[test]
+fn initial_values_in_string_type() {
+    let result = codegen(
+        "
+    TYPE DAY : STRING[10] := 'Monday';
+    END_TYPE
+
+    VAR_GLOBAL 
+      b : DAY;
+    END_VAR",
+    );
+
+    insta::assert_snapshot!(result);
+}
+
+#[test]
+fn initial_values_in_string_array_type() {
+    let result = codegen(
+        "
+    TYPE DAYS :
+      ARRAY[0..6] OF STRING[10] := ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+    END_TYPE
+
+    VAR_GLOBAL 
+      a : DAYS;
+    END_VAR",
+    );
+
+    insta::assert_snapshot!(result);
+}
+
+#[test]
 fn complex_initial_values_in_struct_variable_using_multiplied_statement() {
     let result = codegen(
         "

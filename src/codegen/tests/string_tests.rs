@@ -156,3 +156,37 @@ fn variable_length_strings_using_constants_can_be_created() {
 
     insta::assert_snapshot!(result);
 }
+
+//from OSCAT
+#[test]
+fn nested_struct_initialization_of_multi_dim_string_arrays() {
+    let result = codegen(
+        r#"
+        TYPE CONSTANTS_LANGUAGE :
+        STRUCT
+            (* Language Setup *)
+            DEFAULT : INT := 1; (* 1=english, 2=german 3=french *)
+            LMAX : INT := 3;
+            WEEKDAYS : ARRAY[1..3, 1..7] OF STRING[10] :=	['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday',
+                                                            'Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag', 'Sonntag',
+                                                            'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'];
+            WEEKDAYS2 : ARRAY[1..3, 1..7] OF STRING[2] :=	['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su',
+                                                            'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So',
+                                                            'Lu', 'Ma', 'Me', 'Je', 'Ve', 'Sa', 'Di'];
+            MONTHS : ARRAY[1..3, 1..12] OF STRING[10] :=	['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December',
+                                                            'Januar', 'Februar', 'M�rz', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember',
+                                                            'Janvier', 'F�vrier', 'mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Ao�t', 'Septembre', 'Octobre', 'Novembre', 'Decembre'];
+            MONTHS3 : ARRAY[1..3, 1..12] OF STRING[3] :=	['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+                                                            'Jan', 'Feb', 'Mrz', 'Apr', 'Mai', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dez',
+                                                            'Jan', 'Fev', 'Mar', 'Avr', 'Mai', 'Jun', 'Jul', 'Aou', 'Sep', 'Oct', 'Nov', 'Dec'];
+            DIRS : ARRAY[1..3,0..15] OF STRING[3] :=		['N', 'NNE', 'NE', 'ENE', 'E', 'ESE', 'SE', 'SSE', 'S', 'SSW', 'SW', 'WSW', 'W', 'WNW', 'NW', 'NNW',
+                                                            'N', 'NNO', 'NO', 'ONO', 'O', 'OSO', 'SO', 'SSO', 'S', 'SSW', 'SW', 'WSW', 'W', 'WNW', 'NW', 'NNW',
+                                                            'N', 'NNO', 'NO', 'ONO', 'O', 'OSO', 'SO', 'SSO', 'S', 'SSW', 'SW', 'WSW', 'W', 'WNW', 'NW', 'NNW'];
+        END_STRUCT
+        END_TYPE
+
+        VAR_GLOBAL x : CONSTANTS_LANGUAGE; END_VAR
+        "#,
+    );
+    insta::assert_snapshot!(result);
+}

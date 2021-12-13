@@ -1489,10 +1489,9 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
             .ok_or_else(|| {
                 Diagnostic::codegen_error("Cannot generate empty array", location.clone())
             }) //TODO
-            .and_then(|it| self.get_type_hint_info_for(it))?;
+            .and_then(|it| self.get_type_hint_for(it))?;
 
         let llvm_type = self.llvm_index.get_associated_type(inner_type.get_name())?;
-
         let mut v = Vec::new();
         for e in elements {
             //generate with correct type hint
