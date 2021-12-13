@@ -11,6 +11,7 @@ use crate::{
     diagnostics::{Diagnostic, INTERNAL_LLVM_ERROR},
     index::ImplementationType,
     resolver::AstAnnotations,
+    typesystem::DataTypeInformation,
 };
 
 /// The pou_generator contains functions to generate the code for POUs (PROGRAM, FUNCTION, FUNCTION_BLOCK)
@@ -315,36 +316,74 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                     local_llvm_index,
                 );
 
-                let right_stmt = match variable.initial_value {
-                    Some(..) => Some(
-                        self.index
-                            .get_const_expressions()
-                            .maybe_get_constant_statement(&variable.initial_value)
+                // for struct initializations we have a global struct variable with the initial values
+                // the idea is to memcpy the global struct variable
+                if let DataTypeInformation::Struct { .. } = self
+                    .index
+                    .get_type_information_or_void(variable.get_type_name())
+                {
+                    let struct_init_name = format!("{}__init", variable.get_type_name());
+                    let struct_init = self
+                        .llvm_index
+                        .find_associated_initial_value(struct_init_name.as_str())
+                        .ok_or_else(|| {
+                            Diagnostic::codegen_error(
+                                format!(
+                                    "Couldn't find struct initalizer for {}",
+                                    variable.get_type_name()
+                                )
+                                .as_str(),
+                                variable.source_location.clone(),
+                            )
+                        })?
+                        .into_pointer_value();
+
+                    let size = std::cmp::min(32, 32) as i64; // TODO: correct size
+
+                    self.llvm
+                        .builder
+                        .build_memcpy(
+                            left,
+                            1,
+                            struct_init,
+                            1,
+                            self.llvm.context.i32_type().const_int(size as u64, true),
+                        )
+                        .map_err(|err| {
+                            Diagnostic::codegen_error(err, variable.source_location.clone())
+                        })?;
+                } else {
+                    let right_stmt = match variable.initial_value {
+                        Some(..) => Some(
+                            self.index
+                                .get_const_expressions()
+                                .maybe_get_constant_statement(&variable.initial_value)
+                                .ok_or_else(|| {
+                                    Diagnostic::cannot_generate_initializer(
+                                        variable.get_qualified_name(),
+                                        variable.source_location.clone(),
+                                    )
+                                })?,
+                        ),
+                        None => None,
+                    };
+
+                    let right_exp = match right_stmt {
+                        Some(stmt) => exp_gen.generate_expression(stmt)?,
+                        None => self
+                            .llvm_index
+                            .find_associated_type(variable.get_type_name())
+                            .map(get_default_for)
                             .ok_or_else(|| {
                                 Diagnostic::cannot_generate_initializer(
                                     variable.get_qualified_name(),
                                     variable.source_location.clone(),
                                 )
                             })?,
-                    ),
-                    None => None,
-                };
+                    };
 
-                let right_exp = match right_stmt {
-                    Some(stmt) => exp_gen.generate_expression(stmt)?,
-                    None => self
-                        .llvm_index
-                        .find_associated_type(variable.get_type_name())
-                        .map(get_default_for)
-                        .ok_or_else(|| {
-                            Diagnostic::cannot_generate_initializer(
-                                variable.get_qualified_name(),
-                                variable.source_location.clone(),
-                            )
-                        })?,
-                };
-
-                self.llvm.builder.build_store(left, right_exp);
+                    self.llvm.builder.build_store(left, right_exp);
+                }
             } else {
                 return Err(Diagnostic::cannot_generate_initializer(
                     variable.get_qualified_name(),
