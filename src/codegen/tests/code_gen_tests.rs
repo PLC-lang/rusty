@@ -5779,3 +5779,31 @@ fn default_values_for_not_initialized_function_vars() {
     );
     insta::assert_snapshot!(result);
 }
+
+#[test]
+fn memcpy_for_struct_initialization_in_function() {
+    let result = codegen(
+        "
+		FUNCTION func : INT
+		VAR
+			a : STRUCT x : INT := 1; END_STRUCT
+		END_VAR
+		END_FUNCTION
+		",
+    );
+    insta::assert_snapshot!(result);
+}
+
+#[test]
+fn no_memcpy_for_struct_initialization_in_program() {
+    let result = codegen(
+        "
+		PROGRAM prog
+		VAR
+			a : STRUCT x : INT := 1; END_STRUCT
+		END_VAR
+		END_PROGRAM
+		",
+    );
+    insta::assert_snapshot!(result);
+}

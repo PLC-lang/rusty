@@ -1,0 +1,20 @@
+---
+source: src/codegen/tests/code_gen_tests.rs
+expression: result
+
+---
+; ModuleID = 'main'
+source_filename = "main"
+
+%__prog_a = type { i16 }
+%prog_interface = type { %__prog_a }
+
+@__prog_a__init = global %__prog_a { i16 1 }
+@prog_instance = global %prog_interface { %__prog_a { i16 1 } }
+
+define void @prog(%prog_interface* %0) {
+entry:
+  %a = getelementptr inbounds %prog_interface, %prog_interface* %0, i32 0, i32 0
+  ret void
+}
+
