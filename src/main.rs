@@ -18,7 +18,7 @@
 //! [`IEC61131-3`]: https://en.wikipedia.org/wiki/IEC_61131-3
 //! [`IR`]: https://llvm.org/docs/LangRef.html
 
-use rusty::build;
+use rusty::build_with_params;
 use rusty::cli::{CompileParameters, ParameterError};
 
 fn main() {
@@ -28,7 +28,7 @@ fn main() {
         CompileParameters::parse(args);
     match compile_parameters {
         Ok(cp) => {
-            if let Err(msg) = build(cp) {
+            if let Err(msg) = build_with_params(cp) {
                 println!("Error: {:?}", msg);
                 std::process::exit(1);
             }

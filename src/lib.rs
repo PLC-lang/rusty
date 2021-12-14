@@ -67,6 +67,12 @@ pub enum FormatOption {
     IR,
 }
 
+#[derive(PartialEq, Debug, Clone, Copy)]
+pub enum LinkOption {
+    Link,
+    Compile,
+}
+
 /// SourceContainers offer source-code to be compiled via the load_source function.
 /// Furthermore it offers a location-String used when reporting diagnostics.
 pub trait SourceContainer {
@@ -78,6 +84,18 @@ pub trait SourceContainer {
 
 pub struct FilePath {
     pub path: String,
+}
+
+impl From<String> for FilePath {
+    fn from(it: String) -> Self {
+        FilePath{ path : it }
+    }
+}
+
+impl From<&str> for FilePath {
+    fn from(it: &str) -> Self {
+        FilePath{ path : it.into() }
+    }
 }
 
 impl FilePath {
@@ -453,11 +471,50 @@ fn create_file_paths(inputs: &[String]) -> Result<Vec<FilePath>, Diagnostic> {
 /// Links all provided object files with the compilation result
 /// Links any provided libraries
 /// Returns the location of the output file
-pub fn build(parameters: CompileParameters) -> Result<(), Diagnostic> {
+pub fn build_with_params(parameters: CompileParameters) -> Result<(), Diagnostic> {
     let files = create_file_paths(&parameters.input)?;
+    let output = parameters
+        .output_name()
+        .ok_or_else(|| Diagnostic::param_error("Missing parameter: output-name"))?;
+    let out_format = parameters.output_format_or_default();
+    let link_options = if !parameters.skip_linking {
+        LinkOption::Link
+    } else {
+        LinkOption::Compile
+    };
+
+    build(
+        files,
+        &output,
+        out_format,
+        parameters.target,
+        link_options,
+        parameters.libraries,
+        parameters.library_pathes,
+        parameters.sysroot,
+        parameters.encoding,
+    )
+}
+
+/// The driver function for the compilation
+/// Sorts files that need compilation
+/// Parses, validates and generates code for the given source files
+/// Links all provided object files with the compilation result
+/// Links any provided libraries
+/// Returns the location of the output file
+pub fn build(
+    files: Vec<FilePath>,
+    output: &str,
+    out_format: FormatOption,
+    target: Option<String>,
+    link_options: LinkOption,
+    libraries: Vec<String>,
+    library_pathes: Vec<String>,
+    sysroot: Option<String>,
+    encoding: Option<&'static Encoding>,
+) -> Result<(), Diagnostic> {
     let mut objects = vec![];
     let mut sources = vec![];
-
     files.into_iter().for_each(|it| {
         if it.is_object() {
             objects.push(it);
@@ -466,30 +523,22 @@ pub fn build(parameters: CompileParameters) -> Result<(), Diagnostic> {
         }
     });
 
-    let target = &parameters.target;
-
-    let output = parameters
-        .output_name()
-        .ok_or_else(|| Diagnostic::param_error("Missing parameter: output-name"))?;
-    let encoding = parameters.encoding;
-
-    let out_format = parameters.output_format_or_default();
     if !sources.is_empty() {
         compile(&output, out_format, sources, encoding, target.clone())?;
-        objects.push(FilePath {
-            path: output.clone(),
-        });
+        objects.push(
+            output.into()
+        );
     }
 
-    if !parameters.skip_linking {
+    if matches!(link_options, LinkOption::Link) {
         link(
-            &output,
+            output,
             out_format,
             objects,
-            parameters.library_pathes,
-            parameters.libraries,
-            target.clone(),
-            parameters.sysroot,
+            library_pathes,
+            libraries,
+            target,
+            sysroot,
         )?;
     }
 
