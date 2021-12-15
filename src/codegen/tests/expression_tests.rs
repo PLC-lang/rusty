@@ -301,3 +301,20 @@ fn cast_lword_to_pointer() {
     //should result in normal number-comparisons
     insta::assert_snapshot!(result);
 }
+
+#[test]
+fn pointer_addition() {
+    let result = codegen(
+        "
+		PROGRAM main
+		VAR
+			x : INT := 10;
+			pt : REF_TO INT;
+		END_VAR
+		pt := &(x);
+		pt := pt + 1;
+		END_PROGRAM
+		",
+    );
+    insta::assert_snapshot!(result);
+}

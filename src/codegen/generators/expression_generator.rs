@@ -213,6 +213,18 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                         self.generate_expression(left)?,
                         self.generate_expression(right)?,
                     ))
+                } else if ltype.is_pointer() && rtype.is_int() {
+                    let int_type = self.llvm.context.i32_type();
+                    let left_expr = self
+                        .generate_expression(left)?
+                        .into_pointer_value()
+                        .const_to_int(int_type)
+                        .as_basic_value_enum();
+                    Ok(self.create_llvm_int_binary_expression(
+                        operator,
+                        left_expr,
+                        self.generate_expression(right)?,
+                    ))
                 } else {
                     self.create_llvm_generic_binary_expression(operator, left, right, expression)
                 }
