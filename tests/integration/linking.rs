@@ -236,7 +236,7 @@ fn link_missing_file() {
 
     match res {
         Err(err) => {
-            assert_eq!(Diagnostic::link_error("lld: error: undefined symbol: func2\n>>> referenced by main\n>>>               /tmp/missing.o:(func1)\n>>> did you mean: func1\n>>> defined in: /tmp/missing.o\n"), err);
+            assert_eq!(Diagnostic::link_error(&format!("lld: error: undefined symbol: func2\n>>> referenced by main\n>>>               {}:(func1)\n>>> did you mean: func1\n>>> defined in: /tmp/missing.o\n",out)), err);
         }
         _ => panic!("Expected link failure"),
     }
