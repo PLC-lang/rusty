@@ -67,10 +67,16 @@ pub enum FormatOption {
     IR,
 }
 
-#[derive(PartialEq, Debug, Clone, Copy)]
-pub enum LinkOption {
-    Link,
-    Compile,
+pub struct CompileOptions {
+    pub format: FormatOption,
+    pub output: String,
+    pub target: Option<String>,
+}
+
+pub struct LinkOptions {
+    pub libraries: Vec<String>,
+    pub library_pathes: Vec<String>,
+    pub sysroot: Option<String>,
 }
 
 /// SourceContainers offer source-code to be compiled via the load_source function.
@@ -88,13 +94,13 @@ pub struct FilePath {
 
 impl From<String> for FilePath {
     fn from(it: String) -> Self {
-        FilePath{ path : it }
+        FilePath { path: it }
     }
 }
 
 impl From<&str> for FilePath {
     fn from(it: &str) -> Self {
-        FilePath{ path : it.into() }
+        FilePath { path: it.into() }
     }
 }
 
@@ -477,23 +483,22 @@ pub fn build_with_params(parameters: CompileParameters) -> Result<(), Diagnostic
         .output_name()
         .ok_or_else(|| Diagnostic::param_error("Missing parameter: output-name"))?;
     let out_format = parameters.output_format_or_default();
+    let compile_options = CompileOptions {
+        output,
+        target: parameters.target,
+        format: out_format,
+    };
     let link_options = if !parameters.skip_linking {
-        LinkOption::Link
+        Some(LinkOptions {
+            libraries: parameters.libraries,
+            library_pathes: parameters.library_pathes,
+            sysroot: parameters.sysroot,
+        })
     } else {
-        LinkOption::Compile
+        None
     };
 
-    build(
-        files,
-        &output,
-        out_format,
-        parameters.target,
-        link_options,
-        parameters.libraries,
-        parameters.library_pathes,
-        parameters.sysroot,
-        parameters.encoding,
-    )
+    build(files, compile_options, link_options, parameters.encoding)
 }
 
 /// The driver function for the compilation
@@ -504,13 +509,8 @@ pub fn build_with_params(parameters: CompileParameters) -> Result<(), Diagnostic
 /// Returns the location of the output file
 pub fn build(
     files: Vec<FilePath>,
-    output: &str,
-    out_format: FormatOption,
-    target: Option<String>,
-    link_options: LinkOption,
-    libraries: Vec<String>,
-    library_pathes: Vec<String>,
-    sysroot: Option<String>,
+    compile_options: CompileOptions,
+    link_options: Option<LinkOptions>,
     encoding: Option<&'static Encoding>,
 ) -> Result<(), Diagnostic> {
     let mut objects = vec![];
@@ -524,21 +524,25 @@ pub fn build(
     });
 
     if !sources.is_empty() {
-        compile(&output, out_format, sources, encoding, target.clone())?;
-        objects.push(
-            output.into()
-        );
+        compile(
+            &compile_options.output,
+            compile_options.format,
+            sources,
+            encoding,
+            compile_options.target.clone(),
+        )?;
+        objects.push(compile_options.output.as_str().into());
     }
 
-    if matches!(link_options, LinkOption::Link) {
+    if let Some(link_options) = link_options {
         link(
-            output,
-            out_format,
+            &compile_options.output,
+            compile_options.format,
             objects,
-            library_pathes,
-            libraries,
-            target,
-            sysroot,
+            link_options.library_pathes,
+            link_options.libraries,
+            compile_options.target,
+            link_options.sysroot,
         )?;
     }
 

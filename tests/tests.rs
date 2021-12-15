@@ -48,8 +48,8 @@ mod correctness {
 
 mod integration {
     mod external_files;
-    mod multi_files;
     mod linking;
+    mod multi_files;
 }
 
 #[macro_export]
