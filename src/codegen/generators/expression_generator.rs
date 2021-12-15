@@ -213,16 +213,13 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                         self.generate_expression(left)?,
                         self.generate_expression(right)?,
                     ))
-                } else if ltype.is_pointer() && rtype.is_int() {
-                    let int_type = self.llvm.context.i32_type();
-                    let left_expr = self
-                        .generate_expression(left)?
-                        .into_pointer_value()
-                        .const_to_int(int_type)
-                        .as_basic_value_enum();
-                    Ok(self.create_llvm_int_binary_expression(
+                } else if (ltype.is_pointer() && rtype.is_int())
+                    || (ltype.is_int() && rtype.is_pointer())
+                    || (ltype.is_pointer() && rtype.is_pointer())
+                {
+                    Ok(self.create_llvm_binary_expression_for_pointer(
                         operator,
-                        left_expr,
+                        self.generate_expression(left)?,
                         self.generate_expression(right)?,
                     ))
                 } else {
@@ -1018,6 +1015,29 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                     access.get_location(),
                 ))
             })
+    }
+
+    pub fn create_llvm_binary_expression_for_pointer(
+        &self,
+        operator: &Operator,
+        left_value: BasicValueEnum<'a>,
+        right_value: BasicValueEnum<'a>,
+    ) -> BasicValueEnum<'a> {
+        let int_type = self.llvm.i32_type();
+
+        let left = if let BasicValueEnum::PointerValue(v) = left_value {
+            v.const_to_int(int_type).as_basic_value_enum()
+        } else {
+            left_value
+        };
+
+        let right = if let BasicValueEnum::PointerValue(v) = right_value {
+            v.const_to_int(int_type).as_basic_value_enum()
+        } else {
+            right_value
+        };
+
+        self.create_llvm_int_binary_expression(operator, left, right)
     }
 
     /// generates the result of an int/bool binary-expression (+, -, *, /, %, ==)

@@ -17,6 +17,11 @@ entry:
   store i16* %x, i16** %pt, align 8
   %load_pt = load i16*, i16** %pt, align 8
   store i32 add (i32 ptrtoint (i16* %load_pt to i32), i32 1), i16** %pt, align 4
+  %load_pt1 = load i16*, i16** %pt, align 8
+  store i32 add (i32 ptrtoint (i16* %load_pt1 to i32), i32 1), i16** %pt, align 4
+  %load_pt2 = load i16*, i16** %pt, align 8
+  %load_pt3 = load i16*, i16** %pt, align 8
+  store i32 add (i32 ptrtoint (i16* %load_pt2 to i32), i32 ptrtoint (i16* %load_pt3 to i32)), i16** %pt, align 4
   ret void
 }
 

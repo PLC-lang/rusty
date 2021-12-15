@@ -303,7 +303,8 @@ fn cast_lword_to_pointer() {
 }
 
 #[test]
-fn pointer_addition() {
+fn pointer_arithmetics() {
+    // codegen should be successful for binary expression for pointer<->int / int<->pointer / pointer<->pointer
     let result = codegen(
         "
 		PROGRAM main
@@ -313,6 +314,8 @@ fn pointer_addition() {
 		END_VAR
 		pt := &(x);
 		pt := pt + 1;
+		pt := 1 + pt;
+		pt := pt + pt;
 		END_PROGRAM
 		",
     );

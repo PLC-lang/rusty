@@ -222,3 +222,30 @@ fn enums_can_be_compared() {
     let _: i32 = compile_and_run(function, &mut main);
     assert_eq!([true, true, true], [main.a, main.b, main.c]);
 }
+
+#[test]
+fn binary_expressions_for_pointers() {
+    #[derive(Default)]
+    struct Main {
+        a: char,
+    }
+
+    let function = "
+	VAR_GLOBAL
+		arr : ARRAY[0..3] OF CHAR := ['a','b','c','d'];
+		ptr : REF_TO CHAR;
+	END_VAR
+
+	PROGRAM main
+	VAR
+		a : CHAR;
+	END_VAR
+		ptr := &(arr);
+		ptr := ptr + 2;
+		a := ptr^;
+	END_PROGRAM
+	";
+    let mut main = Main::default();
+    let _: i32 = compile_and_run(function, &mut main);
+    assert_eq!(main.a, 'c');
+}
