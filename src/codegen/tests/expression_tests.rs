@@ -310,12 +310,24 @@ fn pointer_arithmetics() {
 		PROGRAM main
 		VAR
 			x : INT := 10;
+			y : INT := 20;
 			pt : REF_TO INT;
+			comp : BOOL;
 		END_VAR
 		pt := &(x);
+
+		(* +/- *)
 		pt := pt + 1;
 		pt := 1 + pt;
-		pt := pt + pt;
+		pt := pt - y;
+
+		(* compare pointer-pointer / pointer-int *)
+		comp := pt = pt;
+		comp := pt <> y;
+		comp := pt < pt;
+		comp := pt > y;
+		comp := pt <= pt;
+		comp := y >= pt;
 		END_PROGRAM
 		",
     );

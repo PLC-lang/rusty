@@ -217,11 +217,9 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                     || (ltype.is_int() && rtype.is_pointer())
                     || (ltype.is_pointer() && rtype.is_pointer())
                 {
-                    Ok(self.create_llvm_binary_expression_for_pointer(
-                        operator,
-                        self.generate_expression(left)?,
-                        self.generate_expression(right)?,
-                    ))
+                    self.create_llvm_binary_expression_for_pointer(
+                        operator, left, ltype, right, rtype, expression,
+                    )
                 } else {
                     self.create_llvm_generic_binary_expression(operator, left, right, expression)
                 }
@@ -1017,27 +1015,133 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
             })
     }
 
+    /// generates the result of an pointer binary-expression
+    ///
+    /// - `operator` the binary operator
+    /// - `left` the left side of the binary expression, needs to be an pointer/int-value
+    /// - `left_type` DataTypeInformation of the left side
+    /// - `right` the right side of the binary expression, needs to be an pointer/int-value
+    /// - `right_type` DataTypeInformation of the right side
+    /// - `expression` the binary expression
     pub fn create_llvm_binary_expression_for_pointer(
         &self,
         operator: &Operator,
-        left_value: BasicValueEnum<'a>,
-        right_value: BasicValueEnum<'a>,
-    ) -> BasicValueEnum<'a> {
-        let int_type = self.llvm.i32_type();
+        left: &AstStatement,
+        left_type: &DataTypeInformation,
+        right: &AstStatement,
+        right_type: &DataTypeInformation,
+        expression: &AstStatement,
+    ) -> Result<BasicValueEnum<'a>, Diagnostic> {
+        let left_expr = self.generate_expression(left)?;
+        let right_expr = self.generate_expression(right)?;
 
-        let left = if let BasicValueEnum::PointerValue(v) = left_value {
-            v.const_to_int(int_type).as_basic_value_enum()
-        } else {
-            left_value
+        let result = match operator {
+            Operator::Plus | Operator::Minus => {
+                let (ptr, index, name) = if left_type.is_pointer() && right_type.is_int() {
+                    let ptr = left_expr.into_pointer_value();
+                    let index = right_expr.into_int_value();
+                    let name = format!("access_{}", left_type.get_name());
+                    (Some(ptr), Some(index), Some(name))
+                } else if left_type.is_int() && right_type.is_pointer() {
+                    let ptr = right_expr.into_pointer_value();
+                    let index = left_expr.into_int_value();
+                    let name = format!("access_{}", right_type.get_name());
+                    (Some(ptr), Some(index), Some(name))
+                } else {
+                    // if left and right are both pointers we can not perform plus/minus
+                    (None, None, None)
+                };
+
+                if let (Some(ptr), Some(index), Some(name)) = (ptr, index, name) {
+                    Ok(self
+                        .llvm
+                        .load_array_element(ptr, &[index], name.as_str())?
+                        .as_basic_value_enum())
+                } else {
+                    Err(Diagnostic::codegen_error(
+                        format!("'{}' operation must contain one int type", operator).as_str(),
+                        expression.get_location(),
+                    ))
+                }
+            }
+            Operator::Equal => Ok(self
+                .llvm
+                .builder
+                .build_int_compare(
+                    IntPredicate::EQ,
+                    self.convert_to_int_value_if_pointer(left_expr),
+                    self.convert_to_int_value_if_pointer(right_expr),
+                    "tmpVar",
+                )
+                .as_basic_value_enum()),
+            Operator::NotEqual => Ok(self
+                .llvm
+                .builder
+                .build_int_compare(
+                    IntPredicate::NE,
+                    self.convert_to_int_value_if_pointer(left_expr),
+                    self.convert_to_int_value_if_pointer(right_expr),
+                    "tmpVar",
+                )
+                .as_basic_value_enum()),
+            Operator::Less => Ok(self
+                .llvm
+                .builder
+                .build_int_compare(
+                    IntPredicate::SLT,
+                    self.convert_to_int_value_if_pointer(left_expr),
+                    self.convert_to_int_value_if_pointer(right_expr),
+                    "tmpVar",
+                )
+                .as_basic_value_enum()),
+            Operator::Greater => Ok(self
+                .llvm
+                .builder
+                .build_int_compare(
+                    IntPredicate::SGT,
+                    self.convert_to_int_value_if_pointer(left_expr),
+                    self.convert_to_int_value_if_pointer(right_expr),
+                    "tmpVar",
+                )
+                .as_basic_value_enum()),
+            Operator::LessOrEqual => Ok(self
+                .llvm
+                .builder
+                .build_int_compare(
+                    IntPredicate::SLE,
+                    self.convert_to_int_value_if_pointer(left_expr),
+                    self.convert_to_int_value_if_pointer(right_expr),
+                    "tmpVar",
+                )
+                .as_basic_value_enum()),
+            Operator::GreaterOrEqual => Ok(self
+                .llvm
+                .builder
+                .build_int_compare(
+                    IntPredicate::SGE,
+                    self.convert_to_int_value_if_pointer(left_expr),
+                    self.convert_to_int_value_if_pointer(right_expr),
+                    "tmpVar",
+                )
+                .as_basic_value_enum()),
+            _ => Err(Diagnostic::codegen_error(
+                format!("Operator '{}' unimplemented for pointers", operator).as_str(),
+                expression.get_location(),
+            )),
         };
 
-        let right = if let BasicValueEnum::PointerValue(v) = right_value {
-            v.const_to_int(int_type).as_basic_value_enum()
-        } else {
-            right_value
-        };
+        result
+    }
 
-        self.create_llvm_int_binary_expression(operator, left, right)
+    pub fn convert_to_int_value_if_pointer(&self, value: BasicValueEnum<'a>) -> IntValue<'a> {
+        match value {
+            BasicValueEnum::PointerValue(v) => {
+                let int_type = v.get_type().size_of().get_type();
+                v.const_to_int(int_type)
+            }
+            BasicValueEnum::IntValue(v) => v,
+            _ => unimplemented!(),
+        }
     }
 
     /// generates the result of an int/bool binary-expression (+, -, *, /, %, ==)
