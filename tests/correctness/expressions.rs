@@ -227,25 +227,56 @@ fn enums_can_be_compared() {
 fn binary_expressions_for_pointers() {
     #[derive(Default)]
     struct Main {
-        a: char,
+        a: u8,
+        b: u8,
+        equal: bool,
+        not_equal: bool,
+        less: bool,
+        greater: bool,
+        less_or_equal: bool,
+        greater_or_equal: bool,
     }
 
     let function = "
-	VAR_GLOBAL
-		arr : ARRAY[0..3] OF CHAR := ['a','b','c','d'];
-		ptr : REF_TO CHAR;
-	END_VAR
-
 	PROGRAM main
 	VAR
 		a : CHAR;
+		b : CHAR;
+		equal : BOOL;
+		not_equal : BOOL;
+		less : BOOL;
+		greater : BOOL;
+		less_or_equal : BOOL;
+		greater_or_equal : BOOL;
+	END_VAR
+	VAR_TEMP
+		arr : ARRAY[0..3] OF CHAR := ['a','b','c','d'];
+		ptr : REF_TO CHAR;
 	END_VAR
 		ptr := &(arr);
+
 		ptr := ptr + 2;
 		a := ptr^;
+
+		ptr := ptr + 1;
+		b := ptr^;
+
+		equal := ptr = ptr;
+		not_equal := ptr <> ptr;
+		less := ptr < ptr;
+		greater := ptr > ptr;
+		less_or_equal := ptr <= ptr;
+		greater_or_equal := ptr >= ptr;
 	END_PROGRAM
 	";
     let mut main = Main::default();
     let _: i32 = compile_and_run(function, &mut main);
-    assert_eq!(main.a, 'c');
+    assert_eq!(main.a, "c".as_bytes()[0]);
+    assert_eq!(main.b, "d".as_bytes()[0]);
+    assert_eq!(main.equal, true);
+    assert_eq!(main.not_equal, false);
+    assert_eq!(main.less, false);
+    assert_eq!(main.greater, false);
+    assert_eq!(main.less_or_equal, true);
+    assert_eq!(main.greater_or_equal, true);
 }
