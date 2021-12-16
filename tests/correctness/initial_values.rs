@@ -826,6 +826,202 @@ fn initialization_of_function_variables() {
 }
 
 #[test]
+fn initialization_of_struct_in_fb() {
+    let function = r"
+        TYPE str : STRUCT 
+            a : DINT := 10; b : DINT := 20; c : DINT := 30; d : DINT; 
+        END_STRUCT END_TYPE
+        VAR_GLOBAL
+            fb : other;
+        END_VAR
+        FUNCTION_BLOCK other 
+        VAR
+          a : str;
+        END_VAR
+        END_FUNCTION_BLOCK
+
+        PROGRAM main
+        VAR
+            a : DINT;
+            b : DINT;
+            c : DINT;
+			d : DINT;
+        END_VAR
+            a := fb.a.a;
+            b := fb.a.b;
+            c := fb.a.c;
+            d := fb.a.d;
+        END_PROGRAM
+        ";
+
+    let mut maintype = FourInts {
+        a: 0,
+        b: 0,
+        c: 0,
+        d: 0,
+    };
+
+    let _: i32 = compile_and_run(function.to_string(), &mut maintype);
+
+    assert_eq!(10, maintype.a);
+    assert_eq!(20, maintype.b);
+    assert_eq!(30, maintype.c);
+    assert_eq!(0, maintype.d);
+}
+#[test]
+fn initialization_of_struct_in_prg() {
+    let function = r"
+        TYPE str : STRUCT 
+            a : DINT := 10; b : DINT := 20; c : DINT := 30; d : DINT; 
+        END_STRUCT END_TYPE
+        PROGRAM other 
+        VAR
+          a : str;
+        END_VAR
+        END_PROGRAM
+
+        PROGRAM main
+        VAR
+            a : DINT;
+            b : DINT;
+            c : DINT;
+			d : DINT;
+        END_VAR
+            a := other.a.a;
+            b := other.a.b;
+            c := other.a.c;
+          d := other.a.d;
+        END_PROGRAM
+        ";
+
+    let mut maintype = FourInts {
+        a: 0,
+        b: 0,
+        c: 0,
+        d: 0,
+    };
+
+    let _: i32 = compile_and_run(function.to_string(), &mut maintype);
+
+    assert_eq!(10, maintype.a);
+    assert_eq!(20, maintype.b);
+    assert_eq!(30, maintype.c);
+    assert_eq!(0, maintype.d);
+}
+
+#[test]
+fn initialization_of_struct_ref_in_fb_in_function() {
+    let function = r"
+        TYPE str : STRUCT 
+            a : DINT := 10; b : DINT := 20; c : DINT := 30; d : DINT; 
+        END_STRUCT END_TYPE
+        FUNCTION_BLOCK fb
+        VAR
+          a : str;
+        END_VAR
+        END_FUNCTION_BLOCK
+        FUNCTION other : DINT
+        VAR
+          x : fb;
+        END_VAR
+        VAR_INPUT
+            index : INT;
+        END_VAR
+
+            IF index = 0 THEN
+                other := x.a.a;
+            ELSIF index = 1 THEN
+                other := x.a.b;
+            ELSIF index = 2 THEN
+				other := x.a.c;
+			ELSE
+                other := x.a.d;
+            END_IF
+        END_FUNCTION
+
+        PROGRAM main
+        VAR
+            a : DINT;
+            b : DINT;
+            c : DINT;
+			d : DINT;
+        END_VAR
+            a := other(index := 0);
+            b := other(index := 1);
+            c := other(index := 2);
+			d := other(index := 3);
+        END_PROGRAM
+        ";
+
+    let mut maintype = FourInts {
+        a: 0,
+        b: 0,
+        c: 0,
+        d: 0,
+    };
+
+    let _: i32 = compile_and_run(function.to_string(), &mut maintype);
+
+    assert_eq!(10, maintype.a);
+    assert_eq!(20, maintype.b);
+    assert_eq!(30, maintype.c);
+    assert_eq!(0, maintype.d);
+}
+#[test]
+fn initialization_of_struct_ref_in_function() {
+    let function = r"
+        TYPE str : STRUCT 
+            a : DINT := 10; b : DINT := 20; c : DINT := 30; d : DINT; 
+        END_STRUCT END_TYPE
+        FUNCTION other : DINT
+        VAR
+          a : str;
+        END_VAR
+        VAR_INPUT
+            index : INT;
+        END_VAR
+
+            IF index = 0 THEN
+                other := a.a;
+            ELSIF index = 1 THEN
+                other := a.b;
+            ELSIF index = 2 THEN
+				other := a.c;
+			ELSE
+                other := a.d;
+            END_IF
+        END_FUNCTION
+
+        PROGRAM main
+        VAR
+            a : DINT;
+            b : DINT;
+            c : DINT;
+			d : DINT;
+        END_VAR
+            a := other(index := 0);
+            b := other(index := 1);
+            c := other(index := 2);
+			d := other(index := 3);
+        END_PROGRAM
+        ";
+
+    let mut maintype = FourInts {
+        a: 0,
+        b: 0,
+        c: 0,
+        d: 0,
+    };
+
+    let _: i32 = compile_and_run(function.to_string(), &mut maintype);
+
+    assert_eq!(10, maintype.a);
+    assert_eq!(20, maintype.b);
+    assert_eq!(30, maintype.c);
+    assert_eq!(0, maintype.d);
+}
+
+#[test]
 fn initialization_of_struct_in_function() {
     let function = r"
         FUNCTION other : DINT
