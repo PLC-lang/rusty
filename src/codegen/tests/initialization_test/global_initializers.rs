@@ -1,6 +1,5 @@
 use crate::test_utils::tests::codegen;
 
-
 #[test]
 fn initial_values_in_global_constant_variables() {
     let result = codegen(
@@ -52,7 +51,6 @@ fn initial_values_in_global_variables() {
     );
 
     insta::assert_snapshot!(result);
-
 }
 
 #[test]
@@ -91,7 +89,5 @@ fn uninitialized_global_array() {
          ",
     );
 
-   
     insta::assert_snapshot!(result);
-
 }

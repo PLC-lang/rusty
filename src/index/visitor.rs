@@ -119,7 +119,7 @@ pub fn visit_pou(index: &mut Index, pou: &Pou) {
         name: pou.name.to_string(),
         initial_value: None,
         information: DataTypeInformation::Struct {
-            name: interface_name.clone(),
+            name: interface_name,
             member_names,
             varargs,
             source: StructSource::Pou(pou.pou_type.clone()),
@@ -141,21 +141,19 @@ pub fn visit_pou(index: &mut Index, pou: &Pou) {
                 false, //program's instance variable is no constant
                 pou.location.clone(),
             );
-        },
+        }
         PouType::FunctionBlock | PouType::Class => {
             let global_struct_name = format!("{}__init", &pou.name);
             index.register_global_variable(
                 &global_struct_name,
                 &pou.name,
                 None,
-                true,  //Initial values are constants
+                true, //Initial values are constants
                 pou.location.clone(),
             );
-
-        },
+        }
         _ => {}
     }
-
 }
 
 fn visit_implementation(index: &mut Index, implementation: &Implementation) {
@@ -273,7 +271,7 @@ fn visit_data_type(
                 global_struct_name.as_str(),
                 type_name.as_str(),
                 init,
-                true,  //Initial values are constants
+                true, //Initial values are constants
                 type_declaration.location.clone(),
             );
             for (count, var) in variables.iter().enumerate() {

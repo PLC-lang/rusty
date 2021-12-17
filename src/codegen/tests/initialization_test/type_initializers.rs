@@ -1,4 +1,7 @@
-use crate::{test_utils::tests::{codegen, codegen_without_unwrap}, diagnostics::Diagnostic};
+use crate::{
+    diagnostics::Diagnostic,
+    test_utils::tests::{codegen, codegen_without_unwrap},
+};
 
 #[test]
 fn initial_values_in_struct_types() {
@@ -49,9 +52,7 @@ fn struct_initial_values_different_data_types() {
         ",
     );
 
-    
     insta::assert_snapshot!(result);
-
 }
 
 #[test]
@@ -63,9 +64,7 @@ fn initial_values_in_type_alias() {
         ",
     );
 
-  
     insta::assert_snapshot!(result);
-
 }
 
 #[test]
@@ -111,9 +110,7 @@ fn alias_chain_with_lots_of_initializers() {
         ",
     );
 
-    
     insta::assert_snapshot!(result);
-
 }
 
 #[test]

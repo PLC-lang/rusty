@@ -39,9 +39,7 @@ fn initial_values_in_program_pou() {
         ",
     );
 
-    
     insta::assert_snapshot!(result)
-
 }
 
 #[test]
@@ -67,9 +65,7 @@ fn initial_values_in_function_block_pou() {
         ",
     );
 
-    
     insta::assert_snapshot!(result)
-
 }
 
 #[test]
@@ -82,9 +78,7 @@ fn initial_values_in_array_of_array_variable() {
          ",
     );
 
-    
     insta::assert_snapshot!(result)
-
 }
 
 #[test]
