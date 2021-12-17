@@ -20,25 +20,7 @@ fn initial_constant_values_in_pou_variables() {
         "#,
     );
 
-    let expected = r#"; ModuleID = 'main'
-source_filename = "main"
-
-%prg_interface = type { i16, i16 }
-
-@MAX_LEN = global i16 99
-@MIN_LEN = global i16 10
-@LEN = global i16 20
-@prg_instance = global %prg_interface { i16 24, i16 89 }
-
-define void @prg(%prg_interface* %0) {
-entry:
-  %my_len = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 0
-  %my_size = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 1
-  ret void
-}
-"#;
-
-    assert_eq!(result, expected);
+    insta::assert_snapshot!(result)
 }
 #[test]
 fn initial_values_in_program_pou() {
@@ -57,26 +39,9 @@ fn initial_values_in_program_pou() {
         ",
     );
 
-    let expected = r#"; ModuleID = 'main'
-source_filename = "main"
+    
+    insta::assert_snapshot!(result)
 
-%Main_interface = type { i16, i16, i1, i1, float, float }
-
-@Main_instance = global %Main_interface { i16 7, i16 0, i1 true, i1 false, float 0x400921CAC0000000, float 0.000000e+00 }
-
-define void @Main(%Main_interface* %0) {
-entry:
-  %x = getelementptr inbounds %Main_interface, %Main_interface* %0, i32 0, i32 0
-  %xx = getelementptr inbounds %Main_interface, %Main_interface* %0, i32 0, i32 1
-  %y = getelementptr inbounds %Main_interface, %Main_interface* %0, i32 0, i32 2
-  %yy = getelementptr inbounds %Main_interface, %Main_interface* %0, i32 0, i32 3
-  %z = getelementptr inbounds %Main_interface, %Main_interface* %0, i32 0, i32 4
-  %zz = getelementptr inbounds %Main_interface, %Main_interface* %0, i32 0, i32 5
-  ret void
-}
-"#;
-
-    assert_eq!(result, expected);
 }
 
 #[test]
@@ -102,34 +67,9 @@ fn initial_values_in_function_block_pou() {
         ",
     );
 
-    let expected = r#"; ModuleID = 'main'
-source_filename = "main"
+    
+    insta::assert_snapshot!(result)
 
-%FB_interface = type { i16, i16, i1, i1, float, float }
-%main_interface = type { %FB_interface }
-
-@FB__init = global %FB_interface { i16 7, i16 0, i1 true, i1 false, float 0x400921CAC0000000, float 0.000000e+00 }
-@main_instance = global %main_interface { %FB_interface { i16 7, i16 0, i1 true, i1 false, float 0x400921CAC0000000, float 0.000000e+00 } }
-
-define void @FB(%FB_interface* %0) {
-entry:
-  %x = getelementptr inbounds %FB_interface, %FB_interface* %0, i32 0, i32 0
-  %xx = getelementptr inbounds %FB_interface, %FB_interface* %0, i32 0, i32 1
-  %y = getelementptr inbounds %FB_interface, %FB_interface* %0, i32 0, i32 2
-  %yy = getelementptr inbounds %FB_interface, %FB_interface* %0, i32 0, i32 3
-  %z = getelementptr inbounds %FB_interface, %FB_interface* %0, i32 0, i32 4
-  %zz = getelementptr inbounds %FB_interface, %FB_interface* %0, i32 0, i32 5
-  ret void
-}
-
-define void @main(%main_interface* %0) {
-entry:
-  %fb = getelementptr inbounds %main_interface, %main_interface* %0, i32 0, i32 0
-  ret void
-}
-"#;
-
-    assert_eq!(result, expected);
 }
 
 #[test]
@@ -142,13 +82,9 @@ fn initial_values_in_array_of_array_variable() {
          ",
     );
 
-    let expected = r#"; ModuleID = 'main'
-source_filename = "main"
+    
+    insta::assert_snapshot!(result)
 
-@a = global [2 x [2 x i8]] [[2 x i8] c"\01\02", [2 x i8] c"\03\04"]
-"#;
-
-    assert_eq!(result, expected);
 }
 
 #[test]

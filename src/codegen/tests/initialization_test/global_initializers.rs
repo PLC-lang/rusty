@@ -51,15 +51,8 @@ fn initial_values_in_global_variables() {
         ",
     );
 
-    let expected = r#"; ModuleID = 'main'
-source_filename = "main"
+    insta::assert_snapshot!(result);
 
-@x = global i16 7
-@y = global i1 true
-@z = global float 0x400921CAC0000000
-"#;
-
-    assert_eq!(result, expected);
 }
 
 #[test]
@@ -98,11 +91,7 @@ fn uninitialized_global_array() {
          ",
     );
 
-    let expected = r#"; ModuleID = 'main'
-source_filename = "main"
+   
+    insta::assert_snapshot!(result);
 
-@a = global [2 x i8] zeroinitializer
-"#;
-
-    assert_eq!(result, expected);
 }
