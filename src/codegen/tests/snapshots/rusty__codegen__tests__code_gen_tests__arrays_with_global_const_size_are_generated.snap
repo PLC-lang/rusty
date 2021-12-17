@@ -6,9 +6,9 @@ expression: result
 ; ModuleID = 'main'
 source_filename = "main"
 
-@THREE = global i16 3
-@ZERO = global i16 0
-@LEN = global i16 9
+@THREE = addrspace(4) global i16 3
+@ZERO = addrspace(4) global i16 0
+@LEN = addrspace(4) global i16 9
 @x = global [10 x i16] zeroinitializer
 @y = global [11 x i32] zeroinitializer
 @z = global [19 x i8] zeroinitializer

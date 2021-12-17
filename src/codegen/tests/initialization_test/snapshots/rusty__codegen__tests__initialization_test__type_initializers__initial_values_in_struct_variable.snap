@@ -8,7 +8,7 @@ source_filename = "main"
 
 %MyStruct = type { i32, i32 }
 
-@MyStruct__init = global %MyStruct zeroinitializer
+@MyStruct__init = addrspace(4) global %MyStruct zeroinitializer
 @a = global %MyStruct { i32 3, i32 5 }
 @b = global %MyStruct { i32 5, i32 3 }
 

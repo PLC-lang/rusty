@@ -6,16 +6,16 @@ expression: result
 ; ModuleID = 'main'
 source_filename = "main"
 
-@twenty = global i16 20
+@twenty = addrspace(4) global i16 20
 @x = global i8 0
-@red = global i8 7
-@yellow = global i8 8
-@green = global i8 9
-@a = global i8 0
-@b = global i8 1
-@c = global i8 7
-@d = global i8 8
-@e = global i8 9
-@f = global i8 20
-@g = global i8 21
+@red = addrspace(4) global i8 7
+@yellow = addrspace(4) global i8 8
+@green = addrspace(4) global i8 9
+@a = addrspace(4) global i8 0
+@b = addrspace(4) global i8 1
+@c = addrspace(4) global i8 7
+@d = addrspace(4) global i8 8
+@e = addrspace(4) global i8 9
+@f = addrspace(4) global i8 20
+@g = addrspace(4) global i8 21
 

@@ -1,0 +1,85 @@
+---
+source: src/codegen/tests/code_gen_tests.rs
+expression: result
+
+---
+; ModuleID = 'main'
+source_filename = "main"
+
+%MyClass_interface = type { i16, i16 }
+%prg_interface = type { %MyClass_interface, i16 }
+%MyClass.testMethod_interface = type { i16, i16 }
+
+@MyClass__init = addrspace(4) global %MyClass_interface zeroinitializer
+@prg_instance = global %prg_interface zeroinitializer
+
+define void @MyClass.testMethod(%MyClass_interface* %0, %MyClass.testMethod_interface* %1) {
+entry:
+  %x = getelementptr inbounds %MyClass_interface, %MyClass_interface* %0, i32 0, i32 0
+  %y = getelementptr inbounds %MyClass_interface, %MyClass_interface* %0, i32 0, i32 1
+  %myMethodArg = getelementptr inbounds %MyClass.testMethod_interface, %MyClass.testMethod_interface* %1, i32 0, i32 0
+  %myMethodLocalVar = getelementptr inbounds %MyClass.testMethod_interface, %MyClass.testMethod_interface* %1, i32 0, i32 1
+  store i16 0, i16* %myMethodLocalVar, align 2
+  %load_myMethodArg = load i16, i16* %myMethodArg, align 2
+  store i16 %load_myMethodArg, i16* %x, align 2
+  %load_x = load i16, i16* %x, align 2
+  store i16 %load_x, i16* %y, align 2
+  %load_myMethodLocalVar = load i16, i16* %myMethodLocalVar, align 2
+  %2 = sext i16 %load_myMethodLocalVar to i32
+  %load_y = load i16, i16* %y, align 2
+  %3 = sext i16 %load_y to i32
+  %tmpVar = icmp eq i32 %2, %3
+  ret void
+}
+
+define void @MyClass(%MyClass_interface* %0) {
+entry:
+  %x = getelementptr inbounds %MyClass_interface, %MyClass_interface* %0, i32 0, i32 0
+  %y = getelementptr inbounds %MyClass_interface, %MyClass_interface* %0, i32 0, i32 1
+  ret void
+}
+
+define void @prg(%prg_interface* %0) {
+entry:
+  %cl = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 0
+  %x = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 1
+  %x1 = getelementptr inbounds %MyClass_interface, %MyClass_interface* %cl, i32 0, i32 0
+  %load_ = load i16, i16* %x1, align 2
+  store i16 %load_, i16* %x, align 2
+  %MyClass.testMethod_instance = alloca %MyClass.testMethod_interface, align 8
+  br label %input
+
+input:                                            ; preds = %entry
+  %1 = getelementptr inbounds %MyClass.testMethod_interface, %MyClass.testMethod_interface* %MyClass.testMethod_instance, i32 0, i32 0
+  %load_x = load i16, i16* %x, align 2
+  store i16 %load_x, i16* %1, align 2
+  br label %call
+
+call:                                             ; preds = %input
+  call void @MyClass.testMethod(%MyClass_interface* %cl, %MyClass.testMethod_interface* %MyClass.testMethod_instance)
+  br label %output
+
+output:                                           ; preds = %call
+  br label %continue
+
+continue:                                         ; preds = %output
+  %MyClass.testMethod_instance2 = alloca %MyClass.testMethod_interface, align 8
+  br label %input3
+
+input3:                                           ; preds = %continue
+  %2 = getelementptr inbounds %MyClass.testMethod_interface, %MyClass.testMethod_interface* %MyClass.testMethod_instance2, i32 0, i32 0
+  %load_x7 = load i16, i16* %x, align 2
+  store i16 %load_x7, i16* %2, align 2
+  br label %call4
+
+call4:                                            ; preds = %input3
+  call void @MyClass.testMethod(%MyClass_interface* %cl, %MyClass.testMethod_interface* %MyClass.testMethod_instance2)
+  br label %output5
+
+output5:                                          ; preds = %call4
+  br label %continue6
+
+continue6:                                        ; preds = %output5
+  ret void
+}
+

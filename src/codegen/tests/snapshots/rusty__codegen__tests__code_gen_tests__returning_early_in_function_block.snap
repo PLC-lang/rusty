@@ -1,0 +1,30 @@
+---
+source: src/codegen/tests/code_gen_tests.rs
+expression: result
+
+---
+; ModuleID = 'main'
+source_filename = "main"
+
+%abcdef_interface = type { i8 }
+
+@abcdef__init = addrspace(4) global %abcdef_interface zeroinitializer
+
+define void @abcdef(%abcdef_interface* %0) {
+entry:
+  %n = getelementptr inbounds %abcdef_interface, %abcdef_interface* %0, i32 0, i32 0
+  %load_n = load i8, i8* %n, align 1
+  %1 = sext i8 %load_n to i32
+  %tmpVar = icmp slt i32 %1, 10
+  br i1 %tmpVar, label %condition_body, label %continue
+
+condition_body:                                   ; preds = %entry
+  ret void
+
+buffer_block:                                     ; No predecessors!
+  br label %continue
+
+continue:                                         ; preds = %buffer_block, %entry
+  ret void
+}
+

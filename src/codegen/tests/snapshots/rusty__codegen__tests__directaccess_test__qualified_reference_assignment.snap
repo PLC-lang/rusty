@@ -9,14 +9,14 @@ source_filename = "main"
 %myStruct = type { i8 }
 %main_interface = type { %myStruct }
 
-@myStruct__init = global %myStruct { i8 1 }
+@myStruct__init = addrspace(4) global %myStruct { i8 1 }
 
 define i16 @main(%main_interface* %0) {
 entry:
   %str = getelementptr inbounds %main_interface, %main_interface* %0, i32 0, i32 0
   %main = alloca i16, align 2
   %1 = bitcast %myStruct* %str to i8*
-  call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %1, i8* align 1 getelementptr inbounds (%myStruct, %myStruct* @myStruct__init, i32 0, i32 0), i64 ptrtoint (i8* getelementptr (i8, i8* null, i32 1) to i64), i1 false)
+  call void @llvm.memcpy.p0i8.p4i8.i64(i8* align 1 %1, i8 addrspace(4)* align 1 getelementptr inbounds (%myStruct, %myStruct addrspace(4)* @myStruct__init, i32 0, i32 0), i64 ptrtoint (i8* getelementptr (i8, i8* null, i32 1) to i64), i1 false)
   %x = getelementptr inbounds %myStruct, %myStruct* %str, i32 0, i32 0
   %2 = load i8, i8* %x, align 1
   %erase = and i8 %2, -2
@@ -31,7 +31,7 @@ entry:
 }
 
 ; Function Attrs: argmemonly nofree nosync nounwind willreturn
-declare void @llvm.memcpy.p0i8.p0i8.i64(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i64, i1 immarg) #0
+declare void @llvm.memcpy.p0i8.p4i8.i64(i8* noalias nocapture writeonly, i8 addrspace(4)* noalias nocapture readonly, i64, i1 immarg) #0
 
 attributes #0 = { argmemonly nofree nosync nounwind willreturn }
 

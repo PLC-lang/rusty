@@ -36,8 +36,9 @@ impl<'a> Llvm<'a> {
         name: &str,
         data_type: BasicTypeEnum<'a>,
         initial_value: Option<BasicValueEnum<'a>>,
+        address_space: Option<AddressSpace>,
     ) -> GlobalValue<'a> {
-        let global = module.add_global(data_type, Some(AddressSpace::Generic), name);
+        let global = module.add_global(data_type, address_space, name);
 
         if let Some(initializer) = initial_value {
             let v = &initializer as &dyn BasicValue;

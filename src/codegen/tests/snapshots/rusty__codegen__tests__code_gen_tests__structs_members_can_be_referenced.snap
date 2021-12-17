@@ -1,0 +1,22 @@
+---
+source: src/codegen/tests/code_gen_tests.rs
+expression: result
+
+---
+; ModuleID = 'main'
+source_filename = "main"
+
+%MyStruct = type { i32, i32 }
+%MainProg_interface = type { %MyStruct }
+
+@MyStruct__init = addrspace(4) global %MyStruct zeroinitializer
+@MainProg_instance = global %MainProg_interface zeroinitializer
+
+define void @MainProg(%MainProg_interface* %0) {
+entry:
+  %Cord = getelementptr inbounds %MainProg_interface, %MainProg_interface* %0, i32 0, i32 0
+  %a = getelementptr inbounds %MyStruct, %MyStruct* %Cord, i32 0, i32 0
+  store i32 0, i32* %a, align 4
+  ret void
+}
+

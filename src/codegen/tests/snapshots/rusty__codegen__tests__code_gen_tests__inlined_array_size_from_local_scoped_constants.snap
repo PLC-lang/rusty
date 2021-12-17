@@ -8,9 +8,9 @@ source_filename = "main"
 
 %aaa_interface = type { i16, i16, [5 x i8], [3 x i8] }
 
-@a = global i16 0
-@b = global i16 2
-@c = global i16 5
+@a = addrspace(4) global i16 0
+@b = addrspace(4) global i16 2
+@c = addrspace(4) global i16 5
 @aaa_instance = global %aaa_interface { i16 3, i16 7, [5 x i8] zeroinitializer, [3 x i8] zeroinitializer }
 
 define void @aaa(%aaa_interface* %0) {

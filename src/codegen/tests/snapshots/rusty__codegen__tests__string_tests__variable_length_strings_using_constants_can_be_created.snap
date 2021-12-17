@@ -8,8 +8,8 @@ source_filename = "main"
 
 %prg_interface = type { [16 x i8], [4 x i8], [31 x i16], [7 x i16] }
 
-@LONG_STRING = global i16 15
-@SHORT_STRING = global i16 3
+@LONG_STRING = addrspace(4) global i16 15
+@SHORT_STRING = addrspace(4) global i16 3
 @prg_instance = global %prg_interface { [16 x i8] zeroinitializer, [4 x i8] c"xyz\00", [31 x i16] zeroinitializer, [4 x i16] [i16 120, i16 121, i16 122, i16 0] }
 
 define void @prg(%prg_interface* %0) {

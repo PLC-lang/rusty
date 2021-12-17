@@ -7,7 +7,7 @@ use crate::{
     index::Index,
     resolver::AstAnnotations,
 };
-use inkwell::{module::Module, values::GlobalValue};
+use inkwell::{module::Module, values::GlobalValue, AddressSpace};
 
 use crate::{codegen::llvm_index::LlvmTypedIndex, index::VariableIndexEntry};
 
@@ -84,11 +84,16 @@ pub fn generate_global_variable<'ctx, 'b>(
         .or_else(|| index.find_associated_initial_value(type_name))
         // 3rd try: get the compiler's default for the given type (zero-initializer)
         .or_else(|| index.find_associated_type(type_name).map(get_default_for));
+    let address_space = match global_variable.is_constant() {
+        true => Some(AddressSpace::Const),
+        false => None, //TODO we should go with global here
+    };
     let global_ir_variable = llvm.create_global_variable(
         module,
         global_variable.get_name(),
         variable_type,
         initial_value,
+        address_space,
     );
     Ok(global_ir_variable)
 }

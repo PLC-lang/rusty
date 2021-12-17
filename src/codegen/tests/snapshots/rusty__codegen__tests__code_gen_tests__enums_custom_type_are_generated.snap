@@ -1,0 +1,22 @@
+---
+source: src/codegen/tests/code_gen_tests.rs
+expression: result
+
+---
+; ModuleID = 'main'
+source_filename = "main"
+
+%main_interface = type { i32 }
+
+@main_instance = global %main_interface zeroinitializer
+@White = addrspace(4) global i32 0
+@Red = addrspace(4) global i32 1
+@Yellow = addrspace(4) global i32 2
+@Green = addrspace(4) global i32 3
+
+define void @main(%main_interface* %0) {
+entry:
+  %tf1 = getelementptr inbounds %main_interface, %main_interface* %0, i32 0, i32 0
+  ret void
+}
+

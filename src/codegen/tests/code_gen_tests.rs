@@ -1435,81 +1435,7 @@ fn class_method_in_pou() {
         ",
     );
 
-    let expected = r#"; ModuleID = 'main'
-source_filename = "main"
-
-%MyClass_interface = type { i16, i16 }
-%prg_interface = type { %MyClass_interface, i16 }
-%MyClass.testMethod_interface = type { i16, i16 }
-
-@MyClass__init = global %MyClass_interface zeroinitializer
-@prg_instance = global %prg_interface zeroinitializer
-
-define void @MyClass.testMethod(%MyClass_interface* %0, %MyClass.testMethod_interface* %1) {
-entry:
-  %x = getelementptr inbounds %MyClass_interface, %MyClass_interface* %0, i32 0, i32 0
-  %y = getelementptr inbounds %MyClass_interface, %MyClass_interface* %0, i32 0, i32 1
-  %myMethodArg = getelementptr inbounds %MyClass.testMethod_interface, %MyClass.testMethod_interface* %1, i32 0, i32 0
-  %myMethodLocalVar = getelementptr inbounds %MyClass.testMethod_interface, %MyClass.testMethod_interface* %1, i32 0, i32 1
-  store i16 0, i16* %myMethodLocalVar, align 2
-  %load_myMethodArg = load i16, i16* %myMethodArg, align 2
-  store i16 %load_myMethodArg, i16* %x, align 2
-  %load_x = load i16, i16* %x, align 2
-  store i16 %load_x, i16* %y, align 2
-  %load_myMethodLocalVar = load i16, i16* %myMethodLocalVar, align 2
-  %2 = sext i16 %load_myMethodLocalVar to i32
-  %load_y = load i16, i16* %y, align 2
-  %3 = sext i16 %load_y to i32
-  %tmpVar = icmp eq i32 %2, %3
-  ret void
-}
-
-define void @prg(%prg_interface* %0) {
-entry:
-  %cl = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 0
-  %x = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 1
-  %x1 = getelementptr inbounds %MyClass_interface, %MyClass_interface* %cl, i32 0, i32 0
-  %load_ = load i16, i16* %x1, align 2
-  store i16 %load_, i16* %x, align 2
-  %MyClass.testMethod_instance = alloca %MyClass.testMethod_interface, align 8
-  br label %input
-
-input:                                            ; preds = %entry
-  %1 = getelementptr inbounds %MyClass.testMethod_interface, %MyClass.testMethod_interface* %MyClass.testMethod_instance, i32 0, i32 0
-  %load_x = load i16, i16* %x, align 2
-  store i16 %load_x, i16* %1, align 2
-  br label %call
-
-call:                                             ; preds = %input
-  call void @MyClass.testMethod(%MyClass_interface* %cl, %MyClass.testMethod_interface* %MyClass.testMethod_instance)
-  br label %output
-
-output:                                           ; preds = %call
-  br label %continue
-
-continue:                                         ; preds = %output
-  %MyClass.testMethod_instance2 = alloca %MyClass.testMethod_interface, align 8
-  br label %input3
-
-input3:                                           ; preds = %continue
-  %2 = getelementptr inbounds %MyClass.testMethod_interface, %MyClass.testMethod_interface* %MyClass.testMethod_instance2, i32 0, i32 0
-  %load_x7 = load i16, i16* %x, align 2
-  store i16 %load_x7, i16* %2, align 2
-  br label %call4
-
-call4:                                            ; preds = %input3
-  call void @MyClass.testMethod(%MyClass_interface* %cl, %MyClass.testMethod_interface* %MyClass.testMethod_instance2)
-  br label %output5
-
-output5:                                          ; preds = %call4
-  br label %continue6
-
-continue6:                                        ; preds = %output5
-  ret void
-}
-"#;
-
-    assert_eq!(result, expected.to_string());
+    insta::assert_snapshot!(result)
 }
 
 #[test]
@@ -1543,88 +1469,7 @@ fn fb_method_in_pou() {
         ",
     );
 
-    let expected = r#"; ModuleID = 'main'
-source_filename = "main"
-
-%MyClass_interface = type { i16, i16 }
-%prg_interface = type { %MyClass_interface, i16 }
-%MyClass.testMethod_interface = type { i16, i16 }
-
-@MyClass__init = global %MyClass_interface zeroinitializer
-@prg_instance = global %prg_interface zeroinitializer
-
-define void @MyClass.testMethod(%MyClass_interface* %0, %MyClass.testMethod_interface* %1) {
-entry:
-  %x = getelementptr inbounds %MyClass_interface, %MyClass_interface* %0, i32 0, i32 0
-  %y = getelementptr inbounds %MyClass_interface, %MyClass_interface* %0, i32 0, i32 1
-  %myMethodArg = getelementptr inbounds %MyClass.testMethod_interface, %MyClass.testMethod_interface* %1, i32 0, i32 0
-  %myMethodLocalVar = getelementptr inbounds %MyClass.testMethod_interface, %MyClass.testMethod_interface* %1, i32 0, i32 1
-  store i16 0, i16* %myMethodLocalVar, align 2
-  %load_myMethodArg = load i16, i16* %myMethodArg, align 2
-  store i16 %load_myMethodArg, i16* %x, align 2
-  %load_x = load i16, i16* %x, align 2
-  store i16 %load_x, i16* %y, align 2
-  %load_myMethodLocalVar = load i16, i16* %myMethodLocalVar, align 2
-  %2 = sext i16 %load_myMethodLocalVar to i32
-  %load_y = load i16, i16* %y, align 2
-  %3 = sext i16 %load_y to i32
-  %tmpVar = icmp eq i32 %2, %3
-  ret void
-}
-
-define void @MyClass(%MyClass_interface* %0) {
-entry:
-  %x = getelementptr inbounds %MyClass_interface, %MyClass_interface* %0, i32 0, i32 0
-  %y = getelementptr inbounds %MyClass_interface, %MyClass_interface* %0, i32 0, i32 1
-  ret void
-}
-
-define void @prg(%prg_interface* %0) {
-entry:
-  %cl = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 0
-  %x = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 1
-  %x1 = getelementptr inbounds %MyClass_interface, %MyClass_interface* %cl, i32 0, i32 0
-  %load_ = load i16, i16* %x1, align 2
-  store i16 %load_, i16* %x, align 2
-  %MyClass.testMethod_instance = alloca %MyClass.testMethod_interface, align 8
-  br label %input
-
-input:                                            ; preds = %entry
-  %1 = getelementptr inbounds %MyClass.testMethod_interface, %MyClass.testMethod_interface* %MyClass.testMethod_instance, i32 0, i32 0
-  %load_x = load i16, i16* %x, align 2
-  store i16 %load_x, i16* %1, align 2
-  br label %call
-
-call:                                             ; preds = %input
-  call void @MyClass.testMethod(%MyClass_interface* %cl, %MyClass.testMethod_interface* %MyClass.testMethod_instance)
-  br label %output
-
-output:                                           ; preds = %call
-  br label %continue
-
-continue:                                         ; preds = %output
-  %MyClass.testMethod_instance2 = alloca %MyClass.testMethod_interface, align 8
-  br label %input3
-
-input3:                                           ; preds = %continue
-  %2 = getelementptr inbounds %MyClass.testMethod_interface, %MyClass.testMethod_interface* %MyClass.testMethod_instance2, i32 0, i32 0
-  %load_x7 = load i16, i16* %x, align 2
-  store i16 %load_x7, i16* %2, align 2
-  br label %call4
-
-call4:                                            ; preds = %input3
-  call void @MyClass.testMethod(%MyClass_interface* %cl, %MyClass.testMethod_interface* %MyClass.testMethod_instance2)
-  br label %output5
-
-output5:                                          ; preds = %call4
-  br label %continue6
-
-continue6:                                        ; preds = %output5
-  ret void
-}
-"#;
-
-    assert_eq!(result, expected.to_string());
+    insta::assert_snapshot!(result)
 }
 
 #[test]
@@ -1640,25 +1485,7 @@ fn method_codegen_return() {
         ",
     );
 
-    let expected = r#"; ModuleID = 'main'
-source_filename = "main"
-
-%MyClass_interface = type {}
-%MyClass.testMethod_interface = type { i16 }
-
-@MyClass__init = global %MyClass_interface zeroinitializer
-
-define i16 @MyClass.testMethod(%MyClass_interface* %0, %MyClass.testMethod_interface* %1) {
-entry:
-  %myMethodArg = getelementptr inbounds %MyClass.testMethod_interface, %MyClass.testMethod_interface* %1, i32 0, i32 0
-  %MyClass.testMethod = alloca i16, align 2
-  store i16 1, i16* %MyClass.testMethod, align 2
-  %MyClass.testMethod_ret = load i16, i16* %MyClass.testMethod, align 2
-  ret i16 %MyClass.testMethod_ret
-}
-"#;
-
-    assert_eq!(result, expected.to_string());
+    insta::assert_snapshot!(result)
 }
 
 #[test]
@@ -1676,25 +1503,7 @@ fn method_codegen_void() {
         ",
     );
 
-    let expected = r#"; ModuleID = 'main'
-source_filename = "main"
-
-%MyClass_interface = type {}
-%MyClass.testMethod_interface = type { i16, i16 }
-
-@MyClass__init = global %MyClass_interface zeroinitializer
-
-define void @MyClass.testMethod(%MyClass_interface* %0, %MyClass.testMethod_interface* %1) {
-entry:
-  %myMethodArg = getelementptr inbounds %MyClass.testMethod_interface, %MyClass.testMethod_interface* %1, i32 0, i32 0
-  %myMethodLocalVar = getelementptr inbounds %MyClass.testMethod_interface, %MyClass.testMethod_interface* %1, i32 0, i32 1
-  store i16 0, i16* %myMethodLocalVar, align 2
-  store i16 1, i16* %myMethodLocalVar, align 2
-  ret void
-}
-"#;
-
-    assert_eq!(result, expected.to_string());
+    insta::assert_snapshot!(result)
 }
 
 #[test]
@@ -1718,35 +1527,7 @@ fn class_member_access_from_method() {
         ",
     );
 
-    let expected = r#"; ModuleID = 'main'
-source_filename = "main"
-
-%MyClass_interface = type { i16, i16 }
-%MyClass.testMethod_interface = type { i16, i16 }
-
-@MyClass__init = global %MyClass_interface zeroinitializer
-
-define void @MyClass.testMethod(%MyClass_interface* %0, %MyClass.testMethod_interface* %1) {
-entry:
-  %x = getelementptr inbounds %MyClass_interface, %MyClass_interface* %0, i32 0, i32 0
-  %y = getelementptr inbounds %MyClass_interface, %MyClass_interface* %0, i32 0, i32 1
-  %myMethodArg = getelementptr inbounds %MyClass.testMethod_interface, %MyClass.testMethod_interface* %1, i32 0, i32 0
-  %myMethodLocalVar = getelementptr inbounds %MyClass.testMethod_interface, %MyClass.testMethod_interface* %1, i32 0, i32 1
-  store i16 0, i16* %myMethodLocalVar, align 2
-  %load_myMethodArg = load i16, i16* %myMethodArg, align 2
-  store i16 %load_myMethodArg, i16* %x, align 2
-  %load_x = load i16, i16* %x, align 2
-  store i16 %load_x, i16* %y, align 2
-  %load_myMethodLocalVar = load i16, i16* %myMethodLocalVar, align 2
-  %2 = sext i16 %load_myMethodLocalVar to i32
-  %load_y = load i16, i16* %y, align 2
-  %3 = sext i16 %load_y to i32
-  %tmpVar = icmp eq i32 %2, %3
-  ret void
-}
-"#;
-
-    assert_eq!(result, expected.to_string());
+    insta::assert_snapshot!(result)
 }
 
 #[test]
@@ -2989,49 +2770,7 @@ fn qualified_action_from_fb_called_in_program() {
         ",
     );
 
-    let expected = r#"; ModuleID = 'main'
-source_filename = "main"
-
-%bar_interface = type { %fb_interface }
-%fb_interface = type { i32 }
-
-@bar_instance = global %bar_interface zeroinitializer
-@fb__init = global %fb_interface zeroinitializer
-
-define void @bar(%bar_interface* %0) {
-entry:
-  %fb_inst = getelementptr inbounds %bar_interface, %bar_interface* %0, i32 0, i32 0
-  br label %input
-
-input:                                            ; preds = %entry
-  br label %call
-
-call:                                             ; preds = %input
-  call void @fb.foo(%fb_interface* %fb_inst)
-  br label %output
-
-output:                                           ; preds = %call
-  br label %continue
-
-continue:                                         ; preds = %output
-  ret void
-}
-
-define void @fb(%fb_interface* %0) {
-entry:
-  %x = getelementptr inbounds %fb_interface, %fb_interface* %0, i32 0, i32 0
-  ret void
-}
-
-define void @fb.foo(%fb_interface* %0) {
-entry:
-  %x = getelementptr inbounds %fb_interface, %fb_interface* %0, i32 0, i32 0
-  store i32 2, i32* %x, align 4
-  ret void
-}
-"#;
-
-    assert_eq!(result, expected);
+    insta::assert_snapshot!(result);
 }
 
 #[test]
@@ -3705,41 +3444,7 @@ fn function_block_instance_call() {
         ",
     );
 
-    let expected = r#"; ModuleID = 'main'
-source_filename = "main"
-
-%foo_interface = type {}
-%prg_interface = type { %foo_interface }
-
-@foo__init = global %foo_interface zeroinitializer
-@prg_instance = global %prg_interface zeroinitializer
-
-define void @foo(%foo_interface* %0) {
-entry:
-  ret void
-}
-
-define void @prg(%prg_interface* %0) {
-entry:
-  %fb_inst = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 0
-  br label %input
-
-input:                                            ; preds = %entry
-  br label %call
-
-call:                                             ; preds = %input
-  call void @foo(%foo_interface* %fb_inst)
-  br label %output
-
-output:                                           ; preds = %call
-  br label %continue
-
-continue:                                         ; preds = %output
-  ret void
-}
-"#;
-
-    assert_eq!(result, expected);
+    insta::assert_snapshot!(result)
 }
 
 #[test]
@@ -3764,50 +3469,7 @@ fn function_block_qualified_instance_call() {
       ",
     );
 
-    let expected = r#"; ModuleID = 'main'
-source_filename = "main"
-
-%foo_interface = type { %bar_interface }
-%bar_interface = type {}
-%prg_interface = type { %foo_interface }
-
-@foo__init = global %foo_interface zeroinitializer
-@bar__init = global %bar_interface zeroinitializer
-@prg_instance = global %prg_interface zeroinitializer
-
-define void @foo(%foo_interface* %0) {
-entry:
-  %bar_inst = getelementptr inbounds %foo_interface, %foo_interface* %0, i32 0, i32 0
-  ret void
-}
-
-define void @bar(%bar_interface* %0) {
-entry:
-  ret void
-}
-
-define void @prg(%prg_interface* %0) {
-entry:
-  %foo_inst = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 0
-  %bar_inst = getelementptr inbounds %foo_interface, %foo_interface* %foo_inst, i32 0, i32 0
-  br label %input
-
-input:                                            ; preds = %entry
-  br label %call
-
-call:                                             ; preds = %input
-  call void @bar(%bar_interface* %bar_inst)
-  br label %output
-
-output:                                           ; preds = %call
-  br label %continue
-
-continue:                                         ; preds = %output
-  ret void
-}
-"#;
-
-    assert_eq!(result, expected);
+    insta::assert_snapshot!(result);
 }
 
 #[test]
@@ -3837,45 +3499,7 @@ fn reference_qualified_name() {
         ",
     );
 
-    let expected = r#"; ModuleID = 'main'
-source_filename = "main"
-
-%fb_interface = type { i32 }
-%foo_interface = type { i32, i32, %fb_interface }
-%prg_interface = type { i32 }
-
-@fb__init = global %fb_interface zeroinitializer
-@foo_instance = global %foo_interface zeroinitializer
-@prg_instance = global %prg_interface zeroinitializer
-
-define void @fb(%fb_interface* %0) {
-entry:
-  %x = getelementptr inbounds %fb_interface, %fb_interface* %0, i32 0, i32 0
-  ret void
-}
-
-define void @foo(%foo_interface* %0) {
-entry:
-  %x = getelementptr inbounds %foo_interface, %foo_interface* %0, i32 0, i32 0
-  %y = getelementptr inbounds %foo_interface, %foo_interface* %0, i32 0, i32 1
-  %baz = getelementptr inbounds %foo_interface, %foo_interface* %0, i32 0, i32 2
-  ret void
-}
-
-define void @prg(%prg_interface* %0) {
-entry:
-  %x = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 0
-  %load_ = load i32, i32* getelementptr inbounds (%foo_interface, %foo_interface* @foo_instance, i32 0, i32 0), align 4
-  store i32 %load_, i32* %x, align 4
-  %load_1 = load i32, i32* getelementptr inbounds (%foo_interface, %foo_interface* @foo_instance, i32 0, i32 1), align 4
-  store i32 %load_1, i32* %x, align 4
-  %load_2 = load i32, i32* getelementptr inbounds (%foo_interface, %foo_interface* @foo_instance, i32 0, i32 2, i32 0), align 4
-  store i32 %load_2, i32* %x, align 4
-  ret void
-}
-"#;
-
-    assert_eq!(result, expected);
+    insta::assert_snapshot!(result);
 }
 
 #[test]
@@ -3961,25 +3585,7 @@ fn structs_members_can_be_referenced() {
         ",
     );
 
-    let expected = r#"; ModuleID = 'main'
-source_filename = "main"
-
-%MyStruct = type { i32, i32 }
-%MainProg_interface = type { %MyStruct }
-
-@MyStruct__init = global %MyStruct zeroinitializer
-@MainProg_instance = global %MainProg_interface zeroinitializer
-
-define void @MainProg(%MainProg_interface* %0) {
-entry:
-  %Cord = getelementptr inbounds %MainProg_interface, %MainProg_interface* %0, i32 0, i32 0
-  %a = getelementptr inbounds %MyStruct, %MyStruct* %Cord, i32 0, i32 0
-  store i32 0, i32* %a, align 4
-  ret void
-}
-"#;
-
-    assert_eq!(result, expected);
+    insta::assert_snapshot!(result);
 }
 
 #[test]
@@ -3995,16 +3601,7 @@ fn enums_are_generated() {
         ",
     );
 
-    let expected = r#"; ModuleID = 'main'
-source_filename = "main"
-
-@x = global i32 0
-@red = global i32 0
-@yellow = global i32 1
-@green = global i32 2
-"#;
-
-    assert_eq!(result, expected);
+    insta::assert_snapshot!(result)
 }
 
 #[test]
@@ -4094,25 +3691,7 @@ fn enums_custom_type_are_generated() {
         ",
     );
 
-    let expected = r#"; ModuleID = 'main'
-source_filename = "main"
-
-%main_interface = type { i32 }
-
-@main_instance = global %main_interface zeroinitializer
-@White = global i32 0
-@Red = global i32 1
-@Yellow = global i32 2
-@Green = global i32 3
-
-define void @main(%main_interface* %0) {
-entry:
-  %tf1 = getelementptr inbounds %main_interface, %main_interface* %0, i32 0, i32 0
-  ret void
-}
-"#;
-
-    assert_eq!(result, expected);
+    insta::assert_snapshot!(result)
 }
 
 #[test]
@@ -4133,30 +3712,7 @@ fn enum_members_can_be_used_in_asignments() {
       ",
     );
 
-    let expected = r#"; ModuleID = 'main'
-source_filename = "main"
-
-%main_interface = type { i32 }
-
-@main_instance = global %main_interface zeroinitializer
-@red = global i32 0
-@yellow = global i32 1
-@green = global i32 2
-
-define void @main(%main_interface* %0) {
-entry:
-  %color = getelementptr inbounds %main_interface, %main_interface* %0, i32 0, i32 0
-  %load_red = load i32, i32* @red, align 4
-  store i32 %load_red, i32* %color, align 4
-  %load_yellow = load i32, i32* @yellow, align 4
-  store i32 %load_yellow, i32* %color, align 4
-  %load_green = load i32, i32* @green, align 4
-  store i32 %load_green, i32* %color, align 4
-  ret void
-}
-"#;
-
-    assert_eq!(result, expected);
+    insta::assert_snapshot!(result)
 }
 
 #[test]
@@ -4173,16 +3729,7 @@ fn inline_structs_are_generated() {
         ",
     );
 
-    let expected = r#"; ModuleID = 'main'
-source_filename = "main"
-
-%__global_x = type { i32, i32 }
-
-@__global_x__init = global %__global_x zeroinitializer
-@x = global %__global_x zeroinitializer
-"#;
-
-    assert_eq!(result, expected);
+    insta::assert_snapshot!(result);
 }
 
 #[test]
@@ -4214,31 +3761,7 @@ fn accessing_nested_structs() {
         ",
     );
 
-    let expected = r#"; ModuleID = 'main'
-source_filename = "main"
-
-%InnerStruct = type { i16, i16 }
-%OuterStruct = type { %InnerStruct, %InnerStruct }
-%Main_interface = type { %OuterStruct }
-
-@InnerStruct__init = global %InnerStruct zeroinitializer
-@OuterStruct__init = global %OuterStruct zeroinitializer
-@Main_instance = global %Main_interface zeroinitializer
-
-define void @Main(%Main_interface* %0) {
-entry:
-  %m = getelementptr inbounds %Main_interface, %Main_interface* %0, i32 0, i32 0
-  %out1 = getelementptr inbounds %OuterStruct, %OuterStruct* %m, i32 0, i32 0
-  %inner1 = getelementptr inbounds %InnerStruct, %InnerStruct* %out1, i32 0, i32 0
-  store i16 3, i16* %inner1, align 2
-  %out2 = getelementptr inbounds %OuterStruct, %OuterStruct* %m, i32 0, i32 1
-  %inner2 = getelementptr inbounds %InnerStruct, %InnerStruct* %out2, i32 0, i32 1
-  store i16 7, i16* %inner2, align 2
-  ret void
-}
-"#;
-
-    assert_eq!(result, expected);
+    insta::assert_snapshot!(result);
 }
 
 #[test]
@@ -4251,16 +3774,7 @@ fn inline_enums_are_generated() {
         ",
     );
 
-    let expected = r#"; ModuleID = 'main'
-source_filename = "main"
-
-@x = global i32 0
-@red = global i32 0
-@yellow = global i32 1
-@green = global i32 2
-"#;
-
-    assert_eq!(result, expected);
+    insta::assert_snapshot!(result);
 }
 
 #[test]
@@ -4317,16 +3831,7 @@ fn array_of_int_type_generated() {
         ",
     );
 
-    let expected = generate_program_boiler_plate(
-        "prg",
-        &[("[11 x i16]", "x")],
-        "void",
-        "",
-        "",
-        r#"ret void
-"#,
-    );
-    assert_eq!(result, expected);
+    insta::assert_snapshot!(result);
 }
 
 #[test]
@@ -4341,16 +3846,7 @@ fn array_of_cast_int_type_generated() {
         ",
     );
 
-    let expected = generate_program_boiler_plate(
-        "prg",
-        &[("[11 x i16]", "x")],
-        "void",
-        "",
-        "",
-        r#"ret void
-"#,
-    );
-    assert_eq!(result, expected);
+    insta::assert_snapshot!(result);
 }
 
 #[test]
@@ -4673,33 +4169,7 @@ fn returning_early_in_function_block() {
         ",
     );
 
-    let expected = r#"; ModuleID = 'main'
-source_filename = "main"
-
-%abcdef_interface = type { i8 }
-
-@abcdef__init = global %abcdef_interface zeroinitializer
-
-define void @abcdef(%abcdef_interface* %0) {
-entry:
-  %n = getelementptr inbounds %abcdef_interface, %abcdef_interface* %0, i32 0, i32 0
-  %load_n = load i8, i8* %n, align 1
-  %1 = sext i8 %load_n to i32
-  %tmpVar = icmp slt i32 %1, 10
-  br i1 %tmpVar, label %condition_body, label %continue
-
-condition_body:                                   ; preds = %entry
-  ret void
-
-buffer_block:                                     ; No predecessors!
-  br label %continue
-
-continue:                                         ; preds = %buffer_block, %entry
-  ret void
-}
-"#;
-
-    assert_eq!(result, expected);
+    insta::assert_snapshot!(result);
 }
 
 #[test]
@@ -4722,26 +4192,7 @@ fn accessing_nested_array_in_struct() {
         ",
     );
 
-    let expected = r#"; ModuleID = 'main'
-source_filename = "main"
-
-%MyStruct = type { [5 x i16] }
-%Main_interface = type { %MyStruct }
-
-@MyStruct__init = global %MyStruct zeroinitializer
-@Main_instance = global %Main_interface zeroinitializer
-
-define void @Main(%Main_interface* %0) {
-entry:
-  %m = getelementptr inbounds %Main_interface, %Main_interface* %0, i32 0, i32 0
-  %field1 = getelementptr inbounds %MyStruct, %MyStruct* %m, i32 0, i32 0
-  %tmpVar = getelementptr inbounds [5 x i16], [5 x i16]* %field1, i32 0, i32 3
-  store i16 7, i16* %tmpVar, align 2
-  ret void
-}
-"#;
-
-    assert_eq!(result, expected);
+    insta::assert_snapshot!(result)
 }
 
 #[test]
@@ -4894,32 +4345,10 @@ fn using_global_consts_in_expressions() {
         "#,
     );
     //WHEN we compile
-    let expected = generate_program_boiler_plate(
-        "prg",
-        &[("i32", "z")],
-        "void",
-        "",
-        "
-@cA = global i16 1
-@cB = global i16 2
-@cC = global i16 3",
-        r#"%load_cA = load i16, i16* @cA, align 2
-  %1 = sext i16 %load_cA to i32
-  %load_cB = load i16, i16* @cB, align 2
-  %2 = sext i16 %load_cB to i32
-  %tmpVar = add i32 %1, %2
-  %load_cC = load i16, i16* @cC, align 2
-  %3 = sext i16 %load_cC to i32
-  %tmpVar1 = add i32 %tmpVar, %3
-  store i32 %tmpVar1, i32* %z, align 4
-  ret void
-"#,
-    );
-
     // we expect the constants to be inlined
     //TODO inline constant values into body-expression
     // https://github.com/ghaith/rusty/issues/291
-    assert_eq!(result, expected);
+    insta::assert_snapshot!(result);
 }
 
 #[test]

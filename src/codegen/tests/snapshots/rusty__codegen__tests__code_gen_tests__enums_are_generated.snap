@@ -1,0 +1,13 @@
+---
+source: src/codegen/tests/code_gen_tests.rs
+expression: result
+
+---
+; ModuleID = 'main'
+source_filename = "main"
+
+@x = global i32 0
+@red = addrspace(4) global i32 0
+@yellow = addrspace(4) global i32 1
+@green = addrspace(4) global i32 2
+

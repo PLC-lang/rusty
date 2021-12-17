@@ -11,7 +11,7 @@ source_filename = "main"
 
 @x = global %MyFB_interface { i16 77 }
 @prg_instance = global %prg_interface { %MyFB_interface { i16 77 } }
-@MyFB__init = global %MyFB_interface { i16 77 }
+@MyFB__init = addrspace(4) global %MyFB_interface { i16 77 }
 
 define void @prg(%prg_interface* %0) {
 entry:
