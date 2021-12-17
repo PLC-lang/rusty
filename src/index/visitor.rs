@@ -42,19 +42,6 @@ pub fn visit(unit: &CompilationUnit, mut id_provider: IdProvider) -> Index {
 pub fn visit_pou(index: &mut Index, pou: &Pou) {
     let interface_name = format!("{}_interface", &pou.name);
 
-    if pou.pou_type == PouType::Program {
-        //Associate a global variable for the program
-        let instance_name = format!("{}_instance", &pou.name);
-        index.register_global_variable_with_name(
-            &pou.name,
-            &instance_name,
-            &pou.name,
-            None,
-            false, //program's instance variable is no constant
-            pou.location.clone(),
-        );
-    }
-
     let mut member_names = vec![];
 
     //register the pou's member variables
@@ -132,7 +119,7 @@ pub fn visit_pou(index: &mut Index, pou: &Pou) {
         name: pou.name.to_string(),
         initial_value: None,
         information: DataTypeInformation::Struct {
-            name: interface_name,
+            name: interface_name.clone(),
             member_names,
             varargs,
             source: StructSource::Pou(pou.pou_type.clone()),
@@ -141,6 +128,34 @@ pub fn visit_pou(index: &mut Index, pou: &Pou) {
         nature: TypeNature::Any,
     };
     index.register_pou_type(datatype);
+
+    match pou.pou_type {
+        PouType::Program => {
+            //Associate a global variable for the program
+            let instance_name = format!("{}_instance", &pou.name);
+            index.register_global_variable_with_name(
+                &pou.name,
+                &instance_name,
+                &pou.name,
+                None,
+                false, //program's instance variable is no constant
+                pou.location.clone(),
+            );
+        },
+        PouType::FunctionBlock | PouType::Class => {
+            let global_struct_name = format!("{}__init", &pou.name);
+            index.register_global_variable(
+                &global_struct_name,
+                &pou.name,
+                None,
+                true,  //Initial values are constants
+                pou.location.clone(),
+            );
+
+        },
+        _ => {}
+    }
+
 }
 
 fn visit_implementation(index: &mut Index, implementation: &Implementation) {
@@ -252,12 +267,13 @@ fn visit_data_type(
                 information,
                 nature: TypeNature::Derived,
             });
+            //Generate an initializer for the struct
             let global_struct_name = format!("{}__init", name);
             index.register_global_variable(
                 global_struct_name.as_str(),
                 type_name.as_str(),
                 init,
-                false, // TODO when true ?
+                true,  //Initial values are constants
                 type_declaration.location.clone(),
             );
             for (count, var) in variables.iter().enumerate() {

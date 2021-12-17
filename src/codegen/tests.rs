@@ -6,8 +6,8 @@ mod generics_test;
 mod statement_codegen_test;
 mod string_tests;
 mod typesystem_test;
-
 mod directaccess_test;
+mod initialization_test;
 
 fn generate_program_boiler_plate(
     pou_name: &str,
