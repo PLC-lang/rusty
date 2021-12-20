@@ -230,6 +230,8 @@ fn binary_expressions_for_pointers() {
         a: u8,
         b: u8,
         c: u8,
+        d: u8,
+        e: u8,
         equal: bool,
         not_equal: bool,
         less: bool,
@@ -244,6 +246,8 @@ fn binary_expressions_for_pointers() {
 		a : CHAR;
 		b : CHAR;
 		c : CHAR;
+		d : CHAR;
+		e : CHAR;
 		equal : BOOL;
 		not_equal : BOOL;
 		less : BOOL;
@@ -254,17 +258,20 @@ fn binary_expressions_for_pointers() {
 	VAR_TEMP
 		arr : ARRAY[0..3] OF CHAR := ['a','b','c','d'];
 		ptr : REF_TO CHAR;
+		negative : INT := -1;
 	END_VAR
 		ptr := &(arr);
 
 		ptr := ptr + 2;
 		a := ptr^;
-
 		ptr := ptr + 1;
 		b := ptr^;
-
 		ptr := ptr - 1;
 		c := ptr^;
+		ptr := ptr + negative;
+		d := ptr^;
+		ptr := ptr - negative;
+		e := ptr^;
 
 		equal := ptr = ptr;
 		not_equal := ptr <> ptr;
@@ -279,6 +286,8 @@ fn binary_expressions_for_pointers() {
     assert_eq!(main.a, "c".as_bytes()[0]);
     assert_eq!(main.b, "d".as_bytes()[0]);
     assert_eq!(main.c, "c".as_bytes()[0]);
+    assert_eq!(main.d, "b".as_bytes()[0]);
+    assert_eq!(main.e, "c".as_bytes()[0]);
     assert_eq!(main.equal, true);
     assert_eq!(main.not_equal, false);
     assert_eq!(main.less, false);
