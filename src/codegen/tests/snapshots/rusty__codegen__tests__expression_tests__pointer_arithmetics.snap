@@ -25,7 +25,7 @@ entry:
   store i16* %access___main_pt2, i16** %pt, align 8
   %load_pt3 = load i16*, i16** %pt, align 8
   %load_y = load i16, i16* %y, align 2
-  %access___main_pt4 = getelementptr inbounds i16, i16* %load_pt3, i16 %load_y
+  %access___main_pt4 = getelementptr inbounds i16, i16* %load_pt3, i16 sub (i16 0, i16 %load_y)
   store i16* %access___main_pt4, i16** %pt, align 8
   %load_pt5 = load i16*, i16** %pt, align 8
   %load_pt6 = load i16*, i16** %pt, align 8

@@ -1052,7 +1052,12 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                     (None, None, None)
                 };
 
-                if let (Some(ptr), Some(index), Some(name)) = (ptr, index, name) {
+                if let (Some(ptr), Some(mut index), Some(name)) = (ptr, index, name) {
+                    // if operator is minus we need to negate the index
+                    if let Operator::Minus = operator {
+                        index = index.const_neg();
+                    }
+
                     Ok(self
                         .llvm
                         .load_array_element(ptr, &[index], name.as_str())?

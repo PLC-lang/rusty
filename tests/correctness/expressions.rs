@@ -229,6 +229,7 @@ fn binary_expressions_for_pointers() {
     struct Main {
         a: u8,
         b: u8,
+        c: u8,
         equal: bool,
         not_equal: bool,
         less: bool,
@@ -242,6 +243,7 @@ fn binary_expressions_for_pointers() {
 	VAR
 		a : CHAR;
 		b : CHAR;
+		c : CHAR;
 		equal : BOOL;
 		not_equal : BOOL;
 		less : BOOL;
@@ -261,6 +263,9 @@ fn binary_expressions_for_pointers() {
 		ptr := ptr + 1;
 		b := ptr^;
 
+		ptr := ptr - 1;
+		c := ptr^;
+
 		equal := ptr = ptr;
 		not_equal := ptr <> ptr;
 		less := ptr < ptr;
@@ -273,6 +278,7 @@ fn binary_expressions_for_pointers() {
     let _: i32 = compile_and_run(function, &mut main);
     assert_eq!(main.a, "c".as_bytes()[0]);
     assert_eq!(main.b, "d".as_bytes()[0]);
+    assert_eq!(main.c, "c".as_bytes()[0]);
     assert_eq!(main.equal, true);
     assert_eq!(main.not_equal, false);
     assert_eq!(main.less, false);
