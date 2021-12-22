@@ -1,8 +1,5 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use crate::test_utils::tests::codegen;
-use pretty_assertions::assert_eq;
-
-use super::generate_program_boiler_plate;
 
 #[test]
 fn bitaccess_generated_as_rsh_and_trunc_i1() {

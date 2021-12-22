@@ -1,5 +1,5 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-use super::*;
+
 use crate::test_utils::tests::codegen;
 
 //Same size operations remain the same

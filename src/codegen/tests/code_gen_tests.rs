@@ -1,8 +1,5 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use crate::test_utils::tests::{codegen, generate_with_empty_program};
-use pretty_assertions::assert_eq;
-
-use super::{generate_program_boiler_plate, generate_program_boiler_plate_globals};
 
 #[test]
 fn program_with_variables_and_references_generates_void_function_and_struct_and_body() {
@@ -31,23 +28,20 @@ fn empty_statements_dont_generate_anything() {
 END_PROGRAM
 "#,
     );
-    
-    insta::assert_snapshot!(result);
 
+    insta::assert_snapshot!(result);
 }
 
 #[test]
 fn empty_global_variable_list_generates_nothing() {
     let result = generate_with_empty_program("VAR_GLOBAL END_VAR");
     insta::assert_snapshot!(result);
-
 }
 
 #[test]
 fn a_global_variables_generates_in_separate_global_variables() {
     let result = generate_with_empty_program("VAR_GLOBAL gX : INT; gY : BOOL; END_VAR");
     insta::assert_snapshot!(result);
-
 }
 
 #[test]
