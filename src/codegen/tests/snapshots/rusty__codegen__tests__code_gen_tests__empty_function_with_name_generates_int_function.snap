@@ -1,0 +1,17 @@
+---
+source: src/codegen/tests/code_gen_tests.rs
+expression: result
+
+---
+; ModuleID = 'main'
+source_filename = "main"
+
+%foo_interface = type {}
+
+define i16 @foo(%foo_interface* %0) {
+entry:
+  %foo = alloca i16, align 2
+  %foo_ret = load i16, i16* %foo, align 2
+  ret i16 %foo_ret
+}
+
