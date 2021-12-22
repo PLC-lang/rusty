@@ -256,7 +256,9 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         members: &[&VariableIndexEntry],
     ) -> Result<(), Diagnostic> {
         //Generate reference to parameter
-        for (i, m) in members.iter().enumerate() {
+        // cannot use index from members because return and temp variables may not be considered for index in build_struct_gep
+        let mut var_count = 0;
+        for (_, m) in members.iter().enumerate() {
             let parameter_name = m.get_name();
 
             let (name, variable) = if m.is_return() {
@@ -277,13 +279,15 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                     .map(BasicValueEnum::into_pointer_value)
                     .ok_or_else(|| Diagnostic::missing_function(m.source_location.clone()))?;
 
-                (
-                    parameter_name,
-                    self.llvm
-                        .builder
-                        .build_struct_gep(ptr_value, i as u32, parameter_name)
-                        .expect(INTERNAL_LLVM_ERROR),
-                )
+                let ptr = self
+                    .llvm
+                    .builder
+                    .build_struct_gep(ptr_value, var_count as u32, parameter_name)
+                    .expect(INTERNAL_LLVM_ERROR);
+
+                var_count += 1;
+
+                (parameter_name, ptr)
             };
 
             index.associate_loaded_local_variable(type_name, name, variable)?;
