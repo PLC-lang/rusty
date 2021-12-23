@@ -258,7 +258,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         //Generate reference to parameter
         // cannot use index from members because return and temp variables may not be considered for index in build_struct_gep
         let mut var_count = 0;
-        for (_, m) in members.iter().enumerate() {
+        for m in members.iter() {
             let parameter_name = m.get_name();
 
             let (name, variable) = if m.is_return() {
