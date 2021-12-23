@@ -6,5 +6,6 @@ expression: result
 ; ModuleID = 'main'
 source_filename = "main"
 
+@MyArray__init = addrspace(4) global [3 x i16] [i16 1, i16 2, i16 3]
 @x = global [3 x i16] [i16 1, i16 2, i16 3]
 

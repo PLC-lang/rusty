@@ -9,6 +9,8 @@ source_filename = "main"
 %prg_interface = type { [16 x i8], [4 x i8], [16 x i16], [4 x i16] }
 
 @prg_instance = global %prg_interface { [16 x i8] zeroinitializer, [4 x i8] c"xyz\00", [16 x i16] zeroinitializer, [4 x i16] [i16 120, i16 121, i16 122, i16 0] }
+@prg.z__init = addrspace(4) global [4 x i8] c"xyz\00"
+@prg.wz__init = addrspace(4) global [4 x i16] [i16 120, i16 121, i16 122, i16 0]
 
 define void @prg(%prg_interface* %0) {
 entry:

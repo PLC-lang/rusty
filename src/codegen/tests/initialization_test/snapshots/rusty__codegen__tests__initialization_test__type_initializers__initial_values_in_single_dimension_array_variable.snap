@@ -6,6 +6,14 @@ expression: result
 ; ModuleID = 'main'
 source_filename = "main"
 
+@__global_a__init = addrspace(4) global [3 x i8] zeroinitializer
+@__global_b__init = addrspace(4) global [3 x i16] zeroinitializer
+@__global_c__init = addrspace(4) global [3 x i32] zeroinitializer
+@__global_d__init = addrspace(4) global [3 x i64] zeroinitializer
+@__global_e__init = addrspace(4) global [3 x i8] zeroinitializer
+@__global_f__init = addrspace(4) global [3 x i16] zeroinitializer
+@__global_g__init = addrspace(4) global [3 x i64] zeroinitializer
+@__global_h__init = addrspace(4) global [3 x i1] zeroinitializer
 @a = global [3 x i8] c"\01\02\03"
 @b = global [3 x i16] [i16 1, i16 2, i16 3]
 @c = global [3 x i32] [i32 1, i32 2, i32 3]

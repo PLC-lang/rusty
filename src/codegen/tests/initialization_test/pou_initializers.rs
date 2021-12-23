@@ -99,6 +99,35 @@ fn default_values_for_not_initialized_function_vars() {
 }
 
 #[test]
+fn initialized_array_in_function() {
+    let result = codegen(
+        "
+		FUNCTION func : INT
+		VAR
+			arr_var : ARRAY[-1..2] OF DINT := [1,2,3,4];
+		END_VAR
+		END_FUNCTION
+		",
+    );
+    insta::assert_snapshot!(result);
+}
+
+#[test]
+fn initialized_array_type_in_function() {
+    let result = codegen(
+        "
+    TYPE arr : ARRAY[-1..2] OF DINT := [1,2,3,4]; END_TYPE
+		FUNCTION func : INT
+		VAR
+			arr_var : arr;
+		END_VAR
+		END_FUNCTION
+		",
+    );
+    insta::assert_snapshot!(result);
+}
+
+#[test]
 fn memcpy_for_struct_initialization_in_function() {
     let result = codegen(
         "

@@ -6,6 +6,12 @@ expression: result
 ; ModuleID = 'main'
 source_filename = "main"
 
+@MyArray__init = addrspace(4) global [10 x i16] zeroinitializer
+@__global_y__init = addrspace(4) global [11 x i32] zeroinitializer
+@__global_z__init = addrspace(4) global [19 x i8] zeroinitializer
+@__global_zz__init = addrspace(4) global [10 x [10 x i8]] zeroinitializer
+@__global_zzz___init = addrspace(4) global [8 x i8] zeroinitializer
+@__global_zzz__init = addrspace(4) global [10 x [8 x i8]] zeroinitializer
 @THREE = addrspace(4) global i16 3
 @ZERO = addrspace(4) global i16 0
 @LEN = addrspace(4) global i16 9

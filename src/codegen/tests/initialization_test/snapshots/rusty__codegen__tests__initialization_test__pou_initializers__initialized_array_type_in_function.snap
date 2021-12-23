@@ -1,0 +1,27 @@
+---
+source: src/codegen/tests/initialization_test/pou_initializers.rs
+expression: result
+
+---
+; ModuleID = 'main'
+source_filename = "main"
+
+%func_interface = type { [4 x i32] }
+
+@arr__init = addrspace(4) global [4 x i32] [i32 1, i32 2, i32 3, i32 4]
+
+define i16 @func(%func_interface* %0) {
+entry:
+  %arr_var = getelementptr inbounds %func_interface, %func_interface* %0, i32 0, i32 0
+  %func = alloca i16, align 2
+  %1 = bitcast [4 x i32]* %arr_var to i8*
+  call void @llvm.memcpy.p0i8.p4i8.i64(i8* align 1 %1, i8 addrspace(4)* align 1 bitcast ([4 x i32] addrspace(4)* @arr__init to i8 addrspace(4)*), i64 mul nuw (i64 ptrtoint (i32* getelementptr (i32, i32* null, i32 1) to i64), i64 4), i1 false)
+  %func_ret = load i16, i16* %func, align 2
+  ret i16 %func_ret
+}
+
+; Function Attrs: argmemonly nofree nosync nounwind willreturn
+declare void @llvm.memcpy.p0i8.p4i8.i64(i8* noalias nocapture writeonly, i8 addrspace(4)* noalias nocapture readonly, i64, i1 immarg) #0
+
+attributes #0 = { argmemonly nofree nosync nounwind willreturn }
+

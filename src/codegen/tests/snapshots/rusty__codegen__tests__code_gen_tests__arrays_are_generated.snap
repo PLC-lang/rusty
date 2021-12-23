@@ -6,6 +6,8 @@ expression: result
 ; ModuleID = 'main'
 source_filename = "main"
 
+@MyArray__init = addrspace(4) global [10 x i16] zeroinitializer
+@__global_y__init = addrspace(4) global [6 x float] zeroinitializer
 @x = global [10 x i16] zeroinitializer
 @y = global [6 x float] zeroinitializer
 

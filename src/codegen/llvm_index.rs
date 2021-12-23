@@ -12,6 +12,7 @@ pub struct LlvmTypedIndex<'ink> {
     parent_index: Option<&'ink LlvmTypedIndex<'ink>>,
     type_associations: HashMap<String, BasicTypeEnum<'ink>>,
     pou_type_associations: HashMap<String, BasicTypeEnum<'ink>>,
+    global_values: HashMap<String, GlobalValue<'ink>>,
     initial_value_associations: HashMap<String, BasicValueEnum<'ink>>,
     loaded_variable_associations: HashMap<String, PointerValue<'ink>>,
     implementations: HashMap<String, FunctionValue<'ink>>,
@@ -24,6 +25,7 @@ impl<'ink> LlvmTypedIndex<'ink> {
             parent_index: Some(parent),
             type_associations: HashMap::new(),
             pou_type_associations: HashMap::new(),
+            global_values: HashMap::new(),
             initial_value_associations: HashMap::new(),
             loaded_variable_associations: HashMap::new(),
             implementations: HashMap::new(),
@@ -40,6 +42,9 @@ impl<'ink> LlvmTypedIndex<'ink> {
         }
         for (name, assocication) in other.initial_value_associations.drain() {
             self.initial_value_associations.insert(name, assocication);
+        }
+        for (name, value) in other.global_values.drain() {
+            self.global_values.insert(name, value);
         }
         for (name, assocication) in other.initial_value_associations.drain() {
             self.initial_value_associations.insert(name, assocication);
@@ -95,6 +100,17 @@ impl<'ink> LlvmTypedIndex<'ink> {
         Ok(())
     }
 
+    pub fn find_global_value(&self, name: &str) -> Option<GlobalValue<'ink>> {
+        self.global_values
+            .get(&name.to_lowercase())
+            .copied()
+            .or_else(|| {
+                self.parent_index
+                    .map(|it| it.find_global_value(name))
+                    .flatten()
+            })
+    }
+
     pub fn find_associated_type(&self, type_name: &str) -> Option<BasicTypeEnum<'ink>> {
         self.type_associations
             .get(&type_name.to_lowercase())
@@ -147,6 +163,9 @@ impl<'ink> LlvmTypedIndex<'ink> {
         variable_name: &str,
         global_variable: GlobalValue<'ink>,
     ) -> Result<(), Diagnostic> {
+        self.global_values
+            .insert(variable_name.to_lowercase(), global_variable);
+        //TODO  : Remove this and replace it with a lookup into globals where needed
         self.initial_value_associations.insert(
             variable_name.to_lowercase(),
             global_variable.as_pointer_value().into(),

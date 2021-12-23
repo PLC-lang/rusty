@@ -6,5 +6,6 @@ expression: result
 ; ModuleID = 'main'
 source_filename = "main"
 
+@__global_a__init = addrspace(4) global [2 x [2 x i8]] zeroinitializer
 @a = global [2 x [2 x i8]] c"\01\02\03\04"
 

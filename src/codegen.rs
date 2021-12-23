@@ -70,7 +70,16 @@ impl<'ink> CodeGen<'ink> {
             annotations,
             &index,
         )?;
+        let llvm = Llvm::new(self.context, self.context.create_builder());
         index.merge(llvm_impl_index);
+        let llvm_values_index = pou_generator::generate_global_constants_for_pou_members(
+            &self.module,
+            llvm,
+            global_index,
+            annotations,
+            &index,
+        )?;
+        index.merge(llvm_values_index);
         Ok(index)
     }
 

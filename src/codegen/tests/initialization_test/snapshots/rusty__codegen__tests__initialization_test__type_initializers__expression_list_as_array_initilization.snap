@@ -6,6 +6,9 @@ expression: result
 ; ModuleID = 'main'
 source_filename = "main"
 
+@__global_arr__init = addrspace(4) global [5 x i16] zeroinitializer
+@__global_b_exp__init = addrspace(4) global [6 x i32] zeroinitializer
+@__global_str__init = addrspace(4) global [4 x [81 x i8]] zeroinitializer
 @arr = global [5 x i16] [i16 1, i16 2, i16 3]
 @b_exp = global [6 x i32] [i32 4, i32 6, i32 6, i32 10]
 @str = global [4 x [81 x i8]] [[81 x i8] c"first\00", [81 x i8] c"second\00"]

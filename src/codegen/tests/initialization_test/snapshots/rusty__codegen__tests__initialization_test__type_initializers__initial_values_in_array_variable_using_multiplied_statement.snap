@@ -6,6 +6,10 @@ expression: result
 ; ModuleID = 'main'
 source_filename = "main"
 
+@__global_a__init = addrspace(4) global [4 x i8] zeroinitializer
+@__global_b__init = addrspace(4) global [4 x i8] zeroinitializer
+@__global_c__init = addrspace(4) global [10 x i8] zeroinitializer
+@__global_d__init = addrspace(4) global [10 x i8] zeroinitializer
 @a = global [4 x i8] c"\07\07\07\07"
 @b = global [4 x i8] c"\02\07\07\03"
 @c = global [10 x i8] c"\00\01\00\01\00\01\00\01\00\01"

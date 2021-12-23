@@ -8,6 +8,8 @@ source_filename = "main"
 
 %main_interface = type { i16**, [2 x i16]*, i16 }
 
+@__main_b__init = addrspace(4) global [2 x i16] zeroinitializer
+
 define i16 @main(%main_interface* %0) {
 entry:
   %a = getelementptr inbounds %main_interface, %main_interface* %0, i32 0, i32 0

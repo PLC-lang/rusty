@@ -10,6 +10,7 @@ source_filename = "main"
 %Main_interface = type { %MyStruct }
 
 @MyStruct__init = addrspace(4) global %MyStruct zeroinitializer
+@__MyStruct_field1__init = addrspace(4) global [5 x i16] zeroinitializer
 @Main_instance = global %Main_interface zeroinitializer
 
 define void @Main(%Main_interface* %0) {
