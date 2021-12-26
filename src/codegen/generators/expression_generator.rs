@@ -1268,12 +1268,22 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
             } => {
                 let expected_type = self.get_type_hint_info_for(literal_statement)?;
                 match expected_type {
-                    DataTypeInformation::String { encoding, .. } => match encoding {
-                        StringEncoding::Utf8 => self.llvm.create_const_utf8_string(value.as_str()),
-                        StringEncoding::Utf16 => {
-                            self.llvm.create_const_utf16_string(value.as_str())
+                    DataTypeInformation::String { encoding, size, .. } => {
+                        let str_len = size.as_int_value(self.index).map_err(|msg| {
+                            Diagnostic::codegen_error(
+                                format!("Unable to generate string-literal: {}", msg).as_str(),
+                                literal_statement.get_location(),
+                            )
+                        })? as usize;
+                        match encoding {
+                            StringEncoding::Utf8 => {
+                                self.llvm.create_const_utf8_string(value.as_str(), str_len)
+                            }
+                            StringEncoding::Utf16 => {
+                                self.llvm.create_const_utf16_string(value.as_str(), str_len)
+                            }
                         }
-                    },
+                    }
                     DataTypeInformation::Integer { size: 8, .. }
                         if expected_type.is_character() =>
                     {

@@ -6,5 +6,5 @@ expression: result
 ; ModuleID = 'main'
 source_filename = "main"
 
-@b = global [11 x i8] c"Monday\00"
+@b = global [11 x i8] c"Monday\00\00\00\00\00"
 
