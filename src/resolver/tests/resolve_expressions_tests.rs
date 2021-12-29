@@ -96,7 +96,7 @@ fn binary_expressions_resolves_types_for_literals_directly() {
         {
             // a --> BYTE (DINT hint)
             assert_type_and_hint!(&annotations, &index, a, BYTE_TYPE, Some(DINT_TYPE));
-            // 7 --> DINT (BYTE hint)
+            // 7 --> DINT (no hint)
             assert_type_and_hint!(&annotations, &index, seven, DINT_TYPE, None);
         } else {
             unreachable!()

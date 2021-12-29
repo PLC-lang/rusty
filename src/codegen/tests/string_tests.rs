@@ -24,6 +24,20 @@ END_PROGRAM
 }
 
 #[test]
+fn simple_string_test() {
+    let result = codegen(
+        r"
+VAR_GLOBAL
+    str: STRING[20];
+    wstr: WSTRING[20];
+END_VAR
+    ",
+    );
+
+    insta::assert_snapshot!(result);
+}
+
+#[test]
 fn program_with_casted_string_assignment() {
     let result = codegen(
         r#"PROGRAM prg
