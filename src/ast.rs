@@ -1134,6 +1134,7 @@ impl Display for Operator {
             Operator::Multiplication => "*",
             Operator::Division => "/",
             Operator::Equal => "=",
+            Operator::Modulo => "MOD",
             _ => unimplemented!(),
         };
         f.write_str(symbol)
