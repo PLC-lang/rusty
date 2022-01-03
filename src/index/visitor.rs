@@ -265,6 +265,14 @@ fn visit_data_type(
                 information,
                 nature: TypeNature::Derived,
             });
+            let global_struct_name = format!("{}__init", name);
+            index.register_global_variable(
+                global_struct_name.as_str(),
+                name,
+                init,
+                true, //Initial values are constants
+                type_declaration.location.clone(),
+            );
             for (count, var) in variables.iter().enumerate() {
                 if let DataTypeDeclaration::DataTypeDefinition {
                     data_type, scope, ..
@@ -443,6 +451,16 @@ fn visit_data_type(
                 information,
                 nature: TypeNature::Any,
             });
+            let global_init_name = format!("{}__init", name);
+            if init.is_some() {
+                index.register_global_variable(
+                    global_init_name.as_str(),
+                    name,
+                    init,
+                    true, //Initial values are constants
+                    type_declaration.location.clone(),
+                );
+            }
         }
         DataType::PointerType {
             name: Some(name),
@@ -546,32 +564,4 @@ fn visit_data_type(
 
         _ => { /* unnamed datatypes are ignored */ }
     };
-
-    //For structs and arrays, generate a global init
-    match data_type {
-        DataType::ArrayType {
-            name: Some(name), ..
-        }
-        | DataType::StructType {
-            name: Some(name), ..
-        } => {
-            //Generate an initializer for the struct
-            let global_struct_name = format!("{}__init", name);
-            let init = index
-                .get_mut_const_expressions()
-                .maybe_add_constant_expression(
-                    type_declaration.initializer.clone(),
-                    name,
-                    scope.clone(),
-                );
-            index.register_global_variable(
-                global_struct_name.as_str(),
-                name,
-                init,
-                true, //Initial values are constants
-                type_declaration.location.clone(),
-            );
-        }
-        _ => {}
-    }
 }

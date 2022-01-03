@@ -88,12 +88,19 @@ pub fn generate_global_variable<'ctx, 'b>(
         true => Some(AddressSpace::Const),
         false => None, //TODO we should go with global here
     };
-    let global_ir_variable = llvm.create_global_variable(
-        module,
-        global_variable.get_name(),
-        variable_type,
-        initial_value,
-        address_space,
-    );
-    Ok(global_ir_variable)
+    if initial_value.is_some() || !global_variable.is_constant() {
+        let global_ir_variable = llvm.create_global_variable(
+            module,
+            global_variable.get_name(),
+            variable_type,
+            initial_value,
+            address_space,
+        );
+        Ok(global_ir_variable)
+    } else {
+        Err(Diagnostic::codegen_error(
+            "Cannot generate uninitialized constant",
+            global_variable.source_location.clone(),
+        ))
+    }
 }

@@ -8,8 +8,6 @@ source_filename = "main"
 
 %aaa_interface = type { i16, i16, [5 x i8], [3 x i8] }
 
-@__aaa_arr__init = addrspace(4) global [5 x i8] zeroinitializer
-@__aaa_arr2__init = addrspace(4) global [3 x i8] zeroinitializer
 @a = addrspace(4) global i16 0
 @b = addrspace(4) global i16 2
 @c = addrspace(4) global i16 5

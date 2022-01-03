@@ -11,6 +11,5 @@ source_filename = "main"
 
 @MyPoint__init = addrspace(4) global %MyPoint zeroinitializer
 @MyStruct__init = addrspace(4) global %MyStruct zeroinitializer
-@__MyStruct_my_array__init = addrspace(4) global [4 x i16] zeroinitializer
 @a = global %MyStruct { %MyPoint { i32 1, i32 2 }, [4 x i16] [i16 0, i16 1, i16 2, i16 3], i32 7 }
 

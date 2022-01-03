@@ -8,7 +8,6 @@ source_filename = "main"
 
 %prg_interface = type { [11 x i16] }
 
-@__prg_x__init = addrspace(4) global [11 x i16] zeroinitializer
 @prg_instance = global %prg_interface zeroinitializer
 
 define void @prg(%prg_interface* %0) {
