@@ -5090,3 +5090,53 @@ fn variable_with_same_name_as_function() {
     );
     insta::assert_snapshot!(result);
 }
+
+#[test]
+fn expression_list_as_array_initilization() {
+    let result = codegen(
+        "
+		VAR_GLOBAL
+			arr : ARRAY[0..3] OF INT := 1, 2, 3;
+			b_exp : ARRAY[0..4] OF DINT := 1+3, 2*3, 7-1, 10;
+			str : ARRAY[0..2] OF STRING := 'first', 'second';
+		END_VAR
+		",
+    );
+    insta::assert_snapshot!(result);
+}
+
+#[test]
+fn default_values_for_not_initialized_function_vars() {
+    let result = codegen(
+        "
+		FUNCTION func : INT
+		VAR
+			int_var : INT;
+			arr_var : ARRAY[0..2] OF DINT;
+			ptr_var	: REF_TO DINT;
+			float_var	: REAL;
+		END_VAR
+		END_FUNCTION
+		",
+    );
+    insta::assert_snapshot!(result);
+}
+
+#[test]
+fn order_var_and_var_temp_block() {
+    // GIVEN a program with defined VAR_TEMP before VAR block
+    let result = codegen(
+        "
+		PROGRAM main
+		VAR_TEMP
+			temp : INT;
+		END_VAR
+		VAR
+			var1 : INT;
+		END_VAR
+		END_PROGRAM
+		",
+    );
+    // codegen should be successful
+    insta::assert_snapshot!(result);
+}
