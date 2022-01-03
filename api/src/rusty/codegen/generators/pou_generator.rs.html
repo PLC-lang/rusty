@@ -386,6 +386,10 @@
 <span id="386">386</span>
 <span id="387">387</span>
 <span id="388">388</span>
+<span id="389">389</span>
+<span id="390">390</span>
+<span id="391">391</span>
+<span id="392">392</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 <span class="kw">use</span> <span class="kw">super</span>::{
     <span class="ident">data_type_generator::get_default_for</span>,
@@ -644,7 +648,9 @@
         <span class="ident">members</span>: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><span class="ident">VariableIndexEntry</span>],
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
         <span class="comment">//Generate reference to parameter</span>
-        <span class="kw">for</span> (<span class="ident">i</span>, <span class="ident">m</span>) <span class="kw">in</span> <span class="ident">members</span>.<span class="ident">iter</span>().<span class="ident">enumerate</span>() {
+        <span class="comment">// cannot use index from members because return and temp variables may not be considered for index in build_struct_gep</span>
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">var_count</span> <span class="op">=</span> <span class="number">0</span>;
+        <span class="kw">for</span> <span class="ident">m</span> <span class="kw">in</span> <span class="ident">members</span>.<span class="ident">iter</span>() {
             <span class="kw">let</span> <span class="ident">parameter_name</span> <span class="op">=</span> <span class="ident">m</span>.<span class="ident">get_name</span>();
 
             <span class="kw">let</span> (<span class="ident">name</span>, <span class="ident">variable</span>) <span class="op">=</span> <span class="kw">if</span> <span class="ident">m</span>.<span class="ident">is_return</span>() {
@@ -665,13 +671,15 @@
                     .<span class="ident">map</span>(<span class="ident">BasicValueEnum::into_pointer_value</span>)
                     .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">Diagnostic::missing_function</span>(<span class="ident">m</span>.<span class="ident">source_location</span>.<span class="ident">clone</span>()))<span class="question-mark">?</span>;
 
-                (
-                    <span class="ident">parameter_name</span>,
-                    <span class="self">self</span>.<span class="ident">llvm</span>
-                        .<span class="ident">builder</span>
-                        .<span class="ident">build_struct_gep</span>(<span class="ident">ptr_value</span>, <span class="ident">i</span> <span class="kw">as</span> <span class="ident">u32</span>, <span class="ident">parameter_name</span>)
-                        .<span class="ident">expect</span>(<span class="ident">INTERNAL_LLVM_ERROR</span>),
-                )
+                <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <span class="self">self</span>
+                    .<span class="ident">llvm</span>
+                    .<span class="ident">builder</span>
+                    .<span class="ident">build_struct_gep</span>(<span class="ident">ptr_value</span>, <span class="ident">var_count</span> <span class="kw">as</span> <span class="ident">u32</span>, <span class="ident">parameter_name</span>)
+                    .<span class="ident">expect</span>(<span class="ident">INTERNAL_LLVM_ERROR</span>);
+
+                <span class="ident">var_count</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+
+                (<span class="ident">parameter_name</span>, <span class="ident">ptr</span>)
             };
 
             <span class="ident">index</span>.<span class="ident">associate_loaded_local_variable</span>(<span class="ident">type_name</span>, <span class="ident">name</span>, <span class="ident">variable</span>)<span class="question-mark">?</span>;
