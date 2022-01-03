@@ -259,6 +259,10 @@ impl DataTypeInformation {
         )
     }
 
+    pub fn is_pointer(&self) -> bool {
+        matches!(self, DataTypeInformation::Pointer { .. })
+    }
+
     pub fn is_unsigned_int(&self) -> bool {
         matches!(self, DataTypeInformation::Integer { signed: false, .. })
     }
