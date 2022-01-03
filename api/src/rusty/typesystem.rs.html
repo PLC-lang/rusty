@@ -776,6 +776,10 @@
 <span id="776">776</span>
 <span id="777">777</span>
 <span id="778">778</span>
+<span id="779">779</span>
+<span id="780">780</span>
+<span id="781">781</span>
+<span id="782">782</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 <span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">mem::size_of</span>, <span class="ident">ops::Range</span>};
 
@@ -1035,6 +1039,10 @@
             <span class="self">self</span>,
             <span class="ident">DataTypeInformation::Integer</span> { .. } <span class="op">|</span> <span class="ident">DataTypeInformation::Enum</span> { .. }
         )
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_pointer</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+        <span class="macro">matches!</span>(<span class="self">self</span>, <span class="ident">DataTypeInformation::Pointer</span> { .. })
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_unsigned_int</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
