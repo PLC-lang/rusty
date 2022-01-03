@@ -1,0 +1,20 @@
+---
+source: src/codegen/tests/code_gen_tests.rs
+expression: result
+
+---
+; ModuleID = 'main'
+source_filename = "main"
+
+%main_interface = type { i16 }
+
+@main_instance = global %main_interface zeroinitializer
+
+define void @main(%main_interface* %0) {
+entry:
+  %temp = alloca i16, align 2
+  %var1 = getelementptr inbounds %main_interface, %main_interface* %0, i32 0, i32 0
+  store i16 0, i16* %temp, align 2
+  ret void
+}
+
