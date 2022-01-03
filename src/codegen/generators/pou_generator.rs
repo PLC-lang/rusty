@@ -436,6 +436,13 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                         .map_err(|err| {
                             Diagnostic::codegen_error(err, variable.source_location.clone())
                         })?;
+                } else if left.get_type().get_element_type().is_array_type() {
+                    self.llvm
+                        .builder
+                        .build_memset(left, 1, self.llvm.context.i8_type().const_zero(), size)
+                        .map_err(|it| {
+                            Diagnostic::codegen_error(it, variable.source_location.clone())
+                        })?;
                 } else {
                     let value = if let Some(stmt) = right_stmt {
                         exp_gen.generate_expression(stmt)

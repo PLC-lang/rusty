@@ -16,7 +16,7 @@ use inkwell::{
     },
     AddressSpace, FloatPredicate, IntPredicate,
 };
-use std::collections::HashSet;
+use std::{collections::HashSet, time::Instant};
 
 use crate::{
     ast::{flatten_expression_list, AstStatement, Operator},
@@ -1625,6 +1625,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
         elements: Vec<&AstStatement>,
         location: &SourceRange,
     ) -> Result<BasicValueEnum<'a>, Diagnostic> {
+        let start = Instant::now();
         let inner_type = elements
             .first()
             .ok_or_else(|| {
@@ -1640,6 +1641,9 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
             let value = self.generate_literal(e)?;
             v.push(value.as_basic_value_enum());
         }
+        let end = start.elapsed();
+        let start = Instant::now();
+        println!("Generate literal for elements done {:?}", end);
 
         //TODO Validation: fail with compile-error if value cannot be converted into... correctly
         let array_value = match llvm_type {
@@ -1680,6 +1684,8 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                     .as_slice(),
             ),
         };
+        let end = start.elapsed();
+        println!("Vector created {:?}", end);
         Ok(array_value.as_basic_value_enum())
     }
 
