@@ -439,7 +439,7 @@ impl StatementValidator {
             .get_type_information();
 
         if std::mem::discriminant(left_type) == std::mem::discriminant(right_type)
-            && !left_type.is_numerical()
+            && !(left_type.is_numerical() || left_type.is_pointer())
         {
             //see if we have the right compare-function (non-numbers are compared using user-defined callback-functions)
             if operator.is_comparison_operator()

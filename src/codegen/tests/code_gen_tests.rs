@@ -5766,3 +5766,22 @@ fn default_values_for_not_initialized_function_vars() {
     );
     insta::assert_snapshot!(result);
 }
+
+#[test]
+fn order_var_and_var_temp_block() {
+    // GIVEN a program with defined VAR_TEMP before VAR block
+    let result = codegen(
+        "
+		PROGRAM main
+		VAR_TEMP
+			temp : INT;
+		END_VAR
+		VAR
+			var1 : INT;
+		END_VAR
+		END_PROGRAM
+		",
+    );
+    // codegen should be successful
+    insta::assert_snapshot!(result);
+}
