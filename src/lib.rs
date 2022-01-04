@@ -20,7 +20,6 @@
 use std::fs;
 
 use std::path::Path;
-use std::time::Instant;
 
 use ast::{PouType, SourceRange};
 use diagnostics::Diagnostic;
@@ -333,7 +332,6 @@ pub fn compile_module<'c, T: SourceContainer>(
     encoding: Option<&'static Encoding>,
     mut diagnostician: Diagnostician,
 ) -> Result<codegen::CodeGen<'c>, Diagnostic> {
-    let start = Instant::now();
     let mut full_index = Index::new();
     let mut id_provider = IdProvider::default();
 
@@ -363,9 +361,6 @@ pub fn compile_module<'c, T: SourceContainer>(
     // ### PHASE 1.1 resolve constant literal values
     let (mut full_index, _unresolvables) =
         resolver::const_evaluator::evaluate_constants(full_index);
-    let end = start.elapsed();
-    let start = Instant::now();
-    println!("After phase1 {:?}", end);
 
     // ### PHASE 2 ###
     // annotation & validation everything
@@ -386,9 +381,6 @@ pub fn compile_module<'c, T: SourceContainer>(
 
     //Merge the new indices with the full index
     full_index.import(std::mem::take(&mut all_annotations.new_index));
-    let end = start.elapsed();
-    let start = Instant::now();
-    println!("After phase2 {:?}", end);
 
     // ### PHASE 3 ###
     // - codegen
@@ -400,8 +392,6 @@ pub fn compile_module<'c, T: SourceContainer>(
     for unit in annotated_units {
         code_generator.generate(&unit, &annotations, &full_index, &llvm_index)?;
     }
-    let end = start.elapsed();
-    println!("End of codegen {:?}", end);
     Ok(code_generator)
 }
 

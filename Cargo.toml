@@ -11,7 +11,7 @@ categories = ["development-tools::build-utils"]
 
 [dependencies]
 logos = "0.12.0"
-inkwell = { git = "https://github.com/ghaith/inkwell", branch = "memset", features= ["llvm12-0"] }
+inkwell = { git = "https://github.com/TheDan64/inkwell", branch = "master", features= ["llvm12-0"] }
 thiserror = "1.0"
 structopt = "0.3"
 indexmap = "1.6"

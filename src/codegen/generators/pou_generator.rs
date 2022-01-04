@@ -101,20 +101,28 @@ pub fn generate_global_constants_for_pou_members<'ink>(
             };
 
             if let Some(stmt) = right_stmt {
-                //Get either a global initial value for the constant (For arrays) and copy it,
-                let value = exp_gen.generate_expression(stmt)?;
-                let variable_type = llvm_index.get_associated_type(variable.get_type_name())?;
-                //First try to find a global with that name
-                let global_value = module.get_global(&name).unwrap_or_else(|| {
-                    llvm.create_global_variable(
-                        module,
-                        &name,
-                        variable_type,
-                        Some(value),
-                        Some(AddressSpace::Const),
-                    )
-                });
-                local_llvm_index.associate_global(&name, global_value)?;
+                if llvm_index.find_global_value(&name).is_none() {
+                    //Get either a global initial value for the constant (For arrays) and copy it,
+                    let value = if let Some(value) =
+                        llvm_index.find_associated_initial_value(variable.get_qualified_name())
+                    {
+                        value
+                    } else {
+                        exp_gen.generate_expression(stmt)?
+                    };
+                    let variable_type = llvm_index.get_associated_type(variable.get_type_name())?;
+                    //First try to find a global with that name
+                    let global_value = module.get_global(&name).unwrap_or_else(|| {
+                        llvm.create_global_variable(
+                            module,
+                            &name,
+                            variable_type,
+                            Some(value),
+                            Some(AddressSpace::Const),
+                        )
+                    });
+                    local_llvm_index.associate_global(&name, global_value)?;
+                }
             }
         }
     }
