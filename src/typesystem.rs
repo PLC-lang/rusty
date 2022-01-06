@@ -275,6 +275,10 @@ impl DataTypeInformation {
         matches!(self, DataTypeInformation::Float { .. })
     }
 
+    pub fn is_struct(&self) -> bool {
+        matches!(self, DataTypeInformation::Struct { .. })
+    }
+
     pub fn is_numerical(&self) -> bool {
         matches!(
             self,

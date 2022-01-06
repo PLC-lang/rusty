@@ -1,0 +1,13 @@
+---
+source: src/codegen/tests/initialization_test/type_initializers.rs
+expression: result
+
+---
+; ModuleID = 'main'
+source_filename = "main"
+
+%MyPoint = type { i32 }
+
+@MyPoint__init = global %MyPoint zeroinitializer
+@a = global %MyPoint { i32 7 }
+

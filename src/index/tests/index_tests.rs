@@ -1728,3 +1728,22 @@ fn function_name_equals_return_type() {
         )
     );
 }
+
+#[test]
+fn global_vars_for_structs() {
+    // GIVEN a program with a struct variable
+    // WHEN the program is indexed
+    let (_, index) = index(
+        "
+		PROGRAM main
+		VAR
+			x : STRUCT var1 : INT; END_STRUCT
+		END_VAR
+		END_PROGRAM
+		",
+    );
+
+    // THEN there should be a global variable for the struct
+    let global_var = index.find_global_variable("__main_x__init");
+    assert_eq!(true, global_var.is_some());
+}

@@ -1,0 +1,12 @@
+---
+source: src/codegen/tests/initialization_test/global_initializers.rs
+expression: result
+
+---
+; ModuleID = 'main'
+source_filename = "main"
+
+@x = global i16 7
+@y = global i1 true
+@z = global float 0x400921CAC0000000
+

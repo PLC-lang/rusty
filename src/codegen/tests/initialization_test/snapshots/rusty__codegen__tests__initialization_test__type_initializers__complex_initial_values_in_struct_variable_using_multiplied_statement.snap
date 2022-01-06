@@ -1,0 +1,15 @@
+---
+source: src/codegen/tests/initialization_test/type_initializers.rs
+expression: result
+
+---
+; ModuleID = 'main'
+source_filename = "main"
+
+%MyPoint = type { i32, i32 }
+%MyStruct = type { %MyPoint, [4 x i16], i32 }
+
+@MyPoint__init = global %MyPoint zeroinitializer
+@MyStruct__init = global %MyStruct zeroinitializer
+@a = global %MyStruct { %MyPoint { i32 1, i32 2 }, [4 x i16] [i16 0, i16 1, i16 2, i16 3], i32 7 }
+
