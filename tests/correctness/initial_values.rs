@@ -28,7 +28,7 @@ fn new() -> MainType {
     }
 }
 #[test]
-fn initia_values_of_programs_members() {
+fn initial_values_of_programs_members() {
     let function = r"
         PROGRAM other
         VAR
@@ -72,7 +72,7 @@ fn initia_values_of_programs_members() {
 }
 
 #[test]
-fn initia_values_of_programs_members_using_constants() {
+fn initial_values_of_programs_members_using_constants() {
     let function = r"
         VAR_GLOBAL CONSTANT
             cX      : DINT := 70;
@@ -125,7 +125,7 @@ fn initia_values_of_programs_members_using_constants() {
 }
 
 #[test]
-fn initia_values_of_functionblock_members() {
+fn initial_values_of_functionblock_members() {
     let function = r"
         FUNCTION_BLOCK MyFB
         VAR
@@ -173,7 +173,7 @@ fn initia_values_of_functionblock_members() {
 }
 
 #[test]
-fn initia_values_of_function_members() {
+fn initial_values_of_function_members() {
     let function = r"
         FUNCTION other : DINT
         VAR
@@ -216,7 +216,7 @@ fn initia_values_of_function_members() {
 }
 
 #[test]
-fn initia_values_of_struct_type_members() {
+fn initial_values_of_struct_type_members() {
     let function = r"
         TYPE MyStruct :
             STRUCT
@@ -264,7 +264,7 @@ fn initia_values_of_struct_type_members() {
 }
 
 #[test]
-fn initia_values_of_alias_type() {
+fn initial_values_of_alias_type() {
     let function = r"
         TYPE MyInt  : DINT := 7; END_TYPE
         TYPE MyBool : BOOL := TRUE; END_TYPE

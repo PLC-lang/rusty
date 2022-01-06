@@ -334,35 +334,23 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                         let size = self
                             .llvm_index
                             .find_associated_type(variable.get_type_name())
-                            .ok_or_else(|| {
-                                Diagnostic::codegen_error(
-                                    format!(
-                                        "Couldn't find associated type for {}",
-                                        variable.get_type_name()
-                                    )
-                                    .as_str(),
-                                    variable.source_location.clone(),
-                                )
-                            })?
-                            .into_struct_type()
-                            .size_of()
-                            .ok_or_else(|| {
-                                Diagnostic::codegen_error(
-                                    format!(
-                                        "Couldn't get type size of {}",
-                                        variable.get_type_name()
-                                    )
-                                    .as_str(),
-                                    variable.source_location.clone(),
-                                )
-                            })?;
+                            .and_then(|associated_type| {
+                                associated_type.into_struct_type().size_of()
+                            })
+                            .ok_or("Couldn't determine type size");
 
-                        self.llvm
-                            .builder
-                            .build_memcpy(left, 1, struct_init.into_pointer_value(), 1, size)
-                            .map_err(|err| {
-                                Diagnostic::codegen_error(err, variable.source_location.clone())
-                            })?;
+                        size.and_then(|size| {
+                            self.llvm.builder.build_memcpy(
+                                left,
+                                1,
+                                struct_init.into_pointer_value(),
+                                1,
+                                size,
+                            )
+                        })
+                        .map_err(|err| {
+                            Diagnostic::codegen_error(err, variable.source_location.clone())
+                        })?;
                     }
                 } else {
                     let right_stmt = match variable.initial_value {
