@@ -210,6 +210,10 @@ mod cli_tests {
             vec_of_strings!["input.st", "--ir", "--shared", "--pic", "--bc"],
             ErrorKind::ArgumentConflict,
         );
+        expect_argument_error(
+            vec_of_strings!["input.st", "--ir", "--relocatable"],
+            ErrorKind::ArgumentConflict,
+        );
     }
 
     #[test]
