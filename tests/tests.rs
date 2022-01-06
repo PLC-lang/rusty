@@ -48,6 +48,7 @@ mod correctness {
 
 mod integration {
     mod external_files;
+    mod linking;
     mod multi_files;
 }
 
