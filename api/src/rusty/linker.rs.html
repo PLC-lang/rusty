@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src&#x2F;linker.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>linker.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../rustyc/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src&#x2F;linker.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>linker.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../rusty/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -224,13 +224,10 @@
 <span id="224">224</span>
 <span id="225">225</span>
 <span id="226">226</span>
-<span id="227">227</span>
-<span id="228">228</span>
-<span id="229">229</span>
-<span id="230">230</span>
 </pre><pre class="rust"><code><span class="comment">// This file is based on code from the Mun Programming Language</span>
 <span class="comment">// https://github.com/mun-lang/mun</span>
 
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::diagnostics::Diagnostic</span>;
 <span class="kw">use</span> <span class="ident">std::path</span>::{<span class="ident">Path</span>, <span class="ident">PathBuf</span>};
 
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Linker</span> {
@@ -246,6 +243,7 @@
     <span class="kw">fn</span> <span class="ident">add_sysroot</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>);
     <span class="kw">fn</span> <span class="ident">build_shared_object</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>);
     <span class="kw">fn</span> <span class="ident">build_exectuable</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>);
+    <span class="kw">fn</span> <span class="ident">build_relocatable</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>);
     <span class="kw">fn</span> <span class="ident">finalize</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">LinkerError</span><span class="op">&gt;</span>;
 }
 
@@ -264,10 +262,8 @@
     }
 
     <span class="doccomment">/// Add an object file or static library to linker input</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">add_obj</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">file</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="self">Self</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">file</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_str_from_path</span>(<span class="ident">file</span>) {
-            <span class="self">self</span>.<span class="ident">linker</span>.<span class="ident">add_obj</span>(<span class="ident">file</span>);
-        }
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">add_obj</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="self">Self</span> {
+        <span class="self">self</span>.<span class="ident">linker</span>.<span class="ident">add_obj</span>(<span class="ident">path</span>);
         <span class="self">self</span>
     }
 
@@ -277,7 +273,7 @@
         <span class="self">self</span>
     }
 
-    <span class="doccomment">/// Add a library seaBoxh path to look in for libraries</span>
+    <span class="doccomment">/// Add a library path to look in for libraries</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">add_lib</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="self">Self</span> {
         <span class="self">self</span>.<span class="ident">linker</span>.<span class="ident">add_lib</span>(<span class="ident">path</span>);
         <span class="self">self</span>
@@ -302,6 +298,15 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">build_exectuable</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">LinkerError</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">file</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_str_from_path</span>(<span class="ident">path</span>) {
             <span class="self">self</span>.<span class="ident">linker</span>.<span class="ident">build_exectuable</span>(<span class="ident">file</span>);
+            <span class="self">self</span>.<span class="ident">linker</span>.<span class="ident">finalize</span>()<span class="question-mark">?</span>;
+        }
+        <span class="prelude-val">Ok</span>(())
+    }
+
+    <span class="doccomment">/// Set the output file and run the linker to generate a relocatable object for further linking</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">build_relocatable</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">LinkerError</span><span class="op">&gt;</span> {
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">file</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_str_from_path</span>(<span class="ident">path</span>) {
+            <span class="self">self</span>.<span class="ident">linker</span>.<span class="ident">build_relocatable</span>(<span class="ident">file</span>);
             <span class="self">self</span>.<span class="ident">linker</span>.<span class="ident">finalize</span>()<span class="question-mark">?</span>;
         }
         <span class="prelude-val">Ok</span>(())
@@ -361,6 +366,12 @@
         <span class="self">self</span>.<span class="ident">args</span>.<span class="ident">push</span>(<span class="ident">path</span>.<span class="ident">into</span>());
     }
 
+    <span class="kw">fn</span> <span class="ident">build_relocatable</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) {
+        <span class="self">self</span>.<span class="ident">args</span>.<span class="ident">push</span>(<span class="string">&quot;-relocatable&quot;</span>.<span class="ident">into</span>());
+        <span class="self">self</span>.<span class="ident">args</span>.<span class="ident">push</span>(<span class="string">&quot;-o&quot;</span>.<span class="ident">into</span>());
+        <span class="self">self</span>.<span class="ident">args</span>.<span class="ident">push</span>(<span class="ident">path</span>.<span class="ident">into</span>());
+    }
+
     <span class="kw">fn</span> <span class="ident">finalize</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">LinkerError</span><span class="op">&gt;</span> {
         <span class="ident">lld_rs::link</span>(<span class="ident">lld_rs::LldFlavor::Elf</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">args</span>)
             .<span class="ident">ok</span>()
@@ -412,16 +423,18 @@ impl LinkerInterface for MsvcLinker {
     <span class="ident">Path</span>(<span class="ident">PathBuf</span>),
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">LinkerError</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">String</span> {
+<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">LinkerError</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Diagnostic</span> {
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">error</span>: <span class="ident">LinkerError</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="kw">match</span> <span class="ident">error</span> {
-            <span class="ident">LinkerError::Link</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">e</span>,
-            <span class="ident">LinkerError::Path</span>(<span class="ident">path</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="macro">format!</span>(<span class="string">&quot;path contains invalid UTF-8 characters: {}&quot;</span>, <span class="ident">path</span>.<span class="ident">display</span>())
-            }
-            <span class="ident">LinkerError::Target</span>(<span class="ident">tgt</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="macro">format!</span>(<span class="string">&quot;linker not available for target platform: {}&quot;</span>, <span class="ident">tgt</span>)
-            }
+            <span class="ident">LinkerError::Link</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Diagnostic::link_error</span>(<span class="kw-2">&amp;</span><span class="ident">e</span>),
+            <span class="ident">LinkerError::Path</span>(<span class="ident">path</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Diagnostic::link_error</span>(<span class="kw-2">&amp;</span><span class="macro">format!</span>(
+                <span class="string">&quot;path contains invalid UTF-8 characters: {}&quot;</span>,
+                <span class="ident">path</span>.<span class="ident">display</span>()
+            )),
+            <span class="ident">LinkerError::Target</span>(<span class="ident">tgt</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Diagnostic::link_error</span>(<span class="kw-2">&amp;</span><span class="macro">format!</span>(
+                <span class="string">&quot;linker not available for target platform: {}&quot;</span>,
+                <span class="ident">tgt</span>
+            )),
         }
     }
 }
@@ -437,28 +450,7 @@ impl LinkerInterface for MsvcLinker {
         <span class="macro">panic!</span>(<span class="string">&quot;Linker target should have returned an error!&quot;</span>);
     }
 }
-
-<span class="attribute">#[<span class="ident">test</span>]</span>
-<span class="kw">fn</span> <span class="ident">linker_error_test</span>() {
-    <span class="kw">let</span> <span class="ident">msg</span> <span class="op">=</span> <span class="string">&quot;error message&quot;</span>;
-    <span class="kw">let</span> <span class="ident">link_err</span> <span class="op">=</span> <span class="ident">LinkerError::Link</span>(<span class="ident">msg</span>.<span class="ident">into</span>());
-    <span class="macro">assert_eq!</span>(<span class="ident">String::from</span>(<span class="ident">link_err</span>), <span class="ident">msg</span>.<span class="ident">to_string</span>());
-
-    <span class="kw">let</span> <span class="ident">path</span> <span class="op">=</span> <span class="string">&quot;/abc/def&quot;</span>;
-    <span class="kw">let</span> <span class="ident">link_err</span> <span class="op">=</span> <span class="ident">LinkerError::Path</span>(<span class="ident">path</span>.<span class="ident">into</span>());
-    <span class="macro">assert_eq!</span>(
-        <span class="ident">String::from</span>(<span class="ident">link_err</span>),
-        <span class="macro">format!</span>(<span class="string">&quot;path contains invalid UTF-8 characters: {}&quot;</span>, <span class="ident">path</span>)
-    );
-
-    <span class="kw">let</span> <span class="ident">target</span> <span class="op">=</span> <span class="string">&quot;redox&quot;</span>;
-    <span class="kw">let</span> <span class="ident">link_err</span> <span class="op">=</span> <span class="ident">LinkerError::Target</span>(<span class="ident">target</span>.<span class="ident">into</span>());
-    <span class="macro">assert_eq!</span>(
-        <span class="ident">String::from</span>(<span class="ident">link_err</span>),
-        <span class="macro">format!</span>(<span class="string">&quot;linker not available for target platform: {}&quot;</span>, <span class="ident">target</span>)
-    );
-}
 </code></pre></div>
-</section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="rustyc" data-search-index-js="../../search-index.js" data-search-js="../../search.js"></div>
+</section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="rusty" data-search-index-js="../../search-index.js" data-search-js="../../search.js"></div>
     <script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script>
 </body></html>

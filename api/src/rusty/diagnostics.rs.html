@@ -685,6 +685,24 @@
 <span id="685">685</span>
 <span id="686">686</span>
 <span id="687">687</span>
+<span id="688">688</span>
+<span id="689">689</span>
+<span id="690">690</span>
+<span id="691">691</span>
+<span id="692">692</span>
+<span id="693">693</span>
+<span id="694">694</span>
+<span id="695">695</span>
+<span id="696">696</span>
+<span id="697">697</span>
+<span id="698">698</span>
+<span id="699">699</span>
+<span id="700">700</span>
+<span id="701">701</span>
+<span id="702">702</span>
+<span id="703">703</span>
+<span id="704">704</span>
+<span id="705">705</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std::ops::Range</span>;
 
 <span class="kw">use</span> <span class="ident">codespan_reporting</span>::{
@@ -722,6 +740,7 @@
 
     <span class="comment">//general</span>
     <span class="ident">general__io_err</span>,
+    <span class="ident">general__param_err</span>,
 
     <span class="comment">//syntax</span>
     <span class="ident">syntax__generic_error</span>,
@@ -763,6 +782,9 @@
     <span class="ident">codegen__general</span>,
     <span class="ident">codegen__missing_function</span>,
     <span class="ident">codegen__missing_compare_function</span>,
+
+    <span class="comment">//linker</span>
+    <span class="ident">linker__generic_error</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">Diagnostic</span> {
@@ -1063,6 +1085,13 @@
         }
     }
 
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">param_error</span>(<span class="ident">reason</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Diagnostic</span> {
+        <span class="ident">Diagnostic::GeneralError</span> {
+            <span class="ident">message</span>: <span class="ident">reason</span>.<span class="ident">to_string</span>(),
+            <span class="ident">err_no</span>: <span class="ident">ErrNo::general__param_err</span>,
+        }
+    }
+
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">llvm_error</span>(<span class="ident">file</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">llvm_error</span>: <span class="kw-2">&amp;</span><span class="ident">LLVMString</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Diagnostic</span> {
         <span class="ident">Diagnostic::GeneralError</span> {
             <span class="ident">message</span>: <span class="macro">format!</span>(
@@ -1122,6 +1151,13 @@
             <span class="ident">message</span>: <span class="macro">format!</span>(<span class="string">&quot;Unknown type nature {}.&quot;</span>, <span class="ident">nature</span>),
             <span class="ident">range</span>: <span class="ident">location</span>,
             <span class="ident">err_no</span>: <span class="ident">ErrNo::type__unknown_nature</span>,
+        }
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">link_error</span>(<span class="ident">error</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Diagnostic</span> {
+        <span class="ident">Diagnostic::GeneralError</span> {
+            <span class="ident">err_no</span>: <span class="ident">ErrNo::linker__generic_error</span>,
+            <span class="ident">message</span>: <span class="ident">error</span>.<span class="ident">to_string</span>(),
         }
     }
 
