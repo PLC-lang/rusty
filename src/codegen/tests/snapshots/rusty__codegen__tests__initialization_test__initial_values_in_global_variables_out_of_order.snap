@@ -1,5 +1,5 @@
 ---
-source: src/codegen/tests/code_gen_tests.rs
+source: src/codegen/tests/initialization_test.rs
 expression: result
 
 ---

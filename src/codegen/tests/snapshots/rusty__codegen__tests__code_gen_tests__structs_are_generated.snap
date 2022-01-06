@@ -9,6 +9,8 @@ source_filename = "main"
 %MyStruct = type { i32, i32 }
 %__global_y = type { i8, i8 }
 
+@MyStruct__init = global %MyStruct zeroinitializer
+@__global_y__init = global %__global_y zeroinitializer
 @x = global %MyStruct zeroinitializer
 @y = global %__global_y zeroinitializer
 

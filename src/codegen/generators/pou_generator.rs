@@ -319,36 +319,71 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                     local_llvm_index,
                 );
 
-                let right_stmt = match variable.initial_value {
-                    Some(..) => Some(
-                        self.index
-                            .get_const_expressions()
-                            .maybe_get_constant_statement(&variable.initial_value)
+                // for struct initializations we have a global struct variable with the initial values
+                // the idea is to memcpy the global struct variable
+                let left_type_info = self
+                    .index
+                    .get_type_information_or_void(variable.get_type_name());
+                let struct_init_name = format!("{}__init", variable.get_type_name());
+                let struct_init = self
+                    .llvm_index
+                    .find_associated_initial_value(struct_init_name.as_str());
+                // first check if we have a global init var, class references are also structs but don't have an init var
+                if let Some(struct_init) = struct_init {
+                    if left_type_info.is_struct() {
+                        let size = self
+                            .llvm_index
+                            .find_associated_type(variable.get_type_name())
+                            .and_then(|associated_type| {
+                                associated_type.into_struct_type().size_of()
+                            })
+                            .ok_or("Couldn't determine type size");
+
+                        size.and_then(|size| {
+                            self.llvm.builder.build_memcpy(
+                                left,
+                                1,
+                                struct_init.into_pointer_value(),
+                                1,
+                                size,
+                            )
+                        })
+                        .map_err(|err| {
+                            Diagnostic::codegen_error(err, variable.source_location.clone())
+                        })?;
+                    }
+                } else {
+                    let right_stmt = match variable.initial_value {
+                        Some(..) => Some(
+                            self.index
+                                .get_const_expressions()
+                                .maybe_get_constant_statement(&variable.initial_value)
+                                .ok_or_else(|| {
+                                    Diagnostic::cannot_generate_initializer(
+                                        variable.get_qualified_name(),
+                                        variable.source_location.clone(),
+                                    )
+                                })?,
+                        ),
+                        None => None,
+                    };
+
+                    let right_exp = match right_stmt {
+                        Some(stmt) => exp_gen.generate_expression(stmt)?,
+                        None => self
+                            .llvm_index
+                            .find_associated_type(variable.get_type_name())
+                            .map(get_default_for)
                             .ok_or_else(|| {
                                 Diagnostic::cannot_generate_initializer(
                                     variable.get_qualified_name(),
                                     variable.source_location.clone(),
                                 )
                             })?,
-                    ),
-                    None => None,
-                };
+                    };
 
-                let right_exp = match right_stmt {
-                    Some(stmt) => exp_gen.generate_expression(stmt)?,
-                    None => self
-                        .llvm_index
-                        .find_associated_type(variable.get_type_name())
-                        .map(get_default_for)
-                        .ok_or_else(|| {
-                            Diagnostic::cannot_generate_initializer(
-                                variable.get_qualified_name(),
-                                variable.source_location.clone(),
-                            )
-                        })?,
-                };
-
-                self.llvm.builder.build_store(left, right_exp);
+                    self.llvm.builder.build_store(left, right_exp);
+                }
             } else {
                 return Err(Diagnostic::cannot_generate_initializer(
                     variable.get_qualified_name(),
