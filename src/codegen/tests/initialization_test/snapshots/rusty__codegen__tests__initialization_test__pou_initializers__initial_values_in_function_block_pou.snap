@@ -1,5 +1,6 @@
 ---
 source: src/codegen/tests/initialization_test/pou_initializers.rs
+assertion_line: 68
 expression: result
 
 ---

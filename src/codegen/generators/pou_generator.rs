@@ -401,28 +401,14 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                     ),
                     None => None,
                 };
+
+                // for initializations we might have a global variable with the initial values
+                // the idea is to memcpy the global variable
                 let size = self
                     .llvm_index
                     .find_associated_type(variable.get_type_name())
-                    .ok_or_else(|| {
-                        Diagnostic::codegen_error(
-                            format!(
-                                "Couldn't find associated type for {}",
-                                variable.get_type_name()
-                            )
-                            .as_str(),
-                            variable.source_location.clone(),
-                        )
-                    })?
-                    .size_of()
-                    .ok_or_else(|| {
-                        Diagnostic::codegen_error(
-                            format!("Couldn't get type size of {}", variable.get_type_name())
-                                .as_str(),
-                            variable.source_location.clone(),
-                        )
-                    })?;
-
+                    .and_then(|associated_type| associated_type.size_of())
+                    .ok_or("Couldn't determine type size");
                 //First try to get a saved global constant
                 let name = format!("{}__init", variable.get_qualified_name());
                 let type_init_name = format!("{}__init", variable.get_type_name());
@@ -431,27 +417,34 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                     .find_global_value(&name)
                     .or_else(|| self.llvm_index.find_global_value(&type_init_name))
                 {
-                    let alignment = std::cmp::max(1, global_value.get_alignment()); //TODO: This seems to always be 0
-                    self.llvm
-                        .builder
-                        .build_memcpy(
+                    size.and_then(|size| {
+                        let alignment = std::cmp::max(1, global_value.get_alignment()); //TODO: This seems to always be 0
+                        self.llvm.builder.build_memcpy(
                             left,
                             alignment,
                             global_value.as_pointer_value(),
                             alignment,
                             size,
                         )
-                        .map_err(|err| {
-                            Diagnostic::codegen_error(err, variable.source_location.clone())
-                        })?;
+                    })
+                    .map_err(|err| {
+                        Diagnostic::codegen_error(err, variable.source_location.clone())
+                    })?;
                 } else if left.get_type().get_element_type().is_array_type() {
-                    self.llvm
-                        .builder
-                        .build_memset(left, 1, self.llvm.context.i8_type().const_zero(), size)
-                        .map_err(|it| {
-                            Diagnostic::codegen_error(it, variable.source_location.clone())
-                        })?;
+                    //If nothint was found see if this is an array to set its value to 0
+                    size.and_then(|size| {
+                        self.llvm.builder.build_memset(
+                            left,
+                            1,
+                            self.llvm.context.i8_type().const_zero(),
+                            size,
+                        )
+                    })
+                    .map_err(|it| {
+                        Diagnostic::codegen_error(it, variable.source_location.clone())
+                    })?;
                 } else {
+                    //Otherwise just generate a store expression
                     let value = if let Some(stmt) = right_stmt {
                         exp_gen.generate_expression(stmt)
                     } else {

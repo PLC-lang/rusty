@@ -265,10 +265,11 @@ fn visit_data_type(
                 information,
                 nature: TypeNature::Derived,
             });
+            //Generate an initializer for the struct
             let global_struct_name = format!("{}__init", name);
             index.register_global_variable(
                 global_struct_name.as_str(),
-                name,
+                type_name.as_str(),
                 init,
                 true, //Initial values are constants
                 type_declaration.location.clone(),

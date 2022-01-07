@@ -1,5 +1,6 @@
 ---
 source: src/codegen/tests/initialization_test/type_initializers.rs
+assertion_line: 194
 expression: result
 
 ---
