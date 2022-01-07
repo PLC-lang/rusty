@@ -1831,6 +1831,9 @@ fn function_block_instance_call() {
     let result = codegen(
         "
         FUNCTION_BLOCK foo
+          VAR_INPUT
+            x, y : INT;
+          END_VAR
         END_FUNCTION_BLOCK
 
         PROGRAM prg 
@@ -1906,7 +1909,7 @@ fn structs_are_generated() {
         "
         TYPE MyStruct: STRUCT
           a: DINT;
-          b: DINT;
+          b: INT;
         END_STRUCT
         END_TYPE
 

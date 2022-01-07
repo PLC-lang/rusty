@@ -7,7 +7,7 @@ expression: result
 ; ModuleID = 'main'
 source_filename = "main"
 
-%MyStruct = type { i32, i32 }
+%MyStruct = type { i32, i16 }
 %__global_y = type { i8, i8 }
 
 @MyStruct__init = addrspace(4) global %MyStruct zeroinitializer

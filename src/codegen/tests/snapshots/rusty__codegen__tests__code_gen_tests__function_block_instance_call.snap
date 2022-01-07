@@ -1,12 +1,13 @@
 ---
 source: src/codegen/tests/code_gen_tests.rs
+assertion_line: 1848
 expression: result
 
 ---
 ; ModuleID = 'main'
 source_filename = "main"
 
-%foo_interface = type {}
+%foo_interface = type { i16, i16 }
 %prg_interface = type { %foo_interface }
 
 @foo__init = addrspace(4) global %foo_interface zeroinitializer
@@ -14,6 +15,8 @@ source_filename = "main"
 
 define void @foo(%foo_interface* %0) {
 entry:
+  %x = getelementptr inbounds %foo_interface, %foo_interface* %0, i32 0, i32 0
+  %y = getelementptr inbounds %foo_interface, %foo_interface* %0, i32 0, i32 1
   ret void
 }
 
