@@ -1,7 +1,7 @@
 # Code-Generation
 The codegen module contains all code that turns the parsed and verified code represented as an AST into [llvm-ir](https://llvm.org/docs/LangRef.html) code. To generate the *IR* we use a crate that wraps the native llvm [C-API](https://github.com/TheDan64/inkwell).
 
-The code-generator is basically a transformation from the ST-AST into an IR-Tree representation. Therefore the AST is traversed ina visitor-like way and transformed simultaneously. The code generation is split into specialized sub-generators for different tasks:
+The code-generator is basically a transformation from the ST-AST into an IR-Tree representation. Therefore the AST is traversed in a visitor-like way and transformed simultaneously. The code generation is split into specialized sub-generators for different tasks:
 
 | Generator          | Responsibilities |
 |--------------------|------------------|
