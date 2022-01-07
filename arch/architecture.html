@@ -3,7 +3,7 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>External Functions - RuSTy User Documentation</title>
+        <title>Architecture - RuSTy User Documentation</title>
         <!-- Custom HTML head -->
         <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
         <meta name="description" content="">
@@ -75,7 +75,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded "><a href="../intro_1.html"><strong aria-hidden="true">1.</strong> RuSTy</a></li><li class="chapter-item expanded "><a href="../build_and_install.html"><strong aria-hidden="true">2.</strong> Build and Install</a></li><li class="chapter-item expanded "><a href="../using_rusty.html"><strong aria-hidden="true">3.</strong> Using RuSTy</a></li><li class="chapter-item expanded "><div><strong aria-hidden="true">4.</strong> Writing ST Programs</div></li><li><ol class="section"><li class="chapter-item expanded "><div><strong aria-hidden="true">4.1.</strong> Multiple Files</div></li><li class="chapter-item expanded "><a href="../libraries.html"><strong aria-hidden="true">4.2.</strong> Libraries</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../libraries/external_functions.html" class="active"><strong aria-hidden="true">4.2.1.</strong> External Functions</a></li></ol></li><li class="chapter-item expanded "><div><strong aria-hidden="true">4.3.</strong> Using in external programs</div></li></ol></li><li class="chapter-item expanded "><a href="../variables.html"><strong aria-hidden="true">5.</strong> Variables</a></li><li class="chapter-item expanded "><a href="../datatypes.html"><strong aria-hidden="true">6.</strong> Datatypes</a></li><li class="chapter-item expanded "><a href="../direct_variables.html"><strong aria-hidden="true">7.</strong> Direct Bit Access</a></li><li class="chapter-item expanded "><a href="../arch/architecture.html"><strong aria-hidden="true">8.</strong> Architecture</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../arch/parser.html"><strong aria-hidden="true">8.1.</strong> Parser</a></li><li class="chapter-item expanded "><a href="../arch/indexer.html"><strong aria-hidden="true">8.2.</strong> Indexer &amp; Symbol-Table</a></li><li class="chapter-item expanded "><a href="../arch/linker.html"><strong aria-hidden="true">8.3.</strong> Linker</a></li><li class="chapter-item expanded "><a href="../arch/validation.html"><strong aria-hidden="true">8.4.</strong> Validation</a></li><li class="chapter-item expanded "><a href="../arch/codegen.html"><strong aria-hidden="true">8.5.</strong> Codegen</a></li></ol></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded "><a href="../intro_1.html"><strong aria-hidden="true">1.</strong> RuSTy</a></li><li class="chapter-item expanded "><a href="../build_and_install.html"><strong aria-hidden="true">2.</strong> Build and Install</a></li><li class="chapter-item expanded "><a href="../using_rusty.html"><strong aria-hidden="true">3.</strong> Using RuSTy</a></li><li class="chapter-item expanded "><div><strong aria-hidden="true">4.</strong> Writing ST Programs</div></li><li><ol class="section"><li class="chapter-item expanded "><div><strong aria-hidden="true">4.1.</strong> Multiple Files</div></li><li class="chapter-item expanded "><a href="../libraries.html"><strong aria-hidden="true">4.2.</strong> Libraries</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../libraries/external_functions.html"><strong aria-hidden="true">4.2.1.</strong> External Functions</a></li></ol></li><li class="chapter-item expanded "><div><strong aria-hidden="true">4.3.</strong> Using in external programs</div></li></ol></li><li class="chapter-item expanded "><a href="../variables.html"><strong aria-hidden="true">5.</strong> Variables</a></li><li class="chapter-item expanded "><a href="../datatypes.html"><strong aria-hidden="true">6.</strong> Datatypes</a></li><li class="chapter-item expanded "><a href="../direct_variables.html"><strong aria-hidden="true">7.</strong> Direct Bit Access</a></li><li class="chapter-item expanded "><a href="../arch/architecture.html" class="active"><strong aria-hidden="true">8.</strong> Architecture</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../arch/parser.html"><strong aria-hidden="true">8.1.</strong> Parser</a></li><li class="chapter-item expanded "><a href="../arch/indexer.html"><strong aria-hidden="true">8.2.</strong> Indexer &amp; Symbol-Table</a></li><li class="chapter-item expanded "><a href="../arch/linker.html"><strong aria-hidden="true">8.3.</strong> Linker</a></li><li class="chapter-item expanded "><a href="../arch/validation.html"><strong aria-hidden="true">8.4.</strong> Validation</a></li><li class="chapter-item expanded "><a href="../arch/codegen.html"><strong aria-hidden="true">8.5.</strong> Codegen</a></li></ol></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -134,99 +134,44 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1 id="external-functions"><a class="header" href="#external-functions">External Functions</a></h1>
-<p>A <code>POU</code> (<code>PROGRAM</code>, <code>FUNCTION</code>, <code>FUNCTION_BLOCK</code>) can be marked as external,
-which will cause the compiler to ignore its implementation</p>
-<pre><code class="language-iecst">@EXTERNAL
-FUNCTION log : DINT
-VAR_INPUT
-  message : STRING[1024];
-  type : (Err,Warn,Info) := Info;
-END_VAR
-END_PROGRAM
+                        <h1 id="architecture"><a class="header" href="#architecture">Architecture</a></h1>
+<h2 id="overview"><a class="header" href="#overview">Overview</a></h2>
+<p>Rusty is a Compiler for Structured Text. It utilizes the llvm compiler infrastructurue and contributes a <a href="https://en.wikipedia.org/wiki/Structured_text">Structured Text</a> Frontend that translates Structured Text into llvm's language independent intermediate representation (IR). The Further optimization and native code generation is performed by the existing LLVM infrastructure, namely llvm's common optimizer and the platform specific backend (see <a href="https://www.aosabook.org/en/llvm.html">here</a>). </p>
+<pre><code class="language-ignore">    ┌──────────────────┐    ┌───────────────┐    ┌────────────────┐
+    │                  │    │               │    │                │
+    │      Rusty       │    │  LLVM Common  │    │  LLVM Backend  │
+    │                  ├───►│               ├───►│                │
+    │  LLVM Frontend   │    │   Optimizer   │    │   (e.g Clang)  │
+    │                  │    │               │    │                │
+    └──────────────────┘    └───────────────┘    └────────────────┘
 </code></pre>
-<p>At compilation time, the function <code>log</code> will be defined,
-and can be called from <code>ST</code> code.</p>
-<blockquote>
-<p>Note : At linking time, a <code>log</code> function with a compatible signature must be found.</p>
-</blockquote>
-<h2 id="calling-c-functions"><a class="header" href="#calling-c-functions">Calling C functions</a></h2>
-<p><code>ST</code> code can call into foreign functions natively.
-To achive this, the called function must be defined in a <code>C</code> compatible API
-e.g. <code>extern &quot;C&quot;</code> blocks</p>
-<p>The interface of the function has to be declared in <code>ST</code> using the <code>@EXTERNAL</code> keyword.</p>
-<h3 id="example"><a class="header" href="#example">Example</a></h3>
-<p>Given a <code>min</code> function defined in <code>C</code> as follows</p>
-<pre><code class="language-C">int min(int a, int b) {
-//...
-}
+<p>So Rusty consists of the frontend part of the llvm compiler-infrastructure. This means that this compiler can benefit from llvm's existing compiler-optimizations, as well as all backend target platforms available.</p>
+<h2 id="rusty-frontend-architecture"><a class="header" href="#rusty-frontend-architecture">Rusty Frontend Architecture</a></h2>
+<p>Ultimately the goal of a compiler frontend, is to translate the original source code into the infrastructure's intermediate representation  (in this case we're talking about <a href="https://llvm.org/docs/LangRef.html">LLVM IR</a>). Rusty treats this task as a compilation step of its own. While a fully fledged compiler generates machine code as a last step, rusty generates LLVM IR assembly code.</p>
+<pre><code class="language-ignore">      ┌────────┐                                                          ┌────────┐
+      │ Source │                                                          │  LLVM  │
+      │        │                                                          │   IR   │
+      │ Files  │                                                          │        │
+      └───┬────┘                                                          └────────┘
+          │                                                                    ▲
+          ▼                                                                    │
+    ┌────────────┐   ┌────────────┐   ┌────────────┐   ┌────────────┐   ┌──────┴─────┐
+    │            │   │            │   │            │   │            │   │            │
+    │            │   │            │   │            │   │            │   │            │
+    │   Parser   ├──►│   Indexer  ├──►│   Linker   ├──►│ Validation ├──►│   Codegen  │
+    │            │   │            │   │            │   │            │   │            │
+    │            │   │            │   │            │   │            │   │            │
+    └────────────┘   └────────────┘   └────────────┘   └────────────┘   └────────────┘
 </code></pre>
-<p>An interface of that function in <code>ST</code> can be defined as</p>
-<pre><code class="language-iecst">@EXTERNAL
-FUNCTION min : DINT
-VAR_INPUT
-  a : DINT;
-  b : DINT;
-END_VAR
-</code></pre>
-<h3 id="variadic-arguments"><a class="header" href="#variadic-arguments">Variadic arguments</a></h3>
-<p>Some foreign functions, especially ones defined in <code>C</code>,
-could be <a href="https://en.cppreference.com/w/c/variadic">variadic functions</a>.</p>
-<p>These functions are usually defined with the last parameter <code>...</code>, and signify
-that a function can be called with unlimited parameters.</p>
-<p>An example of a variadic function is printf.</p>
-<p>Calling a variadic function is supported in <code>ST</code>. To mark an external function
-as variadic, you can add a parameter of type <code>...</code> to the <code>VAR_INPUT</code> block</p>
-<h4 id="variadic-function-example"><a class="header" href="#variadic-function-example">Variadic Function Example</a></h4>
-<p>Given the <code>printf</code> function defined as</p>
-<pre><code class="language-C">int printf( const char *restrict format, ... );
-</code></pre>
-<p>The <code>ST</code> interface can be defined as</p>
-<pre><code class="language-iecst">@EXTERNAL
-FUNCTION printf : DINT
-VAR_INPUT
-  format : STRING;
-  args : ...;
-END_VAR
-END_FUNCTION
-</code></pre>
-<h4 id="full-example"><a class="header" href="#full-example">Full Example</a></h4>
-<p>With the printf function available on the system, there is no need to declare
-the C function</p>
-<p>Declare an <code>ST</code> program called <code>ExternalFunctions.st</code> with the following code:</p>
-<pre><code class="language-iecst">@EXTERNAL FUNCTION printf : DINT
-VAR_INPUT
-    format : STRING;
-    args: ...;
-END_VAR
-END_FUNCTION
-
-
-(**
-* The main function of the program prints a demo to the standard out
-*)
-FUNCTION main : DINT
-  main := 1;
-  printf('Value %d, %d, %d', main, main * 10, main * 100);
-END_FUNCTION
-</code></pre>
-<p>Compile the previous code with the following command</p>
-<pre><code class="language-sh">rustyc ExternalFunctions.st -o ExternalFunctions.o  --static \
-  &amp;&amp; clang ExternalFunctions.o -o ExternalFunctions
-</code></pre>
-<blockquote>
-<p>Note: that we use clang to link the generated object file and generate an executable</p>
-</blockquote>
-<p>You can then run the demo with <code>./ExternalFunctions</code></p>
 
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
-                            <a rel="prev" href="../libraries.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                            <a rel="prev" href="../direct_variables.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                                 <i class="fa fa-angle-left"></i>
                             </a>
-                            <a rel="next" href="../variables.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                            <a rel="next" href="../arch/parser.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                                 <i class="fa fa-angle-right"></i>
                             </a>
                         <div style="clear: both"></div>
@@ -235,10 +180,10 @@ END_FUNCTION
             </div>
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
-                    <a rel="prev" href="../libraries.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                    <a rel="prev" href="../direct_variables.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                         <i class="fa fa-angle-left"></i>
                     </a>
-                    <a rel="next" href="../variables.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                    <a rel="next" href="../arch/parser.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                         <i class="fa fa-angle-right"></i>
                     </a>
             </nav>

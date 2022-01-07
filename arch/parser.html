@@ -1,0 +1,253 @@
+<!DOCTYPE HTML>
+<html lang="en" class="sidebar-visible no-js light">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Parser - RuSTy User Documentation</title>
+        <!-- Custom HTML head -->
+        <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff" />
+
+        <link rel="icon" href="../favicon.svg">
+        <link rel="shortcut icon" href="../favicon.png">
+        <link rel="stylesheet" href="../css/variables.css">
+        <link rel="stylesheet" href="../css/general.css">
+        <link rel="stylesheet" href="../css/chrome.css">
+        <link rel="stylesheet" href="../css/print.css" media="print">
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../fonts/fonts.css">
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="../highlight.css">
+        <link rel="stylesheet" href="../tomorrow-night.css">
+        <link rel="stylesheet" href="../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+    </head>
+    <body>
+        <!-- Provide site root to javascript -->
+        <script type="text/javascript">
+            var path_to_root = "../";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "light";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script type="text/javascript">
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script type="text/javascript">
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('no-js')
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add('js');
+        </script>
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script type="text/javascript">
+            var html = document.querySelector('html');
+            var sidebar = 'hidden';
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            }
+            html.classList.remove('sidebar-visible');
+            html.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li class="chapter-item expanded "><a href="../intro_1.html"><strong aria-hidden="true">1.</strong> RuSTy</a></li><li class="chapter-item expanded "><a href="../build_and_install.html"><strong aria-hidden="true">2.</strong> Build and Install</a></li><li class="chapter-item expanded "><a href="../using_rusty.html"><strong aria-hidden="true">3.</strong> Using RuSTy</a></li><li class="chapter-item expanded "><div><strong aria-hidden="true">4.</strong> Writing ST Programs</div></li><li><ol class="section"><li class="chapter-item expanded "><div><strong aria-hidden="true">4.1.</strong> Multiple Files</div></li><li class="chapter-item expanded "><a href="../libraries.html"><strong aria-hidden="true">4.2.</strong> Libraries</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../libraries/external_functions.html"><strong aria-hidden="true">4.2.1.</strong> External Functions</a></li></ol></li><li class="chapter-item expanded "><div><strong aria-hidden="true">4.3.</strong> Using in external programs</div></li></ol></li><li class="chapter-item expanded "><a href="../variables.html"><strong aria-hidden="true">5.</strong> Variables</a></li><li class="chapter-item expanded "><a href="../datatypes.html"><strong aria-hidden="true">6.</strong> Datatypes</a></li><li class="chapter-item expanded "><a href="../direct_variables.html"><strong aria-hidden="true">7.</strong> Direct Bit Access</a></li><li class="chapter-item expanded "><a href="../arch/architecture.html"><strong aria-hidden="true">8.</strong> Architecture</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../arch/parser.html" class="active"><strong aria-hidden="true">8.1.</strong> Parser</a></li><li class="chapter-item expanded "><a href="../arch/indexer.html"><strong aria-hidden="true">8.2.</strong> Indexer &amp; Symbol-Table</a></li><li class="chapter-item expanded "><a href="../arch/linker.html"><strong aria-hidden="true">8.3.</strong> Linker</a></li><li class="chapter-item expanded "><a href="../arch/validation.html"><strong aria-hidden="true">8.4.</strong> Validation</a></li><li class="chapter-item expanded "><a href="../arch/codegen.html"><strong aria-hidden="true">8.5.</strong> Codegen</a></li></ol></li></ol>
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky bordered">
+                    <div class="left-buttons">
+                        <button id="sidebar-toggle" class="icon-button" type="button" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </button>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light (default)</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">RuSTy User Documentation</h1>
+
+                    <div class="right-buttons">
+                        <a href="../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script type="text/javascript">
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="parser"><a class="header" href="#parser">Parser</a></h1>
+<p>The role of the parser is to turn source-code which is fed as a string (in the form of files) into a tree-representation of that source-code. This tree is typically called the <em>Abstract Syntax Tree (AST)</em>. The step of parsing consists of two distinct stages. 
+The first one is the <em>lexical analysis (Lexer)</em> which is performed by a lexer. After lexing we perform the <em>syntactical analysis (Parser)</em> to construct the syntax tree.</p>
+<pre><code class="language-ignore">                                                                   ┌──┐
+       ┌──────────────┐                                            │  │
+       │              │                                            └──┘
+       │  Source Code │                                            /  \
+       │              │   ┌─────────┐        ┌──────────┐         /    \
+       │  ──────────  │   │         │        │          │     ┌──┐      ┌──┐
+       │              ├───►  Lexer  │        │  Parser  ├────►│  │      │  │
+       │  ─────────   │   │         │        │          │     └──┘      └──┘
+       │              │   └────┬────┘        └──────────┘      /\        /\
+       │  ────        │        │                  ▲           /  \      /  \
+       │              │        │                  │        ┌──┐ ┌──┐ ┌──┐ ┌──┐
+       │  ────────    │        ▼                  │        │  │ │  │ │  │ │  │
+       │              │   ┌───────────────────────┴──┐     └──┘ └──┘ └──┘ └──┘
+       │              │   │                          │
+       └──────────────┘   │  ┌───┐ ┌───┐ ┌───┐ ┌───┐ │       Abstract Syntax
+                          │  │ T │ │ T │ │ T │ │...│ │            Tree
+                          │  └───┘ └───┘ └───┘ └───┘ │
+                          │                          │
+                          └──────────────────────────┘
+                                 Token-Stream
+</code></pre>
+<h2 id="lexer"><a class="header" href="#lexer">Lexer</a></h2>
+<p>The lexer performs the lexical analysis. This step turns the source-string into a sequence of well known tokens. The Lexer (or sometimes also called <em>tokenizer</em>) splits the source-string into <em>tokens</em> (or <em>words</em>). Each token has a distinct type which corresponds to a grammar's element. Typical token-types are keywords, numbers, identifiers, brackets, dots, etc. So with the help of this token-stream it is much easier for the parser to spot certain patterns. E.g. a floating-point number consists of the token-sequence: <em>number</em>, <em>dot</em>, <em>number</em>.</p>
+<p>The lexer is implemented in the <code>lexer</code>-module. It uses the <a href="https://github.com/maciejhirsz/logos">logos</a> crate to create a lexer that is able to identify all different terminal-symbols. Compared to other languages, Structured Text has a quite high number of keywords and other tokens, so Rusty's lexer identifies a quite large number of different tokens.</p>
+<h3 id="discussion-rusty-lexer"><a class="header" href="#discussion-rusty-lexer">Discussion: Rusty-Lexer</a></h3>
+<p>The logos crate uses <a href="https://doc.rust-lang.org/reference/procedural-macros.html">procedural macros</a> to generate the code required to  lex the source-string. The number of tokens identified by the rusty-lexer is quite high, so as of january 2022 the rust sdk for vs-code (rust-analyzer) reports problem with the number of macro-generated tokens (<em>macro invocation exceeds token limit...</em>).</p>
+<p>The tokens identified by the lexer follow the formal definition provided by the IEC61131-3 (2013) standard.</p>
+<p>Following strategies increase the number of tokens and should be reconsidered:</p>
+<ul>
+<li>case insensitivity</li>
+<li>optional underscores in keywords (e.g. <code>END_IF</code> == <code>ENDIF</code>)</li>
+<li>unrolled tokens instead of grouping tokens (e.g. <code>KEYWORD_TRUE</code> &amp; <code>KEYWORD_FALSE</code> instead of <code>KEYWORD_BOOL</code>)</li>
+<li>etc.</li>
+</ul>
+<h2 id="parser-1"><a class="header" href="#parser-1">Parser</a></h2>
+<p>The parser takes the token stream and creates the corresponding AST that represents the source code in a structured, hierarchical way. The parser is implemented in the <code>parser</code> module whereas the model for the AST is implemented in the <code>ast</code> module.</p>
+<h3 id="ast---abstract-syntax-tree"><a class="header" href="#ast---abstract-syntax-tree">AST - Abstract Syntax Tree</a></h3>
+<p>The abstract syntax tree is a tree representation of the source code. Some parser implementations use a generic tree-data-structure consisting of <code>Nodes</code> which can have an arbitrary number of children. These nodes usually have dynamic properties like a type and an optional value and sometimes they even have dynamic properties stored in a map to make this representation even more flexible.</p>
+<p>While this approach needs very little source code we decided to favour a less flexible approach. The rusty-AST models every single ast-node as its own <em>struct</em> with all necessary fields including the possible child-nodes. While this approach needs much more code and hand-written changes, its benefits lie in the clearness and simplicity of the data-structure. Every element of the AST is easily identified, debugged and understood. (e.g. while in a generic node based AST it is easily possible to have a binary-statement with no, one, or seven child-nodes, the rusty-AST enforces the structure of every node. So the rusty-Binary-Statement has exactly two children. It is impossible to construct it differently.).</p>
+<h4 id="example"><a class="header" href="#example">Example</a></h4>
+<p>So an assignment <code>a := 3;</code> will be parsed with the help of the following Structures:</p>
+<pre><code class="language-rs">struct Reference {
+   name: string
+}
+
+struct LiteralInteger {
+   value: i128
+}
+
+struct Assignment {
+   left: Box&lt;AstStatement&gt;,
+   right: Box&lt;AstStatement&gt;
+}
+</code></pre>
+<h3 id="recursive-descent-parser"><a class="header" href="#recursive-descent-parser">Recursive Descent Parser</a></h3>
+<p>There are a lot of different frameworks to generate parsers from formal grammars. While they generate highly optimized parsers we felt we wanted more control and more understanding of the parsing process and the resulting AST. The fact that at that point in time we were pretty new to rust itself, writing the parser by hand also gave us more practice and a stronger feeling of control and understanding. Using a parser-generator framework will definitely be an option for future improvements.</p>
+<p>As for now, the parser is a hand-written <a href="https://en.wikipedia.org/wiki/Recursive_descent_parser">recursive descent parser</a> inside the <code>parser</code>-module. </p>
+<p>As the parser reads the token stream <code>Reference</code>, <code>KeywordEquals</code>, <code>Number</code>, <code>Semicolon</code> it instantiates the corresponding syntax tree: </p>
+<pre><code class="language-ignore">                      ┌─────────────────┐
+                      │   Assignment    │
+                      └──────┬──┬───────┘
+                   left      │  │     right 
+                 ┌───────────┘  └──────────┐
+                 ▼                         ▼
+        ┌──────────────────┐     ┌──────────────────┐
+        │    Reference     │     │  LiteralInteger  │
+        ├──────────────────┤     ├──────────────────┤
+        │    name: 'a'     │     │    value: '3'    │
+        └──────────────────┘     └──────────────────┘
+</code></pre>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../arch/architecture.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+                            <a rel="next" href="../arch/indexer.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../arch/architecture.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+                    <a rel="next" href="../arch/indexer.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+        <script type="text/javascript">
+            window.playground_copyable = true;
+        </script>
+        <script src="../elasticlunr.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="../mark.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="../searcher.js" type="text/javascript" charset="utf-8"></script>
+        <script src="../clipboard.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="../highlight.js" type="text/javascript" charset="utf-8"></script>
+        <script src="../book.js" type="text/javascript" charset="utf-8"></script>
+
+        <!-- Custom JS scripts -->
+        <script type="text/javascript" src="../iecst.min.js"></script>
+        <script type="text/javascript" src="../llvm.min.js"></script>
+        <script type="text/javascript" src="../custom.js"></script>
+        <script type="text/javascript" src="../highlight.js"></script>
+    </body>
+</html>
