@@ -19,9 +19,11 @@
 //! [`IR`]: https://llvm.org/docs/LangRef.html
 use std::fs;
 
+use glob::glob;
 use std::path::Path;
 
 use ast::{PouType, SourceRange};
+use cli::CompileParameters;
 use diagnostics::Diagnostic;
 use encoding_rs::Encoding;
 use encoding_rs_io::DecodeReaderBytesBuilder;
@@ -44,6 +46,7 @@ mod codegen;
 pub mod diagnostics;
 pub mod index;
 mod lexer;
+mod linker;
 mod parser;
 mod resolver;
 mod test_utils;
@@ -53,6 +56,28 @@ mod validation;
 #[macro_use]
 #[cfg(test)]
 extern crate pretty_assertions;
+
+#[derive(PartialEq, Debug, Clone, Copy)]
+pub enum FormatOption {
+    Static,
+    PIC,
+    Shared,
+    Relocatable,
+    Bitcode,
+    IR,
+}
+
+pub struct CompileOptions {
+    pub format: FormatOption,
+    pub output: String,
+    pub target: Option<String>,
+}
+
+pub struct LinkOptions {
+    pub libraries: Vec<String>,
+    pub library_pathes: Vec<String>,
+    pub sysroot: Option<String>,
+}
 
 /// SourceContainers offer source-code to be compiled via the load_source function.
 /// Furthermore it offers a location-String used when reporting diagnostics.
@@ -67,15 +92,41 @@ pub struct FilePath {
     pub path: String,
 }
 
+impl From<String> for FilePath {
+    fn from(it: String) -> Self {
+        FilePath { path: it }
+    }
+}
+
+impl From<&str> for FilePath {
+    fn from(it: &str) -> Self {
+        FilePath { path: it.into() }
+    }
+}
+
+impl FilePath {
+    fn get_extension(&self) -> &str {
+        self.path.split('.').last().unwrap_or("")
+    }
+
+    fn is_object(&self) -> bool {
+        self.get_extension() == "o"
+    }
+}
+
 impl SourceContainer for FilePath {
     fn load_source(self, encoding: Option<&'static Encoding>) -> Result<SourceCode, String> {
-        let mut file = File::open(&self.path).map_err(|err| err.to_string())?;
-        let source = create_source_code(&mut file, encoding)?;
+        if self.is_object() {
+            Err(format!("{} is not a source file", &self.path))
+        } else {
+            let mut file = File::open(&self.path).map_err(|err| err.to_string())?;
+            let source = create_source_code(&mut file, encoding)?;
 
-        Ok(SourceCode {
-            source,
-            path: self.path,
-        })
+            Ok(SourceCode {
+                source,
+                path: self.path,
+            })
+        }
     }
 
     fn get_location(&self) -> &str {
@@ -137,7 +188,8 @@ fn create_source_code<T: Read>(
 
 pub fn get_target_triple(triple: Option<String>) -> TargetTriple {
     triple
-        .map(|it| TargetTriple::create(it.as_str()))
+        .as_ref()
+        .map(|it| TargetTriple::create(it))
         .unwrap_or_else(TargetMachine::get_default_triple)
 }
 
@@ -393,6 +445,180 @@ pub fn compile_module<'c, T: SourceContainer>(
         code_generator.generate(&unit, &annotations, &full_index, &llvm_index)?;
     }
     Ok(code_generator)
+}
+
+fn create_file_paths(inputs: &[String]) -> Result<Vec<FilePath>, Diagnostic> {
+    let mut sources = Vec::new();
+    for input in inputs {
+        let paths = glob(input).map_err(|e| {
+            Diagnostic::param_error(&format!("Failed to read glob pattern: {}, ({})", input, e))
+        })?;
+
+        for p in paths {
+            let path =
+                p.map_err(|err| Diagnostic::param_error(&format!("Illegal path: {:}", err)))?;
+            sources.push(FilePath {
+                path: path.to_string_lossy().to_string(),
+            });
+        }
+    }
+    if sources.is_empty() {
+        return Err(Diagnostic::param_error(&format!(
+            "No such file(s): {}",
+            inputs.join(",")
+        )));
+    }
+    Ok(sources)
+}
+
+/// The driver function for the compilation
+/// Sorts files that need compilation
+/// Parses, validates and generates code for the given source files
+/// Links all provided object files with the compilation result
+/// Links any provided libraries
+/// Returns the location of the output file
+pub fn build_with_params(parameters: CompileParameters) -> Result<(), Diagnostic> {
+    let files = create_file_paths(&parameters.input)?;
+    let output = parameters
+        .output_name()
+        .ok_or_else(|| Diagnostic::param_error("Missing parameter: output-name"))?;
+    let out_format = parameters.output_format_or_default();
+    let compile_options = CompileOptions {
+        output,
+        target: parameters.target,
+        format: out_format,
+    };
+    let link_options = if !parameters.skip_linking {
+        Some(LinkOptions {
+            libraries: parameters.libraries,
+            library_pathes: parameters.library_pathes,
+            sysroot: parameters.sysroot,
+        })
+    } else {
+        None
+    };
+
+    build(files, compile_options, link_options, parameters.encoding)
+}
+
+/// The driver function for the compilation
+/// Sorts files that need compilation
+/// Parses, validates and generates code for the given source files
+/// Links all provided object files with the compilation result
+/// Links any provided libraries
+/// Returns the location of the output file
+pub fn build(
+    files: Vec<FilePath>,
+    compile_options: CompileOptions,
+    link_options: Option<LinkOptions>,
+    encoding: Option<&'static Encoding>,
+) -> Result<(), Diagnostic> {
+    let mut objects = vec![];
+    let mut sources = vec![];
+    files.into_iter().for_each(|it| {
+        if it.is_object() {
+            objects.push(it);
+        } else {
+            sources.push(it);
+        }
+    });
+
+    if !sources.is_empty() {
+        compile(
+            &compile_options.output,
+            compile_options.format,
+            sources,
+            encoding,
+            compile_options.target.clone(),
+        )?;
+        objects.push(compile_options.output.as_str().into());
+    }
+
+    if let Some(link_options) = link_options {
+        link(
+            &compile_options.output,
+            compile_options.format,
+            objects,
+            link_options.library_pathes,
+            link_options.libraries,
+            compile_options.target,
+            link_options.sysroot,
+        )?;
+    }
+
+    Ok(())
+}
+
+pub fn compile(
+    output: &str,
+    out_format: FormatOption,
+    sources: Vec<FilePath>,
+    encoding: Option<&'static Encoding>,
+    target: Option<String>,
+) -> Result<(), Diagnostic> {
+    let diagnostician = Diagnostician::default();
+    match out_format {
+        FormatOption::Static | FormatOption::Relocatable => {
+            compile_to_static_obj(sources, encoding, output, target, diagnostician)
+        }
+        FormatOption::Shared => {
+            compile_to_shared_object(sources, encoding, output, target, diagnostician)
+        }
+        FormatOption::PIC => {
+            compile_to_shared_pic_object(sources, encoding, output, target, diagnostician)
+        }
+        FormatOption::Bitcode => compile_to_bitcode(sources, encoding, output, diagnostician),
+        FormatOption::IR => compile_to_ir(sources, encoding, output, diagnostician),
+    }?;
+    Ok(())
+}
+
+pub fn link(
+    output: &str,
+    out_format: FormatOption,
+    objects: Vec<FilePath>,
+    library_pathes: Vec<String>,
+    libraries: Vec<String>,
+    target: Option<String>,
+    sysroot: Option<String>,
+) -> Result<(), Diagnostic> {
+    let linkable_formats = vec![
+        FormatOption::Static,
+        FormatOption::Relocatable,
+        FormatOption::Shared,
+        FormatOption::PIC,
+    ];
+    if linkable_formats.contains(&out_format) {
+        let triple = get_target_triple(target);
+        let mut linker = triple
+            .as_str()
+            .to_str()
+            .map_err(|e| Diagnostic::param_error(&e.to_string()))
+            .and_then(|triple| linker::Linker::new(triple).map_err(|e| e.into()))?;
+        linker.add_lib_path(".");
+
+        for path in &objects {
+            linker.add_obj(&path.path);
+        }
+
+        for path in &library_pathes {
+            linker.add_lib_path(path);
+        }
+        for library in &libraries {
+            linker.add_lib(library);
+        }
+
+        if let Some(sysroot) = &sysroot {
+            linker.add_sysroot(sysroot);
+        }
+
+        match out_format {
+            FormatOption::Static => linker.build_exectuable(Path::new(&output))?,
+            FormatOption::Relocatable => linker.build_relocatable(Path::new(&output))?,
+            _ => linker.build_shared_obj(Path::new(&output))?,
+        }
+    }
+    Ok(())
 }
 
 #[cfg(test)]

@@ -1,0 +1,10 @@
+---
+source: src/codegen/tests/initialization_test/type_initializers.rs
+expression: result
+
+---
+; ModuleID = 'main'
+source_filename = "main"
+
+@a = global [2 x [2 x i8]] c"\01\02\03\04"
+

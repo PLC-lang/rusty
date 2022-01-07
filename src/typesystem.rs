@@ -259,6 +259,10 @@ impl DataTypeInformation {
         )
     }
 
+    pub fn is_pointer(&self) -> bool {
+        matches!(self, DataTypeInformation::Pointer { .. })
+    }
+
     pub fn is_unsigned_int(&self) -> bool {
         matches!(self, DataTypeInformation::Integer { signed: false, .. })
     }
@@ -269,6 +273,10 @@ impl DataTypeInformation {
 
     pub fn is_float(&self) -> bool {
         matches!(self, DataTypeInformation::Float { .. })
+    }
+
+    pub fn is_struct(&self) -> bool {
+        matches!(self, DataTypeInformation::Struct { .. })
     }
 
     pub fn is_numerical(&self) -> bool {

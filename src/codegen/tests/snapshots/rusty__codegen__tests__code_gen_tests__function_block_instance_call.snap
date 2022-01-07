@@ -6,9 +6,10 @@ expression: result
 ; ModuleID = 'main'
 source_filename = "main"
 
-%prg_interface = type { %foo_interface }
 %foo_interface = type { i16, i16 }
+%prg_interface = type { %foo_interface }
 
+@foo__init = global %foo_interface zeroinitializer
 @prg_instance = global %prg_interface zeroinitializer
 
 define void @foo(%foo_interface* %0) {
