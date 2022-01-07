@@ -1,5 +1,6 @@
 ---
 source: src/codegen/tests/code_gen_tests.rs
+assertion_line: 2406
 expression: result
 
 ---
@@ -8,7 +9,7 @@ source_filename = "main"
 
 %abcdef_interface = type { i8 }
 
-@abcdef__init = addrspace(4) global %abcdef_interface zeroinitializer
+@abcdef__init = unnamed_addr constant %abcdef_interface zeroinitializer
 
 define void @abcdef(%abcdef_interface* %0) {
 entry:

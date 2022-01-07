@@ -9,6 +9,6 @@ source_filename = "main"
 
 %MyPoint = type { i32 }
 
-@MyPoint__init = addrspace(4) global %MyPoint zeroinitializer
+@MyPoint__init = unnamed_addr constant %MyPoint zeroinitializer
 @a = global %MyPoint { i32 7 }
 

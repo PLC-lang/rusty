@@ -1,5 +1,6 @@
 ---
 source: src/codegen/tests/code_gen_tests.rs
+assertion_line: 2175
 expression: result
 
 ---
@@ -7,7 +8,7 @@ expression: result
 source_filename = "main"
 
 @x = global i32 0
-@red = addrspace(4) global i32 0
-@yellow = addrspace(4) global i32 1
-@green = addrspace(4) global i32 2
+@red = unnamed_addr constant i32 0
+@yellow = unnamed_addr constant i32 1
+@green = unnamed_addr constant i32 2
 

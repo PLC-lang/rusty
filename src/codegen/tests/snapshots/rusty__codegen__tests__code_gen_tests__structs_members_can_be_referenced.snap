@@ -1,5 +1,6 @@
 ---
 source: src/codegen/tests/code_gen_tests.rs
+assertion_line: 1986
 expression: result
 
 ---
@@ -9,7 +10,7 @@ source_filename = "main"
 %MyStruct = type { i32, i32 }
 %MainProg_interface = type { %MyStruct }
 
-@MyStruct__init = addrspace(4) global %MyStruct zeroinitializer
+@MyStruct__init = unnamed_addr constant %MyStruct zeroinitializer
 @MainProg_instance = global %MainProg_interface zeroinitializer
 
 define void @MainProg(%MainProg_interface* %0) {

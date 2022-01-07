@@ -143,7 +143,7 @@ pub fn visit_pou(index: &mut Index, pou: &Pou) {
             );
         }
         PouType::FunctionBlock | PouType::Class => {
-            let global_struct_name = format!("{}__init", &pou.name);
+            let global_struct_name = crate::index::get_initializer_name(&pou.name);
             index.register_global_variable(
                 &global_struct_name,
                 &pou.name,
@@ -266,7 +266,7 @@ fn visit_data_type(
                 nature: TypeNature::Derived,
             });
             //Generate an initializer for the struct
-            let global_struct_name = format!("{}__init", name);
+            let global_struct_name = crate::index::get_initializer_name(name);
             index.register_global_variable(
                 global_struct_name.as_str(),
                 type_name.as_str(),
@@ -452,7 +452,7 @@ fn visit_data_type(
                 information,
                 nature: TypeNature::Any,
             });
-            let global_init_name = format!("{}__init", name);
+            let global_init_name = crate::index::get_initializer_name(name);
             if init.is_some() {
                 index.register_global_variable(
                     global_init_name.as_str(),

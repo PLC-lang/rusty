@@ -11,7 +11,7 @@ source_filename = "main"
 %main_interface = type { %fb_interface }
 %func_interface = type { %fb_interface, %fb_interface }
 
-@fb__init = addrspace(4) global %fb_interface zeroinitializer
+@fb__init = unnamed_addr constant %fb_interface zeroinitializer
 @main_instance = global %main_interface zeroinitializer
 
 define void @fb(%fb_interface* %0) {
@@ -25,7 +25,7 @@ entry:
   %x = getelementptr inbounds %func_interface, %func_interface* %0, i32 0, i32 1
   %func = alloca i32, align 4
   %1 = bitcast %fb_interface* %x to i8*
-  call void @llvm.memcpy.p0i8.p4i8.i64(i8* align 1 %1, i8 addrspace(4)* align 1 bitcast (%fb_interface addrspace(4)* @fb__init to i8 addrspace(4)*), i64 0, i1 false)
+  call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %1, i8* align 1 bitcast (%fb_interface* @fb__init to i8*), i64 0, i1 false)
   %func_ret = load i32, i32* %func, align 4
   ret i32 %func_ret
 }
@@ -54,7 +54,7 @@ continue:                                         ; preds = %output
 }
 
 ; Function Attrs: argmemonly nofree nosync nounwind willreturn
-declare void @llvm.memcpy.p0i8.p4i8.i64(i8* noalias nocapture writeonly, i8 addrspace(4)* noalias nocapture readonly, i64, i1 immarg) #0
+declare void @llvm.memcpy.p0i8.p0i8.i64(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i64, i1 immarg) #0
 
 attributes #0 = { argmemonly nofree nosync nounwind willreturn }
 

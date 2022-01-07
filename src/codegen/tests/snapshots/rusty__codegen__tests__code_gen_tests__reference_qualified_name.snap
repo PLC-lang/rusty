@@ -1,5 +1,6 @@
 ---
 source: src/codegen/tests/code_gen_tests.rs
+assertion_line: 1900
 expression: result
 
 ---
@@ -10,7 +11,7 @@ source_filename = "main"
 %foo_interface = type { i32, i32, %fb_interface }
 %prg_interface = type { i32 }
 
-@fb__init = addrspace(4) global %fb_interface zeroinitializer
+@fb__init = unnamed_addr constant %fb_interface zeroinitializer
 @foo_instance = global %foo_interface zeroinitializer
 @prg_instance = global %prg_interface zeroinitializer
 

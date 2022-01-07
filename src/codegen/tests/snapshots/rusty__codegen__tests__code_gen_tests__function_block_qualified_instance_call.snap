@@ -1,5 +1,6 @@
 ---
 source: src/codegen/tests/code_gen_tests.rs
+assertion_line: 1870
 expression: result
 
 ---
@@ -10,8 +11,8 @@ source_filename = "main"
 %bar_interface = type {}
 %prg_interface = type { %foo_interface }
 
-@foo__init = addrspace(4) global %foo_interface zeroinitializer
-@bar__init = addrspace(4) global %bar_interface zeroinitializer
+@foo__init = unnamed_addr constant %foo_interface zeroinitializer
+@bar__init = unnamed_addr constant %bar_interface zeroinitializer
 @prg_instance = global %prg_interface zeroinitializer
 
 define void @foo(%foo_interface* %0) {

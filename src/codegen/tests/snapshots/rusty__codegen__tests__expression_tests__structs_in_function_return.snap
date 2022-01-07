@@ -10,7 +10,7 @@ source_filename = "main"
 %myStruct = type { i16 }
 %func_interface = type {}
 
-@myStruct__init = addrspace(4) global %myStruct zeroinitializer
+@myStruct__init = unnamed_addr constant %myStruct zeroinitializer
 
 define %myStruct @func(%func_interface* %0) {
 entry:

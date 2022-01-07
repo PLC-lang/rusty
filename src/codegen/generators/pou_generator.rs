@@ -9,7 +9,7 @@ use crate::{
     ast::Pou,
     codegen::llvm_index::LlvmTypedIndex,
     diagnostics::{Diagnostic, INTERNAL_LLVM_ERROR},
-    index::ImplementationType,
+    index::{self, ImplementationType},
     resolver::AstAnnotations,
 };
 
@@ -61,6 +61,10 @@ pub fn generate_implementation_stubs<'ink>(
     Ok(llvm_index)
 }
 
+///Generates a global constant for each initialized pou member
+/// The given constant can then be used to initialize the variable using memcpy without re-evaluating the expression
+/// Retrieves the POUs from the index (implementation)
+/// Returns a new LLVM index to be merged with the parent codegen index.
 pub fn generate_global_constants_for_pou_members<'ink>(
     module: &Module<'ink>,
     llvm: Llvm<'ink>,
@@ -84,7 +88,7 @@ pub fn generate_global_constants_for_pou_members<'ink>(
         let exp_gen =
             ExpressionCodeGenerator::new_context_free(&llvm, index, annotations, llvm_index);
         for variable in variables {
-            let name = format!("{}__init", variable.get_qualified_name());
+            let name = index::get_initializer_name(variable.get_qualified_name());
             let right_stmt = match variable.initial_value {
                 Some(..) => Some(
                     index
@@ -111,16 +115,12 @@ pub fn generate_global_constants_for_pou_members<'ink>(
                         exp_gen.generate_expression(stmt)?
                     };
                     let variable_type = llvm_index.get_associated_type(variable.get_type_name())?;
-                    //First try to find a global with that name
-                    let global_value = module.get_global(&name).unwrap_or_else(|| {
-                        llvm.create_global_variable(
-                            module,
-                            &name,
-                            variable_type,
-                            Some(value),
-                            Some(AddressSpace::Const),
-                        )
-                    });
+                    let global_value = llvm.create_constant_global_variable(
+                        module,
+                        &name,
+                        variable_type,
+                        Some(value),
+                    );
                     local_llvm_index.associate_global(&name, global_value)?;
                 }
             }
@@ -410,8 +410,8 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                     .and_then(|associated_type| associated_type.size_of())
                     .ok_or("Couldn't determine type size");
                 //First try to get a saved global constant
-                let name = format!("{}__init", variable.get_qualified_name());
-                let type_init_name = format!("{}__init", variable.get_type_name());
+                let name = index::get_initializer_name(variable.get_qualified_name());
+                let type_init_name = index::get_initializer_name(variable.get_type_name());
                 if let Some(global_value) = self
                     .llvm_index
                     .find_global_value(&name)

@@ -1,5 +1,6 @@
 ---
 source: src/codegen/tests/code_gen_tests.rs
+assertion_line: 916
 expression: result
 
 ---
@@ -9,7 +10,7 @@ source_filename = "main"
 %MyClass_interface = type {}
 %MyClass.testMethod_interface = type { i16, i16 }
 
-@MyClass__init = addrspace(4) global %MyClass_interface zeroinitializer
+@MyClass__init = unnamed_addr constant %MyClass_interface zeroinitializer
 
 define void @MyClass.testMethod(%MyClass_interface* %0, %MyClass.testMethod_interface* %1) {
 entry:

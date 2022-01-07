@@ -837,3 +837,8 @@ impl Default for Index {
         Self::new()
     }
 }
+
+/// Returns a default initialization name for a variable or type
+pub fn get_initializer_name(name: &str) -> String {
+    format!("{}__init", name)
+}

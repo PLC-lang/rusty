@@ -10,20 +10,20 @@ source_filename = "main"
 %__func_a = type { i16 }
 %func_interface = type { %__func_a }
 
-@__func_a__init = addrspace(4) global %__func_a zeroinitializer
+@__func_a__init = unnamed_addr constant %__func_a zeroinitializer
 
 define i16 @func(%func_interface* %0) {
 entry:
   %a = getelementptr inbounds %func_interface, %func_interface* %0, i32 0, i32 0
   %func = alloca i16, align 2
   %1 = bitcast %__func_a* %a to i8*
-  call void @llvm.memcpy.p0i8.p4i8.i64(i8* align 1 %1, i8 addrspace(4)* align 1 bitcast (%__func_a addrspace(4)* @__func_a__init to i8 addrspace(4)*), i64 ptrtoint (i16* getelementptr (i16, i16* null, i32 1) to i64), i1 false)
+  call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %1, i8* align 1 bitcast (%__func_a* @__func_a__init to i8*), i64 ptrtoint (i16* getelementptr (i16, i16* null, i32 1) to i64), i1 false)
   %func_ret = load i16, i16* %func, align 2
   ret i16 %func_ret
 }
 
 ; Function Attrs: argmemonly nofree nosync nounwind willreturn
-declare void @llvm.memcpy.p0i8.p4i8.i64(i8* noalias nocapture writeonly, i8 addrspace(4)* noalias nocapture readonly, i64, i1 immarg) #0
+declare void @llvm.memcpy.p0i8.p0i8.i64(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i64, i1 immarg) #0
 
 attributes #0 = { argmemonly nofree nosync nounwind willreturn }
 
