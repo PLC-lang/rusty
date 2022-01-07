@@ -173,17 +173,7 @@ END_VAR
 END_PROGRAM
 "#,
     );
-    let expected = generate_program_boiler_plate(
-        "prg",
-        &[("i32", "x"), ("i32", "y")],
-        "void",
-        "",
-        "",
-        r#"ret void
-"#,
-    );
-
-    assert_eq!(result, expected);
+    insta::assert_snapshot!(result);
 }
 
 #[test]
@@ -3694,6 +3684,9 @@ fn function_block_instance_call() {
     let result = codegen(
         "
         FUNCTION_BLOCK foo
+          VAR_INPUT
+            x, y : INT;
+          END_VAR
         END_FUNCTION_BLOCK
 
         PROGRAM prg 
@@ -3704,42 +3697,7 @@ fn function_block_instance_call() {
         END_PROGRAM
         ",
     );
-
-    let expected = r#"; ModuleID = 'main'
-source_filename = "main"
-
-%foo_interface = type {}
-%prg_interface = type { %foo_interface }
-
-@foo__init = global %foo_interface zeroinitializer
-@prg_instance = global %prg_interface zeroinitializer
-
-define void @foo(%foo_interface* %0) {
-entry:
-  ret void
-}
-
-define void @prg(%prg_interface* %0) {
-entry:
-  %fb_inst = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 0
-  br label %input
-
-input:                                            ; preds = %entry
-  br label %call
-
-call:                                             ; preds = %input
-  call void @foo(%foo_interface* %fb_inst)
-  br label %output
-
-output:                                           ; preds = %call
-  br label %continue
-
-continue:                                         ; preds = %output
-  ret void
-}
-"#;
-
-    assert_eq!(result, expected);
+    insta::assert_snapshot!(result);
 }
 
 #[test]
@@ -3884,7 +3842,7 @@ fn structs_are_generated() {
         "
         TYPE MyStruct: STRUCT
           a: DINT;
-          b: DINT;
+          b: INT;
         END_STRUCT
         END_TYPE
 
