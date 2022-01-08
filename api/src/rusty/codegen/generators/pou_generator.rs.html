@@ -425,6 +425,82 @@
 <span id="425">425</span>
 <span id="426">426</span>
 <span id="427">427</span>
+<span id="428">428</span>
+<span id="429">429</span>
+<span id="430">430</span>
+<span id="431">431</span>
+<span id="432">432</span>
+<span id="433">433</span>
+<span id="434">434</span>
+<span id="435">435</span>
+<span id="436">436</span>
+<span id="437">437</span>
+<span id="438">438</span>
+<span id="439">439</span>
+<span id="440">440</span>
+<span id="441">441</span>
+<span id="442">442</span>
+<span id="443">443</span>
+<span id="444">444</span>
+<span id="445">445</span>
+<span id="446">446</span>
+<span id="447">447</span>
+<span id="448">448</span>
+<span id="449">449</span>
+<span id="450">450</span>
+<span id="451">451</span>
+<span id="452">452</span>
+<span id="453">453</span>
+<span id="454">454</span>
+<span id="455">455</span>
+<span id="456">456</span>
+<span id="457">457</span>
+<span id="458">458</span>
+<span id="459">459</span>
+<span id="460">460</span>
+<span id="461">461</span>
+<span id="462">462</span>
+<span id="463">463</span>
+<span id="464">464</span>
+<span id="465">465</span>
+<span id="466">466</span>
+<span id="467">467</span>
+<span id="468">468</span>
+<span id="469">469</span>
+<span id="470">470</span>
+<span id="471">471</span>
+<span id="472">472</span>
+<span id="473">473</span>
+<span id="474">474</span>
+<span id="475">475</span>
+<span id="476">476</span>
+<span id="477">477</span>
+<span id="478">478</span>
+<span id="479">479</span>
+<span id="480">480</span>
+<span id="481">481</span>
+<span id="482">482</span>
+<span id="483">483</span>
+<span id="484">484</span>
+<span id="485">485</span>
+<span id="486">486</span>
+<span id="487">487</span>
+<span id="488">488</span>
+<span id="489">489</span>
+<span id="490">490</span>
+<span id="491">491</span>
+<span id="492">492</span>
+<span id="493">493</span>
+<span id="494">494</span>
+<span id="495">495</span>
+<span id="496">496</span>
+<span id="497">497</span>
+<span id="498">498</span>
+<span id="499">499</span>
+<span id="500">500</span>
+<span id="501">501</span>
+<span id="502">502</span>
+<span id="503">503</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 <span class="kw">use</span> <span class="kw">super</span>::{
     <span class="ident">data_type_generator::get_default_for</span>,
@@ -436,7 +512,7 @@
     <span class="ident">ast::Pou</span>,
     <span class="ident">codegen::llvm_index::LlvmTypedIndex</span>,
     <span class="ident">diagnostics</span>::{<span class="ident">Diagnostic</span>, <span class="ident">INTERNAL_LLVM_ERROR</span>},
-    <span class="ident">index::ImplementationType</span>,
+    <span class="ident">index</span>::{<span class="self">self</span>, <span class="ident">ImplementationType</span>},
     <span class="ident">resolver::AstAnnotations</span>,
 };
 
@@ -451,7 +527,7 @@
     <span class="ident">ast</span>::{<span class="ident">Implementation</span>, <span class="ident">PouType</span>, <span class="ident">SourceRange</span>},
     <span class="ident">index::Index</span>,
 };
-<span class="kw">use</span> <span class="ident">inkwell::types::StructType</span>;
+<span class="kw">use</span> <span class="ident">inkwell::types</span>::{<span class="ident">BasicType</span>, <span class="ident">StructType</span>};
 <span class="kw">use</span> <span class="ident">inkwell</span>::{
     <span class="ident">module::Module</span>,
     <span class="ident">types</span>::{<span class="ident">BasicMetadataTypeEnum</span>, <span class="ident">BasicTypeEnum</span>, <span class="ident">FunctionType</span>},
@@ -486,6 +562,74 @@
     }
 
     <span class="prelude-val">Ok</span>(<span class="ident">llvm_index</span>)
+}
+
+<span class="doccomment">///Generates a global constant for each initialized pou member</span>
+<span class="doccomment">/// The given constant can then be used to initialize the variable using memcpy without re-evaluating the expression</span>
+<span class="doccomment">/// Retrieves the POUs from the index (implementation)</span>
+<span class="doccomment">/// Returns a new LLVM index to be merged with the parent codegen index.</span>
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">generate_global_constants_for_pou_members</span><span class="op">&lt;</span><span class="lifetime">&#39;ink</span><span class="op">&gt;</span>(
+    <span class="ident">module</span>: <span class="kw-2">&amp;</span><span class="ident">Module</span><span class="op">&lt;</span><span class="lifetime">&#39;ink</span><span class="op">&gt;</span>,
+    <span class="ident">llvm</span>: <span class="ident">Llvm</span><span class="op">&lt;</span><span class="lifetime">&#39;ink</span><span class="op">&gt;</span>,
+    <span class="ident">index</span>: <span class="kw-2">&amp;</span><span class="ident">Index</span>,
+    <span class="ident">annotations</span>: <span class="kw-2">&amp;</span><span class="ident">AstAnnotations</span>,
+    <span class="ident">llvm_index</span>: <span class="kw-2">&amp;</span><span class="ident">LlvmTypedIndex</span><span class="op">&lt;</span><span class="lifetime">&#39;ink</span><span class="op">&gt;</span>,
+) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">LlvmTypedIndex</span><span class="op">&lt;</span><span class="lifetime">&#39;ink</span><span class="op">&gt;</span>, <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">local_llvm_index</span> <span class="op">=</span> <span class="ident">LlvmTypedIndex::default</span>();
+    <span class="kw">for</span> (<span class="kw">_</span>, <span class="ident">implementation</span>) <span class="kw">in</span> <span class="ident">index</span>.<span class="ident">get_implementations</span>() {
+        <span class="kw">let</span> <span class="ident">type_name</span> <span class="op">=</span> <span class="ident">implementation</span>.<span class="ident">get_type_name</span>();
+        <span class="kw">let</span> <span class="ident">pou_members</span> <span class="op">=</span> <span class="ident">index</span>.<span class="ident">get_container_members</span>(<span class="ident">type_name</span>);
+        <span class="kw">let</span> <span class="ident">variables</span> <span class="op">=</span> <span class="ident">pou_members</span>
+            .<span class="ident">iter</span>()
+            .<span class="ident">filter</span>(<span class="op">|</span><span class="ident">it</span><span class="op">|</span> <span class="ident">it</span>.<span class="ident">is_local</span>() <span class="op">|</span><span class="op">|</span> <span class="ident">it</span>.<span class="ident">is_temp</span>())
+            .<span class="ident">filter</span>(<span class="op">|</span><span class="ident">it</span><span class="op">|</span> {
+                <span class="kw">let</span> <span class="ident">var_type</span> <span class="op">=</span> <span class="ident">index</span>
+                    .<span class="ident">get_effective_type_by_name</span>(<span class="ident">it</span>.<span class="ident">get_type_name</span>())
+                    .<span class="ident">get_type_information</span>();
+                <span class="ident">var_type</span>.<span class="ident">is_struct</span>() <span class="op">|</span><span class="op">|</span> <span class="ident">var_type</span>.<span class="ident">is_array</span>() <span class="op">|</span><span class="op">|</span> <span class="ident">var_type</span>.<span class="ident">is_string</span>()
+            });
+        <span class="kw">let</span> <span class="ident">exp_gen</span> <span class="op">=</span>
+            <span class="ident">ExpressionCodeGenerator::new_context_free</span>(<span class="kw-2">&amp;</span><span class="ident">llvm</span>, <span class="ident">index</span>, <span class="ident">annotations</span>, <span class="ident">llvm_index</span>);
+        <span class="kw">for</span> <span class="ident">variable</span> <span class="kw">in</span> <span class="ident">variables</span> {
+            <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="ident">index::get_initializer_name</span>(<span class="ident">variable</span>.<span class="ident">get_qualified_name</span>());
+            <span class="kw">let</span> <span class="ident">right_stmt</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">variable</span>.<span class="ident">initial_value</span> {
+                <span class="prelude-val">Some</span>(..) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(
+                    <span class="ident">index</span>
+                        .<span class="ident">get_const_expressions</span>()
+                        .<span class="ident">maybe_get_constant_statement</span>(<span class="kw-2">&amp;</span><span class="ident">variable</span>.<span class="ident">initial_value</span>)
+                        .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
+                            <span class="ident">Diagnostic::cannot_generate_initializer</span>(
+                                <span class="ident">variable</span>.<span class="ident">get_qualified_name</span>(),
+                                <span class="ident">variable</span>.<span class="ident">source_location</span>.<span class="ident">clone</span>(),
+                            )
+                        })<span class="question-mark">?</span>,
+                ),
+                <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
+            };
+
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">stmt</span>) <span class="op">=</span> <span class="ident">right_stmt</span> {
+                <span class="kw">if</span> <span class="ident">llvm_index</span>.<span class="ident">find_global_value</span>(<span class="kw-2">&amp;</span><span class="ident">name</span>).<span class="ident">is_none</span>() {
+                    <span class="comment">//Get either a global initial value for the constant (For arrays) and copy it,</span>
+                    <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">value</span>) <span class="op">=</span>
+                        <span class="ident">llvm_index</span>.<span class="ident">find_associated_initial_value</span>(<span class="ident">variable</span>.<span class="ident">get_qualified_name</span>())
+                    {
+                        <span class="ident">value</span>
+                    } <span class="kw">else</span> {
+                        <span class="ident">exp_gen</span>.<span class="ident">generate_expression</span>(<span class="ident">stmt</span>)<span class="question-mark">?</span>
+                    };
+                    <span class="kw">let</span> <span class="ident">variable_type</span> <span class="op">=</span> <span class="ident">llvm_index</span>.<span class="ident">get_associated_type</span>(<span class="ident">variable</span>.<span class="ident">get_type_name</span>())<span class="question-mark">?</span>;
+                    <span class="kw">let</span> <span class="ident">global_value</span> <span class="op">=</span> <span class="ident">llvm</span>.<span class="ident">create_constant_global_variable</span>(
+                        <span class="ident">module</span>,
+                        <span class="kw-2">&amp;</span><span class="ident">name</span>,
+                        <span class="ident">variable_type</span>,
+                        <span class="prelude-val">Some</span>(<span class="ident">value</span>),
+                    );
+                    <span class="ident">local_llvm_index</span>.<span class="ident">associate_global</span>(<span class="kw-2">&amp;</span><span class="ident">name</span>, <span class="ident">global_value</span>)<span class="question-mark">?</span>;
+                }
+            }
+        }
+    }
+    <span class="prelude-val">Ok</span>(<span class="ident">local_llvm_index</span>)
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;ink</span>, <span class="lifetime">&#39;cg</span><span class="op">&gt;</span> <span class="ident">PouGenerator</span><span class="op">&lt;</span><span class="lifetime">&#39;ink</span>, <span class="lifetime">&#39;cg</span><span class="op">&gt;</span> {
@@ -746,59 +890,68 @@
                     <span class="ident">local_llvm_index</span>,
                 );
 
-                <span class="comment">// for struct initializations we have a global struct variable with the initial values</span>
-                <span class="comment">// the idea is to memcpy the global struct variable</span>
-                <span class="kw">let</span> <span class="ident">left_type_info</span> <span class="op">=</span> <span class="self">self</span>
-                    .<span class="ident">index</span>
-                    .<span class="ident">get_type_information_or_void</span>(<span class="ident">variable</span>.<span class="ident">get_type_name</span>());
-                <span class="kw">let</span> <span class="ident">struct_init_name</span> <span class="op">=</span> <span class="macro">format!</span>(<span class="string">&quot;{}__init&quot;</span>, <span class="ident">variable</span>.<span class="ident">get_type_name</span>());
-                <span class="kw">let</span> <span class="ident">struct_init</span> <span class="op">=</span> <span class="self">self</span>
+                <span class="kw">let</span> <span class="ident">right_stmt</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">variable</span>.<span class="ident">initial_value</span> {
+                    <span class="prelude-val">Some</span>(..) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(
+                        <span class="self">self</span>.<span class="ident">index</span>
+                            .<span class="ident">get_const_expressions</span>()
+                            .<span class="ident">maybe_get_constant_statement</span>(<span class="kw-2">&amp;</span><span class="ident">variable</span>.<span class="ident">initial_value</span>)
+                            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
+                                <span class="ident">Diagnostic::cannot_generate_initializer</span>(
+                                    <span class="ident">variable</span>.<span class="ident">get_qualified_name</span>(),
+                                    <span class="ident">variable</span>.<span class="ident">source_location</span>.<span class="ident">clone</span>(),
+                                )
+                            })<span class="question-mark">?</span>,
+                    ),
+                    <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
+                };
+
+                <span class="comment">// for initializations we might have a global variable with the initial values</span>
+                <span class="comment">// the idea is to memcpy the global variable</span>
+                <span class="kw">let</span> <span class="ident">size</span> <span class="op">=</span> <span class="self">self</span>
                     .<span class="ident">llvm_index</span>
-                    .<span class="ident">find_associated_initial_value</span>(<span class="ident">struct_init_name</span>.<span class="ident">as_str</span>());
-                <span class="comment">// first check if we have a global init var, class references are also structs but don&#39;t have an init var</span>
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">struct_init</span>) <span class="op">=</span> <span class="ident">struct_init</span> {
-                    <span class="kw">if</span> <span class="ident">left_type_info</span>.<span class="ident">is_struct</span>() {
-                        <span class="kw">let</span> <span class="ident">size</span> <span class="op">=</span> <span class="self">self</span>
-                            .<span class="ident">llvm_index</span>
-                            .<span class="ident">find_associated_type</span>(<span class="ident">variable</span>.<span class="ident">get_type_name</span>())
-                            .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">associated_type</span><span class="op">|</span> {
-                                <span class="ident">associated_type</span>.<span class="ident">into_struct_type</span>().<span class="ident">size_of</span>()
-                            })
-                            .<span class="ident">ok_or</span>(<span class="string">&quot;Couldn&#39;t determine type size&quot;</span>);
-
-                        <span class="ident">size</span>.<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">size</span><span class="op">|</span> {
-                            <span class="self">self</span>.<span class="ident">llvm</span>.<span class="ident">builder</span>.<span class="ident">build_memcpy</span>(
-                                <span class="ident">left</span>,
-                                <span class="number">1</span>,
-                                <span class="ident">struct_init</span>.<span class="ident">into_pointer_value</span>(),
-                                <span class="number">1</span>,
-                                <span class="ident">size</span>,
-                            )
-                        })
-                        .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">err</span><span class="op">|</span> {
-                            <span class="ident">Diagnostic::codegen_error</span>(<span class="ident">err</span>, <span class="ident">variable</span>.<span class="ident">source_location</span>.<span class="ident">clone</span>())
-                        })<span class="question-mark">?</span>;
-                    }
+                    .<span class="ident">find_associated_type</span>(<span class="ident">variable</span>.<span class="ident">get_type_name</span>())
+                    .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">associated_type</span><span class="op">|</span> <span class="ident">associated_type</span>.<span class="ident">size_of</span>())
+                    .<span class="ident">ok_or</span>(<span class="string">&quot;Couldn&#39;t determine type size&quot;</span>);
+                <span class="comment">//First try to get a saved global constant</span>
+                <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="ident">index::get_initializer_name</span>(<span class="ident">variable</span>.<span class="ident">get_qualified_name</span>());
+                <span class="kw">let</span> <span class="ident">type_init_name</span> <span class="op">=</span> <span class="ident">index::get_initializer_name</span>(<span class="ident">variable</span>.<span class="ident">get_type_name</span>());
+                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">global_value</span>) <span class="op">=</span> <span class="self">self</span>
+                    .<span class="ident">llvm_index</span>
+                    .<span class="ident">find_global_value</span>(<span class="kw-2">&amp;</span><span class="ident">name</span>)
+                    .<span class="ident">or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">llvm_index</span>.<span class="ident">find_global_value</span>(<span class="kw-2">&amp;</span><span class="ident">type_init_name</span>))
+                {
+                    <span class="ident">size</span>.<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">size</span><span class="op">|</span> {
+                        <span class="kw">let</span> <span class="ident">alignment</span> <span class="op">=</span> <span class="ident">std::cmp::max</span>(<span class="number">1</span>, <span class="ident">global_value</span>.<span class="ident">get_alignment</span>()); <span class="comment">//TODO: This seems to always be 0</span>
+                        <span class="self">self</span>.<span class="ident">llvm</span>.<span class="ident">builder</span>.<span class="ident">build_memcpy</span>(
+                            <span class="ident">left</span>,
+                            <span class="ident">alignment</span>,
+                            <span class="ident">global_value</span>.<span class="ident">as_pointer_value</span>(),
+                            <span class="ident">alignment</span>,
+                            <span class="ident">size</span>,
+                        )
+                    })
+                    .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">err</span><span class="op">|</span> {
+                        <span class="ident">Diagnostic::codegen_error</span>(<span class="ident">err</span>, <span class="ident">variable</span>.<span class="ident">source_location</span>.<span class="ident">clone</span>())
+                    })<span class="question-mark">?</span>;
+                } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">left</span>.<span class="ident">get_type</span>().<span class="ident">get_element_type</span>().<span class="ident">is_array_type</span>() {
+                    <span class="comment">//If nothint was found see if this is an array to set its value to 0</span>
+                    <span class="ident">size</span>.<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">size</span><span class="op">|</span> {
+                        <span class="self">self</span>.<span class="ident">llvm</span>.<span class="ident">builder</span>.<span class="ident">build_memset</span>(
+                            <span class="ident">left</span>,
+                            <span class="number">1</span>,
+                            <span class="self">self</span>.<span class="ident">llvm</span>.<span class="ident">context</span>.<span class="ident">i8_type</span>().<span class="ident">const_zero</span>(),
+                            <span class="ident">size</span>,
+                        )
+                    })
+                    .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">it</span><span class="op">|</span> {
+                        <span class="ident">Diagnostic::codegen_error</span>(<span class="ident">it</span>, <span class="ident">variable</span>.<span class="ident">source_location</span>.<span class="ident">clone</span>())
+                    })<span class="question-mark">?</span>;
                 } <span class="kw">else</span> {
-                    <span class="kw">let</span> <span class="ident">right_stmt</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">variable</span>.<span class="ident">initial_value</span> {
-                        <span class="prelude-val">Some</span>(..) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(
-                            <span class="self">self</span>.<span class="ident">index</span>
-                                .<span class="ident">get_const_expressions</span>()
-                                .<span class="ident">maybe_get_constant_statement</span>(<span class="kw-2">&amp;</span><span class="ident">variable</span>.<span class="ident">initial_value</span>)
-                                .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
-                                    <span class="ident">Diagnostic::cannot_generate_initializer</span>(
-                                        <span class="ident">variable</span>.<span class="ident">get_qualified_name</span>(),
-                                        <span class="ident">variable</span>.<span class="ident">source_location</span>.<span class="ident">clone</span>(),
-                                    )
-                                })<span class="question-mark">?</span>,
-                        ),
-                        <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
-                    };
-
-                    <span class="kw">let</span> <span class="ident">right_exp</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">right_stmt</span> {
-                        <span class="prelude-val">Some</span>(<span class="ident">stmt</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">exp_gen</span>.<span class="ident">generate_expression</span>(<span class="ident">stmt</span>)<span class="question-mark">?</span>,
-                        <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>
-                            .<span class="ident">llvm_index</span>
+                    <span class="comment">//Otherwise just generate a store expression</span>
+                    <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">stmt</span>) <span class="op">=</span> <span class="ident">right_stmt</span> {
+                        <span class="ident">exp_gen</span>.<span class="ident">generate_expression</span>(<span class="ident">stmt</span>)
+                    } <span class="kw">else</span> {
+                        <span class="self">self</span>.<span class="ident">llvm_index</span>
                             .<span class="ident">find_associated_type</span>(<span class="ident">variable</span>.<span class="ident">get_type_name</span>())
                             .<span class="ident">map</span>(<span class="ident">get_default_for</span>)
                             .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
@@ -806,10 +959,9 @@
                                     <span class="ident">variable</span>.<span class="ident">get_qualified_name</span>(),
                                     <span class="ident">variable</span>.<span class="ident">source_location</span>.<span class="ident">clone</span>(),
                                 )
-                            })<span class="question-mark">?</span>,
-                    };
-
-                    <span class="self">self</span>.<span class="ident">llvm</span>.<span class="ident">builder</span>.<span class="ident">build_store</span>(<span class="ident">left</span>, <span class="ident">right_exp</span>);
+                            })
+                    }<span class="question-mark">?</span>;
+                    <span class="self">self</span>.<span class="ident">llvm</span>.<span class="ident">builder</span>.<span class="ident">build_store</span>(<span class="ident">left</span>, <span class="ident">value</span>);
                 }
             } <span class="kw">else</span> {
                 <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Diagnostic::cannot_generate_initializer</span>(
