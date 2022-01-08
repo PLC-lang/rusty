@@ -50,7 +50,7 @@ impl<'a> Llvm<'a> {
         global
     }
 
-    /// Creates a global constant witn an unnamed address
+    /// Creates a global constant with an unnamed address
     pub fn create_constant_global_variable(
         &self,
         module: &Module<'a>,
