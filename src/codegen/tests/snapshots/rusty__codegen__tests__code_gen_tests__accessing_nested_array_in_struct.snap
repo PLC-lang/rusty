@@ -1,0 +1,24 @@
+---
+source: src/codegen/tests/code_gen_tests.rs
+assertion_line: 2429
+expression: result
+
+---
+; ModuleID = 'main'
+source_filename = "main"
+
+%MyStruct = type { [5 x i16] }
+%Main_interface = type { %MyStruct }
+
+@MyStruct__init = unnamed_addr constant %MyStruct zeroinitializer
+@Main_instance = global %Main_interface zeroinitializer
+
+define void @Main(%Main_interface* %0) {
+entry:
+  %m = getelementptr inbounds %Main_interface, %Main_interface* %0, i32 0, i32 0
+  %field1 = getelementptr inbounds %MyStruct, %MyStruct* %m, i32 0, i32 0
+  %tmpVar = getelementptr inbounds [5 x i16], [5 x i16]* %field1, i32 0, i32 3
+  store i16 7, i16* %tmpVar, align 2
+  ret void
+}
+

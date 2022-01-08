@@ -1,0 +1,32 @@
+---
+source: src/codegen/tests/statement_codegen_test.rs
+expression: result
+
+---
+; ModuleID = 'main'
+source_filename = "main"
+
+%prg_interface = type { i1, i8, i16, i16 }
+
+@prg_instance = global %prg_interface zeroinitializer
+
+define void @prg(%prg_interface* %0) {
+entry:
+  %a = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 0
+  %b = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 1
+  %x = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 2
+  %y = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 3
+  %load_x = load i16, i16* %x, align 2
+  %load_y = load i16, i16* %y, align 2
+  %shift = ashr i16 %load_x, %load_y
+  %1 = trunc i16 %shift to i1
+  store i1 %1, i1* %a, align 1
+  %load_x1 = load i16, i16* %x, align 2
+  %load_y2 = load i16, i16* %y, align 2
+  %2 = mul i16 %load_y2, 8
+  %shift3 = ashr i16 %load_x1, %2
+  %3 = trunc i16 %shift3 to i8
+  store i8 %3, i8* %b, align 1
+  ret void
+}
+

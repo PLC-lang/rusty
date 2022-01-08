@@ -1,5 +1,6 @@
 ---
 source: src/codegen/tests/initialization_test/pou_initializers.rs
+assertion_line: 213
 expression: function
 
 ---
@@ -10,7 +11,7 @@ source_filename = "main"
 %main_interface = type { %fb_interface }
 %func_interface = type { %fb_interface, %fb_interface }
 
-@fb__init = global %fb_interface { i16 9 }
+@fb__init = unnamed_addr constant %fb_interface { i16 9 }
 @main_instance = global %main_interface { %fb_interface { i16 9 } }
 
 define i32 @func(%func_interface* %0) {

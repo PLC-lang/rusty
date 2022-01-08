@@ -1071,3 +1071,67 @@ fn initialization_of_struct_in_function() {
     assert_eq!(30, maintype.c);
     assert_eq!(0, maintype.d);
 }
+
+#[test]
+fn initialized_array_in_function() {
+    let function = "
+		FUNCTION main : INT
+		VAR
+			arr_var : ARRAY[-1..2] OF DINT := [1,2,3,4];
+		END_VAR
+		END_FUNCTION
+		";
+
+    #[allow(dead_code)]
+    struct MainType {
+        arr: [i32; 4],
+    }
+    let mut maintype = MainType { arr: [0; 4] };
+    let _: i32 = compile_and_run(function.to_string(), &mut maintype);
+    assert_eq!([1, 2, 3, 4], maintype.arr);
+}
+
+#[test]
+fn initialized_array_type_in_function() {
+    let function = "
+    TYPE arr : ARRAY[-1..2] OF DINT := [1,2,3,4]; END_TYPE
+		FUNCTION main : INT
+		VAR
+			arr_var : arr;
+		END_VAR
+		END_FUNCTION
+		";
+    #[allow(dead_code)]
+    struct MainType {
+        arr: [i32; 4],
+    }
+    let mut maintype = MainType { arr: [0; 4] };
+    let _: i32 = compile_and_run(function.to_string(), &mut maintype);
+    assert_eq!([1, 2, 3, 4], maintype.arr);
+}
+
+#[test]
+fn intial_values_diverge_from_type() {
+    let function = "
+    TYPE arr : ARRAY[-1..2] OF DINT := [1,2,3,4]; END_TYPE
+    TYPE myInt : DINT := 4; END_TYPE
+		FUNCTION main : INT
+		VAR
+			arr_var : arr := [5,6,7,8];
+            i : myInt := 5;
+		END_VAR
+		END_FUNCTION
+		";
+    #[allow(dead_code)]
+    struct MainType {
+        arr: [i32; 4],
+        my_int: i32,
+    }
+    let mut maintype = MainType {
+        arr: [0; 4],
+        my_int: 0,
+    };
+    let _: i32 = compile_and_run(function.to_string(), &mut maintype);
+    assert_eq!([5, 6, 7, 8], maintype.arr);
+    assert_eq!(5, maintype.my_int);
+}

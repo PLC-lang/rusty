@@ -1,5 +1,6 @@
 ---
 source: src/codegen/tests/initialization_test/type_initializers.rs
+assertion_line: 312
 expression: result
 
 ---
@@ -8,6 +9,6 @@ source_filename = "main"
 
 %Point = type { i32, i32, i32 }
 
-@Point__init = global %Point { i32 0, i32 0, i32 3 }
+@Point__init = unnamed_addr constant %Point { i32 0, i32 0, i32 3 }
 @x = global %Point { i32 1, i32 2, i32 3 }
 

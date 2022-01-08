@@ -279,6 +279,10 @@ impl DataTypeInformation {
         matches!(self, DataTypeInformation::Struct { .. })
     }
 
+    pub fn is_array(&self) -> bool {
+        matches!(self, DataTypeInformation::Array { .. })
+    }
+
     pub fn is_numerical(&self) -> bool {
         matches!(
             self,

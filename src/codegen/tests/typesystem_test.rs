@@ -1,5 +1,5 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-use super::*;
+
 use crate::test_utils::tests::codegen;
 
 //Same size operations remain the same
@@ -42,24 +42,7 @@ fn even_all_sint_expressions_fallback_to_dint() {
         "#,
     );
 
-    let expected = generate_program_boiler_plate(
-        "prg",
-        &[("i8", "b"), ("i8", "c"), ("i8", "x")],
-        "void",
-        "",
-        "",
-        r#"%load_b = load i8, i8* %b, align 1
-  %1 = sext i8 %load_b to i32
-  %load_c = load i8, i8* %c, align 1
-  %2 = sext i8 %load_c to i32
-  %tmpVar = add i32 %1, %2
-  %3 = trunc i32 %tmpVar to i8
-  store i8 %3, i8* %x, align 1
-  ret void
-"#,
-    );
-
-    assert_eq!(result, expected)
+    insta::assert_snapshot!(result);
 }
 
 #[test]
@@ -78,22 +61,7 @@ fn datatypes_smaller_than_dint_promoted_to_dint() {
         "#,
     );
 
-    let expected = generate_program_boiler_plate(
-        "prg",
-        &[("i8", "b"), ("i32", "c"), ("i32", "x")],
-        "void",
-        "",
-        "",
-        r#"%load_b = load i8, i8* %b, align 1
-  %1 = sext i8 %load_b to i32
-  %load_c = load i32, i32* %c, align 4
-  %tmpVar = add i32 %1, %load_c
-  store i32 %tmpVar, i32* %x, align 4
-  ret void
-"#,
-    );
-
-    assert_eq!(result, expected)
+    insta::assert_snapshot!(result);
 }
 
 #[test]
@@ -116,27 +84,7 @@ fn aliased_datatypes_respect_conversion_rules() {
         "#,
     );
 
-    let expected = generate_program_boiler_plate(
-        "prg",
-        &[("i8", "b"), ("i32", "c"), ("i32", "x")],
-        "void",
-        "",
-        "",
-        r#"%load_b = load i8, i8* %b, align 1
-  %1 = sext i8 %load_b to i32
-  %load_c = load i32, i32* %c, align 4
-  %tmpVar = add i32 %1, %load_c
-  store i32 %tmpVar, i32* %x, align 4
-  %load_c1 = load i32, i32* %c, align 4
-  %load_x = load i32, i32* %x, align 4
-  %tmpVar2 = add i32 %load_c1, %load_x
-  %2 = trunc i32 %tmpVar2 to i8
-  store i8 %2, i8* %b, align 1
-  ret void
-"#,
-    );
-
-    assert_eq!(result, expected)
+    insta::assert_snapshot!(result);
 }
 
 #[test]
@@ -155,22 +103,7 @@ fn unsingned_datatypes_smaller_than_dint_promoted_to_dint() {
         "#,
     );
 
-    let expected = generate_program_boiler_plate(
-        "prg",
-        &[("i8", "b"), ("i32", "c"), ("i32", "x")],
-        "void",
-        "",
-        "",
-        r#"%load_b = load i8, i8* %b, align 1
-  %1 = zext i8 %load_b to i32
-  %load_c = load i32, i32* %c, align 4
-  %tmpVar = add i32 %1, %load_c
-  store i32 %tmpVar, i32* %x, align 4
-  ret void
-"#,
-    );
-
-    assert_eq!(result, expected)
+    insta::assert_snapshot!(result);
 }
 
 #[test]
@@ -189,22 +122,7 @@ fn datatypes_larger_than_int_promote_the_second_operand() {
         "#,
     );
 
-    let expected = generate_program_boiler_plate(
-        "prg",
-        &[("i32", "b"), ("i64", "c"), ("i64", "x")],
-        "void",
-        "",
-        "",
-        r#"%load_b = load i32, i32* %b, align 4
-  %1 = sext i32 %load_b to i64
-  %load_c = load i64, i64* %c, align 4
-  %tmpVar = add i64 %1, %load_c
-  store i64 %tmpVar, i64* %x, align 4
-  ret void
-"#,
-    );
-
-    assert_eq!(result, expected)
+    insta::assert_snapshot!(result);
 }
 
 #[test]
@@ -223,22 +141,7 @@ fn float_and_double_mix_converted_to_double() {
         "#,
     );
 
-    let expected = generate_program_boiler_plate(
-        "prg",
-        &[("float", "a"), ("double", "b"), ("double", "c")],
-        "void",
-        "",
-        "",
-        r#"%load_b = load double, double* %b, align 8
-  %load_a = load float, float* %a, align 4
-  %1 = fpext float %load_a to double
-  %tmpVar = fadd double %load_b, %1
-  store double %tmpVar, double* %c, align 8
-  ret void
-"#,
-    );
-
-    assert_eq!(result, expected)
+    insta::assert_snapshot!(result);
 }
 
 #[test]
@@ -256,20 +159,7 @@ fn float_assinged_to_double_to_double() {
         "#,
     );
 
-    let expected = generate_program_boiler_plate(
-        "prg",
-        &[("float", "a"), ("double", "b")],
-        "void",
-        "",
-        "",
-        r#"%load_a = load float, float* %a, align 4
-  %1 = fpext float %load_a to double
-  store double %1, double* %b, align 8
-  ret void
-"#,
-    );
-
-    assert_eq!(result, expected)
+    insta::assert_snapshot!(result);
 }
 
 #[test]
@@ -288,23 +178,7 @@ fn int_assigned_to_float_is_cast() {
         "#,
     );
 
-    let expected = generate_program_boiler_plate(
-        "prg",
-        &[("i16", "a"), ("i16", "b"), ("float", "c")],
-        "void",
-        "",
-        "",
-        r#"%load_a = load i16, i16* %a, align 2
-  %1 = sitofp i16 %load_a to float
-  store float %1, float* %c, align 4
-  %load_b = load i16, i16* %b, align 2
-  %2 = uitofp i16 %load_b to float
-  store float %2, float* %c, align 4
-  ret void
-"#,
-    );
-
-    assert_eq!(result, expected)
+    insta::assert_snapshot!(result);
 }
 
 #[test]
@@ -323,23 +197,7 @@ fn float_assigned_to_int_is_cast() {
         "#,
     );
 
-    let expected = generate_program_boiler_plate(
-        "prg",
-        &[("i16", "a"), ("i16", "b"), ("float", "c")],
-        "void",
-        "",
-        "",
-        r#"%load_c = load float, float* %c, align 4
-  %1 = fptosi float %load_c to i16
-  store i16 %1, i16* %a, align 2
-  %load_c1 = load float, float* %c, align 4
-  %2 = fptoui float %load_c1 to i16
-  store i16 %2, i16* %b, align 2
-  ret void
-"#,
-    );
-
-    assert_eq!(result, expected)
+    insta::assert_snapshot!(result);
 }
 
 #[test]
@@ -358,22 +216,7 @@ fn int_smaller_or_equal_to_float_converted_to_float() {
         "#,
     );
 
-    let expected = generate_program_boiler_plate(
-        "prg",
-        &[("float", "a"), ("i16", "b"), ("float", "c")],
-        "void",
-        "",
-        "",
-        r#"%load_b = load i16, i16* %b, align 2
-  %1 = sitofp i16 %load_b to float
-  %load_a = load float, float* %a, align 4
-  %tmpVar = fadd float %1, %load_a
-  store float %tmpVar, float* %c, align 4
-  ret void
-"#,
-    );
-
-    assert_eq!(result, expected)
+    insta::assert_snapshot!(result);
 }
 
 #[test]
@@ -391,22 +234,7 @@ fn int_bigger_than_float_converted_to_double() {
         "#,
     );
 
-    let expected = generate_program_boiler_plate(
-        "prg",
-        &[("float", "a"), ("i64", "b")],
-        "void",
-        "",
-        "",
-        r#"%load_b = load i64, i64* %b, align 4
-  %1 = sitofp i64 %load_b to double
-  %load_a = load float, float* %a, align 4
-  %2 = fpext float %load_a to double
-  %tmpVar = fadd double %1, %2
-  ret void
-"#,
-    );
-
-    assert_eq!(result, expected)
+    insta::assert_snapshot!(result);
 }
 
 #[test]
@@ -424,19 +252,5 @@ fn int_bigger_than_byte_promoted_on_compare_statement() {
         "#,
     );
 
-    let expected = generate_program_boiler_plate(
-        "prg",
-        &[("i8", "a"), ("i64", "b")],
-        "void",
-        "",
-        "",
-        r#"%load_b = load i64, i64* %b, align 4
-  %load_a = load i8, i8* %a, align 1
-  %1 = zext i8 %load_a to i64
-  %tmpVar = icmp slt i64 %load_b, %1
-  ret void
-"#,
-    );
-
-    assert_eq!(result, expected)
+    insta::assert_snapshot!(result);
 }

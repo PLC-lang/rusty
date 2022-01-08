@@ -1,5 +1,6 @@
 ---
 source: src/codegen/tests/initialization_test/pou_initializers.rs
+assertion_line: 141
 expression: result
 
 ---
@@ -9,7 +10,7 @@ source_filename = "main"
 %__func_a = type { i16 }
 %func_interface = type { %__func_a }
 
-@__func_a__init = global %__func_a zeroinitializer
+@__func_a__init = unnamed_addr constant %__func_a zeroinitializer
 
 define i16 @func(%func_interface* %0) {
 entry:

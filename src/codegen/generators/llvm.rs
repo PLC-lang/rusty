@@ -37,7 +37,7 @@ impl<'a> Llvm<'a> {
         data_type: BasicTypeEnum<'a>,
         initial_value: Option<BasicValueEnum<'a>>,
     ) -> GlobalValue<'a> {
-        let global = module.add_global(data_type, Some(AddressSpace::Generic), name);
+        let global = module.add_global(data_type, None, name);
 
         if let Some(initializer) = initial_value {
             let v = &initializer as &dyn BasicValue;
@@ -47,6 +47,20 @@ impl<'a> Llvm<'a> {
         }
         global.set_thread_local_mode(None);
         global.set_linkage(Linkage::External);
+        global
+    }
+
+    /// Creates a global constant with an unnamed address
+    pub fn create_constant_global_variable(
+        &self,
+        module: &Module<'a>,
+        name: &str,
+        data_type: BasicTypeEnum<'a>,
+        initial_value: Option<BasicValueEnum<'a>>,
+    ) -> GlobalValue<'a> {
+        let global = self.create_global_variable(module, name, data_type, initial_value);
+        global.set_constant(true);
+        global.set_unnamed_addr(true);
         global
     }
 

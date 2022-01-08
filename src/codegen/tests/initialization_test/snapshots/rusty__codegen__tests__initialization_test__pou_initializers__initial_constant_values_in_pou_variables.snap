@@ -1,5 +1,6 @@
 ---
 source: src/codegen/tests/initialization_test/pou_initializers.rs
+assertion_line: 23
 expression: result
 
 ---
@@ -8,9 +9,9 @@ source_filename = "main"
 
 %prg_interface = type { i16, i16 }
 
-@MAX_LEN = global i16 99
-@MIN_LEN = global i16 10
-@LEN = global i16 20
+@MAX_LEN = unnamed_addr constant i16 99
+@MIN_LEN = unnamed_addr constant i16 10
+@LEN = unnamed_addr constant i16 20
 @prg_instance = global %prg_interface { i16 24, i16 89 }
 
 define void @prg(%prg_interface* %0) {

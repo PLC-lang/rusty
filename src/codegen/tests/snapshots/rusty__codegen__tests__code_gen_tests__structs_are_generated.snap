@@ -1,5 +1,6 @@
 ---
 source: src/codegen/tests/code_gen_tests.rs
+assertion_line: 1923
 expression: result
 
 ---
@@ -9,8 +10,8 @@ source_filename = "main"
 %MyStruct = type { i32, i16 }
 %__global_y = type { i8, i8 }
 
-@MyStruct__init = global %MyStruct zeroinitializer
-@__global_y__init = global %__global_y zeroinitializer
+@MyStruct__init = unnamed_addr constant %MyStruct zeroinitializer
+@__global_y__init = unnamed_addr constant %__global_y zeroinitializer
 @x = global %MyStruct zeroinitializer
 @y = global %__global_y zeroinitializer
 

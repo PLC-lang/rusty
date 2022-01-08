@@ -84,11 +84,26 @@ pub fn generate_global_variable<'ctx, 'b>(
         .or_else(|| index.find_associated_initial_value(type_name))
         // 3rd try: get the compiler's default for the given type (zero-initializer)
         .or_else(|| index.find_associated_type(type_name).map(get_default_for));
-    let global_ir_variable = llvm.create_global_variable(
-        module,
-        global_variable.get_name(),
-        variable_type,
-        initial_value,
-    );
-    Ok(global_ir_variable)
+    if initial_value.is_some() || !global_variable.is_constant() {
+        let global_ir_variable = match global_variable.is_constant() {
+            true => llvm.create_constant_global_variable(
+                module,
+                global_variable.get_name(),
+                variable_type,
+                initial_value,
+            ),
+            false => llvm.create_global_variable(
+                module,
+                global_variable.get_name(),
+                variable_type,
+                initial_value,
+            ),
+        };
+        Ok(global_ir_variable)
+    } else {
+        Err(Diagnostic::codegen_error(
+            "Cannot generate uninitialized constant",
+            global_variable.source_location.clone(),
+        ))
+    }
 }
