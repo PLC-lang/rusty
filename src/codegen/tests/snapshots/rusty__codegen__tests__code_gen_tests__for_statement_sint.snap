@@ -1,0 +1,67 @@
+---
+source: src/codegen/tests/code_gen_tests.rs
+expression: result
+
+---
+; ModuleID = 'main'
+source_filename = "main"
+
+%prg_interface = type { i8 }
+
+@prg_instance = global %prg_interface zeroinitializer
+
+define void @prg(%prg_interface* %0) {
+entry:
+  %x = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 0
+  store i8 3, i8* %x, align 1
+  br label %condition_check
+
+condition_check:                                  ; preds = %increment, %entry
+  %load_x = load i8, i8* %x, align 1
+  %load_x1 = load i8, i8* %x, align 1
+  %tmpVar = icmp sle i8 %load_x1, 10
+  %1 = icmp ne i1 %tmpVar, false
+  br i1 %1, label %6, label %7
+
+for_body:                                         ; preds = %4
+  %load_x8 = load i8, i8* %x, align 1
+  br label %increment
+
+increment:                                        ; preds = %for_body
+  %tmpVar9 = add i8 %load_x, 1
+  store i8 %tmpVar9, i8* %x, align 1
+  br label %condition_check
+
+continue:                                         ; preds = %4
+  ret void
+
+2:                                                ; preds = %7
+  %load_x4 = load i8, i8* %x, align 1
+  %tmpVar5 = icmp sge i8 %load_x4, 10
+  %3 = icmp ne i1 %tmpVar5, false
+  br i1 %3, label %10, label %11
+
+4:                                                ; preds = %11, %7
+  %5 = phi i1 [ %8, %7 ], [ %12, %11 ]
+  br i1 %5, label %for_body, label %continue
+
+6:                                                ; preds = %condition_check
+  %load_x2 = load i8, i8* %x, align 1
+  %tmpVar3 = icmp sge i8 %load_x2, 3
+  br label %7
+
+7:                                                ; preds = %6, %condition_check
+  %8 = phi i1 [ %tmpVar, %condition_check ], [ %tmpVar3, %6 ]
+  %9 = icmp ne i1 %8, false
+  br i1 %9, label %4, label %2
+
+10:                                               ; preds = %2
+  %load_x6 = load i8, i8* %x, align 1
+  %tmpVar7 = icmp sle i8 %load_x6, 3
+  br label %11
+
+11:                                               ; preds = %10, %2
+  %12 = phi i1 [ %tmpVar5, %2 ], [ %tmpVar7, %10 ]
+  br label %4
+}
+

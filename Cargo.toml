@@ -2,7 +2,7 @@
 name = "rusty"
 version = "0.2.0"
 authors = ["Ghaith Hachem <ghaith.hachem@gmail.com>", "Mathias Rieder <mathias.rieder@gmail.com>"]
-edition = "2018"
+edition = "2021"
 readme = "README.md"
 repository = "https://github.com/ghaith/rusty/"
 license = "LGPL-3.0-or-later"
@@ -11,7 +11,7 @@ categories = ["development-tools::build-utils"]
 
 [dependencies]
 logos = "0.12.0"
-inkwell = { git = "https://github.com/TheDan64/inkwell", branch = "master", features= ["llvm11-0"] }
+inkwell = { git = "https://github.com/TheDan64/inkwell", branch = "master", features= ["llvm12-0"] }
 thiserror = "1.0"
 structopt = "0.3"
 indexmap = "1.6"
@@ -20,7 +20,7 @@ glob = "0.3.0"
 encoding_rs = "0.8"
 encoding_rs_io = "0.1"
 codespan-reporting = "0.11.1"
-mun_lld = "110.0.0"
+lld_rs = { git = "https://github.com/ghaith/lld-rs", branch = "main" } 
 generational-arena = "0.2.8"
 regex = "1"
 

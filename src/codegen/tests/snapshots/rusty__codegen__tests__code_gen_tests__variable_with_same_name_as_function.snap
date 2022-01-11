@@ -1,0 +1,17 @@
+---
+source: src/codegen/tests/code_gen_tests.rs
+expression: result
+
+---
+; ModuleID = 'main'
+source_filename = "main"
+
+%TIME_interface = type {}
+
+define i64 @TIME(%TIME_interface* %0) {
+entry:
+  %TIME = alloca i64, align 8
+  %TIME_ret = load i64, i64* %TIME, align 4
+  ret i64 %TIME_ret
+}
+

@@ -3,10 +3,14 @@ use crate::{
     ast::*,
     expect_token, lexer,
     lexer::{ParseSession, Token, Token::*},
+    typesystem::DINT_TYPE,
     Diagnostic,
 };
 
-use self::{control_parser::parse_control_statement, expressions_parser::parse_expression};
+use self::{
+    control_parser::parse_control_statement,
+    expressions_parser::{parse_expression, parse_expression_list},
+};
 
 mod control_parser;
 mod expressions_parser;
@@ -150,74 +154,80 @@ fn parse_pou(
 
         let name = parse_identifier(lexer).unwrap_or_else(|| "".to_string()); // parse POU name
 
-        // TODO: Parse USING directives
-        // TODO: Parse EXTENDS specifier
-        // TODO: Parse IMPLEMENTS specifier
+        let generics = parse_generics(lexer);
 
-        let return_type = if pou_type != PouType::Class {
-            // parse an optional return type
-            parse_return_type(lexer, &pou_type)
-        } else {
-            // classes do not have a return type
-            None
-        };
+        with_scope(lexer, name.clone(), |lexer| {
+            // TODO: Parse USING directives
+            // TODO: Parse EXTENDS specifier
+            // TODO: Parse IMPLEMENTS specifier
 
-        // parse variable declarations. note that var in/out/inout
-        // blocks are not allowed inside of class declarations.
-        let mut variable_blocks = vec![];
-        let allowed_var_types = match pou_type {
-            PouType::Class => vec![KeywordVar],
-            _ => vec![
-                KeywordVar,
-                KeywordVarInput,
-                KeywordVarOutput,
-                KeywordVarInOut,
-            ],
-        };
-        while allowed_var_types.contains(&lexer.token) {
-            variable_blocks.push(parse_variable_block(
-                lexer,
-                parse_variable_block_type(&lexer.token),
-            ));
-        }
+            let return_type = if pou_type != PouType::Class {
+                // parse an optional return type
+                parse_return_type(lexer, &pou_type)
+            } else {
+                // classes do not have a return type
+                None
+            };
 
-        let mut impl_pous = vec![];
-        let mut implementations = vec![];
-        if pou_type == PouType::Class || pou_type == PouType::FunctionBlock {
-            // classes and function blocks can have methods. methods consist of a Pou part
-            // and an implementation part. That's why we get another (Pou, Implementation)
-            // tuple out of parse_method() that has to be added to the list of Pous and
-            // implementations. Note that function blocks have to start with the method
-            // declarations before their implementation.
-            while lexer.token == KeywordMethod {
-                if let Some((pou, implementation)) = parse_method(lexer, &name, linkage) {
-                    impl_pous.push(pou);
-                    implementations.push(implementation);
+            // parse variable declarations. note that var in/out/inout
+            // blocks are not allowed inside of class declarations.
+            let mut variable_blocks = vec![];
+            let allowed_var_types = match pou_type {
+                PouType::Class => vec![KeywordVar],
+                _ => vec![
+                    KeywordVar,
+                    KeywordVarInput,
+                    KeywordVarOutput,
+                    KeywordVarInOut,
+                    KeywordVarTemp,
+                ],
+            };
+            while allowed_var_types.contains(&lexer.token) {
+                variable_blocks.push(parse_variable_block(
+                    lexer,
+                    parse_variable_block_type(&lexer.token),
+                ));
+            }
+
+            let mut impl_pous = vec![];
+            let mut implementations = vec![];
+            if pou_type == PouType::Class || pou_type == PouType::FunctionBlock {
+                // classes and function blocks can have methods. methods consist of a Pou part
+                // and an implementation part. That's why we get another (Pou, Implementation)
+                // tuple out of parse_method() that has to be added to the list of Pous and
+                // implementations. Note that function blocks have to start with the method
+                // declarations before their implementation.
+                while lexer.token == KeywordMethod {
+                    if let Some((pou, implementation)) = parse_method(lexer, &name, linkage) {
+                        impl_pous.push(pou);
+                        implementations.push(implementation);
+                    }
                 }
             }
-        }
-        if pou_type != PouType::Class {
-            // a class may not contain an implementation
-            implementations.push(parse_implementation(
-                lexer,
-                linkage,
-                pou_type.clone(),
-                &name,
-                &name,
-            ));
-        }
+            if pou_type != PouType::Class {
+                // a class may not contain an implementation
+                implementations.push(parse_implementation(
+                    lexer,
+                    linkage,
+                    pou_type.clone(),
+                    &name,
+                    &name,
+                ));
+            }
 
-        let mut pous = vec![Pou {
-            name,
-            pou_type,
-            variable_blocks,
-            return_type,
-            location: SourceRange::new(start..lexer.range().end),
-            poly_mode,
-        }];
-        pous.append(&mut impl_pous);
+            let mut pous = vec![Pou {
+                name,
+                pou_type,
+                variable_blocks,
+                return_type,
+                location: SourceRange::new(start..lexer.range().end),
+                poly_mode,
+                generics,
+            }];
+            pous.append(&mut impl_pous);
 
-        (pous, implementations)
+            (pous, implementations)
+        })
     });
 
     //check if we ended on the right end-keyword
@@ -229,6 +239,59 @@ fn parse_pou(
         ));
     }
     pou
+}
+
+fn parse_generics(lexer: &mut ParseSession) -> Vec<GenericBinding> {
+    if lexer.allow(&Token::OperatorLess) {
+        parse_any_in_region(lexer, vec![Token::OperatorGreater], |lexer| {
+            let mut generics = vec![];
+            loop {
+                //identifier
+                if let Some(name) = parse_identifier(lexer) {
+                    lexer.consume_or_report(Token::KeywordColon);
+
+                    //Expect a type nature
+                    if let Some(nature) =
+                        parse_identifier(lexer).map(|it| parse_type_nature(lexer, &it))
+                    {
+                        generics.push(GenericBinding { name, nature });
+                    }
+                }
+
+                if !lexer.allow(&Token::KeywordComma) || lexer.allow(&Token::OperatorGreater) {
+                    break;
+                }
+            }
+
+            generics
+        })
+    } else {
+        vec![]
+    }
+}
+
+fn parse_type_nature(lexer: &mut ParseSession, nature: &str) -> TypeNature {
+    match nature {
+        "ANY" => TypeNature::Any,
+        "ANY_DERIVED" => TypeNature::Derived,
+        "ANY_ELEMENTARY" => TypeNature::Elementary,
+        "ANY_MAGNITUDE" => TypeNature::Magnitude,
+        "ANY_NUM" => TypeNature::Num,
+        "ANY_REAL" => TypeNature::Real,
+        "ANY_INT" => TypeNature::Int,
+        "ANY_SIGNED" => TypeNature::Signed,
+        "ANY_UNSIGNED" => TypeNature::Unsigned,
+        "ANY_DURATION" => TypeNature::Duration,
+        "ANY_BIT" => TypeNature::Bit,
+        "ANY_CHARS" => TypeNature::Chars,
+        "ANY_STRING" => TypeNature::String,
+        "ANY_CHAR" => TypeNature::Char,
+        "ANY_DATE" => TypeNature::Date,
+        _ => {
+            lexer.accept_diagnostic(Diagnostic::unknown_type_nature(nature, lexer.location()));
+            TypeNature::Any
+        }
+    }
 }
 
 fn parse_polymorphism_mode(
@@ -315,6 +378,7 @@ fn parse_method(
         let poly_mode = parse_polymorphism_mode(lexer, &pou_type);
         let overriding = lexer.allow(&KeywordOverride);
         let name = parse_identifier(lexer)?;
+        let generics = parse_generics(lexer);
         let return_type = parse_return_type(lexer, &pou_type);
 
         let mut variable_blocks = vec![];
@@ -358,6 +422,7 @@ fn parse_method(
                 return_type,
                 location: SourceRange::new(method_start..method_end),
                 poly_mode,
+                generics,
             },
             implementation,
         ))
@@ -475,6 +540,7 @@ fn parse_type(lexer: &mut ParseSession) -> Option<UserTypeDeclaration> {
             data_type,
             initializer,
             location: (start..end).into(),
+            scope: lexer.scope.clone(),
         })
     } else {
         None
@@ -500,6 +566,7 @@ fn parse_full_data_type_definition(
                         referenced_type: None,
                     },
                     location: lexer.last_range.clone().into(),
+                    scope: lexer.scope.clone(),
                 },
                 None,
             ))
@@ -512,6 +579,7 @@ fn parse_full_data_type_definition(
                                 referenced_type: Some(Box::new(type_def)),
                             },
                             location: lexer.last_range.clone().into(),
+                            scope: lexer.scope.clone(),
                         },
                         None,
                     )
@@ -536,6 +604,7 @@ fn parse_data_type_definition(
             DataTypeDeclaration::DataTypeDefinition {
                 data_type: DataType::StructType { name, variables },
                 location: (start..lexer.range().end).into(),
+                scope: lexer.scope.clone(),
             },
             None,
         ))
@@ -557,6 +626,7 @@ fn parse_data_type_definition(
     } else if lexer.allow(&KeywordRef) {
         parse_pointer_definition(lexer, name, lexer.last_range.start)
     } else if lexer.allow(&KeywordParensOpen) {
+        //enum without datatype
         parse_enum_type_definition(lexer, name)
     } else if lexer.token == KeywordString || lexer.token == KeywordWideString {
         parse_string_type_definition(lexer, name)
@@ -586,6 +656,7 @@ fn parse_pointer_definition(
                     referenced_type: Box::new(decl),
                 },
                 location: (start_pos..lexer.last_range.end).into(),
+                scope: lexer.scope.clone(),
             },
             initializer,
         )
@@ -618,13 +689,41 @@ fn parse_type_reference_type_definition(
 
     let end = lexer.last_range.end;
     if name.is_some() || bounds.is_some() {
-        let data_type = DataTypeDeclaration::DataTypeDefinition {
-            data_type: DataType::SubRangeType {
-                name,
-                referenced_type,
-                bounds,
+        let data_type = match bounds {
+            Some(AstStatement::ExpressionList { expressions, id }) => {
+                //this is an enum
+                DataTypeDeclaration::DataTypeDefinition {
+                    data_type: DataType::EnumType {
+                        name,
+                        numeric_type: referenced_type,
+                        elements: AstStatement::ExpressionList { expressions, id },
+                    },
+                    location: (start..end).into(),
+                    scope: lexer.scope.clone(),
+                }
+            }
+            Some(AstStatement::Reference { .. }) => {
+                // a enum with just one element
+                DataTypeDeclaration::DataTypeDefinition {
+                    data_type: DataType::EnumType {
+                        name,
+                        numeric_type: referenced_type,
+                        elements: bounds.unwrap(),
+                    },
+                    location: (start..end).into(),
+                    scope: lexer.scope.clone(),
+                }
+            }
+            _ => DataTypeDeclaration::DataTypeDefinition {
+                //something else inside the brackets -> probably a subrange?
+                data_type: DataType::SubRangeType {
+                    name,
+                    referenced_type,
+                    bounds,
+                },
+                location: (start..end).into(),
+                scope: lexer.scope.clone(),
             },
-            location: (start..end).into(),
         };
         Some((data_type, initial_value))
     } else {
@@ -688,6 +787,7 @@ fn parse_string_type_definition(
                 size,
             },
             location: (start..end).into(),
+            scope: lexer.scope.clone(),
         },
         lexer
             .allow(&KeywordAssignment)
@@ -702,24 +802,19 @@ fn parse_enum_type_definition(
     let start = lexer.last_range.start;
     let elements = parse_any_in_region(lexer, vec![KeywordParensClose], |lexer| {
         // Parse Enum - we expect at least one element
-
-        let mut elements = Vec::new();
-        //we expect at least one element
-        if lexer.token == Identifier {
-            elements.push(lexer.slice_and_advance());
-        }
-        //parse additional elements separated by ,
-        while lexer.allow(&KeywordComma) {
-            expect_token!(lexer, Identifier, None);
-            elements.push(lexer.slice_and_advance());
-        }
+        let elements = parse_expression_list(lexer);
         Some(elements)
     })?;
 
     Some((
         DataTypeDeclaration::DataTypeDefinition {
-            data_type: DataType::EnumType { name, elements },
+            data_type: DataType::EnumType {
+                name,
+                elements,
+                numeric_type: DINT_TYPE.to_string(),
+            },
             location: (start..lexer.last_range.end).into(),
+            scope: lexer.scope.clone(),
         },
         None,
     ))
@@ -755,6 +850,7 @@ fn parse_array_type_definition(
                     referenced_type: Box::new(reference),
                 },
                 location,
+                scope: lexer.scope.clone(),
             },
             initializer,
         )
@@ -763,7 +859,7 @@ fn parse_array_type_definition(
 
 /// parse a body and recovers until the given `end_keywords`
 fn parse_body_in_region(lexer: &mut ParseSession, end_keywords: Vec<Token>) -> Vec<AstStatement> {
-    parse_any_in_region(lexer, end_keywords, |lexer| parse_body_standalone(lexer))
+    parse_any_in_region(lexer, end_keywords, parse_body_standalone)
 }
 
 fn parse_body_standalone(lexer: &mut ParseSession) -> Vec<AstStatement> {
@@ -787,6 +883,17 @@ fn parse_statement(lexer: &mut ParseSession) -> AstStatement {
     } else {
         result
     }
+}
+
+pub fn with_scope<T, F: FnOnce(&mut ParseSession) -> T>(
+    lexer: &mut ParseSession,
+    scope: String,
+    parse_fn: F,
+) -> T {
+    lexer.scope = Some(scope);
+    let result = parse_fn(lexer);
+    lexer.scope = None;
+    result
 }
 
 pub fn parse_any_in_region<T, F: FnOnce(&mut ParseSession) -> T>(

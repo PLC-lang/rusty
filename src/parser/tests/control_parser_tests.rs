@@ -1,19 +1,17 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use crate::ast::AstStatement;
-use crate::parser::parse;
+use crate::test_utils::tests::parse;
 use pretty_assertions::*;
 
 #[test]
 fn if_statement() {
-    let lexer = super::lex(
-        "
+    let src = "
         PROGRAM exp 
         IF TRUE THEN
         END_IF
         END_PROGRAM
-        ",
-    );
-    let result = parse(lexer).0;
+        ";
+    let result = parse(src).0;
 
     let prg = &result.implementations[0];
     let statement = &prg.statements[0];
@@ -35,8 +33,8 @@ fn if_statement() {
 
 #[test]
 fn test_return_statement() {
-    let lexer = super::lex("PROGRAM ret RETURN END_PROGRAM");
-    let result = parse(lexer).0;
+    let src = "PROGRAM ret RETURN END_PROGRAM";
+    let result = parse(src).0;
     let prg = &result.implementations[0];
     let stmt = &prg.statements[0];
 
@@ -45,8 +43,8 @@ fn test_return_statement() {
 
 #[test]
 fn test_continue_statement() {
-    let lexer = super::lex("PROGRAM ret CONTINUE END_PROGRAM");
-    let result = parse(lexer).0;
+    let src = "PROGRAM ret CONTINUE END_PROGRAM";
+    let result = parse(src).0;
     let prg = &result.implementations[0];
     let stmt = &prg.statements[0];
 
@@ -55,8 +53,8 @@ fn test_continue_statement() {
 
 #[test]
 fn test_exit_statement() {
-    let lexer = super::lex("PROGRAM ret EXIT END_PROGRAM");
-    let result = parse(lexer).0;
+    let src = "PROGRAM ret EXIT END_PROGRAM";
+    let result = parse(src).0;
     let prg = &result.implementations[0];
     let stmt = &prg.statements[0];
 
@@ -65,8 +63,7 @@ fn test_exit_statement() {
 
 #[test]
 fn if_else_statement_with_expressions() {
-    let lexer = super::lex(
-        "
+    let src = "
         PROGRAM exp 
         IF TRUE THEN
             x;
@@ -74,9 +71,8 @@ fn if_else_statement_with_expressions() {
             y;
         END_IF
         END_PROGRAM
-        ",
-    );
-    let result = parse(lexer).0;
+        ";
+    let result = parse(src).0;
 
     let prg = &result.implementations[0];
     let statement = &prg.statements[0];
@@ -106,8 +102,7 @@ fn if_else_statement_with_expressions() {
 
 #[test]
 fn if_elsif_elsif_else_statement_with_expressions() {
-    let lexer = super::lex(
-        "
+    let src = "
         PROGRAM exp 
         IF TRUE THEN
             x;
@@ -119,9 +114,8 @@ fn if_elsif_elsif_else_statement_with_expressions() {
             u;
         END_IF
         END_PROGRAM
-        ",
-    );
-    let result = parse(lexer).0;
+        ";
+    let result = parse(src).0;
 
     let prg = &result.implementations[0];
     let statement = &prg.statements[0];
@@ -171,15 +165,13 @@ fn if_elsif_elsif_else_statement_with_expressions() {
 
 #[test]
 fn for_with_literals_statement() {
-    let lexer = super::lex(
-        "
+    let src = "
         PROGRAM exp 
         FOR y := x TO 10 DO
         END_FOR
         END_PROGRAM
-        ",
-    );
-    let result = parse(lexer).0;
+        ";
+    let result = parse(src).0;
 
     let prg = &result.implementations[0];
     let statement = &prg.statements[0];
@@ -203,15 +195,13 @@ fn for_with_literals_statement() {
 
 #[test]
 fn for_with_step_statement() {
-    let lexer = super::lex(
-        "
+    let src = "
         PROGRAM exp 
         FOR x := 1 TO 10 BY 7 DO 
         END_FOR
         END_PROGRAM
-        ",
-    );
-    let result = parse(lexer).0;
+        ";
+    let result = parse(src).0;
 
     let prg = &result.implementations[0];
     let statement = &prg.statements[0];
@@ -239,15 +229,13 @@ fn for_with_step_statement() {
 
 #[test]
 fn for_with_reference_statement() {
-    let lexer = super::lex(
-        "
+    let src = "
         PROGRAM exp 
         FOR z := x TO y DO
         END_FOR
         END_PROGRAM
-        ",
-    );
-    let result = parse(lexer).0;
+        ";
+    let result = parse(src).0;
 
     let prg = &result.implementations[0];
     let statement = &prg.statements[0];
@@ -271,17 +259,15 @@ fn for_with_reference_statement() {
 
 #[test]
 fn for_with_body_statement() {
-    let lexer = super::lex(
-        "
+    let src = "
         PROGRAM exp 
         FOR z := x TO y DO
             x;
             y;
         END_FOR
         END_PROGRAM
-        ",
-    );
-    let result = parse(lexer).0;
+        ";
+    let result = parse(src).0;
 
     let prg = &result.implementations[0];
     let statement = &prg.statements[0];
@@ -312,15 +298,13 @@ fn for_with_body_statement() {
 
 #[test]
 fn while_with_literal() {
-    let lexer = super::lex(
-        "
+    let src = "
         PROGRAM exp 
         WHILE TRUE DO
         END_WHILE
         END_PROGRAM
-        ",
-    );
-    let result = parse(lexer).0;
+        ";
+    let result = parse(src).0;
 
     let prg = &result.implementations[0];
     let statement = &prg.statements[0];
@@ -337,15 +321,13 @@ fn while_with_literal() {
 
 #[test]
 fn while_with_expression() {
-    let lexer = super::lex(
-        "
+    let src = "
         PROGRAM exp 
         WHILE x < 7 DO 
         END_WHILE
         END_PROGRAM
-        ",
-    );
-    let result = parse(lexer).0;
+        ";
+    let result = parse(src).0;
 
     let prg = &result.implementations[0];
     let statement = &prg.statements[0];
@@ -368,17 +350,15 @@ fn while_with_expression() {
 
 #[test]
 fn while_with_body_statement() {
-    let lexer = super::lex(
-        "
+    let src = "
         PROGRAM exp 
         WHILE TRUE DO
             x;
             y;
         END_WHILE
         END_PROGRAM
-        ",
-    );
-    let result = parse(lexer).0;
+        ";
+    let result = parse(src).0;
 
     let prg = &result.implementations[0];
     let statement = &prg.statements[0];
@@ -403,16 +383,14 @@ fn while_with_body_statement() {
 
 #[test]
 fn repeat_with_literal() {
-    let lexer = super::lex(
-        "
+    let src = "
         PROGRAM exp 
         REPEAT
         UNTIL TRUE
         END_REPEAT
         END_PROGRAM
-        ",
-    );
-    let result = parse(lexer).0;
+        ";
+    let result = parse(src).0;
 
     let prg = &result.implementations[0];
     let statement = &prg.statements[0];
@@ -429,16 +407,14 @@ fn repeat_with_literal() {
 
 #[test]
 fn repeat_with_expression() {
-    let lexer = super::lex(
-        "
+    let src = "
         PROGRAM exp 
         REPEAT
         UNTIL x > 7
         END_REPEAT
         END_PROGRAM
-        ",
-    );
-    let result = parse(lexer).0;
+        ";
+    let result = parse(src).0;
 
     let prg = &result.implementations[0];
     let statement = &prg.statements[0];
@@ -461,8 +437,7 @@ fn repeat_with_expression() {
 
 #[test]
 fn repeat_with_body_statement() {
-    let lexer = super::lex(
-        "
+    let src = "
         PROGRAM exp 
         REPEAT
             x;
@@ -470,9 +445,8 @@ fn repeat_with_body_statement() {
         UNTIL TRUE
         END_REPEAT
         END_PROGRAM
-        ",
-    );
-    let result = parse(lexer).0;
+        ";
+    let result = parse(src).0;
 
     let prg = &result.implementations[0];
     let statement = &prg.statements[0];
@@ -497,16 +471,14 @@ fn repeat_with_body_statement() {
 
 #[test]
 fn case_statement_with_one_condition() {
-    let lexer = super::lex(
-        "
+    let src = "
         PROGRAM exp 
         CASE StateMachine OF
         1: x;
         END_CASE
         END_PROGRAM
-        ",
-    );
-    let result = parse(lexer).0;
+        ";
+    let result = parse(src).0;
 
     let prg = &result.implementations[0];
     let statement = &prg.statements[0];
@@ -536,16 +508,14 @@ fn case_statement_with_one_condition() {
 
 #[test]
 fn case_statement_with_else_and_no_condition() {
-    let lexer = super::lex(
-        "
+    let src = "
         PROGRAM exp 
         CASE StateMachine OF
         ELSE
         END_CASE
         END_PROGRAM
-        ",
-    );
-    let result = parse(lexer).0;
+        ";
+    let result = parse(src).0;
 
     let prg = &result.implementations[0];
     let statement = &prg.statements[0];
@@ -564,15 +534,13 @@ fn case_statement_with_else_and_no_condition() {
 
 #[test]
 fn case_statement_with_no_conditions() {
-    let lexer = super::lex(
-        "
+    let src = "
         PROGRAM exp 
         CASE StateMachine OF
         END_CASE
         END_PROGRAM
-        ",
-    );
-    let result = parse(lexer).0;
+        ";
+    let result = parse(src).0;
 
     let prg = &result.implementations[0];
     let statement = &prg.statements[0];
@@ -591,8 +559,7 @@ fn case_statement_with_no_conditions() {
 
 #[test]
 fn case_statement_with_one_condition_and_an_else() {
-    let lexer = super::lex(
-        "
+    let src = "
         PROGRAM exp 
         CASE StateMachine OF
         1: x;
@@ -600,9 +567,8 @@ fn case_statement_with_one_condition_and_an_else() {
             y;
         END_CASE
         END_PROGRAM
-        ",
-    );
-    let result = parse(lexer).0;
+        ";
+    let result = parse(src).0;
 
     let prg = &result.implementations[0];
     let statement = &prg.statements[0];
@@ -636,8 +602,7 @@ fn case_statement_with_one_condition_and_an_else() {
 
 #[test]
 fn case_statement_with_one_empty_condition_and_an_else() {
-    let lexer = super::lex(
-        "
+    let src = "
         PROGRAM exp 
         CASE StateMachine OF
         1:
@@ -645,9 +610,8 @@ fn case_statement_with_one_empty_condition_and_an_else() {
             y;
         END_CASE
         END_PROGRAM
-        ",
-    );
-    let result = parse(lexer).0;
+        ";
+    let result = parse(src).0;
 
     let prg = &result.implementations[0];
     let statement = &prg.statements[0];
@@ -677,8 +641,7 @@ fn case_statement_with_one_empty_condition_and_an_else() {
 
 #[test]
 fn case_statement_with_multiple_conditions() {
-    let lexer = super::lex(
-        "
+    let src = "
         PROGRAM exp 
         CASE StateMachine OF
             1: x;
@@ -686,9 +649,8 @@ fn case_statement_with_multiple_conditions() {
             3: z;
         END_CASE
         END_PROGRAM
-        ",
-    );
-    let result = parse(lexer).0;
+        ";
+    let result = parse(src).0;
 
     let prg = &result.implementations[0];
     let statement = &prg.statements[0];
@@ -744,17 +706,15 @@ fn case_statement_with_multiple_conditions() {
 
 #[test]
 fn case_statement_with_multiple_expressions_per_condition() {
-    let lexer = super::lex(
-        "
+    let src = "
         PROGRAM exp 
         CASE StateMachine OF
             1,2,3: x;
             4..5, 6: y;
         END_CASE
         END_PROGRAM
-        ",
-    );
-    let result = parse(lexer).0;
+        ";
+    let result = parse(src).0;
 
     let prg = &result.implementations[0];
     let statement = &prg.statements[0];
@@ -825,8 +785,7 @@ fn if_stmnt_location_test() {
     END_IF
     END_PROGRAM";
 
-    let lexer = super::lex(source);
-    let parse_result = parse(lexer).0;
+    let parse_result = parse(source).0;
 
     let unit = &parse_result.implementations[0];
 
@@ -864,8 +823,7 @@ fn for_stmnt_location_test() {
     END_FOR
     END_PROGRAM";
 
-    let lexer = super::lex(source);
-    let parse_result = parse(lexer).0;
+    let parse_result = parse(source).0;
 
     let unit = &parse_result.implementations[0];
 
@@ -925,8 +883,7 @@ fn while_stmnt_location_test() {
     END_WHILE
     END_PROGRAM";
 
-    let lexer = super::lex(source);
-    let parse_result = parse(lexer).0;
+    let parse_result = parse(source).0;
 
     let unit = &parse_result.implementations[0];
 
@@ -951,8 +908,7 @@ fn case_stmnt_location_test() {
     END_CASE
     END_PROGRAM";
 
-    let lexer = super::lex(source);
-    let parse_result = parse(lexer).0;
+    let parse_result = parse(source).0;
 
     let unit = &parse_result.implementations[0];
 
@@ -975,8 +931,7 @@ fn call_stmnt_location_test() {
     foo(a:=3, b:=4);
     END_PROGRAM";
 
-    let lexer = super::lex(source);
-    let parse_result = parse(lexer).0;
+    let parse_result = parse(source).0;
 
     let unit = &parse_result.implementations[0];
 

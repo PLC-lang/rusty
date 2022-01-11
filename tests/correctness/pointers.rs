@@ -1,17 +1,13 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-use crate::compile_and_run;
+use crate::{compile_and_run, MainType};
 
-mod complex;
-
-#[allow(dead_code)]
-#[repr(C)]
-struct MainType {}
+mod references;
 
 #[test]
 fn pointer_test() {
     let function = r"
 TYPE MyStruct: STRUCT  x: DINT; y: DINT; END_STRUCT END_TYPE
-TYPE MyRef : REF_TO REF_TO DINT; END_TYPE;
+TYPE MyRef : REF_TO REF_TO DINT; END_TYPE
 
 FUNCTION main : DINT
 	main := foo();
@@ -38,7 +34,7 @@ foo := y^;
 END_FUNCTION
  ";
 
-    let mut maintype = MainType {};
+    let mut maintype = MainType::default();
 
     let res: i32 = compile_and_run(function.to_string(), &mut maintype);
 

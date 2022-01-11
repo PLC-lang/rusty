@@ -1,6 +1,6 @@
 use crate::{
+    test_utils::tests::parse_and_validate,
     typesystem::{DATE_AND_TIME_TYPE, DATE_TYPE, TIME_OF_DAY_TYPE, TIME_TYPE},
-    validation::tests::parse_and_validate,
     Diagnostic,
 };
 
@@ -195,6 +195,31 @@ fn date_literal_casts_are_validated() {
             Diagnostic::incompatible_literal_cast("INT", TIME_OF_DAY_TYPE, (384..412).into()),
             Diagnostic::incompatible_literal_cast("INT", TIME_TYPE, (426..441).into()),
             Diagnostic::incompatible_literal_cast("INT", DATE_TYPE, (455..474).into()),
+        ]
+    );
+}
+
+#[test]
+fn char_cast_validate() {
+    let diagnostics = parse_and_validate(
+        r#"
+        PROGRAM prg
+            
+            CHAR#"A";
+            WCHAR#'B';
+
+			CHAR#"XY";
+			WCHAR#'YZ';
+
+        END_PROGRAM
+       "#,
+    );
+
+    assert_eq!(
+        diagnostics,
+        vec![
+            Diagnostic::literal_out_of_range(r#""XY""#, "CHAR", (83..92).into()),
+            Diagnostic::literal_out_of_range("'YZ'", "WCHAR", (97..107).into())
         ]
     );
 }

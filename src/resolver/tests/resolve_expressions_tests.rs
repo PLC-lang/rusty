@@ -1,25 +1,43 @@
 use core::panic;
 
 use crate::{
-    ast::{AstStatement, DataType, UserTypeDeclaration},
+    ast::{self, AstStatement, DataType, Pou, UserTypeDeclaration},
     index::Index,
-    resolver::{
-        tests::{annotate, parse},
-        AnnotationMap, StatementAnnotation,
+    resolver::{AnnotationMap, AnnotationMapImpl, StatementAnnotation},
+    test_utils::tests::annotate,
+    typesystem::{
+        DataTypeInformation, BOOL_TYPE, BYTE_TYPE, CONST_STRING_TYPE, DINT_TYPE, DWORD_TYPE,
+        INT_TYPE, REAL_TYPE, SINT_TYPE, UINT_TYPE, USINT_TYPE, VOID_TYPE,
     },
-    typesystem::VOID_TYPE,
 };
 
+use crate::{test_utils::tests::index, TypeAnnotator};
+
+#[macro_export]
+macro_rules! assert_type_and_hint {
+    ($annotations:expr, $index:expr, $stmt:expr, $expected_type:expr, $expected_type_hint:expr) => {
+        assert_eq!(
+            (
+                crate::resolver::AnnotationMap::get_type($annotations, $stmt, $index),
+                crate::resolver::AnnotationMap::get_type_hint($annotations, $stmt, $index),
+            ),
+            (
+                $index.get_type($expected_type).ok(),
+                $expected_type_hint.and_then(|n| $index.get_type(n).ok())
+            )
+        );
+    };
+}
 #[test]
 fn binary_expressions_resolves_types() {
-    let (unit, index) = parse(
+    let (unit, index) = index(
         "PROGRAM PRG
             1 + 2;
             1 + 2000;
             2147483648 + 1;
         END_PROGRAM",
     );
-    let annotations = annotate(&unit, &index);
+    let annotations = TypeAnnotator::visit_unit(&index, &unit);
     let statements = &unit.implementations[0].statements;
 
     let expected_types = vec!["DINT", "DINT", "LINT"];
@@ -33,17 +51,126 @@ fn binary_expressions_resolves_types() {
 }
 
 #[test]
+fn binary_expressions_resolves_types_for_mixed_signed_ints() {
+    let (unit, mut index) = index(
+        "PROGRAM PRG
+            VAR a : INT; END_VAR
+            a + UINT#7;
+        END_PROGRAM",
+    );
+    let annotations = annotate(&unit, &mut index);
+    let statements = &unit.implementations[0].statements;
+
+    if let AstStatement::BinaryExpression { left, right, .. } = &statements[0] {
+        assert_type_and_hint!(&annotations, &index, left, INT_TYPE, Some(DINT_TYPE));
+        assert_type_and_hint!(&annotations, &index, right, UINT_TYPE, Some(DINT_TYPE));
+        assert_type_and_hint!(&annotations, &index, &statements[0], DINT_TYPE, None);
+    } else {
+        unreachable!()
+    }
+}
+
+#[test]
+fn binary_expressions_resolves_types_for_literals_directly() {
+    let (unit, mut index) = index(
+        "PROGRAM PRG
+            VAR a : BYTE; END_VAR
+            a := a + 7;
+            a := 7;
+        END_PROGRAM",
+    );
+    let annotations = annotate(&unit, &mut index);
+    let statements = &unit.implementations[0].statements;
+
+    if let AstStatement::Assignment {
+        right: addition, ..
+    } = &statements[0]
+    {
+        // a + 7 --> DINT (BYTE hint)
+        assert_type_and_hint!(&annotations, &index, addition, DINT_TYPE, Some(BYTE_TYPE));
+        if let AstStatement::BinaryExpression {
+            left: a,
+            right: seven,
+            ..
+        } = addition.as_ref()
+        {
+            // a --> BYTE (DINT hint)
+            assert_type_and_hint!(&annotations, &index, a, BYTE_TYPE, Some(DINT_TYPE));
+            // 7 --> DINT (no hint)
+            assert_type_and_hint!(&annotations, &index, seven, DINT_TYPE, None);
+        } else {
+            unreachable!()
+        }
+    } else {
+        unreachable!()
+    }
+
+    if let AstStatement::Assignment { right: seven, .. } = &statements[1] {
+        assert_type_and_hint!(&annotations, &index, seven, DINT_TYPE, Some(BYTE_TYPE));
+    } else {
+        unreachable!()
+    }
+}
+
+#[test]
+fn complex_expressions_resolves_types_for_literals_directly() {
+    let (unit, mut index) = index(
+        "PROGRAM PRG
+            VAR 
+                a : BYTE; 
+                b : SINT; 
+                c : INT; 
+            END_VAR
+            a := ((b + USINT#7) - c);
+        END_PROGRAM",
+    );
+    let annotations = annotate(&unit, &mut index);
+    let statements = &unit.implementations[0].statements;
+
+    if let AstStatement::Assignment { right, .. } = &statements[0] {
+        // ((b + USINT#7) - c)
+        assert_type_and_hint!(&annotations, &index, right, DINT_TYPE, Some(BYTE_TYPE));
+        if let AstStatement::BinaryExpression { left, right: c, .. } = right.as_ref() {
+            // c
+            assert_type_and_hint!(&annotations, &index, c, INT_TYPE, Some(DINT_TYPE));
+            // (b + USINT#7)
+            assert_type_and_hint!(&annotations, &index, left, DINT_TYPE, None);
+
+            if let AstStatement::BinaryExpression {
+                left: b,
+                right: seven,
+                ..
+            } = left.as_ref()
+            {
+                //b
+                assert_type_and_hint!(&annotations, &index, b, SINT_TYPE, Some(DINT_TYPE));
+                // USINT#7
+                assert_type_and_hint!(&annotations, &index, seven, USINT_TYPE, Some(DINT_TYPE));
+            } else {
+                unreachable!()
+            }
+        } else {
+            unreachable!()
+        }
+        // 7 --> DINT (BYTE hint)
+    } else {
+        unreachable!()
+    }
+}
+
+#[test]
 fn unary_expressions_resolves_types() {
-    let (unit, index) = parse(
+    let (unit, index) = index(
         "PROGRAM PRG
             NOT TRUE;
             -(2+3);
+            -0.2;
         END_PROGRAM",
     );
-    let annotations = annotate(&unit, &index);
+    let annotations = TypeAnnotator::visit_unit(&index, &unit);
     let statements = &unit.implementations[0].statements;
 
-    let expected_types = vec!["BOOL", "DINT"];
+    let expected_types = vec!["BOOL", "DINT", "REAL"];
 
     let types: Vec<&str> = statements
         .iter()
@@ -55,14 +182,14 @@ fn unary_expressions_resolves_types() {
 
 #[test]
 fn binary_expressions_resolves_types_with_floats() {
-    let (unit, index) = parse(
+    let (unit, index) = index(
         "PROGRAM PRG
             1 + 2.2;
             1.1 + 2000;
             2000.0 + 1.0;
         END_PROGRAM",
     );
-    let annotations = annotate(&unit, &index);
+    let annotations = TypeAnnotator::visit_unit(&index, &unit);
     let statements = &unit.implementations[0].statements;
 
     let expected_types = vec!["REAL", "REAL", "REAL"];
@@ -77,8 +204,64 @@ fn binary_expressions_resolves_types_with_floats() {
 }
 
 #[test]
+fn binary_expressions_resolves_types_with_float_comparisons() {
+    //GIVEN some comparison expressions with floats
+    let (unit, mut index) = index(
+        "PROGRAM PRG
+            VAR a, b : REAL END_VAR
+                a < b;
+                a = b;
+                a >= b;
+        END_PROGRAM",
+    );
+
+    //WHEN I annotate the code
+    let annotations = annotate(&unit, &mut index);
+    let statements = &unit.implementations[0].statements;
+
+    //I want the expressions to be of type BOOL, the left and right of type REAL
+    for s in statements.iter() {
+        assert_type_and_hint!(&annotations, &index, s, BOOL_TYPE, None);
+
+        if let AstStatement::BinaryExpression { left, right, .. } = s {
+            assert_type_and_hint!(&annotations, &index, left, REAL_TYPE, None);
+            assert_type_and_hint!(&annotations, &index, right, REAL_TYPE, None);
+        } else {
+            unreachable!()
+        }
+    }
+}
+
+#[test]
+fn binary_expressions_resolves_types_of_literals_with_float_comparisons() {
+    //GIVEN some comparison expressions with floats
+    let (unit, mut index) = index(
+        "PROGRAM PRG
+            VAR a : REAL END_VAR
+                a < 1;
+        END_PROGRAM",
+    );
+
+    //WHEN I annotate the code
+    let annotations = annotate(&unit, &mut index);
+    let statements = &unit.implementations[0].statements;
+
+    //I want the '1' to be treated as a real right away (no casting involved)
+    for s in statements.iter() {
+        assert_type_and_hint!(&annotations, &index, s, BOOL_TYPE, None);
+
+        if let AstStatement::BinaryExpression { left, right, .. } = s {
+            assert_type_and_hint!(&annotations, &index, left, REAL_TYPE, None);
+            assert_type_and_hint!(&annotations, &index, right, REAL_TYPE, None);
+        } else {
+            unreachable!()
+        }
+    }
+}
+
+#[test]
 fn local_variables_resolves_types() {
-    let (unit, index) = parse(
+    let (unit, index) = index(
         "PROGRAM PRG
             VAR
                 b : BYTE;
@@ -109,7 +292,7 @@ fn local_variables_resolves_types() {
             uli;
         END_PROGRAM",
     );
-    let annotations = annotate(&unit, &index);
+    let annotations = TypeAnnotator::visit_unit(&index, &unit);
     let statements = &unit.implementations[0].statements;
 
     let expected_types = vec![
@@ -126,7 +309,7 @@ fn local_variables_resolves_types() {
 
 #[test]
 fn global_resolves_types() {
-    let (unit, index) = parse(
+    let (unit, index) = index(
         "
         VAR_GLOBAL
             b : BYTE;
@@ -158,7 +341,7 @@ fn global_resolves_types() {
             uli;
         END_PROGRAM",
     );
-    let annotations = annotate(&unit, &index);
+    let annotations = TypeAnnotator::visit_unit(&index, &unit);
     let statements = &unit.implementations[0].statements;
 
     let expected_types = vec![
@@ -175,7 +358,7 @@ fn global_resolves_types() {
 
 #[test]
 fn global_initializers_resolves_types() {
-    let (unit, index) = parse(
+    let (unit, index) = index(
         "
         VAR_GLOBAL
             b : BYTE := 0;
@@ -193,7 +376,7 @@ fn global_initializers_resolves_types() {
         END_VAR
         ",
     );
-    let annotations = annotate(&unit, &index);
+    let annotations = TypeAnnotator::visit_unit(&index, &unit);
     let statements: Vec<&AstStatement> = unit.global_vars[0]
         .variables
         .iter()
@@ -214,7 +397,7 @@ fn global_initializers_resolves_types() {
 
 #[test]
 fn resolve_binary_expressions() {
-    let (unit, index) = parse(
+    let (unit, index) = index(
         "
         VAR_GLOBAL
             b : BYTE;
@@ -246,11 +429,11 @@ fn resolve_binary_expressions() {
             b + uli;
         END_PROGRAM",
     );
-    let annotations = annotate(&unit, &index);
+    let annotations = TypeAnnotator::visit_unit(&index, &unit);
     let statements = &unit.implementations[0].statements;
 
     let expected_types = vec![
-        "BYTE", "WORD", "DWORD", "LWORD", "SINT", "BYTE", "INT", "UINT", "DINT", "UDINT", "LINT",
+        "DINT", "DINT", "DINT", "LWORD", "DINT", "DINT", "DINT", "DINT", "DINT", "DINT", "LINT",
         "ULINT",
     ];
     let type_names: Vec<&str> = statements
@@ -262,8 +445,101 @@ fn resolve_binary_expressions() {
 }
 
 #[test]
+fn necessary_promotions_should_be_type_hinted() {
+    // GIVEN  BYTE + DINT, BYTE < DINT
+    let (unit, mut index) = index(
+        "
+        VAR_GLOBAL
+            b : BYTE;
+            di : DINT;
+       END_VAR
+        
+        PROGRAM PRG
+            b + di;
+            b < di;
+        END_PROGRAM",
+    );
+
+    //WHEN it gets annotated
+    let annotations = annotate(&unit, &mut index);
+    let statements = &unit.implementations[0].statements;
+
+    // THEN we want a hint to promote b to DINT, BYTE + DINT should be treated as DINT
+    if let AstStatement::BinaryExpression { left, .. } = &statements[0] {
+        assert_eq!(
+            annotations.get_type(&statements[0], &index),
+            index.find_effective_type("DINT")
+        );
+        assert_eq!(
+            (
+                annotations.get_type(left.as_ref(), &index),
+                annotations.get_type_hint(left.as_ref(), &index)
+            ),
+            (
+                index.find_effective_type("BYTE"),
+                index.find_effective_type("DINT")
+            )
+        );
+    } else {
+        unreachable!();
+    }
+
+    // THEN we want a hint to promote b to DINT, BYTE < DINT should be treated as BOOL
+    if let AstStatement::BinaryExpression { left, .. } = &statements[1] {
+        assert_eq!(
+            annotations.get_type(&statements[1], &index),
+            index.find_effective_type("BOOL")
+        );
+        assert_eq!(
+            (
+                annotations.get_type(left.as_ref(), &index),
+                annotations.get_type_hint(left.as_ref(), &index)
+            ),
+            (
+                index.find_effective_type("BYTE"),
+                index.find_effective_type("DINT")
+            )
+        );
+    } else {
+        unreachable!();
+    }
+}
+
+#[test]
+fn necessary_promotions_between_real_and_literal_should_be_type_hinted() {
+    // GIVEN  REAL > DINT
+    let (unit, mut index) = index(
+        "
+        VAR_GLOBAL
+            f : REAL;
+       END_VAR
+        
+        PROGRAM PRG
+            f > 0;
+        END_PROGRAM",
+    );
+
+    //WHEN it gets annotated
+    let annotations = annotate(&unit, &mut index);
+    let statements = &unit.implementations[0].statements;
+
+    // THEN we want '0' to be treated as a REAL right away, the result of f > 0 should be type bool
+    if let AstStatement::BinaryExpression { right, .. } = &statements[0] {
+        assert_eq!(
+            annotations.get_type(&statements[0], &index),
+            index.find_effective_type("BOOL")
+        );
+
+        assert_type_and_hint!(&annotations, &index, &statements[0], BOOL_TYPE, None);
+        assert_type_and_hint!(&annotations, &index, right.as_ref(), REAL_TYPE, None);
+    } else {
+        unreachable!();
+    }
+}
+
+#[test]
 fn complex_expressions_resolve_types() {
-    let (unit, index) = parse(
+    let (unit, index) = index(
         "PROGRAM PRG
             VAR
                 b : BYTE;
@@ -286,7 +562,7 @@ fn complex_expressions_resolve_types() {
             b + w * di + r;
         END_PROGRAM",
     );
-    let annotations = annotate(&unit, &index);
+    let annotations = TypeAnnotator::visit_unit(&index, &unit);
     let statements = &unit.implementations[0].statements;
 
     let expected_types = vec!["LINT", "DINT", "REAL"];
@@ -300,7 +576,7 @@ fn complex_expressions_resolve_types() {
 
 #[test]
 fn pointer_expressions_resolve_types() {
-    let (unit, index) = parse(
+    let (unit, index) = index(
         "PROGRAM PRG
             VAR
                 i : REF_TO INT;
@@ -328,7 +604,7 @@ fn pointer_expressions_resolve_types() {
 
         ",
     );
-    let annotations = annotate(&unit, &index);
+    let annotations = TypeAnnotator::visit_unit(&index, &unit);
     let statements = &unit.implementations[0].statements;
 
     let expected_types = vec![
@@ -350,7 +626,7 @@ fn pointer_expressions_resolve_types() {
 }
 #[test]
 fn array_expressions_resolve_types() {
-    let (unit, index) = parse(
+    let (unit, index) = index(
         "PROGRAM PRG
             VAR
                 i : ARRAY[0..10] OF INT;
@@ -378,7 +654,7 @@ fn array_expressions_resolve_types() {
 
         ",
     );
-    let annotations = annotate(&unit, &index);
+    let annotations = TypeAnnotator::visit_unit(&index, &unit);
     let statements = &unit.implementations[0].statements;
 
     let expected_types = vec![
@@ -401,7 +677,7 @@ fn array_expressions_resolve_types() {
 
 #[test]
 fn qualified_expressions_resolve_types() {
-    let (unit, index) = parse(
+    let (unit, index) = index(
         "
          PROGRAM Other
             VAR_INPUT
@@ -422,10 +698,10 @@ fn qualified_expressions_resolve_types() {
             Other.b + Other.w + Other.dw + Other.lw;
         END_PROGRAM",
     );
-    let annotations = annotate(&unit, &index);
+    let annotations = TypeAnnotator::visit_unit(&index, &unit);
     let statements = &unit.implementations[1].statements;
 
-    let expected_types = vec!["BYTE", "WORD", "DWORD", "LWORD", "WORD", "DWORD", "LWORD"];
+    let expected_types = vec!["BYTE", "WORD", "DWORD", "LWORD", "DINT", "DINT", "LWORD"];
     let type_names: Vec<&str> = statements
         .iter()
         .map(|s| annotations.get_type_or_void(s, &index).get_name())
@@ -436,7 +712,7 @@ fn qualified_expressions_resolve_types() {
 
 #[test]
 fn pou_expressions_resolve_types() {
-    let (unit, index) = parse(
+    let (unit, index) = index(
         "
         PROGRAM OtherPrg
         END_PROGRAM   
@@ -453,7 +729,7 @@ fn pou_expressions_resolve_types() {
             OtherFuncBlock;
         END_PROGRAM",
     );
-    let annotations = annotate(&unit, &index);
+    let annotations = TypeAnnotator::visit_unit(&index, &unit);
     let statements = &unit.implementations[3].statements;
 
     //none of these pou's should really resolve to a type
@@ -468,26 +744,26 @@ fn pou_expressions_resolve_types() {
         Some(&StatementAnnotation::Program {
             qualified_name: "OtherPrg".into()
         }),
-        annotations.get_annotation(&statements[0])
+        annotations.get(&statements[0])
     );
     assert_eq!(
         Some(&StatementAnnotation::Function {
             qualified_name: "OtherFunc".into(),
             return_type: "INT".into()
         }),
-        annotations.get_annotation(&statements[1])
+        annotations.get(&statements[1])
     );
     assert_eq!(
         Some(&StatementAnnotation::Type {
             type_name: "OtherFuncBlock".into()
         }),
-        annotations.get_annotation(&statements[2])
+        annotations.get(&statements[2])
     );
 }
 
 #[test]
 fn assignment_expressions_resolve_types() {
-    let (unit, index) = parse(
+    let (unit, index) = index(
         "
         PROGRAM PRG
             VAR
@@ -500,7 +776,7 @@ fn assignment_expressions_resolve_types() {
             z := x;
         END_PROGRAM",
     );
-    let annotations = annotate(&unit, &index);
+    let annotations = TypeAnnotator::visit_unit(&index, &unit);
     let statements = &unit.implementations[0].statements;
 
     let expected_types = vec![VOID_TYPE, VOID_TYPE];
@@ -536,7 +812,7 @@ fn assignment_expressions_resolve_types() {
 
 #[test]
 fn qualified_expressions_to_structs_resolve_types() {
-    let (unit, index) = parse(
+    let (unit, index) = index(
         "
         TYPE NextStruct: STRUCT
             b : BYTE;
@@ -572,7 +848,7 @@ fn qualified_expressions_to_structs_resolve_types() {
         END_PROGRAM",
     );
 
-    let annotations = annotate(&unit, &index);
+    let annotations = TypeAnnotator::visit_unit(&index, &unit);
     let statements = &unit.implementations[0].statements;
 
     let expected_types = vec![
@@ -597,7 +873,7 @@ fn qualified_expressions_to_structs_resolve_types() {
 
 #[test]
 fn qualified_expressions_to_inlined_structs_resolve_types() {
-    let (unit, index) = parse(
+    let (unit, index) = index(
         "
         PROGRAM PRG
             VAR 
@@ -616,7 +892,7 @@ fn qualified_expressions_to_inlined_structs_resolve_types() {
         END_PROGRAM",
     );
 
-    let annotations = annotate(&unit, &index);
+    let annotations = TypeAnnotator::visit_unit(&index, &unit);
     let statements = &unit.implementations[0].statements;
 
     let expected_types = vec!["__PRG_mys", "BYTE", "WORD", "DWORD", "LWORD"];
@@ -631,7 +907,7 @@ fn qualified_expressions_to_inlined_structs_resolve_types() {
 #[test]
 fn function_expression_resolves_to_the_function_itself_not_its_return_type() {
     //GIVEN a reference to a function
-    let (unit, index) = parse(
+    let (unit, index) = index(
         "
         FUNCTION foo : INT
         foo;
@@ -644,11 +920,11 @@ fn function_expression_resolves_to_the_function_itself_not_its_return_type() {
     );
 
     //WHEN the AST is annotated
-    let annotations = annotate(&unit, &index);
+    let annotations = TypeAnnotator::visit_unit(&index, &unit);
     let statements = &unit.implementations[1].statements;
 
     // THEN we expect it to be annotated with the function itself
-    let foo_annotation = annotations.get_annotation(&statements[0]);
+    let foo_annotation = annotations.get(&statements[0]);
     assert_eq!(
         Some(&StatementAnnotation::Function {
             qualified_name: "foo".into(),
@@ -661,12 +937,13 @@ fn function_expression_resolves_to_the_function_itself_not_its_return_type() {
     assert_eq!(None, associated_type);
 
     let statements = &unit.implementations[0].statements;
-    let foo_annotation = annotations.get_annotation(&statements[0]);
+    let foo_annotation = annotations.get(&statements[0]);
     assert_eq!(
         Some(&StatementAnnotation::Variable {
             qualified_name: "foo.foo".into(),
             resulting_type: "INT".into(),
-            constant: false
+            constant: false,
+            is_auto_deref: false
         }),
         foo_annotation
     );
@@ -675,7 +952,7 @@ fn function_expression_resolves_to_the_function_itself_not_its_return_type() {
 #[test]
 fn function_call_expression_resolves_to_the_function_itself_not_its_return_type() {
     //GIVEN a reference to a function
-    let (unit, index) = parse(
+    let (unit, index) = index(
         "
         FUNCTION foo : INT
         END_FUNCTION
@@ -687,11 +964,11 @@ fn function_call_expression_resolves_to_the_function_itself_not_its_return_type(
     );
 
     //WHEN the AST is annotated
-    let annotations = annotate(&unit, &index);
+    let annotations = TypeAnnotator::visit_unit(&index, &unit);
     let statements = &unit.implementations[1].statements;
 
     // THEN we expect it to be annotated with the function itself
-    let foo_annotation = annotations.get_annotation(&statements[0]);
+    let foo_annotation = annotations.get(&statements[0]);
     assert_eq!(
         Some(&StatementAnnotation::Value {
             resulting_type: "INT".into()
@@ -701,12 +978,32 @@ fn function_call_expression_resolves_to_the_function_itself_not_its_return_type(
 
     // AND we expect no type to be associated with the expression
     let associated_type = annotations.get_type(&statements[0], &index);
-    assert_eq!(index.find_type("INT"), associated_type);
+    assert_eq!(index.find_effective_type("INT"), associated_type);
+}
+
+#[test]
+fn shadowed_function_is_annotated_correctly() {
+    let (unit, mut index) = index(
+        "
+        FUNCTION foo : DINT
+        END_FUNCTION
+
+        PROGRAM prg 
+        foo();
+        END_PROGRAM
+        ",
+    );
+    //WHEN the AST is annotated
+    let annotations = annotate(&unit, &mut index);
+    let statements = &unit.implementations[1].statements;
+
+    // THEN we expect it to be annotated with the function itself
+    assert_type_and_hint!(&annotations, &index, &statements[0], "DINT", None);
 }
 
 #[test]
 fn qualified_expressions_to_aliased_structs_resolve_types() {
-    let (unit, index) = parse(
+    let (unit, index) = index(
         "
         TYPE NextStruct: STRUCT
             b : BYTE;
@@ -745,7 +1042,7 @@ fn qualified_expressions_to_aliased_structs_resolve_types() {
         END_PROGRAM",
     );
 
-    let annotations = annotate(&unit, &index);
+    let annotations = TypeAnnotator::visit_unit(&index, &unit);
     let statements = &unit.implementations[0].statements;
 
     let expected_types = vec![
@@ -770,7 +1067,7 @@ fn qualified_expressions_to_aliased_structs_resolve_types() {
 
 #[test]
 fn qualified_expressions_to_fbs_resolve_types() {
-    let (unit, index) = parse(
+    let (unit, index) = index(
         "
         FUNCTION_BLOCK MyFb
             VAR_INPUT
@@ -791,7 +1088,7 @@ fn qualified_expressions_to_fbs_resolve_types() {
        END_PROGRAM",
     );
 
-    let annotations = annotate(&unit, &index);
+    let annotations = TypeAnnotator::visit_unit(&index, &unit);
     let statements = &unit.implementations[1].statements;
 
     let expected_types = vec!["MyFb", "SINT", "INT", "DINT"];
@@ -805,7 +1102,7 @@ fn qualified_expressions_to_fbs_resolve_types() {
 
 #[test]
 fn qualified_expressions_dont_fallback_to_globals() {
-    let (unit, index) = parse(
+    let (unit, index) = index(
         "
         VAR_GLOBAL
             x : DINT;
@@ -823,23 +1120,24 @@ fn qualified_expressions_dont_fallback_to_globals() {
         END_PROGRAM",
     );
 
-    let annotations = annotate(&unit, &index);
+    let annotations = TypeAnnotator::visit_unit(&index, &unit);
     let statements = &unit.implementations[0].statements;
 
-    assert_eq!(None, annotations.get_annotation(&statements[0]));
+    assert_eq!(None, annotations.get(&statements[0]));
     assert_eq!(
         Some(&StatementAnnotation::Variable {
             qualified_name: "MyStruct.y".into(),
             resulting_type: "INT".into(),
-            constant: false
+            constant: false,
+            is_auto_deref: false
         }),
-        annotations.get_annotation(&statements[1])
+        annotations.get(&statements[1])
     );
 }
 
 #[test]
 fn function_parameter_assignments_resolve_types() {
-    let (unit, index) = parse(
+    let (unit, index) = index(
         "
         FUNCTION foo : MyType
             VAR_INPUT
@@ -858,7 +1156,7 @@ fn function_parameter_assignments_resolve_types() {
         ",
     );
 
-    let annotations = annotate(&unit, &index);
+    let annotations = TypeAnnotator::visit_unit(&index, &unit);
     let statements = &unit.implementations[1].statements;
 
     assert_eq!(
@@ -868,8 +1166,8 @@ fn function_parameter_assignments_resolve_types() {
         "INT"
     );
     assert_eq!(
-        annotations.get_annotation(&statements[0]),
-        Some(&StatementAnnotation::expression("INT"))
+        annotations.get(&statements[0]),
+        Some(&StatementAnnotation::value("INT"))
     );
     if let AstStatement::CallStatement {
         operator,
@@ -883,7 +1181,7 @@ fn function_parameter_assignments_resolve_types() {
             VOID_TYPE
         );
         assert_eq!(
-            annotations.get_annotation(operator),
+            annotations.get(operator),
             Some(&StatementAnnotation::Function {
                 qualified_name: "foo".into(),
                 return_type: "MyType".into()
@@ -922,7 +1220,7 @@ fn function_parameter_assignments_resolve_types() {
 
 #[test]
 fn nested_function_parameter_assignments_resolve_types() {
-    let (unit, index) = parse(
+    let (unit, index) = index(
         "
         FUNCTION foo : INT
             VAR_INPUT
@@ -945,7 +1243,7 @@ fn nested_function_parameter_assignments_resolve_types() {
         END_PROGRAM",
     );
 
-    let annotations = annotate(&unit, &index);
+    let annotations = TypeAnnotator::visit_unit(&index, &unit);
     let statements = &unit.implementations[2].statements;
     if let AstStatement::CallStatement { parameters, .. } = &statements[0] {
         //check the two parameters
@@ -970,7 +1268,7 @@ fn nested_function_parameter_assignments_resolve_types() {
 
 #[test]
 fn type_initial_values_are_resolved() {
-    let (unit, index) = parse(
+    let (unit, index) = index(
         "
         TYPE MyStruct : STRUCT
             x : INT := 20;
@@ -981,20 +1279,27 @@ fn type_initial_values_are_resolved() {
         ",
     );
 
-    let annotations = annotate(&unit, &index);
+    let annotations = TypeAnnotator::visit_unit(&index, &unit);
     let UserTypeDeclaration { data_type, .. } = &unit.types[0];
 
     if let DataType::StructType { variables, .. } = data_type {
         assert_eq!(
-            Some(&StatementAnnotation::expression("DINT")),
+            Some(&StatementAnnotation::value("DINT")),
             annotations.get(variables[0].initializer.as_ref().unwrap())
         );
         assert_eq!(
-            Some(&StatementAnnotation::expression("BOOL")),
+            Some(&StatementAnnotation::value("BOOL")),
             annotations.get(variables[1].initializer.as_ref().unwrap())
         );
+
+        let _type_of_z = index.find_member("MyStruct", "z").unwrap().get_type_name();
         assert_eq!(
-            Some(&StatementAnnotation::expression("STRING")),
+            Some(&StatementAnnotation::value(
+                index
+                    .find_effective_type(CONST_STRING_TYPE)
+                    .unwrap()
+                    .get_name()
+            )),
             annotations.get(variables[2].initializer.as_ref().unwrap())
         );
     } else {
@@ -1004,7 +1309,7 @@ fn type_initial_values_are_resolved() {
 
 #[test]
 fn actions_are_resolved() {
-    let (unit, index) = parse(
+    let (unit, index) = index(
         "
         PROGRAM prg
             foo;
@@ -1022,9 +1327,9 @@ fn actions_are_resolved() {
         ",
     );
 
-    let annotations = annotate(&unit, &index);
+    let annotations = TypeAnnotator::visit_unit(&index, &unit);
     let foo_reference = &unit.implementations[0].statements[0];
-    let annotation = annotations.get_annotation(foo_reference);
+    let annotation = annotations.get(foo_reference);
     assert_eq!(
         Some(&StatementAnnotation::Program {
             qualified_name: "prg.foo".into(),
@@ -1032,7 +1337,7 @@ fn actions_are_resolved() {
         annotation
     );
     let foo_reference = &unit.implementations[0].statements[1];
-    let annotation = annotations.get_annotation(foo_reference);
+    let annotation = annotations.get(foo_reference);
     assert_eq!(
         Some(&StatementAnnotation::Program {
             qualified_name: "prg.foo".into(),
@@ -1054,7 +1359,7 @@ fn actions_are_resolved() {
 }
 #[test]
 fn method_references_are_resolved() {
-    let (unit, index) = parse(
+    let (unit, index) = index(
         "
         CLASS cls
         METHOD foo : INT
@@ -1069,14 +1374,15 @@ fn method_references_are_resolved() {
         ",
     );
 
-    let annotations = annotate(&unit, &index);
+    let annotations = TypeAnnotator::visit_unit(&index, &unit);
     let foo_reference = &unit.implementations[0].statements[0];
-    let annotation = annotations.get_annotation(foo_reference);
+    let annotation = annotations.get(foo_reference);
     assert_eq!(
         Some(&StatementAnnotation::Variable {
             qualified_name: "cls.foo.foo".into(),
             resulting_type: "INT".into(),
-            constant: false
+            constant: false,
+            is_auto_deref: false
         }),
         annotation
     );
@@ -1090,7 +1396,7 @@ fn method_references_are_resolved() {
             annotations.get(operator)
         );
         assert_eq!(
-            Some(&StatementAnnotation::expression("INT")),
+            Some(&StatementAnnotation::value("INT")),
             annotations.get(method_call)
         );
     } else {
@@ -1100,7 +1406,7 @@ fn method_references_are_resolved() {
 
 #[test]
 fn bitaccess_is_resolved() {
-    let (unit, index) = parse(
+    let (unit, index) = index(
         r"
     PROGRAM prg
         VAR
@@ -1114,7 +1420,7 @@ fn bitaccess_is_resolved() {
     END_PROGRAM
     ",
     );
-    let annotations = annotate(&unit, &index);
+    let annotations = TypeAnnotator::visit_unit(&index, &unit);
     let statements = &unit.implementations[0].statements;
 
     let expected_types = vec!["BOOL", "BOOL", "BYTE", "WORD", "DWORD"];
@@ -1128,7 +1434,7 @@ fn bitaccess_is_resolved() {
 
 #[test]
 fn variable_direct_access_type_resolved() {
-    let (unit, index) = parse(
+    let (unit, index) = index(
         r"
     PROGRAM prg
         VAR
@@ -1142,7 +1448,7 @@ fn variable_direct_access_type_resolved() {
     END_PROGRAM
     ",
     );
-    let annotations = annotate(&unit, &index);
+    let annotations = TypeAnnotator::visit_unit(&index, &unit);
     let statements = &unit.implementations[0].statements;
 
     let expected_types = vec!["INT", "REAL", "LREAL"];
@@ -1175,7 +1481,7 @@ fn assert_parameter_assignment(
     param_index: usize,
     left_type: &str,
     right_type: &str,
-    annotations: &AnnotationMap,
+    annotations: &AnnotationMapImpl,
     index: &Index,
 ) {
     if let Some(AstStatement::ExpressionList { expressions, .. }) = parameters {
@@ -1198,7 +1504,7 @@ fn assert_parameter_assignment(
 
 #[test]
 fn const_flag_is_calculated_when_resolving_simple_references() {
-    let (unit, index) = parse(
+    let (unit, index) = index(
         "
         VAR_GLOBAL CONSTANT
             cg : INT := 1;
@@ -1224,7 +1530,7 @@ fn const_flag_is_calculated_when_resolving_simple_references() {
        END_PROGRAM",
     );
 
-    let annotations = annotate(&unit, &index);
+    let annotations = TypeAnnotator::visit_unit(&index, &unit);
     let statements = &unit.implementations[0].statements;
 
     let expected_consts = vec![true, false, true, false];
@@ -1247,7 +1553,7 @@ fn const_flag_is_calculated_when_resolving_simple_references() {
 
 #[test]
 fn const_flag_is_calculated_when_resolving_qualified_variables() {
-    let (unit, index) = parse(
+    let (unit, index) = index(
         "
         TYPE NextStruct: STRUCT
             b : BYTE;
@@ -1275,7 +1581,7 @@ fn const_flag_is_calculated_when_resolving_qualified_variables() {
         END_PROGRAM",
     );
 
-    let annotations = annotate(&unit, &index);
+    let annotations = TypeAnnotator::visit_unit(&index, &unit);
     let statements = &unit.implementations[0].statements;
 
     let expected_consts = vec![true, false, true, false];
@@ -1298,7 +1604,7 @@ fn const_flag_is_calculated_when_resolving_qualified_variables() {
 
 #[test]
 fn const_flag_is_calculated_when_resolving_qualified_variables_over_prgs() {
-    let (unit, index) = parse(
+    let (unit, index) = index(
         "
         TYPE NextStruct: STRUCT
             b : BYTE;
@@ -1328,7 +1634,7 @@ fn const_flag_is_calculated_when_resolving_qualified_variables_over_prgs() {
         ",
     );
 
-    let annotations = annotate(&unit, &index);
+    let annotations = TypeAnnotator::visit_unit(&index, &unit);
     let statements = &unit.implementations[0].statements;
 
     let expected_consts = vec![false, true];
@@ -1351,24 +1657,24 @@ fn const_flag_is_calculated_when_resolving_qualified_variables_over_prgs() {
 
 #[test]
 fn const_flag_is_calculated_when_resolving_enum_literals() {
-    let (unit, index) = parse(
+    let (unit, index) = index(
         "
-        TYPE Color: (red, green, yellow);
-        END_TYPE
-                
-        PROGRAM other
-            VAR 
-                state: (OPEN, CLOSE);
-            END_VAR
-            red;
-            green;
-            OPEN;
-            state;
-        END_PROGRAM
-        ",
+    TYPE Color: (red, green, yellow);
+    END_TYPE
+            
+    PROGRAM other
+        VAR 
+            state: (OPEN, CLOSE);
+        END_VAR
+        red;
+        green;
+        OPEN;
+        state;
+    END_PROGRAM
+    ",
     );
 
-    let annotations = annotate(&unit, &index);
+    let annotations = TypeAnnotator::visit_unit(&index, &unit);
     let statements = &unit.implementations[0].statements;
 
     let expected_consts = vec![true, true, true, false];
@@ -1387,4 +1693,1157 @@ fn const_flag_is_calculated_when_resolving_enum_literals() {
         format!("{:?}", expected_consts),
         format!("{:?}", actual_consts)
     );
+}
+
+#[test]
+fn global_enums_type_resolving() {
+    let (unit, mut index) = index(
+        "VAR_GLOBAL
+            x : (a,b,c);
+        END_VAR",
+    );
+    let annotations = annotate(&unit, &mut index);
+
+    //check the type-annotation of a,b,c's implicit initializers
+
+    let initalizer_types = index
+        .get_global_qualified_enums()
+        .values()
+        .map(|it| {
+            let const_exp = index
+                .get_const_expressions()
+                .get_constant_statement(it.initial_value.as_ref().unwrap())
+                .unwrap();
+            annotations
+                .get_type(const_exp, &index)
+                .map(|it| it.get_name())
+        })
+        .collect::<Vec<Option<&str>>>();
+
+    assert_eq!(
+        vec![Some("DINT"), Some("__global_x"), Some("__global_x")],
+        initalizer_types
+    );
+}
+
+#[test]
+fn global_enums_type_resolving2() {
+    let (unit, mut index) = index(" TYPE MyEnum : BYTE (zero, aa, bb := 7, cc); END_TYPE");
+    let annotations = annotate(&unit, &mut index);
+
+    //check the type-annotation of a,b,c's implicit initializers
+
+    let initalizer_types = index
+        .get_global_qualified_enums()
+        .values()
+        .map(|it| {
+            let const_exp = index
+                .get_const_expressions()
+                .get_constant_statement(it.initial_value.as_ref().unwrap())
+                .unwrap();
+            (
+                annotations
+                    .get_type(const_exp, &index)
+                    .map(|it| it.get_name()),
+                annotations
+                    .get_type_hint(const_exp, &index)
+                    .map(|it| it.get_name()),
+            )
+        })
+        .collect::<Vec<(Option<&str>, Option<&str>)>>();
+
+    assert_eq!(
+        vec![
+            (Some("DINT"), Some("MyEnum")),
+            (Some("DINT"), Some("MyEnum")),
+            (Some("DINT"), Some("MyEnum")),
+            (Some("DINT"), Some("MyEnum")),
+        ],
+        initalizer_types
+    );
+}
+
+#[test]
+fn global_lint_enums_type_resolving() {
+    let (unit, mut index) = index(" TYPE MyEnum : LINT (zero, aa, bb := 7, cc); END_TYPE");
+    let annotations = annotate(&unit, &mut index);
+
+    //check the type-annotation of a,b,c's implicit initializers
+
+    let initalizer_types = index
+        .get_global_qualified_enums()
+        .values()
+        .map(|it| {
+            let const_exp = index
+                .get_const_expressions()
+                .get_constant_statement(it.initial_value.as_ref().unwrap())
+                .unwrap();
+            (
+                annotations
+                    .get_type(const_exp, &index)
+                    .map(|it| it.get_name()),
+                annotations
+                    .get_type_hint(const_exp, &index)
+                    .map(|it| it.get_name()),
+            )
+        })
+        .collect::<Vec<(Option<&str>, Option<&str>)>>();
+
+    assert_eq!(
+        vec![
+            (Some("DINT"), Some("MyEnum")),
+            (Some("MyEnum"), Some("MyEnum")),
+            (Some("DINT"), Some("MyEnum")),
+            (Some("MyEnum"), Some("MyEnum")),
+        ],
+        initalizer_types
+    );
+}
+
+#[test]
+fn enum_initialization_is_annotated_correctly() {
+    let (unit, mut index) = index(
+        " TYPE MyEnum : BYTE (zero, aa, bb := 7, cc); END_TYPE
+        
+        PROGRAM PRG
+            VAR_TEMP
+                x : MyEnum := 1;
+                y : MyEnum := bb;
+                z : MyEnum := cc;
+            END_VAR
+
+
+            x := aa;
+            x := bb;
+            x := cc;
+        END_PROGRAM
+        ",
+    );
+    let annotations = annotate(&unit, &mut index);
+
+    let variables = &unit.units[0].variable_blocks[0].variables;
+
+    assert_type_and_hint!(
+        &annotations,
+        &index,
+        variables[0].initializer.as_ref().unwrap(),
+        "DINT",
+        Some("MyEnum")
+    );
+    assert_type_and_hint!(
+        &annotations,
+        &index,
+        variables[1].initializer.as_ref().unwrap(),
+        "MyEnum",
+        Some("MyEnum")
+    );
+    assert_type_and_hint!(
+        &annotations,
+        &index,
+        variables[2].initializer.as_ref().unwrap(),
+        "MyEnum",
+        Some("MyEnum")
+    );
+
+    let statements = &unit.implementations[0].statements;
+    if let AstStatement::Assignment { right, .. } = &statements[0] {
+        assert_type_and_hint!(
+            &annotations,
+            &index,
+            right.as_ref(),
+            "MyEnum",
+            Some("MyEnum")
+        );
+    } else {
+        unreachable!()
+    }
+    if let AstStatement::Assignment { right, .. } = &statements[1] {
+        assert_type_and_hint!(
+            &annotations,
+            &index,
+            right.as_ref(),
+            "MyEnum",
+            Some("MyEnum")
+        );
+    } else {
+        unreachable!()
+    }
+    if let AstStatement::Assignment { right, .. } = &statements[2] {
+        assert_type_and_hint!(
+            &annotations,
+            &index,
+            right.as_ref(),
+            "MyEnum",
+            Some("MyEnum")
+        );
+    } else {
+        unreachable!()
+    }
+}
+
+#[test]
+fn struct_members_initializers_type_hint_test() {
+    //GIVEN a struct with some initialization
+    let (unit, mut index) = index(
+        "
+        TYPE MyStruct:
+        STRUCT
+          i : INT := 7;
+          si : SINT := 7;
+          b : BOOL := 1;
+          r : REAL := 3.1415;
+          lr : LREAL := 3.1415;
+        END_STRUCT
+        END_TYPE
+       ",
+    );
+
+    // WHEN this type is annotated
+    let annotations = annotate(&unit, &mut index);
+
+    // THEN the members's initializers have correct type-hints
+    if let DataType::StructType { variables, .. } = &unit.types[0].data_type {
+        let hints: Vec<&str> = variables
+            .iter()
+            .map(|v| {
+                annotations
+                    .get_type_hint(v.initializer.as_ref().unwrap(), &index)
+                    .map(crate::typesystem::DataType::get_name)
+                    .unwrap()
+            })
+            .collect();
+
+        assert_eq!(hints, vec!["INT", "SINT", "BOOL", "REAL", "LREAL"]);
+    } else {
+        unreachable!()
+    }
+}
+
+#[test]
+fn program_members_initializers_type_hint_test() {
+    //GIVEN a pou with some initialization
+    let (unit, mut index) = index(
+        "
+        PROGRAM prg
+      	  VAR_INPUT
+            i : INT := 7;
+            si : SINT := 7;
+            b : BOOL := 1;
+            r : REAL := 3.1415;
+            lr : LREAL := 3.1415;
+          END_VAR
+        END_PROGRAM
+      ",
+    );
+
+    // WHEN it is annotated
+    let annotations = annotate(&unit, &mut index);
+
+    // THEN the members's initializers have correct type-hints
+    let Pou {
+        variable_blocks: blocks,
+        ..
+    } = &unit.units[0];
+    let hints: Vec<&str> = blocks[0]
+        .variables
+        .iter()
+        .map(|v| {
+            annotations
+                .get_type_hint(v.initializer.as_ref().unwrap(), &index)
+                .map(crate::typesystem::DataType::get_name)
+                .unwrap()
+        })
+        .collect();
+
+    assert_eq!(hints, vec!["INT", "SINT", "BOOL", "REAL", "LREAL"]);
+}
+
+#[test]
+fn data_type_initializers_type_hint_test() {
+    //GIVEN a struct with some initialization
+    let (unit, mut index) = index(
+        "
+        TYPE MyArray : ARRAY[0..2] OF INT := [1, 2, 3]; END_TYPE
+       ",
+    );
+
+    // WHEN this type is annotated
+    let annotations = annotate(&unit, &mut index);
+
+    // THEN the members's initializers have correct type-hints
+    if let Some(initializer) = &unit.types[0].initializer {
+        assert_eq!(
+            Some(index.get_type("MyArray").unwrap()),
+            annotations.get_type_hint(initializer, &index)
+        );
+
+        let initializer = index.get_type("MyArray").unwrap().initial_value.unwrap();
+        if let AstStatement::LiteralArray {
+            elements: Some(exp_list),
+            ..
+        } = index
+            .get_const_expressions()
+            .get_constant_statement(&initializer)
+            .unwrap()
+        {
+            if let AstStatement::ExpressionList {
+                expressions: elements,
+                ..
+            } = exp_list.as_ref()
+            {
+                for ele in elements {
+                    assert_eq!(
+                        index.get_type("INT").unwrap(),
+                        annotations.get_type_hint(ele, &index).unwrap()
+                    );
+                }
+            } else {
+                unreachable!()
+            }
+        } else {
+            unreachable!()
+        }
+    } else {
+        unreachable!()
+    }
+}
+
+#[test]
+fn data_type_initializers_multiplied_statement_type_hint_test() {
+    //GIVEN a struct with some initialization
+    let (unit, mut index) = index(
+        "
+        TYPE MyArray : ARRAY[0..2] OF BYTE := [3(7)]; END_TYPE
+        VAR_GLOBAL a : ARRAY[0..2] OF BYTE := [3(7)]; END_VAR
+       ",
+    );
+
+    // WHEN this type is annotated
+    let annotations = annotate(&unit, &mut index);
+
+    // THEN the members's initializers have correct type-hints
+    if let Some(my_array_initializer) = &unit.types[0].initializer {
+        let my_array_type = index.get_type("MyArray").unwrap();
+        assert_eq!(
+            Some(my_array_type),
+            annotations.get_type_hint(my_array_initializer, &index)
+        );
+
+        let my_array_type_const_initializer = my_array_type.initial_value.unwrap();
+        if let AstStatement::LiteralArray {
+            elements: Some(multiplied_statement),
+            ..
+        } = index
+            .get_const_expressions()
+            .get_constant_statement(&my_array_type_const_initializer)
+            .unwrap()
+        {
+            if let AstStatement::MultipliedStatement {
+                element: literal_seven,
+                ..
+            } = multiplied_statement.as_ref()
+            {
+                assert_eq!(
+                    index.find_effective_type(BYTE_TYPE),
+                    annotations.get_type_hint(literal_seven, &index)
+                );
+            }
+        } else {
+            unreachable!()
+        }
+    } else {
+        unreachable!()
+    }
+
+    //same checks for the global a
+    if let Some(a_initializer) = &unit.global_vars[0].variables[0].initializer {
+        let global = index.find_global_variable("a").unwrap();
+        assert_eq!(
+            index.find_effective_type(global.get_type_name()),
+            annotations.get_type_hint(a_initializer, &index)
+        );
+
+        let global_var_const_initializer = global.initial_value.unwrap();
+        if let AstStatement::LiteralArray {
+            elements: Some(multiplied_statement),
+            ..
+        } = index
+            .get_const_expressions()
+            .get_constant_statement(&global_var_const_initializer)
+            .unwrap()
+        {
+            if let AstStatement::MultipliedStatement {
+                element: literal_seven,
+                ..
+            } = multiplied_statement.as_ref()
+            {
+                assert_eq!(
+                    index.find_effective_type(BYTE_TYPE),
+                    annotations.get_type_hint(literal_seven, &index)
+                );
+            }
+        } else {
+            unreachable!()
+        }
+    } else {
+        unreachable!()
+    }
+}
+
+#[test]
+fn case_conditions_type_hint_test() {
+    //GIVEN a Switch-Case statement
+    let (unit, mut index) = index(
+        "
+        PROGRAM prg 
+        VAR
+            x : BYTE;
+            y : BYTE;
+        END_VAR
+        CASE x OF
+            1: y := 1;
+            2: y := 2;
+            3: y := 3;
+        ELSE
+            y := 0;
+        END_CASE
+        END_PROGRAM
+       ",
+    );
+
+    // WHEN this code is annotated
+    let annotations = annotate(&unit, &mut index);
+
+    // THEN we want the case-bocks (1:, 2: , 3:) to have the type hint of the case-selector (x) - in this case BYTE
+
+    //check if 'CASE x' got the type BYTE
+    if let AstStatement::CaseStatement {
+        selector,
+        case_blocks,
+        ..
+    } = &unit.implementations[0].statements[0]
+    {
+        let type_of_x = annotations.get_type(selector, &index).unwrap();
+
+        assert_eq!(type_of_x, index.get_type(BYTE_TYPE).unwrap());
+
+        for b in case_blocks {
+            let type_hint = annotations
+                .get_type_hint(b.condition.as_ref(), &index)
+                .unwrap();
+            assert_eq!(type_hint, type_of_x);
+        }
+    } else {
+        unreachable!()
+    }
+}
+
+#[test]
+fn range_type_min_max_type_hint_test() {
+    //GIVEN a Switch-Case statement
+    let (unit, mut index) = index(
+        "
+            TYPE MyInt: SINT(0..100); END_TYPE
+        ",
+    );
+
+    // WHEN this code is annotated
+    let annotations = annotate(&unit, &mut index);
+
+    // THEN we want the range-limits (0 and 100) to have proper type-associations
+    if let DataType::SubRangeType {
+        bounds: Some(AstStatement::RangeStatement { start, end, .. }),
+        ..
+    } = &unit.types[0].data_type
+    {
+        //lets see if start and end got their type-annotations
+        assert_eq!(
+            annotations.get_type(start.as_ref(), &index),
+            index.find_effective_type(DINT_TYPE)
+        );
+        assert_eq!(
+            annotations.get_type(end.as_ref(), &index),
+            index.find_effective_type(DINT_TYPE)
+        );
+
+        //lets see if start and end got their type-HINT-annotations
+        assert_eq!(
+            annotations.get_type_hint(start.as_ref(), &index),
+            index.find_effective_type(SINT_TYPE)
+        );
+        assert_eq!(
+            annotations.get_type_hint(end.as_ref(), &index),
+            index.find_effective_type(SINT_TYPE)
+        );
+    }
+}
+
+#[test]
+fn struct_variable_initialization_annotates_initializer() {
+    //GIVEN a STRUCT type and global variables of this type
+    let (unit, mut index) = index(
+        "
+        TYPE MyStruct: STRUCT
+          a: DINT; b: DINT;
+        END_STRUCT END_TYPE
+
+         VAR_GLOBAL 
+           a : MyStruct  := (a:=3, b:=5); 
+           b : MyStruct  := (a:=3); 
+         END_VAR
+         ",
+    );
+
+    // WHEN this code is annotated
+    let annotations = annotate(&unit, &mut index);
+
+    // THEN we want the whole initializer to have a type-hint of 'MyStruct'
+    {
+        let initializer = index
+            .find_global_variable("a")
+            .unwrap()
+            .initial_value
+            .and_then(|i| index.get_const_expressions().get_constant_statement(&i))
+            .unwrap();
+
+        assert_eq!(
+            annotations.get_type_hint(initializer, &index),
+            index.find_effective_type("MyStruct")
+        );
+    }
+    {
+        let initializer = index
+            .find_global_variable("b")
+            .unwrap()
+            .initial_value
+            .and_then(|i| index.get_const_expressions().get_constant_statement(&i))
+            .unwrap();
+
+        assert_eq!(
+            annotations.get_type_hint(initializer, &index),
+            index.find_effective_type("MyStruct")
+        );
+    }
+}
+
+#[test]
+fn deep_struct_variable_initialization_annotates_initializer() {
+    //GIVEN a 2 lvl-STRUCT type and global variables of this type
+    let (unit, mut index) = index(
+        "
+        TYPE Point: STRUCT
+          a: BYTE; b: SINT;
+        END_STRUCT END_TYPE
+
+        Type MyStruct: STRUCT
+            v: Point; q: Point;
+        END_STRUCT END_TYPE
+
+         VAR_GLOBAL 
+           a : MyStruct  := (
+               v := (a := 1, b := 2), 
+               q := (b := 3)); 
+         END_VAR
+         ",
+    );
+
+    // WHEN this code is annotated
+    let annotations = annotate(&unit, &mut index);
+
+    // THEN we want the whole initializer to have a type-hint of 'MyStruct'
+    let initializer = index
+        .find_global_variable("a")
+        .unwrap()
+        .initial_value
+        .and_then(|i| index.get_const_expressions().get_constant_statement(&i))
+        .unwrap();
+
+    assert_eq!(
+        annotations.get_type_hint(initializer, &index),
+        index.find_effective_type("MyStruct")
+    );
+
+    //check the initializer-part
+    if let AstStatement::ExpressionList { expressions, .. } = initializer {
+        // v := (a := 1, b := 2)
+        if let AstStatement::Assignment { left, right, .. } = &expressions[0] {
+            assert_eq!(
+                annotations.get_type(left, &index),
+                index.find_effective_type("Point")
+            );
+            assert_eq!(
+                annotations.get_type_hint(right, &index),
+                index.find_effective_type("Point")
+            );
+
+            // (a := 1, b := 2)
+            if let AstStatement::ExpressionList { expressions, .. } = right.as_ref() {
+                // a := 1
+                if let AstStatement::Assignment { left, right, .. } = &expressions[0] {
+                    assert_eq!(
+                        annotations.get_type(left.as_ref(), &index),
+                        index.find_effective_type("BYTE")
+                    );
+                    assert_eq!(
+                        annotations.get_type_hint(right.as_ref(), &index),
+                        index.find_effective_type("BYTE")
+                    );
+                } else {
+                    unreachable!()
+                }
+
+                // b := 2
+                if let AstStatement::Assignment { left, right, .. } = &expressions[1] {
+                    assert_eq!(
+                        annotations.get_type(left.as_ref(), &index),
+                        index.find_effective_type("SINT")
+                    );
+                    assert_eq!(
+                        annotations.get_type_hint(right.as_ref(), &index),
+                        index.find_effective_type("SINT")
+                    );
+                } else {
+                    unreachable!()
+                }
+            } else {
+                unreachable!()
+            }
+        } else {
+            unreachable!()
+        }
+    } else {
+        unreachable!()
+    }
+}
+
+#[test]
+fn inouts_should_be_annotated_according_to_auto_deref() {
+    //a program with in-out variables that get auto-deref'd
+    let (unit, mut index) = index(
+        "
+        PROGRAM foo 
+            VAR_IN_OUT
+                inout : DINT;
+            END_VAR
+
+            inout;
+        END_PROGRAM
+        ",
+    );
+
+    // WHEN this code is annotated
+    let annotations = annotate(&unit, &mut index);
+    let inout_ref = &unit.implementations[0].statements[0];
+
+    // then accessing inout should be annotated with DINT, because it is auto-dereferenced
+    assert_type_and_hint!(&annotations, &index, inout_ref, DINT_TYPE, None);
+}
+
+#[test]
+fn action_call_should_be_annotated() {
+    //a program with in-out variables that get auto-deref'd
+    let (unit, mut index) = index(
+        "
+        PROGRAM prg 
+        VAR
+            x : DINT;
+        END_VAR
+        prg.foo();
+        END_PROGRAM
+        ACTIONS prg
+        ACTION foo
+            x := 2;
+        END_ACTION
+        ",
+    );
+
+    // WHEN this code is annotated
+    let annotations = annotate(&unit, &mut index);
+    let action_call = &unit.implementations[0].statements[0];
+
+    // then accessing inout should be annotated with DINT, because it is auto-dereferenced
+    if let AstStatement::CallStatement { operator, .. } = action_call {
+        let a = annotations.get(operator);
+        assert_eq!(
+            Some(&StatementAnnotation::Program {
+                qualified_name: "prg.foo".to_string()
+            }),
+            a
+        );
+    }
+}
+
+#[test]
+fn action_body_gets_resolved() {
+    //a program with an action in it
+    let (unit, mut index) = index(
+        "
+        PROGRAM prg 
+            VAR
+                x : DINT;
+            END_VAR
+            prg.foo();
+            END_PROGRAM
+            ACTIONS prg
+            ACTION foo
+                x := 2;
+            END_ACTION
+        END_PROGRAM
+        ",
+    );
+
+    // WHEN this code is annotated
+    let annotations = annotate(&unit, &mut index);
+    let x_assignment = &unit.implementations[1].statements[0];
+
+    // then accessing inout should be annotated with DINT, because it is auto-dereferenced
+    if let AstStatement::Assignment { left, right, .. } = x_assignment {
+        let a = annotations.get(left);
+        assert_eq!(
+            Some(&StatementAnnotation::Variable {
+                qualified_name: "prg.x".to_string(),
+                resulting_type: "DINT".to_string(),
+                constant: false,
+                is_auto_deref: false
+            }),
+            a
+        );
+
+        let two = annotations.get(right);
+        assert_eq!(Some(&StatementAnnotation::value(DINT_TYPE)), two);
+    }
+}
+
+#[test]
+fn class_method_gets_annotated() {
+    //a class with a method with class-variables and method-variables
+    let (unit, mut index) = index(
+        "
+    CLASS MyClass
+        VAR
+            x, y : BYTE;
+        END_VAR
+    
+        METHOD testMethod
+            VAR_INPUT myMethodArg : DINT; END_VAR
+            VAR myMethodLocalVar : SINT; END_VAR
+
+            x;
+            myMethodArg;
+            y;
+            myMethodLocalVar;
+        END_METHOD
+    END_CLASS
+        ",
+    );
+
+    // WHEN this code is annotated
+    let annotations = annotate(&unit, &mut index);
+    let body = &unit.implementations[0].statements;
+
+    // then accessing inout should be annotated with DINT, because it is auto-dereferenced
+    assert_type_and_hint!(&annotations, &index, &body[0], "BYTE", None);
+    assert_type_and_hint!(&annotations, &index, &body[1], "DINT", None);
+    assert_type_and_hint!(&annotations, &index, &body[2], "BYTE", None);
+    assert_type_and_hint!(&annotations, &index, &body[3], "SINT", None);
+}
+
+#[test]
+fn nested_bitwise_access_resolves_correctly() {
+    let (unit, mut index) = index(
+        r#"PROGRAM prg
+        VAR
+        a : BOOL;
+        x : LWORD;
+        END_VAR
+        (* Second bit of the second byte of the second word of the second dword of an lword*)
+        a := x.%D1.%W1.%B1.%X1;
+        END_PROGRAM
+        "#,
+    );
+
+    // WHEN this code is annotated
+    let annotations = annotate(&unit, &mut index);
+    let assignment = &unit.implementations[0].statements[0];
+
+    if let AstStatement::Assignment { right, .. } = assignment {
+        assert_type_and_hint!(&annotations, &index, right, "BOOL", Some("BOOL")); //strange
+        if let AstStatement::QualifiedReference { elements, .. } = right.as_ref() {
+            assert_type_and_hint!(&annotations, &index, &elements[0], "LWORD", None);
+            assert_type_and_hint!(&annotations, &index, &elements[1], "DWORD", None);
+            assert_type_and_hint!(&annotations, &index, &elements[2], "WORD", None);
+            assert_type_and_hint!(&annotations, &index, &elements[3], "BYTE", None);
+            assert_type_and_hint!(&annotations, &index, &elements[4], "BOOL", None);
+
+            if let AstStatement::DirectAccess {
+                index: idx_stmt, ..
+            } = &elements[4]
+            {
+                assert_type_and_hint!(&annotations, &index, idx_stmt, "DINT", None);
+            } else {
+                unreachable!()
+            }
+        } else {
+            unreachable!()
+        }
+    } else {
+        unreachable!();
+    }
+}
+
+#[test]
+fn literals_passed_to_function_get_annotated() {
+    let (unit, mut index) = index(
+        r#"
+        FUNCTION foo : STRING
+            VAR_INPUT b : BYTE; in : STRING END_VAR
+
+            foo := in;
+        END_FUNCTION
+
+        PROGRAM prg
+            foo(77, 'abc');
+        END_PROGRAM
+        "#,
+    );
+
+    // WHEN this code is annotated
+    let annotations = annotate(&unit, &mut index);
+    let call_stmt = &unit.implementations[1].statements[0];
+
+    if let AstStatement::CallStatement { parameters, .. } = call_stmt {
+        let parameters = ast::flatten_expression_list(parameters.as_ref().as_ref().unwrap());
+        assert_type_and_hint!(
+            &annotations,
+            &index,
+            parameters[0],
+            DINT_TYPE,
+            Some(BYTE_TYPE)
+        );
+        assert_type_and_hint!(
+            &annotations,
+            &index,
+            parameters[1],
+            CONST_STRING_TYPE,
+            Some("__foo_in")
+        );
+    } else {
+        unreachable!();
+    }
+}
+
+#[test]
+fn array_accessor_in_struct_array_is_annotated() {
+    let (unit, mut index) = index(
+        r#"
+        TYPE MyStruct:
+        STRUCT
+            arr1 : ARRAY[0..3] OF INT;
+        END_STRUCT
+        END_TYPE
+
+        PROGRAM main
+        VAR
+            data : MyStruct;
+            i : INT;
+        END_VAR
+        
+        data.arr1[i];
+
+        END_PROGRAM
+        "#,
+    );
+
+    // WHEN this code is annotated
+    let annotations = annotate(&unit, &mut index);
+    let qr = &unit.implementations[0].statements[0];
+
+    if let AstStatement::QualifiedReference { elements, .. } = qr {
+        if let AstStatement::ArrayAccess { access, .. } = &elements[1] {
+            assert_type_and_hint!(&annotations, &index, access.as_ref(), "INT", None);
+        } else {
+            unreachable!()
+        }
+    } else {
+        unreachable!();
+    }
+}
+
+#[test]
+fn type_hint_should_not_hint_to_the_effective_type_but_to_the_original() {
+    //GIVEN a aliased type to INT and a variable declared as myInt
+    let (unit, mut index) = index(
+        r#"
+        TYPE MyInt: INT(0..100); END_TYPE
+
+        PROGRAM Main
+        VAR
+            x : MyInt;
+        END_VAR 
+        x := 7;
+        END_PROGRAM
+        "#,
+    );
+
+    //WHEN we assign to this variable (x := 7)
+
+    // THEN we want the hint for '7' to be MyInt, not INT
+    let annotations = annotate(&unit, &mut index);
+    let stmt = &unit.implementations[0].statements[0];
+
+    if let AstStatement::Assignment { left, right, .. } = stmt {
+        assert_type_and_hint!(&annotations, &index, left, "MyInt", None);
+        assert_type_and_hint!(&annotations, &index, right, "DINT", Some("MyInt"));
+    } else {
+        unreachable!();
+    }
+}
+
+#[test]
+fn null_statement_should_get_a_valid_type_hint() {
+    //GIVEN a NULL assignment to a pointer
+    let (unit, mut index) = index(
+        r#"
+        PROGRAM Main
+        VAR
+            x : POINTER TO BYTE;
+        END_VAR 
+        x := NULL;
+        END_PROGRAM
+        "#,
+    );
+
+    // THEN we want the hint for 'NULL' to be POINTER TO BYTE
+    let annotations = annotate(&unit, &mut index);
+    let stmt = &unit.implementations[0].statements[0];
+
+    let var_x_type = &unit.units[0].variable_blocks[0].variables[0]
+        .data_type
+        .get_name()
+        .unwrap();
+
+    if let AstStatement::Assignment { right, .. } = stmt {
+        assert_type_and_hint!(&annotations, &index, right, "VOID", Some(var_x_type));
+    } else {
+        unreachable!();
+    }
+}
+
+#[test]
+fn resolve_function_with_same_name_as_return_type() {
+    //GIVEN a reference to a function with the same name as the return type
+    let (unit, index) = index(
+        "
+        FUNCTION TIME : TIME
+        END_FUNCTION
+
+        PROGRAM PRG
+            TIME();
+        END_PROGRAM
+        ",
+    );
+
+    //WHEN the AST is annotated
+    let annotations = TypeAnnotator::visit_unit(&index, &unit);
+    let statements = &unit.implementations[1].statements;
+
+    // THEN we expect it to be annotated with the function itself
+    let function_annotation = annotations.get(&statements[0]);
+    assert_eq!(
+        Some(&StatementAnnotation::Value {
+            resulting_type: "TIME".into()
+        }),
+        function_annotation
+    );
+
+    // AND we expect no type to be associated with the expression
+    let associated_type = annotations.get_type(&statements[0], &index).unwrap();
+    let effective_type = index.find_effective_type("TIME").unwrap();
+    assert_eq!(effective_type, associated_type);
+    // AND should be Integer
+    assert_eq!(
+        true,
+        matches!(
+            effective_type.get_type_information(),
+            DataTypeInformation::Integer { .. }
+        )
+    )
+}
+
+#[test]
+fn int_compare_should_resolve_to_bool() {
+    //GIVEN a NULL assignment to a pointer
+    let (unit, mut index) = index(
+        r#"
+        PROGRAM Main
+        3 = 5;
+        END_PROGRAM
+        "#,
+    );
+
+    // THEN we want the hint for 'NULL' to be POINTER TO BYTE
+    let annotations = annotate(&unit, &mut index);
+    let a_eq_b = &unit.implementations[0].statements[0];
+    assert_eq!(
+        Some(&StatementAnnotation::Value {
+            resulting_type: "BOOL".to_string(),
+        }),
+        annotations.get(a_eq_b),
+    );
+}
+
+#[test]
+fn string_compare_should_resolve_to_bool() {
+    //GIVEN a NULL assignment to a pointer
+    let (unit, mut index) = index(
+        r#"
+        FUNCTION STRING_EQUAL: BOOL 
+        VAR a,b : STRING; END_VAR
+
+        END_FUNCTION;
+
+        PROGRAM Main
+        VAR
+            a,b: STRING;
+        END_VAR 
+        a = b;
+        END_PROGRAM
+        "#,
+    );
+
+    // THEN we want the hint for 'NULL' to be POINTER TO BYTE
+    let annotations = annotate(&unit, &mut index);
+    let a_eq_b = &unit.implementations[1].statements[0];
+    assert_eq!(
+        Some(&StatementAnnotation::value("BOOL")),
+        annotations.get(a_eq_b),
+    );
+}
+
+#[test]
+fn assigning_lword_to_ptr_will_annotate_correctly() {
+    //GIVEN a NULL assignment to a pointer
+    let (unit, mut index) = index(
+        r#"
+        PROGRAM Main
+        VAR
+            a : POINTER TO INT;
+            b : DWORD;
+        END_VAR 
+        b := a;
+        END_PROGRAM
+        "#,
+    );
+
+    // THEN we want the hint for 'NULL' to be POINTER TO BYTE
+    let annotations = annotate(&unit, &mut index);
+    let a_eq_b = &unit.implementations[0].statements[0];
+
+    let ptr_type = unit.units[0].variable_blocks[0].variables[0]
+        .data_type
+        .get_name()
+        .unwrap();
+
+    if let AstStatement::Assignment { left, right, .. } = a_eq_b {
+        assert_type_and_hint!(&annotations, &index, left, DWORD_TYPE, None);
+        assert_type_and_hint!(&annotations, &index, right, ptr_type, Some(DWORD_TYPE));
+    }
+}
+
+#[test]
+fn assigning_ptr_to_lword_will_annotate_correctly() {
+    //GIVEN a NULL assignment to a pointer
+    let (unit, mut index) = index(
+        r#"
+        PROGRAM Main
+        VAR
+            a : POINTER TO INT;
+            b : DWORD;
+        END_VAR 
+        a := b;
+        END_PROGRAM
+        "#,
+    );
+
+    // THEN we want the hint for 'NULL' to be POINTER TO BYTE
+    let annotations = annotate(&unit, &mut index);
+    let a_eq_b = &unit.implementations[0].statements[0];
+
+    let ptr_type = unit.units[0].variable_blocks[0].variables[0]
+        .data_type
+        .get_name()
+        .unwrap();
+
+    if let AstStatement::Assignment { left, right, .. } = a_eq_b {
+        assert_type_and_hint!(&annotations, &index, left, ptr_type, None);
+        assert_type_and_hint!(&annotations, &index, right, DWORD_TYPE, Some(ptr_type));
+    }
+}
+
+#[test]
+fn assigning_ptr_to_lword_will_annotate_correctly2() {
+    //GIVEN a NULL assignment to a pointer
+    let (unit, mut index) = index(
+        r#"
+        PROGRAM Main
+        VAR
+            a : POINTER TO INT;
+            b : DWORD;
+        END_VAR 
+        b := a^;
+        END_PROGRAM
+        "#,
+    );
+
+    // THEN we want the hint for 'NULL' to be POINTER TO BYTE
+    let annotations = annotate(&unit, &mut index);
+    let a_eq_b = &unit.implementations[0].statements[0];
+
+    let ptr_type = unit.units[0].variable_blocks[0].variables[0]
+        .data_type
+        .get_name()
+        .unwrap();
+
+    if let AstStatement::Assignment { left, right, .. } = a_eq_b {
+        assert_type_and_hint!(&annotations, &index, left, DWORD_TYPE, None);
+        assert_type_and_hint!(&annotations, &index, right, INT_TYPE, Some(DWORD_TYPE));
+
+        if let AstStatement::PointerAccess { reference, .. } = right.as_ref() {
+            assert_type_and_hint!(&annotations, &index, reference, ptr_type, None);
+        }
+    } else {
+        unreachable!()
+    }
+}
+
+#[test]
+fn adress_of_is_annotated_correctly() {
+    //GIVEN a NULL assignment to a pointer
+    let (unit, mut index) = index(
+        r#"
+        PROGRAM Main
+        VAR
+            b : INT;
+        END_VAR 
+        &b;
+        END_PROGRAM
+        "#,
+    );
+
+    // THEN we want the hint for 'NULL' to be POINTER TO BYTE
+    let annotations = annotate(&unit, &mut index);
+
+    let s = &unit.implementations[0].statements[0];
+    if let &Some(&StatementAnnotation::Value { resulting_type }) = &annotations.get(s).as_ref() {
+        assert_eq!(
+            Some(&DataTypeInformation::Pointer {
+                auto_deref: false,
+                inner_type_name: "INT".to_string(),
+                name: "POINTER_TO_INT".to_string(),
+            }),
+            index.find_effective_type_info(resulting_type),
+        );
+    } else {
+        unreachable!()
+    }
 }

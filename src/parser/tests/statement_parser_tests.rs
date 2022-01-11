@@ -1,13 +1,15 @@
 use crate::{
     ast::{AstStatement, DataType, DataTypeDeclaration, SourceRange, Variable},
-    parser::{parse, tests::lex},
+    parser::tests::ref_to,
+    test_utils::tests::parse,
+    typesystem::DINT_TYPE,
 };
 use pretty_assertions::*;
 
 #[test]
 fn empty_statements_are_are_parsed() {
-    let lexer = lex("PROGRAM buz ;;;; END_PROGRAM ");
-    let result = parse(lexer).0;
+    let src = "PROGRAM buz ;;;; END_PROGRAM ";
+    let result = parse(src).0;
 
     let prg = &result.implementations[0];
     assert_eq!(
@@ -38,8 +40,8 @@ fn empty_statements_are_are_parsed() {
 
 #[test]
 fn empty_statements_are_parsed_before_a_statement() {
-    let lexer = lex("PROGRAM buz ;;;;x; END_PROGRAM ");
-    let result = parse(lexer).0;
+    let src = "PROGRAM buz ;;;;x; END_PROGRAM ";
+    let result = parse(src).0;
 
     let prg = &result.implementations[0];
 
@@ -76,8 +78,8 @@ fn empty_statements_are_parsed_before_a_statement() {
 
 #[test]
 fn empty_statements_are_ignored_after_a_statement() {
-    let lexer = lex("PROGRAM buz x;;;; END_PROGRAM ");
-    let result = parse(lexer).0;
+    let src = "PROGRAM buz x;;;; END_PROGRAM ";
+    let result = parse(src).0;
 
     let prg = &result.implementations[0];
     let statement = &prg.statements[0];
@@ -91,7 +93,8 @@ fn empty_statements_are_ignored_after_a_statement() {
 
 #[test]
 fn inline_struct_declaration_can_be_parsed() {
-    let (result, ..) = parse(lex(r#"
+    let (result, ..) = parse(
+        r#"
         VAR_GLOBAL
             my_struct : STRUCT
                 One:INT;
@@ -99,7 +102,8 @@ fn inline_struct_declaration_can_be_parsed() {
                 Three:INT;
             END_STRUCT
         END_VAR
-        "#));
+        "#,
+    );
 
     let ast_string = format!("{:#?}", &result.global_vars[0].variables[0]);
     let expected_ast = r#"Variable {
@@ -136,11 +140,13 @@ fn inline_struct_declaration_can_be_parsed() {
 
 #[test]
 fn inline_enum_declaration_can_be_parsed() {
-    let (result, ..) = parse(lex(r#"
+    let (result, ..) = parse(
+        r#"
         VAR_GLOBAL
             my_enum : (red, yellow, green);
         END_VAR
-        "#));
+        "#,
+    );
 
     let ast_string = format!("{:#?}", &result.global_vars[0].variables[0]);
 
@@ -149,9 +155,14 @@ fn inline_enum_declaration_can_be_parsed() {
         data_type: DataTypeDeclaration::DataTypeDefinition {
             data_type: DataType::EnumType {
                 name: None,
-                elements: vec!["red".to_string(), "yellow".to_string(), "green".to_string()],
+                numeric_type: DINT_TYPE.to_string(),
+                elements: AstStatement::ExpressionList {
+                    expressions: vec![ref_to("red"), ref_to("yellow"), ref_to("green")],
+                    id: 0,
+                },
             },
             location: SourceRange::undefined(),
+            scope: None,
         },
         initializer: None,
         location: SourceRange::undefined(),
@@ -162,7 +173,8 @@ fn inline_enum_declaration_can_be_parsed() {
 
 #[test]
 fn multilevel_inline_struct_and_enum_declaration_can_be_parsed() {
-    let (result, ..) = parse(lex(r#"
+    let (result, ..) = parse(
+        r#"
         VAR_GLOBAL
             my_struct : STRUCT
                     inner_enum: (red, yellow, green);
@@ -171,63 +183,24 @@ fn multilevel_inline_struct_and_enum_declaration_can_be_parsed() {
                     END_STRUCT
                 END_STRUCT
         END_VAR
-        "#));
+        "#,
+    );
 
     let ast_string = format!("{:#?}", &result.global_vars[0].variables[0]);
-    let expected_ast = r#"Variable {
-    name: "my_struct",
-    data_type: DataTypeDefinition {
-        data_type: StructType {
-            name: None,
-            variables: [
-                Variable {
-                    name: "inner_enum",
-                    data_type: DataTypeDefinition {
-                        data_type: EnumType {
-                            name: None,
-                            elements: [
-                                "red",
-                                "yellow",
-                                "green",
-                            ],
-                        },
-                    },
-                },
-                Variable {
-                    name: "inner_struct",
-                    data_type: DataTypeDefinition {
-                        data_type: StructType {
-                            name: None,
-                            variables: [
-                                Variable {
-                                    name: "field",
-                                    data_type: DataTypeReference {
-                                        referenced_type: "INT",
-                                    },
-                                },
-                            ],
-                        },
-                    },
-                },
-            ],
-        },
-    },
-}"#;
-
-    assert_eq!(ast_string, expected_ast);
+    insta::assert_snapshot!(ast_string);
 }
 
 #[test]
 fn string_variable_declaration_can_be_parsed() {
-    let lexer = lex("
+    let src = "
             VAR_GLOBAL
                 x : STRING;
                 y : STRING[500];
                 wx : WSTRING;
                 wy : WSTRING[500];
             END_VAR
-           ");
-    let (parse_result, ..) = parse(lexer);
+           ";
+    let (parse_result, ..) = parse(src);
     let x = &parse_result.global_vars[0].variables[0];
     let expected = r#"Variable {
     name: "x",

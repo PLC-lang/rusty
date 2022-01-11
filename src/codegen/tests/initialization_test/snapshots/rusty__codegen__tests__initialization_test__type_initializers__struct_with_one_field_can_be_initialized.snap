@@ -1,0 +1,14 @@
+---
+source: src/codegen/tests/initialization_test/type_initializers.rs
+assertion_line: 242
+expression: result
+
+---
+; ModuleID = 'main'
+source_filename = "main"
+
+%MyPoint = type { i32 }
+
+@MyPoint__init = unnamed_addr constant %MyPoint zeroinitializer
+@a = global %MyPoint { i32 7 }
+

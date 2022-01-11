@@ -1,6 +1,6 @@
 use crate::{
     ast::{
-        DataType, DataTypeDeclaration, PouType, SourceRange, Variable, VariableBlock,
+        AstStatement, DataType, DataTypeDeclaration, PouType, SourceRange, Variable, VariableBlock,
         VariableBlockType,
     },
     index::{const_expressions::ConstExpression, Index},
@@ -97,11 +97,12 @@ impl VariableValidator {
                         .push(Diagnostic::empty_variable_block(location.clone()));
                 }
             }
-            DataType::EnumType { elements, .. } => {
-                if elements.is_empty() {
-                    self.diagnostics
-                        .push(Diagnostic::empty_variable_block(location.clone()));
-                }
+            DataType::EnumType {
+                elements: AstStatement::ExpressionList { expressions, .. },
+                ..
+            } if expressions.is_empty() => {
+                self.diagnostics
+                    .push(Diagnostic::empty_variable_block(location.clone()));
             }
             _ => {}
         }
@@ -110,7 +111,7 @@ impl VariableValidator {
 
 /// returns whether this data_type is a function block, a class or an array/pointer of/to these
 fn data_type_is_fb_or_class_instance(type_name: &str, index: &Index) -> bool {
-    let data_type = index.find_effective_type_by_name(type_name).map_or_else(
+    let data_type = index.find_effective_type(type_name).map_or_else(
         || index.get_void_type().get_type_information(),
         crate::typesystem::DataType::get_type_information,
     );
@@ -152,7 +153,8 @@ fn data_type_is_fb_or_class_instance(type_name: &str, index: &Index) -> bool {
 
 #[cfg(test)]
 mod variable_validator_tests {
-    use crate::{validation::tests::parse_and_validate, Diagnostic};
+    use crate::test_utils::tests::parse_and_validate;
+    use crate::Diagnostic;
 
     #[test]
     fn validate_empty_struct_declaration() {

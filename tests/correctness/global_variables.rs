@@ -5,7 +5,6 @@ use super::super::*;
 #[repr(C)]
 struct MainType {
     x: i32,
-    ret: i32,
 }
 
 #[derive(PartialEq, Debug)]
@@ -35,7 +34,7 @@ fn global_variable_can_be_referenced_in_fn() {
     main := gX;
     END_FUNCTION
     ";
-    let res: i32 = compile_and_run(function.to_string(), &mut MainType { x: 0, ret: 0 });
+    let res: i32 = compile_and_run(function.to_string(), &mut MainType { x: 0 });
     assert_eq!(res, 30);
 }
 
@@ -65,9 +64,9 @@ fn global_variable_can_be_referenced_in_two_functions() {
     let context = inkwell::context::Context::create();
     let exec_engine = compile(&context, function.to_string());
 
-    let res: i32 = run(&exec_engine, "main", &mut MainType { x: 0, ret: 0 });
+    let res: i32 = run(&exec_engine, "main", &mut MainType { x: 0 });
     assert_eq!(res, 30);
-    let res2: i32 = run(&exec_engine, "two", &mut MainType { x: 0, ret: 0 });
+    let res2: i32 = run(&exec_engine, "two", &mut MainType { x: 0 });
     assert_eq!(res2, 30)
 }
 
@@ -113,4 +112,66 @@ fn global_variables_with_initialization() {
             z: 9.1415,
         }
     );
+}
+
+#[test]
+fn uninitialized_global_array() {
+    let function = r"
+        VAR_GLOBAL
+            gX : ARRAY[0..2] OF INT;  /* this should be zero-initialized */
+            gZ : INT;
+        END_VAR
+        FUNCTION main : REAL
+            VAR
+                x,y : INT;
+                z : INT;
+            END_VAR
+            gX[0] := 10;
+            gX[1] := 21;
+            gZ := 5;
+            x := gX[0];
+            y := gX[1];
+            z := gZ;
+            main := (x + y) / z;
+        END_FUNCTION
+    ";
+
+    struct MainType {}
+    let mut maintype = MainType {};
+    let res: f32 = compile_and_run(function.to_string(), &mut maintype);
+    assert!((res - 31f32 / 5f32) <= f32::EPSILON);
+}
+
+#[test]
+fn uninitialized_global_struct() {
+    let function = r"
+        TYPE Point : STRUCT
+            x : INT;
+            y : INT;
+        END_STRUCT
+        END_TYPE
+
+        VAR_GLOBAL
+            gX : Point; /* this should be zero-initialized */
+            gZ : INT;
+        END_VAR
+        FUNCTION main : REAL
+            VAR
+                x,y : INT;
+                z : INT;
+            END_VAR
+            gX.x := 10;
+            gX.y := 21;
+            gZ := 5;
+            x := gX.x;
+            y := gX.y;
+            z := gZ;
+            main := (x + y) / z;
+        END_FUNCTION
+    ";
+
+    struct MainType {}
+    let mut maintype = MainType {};
+    let res: f32 = compile_and_run(function.to_string(), &mut maintype);
+    assert!((res - 31f32 / 5f32) <= f32::EPSILON);
 }

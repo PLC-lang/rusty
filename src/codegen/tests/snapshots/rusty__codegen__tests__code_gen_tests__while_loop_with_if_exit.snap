@@ -1,0 +1,43 @@
+---
+source: src/codegen/tests/code_gen_tests.rs
+expression: result
+
+---
+; ModuleID = 'main'
+source_filename = "main"
+
+%prg_interface = type { i32 }
+
+@prg_instance = global %prg_interface zeroinitializer
+
+define void @prg(%prg_interface* %0) {
+entry:
+  %x = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 0
+  br label %condition_check
+
+condition_check:                                  ; preds = %entry, %continue3
+  %load_x = load i32, i32* %x, align 4
+  %tmpVar = icmp slt i32 %load_x, 20
+  br i1 %tmpVar, label %while_body, label %continue
+
+while_body:                                       ; preds = %condition_check
+  %load_x1 = load i32, i32* %x, align 4
+  %tmpVar2 = add i32 %load_x1, 1
+  store i32 %tmpVar2, i32* %x, align 4
+  %load_x4 = load i32, i32* %x, align 4
+  %tmpVar5 = icmp sge i32 %load_x4, 10
+  br i1 %tmpVar5, label %condition_body, label %continue3
+
+continue:                                         ; preds = %condition_body, %condition_check
+  ret void
+
+condition_body:                                   ; preds = %while_body
+  br label %continue
+
+buffer_block:                                     ; No predecessors!
+  br label %continue3
+
+continue3:                                        ; preds = %buffer_block, %while_body
+  br label %condition_check
+}
+

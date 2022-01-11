@@ -1,0 +1,23 @@
+---
+source: src/codegen/tests/string_tests.rs
+expression: result
+
+---
+; ModuleID = 'main'
+source_filename = "main"
+
+%prg_interface = type { [81 x i8], [100 x i8], [100 x i16] }
+
+@prg_instance = global %prg_interface { [81 x i8] zeroinitializer, [4 x i8] c"abc\00", [4 x i16] [i16 97, i16 98, i16 99, i16 0] }
+
+define void @prg(%prg_interface* %0) {
+entry:
+  %y = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 0
+  %z = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 1
+  %zz = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 2
+  store [12 x i8] c"im a genius\00", [81 x i8]* %y, align 1
+  store [17 x i8] c"im also a genius\00", [100 x i8]* %z, align 1
+  store [17 x i16] [i16 105, i16 109, i16 32, i16 97, i16 108, i16 115, i16 111, i16 32, i16 97, i16 32, i16 103, i16 101, i16 110, i16 105, i16 117, i16 115, i16 0], [100 x i16]* %zz, align 2
+  ret void
+}
+

@@ -27,6 +27,24 @@
         {
             "type": "lldb",
             "request": "launch",
+            "name": "Debug executable 'rustyc' - oscat",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=rustyc",
+                    "--package=rusty"
+                ],
+                "filter": {
+                    "name": "rustyc",
+                    "kind": "bin"
+                }
+            },
+            "args": ["--ir", "/home/ghaith/git/oscat/oscat_single_file.st","/home/ghaith/git/oscat/std_stubs.st", "-o", "/tmp/comp.ll"],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
             "name": "Debug executable 'rustyc'",
             "cargo": {
                 "args": [
@@ -39,7 +57,7 @@
                     "kind": "bin"
                 }
             },
-            "args": ["--ir", "examples/encoding.st"],
+            "args": ["-c", "/home/ghaith/git/oscat/test.st", "-o", "/tmp/comp.ll"],
             "cwd": "${workspaceFolder}"
         },
         {

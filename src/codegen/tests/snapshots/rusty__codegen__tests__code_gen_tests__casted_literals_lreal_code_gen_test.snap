@@ -1,0 +1,24 @@
+---
+source: src/codegen/tests/code_gen_tests.rs
+expression: result
+
+---
+; ModuleID = 'main'
+source_filename = "main"
+
+%prg_interface = type { float, float }
+
+@prg_instance = global %prg_interface zeroinitializer
+
+define void @prg(%prg_interface* %0) {
+entry:
+  %x = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 0
+  %z = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 1
+  %load_x = load float, float* %x, align 4
+  %1 = fpext float %load_x to double
+  %tmpVar = fadd double %1, 7.700000e+00
+  %2 = fptrunc double %tmpVar to float
+  store float %2, float* %z, align 4
+  ret void
+}
+

@@ -3,43 +3,35 @@ use crate::Diagnostic;
 use core::panic;
 use std::ops::Range;
 
-use crate::{
-    ast::*,
-    parser::{
-        parse,
-        tests::{empty_stmt, lex},
-    },
-};
+use crate::{ast::*, parser::tests::empty_stmt, test_utils::tests::parse};
 use pretty_assertions::*;
 
 #[test]
 fn empty_returns_empty_compilation_unit() {
-    let (result, ..) = parse(lex(""));
+    let (result, ..) = parse("");
     assert_eq!(result.units.len(), 0);
 }
 
 #[test]
 fn programs_can_be_external() {
-    let lexer = lex("@EXTERNAL PROGRAM foo END_PROGRAM");
-    let parse_result = parse(lexer).0;
+    let src = "@EXTERNAL PROGRAM foo END_PROGRAM";
+    let parse_result = parse(src).0;
     let implementation = &parse_result.implementations[0];
     assert_eq!(LinkageType::External, implementation.linkage);
 }
 
 #[test]
 fn exponent_literals_parsed_as_variables() {
-    let lexer = super::lex(
-        "
+    let src = "
             FUNCTION E1 : E2
             VAR_INPUT
             E3 : E4;
             END_VAR
             E5 := 1.0E6;
             END_FUNCTION
-           ",
-    );
+           ";
 
-    let (parse_result, diagnostics) = parse(lexer);
+    let (parse_result, diagnostics) = parse(src);
 
     let pou = &parse_result.units[0];
     let expected = Pou {
@@ -67,6 +59,7 @@ fn exponent_literals_parsed_as_variables() {
             }],
         }],
         location: SourceRange::undefined(),
+        generics: vec![],
     };
     assert_eq!(format!("{:#?}", expected), format!("{:#?}", pou).as_str());
     let implementation = &parse_result.implementations[0];
@@ -104,7 +97,7 @@ fn exponent_literals_parsed_as_variables() {
 
 #[test]
 fn ids_are_assigned_to_parsed_literals() {
-    let lexer = lex("
+    let src = "
     PROGRAM PRG
         ;
         (* literals *)
@@ -118,8 +111,8 @@ fn ids_are_assigned_to_parsed_literals() {
         'abc';
         [1,2,3];
     END_PROGRAM
-    ");
-    let parse_result = parse(lexer).0;
+    ";
+    let parse_result = parse(src).0;
     let implementation = &parse_result.implementations[0];
 
     assert_eq!(implementation.statements[0].get_id(), 1);
@@ -135,12 +128,12 @@ fn ids_are_assigned_to_parsed_literals() {
 
 #[test]
 fn ids_are_assigned_to_parsed_assignments() {
-    let lexer = lex("
+    let src = "
     PROGRAM PRG
         a := b;
     END_PROGRAM
-    ");
-    let parse_result = parse(lexer).0;
+    ";
+    let parse_result = parse(src).0;
     let implementation = &parse_result.implementations[0];
 
     if let AstStatement::Assignment { id, left, right } = &implementation.statements[0] {
@@ -154,14 +147,14 @@ fn ids_are_assigned_to_parsed_assignments() {
 
 #[test]
 fn ids_are_assigned_to_callstatements() {
-    let lexer = lex("
+    let src = "
     PROGRAM PRG
         foo();
         foo(1,2,3);
         foo(a := 1, b => c, d);
     END_PROGRAM
-    ");
-    let parse_result = parse(lexer).0;
+    ";
+    let parse_result = parse(src).0;
     let implementation = &parse_result.implementations[0];
 
     if let AstStatement::CallStatement { id, operator, .. } = &implementation.statements[0] {
@@ -230,7 +223,7 @@ fn ids_are_assigned_to_callstatements() {
 
 #[test]
 fn ids_are_assigned_to_expressions() {
-    let lexer = lex("
+    let src = "
     PROGRAM PRG
         a * b;
         a.b;
@@ -241,8 +234,8 @@ fn ids_are_assigned_to_expressions() {
         1..2;
         5(a);
     END_PROGRAM
-    ");
-    let parse_result = parse(lexer).0;
+    ";
+    let parse_result = parse(src).0;
     let implementation = &parse_result.implementations[0];
 
     if let AstStatement::BinaryExpression {
@@ -320,7 +313,7 @@ fn ids_are_assigned_to_expressions() {
 
 #[test]
 fn ids_are_assigned_to_if_statements() {
-    let lexer = lex("
+    let src = "
     PROGRAM PRG
         IF TRUE THEN
             ;
@@ -328,8 +321,8 @@ fn ids_are_assigned_to_if_statements() {
             ;
         END_IF
     END_PROGRAM
-    ");
-    let parse_result = parse(lexer).0;
+    ";
+    let parse_result = parse(src).0;
     let implementation = &parse_result.implementations[0];
 
     match &implementation.statements[0] {
@@ -347,7 +340,7 @@ fn ids_are_assigned_to_if_statements() {
 
 #[test]
 fn ids_are_assigned_to_for_statements() {
-    let lexer = lex("
+    let src = "
     PROGRAM PRG
         FOR x := 1 TO 7 BY 2 DO
             ;
@@ -355,8 +348,8 @@ fn ids_are_assigned_to_for_statements() {
             ;
         END_FOR;
     END_PROGRAM
-    ");
-    let parse_result = parse(lexer).0;
+    ";
+    let parse_result = parse(src).0;
     let implementation = &parse_result.implementations[0];
 
     match &implementation.statements[0] {
@@ -384,14 +377,14 @@ fn ids_are_assigned_to_for_statements() {
 
 #[test]
 fn ids_are_assigned_to_while_statements() {
-    let lexer = lex("
+    let src = "
     PROGRAM PRG
        WHILE TRUE DO
             ;;
         END_WHILE
     END_PROGRAM
-    ");
-    let parse_result = parse(lexer).0;
+    ";
+    let parse_result = parse(src).0;
     let implementation = &parse_result.implementations[0];
 
     match &implementation.statements[0] {
@@ -409,14 +402,14 @@ fn ids_are_assigned_to_while_statements() {
 
 #[test]
 fn ids_are_assigned_to_repeat_statements() {
-    let lexer = lex("
+    let src = "
     PROGRAM PRG
        REPEAT
             ;;
        UNTIL TRUE END_REPEAT
     END_PROGRAM
-    ");
-    let parse_result = parse(lexer).0;
+    ";
+    let parse_result = parse(src).0;
     let implementation = &parse_result.implementations[0];
 
     match &implementation.statements[0] {
@@ -434,7 +427,7 @@ fn ids_are_assigned_to_repeat_statements() {
 
 #[test]
 fn ids_are_assigned_to_case_statements() {
-    let lexer = lex("
+    let src = "
     PROGRAM PRG
     CASE PumpState OF
     0:
@@ -445,8 +438,8 @@ fn ids_are_assigned_to_case_statements() {
         ;
     END_CASE;
     END_PROGRAM
-    ");
-    let parse_result = parse(lexer).0;
+    ";
+    let parse_result = parse(src).0;
     let implementation = &parse_result.implementations[0];
 
     match &implementation.statements[0] {

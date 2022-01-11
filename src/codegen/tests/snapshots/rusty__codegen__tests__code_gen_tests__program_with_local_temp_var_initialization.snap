@@ -1,0 +1,47 @@
+---
+source: src/codegen/tests/code_gen_tests.rs
+expression: result
+
+---
+; ModuleID = 'main'
+source_filename = "main"
+
+%foo_interface = type { i16 }
+%prg_interface = type {}
+
+@foo_instance = global %foo_interface { i16 7 }
+@prg_instance = global %prg_interface zeroinitializer
+
+define void @foo(%foo_interface* %0) {
+entry:
+  %x = getelementptr inbounds %foo_interface, %foo_interface* %0, i32 0, i32 0
+  %y = alloca i16, align 2
+  %z = alloca i16, align 2
+  store i16 0, i16* %y, align 2
+  store i16 9, i16* %z, align 2
+  %load_z = load i16, i16* %z, align 2
+  %1 = sext i16 %load_z to i32
+  %tmpVar = add i32 %1, 1
+  %2 = trunc i32 %tmpVar to i16
+  store i16 %2, i16* %y, align 2
+  ret void
+}
+
+define void @prg(%prg_interface* %0) {
+entry:
+  br label %input
+
+input:                                            ; preds = %entry
+  br label %call
+
+call:                                             ; preds = %input
+  call void @foo(%foo_interface* @foo_instance)
+  br label %output
+
+output:                                           ; preds = %call
+  br label %continue
+
+continue:                                         ; preds = %output
+  ret void
+}
+

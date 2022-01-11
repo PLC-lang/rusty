@@ -1,3 +1,5 @@
+use pretty_assertions::assert_eq;
+
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use super::super::*;
 
@@ -12,6 +14,96 @@ struct MainType {
     byte_target: u8,
     word_target: u16,
     dword_target: u32,
+}
+
+#[test]
+fn bitaccess_assignment() {
+    let prog = "
+    FUNCTION main : INT
+    VAR
+        a : BYTE := 2#0000_0101;
+        b : WORD := 0;
+        c : DWORD := 0;
+        d : LWORD := 0;
+        two : INT := 2;
+    END_VAR
+    a.%X0       := FALSE;   //2#0000_0100
+    a.1         := TRUE;    //2#0000_0110
+    a.%Xtwo     := FALSE;   //2#0000_0010
+    b.%B1       := a;       //2#0000_0010_0000_0000
+    c.%W1       := b;       //2#0000_0010_0000_0000_0000_0000_0000_0000
+    d.%D1       := c;       //2#0000_0010_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000
+    END_FUNCTION";
+
+    #[allow(dead_code)]
+    #[repr(C)]
+    #[derive(Default, Debug)]
+    struct Type {
+        a: u8,
+        b: u16,
+        c: u32,
+        d: u64,
+        two: i16,
+    }
+    let mut param = Type::default();
+
+    let _: i32 = compile_and_run(prog, &mut param);
+
+    assert_eq!(0b0000_0010, param.a);
+    assert_eq!(0b0000_0010_0000_0000, param.b);
+    assert_eq!(0b0000_0010_0000_0000_0000_0000_0000_0000, param.c);
+    assert_eq!(
+        0b0000_0010_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000,
+        param.d
+    );
+}
+
+#[test]
+fn bitaccess_chained_assignment() {
+    let prog = "
+    FUNCTION main : LWORD
+    VAR
+        d : LWORD := 2#0000_0101_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000;
+        two : INT := 2;
+    END_VAR
+    d.%D1.%W1.%B1.%X0 := FALSE;
+    d.%D1.%W1.%B1.1 := TRUE;
+    d.%D1.%W1.%B1.%Xtwo := FALSE;
+    main := d;       //2#0000_0010_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000
+    END_FUNCTION";
+
+    let res: u64 = compile_and_run(prog, &mut MainType::default());
+
+    assert_eq!(
+        0b0000_0010_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000,
+        res
+    );
+}
+
+#[test]
+fn qualified_reference_assignment() {
+    let prog = "
+        TYPE myStruct : STRUCT x : BYTE := 1; END_STRUCT END_TYPE
+
+        FUNCTION main : BYTE
+        VAR
+            str : myStruct;
+        END_VAR
+        str.x := 1;
+        str.x.%X0 := FALSE;
+        str.x.%X1 := TRUE;
+        main := str.x;
+        END_FUNCTION
+
+        ";
+
+    #[derive(Default)]
+    #[allow(dead_code)]
+    struct MainType {
+        x: u8,
+    }
+    let res: u8 = compile_and_run(prog, &mut MainType::default);
+    assert_eq!(2, res);
 }
 
 #[test]
@@ -38,7 +130,7 @@ fn bitaccess_test() {
     ";
     let mut main_type = MainType::default();
 
-    compile_and_run::<_, i32>(prog.to_string(), &mut main_type);
+    let _: i32 = compile_and_run(prog, &mut main_type);
     assert_eq!(
         main_type,
         MainType {
@@ -81,7 +173,7 @@ fn bitaccess_with_var_test() {
     ";
     let mut main_type = MainType::default();
 
-    compile_and_run::<_, i32>(prog.to_string(), &mut main_type);
+    let _: i32 = compile_and_run(prog, &mut main_type);
     assert_eq!(
         main_type,
         MainType {
@@ -94,4 +186,44 @@ fn bitaccess_with_var_test() {
             bit_target2: true,
         }
     )
+}
+
+#[test]
+fn bitaccess_assignment_should_not_override_current_values() {
+    let prog = "
+    FUNCTION main : DINT
+    VAR_TEMP
+        a,b : BYTE := 0;
+        c : BOOL := TRUE;
+    END_VAR
+    b := 1;
+    a.%Xb := c;
+    b := 0;
+    a.%Xb := c;
+    b := 2;
+    a.%Xb := c;
+    main := a;
+    END_FUNCTION
+    ";
+    struct MainType {}
+    let res: i32 = compile_and_run(prog, &mut MainType {});
+    assert_eq!(res, 7);
+}
+
+#[test]
+fn byteaccess_assignment_should_not_override_current_values() {
+    let prog = "
+    FUNCTION main : DINT
+    VAR_TEMP
+        a : DINT := 0;
+    END_VAR
+    a.%B1 := 2#1010_1010;
+    a.%B0 := 2#0101_0101;
+    a.%B2 := 2#1100_0011;
+    main := a;
+    END_FUNCTION
+    ";
+    struct MainType {}
+    let res: i32 = compile_and_run(prog, &mut MainType {});
+    assert_eq!(res, 0b0000_0000_1100_0011_1010_1010_0101_0101);
 }

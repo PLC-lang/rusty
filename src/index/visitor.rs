@@ -2,24 +2,25 @@
 use super::VariableType;
 use crate::ast::{
     self, AstStatement, CompilationUnit, DataType, DataTypeDeclaration, Implementation, Pou,
-    PouType, SourceRange, UserTypeDeclaration, Variable, VariableBlock, VariableBlockType,
+    PouType, SourceRange, TypeNature, UserTypeDeclaration, VariableBlock, VariableBlockType,
 };
-use crate::compile_error::CompileError;
+use crate::diagnostics::Diagnostic;
 use crate::index::{Index, MemberInfo};
+use crate::lexer::IdProvider;
 use crate::typesystem::{self, *};
 
-pub fn visit(unit: &CompilationUnit) -> Index {
+pub fn visit(unit: &CompilationUnit, mut id_provider: IdProvider) -> Index {
     let mut index = Index::new();
 
     //Create the typesystem
     let builtins = get_builtin_types();
     for data_type in builtins {
-        index.insert_type(data_type.get_name().to_lowercase(), data_type);
+        index.register_type(data_type);
     }
 
     //Create user defined datatypes
     for user_type in &unit.types {
-        visit_data_type(&mut index, user_type);
+        visit_data_type(&mut index, &mut id_provider, user_type);
     }
 
     //Create defined global variables
@@ -40,19 +41,6 @@ pub fn visit(unit: &CompilationUnit) -> Index {
 
 pub fn visit_pou(index: &mut Index, pou: &Pou) {
     let interface_name = format!("{}_interface", &pou.name);
-
-    if pou.pou_type == PouType::Program {
-        //Associate a global variable for the program
-        let instance_name = format!("{}_instance", &pou.name);
-        index.register_global_variable_with_name(
-            &pou.name,
-            &instance_name,
-            &pou.name,
-            None,
-            false, //program's instance variable is no constant
-            pou.location.clone(),
-        );
-    }
 
     let mut member_names = vec![];
 
@@ -78,11 +66,12 @@ pub fn visit_pou(index: &mut Index, pou: &Pou) {
             }
             member_names.push(var.name.clone());
 
+            let var_type_name = var.data_type.get_name().expect("named datatype");
             let type_name = if block_type == VariableType::InOut {
                 //register a pointer type for the var_in_out
-                register_inout_pointer_type_for(index, var)
+                register_inout_pointer_type_for(index, var_type_name)
             } else {
-                var.data_type.get_name().unwrap().to_string()
+                var_type_name.to_string()
             };
             let initial_value = index
                 .get_mut_const_expressions()
@@ -126,16 +115,45 @@ pub fn visit_pou(index: &mut Index, pou: &Pou) {
         )
     }
 
-    index.register_type(
-        &pou.name,
-        None,
-        DataTypeInformation::Struct {
+    let datatype = typesystem::DataType {
+        name: pou.name.to_string(),
+        initial_value: None,
+        information: DataTypeInformation::Struct {
             name: interface_name,
             member_names,
             varargs,
             source: StructSource::Pou(pou.pou_type.clone()),
+            generics: pou.generics.clone(),
         },
-    );
+        nature: TypeNature::Any,
+    };
+    index.register_pou_type(datatype);
+
+    match pou.pou_type {
+        PouType::Program => {
+            //Associate a global variable for the program
+            let instance_name = format!("{}_instance", &pou.name);
+            index.register_global_variable_with_name(
+                &pou.name,
+                &instance_name,
+                &pou.name,
+                None,
+                false, //program's instance variable is no constant
+                pou.location.clone(),
+            );
+        }
+        PouType::FunctionBlock | PouType::Class => {
+            let global_struct_name = crate::index::get_initializer_name(&pou.name);
+            index.register_global_variable(
+                &global_struct_name,
+                &pou.name,
+                None,
+                true, //Initial values are constants
+                pou.location.clone(),
+            );
+        }
+        _ => {}
+    }
 }
 
 fn visit_implementation(index: &mut Index, implementation: &Implementation) {
@@ -148,32 +166,34 @@ fn visit_implementation(index: &mut Index, implementation: &Implementation) {
     );
     //if we are registing an action, also register a datatype for it
     if pou_type == &PouType::Action {
-        index.register_type(
-            &implementation.name,
-            None,
-            DataTypeInformation::Alias {
+        let datatype = typesystem::DataType {
+            name: implementation.name.to_string(),
+            initial_value: None,
+            information: DataTypeInformation::Alias {
                 name: implementation.name.clone(),
                 referenced_type: implementation.type_name.clone(),
             },
-        );
+            nature: TypeNature::Derived,
+        };
+        index.register_pou_type(datatype);
     }
 }
 
-fn register_inout_pointer_type_for(index: &mut Index, var: &Variable) -> String {
-    let inner_type_name = var.data_type.get_name().unwrap().to_string();
+fn register_inout_pointer_type_for(index: &mut Index, inner_type_name: &str) -> String {
     //get unique name
     let type_name = format!("pointer_to_{}", inner_type_name);
 
     //generate a pointertype for the variable
-    index.register_type(
-        &type_name,
-        None,
-        DataTypeInformation::Pointer {
+    index.register_type(typesystem::DataType {
+        name: type_name.clone(),
+        initial_value: None,
+        information: DataTypeInformation::Pointer {
             name: type_name.clone(),
-            inner_type_name,
+            inner_type_name: inner_type_name.to_string(),
             auto_deref: true,
         },
-    );
+        nature: TypeNature::Any,
+    });
 
     type_name
 }
@@ -186,7 +206,7 @@ fn visit_global_var_block(index: &mut Index, block: &VariableBlock) {
             .maybe_add_constant_expression(var.initializer.clone(), target_type, None);
         index.register_global_variable(
             &var.name,
-            var.data_type.get_name().unwrap(),
+            var.data_type.get_name().expect("named variable datatype"),
             initializer,
             block.constant,
             var.location.clone(),
@@ -205,49 +225,81 @@ fn get_variable_type_from_block(block: &VariableBlock) -> VariableType {
     }
 }
 
-fn visit_data_type(index: &mut Index, type_declatation: &UserTypeDeclaration) {
-    let data_type = &type_declatation.data_type;
+fn visit_data_type(
+    index: &mut Index,
+    id_provider: &mut IdProvider,
+    type_declaration: &UserTypeDeclaration,
+) {
+    let data_type = &type_declaration.data_type;
+    let scope = &type_declaration.scope;
     //names should not be empty
     match data_type {
-        DataType::StructType { name, variables } => {
-            let struct_name = name.as_ref().unwrap();
+        DataType::StructType {
+            name: Some(name),
+            variables,
+        } => {
+            let struct_name = name.as_str();
 
             let member_names: Vec<String> =
                 variables.iter().map(|it| it.name.to_string()).collect();
 
-            let type_name = name.clone().unwrap();
+            let type_name = name.clone();
             let information = DataTypeInformation::Struct {
                 name: type_name.clone(),
                 member_names,
                 varargs: None,
                 source: StructSource::OriginalDeclaration,
+                generics: vec![],
             };
 
             let init = index
                 .get_mut_const_expressions()
                 .maybe_add_constant_expression(
-                    type_declatation.initializer.clone(),
+                    type_declaration.initializer.clone(),
                     type_name.as_str(),
-                    None,
+                    scope.clone(),
                 );
-            index.register_type(name.as_ref().unwrap(), init, information);
+            index.register_type(typesystem::DataType {
+                name: name.to_string(),
+                initial_value: init,
+                information,
+                nature: TypeNature::Derived,
+            });
+            //Generate an initializer for the struct
+            let global_struct_name = crate::index::get_initializer_name(name);
+            index.register_global_variable(
+                global_struct_name.as_str(),
+                type_name.as_str(),
+                init,
+                true, //Initial values are constants
+                type_declaration.location.clone(),
+            );
             for (count, var) in variables.iter().enumerate() {
-                if let DataTypeDeclaration::DataTypeDefinition { data_type, .. } = &var.data_type {
+                if let DataTypeDeclaration::DataTypeDefinition {
+                    data_type, scope, ..
+                } = &var.data_type
+                {
                     //first we need to handle the inner type
                     visit_data_type(
                         index,
+                        id_provider,
                         &UserTypeDeclaration {
                             data_type: data_type.clone(),
                             initializer: None,
                             location: SourceRange::undefined(),
+                            scope: scope.clone(),
                         },
                     )
                 }
 
-                let member_type = var.data_type.get_name().unwrap();
+                let member_type = var.data_type.get_name().expect("named variable datatype");
                 let init = index
                     .get_mut_const_expressions()
-                    .maybe_add_constant_expression(var.initializer.clone(), member_type, None);
+                    .maybe_add_constant_expression(
+                        var.initializer.clone(),
+                        member_type,
+                        scope.clone(),
+                    );
                 index.register_member_variable(
                     &MemberInfo {
                         container_name: struct_name,
@@ -263,56 +315,69 @@ fn visit_data_type(index: &mut Index, type_declatation: &UserTypeDeclaration) {
             }
         }
 
-        DataType::EnumType { name, elements } => {
-            let enum_name = name.as_ref().unwrap();
+        DataType::EnumType {
+            name: Some(name),
+            elements,
+            numeric_type,
+            ..
+        } => {
+            let enum_name = name.as_str();
+
             let information = DataTypeInformation::Enum {
-                name: enum_name.clone(),
-                elements: elements.clone(),
+                name: enum_name.to_string(),
+                elements: ast::get_enum_element_names(elements),
+                referenced_type: numeric_type.clone(),
             };
+
+            for ele in ast::flatten_expression_list(elements) {
+                let element_name = ast::get_enum_element_name(ele);
+                if let AstStatement::Assignment { right, .. } = ele {
+                    let init = index.get_mut_const_expressions().add_constant_expression(
+                        right.as_ref().clone(),
+                        numeric_type.clone(),
+                        scope.clone(),
+                    );
+                    index.register_enum_element(
+                        &element_name,
+                        enum_name,
+                        Some(init),
+                        ele.get_location(),
+                    )
+                } else {
+                    unreachable!("the preprocessor should have provided explicit assignments for enum values")
+                }
+            }
 
             let init = index
                 .get_mut_const_expressions()
                 .maybe_add_constant_expression(
-                    type_declatation.initializer.clone(),
-                    enum_name.as_str(),
-                    None,
+                    type_declaration.initializer.clone(),
+                    enum_name,
+                    scope.clone(),
                 );
-            index.register_type(enum_name.as_str(), init, information);
-
-            elements.iter().enumerate().for_each(|(i, v)| {
-                let init = index.get_mut_const_expressions().add_constant_expression(
-                    ast::AstStatement::LiteralInteger {
-                        value: i as i128,
-                        location: SourceRange::undefined(),
-                        id: 0,
-                    },
-                    typesystem::INT_TYPE.to_string(),
-                    None,
-                );
-                index.register_enum_element(
-                    v,
-                    enum_name.as_str(),
-                    Some(init),
-                    SourceRange::undefined(),
-                )
-            }); //TODO : Enum locations
+            index.register_type(typesystem::DataType {
+                name: enum_name.to_string(),
+                initial_value: init,
+                information,
+                nature: TypeNature::Int,
+            });
         }
 
         DataType::SubRangeType {
-            name,
+            name: Some(name),
             referenced_type,
             bounds,
         } => {
             let information = if let Some(AstStatement::RangeStatement { start, end, .. }) = bounds
             {
                 DataTypeInformation::SubRange {
-                    name: name.as_ref().unwrap().into(),
+                    name: name.into(),
                     referenced_type: referenced_type.into(),
                     sub_range: (*start.clone()..*end.clone()),
                 }
             } else {
                 DataTypeInformation::Alias {
-                    name: name.as_ref().unwrap().into(),
+                    name: name.into(),
                     referenced_type: referenced_type.into(),
                 }
             };
@@ -320,18 +385,23 @@ fn visit_data_type(index: &mut Index, type_declatation: &UserTypeDeclaration) {
             let init = index
                 .get_mut_const_expressions()
                 .maybe_add_constant_expression(
-                    type_declatation.initializer.clone(),
-                    name.as_ref().unwrap(),
-                    None,
+                    type_declaration.initializer.clone(),
+                    name,
+                    scope.clone(),
                 );
-            index.register_type(name.as_ref().unwrap(), init, information)
+            index.register_type(typesystem::DataType {
+                name: name.to_string(),
+                initial_value: init,
+                information,
+                nature: TypeNature::Int,
+            });
         }
         DataType::ArrayType {
-            name,
+            name: Some(name),
             referenced_type,
             bounds,
         } => {
-            let dimensions: Result<Vec<Dimension>, CompileError> = bounds
+            let dimensions: Result<Vec<Dimension>, Diagnostic> = bounds
                 .get_as_list()
                 .iter()
                 .map(|it| {
@@ -342,29 +412,29 @@ fn visit_data_type(index: &mut Index, type_declatation: &UserTypeDeclaration) {
                                 constants.add_constant_expression(
                                     *start.clone(),
                                     typesystem::INT_TYPE.to_string(),
-                                    None,
+                                    scope.clone(),
                                 ),
                             ),
                             end_offset: TypeSize::from_expression(
                                 constants.add_constant_expression(
                                     *end.clone(),
                                     typesystem::INT_TYPE.to_string(),
-                                    None,
+                                    scope.clone(),
                                 ),
                             ),
                         })
                     } else {
-                        Err(CompileError::codegen_error(
-                            "Invalid array definition: RangeStatement expected".into(),
+                        Err(Diagnostic::codegen_error(
+                            "Invalid array definition: RangeStatement expected",
                             it.get_location(),
                         ))
                     }
                 })
                 .collect();
             let dimensions = dimensions.unwrap(); //TODO hmm we need to talk about all this unwrapping :-/
-            let referenced_type_name = referenced_type.get_name().unwrap();
+            let referenced_type_name = referenced_type.get_name().expect("named datatype");
             let information = DataTypeInformation::Array {
-                name: name.as_ref().unwrap().clone(),
+                name: name.clone(),
                 inner_type_name: referenced_type_name.to_string(),
                 dimensions,
             };
@@ -372,20 +442,35 @@ fn visit_data_type(index: &mut Index, type_declatation: &UserTypeDeclaration) {
             let init = index
                 .get_mut_const_expressions()
                 .maybe_add_constant_expression(
-                    type_declatation.initializer.clone(),
-                    name.as_ref().unwrap(),
-                    None,
+                    type_declaration.initializer.clone(),
+                    name,
+                    scope.clone(),
                 );
-            index.register_type(name.as_ref().unwrap(), init, information)
+            index.register_type(typesystem::DataType {
+                name: name.to_string(),
+                initial_value: init,
+                information,
+                nature: TypeNature::Any,
+            });
+            let global_init_name = crate::index::get_initializer_name(name);
+            if init.is_some() {
+                index.register_global_variable(
+                    global_init_name.as_str(),
+                    name,
+                    init,
+                    true, //Initial values are constants
+                    type_declaration.location.clone(),
+                );
+            }
         }
         DataType::PointerType {
-            name,
+            name: Some(name),
             referenced_type,
             ..
         } => {
-            let inner_type_name = referenced_type.get_name().unwrap();
+            let inner_type_name = referenced_type.get_name().expect("named datatype");
             let information = DataTypeInformation::Pointer {
-                name: name.as_ref().unwrap().clone(),
+                name: name.clone(),
                 inner_type_name: inner_type_name.into(),
                 auto_deref: false,
             };
@@ -393,19 +478,24 @@ fn visit_data_type(index: &mut Index, type_declatation: &UserTypeDeclaration) {
             let init = index
                 .get_mut_const_expressions()
                 .maybe_add_constant_expression(
-                    type_declatation.initializer.clone(),
-                    name.as_ref().unwrap(),
-                    None,
+                    type_declaration.initializer.clone(),
+                    name,
+                    scope.clone(),
                 );
-            index.register_type(name.as_ref().unwrap(), init, information)
+            index.register_type(typesystem::DataType {
+                name: name.to_string(),
+                initial_value: init,
+                information,
+                nature: TypeNature::Any,
+            });
         }
         DataType::StringType {
-            name,
+            name: Some(name),
             size,
             is_wide,
             ..
         } => {
-            let type_name = name.as_ref().unwrap();
+            let type_name = name;
             let encoding = if *is_wide {
                 StringEncoding::Utf16
             } else {
@@ -433,7 +523,7 @@ fn visit_data_type(index: &mut Index, type_declatation: &UserTypeDeclaration) {
                         index.get_mut_const_expressions().add_constant_expression(
                             len_plus_1,
                             type_name.clone(),
-                            None,
+                            scope.clone(),
                         ),
                     )
                 }
@@ -443,12 +533,36 @@ fn visit_data_type(index: &mut Index, type_declatation: &UserTypeDeclaration) {
             let init = index
                 .get_mut_const_expressions()
                 .maybe_add_constant_expression(
-                    type_declatation.initializer.clone(),
+                    type_declaration.initializer.clone(),
                     type_name,
-                    None,
+                    scope.clone(),
                 );
-            index.register_type(name.as_ref().unwrap(), init, information)
+            index.register_type(typesystem::DataType {
+                name: name.to_string(),
+                initial_value: init,
+                information,
+                nature: TypeNature::String,
+            });
         }
-        DataType::VarArgs { .. } => {} //Varargs are not indexed
+        DataType::VarArgs { .. } => {} //Varargs are not indexed,
+        DataType::GenericType {
+            name,
+            generic_symbol,
+            nature,
+        } => {
+            let information = DataTypeInformation::Generic {
+                name: name.clone(),
+                generic_symbol: generic_symbol.clone(),
+                nature: *nature,
+            };
+            index.register_type(typesystem::DataType {
+                name: name.to_string(),
+                initial_value: None,
+                information,
+                nature: TypeNature::Any,
+            });
+        }
+
+        _ => { /* unnamed datatypes are ignored */ }
     };
 }

@@ -1,5 +1,5 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-use crate::typesystem::DataTypeInformation;
+use crate::{lexer::IdProvider, typesystem::DataTypeInformation};
 use std::{
     fmt::{Debug, Display, Formatter, Result},
     iter,
@@ -10,6 +10,12 @@ mod pre_processor;
 
 pub type AstId = usize;
 
+#[derive(Clone, Debug, PartialEq)]
+pub struct GenericBinding {
+    pub name: String,
+    pub nature: TypeNature,
+}
+
 #[derive(PartialEq)]
 pub struct Pou {
     pub name: String,
@@ -18,6 +24,7 @@ pub struct Pou {
     pub return_type: Option<DataTypeDeclaration>,
     pub location: SourceRange,
     pub poly_mode: Option<PolymorphismMode>,
+    pub generics: Vec<GenericBinding>,
 }
 
 #[derive(Debug, PartialEq)]
@@ -33,6 +40,95 @@ pub enum DirectAccessType {
     Byte,
     Word,
     DWord,
+}
+
+#[derive(Debug, PartialEq, Clone, Copy)]
+pub enum TypeNature {
+    Any,
+    Derived,
+    Elementary,
+    Magnitude,
+    Num,
+    Real,
+    Int,
+    Signed,
+    Unsigned,
+    Duration,
+    Bit,
+    Chars,
+    String,
+    Char,
+    Date,
+}
+
+impl TypeNature {
+    pub fn derives(self, other: TypeNature) -> bool {
+        if other == self {
+            true
+        } else {
+            match self {
+                TypeNature::Any => true,
+                TypeNature::Derived => matches!(other, TypeNature::Any),
+                TypeNature::Elementary => matches!(other, TypeNature::Any),
+                TypeNature::Magnitude => matches!(other, TypeNature::Elementary | TypeNature::Any),
+                TypeNature::Num => matches!(
+                    other,
+                    TypeNature::Magnitude | TypeNature::Elementary | TypeNature::Any
+                ),
+                TypeNature::Real => matches!(
+                    other,
+                    TypeNature::Num
+                        | TypeNature::Magnitude
+                        | TypeNature::Elementary
+                        | TypeNature::Any
+                ),
+                TypeNature::Int => matches!(
+                    other,
+                    TypeNature::Num
+                        | TypeNature::Magnitude
+                        | TypeNature::Elementary
+                        | TypeNature::Any
+                ),
+                TypeNature::Signed => matches!(
+                    other,
+                    TypeNature::Int
+                        | TypeNature::Num
+                        | TypeNature::Magnitude
+                        | TypeNature::Elementary
+                        | TypeNature::Any
+                ),
+                TypeNature::Unsigned => matches!(
+                    other,
+                    TypeNature::Int
+                        | TypeNature::Num
+                        | TypeNature::Magnitude
+                        | TypeNature::Elementary
+                        | TypeNature::Any
+                ),
+                TypeNature::Duration => matches!(
+                    other,
+                    TypeNature::Num
+                        | TypeNature::Magnitude
+                        | TypeNature::Elementary
+                        | TypeNature::Any
+                ),
+                TypeNature::Bit => matches!(
+                    other,
+                    TypeNature::Magnitude | TypeNature::Elementary | TypeNature::Any
+                ),
+                TypeNature::Chars => matches!(other, TypeNature::Elementary | TypeNature::Any),
+                TypeNature::String => matches!(
+                    other,
+                    TypeNature::Chars | TypeNature::Elementary | TypeNature::Any
+                ),
+                TypeNature::Char => matches!(
+                    other,
+                    TypeNature::Chars | TypeNature::Elementary | TypeNature::Any
+                ),
+                TypeNature::Date => matches!(other, TypeNature::Elementary | TypeNature::Any),
+            }
+        }
+    }
 }
 
 impl DirectAccessType {
@@ -64,12 +160,15 @@ impl DirectAccessType {
 
 impl Debug for Pou {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
-        f.debug_struct("POU")
-            .field("name", &self.name)
+        let mut str = f.debug_struct("POU");
+        str.field("name", &self.name)
             .field("variable_blocks", &self.variable_blocks)
             .field("pou_type", &self.pou_type)
-            .field("return_type", &self.return_type)
-            .finish()
+            .field("return_type", &self.return_type);
+        if !self.generics.is_empty() {
+            str.field("generics", &self.generics);
+        }
+        str.finish()
     }
 }
 
@@ -130,7 +229,7 @@ impl PouType {
     }
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Default)]
 pub struct CompilationUnit {
     pub global_vars: Vec<VariableBlock>,
     pub units: Vec<Pou>,
@@ -150,17 +249,6 @@ impl CompilationUnit {
         self.units.extend(other.units);
         self.implementations.extend(other.implementations);
         self.types.extend(other.types);
-    }
-}
-
-impl Default for CompilationUnit {
-    fn default() -> Self {
-        CompilationUnit {
-            global_vars: Vec::new(),
-            units: Vec::new(),
-            implementations: Vec::new(),
-            types: Vec::new(),
-        }
     }
 }
 
@@ -277,6 +365,7 @@ pub enum DataTypeDeclaration {
     DataTypeDefinition {
         data_type: DataType,
         location: SourceRange,
+        scope: Option<String>,
     },
 }
 
@@ -320,6 +409,8 @@ pub struct UserTypeDeclaration {
     pub data_type: DataType,
     pub initializer: Option<AstStatement>,
     pub location: SourceRange,
+    /// stores the original scope for compiler-generated types
+    pub scope: Option<String>,
 }
 
 impl Debug for UserTypeDeclaration {
@@ -327,11 +418,12 @@ impl Debug for UserTypeDeclaration {
         f.debug_struct("UserTypeDeclaration")
             .field("data_type", &self.data_type)
             .field("initializer", &self.initializer)
+            .field("scope", &self.scope)
             .finish()
     }
 }
 
-#[derive(Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum DataType {
     StructType {
         name: Option<String>, //maybe None for inline structs
@@ -339,7 +431,8 @@ pub enum DataType {
     },
     EnumType {
         name: Option<String>, //maybe empty for inline enums
-        elements: Vec<String>,
+        numeric_type: String,
+        elements: AstStatement, //a single Ref, or an ExpressionList with Refs
     },
     SubRangeType {
         name: Option<String>,
@@ -363,88 +456,36 @@ pub enum DataType {
     VarArgs {
         referenced_type: Option<Box<DataTypeDeclaration>>,
     },
-}
-
-impl Debug for DataType {
-    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
-        match self {
-            DataType::StructType { name, variables } => f
-                .debug_struct("StructType")
-                .field("name", name)
-                .field("variables", variables)
-                .finish(),
-            DataType::EnumType { name, elements } => f
-                .debug_struct("EnumType")
-                .field("name", name)
-                .field("elements", elements)
-                .finish(),
-            DataType::SubRangeType {
-                name,
-                referenced_type,
-                bounds,
-            } => f
-                .debug_struct("SubRangeType")
-                .field("name", name)
-                .field("referenced_type", referenced_type)
-                .field("bounds", bounds)
-                .finish(),
-            DataType::ArrayType {
-                name,
-                bounds,
-                referenced_type,
-            } => f
-                .debug_struct("ArrayType")
-                .field("name", name)
-                .field("bounds", bounds)
-                .field("referenced_type", referenced_type)
-                .finish(),
-            DataType::PointerType {
-                name,
-                referenced_type,
-            } => f
-                .debug_struct("PointerType")
-                .field("name", name)
-                .field("referenced_type", referenced_type)
-                .finish(),
-            DataType::StringType {
-                name,
-                is_wide,
-                size,
-            } => f
-                .debug_struct("StringType")
-                .field("name", name)
-                .field("is_wide", is_wide)
-                .field("size", size)
-                .finish(),
-            DataType::VarArgs { referenced_type } => f
-                .debug_struct("VarArgs")
-                .field("referenced_type", referenced_type)
-                .finish(),
-        }
-    }
+    GenericType {
+        name: String,
+        generic_symbol: String,
+        nature: TypeNature,
+    },
 }
 
 impl DataType {
     pub fn set_name(&mut self, new_name: String) {
         match self {
-            DataType::StructType { name, variables: _ } => *name = Some(new_name),
-            DataType::EnumType { name, elements: _ } => *name = Some(new_name),
-            DataType::SubRangeType { name, .. } => *name = Some(new_name),
-            DataType::ArrayType { name, .. } => *name = Some(new_name),
-            DataType::PointerType { name, .. } => *name = Some(new_name),
-            DataType::StringType { name, .. } => *name = Some(new_name),
+            DataType::StructType { name, .. }
+            | DataType::EnumType { name, .. }
+            | DataType::SubRangeType { name, .. }
+            | DataType::ArrayType { name, .. }
+            | DataType::PointerType { name, .. }
+            | DataType::StringType { name, .. } => *name = Some(new_name),
+            DataType::GenericType { name, .. } => *name = new_name,
             DataType::VarArgs { .. } => {} //No names on varargs
         }
     }
 
     pub fn get_name(&self) -> Option<&str> {
-        match self {
-            DataType::StructType { name, variables: _ } => name.as_ref().map(|x| x.as_str()),
-            DataType::EnumType { name, elements: _ } => name.as_ref().map(|x| x.as_str()),
-            DataType::ArrayType { name, .. } => name.as_ref().map(|x| x.as_str()),
-            DataType::PointerType { name, .. } => name.as_ref().map(|x| x.as_str()),
-            DataType::StringType { name, .. } => name.as_ref().map(|x| x.as_str()),
-            DataType::SubRangeType { name, .. } => name.as_ref().map(|x| x.as_str()),
+        match &self {
+            DataType::StructType { name, .. }
+            | DataType::EnumType { name, .. }
+            | DataType::ArrayType { name, .. }
+            | DataType::PointerType { name, .. }
+            | DataType::StringType { name, .. }
+            | DataType::SubRangeType { name, .. } => name.as_ref().map(|x| x.as_str()),
+            DataType::GenericType { name, .. } => Some(name.as_str()),
             DataType::VarArgs { .. } => None,
         }
     }
@@ -1055,6 +1096,14 @@ impl AstStatement {
             AstStatement::CastStatement { id, .. } => *id,
         }
     }
+    /// Returns true if the current statement has a return access.
+    pub fn has_direct_access(&self) -> bool {
+        if let AstStatement::QualifiedReference { elements, .. } = self {
+            matches!(elements.last(), Some(AstStatement::DirectAccess { .. }))
+        } else {
+            false
+        }
+    }
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -1085,9 +1134,45 @@ impl Display for Operator {
             Operator::Multiplication => "*",
             Operator::Division => "/",
             Operator::Equal => "=",
+            Operator::Modulo => "MOD",
             _ => unimplemented!(),
         };
         f.write_str(symbol)
+    }
+}
+
+/// enum_elements should be the statement between then enum's brackets ( )
+/// e.g. x : ( this, that, etc)
+pub fn get_enum_element_names(enum_elements: &AstStatement) -> Vec<String> {
+    flatten_expression_list(enum_elements)
+        .into_iter()
+        .filter(|it| {
+            matches!(
+                it,
+                AstStatement::Reference { .. } | AstStatement::Assignment { .. }
+            )
+        })
+        .map(get_enum_element_name)
+        .collect()
+}
+
+/// expects a Reference or an Assignment
+pub fn get_enum_element_name(enum_element: &AstStatement) -> String {
+    match enum_element {
+        AstStatement::Reference { name, .. } => name.to_string(),
+        AstStatement::Assignment { left, .. } => {
+            if let AstStatement::Reference { name, .. } = left.as_ref() {
+                name.to_string()
+            } else {
+                unreachable!("left of assignment not a reference")
+            }
+        }
+        _ => {
+            unreachable!(
+                "expected {:?} to be a Reference or Assignment",
+                enum_element
+            );
+        }
     }
 }
 
@@ -1098,7 +1183,7 @@ pub fn flatten_expression_list(condition: &AstStatement) -> Vec<&AstStatement> {
         AstStatement::ExpressionList { expressions, .. } => expressions
             .iter()
             .by_ref()
-            .flat_map(|statement| flatten_expression_list(statement))
+            .flat_map(flatten_expression_list)
             .collect(),
         AstStatement::MultipliedStatement {
             multiplier,
@@ -1112,6 +1197,125 @@ pub fn flatten_expression_list(condition: &AstStatement) -> Vec<&AstStatement> {
     }
 }
 
-pub fn pre_process(unit: &mut CompilationUnit) {
-    pre_processor::pre_process(unit)
+/// helper function that creates a call-statement
+pub fn create_call_to(
+    function_name: String,
+    parameters: Vec<AstStatement>,
+    function_id: usize,
+    parameter_list_id: usize,
+    location: &SourceRange,
+) -> AstStatement {
+    AstStatement::CallStatement {
+        operator: Box::new(AstStatement::Reference {
+            name: function_name,
+            location: location.clone(),
+            id: function_id,
+        }),
+        parameters: Box::new(Some(AstStatement::ExpressionList {
+            expressions: parameters,
+            id: parameter_list_id,
+        })),
+        location: location.clone(),
+        id: function_id,
+    }
+}
+
+/// helper function that creates an or-expression
+pub fn create_or_expression(left: AstStatement, right: AstStatement) -> AstStatement {
+    AstStatement::BinaryExpression {
+        id: left.get_id(),
+        left: Box::new(left),
+        right: Box::new(right),
+        operator: Operator::Or,
+    }
+}
+
+/// helper function that creates an not-expression
+pub fn create_not_expression(operator: AstStatement, location: SourceRange) -> AstStatement {
+    AstStatement::UnaryExpression {
+        id: operator.get_id(),
+        value: Box::new(operator),
+        location,
+        operator: Operator::Not,
+    }
+}
+
+pub fn create_reference(name: &str, location: &SourceRange, id: AstId) -> AstStatement {
+    AstStatement::Reference {
+        id,
+        location: location.clone(),
+        name: name.to_string(),
+    }
+}
+
+pub fn create_literal_int(value: i128, location: &SourceRange, id: AstId) -> AstStatement {
+    AstStatement::LiteralInteger {
+        id,
+        location: location.clone(),
+        value,
+    }
+}
+
+pub fn create_binary_expression(
+    left: AstStatement,
+    operator: Operator,
+    right: AstStatement,
+    id: AstId,
+) -> AstStatement {
+    AstStatement::BinaryExpression {
+        id,
+        left: Box::new(left),
+        operator,
+        right: Box::new(right),
+    }
+}
+
+pub fn create_cast_statement(
+    type_name: &str,
+    stmt: AstStatement,
+    location: &SourceRange,
+    id: AstId,
+) -> AstStatement {
+    AstStatement::CastStatement {
+        id,
+        location: location.clone(),
+        type_name: type_name.to_string(),
+        target: Box::new(stmt),
+    }
+}
+
+pub fn pre_process(unit: &mut CompilationUnit, id_provider: IdProvider) {
+    pre_processor::pre_process(unit, id_provider)
+}
+impl Operator {
+    /// returns true, if this operator results in a bool value
+    pub(crate) fn is_bool_type(&self) -> bool {
+        matches!(
+            self,
+            Operator::Equal
+                | Operator::NotEqual
+                | Operator::Less
+                | Operator::Greater
+                | Operator::LessOrEqual
+                | Operator::GreaterOrEqual
+                | Operator::Not
+                | Operator::And
+                | Operator::Or
+                | Operator::Xor
+        )
+    }
+
+    /// returns true, if this operator is a comparison operator
+    /// (=, <>, >, <, >=, <=)
+    pub(crate) fn is_comparison_operator(&self) -> bool {
+        matches!(
+            self,
+            Operator::Equal
+                | Operator::NotEqual
+                | Operator::Less
+                | Operator::Greater
+                | Operator::LessOrEqual
+                | Operator::GreaterOrEqual
+        )
+    }
 }

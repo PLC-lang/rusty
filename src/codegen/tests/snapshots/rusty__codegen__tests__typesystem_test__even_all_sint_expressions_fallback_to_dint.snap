@@ -1,0 +1,27 @@
+---
+source: src/codegen/tests/typesystem_test.rs
+expression: result
+
+---
+; ModuleID = 'main'
+source_filename = "main"
+
+%prg_interface = type { i8, i8, i8 }
+
+@prg_instance = global %prg_interface zeroinitializer
+
+define void @prg(%prg_interface* %0) {
+entry:
+  %b = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 0
+  %c = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 1
+  %x = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 2
+  %load_b = load i8, i8* %b, align 1
+  %1 = sext i8 %load_b to i32
+  %load_c = load i8, i8* %c, align 1
+  %2 = sext i8 %load_c to i32
+  %tmpVar = add i32 %1, %2
+  %3 = trunc i32 %tmpVar to i8
+  store i8 %3, i8* %x, align 1
+  ret void
+}
+

@@ -9,59 +9,20 @@ use inkwell::{
 use crate::{
     ast::AstStatement,
     ast::SourceRange,
-    compile_error::CompileError,
+    diagnostics::Diagnostic,
     index::Index,
-    typesystem::{get_bigger_type, DataTypeInformation},
+    typesystem::{DataType, DataTypeInformation, StringEncoding},
 };
 
-use super::{generators::llvm::Llvm, llvm_index::LlvmTypedIndex, TypeAndValue};
+use super::{generators::llvm::Llvm, llvm_index::LlvmTypedIndex};
 
-pub fn promote_if_needed<'a>(
-    context: &'a Context,
-    builder: &Builder<'a>,
-    lvalue: &TypeAndValue<'a>,
-    rvalue: &TypeAndValue<'a>,
-    index: &Index,
-    llvm_index: &LlvmTypedIndex<'a>,
-) -> (DataTypeInformation, BasicValueEnum<'a>, BasicValueEnum<'a>) {
-    let (ltype, lvalue) = lvalue;
-    let (rtype, rvalue) = rvalue;
-
-    //TODO : We need better error handling here
-    let ltype = index.find_effective_type_information(ltype).unwrap();
-    let rtype = index.find_effective_type_information(rtype).unwrap();
-
-    let ltype_llvm = llvm_index.find_associated_type(ltype.get_name()).unwrap();
-    let rtype_llvm = llvm_index.find_associated_type(rtype.get_name()).unwrap();
-
-    if ltype.is_numerical() && rtype.is_numerical() {
-        if ltype_llvm == rtype_llvm {
-            (ltype.clone(), *lvalue, *rvalue)
-        } else {
-            let target_type = get_bigger_type(
-                &get_bigger_type(ltype, rtype),
-                &index.find_type_information("DINT").unwrap(),
-            );
-
-            let promoted_lvalue =
-                promote_value_if_needed(context, builder, *lvalue, ltype, &target_type);
-            let promoted_rvalue =
-                promote_value_if_needed(context, builder, *rvalue, rtype, &target_type);
-
-            (target_type, promoted_lvalue, promoted_rvalue)
-        }
-    } else {
-        panic!("Binary operations need numerical types")
-    }
-}
-
-fn promote_value_if_needed<'ctx>(
+pub fn promote_value_if_needed<'ctx>(
     context: &'ctx Context,
     builder: &Builder<'ctx>,
     lvalue: BasicValueEnum<'ctx>,
     ltype: &DataTypeInformation,
     target_type: &DataTypeInformation,
-) -> BasicValueEnum<'ctx> {
+) -> Result<BasicValueEnum<'ctx>, Diagnostic> {
     //Is the target type int
     //Expand the current type to the target size
     //Is the target type float
@@ -76,53 +37,53 @@ fn promote_value_if_needed<'ctx>(
             // INT --> INT
             let int_value = lvalue.into_int_value();
             if int_value.get_type().get_bit_width() < *target_size {
-                create_llvm_extend_int_value(
+                Ok(create_llvm_extend_int_value(
                     builder,
                     int_value,
                     ltype,
-                    get_llvm_int_type(context, *target_size, "Integer").unwrap(),
+                    get_llvm_int_type(context, *target_size, "Integer")?,
                 )
-                .into()
+                .into())
             } else {
-                lvalue
+                Ok(lvalue)
             }
         }
         DataTypeInformation::Float {
             size: target_size, ..
         } => {
-            if let DataTypeInformation::Integer { signed, .. } = ltype {
+            if lvalue.is_int_value() {
                 // INT --> FLOAT
                 let int_value = lvalue.into_int_value();
-                if *signed {
-                    builder
+                if ltype.is_signed_int() {
+                    Ok(builder
                         .build_signed_int_to_float(
                             int_value,
-                            get_llvm_float_type(context, *target_size, "Float").unwrap(),
+                            get_llvm_float_type(context, *target_size, "Float")?,
                             "",
                         )
-                        .into()
+                        .into())
                 } else {
-                    builder
+                    Ok(builder
                         .build_unsigned_int_to_float(
                             int_value,
-                            get_llvm_float_type(context, *target_size, "Float").unwrap(),
+                            get_llvm_float_type(context, *target_size, "Float")?,
                             "",
                         )
-                        .into()
+                        .into())
                 }
             } else {
                 // FLOAT --> FLOAT
                 if let DataTypeInformation::Float { size, .. } = ltype {
                     if target_size <= size {
-                        lvalue
+                        Ok(lvalue)
                     } else {
-                        builder
+                        Ok(builder
                             .build_float_ext(
                                 lvalue.into_float_value(),
-                                get_llvm_float_type(context, *target_size, "Float").unwrap(),
+                                get_llvm_float_type(context, *target_size, "Float")?,
                                 "",
                             )
-                            .into()
+                            .into())
                     }
                 } else {
                     unreachable!()
@@ -153,28 +114,22 @@ fn create_llvm_extend_int_value<'a>(
 pub fn cast_if_needed<'ctx>(
     llvm: &Llvm<'ctx>,
     index: &Index,
-    target_type: &DataTypeInformation,
+    llvm_type_index: &LlvmTypedIndex<'ctx>,
+    target_type: &DataType,
     value: BasicValueEnum<'ctx>,
-    value_type: &DataTypeInformation,
-    location_context: &AstStatement,
-) -> Result<BasicValueEnum<'ctx>, CompileError> {
+    value_type: &DataType,
+    //TODO: Could be location
+    statement: &AstStatement,
+) -> Result<BasicValueEnum<'ctx>, Diagnostic> {
     let builder = &llvm.builder;
     let target_type = index
-        .find_effective_type_information(target_type)
-        .ok_or_else(|| {
-            CompileError::codegen_error(
-                format!("Could not find primitive type for {:?}", target_type),
-                SourceRange::undefined(),
-            )
-        })?;
+        .get_intrinsic_type_by_name(target_type.get_name())
+        .get_type_information();
+
     let value_type = index
-        .find_effective_type_information(value_type)
-        .ok_or_else(|| {
-            CompileError::codegen_error(
-                format!("Could not find primitive type for {:?}", value_type),
-                SourceRange::undefined(),
-            )
-        })?;
+        .get_intrinsic_type_by_name(value_type.get_name())
+        .get_type_information();
+
     match target_type {
         DataTypeInformation::Integer {
             signed,
@@ -189,19 +144,20 @@ pub fn cast_if_needed<'ctx>(
                             .builder
                             .build_int_truncate_or_bit_cast(
                                 value.into_int_value(),
-                                get_llvm_int_type(llvm.context, *lsize, "Integer").unwrap(),
+                                get_llvm_int_type(llvm.context, *lsize, "Integer")?,
                                 "",
                             )
                             .into())
                     } else {
                         //Expand
-                        Ok(promote_value_if_needed(
+                        promote_value_if_needed(
                             llvm.context,
                             &llvm.builder,
                             value,
                             value_type,
                             target_type,
-                        ))
+                        )
+                        .map_err(|it| Diagnostic::relocate(it, statement.get_location()))
                     }
                 }
                 DataTypeInformation::Float { size: _rsize, .. } => {
@@ -210,7 +166,7 @@ pub fn cast_if_needed<'ctx>(
                             .builder
                             .build_float_to_signed_int(
                                 value.into_float_value(),
-                                get_llvm_int_type(llvm.context, *lsize, "Integer").unwrap(),
+                                get_llvm_int_type(llvm.context, *lsize, "Integer")?,
                                 "",
                             )
                             .into())
@@ -218,19 +174,49 @@ pub fn cast_if_needed<'ctx>(
                         Ok(builder
                             .build_float_to_unsigned_int(
                                 value.into_float_value(),
-                                get_llvm_int_type(llvm.context, *lsize, "Integer").unwrap(),
+                                get_llvm_int_type(llvm.context, *lsize, "Integer")?,
                                 "",
                             )
                             .into())
                     }
                 }
-                _ => Err(CompileError::casting_error(
+                DataTypeInformation::String { encoding, .. } => {
+                    if (*lsize == 8 && matches!(encoding, StringEncoding::Utf16))
+                        || (*lsize == 16 && matches!(encoding, StringEncoding::Utf8))
+                    {
+                        return Err(Diagnostic::casting_error(
+                            value_type.get_name(),
+                            target_type.get_name(),
+                            statement.get_location(),
+                        ));
+                    };
+                    Ok(llvm
+                        .builder
+                        .build_int_truncate_or_bit_cast(
+                            value.into_int_value(),
+                            get_llvm_int_type(llvm.context, *lsize, "Integer").unwrap(),
+                            "",
+                        )
+                        .into())
+                }
+                DataTypeInformation::Pointer {
+                    auto_deref: false, ..
+                } => Ok(llvm
+                    .builder
+                    .build_ptr_to_int(
+                        value.into_pointer_value(),
+                        get_llvm_int_type(llvm.context, *lsize, "")?,
+                        "",
+                    )
+                    .into()),
+                _ => Err(Diagnostic::casting_error(
                     value_type.get_name(),
                     target_type.get_name(),
-                    location_context.get_location(),
+                    statement.get_location(),
                 )),
             }
         }
+
         DataTypeInformation::Float {
             // generated_type,
             size: lsize,
@@ -241,7 +227,7 @@ pub fn cast_if_needed<'ctx>(
                     Ok(builder
                         .build_signed_int_to_float(
                             value.into_int_value(),
-                            get_llvm_float_type(llvm.context, *lsize, "Float").unwrap(),
+                            get_llvm_float_type(llvm.context, *lsize, "Float")?,
                             "",
                         )
                         .into())
@@ -249,7 +235,7 @@ pub fn cast_if_needed<'ctx>(
                     Ok(builder
                         .build_unsigned_int_to_float(
                             value.into_int_value(),
-                            get_llvm_float_type(llvm.context, *lsize, "Float").unwrap(),
+                            get_llvm_float_type(llvm.context, *lsize, "Float")?,
                             "",
                         )
                         .into())
@@ -260,61 +246,119 @@ pub fn cast_if_needed<'ctx>(
                     Ok(builder
                         .build_float_trunc(
                             value.into_float_value(),
-                            get_llvm_float_type(llvm.context, *lsize, "Float").unwrap(),
+                            get_llvm_float_type(llvm.context, *lsize, "Float")?,
                             "",
                         )
                         .into())
                 } else {
-                    Ok(promote_value_if_needed(
+                    promote_value_if_needed(
                         llvm.context,
                         &llvm.builder,
                         value,
                         value_type,
                         target_type,
-                    ))
+                    )
+                    .map_err(|it| Diagnostic::relocate(it, statement.get_location()))
                 }
             }
-            _ => Err(CompileError::casting_error(
+            _ => Err(Diagnostic::casting_error(
                 value_type.get_name(),
                 target_type.get_name(),
-                location_context.get_location(),
+                statement.get_location(),
             )),
         },
-        DataTypeInformation::String { size, .. } => match value_type {
+        DataTypeInformation::String { size, encoding } => match value_type {
             DataTypeInformation::String {
-                size: value_size, ..
+                size: value_size,
+                encoding: value_encoding,
             } => {
-                let size = size
-                    .as_int_value(index)
-                    .map_err(|msg| CompileError::codegen_error(msg, SourceRange::undefined()))?
-                    as u32;
-                let value_size = value_size
-                    .as_int_value(index)
-                    .map_err(|msg| CompileError::codegen_error(msg, SourceRange::undefined()))?
-                    as u32;
+                if encoding != value_encoding {
+                    return Err(Diagnostic::casting_error(
+                        value_type.get_name(),
+                        target_type.get_name(),
+                        statement.get_location(),
+                    ));
+                }
+                let size = size.as_int_value(index).map_err(|msg| {
+                    Diagnostic::codegen_error(msg.as_str(), SourceRange::undefined())
+                })? as u32;
+                let value_size = value_size.as_int_value(index).map_err(|msg| {
+                    Diagnostic::codegen_error(msg.as_str(), SourceRange::undefined())
+                })? as u32;
+
                 if size < value_size {
-                    //if we are on a vector replace it
-                    if value.is_vector_value() {
-                        let vec_value = value.into_vector_value();
-                        let string_value = vec_value.get_string_constant().to_bytes();
-                        let new_value = &string_value[0..(size - 1) as usize];
-                        let (_, value) = llvm.create_llvm_const_vec_string(new_value)?;
+                    //we need to downcast the size of the string
+                    //check if it's a literal, if so we can exactly know how big this is
+                    if let AstStatement::LiteralString {
+                        is_wide,
+                        value: string_value,
+                        ..
+                    } = statement
+                    {
+                        let value = if *is_wide {
+                            let mut chars = string_value.encode_utf16().collect::<Vec<u16>>();
+                            //We add a null terminator since the llvm command will not account for
+                            //it
+                            chars.push(0);
+                            let total_bytes_to_copy = std::cmp::min(size, chars.len() as u32);
+                            let new_value = &chars[0..(total_bytes_to_copy) as usize];
+                            llvm.create_llvm_const_utf16_vec_string(new_value)?
+                        } else {
+                            let bytes = string_value.bytes().collect::<Vec<u8>>();
+                            let total_bytes_to_copy = std::cmp::min(size - 1, bytes.len() as u32);
+                            let new_value = &bytes[0..total_bytes_to_copy as usize];
+                            //This accounts for a null terminator, hence we don't add it here.
+                            llvm.create_llvm_const_vec_string(new_value)?
+                        };
                         Ok(value)
                     } else {
-                        Err(CompileError::casting_error(
-                            value_type.get_name(),
-                            target_type.get_name(),
-                            location_context.get_location(),
-                        ))
+                        //if we are on a vector replace it
+                        if value.is_vector_value() {
+                            let vec_value = value.into_vector_value();
+                            let string_value = vec_value.get_string_constant().to_bytes();
+                            let real_size = std::cmp::min(size, (string_value.len() + 1) as u32);
+                            if real_size < value_size {
+                                let new_value = &string_value[0..(real_size - 1) as usize];
+                                let value = llvm.create_llvm_const_vec_string(new_value)?;
+                                Ok(value)
+                            } else {
+                                Ok(value)
+                            }
+                        } else {
+                            Ok(value) //Don't break, just don't cast
+                        }
                     }
                 } else {
                     Ok(value)
                 }
             }
-            _ => Err(CompileError::casting_error(
+            _ => Err(Diagnostic::casting_error(
                 value_type.get_name(),
                 target_type.get_name(),
-                location_context.get_location(),
+                statement.get_location(),
+            )),
+        },
+        DataTypeInformation::Pointer {
+            auto_deref: false, ..
+        } => match value_type {
+            DataTypeInformation::Integer { .. } => Ok(llvm
+                .builder
+                .build_int_to_ptr(
+                    value.into_int_value(),
+                    llvm_type_index
+                        .get_associated_type(target_type.get_name())?
+                        .into_pointer_type(),
+                    "",
+                )
+                .into()),
+            DataTypeInformation::Pointer { .. } | DataTypeInformation::Void { .. } => {
+                //this is ok, no cast required
+                Ok(value)
+            }
+            _ => Err(Diagnostic::casting_error(
+                value_type.get_name(),
+                target_type.get_name(),
+                statement.get_location(),
             )),
         },
         _ => Ok(value),
@@ -325,7 +369,7 @@ pub fn get_llvm_int_type<'a>(
     context: &'a Context,
     size: u32,
     name: &str,
-) -> Result<IntType<'a>, CompileError> {
+) -> Result<IntType<'a>, Diagnostic> {
     match size {
         1 => Ok(context.bool_type()),
         8 => Ok(context.i8_type()),
@@ -333,8 +377,8 @@ pub fn get_llvm_int_type<'a>(
         32 => Ok(context.i32_type()),
         64 => Ok(context.i64_type()),
         128 => Ok(context.i128_type()),
-        _ => Err(CompileError::codegen_error(
-            format!("Invalid size for type : '{}' at {}", name, size),
+        _ => Err(Diagnostic::codegen_error(
+            &format!("Invalid size for type : '{}' at {}", name, size),
             SourceRange::undefined(),
         )),
     }
@@ -344,12 +388,12 @@ pub fn get_llvm_float_type<'a>(
     context: &'a Context,
     size: u32,
     name: &str,
-) -> Result<FloatType<'a>, CompileError> {
+) -> Result<FloatType<'a>, Diagnostic> {
     match size {
         32 => Ok(context.f32_type()),
         64 => Ok(context.f64_type()),
-        _ => Err(CompileError::codegen_error(
-            format!("Invalid size for type : '{}' at {}", name, size),
+        _ => Err(Diagnostic::codegen_error(
+            &format!("Invalid size for type : '{}' at {}", name, size),
             SourceRange::undefined(),
         )),
     }

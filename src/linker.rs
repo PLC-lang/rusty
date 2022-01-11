@@ -1,6 +1,7 @@
 // This file is based on code from the Mun Programming Language
 // https://github.com/mun-lang/mun
 
+use crate::diagnostics::Diagnostic;
 use std::path::{Path, PathBuf};
 
 pub struct Linker {
@@ -16,6 +17,7 @@ trait LinkerInterface {
     fn add_sysroot(&mut self, path: &str);
     fn build_shared_object(&mut self, path: &str);
     fn build_exectuable(&mut self, path: &str);
+    fn build_relocatable(&mut self, path: &str);
     fn finalize(&mut self) -> Result<(), LinkerError>;
 }
 
@@ -34,10 +36,8 @@ impl Linker {
     }
 
     /// Add an object file or static library to linker input
-    pub fn add_obj<'a>(&'a mut self, file: &Path) -> &'a mut Self {
-        if let Some(file) = self.get_str_from_path(file) {
-            self.linker.add_obj(file);
-        }
+    pub fn add_obj<'a>(&'a mut self, path: &str) -> &'a mut Self {
+        self.linker.add_obj(path);
         self
     }
 
@@ -47,7 +47,7 @@ impl Linker {
         self
     }
 
-    /// Add a library seaBoxh path to look in for libraries
+    /// Add a library path to look in for libraries
     pub fn add_lib<'a>(&'a mut self, path: &str) -> &'a mut Self {
         self.linker.add_lib(path);
         self
@@ -72,6 +72,15 @@ impl Linker {
     pub fn build_exectuable(&mut self, path: &Path) -> Result<(), LinkerError> {
         if let Some(file) = self.get_str_from_path(path) {
             self.linker.build_exectuable(file);
+            self.linker.finalize()?;
+        }
+        Ok(())
+    }
+
+    /// Set the output file and run the linker to generate a relocatable object for further linking
+    pub fn build_relocatable(&mut self, path: &Path) -> Result<(), LinkerError> {
+        if let Some(file) = self.get_str_from_path(path) {
+            self.linker.build_relocatable(file);
             self.linker.finalize()?;
         }
         Ok(())
@@ -131,9 +140,14 @@ impl LinkerInterface for LdLinker {
         self.args.push(path.into());
     }
 
+    fn build_relocatable(&mut self, path: &str) {
+        self.args.push("-relocatable".into());
+        self.args.push("-o".into());
+        self.args.push(path.into());
+    }
+
     fn finalize(&mut self) -> Result<(), LinkerError> {
-        println!("{:?}", self.args);
-        mun_lld::link(mun_lld::LldFlavor::Elf, &self.args)
+        lld_rs::link(lld_rs::LldFlavor::Elf, &self.args)
             .ok()
             .map_err(LinkerError::Link)
     }
@@ -183,16 +197,18 @@ pub enum LinkerError {
     Path(PathBuf),
 }
 
-impl From<LinkerError> for String {
+impl From<LinkerError> for Diagnostic {
     fn from(error: LinkerError) -> Self {
         match error {
-            LinkerError::Link(e) => e,
-            LinkerError::Path(path) => {
-                format!("path contains invalid UTF-8 characters: {}", path.display())
-            }
-            LinkerError::Target(tgt) => {
-                format!("linker not available for target platform: {}", tgt)
-            }
+            LinkerError::Link(e) => Diagnostic::link_error(&e),
+            LinkerError::Path(path) => Diagnostic::link_error(&format!(
+                "path contains invalid UTF-8 characters: {}",
+                path.display()
+            )),
+            LinkerError::Target(tgt) => Diagnostic::link_error(&format!(
+                "linker not available for target platform: {}",
+                tgt
+            )),
         }
     }
 }
@@ -207,25 +223,4 @@ fn creation_test() {
     } else {
         panic!("Linker target should have returned an error!");
     }
-}
-
-#[test]
-fn linker_error_test() {
-    let msg = "error message";
-    let link_err = LinkerError::Link(msg.into());
-    assert_eq!(String::from(link_err), msg.to_string());
-
-    let path = "/abc/def";
-    let link_err = LinkerError::Path(path.into());
-    assert_eq!(
-        String::from(link_err),
-        format!("path contains invalid UTF-8 characters: {}", path)
-    );
-
-    let target = "redox";
-    let link_err = LinkerError::Target(target.into());
-    assert_eq!(
-        String::from(link_err),
-        format!("linker not available for target platform: {}", target)
-    );
 }

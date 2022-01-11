@@ -4,12 +4,17 @@
 vendor=0
 offline=0
 check=0
+check_style=0
 build=0
+doc=0
+test=0
+coverage=0
 release=0
 debug=0
 container=0
-build_container=0
 assume_linux=0
+
+CONTAINER_NAME='rust-llvm'
 
 source "${BASH_SOURCE%/*}/common.sh"
 
@@ -27,6 +32,29 @@ function set_cargo_options() {
 		CARGO_OPTIONS="$CARGO_OPTIONS --frozen"
 	fi
 	echo "$CARGO_OPTIONS"
+}
+
+function run_coverage() {
+	CARGO_OPTIONS="+nightly"
+	log "Exporting Flags"
+	export RUSTFLAGS="-Zinstrument-coverage"
+	export LLVM_PROFILE_FILE="rusty-%p-%m.profraw"
+
+	log "Cleaning before build"
+	cargo clean
+	log "Building coverage"
+	cargo $CARGO_OPTIONS build
+	log "Running coverage tests"
+	cargo $CARGO_OPTIONS test
+	log "Collecting coverage results"
+	grcov . --binary-path ./target/debug/ -s . -t lcov --branch \
+		--ignore "/*" \
+		--ignore "src/main.rs" \
+		--ignore "src/*/tests.rs" \
+		--ignore "src/*/tests/*" \
+		--ignore "tests/*" \
+		--ignore "src/lexer/tokens.rs" \
+		--ignore-not-existing -o lcov.info
 }
 
 
@@ -48,12 +76,31 @@ function run_build() {
 	fi
 }
 
-function check() {
+function run_check() {
+	CARGO_OPTIONS=$(set_cargo_options)
+  log "Running cargo check"
+	cargo check $CARGO_OPTIONS 
+}
+
+function run_doc() {
+	CARGO_OPTIONS=$(set_cargo_options)
+  log "Running cargo doc"
+	cargo doc $CARGO_OPTIONS 
+	log "Building book"
+	cd book && mdbook build && mdbook test
+}
+
+function run_check_style() {
 	CARGO_OPTIONS=$(set_cargo_options)
   log "Running cargo clippy"
 	cargo clippy $CARGO_OPTIONS -- -Dwarnings
   log "Running cargo fmt check"
 	cargo fmt -- --check
+}
+
+function run_test() {
+	CARGO_OPTIONS=$(set_cargo_options)
+	log "Running cargo test"
 	cargo test $CARGO_OPTIONS
 }
 
@@ -87,11 +134,23 @@ function run_in_container() {
 	if [[ $check -ne 0 ]]; then
 		params="$params --check"
 	fi
+	if [[ $check_style -ne 0 ]]; then
+		params="$params --check-style"
+	fi
 	if [[ $build -ne 0 ]]; then
 		params="$params --build"
 	fi
 	if [[ $release -ne 0 ]]; then
 		params="$params --release"
+	fi
+	if [[ $coverage -ne 0 ]]; then
+		params="$params --coverage"
+	fi
+	if [[ $test -ne 0 ]]; then
+		params="$params --test"
+	fi
+	if [[ $doc -ne 0 ]]; then
+		params="$params --doc"
 	fi
 
 	volume_target="/build"
@@ -111,36 +170,16 @@ function run_in_container() {
 	build_location=$(sanitize_path "$project_location")
 	log "Sanitized Project location : $project_location"
 
-	command_to_run="$container_engine run -it -v $build_location:$volume_target rust-llvm  scripts/build.sh $params"
+	command_to_run="$container_engine run -v $build_location:$volume_target $CONTAINER_NAME scripts/build.sh $params"
 	log "Running command : $command_to_run"
 	eval "$command_to_run"
 }
-
-function build_docker_file() {
-	container_engine=$(get_container_engine)
-	if [[ $assume_linux -ne 0 ]]; then
-		os=linux
-	else
-		unameOut="$(uname -s)"
-		case "${unameOut}" in
-				Linux*)
-						os=linux
-						;;
-				MINGW* | cygwin*)     
-						os=windows
-						;;
-		esac
-	fi
-	docker_file_location="$project_location/docker-build/$os"
-	$container_engine build "$docker_file_location" -t rust-llvm
-}
-
 
 # More safety, by turning some bugs into errors.
 set -o errexit -o pipefail -o noclobber -o nounset
 
 OPTIONS=sorbvc
-LONGOPTS=sources,offline,release,check,build,verbose,container,build-container,linux
+LONGOPTS=sources,offline,release,check,check-style,build,doc,test,verbose,container,linux,container-name:,coverage
 
 check_env 
 # -activate quoting/enhanced mode (e.g. by writing out “--options”)
@@ -157,39 +196,43 @@ while true; do
 		case "$1" in
 			-s|--sources)
 					vendor=1
-					shift
 					;;
 			-o|--offline)
 					offline=1
-					shift 
 					;;
 			-r|--release)
 					release=1
-					shift
 					;;
 			-v|--verbose)
 					debug=1
-					shift
 					;;
 			-c|--container)
 					container=1
-					shift
 					;;
-			--build-container)
-					build_container=1
-					shift
+			--container-name)
+					shift;
+					CONTAINER_NAME=$1
 					;;
 			--linux)
 					assume_linux=1
-					shift
+					;;
+			--check-style)
+				  check_style=1
+					;;
+			--doc)
+					doc=1
 					;;
 			--check)
 				  check=1
-					shift
 					;;
 			-b|--build)
 				  build=1
-					shift
+					;;
+			--test)
+				  test=1
+					;;
+			--coverage)
+					coverage=1
 					;;
 			--)
 					shift
@@ -200,6 +243,7 @@ while true; do
 					exit 3
 					;;
 		esac
+		shift
 done
 
 project_location=$(find_project_root)
@@ -213,16 +257,10 @@ if [[ $container -ne 0 ]]; then
 	exit 0
 fi
 
-if [[ $build_container -ne 0 ]]; then
-	build_docker_file
-	exit 0
-fi
-
 if [[ $vendor -ne 0 ]]; then
 	generate_sources
 	exit 0
 fi
-
 
 if [[ $offline -ne 0 ]]; then
 	BUILD_DIR=$project_location/build
@@ -233,21 +271,38 @@ if [[ $offline -ne 0 ]]; then
 fi
 
 if [[ $check -ne 0 ]]; then
-  check
-	if [[ $build -ne 0 ]]; then
-		run_build
-	fi
-	exit 0
+  run_check
+fi
+
+if [[ $check_style -ne 0 ]]; then
+  run_check_style
 fi
 
 if [[ $build -ne 0 ]]; then
   run_build
-	exit 0
 fi
 
-log "Removing temporary build directory : $BUILD_DIR"
-rm -rf "$BUILD_DIR"
+if [[ $test -ne 0 ]]; then
+  run_test
+fi
 
+if [[ $doc -ne 0 ]]; then
+	run_doc
+fi
+
+if [[ $coverage -ne 0 ]]; then
+  run_coverage
+fi
+
+if [[ -d $project_location/target/ ]]; then
+	log "Allow access to target folders"
+	chmod a+rw -R $project_location/target/
+fi
+
+if [[ $offline -ne 0 ]]; then
+	log "Removing temporary build directory : $BUILD_DIR"
+	rm -rf "$BUILD_DIR"
+fi
 
 echo "Done"
 echo "======================================"

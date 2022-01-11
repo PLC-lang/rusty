@@ -1,0 +1,98 @@
+---
+source: src/codegen/tests/expression_tests.rs
+assertion_line: 207
+expression: result
+
+---
+; ModuleID = 'main'
+source_filename = "main"
+
+%STRING_GREATER_interface = type { [1025 x i8], [1025 x i8] }
+%STRING_EQUAL_interface = type { [1025 x i8], [1025 x i8] }
+%baz_interface = type { [81 x i8], [81 x i8], i1 }
+
+define i1 @STRING_GREATER(%STRING_GREATER_interface* %0) {
+entry:
+  %op1 = getelementptr inbounds %STRING_GREATER_interface, %STRING_GREATER_interface* %0, i32 0, i32 0
+  %op2 = getelementptr inbounds %STRING_GREATER_interface, %STRING_GREATER_interface* %0, i32 0, i32 1
+  %STRING_GREATER = alloca i1, align 1
+  %STRING_GREATER_ret = load i1, i1* %STRING_GREATER, align 1
+  ret i1 %STRING_GREATER_ret
+}
+
+define i1 @STRING_EQUAL(%STRING_EQUAL_interface* %0) {
+entry:
+  %op1 = getelementptr inbounds %STRING_EQUAL_interface, %STRING_EQUAL_interface* %0, i32 0, i32 0
+  %op2 = getelementptr inbounds %STRING_EQUAL_interface, %STRING_EQUAL_interface* %0, i32 0, i32 1
+  %STRING_EQUAL = alloca i1, align 1
+  %STRING_EQUAL_ret = load i1, i1* %STRING_EQUAL, align 1
+  ret i1 %STRING_EQUAL_ret
+}
+
+define i16 @baz(%baz_interface* %0) {
+entry:
+  %a = getelementptr inbounds %baz_interface, %baz_interface* %0, i32 0, i32 0
+  %b = getelementptr inbounds %baz_interface, %baz_interface* %0, i32 0, i32 1
+  %result = getelementptr inbounds %baz_interface, %baz_interface* %0, i32 0, i32 2
+  %baz = alloca i16, align 2
+  %1 = bitcast [81 x i8]* %a to i8*
+  call void @llvm.memset.p0i8.i64(i8* align 1 %1, i8 0, i64 mul nuw (i64 ptrtoint (i8* getelementptr (i8, i8* null, i32 1) to i64), i64 81), i1 false)
+  %2 = bitcast [81 x i8]* %b to i8*
+  call void @llvm.memset.p0i8.i64(i8* align 1 %2, i8 0, i64 mul nuw (i64 ptrtoint (i8* getelementptr (i8, i8* null, i32 1) to i64), i64 81), i1 false)
+  store i1 false, i1* %result, align 1
+  %STRING_EQUAL_instance = alloca %STRING_EQUAL_interface, align 8
+  br label %input
+
+3:                                                ; preds = %continue
+  %STRING_GREATER_instance = alloca %STRING_GREATER_interface, align 8
+  br label %input2
+
+4:                                                ; preds = %continue5, %continue
+  %5 = phi i1 [ %call1, %continue ], [ %call7, %continue5 ]
+  store i1 %5, i1* %result, align 1
+  %baz_ret = load i16, i16* %baz, align 2
+  ret i16 %baz_ret
+
+input:                                            ; preds = %entry
+  %6 = getelementptr inbounds %STRING_EQUAL_interface, %STRING_EQUAL_interface* %STRING_EQUAL_instance, i32 0, i32 0
+  %load_a = load [81 x i8], [81 x i8]* %a, align 1
+  store [81 x i8] %load_a, [1025 x i8]* %6, align 1
+  %7 = getelementptr inbounds %STRING_EQUAL_interface, %STRING_EQUAL_interface* %STRING_EQUAL_instance, i32 0, i32 1
+  store [2 x i8] c"b\00", [1025 x i8]* %7, align 1
+  br label %call
+
+call:                                             ; preds = %input
+  %call1 = call i1 @STRING_EQUAL(%STRING_EQUAL_interface* %STRING_EQUAL_instance)
+  br label %output
+
+output:                                           ; preds = %call
+  br label %continue
+
+continue:                                         ; preds = %output
+  %8 = icmp ne i1 %call1, false
+  br i1 %8, label %4, label %3
+
+input2:                                           ; preds = %3
+  %9 = getelementptr inbounds %STRING_GREATER_interface, %STRING_GREATER_interface* %STRING_GREATER_instance, i32 0, i32 0
+  %load_a6 = load [81 x i8], [81 x i8]* %a, align 1
+  store [81 x i8] %load_a6, [1025 x i8]* %9, align 1
+  %10 = getelementptr inbounds %STRING_GREATER_interface, %STRING_GREATER_interface* %STRING_GREATER_instance, i32 0, i32 1
+  store [2 x i8] c"b\00", [1025 x i8]* %10, align 1
+  br label %call3
+
+call3:                                            ; preds = %input2
+  %call7 = call i1 @STRING_GREATER(%STRING_GREATER_interface* %STRING_GREATER_instance)
+  br label %output4
+
+output4:                                          ; preds = %call3
+  br label %continue5
+
+continue5:                                        ; preds = %output4
+  br label %4
+}
+
+; Function Attrs: argmemonly nofree nosync nounwind willreturn writeonly
+declare void @llvm.memset.p0i8.i64(i8* nocapture writeonly, i8, i64, i1 immarg) #0
+
+attributes #0 = { argmemonly nofree nosync nounwind willreturn writeonly }
+
