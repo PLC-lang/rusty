@@ -423,9 +423,15 @@ pub fn compile_module<'c, T: SourceContainer>(
 
         let mut validator = Validator::new();
         validator.visit_unit(&annotations, &full_index, &unit);
-        //log errors
-        diagnostician.handle(syntax_errors, file_id);
-        diagnostician.handle(validator.diagnostics(), file_id);
+
+        let validator_diagnostics = validator.diagnostics();
+        if has_errors(&mut syntax_errors.iter()) || has_errors(&mut validator_diagnostics.iter()) {
+            //log errors
+            diagnostician.handle(syntax_errors, file_id);
+            diagnostician.handle(validator_diagnostics, file_id);
+            // continue if we have syntax errors to skip adding unit to annotated_units -> won't trigger codegen
+            continue;
+        }
 
         annotated_units.push(unit);
         all_annotations.import(annotations);
@@ -445,6 +451,10 @@ pub fn compile_module<'c, T: SourceContainer>(
         code_generator.generate(&unit, &annotations, &full_index, &llvm_index)?;
     }
     Ok(code_generator)
+}
+
+fn has_errors(diagnostics: &mut std::slice::Iter<Diagnostic>) -> bool {
+    diagnostics.any(|d| matches!(d, Diagnostic::SyntaxError { .. }))
 }
 
 fn create_file_paths(inputs: &[String]) -> Result<Vec<FilePath>, Diagnostic> {
