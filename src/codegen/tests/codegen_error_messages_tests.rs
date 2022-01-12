@@ -437,3 +437,95 @@ fn assigning_empty_string_literal_to_wide_char_results_in_error() {
         panic!("expected code-gen error but got none")
     }
 }
+
+#[test]
+fn pointer_binary_expression_adding_two_pointers() {
+    let result = codegen_without_unwrap(
+        r#"
+	PROGRAM mainProg
+	VAR
+		x : INT;
+		ptr : REF_TO INT;
+	END_VAR
+		ptr := &(x);
+		ptr := ptr + ptr;
+	END_PROGRAM"#,
+    );
+    if let Err(msg) = result {
+        assert_eq!(
+            Diagnostic::codegen_error("'+' operation must contain one int type", (88..97).into()),
+            msg
+        )
+    } else {
+        panic!("expected code-gen error but got none")
+    }
+}
+
+#[test]
+fn pointer_binary_expression_multiplication() {
+    let result = codegen_without_unwrap(
+        r#"
+	PROGRAM mainProg
+	VAR
+		x : INT;
+		ptr : REF_TO INT;
+	END_VAR
+		ptr := &(x);
+		ptr := ptr * ptr;
+	END_PROGRAM"#,
+    );
+    if let Err(msg) = result {
+        assert_eq!(
+            Diagnostic::codegen_error("Operator '*' unimplemented for pointers", (88..97).into()),
+            msg
+        )
+    } else {
+        panic!("expected code-gen error but got none")
+    }
+}
+
+#[test]
+fn pointer_binary_expression_division() {
+    let result = codegen_without_unwrap(
+        r#"
+	PROGRAM mainProg
+	VAR
+		x : INT;
+		ptr : REF_TO INT;
+	END_VAR
+		ptr := &(x);
+		ptr := ptr / ptr;
+	END_PROGRAM"#,
+    );
+    if let Err(msg) = result {
+        assert_eq!(
+            Diagnostic::codegen_error("Operator '/' unimplemented for pointers", (88..97).into()),
+            msg
+        )
+    } else {
+        panic!("expected code-gen error but got none")
+    }
+}
+
+#[test]
+fn pointer_binary_expression_modulo() {
+    let result = codegen_without_unwrap(
+        r#"
+	PROGRAM mainProg
+	VAR
+		x : INT;
+		ptr : REF_TO INT;
+	END_VAR
+		ptr := &(x);
+		ptr := ptr MOD ptr;
+	END_PROGRAM"#,
+    );
+    if let Err(msg) = result {
+        assert_eq!(
+            Diagnostic::codegen_error("Operator 'MOD' unimplemented for pointers", (88..99).into()),
+            msg
+        )
+    } else {
+        panic!("expected code-gen error but got none")
+    }
+}

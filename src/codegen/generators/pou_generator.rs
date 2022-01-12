@@ -9,7 +9,7 @@ use crate::{
     ast::Pou,
     codegen::llvm_index::LlvmTypedIndex,
     diagnostics::{Diagnostic, INTERNAL_LLVM_ERROR},
-    index::ImplementationType,
+    index::{self, ImplementationType},
     resolver::AstAnnotations,
 };
 
@@ -24,7 +24,7 @@ use crate::{
     ast::{Implementation, PouType, SourceRange},
     index::Index,
 };
-use inkwell::types::StructType;
+use inkwell::types::{BasicType, StructType};
 use inkwell::{
     module::Module,
     types::{BasicMetadataTypeEnum, BasicTypeEnum, FunctionType},
@@ -59,6 +59,74 @@ pub fn generate_implementation_stubs<'ink>(
     }
 
     Ok(llvm_index)
+}
+
+///Generates a global constant for each initialized pou member
+/// The given constant can then be used to initialize the variable using memcpy without re-evaluating the expression
+/// Retrieves the POUs from the index (implementation)
+/// Returns a new LLVM index to be merged with the parent codegen index.
+pub fn generate_global_constants_for_pou_members<'ink>(
+    module: &Module<'ink>,
+    llvm: Llvm<'ink>,
+    index: &Index,
+    annotations: &AstAnnotations,
+    llvm_index: &LlvmTypedIndex<'ink>,
+) -> Result<LlvmTypedIndex<'ink>, Diagnostic> {
+    let mut local_llvm_index = LlvmTypedIndex::default();
+    for (_, implementation) in index.get_implementations() {
+        let type_name = implementation.get_type_name();
+        let pou_members = index.get_container_members(type_name);
+        let variables = pou_members
+            .iter()
+            .filter(|it| it.is_local() || it.is_temp())
+            .filter(|it| {
+                let var_type = index
+                    .get_effective_type_by_name(it.get_type_name())
+                    .get_type_information();
+                var_type.is_struct() || var_type.is_array() || var_type.is_string()
+            });
+        let exp_gen =
+            ExpressionCodeGenerator::new_context_free(&llvm, index, annotations, llvm_index);
+        for variable in variables {
+            let name = index::get_initializer_name(variable.get_qualified_name());
+            let right_stmt = match variable.initial_value {
+                Some(..) => Some(
+                    index
+                        .get_const_expressions()
+                        .maybe_get_constant_statement(&variable.initial_value)
+                        .ok_or_else(|| {
+                            Diagnostic::cannot_generate_initializer(
+                                variable.get_qualified_name(),
+                                variable.source_location.clone(),
+                            )
+                        })?,
+                ),
+                None => None,
+            };
+
+            if let Some(stmt) = right_stmt {
+                if llvm_index.find_global_value(&name).is_none() {
+                    //Get either a global initial value for the constant (For arrays) and copy it,
+                    let value = if let Some(value) =
+                        llvm_index.find_associated_initial_value(variable.get_qualified_name())
+                    {
+                        value
+                    } else {
+                        exp_gen.generate_expression(stmt)?
+                    };
+                    let variable_type = llvm_index.get_associated_type(variable.get_type_name())?;
+                    let global_value = llvm.create_constant_global_variable(
+                        module,
+                        &name,
+                        variable_type,
+                        Some(value),
+                    );
+                    local_llvm_index.associate_global(&name, global_value)?;
+                }
+            }
+        }
+    }
+    Ok(local_llvm_index)
 }
 
 impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
@@ -256,7 +324,9 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         members: &[&VariableIndexEntry],
     ) -> Result<(), Diagnostic> {
         //Generate reference to parameter
-        for (i, m) in members.iter().enumerate() {
+        // cannot use index from members because return and temp variables may not be considered for index in build_struct_gep
+        let mut var_count = 0;
+        for m in members.iter() {
             let parameter_name = m.get_name();
 
             let (name, variable) = if m.is_return() {
@@ -277,13 +347,15 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                     .map(BasicValueEnum::into_pointer_value)
                     .ok_or_else(|| Diagnostic::missing_function(m.source_location.clone()))?;
 
-                (
-                    parameter_name,
-                    self.llvm
-                        .builder
-                        .build_struct_gep(ptr_value, i as u32, parameter_name)
-                        .expect(INTERNAL_LLVM_ERROR),
-                )
+                let ptr = self
+                    .llvm
+                    .builder
+                    .build_struct_gep(ptr_value, var_count as u32, parameter_name)
+                    .expect(INTERNAL_LLVM_ERROR);
+
+                var_count += 1;
+
+                (parameter_name, ptr)
             };
 
             index.associate_loaded_local_variable(type_name, name, variable)?;
@@ -330,21 +402,64 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                     None => None,
                 };
 
-                let right_exp = match right_stmt {
-                    Some(stmt) => exp_gen.generate_expression(stmt)?,
-                    None => self
-                        .llvm_index
-                        .find_associated_type(variable.get_type_name())
-                        .map(get_default_for)
-                        .ok_or_else(|| {
-                            Diagnostic::cannot_generate_initializer(
-                                variable.get_qualified_name(),
-                                variable.source_location.clone(),
-                            )
-                        })?,
-                };
-
-                self.llvm.builder.build_store(left, right_exp);
+                // for initializations we might have a global variable with the initial values
+                // the idea is to memcpy the global variable
+                let size = self
+                    .llvm_index
+                    .find_associated_type(variable.get_type_name())
+                    .and_then(|associated_type| associated_type.size_of())
+                    .ok_or("Couldn't determine type size");
+                //First try to get a saved global constant
+                let name = index::get_initializer_name(variable.get_qualified_name());
+                let type_init_name = index::get_initializer_name(variable.get_type_name());
+                if let Some(global_value) = self
+                    .llvm_index
+                    .find_global_value(&name)
+                    .or_else(|| self.llvm_index.find_global_value(&type_init_name))
+                {
+                    size.and_then(|size| {
+                        let alignment = std::cmp::max(1, global_value.get_alignment()); //TODO: This seems to always be 0
+                        self.llvm.builder.build_memcpy(
+                            left,
+                            alignment,
+                            global_value.as_pointer_value(),
+                            alignment,
+                            size,
+                        )
+                    })
+                    .map_err(|err| {
+                        Diagnostic::codegen_error(err, variable.source_location.clone())
+                    })?;
+                } else if left.get_type().get_element_type().is_array_type() {
+                    //If nothint was found see if this is an array to set its value to 0
+                    size.and_then(|size| {
+                        self.llvm.builder.build_memset(
+                            left,
+                            1,
+                            self.llvm.context.i8_type().const_zero(),
+                            size,
+                        )
+                    })
+                    .map_err(|it| {
+                        Diagnostic::codegen_error(it, variable.source_location.clone())
+                    })?;
+                } else {
+                    //Otherwise just generate a store expression
+                    let value = if let Some(stmt) = right_stmt {
+                        exp_gen.generate_expression(stmt)
+                    } else {
+                        self.llvm_index
+                            .find_associated_type(variable.get_type_name())
+                            .map(get_default_for)
+                            .ok_or_else(|| {
+                                Diagnostic::cannot_generate_initializer(
+                                    variable.get_qualified_name(),
+                                    variable.source_location.clone(),
+                                )
+                            })
+                    }?;
+                    self.llvm.builder.build_store(left, value);
+                }
             } else {
                 return Err(Diagnostic::cannot_generate_initializer(
                     variable.get_qualified_name(),

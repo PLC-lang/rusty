@@ -301,3 +301,73 @@ fn cast_lword_to_pointer() {
     //should result in normal number-comparisons
     insta::assert_snapshot!(result);
 }
+
+#[test]
+fn pointer_arithmetics() {
+    // codegen should be successful for binary expression for pointer<->int / int<->pointer / pointer<->pointer
+    let result = codegen(
+        "
+		PROGRAM main
+		VAR
+			x : INT := 10;
+			y : INT := 20;
+			pt : REF_TO INT;
+			comp : BOOL;
+		END_VAR
+		pt := &(x);
+
+		(* +/- *)
+		pt := pt + 1;
+		pt := pt + 1 + 1;
+		pt := 1 + pt;
+		pt := pt - y;
+		pt := 1 + pt + 1;
+		pt := pt - y - 1;
+		pt := 1 + 1 + pt ;
+		pt := y + pt - y ;
+		pt := y + y + pt ;
+
+		(* compare pointer-pointer / pointer-int *)
+		comp := pt = pt;
+		comp := pt <> y;
+		comp := pt < pt;
+		comp := pt > y;
+		comp := pt <= pt;
+		comp := y >= pt;
+		END_PROGRAM
+		",
+    );
+    insta::assert_snapshot!(result);
+}
+
+#[test]
+fn pointer_arithmetics_function_call() {
+    // codegen should be successful for binary expression for pointer<->int / int<->pointer / pointer<->pointer
+    let result = codegen(
+        "
+        FUNCTION foo : LINT
+        END_FUNCTION
+
+		PROGRAM main
+		VAR
+			pt : REF_TO INT;
+            x : INT;
+			comp : BOOL;
+		END_VAR
+		pt := &(x);
+
+		(* +/- *)
+		pt := pt + foo();
+
+		(* compare pointer-pointer / pointer-int *)
+		comp := pt = pt;
+		comp := pt <> foo();
+		comp := pt < pt;
+		comp := pt > foo();
+		comp := pt <= pt;
+		comp := foo() >= pt;
+		END_PROGRAM
+		",
+    );
+    insta::assert_snapshot!(result);
+}

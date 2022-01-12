@@ -96,7 +96,7 @@ fn binary_expressions_resolves_types_for_literals_directly() {
         {
             // a --> BYTE (DINT hint)
             assert_type_and_hint!(&annotations, &index, a, BYTE_TYPE, Some(DINT_TYPE));
-            // 7 --> DINT (BYTE hint)
+            // 7 --> DINT (no hint)
             assert_type_and_hint!(&annotations, &index, seven, DINT_TYPE, None);
         } else {
             unreachable!()
@@ -109,6 +109,80 @@ fn binary_expressions_resolves_types_for_literals_directly() {
         assert_type_and_hint!(&annotations, &index, seven, DINT_TYPE, Some(BYTE_TYPE));
     } else {
         unreachable!()
+    }
+}
+
+#[test]
+fn addition_substraction_expression_with_pointers_resolves_to_pointer_type() {
+    let (unit, mut index) = index(
+        "PROGRAM PRG
+            VAR a : REF_TO BYTE; b : BYTE; END_VAR
+            a := &b + 7;
+            a := a + 7 + 1;
+            a := 7 + &b;
+        END_PROGRAM",
+    );
+    let annotations = annotate(&unit, &mut index);
+    let statements = &unit.implementations[0].statements;
+
+    if let AstStatement::Assignment {
+        right: addition, ..
+    } = &statements[0]
+    {
+        assert_type_and_hint!(
+            &annotations,
+            &index,
+            addition,
+            "POINTER_TO_BYTE",
+            Some("__PRG_a")
+        );
+    }
+    if let AstStatement::Assignment {
+        right: addition, ..
+    } = &statements[1]
+    {
+        assert_type_and_hint!(&annotations, &index, addition, "__PRG_a", Some("__PRG_a"));
+        if let AstStatement::BinaryExpression { left, .. } = &**addition {
+            assert_type_and_hint!(&annotations, &index, left, "__PRG_a", None);
+        }
+    }
+    if let AstStatement::Assignment {
+        right: addition, ..
+    } = &statements[2]
+    {
+        assert_type_and_hint!(
+            &annotations,
+            &index,
+            addition,
+            "POINTER_TO_BYTE",
+            Some("__PRG_a")
+        );
+    }
+}
+
+#[test]
+fn equality_with_pointers_is_bool() {
+    let (unit, mut index) = index(
+        "PROGRAM PRG
+            VAR a : REF_TO BYTE; b : BOOL; END_VAR
+            b := a > 7;
+            b := 0 = a;
+        END_PROGRAM",
+    );
+    let annotations = annotate(&unit, &mut index);
+    let statements = &unit.implementations[0].statements;
+
+    if let AstStatement::Assignment {
+        right: addition, ..
+    } = &statements[0]
+    {
+        assert_type_and_hint!(&annotations, &index, addition, BOOL_TYPE, Some(BOOL_TYPE));
+    }
+    if let AstStatement::Assignment {
+        right: addition, ..
+    } = &statements[1]
+    {
+        assert_type_and_hint!(&annotations, &index, addition, BOOL_TYPE, Some(BOOL_TYPE));
     }
 }
 

@@ -1,0 +1,21 @@
+---
+source: src/codegen/tests/code_gen_tests.rs
+expression: result
+
+---
+; ModuleID = 'main'
+source_filename = "main"
+
+%prg_interface = type { i1, i1 }
+
+@prg_instance = global %prg_interface zeroinitializer
+
+define void @prg(%prg_interface* %0) {
+entry:
+  %x = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 0
+  %y = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 1
+  %load_x = load i1, i1* %x, align 1
+  %load_y = load i1, i1* %y, align 1
+  ret void
+}
+

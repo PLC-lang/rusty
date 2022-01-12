@@ -1,0 +1,37 @@
+---
+source: src/codegen/tests/code_gen_tests.rs
+expression: result
+
+---
+; ModuleID = 'main'
+source_filename = "main"
+
+%prg_interface = type { i32, i1 }
+
+@prg_instance = global %prg_interface zeroinitializer
+
+define void @prg(%prg_interface* %0) {
+entry:
+  %x = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 0
+  %y = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 1
+  %load_x = load i32, i32* %x, align 4
+  %tmpVar = icmp eq i32 %load_x, 1
+  store i1 %tmpVar, i1* %y, align 1
+  %load_x1 = load i32, i32* %x, align 4
+  %tmpVar2 = icmp sgt i32 %load_x1, 2
+  store i1 %tmpVar2, i1* %y, align 1
+  %load_x3 = load i32, i32* %x, align 4
+  %tmpVar4 = icmp slt i32 %load_x3, 3
+  store i1 %tmpVar4, i1* %y, align 1
+  %load_x5 = load i32, i32* %x, align 4
+  %tmpVar6 = icmp ne i32 %load_x5, 4
+  store i1 %tmpVar6, i1* %y, align 1
+  %load_x7 = load i32, i32* %x, align 4
+  %tmpVar8 = icmp sge i32 %load_x7, 5
+  store i1 %tmpVar8, i1* %y, align 1
+  %load_x9 = load i32, i32* %x, align 4
+  %tmpVar10 = icmp sle i32 %load_x9, 6
+  store i1 %tmpVar10, i1* %y, align 1
+  ret void
+}
+

@@ -1,0 +1,41 @@
+---
+source: src/codegen/tests/code_gen_tests.rs
+assertion_line: 1848
+expression: result
+
+---
+; ModuleID = 'main'
+source_filename = "main"
+
+%foo_interface = type { i16, i16 }
+%prg_interface = type { %foo_interface }
+
+@foo__init = unnamed_addr constant %foo_interface zeroinitializer
+@prg_instance = global %prg_interface zeroinitializer
+
+define void @foo(%foo_interface* %0) {
+entry:
+  %x = getelementptr inbounds %foo_interface, %foo_interface* %0, i32 0, i32 0
+  %y = getelementptr inbounds %foo_interface, %foo_interface* %0, i32 0, i32 1
+  ret void
+}
+
+define void @prg(%prg_interface* %0) {
+entry:
+  %fb_inst = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 0
+  br label %input
+
+input:                                            ; preds = %entry
+  br label %call
+
+call:                                             ; preds = %input
+  call void @foo(%foo_interface* %fb_inst)
+  br label %output
+
+output:                                           ; preds = %call
+  br label %continue
+
+continue:                                         ; preds = %output
+  ret void
+}
+
