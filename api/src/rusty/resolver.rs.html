@@ -1644,6 +1644,29 @@
 <span id="1644">1644</span>
 <span id="1645">1645</span>
 <span id="1646">1646</span>
+<span id="1647">1647</span>
+<span id="1648">1648</span>
+<span id="1649">1649</span>
+<span id="1650">1650</span>
+<span id="1651">1651</span>
+<span id="1652">1652</span>
+<span id="1653">1653</span>
+<span id="1654">1654</span>
+<span id="1655">1655</span>
+<span id="1656">1656</span>
+<span id="1657">1657</span>
+<span id="1658">1658</span>
+<span id="1659">1659</span>
+<span id="1660">1660</span>
+<span id="1661">1661</span>
+<span id="1662">1662</span>
+<span id="1663">1663</span>
+<span id="1664">1664</span>
+<span id="1665">1665</span>
+<span id="1666">1666</span>
+<span id="1667">1667</span>
+<span id="1668">1668</span>
+<span id="1669">1669</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2021 Ghaith Hachem and Mathias Rieder</span>
 
 <span class="doccomment">//! Resolves (partial) expressions &amp; statements and annotates the resulting types</span>
@@ -1664,9 +1687,9 @@
     },
     <span class="ident">index</span>::{<span class="ident">ImplementationIndexEntry</span>, <span class="ident">ImplementationType</span>, <span class="ident">Index</span>, <span class="ident">VariableIndexEntry</span>},
     <span class="ident">typesystem</span>::{
-        <span class="self">self</span>, <span class="ident">get_bigger_type</span>, <span class="ident">DataTypeInformation</span>, <span class="ident">BOOL_TYPE</span>, <span class="ident">BYTE_TYPE</span>, <span class="ident">CONST_STRING_TYPE</span>,
-        <span class="ident">CONST_WSTRING_TYPE</span>, <span class="ident">DATE_AND_TIME_TYPE</span>, <span class="ident">DATE_TYPE</span>, <span class="ident">DINT_TYPE</span>, <span class="ident">DWORD_TYPE</span>, <span class="ident">LINT_TYPE</span>,
-        <span class="ident">REAL_TYPE</span>, <span class="ident">TIME_OF_DAY_TYPE</span>, <span class="ident">TIME_TYPE</span>, <span class="ident">VOID_TYPE</span>, <span class="ident">WORD_TYPE</span>,
+        <span class="self">self</span>, <span class="ident">get_bigger_type</span>, <span class="ident">DataTypeInformation</span>, <span class="ident">StringEncoding</span>, <span class="ident">BOOL_TYPE</span>, <span class="ident">BYTE_TYPE</span>,
+        <span class="ident">DATE_AND_TIME_TYPE</span>, <span class="ident">DATE_TYPE</span>, <span class="ident">DINT_TYPE</span>, <span class="ident">DWORD_TYPE</span>, <span class="ident">LINT_TYPE</span>, <span class="ident">REAL_TYPE</span>,
+        <span class="ident">TIME_OF_DAY_TYPE</span>, <span class="ident">TIME_TYPE</span>, <span class="ident">VOID_TYPE</span>, <span class="ident">WORD_TYPE</span>,
     },
 };
 
@@ -3096,14 +3119,11 @@
                     .<span class="ident">annotate</span>(<span class="ident">statement</span>, <span class="ident">StatementAnnotation::value</span>(<span class="ident">BOOL_TYPE</span>));
             }
 
-            <span class="ident">AstStatement::LiteralString</span> { <span class="ident">is_wide</span>, .. } <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="kw">let</span> <span class="ident">string_type_name</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw-2">*</span><span class="ident">is_wide</span> {
-                    <span class="ident">CONST_WSTRING_TYPE</span>
-                } <span class="kw">else</span> {
-                    <span class="ident">CONST_STRING_TYPE</span>
-                };
+            <span class="ident">AstStatement::LiteralString</span> { <span class="ident">is_wide</span>, <span class="ident">value</span>, .. } <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="kw">let</span> <span class="ident">string_type_name</span> <span class="op">=</span>
+                    <span class="ident">register_string_type</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">annotation_map</span>.<span class="ident">new_index</span>, <span class="kw-2">*</span><span class="ident">is_wide</span>, <span class="ident">value</span>.<span class="ident">len</span>());
                 <span class="self">self</span>.<span class="ident">annotation_map</span>
-                    .<span class="ident">annotate</span>(<span class="ident">statement</span>, <span class="ident">StatementAnnotation::value</span>(<span class="ident">string_type_name</span>));
+                    .<span class="ident">annotate</span>(<span class="ident">statement</span>, <span class="ident">StatementAnnotation::new_value</span>(<span class="ident">string_type_name</span>));
             }
             <span class="ident">AstStatement::LiteralInteger</span> { <span class="ident">value</span>, .. } <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="self">self</span>.<span class="ident">annotation_map</span>.<span class="ident">annotate</span>(
@@ -3182,6 +3202,32 @@
         }
         <span class="ident">generic_map</span>
     }
+}
+
+<span class="doccomment">/// adds a string-type to the given index and returns it&#39;s name</span>
+<span class="kw">fn</span> <span class="ident">register_string_type</span>(<span class="ident">index</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Index</span>, <span class="ident">is_wide</span>: <span class="ident">bool</span>, <span class="ident">len</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">String</span> {
+    <span class="kw">let</span> <span class="ident">new_type_name</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">is_wide</span> {
+        <span class="macro">format!</span>(<span class="string">&quot;__WSTRING_{}&quot;</span>, <span class="ident">len</span>)
+    } <span class="kw">else</span> {
+        <span class="macro">format!</span>(<span class="string">&quot;__STRING_{}&quot;</span>, <span class="ident">len</span>)
+    };
+
+    <span class="kw">if</span> <span class="ident">index</span>.<span class="ident">find_effective_type</span>(<span class="ident">new_type_name</span>.<span class="ident">as_str</span>()).<span class="ident">is_none</span>() {
+        <span class="ident">index</span>.<span class="ident">register_type</span>(<span class="ident"><span class="kw">crate</span>::typesystem::DataType</span> {
+            <span class="ident">name</span>: <span class="ident">new_type_name</span>.<span class="ident">clone</span>(),
+            <span class="ident">initial_value</span>: <span class="prelude-val">None</span>,
+            <span class="ident">nature</span>: <span class="ident">TypeNature::Chars</span>,
+            <span class="ident">information</span>: <span class="ident"><span class="kw">crate</span>::typesystem::DataTypeInformation::String</span> {
+                <span class="ident">encoding</span>: <span class="kw">if</span> <span class="ident">is_wide</span> {
+                    <span class="ident">StringEncoding::Utf16</span>
+                } <span class="kw">else</span> {
+                    <span class="ident">StringEncoding::Utf8</span>
+                },
+                <span class="ident">size</span>: <span class="ident">typesystem::TypeSize::LiteralInteger</span>(<span class="ident">len</span> <span class="kw">as</span> <span class="ident">u32</span> <span class="op">+</span> <span class="number">1</span>),
+            },
+        });
+    }
+    <span class="ident">new_type_name</span>
 }
 
 <span class="doccomment">/// adds a pointer to the given inner_type to the given index and return&#39;s its name</span>
