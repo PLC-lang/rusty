@@ -3,10 +3,7 @@ use crate::{
     ast::AstStatement,
     resolver::{AnnotationMap, TypeAnnotator},
     test_utils::tests::{annotate, index},
-    typesystem::{
-        DataTypeInformation, StringEncoding, TypeSize, CONST_STRING_TYPE, CONST_WSTRING_TYPE,
-        DINT_TYPE,
-    },
+    typesystem::{DataTypeInformation, StringEncoding, TypeSize, DINT_TYPE, DataType},
 };
 
 #[test]
@@ -36,28 +33,46 @@ fn bool_literals_are_annotated() {
 
 #[test]
 fn string_literals_are_annotated() {
-    let (unit, index) = index(
+    //GIVEN some string literals
+    let (unit, mut index) = index(
         r#"PROGRAM PRG
-                "abc";
-                'xyz';
+                'abc';
+                "xyzxyz";
             END_PROGRAM"#,
     );
-    let annotations = TypeAnnotator::visit_unit(&index, &unit);
-    let statements = &unit.implementations[0].statements;
 
-    assert_type_and_hint!(
-        &annotations,
-        &index,
-        &statements[0],
-        CONST_WSTRING_TYPE,
-        None
+    //WHEN they are annotated
+    let mut annotations = TypeAnnotator::visit_unit(&index, &unit);
+    index.import(std::mem::take(&mut annotations.new_index));
+
+    // THEN we expect them to be annotated with correctly sized string types
+    let statements = &unit.implementations[0].statements;
+    assert_type_and_hint!(&annotations, &index, &statements[0], "__STRING_3", None);
+    assert_type_and_hint!(&annotations, &index, &statements[1], "__WSTRING_6", None);
+    // AND we expect some newly created String-types
+    assert_eq!(
+        index.get_type_or_panic("__STRING_3"),
+        &DataType {
+            initial_value: None,
+            name: "__STRING_3".into(),
+            nature: crate::ast::TypeNature::Chars,
+            information: DataTypeInformation::String {
+                encoding: crate::typesystem::StringEncoding::Utf8,
+                size: crate::typesystem::TypeSize::LiteralInteger(4)
+            }
+        }
     );
-    assert_type_and_hint!(
-        &annotations,
-        &index,
-        &statements[1],
-        CONST_STRING_TYPE,
-        None
+    assert_eq!(
+        index.get_type_or_panic("__WSTRING_6"),
+        &DataType {
+            initial_value: None,
+            name: "__WSTRING_6".into(),
+            nature: crate::ast::TypeNature::Chars,
+            information: DataTypeInformation::String {
+                encoding: crate::typesystem::StringEncoding::Utf16,
+                size: crate::typesystem::TypeSize::LiteralInteger(7)
+            }
+        }
     );
 }
 
