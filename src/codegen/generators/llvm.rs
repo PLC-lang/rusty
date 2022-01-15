@@ -200,8 +200,12 @@ impl<'a> Llvm<'a> {
     /// create a constant utf8 string-value with the given value
     ///
     /// - `value` the value of the constant string value
-    pub fn create_const_utf8_string(&self, value: &str, len: usize) -> Result<BasicValueEnum<'a>, Diagnostic> {
-        let mut utf8_chars = value.as_bytes()[..len-1].to_vec();
+    pub fn create_const_utf8_string(
+        &self,
+        value: &str,
+        len: usize,
+    ) -> Result<BasicValueEnum<'a>, Diagnostic> {
+        let mut utf8_chars = value.as_bytes()[..std::cmp::min(value.len(), len - 1)].to_vec();
         //fill the 0 terminators
         while utf8_chars.len() < len {
             utf8_chars.push(0);
@@ -213,7 +217,11 @@ impl<'a> Llvm<'a> {
     ///
     /// - `value` the value of the constant string value
     /// - `len` the len of the string, the literal will be right-padded with 0-bytes to match the length
-    pub fn create_const_utf16_string(&self, value: &str, len: usize) -> Result<BasicValueEnum<'a>, Diagnostic> {
+    pub fn create_const_utf16_string(
+        &self,
+        value: &str,
+        len: usize,
+    ) -> Result<BasicValueEnum<'a>, Diagnostic> {
         let mut utf16_chars: Vec<u16> = value.encode_utf16().collect();
         //fill the 0 terminators
         while utf16_chars.len() < len {
@@ -243,8 +251,12 @@ impl<'a> Llvm<'a> {
         &self,
         value: &[u8],
     ) -> Result<BasicValueEnum<'a>, Diagnostic> {
-        let exp_value = self.context.const_string(value, false);
-        Ok(BasicValueEnum::VectorValue(exp_value))
+        let values: Vec<IntValue> = value
+            .iter()
+            .map(|it| self.context.i8_type().const_int(*it as u64, false))
+            .collect();
+        let vector = self.context.i8_type().const_array(&values);
+        Ok(BasicValueEnum::ArrayValue(vector))
     }
 
     /// create a constant i8 character (IntValue) with the given value

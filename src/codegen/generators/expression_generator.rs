@@ -44,6 +44,9 @@ pub struct ExpressionCodeGenerator<'a, 'b> {
     pub temp_variable_prefix: String,
     /// the string-suffix to use for temporary variables
     pub temp_variable_suffix: String,
+
+    // the function on how to obtain the the length to use for the string
+    string_len_provider: fn(type_length_declaration: usize, actual_length: usize) -> usize,
 }
 
 /// context information to generate a parameter
@@ -77,6 +80,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
             function_context: Some(function_context),
             temp_variable_prefix: "load_".to_string(),
             temp_variable_suffix: "".to_string(),
+            string_len_provider: |_, actual_length| actual_length, //when generating string-literals in a body, use the actual length
         }
     }
 
@@ -101,6 +105,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
             function_context: None,
             temp_variable_prefix: "load_".to_string(),
             temp_variable_suffix: "".to_string(),
+            string_len_provider: |type_length_declaration, _| type_length_declaration, //when generating string-literals in declarations, use the declared length
         }
     }
 
@@ -1410,17 +1415,30 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                 let expected_type = self.get_type_hint_info_for(literal_statement)?;
                 match expected_type {
                     DataTypeInformation::String { encoding, size, .. } => {
-                        let str_len = size.as_int_value(self.index).map_err(|msg| {
+                        let declared_length = size.as_int_value(self.index).map_err(|msg| {
                             Diagnostic::codegen_error(
                                 format!("Unable to generate string-literal: {}", msg).as_str(),
                                 literal_statement.get_location(),
                             )
                         })? as usize;
+
                         match encoding {
                             StringEncoding::Utf8 => {
+                                //note that .len() will give us the number of bytes, not the number of characters
+                                let actual_length = value.chars().count() + 1; // +1 to account for a final \0
+                                let str_len = std::cmp::min(
+                                    (self.string_len_provider)(declared_length, actual_length),
+                                    declared_length,
+                                );
                                 self.llvm.create_const_utf8_string(value.as_str(), str_len)
                             }
                             StringEncoding::Utf16 => {
+                                //note that .len() will give us the number of bytes, not the number of characters
+                                let actual_length = value.encode_utf16().count() + 1; // +1 to account for a final \0
+                                let str_len = std::cmp::min(
+                                    (self.string_len_provider)(declared_length, actual_length),
+                                    declared_length,
+                                );
                                 self.llvm.create_const_utf16_string(value.as_str(), str_len)
                             }
                         }

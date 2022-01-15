@@ -3,7 +3,7 @@ use crate::{
     ast::AstStatement,
     resolver::{AnnotationMap, TypeAnnotator},
     test_utils::tests::{annotate, index},
-    typesystem::{DataTypeInformation, StringEncoding, TypeSize, DINT_TYPE, DataType},
+    typesystem::{DataType, DataTypeInformation, StringEncoding, TypeSize, DINT_TYPE},
 };
 
 #[test]
