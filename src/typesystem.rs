@@ -63,10 +63,6 @@ pub const STRING_TYPE: &str = "STRING";
 pub const WSTRING_TYPE: &str = "WSTRING";
 pub const CHAR_TYPE: &str = "CHAR";
 pub const WCHAR_TYPE: &str = "WCHAR";
-
-pub const CONST_STRING_TYPE: &str = "___CONST_STRING";
-pub const CONST_WSTRING_TYPE: &str = "___CONST_WSTRING";
-
 pub const VOID_TYPE: &str = "VOID";
 
 #[cfg(test)]
@@ -162,37 +158,39 @@ pub enum StructSource {
     Pou(PouType),
 }
 
+type TypeId = String;
+
 #[derive(Debug, Clone, PartialEq)]
 pub enum DataTypeInformation {
     Struct {
-        name: String,
+        name: TypeId,
         member_names: Vec<String>,
         varargs: Option<VarArgs>,
         source: StructSource,
         generics: Vec<GenericBinding>,
     },
     Array {
-        name: String,
-        inner_type_name: String,
+        name: TypeId,
+        inner_type_name: TypeId,
         dimensions: Vec<Dimension>,
     },
     Pointer {
-        name: String,
-        inner_type_name: String,
+        name: TypeId,
+        inner_type_name: TypeId,
         auto_deref: bool,
     },
     Integer {
-        name: String,
+        name: TypeId,
         signed: bool,
         size: u32,
     },
     Enum {
-        name: String,
-        referenced_type: String,
+        name: TypeId,
+        referenced_type: TypeId,
         elements: Vec<String>,
     },
     Float {
-        name: String,
+        name: TypeId,
         size: u32,
     },
     String {
@@ -200,16 +198,16 @@ pub enum DataTypeInformation {
         encoding: StringEncoding,
     },
     SubRange {
-        name: String,
-        referenced_type: String,
+        name: TypeId,
+        referenced_type: TypeId,
         sub_range: Range<AstStatement>,
     },
     Alias {
-        name: String,
-        referenced_type: String,
+        name: TypeId,
+        referenced_type: TypeId,
     },
     Generic {
-        name: String,
+        name: TypeId,
         generic_symbol: String,
         nature: TypeNature,
     },
@@ -593,24 +591,6 @@ pub fn get_builtin_types() -> Vec<DataType> {
             initial_value: None,
             information: DataTypeInformation::String {
                 size: TypeSize::from_literal(DEFAULT_STRING_LEN + 1),
-                encoding: StringEncoding::Utf16,
-            },
-            nature: TypeNature::String,
-        },
-        DataType {
-            name: CONST_STRING_TYPE.into(),
-            initial_value: None,
-            information: DataTypeInformation::String {
-                size: TypeSize::from_literal(u16::MAX as u32),
-                encoding: StringEncoding::Utf8,
-            },
-            nature: TypeNature::String,
-        },
-        DataType {
-            name: CONST_WSTRING_TYPE.into(),
-            initial_value: None,
-            information: DataTypeInformation::String {
-                size: TypeSize::from_literal(u16::MAX as u32),
                 encoding: StringEncoding::Utf16,
             },
             nature: TypeNature::String,

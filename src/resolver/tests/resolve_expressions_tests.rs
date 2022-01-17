@@ -6,8 +6,8 @@ use crate::{
     resolver::{AnnotationMap, AnnotationMapImpl, StatementAnnotation},
     test_utils::tests::annotate,
     typesystem::{
-        DataTypeInformation, BOOL_TYPE, BYTE_TYPE, CONST_STRING_TYPE, DINT_TYPE, DWORD_TYPE,
-        INT_TYPE, REAL_TYPE, SINT_TYPE, UINT_TYPE, USINT_TYPE, VOID_TYPE,
+        DataTypeInformation, BOOL_TYPE, BYTE_TYPE, DINT_TYPE, DWORD_TYPE, INT_TYPE, REAL_TYPE,
+        SINT_TYPE, UINT_TYPE, USINT_TYPE, VOID_TYPE,
     },
 };
 
@@ -109,6 +109,80 @@ fn binary_expressions_resolves_types_for_literals_directly() {
         assert_type_and_hint!(&annotations, &index, seven, DINT_TYPE, Some(BYTE_TYPE));
     } else {
         unreachable!()
+    }
+}
+
+#[test]
+fn addition_substraction_expression_with_pointers_resolves_to_pointer_type() {
+    let (unit, mut index) = index(
+        "PROGRAM PRG
+            VAR a : REF_TO BYTE; b : BYTE; END_VAR
+            a := &b + 7;
+            a := a + 7 + 1;
+            a := 7 + &b;
+        END_PROGRAM",
+    );
+    let annotations = annotate(&unit, &mut index);
+    let statements = &unit.implementations[0].statements;
+
+    if let AstStatement::Assignment {
+        right: addition, ..
+    } = &statements[0]
+    {
+        assert_type_and_hint!(
+            &annotations,
+            &index,
+            addition,
+            "POINTER_TO_BYTE",
+            Some("__PRG_a")
+        );
+    }
+    if let AstStatement::Assignment {
+        right: addition, ..
+    } = &statements[1]
+    {
+        assert_type_and_hint!(&annotations, &index, addition, "__PRG_a", Some("__PRG_a"));
+        if let AstStatement::BinaryExpression { left, .. } = &**addition {
+            assert_type_and_hint!(&annotations, &index, left, "__PRG_a", None);
+        }
+    }
+    if let AstStatement::Assignment {
+        right: addition, ..
+    } = &statements[2]
+    {
+        assert_type_and_hint!(
+            &annotations,
+            &index,
+            addition,
+            "POINTER_TO_BYTE",
+            Some("__PRG_a")
+        );
+    }
+}
+
+#[test]
+fn equality_with_pointers_is_bool() {
+    let (unit, mut index) = index(
+        "PROGRAM PRG
+            VAR a : REF_TO BYTE; b : BOOL; END_VAR
+            b := a > 7;
+            b := 0 = a;
+        END_PROGRAM",
+    );
+    let annotations = annotate(&unit, &mut index);
+    let statements = &unit.implementations[0].statements;
+
+    if let AstStatement::Assignment {
+        right: addition, ..
+    } = &statements[0]
+    {
+        assert_type_and_hint!(&annotations, &index, addition, BOOL_TYPE, Some(BOOL_TYPE));
+    }
+    if let AstStatement::Assignment {
+        right: addition, ..
+    } = &statements[1]
+    {
+        assert_type_and_hint!(&annotations, &index, addition, BOOL_TYPE, Some(BOOL_TYPE));
     }
 }
 
@@ -1268,7 +1342,7 @@ fn nested_function_parameter_assignments_resolve_types() {
 
 #[test]
 fn type_initial_values_are_resolved() {
-    let (unit, index) = index(
+    let (unit, mut index) = index(
         "
         TYPE MyStruct : STRUCT
             x : INT := 20;
@@ -1279,7 +1353,9 @@ fn type_initial_values_are_resolved() {
         ",
     );
 
-    let annotations = TypeAnnotator::visit_unit(&index, &unit);
+    let mut annotations = TypeAnnotator::visit_unit(&index, &unit);
+    index.import(std::mem::take(&mut annotations.new_index));
+
     let UserTypeDeclaration { data_type, .. } = &unit.types[0];
 
     if let DataType::StructType { variables, .. } = data_type {
@@ -1295,10 +1371,7 @@ fn type_initial_values_are_resolved() {
         let _type_of_z = index.find_member("MyStruct", "z").unwrap().get_type_name();
         assert_eq!(
             Some(&StatementAnnotation::value(
-                index
-                    .find_effective_type(CONST_STRING_TYPE)
-                    .unwrap()
-                    .get_name()
+                index.find_effective_type("__STRING_3").unwrap().get_name()
             )),
             annotations.get(variables[2].initializer.as_ref().unwrap())
         );
@@ -2524,7 +2597,7 @@ fn literals_passed_to_function_get_annotated() {
             &annotations,
             &index,
             parameters[1],
-            CONST_STRING_TYPE,
+            "__STRING_3",
             Some("__foo_in")
         );
     } else {
