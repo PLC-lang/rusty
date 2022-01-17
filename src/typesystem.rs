@@ -63,10 +63,6 @@ pub const STRING_TYPE: &str = "STRING";
 pub const WSTRING_TYPE: &str = "WSTRING";
 pub const CHAR_TYPE: &str = "CHAR";
 pub const WCHAR_TYPE: &str = "WCHAR";
-
-pub const CONST_STRING_TYPE: &str = "___CONST_STRING";
-pub const CONST_WSTRING_TYPE: &str = "___CONST_WSTRING";
-
 pub const VOID_TYPE: &str = "VOID";
 
 #[cfg(test)]
@@ -595,24 +591,6 @@ pub fn get_builtin_types() -> Vec<DataType> {
             initial_value: None,
             information: DataTypeInformation::String {
                 size: TypeSize::from_literal(DEFAULT_STRING_LEN + 1),
-                encoding: StringEncoding::Utf16,
-            },
-            nature: TypeNature::String,
-        },
-        DataType {
-            name: CONST_STRING_TYPE.into(),
-            initial_value: None,
-            information: DataTypeInformation::String {
-                size: TypeSize::from_literal(u16::MAX as u32),
-                encoding: StringEncoding::Utf8,
-            },
-            nature: TypeNature::String,
-        },
-        DataType {
-            name: CONST_WSTRING_TYPE.into(),
-            initial_value: None,
-            information: DataTypeInformation::String {
-                size: TypeSize::from_literal(u16::MAX as u32),
                 encoding: StringEncoding::Utf16,
             },
             nature: TypeNature::String,

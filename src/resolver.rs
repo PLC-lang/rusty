@@ -18,9 +18,9 @@ use crate::{
     },
     index::{ImplementationIndexEntry, ImplementationType, Index, VariableIndexEntry},
     typesystem::{
-        self, get_bigger_type, DataTypeInformation, BOOL_TYPE, BYTE_TYPE, CONST_STRING_TYPE,
-        CONST_WSTRING_TYPE, DATE_AND_TIME_TYPE, DATE_TYPE, DINT_TYPE, DWORD_TYPE, LINT_TYPE,
-        REAL_TYPE, TIME_OF_DAY_TYPE, TIME_TYPE, VOID_TYPE, WORD_TYPE,
+        self, get_bigger_type, DataTypeInformation, StringEncoding, BOOL_TYPE, BYTE_TYPE,
+        DATE_AND_TIME_TYPE, DATE_TYPE, DINT_TYPE, DWORD_TYPE, LINT_TYPE, REAL_TYPE,
+        TIME_OF_DAY_TYPE, TIME_TYPE, VOID_TYPE, WORD_TYPE,
     },
 };
 
@@ -1450,14 +1450,11 @@ impl<'i> TypeAnnotator<'i> {
                     .annotate(statement, StatementAnnotation::value(BOOL_TYPE));
             }
 
-            AstStatement::LiteralString { is_wide, .. } => {
-                let string_type_name = if *is_wide {
-                    CONST_WSTRING_TYPE
-                } else {
-                    CONST_STRING_TYPE
-                };
+            AstStatement::LiteralString { is_wide, value, .. } => {
+                let string_type_name =
+                    register_string_type(&mut self.annotation_map.new_index, *is_wide, value.len());
                 self.annotation_map
-                    .annotate(statement, StatementAnnotation::value(string_type_name));
+                    .annotate(statement, StatementAnnotation::new_value(string_type_name));
             }
             AstStatement::LiteralInteger { value, .. } => {
                 self.annotation_map.annotate(
@@ -1536,6 +1533,32 @@ impl<'i> TypeAnnotator<'i> {
         }
         generic_map
     }
+}
+
+/// adds a string-type to the given index and returns it's name
+fn register_string_type(index: &mut Index, is_wide: bool, len: usize) -> String {
+    let new_type_name = if is_wide {
+        format!("__WSTRING_{}", len)
+    } else {
+        format!("__STRING_{}", len)
+    };
+
+    if index.find_effective_type(new_type_name.as_str()).is_none() {
+        index.register_type(crate::typesystem::DataType {
+            name: new_type_name.clone(),
+            initial_value: None,
+            nature: TypeNature::Chars,
+            information: crate::typesystem::DataTypeInformation::String {
+                encoding: if is_wide {
+                    StringEncoding::Utf16
+                } else {
+                    StringEncoding::Utf8
+                },
+                size: typesystem::TypeSize::LiteralInteger(len as u32 + 1),
+            },
+        });
+    }
+    new_type_name
 }
 
 /// adds a pointer to the given inner_type to the given index and return's its name
