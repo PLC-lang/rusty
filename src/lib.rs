@@ -682,6 +682,7 @@ pub fn link(
 
 #[cfg(test)]
 mod tests {
+    mod external_files;
     mod multi_files;
 
     use inkwell::targets::TargetMachine;
