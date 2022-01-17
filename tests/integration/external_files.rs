@@ -18,6 +18,7 @@ fn compile_all(name: &str, encoding: Option<&'static Encoding>) {
     let out = out.into_os_string().into_string().unwrap();
     compile_to_ir(
         vec![FilePath { path: path.clone() }],
+        vec![],
         encoding,
         &out,
         Diagnostician::default(),
@@ -26,6 +27,7 @@ fn compile_all(name: &str, encoding: Option<&'static Encoding>) {
     fs::remove_file(&out).unwrap();
     compile_to_bitcode(
         vec![FilePath { path: path.clone() }],
+        vec![],
         encoding,
         &out,
         Diagnostician::default(),
@@ -34,6 +36,7 @@ fn compile_all(name: &str, encoding: Option<&'static Encoding>) {
     fs::remove_file(&out).unwrap();
     compile_to_shared_object(
         vec![FilePath { path: path.clone() }],
+        vec![],
         encoding,
         &out,
         None,
@@ -43,6 +46,7 @@ fn compile_all(name: &str, encoding: Option<&'static Encoding>) {
     fs::remove_file(&out).unwrap();
     compile_to_shared_pic_object(
         vec![FilePath { path: path.clone() }],
+        vec![],
         encoding,
         &out,
         None,
@@ -52,6 +56,7 @@ fn compile_all(name: &str, encoding: Option<&'static Encoding>) {
     fs::remove_file(&out).unwrap();
     compile_to_static_obj(
         vec![FilePath { path }],
+        vec![],
         encoding,
         &out,
         None,

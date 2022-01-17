@@ -25,8 +25,13 @@ fn multiple_source_files_generated() {
     "
     .into();
     //When the are generated
-    let res =
-        compile_to_string(vec![src1, src2], None, Diagnostician::null_diagnostician()).unwrap();
+    let res = compile_to_string(
+        vec![src1, src2],
+        vec![],
+        None,
+        Diagnostician::null_diagnostician(),
+    )
+    .unwrap();
     //The datatypes do not conflics
     //The functions are defined correctly
     insta::assert_snapshot!(res);

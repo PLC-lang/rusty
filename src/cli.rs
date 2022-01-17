@@ -108,10 +108,9 @@ pub struct CompileParameters {
         name = "include",
         long,
         short = "i",
-        min_values = 1,
         help = "Include .st files for external functions"
     )]
-    pub include_files: Vec<String>,
+    pub includes: Vec<String>,
 }
 
 fn parse_encoding(encoding: &str) -> Result<&'static Encoding, String> {
@@ -470,7 +469,7 @@ mod cli_tests {
         ))
         .unwrap();
         assert_eq!(
-            parameters.include_files,
+            parameters.includes,
             vec!["include1", "include2", "include3"]
         );
     }
