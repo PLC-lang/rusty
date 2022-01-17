@@ -17,6 +17,43 @@ pub struct Llvm<'a> {
     pub builder: Builder<'a>,
 }
 
+pub trait GlobalValueExt {
+    fn into_constant(self) -> Self;
+    fn into_external(self) -> Self;
+    fn set_initial_value(
+        self,
+        initial_value: Option<BasicValueEnum>,
+        data_type: BasicTypeEnum,
+    ) -> Self;
+}
+
+impl<'ink> GlobalValueExt for GlobalValue<'ink> {
+    fn into_constant(self) -> Self {
+        self.set_constant(true);
+        self.set_unnamed_addr(true);
+        self
+    }
+
+    fn into_external(self) -> Self {
+        self.set_linkage(Linkage::AvailableExternally);
+        self
+    }
+
+    fn set_initial_value(
+        self,
+        initial_value: Option<BasicValueEnum>,
+        data_type: BasicTypeEnum,
+    ) -> Self {
+        if let Some(initializer) = initial_value {
+            let v = &initializer as &dyn BasicValue;
+            self.set_initializer(v);
+        } else {
+            Llvm::set_const_zero_initializer(&self, data_type);
+        };
+        self
+    }
+}
+
 impl<'a> Llvm<'a> {
     /// constructs a new LLVM struct
     pub fn new(context: &'a Context, builder: Builder<'a>) -> Llvm<'a> {
@@ -35,32 +72,10 @@ impl<'a> Llvm<'a> {
         module: &Module<'a>,
         name: &str,
         data_type: BasicTypeEnum<'a>,
-        initial_value: Option<BasicValueEnum<'a>>,
     ) -> GlobalValue<'a> {
         let global = module.add_global(data_type, None, name);
-
-        if let Some(initializer) = initial_value {
-            let v = &initializer as &dyn BasicValue;
-            global.set_initializer(v);
-        } else {
-            Self::set_const_zero_initializer(&global, data_type);
-        }
         global.set_thread_local_mode(None);
         global.set_linkage(Linkage::External);
-        global
-    }
-
-    /// Creates a global constant with an unnamed address
-    pub fn create_constant_global_variable(
-        &self,
-        module: &Module<'a>,
-        name: &str,
-        data_type: BasicTypeEnum<'a>,
-        initial_value: Option<BasicValueEnum<'a>>,
-    ) -> GlobalValue<'a> {
-        let global = self.create_global_variable(module, name, data_type, initial_value);
-        global.set_constant(true);
-        global.set_unnamed_addr(true);
         global
     }
 

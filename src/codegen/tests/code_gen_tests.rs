@@ -33,6 +33,21 @@ END_PROGRAM
 }
 
 #[test]
+fn external_program_global_var_is_external() {
+    let result = codegen(
+        r#"@EXTERNAL PROGRAM prg
+            VAR x : DINT; y : DINT; END_VAR
+            x;
+            ;;;;
+            y;
+END_PROGRAM
+"#,
+    );
+
+    insta::assert_snapshot!(result);
+}
+
+#[test]
 fn empty_global_variable_list_generates_nothing() {
     let result = generate_with_empty_program("VAR_GLOBAL END_VAR");
     insta::assert_snapshot!(result);
@@ -41,6 +56,12 @@ fn empty_global_variable_list_generates_nothing() {
 #[test]
 fn a_global_variables_generates_in_separate_global_variables() {
     let result = generate_with_empty_program("VAR_GLOBAL gX : INT; gY : BOOL; END_VAR");
+    insta::assert_snapshot!(result);
+}
+
+#[test]
+fn external_global_variable_generates_as_external() {
+    let result = generate_with_empty_program("@EXTERNAL VAR_GLOBAL gX : INT; gY : BOOL; END_VAR");
     insta::assert_snapshot!(result);
 }
 

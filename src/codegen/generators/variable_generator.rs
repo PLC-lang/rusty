@@ -12,7 +12,9 @@ use inkwell::{module::Module, values::GlobalValue};
 use crate::{codegen::llvm_index::LlvmTypedIndex, index::VariableIndexEntry};
 
 use super::{
-    data_type_generator::get_default_for, expression_generator::ExpressionCodeGenerator, llvm::Llvm,
+    data_type_generator::get_default_for,
+    expression_generator::ExpressionCodeGenerator,
+    llvm::{GlobalValueExt, Llvm},
 };
 
 pub fn generate_global_variables<'ctx, 'b>(
@@ -79,31 +81,27 @@ pub fn generate_global_variable<'ctx, 'b>(
     } else {
         None
     };
-    let initial_value = initial_value
-        // 2nd try: find an associated default value for the declared type
-        .or_else(|| index.find_associated_initial_value(type_name))
-        // 3rd try: get the compiler's default for the given type (zero-initializer)
-        .or_else(|| index.find_associated_type(type_name).map(get_default_for));
-    if initial_value.is_some() || !global_variable.is_constant() {
-        let global_ir_variable = match global_variable.is_constant() {
-            true => llvm.create_constant_global_variable(
-                module,
-                global_variable.get_name(),
-                variable_type,
-                initial_value,
-            ),
-            false => llvm.create_global_variable(
-                module,
-                global_variable.get_name(),
-                variable_type,
-                initial_value,
-            ),
-        };
-        Ok(global_ir_variable)
+
+    let mut global_ir_variable =
+        llvm.create_global_variable(module, global_variable.get_name(), variable_type);
+    if global_variable.is_external() {
+        global_ir_variable = global_ir_variable.into_external();
     } else {
-        Err(Diagnostic::codegen_error(
-            "Cannot generate uninitialized constant",
-            global_variable.source_location.clone(),
-        ))
+        let initial_value = initial_value
+            // 2nd try: find an associated default value for the declared type
+            .or_else(|| index.find_associated_initial_value(type_name))
+            // 3rd try: get the compiler's default for the given type (zero-initializer)
+            .or_else(|| index.find_associated_type(type_name).map(get_default_for));
+        global_ir_variable.set_initial_value(initial_value, variable_type);
+        if global_variable.is_constant() {
+            global_ir_variable = global_ir_variable.into_constant();
+            if initial_value.is_none() {
+                return Err(Diagnostic::codegen_error(
+                    "Cannot generate uninitialized constant",
+                    global_variable.source_location.clone(),
+                ));
+            }
+        }
     }
+    Ok(global_ir_variable)
 }

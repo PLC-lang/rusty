@@ -1,8 +1,9 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use super::VariableType;
 use crate::ast::{
-    self, AstStatement, CompilationUnit, DataType, DataTypeDeclaration, Implementation, Pou,
-    PouType, SourceRange, TypeNature, UserTypeDeclaration, VariableBlock, VariableBlockType,
+    self, AstStatement, CompilationUnit, DataType, DataTypeDeclaration, Implementation,
+    LinkageType, Pou, PouType, SourceRange, TypeNature, UserTypeDeclaration, VariableBlock,
+    VariableBlockType,
 };
 use crate::diagnostics::Diagnostic;
 use crate::index::{Index, MemberInfo};
@@ -129,30 +130,37 @@ pub fn visit_pou(index: &mut Index, pou: &Pou) {
     };
     index.register_pou_type(datatype);
 
-    match pou.pou_type {
+    let variable = match pou.pou_type {
         PouType::Program => {
             //Associate a global variable for the program
             let instance_name = format!("{}_instance", &pou.name);
-            index.register_global_variable_with_name(
+            let variable = Index::create_global_variable_with_name(
                 &pou.name,
                 &instance_name,
                 &pou.name,
                 None,
-                false, //program's instance variable is no constant
+                false,
+                pou.linkage,
                 pou.location.clone(),
             );
+            Some((pou.name.to_string(), variable))
         }
         PouType::FunctionBlock | PouType::Class => {
             let global_struct_name = crate::index::get_initializer_name(&pou.name);
-            index.register_global_variable(
+            let variable = Index::create_global_variable(
                 &global_struct_name,
                 &pou.name,
                 None,
-                true, //Initial values are constants
+                true,
+                LinkageType::Internal,
                 pou.location.clone(),
             );
+            Some((global_struct_name, variable))
         }
-        _ => {}
+        _ => None,
+    };
+    if let Some((name, variable)) = variable {
+        index.register_global_variable(&name, variable);
     }
 }
 
@@ -199,18 +207,21 @@ fn register_inout_pointer_type_for(index: &mut Index, inner_type_name: &str) -> 
 }
 
 fn visit_global_var_block(index: &mut Index, block: &VariableBlock) {
+    let linkage = block.linkage;
     for var in &block.variables {
         let target_type = var.data_type.get_name().unwrap_or_default();
         let initializer = index
             .get_mut_const_expressions()
             .maybe_add_constant_expression(var.initializer.clone(), target_type, None);
-        index.register_global_variable(
+        let variable = Index::create_global_variable(
             &var.name,
             var.data_type.get_name().expect("named variable datatype"),
             initializer,
             block.constant,
+            linkage,
             var.location.clone(),
         );
+        index.register_global_variable(&var.name, variable);
     }
 }
 
@@ -267,13 +278,15 @@ fn visit_data_type(
             });
             //Generate an initializer for the struct
             let global_struct_name = crate::index::get_initializer_name(name);
-            index.register_global_variable(
-                global_struct_name.as_str(),
+            let variable = Index::create_global_variable(
+                &global_struct_name,
                 type_name.as_str(),
                 init,
                 true, //Initial values are constants
+                LinkageType::Internal,
                 type_declaration.location.clone(),
             );
+            index.register_global_variable(&global_struct_name, variable);
             for (count, var) in variables.iter().enumerate() {
                 if let DataTypeDeclaration::DataTypeDefinition {
                     data_type, scope, ..
@@ -454,13 +467,15 @@ fn visit_data_type(
             });
             let global_init_name = crate::index::get_initializer_name(name);
             if init.is_some() {
-                index.register_global_variable(
+                let variable = Index::create_global_variable(
                     global_init_name.as_str(),
                     name,
                     init,
                     true, //Initial values are constants
+                    LinkageType::Internal,
                     type_declaration.location.clone(),
                 );
+                index.register_global_variable(&global_init_name, variable);
             }
         }
         DataType::PointerType {

@@ -25,6 +25,7 @@ pub struct Pou {
     pub location: SourceRange,
     pub poly_mode: Option<PolymorphismMode>,
     pub generics: Vec<GenericBinding>,
+    pub linkage: LinkageType,
 }
 
 #[derive(Debug, PartialEq)]
@@ -269,6 +270,7 @@ pub struct VariableBlock {
     pub retain: bool,
     pub variables: Vec<Variable>,
     pub variable_block_type: VariableBlockType,
+    pub linkage: LinkageType,
     pub location: SourceRange,
 }
 

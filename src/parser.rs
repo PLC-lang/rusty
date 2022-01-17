@@ -31,9 +31,11 @@ pub fn parse(mut lexer: ParseSession) -> ParsedAst {
                 //Don't reset linkage
                 continue;
             }
-            KeywordVarGlobal => unit
-                .global_vars
-                .push(parse_variable_block(&mut lexer, VariableBlockType::Global)),
+            KeywordVarGlobal => unit.global_vars.push(parse_variable_block(
+                &mut lexer,
+                VariableBlockType::Global,
+                linkage,
+            )),
             KeywordProgram | KeywordClass | KeywordFunction | KeywordFunctionBlock => {
                 let params = match lexer.token {
                     KeywordProgram => (PouType::Program, KeywordEndProgram),
@@ -186,6 +188,7 @@ fn parse_pou(
                 variable_blocks.push(parse_variable_block(
                     lexer,
                     parse_variable_block_type(&lexer.token),
+                    LinkageType::Internal,
                 ));
             }
 
@@ -223,6 +226,7 @@ fn parse_pou(
                 location: SourceRange::new(start..lexer.range().end),
                 poly_mode,
                 generics,
+                linkage,
             }];
             pous.append(&mut impl_pous);
 
@@ -391,6 +395,7 @@ fn parse_method(
             variable_blocks.push(parse_variable_block(
                 lexer,
                 parse_variable_block_type(&lexer.token),
+                LinkageType::Internal,
             ));
         }
 
@@ -423,6 +428,7 @@ fn parse_method(
                 location: SourceRange::new(method_start..method_end),
                 poly_mode,
                 generics,
+                linkage,
             },
             implementation,
         ))
@@ -945,6 +951,7 @@ fn parse_variable_block_type(block_type: &Token) -> VariableBlockType {
 fn parse_variable_block(
     lexer: &mut ParseSession,
     variable_block_type: VariableBlockType,
+    linkage: LinkageType,
 ) -> VariableBlock {
     let location = lexer.location();
     //Consume the type keyword
@@ -966,6 +973,7 @@ fn parse_variable_block(
         retain,
         variables,
         variable_block_type,
+        linkage,
         location,
     }
 }
