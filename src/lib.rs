@@ -22,7 +22,7 @@ use std::fs;
 use glob::glob;
 use std::path::Path;
 
-use ast::{PouType, SourceRange};
+use ast::{LinkageType, PouType, SourceRange};
 use cli::CompileParameters;
 use diagnostics::Diagnostic;
 use encoding_rs::Encoding;
@@ -402,49 +402,24 @@ pub fn compile_module<'c, T: SourceContainer>(
 
     // ### PHASE 1 ###
     // parse & index everything
-    for container in sources {
-        let location: String = container.get_location().into();
-        let e = container
-            .load_source(encoding)
-            .map_err(|err| Diagnostic::io_read_error(location.as_str(), err.as_str()))?;
-
-        let (mut parse_result, diagnostics) = parser::parse(
-            lexer::lex_with_ids(e.source.as_str(), id_provider.clone()),
-            ast::LinkageType::Internal,
-        );
-
-        //pre-process the ast (create inlined types)
-        ast::pre_process(&mut parse_result, id_provider.clone());
-        //index the pou
-        full_index.import(index::visitor::visit(&parse_result, id_provider.clone()));
-
-        //register the file with the diagnstician, so diagnostics are later able to show snippets from the code
-        let file_id = diagnostician.register_file(location.clone(), e.source);
-        all_units.push((file_id, diagnostics, parse_result));
-    }
-
-    // includes TODO: refactor only test for now
-    // parse & index everything
-    for container in includes {
-        let location: String = container.get_location().into();
-        let e = container
-            .load_source(encoding)
-            .map_err(|err| Diagnostic::io_read_error(location.as_str(), err.as_str()))?;
-
-        let (mut parse_result, diagnostics) = parser::parse(
-            lexer::lex_with_ids(e.source.as_str(), id_provider.clone()),
-            ast::LinkageType::External,
-        );
-
-        //pre-process the ast (create inlined types)
-        ast::pre_process(&mut parse_result, id_provider.clone());
-        //index the pou
-        full_index.import(index::visitor::visit(&parse_result, id_provider.clone()));
-
-        //register the file with the diagnstician, so diagnostics are later able to show snippets from the code
-        let file_id = diagnostician.register_file(location.clone(), e.source);
-        all_units.push((file_id, diagnostics, parse_result));
-    }
+    parse_and_index(
+        sources,
+        encoding,
+        &id_provider,
+        &mut diagnostician,
+        &mut full_index,
+        &mut all_units,
+        LinkageType::Internal,
+    )?;
+    parse_and_index(
+        includes,
+        encoding,
+        &id_provider,
+        &mut diagnostician,
+        &mut full_index,
+        &mut all_units,
+        LinkageType::External,
+    )?;
 
     // ### PHASE 1.1 resolve constant literal values
     let (mut full_index, _unresolvables) =
@@ -481,6 +456,38 @@ pub fn compile_module<'c, T: SourceContainer>(
         code_generator.generate(&unit, &annotations, &full_index, &llvm_index)?;
     }
     Ok(code_generator)
+}
+
+fn parse_and_index<T: SourceContainer>(
+    source: Vec<T>,
+    encoding: Option<&'static Encoding>,
+    id_provider: &IdProvider,
+    diagnostician: &mut Diagnostician,
+    full_index: &mut Index,
+    all_units: &mut Vec<(usize, Vec<Diagnostic>, CompilationUnit)>,
+    linkage: LinkageType,
+) -> Result<(), Diagnostic> {
+    for container in source {
+        let location: String = container.get_location().into();
+        let e = container
+            .load_source(encoding)
+            .map_err(|err| Diagnostic::io_read_error(location.as_str(), err.as_str()))?;
+
+        let (mut parse_result, diagnostics) = parser::parse(
+            lexer::lex_with_ids(e.source.as_str(), id_provider.clone()),
+            linkage,
+        );
+
+        //pre-process the ast (create inlined types)
+        ast::pre_process(&mut parse_result, id_provider.clone());
+        //index the pou
+        full_index.import(index::visitor::visit(&parse_result, id_provider.clone()));
+
+        //register the file with the diagnstician, so diagnostics are later able to show snippets from the code
+        let file_id = diagnostician.register_file(location.clone(), e.source);
+        all_units.push((file_id, diagnostics, parse_result));
+    }
+    Ok(())
 }
 
 fn create_file_paths(inputs: &[String]) -> Result<Vec<FilePath>, Diagnostic> {
