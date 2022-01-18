@@ -692,6 +692,7 @@ fn pre_processing_generates_inline_structs_global() {
                 },
                 location: (54..55).into(),
                 initializer: None,
+                    address: None,
             },],
         },
         new_struct_type
@@ -770,6 +771,7 @@ fn pre_processing_generates_inline_structs() {
                 },
                 location: (67..68).into(),
                 initializer: None,
+                    address: None,
             }],
         },
         new_struct_type
@@ -1150,6 +1152,7 @@ fn pre_processing_nested_array_in_struct() {
                 },
                 location: SourceRange::undefined(),
                 initializer: None,
+                    address: None,
             }],
         },
         initializer: None,

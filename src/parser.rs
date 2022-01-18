@@ -995,7 +995,7 @@ fn parse_variable_line(lexer: &mut ParseSession) -> Vec<Variable> {
         let identifier_end = location.get_end();
         var_names.push((lexer.slice_and_advance(), location));
 
-        if lexer.token == KeywordColon {
+        if lexer.token == KeywordColon || lexer.token == KeywordAt{
             break;
         }
 
@@ -1007,6 +1007,56 @@ fn parse_variable_line(lexer: &mut ParseSession) -> Vec<Variable> {
             ));
         }
     }
+
+    //See if there's an AT keyword
+    let address = if lexer.allow(&KeywordAt) {
+        let start_location = lexer.last_range.start;
+        //Look for a hardware address
+        if let HardwareAccess((direction, access_type)) = lexer.token {
+            lexer.advance();
+            //Folowed by an integer
+            if access_type == DirectAccessType::Template || lexer.token == LiteralInteger {
+                let mut address = vec![];
+                if lexer.token == LiteralInteger {
+                loop {
+                    let int = expressions_parser::parse_strict_literal_integer(lexer);
+                    match int {
+                        Ok(statement) => address.push(statement),
+                        Err(err) => {
+                            lexer.accept_diagnostic(err);
+                            break
+                        },
+                    }
+                    if !lexer.allow(&KeywordDot) {
+                        break;
+                    }
+                }
+                }
+                Some(AstStatement::HardwareAccess{
+                    access : access_type,
+                    direction,
+                    address,
+                    location : (start_location..lexer.last_range.end).into(),
+                    id: lexer.next_id(),
+                })
+
+            } else {
+                lexer.accept_diagnostic(Diagnostic::missing_token(
+                    "LiteralInteger",
+                    lexer.location(),
+                ));
+                None
+            }
+        } else {
+            lexer.accept_diagnostic(Diagnostic::missing_token(
+                "Hardware Access",
+                lexer.location(),
+            ));
+            None
+        }
+    } else {
+        None
+    };
 
     // colon has to come before the data type
     if !lexer.allow(&KeywordColon) {
@@ -1025,6 +1075,7 @@ fn parse_variable_line(lexer: &mut ParseSession) -> Vec<Variable> {
                 data_type: data_type.clone(),
                 location,
                 initializer: initializer.clone(),
+                address : address.clone()
             });
         }
     }

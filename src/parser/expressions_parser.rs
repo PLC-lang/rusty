@@ -539,7 +539,7 @@ fn parse_literal_number(
 }
 
 /// Parses a literal integer without considering Signs or the Possibility of a Floating Point/ Exponent
-fn parse_strict_literal_integer(lexer: &mut ParseSession) -> Result<AstStatement, Diagnostic> {
+pub fn parse_strict_literal_integer(lexer: &mut ParseSession) -> Result<AstStatement, Diagnostic> {
     //correct the location if we just parsed a minus before
     let location = lexer.location();
     let result = lexer.slice_and_advance();

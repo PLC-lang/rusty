@@ -165,6 +165,7 @@ fn inline_enum_declaration_can_be_parsed() {
             scope: None,
         },
         initializer: None,
+        address: None,
         location: SourceRange::undefined(),
     };
     let expected_ast = format!("{:#?}", &v);
