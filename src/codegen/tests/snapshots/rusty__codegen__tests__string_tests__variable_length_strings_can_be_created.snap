@@ -1,6 +1,6 @@
 ---
 source: src/codegen/tests/string_tests.rs
-assertion_line: 105
+assertion_line: 119
 expression: result
 
 ---

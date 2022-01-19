@@ -200,17 +200,33 @@ impl<'a> Llvm<'a> {
     /// create a constant utf8 string-value with the given value
     ///
     /// - `value` the value of the constant string value
-    pub fn create_const_utf8_string(&self, value: &str) -> Result<BasicValueEnum<'a>, Diagnostic> {
-        self.create_llvm_const_vec_string(value.as_bytes())
+    pub fn create_const_utf8_string(
+        &self,
+        value: &str,
+        len: usize,
+    ) -> Result<BasicValueEnum<'a>, Diagnostic> {
+        let mut utf8_chars = value.as_bytes()[..std::cmp::min(value.len(), len - 1)].to_vec();
+        //fill the 0 terminators
+        while utf8_chars.len() < len {
+            utf8_chars.push(0);
+        }
+        self.create_llvm_const_vec_string(utf8_chars.as_slice())
     }
 
     /// create a constant utf16 string-value with the given value
     ///
     /// - `value` the value of the constant string value
-    pub fn create_const_utf16_string(&self, value: &str) -> Result<BasicValueEnum<'a>, Diagnostic> {
+    /// - `len` the len of the string, the literal will be right-padded with 0-bytes to match the length
+    pub fn create_const_utf16_string(
+        &self,
+        value: &str,
+        len: usize,
+    ) -> Result<BasicValueEnum<'a>, Diagnostic> {
         let mut utf16_chars: Vec<u16> = value.encode_utf16().collect();
-        //it only contains a single NUL-terminator-byte so we add a second one
-        utf16_chars.push(0);
+        //fill the 0 terminators
+        while utf16_chars.len() < len {
+            utf16_chars.push(0);
+        }
         self.create_llvm_const_utf16_vec_string(utf16_chars.as_slice())
     }
 
@@ -235,8 +251,12 @@ impl<'a> Llvm<'a> {
         &self,
         value: &[u8],
     ) -> Result<BasicValueEnum<'a>, Diagnostic> {
-        let exp_value = self.context.const_string(value, true);
-        Ok(BasicValueEnum::VectorValue(exp_value))
+        let values: Vec<IntValue> = value
+            .iter()
+            .map(|it| self.context.i8_type().const_int(*it as u64, false))
+            .collect();
+        let vector = self.context.i8_type().const_array(&values);
+        Ok(BasicValueEnum::ArrayValue(vector))
     }
 
     /// create a constant i8 character (IntValue) with the given value

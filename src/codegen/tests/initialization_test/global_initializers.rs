@@ -10,8 +10,8 @@ fn initial_values_in_global_constant_variables() {
           
           c_BOOL : BOOL := TRUE;
           c_not : BOOL := NOT c_BOOL;
-          c_str : STRING := 'Hello';
-          c_wstr : WSTRING := "World";
+          c_str : STRING[10] := 'Hello';
+          c_wstr : WSTRING[10] := "World";
 
           c_real : REAL := 3.14;
           c_lreal : LREAL := 3.1415;
@@ -26,8 +26,8 @@ fn initial_values_in_global_constant_variables() {
           nb : BOOL := c_not;
           bb : BOOL := c_not AND NOT c_not;
 
-          str : STRING := c_str;
-          wstr : WSTRING := c_wstr;
+          str : STRING[10] := c_str;
+          wstr : WSTRING[10] := c_wstr;
 
           r : REAL := c_real / 2;
           tau : LREAL := 2 * c_lreal;
