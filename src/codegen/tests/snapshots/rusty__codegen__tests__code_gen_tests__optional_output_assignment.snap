@@ -1,0 +1,46 @@
+---
+source: src/codegen/tests/code_gen_tests.rs
+assertion_line: 2760
+expression: result
+
+---
+; ModuleID = 'main'
+source_filename = "main"
+
+%foo_interface = type { i32, i32 }
+%main_interface = type { i32, i32 }
+
+@foo_instance = global %foo_interface zeroinitializer
+@main_instance = global %main_interface zeroinitializer
+
+define void @foo(%foo_interface* %0) {
+entry:
+  %output1 = getelementptr inbounds %foo_interface, %foo_interface* %0, i32 0, i32 0
+  %output2 = getelementptr inbounds %foo_interface, %foo_interface* %0, i32 0, i32 1
+  store i32 1, i32* %output1, align 4
+  store i32 2, i32* %output2, align 4
+  ret void
+}
+
+define void @main(%main_interface* %0) {
+entry:
+  %var1 = getelementptr inbounds %main_interface, %main_interface* %0, i32 0, i32 0
+  %var2 = getelementptr inbounds %main_interface, %main_interface* %0, i32 0, i32 1
+  br label %input
+
+input:                                            ; preds = %entry
+  br label %call
+
+call:                                             ; preds = %input
+  call void @foo(%foo_interface* @foo_instance)
+  br label %output
+
+output:                                           ; preds = %call
+  %output2 = load i32, i32* getelementptr inbounds (%foo_interface, %foo_interface* @foo_instance, i32 0, i32 1), align 4
+  store i32 %output2, i32* %var2, align 4
+  br label %continue
+
+continue:                                         ; preds = %output
+  ret void
+}
+
