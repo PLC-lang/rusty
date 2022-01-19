@@ -2732,3 +2732,30 @@ fn order_var_and_var_temp_block() {
     // codegen should be successful
     insta::assert_snapshot!(result);
 }
+
+#[test]
+fn optional_output_assignment() {
+    // GIVEN a program calling a function and only assigning one output
+    let result = codegen(
+        "
+		PROGRAM foo 
+			VAR_OUTPUT
+				output1 : DINT;
+				output2 : DINT;
+			END_VAR
+			output1 := 1;
+			output2 := 2;
+		END_PROGRAM
+
+		PROGRAM main
+			VAR
+				var1 : DINT;
+				var2 : DINT;
+			END_VAR
+			foo(output1 =>, output2 => var2);
+		END_PROGRAM
+		",
+    );
+    // codegen should be successful
+    insta::assert_snapshot!(result);
+}

@@ -721,40 +721,43 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
         let current_block = builder.get_insert_block().expect(INTERNAL_LLVM_ERROR);
 
         builder.position_at_end(*output_block);
-        if let AstStatement::Reference { name, .. } = left {
-            let parameter = self
-                .index
-                .find_member(function_name, name)
-                .ok_or_else(|| Diagnostic::unresolved_reference(name, left.get_location()))?;
-            let index = parameter.get_location_in_parent();
-            let param_type = self
-                .index
-                .find_effective_type(parameter.get_type_name())
-                .or_else(|| {
-                    self.index
-                        .find_input_parameter(function_name, index as u32)
-                        .and_then(|var| self.index.find_effective_type(var.get_type_name()))
-                })
-                .ok_or_else(|| {
-                    Diagnostic::unknown_type(parameter.get_type_name(), left.get_location())
-                })?;
-            //load the function prameter
-            let pointer_to_param = builder
-                .build_struct_gep(parameter_struct, index as u32, "")
-                .expect(INTERNAL_LLVM_ERROR);
+        // (output => ) output assignments are optional, in this case  ignore codegen
+        if !matches!(right, AstStatement::EmptyStatement { .. }) {
+            if let AstStatement::Reference { name, .. } = left {
+                let parameter = self
+                    .index
+                    .find_member(function_name, name)
+                    .ok_or_else(|| Diagnostic::unresolved_reference(name, left.get_location()))?;
+                let index = parameter.get_location_in_parent();
+                let param_type = self
+                    .index
+                    .find_effective_type(parameter.get_type_name())
+                    .or_else(|| {
+                        self.index
+                            .find_input_parameter(function_name, index as u32)
+                            .and_then(|var| self.index.find_effective_type(var.get_type_name()))
+                    })
+                    .ok_or_else(|| {
+                        Diagnostic::unknown_type(parameter.get_type_name(), left.get_location())
+                    })?;
+                //load the function prameter
+                let pointer_to_param = builder
+                    .build_struct_gep(parameter_struct, index as u32, "")
+                    .expect(INTERNAL_LLVM_ERROR);
 
-            let l_value = self.generate_element_pointer(right)?;
-            let loaded_value = builder.build_load(pointer_to_param, parameter.get_name());
-            let value = cast_if_needed(
-                self.llvm,
-                self.index,
-                self.llvm_index,
-                self.get_type_hint_for(right)?,
-                loaded_value,
-                param_type,
-                right,
-            )?;
-            builder.build_store(l_value, value);
+                let l_value = self.generate_element_pointer(right)?;
+                let loaded_value = builder.build_load(pointer_to_param, parameter.get_name());
+                let value = cast_if_needed(
+                    self.llvm,
+                    self.index,
+                    self.llvm_index,
+                    self.get_type_hint_for(right)?,
+                    loaded_value,
+                    param_type,
+                    right,
+                )?;
+                builder.build_store(l_value, value);
+            }
         }
         builder.position_at_end(current_block);
         Ok(())
