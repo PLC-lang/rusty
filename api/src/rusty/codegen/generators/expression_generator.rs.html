@@ -1923,6 +1923,33 @@
 <span id="1923">1923</span>
 <span id="1924">1924</span>
 <span id="1925">1925</span>
+<span id="1926">1926</span>
+<span id="1927">1927</span>
+<span id="1928">1928</span>
+<span id="1929">1929</span>
+<span id="1930">1930</span>
+<span id="1931">1931</span>
+<span id="1932">1932</span>
+<span id="1933">1933</span>
+<span id="1934">1934</span>
+<span id="1935">1935</span>
+<span id="1936">1936</span>
+<span id="1937">1937</span>
+<span id="1938">1938</span>
+<span id="1939">1939</span>
+<span id="1940">1940</span>
+<span id="1941">1941</span>
+<span id="1942">1942</span>
+<span id="1943">1943</span>
+<span id="1944">1944</span>
+<span id="1945">1945</span>
+<span id="1946">1946</span>
+<span id="1947">1947</span>
+<span id="1948">1948</span>
+<span id="1949">1949</span>
+<span id="1950">1950</span>
+<span id="1951">1951</span>
+<span id="1952">1952</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">ast</span>::{<span class="self">self</span>, <span class="ident">DirectAccessType</span>, <span class="ident">SourceRange</span>},
@@ -1969,6 +1996,9 @@
     <span class="kw">pub</span> <span class="ident">temp_variable_prefix</span>: <span class="ident">String</span>,
     <span class="doccomment">/// the string-suffix to use for temporary variables</span>
     <span class="kw">pub</span> <span class="ident">temp_variable_suffix</span>: <span class="ident">String</span>,
+
+    <span class="comment">// the function on how to obtain the the length to use for the string</span>
+    <span class="ident">string_len_provider</span>: <span class="kw">fn</span>(<span class="ident">type_length_declaration</span>: <span class="ident">usize</span>, <span class="ident">actual_length</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span>,
 }
 
 <span class="doccomment">/// context information to generate a parameter</span>
@@ -2002,6 +2032,7 @@
             <span class="ident">function_context</span>: <span class="prelude-val">Some</span>(<span class="ident">function_context</span>),
             <span class="ident">temp_variable_prefix</span>: <span class="string">&quot;load_&quot;</span>.<span class="ident">to_string</span>(),
             <span class="ident">temp_variable_suffix</span>: <span class="string">&quot;&quot;</span>.<span class="ident">to_string</span>(),
+            <span class="ident">string_len_provider</span>: <span class="op">|</span><span class="kw">_</span>, <span class="ident">actual_length</span><span class="op">|</span> <span class="ident">actual_length</span>, <span class="comment">//when generating string-literals in a body, use the actual length</span>
         }
     }
 
@@ -2026,6 +2057,7 @@
             <span class="ident">function_context</span>: <span class="prelude-val">None</span>,
             <span class="ident">temp_variable_prefix</span>: <span class="string">&quot;load_&quot;</span>.<span class="ident">to_string</span>(),
             <span class="ident">temp_variable_suffix</span>: <span class="string">&quot;&quot;</span>.<span class="ident">to_string</span>(),
+            <span class="ident">string_len_provider</span>: <span class="op">|</span><span class="ident">type_length_declaration</span>, <span class="kw">_</span><span class="op">|</span> <span class="ident">type_length_declaration</span>, <span class="comment">//when generating string-literals in declarations, use the declared length</span>
         }
     }
 
@@ -3334,12 +3366,35 @@
             } <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">let</span> <span class="ident">expected_type</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_type_hint_info_for</span>(<span class="ident">literal_statement</span>)<span class="question-mark">?</span>;
                 <span class="kw">match</span> <span class="ident">expected_type</span> {
-                    <span class="ident">DataTypeInformation::String</span> { <span class="ident">encoding</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident">encoding</span> {
-                        <span class="ident">StringEncoding::Utf8</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">llvm</span>.<span class="ident">create_const_utf8_string</span>(<span class="ident">value</span>.<span class="ident">as_str</span>()),
-                        <span class="ident">StringEncoding::Utf16</span> <span class="op">=</span><span class="op">&gt;</span> {
-                            <span class="self">self</span>.<span class="ident">llvm</span>.<span class="ident">create_const_utf16_string</span>(<span class="ident">value</span>.<span class="ident">as_str</span>())
+                    <span class="ident">DataTypeInformation::String</span> { <span class="ident">encoding</span>, <span class="ident">size</span>, .. } <span class="op">=</span><span class="op">&gt;</span> {
+                        <span class="kw">let</span> <span class="ident">declared_length</span> <span class="op">=</span> <span class="ident">size</span>.<span class="ident">as_int_value</span>(<span class="self">self</span>.<span class="ident">index</span>).<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">msg</span><span class="op">|</span> {
+                            <span class="ident">Diagnostic::codegen_error</span>(
+                                <span class="macro">format!</span>(<span class="string">&quot;Unable to generate string-literal: {}&quot;</span>, <span class="ident">msg</span>).<span class="ident">as_str</span>(),
+                                <span class="ident">literal_statement</span>.<span class="ident">get_location</span>(),
+                            )
+                        })<span class="question-mark">?</span> <span class="kw">as</span> <span class="ident">usize</span>;
+
+                        <span class="kw">match</span> <span class="ident">encoding</span> {
+                            <span class="ident">StringEncoding::Utf8</span> <span class="op">=</span><span class="op">&gt;</span> {
+                                <span class="comment">//note that .len() will give us the number of bytes, not the number of characters</span>
+                                <span class="kw">let</span> <span class="ident">actual_length</span> <span class="op">=</span> <span class="ident">value</span>.<span class="ident">chars</span>().<span class="ident">count</span>() <span class="op">+</span> <span class="number">1</span>; <span class="comment">// +1 to account for a final \0</span>
+                                <span class="kw">let</span> <span class="ident">str_len</span> <span class="op">=</span> <span class="ident">std::cmp::min</span>(
+                                    (<span class="self">self</span>.<span class="ident">string_len_provider</span>)(<span class="ident">declared_length</span>, <span class="ident">actual_length</span>),
+                                    <span class="ident">declared_length</span>,
+                                );
+                                <span class="self">self</span>.<span class="ident">llvm</span>.<span class="ident">create_const_utf8_string</span>(<span class="ident">value</span>.<span class="ident">as_str</span>(), <span class="ident">str_len</span>)
+                            }
+                            <span class="ident">StringEncoding::Utf16</span> <span class="op">=</span><span class="op">&gt;</span> {
+                                <span class="comment">//note that .len() will give us the number of bytes, not the number of characters</span>
+                                <span class="kw">let</span> <span class="ident">actual_length</span> <span class="op">=</span> <span class="ident">value</span>.<span class="ident">encode_utf16</span>().<span class="ident">count</span>() <span class="op">+</span> <span class="number">1</span>; <span class="comment">// +1 to account for a final \0</span>
+                                <span class="kw">let</span> <span class="ident">str_len</span> <span class="op">=</span> <span class="ident">std::cmp::min</span>(
+                                    (<span class="self">self</span>.<span class="ident">string_len_provider</span>)(<span class="ident">declared_length</span>, <span class="ident">actual_length</span>),
+                                    <span class="ident">declared_length</span>,
+                                );
+                                <span class="self">self</span>.<span class="ident">llvm</span>.<span class="ident">create_const_utf16_string</span>(<span class="ident">value</span>.<span class="ident">as_str</span>(), <span class="ident">str_len</span>)
+                            }
                         }
-                    },
+                    }
                     <span class="ident">DataTypeInformation::Integer</span> { <span class="ident">size</span>: <span class="number">8</span>, .. }
                         <span class="kw">if</span> <span class="ident">expected_type</span>.<span class="ident">is_character</span>() <span class="op">=</span><span class="op">&gt;</span>
                     {
@@ -3555,10 +3610,9 @@
             .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
                 <span class="ident">Diagnostic::codegen_error</span>(<span class="string">&quot;Cannot generate empty array&quot;</span>, <span class="ident">location</span>.<span class="ident">clone</span>())
             }) <span class="comment">//TODO</span>
-            .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">it</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">get_type_hint_info_for</span>(<span class="ident">it</span>))<span class="question-mark">?</span>;
+            .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">it</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">get_type_hint_for</span>(<span class="ident">it</span>))<span class="question-mark">?</span>;
 
         <span class="kw">let</span> <span class="ident">llvm_type</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">llvm_index</span>.<span class="ident">get_associated_type</span>(<span class="ident">inner_type</span>.<span class="ident">get_name</span>())<span class="question-mark">?</span>;
-
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">v</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
         <span class="kw">for</span> <span class="ident">e</span> <span class="kw">in</span> <span class="ident">elements</span> {
             <span class="comment">//generate with correct type hint</span>
