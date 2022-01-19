@@ -1448,7 +1448,10 @@ fn global_initializers_are_stored_in_the_const_expression_arena() {
         ";
     // WHEN the program is indexed
     let ids = IdProvider::default();
-    let (mut ast, ..) = crate::parser::parse(crate::lexer::lex_with_ids(src, ids.clone()));
+    let (mut ast, ..) = crate::parser::parse(
+        crate::lexer::lex_with_ids(src, ids.clone()),
+        LinkageType::Internal,
+    );
 
     crate::ast::pre_process(&mut ast, ids.clone());
     let index = crate::index::visitor::visit(&ast, ids);
@@ -1492,7 +1495,10 @@ fn local_initializers_are_stored_in_the_const_expression_arena() {
         ";
     // WHEN the program is indexed
     let ids = IdProvider::default();
-    let (mut ast, ..) = crate::parser::parse(crate::lexer::lex_with_ids(src, ids.clone()));
+    let (mut ast, ..) = crate::parser::parse(
+        crate::lexer::lex_with_ids(src, ids.clone()),
+        LinkageType::Internal,
+    );
 
     crate::ast::pre_process(&mut ast, ids.clone());
     let index = crate::index::visitor::visit(&ast, ids);
@@ -1530,7 +1536,10 @@ fn datatype_initializers_are_stored_in_the_const_expression_arena() {
         ";
     // WHEN the program is indexed
     let ids = IdProvider::default();
-    let (mut ast, ..) = crate::parser::parse(crate::lexer::lex_with_ids(src, ids.clone()));
+    let (mut ast, ..) = crate::parser::parse(
+        crate::lexer::lex_with_ids(src, ids.clone()),
+        LinkageType::Internal,
+    );
 
     crate::ast::pre_process(&mut ast, ids.clone());
     let index = crate::index::visitor::visit(&ast, ids);
@@ -1557,7 +1566,10 @@ fn array_dimensions_are_stored_in_the_const_expression_arena() {
         ";
     // WHEN the program is indexed
     let ids = IdProvider::default();
-    let (mut ast, ..) = crate::parser::parse(crate::lexer::lex_with_ids(src, ids.clone()));
+    let (mut ast, ..) = crate::parser::parse(
+        crate::lexer::lex_with_ids(src, ids.clone()),
+        LinkageType::Internal,
+    );
 
     crate::ast::pre_process(&mut ast, ids.clone());
     let index = crate::index::visitor::visit(&ast, ids);
@@ -1638,7 +1650,10 @@ fn string_dimensions_are_stored_in_the_const_expression_arena() {
         ";
     // WHEN the program is indexed
     let ids = IdProvider::default();
-    let (mut ast, ..) = crate::parser::parse(crate::lexer::lex_with_ids(src, ids.clone()));
+    let (mut ast, ..) = crate::parser::parse(
+        crate::lexer::lex_with_ids(src, ids.clone()),
+        LinkageType::Internal,
+    );
 
     crate::ast::pre_process(&mut ast, ids.clone());
     let index = crate::index::visitor::visit(&ast, ids);

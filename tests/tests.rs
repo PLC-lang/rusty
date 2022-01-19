@@ -145,8 +145,14 @@ pub fn run<T, U>(exec_engine: &ExecutionEngine, name: &str, params: &mut T) -> U
 ///
 pub fn compile<T: Compilable>(context: &Context, source: T) -> ExecutionEngine {
     let source = source.containers();
-    let code_gen =
-        compile_module(context, source, None, Diagnostician::null_diagnostician()).unwrap();
+    let code_gen = compile_module(
+        context,
+        source,
+        vec![],
+        None,
+        Diagnostician::null_diagnostician(),
+    )
+    .unwrap();
     println!("{}", code_gen.module.print_to_string());
     code_gen
         .module

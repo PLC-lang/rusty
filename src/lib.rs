@@ -22,7 +22,7 @@ use std::fs;
 use glob::glob;
 use std::path::Path;
 
-use ast::{PouType, SourceRange};
+use ast::{LinkageType, PouType, SourceRange};
 use cli::CompileParameters;
 use diagnostics::Diagnostic;
 use encoding_rs::Encoding;
@@ -198,6 +198,7 @@ pub fn get_target_triple(triple: Option<String>) -> TargetTriple {
 ///
 fn compile_to_obj<T: SourceContainer>(
     sources: Vec<T>,
+    includes: Vec<T>,
     encoding: Option<&'static Encoding>,
     output: &str,
     reloc: RelocMode,
@@ -229,7 +230,7 @@ fn compile_to_obj<T: SourceContainer>(
         });
 
     let c = Context::create();
-    let code_generator = compile_module(&c, sources, encoding, diagnostician)?;
+    let code_generator = compile_module(&c, sources, includes, encoding, diagnostician)?;
     machine.and_then(|it| {
         it.write_to_file(&code_generator.module, FileType::Object, Path::new(output))
             .map_err(|it| Diagnostic::llvm_error(output, &it))
@@ -247,6 +248,7 @@ fn compile_to_obj<T: SourceContainer>(
 ///     If not provided, the machine's triple will be used.
 pub fn compile_to_static_obj<T: SourceContainer>(
     sources: Vec<T>,
+    includes: Vec<T>,
     encoding: Option<&'static Encoding>,
     output: &str,
     target: Option<String>,
@@ -254,6 +256,7 @@ pub fn compile_to_static_obj<T: SourceContainer>(
 ) -> Result<(), Diagnostic> {
     compile_to_obj(
         sources,
+        includes,
         encoding,
         output,
         RelocMode::Default,
@@ -273,6 +276,7 @@ pub fn compile_to_static_obj<T: SourceContainer>(
 ///     If not provided, the machine's triple will be used.
 pub fn compile_to_shared_pic_object<T: SourceContainer>(
     sources: Vec<T>,
+    includes: Vec<T>,
     encoding: Option<&'static Encoding>,
     output: &str,
     target: Option<String>,
@@ -280,6 +284,7 @@ pub fn compile_to_shared_pic_object<T: SourceContainer>(
 ) -> Result<(), Diagnostic> {
     compile_to_obj(
         sources,
+        includes,
         encoding,
         output,
         RelocMode::PIC,
@@ -299,6 +304,7 @@ pub fn compile_to_shared_pic_object<T: SourceContainer>(
 ///     If not provided, the machine's triple will be used.
 pub fn compile_to_shared_object<T: SourceContainer>(
     sources: Vec<T>,
+    includes: Vec<T>,
     encoding: Option<&'static Encoding>,
     output: &str,
     target: Option<String>,
@@ -306,6 +312,7 @@ pub fn compile_to_shared_object<T: SourceContainer>(
 ) -> Result<(), Diagnostic> {
     compile_to_obj(
         sources,
+        includes,
         encoding,
         output,
         RelocMode::DynamicNoPic,
@@ -323,13 +330,14 @@ pub fn compile_to_shared_object<T: SourceContainer>(
 /// * `output` - the location on disk to save the output
 pub fn compile_to_bitcode<T: SourceContainer>(
     sources: Vec<T>,
+    includes: Vec<T>,
     encoding: Option<&'static Encoding>,
     output: &str,
     diagnostician: Diagnostician,
 ) -> Result<(), Diagnostic> {
     let path = Path::new(output);
     let c = Context::create();
-    let code_generator = compile_module(&c, sources, encoding, diagnostician)?;
+    let code_generator = compile_module(&c, sources, includes, encoding, diagnostician)?;
     code_generator.module.write_bitcode_to_path(path);
     Ok(())
 }
@@ -344,11 +352,12 @@ pub fn compile_to_bitcode<T: SourceContainer>(
 /// * `output`  - The location to save the generated ir file
 pub fn compile_to_ir<T: SourceContainer>(
     sources: Vec<T>,
+    includes: Vec<T>,
     encoding: Option<&'static Encoding>,
     output: &str,
     diagnostician: Diagnostician,
 ) -> Result<(), Diagnostic> {
-    let ir = compile_to_string(sources, encoding, diagnostician)?;
+    let ir = compile_to_string(sources, includes, encoding, diagnostician)?;
     fs::write(output, ir)
         .map_err(|err| Diagnostic::io_write_error(output, err.to_string().as_str()))
 }
@@ -362,11 +371,12 @@ pub fn compile_to_ir<T: SourceContainer>(
 /// * `encoding` - The encoding to parse the files, None for UTF-8
 pub fn compile_to_string<T: SourceContainer>(
     sources: Vec<T>,
+    includes: Vec<T>,
     encoding: Option<&'static Encoding>,
     diagnostician: Diagnostician,
 ) -> Result<String, Diagnostic> {
     let c = Context::create();
-    let code_gen = compile_module(&c, sources, encoding, diagnostician)?;
+    let code_gen = compile_module(&c, sources, includes, encoding, diagnostician)?;
     Ok(code_gen.module.print_to_string().to_string())
 }
 
@@ -381,6 +391,7 @@ pub fn compile_to_string<T: SourceContainer>(
 pub fn compile_module<'c, T: SourceContainer>(
     context: &'c Context,
     sources: Vec<T>,
+    includes: Vec<T>,
     encoding: Option<&'static Encoding>,
     mut diagnostician: Diagnostician,
 ) -> Result<codegen::CodeGen<'c>, Diagnostic> {
@@ -391,24 +402,25 @@ pub fn compile_module<'c, T: SourceContainer>(
 
     // ### PHASE 1 ###
     // parse & index everything
-    for container in sources {
-        let location: String = container.get_location().into();
-        let e = container
-            .load_source(encoding)
-            .map_err(|err| Diagnostic::io_read_error(location.as_str(), err.as_str()))?;
+    let (index, mut units) = parse_and_index(
+        sources,
+        encoding,
+        &id_provider,
+        &mut diagnostician,
+        LinkageType::Internal,
+    )?;
+    full_index.import(index);
+    all_units.append(&mut units);
 
-        let (mut parse_result, diagnostics) =
-            parser::parse(lexer::lex_with_ids(e.source.as_str(), id_provider.clone()));
-
-        //pre-process the ast (create inlined types)
-        ast::pre_process(&mut parse_result, id_provider.clone());
-        //index the pou
-        full_index.import(index::visitor::visit(&parse_result, id_provider.clone()));
-
-        //register the file with the diagnstician, so diagnostics are later able to show snippets from the code
-        let file_id = diagnostician.register_file(location.clone(), e.source);
-        all_units.push((file_id, diagnostics, parse_result));
-    }
+    let (includes_index, mut includes_units) = parse_and_index(
+        includes,
+        encoding,
+        &id_provider,
+        &mut diagnostician,
+        LinkageType::External,
+    )?;
+    full_index.import(includes_index);
+    all_units.append(&mut includes_units);
 
     // ### PHASE 1.1 resolve constant literal values
     let (mut full_index, _unresolvables) =
@@ -447,6 +459,40 @@ pub fn compile_module<'c, T: SourceContainer>(
     Ok(code_generator)
 }
 
+type Units = Vec<(usize, Vec<Diagnostic>, CompilationUnit)>;
+fn parse_and_index<T: SourceContainer>(
+    source: Vec<T>,
+    encoding: Option<&'static Encoding>,
+    id_provider: &IdProvider,
+    diagnostician: &mut Diagnostician,
+    linkage: LinkageType,
+) -> Result<(Index, Units), Diagnostic> {
+    let mut index = Index::new();
+    let mut units = Vec::new();
+
+    for container in source {
+        let location: String = container.get_location().into();
+        let e = container
+            .load_source(encoding)
+            .map_err(|err| Diagnostic::io_read_error(location.as_str(), err.as_str()))?;
+
+        let (mut parse_result, diagnostics) = parser::parse(
+            lexer::lex_with_ids(e.source.as_str(), id_provider.clone()),
+            linkage,
+        );
+
+        //pre-process the ast (create inlined types)
+        ast::pre_process(&mut parse_result, id_provider.clone());
+        //index the pou
+        index.import(index::visitor::visit(&parse_result, id_provider.clone()));
+
+        //register the file with the diagnstician, so diagnostics are later able to show snippets from the code
+        let file_id = diagnostician.register_file(location.clone(), e.source);
+        units.push((file_id, diagnostics, parse_result));
+    }
+    Ok((index, units))
+}
+
 fn create_file_paths(inputs: &[String]) -> Result<Vec<FilePath>, Diagnostic> {
     let mut sources = Vec::new();
     for input in inputs {
@@ -479,6 +525,11 @@ fn create_file_paths(inputs: &[String]) -> Result<Vec<FilePath>, Diagnostic> {
 /// Returns the location of the output file
 pub fn build_with_params(parameters: CompileParameters) -> Result<(), Diagnostic> {
     let files = create_file_paths(&parameters.input)?;
+    let includes = if parameters.includes.is_empty() {
+        vec![]
+    } else {
+        create_file_paths(&parameters.includes)?
+    };
     let output = parameters
         .output_name()
         .ok_or_else(|| Diagnostic::param_error("Missing parameter: output-name"))?;
@@ -498,7 +549,13 @@ pub fn build_with_params(parameters: CompileParameters) -> Result<(), Diagnostic
         None
     };
 
-    build(files, compile_options, link_options, parameters.encoding)
+    build(
+        files,
+        includes,
+        compile_options,
+        link_options,
+        parameters.encoding,
+    )
 }
 
 /// The driver function for the compilation
@@ -509,6 +566,7 @@ pub fn build_with_params(parameters: CompileParameters) -> Result<(), Diagnostic
 /// Returns the location of the output file
 pub fn build(
     files: Vec<FilePath>,
+    includes: Vec<FilePath>,
     compile_options: CompileOptions,
     link_options: Option<LinkOptions>,
     encoding: Option<&'static Encoding>,
@@ -528,6 +586,7 @@ pub fn build(
             &compile_options.output,
             compile_options.format,
             sources,
+            includes,
             encoding,
             compile_options.target.clone(),
         )?;
@@ -553,22 +612,25 @@ pub fn compile(
     output: &str,
     out_format: FormatOption,
     sources: Vec<FilePath>,
+    includes: Vec<FilePath>,
     encoding: Option<&'static Encoding>,
     target: Option<String>,
 ) -> Result<(), Diagnostic> {
     let diagnostician = Diagnostician::default();
     match out_format {
         FormatOption::Static | FormatOption::Relocatable => {
-            compile_to_static_obj(sources, encoding, output, target, diagnostician)
+            compile_to_static_obj(sources, includes, encoding, output, target, diagnostician)
         }
         FormatOption::Shared => {
-            compile_to_shared_object(sources, encoding, output, target, diagnostician)
+            compile_to_shared_object(sources, includes, encoding, output, target, diagnostician)
         }
         FormatOption::PIC => {
-            compile_to_shared_pic_object(sources, encoding, output, target, diagnostician)
+            compile_to_shared_pic_object(sources, includes, encoding, output, target, diagnostician)
         }
-        FormatOption::Bitcode => compile_to_bitcode(sources, encoding, output, diagnostician),
-        FormatOption::IR => compile_to_ir(sources, encoding, output, diagnostician),
+        FormatOption::Bitcode => {
+            compile_to_bitcode(sources, includes, encoding, output, diagnostician)
+        }
+        FormatOption::IR => compile_to_ir(sources, includes, encoding, output, diagnostician),
     }?;
     Ok(())
 }
@@ -623,6 +685,7 @@ pub fn link(
 
 #[cfg(test)]
 mod tests {
+    mod external_files;
     mod multi_files;
 
     use inkwell::targets::TargetMachine;

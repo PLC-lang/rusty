@@ -19,10 +19,10 @@ mod expressions_parser;
 pub mod tests;
 pub type ParsedAst = (CompilationUnit, Vec<Diagnostic>);
 
-pub fn parse(mut lexer: ParseSession) -> ParsedAst {
+pub fn parse(mut lexer: ParseSession, linkage: LinkageType) -> ParsedAst {
     let mut unit = CompilationUnit::default();
 
-    let mut linkage = LinkageType::Internal;
+    let mut linkage = linkage;
     loop {
         match lexer.token {
             PropertyExternal => {
