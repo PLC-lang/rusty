@@ -1043,10 +1043,10 @@
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">tests</span>;
 <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">ParsedAst</span> <span class="op">=</span> (<span class="ident">CompilationUnit</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Diagnostic</span><span class="op">&gt;</span>);
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">parse</span>(<span class="kw-2">mut</span> <span class="ident">lexer</span>: <span class="ident">ParseSession</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ParsedAst</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">parse</span>(<span class="kw-2">mut</span> <span class="ident">lexer</span>: <span class="ident">ParseSession</span>, <span class="ident">linkage</span>: <span class="ident">LinkageType</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ParsedAst</span> {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">unit</span> <span class="op">=</span> <span class="ident">CompilationUnit::default</span>();
 
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">linkage</span> <span class="op">=</span> <span class="ident">LinkageType::Internal</span>;
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">linkage</span> <span class="op">=</span> <span class="ident">linkage</span>;
     <span class="kw">loop</span> {
         <span class="kw">match</span> <span class="ident">lexer</span>.<span class="ident">token</span> {
             <span class="ident">PropertyExternal</span> <span class="op">=</span><span class="op">&gt;</span> {

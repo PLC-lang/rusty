@@ -682,6 +682,69 @@
 <span id="682">682</span>
 <span id="683">683</span>
 <span id="684">684</span>
+<span id="685">685</span>
+<span id="686">686</span>
+<span id="687">687</span>
+<span id="688">688</span>
+<span id="689">689</span>
+<span id="690">690</span>
+<span id="691">691</span>
+<span id="692">692</span>
+<span id="693">693</span>
+<span id="694">694</span>
+<span id="695">695</span>
+<span id="696">696</span>
+<span id="697">697</span>
+<span id="698">698</span>
+<span id="699">699</span>
+<span id="700">700</span>
+<span id="701">701</span>
+<span id="702">702</span>
+<span id="703">703</span>
+<span id="704">704</span>
+<span id="705">705</span>
+<span id="706">706</span>
+<span id="707">707</span>
+<span id="708">708</span>
+<span id="709">709</span>
+<span id="710">710</span>
+<span id="711">711</span>
+<span id="712">712</span>
+<span id="713">713</span>
+<span id="714">714</span>
+<span id="715">715</span>
+<span id="716">716</span>
+<span id="717">717</span>
+<span id="718">718</span>
+<span id="719">719</span>
+<span id="720">720</span>
+<span id="721">721</span>
+<span id="722">722</span>
+<span id="723">723</span>
+<span id="724">724</span>
+<span id="725">725</span>
+<span id="726">726</span>
+<span id="727">727</span>
+<span id="728">728</span>
+<span id="729">729</span>
+<span id="730">730</span>
+<span id="731">731</span>
+<span id="732">732</span>
+<span id="733">733</span>
+<span id="734">734</span>
+<span id="735">735</span>
+<span id="736">736</span>
+<span id="737">737</span>
+<span id="738">738</span>
+<span id="739">739</span>
+<span id="740">740</span>
+<span id="741">741</span>
+<span id="742">742</span>
+<span id="743">743</span>
+<span id="744">744</span>
+<span id="745">745</span>
+<span id="746">746</span>
+<span id="747">747</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 <span class="doccomment">//! A Structured Text LLVM Frontent</span>
 <span class="doccomment">//!</span>
@@ -706,7 +769,7 @@
 <span class="kw">use</span> <span class="ident">glob::glob</span>;
 <span class="kw">use</span> <span class="ident">std::path::Path</span>;
 
-<span class="kw">use</span> <span class="ident">ast</span>::{<span class="ident">PouType</span>, <span class="ident">SourceRange</span>};
+<span class="kw">use</span> <span class="ident">ast</span>::{<span class="ident">LinkageType</span>, <span class="ident">PouType</span>, <span class="ident">SourceRange</span>};
 <span class="kw">use</span> <span class="ident">cli::CompileParameters</span>;
 <span class="kw">use</span> <span class="ident">diagnostics::Diagnostic</span>;
 <span class="kw">use</span> <span class="ident">encoding_rs::Encoding</span>;
@@ -882,6 +945,7 @@
 <span class="doccomment">///</span>
 <span class="kw">fn</span> <span class="ident">compile_to_obj</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">SourceContainer</span><span class="op">&gt;</span>(
     <span class="ident">sources</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
+    <span class="ident">includes</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
     <span class="ident">encoding</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">Encoding</span><span class="op">&gt;</span>,
     <span class="ident">output</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
     <span class="ident">reloc</span>: <span class="ident">RelocMode</span>,
@@ -913,7 +977,7 @@
         });
 
     <span class="kw">let</span> <span class="ident">c</span> <span class="op">=</span> <span class="ident">Context::create</span>();
-    <span class="kw">let</span> <span class="ident">code_generator</span> <span class="op">=</span> <span class="ident">compile_module</span>(<span class="kw-2">&amp;</span><span class="ident">c</span>, <span class="ident">sources</span>, <span class="ident">encoding</span>, <span class="ident">diagnostician</span>)<span class="question-mark">?</span>;
+    <span class="kw">let</span> <span class="ident">code_generator</span> <span class="op">=</span> <span class="ident">compile_module</span>(<span class="kw-2">&amp;</span><span class="ident">c</span>, <span class="ident">sources</span>, <span class="ident">includes</span>, <span class="ident">encoding</span>, <span class="ident">diagnostician</span>)<span class="question-mark">?</span>;
     <span class="ident">machine</span>.<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">it</span><span class="op">|</span> {
         <span class="ident">it</span>.<span class="ident">write_to_file</span>(<span class="kw-2">&amp;</span><span class="ident">code_generator</span>.<span class="ident">module</span>, <span class="ident">FileType::Object</span>, <span class="ident">Path::new</span>(<span class="ident">output</span>))
             .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">it</span><span class="op">|</span> <span class="ident">Diagnostic::llvm_error</span>(<span class="ident">output</span>, <span class="kw-2">&amp;</span><span class="ident">it</span>))
@@ -931,6 +995,7 @@
 <span class="doccomment">///     If not provided, the machine&#39;s triple will be used.</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">compile_to_static_obj</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">SourceContainer</span><span class="op">&gt;</span>(
     <span class="ident">sources</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
+    <span class="ident">includes</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
     <span class="ident">encoding</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">Encoding</span><span class="op">&gt;</span>,
     <span class="ident">output</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
     <span class="ident">target</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
@@ -938,6 +1003,7 @@
 ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
     <span class="ident">compile_to_obj</span>(
         <span class="ident">sources</span>,
+        <span class="ident">includes</span>,
         <span class="ident">encoding</span>,
         <span class="ident">output</span>,
         <span class="ident">RelocMode::Default</span>,
@@ -957,6 +1023,7 @@
 <span class="doccomment">///     If not provided, the machine&#39;s triple will be used.</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">compile_to_shared_pic_object</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">SourceContainer</span><span class="op">&gt;</span>(
     <span class="ident">sources</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
+    <span class="ident">includes</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
     <span class="ident">encoding</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">Encoding</span><span class="op">&gt;</span>,
     <span class="ident">output</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
     <span class="ident">target</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
@@ -964,6 +1031,7 @@
 ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
     <span class="ident">compile_to_obj</span>(
         <span class="ident">sources</span>,
+        <span class="ident">includes</span>,
         <span class="ident">encoding</span>,
         <span class="ident">output</span>,
         <span class="ident">RelocMode::PIC</span>,
@@ -983,6 +1051,7 @@
 <span class="doccomment">///     If not provided, the machine&#39;s triple will be used.</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">compile_to_shared_object</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">SourceContainer</span><span class="op">&gt;</span>(
     <span class="ident">sources</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
+    <span class="ident">includes</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
     <span class="ident">encoding</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">Encoding</span><span class="op">&gt;</span>,
     <span class="ident">output</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
     <span class="ident">target</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
@@ -990,6 +1059,7 @@
 ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
     <span class="ident">compile_to_obj</span>(
         <span class="ident">sources</span>,
+        <span class="ident">includes</span>,
         <span class="ident">encoding</span>,
         <span class="ident">output</span>,
         <span class="ident">RelocMode::DynamicNoPic</span>,
@@ -1007,13 +1077,14 @@
 <span class="doccomment">/// * `output` - the location on disk to save the output</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">compile_to_bitcode</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">SourceContainer</span><span class="op">&gt;</span>(
     <span class="ident">sources</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
+    <span class="ident">includes</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
     <span class="ident">encoding</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">Encoding</span><span class="op">&gt;</span>,
     <span class="ident">output</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
     <span class="ident">diagnostician</span>: <span class="ident">Diagnostician</span>,
 ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">path</span> <span class="op">=</span> <span class="ident">Path::new</span>(<span class="ident">output</span>);
     <span class="kw">let</span> <span class="ident">c</span> <span class="op">=</span> <span class="ident">Context::create</span>();
-    <span class="kw">let</span> <span class="ident">code_generator</span> <span class="op">=</span> <span class="ident">compile_module</span>(<span class="kw-2">&amp;</span><span class="ident">c</span>, <span class="ident">sources</span>, <span class="ident">encoding</span>, <span class="ident">diagnostician</span>)<span class="question-mark">?</span>;
+    <span class="kw">let</span> <span class="ident">code_generator</span> <span class="op">=</span> <span class="ident">compile_module</span>(<span class="kw-2">&amp;</span><span class="ident">c</span>, <span class="ident">sources</span>, <span class="ident">includes</span>, <span class="ident">encoding</span>, <span class="ident">diagnostician</span>)<span class="question-mark">?</span>;
     <span class="ident">code_generator</span>.<span class="ident">module</span>.<span class="ident">write_bitcode_to_path</span>(<span class="ident">path</span>);
     <span class="prelude-val">Ok</span>(())
 }
@@ -1028,11 +1099,12 @@
 <span class="doccomment">/// * `output`  - The location to save the generated ir file</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">compile_to_ir</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">SourceContainer</span><span class="op">&gt;</span>(
     <span class="ident">sources</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
+    <span class="ident">includes</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
     <span class="ident">encoding</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">Encoding</span><span class="op">&gt;</span>,
     <span class="ident">output</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
     <span class="ident">diagnostician</span>: <span class="ident">Diagnostician</span>,
 ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="ident">ir</span> <span class="op">=</span> <span class="ident">compile_to_string</span>(<span class="ident">sources</span>, <span class="ident">encoding</span>, <span class="ident">diagnostician</span>)<span class="question-mark">?</span>;
+    <span class="kw">let</span> <span class="ident">ir</span> <span class="op">=</span> <span class="ident">compile_to_string</span>(<span class="ident">sources</span>, <span class="ident">includes</span>, <span class="ident">encoding</span>, <span class="ident">diagnostician</span>)<span class="question-mark">?</span>;
     <span class="ident">fs::write</span>(<span class="ident">output</span>, <span class="ident">ir</span>)
         .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">err</span><span class="op">|</span> <span class="ident">Diagnostic::io_write_error</span>(<span class="ident">output</span>, <span class="ident">err</span>.<span class="ident">to_string</span>().<span class="ident">as_str</span>()))
 }
@@ -1046,11 +1118,12 @@
 <span class="doccomment">/// * `encoding` - The encoding to parse the files, None for UTF-8</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">compile_to_string</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">SourceContainer</span><span class="op">&gt;</span>(
     <span class="ident">sources</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
+    <span class="ident">includes</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
     <span class="ident">encoding</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">Encoding</span><span class="op">&gt;</span>,
     <span class="ident">diagnostician</span>: <span class="ident">Diagnostician</span>,
 ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">c</span> <span class="op">=</span> <span class="ident">Context::create</span>();
-    <span class="kw">let</span> <span class="ident">code_gen</span> <span class="op">=</span> <span class="ident">compile_module</span>(<span class="kw-2">&amp;</span><span class="ident">c</span>, <span class="ident">sources</span>, <span class="ident">encoding</span>, <span class="ident">diagnostician</span>)<span class="question-mark">?</span>;
+    <span class="kw">let</span> <span class="ident">code_gen</span> <span class="op">=</span> <span class="ident">compile_module</span>(<span class="kw-2">&amp;</span><span class="ident">c</span>, <span class="ident">sources</span>, <span class="ident">includes</span>, <span class="ident">encoding</span>, <span class="ident">diagnostician</span>)<span class="question-mark">?</span>;
     <span class="prelude-val">Ok</span>(<span class="ident">code_gen</span>.<span class="ident">module</span>.<span class="ident">print_to_string</span>().<span class="ident">to_string</span>())
 }
 
@@ -1065,6 +1138,7 @@
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">compile_module</span><span class="op">&lt;</span><span class="lifetime">&#39;c</span>, <span class="ident">T</span>: <span class="ident">SourceContainer</span><span class="op">&gt;</span>(
     <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;c</span> <span class="ident">Context</span>,
     <span class="ident">sources</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
+    <span class="ident">includes</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
     <span class="ident">encoding</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">Encoding</span><span class="op">&gt;</span>,
     <span class="kw-2">mut</span> <span class="ident">diagnostician</span>: <span class="ident">Diagnostician</span>,
 ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">codegen::CodeGen</span><span class="op">&lt;</span><span class="lifetime">&#39;c</span><span class="op">&gt;</span>, <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
@@ -1075,24 +1149,25 @@
 
     <span class="comment">// ### PHASE 1 ###</span>
     <span class="comment">// parse &amp; index everything</span>
-    <span class="kw">for</span> <span class="ident">container</span> <span class="kw">in</span> <span class="ident">sources</span> {
-        <span class="kw">let</span> <span class="ident">location</span>: <span class="ident">String</span> <span class="op">=</span> <span class="ident">container</span>.<span class="ident">get_location</span>().<span class="ident">into</span>();
-        <span class="kw">let</span> <span class="ident">e</span> <span class="op">=</span> <span class="ident">container</span>
-            .<span class="ident">load_source</span>(<span class="ident">encoding</span>)
-            .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">err</span><span class="op">|</span> <span class="ident">Diagnostic::io_read_error</span>(<span class="ident">location</span>.<span class="ident">as_str</span>(), <span class="ident">err</span>.<span class="ident">as_str</span>()))<span class="question-mark">?</span>;
+    <span class="kw">let</span> (<span class="ident">index</span>, <span class="kw-2">mut</span> <span class="ident">units</span>) <span class="op">=</span> <span class="ident">parse_and_index</span>(
+        <span class="ident">sources</span>,
+        <span class="ident">encoding</span>,
+        <span class="kw-2">&amp;</span><span class="ident">id_provider</span>,
+        <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">diagnostician</span>,
+        <span class="ident">LinkageType::Internal</span>,
+    )<span class="question-mark">?</span>;
+    <span class="ident">full_index</span>.<span class="ident">import</span>(<span class="ident">index</span>);
+    <span class="ident">all_units</span>.<span class="ident">append</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">units</span>);
 
-        <span class="kw">let</span> (<span class="kw-2">mut</span> <span class="ident">parse_result</span>, <span class="ident">diagnostics</span>) <span class="op">=</span>
-            <span class="ident">parser::parse</span>(<span class="ident">lexer::lex_with_ids</span>(<span class="ident">e</span>.<span class="ident">source</span>.<span class="ident">as_str</span>(), <span class="ident">id_provider</span>.<span class="ident">clone</span>()));
-
-        <span class="comment">//pre-process the ast (create inlined types)</span>
-        <span class="ident">ast::pre_process</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">parse_result</span>, <span class="ident">id_provider</span>.<span class="ident">clone</span>());
-        <span class="comment">//index the pou</span>
-        <span class="ident">full_index</span>.<span class="ident">import</span>(<span class="ident">index::visitor::visit</span>(<span class="kw-2">&amp;</span><span class="ident">parse_result</span>, <span class="ident">id_provider</span>.<span class="ident">clone</span>()));
-
-        <span class="comment">//register the file with the diagnstician, so diagnostics are later able to show snippets from the code</span>
-        <span class="kw">let</span> <span class="ident">file_id</span> <span class="op">=</span> <span class="ident">diagnostician</span>.<span class="ident">register_file</span>(<span class="ident">location</span>.<span class="ident">clone</span>(), <span class="ident">e</span>.<span class="ident">source</span>);
-        <span class="ident">all_units</span>.<span class="ident">push</span>((<span class="ident">file_id</span>, <span class="ident">diagnostics</span>, <span class="ident">parse_result</span>));
-    }
+    <span class="kw">let</span> (<span class="ident">includes_index</span>, <span class="kw-2">mut</span> <span class="ident">includes_units</span>) <span class="op">=</span> <span class="ident">parse_and_index</span>(
+        <span class="ident">includes</span>,
+        <span class="ident">encoding</span>,
+        <span class="kw-2">&amp;</span><span class="ident">id_provider</span>,
+        <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">diagnostician</span>,
+        <span class="ident">LinkageType::External</span>,
+    )<span class="question-mark">?</span>;
+    <span class="ident">full_index</span>.<span class="ident">import</span>(<span class="ident">includes_index</span>);
+    <span class="ident">all_units</span>.<span class="ident">append</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">includes_units</span>);
 
     <span class="comment">// ### PHASE 1.1 resolve constant literal values</span>
     <span class="kw">let</span> (<span class="kw-2">mut</span> <span class="ident">full_index</span>, <span class="ident">_unresolvables</span>) <span class="op">=</span>
@@ -1131,6 +1206,40 @@
     <span class="prelude-val">Ok</span>(<span class="ident">code_generator</span>)
 }
 
+<span class="kw">type</span> <span class="ident">Units</span> <span class="op">=</span> <span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">usize</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Diagnostic</span><span class="op">&gt;</span>, <span class="ident">CompilationUnit</span>)<span class="op">&gt;</span>;
+<span class="kw">fn</span> <span class="ident">parse_and_index</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">SourceContainer</span><span class="op">&gt;</span>(
+    <span class="ident">source</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
+    <span class="ident">encoding</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">Encoding</span><span class="op">&gt;</span>,
+    <span class="ident">id_provider</span>: <span class="kw-2">&amp;</span><span class="ident">IdProvider</span>,
+    <span class="ident">diagnostician</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Diagnostician</span>,
+    <span class="ident">linkage</span>: <span class="ident">LinkageType</span>,
+) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="ident">Index</span>, <span class="ident">Units</span>), <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">index</span> <span class="op">=</span> <span class="ident">Index::new</span>();
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">units</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
+
+    <span class="kw">for</span> <span class="ident">container</span> <span class="kw">in</span> <span class="ident">source</span> {
+        <span class="kw">let</span> <span class="ident">location</span>: <span class="ident">String</span> <span class="op">=</span> <span class="ident">container</span>.<span class="ident">get_location</span>().<span class="ident">into</span>();
+        <span class="kw">let</span> <span class="ident">e</span> <span class="op">=</span> <span class="ident">container</span>
+            .<span class="ident">load_source</span>(<span class="ident">encoding</span>)
+            .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">err</span><span class="op">|</span> <span class="ident">Diagnostic::io_read_error</span>(<span class="ident">location</span>.<span class="ident">as_str</span>(), <span class="ident">err</span>.<span class="ident">as_str</span>()))<span class="question-mark">?</span>;
+
+        <span class="kw">let</span> (<span class="kw-2">mut</span> <span class="ident">parse_result</span>, <span class="ident">diagnostics</span>) <span class="op">=</span> <span class="ident">parser::parse</span>(
+            <span class="ident">lexer::lex_with_ids</span>(<span class="ident">e</span>.<span class="ident">source</span>.<span class="ident">as_str</span>(), <span class="ident">id_provider</span>.<span class="ident">clone</span>()),
+            <span class="ident">linkage</span>,
+        );
+
+        <span class="comment">//pre-process the ast (create inlined types)</span>
+        <span class="ident">ast::pre_process</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">parse_result</span>, <span class="ident">id_provider</span>.<span class="ident">clone</span>());
+        <span class="comment">//index the pou</span>
+        <span class="ident">index</span>.<span class="ident">import</span>(<span class="ident">index::visitor::visit</span>(<span class="kw-2">&amp;</span><span class="ident">parse_result</span>, <span class="ident">id_provider</span>.<span class="ident">clone</span>()));
+
+        <span class="comment">//register the file with the diagnstician, so diagnostics are later able to show snippets from the code</span>
+        <span class="kw">let</span> <span class="ident">file_id</span> <span class="op">=</span> <span class="ident">diagnostician</span>.<span class="ident">register_file</span>(<span class="ident">location</span>.<span class="ident">clone</span>(), <span class="ident">e</span>.<span class="ident">source</span>);
+        <span class="ident">units</span>.<span class="ident">push</span>((<span class="ident">file_id</span>, <span class="ident">diagnostics</span>, <span class="ident">parse_result</span>));
+    }
+    <span class="prelude-val">Ok</span>((<span class="ident">index</span>, <span class="ident">units</span>))
+}
+
 <span class="kw">fn</span> <span class="ident">create_file_paths</span>(<span class="ident">inputs</span>: <span class="kw-2">&amp;</span>[<span class="ident">String</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">FilePath</span><span class="op">&gt;</span>, <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">sources</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
     <span class="kw">for</span> <span class="ident">input</span> <span class="kw">in</span> <span class="ident">inputs</span> {
@@ -1163,6 +1272,11 @@
 <span class="doccomment">/// Returns the location of the output file</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">build_with_params</span>(<span class="ident">parameters</span>: <span class="ident">CompileParameters</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">files</span> <span class="op">=</span> <span class="ident">create_file_paths</span>(<span class="kw-2">&amp;</span><span class="ident">parameters</span>.<span class="ident">input</span>)<span class="question-mark">?</span>;
+    <span class="kw">let</span> <span class="ident">includes</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">parameters</span>.<span class="ident">includes</span>.<span class="ident">is_empty</span>() {
+        <span class="macro">vec!</span>[]
+    } <span class="kw">else</span> {
+        <span class="ident">create_file_paths</span>(<span class="kw-2">&amp;</span><span class="ident">parameters</span>.<span class="ident">includes</span>)<span class="question-mark">?</span>
+    };
     <span class="kw">let</span> <span class="ident">output</span> <span class="op">=</span> <span class="ident">parameters</span>
         .<span class="ident">output_name</span>()
         .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">Diagnostic::param_error</span>(<span class="string">&quot;Missing parameter: output-name&quot;</span>))<span class="question-mark">?</span>;
@@ -1182,7 +1296,13 @@
         <span class="prelude-val">None</span>
     };
 
-    <span class="ident">build</span>(<span class="ident">files</span>, <span class="ident">compile_options</span>, <span class="ident">link_options</span>, <span class="ident">parameters</span>.<span class="ident">encoding</span>)
+    <span class="ident">build</span>(
+        <span class="ident">files</span>,
+        <span class="ident">includes</span>,
+        <span class="ident">compile_options</span>,
+        <span class="ident">link_options</span>,
+        <span class="ident">parameters</span>.<span class="ident">encoding</span>,
+    )
 }
 
 <span class="doccomment">/// The driver function for the compilation</span>
@@ -1193,6 +1313,7 @@
 <span class="doccomment">/// Returns the location of the output file</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">build</span>(
     <span class="ident">files</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">FilePath</span><span class="op">&gt;</span>,
+    <span class="ident">includes</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">FilePath</span><span class="op">&gt;</span>,
     <span class="ident">compile_options</span>: <span class="ident">CompileOptions</span>,
     <span class="ident">link_options</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">LinkOptions</span><span class="op">&gt;</span>,
     <span class="ident">encoding</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">Encoding</span><span class="op">&gt;</span>,
@@ -1212,6 +1333,7 @@
             <span class="kw-2">&amp;</span><span class="ident">compile_options</span>.<span class="ident">output</span>,
             <span class="ident">compile_options</span>.<span class="ident">format</span>,
             <span class="ident">sources</span>,
+            <span class="ident">includes</span>,
             <span class="ident">encoding</span>,
             <span class="ident">compile_options</span>.<span class="ident">target</span>.<span class="ident">clone</span>(),
         )<span class="question-mark">?</span>;
@@ -1237,22 +1359,25 @@
     <span class="ident">output</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
     <span class="ident">out_format</span>: <span class="ident">FormatOption</span>,
     <span class="ident">sources</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">FilePath</span><span class="op">&gt;</span>,
+    <span class="ident">includes</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">FilePath</span><span class="op">&gt;</span>,
     <span class="ident">encoding</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">Encoding</span><span class="op">&gt;</span>,
     <span class="ident">target</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
 ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">diagnostician</span> <span class="op">=</span> <span class="ident">Diagnostician::default</span>();
     <span class="kw">match</span> <span class="ident">out_format</span> {
         <span class="ident">FormatOption::Static</span> <span class="op">|</span> <span class="ident">FormatOption::Relocatable</span> <span class="op">=</span><span class="op">&gt;</span> {
-            <span class="ident">compile_to_static_obj</span>(<span class="ident">sources</span>, <span class="ident">encoding</span>, <span class="ident">output</span>, <span class="ident">target</span>, <span class="ident">diagnostician</span>)
+            <span class="ident">compile_to_static_obj</span>(<span class="ident">sources</span>, <span class="ident">includes</span>, <span class="ident">encoding</span>, <span class="ident">output</span>, <span class="ident">target</span>, <span class="ident">diagnostician</span>)
         }
         <span class="ident">FormatOption::Shared</span> <span class="op">=</span><span class="op">&gt;</span> {
-            <span class="ident">compile_to_shared_object</span>(<span class="ident">sources</span>, <span class="ident">encoding</span>, <span class="ident">output</span>, <span class="ident">target</span>, <span class="ident">diagnostician</span>)
+            <span class="ident">compile_to_shared_object</span>(<span class="ident">sources</span>, <span class="ident">includes</span>, <span class="ident">encoding</span>, <span class="ident">output</span>, <span class="ident">target</span>, <span class="ident">diagnostician</span>)
         }
         <span class="ident">FormatOption::PIC</span> <span class="op">=</span><span class="op">&gt;</span> {
-            <span class="ident">compile_to_shared_pic_object</span>(<span class="ident">sources</span>, <span class="ident">encoding</span>, <span class="ident">output</span>, <span class="ident">target</span>, <span class="ident">diagnostician</span>)
+            <span class="ident">compile_to_shared_pic_object</span>(<span class="ident">sources</span>, <span class="ident">includes</span>, <span class="ident">encoding</span>, <span class="ident">output</span>, <span class="ident">target</span>, <span class="ident">diagnostician</span>)
         }
-        <span class="ident">FormatOption::Bitcode</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">compile_to_bitcode</span>(<span class="ident">sources</span>, <span class="ident">encoding</span>, <span class="ident">output</span>, <span class="ident">diagnostician</span>),
-        <span class="ident">FormatOption::IR</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">compile_to_ir</span>(<span class="ident">sources</span>, <span class="ident">encoding</span>, <span class="ident">output</span>, <span class="ident">diagnostician</span>),
+        <span class="ident">FormatOption::Bitcode</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">compile_to_bitcode</span>(<span class="ident">sources</span>, <span class="ident">includes</span>, <span class="ident">encoding</span>, <span class="ident">output</span>, <span class="ident">diagnostician</span>)
+        }
+        <span class="ident">FormatOption::IR</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">compile_to_ir</span>(<span class="ident">sources</span>, <span class="ident">includes</span>, <span class="ident">encoding</span>, <span class="ident">output</span>, <span class="ident">diagnostician</span>),
     }<span class="question-mark">?</span>;
     <span class="prelude-val">Ok</span>(())
 }
@@ -1307,6 +1432,7 @@
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">tests</span> {
+    <span class="kw">mod</span> <span class="ident">external_files</span>;
     <span class="kw">mod</span> <span class="ident">multi_files</span>;
 
     <span class="kw">use</span> <span class="ident">inkwell::targets::TargetMachine</span>;
