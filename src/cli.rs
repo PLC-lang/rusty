@@ -108,7 +108,7 @@ pub struct CompileParameters {
         name = "include",
         long,
         short = "i",
-        help = "Include .st files for external functions"
+        help = "Include source files for external functions"
     )]
     pub includes: Vec<String>,
 }

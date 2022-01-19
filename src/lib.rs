@@ -402,24 +402,25 @@ pub fn compile_module<'c, T: SourceContainer>(
 
     // ### PHASE 1 ###
     // parse & index everything
-    parse_and_index(
+    let (index, mut units) = parse_and_index(
         sources,
         encoding,
         &id_provider,
         &mut diagnostician,
-        &mut full_index,
-        &mut all_units,
         LinkageType::Internal,
     )?;
-    parse_and_index(
+    full_index.import(index);
+    all_units.append(&mut units);
+
+    let (includes_index, mut includes_units) = parse_and_index(
         includes,
         encoding,
         &id_provider,
         &mut diagnostician,
-        &mut full_index,
-        &mut all_units,
         LinkageType::External,
     )?;
+    full_index.import(includes_index);
+    all_units.append(&mut includes_units);
 
     // ### PHASE 1.1 resolve constant literal values
     let (mut full_index, _unresolvables) =
@@ -458,15 +459,17 @@ pub fn compile_module<'c, T: SourceContainer>(
     Ok(code_generator)
 }
 
+type Units = Vec<(usize, Vec<Diagnostic>, CompilationUnit)>;
 fn parse_and_index<T: SourceContainer>(
     source: Vec<T>,
     encoding: Option<&'static Encoding>,
     id_provider: &IdProvider,
     diagnostician: &mut Diagnostician,
-    full_index: &mut Index,
-    all_units: &mut Vec<(usize, Vec<Diagnostic>, CompilationUnit)>,
     linkage: LinkageType,
-) -> Result<(), Diagnostic> {
+) -> Result<(Index, Units), Diagnostic> {
+    let mut index = Index::new();
+    let mut units = Vec::new();
+
     for container in source {
         let location: String = container.get_location().into();
         let e = container
@@ -481,13 +484,13 @@ fn parse_and_index<T: SourceContainer>(
         //pre-process the ast (create inlined types)
         ast::pre_process(&mut parse_result, id_provider.clone());
         //index the pou
-        full_index.import(index::visitor::visit(&parse_result, id_provider.clone()));
+        index.import(index::visitor::visit(&parse_result, id_provider.clone()));
 
         //register the file with the diagnstician, so diagnostics are later able to show snippets from the code
         let file_id = diagnostician.register_file(location.clone(), e.source);
-        all_units.push((file_id, diagnostics, parse_result));
+        units.push((file_id, diagnostics, parse_result));
     }
-    Ok(())
+    Ok((index, units))
 }
 
 fn create_file_paths(inputs: &[String]) -> Result<Vec<FilePath>, Diagnostic> {
