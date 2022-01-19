@@ -1,0 +1,10 @@
+---
+source: src/codegen/tests/code_gen_tests.rs
+expression: result
+
+---
+; ModuleID = 'main'
+source_filename = "main"
+
+@a = global [7 x [11 x i8]] [[11 x i8] c"Monday\00\00\00\00\00", [11 x i8] c"Tuesday\00\00\00\00", [11 x i8] c"Wednesday\00\00", [11 x i8] c"Thursday\00\00\00", [11 x i8] c"Friday\00\00\00\00\00", [11 x i8] c"Saturday\00\00\00", [11 x i8] c"Sunday\00\00\00\00\00"]
+

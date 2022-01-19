@@ -511,7 +511,7 @@ pub fn evaluate(
             }) => Some(AstStatement::LiteralReal {
                 value: format!(
                     "{:}",
-                    -(v.parse::<f64>()).map_err(|err| format!("{:}: {:}", err.to_string(), v))?
+                    -(v.parse::<f64>()).map_err(|err| format!("{:}: {:}", err, v))?
                 ),
                 id,
                 location,
