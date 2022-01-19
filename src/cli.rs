@@ -103,6 +103,14 @@ pub struct CompileParameters {
 
     #[structopt(long, name = "sysroot", help = "Path to system root, used for linking")]
     pub sysroot: Option<String>,
+
+    #[structopt(
+        name = "include",
+        long,
+        short = "i",
+        help = "Include source files for external functions"
+    )]
+    pub includes: Vec<String>,
 }
 
 fn parse_encoding(encoding: &str) -> Result<&'static Encoding, String> {
@@ -447,5 +455,22 @@ mod cli_tests {
             CompileParameters::parse(vec_of_strings!("input.st", "--sysroot", "path/to/sysroot"))
                 .unwrap();
         assert_eq!(parameters.sysroot, Some("path/to/sysroot".to_string()));
+    }
+
+    #[test]
+    fn include_files_added() {
+        let parameters = CompileParameters::parse(vec_of_strings!(
+            "input.st",
+            "-i",
+            "include1",
+            "include2",
+            "--include",
+            "include3"
+        ))
+        .unwrap();
+        assert_eq!(
+            parameters.includes,
+            vec!["include1", "include2", "include3"]
+        );
     }
 }
