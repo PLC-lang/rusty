@@ -1319,6 +1319,8 @@
 <span id="1319">1319</span>
 <span id="1320">1320</span>
 <span id="1321">1321</span>
+<span id="1322">1322</span>
+<span id="1323">1323</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 <span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">lexer::IdProvider</span>, <span class="ident">typesystem::DataTypeInformation</span>};
 <span class="kw">use</span> <span class="ident">std</span>::{
@@ -1346,6 +1348,7 @@
     <span class="kw">pub</span> <span class="ident">location</span>: <span class="ident">SourceRange</span>,
     <span class="kw">pub</span> <span class="ident">poly_mode</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">PolymorphismMode</span><span class="op">&gt;</span>,
     <span class="kw">pub</span> <span class="ident">generics</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">GenericBinding</span><span class="op">&gt;</span>,
+    <span class="kw">pub</span> <span class="ident">linkage</span>: <span class="ident">LinkageType</span>,
 }
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>)]</span>
@@ -1590,6 +1593,7 @@
     <span class="kw">pub</span> <span class="ident">retain</span>: <span class="ident">bool</span>,
     <span class="kw">pub</span> <span class="ident">variables</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Variable</span><span class="op">&gt;</span>,
     <span class="kw">pub</span> <span class="ident">variable_block_type</span>: <span class="ident">VariableBlockType</span>,
+    <span class="kw">pub</span> <span class="ident">linkage</span>: <span class="ident">LinkageType</span>,
     <span class="kw">pub</span> <span class="ident">location</span>: <span class="ident">SourceRange</span>,
 }
 

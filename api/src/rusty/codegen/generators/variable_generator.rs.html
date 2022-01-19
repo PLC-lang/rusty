@@ -105,8 +105,6 @@
 <span id="105">105</span>
 <span id="106">106</span>
 <span id="107">107</span>
-<span id="108">108</span>
-<span id="109">109</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 
 <span class="doccomment">/// offers operations to generate global variables</span>
@@ -121,7 +119,9 @@
 <span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">codegen::llvm_index::LlvmTypedIndex</span>, <span class="ident">index::VariableIndexEntry</span>};
 
 <span class="kw">use</span> <span class="kw">super</span>::{
-    <span class="ident">data_type_generator::get_default_for</span>, <span class="ident">expression_generator::ExpressionCodeGenerator</span>, <span class="ident">llvm::Llvm</span>,
+    <span class="ident">data_type_generator::get_default_for</span>,
+    <span class="ident">expression_generator::ExpressionCodeGenerator</span>,
+    <span class="ident">llvm</span>::{<span class="ident">GlobalValueExt</span>, <span class="ident">Llvm</span>},
 };
 
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">generate_global_variables</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span>, <span class="lifetime">&#39;b</span><span class="op">&gt;</span>(
@@ -188,33 +188,29 @@
     } <span class="kw">else</span> {
         <span class="prelude-val">None</span>
     };
-    <span class="kw">let</span> <span class="ident">initial_value</span> <span class="op">=</span> <span class="ident">initial_value</span>
-        <span class="comment">// 2nd try: find an associated default value for the declared type</span>
-        .<span class="ident">or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">index</span>.<span class="ident">find_associated_initial_value</span>(<span class="ident">type_name</span>))
-        <span class="comment">// 3rd try: get the compiler&#39;s default for the given type (zero-initializer)</span>
-        .<span class="ident">or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">index</span>.<span class="ident">find_associated_type</span>(<span class="ident">type_name</span>).<span class="ident">map</span>(<span class="ident">get_default_for</span>));
-    <span class="kw">if</span> <span class="ident">initial_value</span>.<span class="ident">is_some</span>() <span class="op">|</span><span class="op">|</span> <span class="op">!</span><span class="ident">global_variable</span>.<span class="ident">is_constant</span>() {
-        <span class="kw">let</span> <span class="ident">global_ir_variable</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">global_variable</span>.<span class="ident">is_constant</span>() {
-            <span class="bool-val">true</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">llvm</span>.<span class="ident">create_constant_global_variable</span>(
-                <span class="ident">module</span>,
-                <span class="ident">global_variable</span>.<span class="ident">get_name</span>(),
-                <span class="ident">variable_type</span>,
-                <span class="ident">initial_value</span>,
-            ),
-            <span class="bool-val">false</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">llvm</span>.<span class="ident">create_global_variable</span>(
-                <span class="ident">module</span>,
-                <span class="ident">global_variable</span>.<span class="ident">get_name</span>(),
-                <span class="ident">variable_type</span>,
-                <span class="ident">initial_value</span>,
-            ),
-        };
-        <span class="prelude-val">Ok</span>(<span class="ident">global_ir_variable</span>)
+
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">global_ir_variable</span> <span class="op">=</span>
+        <span class="ident">llvm</span>.<span class="ident">create_global_variable</span>(<span class="ident">module</span>, <span class="ident">global_variable</span>.<span class="ident">get_name</span>(), <span class="ident">variable_type</span>);
+    <span class="kw">if</span> <span class="ident">global_variable</span>.<span class="ident">is_external</span>() {
+        <span class="ident">global_ir_variable</span> <span class="op">=</span> <span class="ident">global_ir_variable</span>.<span class="ident">make_external</span>();
     } <span class="kw">else</span> {
-        <span class="prelude-val">Err</span>(<span class="ident">Diagnostic::codegen_error</span>(
-            <span class="string">&quot;Cannot generate uninitialized constant&quot;</span>,
-            <span class="ident">global_variable</span>.<span class="ident">source_location</span>.<span class="ident">clone</span>(),
-        ))
+        <span class="kw">let</span> <span class="ident">initial_value</span> <span class="op">=</span> <span class="ident">initial_value</span>
+            <span class="comment">// 2nd try: find an associated default value for the declared type</span>
+            .<span class="ident">or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">index</span>.<span class="ident">find_associated_initial_value</span>(<span class="ident">type_name</span>))
+            <span class="comment">// 3rd try: get the compiler&#39;s default for the given type (zero-initializer)</span>
+            .<span class="ident">or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">index</span>.<span class="ident">find_associated_type</span>(<span class="ident">type_name</span>).<span class="ident">map</span>(<span class="ident">get_default_for</span>));
+        <span class="ident">global_ir_variable</span>.<span class="ident">set_initial_value</span>(<span class="ident">initial_value</span>, <span class="ident">variable_type</span>);
+        <span class="kw">if</span> <span class="ident">global_variable</span>.<span class="ident">is_constant</span>() {
+            <span class="ident">global_ir_variable</span> <span class="op">=</span> <span class="ident">global_ir_variable</span>.<span class="ident">make_constant</span>();
+            <span class="kw">if</span> <span class="ident">initial_value</span>.<span class="ident">is_none</span>() {
+                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Diagnostic::codegen_error</span>(
+                    <span class="string">&quot;Cannot generate uninitialized constant&quot;</span>,
+                    <span class="ident">global_variable</span>.<span class="ident">source_location</span>.<span class="ident">clone</span>(),
+                ));
+            }
+        }
     }
+    <span class="prelude-val">Ok</span>(<span class="ident">global_ir_variable</span>)
 }
 </code></pre></div>
 </section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="rusty" data-search-index-js="../../../../search-index.js" data-search-js="../../../../search.js"></div>
