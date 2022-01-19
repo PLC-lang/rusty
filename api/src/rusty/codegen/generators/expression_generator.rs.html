@@ -1950,6 +1950,9 @@
 <span id="1950">1950</span>
 <span id="1951">1951</span>
 <span id="1952">1952</span>
+<span id="1953">1953</span>
+<span id="1954">1954</span>
+<span id="1955">1955</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">ast</span>::{<span class="self">self</span>, <span class="ident">DirectAccessType</span>, <span class="ident">SourceRange</span>},
@@ -2678,40 +2681,43 @@
         <span class="kw">let</span> <span class="ident">current_block</span> <span class="op">=</span> <span class="ident">builder</span>.<span class="ident">get_insert_block</span>().<span class="ident">expect</span>(<span class="ident">INTERNAL_LLVM_ERROR</span>);
 
         <span class="ident">builder</span>.<span class="ident">position_at_end</span>(<span class="kw-2">*</span><span class="ident">output_block</span>);
-        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">AstStatement::Reference</span> { <span class="ident">name</span>, .. } <span class="op">=</span> <span class="ident">left</span> {
-            <span class="kw">let</span> <span class="ident">parameter</span> <span class="op">=</span> <span class="self">self</span>
-                .<span class="ident">index</span>
-                .<span class="ident">find_member</span>(<span class="ident">function_name</span>, <span class="ident">name</span>)
-                .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">Diagnostic::unresolved_reference</span>(<span class="ident">name</span>, <span class="ident">left</span>.<span class="ident">get_location</span>()))<span class="question-mark">?</span>;
-            <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="ident">parameter</span>.<span class="ident">get_location_in_parent</span>();
-            <span class="kw">let</span> <span class="ident">param_type</span> <span class="op">=</span> <span class="self">self</span>
-                .<span class="ident">index</span>
-                .<span class="ident">find_effective_type</span>(<span class="ident">parameter</span>.<span class="ident">get_type_name</span>())
-                .<span class="ident">or_else</span>(<span class="op">|</span><span class="op">|</span> {
-                    <span class="self">self</span>.<span class="ident">index</span>
-                        .<span class="ident">find_input_parameter</span>(<span class="ident">function_name</span>, <span class="ident">index</span> <span class="kw">as</span> <span class="ident">u32</span>)
-                        .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">var</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">index</span>.<span class="ident">find_effective_type</span>(<span class="ident">var</span>.<span class="ident">get_type_name</span>()))
-                })
-                .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
-                    <span class="ident">Diagnostic::unknown_type</span>(<span class="ident">parameter</span>.<span class="ident">get_type_name</span>(), <span class="ident">left</span>.<span class="ident">get_location</span>())
-                })<span class="question-mark">?</span>;
-            <span class="comment">//load the function prameter</span>
-            <span class="kw">let</span> <span class="ident">pointer_to_param</span> <span class="op">=</span> <span class="ident">builder</span>
-                .<span class="ident">build_struct_gep</span>(<span class="ident">parameter_struct</span>, <span class="ident">index</span> <span class="kw">as</span> <span class="ident">u32</span>, <span class="string">&quot;&quot;</span>)
-                .<span class="ident">expect</span>(<span class="ident">INTERNAL_LLVM_ERROR</span>);
+        <span class="comment">// (output =&gt; ) output assignments are optional, in this case  ignore codegen</span>
+        <span class="kw">if</span> <span class="op">!</span><span class="macro">matches!</span>(<span class="ident">right</span>, <span class="ident">AstStatement::EmptyStatement</span> { .. }) {
+            <span class="kw">if</span> <span class="kw">let</span> <span class="ident">AstStatement::Reference</span> { <span class="ident">name</span>, .. } <span class="op">=</span> <span class="ident">left</span> {
+                <span class="kw">let</span> <span class="ident">parameter</span> <span class="op">=</span> <span class="self">self</span>
+                    .<span class="ident">index</span>
+                    .<span class="ident">find_member</span>(<span class="ident">function_name</span>, <span class="ident">name</span>)
+                    .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">Diagnostic::unresolved_reference</span>(<span class="ident">name</span>, <span class="ident">left</span>.<span class="ident">get_location</span>()))<span class="question-mark">?</span>;
+                <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="ident">parameter</span>.<span class="ident">get_location_in_parent</span>();
+                <span class="kw">let</span> <span class="ident">param_type</span> <span class="op">=</span> <span class="self">self</span>
+                    .<span class="ident">index</span>
+                    .<span class="ident">find_effective_type</span>(<span class="ident">parameter</span>.<span class="ident">get_type_name</span>())
+                    .<span class="ident">or_else</span>(<span class="op">|</span><span class="op">|</span> {
+                        <span class="self">self</span>.<span class="ident">index</span>
+                            .<span class="ident">find_input_parameter</span>(<span class="ident">function_name</span>, <span class="ident">index</span> <span class="kw">as</span> <span class="ident">u32</span>)
+                            .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">var</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">index</span>.<span class="ident">find_effective_type</span>(<span class="ident">var</span>.<span class="ident">get_type_name</span>()))
+                    })
+                    .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
+                        <span class="ident">Diagnostic::unknown_type</span>(<span class="ident">parameter</span>.<span class="ident">get_type_name</span>(), <span class="ident">left</span>.<span class="ident">get_location</span>())
+                    })<span class="question-mark">?</span>;
+                <span class="comment">//load the function prameter</span>
+                <span class="kw">let</span> <span class="ident">pointer_to_param</span> <span class="op">=</span> <span class="ident">builder</span>
+                    .<span class="ident">build_struct_gep</span>(<span class="ident">parameter_struct</span>, <span class="ident">index</span> <span class="kw">as</span> <span class="ident">u32</span>, <span class="string">&quot;&quot;</span>)
+                    .<span class="ident">expect</span>(<span class="ident">INTERNAL_LLVM_ERROR</span>);
 
-            <span class="kw">let</span> <span class="ident">l_value</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">generate_element_pointer</span>(<span class="ident">right</span>)<span class="question-mark">?</span>;
-            <span class="kw">let</span> <span class="ident">loaded_value</span> <span class="op">=</span> <span class="ident">builder</span>.<span class="ident">build_load</span>(<span class="ident">pointer_to_param</span>, <span class="ident">parameter</span>.<span class="ident">get_name</span>());
-            <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">cast_if_needed</span>(
-                <span class="self">self</span>.<span class="ident">llvm</span>,
-                <span class="self">self</span>.<span class="ident">index</span>,
-                <span class="self">self</span>.<span class="ident">llvm_index</span>,
-                <span class="self">self</span>.<span class="ident">get_type_hint_for</span>(<span class="ident">right</span>)<span class="question-mark">?</span>,
-                <span class="ident">loaded_value</span>,
-                <span class="ident">param_type</span>,
-                <span class="ident">right</span>,
-            )<span class="question-mark">?</span>;
-            <span class="ident">builder</span>.<span class="ident">build_store</span>(<span class="ident">l_value</span>, <span class="ident">value</span>);
+                <span class="kw">let</span> <span class="ident">l_value</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">generate_element_pointer</span>(<span class="ident">right</span>)<span class="question-mark">?</span>;
+                <span class="kw">let</span> <span class="ident">loaded_value</span> <span class="op">=</span> <span class="ident">builder</span>.<span class="ident">build_load</span>(<span class="ident">pointer_to_param</span>, <span class="ident">parameter</span>.<span class="ident">get_name</span>());
+                <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">cast_if_needed</span>(
+                    <span class="self">self</span>.<span class="ident">llvm</span>,
+                    <span class="self">self</span>.<span class="ident">index</span>,
+                    <span class="self">self</span>.<span class="ident">llvm_index</span>,
+                    <span class="self">self</span>.<span class="ident">get_type_hint_for</span>(<span class="ident">right</span>)<span class="question-mark">?</span>,
+                    <span class="ident">loaded_value</span>,
+                    <span class="ident">param_type</span>,
+                    <span class="ident">right</span>,
+                )<span class="question-mark">?</span>;
+                <span class="ident">builder</span>.<span class="ident">build_store</span>(<span class="ident">l_value</span>, <span class="ident">value</span>);
+            }
         }
         <span class="ident">builder</span>.<span class="ident">position_at_end</span>(<span class="ident">current_block</span>);
         <span class="prelude-val">Ok</span>(())
