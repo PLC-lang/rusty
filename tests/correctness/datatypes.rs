@@ -770,6 +770,69 @@ fn assign_long_string_to_short_string_variable() {
 }
 
 #[test]
+fn assign_long_string_to_short_string_variable_2() {
+    let program = r#"
+        PROGRAM main
+        VAR
+            text1 : STRING;
+            magic1: INT;
+            text2 : STRING;
+            magic2: INT;
+            text3 : STRING;
+            magic3: INT;
+        END_VAR
+
+            magic1 := 111;
+            magic2 := 222;
+            magic3 := 333;
+            text1 := 'abcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabc';
+            text3 := 'hello';
+        END_PROGRAM
+        "#;
+
+    #[repr(C)]
+    struct Type {
+        text: [u8; 81],
+        magic1: i16,
+        text2: [u8; 81],
+        magic2: i16,
+        text3: [u8; 81],
+        magic3: i16,
+    }
+    let mut maintype = Type {
+        text: [0; 81],
+        magic1: 0,
+        text2: [0; 81],
+        magic2: 0,
+        text3: [0; 81],
+        magic3: 0,
+    };
+    let _: i32 = compile_and_run(program, &mut maintype);
+
+    assert_eq!(maintype.magic1, 111);
+    assert_eq!(maintype.magic2, 222);
+    assert_eq!(maintype.magic3, 333);
+
+    let t: [u8; 81] = maintype.text;
+    for i in (0..75).step_by(3) {
+        assert_eq!(t[i], b'a');
+        assert_eq!(t[i + 1], b'b');
+        assert_eq!(t[i + 2], b'c');
+    }
+    assert_eq!(t[78], b'a');
+    assert_eq!(t[79], b'b');
+    assert_eq!(t[80], 0);
+
+    let t: [u8; 81] = maintype.text2;
+    (0..81).for_each(|i| {
+        assert_eq!(t[i], 0);
+    });
+    let text3 = str::from_utf8(&maintype.text3[0..5]).unwrap();
+    assert_eq!(&text3[0..5], "hello");
+    assert_eq!(maintype.text2[5], 0);
+}
+
+#[test]
 fn function_parameters_string() {
     let program = r#"
         FUNCTION read_string : STRING
@@ -782,26 +845,44 @@ fn function_parameters_string() {
         PROGRAM main
         VAR
             text1 : STRING;
+            magic1: INT;
             text2 : STRING;
+            magic2: INT;
             text3 : STRING;
+            magic3: INT;
         END_VAR
 
+            magic1 := 111;
+            magic2 := 222;
+            magic3 := 333;
             text1 := read_string('abcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabc');
             text3 := read_string('hello');
         END_PROGRAM
         "#;
 
+    #[repr(C)]
     struct Type {
         text: [u8; 81],
+        magic1: i16,
         text2: [u8; 81],
+        magic2: i16,
         text3: [u8; 81],
+        magic3: i16,
     }
     let mut maintype = Type {
         text: [0; 81],
+        magic1: 0,
         text2: [0; 81],
+        magic2: 0,
         text3: [0; 81],
+        magic3: 0,
     };
     let _: i32 = compile_and_run(program, &mut maintype);
+
+    assert_eq!(maintype.magic1, 111);
+    assert_eq!(maintype.magic2, 222);
+    assert_eq!(maintype.magic3, 333);
+
     let t: [u8; 81] = maintype.text;
     for i in (0..75).step_by(3) {
         assert_eq!(t[i], b'a');

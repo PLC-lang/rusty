@@ -9,8 +9,8 @@ source_filename = "main"
 
 %prg_interface = type { [16 x i8], [31 x i8] }
 
-@prg_instance = global %prg_interface { [16 x i8] zeroinitializer, [4 x i8] c"xyz\00" }
-@prg.z__init = unnamed_addr constant [31 x i8] c"xyz\00"
+@prg_instance = global %prg_interface { [16 x i8] zeroinitializer, [31 x i8] c"xyz\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00" }
+@prg.z__init = unnamed_addr constant [31 x i8] c"xyz\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00"
 
 define void @prg(%prg_interface* %0) {
 entry:

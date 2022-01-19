@@ -1,6 +1,6 @@
 ---
 source: src/codegen/tests/string_tests.rs
-assertion_line: 157
+assertion_line: 171
 expression: result
 
 ---
@@ -11,9 +11,9 @@ source_filename = "main"
 
 @LONG_STRING = unnamed_addr constant i16 15
 @SHORT_STRING = unnamed_addr constant i16 3
-@prg_instance = global %prg_interface { [16 x i8] zeroinitializer, [4 x i8] c"xyz\00", [31 x i16] zeroinitializer, [4 x i16] [i16 120, i16 121, i16 122, i16 0] }
+@prg_instance = global %prg_interface { [16 x i8] zeroinitializer, [4 x i8] c"xyz\00", [31 x i16] zeroinitializer, [7 x i16] [i16 120, i16 121, i16 122, i16 0, i16 0, i16 0, i16 0] }
 @prg.z__init = unnamed_addr constant [4 x i8] c"xyz\00"
-@prg.wz__init = unnamed_addr constant [7 x i16] [i16 120, i16 121, i16 122, i16 0]
+@prg.wz__init = unnamed_addr constant [7 x i16] [i16 120, i16 121, i16 122, i16 0, i16 0, i16 0, i16 0]
 
 define void @prg(%prg_interface* %0) {
 entry:
