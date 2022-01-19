@@ -787,44 +787,8 @@ impl Index {
             .insert(qualified_name.to_lowercase(), entry);
     }
 
-    pub fn create_global_variable(
-        name: &str,
-        type_name: &str,
-        initial_value: Option<ConstId>,
-        is_constant: bool,
-        linkage: LinkageType,
-        source_location: SourceRange,
-    ) -> VariableIndexEntry {
-        VariableIndexEntry::create_global(name, name, type_name, source_location)
-            .set_initial_value(initial_value)
-            .set_constant(is_constant)
-            .set_linkage(linkage)
-    }
-
     pub fn register_global_variable(&mut self, name: &str, variable: VariableIndexEntry) {
         self.global_variables.insert(name.to_lowercase(), variable);
-    }
-
-    pub fn create_global_variable_with_name(
-        association_name: &str,
-        variable_name: &str,
-        type_name: &str,
-        initial_value: Option<ConstId>,
-        is_constant: bool,
-        linkage: LinkageType,
-        source_location: SourceRange,
-    ) -> VariableIndexEntry {
-        //REVIEW, this seems like a misuse of the qualified name to store the association name. Any other ideas?
-        // If we do enough mental gymnastic, we could say that a Qualified name is how you would find a unique id for a variable, which the association name is.
-        VariableIndexEntry::create_global(
-            variable_name,
-            association_name,
-            type_name,
-            source_location,
-        )
-        .set_initial_value(initial_value)
-        .set_constant(is_constant)
-        .set_linkage(linkage)
     }
 
     pub fn register_type(&mut self, datatype: DataType) {

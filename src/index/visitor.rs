@@ -1,9 +1,8 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-use super::VariableType;
+use super::{VariableIndexEntry, VariableType};
 use crate::ast::{
-    self, AstStatement, CompilationUnit, DataType, DataTypeDeclaration, Implementation,
-    LinkageType, Pou, PouType, SourceRange, TypeNature, UserTypeDeclaration, VariableBlock,
-    VariableBlockType,
+    self, AstStatement, CompilationUnit, DataType, DataTypeDeclaration, Implementation, Pou,
+    PouType, SourceRange, TypeNature, UserTypeDeclaration, VariableBlock, VariableBlockType,
 };
 use crate::diagnostics::Diagnostic;
 use crate::index::{Index, MemberInfo};
@@ -134,27 +133,24 @@ pub fn visit_pou(index: &mut Index, pou: &Pou) {
         PouType::Program => {
             //Associate a global variable for the program
             let instance_name = format!("{}_instance", &pou.name);
-            let variable = Index::create_global_variable_with_name(
-                &pou.name,
+            let variable = VariableIndexEntry::create_global(
                 &instance_name,
                 &pou.name,
-                None,
-                false,
-                pou.linkage,
+                &pou.name,
                 pou.location.clone(),
-            );
+            )
+            .set_linkage(pou.linkage);
             Some((pou.name.to_string(), variable))
         }
         PouType::FunctionBlock | PouType::Class => {
             let global_struct_name = crate::index::get_initializer_name(&pou.name);
-            let variable = Index::create_global_variable(
+            let variable = VariableIndexEntry::create_global(
+                &global_struct_name,
                 &global_struct_name,
                 &pou.name,
-                None,
-                true,
-                LinkageType::Internal,
                 pou.location.clone(),
-            );
+            )
+            .set_constant(true);
             Some((global_struct_name, variable))
         }
         _ => None,
@@ -213,14 +209,15 @@ fn visit_global_var_block(index: &mut Index, block: &VariableBlock) {
         let initializer = index
             .get_mut_const_expressions()
             .maybe_add_constant_expression(var.initializer.clone(), target_type, None);
-        let variable = Index::create_global_variable(
+        let variable = VariableIndexEntry::create_global(
+            &var.name,
             &var.name,
             var.data_type.get_name().expect("named variable datatype"),
-            initializer,
-            block.constant,
-            linkage,
             var.location.clone(),
-        );
+        )
+        .set_initial_value(initializer)
+        .set_constant(block.constant)
+        .set_linkage(linkage);
         index.register_global_variable(&var.name, variable);
     }
 }
@@ -278,14 +275,14 @@ fn visit_data_type(
             });
             //Generate an initializer for the struct
             let global_struct_name = crate::index::get_initializer_name(name);
-            let variable = Index::create_global_variable(
+            let variable = VariableIndexEntry::create_global(
+                &global_struct_name,
                 &global_struct_name,
                 type_name.as_str(),
-                init,
-                true, //Initial values are constants
-                LinkageType::Internal,
                 type_declaration.location.clone(),
-            );
+            )
+            .set_initial_value(init)
+            .set_constant(true);
             index.register_global_variable(&global_struct_name, variable);
             for (count, var) in variables.iter().enumerate() {
                 if let DataTypeDeclaration::DataTypeDefinition {
@@ -467,14 +464,14 @@ fn visit_data_type(
             });
             let global_init_name = crate::index::get_initializer_name(name);
             if init.is_some() {
-                let variable = Index::create_global_variable(
+                let variable = VariableIndexEntry::create_global(
+                    global_init_name.as_str(),
                     global_init_name.as_str(),
                     name,
-                    init,
-                    true, //Initial values are constants
-                    LinkageType::Internal,
                     type_declaration.location.clone(),
-                );
+                )
+                .set_constant(true)
+                .set_initial_value(init);
                 index.register_global_variable(&global_init_name, variable);
             }
         }

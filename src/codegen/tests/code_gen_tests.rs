@@ -20,12 +20,12 @@ END_PROGRAM
 #[test]
 fn empty_statements_dont_generate_anything() {
     let result = codegen(
-        r#"PROGRAM prg
+        r#"
+        PROGRAM prg
             VAR x : DINT; y : DINT; END_VAR
             x;
-            ;;;;
             y;
-END_PROGRAM
+        END_PROGRAM
 "#,
     );
 
@@ -35,12 +35,13 @@ END_PROGRAM
 #[test]
 fn external_program_global_var_is_external() {
     let result = codegen(
-        r#"@EXTERNAL PROGRAM prg
+        r#"
+        @EXTERNAL 
+        PROGRAM prg
             VAR x : DINT; y : DINT; END_VAR
             x;
-            ;;;;
             y;
-END_PROGRAM
+        END_PROGRAM
 "#,
     );
 

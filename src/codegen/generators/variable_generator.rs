@@ -85,7 +85,7 @@ pub fn generate_global_variable<'ctx, 'b>(
     let mut global_ir_variable =
         llvm.create_global_variable(module, global_variable.get_name(), variable_type);
     if global_variable.is_external() {
-        global_ir_variable = global_ir_variable.into_external();
+        global_ir_variable = global_ir_variable.make_external();
     } else {
         let initial_value = initial_value
             // 2nd try: find an associated default value for the declared type
@@ -94,7 +94,7 @@ pub fn generate_global_variable<'ctx, 'b>(
             .or_else(|| index.find_associated_type(type_name).map(get_default_for));
         global_ir_variable.set_initial_value(initial_value, variable_type);
         if global_variable.is_constant() {
-            global_ir_variable = global_ir_variable.into_constant();
+            global_ir_variable = global_ir_variable.make_constant();
             if initial_value.is_none() {
                 return Err(Diagnostic::codegen_error(
                     "Cannot generate uninitialized constant",

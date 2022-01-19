@@ -117,7 +117,7 @@ pub fn generate_global_constants_for_pou_members<'ink>(
                     let variable_type = llvm_index.get_associated_type(variable.get_type_name())?;
                     let global_value = llvm
                         .create_global_variable(module, &name, variable_type)
-                        .into_constant()
+                        .make_constant()
                         .set_initial_value(Some(value), variable_type);
                     local_llvm_index.associate_global(&name, global_value)?;
                 }

@@ -18,8 +18,8 @@ pub struct Llvm<'a> {
 }
 
 pub trait GlobalValueExt {
-    fn into_constant(self) -> Self;
-    fn into_external(self) -> Self;
+    fn make_constant(self) -> Self;
+    fn make_external(self) -> Self;
     fn set_initial_value(
         self,
         initial_value: Option<BasicValueEnum>,
@@ -28,13 +28,13 @@ pub trait GlobalValueExt {
 }
 
 impl<'ink> GlobalValueExt for GlobalValue<'ink> {
-    fn into_constant(self) -> Self {
+    fn make_constant(self) -> Self {
         self.set_constant(true);
         self.set_unnamed_addr(true);
         self
     }
 
-    fn into_external(self) -> Self {
+    fn make_external(self) -> Self {
         self.set_linkage(Linkage::AvailableExternally);
         self
     }
