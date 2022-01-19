@@ -2,7 +2,7 @@
 use indexmap::IndexMap;
 
 use crate::{
-    ast::{Implementation, PouType, SourceRange, TypeNature},
+    ast::{Implementation, LinkageType, PouType, SourceRange, TypeNature},
     diagnostics::Diagnostic,
     typesystem::*,
 };
@@ -30,6 +30,8 @@ pub struct VariableIndexEntry {
     pub data_type_name: String,
     /// the index of the member-variable in it's container (e.g. struct). defautls to 0 (Single variables)
     location_in_parent: u32,
+    /// Wether the variable is externally or internally available
+    linkage: LinkageType,
     /// the location in the original source-file
     pub source_location: SourceRange,
 }
@@ -43,6 +45,61 @@ pub struct MemberInfo<'b> {
 }
 
 impl VariableIndexEntry {
+    pub fn new(
+        name: &str,
+        qualified_name: &str,
+        data_type_name: &str,
+        variable_type: VariableType,
+        location_in_parent: u32,
+        source_location: SourceRange,
+    ) -> Self {
+        VariableIndexEntry {
+            name: name.to_string(),
+            qualified_name: qualified_name.to_string(),
+            initial_value: None,
+            variable_type,
+            is_constant: false,
+            data_type_name: data_type_name.to_string(),
+            location_in_parent,
+            linkage: LinkageType::Internal,
+            source_location,
+        }
+    }
+
+    pub fn create_global(
+        name: &str,
+        qualified_name: &str,
+        data_type_name: &str,
+        source_location: SourceRange,
+    ) -> Self {
+        VariableIndexEntry {
+            name: name.to_string(),
+            qualified_name: qualified_name.to_string(),
+            initial_value: None,
+            variable_type: VariableType::Global,
+            is_constant: false,
+            data_type_name: data_type_name.to_string(),
+            location_in_parent: 0,
+            linkage: LinkageType::Internal,
+            source_location,
+        }
+    }
+
+    pub fn set_linkage(mut self, linkage: LinkageType) -> Self {
+        self.linkage = linkage;
+        self
+    }
+
+    pub fn set_initial_value(mut self, initial_value: Option<ConstId>) -> Self {
+        self.initial_value = initial_value;
+        self
+    }
+
+    pub fn set_constant(mut self, is_constant: bool) -> Self {
+        self.is_constant = is_constant;
+        self
+    }
+
     /// Creates a new VariableIndexEntry from the current entry with a new container and type
     /// This is used to create new entries from previously generic entries
     pub fn into_typed(&self, container: &str, new_type: &str) -> Self {
@@ -82,6 +139,10 @@ impl VariableIndexEntry {
 
     pub fn is_constant(&self) -> bool {
         self.is_constant
+    }
+
+    pub fn is_external(&self) -> bool {
+        self.linkage == LinkageType::External
     }
 
     pub fn get_variable_type(&self) -> VariableType {
@@ -674,21 +735,22 @@ impl Index {
     ) {
         let container_name = member_info.container_name;
         let variable_name = member_info.variable_name;
-        let variable_linkage = member_info.variable_linkage;
-        let variable_type_name = member_info.variable_type_name;
+        let variable_type = member_info.variable_linkage;
+        let data_type_name = member_info.variable_type_name;
 
         let qualified_name = format!("{}.{}", container_name, variable_name);
 
-        let entry = VariableIndexEntry {
-            name: variable_name.into(),
-            qualified_name,
-            initial_value,
+        let entry = VariableIndexEntry::new(
+            variable_name,
+            &qualified_name,
+            data_type_name,
+            variable_type,
+            location,
             source_location,
-            variable_type: variable_linkage,
-            data_type_name: variable_type_name.into(),
-            is_constant: member_info.is_constant,
-            location_in_parent: location,
-        };
+        )
+        .set_constant(member_info.is_constant)
+        .set_initial_value(initial_value);
+
         self.register_member_entry(container_name, entry);
     }
     pub fn register_member_entry(&mut self, container_name: &str, entry: VariableIndexEntry) {
@@ -715,6 +777,7 @@ impl Index {
             variable_type: VariableType::Global,
             data_type_name: enum_type_name.into(),
             is_constant: true,
+            linkage: LinkageType::Internal,
             location_in_parent: 0,
         };
         self.enum_global_variables
@@ -724,48 +787,8 @@ impl Index {
             .insert(qualified_name.to_lowercase(), entry);
     }
 
-    pub fn register_global_variable(
-        &mut self,
-        name: &str,
-        type_name: &str,
-        initial_value: Option<ConstId>,
-        is_constant: bool,
-        source_location: SourceRange,
-    ) {
-        self.register_global_variable_with_name(
-            name,
-            name,
-            type_name,
-            initial_value,
-            is_constant,
-            source_location,
-        );
-    }
-
-    pub fn register_global_variable_with_name(
-        &mut self,
-        association_name: &str,
-        variable_name: &str,
-        type_name: &str,
-        initial_value: Option<ConstId>,
-        is_constant: bool,
-        source_location: SourceRange,
-    ) {
-        //REVIEW, this seems like a misuse of the qualified name to store the association name. Any other ideas?
-        // If we do enough mental gymnastic, we could say that a Qualified name is how you would find a unique id for a variable, which the association name is.
-        let qualified_name = association_name.into();
-        let entry = VariableIndexEntry {
-            name: variable_name.into(),
-            qualified_name,
-            initial_value,
-            source_location,
-            variable_type: VariableType::Global,
-            data_type_name: type_name.into(),
-            is_constant,
-            location_in_parent: 0,
-        };
-        self.global_variables
-            .insert(association_name.to_lowercase(), entry);
+    pub fn register_global_variable(&mut self, name: &str, variable: VariableIndexEntry) {
+        self.global_variables.insert(name.to_lowercase(), variable);
     }
 
     pub fn register_type(&mut self, datatype: DataType) {
