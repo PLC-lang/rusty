@@ -22,6 +22,7 @@ fn link_as_shared_object() {
     //Compile file 2 into obj
     build(
         vec![file2],
+        vec![],
         CompileOptions {
             output: out2.clone(),
             format: FormatOption::Shared,
@@ -35,6 +36,7 @@ fn link_as_shared_object() {
     //Compile file1 as shared object with file2 as param
     build(
         vec![file1, out2.as_str().into()],
+        vec![],
         CompileOptions {
             output: out1.clone(),
             format: FormatOption::Shared,
@@ -74,6 +76,7 @@ fn link_as_pic_object() {
 
     build(
         vec![file2],
+        vec![],
         CompileOptions {
             output: out2.clone(),
             format: FormatOption::PIC,
@@ -87,6 +90,7 @@ fn link_as_pic_object() {
     //Compile file1 as shared object with file2 as param
     build(
         vec![file1, out2.as_str().into()],
+        vec![],
         CompileOptions {
             output: out1.clone(),
             format: FormatOption::PIC,
@@ -126,6 +130,7 @@ fn link_as_static_object() {
 
     build(
         vec![file2],
+        vec![],
         CompileOptions {
             output: out2.clone(),
             format: FormatOption::Static,
@@ -139,6 +144,7 @@ fn link_as_static_object() {
     //Compile file1 as shared object with file2 as param
     build(
         vec![file1, out2.as_str().into()],
+        vec![],
         CompileOptions {
             output: out1.clone(),
             format: FormatOption::Static,
@@ -178,6 +184,7 @@ fn link_as_relocatable_object() {
 
     build(
         vec![file2],
+        vec![],
         CompileOptions {
             output: out2.clone(),
             format: FormatOption::Static,
@@ -191,6 +198,7 @@ fn link_as_relocatable_object() {
     //Compile file1 as shared object with file2 as param
     build(
         vec![file1, out2.as_str().into()],
+        vec![],
         CompileOptions {
             output: out1.clone(),
             format: FormatOption::Relocatable,
@@ -221,6 +229,7 @@ fn link_missing_file() {
     //Compile file1 as shared object with file2 as param
     let res = build(
         vec![file1],
+        vec![],
         CompileOptions {
             output: out.clone(),
             format: FormatOption::Static,
