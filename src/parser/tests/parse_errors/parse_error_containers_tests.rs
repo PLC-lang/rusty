@@ -265,7 +265,8 @@ fn unclosed_var_container() {
                     },
                     initializer: None,
                     location: SourceRange::undefined(),
-                }]
+                }],
+                linkage: LinkageType::Internal,
             }
         )
     );

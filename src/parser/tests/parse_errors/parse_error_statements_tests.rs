@@ -283,6 +283,7 @@ fn invalid_variable_name_error_recovery() {
                     location: SourceRange::undefined(),
                 },],
                 variable_block_type: VariableBlockType::Local,
+                linkage: LinkageType::Internal,
             }
         )
     );

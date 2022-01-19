@@ -1,0 +1,20 @@
+---
+source: src/codegen/tests/code_gen_tests.rs
+assertion_line: 65
+expression: result
+
+---
+; ModuleID = 'main'
+source_filename = "main"
+
+%main_interface = type {}
+
+@gX = available_externally global i16
+@gY = available_externally global i1
+@main_instance = global %main_interface zeroinitializer
+
+define void @main(%main_interface* %0) {
+entry:
+  ret void
+}
+

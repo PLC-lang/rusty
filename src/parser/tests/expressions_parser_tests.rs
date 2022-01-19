@@ -2580,6 +2580,7 @@ fn sized_string_as_function_return() {
         variable_blocks: vec![],
         location: SourceRange::undefined(),
         generics: vec![],
+        linkage: crate::ast::LinkageType::Internal,
     };
 
     assert_eq!(format!("{:?}", ast.units[0]), format!("{:?}", expected));
@@ -2626,6 +2627,7 @@ fn array_type_as_function_return() {
         variable_blocks: vec![],
         location: SourceRange::undefined(),
         generics: vec![],
+        linkage: crate::ast::LinkageType::Internal,
     };
 
     assert_eq!(format!("{:?}", ast.units[0]), format!("{:?}", expected));

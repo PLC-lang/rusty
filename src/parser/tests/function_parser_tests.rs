@@ -126,6 +126,7 @@ fn varargs_parameters_can_be_parsed() {
             retain: false,
             variable_block_type: VariableBlockType::Input,
             location: SourceRange::undefined(),
+            linkage: LinkageType::Internal,
             variables: vec![
                 Variable {
                     name: "args1".into(),
@@ -161,6 +162,7 @@ fn varargs_parameters_can_be_parsed() {
         location: SourceRange::undefined(),
         poly_mode: None,
         generics: vec![],
+        linkage: crate::ast::LinkageType::Internal,
     };
     assert_eq!(format!("{:#?}", expected), format!("{:#?}", x).as_str());
 }
