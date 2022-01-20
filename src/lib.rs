@@ -18,7 +18,9 @@
 //! [`IEC61131-3`]: https://en.wikipedia.org/wiki/IEC_61131-3
 //! [`IR`]: https://llvm.org/docs/LangRef.html
 use std::fs;
+use std::str::FromStr;
 
+use clap::ArgEnum;
 use glob::glob;
 use std::path::Path;
 
@@ -67,6 +69,26 @@ pub enum FormatOption {
     Relocatable,
     Bitcode,
     IR,
+}
+
+#[derive(PartialEq, Debug, Clone, Copy, ArgEnum)]
+pub enum ConfigFormat {
+    XML,
+    JSON,
+    TOML,
+}
+
+impl FromStr for ConfigFormat {
+    type Err = String;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "xml" => Ok(ConfigFormat::XML),
+            "json" => Ok(ConfigFormat::JSON),
+            "toml" => Ok(ConfigFormat::TOML),
+            _ => Err(format!("Invalid option {}", s)),
+        }
+    }
 }
 
 pub struct CompileOptions {

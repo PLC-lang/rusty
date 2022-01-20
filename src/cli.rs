@@ -1,23 +1,24 @@
 // Copyright (c) 2021 Ghaith Hachem and Mathias Rieder
 use encoding_rs::Encoding;
 use std::{ffi::OsStr, path::Path};
-use structopt::{clap::ArgGroup, StructOpt};
+use clap::{ArgGroup, Parser};
 
-use crate::FormatOption;
+use crate::{FormatOption, ConfigFormat};
 
 // => Set the default output format here:
 const DEFAULT_FORMAT: FormatOption = FormatOption::Static;
 const DEFAULT_OUTPUT_NAME: &str = "out";
 
-pub type ParameterError = structopt::clap::Error;
+pub type ParameterError = clap::Error;
 
-#[derive(StructOpt, Debug)]
-#[structopt(
-    group = ArgGroup::with_name("format"),
-    about = "IEC61131-3 Structured Text compiler powered by Rust & LLVM "
+#[derive(Parser, Debug)]
+#[clap(
+    group = ArgGroup::new("format"),
+    about = "IEC61131-3 Structured Text compiler powered by Rust & LLVM ",
+    version,
 )]
 pub struct CompileParameters {
-    #[structopt(
+    #[clap(
         short,
         long,
         name = "output-file",
@@ -25,55 +26,55 @@ pub struct CompileParameters {
     )]
     pub output: Option<String>,
 
-    #[structopt(
+    #[clap(
         long = "ir",
         group = "format",
         help = "Emit IR (LLVM Intermediate Representation) as output"
     )]
     pub output_ir: bool,
 
-    #[structopt(
+    #[clap(
         long = "shared",
         group = "format",
         help = "Emit a shared object as output"
     )]
     pub output_shared_obj: bool,
 
-    #[structopt(
+    #[clap(
         long = "pic",
         group = "format",
         help = "Emit PIC (Position Independent Code) as output"
     )]
     pub output_pic_obj: bool,
 
-    #[structopt(long = "static", group = "format", help = "Emit an object as output")]
+    #[clap(long = "static", group = "format", help = "Emit an object as output")]
     pub output_obj_code: bool,
 
-    #[structopt(
+    #[clap(
         long = "relocatable",
         group = "format",
         help = "Emit an object as output"
     )]
     pub output_reloc_code: bool,
 
-    #[structopt(
+    #[clap(
         long = "bc",
         group = "format",
         help = "Emit binary IR (binary representation of LLVM-IR) as output"
     )]
     pub output_bit_code: bool,
 
-    #[structopt(short = "c", help = "Do not link after compiling object code")]
+    #[clap(short = 'c', help = "Do not link after compiling object code")]
     pub skip_linking: bool,
 
-    #[structopt(
+    #[clap(
         long,
         name = "target-triple",
         help = "A target-tripple supported by LLVM"
     )]
     pub target: Option<String>,
 
-    #[structopt(
+    #[clap(
         long,
         name = "encoding",
         help = "The file encoding used to read the input-files, as defined by the Encoding Standard",
@@ -81,7 +82,7 @@ pub struct CompileParameters {
     )]
     pub encoding: Option<&'static Encoding>,
 
-    #[structopt(
+    #[clap(
         name = "input-files",
         help = "Read input from <input-files>, may be a glob expression like 'src/**/*' or a sequence of files",
         required = true,
@@ -90,27 +91,43 @@ pub struct CompileParameters {
     // having a vec allows bash to resolve *.st itself
     pub input: Vec<String>,
 
-    #[structopt(
+    #[clap(
         name = "library-path",
         long,
-        short = "L",
+        short = 'L',
         help = "Search path for libraries, used for linking"
     )]
     pub library_pathes: Vec<String>,
 
-    #[structopt(name = "library", long, short = "l", help = "Library name to link")]
+    #[clap(name = "library", long, short = 'l', help = "Library name to link")]
     pub libraries: Vec<String>,
 
-    #[structopt(long, name = "sysroot", help = "Path to system root, used for linking")]
+    #[clap(long, name = "sysroot", help = "Path to system root, used for linking")]
     pub sysroot: Option<String>,
 
-    #[structopt(
+    #[clap(
         name = "include",
         long,
-        short = "i",
+        short = 'i',
         help = "Include source files for external functions"
     )]
     pub includes: Vec<String>,
+
+    #[clap(
+        name = "config",
+        long,
+        help = "Generate (Hardware) configuration files"
+    )]
+    pub config : bool,
+
+    #[clap(
+        name = "config-format",
+        long,
+        help = "Sets the default format for the configuration",
+        default_value = "xml",
+        arg_enum,
+    )]
+    pub config_format : ConfigFormat,
 }
 
 fn parse_encoding(encoding: &str) -> Result<&'static Encoding, String> {
@@ -119,7 +136,7 @@ fn parse_encoding(encoding: &str) -> Result<&'static Encoding, String> {
 
 impl CompileParameters {
     pub fn parse(args: Vec<String>) -> Result<CompileParameters, ParameterError> {
-        CompileParameters::from_iter_safe(args)
+        CompileParameters::try_parse_from(args)
     }
 
     // convert the scattered bools from structopt into an enum
@@ -176,9 +193,9 @@ impl CompileParameters {
 #[cfg(test)]
 mod cli_tests {
     use super::{CompileParameters, ParameterError};
-    use crate::FormatOption;
+    use crate::{FormatOption, ConfigFormat};
     use pretty_assertions::assert_eq;
-    use structopt::clap::ErrorKind;
+    use clap::ErrorKind;
 
     fn expect_argument_error(args: Vec<String>, expected_error_kind: ErrorKind) {
         let params = CompileParameters::parse(args.clone());
@@ -437,7 +454,7 @@ mod cli_tests {
     fn cli_supports_version() {
         match CompileParameters::parse(vec_of_strings!("input.st", "--version")) {
             Ok(_) => panic!("expected version output, but found OK"),
-            Err(ParameterError { kind, .. }) => assert_eq!(kind, ErrorKind::VersionDisplayed),
+            Err(ParameterError { kind, .. }) => assert_eq!(kind, ErrorKind::DisplayVersion),
         }
     }
 
@@ -445,7 +462,7 @@ mod cli_tests {
     fn cli_supports_help() {
         match CompileParameters::parse(vec_of_strings!("input.st", "--help")) {
             Ok(_) => panic!("expected help output, but found OK"),
-            Err(ParameterError { kind, .. }) => assert_eq!(kind, ErrorKind::HelpDisplayed),
+            Err(ParameterError { kind, .. }) => assert_eq!(kind, ErrorKind::DisplayHelp),
         }
     }
 
@@ -463,6 +480,7 @@ mod cli_tests {
             "input.st",
             "-i",
             "include1",
+            "-i",
             "include2",
             "--include",
             "include3"
@@ -473,4 +491,46 @@ mod cli_tests {
             vec!["include1", "include2", "include3"]
         );
     }
+
+    #[test]
+    fn config_option_set() {
+        let parameters = CompileParameters::parse(vec_of_strings!(
+            "foo",
+            "--config"
+        ))
+        .unwrap();
+        assert!(parameters.config);
+        assert_eq!(parameters.config_format, ConfigFormat::XML);
+        let parameters = CompileParameters::parse(vec_of_strings!(
+            "foo",
+            "--config",
+            "--config-format=xml"
+        ))
+        .unwrap();
+        assert!(parameters.config);
+        assert_eq!(parameters.config_format, ConfigFormat::XML);
+        let parameters = CompileParameters::parse(vec_of_strings!(
+            "foo",
+            "--config",
+            "--config-format=json"
+        ))
+        .unwrap();
+        assert!(parameters.config);
+        assert_eq!(parameters.config_format, ConfigFormat::JSON);
+        let parameters = CompileParameters::parse(vec_of_strings!(
+            "foo",
+            "--config",
+            "--config-format=toml"
+        ))
+        .unwrap();
+        assert!(parameters.config);
+        assert_eq!(parameters.config_format, ConfigFormat::TOML);
+
+        expect_argument_error(
+            vec_of_strings!("foo", "--config-format=foo"),
+            ErrorKind::InvalidValue,
+        );
+
+    }
+
 }
