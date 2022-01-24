@@ -1641,6 +1641,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
     ) -> Result<BasicValueEnum<'a>, Diagnostic> {
         let array_value = self.generate_literal_array_value(
             flatten_expression_list(initializer),
+            self.get_type_hint_info_for(initializer)?,
             &initializer.get_location(),
         )?;
         return Ok(array_value.as_basic_value_enum());
@@ -1654,14 +1655,32 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
     fn generate_literal_array_value(
         &self,
         elements: Vec<&AstStatement>,
+        data_type: &DataTypeInformation,
         location: &SourceRange,
     ) -> Result<BasicValueEnum<'a>, Diagnostic> {
-        let inner_type = elements
-            .first()
-            .ok_or_else(|| {
-                Diagnostic::codegen_error("Cannot generate empty array", location.clone())
-            }) //TODO
-            .and_then(|it| self.get_type_hint_for(it))?;
+        let (inner_type, expected_len) = if let DataTypeInformation::Array {
+            inner_type_name,
+            dimensions,
+            ..
+        } = data_type
+        {
+            let len: u32 = dimensions
+                .iter()
+                .map(|d| d.get_length(self.index))
+                .collect::<Result<Vec<_>, _>>()
+                .map_err(|msg| Diagnostic::codegen_error(msg.as_str(), location.clone()))?
+                .into_iter()
+                .product();
+
+            self.index
+                .get_type(inner_type_name)
+                .map(|inner_type| (inner_type, len as usize))
+        } else {
+            Err(Diagnostic::codegen_error(
+                format!("Expected array type but found: {:}", data_type.get_name()).as_str(),
+                location.clone(),
+            ))
+        }?;
 
         let llvm_type = self.llvm_index.get_associated_type(inner_type.get_name())?;
         let mut v = Vec::new();
@@ -1669,6 +1688,17 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
             //generate with correct type hint
             let value = self.generate_literal(e)?;
             v.push(value.as_basic_value_enum());
+        }
+
+        if v.len() < expected_len {
+            let initial = self
+                .llvm_index
+                .find_associated_initial_value(inner_type.get_name())
+                .unwrap_or_else(|| llvm_type.const_zero());
+            while v.len() < expected_len {
+                //generate additional defaults for data_type
+                v.push(initial);
+            }
         }
 
         //TODO Validation: fail with compile-error if value cannot be converted into... correctly
