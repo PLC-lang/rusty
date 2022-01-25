@@ -397,9 +397,12 @@ END_FUNCTION
 <p>Variable declaration blocks can be delcared as CONSTANT. All variables 
 of a constant declaration block become constants. Constant variables can not be changed and need to be initialized.</p>
 <h2 id="example-1"><a class="header" href="#example-1">Example</a></h2>
-<pre><code class="language-st">VAR_GLOBAL CONSTANT
+<pre><code class="language-iecst">TYPE OneInt : INT := 1; END_TYPE
+
+VAR_GLOBAL CONSTANT
     MAX_SIZE : INT := 99;
     MIN_LEN : INT := 1;
+    counter : OneInt;  // 1
 END_VAR
 
 PROGRAM PLC_PRG
@@ -413,8 +416,16 @@ END_PROGRAM
 they can only consist of literals, other constants or expressions
 consisting of a combination of them. Note that initializers must not contain
 recursive definitions.</p>
+<p>If a variable has no initializer, the variable may be initialized with it's datatype's default value
+or else with <code>0</code>.</p>
+<h3 id="array-initialization"><a class="header" href="#array-initialization">Array Initialization</a></h3>
+<p>Arrays can be initialized using array literals.
+If the array-initial value does not contain all required elements, the array's inner type's default value
+will be used to fill the missing values.</p>
 <h2 id="example-2"><a class="header" href="#example-2">Example</a></h2>
-<pre><code class="language-st">VAR_GLOBAL CONSTANT
+<pre><code class="language-iecst">TYPE SignalValue : INT := -1; END_TYPE
+
+VAR_GLOBAL CONSTANT
     MIN_LEN : INT := 1;
     MAX_LEN : INT := 100;
 
@@ -423,7 +434,7 @@ END_VAR
 
 PROGRAM PLC_PRG
     VAR_INPUT
-        signals: ARRAY[0..SIZE] OF INT;
+        signals: ARRAY[0..SIZE] OF SignalValue := [99, 99]; // rest is -1
     END_VAR
 
     ...
