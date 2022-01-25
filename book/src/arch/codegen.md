@@ -130,6 +130,49 @@ Custom array data types are not reflected as dedicated types on the llvm-level.
 @x = global [10 x i16] zeroinitializer
 @y = global [6 x float] zeroinitializer
 ```
+
+#### Multi dimensional arrays
+
+Arrays can be declared as multi-dimensional:
+```iecst
+VAR_GLOBAL
+  x : ARRAY[0..5, 2..5, 0..1] OF INT;
+END_VAR
+```
+
+The compiler will flatten these type of arrays to a single-dimension. To accomplish that, it calculates the total
+length by mulitplying the sizes of all dimensions:
+```ignore
+    0..5 x 2..5 x 0..1
+      6  x   4  x   2  = 64
+```
+So the array `x : ARRAY[0..5, 2..5, 0..1] OF INT;` will be generated as:
+```llvm
+@x = global [64 x i16] zeroinitializer
+```
+This means that such a multidimensional array must be initialized like a single-dimensional array:
+- *wrong*
+```iecst
+VAR_GLOBAL
+  wrong_array : ARRAY[1..2, 0..3] OF INT := [ [10, 11, 12], 
+                                              [20, 21, 22], 
+                                              [30, 31, 32]]; 
+END_VAR
+```
+- *correct*
+```iecst
+VAR_GLOBAL
+  correct_array : ARRAY[1..2, 0..3] OF INT := [ 10, 11, 12, 
+                                                20, 21, 22, 
+                                                30, 31, 32]; 
+END_VAR
+```
+> *Nested Arrays*
+>
+> Note that arrays declared as `x : ARRAY[0..2] OF ARRAY[0..2] OF INT` are different from mutli-dimensional 
+> arrays discussed in this section. Nested arrays are represented as multi-dimensional arrays on the LLVM-IR 
+> level and must also be initialized using nested array-literals!
+
 ### String Types
 String types are generated as fixed sized vector types.
 ```iecst

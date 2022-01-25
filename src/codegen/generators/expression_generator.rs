@@ -5,7 +5,9 @@ use crate::{
     diagnostics::{Diagnostic, INTERNAL_LLVM_ERROR},
     index::{ImplementationIndexEntry, ImplementationType, Index, VariableIndexEntry},
     resolver::{AnnotationMap, AstAnnotations, StatementAnnotation},
-    typesystem::{is_same_type_class, Dimension, StringEncoding, INT_SIZE, INT_TYPE, LINT_TYPE},
+    typesystem::{
+        is_same_type_class, Dimension, StringEncoding, DINT_TYPE, INT_SIZE, INT_TYPE, LINT_TYPE,
+    },
 };
 use inkwell::{
     basic_block::BasicBlock,
@@ -959,7 +961,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
         &self,
         dimension: &Dimension,
         access_expression: &AstStatement,
-    ) -> Result<IntValue<'a>, Diagnostic> {
+    ) -> Result<BasicValueEnum<'a>, Diagnostic> {
         let start_offset = dimension
             .start_offset
             .as_int_value(self.index)
@@ -967,15 +969,27 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
 
         let access_value = self.generate_expression(access_expression)?;
         //If start offset is not 0, adjust the current statement with an add operation
-        if start_offset != 0 {
-            Ok(self.llvm.builder.build_int_sub(
-                access_value.into_int_value(),
-                self.llvm.i32_type().const_int(start_offset as u64, true), //TODO error handling for cast
+        let result = if start_offset != 0 {
+            let access_int_value = access_value.into_int_value();
+            let access_int_type = access_int_value.get_type();
+            self.llvm.builder.build_int_sub(
+                access_int_value,
+                access_int_type.const_int(start_offset as u64, true), //TODO error handling for cast
                 "",
-            ))
+            )
         } else {
-            Ok(access_value.into_int_value())
-        }
+            access_value.into_int_value()
+        };
+        //turn it into i32 immediately
+        llvm_typesystem::cast_if_needed(
+            self.llvm,
+            self.index,
+            self.llvm_index,
+            self.index.get_type(DINT_TYPE)?,
+            result.as_basic_value_enum(),
+            self.get_type_hint_for(access_expression)?,
+            access_expression,
+        )
     }
 
     /// generates a gep statement for a array-reference with an optional qualifier
@@ -995,9 +1009,6 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                 if let DataTypeInformation::Array { dimensions, .. } =
                     self.get_type_hint_info_for(reference)?
                 {
-                    //First 0 is to access the pointer, then we access the array
-                    let mut indices = vec![self.llvm.i32_type().const_int(0, false)];
-
                     //Make sure dimensions match statement list
                     let statements = access.get_as_list();
                     if statements.is_empty() || statements.len() != dimensions.len() {
@@ -1006,13 +1017,94 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                             access.get_location(),
                         ));
                     }
-                    for (i, statement) in statements.iter().enumerate() {
-                        indices.push(self.generate_access_for_dimension(&dimensions[i], statement)?)
-                    }
-                    //Load the access from that reference
-                    let pointer =
-                        self.llvm
-                            .load_array_element(lvalue, indices.as_slice(), "tmpVar")?;
+
+                    // e.g. an array like `ARRAY[0..3, 0..2, 0..1] OF ...` has the lengths [ 4 , 3 , 2 ]
+                    let lengths = dimensions
+                        .iter()
+                        .map(|d| d.get_length(self.index))
+                        .collect::<Result<Vec<_>, _>>()
+                        .map_err(|msg| {
+                            Diagnostic::codegen_error(
+                                format!("Invalid array dimensions access: {}", msg).as_str(),
+                                access.get_location(),
+                            )
+                        })?;
+
+                    // the portion indicates how many elements are represented by the corresponding dimension
+                    // the first dimensions corresponds to the number of elements of the rest of the dimensions
+                    //          - portion = 6 (size to the right = 3 x 2 = 6)
+                    //         /        - portion = 2 (because the size to the right of this dimension = 2)
+                    //        /        /         - the last dimension is directly translated into array-coordinates (skip-size = 1)
+                    //                /         /
+                    // [    4   ,    3    ,    2  ]
+                    let dimension_portions = (0..lengths.len())
+                        .map(|index| {
+                            if index == lengths.len() - 1 {
+                                1
+                            } else {
+                                lengths[index + 1..lengths.len()].iter().product()
+                            }
+                        })
+                        .collect::<Vec<u32>>();
+
+                    let accessors_and_portions = statements
+                        .iter()
+                        .zip(dimensions)
+                        .map(|(statement, dimension)|
+                            // generate array-accessors
+                            self.generate_access_for_dimension(dimension, statement))
+                        .zip(dimension_portions);
+
+                    //accessing [ 1, 2, 2] means to access [ 1*6 + 2*2 + 2*1 ] = 12
+                    let (index_access, _) = accessors_and_portions.fold(
+                        (
+                            Ok(self.llvm.i32_type().const_zero().as_basic_value_enum()),
+                            1,
+                        ),
+                        |(accumulated_value, _), (current_v, current_portion)| {
+                            let result = accumulated_value.and_then(|last_v| {
+                                current_v.map(|v| {
+                                    let current_portion_value = self
+                                        .llvm
+                                        .i32_type()
+                                        .const_int(current_portion as u64, false)
+                                        .as_basic_value_enum();
+                                    //multiply the accessor with the dimension's portion
+                                    let m_v = self.create_llvm_int_binary_expression(
+                                        &Operator::Multiplication,
+                                        current_portion_value,
+                                        v,
+                                    );
+                                    // take the sum of the mulitlication and the previous accumulated_value
+                                    // this now becomes the new accumulated value
+                                    self.create_llvm_int_binary_expression(
+                                        &Operator::Plus,
+                                        m_v,
+                                        last_v,
+                                    )
+                                })
+                            });
+                            (result, 0 /* the 0 will be ignored */)
+                        },
+                    );
+
+                    //make sure we got an int-value
+                    let index_access: IntValue = index_access.and_then(|it| {
+                        it.try_into().map_err(|_| {
+                            Diagnostic::codegen_error(
+                                "non-numeric index-access",
+                                access.get_location(),
+                            )
+                        })
+                    })?;
+
+                    //Load the access from that array
+                    //First 0 is to access the pointer, then we access the array
+                    let pointer = self.llvm.load_array_element(
+                        lvalue,
+                        &[self.llvm.i32_type().const_zero(), index_access],
+                        "tmpVar",
+                    )?;
 
                     return Ok(pointer);
                 }

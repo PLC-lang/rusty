@@ -2400,6 +2400,46 @@ fn nested_array_access() {
 }
 
 #[test]
+fn nested_array_cube_writes() {
+    let result = codegen(
+        r"
+            PROGRAM main
+            VAR
+            x: INT;
+            y: INT;
+            z: INT;
+            cube        : ARRAY[0..4, 0..4, 0..4] OF DINT;
+            END_VAR
+
+            cube[x, y, z] := x*y*z;
+           END_PROGRAM
+            ",
+    );
+
+    insta::assert_snapshot!(result);
+}
+
+#[test]
+fn nested_array_cube_writes_negative_start() {
+    let result = codegen(
+        r"
+            PROGRAM main
+            VAR
+            x: INT;
+            y: INT;
+            z: INT;
+            cube        : ARRAY[-2..2,-2..2,-2..2] OF DINT;
+            END_VAR
+
+            cube[x, y, z] := x*y*z;
+           END_PROGRAM
+            ",
+    );
+
+    insta::assert_snapshot!(result);
+}
+
+#[test]
 fn returning_early_in_function() {
     let result = codegen(
         "

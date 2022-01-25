@@ -414,31 +414,39 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
     }
 
     /// creates the llvm types for a multi-dimensional array
+    ///
+    /// an array with multiple dimensions will be flattened into a long
+    /// 1-dimensional array.
+    /// e.g. `arr: ARRAY[0..2, 0..2] OF INT` produces the same result like
+    /// `arr: ARRAY[0..3] OF INT`.
     fn create_nested_array_type(
         &self,
-        end_type: BasicTypeEnum<'ink>,
+        inner_type: BasicTypeEnum<'ink>,
         dimensions: &[Dimension],
     ) -> Result<ArrayType<'ink>, Diagnostic> {
-        let dimensions: Vec<u32> = dimensions
+        let len = dimensions
             .iter()
             .map(|dimension| {
                 dimension
                     .get_length(self.index)
                     .map_err(|it| Diagnostic::codegen_error(it.as_str(), SourceRange::undefined()))
             })
-            .collect::<Result<Vec<u32>, Diagnostic>>()?;
+            .collect::<Result<Vec<u32>, Diagnostic>>()?
+            .into_iter()
+            .reduce(|a, b| a * b)
+            .ok_or_else(|| {
+                Diagnostic::codegen_error("Invalid array dimensions", SourceRange::undefined())
+            })?;
 
-        let result = dimensions.iter().rev().fold(end_type, |current_type, len| {
-            match current_type {
-                BasicTypeEnum::IntType(..) => current_type.into_int_type().array_type(*len),
-                BasicTypeEnum::FloatType(..) => current_type.into_float_type().array_type(*len),
-                BasicTypeEnum::StructType(..) => current_type.into_struct_type().array_type(*len),
-                BasicTypeEnum::ArrayType(..) => current_type.into_array_type().array_type(*len),
-                BasicTypeEnum::PointerType(..) => current_type.into_pointer_type().array_type(*len),
-                BasicTypeEnum::VectorType(..) => current_type.into_vector_type().array_type(*len),
-            }
-            .as_basic_type_enum()
-        });
+        let result = match inner_type {
+            BasicTypeEnum::IntType(..) => inner_type.into_int_type().array_type(len),
+            BasicTypeEnum::FloatType(..) => inner_type.into_float_type().array_type(len),
+            BasicTypeEnum::StructType(..) => inner_type.into_struct_type().array_type(len),
+            BasicTypeEnum::ArrayType(..) => inner_type.into_array_type().array_type(len),
+            BasicTypeEnum::PointerType(..) => inner_type.into_pointer_type().array_type(len),
+            BasicTypeEnum::VectorType(..) => inner_type.into_vector_type().array_type(len),
+        }
+        .as_basic_type_enum();
 
         let array_result: Result<ArrayType, _> = result.try_into();
         array_result.map_err(|_| {
