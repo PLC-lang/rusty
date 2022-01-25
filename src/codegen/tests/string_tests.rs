@@ -204,3 +204,34 @@ fn nested_struct_initialization_of_multi_dim_string_arrays() {
     );
     insta::assert_snapshot!(result);
 }
+
+#[test]
+fn string_function_parameters() {
+    let result = codegen(
+        r#"
+        FUNCTION foo: INT
+            VAR_INPUT
+                s : STRING;
+            END_VAR
+        
+            RETURN 0;
+        END_PROGRAM
+
+
+        PROGRAM prg
+            VAR
+                s : STRING[10] := 'hello';
+                a : STRING;
+            END_VAR
+
+            a := s;
+            a := 'hello';
+            foo(s);
+            foo('hello');
+        END_PROGRAM
+
+        "#,
+    );
+
+    insta::assert_snapshot!(result);
+}
