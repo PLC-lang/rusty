@@ -2,6 +2,7 @@
 use super::super::*;
 #[allow(dead_code)]
 #[repr(C)]
+#[derive(Debug)]
 struct MainType {
     x: i16,
     y: i16,
@@ -223,6 +224,42 @@ fn cube_array_assignments_array_of_array_of_array() {
 }
 
 #[test]
+fn simple_cube_array_assignments() {
+    #[allow(dead_code)]
+    #[repr(C)]
+    #[derive(Debug, Default)]
+    struct MainType {
+        x: i32,
+        y: i32,
+        z: i32,
+        cube: [[[i32; 5]; 5]; 5], //5x5x5 array
+    }
+    let function = r"
+            PROGRAM main
+            VAR
+            x: DINT;
+            y: DINT;
+            z: DINT;
+            cube        : ARRAY[0..4, 0..4, 0..4] OF DINT;
+            END_VAR
+
+            x := 0; y := 0; z:= 0;
+            cube[x, y, z] := 1;
+
+            x := 4; y := 4; z:= 4;
+            cube[x, y, z] := 77;
+
+           END_PROGRAM
+            ";
+
+    let mut maintype = MainType::default();
+
+    let _: i32 = compile_and_run(function.to_string(), &mut maintype);
+    assert_eq!(1, maintype.cube[0][0][0]);
+    assert_eq!(77, maintype.cube[4][4][4]);
+}
+
+#[test]
 fn cube_array_assignments2() {
     let function = r"
             PROGRAM main
@@ -304,4 +341,27 @@ fn two_dim_array_while() {
     let mut maintype = new();
     let res: i16 = compile_and_run(function.to_string(), &mut maintype);
     assert_eq!(res, 1);
+}
+
+#[test]
+fn initialize_multi_dim_array() {
+    #[allow(dead_code)]
+    #[repr(C)]
+    #[derive(Debug, Default)]
+    struct MainType {
+        arr: [i16; 27], //3x3x3 array
+    }
+    let function = "
+        FUNCTION main : INT
+        VAR
+            int_array : ARRAY[0..2, 0..2, 0..2] OF INT := [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26];
+        END_VAR
+        END_FUNCTION
+        ";
+
+    let mut maintype = MainType::default();
+    let _: i16 = compile_and_run(function.to_string(), &mut maintype);
+    (0..27i16).for_each(|i| {
+        assert_eq!(i, maintype.arr[i as usize]);
+    })
 }
