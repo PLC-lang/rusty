@@ -26,7 +26,7 @@ pub type NativeRealType = f32;
 pub type NativeLrealType = f64;
 
 //TODO should we change this to usize?
-pub const U1_SIZE : u32 = 1;
+pub const U1_SIZE: u32 = 1;
 pub const BOOL_SIZE: u32 = BYTE_SIZE;
 pub const BYTE_SIZE: u32 = (size_of::<NativeSintType>() * 8) as u32;
 pub const SINT_SIZE: u32 = (size_of::<NativeSintType>() * 8) as u32;
@@ -37,7 +37,8 @@ pub const REAL_SIZE: u32 = (size_of::<NativeRealType>() * 8) as u32;
 pub const LREAL_SIZE: u32 = (size_of::<NativeLrealType>() * 8) as u32;
 pub const DATE_TIME_SIZE: u32 = 64;
 
-pub const U1_TYPE: &str = "__U1";   /// used internally for forced casts to u1
+pub const U1_TYPE: &str = "__U1";
+/// used internally for forced casts to u1
 pub const BOOL_TYPE: &str = "BOOL";
 pub const BYTE_TYPE: &str = "BYTE";
 pub const SINT_TYPE: &str = "SINT";
@@ -185,9 +186,9 @@ pub enum DataTypeInformation {
         name: TypeId,
         signed: bool,
         /// the number of bit stored in memory
-        size: u32, 
+        size: u32,
         /// the numer of bits represented by this type (may differ from the num acutally stored)
-        semantic_size: Option<u32>, 
+        semantic_size: Option<u32>,
     },
     Enum {
         name: TypeId,
@@ -325,10 +326,13 @@ impl DataTypeInformation {
         }
     }
 
-
     /// returns the number of bits of this type, as understood by IEC61131 (may be smaller than get_size(...))
     pub fn get_semantic_size(&self) -> u32 {
-        if let DataTypeInformation::Integer { semantic_size: Some(s), .. } = self {
+        if let DataTypeInformation::Integer {
+            semantic_size: Some(s),
+            ..
+        } = self
+        {
             return *s;
         }
         self.get_size()
@@ -407,7 +411,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
         DataType {
             name: U1_TYPE.into(),
             initial_value: None,
-            information: DataTypeInformation::Integer{
+            information: DataTypeInformation::Integer {
                 name: U1_TYPE.into(),
                 signed: false,
                 size: U1_SIZE,
@@ -555,7 +559,6 @@ pub fn get_builtin_types() -> Vec<DataType> {
                 signed: true,
                 size: DATE_TIME_SIZE,
                 semantic_size: None,
-
             },
             nature: TypeNature::Date,
         },

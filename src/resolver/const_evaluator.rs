@@ -639,7 +639,12 @@ fn get_cast_statement_literal(
         .find_effective_type(type_name)
         .map(DataType::get_type_information)
     {
-        Some(&crate::typesystem::DataTypeInformation::Integer { signed, size, semantic_size,.. }) => {
+        Some(&crate::typesystem::DataTypeInformation::Integer {
+            signed,
+            size,
+            semantic_size,
+            ..
+        }) => {
             let evaluated_initial = evaluate(cast_statement, scope, index)?
                 .as_ref()
                 .map(|v| {
