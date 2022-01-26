@@ -94,6 +94,32 @@ fn expression_list_as_array_initilization() {
 }
 
 #[test]
+fn incomplete_array_initialization() {
+    let result = codegen(
+        "
+		VAR_GLOBAL
+			arr : ARRAY[0..5] OF INT := 0, 1, 2;
+		END_VAR
+		",
+    );
+    insta::assert_snapshot!(result);
+}
+
+#[test]
+fn incomplete_array_initialization_with_custom_init_value() {
+    let result = codegen(
+        "
+        TYPE MyInt : INT := 7; END_TYPE
+
+		VAR_GLOBAL
+			arr : ARRAY[0..5] OF MyInt := 0, 1, 2;
+		END_VAR
+		",
+    );
+    insta::assert_snapshot!(result);
+}
+
+#[test]
 fn alias_chain_with_lots_of_initializers() {
     let result = codegen(
         "

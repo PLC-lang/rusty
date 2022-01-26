@@ -1,11 +1,11 @@
 ---
 source: src/codegen/tests/initialization_test/type_initializers.rs
-assertion_line: 158
+assertion_line: 105
 expression: result
 
 ---
 ; ModuleID = 'main'
 source_filename = "main"
 
-@a = global [4 x i8] c"\01\02\03\04"
+@arr = global [6 x i16] [i16 0, i16 1, i16 2, i16 0, i16 0, i16 0]
 
