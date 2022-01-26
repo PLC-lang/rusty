@@ -8,15 +8,15 @@ expression: result
 source_filename = "main"
 
 %STRING_LESS_interface = type { [1025 x i8], [1025 x i8] }
-%baz_interface = type { [81 x i8], i1 }
+%baz_interface = type { [81 x i8], i8 }
 
-define i1 @STRING_LESS(%STRING_LESS_interface* %0) {
+define i8 @STRING_LESS(%STRING_LESS_interface* %0) {
 entry:
   %op1 = getelementptr inbounds %STRING_LESS_interface, %STRING_LESS_interface* %0, i32 0, i32 0
   %op2 = getelementptr inbounds %STRING_LESS_interface, %STRING_LESS_interface* %0, i32 0, i32 1
-  %STRING_LESS = alloca i1, align 1
-  %STRING_LESS_ret = load i1, i1* %STRING_LESS, align 1
-  ret i1 %STRING_LESS_ret
+  %STRING_LESS = alloca i8, align 1
+  %STRING_LESS_ret = load i8, i8* %STRING_LESS, align 1
+  ret i8 %STRING_LESS_ret
 }
 
 define i16 @baz(%baz_interface* %0) {
@@ -26,7 +26,7 @@ entry:
   %baz = alloca i16, align 2
   %1 = bitcast [81 x i8]* %a to i8*
   call void @llvm.memset.p0i8.i64(i8* align 1 %1, i8 0, i64 mul nuw (i64 ptrtoint (i8* getelementptr (i8, i8* null, i32 1) to i64), i64 81), i1 false)
-  store i1 false, i1* %result, align 1
+  store i8 0, i8* %result, align 1
   %STRING_LESS_instance = alloca %STRING_LESS_interface, align 8
   br label %input
 
@@ -39,14 +39,14 @@ input:                                            ; preds = %entry
   br label %call
 
 call:                                             ; preds = %input
-  %call1 = call i1 @STRING_LESS(%STRING_LESS_interface* %STRING_LESS_instance)
+  %call1 = call i8 @STRING_LESS(%STRING_LESS_interface* %STRING_LESS_instance)
   br label %output
 
 output:                                           ; preds = %call
   br label %continue
 
 continue:                                         ; preds = %output
-  store i1 %call1, i1* %result, align 1
+  store i8 %call1, i8* %result, align 1
   %baz_ret = load i16, i16* %baz, align 2
   ret i16 %baz_ret
 }

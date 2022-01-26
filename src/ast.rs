@@ -145,7 +145,7 @@ impl DirectAccessType {
 
     /// Returns true if the direct access can be used for the given type
     pub fn is_compatible(&self, data_type: &DataTypeInformation) -> bool {
-        data_type.get_size() as u64 > self.get_bit_width()
+        data_type.get_semantic_size() as u64 > self.get_bit_width()
     }
 
     /// Returns the size of the bitaccess result

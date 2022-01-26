@@ -9,24 +9,24 @@ source_filename = "main"
 
 %STRING_GREATER_interface = type { [1025 x i8], [1025 x i8] }
 %STRING_EQUAL_interface = type { [1025 x i8], [1025 x i8] }
-%baz_interface = type { [81 x i8], [81 x i8], i1 }
+%baz_interface = type { [81 x i8], [81 x i8], i8 }
 
-define i1 @STRING_GREATER(%STRING_GREATER_interface* %0) {
+define i8 @STRING_GREATER(%STRING_GREATER_interface* %0) {
 entry:
   %op1 = getelementptr inbounds %STRING_GREATER_interface, %STRING_GREATER_interface* %0, i32 0, i32 0
   %op2 = getelementptr inbounds %STRING_GREATER_interface, %STRING_GREATER_interface* %0, i32 0, i32 1
-  %STRING_GREATER = alloca i1, align 1
-  %STRING_GREATER_ret = load i1, i1* %STRING_GREATER, align 1
-  ret i1 %STRING_GREATER_ret
+  %STRING_GREATER = alloca i8, align 1
+  %STRING_GREATER_ret = load i8, i8* %STRING_GREATER, align 1
+  ret i8 %STRING_GREATER_ret
 }
 
-define i1 @STRING_EQUAL(%STRING_EQUAL_interface* %0) {
+define i8 @STRING_EQUAL(%STRING_EQUAL_interface* %0) {
 entry:
   %op1 = getelementptr inbounds %STRING_EQUAL_interface, %STRING_EQUAL_interface* %0, i32 0, i32 0
   %op2 = getelementptr inbounds %STRING_EQUAL_interface, %STRING_EQUAL_interface* %0, i32 0, i32 1
-  %STRING_EQUAL = alloca i1, align 1
-  %STRING_EQUAL_ret = load i1, i1* %STRING_EQUAL, align 1
-  ret i1 %STRING_EQUAL_ret
+  %STRING_EQUAL = alloca i8, align 1
+  %STRING_EQUAL_ret = load i8, i8* %STRING_EQUAL, align 1
+  ret i8 %STRING_EQUAL_ret
 }
 
 define i16 @baz(%baz_interface* %0) {
@@ -39,7 +39,7 @@ entry:
   call void @llvm.memset.p0i8.i64(i8* align 1 %1, i8 0, i64 mul nuw (i64 ptrtoint (i8* getelementptr (i8, i8* null, i32 1) to i64), i64 81), i1 false)
   %2 = bitcast [81 x i8]* %b to i8*
   call void @llvm.memset.p0i8.i64(i8* align 1 %2, i8 0, i64 mul nuw (i64 ptrtoint (i8* getelementptr (i8, i8* null, i32 1) to i64), i64 81), i1 false)
-  store i1 false, i1* %result, align 1
+  store i8 0, i8* %result, align 1
   %STRING_EQUAL_instance = alloca %STRING_EQUAL_interface, align 8
   br label %input
 
@@ -48,8 +48,8 @@ entry:
   br label %input2
 
 4:                                                ; preds = %continue5, %continue
-  %5 = phi i1 [ %call1, %continue ], [ %call7, %continue5 ]
-  store i1 %5, i1* %result, align 1
+  %5 = phi i8 [ %call1, %continue ], [ %call7, %continue5 ]
+  store i8 %5, i8* %result, align 1
   %baz_ret = load i16, i16* %baz, align 2
   ret i16 %baz_ret
 
@@ -62,14 +62,14 @@ input:                                            ; preds = %entry
   br label %call
 
 call:                                             ; preds = %input
-  %call1 = call i1 @STRING_EQUAL(%STRING_EQUAL_interface* %STRING_EQUAL_instance)
+  %call1 = call i8 @STRING_EQUAL(%STRING_EQUAL_interface* %STRING_EQUAL_instance)
   br label %output
 
 output:                                           ; preds = %call
   br label %continue
 
 continue:                                         ; preds = %output
-  %8 = icmp ne i1 %call1, false
+  %8 = icmp ne i8 %call1, 0
   br i1 %8, label %4, label %3
 
 input2:                                           ; preds = %3
@@ -81,7 +81,7 @@ input2:                                           ; preds = %3
   br label %call3
 
 call3:                                            ; preds = %input2
-  %call7 = call i1 @STRING_GREATER(%STRING_GREATER_interface* %STRING_GREATER_instance)
+  %call7 = call i8 @STRING_GREATER(%STRING_GREATER_interface* %STRING_GREATER_instance)
   br label %output4
 
 output4:                                          ; preds = %call3

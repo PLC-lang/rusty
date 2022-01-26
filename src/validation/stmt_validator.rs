@@ -338,7 +338,7 @@ impl StatementValidator {
             //see if target and cast_type are compatible
         } else if cast_type.is_int() && literal_type.is_int() {
             //INTs with INTs
-            if cast_type.get_size() < literal_type.get_size() {
+            if cast_type.get_semantic_size() < literal_type.get_semantic_size() {
                 self.diagnostics.push(Diagnostic::literal_out_of_range(
                     StatementValidator::get_literal_value(literal).as_str(),
                     cast_type.get_name(),
