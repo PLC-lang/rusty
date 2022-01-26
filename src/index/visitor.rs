@@ -1,5 +1,5 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-use super::{VariableIndexEntry, VariableType};
+use super::{HardwareBinding, VariableIndexEntry, VariableType};
 use crate::ast::{
     self, AstStatement, CompilationUnit, DataType, DataTypeDeclaration, Implementation, Pou,
     PouType, SourceRange, TypeNature, UserTypeDeclaration, VariableBlock, VariableBlockType,
@@ -81,13 +81,19 @@ pub fn visit_pou(index: &mut Index, pou: &Pou) {
                     Some(pou.name.clone()),
                 );
 
+            let binding = var
+                .address
+                .as_ref()
+                .and_then(|it| HardwareBinding::from_statement(index, it, Some(pou.name.clone())));
+
             index.register_member_variable(
-                &MemberInfo {
+                MemberInfo {
                     container_name: &pou.name,
                     variable_name: &var.name,
                     variable_linkage: block_type,
                     variable_type_name: &type_name,
                     is_constant: block.constant,
+                    binding,
                 },
                 initial_value,
                 var.location.clone(),
@@ -102,12 +108,13 @@ pub fn visit_pou(index: &mut Index, pou: &Pou) {
         member_names.push(pou.get_return_name().into());
         let source_location = SourceRange::new(pou.location.get_end()..pou.location.get_end());
         index.register_member_variable(
-            &MemberInfo {
+            MemberInfo {
                 container_name: &pou.name,
                 variable_name: pou.get_return_name(),
                 variable_linkage: VariableType::Return,
                 variable_type_name: return_type.get_name().unwrap_or_default(),
                 is_constant: false, //return variables are not constants
+                binding: None,
             },
             None,
             source_location,
@@ -217,7 +224,8 @@ fn visit_global_var_block(index: &mut Index, block: &VariableBlock) {
         )
         .set_initial_value(initializer)
         .set_constant(block.constant)
-        .set_linkage(linkage);
+        .set_linkage(linkage)
+        .set_hardware_binding(var.address.as_ref().and_then(|it| HardwareBinding::from_statement(index, it, None)));
         index.register_global_variable(&var.name, variable);
     }
 }
@@ -310,13 +318,20 @@ fn visit_data_type(
                         member_type,
                         scope.clone(),
                     );
+
+                let binding = var
+                    .address
+                    .as_ref()
+                    .and_then(|it| HardwareBinding::from_statement(index, it, scope.clone()));
+
                 index.register_member_variable(
-                    &MemberInfo {
+                    MemberInfo {
                         container_name: struct_name,
                         variable_name: &var.name,
                         variable_linkage: VariableType::Local,
                         variable_type_name: member_type,
                         is_constant: false, //struct members are not constants //TODO thats probably not true (you can define a struct in an CONST-block?!)
+                        binding,
                     },
                     init,
                     var.location.clone(),

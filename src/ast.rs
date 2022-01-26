@@ -1,5 +1,6 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use crate::{lexer::IdProvider, typesystem::DataTypeInformation};
+use serde::{Deserialize, Serialize};
 use std::{
     fmt::{Debug, Display, Formatter, Result},
     iter,
@@ -35,14 +36,14 @@ pub enum PolymorphismMode {
     Final,
 }
 
-#[derive(Copy, Clone, Debug, PartialEq)]
+#[derive(Copy, Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub enum HardwareAccessType {
     Input,
     Output,
     Memory,
 }
 
-#[derive(Copy, Clone, Debug, PartialEq)]
+#[derive(Copy, Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub enum DirectAccessType {
     Bit,
     Byte,

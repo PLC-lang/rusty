@@ -1,6 +1,8 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use std::{mem::size_of, ops::Range};
 
+use serde::Serialize;
+
 use crate::{
     ast::{AstStatement, GenericBinding, Operator, PouType, TypeNature},
     index::{const_expressions::ConstId, Index},
@@ -116,10 +118,21 @@ impl StringEncoding {
     }
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub enum TypeSize {
     LiteralInteger(u32),
     ConstExpression(ConstId),
+}
+
+impl Serialize for TypeSize {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer {
+            match self {
+                TypeSize::LiteralInteger(x) => serializer.serialize_u32(*x),
+                TypeSize::ConstExpression(_) => panic!("No idea how to handle this"),
+            }
+    }
 }
 
 impl TypeSize {
@@ -364,7 +377,7 @@ impl DataTypeInformation {
     }
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, Copy, Serialize, PartialEq)]
 pub struct Dimension {
     pub start_offset: TypeSize,
     pub end_offset: TypeSize,

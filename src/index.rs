@@ -2,14 +2,21 @@
 use indexmap::IndexMap;
 
 use crate::{
-    ast::{Implementation, LinkageType, PouType, SourceRange, TypeNature},
+    ast::{
+        AstStatement, DirectAccessType, HardwareAccessType, Implementation, LinkageType, PouType,
+        SourceRange, TypeNature,
+    },
     diagnostics::Diagnostic,
-    typesystem::*,
+    typesystem::{self, *},
 };
 
-use self::const_expressions::{ConstExpressions, ConstId};
+use self::{
+    const_expressions::{ConstExpressions, ConstId},
+    instance_resolver::InstanceIterator,
+};
 
 pub mod const_expressions;
+mod instance_resolver;
 #[cfg(test)]
 mod tests;
 pub mod visitor;
@@ -32,8 +39,49 @@ pub struct VariableIndexEntry {
     location_in_parent: u32,
     /// Wether the variable is externally or internally available
     linkage: LinkageType,
+    /// A binding to a hardware or external location
+    binding: Option<HardwareBinding>,
     /// the location in the original source-file
     pub source_location: SourceRange,
+}
+
+#[derive(Debug, PartialEq, Clone)]
+pub struct HardwareBinding {
+    pub direction: HardwareAccessType,
+    pub access: DirectAccessType,
+    pub entries: Vec<ConstId>,
+    pub location: SourceRange,
+}
+
+impl HardwareBinding {
+    fn from_statement(index: &mut Index, it: &AstStatement, scope: Option<String>) -> Option<Self> {
+        if let AstStatement::HardwareAccess {
+            access,
+            address,
+            direction,
+            location,
+            ..
+        } = it
+        {
+            Some(HardwareBinding {
+                access: *access,
+                direction: *direction,
+                entries: address
+                    .iter()
+                    .map(|expr| {
+                        index.constant_expressions.add_constant_expression(
+                            expr.clone(),
+                            typesystem::DINT_SIZE.to_string(),
+                            scope.clone(),
+                        )
+                    })
+                    .collect(),
+                location: location.clone(),
+            })
+        } else {
+            None
+        }
+    }
 }
 
 pub struct MemberInfo<'b> {
@@ -41,6 +89,7 @@ pub struct MemberInfo<'b> {
     variable_name: &'b str,
     variable_linkage: VariableType,
     variable_type_name: &'b str,
+    binding: Option<HardwareBinding>,
     is_constant: bool,
 }
 
@@ -62,6 +111,7 @@ impl VariableIndexEntry {
             data_type_name: data_type_name.to_string(),
             location_in_parent,
             linkage: LinkageType::Internal,
+            binding: None,
             source_location,
         }
     }
@@ -81,6 +131,7 @@ impl VariableIndexEntry {
             data_type_name: data_type_name.to_string(),
             location_in_parent: 0,
             linkage: LinkageType::Internal,
+            binding: None,
             source_location,
         }
     }
@@ -97,6 +148,11 @@ impl VariableIndexEntry {
 
     pub fn set_constant(mut self, is_constant: bool) -> Self {
         self.is_constant = is_constant;
+        self
+    }
+
+    pub fn set_hardware_binding(mut self, binding: Option<HardwareBinding>) -> Self {
+        self.binding = binding;
         self
     }
 
@@ -153,6 +209,14 @@ impl VariableIndexEntry {
 
     pub fn get_variable_type(&self) -> VariableType {
         self.variable_type
+    }
+
+    pub fn has_hardware_binding(&self) -> bool {
+        self.binding.is_some()
+    }
+
+    pub fn get_hardware_binding(&self) -> Option<&HardwareBinding> {
+        self.binding.as_ref()
     }
 
     pub(crate) fn is_parameter(&self) -> bool {
@@ -459,7 +523,7 @@ impl Index {
         type_size: &TypeSize,
     ) -> TypeSize {
         let ts = match type_size {
-            TypeSize::LiteralInteger(_) => Some(type_size.clone()),
+            TypeSize::LiteralInteger(_) => Some(*type_size),
             TypeSize::ConstExpression(id) => import_from
                 .remove(id)
                 .map(|(expr, target_type, scope)| {
@@ -692,6 +756,10 @@ impl Index {
         &self.global_variables
     }
 
+    pub fn get_members(&self, name: &str) -> Option<&IndexMap<String, VariableIndexEntry>> {
+        self.member_variables.get(name.to_lowercase().as_str())
+    }
+
     pub fn get_global_qualified_enums(&self) -> &IndexMap<String, VariableIndexEntry> {
         &self.enum_qualified_variables
     }
@@ -734,7 +802,7 @@ impl Index {
     /// * `location` - the location (index) inside the container
     pub fn register_member_variable(
         &mut self,
-        member_info: &MemberInfo,
+        member_info: MemberInfo,
         initial_value: Option<ConstId>,
         source_location: SourceRange,
         location: u32,
@@ -755,7 +823,8 @@ impl Index {
             source_location,
         )
         .set_constant(member_info.is_constant)
-        .set_initial_value(initial_value);
+        .set_initial_value(initial_value)
+        .set_hardware_binding(member_info.binding);
 
         self.register_member_entry(container_name, entry);
     }
@@ -775,17 +844,14 @@ impl Index {
         source_location: SourceRange,
     ) {
         let qualified_name = format!("{}.{}", enum_type_name, element_name);
-        let entry = VariableIndexEntry {
-            name: element_name.into(),
-            qualified_name: qualified_name.clone(),
-            initial_value,
+        let entry = VariableIndexEntry::create_global(
+            element_name,
+            &qualified_name,
+            enum_type_name,
             source_location,
-            variable_type: VariableType::Global,
-            data_type_name: enum_type_name.into(),
-            is_constant: true,
-            linkage: LinkageType::Internal,
-            location_in_parent: 0,
-        };
+        )
+        .set_constant(true)
+        .set_initial_value(initial_value);
         self.enum_global_variables
             .insert(element_name.to_lowercase(), entry.clone());
 
@@ -858,6 +924,10 @@ impl Index {
                 .unwrap_or(initial_type),
             _ => initial_type,
         }
+    }
+
+    pub fn find_instances(&self) -> InstanceIterator {
+        InstanceIterator::new(self)
     }
 }
 

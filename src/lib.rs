@@ -45,6 +45,7 @@ use crate::resolver::{AnnotationMapImpl, TypeAnnotator};
 mod ast;
 pub mod cli;
 mod codegen;
+mod configuration;
 pub mod diagnostics;
 pub mod index;
 mod lexer;
@@ -54,6 +55,7 @@ mod resolver;
 mod test_utils;
 mod typesystem;
 mod validation;
+pub mod qualifed_name;
 
 pub mod runner;
 

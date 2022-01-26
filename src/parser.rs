@@ -995,7 +995,7 @@ fn parse_variable_line(lexer: &mut ParseSession) -> Vec<Variable> {
         let identifier_end = location.get_end();
         var_names.push((lexer.slice_and_advance(), location));
 
-        if lexer.token == KeywordColon || lexer.token == KeywordAt{
+        if lexer.token == KeywordColon || lexer.token == KeywordAt {
             break;
         }
 
@@ -1018,28 +1018,27 @@ fn parse_variable_line(lexer: &mut ParseSession) -> Vec<Variable> {
             if access_type == DirectAccessType::Template || lexer.token == LiteralInteger {
                 let mut address = vec![];
                 if lexer.token == LiteralInteger {
-                loop {
-                    let int = expressions_parser::parse_strict_literal_integer(lexer);
-                    match int {
-                        Ok(statement) => address.push(statement),
-                        Err(err) => {
-                            lexer.accept_diagnostic(err);
-                            break
-                        },
-                    }
-                    if !lexer.allow(&KeywordDot) {
-                        break;
+                    loop {
+                        let int = expressions_parser::parse_strict_literal_integer(lexer);
+                        match int {
+                            Ok(statement) => address.push(statement),
+                            Err(err) => {
+                                lexer.accept_diagnostic(err);
+                                break;
+                            }
+                        }
+                        if !lexer.allow(&KeywordDot) {
+                            break;
+                        }
                     }
                 }
-                }
-                Some(AstStatement::HardwareAccess{
-                    access : access_type,
+                Some(AstStatement::HardwareAccess {
+                    access: access_type,
                     direction,
                     address,
-                    location : (start_location..lexer.last_range.end).into(),
+                    location: (start_location..lexer.last_range.end).into(),
                     id: lexer.next_id(),
                 })
-
             } else {
                 lexer.accept_diagnostic(Diagnostic::missing_token(
                     "LiteralInteger",
@@ -1075,7 +1074,7 @@ fn parse_variable_line(lexer: &mut ParseSession) -> Vec<Variable> {
                 data_type: data_type.clone(),
                 location,
                 initializer: initializer.clone(),
-                address : address.clone()
+                address: address.clone(),
             });
         }
     }

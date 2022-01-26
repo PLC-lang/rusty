@@ -356,7 +356,10 @@ pub enum Token {
     #[regex("%(B|b|D|d|W|w|X|x)", super::parse_access_type)]
     DirectAccess(DirectAccessType),
 
-    #[regex(r"%(I|i|Q|q|M|m)(B|b|D|d|W|w|X|x|\*)", super::parse_hardware_access_type)]
+    #[regex(
+        r"%(I|i|Q|q|M|m)(B|b|D|d|W|w|X|x|\*)",
+        super::parse_hardware_access_type
+    )]
     HardwareAccess((HardwareAccessType, DirectAccessType)),
 
     #[regex("'((\\$.)|[^$'])*'")]

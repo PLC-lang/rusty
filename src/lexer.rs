@@ -307,7 +307,9 @@ fn parse_access_type(lexer: &mut Lexer<Token>) -> Option<DirectAccessType> {
     Some(access)
 }
 
-fn parse_hardware_access_type(lexer: &mut Lexer<Token>) -> Option<(HardwareAccessType, DirectAccessType)> {
+fn parse_hardware_access_type(
+    lexer: &mut Lexer<Token>,
+) -> Option<(HardwareAccessType, DirectAccessType)> {
     //Percent is at position 0
     let hardware_type = lexer
         .slice()

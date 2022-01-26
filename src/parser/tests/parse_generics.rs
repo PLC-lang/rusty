@@ -188,7 +188,7 @@ fn generic_parameters_are_datatypes() {
                     location: SourceRange::new(53..54),
                 },
                 initializer: None,
-                    address: None,
+                address: None,
                 location: SourceRange::new(49..50),
             },
             Variable {
@@ -198,7 +198,7 @@ fn generic_parameters_are_datatypes() {
                     location: SourceRange::new(60..61),
                 },
                 initializer: None,
-                    address: None,
+                address: None,
                 location: SourceRange::new(56..57),
             },
         ],
@@ -221,7 +221,7 @@ fn generic_method_parameters_are_datatypes() {
                     location: SourceRange::new(61..62),
                 },
                 initializer: None,
-                    address: None,
+                address: None,
                 location: SourceRange::new(57..58),
             },
             Variable {
@@ -231,7 +231,7 @@ fn generic_method_parameters_are_datatypes() {
                     location: SourceRange::new(68..69),
                 },
                 initializer: None,
-                    address: None,
+                address: None,
 
                 location: SourceRange::new(64..65),
             },

@@ -1,9 +1,9 @@
 // Copyright (c) 2021 Ghaith Hachem and Mathias Rieder
+use clap::{ArgGroup, Parser};
 use encoding_rs::Encoding;
 use std::{ffi::OsStr, path::Path};
-use clap::{ArgGroup, Parser};
 
-use crate::{FormatOption, ConfigFormat};
+use crate::{ConfigFormat, FormatOption};
 
 // => Set the default output format here:
 const DEFAULT_FORMAT: FormatOption = FormatOption::Static;
@@ -118,16 +118,16 @@ pub struct CompileParameters {
         long,
         help = "Generate (Hardware) configuration files"
     )]
-    pub config : bool,
+    pub config: bool,
 
     #[clap(
         name = "config-format",
         long,
         help = "Sets the default format for the configuration",
         default_value = "xml",
-        arg_enum,
+        arg_enum
     )]
-    pub config_format : ConfigFormat,
+    pub config_format: ConfigFormat,
 }
 
 fn parse_encoding(encoding: &str) -> Result<&'static Encoding, String> {
@@ -193,9 +193,9 @@ impl CompileParameters {
 #[cfg(test)]
 mod cli_tests {
     use super::{CompileParameters, ParameterError};
-    use crate::{FormatOption, ConfigFormat};
-    use pretty_assertions::assert_eq;
+    use crate::{ConfigFormat, FormatOption};
     use clap::ErrorKind;
+    use pretty_assertions::assert_eq;
 
     fn expect_argument_error(args: Vec<String>, expected_error_kind: ErrorKind) {
         let params = CompileParameters::parse(args.clone());
@@ -494,35 +494,22 @@ mod cli_tests {
 
     #[test]
     fn config_option_set() {
-        let parameters = CompileParameters::parse(vec_of_strings!(
-            "foo",
-            "--config"
-        ))
-        .unwrap();
+        let parameters = CompileParameters::parse(vec_of_strings!("foo", "--config")).unwrap();
         assert!(parameters.config);
         assert_eq!(parameters.config_format, ConfigFormat::XML);
-        let parameters = CompileParameters::parse(vec_of_strings!(
-            "foo",
-            "--config",
-            "--config-format=xml"
-        ))
-        .unwrap();
+        let parameters =
+            CompileParameters::parse(vec_of_strings!("foo", "--config", "--config-format=xml"))
+                .unwrap();
         assert!(parameters.config);
         assert_eq!(parameters.config_format, ConfigFormat::XML);
-        let parameters = CompileParameters::parse(vec_of_strings!(
-            "foo",
-            "--config",
-            "--config-format=json"
-        ))
-        .unwrap();
+        let parameters =
+            CompileParameters::parse(vec_of_strings!("foo", "--config", "--config-format=json"))
+                .unwrap();
         assert!(parameters.config);
         assert_eq!(parameters.config_format, ConfigFormat::JSON);
-        let parameters = CompileParameters::parse(vec_of_strings!(
-            "foo",
-            "--config",
-            "--config-format=toml"
-        ))
-        .unwrap();
+        let parameters =
+            CompileParameters::parse(vec_of_strings!("foo", "--config", "--config-format=toml"))
+                .unwrap();
         assert!(parameters.config);
         assert_eq!(parameters.config_format, ConfigFormat::TOML);
 
@@ -530,7 +517,5 @@ mod cli_tests {
             vec_of_strings!("foo", "--config-format=foo"),
             ErrorKind::InvalidValue,
         );
-
     }
-
 }

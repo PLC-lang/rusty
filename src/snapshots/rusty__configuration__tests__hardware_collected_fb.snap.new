@@ -1,0 +1,280 @@
+---
+source: src/configuration.rs
+assertion_line: 114
+expression: config
+
+---
+Ok(
+    [
+        HardwareConfiguration {
+            qualifed_name: QualifiedName {
+                names: [
+                    Name(
+                        "gFb",
+                    ),
+                    Name(
+                        "a",
+                    ),
+                ],
+            },
+            direction: Input,
+            access_type: Template,
+            address: [],
+        },
+        HardwareConfiguration {
+            qualifed_name: QualifiedName {
+                names: [
+                    Name(
+                        "gFb",
+                    ),
+                    Name(
+                        "b",
+                    ),
+                ],
+            },
+            direction: Output,
+            access_type: Word,
+            address: [
+                "2",
+                "5",
+            ],
+        },
+        HardwareConfiguration {
+            qualifed_name: QualifiedName {
+                names: [
+                    Name(
+                        "gFb",
+                    ),
+                    Name(
+                        "c",
+                    ),
+                ],
+            },
+            direction: Output,
+            access_type: Word,
+            address: [
+                "2",
+                "5",
+            ],
+        },
+        HardwareConfiguration {
+            qualifed_name: QualifiedName {
+                names: [
+                    Name(
+                        "gFb",
+                    ),
+                    Name(
+                        "d",
+                    ),
+                ],
+            },
+            direction: Output,
+            access_type: Template,
+            address: [],
+        },
+        HardwareConfiguration {
+            qualifed_name: QualifiedName {
+                names: [
+                    Name(
+                        "aFb",
+                    ),
+                    ArrayAccess(
+                        [
+                            Dimension {
+                                start_offset: ConstExpression(
+                                    Index {
+                                        index: 2,
+                                        generation: 0,
+                                    },
+                                ),
+                                end_offset: ConstExpression(
+                                    Index {
+                                        index: 3,
+                                        generation: 0,
+                                    },
+                                ),
+                            },
+                        ],
+                    ),
+                    Name(
+                        "a",
+                    ),
+                ],
+            },
+            direction: Input,
+            access_type: Template,
+            address: [],
+        },
+        HardwareConfiguration {
+            qualifed_name: QualifiedName {
+                names: [
+                    Name(
+                        "aFb",
+                    ),
+                    ArrayAccess(
+                        [
+                            Dimension {
+                                start_offset: ConstExpression(
+                                    Index {
+                                        index: 2,
+                                        generation: 0,
+                                    },
+                                ),
+                                end_offset: ConstExpression(
+                                    Index {
+                                        index: 3,
+                                        generation: 0,
+                                    },
+                                ),
+                            },
+                        ],
+                    ),
+                    Name(
+                        "b",
+                    ),
+                ],
+            },
+            direction: Output,
+            access_type: Word,
+            address: [
+                "2",
+                "5",
+            ],
+        },
+        HardwareConfiguration {
+            qualifed_name: QualifiedName {
+                names: [
+                    Name(
+                        "aFb",
+                    ),
+                    ArrayAccess(
+                        [
+                            Dimension {
+                                start_offset: ConstExpression(
+                                    Index {
+                                        index: 2,
+                                        generation: 0,
+                                    },
+                                ),
+                                end_offset: ConstExpression(
+                                    Index {
+                                        index: 3,
+                                        generation: 0,
+                                    },
+                                ),
+                            },
+                        ],
+                    ),
+                    Name(
+                        "c",
+                    ),
+                ],
+            },
+            direction: Output,
+            access_type: Word,
+            address: [
+                "2",
+                "5",
+            ],
+        },
+        HardwareConfiguration {
+            qualifed_name: QualifiedName {
+                names: [
+                    Name(
+                        "aFb",
+                    ),
+                    ArrayAccess(
+                        [
+                            Dimension {
+                                start_offset: ConstExpression(
+                                    Index {
+                                        index: 2,
+                                        generation: 0,
+                                    },
+                                ),
+                                end_offset: ConstExpression(
+                                    Index {
+                                        index: 3,
+                                        generation: 0,
+                                    },
+                                ),
+                            },
+                        ],
+                    ),
+                    Name(
+                        "d",
+                    ),
+                ],
+            },
+            direction: Output,
+            access_type: Template,
+            address: [],
+        },
+        HardwareConfiguration {
+            qualifed_name: QualifiedName {
+                names: [
+                    Name(
+                        "fb__init",
+                    ),
+                    Name(
+                        "a",
+                    ),
+                ],
+            },
+            direction: Input,
+            access_type: Template,
+            address: [],
+        },
+        HardwareConfiguration {
+            qualifed_name: QualifiedName {
+                names: [
+                    Name(
+                        "fb__init",
+                    ),
+                    Name(
+                        "b",
+                    ),
+                ],
+            },
+            direction: Output,
+            access_type: Word,
+            address: [
+                "2",
+                "5",
+            ],
+        },
+        HardwareConfiguration {
+            qualifed_name: QualifiedName {
+                names: [
+                    Name(
+                        "fb__init",
+                    ),
+                    Name(
+                        "c",
+                    ),
+                ],
+            },
+            direction: Output,
+            access_type: Word,
+            address: [
+                "2",
+                "5",
+            ],
+        },
+        HardwareConfiguration {
+            qualifed_name: QualifiedName {
+                names: [
+                    Name(
+                        "fb__init",
+                    ),
+                    Name(
+                        "d",
+                    ),
+                ],
+            },
+            direction: Output,
+            access_type: Template,
+            address: [],
+        },
+    ],
+)

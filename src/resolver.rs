@@ -855,7 +855,9 @@ impl<'i> TypeAnnotator<'i> {
                             resulting_type: DWORD_TYPE.into(),
                         },
                     ),
-                    crate::ast::DirectAccessType::Template => unreachable!("Templates cannot occur in direct access"),
+                    crate::ast::DirectAccessType::Template => {
+                        unreachable!("Templates cannot occur in direct access")
+                    }
                 }
             }
             AstStatement::BinaryExpression {

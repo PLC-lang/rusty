@@ -30,7 +30,7 @@ fn simple_struct_type_can_be_parsed() {
                             location: SourceRange::undefined(),
                         },
                         initializer: None,
-        address: None,
+                        address: None,
                         location: SourceRange::undefined(),
                     },
                     Variable {
@@ -40,7 +40,7 @@ fn simple_struct_type_can_be_parsed() {
                             location: SourceRange::undefined(),
                         },
                         initializer: None,
-        address: None,
+                        address: None,
                         location: SourceRange::undefined(),
                     },
                     Variable {
@@ -50,7 +50,7 @@ fn simple_struct_type_can_be_parsed() {
                             location: SourceRange::undefined(),
                         },
                         initializer: None,
-        address: None,
+                        address: None,
                         location: SourceRange::undefined(),
                     },
                 ),

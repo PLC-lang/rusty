@@ -183,7 +183,7 @@ fn global_var_with_address() {
 
     assert_eq!(diag, vec![]);
 
-    insta::assert_snapshot!(format!("{:?}",result));
+    insta::assert_snapshot!(format!("{:?}", result));
 }
 
 #[test]
@@ -203,8 +203,7 @@ fn pou_var_with_address() {
 
     assert_eq!(diag, vec![]);
 
-    insta::assert_snapshot!(format!("{:?}",result));
-
+    insta::assert_snapshot!(format!("{:?}", result));
 }
 
 #[test]
@@ -222,6 +221,5 @@ fn struct_with_address() {
     let (result, diag) = parse(src);
 
     assert_eq!(diag, vec![]);
-    insta::assert_snapshot!(format!("{:?}",result));
-
+    insta::assert_snapshot!(format!("{:?}", result));
 }

@@ -2907,7 +2907,7 @@ fn adress_of_is_annotated_correctly() {
     let annotations = annotate(&unit, &mut index);
 
     let s = &unit.implementations[0].statements[0];
-    if let &Some(&StatementAnnotation::Value { resulting_type }) = &annotations.get(s).as_ref() {
+    if let Some(&StatementAnnotation::Value { resulting_type }) = annotations.get(s).as_ref() {
         assert_eq!(
             Some(&DataTypeInformation::Pointer {
                 auto_deref: false,

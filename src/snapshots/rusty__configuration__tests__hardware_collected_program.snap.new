@@ -1,0 +1,76 @@
+---
+source: src/configuration.rs
+assertion_line: 95
+expression: config
+
+---
+Ok(
+    [
+        HardwareConfiguration {
+            qualifed_name: QualifiedName {
+                names: [
+                    Name(
+                        "prg",
+                    ),
+                    Name(
+                        "a",
+                    ),
+                ],
+            },
+            direction: Input,
+            access_type: Template,
+            address: [],
+        },
+        HardwareConfiguration {
+            qualifed_name: QualifiedName {
+                names: [
+                    Name(
+                        "prg",
+                    ),
+                    Name(
+                        "b",
+                    ),
+                ],
+            },
+            direction: Output,
+            access_type: Word,
+            address: [
+                "2",
+                "5",
+            ],
+        },
+        HardwareConfiguration {
+            qualifed_name: QualifiedName {
+                names: [
+                    Name(
+                        "prg",
+                    ),
+                    Name(
+                        "c",
+                    ),
+                ],
+            },
+            direction: Output,
+            access_type: Word,
+            address: [
+                "2",
+                "5",
+            ],
+        },
+        HardwareConfiguration {
+            qualifed_name: QualifiedName {
+                names: [
+                    Name(
+                        "prg",
+                    ),
+                    Name(
+                        "d",
+                    ),
+                ],
+            },
+            direction: Output,
+            access_type: Template,
+            address: [],
+        },
+    ],
+)
