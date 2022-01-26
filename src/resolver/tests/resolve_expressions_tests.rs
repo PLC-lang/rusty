@@ -2920,3 +2920,43 @@ fn adress_of_is_annotated_correctly() {
         unreachable!()
     }
 }
+
+#[test]
+fn call_on_function_block_array() {
+    //GIVEN
+    let (unit, index) = index(
+        "
+        FUNCTION_BLOCK fb
+        END_FUNCTION_BLOCK
+
+        PROGRAM PRG
+		VAR
+			fbs : ARRAY[1..2] OF fb;
+		END_VAR
+            fbs[1]();
+        END_PROGRAM
+        ",
+    );
+
+    //WHEN the AST is annotated
+    let annotations = TypeAnnotator::visit_unit(&index, &unit);
+    // should be the call statement
+    let statements = &unit.implementations[1].statements[0];
+    // should contain array access as operator
+    let operator = match statements {
+        AstStatement::CallStatement { operator, .. } => Some(operator.as_ref()),
+        _ => None,
+    };
+    assert_eq!(
+        matches!(operator, Some(&AstStatement::ArrayAccess { .. })),
+        true
+    );
+
+    let annotation = annotations.get(operator.unwrap());
+    assert_eq!(
+        Some(&StatementAnnotation::Value {
+            resulting_type: "fb".into()
+        }),
+        annotation
+    );
+}

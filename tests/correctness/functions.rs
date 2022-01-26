@@ -468,3 +468,51 @@ fn optional_output_assignment() {
     assert_eq!(0, interface.var1);
     assert_eq!(2, interface.var2);
 }
+
+#[test]
+fn direct_call_on_function_block_array_access() {
+    #[allow(dead_code)]
+    #[derive(Default)]
+    struct FooType {
+        i: i16,
+        x: i16,
+    }
+
+    #[allow(dead_code)]
+    #[derive(Default)]
+    struct MainType {
+        f: [FooType; 2],
+        x: i16,
+        y: i16,
+    }
+
+    let function = r#"
+    FUNCTION_BLOCK foo
+    VAR_INPUT
+        i : INT;
+    END_VAR
+    VAR
+		x : INT;
+	END_VAR
+		x := i;
+    END_FUNCTION_BLOCK
+
+    PROGRAM main
+    VAR 
+        f : ARRAY[1..2] OF foo;
+		x : INT;
+		y : INT;
+    END_VAR
+	f[1](i := 10);
+	x := f[1].x;
+
+	f[2](i := 20);
+	y := f[2].x;
+    END_PROGRAM
+    "#;
+
+    let mut interface = MainType::default();
+    let _: i32 = compile_and_run(function.to_string(), &mut interface);
+    assert_eq!(interface.x, 10);
+    assert_eq!(interface.y, 20);
+}
