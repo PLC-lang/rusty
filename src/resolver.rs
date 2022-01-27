@@ -202,6 +202,8 @@ pub trait AnnotationMap {
             Some(StatementAnnotation::Variable { resulting_type, .. }) => {
                 Some(resulting_type.as_str())
             }
+            // this is used for call statements on array access
+            Some(StatementAnnotation::Value { resulting_type }) => Some(resulting_type.as_str()),
             _ => None,
         }
     }
@@ -1074,6 +1076,14 @@ impl<'i> TypeAnnotator<'i> {
                                 {
                                     return Some(resulting_type.clone());
                                 }
+                            }
+                            None
+                        }
+                        // call statements on array access "arr[1]()" will return a StatementAnnotation::Value
+                        StatementAnnotation::Value { resulting_type } => {
+                            // make sure we come from an array access
+                            if let AstStatement::ArrayAccess { .. } = operator.as_ref() {
+                                return Some(resulting_type.clone());
                             }
                             None
                         }
