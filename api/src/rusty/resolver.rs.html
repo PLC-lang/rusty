@@ -1667,6 +1667,16 @@
 <span id="1667">1667</span>
 <span id="1668">1668</span>
 <span id="1669">1669</span>
+<span id="1670">1670</span>
+<span id="1671">1671</span>
+<span id="1672">1672</span>
+<span id="1673">1673</span>
+<span id="1674">1674</span>
+<span id="1675">1675</span>
+<span id="1676">1676</span>
+<span id="1677">1677</span>
+<span id="1678">1678</span>
+<span id="1679">1679</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2021 Ghaith Hachem and Mathias Rieder</span>
 
 <span class="doccomment">//! Resolves (partial) expressions &amp; statements and annotates the resulting types</span>
@@ -1871,6 +1881,8 @@
             <span class="prelude-val">Some</span>(<span class="ident">StatementAnnotation::Variable</span> { <span class="ident">resulting_type</span>, .. }) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="prelude-val">Some</span>(<span class="ident">resulting_type</span>.<span class="ident">as_str</span>())
             }
+            <span class="comment">// this is used for call statements on array access</span>
+            <span class="prelude-val">Some</span>(<span class="ident">StatementAnnotation::Value</span> { <span class="ident">resulting_type</span> }) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">resulting_type</span>.<span class="ident">as_str</span>()),
             <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
         }
     }
@@ -2743,6 +2755,14 @@
                                 {
                                     <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="ident">resulting_type</span>.<span class="ident">clone</span>());
                                 }
+                            }
+                            <span class="prelude-val">None</span>
+                        }
+                        <span class="comment">// call statements on array access &quot;arr[1]()&quot; will return a StatementAnnotation::Value</span>
+                        <span class="ident">StatementAnnotation::Value</span> { <span class="ident">resulting_type</span> } <span class="op">=</span><span class="op">&gt;</span> {
+                            <span class="comment">// make sure we come from an array access</span>
+                            <span class="kw">if</span> <span class="kw">let</span> <span class="ident">AstStatement::ArrayAccess</span> { .. } <span class="op">=</span> <span class="ident">operator</span>.<span class="ident">as_ref</span>() {
+                                <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="ident">resulting_type</span>.<span class="ident">clone</span>());
                             }
                             <span class="prelude-val">None</span>
                         }
