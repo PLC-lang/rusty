@@ -381,7 +381,7 @@ fn bool_array_assignments() {
     // WHEN I write the array-elements
 
     let function = r"
-        PROGRAM main
+        FUNCTION main : INT
         VAR
             x : INT;
             bArray : ARRAY[0..7] OF BOOL := [8(FALSE)];
@@ -411,7 +411,7 @@ fn bool_array_assignments() {
             bArray2[2] := FALSE;
             bArray2[1] := TRUE;
             bArray2[0] := FALSE;
-        END_PROGRAM
+        END_FUNCTION
         ";
 
     let mut maintype = MainType {
