@@ -367,6 +367,7 @@ fn initialize_multi_dim_array() {
 }
 
 #[test]
+#[ignore]
 fn bool_array_assignments() {
     #[repr(C)]
     struct MainType {
