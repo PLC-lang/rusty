@@ -1,5 +1,6 @@
 ---
 source: src/codegen/tests/directaccess_test.rs
+assertion_line: 19
 expression: prog
 
 ---

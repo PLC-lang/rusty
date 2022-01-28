@@ -1,12 +1,13 @@
 ---
 source: src/codegen/tests/code_gen_tests.rs
+assertion_line: 697
 expression: result
 
 ---
 ; ModuleID = 'main'
 source_filename = "main"
 
-%prg_interface = type { i32, i1 }
+%prg_interface = type { i32, i8 }
 
 @prg_instance = global %prg_interface zeroinitializer
 
@@ -14,8 +15,8 @@ define void @prg(%prg_interface* %0) {
 entry:
   %z = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 0
   %y = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 1
-  %load_y = load i1, i1* %y, align 1
-  %1 = zext i1 %load_y to i32
+  %load_y = load i8, i8* %y, align 1
+  %1 = zext i8 %load_y to i32
   %2 = icmp ne i32 %1, 0
   br i1 %2, label %3, label %5
 
@@ -35,8 +36,8 @@ entry:
   br i1 %8, label %11, label %9
 
 9:                                                ; preds = %5
-  %load_y4 = load i1, i1* %y, align 1
-  %10 = zext i1 %load_y4 to i32
+  %load_y4 = load i8, i8* %y, align 1
+  %10 = zext i8 %load_y4 to i32
   br label %11
 
 11:                                               ; preds = %9, %5

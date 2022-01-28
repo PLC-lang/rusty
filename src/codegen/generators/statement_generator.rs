@@ -10,7 +10,7 @@ use crate::{
     index::{ImplementationIndexEntry, Index},
     resolver::{AnnotationMap, AstAnnotations},
     typesystem::{
-        DataTypeInformation, RANGE_CHECK_LS_FN, RANGE_CHECK_LU_FN, RANGE_CHECK_S_FN,
+        self, DataTypeInformation, RANGE_CHECK_LS_FN, RANGE_CHECK_LU_FN, RANGE_CHECK_S_FN,
         RANGE_CHECK_U_FN,
     },
 };
@@ -310,6 +310,18 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
                 .collect();
             let left_type = exp_gen.get_type_hint_for(&target)?;
             let right_type = exp_gen.get_type_hint_for(right_statement)?;
+
+            //special case if we deal with a single bit, then we need to switch to a faked u1 type
+            let right_type = if let DataTypeInformation::Integer {
+                semantic_size: Some(typesystem::U1_SIZE),
+                ..
+            } = *right_type.get_type_information()
+            {
+                self.index.get_type_or_panic(typesystem::U1_TYPE)
+            } else {
+                right_type
+            };
+
             //Left pointer
             let left = exp_gen.generate_element_pointer(&target)?;
             let left_value = self.llvm.load_pointer(&left, "").into_int_value();

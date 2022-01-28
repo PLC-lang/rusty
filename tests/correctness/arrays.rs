@@ -365,3 +365,69 @@ fn initialize_multi_dim_array() {
         assert_eq!(i, maintype.arr[i as usize]);
     })
 }
+
+#[test]
+fn bool_array_assignments() {
+    #[repr(C)]
+    struct MainType {
+        x: i16,
+        b_array1: [u8; 8], // i reserve 8 bytes here! BOOL is stored as i8
+        y: i16,
+        b_array2: [u8; 8], // i reserve 8 bytes here! BOOL is stored as i8
+        z: i16,
+    }
+
+    // GIVEN some boolean arrays
+    // WHEN I write the array-elements
+
+    let function = r"
+        FUNCTION main : INT
+        VAR
+            x : INT;
+            bArray : ARRAY[0..7] OF BOOL := [8(FALSE)];
+            y : INT;
+            bArray2 : ARRAY[0..7] OF BOOL := [8(FALSE)];
+            z : INT;
+        END_VAR
+            x := 111;
+            y := 222;
+            z := 333;
+            //write forwards
+            bArray[0] := TRUE;
+            bArray[1] := FALSE;
+            bArray[2] := TRUE;
+            bArray[3] := FALSE;
+            bArray[4] := TRUE;
+            bArray[5] := FALSE;
+            bArray[6] := TRUE;
+            bArray[7] := FALSE;
+
+            //write backwards
+            bArray2[7] := TRUE;
+            bArray2[6] := FALSE;
+            bArray2[5] := TRUE;
+            bArray2[4] := FALSE;
+            bArray2[3] := TRUE;
+            bArray2[2] := FALSE;
+            bArray2[1] := TRUE;
+            bArray2[0] := FALSE;
+        END_FUNCTION
+        ";
+
+    let mut maintype = MainType {
+        x: 0,
+        b_array1: [0; 8],
+        y: 0,
+        b_array2: [0; 8],
+        z: 0,
+    };
+    //Then i expect the correct array-values without leaking into neighbour segments
+    let _: i32 = compile_and_run(function.to_string(), &mut maintype);
+    assert_eq!(maintype.b_array1, [1, 0, 1, 0, 1, 0, 1, 0]);
+    assert_eq!(maintype.b_array2, [0, 1, 0, 1, 0, 1, 0, 1]);
+
+    //check the magic numbers to spot some alignment issues
+    assert_eq!(maintype.x, 111);
+    assert_eq!(maintype.y, 222);
+    assert_eq!(maintype.z, 333);
+}

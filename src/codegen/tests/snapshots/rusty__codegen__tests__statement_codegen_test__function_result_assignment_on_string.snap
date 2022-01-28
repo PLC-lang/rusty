@@ -1,5 +1,6 @@
 ---
 source: src/codegen/tests/statement_codegen_test.rs
+assertion_line: 129
 expression: result
 
 ---
@@ -11,11 +12,11 @@ source_filename = "main"
 
 declare [1025 x i8] @CONCAT(%CONCAT_interface*)
 
-define i1 @LIST_ADD(%LIST_ADD_interface* %0) {
+define i8 @LIST_ADD(%LIST_ADD_interface* %0) {
 entry:
   %INS = getelementptr inbounds %LIST_ADD_interface, %LIST_ADD_interface* %0, i32 0, i32 0
   %sx = getelementptr inbounds %LIST_ADD_interface, %LIST_ADD_interface* %0, i32 0, i32 1
-  %LIST_ADD = alloca i1, align 1
+  %LIST_ADD = alloca i8, align 1
   %CONCAT_instance = alloca %CONCAT_interface, align 8
   br label %input
 
@@ -41,8 +42,8 @@ continue:                                         ; preds = %output
   %4 = bitcast [1001 x i8]* %INS to i8*
   %5 = bitcast [1025 x i8]* %3 to i8*
   call void @llvm.memcpy.p0i8.p0i8.i32(i8* align 1 %4, i8* align 1 %5, i32 1001, i1 false)
-  %LIST_ADD_ret = load i1, i1* %LIST_ADD, align 1
-  ret i1 %LIST_ADD_ret
+  %LIST_ADD_ret = load i8, i8* %LIST_ADD, align 1
+  ret i8 %LIST_ADD_ret
 }
 
 ; Function Attrs: argmemonly nofree nosync nounwind willreturn

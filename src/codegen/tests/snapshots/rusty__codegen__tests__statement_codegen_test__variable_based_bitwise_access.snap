@@ -1,12 +1,13 @@
 ---
 source: src/codegen/tests/statement_codegen_test.rs
+assertion_line: 106
 expression: result
 
 ---
 ; ModuleID = 'main'
 source_filename = "main"
 
-%prg_interface = type { i1, i8, i16, i16 }
+%prg_interface = type { i8, i8, i16, i16 }
 
 @prg_instance = global %prg_interface zeroinitializer
 
@@ -19,8 +20,8 @@ entry:
   %load_x = load i16, i16* %x, align 2
   %load_y = load i16, i16* %y, align 2
   %shift = ashr i16 %load_x, %load_y
-  %1 = trunc i16 %shift to i1
-  store i1 %1, i1* %a, align 1
+  %1 = trunc i16 %shift to i8
+  store i8 %1, i8* %a, align 1
   %load_x1 = load i16, i16* %x, align 2
   %load_y2 = load i16, i16* %y, align 2
   %2 = mul i16 %load_y2, 8

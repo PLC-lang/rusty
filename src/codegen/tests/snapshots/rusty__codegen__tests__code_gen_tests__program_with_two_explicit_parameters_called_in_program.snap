@@ -1,12 +1,13 @@
 ---
 source: src/codegen/tests/code_gen_tests.rs
+assertion_line: 1605
 expression: result
 
 ---
 ; ModuleID = 'main'
 source_filename = "main"
 
-%foo_interface = type { i32, i1 }
+%foo_interface = type { i32, i8 }
 %prg_interface = type {}
 
 @foo_instance = global %foo_interface zeroinitializer
@@ -24,7 +25,7 @@ entry:
   br label %input
 
 input:                                            ; preds = %entry
-  store i1 true, i1* getelementptr inbounds (%foo_interface, %foo_interface* @foo_instance, i32 0, i32 1), align 1
+  store i8 1, i8* getelementptr inbounds (%foo_interface, %foo_interface* @foo_instance, i32 0, i32 1), align 1
   store i32 2, i32* getelementptr inbounds (%foo_interface, %foo_interface* @foo_instance, i32 0, i32 0), align 4
   br label %call
 

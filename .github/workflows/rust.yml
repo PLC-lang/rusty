@@ -91,11 +91,23 @@ jobs:
           version: ${{ env.llvm-version }}
           directory: "./llvm"
           
-      - name: Cargo test
+      - name: Cargo test (Unit)
         uses: actions-rs/cargo@v1
         with:
           command: test
-          args: -- --nocapture
+          args: --lib -- --nocapture
+
+      - name: Cargo test (Correctness)
+        uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: correctness -- --nocapture --test-threads=1
+
+      - name: Cargo test (Integration)
+        uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: integration -- --nocapture --test-threads=1
  
       - run: mkdir -p windows
       - run: ls target/debug
