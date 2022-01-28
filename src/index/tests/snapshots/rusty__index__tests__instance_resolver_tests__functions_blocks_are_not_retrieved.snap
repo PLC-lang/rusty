@@ -1,29 +1,7 @@
 ---
 source: src/index/tests/instance_resolver_tests.rs
-assertion_line: 38
+assertion_line: 45
 expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
 
 ---
-[
-    (
-        [
-            Name(
-                "fb__init",
-            ),
-        ],
-        VariableIndexEntry {
-            name: "fb__init",
-            qualified_name: "fb__init",
-            initial_value: None,
-            variable_type: Global,
-            is_constant: true,
-            data_type_name: "fb",
-            location_in_parent: 0,
-            linkage: Internal,
-            binding: None,
-            source_location: SourceRange {
-                range: 5..45,
-            },
-        },
-    ),
-]
+[]

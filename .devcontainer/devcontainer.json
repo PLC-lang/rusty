@@ -1,9 +1,6 @@
 {
 	"name": "Rust",
 	"build": {
-		"args": {
-			"format": "docker"
-		},
 		"dockerfile": "Dockerfile"
 	},
 	"runArgs": [ "--cap-add=SYS_PTRACE", "--security-opt", "seccomp=unconfined" ],

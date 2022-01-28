@@ -332,8 +332,8 @@ pub struct TypeIndex {
     void_type: DataType,
 }
 
-impl TypeIndex {
-    fn new() -> Self {
+impl Default for TypeIndex {
+    fn default() -> Self {
         TypeIndex {
             types: IndexMap::new(),
             pou_types: IndexMap::new(),
@@ -345,6 +345,9 @@ impl TypeIndex {
             },
         }
     }
+}
+
+impl TypeIndex {
 
     pub fn find_type(&self, type_name: &str) -> Option<&DataType> {
         self.types
@@ -392,10 +395,13 @@ impl TypeIndex {
 /// The global index of the rusty-compiler
 ///
 /// The index contains information about all referencable elements.
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct Index {
     /// all global variables
     global_variables: IndexMap<String, VariableIndexEntry>,
+
+    /// all struct initializers 
+    global_initializer: IndexMap<String, VariableIndexEntry>,
 
     /// all enum-members with their names
     enum_global_variables: IndexMap<String, VariableIndexEntry>,
@@ -416,18 +422,6 @@ pub struct Index {
 }
 
 impl Index {
-    pub fn new() -> Index {
-        Index {
-            global_variables: IndexMap::new(),
-            enum_global_variables: IndexMap::new(),
-            enum_qualified_variables: IndexMap::new(),
-            member_variables: IndexMap::new(),
-            type_index: TypeIndex::new(),
-            implementations: IndexMap::new(),
-            constant_expressions: ConstExpressions::new(),
-        }
-    }
-
     /// imports all entries from the given index into the current index
     ///
     /// imports all global_variables, member_variables, types and implementations
@@ -756,6 +750,10 @@ impl Index {
         &self.global_variables
     }
 
+    pub fn get_global_initializers(&self) -> &IndexMap<String, VariableIndexEntry> {
+        &self.global_initializer
+    }
+
     pub fn get_members(&self, name: &str) -> Option<&IndexMap<String, VariableIndexEntry>> {
         self.member_variables.get(name.to_lowercase().as_str())
     }
@@ -863,6 +861,10 @@ impl Index {
         self.global_variables.insert(name.to_lowercase(), variable);
     }
 
+    pub fn register_global_initializer(&mut self, name: &str, variable: VariableIndexEntry) {
+        self.global_initializer.insert(name.to_lowercase(), variable);
+    }
+
     pub fn register_type(&mut self, datatype: DataType) {
         self.type_index
             .types
@@ -928,12 +930,6 @@ impl Index {
 
     pub fn find_instances(&self) -> InstanceIterator {
         InstanceIterator::new(self)
-    }
-}
-
-impl Default for Index {
-    fn default() -> Self {
-        Self::new()
     }
 }
 

@@ -10,7 +10,7 @@ use crate::lexer::IdProvider;
 use crate::typesystem::{self, *};
 
 pub fn visit(unit: &CompilationUnit, mut id_provider: IdProvider) -> Index {
-    let mut index = Index::new();
+    let mut index = Index::default();
 
     //Create the typesystem
     let builtins = get_builtin_types();
@@ -136,7 +136,7 @@ pub fn visit_pou(index: &mut Index, pou: &Pou) {
     };
     index.register_pou_type(datatype);
 
-    let variable = match pou.pou_type {
+    match pou.pou_type {
         PouType::Program => {
             //Associate a global variable for the program
             let instance_name = format!("{}_instance", &pou.name);
@@ -147,7 +147,7 @@ pub fn visit_pou(index: &mut Index, pou: &Pou) {
                 pou.location.clone(),
             )
             .set_linkage(pou.linkage);
-            Some((pou.name.to_string(), variable))
+            index.register_global_variable(&pou.name, variable);
         }
         PouType::FunctionBlock | PouType::Class => {
             let global_struct_name = crate::index::get_initializer_name(&pou.name);
@@ -158,13 +158,10 @@ pub fn visit_pou(index: &mut Index, pou: &Pou) {
                 pou.location.clone(),
             )
             .set_constant(true);
-            Some((global_struct_name, variable))
+            index.register_global_initializer(&global_struct_name, variable);
         }
-        _ => None,
+        _ => {},
     };
-    if let Some((name, variable)) = variable {
-        index.register_global_variable(&name, variable);
-    }
 }
 
 fn visit_implementation(index: &mut Index, implementation: &Implementation) {
@@ -291,7 +288,7 @@ fn visit_data_type(
             )
             .set_initial_value(init)
             .set_constant(true);
-            index.register_global_variable(&global_struct_name, variable);
+            index.register_global_initializer(&global_struct_name, variable);
             for (count, var) in variables.iter().enumerate() {
                 if let DataTypeDeclaration::DataTypeDefinition {
                     data_type, scope, ..
@@ -487,7 +484,7 @@ fn visit_data_type(
                 )
                 .set_constant(true)
                 .set_initial_value(init);
-                index.register_global_variable(&global_init_name, variable);
+                index.register_global_initializer(&global_init_name, variable);
             }
         }
         DataType::PointerType {

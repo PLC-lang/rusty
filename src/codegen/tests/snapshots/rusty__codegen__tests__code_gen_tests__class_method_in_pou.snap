@@ -7,12 +7,12 @@ expression: result
 ; ModuleID = 'main'
 source_filename = "main"
 
-%MyClass_interface = type { i16, i16 }
 %prg_interface = type { %MyClass_interface, i16 }
+%MyClass_interface = type { i16, i16 }
 %MyClass.testMethod_interface = type { i16, i16 }
 
-@MyClass__init = unnamed_addr constant %MyClass_interface zeroinitializer
 @prg_instance = global %prg_interface zeroinitializer
+@MyClass__init = unnamed_addr constant %MyClass_interface zeroinitializer
 
 define void @MyClass.testMethod(%MyClass_interface* %0, %MyClass.testMethod_interface* %1) {
 entry:

@@ -1,85 +1,18 @@
 ---
 source: src/index/tests/instance_resolver_tests.rs
-assertion_line: 168
+assertion_line: 188
 expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
 
 ---
 [
     (
-        [
-            Name(
-                "fb__init",
-            ),
-        ],
-        VariableIndexEntry {
-            name: "fb__init",
-            qualified_name: "fb__init",
-            initial_value: None,
-            variable_type: Global,
-            is_constant: true,
-            data_type_name: "fb",
-            location_in_parent: 0,
-            linkage: Internal,
-            binding: None,
-            source_location: SourceRange {
-                range: 5..86,
-            },
+        QualifiedName {
+            names: [
+                Name(
+                    "MainProg",
+                ),
+            ],
         },
-    ),
-    (
-        [
-            Name(
-                "fb__init",
-            ),
-            Name(
-                "a",
-            ),
-        ],
-        VariableIndexEntry {
-            name: "a",
-            qualified_name: "fb.a",
-            initial_value: None,
-            variable_type: Local,
-            is_constant: false,
-            data_type_name: "DINT",
-            location_in_parent: 0,
-            linkage: Internal,
-            binding: None,
-            source_location: SourceRange {
-                range: 40..41,
-            },
-        },
-    ),
-    (
-        [
-            Name(
-                "fb__init",
-            ),
-            Name(
-                "b",
-            ),
-        ],
-        VariableIndexEntry {
-            name: "b",
-            qualified_name: "fb.b",
-            initial_value: None,
-            variable_type: Local,
-            is_constant: false,
-            data_type_name: "DINT",
-            location_in_parent: 1,
-            linkage: Internal,
-            binding: None,
-            source_location: SourceRange {
-                range: 42..43,
-            },
-        },
-    ),
-    (
-        [
-            Name(
-                "MainProg",
-            ),
-        ],
         VariableIndexEntry {
             name: "MainProg_instance",
             qualified_name: "MainProg",
@@ -96,14 +29,16 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
         },
     ),
     (
-        [
-            Name(
-                "MainProg",
-            ),
-            Name(
-                "rFb",
-            ),
-        ],
+        QualifiedName {
+            names: [
+                Name(
+                    "MainProg",
+                ),
+                Name(
+                    "rFb",
+                ),
+            ],
+        },
         VariableIndexEntry {
             name: "rFb",
             qualified_name: "MainProg.rFb",

@@ -421,7 +421,7 @@ pub fn compile_module<'c, T: SourceContainer>(
     encoding: Option<&'static Encoding>,
     mut diagnostician: Diagnostician,
 ) -> Result<codegen::CodeGen<'c>, Diagnostic> {
-    let mut full_index = Index::new();
+    let mut full_index = Index::default();
     let mut id_provider = IdProvider::default();
 
     let mut all_units = Vec::new();
@@ -495,7 +495,7 @@ fn parse_and_index<T: SourceContainer>(
     diagnostician: &mut Diagnostician,
     linkage: LinkageType,
 ) -> Result<(Index, Units), Diagnostic> {
-    let mut index = Index::new();
+    let mut index = Index::default();
     let mut units = Vec::new();
 
     for container in source {

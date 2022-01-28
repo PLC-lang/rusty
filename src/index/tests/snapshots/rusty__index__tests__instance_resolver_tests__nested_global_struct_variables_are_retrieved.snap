@@ -1,262 +1,18 @@
 ---
 source: src/index/tests/instance_resolver_tests.rs
-assertion_line: 91
+assertion_line: 104
 expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
 
 ---
 [
     (
-        [
-            Name(
-                "str__init",
-            ),
-        ],
-        VariableIndexEntry {
-            name: "str__init",
-            qualified_name: "str__init",
-            initial_value: None,
-            variable_type: Global,
-            is_constant: true,
-            data_type_name: "str",
-            location_in_parent: 0,
-            linkage: Internal,
-            binding: None,
-            source_location: SourceRange {
-                range: 10..58,
-            },
+        QualifiedName {
+            names: [
+                Name(
+                    "gStr",
+                ),
+            ],
         },
-    ),
-    (
-        [
-            Name(
-                "str__init",
-            ),
-            Name(
-                "a",
-            ),
-        ],
-        VariableIndexEntry {
-            name: "a",
-            qualified_name: "str.a",
-            initial_value: None,
-            variable_type: Local,
-            is_constant: false,
-            data_type_name: "str2",
-            location_in_parent: 0,
-            linkage: Internal,
-            binding: None,
-            source_location: SourceRange {
-                range: 32..33,
-            },
-        },
-    ),
-    (
-        [
-            Name(
-                "str__init",
-            ),
-            Name(
-                "a",
-            ),
-            Name(
-                "c",
-            ),
-        ],
-        VariableIndexEntry {
-            name: "c",
-            qualified_name: "str2.c",
-            initial_value: None,
-            variable_type: Local,
-            is_constant: false,
-            data_type_name: "DINT",
-            location_in_parent: 0,
-            linkage: Internal,
-            binding: None,
-            source_location: SourceRange {
-                range: 91..92,
-            },
-        },
-    ),
-    (
-        [
-            Name(
-                "str__init",
-            ),
-            Name(
-                "a",
-            ),
-            Name(
-                "d",
-            ),
-        ],
-        VariableIndexEntry {
-            name: "d",
-            qualified_name: "str2.d",
-            initial_value: None,
-            variable_type: Local,
-            is_constant: false,
-            data_type_name: "DINT",
-            location_in_parent: 1,
-            linkage: Internal,
-            binding: None,
-            source_location: SourceRange {
-                range: 93..94,
-            },
-        },
-    ),
-    (
-        [
-            Name(
-                "str__init",
-            ),
-            Name(
-                "b",
-            ),
-        ],
-        VariableIndexEntry {
-            name: "b",
-            qualified_name: "str.b",
-            initial_value: None,
-            variable_type: Local,
-            is_constant: false,
-            data_type_name: "str2",
-            location_in_parent: 1,
-            linkage: Internal,
-            binding: None,
-            source_location: SourceRange {
-                range: 34..35,
-            },
-        },
-    ),
-    (
-        [
-            Name(
-                "str__init",
-            ),
-            Name(
-                "b",
-            ),
-            Name(
-                "c",
-            ),
-        ],
-        VariableIndexEntry {
-            name: "c",
-            qualified_name: "str2.c",
-            initial_value: None,
-            variable_type: Local,
-            is_constant: false,
-            data_type_name: "DINT",
-            location_in_parent: 0,
-            linkage: Internal,
-            binding: None,
-            source_location: SourceRange {
-                range: 91..92,
-            },
-        },
-    ),
-    (
-        [
-            Name(
-                "str__init",
-            ),
-            Name(
-                "b",
-            ),
-            Name(
-                "d",
-            ),
-        ],
-        VariableIndexEntry {
-            name: "d",
-            qualified_name: "str2.d",
-            initial_value: None,
-            variable_type: Local,
-            is_constant: false,
-            data_type_name: "DINT",
-            location_in_parent: 1,
-            linkage: Internal,
-            binding: None,
-            source_location: SourceRange {
-                range: 93..94,
-            },
-        },
-    ),
-    (
-        [
-            Name(
-                "str2__init",
-            ),
-        ],
-        VariableIndexEntry {
-            name: "str2__init",
-            qualified_name: "str2__init",
-            initial_value: None,
-            variable_type: Global,
-            is_constant: true,
-            data_type_name: "str2",
-            location_in_parent: 0,
-            linkage: Internal,
-            binding: None,
-            source_location: SourceRange {
-                range: 68..117,
-            },
-        },
-    ),
-    (
-        [
-            Name(
-                "str2__init",
-            ),
-            Name(
-                "c",
-            ),
-        ],
-        VariableIndexEntry {
-            name: "c",
-            qualified_name: "str2.c",
-            initial_value: None,
-            variable_type: Local,
-            is_constant: false,
-            data_type_name: "DINT",
-            location_in_parent: 0,
-            linkage: Internal,
-            binding: None,
-            source_location: SourceRange {
-                range: 91..92,
-            },
-        },
-    ),
-    (
-        [
-            Name(
-                "str2__init",
-            ),
-            Name(
-                "d",
-            ),
-        ],
-        VariableIndexEntry {
-            name: "d",
-            qualified_name: "str2.d",
-            initial_value: None,
-            variable_type: Local,
-            is_constant: false,
-            data_type_name: "DINT",
-            location_in_parent: 1,
-            linkage: Internal,
-            binding: None,
-            source_location: SourceRange {
-                range: 93..94,
-            },
-        },
-    ),
-    (
-        [
-            Name(
-                "gStr",
-            ),
-        ],
         VariableIndexEntry {
             name: "gStr",
             qualified_name: "gStr",
@@ -273,14 +29,16 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
         },
     ),
     (
-        [
-            Name(
-                "gStr",
-            ),
-            Name(
-                "a",
-            ),
-        ],
+        QualifiedName {
+            names: [
+                Name(
+                    "gStr",
+                ),
+                Name(
+                    "a",
+                ),
+            ],
+        },
         VariableIndexEntry {
             name: "a",
             qualified_name: "str.a",
@@ -297,17 +55,19 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
         },
     ),
     (
-        [
-            Name(
-                "gStr",
-            ),
-            Name(
-                "a",
-            ),
-            Name(
-                "c",
-            ),
-        ],
+        QualifiedName {
+            names: [
+                Name(
+                    "gStr",
+                ),
+                Name(
+                    "a",
+                ),
+                Name(
+                    "c",
+                ),
+            ],
+        },
         VariableIndexEntry {
             name: "c",
             qualified_name: "str2.c",
@@ -324,17 +84,19 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
         },
     ),
     (
-        [
-            Name(
-                "gStr",
-            ),
-            Name(
-                "a",
-            ),
-            Name(
-                "d",
-            ),
-        ],
+        QualifiedName {
+            names: [
+                Name(
+                    "gStr",
+                ),
+                Name(
+                    "a",
+                ),
+                Name(
+                    "d",
+                ),
+            ],
+        },
         VariableIndexEntry {
             name: "d",
             qualified_name: "str2.d",
@@ -351,14 +113,16 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
         },
     ),
     (
-        [
-            Name(
-                "gStr",
-            ),
-            Name(
-                "b",
-            ),
-        ],
+        QualifiedName {
+            names: [
+                Name(
+                    "gStr",
+                ),
+                Name(
+                    "b",
+                ),
+            ],
+        },
         VariableIndexEntry {
             name: "b",
             qualified_name: "str.b",
@@ -375,17 +139,19 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
         },
     ),
     (
-        [
-            Name(
-                "gStr",
-            ),
-            Name(
-                "b",
-            ),
-            Name(
-                "c",
-            ),
-        ],
+        QualifiedName {
+            names: [
+                Name(
+                    "gStr",
+                ),
+                Name(
+                    "b",
+                ),
+                Name(
+                    "c",
+                ),
+            ],
+        },
         VariableIndexEntry {
             name: "c",
             qualified_name: "str2.c",
@@ -402,17 +168,19 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
         },
     ),
     (
-        [
-            Name(
-                "gStr",
-            ),
-            Name(
-                "b",
-            ),
-            Name(
-                "d",
-            ),
-        ],
+        QualifiedName {
+            names: [
+                Name(
+                    "gStr",
+                ),
+                Name(
+                    "b",
+                ),
+                Name(
+                    "d",
+                ),
+            ],
+        },
         VariableIndexEntry {
             name: "d",
             qualified_name: "str2.d",
@@ -429,11 +197,13 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
         },
     ),
     (
-        [
-            Name(
-                "MainProg",
-            ),
-        ],
+        QualifiedName {
+            names: [
+                Name(
+                    "MainProg",
+                ),
+            ],
+        },
         VariableIndexEntry {
             name: "MainProg_instance",
             qualified_name: "MainProg",
@@ -450,14 +220,16 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
         },
     ),
     (
-        [
-            Name(
-                "MainProg",
-            ),
-            Name(
-                "pStr",
-            ),
-        ],
+        QualifiedName {
+            names: [
+                Name(
+                    "MainProg",
+                ),
+                Name(
+                    "pStr",
+                ),
+            ],
+        },
         VariableIndexEntry {
             name: "pStr",
             qualified_name: "MainProg.pStr",
@@ -474,17 +246,19 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
         },
     ),
     (
-        [
-            Name(
-                "MainProg",
-            ),
-            Name(
-                "pStr",
-            ),
-            Name(
-                "a",
-            ),
-        ],
+        QualifiedName {
+            names: [
+                Name(
+                    "MainProg",
+                ),
+                Name(
+                    "pStr",
+                ),
+                Name(
+                    "a",
+                ),
+            ],
+        },
         VariableIndexEntry {
             name: "a",
             qualified_name: "str.a",
@@ -501,20 +275,22 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
         },
     ),
     (
-        [
-            Name(
-                "MainProg",
-            ),
-            Name(
-                "pStr",
-            ),
-            Name(
-                "a",
-            ),
-            Name(
-                "c",
-            ),
-        ],
+        QualifiedName {
+            names: [
+                Name(
+                    "MainProg",
+                ),
+                Name(
+                    "pStr",
+                ),
+                Name(
+                    "a",
+                ),
+                Name(
+                    "c",
+                ),
+            ],
+        },
         VariableIndexEntry {
             name: "c",
             qualified_name: "str2.c",
@@ -531,20 +307,22 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
         },
     ),
     (
-        [
-            Name(
-                "MainProg",
-            ),
-            Name(
-                "pStr",
-            ),
-            Name(
-                "a",
-            ),
-            Name(
-                "d",
-            ),
-        ],
+        QualifiedName {
+            names: [
+                Name(
+                    "MainProg",
+                ),
+                Name(
+                    "pStr",
+                ),
+                Name(
+                    "a",
+                ),
+                Name(
+                    "d",
+                ),
+            ],
+        },
         VariableIndexEntry {
             name: "d",
             qualified_name: "str2.d",
@@ -561,17 +339,19 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
         },
     ),
     (
-        [
-            Name(
-                "MainProg",
-            ),
-            Name(
-                "pStr",
-            ),
-            Name(
-                "b",
-            ),
-        ],
+        QualifiedName {
+            names: [
+                Name(
+                    "MainProg",
+                ),
+                Name(
+                    "pStr",
+                ),
+                Name(
+                    "b",
+                ),
+            ],
+        },
         VariableIndexEntry {
             name: "b",
             qualified_name: "str.b",
@@ -588,20 +368,22 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
         },
     ),
     (
-        [
-            Name(
-                "MainProg",
-            ),
-            Name(
-                "pStr",
-            ),
-            Name(
-                "b",
-            ),
-            Name(
-                "c",
-            ),
-        ],
+        QualifiedName {
+            names: [
+                Name(
+                    "MainProg",
+                ),
+                Name(
+                    "pStr",
+                ),
+                Name(
+                    "b",
+                ),
+                Name(
+                    "c",
+                ),
+            ],
+        },
         VariableIndexEntry {
             name: "c",
             qualified_name: "str2.c",
@@ -618,20 +400,22 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
         },
     ),
     (
-        [
-            Name(
-                "MainProg",
-            ),
-            Name(
-                "pStr",
-            ),
-            Name(
-                "b",
-            ),
-            Name(
-                "d",
-            ),
-        ],
+        QualifiedName {
+            names: [
+                Name(
+                    "MainProg",
+                ),
+                Name(
+                    "pStr",
+                ),
+                Name(
+                    "b",
+                ),
+                Name(
+                    "d",
+                ),
+            ],
+        },
         VariableIndexEntry {
             name: "d",
             qualified_name: "str2.d",

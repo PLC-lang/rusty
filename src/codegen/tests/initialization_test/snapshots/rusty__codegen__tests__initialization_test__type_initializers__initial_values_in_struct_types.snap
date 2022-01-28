@@ -9,6 +9,11 @@ source_filename = "main"
 
 %MyStruct = type { i16, i16, i8, i8, float, float }
 
+<<<<<<< HEAD
 @MyStruct__init = unnamed_addr constant %MyStruct { i16 7, i16 0, i8 1, i8 0, float 0x400921CAC0000000, float 0.000000e+00 }
 @x = global %MyStruct { i16 7, i16 0, i8 1, i8 0, float 0x400921CAC0000000, float 0.000000e+00 }
+=======
+@x = global %MyStruct { i16 7, i16 0, i1 true, i1 false, float 0x400921CAC0000000, float 0.000000e+00 }
+@MyStruct__init = unnamed_addr constant %MyStruct { i16 7, i16 0, i1 true, i1 false, float 0x400921CAC0000000, float 0.000000e+00 }
+>>>>>>> 1bf5a70de (Add hardware support, filter the instances to avoid init values)
 

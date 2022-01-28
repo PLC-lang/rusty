@@ -1,16 +1,18 @@
 ---
 source: src/index/tests/instance_resolver_tests.rs
-assertion_line: 50
+assertion_line: 59
 expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
 
 ---
 [
     (
-        [
-            Name(
-                "MainProg",
-            ),
-        ],
+        QualifiedName {
+            names: [
+                Name(
+                    "MainProg",
+                ),
+            ],
+        },
         VariableIndexEntry {
             name: "MainProg_instance",
             qualified_name: "MainProg",
@@ -27,14 +29,16 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
         },
     ),
     (
-        [
-            Name(
-                "MainProg",
-            ),
-            Name(
-                "a",
-            ),
-        ],
+        QualifiedName {
+            names: [
+                Name(
+                    "MainProg",
+                ),
+                Name(
+                    "a",
+                ),
+            ],
+        },
         VariableIndexEntry {
             name: "a",
             qualified_name: "MainProg.a",
@@ -51,14 +55,16 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
         },
     ),
     (
-        [
-            Name(
-                "MainProg",
-            ),
-            Name(
-                "b",
-            ),
-        ],
+        QualifiedName {
+            names: [
+                Name(
+                    "MainProg",
+                ),
+                Name(
+                    "b",
+                ),
+            ],
+        },
         VariableIndexEntry {
             name: "b",
             qualified_name: "MainProg.b",

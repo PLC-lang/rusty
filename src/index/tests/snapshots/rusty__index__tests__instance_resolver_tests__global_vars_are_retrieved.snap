@@ -1,16 +1,18 @@
 ---
 source: src/index/tests/instance_resolver_tests.rs
-assertion_line: 11
+assertion_line: 12
 expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
 
 ---
 [
     (
-        [
-            Name(
-                "a",
-            ),
-        ],
+        QualifiedName {
+            names: [
+                Name(
+                    "a",
+                ),
+            ],
+        },
         VariableIndexEntry {
             name: "a",
             qualified_name: "a",
@@ -27,11 +29,13 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
         },
     ),
     (
-        [
-            Name(
-                "b",
-            ),
-        ],
+        QualifiedName {
+            names: [
+                Name(
+                    "b",
+                ),
+            ],
+        },
         VariableIndexEntry {
             name: "b",
             qualified_name: "b",
