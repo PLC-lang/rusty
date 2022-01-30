@@ -25,7 +25,7 @@ fn resolved_generic_call_added_to_index() {
             myFunc(1.0);
         END_PROGRAM",
     );
-    let annotations = TypeAnnotator::visit_unit(&index, &unit);
+    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit);
     //The implementations are added to the index
     let implementations = annotations.new_index.get_implementations();
     assert_eq!(3, implementations.len());
@@ -86,7 +86,7 @@ fn generic_call_annotated_with_correct_type() {
             myFunc(1.0);
         END_PROGRAM",
     );
-    let annotations = TypeAnnotator::visit_unit(&index, &unit);
+    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit);
     let call = &unit.implementations[1].statements[0];
 
     //The return type should have the correct type
@@ -180,7 +180,7 @@ fn generic_call_multi_params_annotated_with_correct_type() {
             myFunc(1.0, 2, BYTE#2);
         END_PROGRAM",
     );
-    let annotations = TypeAnnotator::visit_unit(&index, &unit);
+    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit);
 
     let call = &unit.implementations[1].statements[0];
 
@@ -311,7 +311,7 @@ fn call_order_of_parameters_does_not_change_annotations() {
             myFunc(z := c, y := b, x := a);
         END_PROGRAM",
     );
-    let annotations = TypeAnnotator::visit_unit(&index, &unit);
+    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit);
 
     fn get_parameter_with_name<'a>(
         parameters_list: &[&'a AstStatement],
@@ -388,7 +388,7 @@ fn call_order_of_generic_parameters_does_not_change_annotations() {
             myFunc(z := c, y := b, x := a);
         END_PROGRAM",
     );
-    let annotations = TypeAnnotator::visit_unit(&index, &unit);
+    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit);
 
     fn get_parameter_with_name<'a>(
         parameters_list: &[&'a AstStatement],

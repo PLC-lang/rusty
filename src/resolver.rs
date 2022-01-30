@@ -5,7 +5,7 @@
 //! Recursively visits all statements and expressions of a `CompilationUnit` and
 //! records all resulting types associated with the statement's id.
 
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
 use indexmap::IndexMap;
 
@@ -60,6 +60,9 @@ struct VisitorContext<'s> {
     /// e.g. true for `x` if x is declared in a constant block
     /// e.g. true for `a.b.c` if either a,b or c is declared in a constant block
     constant: bool,
+
+    /// true the visitor entered a body (so no declarations)
+    in_body: bool,
 }
 
 impl<'s> VisitorContext<'s> {
@@ -70,6 +73,7 @@ impl<'s> VisitorContext<'s> {
             qualifier: Some(qualifier),
             call: self.call,
             constant: false,
+            in_body: self.in_body,
         }
     }
 
@@ -80,6 +84,7 @@ impl<'s> VisitorContext<'s> {
             qualifier: self.qualifier.clone(),
             call: self.call,
             constant: false,
+            in_body: self.in_body,
         }
     }
 
@@ -90,13 +95,30 @@ impl<'s> VisitorContext<'s> {
             qualifier: self.qualifier.clone(),
             call: Some(lhs_pou),
             constant: false,
+            in_body: self.in_body,
         }
+    }
+
+    // returns a copy of the current context and sets the in_body field to true
+    fn enter_body(&self) -> Self {
+        VisitorContext {
+            pou: self.pou,
+            qualifier: self.qualifier.clone(),
+            call: self.call,
+            constant: self.constant,
+            in_body: true,
+        }
+    }
+
+    fn is_in_a_body(&self) -> bool {
+        self.in_body
     }
 }
 
 pub struct TypeAnnotator<'i> {
     index: &'i Index,
     annotation_map: AnnotationMapImpl,
+    string_literals: StringLiterals,
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -325,24 +347,45 @@ impl AnnotationMap for AnnotationMapImpl {
     }
 }
 
+#[derive(Default)]
+pub struct StringLiterals {
+    pub utf08: HashSet<String>,
+    pub utf16: HashSet<String>,
+}
+
+impl StringLiterals {
+    pub fn import(&mut self, other: StringLiterals) {
+        self.utf08.extend(other.utf08);
+        self.utf16.extend(other.utf16);
+    }
+}
+
 impl<'i> TypeAnnotator<'i> {
     /// constructs a new TypeAnnotater that works with the given index for type-lookups
     fn new(index: &'i Index) -> TypeAnnotator<'i> {
         TypeAnnotator {
             annotation_map: AnnotationMapImpl::new(),
             index,
+            string_literals: StringLiterals {
+                utf08: HashSet::new(),
+                utf16: HashSet::new(),
+            },
         }
     }
 
     /// annotates the given AST elements with the type-name resulting for the statements/expressions.
     /// Returns an AnnotationMap with the resulting types for all visited Statements. See `AnnotationMap`
-    pub fn visit_unit(index: &Index, unit: &'i CompilationUnit) -> AnnotationMapImpl {
+    pub fn visit_unit(
+        index: &Index,
+        unit: &'i CompilationUnit,
+    ) -> (AnnotationMapImpl, StringLiterals) {
         let mut visitor = TypeAnnotator::new(index);
         let ctx = &VisitorContext {
             pou: None,
             qualifier: None,
             call: None,
             constant: false,
+            in_body: false,
         };
 
         for global_variable in unit.global_vars.iter().flat_map(|it| it.variables.iter()) {
@@ -357,10 +400,11 @@ impl<'i> TypeAnnotator<'i> {
             visitor.visit_user_type_declaration(t, ctx);
         }
 
+        let body_ctx = ctx.enter_body();
         for i in &unit.implementations {
             i.statements
                 .iter()
-                .for_each(|s| visitor.visit_statement(&ctx.with_pou(i.name.as_str()), s));
+                .for_each(|s| visitor.visit_statement(&body_ctx.with_pou(i.name.as_str()), s));
         }
 
         // enum initializers may have been introduced by the visitor (indexer)
@@ -378,7 +422,7 @@ impl<'i> TypeAnnotator<'i> {
             }
         }
 
-        visitor.annotation_map
+        (visitor.annotation_map, visitor.string_literals)
     }
 
     fn visit_user_type_declaration(
@@ -735,6 +779,7 @@ impl<'i> TypeAnnotator<'i> {
                         constant: false,
                         pou: ctx.pou,
                         qualifier: None,
+                        in_body: ctx.in_body,
                     },
                     access,
                 );
@@ -1465,6 +1510,15 @@ impl<'i> TypeAnnotator<'i> {
                     register_string_type(&mut self.annotation_map.new_index, *is_wide, value.len());
                 self.annotation_map
                     .annotate(statement, StatementAnnotation::new_value(string_type_name));
+
+                //collect literals so we can generate global constants later
+                if ctx.is_in_a_body() {
+                    if *is_wide {
+                        self.string_literals.utf16.insert(value.to_string());
+                    } else {
+                        self.string_literals.utf08.insert(value.to_string());
+                    }
+                }
             }
             AstStatement::LiteralInteger { value, .. } => {
                 self.annotation_map.annotate(

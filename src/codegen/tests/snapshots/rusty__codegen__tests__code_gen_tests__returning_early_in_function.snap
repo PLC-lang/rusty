@@ -1,5 +1,6 @@
 ---
 source: src/codegen/tests/code_gen_tests.rs
+assertion_line: 2455
 expression: result
 
 ---
@@ -12,6 +13,7 @@ define i16 @smaller_than_ten(%smaller_than_ten_interface* %0) {
 entry:
   %n = getelementptr inbounds %smaller_than_ten_interface, %smaller_than_ten_interface* %0, i32 0, i32 0
   %smaller_than_ten = alloca i16, align 2
+  store i16 0, i16* %smaller_than_ten, align 2
   %load_n = load i8, i8* %n, align 1
   %1 = sext i8 %load_n to i32
   %tmpVar = icmp slt i32 %1, 10

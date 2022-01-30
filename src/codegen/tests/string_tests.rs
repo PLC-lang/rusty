@@ -6,6 +6,7 @@ use crate::{
 
 #[test]
 fn variable_string_assignment_test() {
+    // GIVEN some string assignments
     let result = codegen(
         r"
 PROGRAM prg
@@ -16,6 +17,24 @@ PROGRAM prg
    
    y := z;
    z := y;
+END_PROGRAM
+    ",
+    );
+
+    // THEN we dont want that y := z will overwrite the last byte of the y-vector (null-terminator)
+    insta::assert_snapshot!(result);
+}
+
+#[test]
+fn vartmp_string_init_test() {
+    let result = codegen(
+        r"
+PROGRAM prg
+   VAR_TEMP
+      y : STRING[15];
+      z : STRING[30] := 'xyz';
+   END_VAR
+   
 END_PROGRAM
     ",
     );

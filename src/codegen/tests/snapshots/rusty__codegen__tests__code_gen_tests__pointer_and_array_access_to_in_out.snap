@@ -1,5 +1,6 @@
 ---
 source: src/codegen/tests/code_gen_tests.rs
+assertion_line: 1771
 expression: result
 
 ---
@@ -15,6 +16,7 @@ entry:
   %c = getelementptr inbounds %main_interface, %main_interface* %0, i32 0, i32 2
   %main = alloca i16, align 2
   store i16 0, i16* %c, align 2
+  store i16 0, i16* %main, align 2
   %deref = load i16**, i16*** %a, align 8
   %deref1 = load i16*, i16** %deref, align 8
   %load_tmpVar = load i16, i16* %deref1, align 2

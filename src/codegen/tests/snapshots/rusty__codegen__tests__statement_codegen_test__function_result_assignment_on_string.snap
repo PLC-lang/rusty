@@ -17,16 +17,19 @@ entry:
   %INS = getelementptr inbounds %LIST_ADD_interface, %LIST_ADD_interface* %0, i32 0, i32 0
   %sx = getelementptr inbounds %LIST_ADD_interface, %LIST_ADD_interface* %0, i32 0, i32 1
   %LIST_ADD = alloca i8, align 1
+  store i8 0, i8* %LIST_ADD, align 1
   %CONCAT_instance = alloca %CONCAT_interface, align 8
   br label %input
 
 input:                                            ; preds = %entry
   %1 = getelementptr inbounds %CONCAT_interface, %CONCAT_interface* %CONCAT_instance, i32 0, i32 0
-  %load_sx = load [2 x i8], [2 x i8]* %sx, align 1
-  store [2 x i8] %load_sx, [1025 x i8]* %1, align 1
-  %2 = getelementptr inbounds %CONCAT_interface, %CONCAT_interface* %CONCAT_instance, i32 0, i32 1
-  %load_INS = load [1001 x i8], [1001 x i8]* %INS, align 1
-  store [1001 x i8] %load_INS, [1025 x i8]* %2, align 1
+  %2 = bitcast [1025 x i8]* %1 to i8*
+  %3 = bitcast [2 x i8]* %sx to i8*
+  call void @llvm.memcpy.p0i8.p0i8.i32(i8* align 1 %2, i8* align 1 %3, i32 2, i1 false)
+  %4 = getelementptr inbounds %CONCAT_interface, %CONCAT_interface* %CONCAT_instance, i32 0, i32 1
+  %5 = bitcast [1025 x i8]* %4 to i8*
+  %6 = bitcast [1001 x i8]* %INS to i8*
+  call void @llvm.memcpy.p0i8.p0i8.i32(i8* align 1 %5, i8* align 1 %6, i32 1001, i1 false)
   br label %call
 
 call:                                             ; preds = %input
@@ -37,11 +40,11 @@ output:                                           ; preds = %call
   br label %continue
 
 continue:                                         ; preds = %output
-  %3 = alloca [1025 x i8], align 1
-  store [1025 x i8] %call1, [1025 x i8]* %3, align 1
-  %4 = bitcast [1001 x i8]* %INS to i8*
-  %5 = bitcast [1025 x i8]* %3 to i8*
-  call void @llvm.memcpy.p0i8.p0i8.i32(i8* align 1 %4, i8* align 1 %5, i32 1001, i1 false)
+  %7 = alloca [1025 x i8], align 1
+  store [1025 x i8] %call1, [1025 x i8]* %7, align 1
+  %8 = bitcast [1001 x i8]* %INS to i8*
+  %9 = bitcast [1025 x i8]* %7 to i8*
+  call void @llvm.memcpy.p0i8.p0i8.i32(i8* align 1 %8, i8* align 1 %9, i32 1000, i1 false)
   %LIST_ADD_ret = load i8, i8* %LIST_ADD, align 1
   ret i8 %LIST_ADD_ret
 }

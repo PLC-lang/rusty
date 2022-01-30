@@ -33,7 +33,7 @@ use inkwell::targets::{
     CodeModel, FileType, InitializationConfig, RelocMode, Target, TargetMachine, TargetTriple,
 };
 use lexer::IdProvider;
-use resolver::AstAnnotations;
+use resolver::{AstAnnotations, StringLiterals};
 use std::{fs::File, io::Read};
 use validation::Validator;
 
@@ -430,8 +430,9 @@ pub fn compile_module<'c, T: SourceContainer>(
     // annotation & validation everything
     let mut annotated_units: Vec<CompilationUnit> = Vec::new();
     let mut all_annotations = AnnotationMapImpl::default();
+    let mut all_literals = StringLiterals::default();
     for (file_id, syntax_errors, unit) in all_units.into_iter() {
-        let annotations = TypeAnnotator::visit_unit(&full_index, &unit);
+        let (annotations, string_literals) = TypeAnnotator::visit_unit(&full_index, &unit);
 
         let mut validator = Validator::new();
         validator.visit_unit(&annotations, &full_index, &unit);
@@ -441,6 +442,7 @@ pub fn compile_module<'c, T: SourceContainer>(
 
         annotated_units.push(unit);
         all_annotations.import(annotations);
+        all_literals.import(string_literals);
     }
 
     //Merge the new indices with the full index
@@ -452,7 +454,7 @@ pub fn compile_module<'c, T: SourceContainer>(
 
     let annotations = AstAnnotations::new(all_annotations, id_provider.next_id());
     //Associate the index type with LLVM types
-    let llvm_index = code_generator.generate_llvm_index(&annotations, &full_index)?;
+    let llvm_index = code_generator.generate_llvm_index(&annotations, all_literals, &full_index)?;
     for unit in annotated_units {
         code_generator.generate(&unit, &annotations, &full_index, &llvm_index)?;
     }
