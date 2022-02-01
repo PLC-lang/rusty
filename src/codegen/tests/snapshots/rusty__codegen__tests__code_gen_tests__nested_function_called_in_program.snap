@@ -1,5 +1,6 @@
 ---
 source: src/codegen/tests/code_gen_tests.rs
+assertion_line: 1318
 expression: result
 
 ---
@@ -15,6 +16,7 @@ source_filename = "main"
 define i32 @bar(%bar_interface* %0) {
 entry:
   %bar = alloca i32, align 4
+  store i32 0, i32* %bar, align 4
   store i32 1, i32* %bar, align 4
   %bar_ret = load i32, i32* %bar, align 4
   ret i32 %bar_ret
@@ -24,6 +26,7 @@ define i32 @foo(%foo_interface* %0) {
 entry:
   %in = getelementptr inbounds %foo_interface, %foo_interface* %0, i32 0, i32 0
   %foo = alloca i32, align 4
+  store i32 0, i32* %foo, align 4
   store i32 1, i32* %foo, align 4
   %foo_ret = load i32, i32* %foo, align 4
   ret i32 %foo_ret

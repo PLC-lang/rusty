@@ -46,7 +46,7 @@ pub mod tests {
     }
 
     pub fn annotate(parse_result: &CompilationUnit, index: &mut Index) -> AnnotationMapImpl {
-        let mut annotations = TypeAnnotator::visit_unit(index, parse_result);
+        let (mut annotations, _) = TypeAnnotator::visit_unit(index, parse_result);
         index.import(std::mem::take(&mut annotations.new_index));
         annotations
     }
@@ -55,7 +55,7 @@ pub mod tests {
         let (unit, index) = index(src);
 
         let (mut index, ..) = evaluate_constants(index);
-        let mut annotations = TypeAnnotator::visit_unit(&index, &unit);
+        let (mut annotations, _) = TypeAnnotator::visit_unit(&index, &unit);
         index.import(std::mem::take(&mut annotations.new_index));
 
         let mut validator = Validator::new();
@@ -68,13 +68,13 @@ pub mod tests {
         let (unit, index) = do_index(src, id_provider.clone());
 
         let (mut index, ..) = evaluate_constants(index);
-        let mut annotations = TypeAnnotator::visit_unit(&index, &unit);
+        let (mut annotations, literals) = TypeAnnotator::visit_unit(&index, &unit);
         index.import(std::mem::take(&mut annotations.new_index));
 
         let context = inkwell::context::Context::create();
         let code_generator = crate::codegen::CodeGen::new(&context, "main");
         let annotations = AstAnnotations::new(annotations, id_provider.next_id());
-        let llvm_index = code_generator.generate_llvm_index(&annotations, &index)?;
+        let llvm_index = code_generator.generate_llvm_index(&annotations, literals, &index)?;
         code_generator.generate(&unit, &annotations, &index, &llvm_index)
     }
 

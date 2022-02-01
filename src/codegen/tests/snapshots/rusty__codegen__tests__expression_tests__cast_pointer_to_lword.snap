@@ -1,5 +1,6 @@
 ---
 source: src/codegen/tests/expression_tests.rs
+assertion_line: 283
 expression: result
 
 ---
@@ -15,6 +16,7 @@ entry:
   %baz = alloca i16, align 2
   store i16* null, i16** %ptr_x, align 8
   store i64 0, i64* %y, align 4
+  store i16 0, i16* %baz, align 2
   %load_ptr_x = load i16*, i16** %ptr_x, align 8
   %1 = ptrtoint i16* %load_ptr_x to i64
   store i64 %1, i64* %y, align 4

@@ -17,6 +17,7 @@ entry:
   %bar = getelementptr inbounds %foo_interface, %foo_interface* %0, i32 0, i32 0
   %buz = getelementptr inbounds %foo_interface, %foo_interface* %0, i32 0, i32 1
   %foo = alloca i32, align 4
+  store i32 0, i32* %foo, align 4
   store i32 1, i32* %foo, align 4
   %foo_ret = load i32, i32* %foo, align 4
   ret i32 %foo_ret
