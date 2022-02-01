@@ -1,5 +1,5 @@
 // Copyright (c) 2021 Ghaith Hachem and Mathias Rieder
-use clap::{ArgGroup, Parser};
+use clap::{ArgGroup, IntoApp, Parser};
 use encoding_rs::Encoding;
 use std::{ffi::OsStr, path::Path};
 
@@ -116,18 +116,11 @@ pub struct CompileParameters {
     #[clap(
         name = "config",
         long,
-        help = "Generate (Hardware) configuration files"
+        help = "Generate (Hardware) configuration files to the given location. 
+    Format is detected by extenstion.
+    Supported formats : xml, json, toml"
     )]
-    pub config: bool,
-
-    #[clap(
-        name = "config-format",
-        long,
-        help = "Sets the default format for the configuration",
-        default_value = "xml",
-        arg_enum
-    )]
-    pub config_format: ConfigFormat,
+    pub config: Option<String>,
 }
 
 fn parse_encoding(encoding: &str) -> Result<&'static Encoding, String> {
@@ -136,7 +129,15 @@ fn parse_encoding(encoding: &str) -> Result<&'static Encoding, String> {
 
 impl CompileParameters {
     pub fn parse(args: Vec<String>) -> Result<CompileParameters, ParameterError> {
-        CompileParameters::try_parse_from(args)
+        let res = CompileParameters::try_parse_from(args)?;
+        let mut app = CompileParameters::into_app();
+        match res.config {
+            Some(conf) if res.config_format().is_none() => Err(app.error(
+                clap::ErrorKind::InvalidValue,
+                format!("Cannot identify format type for {}", conf),
+            )),
+            _ => Ok(res),
+        }
     }
 
     // convert the scattered bools from structopt into an enum
@@ -186,6 +187,16 @@ impl CompileParameters {
                 .and_then(OsStr::to_str)
                 .unwrap_or(DEFAULT_OUTPUT_NAME);
             Some(format!("{}{}", basename, ending))
+        }
+    }
+
+    pub fn config_format(&self) -> Option<ConfigFormat> {
+        let ext = self.config.as_deref().and_then(|it| it.split('.').last());
+        match ext {
+            Some("xml") => Some(ConfigFormat::XML),
+            Some("json") => Some(ConfigFormat::JSON),
+            Some("toml") => Some(ConfigFormat::TOML),
+            _ => None,
         }
     }
 }
@@ -364,61 +375,61 @@ mod cli_tests {
     #[test]
     fn valid_output_formats() {
         let parameters = CompileParameters::parse(vec_of_strings!("input.st", "--ir")).unwrap();
-        assert_eq!(parameters.output_ir, true);
-        assert_eq!(parameters.output_bit_code, false);
-        assert_eq!(parameters.output_obj_code, false);
-        assert_eq!(parameters.output_pic_obj, false);
-        assert_eq!(parameters.output_shared_obj, false);
-        assert_eq!(parameters.output_reloc_code, false);
+        assert!(parameters.output_ir);
+        assert!(!parameters.output_bit_code);
+        assert!(!parameters.output_obj_code);
+        assert!(!parameters.output_pic_obj);
+        assert!(!parameters.output_shared_obj);
+        assert!(!parameters.output_reloc_code);
 
         let parameters = CompileParameters::parse(vec_of_strings!("input.st", "--bc")).unwrap();
-        assert_eq!(parameters.output_ir, false);
-        assert_eq!(parameters.output_bit_code, true);
-        assert_eq!(parameters.output_obj_code, false);
-        assert_eq!(parameters.output_pic_obj, false);
-        assert_eq!(parameters.output_shared_obj, false);
-        assert_eq!(parameters.output_reloc_code, false);
+        assert!(!parameters.output_ir);
+        assert!(parameters.output_bit_code);
+        assert!(!parameters.output_obj_code);
+        assert!(!parameters.output_pic_obj);
+        assert!(!parameters.output_shared_obj);
+        assert!(!parameters.output_reloc_code);
 
         let parameters = CompileParameters::parse(vec_of_strings!("input.st", "--static")).unwrap();
-        assert_eq!(parameters.output_ir, false);
-        assert_eq!(parameters.output_bit_code, false);
-        assert_eq!(parameters.output_obj_code, true);
-        assert_eq!(parameters.output_pic_obj, false);
-        assert_eq!(parameters.output_shared_obj, false);
-        assert_eq!(parameters.output_reloc_code, false);
+        assert!(!parameters.output_ir);
+        assert!(!parameters.output_bit_code);
+        assert!(parameters.output_obj_code);
+        assert!(!parameters.output_pic_obj);
+        assert!(!parameters.output_shared_obj);
+        assert!(!parameters.output_reloc_code);
 
         let parameters = CompileParameters::parse(vec_of_strings!("input.st", "--pic")).unwrap();
-        assert_eq!(parameters.output_ir, false);
-        assert_eq!(parameters.output_bit_code, false);
-        assert_eq!(parameters.output_obj_code, false);
-        assert_eq!(parameters.output_pic_obj, true);
-        assert_eq!(parameters.output_shared_obj, false);
-        assert_eq!(parameters.output_reloc_code, false);
+        assert!(!parameters.output_ir);
+        assert!(!parameters.output_bit_code);
+        assert!(!parameters.output_obj_code);
+        assert!(parameters.output_pic_obj);
+        assert!(!parameters.output_shared_obj);
+        assert!(!parameters.output_reloc_code);
 
         let parameters = CompileParameters::parse(vec_of_strings!("input.st", "--shared")).unwrap();
-        assert_eq!(parameters.output_ir, false);
-        assert_eq!(parameters.output_bit_code, false);
-        assert_eq!(parameters.output_obj_code, false);
-        assert_eq!(parameters.output_pic_obj, false);
-        assert_eq!(parameters.output_shared_obj, true);
-        assert_eq!(parameters.output_reloc_code, false);
+        assert!(!parameters.output_ir);
+        assert!(!parameters.output_bit_code);
+        assert!(!parameters.output_obj_code);
+        assert!(!parameters.output_pic_obj);
+        assert!(parameters.output_shared_obj);
+        assert!(!parameters.output_reloc_code);
 
         let parameters =
             CompileParameters::parse(vec_of_strings!("input.st", "--relocatable")).unwrap();
-        assert_eq!(parameters.output_ir, false);
-        assert_eq!(parameters.output_bit_code, false);
-        assert_eq!(parameters.output_obj_code, false);
-        assert_eq!(parameters.output_pic_obj, false);
-        assert_eq!(parameters.output_shared_obj, false);
-        assert_eq!(parameters.output_reloc_code, true);
+        assert!(!parameters.output_ir);
+        assert!(!parameters.output_bit_code);
+        assert!(!parameters.output_obj_code);
+        assert!(!parameters.output_pic_obj);
+        assert!(!parameters.output_shared_obj);
+        assert!(parameters.output_reloc_code);
 
         let parameters = CompileParameters::parse(vec_of_strings!("input.st")).unwrap();
-        assert_eq!(parameters.output_ir, false);
-        assert_eq!(parameters.output_bit_code, false);
-        assert_eq!(parameters.output_obj_code, false);
-        assert_eq!(parameters.output_pic_obj, false);
-        assert_eq!(parameters.output_shared_obj, false);
-        assert_eq!(parameters.output_reloc_code, false);
+        assert!(!parameters.output_ir);
+        assert!(!parameters.output_bit_code);
+        assert!(!parameters.output_obj_code);
+        assert!(!parameters.output_pic_obj);
+        assert!(!parameters.output_shared_obj);
+        assert!(!parameters.output_reloc_code);
     }
 
     #[test]
@@ -494,27 +505,25 @@ mod cli_tests {
 
     #[test]
     fn config_option_set() {
-        let parameters = CompileParameters::parse(vec_of_strings!("foo", "--config")).unwrap();
-        assert!(parameters.config);
-        assert_eq!(parameters.config_format, ConfigFormat::XML);
         let parameters =
-            CompileParameters::parse(vec_of_strings!("foo", "--config", "--config-format=xml"))
-                .unwrap();
-        assert!(parameters.config);
-        assert_eq!(parameters.config_format, ConfigFormat::XML);
+            CompileParameters::parse(vec_of_strings!("foo", "--config=conf.xml")).unwrap();
+        assert_eq!(parameters.config, Some("conf.xml".to_string()));
+        assert_eq!(parameters.config_format().unwrap(), ConfigFormat::XML);
         let parameters =
-            CompileParameters::parse(vec_of_strings!("foo", "--config", "--config-format=json"))
-                .unwrap();
-        assert!(parameters.config);
-        assert_eq!(parameters.config_format, ConfigFormat::JSON);
+            CompileParameters::parse(vec_of_strings!("foo", "--config=conf.json")).unwrap();
+        assert_eq!(parameters.config, Some("conf.json".to_string()));
+        assert_eq!(parameters.config_format().unwrap(), ConfigFormat::JSON);
         let parameters =
-            CompileParameters::parse(vec_of_strings!("foo", "--config", "--config-format=toml"))
-                .unwrap();
-        assert!(parameters.config);
-        assert_eq!(parameters.config_format, ConfigFormat::TOML);
+            CompileParameters::parse(vec_of_strings!("foo", "--config=conf.toml")).unwrap();
+        assert_eq!(parameters.config, Some("conf.toml".to_string()));
+        assert_eq!(parameters.config_format().unwrap(), ConfigFormat::TOML);
 
         expect_argument_error(
-            vec_of_strings!("foo", "--config-format=foo"),
+            vec_of_strings!("foo", "--config=foo"),
+            ErrorKind::InvalidValue,
+        );
+        expect_argument_error(
+            vec_of_strings!("foo", "--config=conf.foo"),
             ErrorKind::InvalidValue,
         );
     }

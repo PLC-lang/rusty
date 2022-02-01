@@ -323,7 +323,7 @@ impl From<&PouType> for ImplementationType {
 /// the TypeIndex carries all types.
 /// it is extracted into its seaprate struct so it can be
 /// internally borrowed individually from the other maps
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct TypeIndex {
     /// all types (structs, enums, type, POUs, etc.)
     types: IndexMap<String, DataType>,
@@ -348,7 +348,6 @@ impl Default for TypeIndex {
 }
 
 impl TypeIndex {
-
     pub fn find_type(&self, type_name: &str) -> Option<&DataType> {
         self.types
             .get(&type_name.to_lowercase())
@@ -400,8 +399,8 @@ pub struct Index {
     /// all global variables
     global_variables: IndexMap<String, VariableIndexEntry>,
 
-    /// all struct initializers 
-    global_initializer: IndexMap<String, VariableIndexEntry>,
+    /// all struct initializers
+    global_initializers: IndexMap<String, VariableIndexEntry>,
 
     /// all enum-members with their names
     enum_global_variables: IndexMap<String, VariableIndexEntry>,
@@ -443,6 +442,13 @@ impl Index {
             self.enum_global_variables.insert(name, e.clone());
             self.enum_qualified_variables
                 .insert(e.qualified_name.to_lowercase(), e);
+        }
+
+        //initializers
+        for (name, mut e) in other.global_initializers.drain(..) {
+            e.initial_value =
+                self.maybe_import_const_expr(&mut other.constant_expressions, &e.initial_value);
+            self.global_initializers.insert(name, e);
         }
 
         //member variables
@@ -488,6 +494,9 @@ impl Index {
 
         //implementations
         self.implementations.extend(other.implementations);
+
+        //Constant expressions
+        self.constant_expressions.import(other.constant_expressions)
     }
 
     /// imports the corresponding const-expression (according to the given initializer-id) from the given ConstExpressions
@@ -553,6 +562,11 @@ impl Index {
         self.global_variables
             .get(&name.to_lowercase())
             .or_else(|| self.enum_global_variables.get(&name.to_lowercase()))
+    }
+
+    /// returns the `VariableIndexEntry` of the global initializer with the given name
+    pub fn find_global_initializer(&self, name: &str) -> Option<&VariableIndexEntry> {
+        self.global_initializers.get(&name.to_lowercase())
     }
 
     /// return the `VariableIndexEntry` with the qualified name: `container_name`.`variable_name`
@@ -751,7 +765,7 @@ impl Index {
     }
 
     pub fn get_global_initializers(&self) -> &IndexMap<String, VariableIndexEntry> {
-        &self.global_initializer
+        &self.global_initializers
     }
 
     pub fn get_members(&self, name: &str) -> Option<&IndexMap<String, VariableIndexEntry>> {
@@ -862,7 +876,8 @@ impl Index {
     }
 
     pub fn register_global_initializer(&mut self, name: &str, variable: VariableIndexEntry) {
-        self.global_initializer.insert(name.to_lowercase(), variable);
+        self.global_initializers
+            .insert(name.to_lowercase(), variable);
     }
 
     pub fn register_type(&mut self, datatype: DataType) {

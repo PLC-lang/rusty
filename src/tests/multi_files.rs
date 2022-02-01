@@ -1,4 +1,4 @@
-use crate::{compile_to_string, diagnostics::Diagnostician, SourceCode};
+use crate::{diagnostics::Diagnostician, test_utils::tests::compile_to_string, SourceCode};
 
 #[test]
 fn multiple_source_files_generated() {

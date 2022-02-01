@@ -1,0 +1,7 @@
+PROGRAM foo
+	VAR
+		x AT %Q* : INT;
+		y AT %QW1 : INT;
+		z AT %IW1.1 : INT;
+	END_VAR
+END_PROGRAM

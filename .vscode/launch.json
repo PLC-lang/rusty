@@ -57,7 +57,7 @@
                     "kind": "bin"
                 }
             },
-            "args": ["-c", "/home/ghaith/git/oscat/*.st", "-o", "/tmp/comp.ll"],
+            "args": ["-c", "./examples/hw.st", "-o", "/tmp/comp.ll", "--config=test.xml"],
             "cwd": "${workspaceFolder}"
         },
         {

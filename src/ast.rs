@@ -37,6 +37,7 @@ pub enum PolymorphismMode {
 }
 
 #[derive(Copy, Clone, Debug, Serialize, Deserialize, PartialEq)]
+#[serde(tag = "direction")]
 pub enum HardwareAccessType {
     Input,
     Output,
@@ -44,6 +45,7 @@ pub enum HardwareAccessType {
 }
 
 #[derive(Copy, Clone, Debug, Serialize, Deserialize, PartialEq)]
+#[serde(tag = "type")]
 pub enum DirectAccessType {
     Bit,
     Byte,

@@ -1,76 +1,124 @@
 ---
 source: src/configuration.rs
-assertion_line: 95
+assertion_line: 256
 expression: config
 
 ---
-Ok(
-    [
-        HardwareConfiguration {
-            qualifed_name: QualifiedName {
-                names: [
-                    Name(
-                        "prg",
-                    ),
-                    Name(
-                        "a",
-                    ),
-                ],
-            },
-            direction: Input,
-            access_type: Template,
-            address: [],
-        },
-        HardwareConfiguration {
-            qualifed_name: QualifiedName {
-                names: [
-                    Name(
-                        "prg",
-                    ),
-                    Name(
-                        "b",
-                    ),
-                ],
-            },
-            direction: Output,
-            access_type: Word,
-            address: [
-                "2",
-                "5",
+[
+    HardwareBinding {
+        qualifed_name: QualifiedName {
+            names: [
+                Name(
+                    "prg",
+                ),
+                Name(
+                    "a",
+                ),
             ],
         },
-        HardwareConfiguration {
-            qualifed_name: QualifiedName {
-                names: [
-                    Name(
-                        "prg",
-                    ),
-                    Name(
-                        "c",
-                    ),
-                ],
-            },
-            direction: Output,
-            access_type: Word,
-            address: [
-                "2",
-                "5",
+        direction: Input,
+        access_type: Template,
+        address: [],
+    },
+    HardwareBinding {
+        qualifed_name: QualifiedName {
+            names: [
+                Name(
+                    "prg",
+                ),
+                Name(
+                    "b",
+                ),
             ],
         },
-        HardwareConfiguration {
-            qualifed_name: QualifiedName {
-                names: [
-                    Name(
-                        "prg",
-                    ),
-                    Name(
-                        "d",
-                    ),
-                ],
-            },
-            direction: Output,
-            access_type: Template,
-            address: [],
+        direction: Output,
+        access_type: Word,
+        address: [
+            "2",
+            "5",
+        ],
+    },
+    HardwareBinding {
+        qualifed_name: QualifiedName {
+            names: [
+                Name(
+                    "prg",
+                ),
+                Name(
+                    "c",
+                ),
+            ],
         },
-    ],
-)
+        direction: Output,
+        access_type: Word,
+        address: [
+            "2",
+            "5",
+        ],
+    },
+    HardwareBinding {
+        qualifed_name: QualifiedName {
+            names: [
+                Name(
+                    "prg",
+                ),
+                Name(
+                    "d",
+                ),
+            ],
+        },
+        direction: Output,
+        access_type: Template,
+        address: [],
+    },
+    HardwareBinding {
+        qualifed_name: QualifiedName {
+            names: [
+                Name(
+                    "prg",
+                ),
+                Name(
+                    "x",
+                ),
+            ],
+        },
+        direction: Output,
+        access_type: Template,
+        address: [],
+    },
+    HardwareBinding {
+        qualifed_name: QualifiedName {
+            names: [
+                Name(
+                    "prg",
+                ),
+                Name(
+                    "y",
+                ),
+            ],
+        },
+        direction: Output,
+        access_type: Word,
+        address: [
+            "1",
+        ],
+    },
+    HardwareBinding {
+        qualifed_name: QualifiedName {
+            names: [
+                Name(
+                    "prg",
+                ),
+                Name(
+                    "z",
+                ),
+            ],
+        },
+        direction: Input,
+        access_type: Word,
+        address: [
+            "1",
+            "2",
+        ],
+    },
+]

@@ -1,8 +1,6 @@
-use serde::Serialize;
+use crate::{index::Index, typesystem::Dimension};
 
-use crate::typesystem::Dimension;
-
-#[derive(Clone, Copy, Debug, Serialize, PartialEq)]
+#[derive(Clone, Copy, Debug, PartialEq)]
 pub enum QualifiedNameElement<'idx> {
     Name(&'idx str),
     ArrayAccess(&'idx [Dimension]),
@@ -29,7 +27,7 @@ impl<'idx> From<&'idx [Dimension]> for QualifiedNameElement<'idx> {
     }
 }
 
-#[derive(Debug, Default, Clone, Serialize, PartialEq)]
+#[derive(Debug, Default, Clone, PartialEq)]
 pub struct QualifiedName<'idx> {
     names: Vec<QualifiedNameElement<'idx>>,
 }
@@ -39,28 +37,208 @@ impl<'idx> QualifiedName<'idx> {
         self.names.append(&mut name.names)
     }
 
-    pub fn append(
-        &self,
-        element: QualifiedNameElement<'idx>,
-    ) -> QualifiedName<'idx> {
+    pub fn append(&self, element: QualifiedNameElement<'idx>) -> QualifiedName<'idx> {
         let mut res = self.clone();
         res.names.push(element);
         res
     }
-}
 
-impl<'a> IntoIterator for QualifiedName<'a> {
-    type Item = QualifiedNameElement<'a>;
+    /// Expands the given name to reference all underlying instances
+    /// This implementation will create an element for every contained array
+    pub fn expand(&self, index: &Index) -> Vec<String> {
+        let mut levels: Vec<Vec<String>> = vec![];
+        for seg in self.names.iter() {
+            let level = match seg {
+                crate::qualifed_name::QualifiedNameElement::Name(s) => vec![s.to_string()],
+                crate::qualifed_name::QualifiedNameElement::ArrayAccess(dimensions) => {
+                    let mut array = dimensions
+                        .iter()
+                        .map(|it| it.get_range_inclusive(index).unwrap())
+                        .fold(vec![], |curr, it| {
+                            let mut res = vec![];
+                            it.into_iter().for_each(|next| {
+                                if curr.is_empty() {
+                                    res.push(next.to_string());
+                                } else {
+                                    for item in curr.iter() {
+                                        res.push(format!("{},{}", item, next));
+                                    }
+                                }
+                            });
+                            res
+                        });
 
-    type IntoIter = std::vec::IntoIter<Self::Item>;
-
-    fn into_iter(self) -> Self::IntoIter {
-        self.names.into_iter()
+                    //Add array brackets
+                    array.iter_mut().for_each(|s| *s = format!("[{}]", s));
+                    array
+                }
+            };
+            levels.push(level);
+        }
+        levels.into_iter().fold(vec![], |curr, it| {
+            let mut res = vec![];
+            it.into_iter().for_each(|next| {
+                if curr.is_empty() {
+                    res.push(next);
+                } else {
+                    let separator = if next.starts_with('[') { "" } else { "." };
+                    for ele in &curr {
+                        res.push(format!("{}{}{}", ele, separator, next));
+                    }
+                }
+            });
+            res
+        })
     }
 }
 
 impl<'a> From<Vec<QualifiedNameElement<'a>>> for QualifiedName<'a> {
     fn from(v: Vec<QualifiedNameElement<'a>>) -> Self {
         QualifiedName { names: v }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::{
+        index::Index,
+        qualifed_name::{QualifiedName, QualifiedNameElement},
+        typesystem::{Dimension, TypeSize},
+    };
+
+    #[test]
+    fn expand_single() {
+        let name = QualifiedName {
+            names: vec![QualifiedNameElement::Name("Test")],
+        };
+        let index = Index::default();
+        assert_eq!(name.expand(&index), vec!["Test".to_string()])
+    }
+
+    #[test]
+    fn expand_qualifed() {
+        let name = QualifiedName {
+            names: vec![
+                QualifiedNameElement::Name("a"),
+                QualifiedNameElement::Name("b"),
+            ],
+        };
+        let index = Index::default();
+        assert_eq!(name.expand(&index), vec!["a.b".to_string()])
+    }
+
+    #[test]
+    fn expand_array() {
+        let dims = vec![Dimension {
+            start_offset: TypeSize::LiteralInteger(-1),
+            end_offset: TypeSize::LiteralInteger(1),
+        }];
+
+        let name = QualifiedName {
+            names: vec![
+                QualifiedNameElement::Name("a"),
+                QualifiedNameElement::ArrayAccess(&dims),
+            ],
+        };
+        let index = Index::default();
+        assert_eq!(
+            name.expand(&index),
+            vec!["a[-1]".to_string(), "a[0]".to_string(), "a[1]".to_string(),]
+        )
+    }
+
+    #[test]
+    fn expand_array_single_element() {
+        let dims = vec![Dimension {
+            start_offset: TypeSize::LiteralInteger(1),
+            end_offset: TypeSize::LiteralInteger(1),
+        }];
+
+        let name = QualifiedName {
+            names: vec![
+                QualifiedNameElement::Name("a"),
+                QualifiedNameElement::ArrayAccess(&dims),
+            ],
+        };
+        let index = Index::default();
+        assert_eq!(name.expand(&index), vec!["a[1]".to_string(),])
+    }
+
+    #[test]
+    fn expand_multidim_array() {
+        let dims = vec![
+            Dimension {
+                start_offset: TypeSize::LiteralInteger(-1),
+                end_offset: TypeSize::LiteralInteger(1),
+            },
+            Dimension {
+                start_offset: TypeSize::LiteralInteger(0),
+                end_offset: TypeSize::LiteralInteger(1),
+            },
+            Dimension {
+                start_offset: TypeSize::LiteralInteger(1),
+                end_offset: TypeSize::LiteralInteger(1),
+            },
+        ];
+
+        let name = QualifiedName {
+            names: vec![
+                QualifiedNameElement::Name("a"),
+                QualifiedNameElement::ArrayAccess(&dims),
+            ],
+        };
+        let index = Index::default();
+        let mut res = name.expand(&index);
+        res.sort();
+        assert_eq!(
+            res,
+            vec![
+                "a[-1,0,1]".to_string(),
+                "a[-1,1,1]".to_string(),
+                "a[0,0,1]".to_string(),
+                "a[0,1,1]".to_string(),
+                "a[1,0,1]".to_string(),
+                "a[1,1,1]".to_string(),
+            ]
+        )
+    }
+
+    #[test]
+    fn expand_nested_array() {
+        let dims1 = vec![Dimension {
+            start_offset: TypeSize::LiteralInteger(-1),
+            end_offset: TypeSize::LiteralInteger(1),
+        }];
+        let dims2 = vec![Dimension {
+            start_offset: TypeSize::LiteralInteger(0),
+            end_offset: TypeSize::LiteralInteger(1),
+        }];
+        let dims3 = vec![Dimension {
+            start_offset: TypeSize::LiteralInteger(1),
+            end_offset: TypeSize::LiteralInteger(1),
+        }];
+
+        let name = QualifiedName {
+            names: vec![
+                QualifiedNameElement::Name("a"),
+                QualifiedNameElement::ArrayAccess(&dims1),
+                QualifiedNameElement::ArrayAccess(&dims2),
+                QualifiedNameElement::ArrayAccess(&dims3),
+            ],
+        };
+        let index = Index::default();
+        let mut res = name.expand(&index);
+        res.sort();
+        assert_eq!(
+            res,
+            vec![
+                "a[-1][0][1]".to_string(),
+                "a[-1][1][1]".to_string(),
+                "a[0][0][1]".to_string(),
+                "a[0][1][1]".to_string(),
+                "a[1][0][1]".to_string(),
+                "a[1][1][1]".to_string(),
+            ]
+        )
     }
 }

@@ -1,9 +1,11 @@
-use crate::{typesystem::DataTypeInformation, qualifed_name::{QualifiedName, QualifiedNameElement}};
+use crate::{
+    qualifed_name::{QualifiedName, QualifiedNameElement},
+    typesystem::DataTypeInformation,
+};
 
 use super::{Index, VariableIndexEntry};
 pub type Instance<'idx> = (QualifiedName<'idx>, &'idx VariableIndexEntry);
 type InstanceEntry<'idx> = (QualifiedNameElement<'idx>, &'idx VariableIndexEntry);
-
 
 pub struct InstanceIterator<'idx> {
     index: &'idx Index,
@@ -23,6 +25,7 @@ impl<'idx> Iterator for InstanceIterator<'idx> {
         }
     }
 }
+
 impl<'idx> InstanceIterator<'idx> {
     pub fn new(index: &'idx Index) -> InstanceIterator<'idx> {
         InstanceIterator {
@@ -86,8 +89,9 @@ impl<'idx> InstanceIterator<'idx> {
 
     fn get(&mut self) -> Option<Instance<'idx>> {
         if let Some((entry, variable)) = self.iterator.next() {
-            self.inner = InstanceIterator::inner(self.index, variable.get_type_name(), &vec![entry].into())
-                .map(Box::new);
+            self.inner =
+                InstanceIterator::inner(self.index, variable.get_type_name(), &vec![entry].into())
+                    .map(Box::new);
             let name = self.current_prefix.append(entry);
             Some((name, variable))
         } else {
@@ -112,4 +116,3 @@ impl<'idx> InstanceIterator<'idx> {
         res.or_else(|| self.get())
     }
 }
-

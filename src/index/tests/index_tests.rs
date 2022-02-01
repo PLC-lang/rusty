@@ -1762,6 +1762,6 @@ fn global_vars_for_structs() {
     );
 
     // THEN there should be a global variable for the struct
-    let global_var = index.find_global_variable("__main_x__init");
+    let global_var = index.find_global_initializer("__main_x__init");
     assert_eq!(true, global_var.is_some());
 }

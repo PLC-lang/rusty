@@ -1,24 +1,133 @@
-use serde::Serialize;
+use serde::{
+    ser::{SerializeSeq, SerializeStruct},
+    Serialize, Serializer,
+};
 
 use crate::{
     ast::{DirectAccessType, HardwareAccessType},
-    diagnostics::Diagnostic,
+    diagnostics::{Diagnostic, ErrNo},
     index::Index,
     qualifed_name::QualifiedName,
     ConfigFormat,
 };
 
-#[derive(Debug, Serialize, PartialEq)]
-pub struct HardwareConfiguration<'idx> {
+trait SerializeWithContext {
+    fn serialize<S>(&self, ctx: &Index, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer;
+}
+
+impl<T> SerializeWithContext for Vec<T>
+where
+    T: SerializeWithContext,
+{
+    fn serialize<S>(&self, ctx: &Index, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        let mut all = serializer.serialize_seq(Some(self.len()))?;
+        for ele in self {
+            all.serialize_element(&WithContext::new(ctx, ele))?;
+        }
+        all.end()
+    }
+}
+
+pub struct Configuration<'idx> {
+    index: &'idx Index,
+    hardware_binding: Vec<HardwareBinding<'idx>>,
+}
+
+struct WithContext<'a, T: SerializeWithContext> {
+    context: &'a Index,
+    element: &'a T,
+}
+impl<'a, T> WithContext<'a, T>
+where
+    T: SerializeWithContext,
+{
+    fn new(context: &'a Index, element: &'a T) -> Self {
+        WithContext { context, element }
+    }
+}
+
+impl<T> Serialize for WithContext<'_, T>
+where
+    T: SerializeWithContext,
+{
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.element.serialize(self.context, serializer)
+    }
+}
+
+impl Serialize for Configuration<'_> {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        let bindings: Vec<WithContext<HardwareBinding>> = self
+            .hardware_binding
+            .iter()
+            .map(|it| WithContext::new(self.index, it))
+            .collect();
+        let mut config = serializer.serialize_struct("Configuration", 1)?;
+        config.serialize_field("HardwareConfiguration", &bindings)?;
+        config.end()
+    }
+}
+
+#[derive(Debug, PartialEq)]
+pub struct HardwareBinding<'idx> {
     qualifed_name: QualifiedName<'idx>,
     direction: HardwareAccessType,
     access_type: DirectAccessType,
     address: Vec<String>,
 }
+impl<'idx> HardwareBinding<'idx> {
+    fn expand(&self, index: &'idx Index) -> Vec<ExpandedHardwareBinding> {
+        let names = self.qualifed_name.expand(index);
+        names
+            .iter()
+            .map(|it| ExpandedHardwareBinding {
+                name: it.clone(),
+                direction: self.direction,
+                access_type: self.access_type,
+                address: self.address.clone(),
+            })
+            .collect()
+    }
+}
+
+#[derive(Serialize)]
+struct ExpandedHardwareBinding {
+    name: String,
+    #[serde(flatten)]
+    direction: HardwareAccessType,
+    #[serde(flatten)]
+    access_type: DirectAccessType,
+    address: Vec<String>,
+}
+
+impl SerializeWithContext for HardwareBinding<'_> {
+    fn serialize<S>(&self, ctx: &Index, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        let bindings = self.expand(ctx);
+        let mut ser = serializer.serialize_seq(Some(bindings.len()))?;
+        for binding in bindings {
+            ser.serialize_element(&binding)?;
+        }
+        ser.end()
+    }
+}
 
 /// Retrieves hardware bindings from all defined instances in the program
-pub fn collect_hardware_configuration(index: &Index) -> Result<Vec<HardwareConfiguration>, String> {
-    index
+pub fn collect_hardware_configuration(index: &Index) -> Result<Configuration, Diagnostic> {
+    let conf: Result<Vec<HardwareBinding>, String> = index
         .find_instances()
         .filter(|(_, instance)| !instance.is_constant())
         .filter(|(_, instance)| {
@@ -41,27 +150,67 @@ pub fn collect_hardware_configuration(index: &Index) -> Result<Vec<HardwareConfi
                 })
                 .map(|it| it.map(|it| it.to_string()))
                 .collect::<Result<Vec<String>, String>>()
-                .map(|address| HardwareConfiguration {
+                .map(|address| HardwareBinding {
                     qualifed_name: name,
                     access_type: binding.access,
                     address,
                     direction: binding.direction,
                 })
         })
-        .collect()
+        .collect();
+
+    conf.map(|hardware_binding| Configuration {
+        index,
+        hardware_binding,
+    })
+    .map_err(|message| Diagnostic::GeneralError {
+        err_no: ErrNo::general__io_err,
+        message,
+    })
 }
 
-pub fn write_hardware_configuration(
-    config: Vec<HardwareConfiguration>,
+pub fn generate_hardware_configuration(
+    config: &Configuration,
     format: ConfigFormat,
-    target: &str,
-) -> Result<(), Diagnostic> {
-    todo!("Write config")
+) -> Result<String, Diagnostic> {
+    match format {
+        ConfigFormat::XML => {
+            let mut bytes = vec![];
+            let writer = quick_xml::Writer::new_with_indent(&mut bytes, b' ', 4);
+            let mut ser = quick_xml::se::Serializer::with_root(writer, None);
+            config
+                .serialize(&mut ser)
+                .map_err(|e| Diagnostic::GeneralError {
+                    message: e.to_string(),
+                    err_no: ErrNo::general__io_err,
+                })
+                .and_then(|_| {
+                    String::from_utf8(bytes).map_err(|e| Diagnostic::GeneralError {
+                        message: e.to_string(),
+                        err_no: ErrNo::general__io_err,
+                    })
+                })
+        }
+        ConfigFormat::JSON => {
+            serde_json::to_string_pretty(&config).map_err(|e| Diagnostic::GeneralError {
+                message: e.to_string(),
+                err_no: ErrNo::general__io_err,
+            })
+        }
+        ConfigFormat::TOML => {
+            toml::ser::to_string_pretty(&config).map_err(|e| Diagnostic::GeneralError {
+                message: e.to_string(),
+                err_no: ErrNo::general__io_err,
+            })
+        }
+    }
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::test_utils::tests::index;
+    use crate::{
+        configuration::generate_hardware_configuration, test_utils::tests::index, ConfigFormat,
+    };
 
     use super::collect_hardware_configuration;
 
@@ -73,9 +222,14 @@ mod tests {
             a AT %I*: DWORD;
             b,c AT %QW2.5: WORD;
             d AT %Q* : ARRAY[0..10] OF DWORD;
+            x AT %Q* : INT;
+            y AT %QW1 : INT;
+            z AT %IW1.2 : INT;
         END_VAR",
         );
-        let config = collect_hardware_configuration(&index);
+        let config = collect_hardware_configuration(&index)
+            .unwrap()
+            .hardware_binding;
         insta::assert_debug_snapshot!(config);
     }
 
@@ -88,10 +242,15 @@ mod tests {
             a AT %I*: DWORD;
             b,c AT %QW2.5: WORD;
             d AT %Q* : ARRAY[0..10] OF DWORD;
+            x AT %Q* : INT;
+            y AT %QW1 : INT;
+            z AT %IW1.2 : INT;
         END_VAR
         END_PROGRAM",
         );
-        let config = collect_hardware_configuration(&index);
+        let config = collect_hardware_configuration(&index)
+            .unwrap()
+            .hardware_binding;
         insta::assert_debug_snapshot!(config);
     }
     #[test]
@@ -103,6 +262,9 @@ mod tests {
             a AT %I*: DWORD;
             b,c AT %QW2.5: WORD;
             d AT %Q* : ARRAY[0..10] OF DWORD;
+            x AT %Q* : INT;
+            y AT %QW1 : INT;
+            z AT %IW1.2 : INT;
         END_VAR
         END_FUNCTION_BLOCK
         VAR_GLOBAL
@@ -110,7 +272,70 @@ mod tests {
             aFb : ARRAY[0..2] OF fb;
         END_VAR",
         );
-        let config = collect_hardware_configuration(&index);
+        let config = collect_hardware_configuration(&index)
+            .unwrap()
+            .hardware_binding;
         insta::assert_debug_snapshot!(config);
+    }
+
+    #[test]
+    fn hardware_printed_fb_no_arrays() {
+        let (_, index) = index(
+            "
+        FUNCTION_BLOCK fb
+        VAR
+            a AT %I*: DWORD;
+            b,c AT %QW2.5: WORD;
+            x AT %Q* : INT;
+            y AT %QW1 : INT;
+            z AT %IW1.2 : INT;
+        END_VAR
+        END_FUNCTION_BLOCK
+        VAR_GLOBAL
+            gFb : fb;
+            aFb : ARRAY[0..2] OF fb;
+            aFb2 : ARRAY[0..2,1..2] OF fb;
+            aFb3 : ARRAY[0..2] OF ARRAY[1..2] OF fb;
+        END_VAR",
+        );
+        let config = collect_hardware_configuration(&index).unwrap();
+        let res = generate_hardware_configuration(&config, ConfigFormat::XML).unwrap();
+        insta::assert_snapshot!(res);
+        let res = generate_hardware_configuration(&config, ConfigFormat::JSON).unwrap();
+        insta::assert_snapshot!(res);
+        let res = generate_hardware_configuration(&config, ConfigFormat::TOML).unwrap();
+        insta::assert_snapshot!(res);
+    }
+
+    #[test]
+    fn hardware_printed_fb() {
+        let (_, index) = index(
+            "
+        FUNCTION_BLOCK fb
+        VAR
+            a AT %I*: DWORD;
+            b,c AT %QW2.5: WORD;
+            d AT %Q* : ARRAY[0..1] OF DWORD;
+            e AT %Q* : ARRAY[0..1,1..2] OF DWORD;
+            f AT %Q* : ARRAY[0..1] OF ARRAY[1..2] OF DWORD;
+            x AT %Q* : INT;
+            y AT %QW1 : INT;
+            z AT %IW1.2 : INT;
+        END_VAR
+        END_FUNCTION_BLOCK
+        VAR_GLOBAL
+            gFb : fb;
+            aFb : ARRAY[0..2] OF fb;
+            aFb2 : ARRAY[0..2,1..2] OF fb;
+            aFb3 : ARRAY[0..2] OF ARRAY[1..2] OF fb;
+        END_VAR",
+        );
+        let config = collect_hardware_configuration(&index).unwrap();
+        let res = generate_hardware_configuration(&config, ConfigFormat::XML).unwrap();
+        insta::assert_snapshot!(res);
+        let res = generate_hardware_configuration(&config, ConfigFormat::JSON).unwrap();
+        insta::assert_snapshot!(res);
+        let res = generate_hardware_configuration(&config, ConfigFormat::TOML).unwrap();
+        insta::assert_snapshot!(res);
     }
 }

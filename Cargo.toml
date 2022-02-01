@@ -24,7 +24,9 @@ lld_rs = { git = "https://github.com/ghaith/lld-rs", branch = "main" }
 generational-arena = "0.2.8"
 regex = "1"
 serde = { version = "1.0", features = ["derive"] }
-serde-xml-rs = "0.5"
+serde_json = "1"
+toml = "0.5"
+quick-xml = { version = "0.22", features = ["serialize"] }
 
 [dev-dependencies]
 num = "0.4"

@@ -1,7 +1,11 @@
 use std::{env, fs};
 
 use crate::get_test_file;
-use rusty::{build, diagnostics::Diagnostic, CompileOptions, FilePath, FormatOption, LinkOptions};
+use rusty::{
+    build, diagnostics::Diagnostic, get_target_triple, link, CompileOptions, FilePath, FormatOption,
+};
+
+static TARGET: Option<&str> = Some("x86_64-unkown-linux-gnu");
 
 #[test]
 fn link_as_shared_object() {
@@ -18,35 +22,43 @@ fn link_as_shared_object() {
     let mut out = env::temp_dir();
     out.push("shared2.o");
     let out2 = out.into_os_string().into_string().unwrap();
+    let triple = get_target_triple(TARGET);
 
     //Compile file 2 into obj
     build(
         vec![file2],
         vec![],
-        CompileOptions {
+        &CompileOptions {
             output: out2.clone(),
             format: FormatOption::Shared,
-            target: Some("x86_64-unkown-linux-gnu".to_string()),
+            target: TARGET.map(String::from),
         },
         None,
-        None,
+        &triple,
     )
     .unwrap();
 
     //Compile file1 as shared object with file2 as param
-    build(
+    let res = build(
         vec![file1, out2.as_str().into()],
         vec![],
-        CompileOptions {
+        &CompileOptions {
             output: out1.clone(),
             format: FormatOption::Shared,
-            target: Some("x86_64-unkown-linux-gnu".to_string()),
+            target: TARGET.map(String::from),
         },
-        Some(LinkOptions {
-            libraries: vec![],
-            library_pathes: vec![],
-            sysroot: None,
-        }),
+        None,
+        &triple,
+    )
+    .unwrap();
+
+    link(
+        &out1,
+        FormatOption::Shared,
+        &res.objects,
+        vec![],
+        vec![],
+        &triple,
         None,
     )
     .unwrap();
@@ -73,34 +85,42 @@ fn link_as_pic_object() {
     let out2 = out.into_os_string().into_string().unwrap();
 
     //Compile file 2 into obj
+    let triple = get_target_triple(TARGET);
 
     build(
         vec![file2],
         vec![],
-        CompileOptions {
+        &CompileOptions {
             output: out2.clone(),
             format: FormatOption::PIC,
-            target: Some("x86_64-unkown-linux-gnu".to_string()),
+            target: TARGET.map(String::from),
         },
         None,
-        None,
+        &triple,
     )
     .unwrap();
 
     //Compile file1 as shared object with file2 as param
-    build(
+    let res = build(
         vec![file1, out2.as_str().into()],
         vec![],
-        CompileOptions {
+        &CompileOptions {
             output: out1.clone(),
             format: FormatOption::PIC,
-            target: Some("x86_64-unkown-linux-gnu".to_string()),
+            target: TARGET.map(String::from),
         },
-        Some(LinkOptions {
-            libraries: vec![],
-            library_pathes: vec![],
-            sysroot: None,
-        }),
+        None,
+        &triple,
+    )
+    .unwrap();
+
+    link(
+        &out1,
+        FormatOption::PIC,
+        &res.objects,
+        vec![],
+        vec![],
+        &triple,
         None,
     )
     .unwrap();
@@ -127,34 +147,42 @@ fn link_as_static_object() {
     let out2 = out.into_os_string().into_string().unwrap();
 
     //Compile file 2 into obj
+    let triple = get_target_triple(TARGET);
 
     build(
         vec![file2],
         vec![],
-        CompileOptions {
+        &CompileOptions {
             output: out2.clone(),
             format: FormatOption::Static,
-            target: Some("x86_64-unkown-linux-gnu".to_string()),
+            target: TARGET.map(String::from),
         },
         None,
-        None,
+        &triple,
     )
     .unwrap();
 
     //Compile file1 as shared object with file2 as param
-    build(
+    let res = build(
         vec![file1, out2.as_str().into()],
         vec![],
-        CompileOptions {
+        &CompileOptions {
             output: out1.clone(),
             format: FormatOption::Static,
-            target: Some("x86_64-unkown-linux-gnu".to_string()),
+            target: TARGET.map(String::from),
         },
-        Some(LinkOptions {
-            libraries: vec![],
-            library_pathes: vec![],
-            sysroot: None,
-        }),
+        None,
+        &triple,
+    )
+    .unwrap();
+
+    link(
+        &out1,
+        FormatOption::Static,
+        &res.objects,
+        vec![],
+        vec![],
+        &triple,
         None,
     )
     .unwrap();
@@ -181,34 +209,42 @@ fn link_as_relocatable_object() {
     let out2 = out.into_os_string().into_string().unwrap();
 
     //Compile file 2 into obj
+    let triple = get_target_triple(TARGET);
 
     build(
         vec![file2],
         vec![],
-        CompileOptions {
+        &CompileOptions {
             output: out2.clone(),
             format: FormatOption::Static,
-            target: Some("x86_64-unkown-linux-gnu".to_string()),
+            target: TARGET.map(String::from),
         },
         None,
-        None,
+        &triple,
     )
     .unwrap();
 
     //Compile file1 as shared object with file2 as param
-    build(
+    let res = build(
         vec![file1, out2.as_str().into()],
         vec![],
-        CompileOptions {
+        &CompileOptions {
             output: out1.clone(),
             format: FormatOption::Relocatable,
-            target: Some("x86_64-unkown-linux-gnu".to_string()),
+            target: TARGET.map(String::from),
         },
-        Some(LinkOptions {
-            libraries: vec![],
-            library_pathes: vec![],
-            sysroot: None,
-        }),
+        None,
+        &triple,
+    )
+    .unwrap();
+
+    link(
+        &out1,
+        FormatOption::Relocatable,
+        &res.objects,
+        vec![],
+        vec![],
+        &triple,
         None,
     )
     .unwrap();
@@ -226,20 +262,28 @@ fn link_missing_file() {
     let mut out = env::temp_dir();
     out.push("missing.o");
     let out = out.into_os_string().into_string().unwrap();
+    let triple = get_target_triple(TARGET);
     //Compile file1 as shared object with file2 as param
     let res = build(
         vec![file1],
         vec![],
-        CompileOptions {
+        &CompileOptions {
             output: out.clone(),
             format: FormatOption::Static,
-            target: Some("x86_64-unkown-linux-gnu".to_string()),
+            target: TARGET.map(String::from),
         },
-        Some(LinkOptions {
-            libraries: vec![],
-            library_pathes: vec![],
-            sysroot: None,
-        }),
+        None,
+        &triple,
+    )
+    .unwrap();
+
+    let res = link(
+        &out,
+        FormatOption::Static,
+        &res.objects,
+        vec![],
+        vec![],
+        &triple,
         None,
     );
 

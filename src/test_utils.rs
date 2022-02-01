@@ -1,16 +1,19 @@
 #[cfg(test)]
 pub mod tests {
 
+    use encoding_rs::Encoding;
+    use inkwell::context::Context;
+
     use crate::{
         ast::{self, CompilationUnit},
-        diagnostics::Diagnostic,
+        diagnostics::{Diagnostic, Diagnostician},
         index::{self, Index},
         lexer::{self, IdProvider},
         parser,
         resolver::{
             const_evaluator::evaluate_constants, AnnotationMapImpl, AstAnnotations, TypeAnnotator,
         },
-        Validator,
+        SourceContainer, Validator,
     };
 
     pub fn parse(src: &str) -> (CompilationUnit, Vec<Diagnostic>) {
@@ -85,5 +88,16 @@ pub mod tests {
     pub fn generate_with_empty_program(src: &str) -> String {
         let source = format!("{} {}", "PROGRAM main END_PROGRAM", src);
         codegen(source.as_str())
+    }
+
+    pub fn compile_to_string<T: SourceContainer>(
+        sources: Vec<T>,
+        includes: Vec<T>,
+        encoding: Option<&'static Encoding>,
+        diagnostician: Diagnostician,
+    ) -> Result<String, Diagnostic> {
+        let context = Context::create();
+        let (_, cg) = crate::compile_module(&context, sources, includes, encoding, diagnostician)?;
+        Ok(cg.module.print_to_string().to_string())
     }
 }

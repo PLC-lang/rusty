@@ -75,7 +75,7 @@ pub fn run<T, U>(exec_engine: &ExecutionEngine, name: &str, params: &mut T) -> U
 ///
 pub fn compile<T: Compilable>(context: &Context, source: T) -> ExecutionEngine {
     let source = source.containers();
-    let code_gen = compile_module(
+    let (_, code_gen) = compile_module(
         context,
         source,
         vec![],

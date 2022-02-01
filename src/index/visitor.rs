@@ -160,7 +160,7 @@ pub fn visit_pou(index: &mut Index, pou: &Pou) {
             .set_constant(true);
             index.register_global_initializer(&global_struct_name, variable);
         }
-        _ => {},
+        _ => {}
     };
 }
 
@@ -222,7 +222,11 @@ fn visit_global_var_block(index: &mut Index, block: &VariableBlock) {
         .set_initial_value(initializer)
         .set_constant(block.constant)
         .set_linkage(linkage)
-        .set_hardware_binding(var.address.as_ref().and_then(|it| HardwareBinding::from_statement(index, it, None)));
+        .set_hardware_binding(
+            var.address
+                .as_ref()
+                .and_then(|it| HardwareBinding::from_statement(index, it, None)),
+        );
         index.register_global_variable(&var.name, variable);
     }
 }
@@ -528,7 +532,7 @@ fn visit_data_type(
 
             let size = match size {
                 Some(AstStatement::LiteralInteger { value, .. }) => {
-                    TypeSize::from_literal((value + 1) as u32)
+                    TypeSize::from_literal((value + 1) as i64)
                 }
                 Some(statement) => {
                     // construct a "x + 1" expression because we need one additional character for \0 terminator
@@ -551,7 +555,7 @@ fn visit_data_type(
                         ),
                     )
                 }
-                None => TypeSize::from_literal(DEFAULT_STRING_LEN + 1),
+                None => TypeSize::from_literal((DEFAULT_STRING_LEN + 1).into()),
             };
             let information = DataTypeInformation::String { size, encoding };
             let init = index
