@@ -745,6 +745,8 @@
 <span id="745">745</span>
 <span id="746">746</span>
 <span id="747">747</span>
+<span id="748">748</span>
+<span id="749">749</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 <span class="doccomment">//! A Structured Text LLVM Frontent</span>
 <span class="doccomment">//!</span>
@@ -780,7 +782,7 @@
     <span class="ident">CodeModel</span>, <span class="ident">FileType</span>, <span class="ident">InitializationConfig</span>, <span class="ident">RelocMode</span>, <span class="ident">Target</span>, <span class="ident">TargetMachine</span>, <span class="ident">TargetTriple</span>,
 };
 <span class="kw">use</span> <span class="ident">lexer::IdProvider</span>;
-<span class="kw">use</span> <span class="ident">resolver::AstAnnotations</span>;
+<span class="kw">use</span> <span class="ident">resolver</span>::{<span class="ident">AstAnnotations</span>, <span class="ident">StringLiterals</span>};
 <span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">fs::File</span>, <span class="ident">io::Read</span>};
 <span class="kw">use</span> <span class="ident">validation::Validator</span>;
 
@@ -1177,8 +1179,9 @@
     <span class="comment">// annotation &amp; validation everything</span>
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">annotated_units</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">CompilationUnit</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">all_annotations</span> <span class="op">=</span> <span class="ident">AnnotationMapImpl::default</span>();
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">all_literals</span> <span class="op">=</span> <span class="ident">StringLiterals::default</span>();
     <span class="kw">for</span> (<span class="ident">file_id</span>, <span class="ident">syntax_errors</span>, <span class="ident">unit</span>) <span class="kw">in</span> <span class="ident">all_units</span>.<span class="ident">into_iter</span>() {
-        <span class="kw">let</span> <span class="ident">annotations</span> <span class="op">=</span> <span class="ident">TypeAnnotator::visit_unit</span>(<span class="kw-2">&amp;</span><span class="ident">full_index</span>, <span class="kw-2">&amp;</span><span class="ident">unit</span>);
+        <span class="kw">let</span> (<span class="ident">annotations</span>, <span class="ident">string_literals</span>) <span class="op">=</span> <span class="ident">TypeAnnotator::visit_unit</span>(<span class="kw-2">&amp;</span><span class="ident">full_index</span>, <span class="kw-2">&amp;</span><span class="ident">unit</span>);
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">validator</span> <span class="op">=</span> <span class="ident">Validator::new</span>();
         <span class="ident">validator</span>.<span class="ident">visit_unit</span>(<span class="kw-2">&amp;</span><span class="ident">annotations</span>, <span class="kw-2">&amp;</span><span class="ident">full_index</span>, <span class="kw-2">&amp;</span><span class="ident">unit</span>);
@@ -1188,6 +1191,7 @@
 
         <span class="ident">annotated_units</span>.<span class="ident">push</span>(<span class="ident">unit</span>);
         <span class="ident">all_annotations</span>.<span class="ident">import</span>(<span class="ident">annotations</span>);
+        <span class="ident">all_literals</span>.<span class="ident">import</span>(<span class="ident">string_literals</span>);
     }
 
     <span class="comment">//Merge the new indices with the full index</span>
@@ -1199,7 +1203,7 @@
 
     <span class="kw">let</span> <span class="ident">annotations</span> <span class="op">=</span> <span class="ident">AstAnnotations::new</span>(<span class="ident">all_annotations</span>, <span class="ident">id_provider</span>.<span class="ident">next_id</span>());
     <span class="comment">//Associate the index type with LLVM types</span>
-    <span class="kw">let</span> <span class="ident">llvm_index</span> <span class="op">=</span> <span class="ident">code_generator</span>.<span class="ident">generate_llvm_index</span>(<span class="kw-2">&amp;</span><span class="ident">annotations</span>, <span class="kw-2">&amp;</span><span class="ident">full_index</span>)<span class="question-mark">?</span>;
+    <span class="kw">let</span> <span class="ident">llvm_index</span> <span class="op">=</span> <span class="ident">code_generator</span>.<span class="ident">generate_llvm_index</span>(<span class="kw-2">&amp;</span><span class="ident">annotations</span>, <span class="ident">all_literals</span>, <span class="kw-2">&amp;</span><span class="ident">full_index</span>)<span class="question-mark">?</span>;
     <span class="kw">for</span> <span class="ident">unit</span> <span class="kw">in</span> <span class="ident">annotated_units</span> {
         <span class="ident">code_generator</span>.<span class="ident">generate</span>(<span class="kw-2">&amp;</span><span class="ident">unit</span>, <span class="kw-2">&amp;</span><span class="ident">annotations</span>, <span class="kw-2">&amp;</span><span class="ident">full_index</span>, <span class="kw-2">&amp;</span><span class="ident">llvm_index</span>)<span class="question-mark">?</span>;
     }

@@ -568,7 +568,7 @@
 <span class="doccomment">/// Returns a new LLVM index to be merged with the parent codegen index.</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">generate_global_constants_for_pou_members</span><span class="op">&lt;</span><span class="lifetime">&#39;ink</span><span class="op">&gt;</span>(
     <span class="ident">module</span>: <span class="kw-2">&amp;</span><span class="ident">Module</span><span class="op">&lt;</span><span class="lifetime">&#39;ink</span><span class="op">&gt;</span>,
-    <span class="ident">llvm</span>: <span class="ident">Llvm</span><span class="op">&lt;</span><span class="lifetime">&#39;ink</span><span class="op">&gt;</span>,
+    <span class="ident">llvm</span>: <span class="kw-2">&amp;</span><span class="ident">Llvm</span><span class="op">&lt;</span><span class="lifetime">&#39;ink</span><span class="op">&gt;</span>,
     <span class="ident">index</span>: <span class="kw-2">&amp;</span><span class="ident">Index</span>,
     <span class="ident">annotations</span>: <span class="kw-2">&amp;</span><span class="ident">AstAnnotations</span>,
     <span class="ident">llvm_index</span>: <span class="kw-2">&amp;</span><span class="ident">LlvmTypedIndex</span><span class="op">&lt;</span><span class="lifetime">&#39;ink</span><span class="op">&gt;</span>,
@@ -587,7 +587,7 @@
                 <span class="ident">var_type</span>.<span class="ident">is_struct</span>() <span class="op">|</span><span class="op">|</span> <span class="ident">var_type</span>.<span class="ident">is_array</span>() <span class="op">|</span><span class="op">|</span> <span class="ident">var_type</span>.<span class="ident">is_string</span>()
             });
         <span class="kw">let</span> <span class="ident">exp_gen</span> <span class="op">=</span>
-            <span class="ident">ExpressionCodeGenerator::new_context_free</span>(<span class="kw-2">&amp;</span><span class="ident">llvm</span>, <span class="ident">index</span>, <span class="ident">annotations</span>, <span class="ident">llvm_index</span>);
+            <span class="ident">ExpressionCodeGenerator::new_context_free</span>(<span class="ident">llvm</span>, <span class="ident">index</span>, <span class="ident">annotations</span>, <span class="ident">llvm_index</span>);
         <span class="kw">for</span> <span class="ident">variable</span> <span class="kw">in</span> <span class="ident">variables</span> {
             <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="ident">index::get_initializer_name</span>(<span class="ident">variable</span>.<span class="ident">get_qualified_name</span>());
             <span class="kw">let</span> <span class="ident">right_stmt</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">variable</span>.<span class="ident">initial_value</span> {
@@ -871,21 +871,22 @@
         <span class="ident">variables</span>: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><span class="ident">VariableIndexEntry</span>],
         <span class="ident">local_llvm_index</span>: <span class="kw-2">&amp;</span><span class="ident">LlvmTypedIndex</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">variables_with_initializers</span> <span class="op">=</span>
-            <span class="ident">variables</span>.<span class="ident">iter</span>().<span class="ident">filter</span>(<span class="op">|</span><span class="ident">it</span><span class="op">|</span> <span class="ident">it</span>.<span class="ident">is_local</span>() <span class="op">|</span><span class="op">|</span> <span class="ident">it</span>.<span class="ident">is_temp</span>());
+        <span class="kw">let</span> <span class="ident">variables_with_initializers</span> <span class="op">=</span> <span class="ident">variables</span>
+            .<span class="ident">iter</span>()
+            .<span class="ident">filter</span>(<span class="op">|</span><span class="ident">it</span><span class="op">|</span> <span class="ident">it</span>.<span class="ident">is_local</span>() <span class="op">|</span><span class="op">|</span> <span class="ident">it</span>.<span class="ident">is_temp</span>() <span class="op">|</span><span class="op">|</span> <span class="ident">it</span>.<span class="ident">is_return</span>());
+
+        <span class="kw">let</span> <span class="ident">exp_gen</span> <span class="op">=</span> <span class="ident">ExpressionCodeGenerator::new_context_free</span>(
+            <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">llvm</span>,
+            <span class="self">self</span>.<span class="ident">index</span>,
+            <span class="self">self</span>.<span class="ident">annotations</span>,
+            <span class="ident">local_llvm_index</span>,
+        );
 
         <span class="kw">for</span> <span class="ident">variable</span> <span class="kw">in</span> <span class="ident">variables_with_initializers</span> {
             <span class="comment">//get the loaded_ptr for the parameter and store right in it</span>
             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">left</span>) <span class="op">=</span> <span class="ident">local_llvm_index</span>
                 .<span class="ident">find_loaded_associated_variable_value</span>(<span class="ident">variable</span>.<span class="ident">get_qualified_name</span>())
             {
-                <span class="kw">let</span> <span class="ident">exp_gen</span> <span class="op">=</span> <span class="ident">ExpressionCodeGenerator::new_context_free</span>(
-                    <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">llvm</span>,
-                    <span class="self">self</span>.<span class="ident">index</span>,
-                    <span class="self">self</span>.<span class="ident">annotations</span>,
-                    <span class="ident">local_llvm_index</span>,
-                );
-
                 <span class="kw">let</span> <span class="ident">right_stmt</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">variable</span>.<span class="ident">initial_value</span> {
                     <span class="prelude-val">Some</span>(..) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(
                         <span class="self">self</span>.<span class="ident">index</span>
@@ -900,7 +901,6 @@
                     ),
                     <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
                 };
-
                 <span class="comment">// for initializations we might have a global variable with the initial values</span>
                 <span class="comment">// the idea is to memcpy the global variable</span>
                 <span class="kw">let</span> <span class="ident">size</span> <span class="op">=</span> <span class="self">self</span>
