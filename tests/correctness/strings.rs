@@ -84,13 +84,15 @@ fn string_assignment_from_bigger_string() {
     };
 
     let _: i32 = compile_and_run(src, &mut main_type);
-    assert_eq!("hello".as_bytes(), &main_type.x); //TODO: Should this be "hell\0"?
+    assert_eq!("hell\0".as_bytes(), &main_type.x);
 }
 
 #[test]
 fn string_assignment_from_smaller_function() {
     let src = "
-        FUNCTION hello : STRING[5]
+        TYPE ReturnString : STRING[5] := ''; END_TYPE
+
+        FUNCTION hello : ReturnString
         hello := 'hello';
         END_FUNCTION
 
@@ -130,7 +132,7 @@ fn string_assignment_from_bigger_function() {
     let mut main_type = MainType { x: [0; 5] };
 
     let _: i32 = compile_and_run(src, &mut main_type);
-    assert_eq!("hello".as_bytes(), &main_type.x); //TODO: Should this be "hell\0"?
+    assert_eq!("hell\0".as_bytes(), &main_type.x);
 }
 
 #[test]

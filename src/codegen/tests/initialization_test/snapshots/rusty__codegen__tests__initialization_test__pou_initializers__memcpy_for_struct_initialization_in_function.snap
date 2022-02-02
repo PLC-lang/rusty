@@ -18,6 +18,7 @@ entry:
   %func = alloca i16, align 2
   %1 = bitcast %__func_a* %a to i8*
   call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %1, i8* align 1 bitcast (%__func_a* @__func_a__init to i8*), i64 ptrtoint (i16* getelementptr (i16, i16* null, i32 1) to i64), i1 false)
+  store i16 0, i16* %func, align 2
   %func_ret = load i16, i16* %func, align 2
   ret i16 %func_ret
 }

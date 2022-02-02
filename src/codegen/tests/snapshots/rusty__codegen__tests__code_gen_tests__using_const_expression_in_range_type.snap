@@ -1,5 +1,6 @@
 ---
 source: src/codegen/tests/code_gen_tests.rs
+assertion_line: 2623
 expression: result
 
 ---
@@ -19,6 +20,7 @@ entry:
   %lower = getelementptr inbounds %CheckRangeSigned_interface, %CheckRangeSigned_interface* %0, i32 0, i32 1
   %upper = getelementptr inbounds %CheckRangeSigned_interface, %CheckRangeSigned_interface* %0, i32 0, i32 2
   %CheckRangeSigned = alloca i16, align 2
+  store i16 0, i16* %CheckRangeSigned, align 2
   %load_value = load i16, i16* %value, align 2
   store i16 %load_value, i16* %CheckRangeSigned, align 2
   %CheckRangeSigned_ret = load i16, i16* %CheckRangeSigned, align 2

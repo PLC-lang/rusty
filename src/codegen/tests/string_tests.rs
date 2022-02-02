@@ -6,6 +6,7 @@ use crate::{
 
 #[test]
 fn variable_string_assignment_test() {
+    // GIVEN some string assignments
     let result = codegen(
         r"
 PROGRAM prg
@@ -16,6 +17,24 @@ PROGRAM prg
    
    y := z;
    z := y;
+END_PROGRAM
+    ",
+    );
+
+    // THEN we dont want that y := z will overwrite the last byte of the y-vector (null-terminator)
+    insta::assert_snapshot!(result);
+}
+
+#[test]
+fn vartmp_string_init_test() {
+    let result = codegen(
+        r"
+PROGRAM prg
+   VAR_TEMP
+      y : STRING[15];
+      z : STRING[30] := 'xyz';
+   END_VAR
+   
 END_PROGRAM
     ",
     );
@@ -202,5 +221,36 @@ fn nested_struct_initialization_of_multi_dim_string_arrays() {
         VAR_GLOBAL x : CONSTANTS_LANGUAGE; END_VAR
         "#,
     );
+    insta::assert_snapshot!(result);
+}
+
+#[test]
+fn string_function_parameters() {
+    let result = codegen(
+        r#"
+        FUNCTION foo: INT
+            VAR_INPUT
+                s : STRING;
+            END_VAR
+        
+            RETURN 0;
+        END_PROGRAM
+
+
+        PROGRAM prg
+            VAR
+                s : STRING[10] := 'hello';
+                a : STRING;
+            END_VAR
+
+            a := s;
+            a := 'hello';
+            foo(s);
+            foo('hello');
+        END_PROGRAM
+
+        "#,
+    );
+
     insta::assert_snapshot!(result);
 }

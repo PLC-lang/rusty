@@ -26,6 +26,7 @@ entry:
   %func = alloca i32, align 4
   %1 = bitcast %fb_interface* %x to i8*
   call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %1, i8* align 1 bitcast (%fb_interface* @fb__init to i8*), i64 0, i1 false)
+  store i32 0, i32* %func, align 4
   %func_ret = load i32, i32* %func, align 4
   ret i32 %func_ret
 }

@@ -697,18 +697,23 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                         .find_input_parameter(function_name, index as u32)
                         .and_then(|var| self.index.find_effective_type(var.get_type_name()))
                 })
-                .map(|var| var.get_type_information());
-            let generated_exp = if let Some(DataTypeInformation::Pointer {
+                .map(|var| var.get_type_information())
+                .unwrap_or_else(|| self.index.get_void_type().get_type_information());
+
+            if let DataTypeInformation::Pointer {
                 auto_deref: true, ..
-            }) = parameter
+            } = parameter
             {
                 //this is VAR_IN_OUT assignemt, so don't load the value, assign the pointer
-                self.generate_element_pointer(expression)?
-                    .as_basic_value_enum()
+                let generated_exp = self
+                    .generate_element_pointer(expression)?
+                    .as_basic_value_enum();
+
+                builder.build_store(pointer_to_param, generated_exp);
             } else {
-                self.generate_expression(expression)?
+                self.generate_store(parameter, expression, pointer_to_param)?;
             };
-            builder.build_store(pointer_to_param, generated_exp);
+
             Ok(None)
         } else {
             Ok(Some(self.generate_expression(expression)?))
@@ -1519,22 +1524,37 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
 
                         match encoding {
                             StringEncoding::Utf8 => {
-                                //note that .len() will give us the number of bytes, not the number of characters
-                                let actual_length = value.chars().count() + 1; // +1 to account for a final \0
-                                let str_len = std::cmp::min(
-                                    (self.string_len_provider)(declared_length, actual_length),
-                                    declared_length,
-                                );
-                                self.llvm.create_const_utf8_string(value.as_str(), str_len)
+                                let literal = self.llvm_index.find_utf08_literal_string(value);
+                                if literal.is_some() && self.function_context.is_some() {
+                                    //global constant string
+                                    Ok(literal.map(|it| it.as_basic_value_enum()).unwrap())
+                                } else {
+                                    //note that .len() will give us the number of bytes, not the number of characters
+                                    let actual_length = value.chars().count() + 1; // +1 to account for a final \0
+                                    let str_len = std::cmp::min(
+                                        (self.string_len_provider)(declared_length, actual_length),
+                                        declared_length,
+                                    );
+                                    self.llvm.create_const_utf8_string(value.as_str(), str_len)
+                                }
                             }
                             StringEncoding::Utf16 => {
-                                //note that .len() will give us the number of bytes, not the number of characters
-                                let actual_length = value.encode_utf16().count() + 1; // +1 to account for a final \0
-                                let str_len = std::cmp::min(
-                                    (self.string_len_provider)(declared_length, actual_length),
-                                    declared_length,
-                                );
-                                self.llvm.create_const_utf16_string(value.as_str(), str_len)
+                                let literal = self.llvm_index.find_utf16_literal_string(value);
+                                if literal.is_some()
+                                    && self.function_context.is_some()
+                                    && self.function_context.is_some()
+                                {
+                                    //global constant string
+                                    Ok(literal.map(|it| it.as_basic_value_enum()).unwrap())
+                                } else {
+                                    //note that .len() will give us the number of bytes, not the number of characters
+                                    let actual_length = value.encode_utf16().count() + 1; // +1 to account for a final \0
+                                    let str_len = std::cmp::min(
+                                        (self.string_len_provider)(declared_length, actual_length),
+                                        declared_length,
+                                    );
+                                    self.llvm.create_const_utf16_string(value.as_str(), str_len)
+                                }
                             }
                         }
                     }
@@ -2028,6 +2048,85 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                     binary_statement.get_location(),
                 )
             })
+    }
+
+    pub fn generate_store(
+        &self,
+        left_type: &DataTypeInformation,
+        right_statement: &AstStatement,
+        left: inkwell::values::PointerValue,
+    ) -> Result<(), Diagnostic> {
+        let right_type = self
+            .annotations
+            .get_type_or_void(right_statement, self.index)
+            .get_type_information();
+
+        //Special string handling
+        if left_type.is_string() && right_type.is_string()
+        //string-literals are also generated as global constant variables so we can always assume that
+        //we have a pointer-value
+        {
+            let right = match right_statement {
+                AstStatement::QualifiedReference { .. } | AstStatement::Reference { .. } => {
+                    self.generate_element_pointer(right_statement)?
+                }
+                _ => {
+                    let expression = self.generate_expression(right_statement)?;
+
+                    if expression.is_pointer_value() {
+                        expression.into_pointer_value()
+                    } else {
+                        //TODO should this ever happen?
+                        let right = self.llvm.builder.build_alloca(expression.get_type(), "");
+                        self.llvm.builder.build_store(right, expression);
+
+                        right
+                    }
+                }
+            };
+            let target_size = self.get_string_size(left_type, right_statement.get_location())?; //we report error on parameter :-/
+            let value_size = self.get_string_size(right_type, right_statement.get_location())?;
+            let size = std::cmp::min(target_size - 1, value_size) as i64;
+            let align_left = left_type.get_alignment();
+            let align_right = right_type.get_alignment();
+            self.llvm
+                .builder
+                .build_memcpy(
+                    left,
+                    align_left,
+                    right,
+                    align_right,
+                    self.llvm.context.i32_type().const_int(size as u64, true),
+                )
+                .map_err(|err| Diagnostic::codegen_error(err, right_statement.get_location()))?;
+
+            // if we didnt write the whole string, we need to ensure the ending 0-byte
+            // self.llvm.builder.build_store(self.llvm.builder.build_gep(
+            //     left,
+            //     self.llvm.i32_type().const_int(size + 1, false),
+            //     "null_terminator",
+            // ), self.get_null_terminator(left_type, left_statement.get_location()));
+        } else {
+            let expression = self.generate_expression(right_statement)?;
+            self.llvm.builder.build_store(left, expression);
+        }
+        Ok(())
+    }
+
+    fn get_string_size(
+        &self,
+        datatype: &DataTypeInformation,
+        location: SourceRange,
+    ) -> Result<i64, Diagnostic> {
+        if let DataTypeInformation::String { size, .. } = datatype {
+            size.as_int_value(self.index)
+                .map_err(|err| Diagnostic::codegen_error(err.as_str(), location))
+        } else {
+            Err(Diagnostic::codegen_error(
+                format!("{} is not a String", datatype.get_name()).as_str(),
+                location,
+            ))
+        }
     }
 }
 

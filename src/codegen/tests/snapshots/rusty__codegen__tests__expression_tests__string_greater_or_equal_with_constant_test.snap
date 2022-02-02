@@ -11,11 +11,14 @@ source_filename = "main"
 %STRING_EQUAL_interface = type { [1025 x i8], [1025 x i8] }
 %baz_interface = type { [81 x i8], [81 x i8], i8 }
 
+@utf08_literal_0 = unnamed_addr constant [2 x i8] c"b\00"
+
 define i8 @STRING_GREATER(%STRING_GREATER_interface* %0) {
 entry:
   %op1 = getelementptr inbounds %STRING_GREATER_interface, %STRING_GREATER_interface* %0, i32 0, i32 0
   %op2 = getelementptr inbounds %STRING_GREATER_interface, %STRING_GREATER_interface* %0, i32 0, i32 1
   %STRING_GREATER = alloca i8, align 1
+  store i8 0, i8* %STRING_GREATER, align 1
   %STRING_GREATER_ret = load i8, i8* %STRING_GREATER, align 1
   ret i8 %STRING_GREATER_ret
 }
@@ -25,6 +28,7 @@ entry:
   %op1 = getelementptr inbounds %STRING_EQUAL_interface, %STRING_EQUAL_interface* %0, i32 0, i32 0
   %op2 = getelementptr inbounds %STRING_EQUAL_interface, %STRING_EQUAL_interface* %0, i32 0, i32 1
   %STRING_EQUAL = alloca i8, align 1
+  store i8 0, i8* %STRING_EQUAL, align 1
   %STRING_EQUAL_ret = load i8, i8* %STRING_EQUAL, align 1
   ret i8 %STRING_EQUAL_ret
 }
@@ -40,6 +44,7 @@ entry:
   %2 = bitcast [81 x i8]* %b to i8*
   call void @llvm.memset.p0i8.i64(i8* align 1 %2, i8 0, i64 mul nuw (i64 ptrtoint (i8* getelementptr (i8, i8* null, i32 1) to i64), i64 81), i1 false)
   store i8 0, i8* %result, align 1
+  store i16 0, i16* %baz, align 2
   %STRING_EQUAL_instance = alloca %STRING_EQUAL_interface, align 8
   br label %input
 
@@ -48,17 +53,19 @@ entry:
   br label %input2
 
 4:                                                ; preds = %continue5, %continue
-  %5 = phi i8 [ %call1, %continue ], [ %call7, %continue5 ]
+  %5 = phi i8 [ %call1, %continue ], [ %call6, %continue5 ]
   store i8 %5, i8* %result, align 1
   %baz_ret = load i16, i16* %baz, align 2
   ret i16 %baz_ret
 
 input:                                            ; preds = %entry
   %6 = getelementptr inbounds %STRING_EQUAL_interface, %STRING_EQUAL_interface* %STRING_EQUAL_instance, i32 0, i32 0
-  %load_a = load [81 x i8], [81 x i8]* %a, align 1
-  store [81 x i8] %load_a, [1025 x i8]* %6, align 1
-  %7 = getelementptr inbounds %STRING_EQUAL_interface, %STRING_EQUAL_interface* %STRING_EQUAL_instance, i32 0, i32 1
-  store [2 x i8] c"b\00", [1025 x i8]* %7, align 1
+  %7 = bitcast [1025 x i8]* %6 to i8*
+  %8 = bitcast [81 x i8]* %a to i8*
+  call void @llvm.memcpy.p0i8.p0i8.i32(i8* align 1 %7, i8* align 1 %8, i32 81, i1 false)
+  %9 = getelementptr inbounds %STRING_EQUAL_interface, %STRING_EQUAL_interface* %STRING_EQUAL_instance, i32 0, i32 1
+  %10 = bitcast [1025 x i8]* %9 to i8*
+  call void @llvm.memcpy.p0i8.p0i8.i32(i8* align 1 %10, i8* align 1 getelementptr inbounds ([2 x i8], [2 x i8]* @utf08_literal_0, i32 0, i32 0), i32 2, i1 false)
   br label %call
 
 call:                                             ; preds = %input
@@ -69,19 +76,21 @@ output:                                           ; preds = %call
   br label %continue
 
 continue:                                         ; preds = %output
-  %8 = icmp ne i8 %call1, 0
-  br i1 %8, label %4, label %3
+  %11 = icmp ne i8 %call1, 0
+  br i1 %11, label %4, label %3
 
 input2:                                           ; preds = %3
-  %9 = getelementptr inbounds %STRING_GREATER_interface, %STRING_GREATER_interface* %STRING_GREATER_instance, i32 0, i32 0
-  %load_a6 = load [81 x i8], [81 x i8]* %a, align 1
-  store [81 x i8] %load_a6, [1025 x i8]* %9, align 1
-  %10 = getelementptr inbounds %STRING_GREATER_interface, %STRING_GREATER_interface* %STRING_GREATER_instance, i32 0, i32 1
-  store [2 x i8] c"b\00", [1025 x i8]* %10, align 1
+  %12 = getelementptr inbounds %STRING_GREATER_interface, %STRING_GREATER_interface* %STRING_GREATER_instance, i32 0, i32 0
+  %13 = bitcast [1025 x i8]* %12 to i8*
+  %14 = bitcast [81 x i8]* %a to i8*
+  call void @llvm.memcpy.p0i8.p0i8.i32(i8* align 1 %13, i8* align 1 %14, i32 81, i1 false)
+  %15 = getelementptr inbounds %STRING_GREATER_interface, %STRING_GREATER_interface* %STRING_GREATER_instance, i32 0, i32 1
+  %16 = bitcast [1025 x i8]* %15 to i8*
+  call void @llvm.memcpy.p0i8.p0i8.i32(i8* align 1 %16, i8* align 1 getelementptr inbounds ([2 x i8], [2 x i8]* @utf08_literal_0, i32 0, i32 0), i32 2, i1 false)
   br label %call3
 
 call3:                                            ; preds = %input2
-  %call7 = call i8 @STRING_GREATER(%STRING_GREATER_interface* %STRING_GREATER_instance)
+  %call6 = call i8 @STRING_GREATER(%STRING_GREATER_interface* %STRING_GREATER_instance)
   br label %output4
 
 output4:                                          ; preds = %call3
@@ -94,5 +103,9 @@ continue5:                                        ; preds = %output4
 ; Function Attrs: argmemonly nofree nosync nounwind willreturn writeonly
 declare void @llvm.memset.p0i8.i64(i8* nocapture writeonly, i8, i64, i1 immarg) #0
 
+; Function Attrs: argmemonly nofree nosync nounwind willreturn
+declare void @llvm.memcpy.p0i8.p0i8.i32(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i32, i1 immarg) #1
+
 attributes #0 = { argmemonly nofree nosync nounwind willreturn writeonly }
+attributes #1 = { argmemonly nofree nosync nounwind willreturn }
 

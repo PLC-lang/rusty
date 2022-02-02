@@ -8,7 +8,7 @@ use crate::{
     codegen::LlvmTypedIndex,
     diagnostics::{Diagnostic, INTERNAL_LLVM_ERROR},
     index::{ImplementationIndexEntry, Index},
-    resolver::{AnnotationMap, AstAnnotations},
+    resolver::AstAnnotations,
     typesystem::{
         self, DataTypeInformation, RANGE_CHECK_LS_FN, RANGE_CHECK_LU_FN, RANGE_CHECK_S_FN,
         RANGE_CHECK_U_FN,
@@ -204,6 +204,8 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         let range_checked_right_side =
             if let DataTypeInformation::SubRange { sub_range, .. } = left_type {
                 // there is a sub-range defined, so we need to wrap the right side into the check function if it exists
+
+                //TODO move this to generate_store
                 self.find_range_check_implementation_for(left_type)
                     .map(|implementation| {
                         create_call_to_check_function_ast(
@@ -219,68 +221,9 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
             };
 
         let right_statement = range_checked_right_side.as_ref().unwrap_or(right_statement);
-        //Get the original expression type, not its hint
-        let right_type = self
-            .annotations
-            .get_type_or_void(right_statement, self.index)
-            .get_type_information();
-        //Special string handling
-        if left_type.is_string()
-            && right_type.is_string() &&
-                //Only handle assignments and references here, we have no chance of handling other
-                //types
-            matches!(right_statement,
-                AstStatement::QualifiedReference {..} | AstStatement::Reference{..} | AstStatement::CallStatement{..})
-        {
-            let right = match right_statement {
-                AstStatement::QualifiedReference { .. } | AstStatement::Reference { .. } => {
-                    exp_gen.generate_element_pointer(right_statement)?
-                }
-                _ => {
-                    let expression = exp_gen.generate_expression(right_statement)?;
-                    let right = self.llvm.builder.build_alloca(expression.get_type(), "");
-                    self.llvm.builder.build_store(right, expression);
 
-                    right
-                }
-            };
-            let target_size = self.get_string_size(left_type, left_statement.get_location())?;
-            let value_size = self.get_string_size(right_type, right_statement.get_location())?;
-            let size = std::cmp::min(target_size, value_size) as i64;
-            let align_left = left_type.get_alignment();
-            let align_right = right_type.get_alignment();
-            self.llvm
-                .builder
-                .build_memcpy(
-                    left,
-                    align_left,
-                    right,
-                    align_right,
-                    self.llvm.context.i32_type().const_int(size as u64, true),
-                )
-                .map_err(|err| Diagnostic::codegen_error(err, left_statement.get_location()))?;
-        } else {
-            let expression = exp_gen.generate_expression(right_statement)?;
-            self.llvm.builder.build_store(left, expression);
-        }
-
+        exp_gen.generate_store(left_type, right_statement, left)?;
         Ok(())
-    }
-
-    fn get_string_size(
-        &self,
-        datatype: &DataTypeInformation,
-        location: SourceRange,
-    ) -> Result<i64, Diagnostic> {
-        if let DataTypeInformation::String { size, .. } = datatype {
-            size.as_int_value(self.index)
-                .map_err(|err| Diagnostic::codegen_error(err.as_str(), location))
-        } else {
-            Err(Diagnostic::codegen_error(
-                format!("{} is not a String", datatype.get_name()).as_str(),
-                location,
-            ))
-        }
     }
 
     fn generate_direct_access_assignment(
@@ -475,7 +418,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         //.                                                           /            and_2                \
         //.                  /             and 1               \
         // (counter_end_le && counter_start_ge) || (counter_end_ge && counter_start_le)
-        let or_eval = self.fun_name(counter, end, start, &exp_gen)?;
+        let or_eval = self.generate_compare_expression(counter, end, start, &exp_gen)?;
 
         builder.build_conditional_branch(or_eval.into_int_value(), for_body, continue_block);
 
@@ -523,7 +466,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         Ok(())
     }
 
-    fn fun_name(
+    fn generate_compare_expression(
         &'a self,
         counter: &AstStatement,
         end: &AstStatement,

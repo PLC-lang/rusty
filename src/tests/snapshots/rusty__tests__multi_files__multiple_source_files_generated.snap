@@ -1,5 +1,6 @@
 ---
 source: src/tests/multi_files.rs
+assertion_line: 37
 expression: res
 
 ---
@@ -14,6 +15,7 @@ source_filename = "main"
 define i16 @main(%main_interface* %0) {
 entry:
   %main = alloca i16, align 2
+  store i16 0, i16* %main, align 2
   br label %input
 
 input:                                            ; preds = %entry
