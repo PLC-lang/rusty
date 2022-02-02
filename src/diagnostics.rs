@@ -68,6 +68,9 @@ pub enum ErrNo {
     type__incompatible_directaccess,
     type__incompatible_directaccess_variable,
     type__incompatible_directaccess_range,
+    type__incompatible_arrayaccess_range,
+    type__incompatible_arrayaccess_variable,
+    type__incompatible_arrayaccess_type,
     type__expected_literal,
     type__invalid_nature,
     type__unknown_nature,
@@ -260,6 +263,45 @@ impl Diagnostic {
             ),
             range: location,
             err_no: ErrNo::type__incompatible_directaccess_variable,
+        }
+    }
+
+    pub fn incompatible_array_access_range(
+        range: Range<i128>,
+        location: SourceRange,
+    ) -> Diagnostic {
+        Diagnostic::SyntaxError {
+            message: format!(
+                "Array access must be in the range {}..{}",
+                range.start, range.end
+            ),
+            range: location,
+            err_no: ErrNo::type__incompatible_arrayaccess_range,
+        }
+    }
+
+    pub fn incompatible_array_access_variable(
+        access_type: &str,
+        location: SourceRange,
+    ) -> Diagnostic {
+        Diagnostic::SyntaxError {
+            message: format!(
+                "Invalid type {} for array access. Only variables of Array types are allowed",
+                access_type
+            ),
+            range: location,
+            err_no: ErrNo::type__incompatible_arrayaccess_variable,
+        }
+    }
+
+    pub fn incompatible_array_access_type(access_type: &str, location: SourceRange) -> Diagnostic {
+        Diagnostic::SyntaxError {
+            message: format!(
+                "Invalid type {} for array access. Only variables of Integer types are allowed to access an array",
+                access_type
+            ),
+            range: location,
+            err_no: ErrNo::type__incompatible_arrayaccess_variable,
         }
     }
 
