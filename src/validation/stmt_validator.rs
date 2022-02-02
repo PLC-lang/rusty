@@ -325,7 +325,7 @@ impl StatementValidator {
                 .ast_annotation
                 .get_type_or_void(access, context.index)
                 .get_type_information();
-            if !type_info.is_numerical() {
+            if !type_info.is_int() {
                 self.diagnostics
                     .push(Diagnostic::incompatible_array_access_type(
                         type_info.get_name(),
