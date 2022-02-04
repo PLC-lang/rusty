@@ -40,12 +40,22 @@ fn resolved_generic_call_added_to_index() {
     assert!(pous.contains_key("myfunc__dint"));
     assert!(pous.contains_key("myfunc__real"));
 
+    dbg!(&annotations.new_index);
+
     //Each POU has members
     assert_eq!(
         "INT",
         annotations
             .new_index
             .find_member("myfunc__int", "x")
+            .unwrap()
+            .get_type_name()
+    );
+    assert_eq!(
+        "INT",
+        annotations
+            .new_index
+            .find_member("myfunc__int", "myfunc__int")
             .unwrap()
             .get_type_name()
     );
@@ -58,10 +68,26 @@ fn resolved_generic_call_added_to_index() {
             .get_type_name()
     );
     assert_eq!(
+        "DINT",
+        annotations
+            .new_index
+            .find_member("myfunc__dint", "myfunc__dint")
+            .unwrap()
+            .get_type_name()
+    );
+    assert_eq!(
         "REAL",
         annotations
             .new_index
             .find_member("myfunc__real", "x")
+            .unwrap()
+            .get_type_name()
+    );
+    assert_eq!(
+        "REAL",
+        annotations
+            .new_index
+            .find_member("myfunc__real", "myfunc__real")
             .unwrap()
             .get_type_name()
     );

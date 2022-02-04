@@ -77,3 +77,44 @@ fn test_external_function_called() {
     assert_eq!(main_type.a, 200);
     assert_eq!(main_type.b, 5.0f32);
 }
+
+
+#[test]
+fn test_generic_function_implemented_in_st_called() {
+    //Given some external function.
+    let prog = "
+    FUNCTION times_two<T: ANY_NUM> : T
+    VAR_INPUT
+        val : T;
+    END_VAR
+    END_FUNCTION
+
+    FUNCTION times_two__INT : INT
+    VAR_INPUT
+        val : INT;
+    END_VAR
+        times_two__INT := val * 2;
+    END_FUNCTION
+
+    FUNCTION times_two__REAL : REAL
+    VAR_INPUT
+        val : REAL;
+    END_VAR
+        times_two__REAL := val * 2.0;
+    END_FUNCTION
+
+    FUNCTION main : DINT
+    VAR
+        a : INT;
+        b : REAL;
+    END_VAR
+        a := times_two(INT#100);
+        b := times_two(2.5);
+    END_FUNCTION
+    ";
+
+    let mut main_type = MainType { a: 0, b: 0.0f32 };
+    let _ : i32 = compile_and_run(prog.to_string(), &mut main_type);
+    assert_eq!(main_type.a, 200);
+    assert_eq!(main_type.b, 5.0f32);
+}
