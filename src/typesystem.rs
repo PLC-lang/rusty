@@ -376,6 +376,12 @@ impl Dimension {
         let start = self.start_offset.as_int_value(index)?;
         Ok((end - start + 1) as u32)
     }
+
+    pub fn get_range(&self, index: &Index) -> Result<Range<i128>, String> {
+        let start = self.start_offset.as_int_value(index)? as i128;
+        let end = self.end_offset.as_int_value(index)? as i128;
+        Ok(start..end)
+    }
 }
 
 pub trait DataTypeInformationProvider<'a>: Into<&'a DataTypeInformation> {
