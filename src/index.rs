@@ -103,8 +103,14 @@ impl VariableIndexEntry {
     /// Creates a new VariableIndexEntry from the current entry with a new container and type
     /// This is used to create new entries from previously generic entries
     pub fn into_typed(&self, container: &str, new_type: &str) -> Self {
+        let name = if self.is_return() {
+            container
+        } else {
+            &self.name
+        };
         VariableIndexEntry {
-            qualified_name: format!("{}.{}", container, self.name),
+            name : name.to_string(),
+            qualified_name: format!("{}.{}", container, name),
             data_type_name: new_type.to_string(),
             ..self.to_owned()
         }
