@@ -47,6 +47,14 @@ impl<S: SourceContainer> Compilable for Vec<S> {
     }
 }
 
+impl Compilable for SourceCode {
+    type T = Self;
+
+    fn containers(self) -> Vec<Self::T> {
+        vec![self]
+    }
+}
+
 ///
 /// Runs the function given by `name` inside the compiled execution engine code.
 /// Returns the value returned by calling the function
