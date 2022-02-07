@@ -865,6 +865,12 @@
 <span id="865">865</span>
 <span id="866">866</span>
 <span id="867">867</span>
+<span id="868">868</span>
+<span id="869">869</span>
+<span id="870">870</span>
+<span id="871">871</span>
+<span id="872">872</span>
+<span id="873">873</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 <span class="kw">use</span> <span class="ident">indexmap::IndexMap</span>;
 
@@ -970,8 +976,14 @@
     <span class="doccomment">/// Creates a new VariableIndexEntry from the current entry with a new container and type</span>
     <span class="doccomment">/// This is used to create new entries from previously generic entries</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_typed</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">container</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">new_type</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+        <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_return</span>() {
+            <span class="ident">container</span>
+        } <span class="kw">else</span> {
+            <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">name</span>
+        };
         <span class="ident">VariableIndexEntry</span> {
-            <span class="ident">qualified_name</span>: <span class="macro">format!</span>(<span class="string">&quot;{}.{}&quot;</span>, <span class="ident">container</span>, <span class="self">self</span>.<span class="ident">name</span>),
+            <span class="ident">name</span>: <span class="ident">name</span>.<span class="ident">to_string</span>(),
+            <span class="ident">qualified_name</span>: <span class="macro">format!</span>(<span class="string">&quot;{}.{}&quot;</span>, <span class="ident">container</span>, <span class="ident">name</span>),
             <span class="ident">data_type_name</span>: <span class="ident">new_type</span>.<span class="ident">to_string</span>(),
             ..<span class="self">self</span>.<span class="ident">to_owned</span>()
         }
