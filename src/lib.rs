@@ -53,6 +53,8 @@ mod test_utils;
 mod typesystem;
 mod validation;
 
+pub mod runner;
+
 #[macro_use]
 #[cfg(test)]
 extern crate pretty_assertions;
