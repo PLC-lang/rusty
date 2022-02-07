@@ -40,8 +40,6 @@ fn resolved_generic_call_added_to_index() {
     assert!(pous.contains_key("myfunc__dint"));
     assert!(pous.contains_key("myfunc__real"));
 
-    dbg!(&annotations.new_index);
-
     //Each POU has members
     assert_eq!(
         "INT",
