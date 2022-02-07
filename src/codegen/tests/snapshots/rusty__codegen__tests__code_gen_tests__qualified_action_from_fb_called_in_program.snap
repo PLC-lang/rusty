@@ -1,6 +1,6 @@
 ---
 source: src/codegen/tests/code_gen_tests.rs
-assertion_line: 1543
+assertion_line: 1565
 expression: result
 
 ---
@@ -16,19 +16,7 @@ source_filename = "main"
 define void @bar(%bar_interface* %0) {
 entry:
   %fb_inst = getelementptr inbounds %bar_interface, %bar_interface* %0, i32 0, i32 0
-  br label %input
-
-input:                                            ; preds = %entry
-  br label %call
-
-call:                                             ; preds = %input
   call void @fb.foo(%fb_interface* %fb_inst)
-  br label %output
-
-output:                                           ; preds = %call
-  br label %continue
-
-continue:                                         ; preds = %output
   ret void
 }
 

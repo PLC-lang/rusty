@@ -36,36 +36,12 @@ define void @prg(%prg_interface* %0) {
 entry:
   %x = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 0
   %foo_instance = alloca %foo_interface, align 8
-  br label %input
-
-input:                                            ; preds = %entry
   %1 = getelementptr inbounds %foo_interface, %foo_interface* %foo_instance, i32 0, i32 0
   %bar_instance = alloca %bar_interface, align 8
-  br label %input1
-
-call:                                             ; preds = %continue4
-  %call6 = call i32 @foo(%foo_interface* %foo_instance)
-  br label %output
-
-output:                                           ; preds = %call
-  br label %continue
-
-continue:                                         ; preds = %output
-  store i32 %call6, i32* %x, align 4
+  %call = call i32 @bar(%bar_interface* %bar_instance)
+  store i32 %call, i32* %1, align 4
+  %call1 = call i32 @foo(%foo_interface* %foo_instance)
+  store i32 %call1, i32* %x, align 4
   ret void
-
-input1:                                           ; preds = %input
-  br label %call2
-
-call2:                                            ; preds = %input1
-  %call5 = call i32 @bar(%bar_interface* %bar_instance)
-  br label %output3
-
-output3:                                          ; preds = %call2
-  br label %continue4
-
-continue4:                                        ; preds = %output3
-  store i32 %call5, i32* %1, align 4
-  br label %call
 }
 

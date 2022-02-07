@@ -30,22 +30,10 @@ define void @main(%main_interface* %0) {
 entry:
   %fb0 = getelementptr inbounds %main_interface, %main_interface* %0, i32 0, i32 0
   %func_instance = alloca %func_interface, align 8
-  br label %input
-
-input:                                            ; preds = %entry
   %1 = getelementptr inbounds %func_interface, %func_interface* %func_instance, i32 0, i32 0
   %load_fb0 = load %fb_interface, %fb_interface* %fb0, align 2
   store %fb_interface %load_fb0, %fb_interface* %1, align 2
-  br label %call
-
-call:                                             ; preds = %input
-  %call1 = call i32 @func(%func_interface* %func_instance)
-  br label %output
-
-output:                                           ; preds = %call
-  br label %continue
-
-continue:                                         ; preds = %output
+  %call = call i32 @func(%func_interface* %func_instance)
   ret void
 }
 

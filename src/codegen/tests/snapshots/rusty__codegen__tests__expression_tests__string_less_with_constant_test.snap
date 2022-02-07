@@ -32,9 +32,6 @@ entry:
   store i8 0, i8* %result, align 1
   store i16 0, i16* %baz, align 2
   %STRING_LESS_instance = alloca %STRING_LESS_interface, align 8
-  br label %input
-
-input:                                            ; preds = %entry
   %2 = getelementptr inbounds %STRING_LESS_interface, %STRING_LESS_interface* %STRING_LESS_instance, i32 0, i32 0
   %3 = bitcast [1025 x i8]* %2 to i8*
   %4 = bitcast [81 x i8]* %a to i8*
@@ -42,17 +39,8 @@ input:                                            ; preds = %entry
   %5 = getelementptr inbounds %STRING_LESS_interface, %STRING_LESS_interface* %STRING_LESS_instance, i32 0, i32 1
   %6 = bitcast [1025 x i8]* %5 to i8*
   call void @llvm.memcpy.p0i8.p0i8.i32(i8* align 1 %6, i8* align 1 getelementptr inbounds ([2 x i8], [2 x i8]* @utf08_literal_0, i32 0, i32 0), i32 2, i1 false)
-  br label %call
-
-call:                                             ; preds = %input
-  %call1 = call i8 @STRING_LESS(%STRING_LESS_interface* %STRING_LESS_instance)
-  br label %output
-
-output:                                           ; preds = %call
-  br label %continue
-
-continue:                                         ; preds = %output
-  store i8 %call1, i8* %result, align 1
+  %call = call i8 @STRING_LESS(%STRING_LESS_interface* %STRING_LESS_instance)
+  store i8 %call, i8* %result, align 1
   %baz_ret = load i16, i16* %baz, align 2
   ret i16 %baz_ret
 }

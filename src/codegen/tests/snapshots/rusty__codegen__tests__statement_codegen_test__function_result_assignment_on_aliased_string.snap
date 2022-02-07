@@ -19,9 +19,6 @@ entry:
   %LIST_ADD = alloca i8, align 1
   store i8 0, i8* %LIST_ADD, align 1
   %CONCAT_instance = alloca %CONCAT_interface, align 8
-  br label %input
-
-input:                                            ; preds = %entry
   %1 = getelementptr inbounds %CONCAT_interface, %CONCAT_interface* %CONCAT_instance, i32 0, i32 0
   %2 = bitcast [1025 x i8]* %1 to i8*
   %3 = bitcast [2 x i8]* %sx to i8*
@@ -30,18 +27,9 @@ input:                                            ; preds = %entry
   %5 = bitcast [1025 x i8]* %4 to i8*
   %6 = bitcast [1001 x i8]* %INS to i8*
   call void @llvm.memcpy.p0i8.p0i8.i32(i8* align 1 %5, i8* align 1 %6, i32 1001, i1 false)
-  br label %call
-
-call:                                             ; preds = %input
-  %call1 = call [1025 x i8] @CONCAT(%CONCAT_interface* %CONCAT_instance)
-  br label %output
-
-output:                                           ; preds = %call
-  br label %continue
-
-continue:                                         ; preds = %output
+  %call = call [1025 x i8] @CONCAT(%CONCAT_interface* %CONCAT_instance)
   %7 = alloca [1025 x i8], align 1
-  store [1025 x i8] %call1, [1025 x i8]* %7, align 1
+  store [1025 x i8] %call, [1025 x i8]* %7, align 1
   %8 = bitcast [1001 x i8]* %INS to i8*
   %9 = bitcast [1025 x i8]* %7 to i8*
   call void @llvm.memcpy.p0i8.p0i8.i32(i8* align 1 %8, i8* align 1 %9, i32 1000, i1 false)

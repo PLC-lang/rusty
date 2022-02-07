@@ -22,21 +22,9 @@ entry:
 
 define void @prg(%prg_interface* %0) {
 entry:
-  br label %input
-
-input:                                            ; preds = %entry
   store i32 2, i32* getelementptr inbounds (%foo_interface, %foo_interface* @foo_instance, i32 0, i32 0), align 4
   store i8 1, i8* getelementptr inbounds (%foo_interface, %foo_interface* @foo_instance, i32 0, i32 1), align 1
-  br label %call
-
-call:                                             ; preds = %input
   call void @foo(%foo_interface* @foo_instance)
-  br label %output
-
-output:                                           ; preds = %call
-  br label %continue
-
-continue:                                         ; preds = %output
   ret void
 }
 

@@ -33,46 +33,22 @@ entry:
   %text2 = getelementptr inbounds %main_interface, %main_interface* %0, i32 0, i32 1
   %text3 = getelementptr inbounds %main_interface, %main_interface* %0, i32 0, i32 2
   %read_string_instance = alloca %read_string_interface, align 8
-  br label %input
-
-input:                                            ; preds = %entry
   %1 = getelementptr inbounds %read_string_interface, %read_string_interface* %read_string_instance, i32 0, i32 0
   %2 = bitcast [81 x i8]* %1 to i8*
   call void @llvm.memcpy.p0i8.p0i8.i32(i8* align 1 %2, i8* align 1 getelementptr inbounds ([154 x i8], [154 x i8]* @utf08_literal_0, i32 0, i32 0), i32 80, i1 false)
-  br label %call
-
-call:                                             ; preds = %input
-  %call1 = call [81 x i8] @read_string(%read_string_interface* %read_string_instance)
-  br label %output
-
-output:                                           ; preds = %call
-  br label %continue
-
-continue:                                         ; preds = %output
+  %call = call [81 x i8] @read_string(%read_string_interface* %read_string_instance)
   %3 = alloca [81 x i8], align 1
-  store [81 x i8] %call1, [81 x i8]* %3, align 1
+  store [81 x i8] %call, [81 x i8]* %3, align 1
   %4 = bitcast [81 x i8]* %text1 to i8*
   %5 = bitcast [81 x i8]* %3 to i8*
   call void @llvm.memcpy.p0i8.p0i8.i32(i8* align 1 %4, i8* align 1 %5, i32 80, i1 false)
-  %read_string_instance2 = alloca %read_string_interface, align 8
-  br label %input3
-
-input3:                                           ; preds = %continue
-  %6 = getelementptr inbounds %read_string_interface, %read_string_interface* %read_string_instance2, i32 0, i32 0
+  %read_string_instance1 = alloca %read_string_interface, align 8
+  %6 = getelementptr inbounds %read_string_interface, %read_string_interface* %read_string_instance1, i32 0, i32 0
   %7 = bitcast [81 x i8]* %6 to i8*
   call void @llvm.memcpy.p0i8.p0i8.i32(i8* align 1 %7, i8* align 1 getelementptr inbounds ([6 x i8], [6 x i8]* @utf08_literal_1, i32 0, i32 0), i32 6, i1 false)
-  br label %call4
-
-call4:                                            ; preds = %input3
-  %call7 = call [81 x i8] @read_string(%read_string_interface* %read_string_instance2)
-  br label %output5
-
-output5:                                          ; preds = %call4
-  br label %continue6
-
-continue6:                                        ; preds = %output5
+  %call2 = call [81 x i8] @read_string(%read_string_interface* %read_string_instance1)
   %8 = alloca [81 x i8], align 1
-  store [81 x i8] %call7, [81 x i8]* %8, align 1
+  store [81 x i8] %call2, [81 x i8]* %8, align 1
   %9 = bitcast [81 x i8]* %text3 to i8*
   %10 = bitcast [81 x i8]* %8 to i8*
   call void @llvm.memcpy.p0i8.p0i8.i32(i8* align 1 %9, i8* align 1 %10, i32 80, i1 false)

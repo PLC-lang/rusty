@@ -1300,10 +1300,6 @@ impl Operator {
                 | Operator::Greater
                 | Operator::LessOrEqual
                 | Operator::GreaterOrEqual
-                | Operator::Not
-                | Operator::And
-                | Operator::Or
-                | Operator::Xor
         )
     }
 

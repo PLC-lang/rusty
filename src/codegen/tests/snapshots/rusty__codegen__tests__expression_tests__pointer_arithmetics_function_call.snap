@@ -28,83 +28,35 @@ entry:
   store i16* %x, i16** %pt, align 8
   %load_pt = load i16*, i16** %pt, align 8
   %foo_instance = alloca %foo_interface, align 8
-  br label %input
-
-input:                                            ; preds = %entry
-  br label %call
-
-call:                                             ; preds = %input
-  %call1 = call i64 @foo(%foo_interface* %foo_instance)
-  br label %output
-
-output:                                           ; preds = %call
-  br label %continue
-
-continue:                                         ; preds = %output
-  %access___main_pt = getelementptr inbounds i16, i16* %load_pt, i64 %call1
+  %call = call i64 @foo(%foo_interface* %foo_instance)
+  %access___main_pt = getelementptr inbounds i16, i16* %load_pt, i64 %call
   store i16* %access___main_pt, i16** %pt, align 8
+  %load_pt1 = load i16*, i16** %pt, align 8
   %load_pt2 = load i16*, i16** %pt, align 8
+  store i8 zext (i1 icmp eq (i64 ptrtoint (i16* %load_pt1 to i64), i64 ptrtoint (i16* %load_pt2 to i64)) to i8), i8* %comp, align 1
   %load_pt3 = load i16*, i16** %pt, align 8
-  store i8 zext (i1 icmp eq (i64 ptrtoint (i16* %load_pt2 to i64), i64 ptrtoint (i16* %load_pt3 to i64)) to i8), i8* %comp, align 1
-  %load_pt4 = load i16*, i16** %pt, align 8
-  %foo_instance5 = alloca %foo_interface, align 8
-  br label %input6
-
-input6:                                           ; preds = %continue
-  br label %call7
-
-call7:                                            ; preds = %input6
-  %call10 = call i64 @foo(%foo_interface* %foo_instance5)
-  br label %output8
-
-output8:                                          ; preds = %call7
-  br label %continue9
-
-continue9:                                        ; preds = %output8
-  %tmpVar = icmp ne i64 ptrtoint (i16* %load_pt4 to i64), %call10
+  %foo_instance4 = alloca %foo_interface, align 8
+  %call5 = call i64 @foo(%foo_interface* %foo_instance4)
+  %tmpVar = icmp ne i64 ptrtoint (i16* %load_pt3 to i64), %call5
   %1 = zext i1 %tmpVar to i8
   store i8 %1, i8* %comp, align 1
-  %load_pt11 = load i16*, i16** %pt, align 8
-  %load_pt12 = load i16*, i16** %pt, align 8
-  store i8 zext (i1 icmp slt (i64 ptrtoint (i16* %load_pt11 to i64), i64 ptrtoint (i16* %load_pt12 to i64)) to i8), i8* %comp, align 1
-  %load_pt13 = load i16*, i16** %pt, align 8
-  %foo_instance14 = alloca %foo_interface, align 8
-  br label %input15
-
-input15:                                          ; preds = %continue9
-  br label %call16
-
-call16:                                           ; preds = %input15
-  %call19 = call i64 @foo(%foo_interface* %foo_instance14)
-  br label %output17
-
-output17:                                         ; preds = %call16
-  br label %continue18
-
-continue18:                                       ; preds = %output17
-  %tmpVar20 = icmp sgt i64 ptrtoint (i16* %load_pt13 to i64), %call19
-  %2 = zext i1 %tmpVar20 to i8
+  %load_pt6 = load i16*, i16** %pt, align 8
+  %load_pt7 = load i16*, i16** %pt, align 8
+  store i8 zext (i1 icmp slt (i64 ptrtoint (i16* %load_pt6 to i64), i64 ptrtoint (i16* %load_pt7 to i64)) to i8), i8* %comp, align 1
+  %load_pt8 = load i16*, i16** %pt, align 8
+  %foo_instance9 = alloca %foo_interface, align 8
+  %call10 = call i64 @foo(%foo_interface* %foo_instance9)
+  %tmpVar11 = icmp sgt i64 ptrtoint (i16* %load_pt8 to i64), %call10
+  %2 = zext i1 %tmpVar11 to i8
   store i8 %2, i8* %comp, align 1
-  %load_pt21 = load i16*, i16** %pt, align 8
-  %load_pt22 = load i16*, i16** %pt, align 8
-  store i8 zext (i1 icmp sle (i64 ptrtoint (i16* %load_pt21 to i64), i64 ptrtoint (i16* %load_pt22 to i64)) to i8), i8* %comp, align 1
-  %foo_instance23 = alloca %foo_interface, align 8
-  br label %input24
-
-input24:                                          ; preds = %continue18
-  br label %call25
-
-call25:                                           ; preds = %input24
-  %call28 = call i64 @foo(%foo_interface* %foo_instance23)
-  br label %output26
-
-output26:                                         ; preds = %call25
-  br label %continue27
-
-continue27:                                       ; preds = %output26
-  %load_pt29 = load i16*, i16** %pt, align 8
-  %tmpVar30 = icmp sge i64 %call28, ptrtoint (i16* %load_pt29 to i64)
-  %3 = zext i1 %tmpVar30 to i8
+  %load_pt12 = load i16*, i16** %pt, align 8
+  %load_pt13 = load i16*, i16** %pt, align 8
+  store i8 zext (i1 icmp sle (i64 ptrtoint (i16* %load_pt12 to i64), i64 ptrtoint (i16* %load_pt13 to i64)) to i8), i8* %comp, align 1
+  %foo_instance14 = alloca %foo_interface, align 8
+  %call15 = call i64 @foo(%foo_interface* %foo_instance14)
+  %load_pt16 = load i16*, i16** %pt, align 8
+  %tmpVar17 = icmp sge i64 %call15, ptrtoint (i16* %load_pt16 to i64)
+  %3 = zext i1 %tmpVar17 to i8
   store i8 %3, i8* %comp, align 1
   ret void
 }

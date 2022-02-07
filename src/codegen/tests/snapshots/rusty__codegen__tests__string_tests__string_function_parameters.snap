@@ -37,40 +37,16 @@ entry:
   %3 = bitcast [81 x i8]* %a to i8*
   call void @llvm.memcpy.p0i8.p0i8.i32(i8* align 1 %3, i8* align 1 getelementptr inbounds ([6 x i8], [6 x i8]* @utf08_literal_0, i32 0, i32 0), i32 6, i1 false)
   %foo_instance = alloca %foo_interface, align 8
-  br label %input
-
-input:                                            ; preds = %entry
   %4 = getelementptr inbounds %foo_interface, %foo_interface* %foo_instance, i32 0, i32 0
   %5 = bitcast [81 x i8]* %4 to i8*
   %6 = bitcast [11 x i8]* %s to i8*
   call void @llvm.memcpy.p0i8.p0i8.i32(i8* align 1 %5, i8* align 1 %6, i32 11, i1 false)
-  br label %call
-
-call:                                             ; preds = %input
-  %call1 = call i16 @foo(%foo_interface* %foo_instance)
-  br label %output
-
-output:                                           ; preds = %call
-  br label %continue
-
-continue:                                         ; preds = %output
-  %foo_instance2 = alloca %foo_interface, align 8
-  br label %input3
-
-input3:                                           ; preds = %continue
-  %7 = getelementptr inbounds %foo_interface, %foo_interface* %foo_instance2, i32 0, i32 0
+  %call = call i16 @foo(%foo_interface* %foo_instance)
+  %foo_instance1 = alloca %foo_interface, align 8
+  %7 = getelementptr inbounds %foo_interface, %foo_interface* %foo_instance1, i32 0, i32 0
   %8 = bitcast [81 x i8]* %7 to i8*
   call void @llvm.memcpy.p0i8.p0i8.i32(i8* align 1 %8, i8* align 1 getelementptr inbounds ([6 x i8], [6 x i8]* @utf08_literal_0, i32 0, i32 0), i32 6, i1 false)
-  br label %call4
-
-call4:                                            ; preds = %input3
-  %call7 = call i16 @foo(%foo_interface* %foo_instance2)
-  br label %output5
-
-output5:                                          ; preds = %call4
-  br label %continue6
-
-continue6:                                        ; preds = %output5
+  %call2 = call i16 @foo(%foo_interface* %foo_instance1)
   ret void
 }
 

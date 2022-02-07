@@ -371,3 +371,24 @@ fn pointer_arithmetics_function_call() {
     );
     insta::assert_snapshot!(result);
 }
+
+#[test]
+fn nested_call_statements() {
+    // GIVEN some nested call statements
+    let result = codegen(
+        "
+        FUNCTION foo : DINT
+        VAR_INPUT
+            a : DINT;
+        END_VAR
+        END_FUNCTION
+
+		PROGRAM main
+            foo(foo(2));
+		END_PROGRAM
+		",
+    );
+    // WHEN compiled
+    // WE expect a flat sequence of calls, no regions and branching
+    insta::assert_snapshot!(result);
+}

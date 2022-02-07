@@ -34,6 +34,7 @@ fn real_negation() {
 
 #[test]
 fn equal_comparison_with_arbitrary_datatypes() {
+    #[repr(C)]
     struct Main {
         results: [i32; 2],
     }
