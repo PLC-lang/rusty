@@ -36,9 +36,6 @@ entry:
   store i8 0, i8* %result, align 1
   store i16 0, i16* %baz, align 2
   %STRING_EQUAL_instance = alloca %STRING_EQUAL_interface, align 8
-  br label %input
-
-input:                                            ; preds = %entry
   %3 = getelementptr inbounds %STRING_EQUAL_interface, %STRING_EQUAL_interface* %STRING_EQUAL_instance, i32 0, i32 0
   %4 = bitcast [1025 x i8]* %3 to i8*
   %5 = bitcast [81 x i8]* %a to i8*
@@ -46,39 +43,18 @@ input:                                            ; preds = %entry
   %6 = getelementptr inbounds %STRING_EQUAL_interface, %STRING_EQUAL_interface* %STRING_EQUAL_instance, i32 0, i32 1
   %7 = bitcast [1025 x i8]* %6 to i8*
   call void @llvm.memcpy.p0i8.p0i8.i32(i8* align 1 %7, i8* align 1 getelementptr inbounds ([2 x i8], [2 x i8]* @utf08_literal_1, i32 0, i32 0), i32 2, i1 false)
-  br label %call
-
-call:                                             ; preds = %input
-  %call1 = call i8 @STRING_EQUAL(%STRING_EQUAL_interface* %STRING_EQUAL_instance)
-  br label %output
-
-output:                                           ; preds = %call
-  br label %continue
-
-continue:                                         ; preds = %output
-  store i8 %call1, i8* %result, align 1
-  %STRING_EQUAL_instance2 = alloca %STRING_EQUAL_interface, align 8
-  br label %input3
-
-input3:                                           ; preds = %continue
-  %8 = getelementptr inbounds %STRING_EQUAL_interface, %STRING_EQUAL_interface* %STRING_EQUAL_instance2, i32 0, i32 0
+  %call = call i8 @STRING_EQUAL(%STRING_EQUAL_interface* %STRING_EQUAL_instance)
+  store i8 %call, i8* %result, align 1
+  %STRING_EQUAL_instance1 = alloca %STRING_EQUAL_interface, align 8
+  %8 = getelementptr inbounds %STRING_EQUAL_interface, %STRING_EQUAL_interface* %STRING_EQUAL_instance1, i32 0, i32 0
   %9 = bitcast [1025 x i8]* %8 to i8*
   call void @llvm.memcpy.p0i8.p0i8.i32(i8* align 1 %9, i8* align 1 getelementptr inbounds ([2 x i8], [2 x i8]* @utf08_literal_0, i32 0, i32 0), i32 2, i1 false)
-  %10 = getelementptr inbounds %STRING_EQUAL_interface, %STRING_EQUAL_interface* %STRING_EQUAL_instance2, i32 0, i32 1
+  %10 = getelementptr inbounds %STRING_EQUAL_interface, %STRING_EQUAL_interface* %STRING_EQUAL_instance1, i32 0, i32 1
   %11 = bitcast [1025 x i8]* %10 to i8*
   %12 = bitcast [81 x i8]* %b to i8*
   call void @llvm.memcpy.p0i8.p0i8.i32(i8* align 1 %11, i8* align 1 %12, i32 81, i1 false)
-  br label %call4
-
-call4:                                            ; preds = %input3
-  %call7 = call i8 @STRING_EQUAL(%STRING_EQUAL_interface* %STRING_EQUAL_instance2)
-  br label %output5
-
-output5:                                          ; preds = %call4
-  br label %continue6
-
-continue6:                                        ; preds = %output5
-  store i8 %call7, i8* %result, align 1
+  %call2 = call i8 @STRING_EQUAL(%STRING_EQUAL_interface* %STRING_EQUAL_instance1)
+  store i8 %call2, i8* %result, align 1
   %baz_ret = load i16, i16* %baz, align 2
   ret i16 %baz_ret
 }

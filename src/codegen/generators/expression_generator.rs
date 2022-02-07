@@ -10,7 +10,6 @@ use crate::{
     },
 };
 use inkwell::{
-    basic_block::BasicBlock,
     types::BasicTypeEnum,
     values::{
         ArrayValue, BasicMetadataValueEnum, BasicValue, BasicValueEnum, FloatValue, IntValue,
@@ -483,30 +482,16 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
 
         let (class_struct, instance, index_entry) = (class_ptr, call_ptr, implementation);
         let function_name = index_entry.get_call_name();
-        //Create parameters for input and output blocks
-        let current_f = function_context.function;
-        let input_block = self.llvm.context.append_basic_block(current_f, "input");
-        let call_block = self.llvm.context.append_basic_block(current_f, "call");
-        let output_block = self.llvm.context.append_basic_block(current_f, "output");
-        let continue_block = self.llvm.context.append_basic_block(current_f, "continue");
         //First go to the input block
         let builder = &self.llvm.builder;
-        builder.build_unconditional_branch(input_block);
-        builder.position_at_end(input_block);
         //Generate all parameters, this function may jump to the output block
-        let parameters = self.generate_function_parameters(
+        let parameters_data = self.generate_input_function_parameters(
             function_name,
             class_struct,
             instance,
             parameters,
-            &input_block,
-            &output_block,
         )?;
-        //Generate the label jumps from input to call to output
-        builder.build_unconditional_branch(call_block);
-        builder.position_at_end(output_block);
-        builder.build_unconditional_branch(continue_block);
-        builder.position_at_end(call_block);
+
         let function = self
             .llvm_index
             .find_associated_implementation(function_name) //using the non error option to control the output error
@@ -522,13 +507,13 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
         //If the target is a function, declare the struct locally
         //Assign all parameters into the struct values
         let call_result = builder
-            .build_call(function, &parameters, "call")
+            .build_call(function, &parameters_data, "call")
             .try_as_basic_value();
-        builder.build_unconditional_branch(output_block);
-        //Continue here after function call
-        builder.position_at_end(continue_block);
 
-        // !! REVIEW !! we return an uninitialized int pointer for void methods :-/
+        //build output-parameters
+        self.generate_output_function_parameters(function_name, instance, parameters)?;
+
+        // we return an uninitialized int pointer for void methods :-/
         // dont deref it!!
         let value = call_result.either(Ok, |_| {
             get_llvm_int_type(self.llvm.context, INT_SIZE, INT_TYPE).map(|int| {
@@ -573,61 +558,65 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
     /// - `parameter_struct` a pointer to a struct-instance that holds all function-parameters
     /// - `input_block` the block to generate the input-assignments into
     /// - `output_block` the block to generate the output-assignments into
-    fn generate_function_parameters(
+    fn generate_input_function_parameters(
         &self,
         function_name: &str,
         class_struct: Option<PointerValue<'a>>,
         parameter_struct: PointerValue<'a>,
         parameters: &Option<AstStatement>,
-        input_block: &BasicBlock,
-        output_block: &BasicBlock,
     ) -> Result<Vec<BasicMetadataValueEnum<'a>>, Diagnostic> {
-        let mut result = if let Some(class_struct) = class_struct {
-            vec![
-                class_struct.as_basic_value_enum().into(),
-                parameter_struct.as_basic_value_enum().into(),
-            ]
-        } else {
-            vec![parameter_struct.as_basic_value_enum().into()]
-        };
-        match &parameters {
-            Some(AstStatement::ExpressionList { expressions, .. }) => {
-                for (index, exp) in expressions.iter().enumerate() {
-                    let parameter = self.generate_single_parameter(
-                        &ParameterContext {
-                            assignment_statement: exp,
-                            function_name,
-                            parameter_type: None,
-                            index: index as u32,
-                            parameter_struct,
-                        },
-                        input_block,
-                        output_block,
-                    )?;
-                    if let Some(parameter) = parameter {
-                        result.push(parameter.into());
-                    };
-                }
-            }
-            Some(statement) => {
-                let parameter = self.generate_single_parameter(
-                    &ParameterContext {
-                        assignment_statement: statement,
-                        function_name,
-                        parameter_type: None,
-                        index: 0,
-                        parameter_struct,
-                    },
-                    input_block,
-                    output_block,
-                )?;
-                if let Some(parameter) = parameter {
-                    result.push(parameter.into());
-                };
-            }
-            None => {}
+        let mut result = class_struct
+            .map(|class_struct| {
+                vec![
+                    class_struct.as_basic_value_enum().into(),
+                    parameter_struct.as_basic_value_enum().into(),
+                ]
+            })
+            .unwrap_or_else(|| vec![parameter_struct.as_basic_value_enum().into()]);
+
+        let expressions = parameters
+            .as_ref()
+            .map(|exprs| ast::flatten_expression_list(exprs))
+            .unwrap_or_else(std::vec::Vec::new);
+
+        for (index, exp) in expressions.iter().enumerate() {
+            let parameter = self.generate_single_input_parameter(&ParameterContext {
+                assignment_statement: exp,
+                function_name,
+                parameter_type: None,
+                index: index as u32,
+                parameter_struct,
+            })?;
+            if let Some(parameter) = parameter {
+                result.push(parameter.into());
+            };
         }
         Ok(result)
+    }
+
+    /// generates the output assignments of a function-call's parameters
+    /// the call parameters are passed to the function using a struct-instance with all the parameters
+    ///
+    /// - `function_name` the name of the function we're calling
+    /// - `parameter_struct` a pointer to a struct-instance that holds all function-parameters
+    /// - `input_block` the block to generate the input-assignments into
+    fn generate_output_function_parameters(
+        &self,
+        function_name: &str,
+        parameter_struct: PointerValue,
+        parameters: &Option<AstStatement>,
+    ) -> Result<(), Diagnostic> {
+        let expressions = parameters
+            .as_ref()
+            .map(|exprs| ast::flatten_expression_list(exprs))
+            .unwrap_or_else(std::vec::Vec::new);
+
+        for exp in expressions.iter() {
+            if let AstStatement::OutputAssignment { left, right, .. } = exp {
+                self.generate_output_parameter(function_name, parameter_struct, left, right)?;
+            }
+        }
+        Ok(())
     }
 
     /// generates an assignemnt of a single call's parameter
@@ -639,29 +628,21 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
     /// - `parameter_struct' a pointer to a struct-instance that holds all function-parameters
     /// - `input_block` the block to generate the input-assignments into
     /// - `output_block` the block to generate the output-assignments into
-    fn generate_single_parameter(
+    fn generate_single_input_parameter(
         &self,
         param_context: &ParameterContext,
-        input_block: &BasicBlock,
-        output_block: &BasicBlock,
     ) -> Result<Option<BasicValueEnum<'a>>, Diagnostic> {
         let assignment_statement = param_context.assignment_statement;
 
         let parameter_value = match assignment_statement {
             // explicit call parameter: foo(param := value)
             AstStatement::Assignment { left, right, .. } => {
-                self.generate_formal_parameter(
-                    param_context,
-                    left,
-                    right,
-                    input_block,
-                    output_block,
-                )?;
+                self.generate_formal_parameter(param_context, left, right)?;
                 None
             }
             // foo (param => value)
-            AstStatement::OutputAssignment { left, right, .. } => {
-                self.generate_output_parameter(param_context, left, right, output_block)?;
+            AstStatement::OutputAssignment { .. } => {
+                //ignore here
                 None
             }
             // foo(x)
@@ -722,17 +703,13 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
 
     fn generate_output_parameter(
         &self,
-        param_context: &ParameterContext,
+        function_name: &str,
+        parameter_struct: PointerValue,
         left: &AstStatement,
         right: &AstStatement,
-        output_block: &BasicBlock,
     ) -> Result<(), Diagnostic> {
         let builder = &self.llvm.builder;
-        let function_name = param_context.function_name;
-        let parameter_struct = param_context.parameter_struct;
-        let current_block = builder.get_insert_block().expect(INTERNAL_LLVM_ERROR);
 
-        builder.position_at_end(*output_block);
         // (output => ) output assignments are optional, in this case  ignore codegen
         if !matches!(right, AstStatement::EmptyStatement { .. }) {
             if let AstStatement::Reference { name, .. } = left {
@@ -771,7 +748,6 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                 builder.build_store(l_value, value);
             }
         }
-        builder.position_at_end(current_block);
         Ok(())
     }
 
@@ -780,13 +756,9 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
         param_context: &ParameterContext,
         left: &AstStatement,
         right: &AstStatement,
-        input_block: &BasicBlock,
-        output_block: &BasicBlock,
     ) -> Result<(), Diagnostic> {
-        let builder = &self.llvm.builder;
         let function_name = param_context.function_name;
         let parameter_struct = param_context.parameter_struct;
-        builder.position_at_end(*input_block);
         if let AstStatement::Reference { name, .. } = left {
             let parameter = self
                 .index
@@ -794,17 +766,13 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                 .ok_or_else(|| Diagnostic::unresolved_reference(name, left.get_location()))?;
             let index = parameter.get_location_in_parent();
             let param_type = self.index.find_effective_type(parameter.get_type_name());
-            self.generate_single_parameter(
-                &ParameterContext {
-                    assignment_statement: right,
-                    function_name,
-                    parameter_type: param_type,
-                    index,
-                    parameter_struct,
-                },
-                input_block,
-                output_block,
-            )?;
+            self.generate_single_input_parameter(&ParameterContext {
+                assignment_statement: right,
+                function_name,
+                parameter_type: param_type,
+                index,
+                parameter_struct,
+            })?;
         };
         Ok(())
     }

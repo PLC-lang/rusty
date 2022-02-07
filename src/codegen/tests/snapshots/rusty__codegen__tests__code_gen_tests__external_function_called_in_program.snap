@@ -1,5 +1,6 @@
 ---
 source: src/codegen/tests/code_gen_tests.rs
+assertion_line: 1290
 expression: result
 
 ---
@@ -16,19 +17,7 @@ declare i32 @foo(%foo_interface*)
 define void @prg(%prg_interface* %0) {
 entry:
   %foo_instance = alloca %foo_interface, align 8
-  br label %input
-
-input:                                            ; preds = %entry
-  br label %call
-
-call:                                             ; preds = %input
-  %call1 = call i32 @foo(%foo_interface* %foo_instance)
-  br label %output
-
-output:                                           ; preds = %call
-  br label %continue
-
-continue:                                         ; preds = %output
+  %call = call i32 @foo(%foo_interface* %foo_instance)
   ret void
 }
 

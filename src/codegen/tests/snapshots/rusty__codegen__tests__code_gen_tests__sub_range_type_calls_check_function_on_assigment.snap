@@ -29,26 +29,14 @@ define void @Main(%Main_interface* %0) {
 entry:
   %x = getelementptr inbounds %Main_interface, %Main_interface* %0, i32 0, i32 0
   %CheckRangeSigned_instance = alloca %CheckRangeSigned_interface, align 8
-  br label %input
-
-input:                                            ; preds = %entry
   %1 = getelementptr inbounds %CheckRangeSigned_interface, %CheckRangeSigned_interface* %CheckRangeSigned_instance, i32 0, i32 0
   store i16 7, i16* %1, align 2
   %2 = getelementptr inbounds %CheckRangeSigned_interface, %CheckRangeSigned_interface* %CheckRangeSigned_instance, i32 0, i32 1
   store i16 0, i16* %2, align 2
   %3 = getelementptr inbounds %CheckRangeSigned_interface, %CheckRangeSigned_interface* %CheckRangeSigned_instance, i32 0, i32 2
   store i16 100, i16* %3, align 2
-  br label %call
-
-call:                                             ; preds = %input
-  %call1 = call i16 @CheckRangeSigned(%CheckRangeSigned_interface* %CheckRangeSigned_instance)
-  br label %output
-
-output:                                           ; preds = %call
-  br label %continue
-
-continue:                                         ; preds = %output
-  store i16 %call1, i16* %x, align 2
+  %call = call i16 @CheckRangeSigned(%CheckRangeSigned_interface* %CheckRangeSigned_instance)
+  store i16 %call, i16* %x, align 2
   ret void
 }
 

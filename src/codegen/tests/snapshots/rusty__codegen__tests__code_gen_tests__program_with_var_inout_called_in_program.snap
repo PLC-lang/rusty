@@ -1,5 +1,6 @@
 ---
 source: src/codegen/tests/code_gen_tests.rs
+assertion_line: 1654
 expression: result
 
 ---
@@ -27,20 +28,8 @@ define void @prg(%prg_interface* %0) {
 entry:
   %baz = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 0
   store i32 7, i32* %baz, align 4
-  br label %input
-
-input:                                            ; preds = %entry
   store i32* %baz, i32** getelementptr inbounds (%foo_interface, %foo_interface* @foo_instance, i32 0, i32 0), align 8
-  br label %call
-
-call:                                             ; preds = %input
   call void @foo(%foo_interface* @foo_instance)
-  br label %output
-
-output:                                           ; preds = %call
-  br label %continue
-
-continue:                                         ; preds = %output
   ret void
 }
 

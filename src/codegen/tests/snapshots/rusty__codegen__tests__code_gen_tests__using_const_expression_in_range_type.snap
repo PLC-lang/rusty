@@ -31,9 +31,6 @@ define void @prg(%prg_interface* %0) {
 entry:
   %x = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 0
   %CheckRangeSigned_instance = alloca %CheckRangeSigned_interface, align 8
-  br label %input
-
-input:                                            ; preds = %entry
   %1 = getelementptr inbounds %CheckRangeSigned_interface, %CheckRangeSigned_interface* %CheckRangeSigned_instance, i32 0, i32 0
   store i16 5, i16* %1, align 2
   %2 = getelementptr inbounds %CheckRangeSigned_interface, %CheckRangeSigned_interface* %CheckRangeSigned_instance, i32 0, i32 1
@@ -44,17 +41,8 @@ input:                                            ; preds = %entry
   %tmpVar = add i32 %4, 1
   %5 = trunc i32 %tmpVar to i16
   store i16 %5, i16* %3, align 2
-  br label %call
-
-call:                                             ; preds = %input
-  %call1 = call i16 @CheckRangeSigned(%CheckRangeSigned_interface* %CheckRangeSigned_instance)
-  br label %output
-
-output:                                           ; preds = %call
-  br label %continue
-
-continue:                                         ; preds = %output
-  store i16 %call1, i16* %x, align 2
+  %call = call i16 @CheckRangeSigned(%CheckRangeSigned_interface* %CheckRangeSigned_instance)
+  store i16 %call, i16* %x, align 2
   ret void
 }
 
