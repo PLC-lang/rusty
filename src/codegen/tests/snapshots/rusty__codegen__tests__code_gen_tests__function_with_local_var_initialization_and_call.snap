@@ -31,21 +31,9 @@ entry:
 define void @prg(%prg_interface* %0) {
 entry:
   %foo_instance = alloca %foo_interface, align 8
-  br label %input
-
-input:                                            ; preds = %entry
   %1 = getelementptr inbounds %foo_interface, %foo_interface* %foo_instance, i32 0, i32 0
   store i32 5, i32* %1, align 4
-  br label %call
-
-call:                                             ; preds = %input
-  %call1 = call i32 @foo(%foo_interface* %foo_instance)
-  br label %output
-
-output:                                           ; preds = %call
-  br label %continue
-
-continue:                                         ; preds = %output
+  %call = call i32 @foo(%foo_interface* %foo_instance)
   ret void
 }
 

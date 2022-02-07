@@ -46,58 +46,34 @@ entry:
   store i8 0, i8* %result, align 1
   store i16 0, i16* %baz, align 2
   %STRING_EQUAL_instance = alloca %STRING_EQUAL_interface, align 8
-  br label %input
+  %3 = getelementptr inbounds %STRING_EQUAL_interface, %STRING_EQUAL_interface* %STRING_EQUAL_instance, i32 0, i32 0
+  %4 = bitcast [1025 x i8]* %3 to i8*
+  %5 = bitcast [81 x i8]* %a to i8*
+  call void @llvm.memcpy.p0i8.p0i8.i32(i8* align 1 %4, i8* align 1 %5, i32 81, i1 false)
+  %6 = getelementptr inbounds %STRING_EQUAL_interface, %STRING_EQUAL_interface* %STRING_EQUAL_instance, i32 0, i32 1
+  %7 = bitcast [1025 x i8]* %6 to i8*
+  call void @llvm.memcpy.p0i8.p0i8.i32(i8* align 1 %7, i8* align 1 getelementptr inbounds ([2 x i8], [2 x i8]* @utf08_literal_0, i32 0, i32 0), i32 2, i1 false)
+  %call = call i8 @STRING_EQUAL(%STRING_EQUAL_interface* %STRING_EQUAL_instance)
+  %8 = icmp ne i8 %call, 0
+  br i1 %8, label %15, label %9
 
-3:                                                ; preds = %continue
+9:                                                ; preds = %entry
   %STRING_LESS_instance = alloca %STRING_LESS_interface, align 8
-  br label %input2
+  %10 = getelementptr inbounds %STRING_LESS_interface, %STRING_LESS_interface* %STRING_LESS_instance, i32 0, i32 0
+  %11 = bitcast [1025 x i8]* %10 to i8*
+  %12 = bitcast [81 x i8]* %a to i8*
+  call void @llvm.memcpy.p0i8.p0i8.i32(i8* align 1 %11, i8* align 1 %12, i32 81, i1 false)
+  %13 = getelementptr inbounds %STRING_LESS_interface, %STRING_LESS_interface* %STRING_LESS_instance, i32 0, i32 1
+  %14 = bitcast [1025 x i8]* %13 to i8*
+  call void @llvm.memcpy.p0i8.p0i8.i32(i8* align 1 %14, i8* align 1 getelementptr inbounds ([2 x i8], [2 x i8]* @utf08_literal_0, i32 0, i32 0), i32 2, i1 false)
+  %call1 = call i8 @STRING_LESS(%STRING_LESS_interface* %STRING_LESS_instance)
+  br label %15
 
-4:                                                ; preds = %continue5, %continue
-  %5 = phi i8 [ %call1, %continue ], [ %call6, %continue5 ]
-  store i8 %5, i8* %result, align 1
+15:                                               ; preds = %9, %entry
+  %16 = phi i8 [ %call, %entry ], [ %call1, %9 ]
+  store i8 %16, i8* %result, align 1
   %baz_ret = load i16, i16* %baz, align 2
   ret i16 %baz_ret
-
-input:                                            ; preds = %entry
-  %6 = getelementptr inbounds %STRING_EQUAL_interface, %STRING_EQUAL_interface* %STRING_EQUAL_instance, i32 0, i32 0
-  %7 = bitcast [1025 x i8]* %6 to i8*
-  %8 = bitcast [81 x i8]* %a to i8*
-  call void @llvm.memcpy.p0i8.p0i8.i32(i8* align 1 %7, i8* align 1 %8, i32 81, i1 false)
-  %9 = getelementptr inbounds %STRING_EQUAL_interface, %STRING_EQUAL_interface* %STRING_EQUAL_instance, i32 0, i32 1
-  %10 = bitcast [1025 x i8]* %9 to i8*
-  call void @llvm.memcpy.p0i8.p0i8.i32(i8* align 1 %10, i8* align 1 getelementptr inbounds ([2 x i8], [2 x i8]* @utf08_literal_0, i32 0, i32 0), i32 2, i1 false)
-  br label %call
-
-call:                                             ; preds = %input
-  %call1 = call i8 @STRING_EQUAL(%STRING_EQUAL_interface* %STRING_EQUAL_instance)
-  br label %output
-
-output:                                           ; preds = %call
-  br label %continue
-
-continue:                                         ; preds = %output
-  %11 = icmp ne i8 %call1, 0
-  br i1 %11, label %4, label %3
-
-input2:                                           ; preds = %3
-  %12 = getelementptr inbounds %STRING_LESS_interface, %STRING_LESS_interface* %STRING_LESS_instance, i32 0, i32 0
-  %13 = bitcast [1025 x i8]* %12 to i8*
-  %14 = bitcast [81 x i8]* %a to i8*
-  call void @llvm.memcpy.p0i8.p0i8.i32(i8* align 1 %13, i8* align 1 %14, i32 81, i1 false)
-  %15 = getelementptr inbounds %STRING_LESS_interface, %STRING_LESS_interface* %STRING_LESS_instance, i32 0, i32 1
-  %16 = bitcast [1025 x i8]* %15 to i8*
-  call void @llvm.memcpy.p0i8.p0i8.i32(i8* align 1 %16, i8* align 1 getelementptr inbounds ([2 x i8], [2 x i8]* @utf08_literal_0, i32 0, i32 0), i32 2, i1 false)
-  br label %call3
-
-call3:                                            ; preds = %input2
-  %call6 = call i8 @STRING_LESS(%STRING_LESS_interface* %STRING_LESS_instance)
-  br label %output4
-
-output4:                                          ; preds = %call3
-  br label %continue5
-
-continue5:                                        ; preds = %output4
-  br label %4
 }
 
 ; Function Attrs: argmemonly nofree nosync nounwind willreturn writeonly

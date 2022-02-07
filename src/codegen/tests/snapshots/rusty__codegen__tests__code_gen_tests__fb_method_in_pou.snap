@@ -1,6 +1,6 @@
 ---
 source: src/codegen/tests/code_gen_tests.rs
-assertion_line: 882
+assertion_line: 904
 expression: result
 
 ---
@@ -48,39 +48,15 @@ entry:
   %load_ = load i16, i16* %x1, align 2
   store i16 %load_, i16* %x, align 2
   %MyClass.testMethod_instance = alloca %MyClass.testMethod_interface, align 8
-  br label %input
-
-input:                                            ; preds = %entry
   %1 = getelementptr inbounds %MyClass.testMethod_interface, %MyClass.testMethod_interface* %MyClass.testMethod_instance, i32 0, i32 0
   %load_x = load i16, i16* %x, align 2
   store i16 %load_x, i16* %1, align 2
-  br label %call
-
-call:                                             ; preds = %input
   call void @MyClass.testMethod(%MyClass_interface* %cl, %MyClass.testMethod_interface* %MyClass.testMethod_instance)
-  br label %output
-
-output:                                           ; preds = %call
-  br label %continue
-
-continue:                                         ; preds = %output
   %MyClass.testMethod_instance2 = alloca %MyClass.testMethod_interface, align 8
-  br label %input3
-
-input3:                                           ; preds = %continue
   %2 = getelementptr inbounds %MyClass.testMethod_interface, %MyClass.testMethod_interface* %MyClass.testMethod_instance2, i32 0, i32 0
-  %load_x7 = load i16, i16* %x, align 2
-  store i16 %load_x7, i16* %2, align 2
-  br label %call4
-
-call4:                                            ; preds = %input3
+  %load_x3 = load i16, i16* %x, align 2
+  store i16 %load_x3, i16* %2, align 2
   call void @MyClass.testMethod(%MyClass_interface* %cl, %MyClass.testMethod_interface* %MyClass.testMethod_instance2)
-  br label %output5
-
-output5:                                          ; preds = %call4
-  br label %continue6
-
-continue6:                                        ; preds = %output5
   ret void
 }
 

@@ -1,5 +1,6 @@
 ---
 source: src/codegen/tests/code_gen_tests.rs
+assertion_line: 1475
 expression: result
 
 ---
@@ -19,19 +20,7 @@ entry:
 
 define void @prg(%prg_interface* %0) {
 entry:
-  br label %input
-
-input:                                            ; preds = %entry
-  br label %call
-
-call:                                             ; preds = %input
   call void @foo(%foo_interface* @foo_instance)
-  br label %output
-
-output:                                           ; preds = %call
-  br label %continue
-
-continue:                                         ; preds = %output
   ret void
 }
 

@@ -437,6 +437,42 @@ fn inouts_behave_like_pointers() {
 }
 
 #[test]
+fn var_output_assignment() {
+    struct MainType {
+        var1: i32,
+        var2: i32,
+    }
+
+    let function = r#"
+		PROGRAM foo 
+            VAR_INPUT
+                input1 : DINT;
+                input2 : DINT;
+            END_VAR
+            VAR_OUTPUT
+            	output1 : DINT;
+				output2 : DINT;
+            END_VAR
+			output1 := input1;
+			output2 := input2;
+        END_PROGRAM
+
+        PROGRAM main
+            VAR
+                var1 : DINT;
+				var2 : DINT;
+            END_VAR
+            foo(7, 8, output1 => var1, output2 => var2);
+        END_PROGRAM
+    "#;
+
+    let mut interface = MainType { var1: 0, var2: 0 };
+    let _: i32 = compile_and_run(function.to_string(), &mut interface);
+
+    assert_eq!((7, 8), (interface.var1, interface.var2));
+}
+
+#[test]
 fn optional_output_assignment() {
     struct MainType {
         var1: i32,
@@ -515,4 +551,53 @@ fn direct_call_on_function_block_array_access() {
     let _: i32 = compile_and_run(function.to_string(), &mut interface);
     assert_eq!(interface.x, 10);
     assert_eq!(interface.y, 20);
+}
+
+#[test]
+fn nested_calls_in_call_statement() {
+    #[repr(C)]
+    struct MainType {
+        var1: i32,
+        var2: i32,
+    }
+
+    let function = r#"
+		FUNCTION seven : DINT 
+			seven := 7;
+        END_FUNCTION
+
+        FUNCTION eight : DINT 
+			eight := 8;
+        END_FUNCTION
+
+        FUNCTION nine : DINT 
+			nine := 9;
+        END_FUNCTION
+
+        FUNCTION sum : DINT
+        VAR_INPUT a,b,c : DINT; END_VAR
+            sum := a + b + c;
+        END_FUNCTION
+
+        PROGRAM main
+            VAR
+                var1 : DINT;
+				var2 : DINT;
+            END_VAR
+
+            var1 := sum(seven(), eight(), nine());
+            var2 := sum(
+                sum(seven(), eight(), nine()),
+                sum(seven(), eight(), nine()),
+                sum(seven(), eight(), nine()));
+        END_PROGRAM
+    "#;
+
+    let mut interface = MainType { var1: 0, var2: 0 };
+    let _: i32 = compile_and_run(function.to_string(), &mut interface);
+
+    assert_eq!(
+        (7 + 8 + 9, 3 * (7 + 8 + 9)),
+        (interface.var1, interface.var2)
+    );
 }

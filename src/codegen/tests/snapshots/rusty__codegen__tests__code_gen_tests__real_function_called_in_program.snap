@@ -25,20 +25,8 @@ define void @prg(%prg_interface* %0) {
 entry:
   %x = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 0
   %foo_instance = alloca %foo_interface, align 8
-  br label %input
-
-input:                                            ; preds = %entry
-  br label %call
-
-call:                                             ; preds = %input
-  %call1 = call float @foo(%foo_interface* %foo_instance)
-  br label %output
-
-output:                                           ; preds = %call
-  br label %continue
-
-continue:                                         ; preds = %output
-  %1 = fptosi float %call1 to i32
+  %call = call float @foo(%foo_interface* %foo_instance)
+  %1 = fptosi float %call to i32
   store i32 %1, i32* %x, align 4
   ret void
 }

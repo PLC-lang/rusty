@@ -15,19 +15,7 @@ entry:
   %main = alloca i16, align 2
   store i16 0, i16* %main, align 2
   %external_instance = alloca %external_interface, align 8
-  br label %input
-
-input:                                            ; preds = %entry
-  br label %call
-
-call:                                             ; preds = %input
   call void @external(%external_interface* %external_instance)
-  br label %output
-
-output:                                           ; preds = %call
-  br label %continue
-
-continue:                                         ; preds = %output
   %main_ret = load i16, i16* %main, align 2
   ret i16 %main_ret
 }
