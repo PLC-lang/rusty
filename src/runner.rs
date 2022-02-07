@@ -1,6 +1,9 @@
-use inkwell::{execution_engine::{ExecutionEngine, JitFunction}, context::Context};
+use inkwell::{
+    context::Context,
+    execution_engine::{ExecutionEngine, JitFunction},
+};
 
-use crate::{SourceContainer, SourceCode, compile_module, diagnostics::Diagnostician};
+use crate::{compile_module, diagnostics::Diagnostician, SourceCode, SourceContainer};
 
 type MainFunction<T, U> = unsafe extern "C" fn(*mut T) -> U;
 
@@ -47,7 +50,7 @@ impl<S: SourceContainer> Compilable for Vec<S> {
 ///
 /// Runs the function given by `name` inside the compiled execution engine code.
 /// Returns the value returned by calling the function
-/// 
+///
 pub fn run<T, U>(exec_engine: &ExecutionEngine, name: &str, params: &mut T) -> U {
     unsafe {
         let main: JitFunction<MainFunction<T, U>> = exec_engine.get_function(name).unwrap();
@@ -80,7 +83,7 @@ pub fn compile<T: Compilable>(context: &Context, source: T) -> ExecutionEngine {
 
 ///
 /// A Convenience method to compile and then run the given source
-/// 
+///
 pub fn compile_and_run<T, U, S: Compilable>(source: S, params: &mut T) -> U {
     let context: Context = Context::create();
     let exec_engine = compile(&context, source);

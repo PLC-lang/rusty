@@ -6,7 +6,7 @@ use rusty::diagnostics::Diagnostician;
 use rusty::*;
 
 //Import the helper run methods into the tests
-pub use rusty::runner::{MainType, compile, run, compile_and_run };
+pub use rusty::runner::{compile, compile_and_run, run, MainType};
 
 mod correctness {
     mod arrays;
@@ -70,4 +70,3 @@ fn get_test_file(name: &str) -> String {
 
     data_path.display().to_string()
 }
-
