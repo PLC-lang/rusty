@@ -109,7 +109,7 @@ impl VariableIndexEntry {
             &self.name
         };
         VariableIndexEntry {
-            name : name.to_string(),
+            name: name.to_string(),
             qualified_name: format!("{}.{}", container, name),
             data_type_name: new_type.to_string(),
             ..self.to_owned()

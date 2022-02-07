@@ -1,5 +1,6 @@
 ---
 source: src/codegen/tests/generics_test.rs
+assertion_line: 32
 expression: prg
 
 ---
@@ -11,6 +12,16 @@ source_filename = "main"
 %MAX__INT_interface = type { i16, i16 }
 
 @prg_instance = global %prg_interface zeroinitializer
+
+define i32 @MAX__DINT(%MAX__DINT_interface* %0) {
+entry:
+  %in1 = getelementptr inbounds %MAX__DINT_interface, %MAX__DINT_interface* %0, i32 0, i32 0
+  %in2 = getelementptr inbounds %MAX__DINT_interface, %MAX__DINT_interface* %0, i32 0, i32 1
+  %MAX__DINT = alloca i32, align 4
+  store i32 0, i32* %MAX__DINT, align 4
+  %MAX__DINT_ret = load i32, i32* %MAX__DINT, align 4
+  ret i32 %MAX__DINT_ret
+}
 
 define void @prg(%prg_interface* %0) {
 entry:
@@ -56,8 +67,6 @@ output4:                                          ; preds = %call3
 continue5:                                        ; preds = %output4
   ret void
 }
-
-declare i32 @MAX__DINT(%MAX__DINT_interface*)
 
 declare i16 @MAX__INT(%MAX__INT_interface*)
 

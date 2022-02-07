@@ -78,7 +78,6 @@ fn test_external_function_called() {
     assert_eq!(main_type.b, 5.0f32);
 }
 
-
 #[test]
 fn test_generic_function_implemented_in_st_called() {
     //Given some external function.
@@ -114,7 +113,7 @@ fn test_generic_function_implemented_in_st_called() {
     ";
 
     let mut main_type = MainType { a: 0, b: 0.0f32 };
-    let _ : i32 = compile_and_run(prog.to_string(), &mut main_type);
+    let _: i32 = compile_and_run(prog.to_string(), &mut main_type);
     assert_eq!(main_type.a, 200);
     assert_eq!(main_type.b, 5.0f32);
 }
