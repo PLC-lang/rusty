@@ -128,14 +128,9 @@ impl SerializeWithContext for HardwareBinding<'_> {
 /// Retrieves hardware bindings from all defined instances in the program
 pub fn collect_hardware_configuration(index: &Index) -> Result<Configuration, Diagnostic> {
     let conf: Result<Vec<HardwareBinding>, String> = index
+        //Avoid arrays that are not represeting structural types
         .find_instances()
-        .filter(|(_, instance)| !instance.is_constant())
-        .filter(|(_, instance)| {
-            //Allow arrays and structs through
-            // let dt = index.find_effective_type_info(instance.get_type_name()).filter(|it| it.is_array() && it.is_struct());
-            // dt.is_some() ||
-            instance.has_hardware_binding()
-        })
+        .filter(|(_, instance)| instance.has_hardware_binding())
         .map(|(name, instance)| {
             let binding = instance
                 .get_hardware_binding()

@@ -943,8 +943,19 @@ impl Index {
         }
     }
 
+    /// Creates an iterator over all instances in the index
     pub fn find_instances(&self) -> InstanceIterator {
         InstanceIterator::new(self)
+    }
+
+    /// Creates an iterator over all instances in the index
+    /// The passed filter will stop the iterator from navigating deeper into variables that should not be considered
+    /// To filter a variable from showing up at all, (not only its children), add a filter to the returned iterator
+    pub fn filter_instances(
+        &self,
+        inner_filter: fn(&VariableIndexEntry, &Index) -> bool,
+    ) -> InstanceIterator {
+        InstanceIterator::with_filter(self, inner_filter)
     }
 }
 

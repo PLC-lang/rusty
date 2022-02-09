@@ -12,6 +12,7 @@ pub struct InstanceIterator<'idx> {
     iterator: Box<dyn Iterator<Item = InstanceEntry<'idx>> + 'idx>,
     inner: Option<Box<InstanceIterator<'idx>>>,
     current_prefix: QualifiedName<'idx>,
+    filter: fn(&VariableIndexEntry, &'idx Index) -> bool,
 }
 
 impl<'idx> Iterator for InstanceIterator<'idx> {
@@ -42,6 +43,29 @@ impl<'idx> InstanceIterator<'idx> {
                 )
             }))) as Box<dyn Iterator<Item = InstanceEntry<'idx>>>,
             inner: None,
+            filter: |_, _| true,
+        }
+    }
+
+    pub fn with_filter(
+        index: &'idx Index,
+        filter: fn(&VariableIndexEntry, &'idx Index) -> bool,
+    ) -> InstanceIterator<'idx> {
+        InstanceIterator {
+            index,
+            current_prefix: QualifiedName::default(),
+            iterator: (Box::new(index.get_globals().iter().map(|(_, it)| {
+                (
+                    it.get_qualified_name()
+                        .split('.')
+                        .last()
+                        .expect("Variable needs a name")
+                        .into(),
+                    it,
+                )
+            }))) as Box<dyn Iterator<Item = InstanceEntry<'idx>>>,
+            inner: None,
+            filter,
         }
     }
 
@@ -49,6 +73,7 @@ impl<'idx> InstanceIterator<'idx> {
         index: &'idx Index,
         container: &str,
         current_prefix: &QualifiedName<'idx>,
+        filter: fn(&VariableIndexEntry, &'idx Index) -> bool,
     ) -> Option<InstanceIterator<'idx>> {
         //If the container is an array, build a new iterator for that datatype with the iterations of that array as variables
         let inner_type = index.find_effective_type_info(container);
@@ -84,14 +109,22 @@ impl<'idx> InstanceIterator<'idx> {
                 current_prefix: prefix,
                 iterator: (Box::new(iterator)) as Box<dyn Iterator<Item = InstanceEntry<'idx>>>,
                 inner: None,
+                filter,
             })
     }
 
     fn get(&mut self) -> Option<Instance<'idx>> {
         if let Some((entry, variable)) = self.iterator.next() {
-            self.inner =
-                InstanceIterator::inner(self.index, variable.get_type_name(), &vec![entry].into())
-                    .map(Box::new);
+            //Only go deeper if the filter allows
+            if (self.filter)(variable, self.index) {
+                self.inner = InstanceIterator::inner(
+                    self.index,
+                    variable.get_type_name(),
+                    &vec![entry].into(),
+                    self.filter,
+                )
+                .map(Box::new);
+            }
             let name = self.current_prefix.append(entry);
             Some((name, variable))
         } else {

@@ -187,3 +187,27 @@ fn pointer_variables_are_not_retrieved() {
     );
     insta::assert_debug_snapshot!(index.find_instances().collect::<Vec<Instance<'_>>>());
 }
+
+#[test]
+fn filter_on_variables_are_applied() {
+    let (_, index) = index(
+        "
+    FUNCTION_BLOCK fb 
+    VAR
+        a,b : DINT;
+    END_VAR
+    END_FUNCTION_BLOCK
+    PROGRAM MainProg
+    VAR
+        rFb : fb;
+    END_VAR
+    END_PROGRAM
+    VAR_GLOBAL CONSTANT
+        gFb : fb;
+    END_VAR
+    ",
+    );
+    insta::assert_debug_snapshot!(index
+        .filter_instances(|it, _| !it.is_constant())
+        .collect::<Vec<Instance<'_>>>());
+}
