@@ -1731,6 +1731,18 @@
 <span id="1731">1731</span>
 <span id="1732">1732</span>
 <span id="1733">1733</span>
+<span id="1734">1734</span>
+<span id="1735">1735</span>
+<span id="1736">1736</span>
+<span id="1737">1737</span>
+<span id="1738">1738</span>
+<span id="1739">1739</span>
+<span id="1740">1740</span>
+<span id="1741">1741</span>
+<span id="1742">1742</span>
+<span id="1743">1743</span>
+<span id="1744">1744</span>
+<span id="1745">1745</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2021 Ghaith Hachem and Mathias Rieder</span>
 
 <span class="doccomment">//! Resolves (partial) expressions &amp; statements and annotates the resulting types</span>
@@ -2598,18 +2610,30 @@
             } <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="macro">visit_all_statements!</span>(<span class="self">self</span>, <span class="ident">ctx</span>, <span class="ident">left</span>, <span class="ident">right</span>);
                 <span class="kw">let</span> <span class="ident">statement_type</span> <span class="op">=</span> {
-                    <span class="kw">let</span> <span class="ident">left_type</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">annotation_map</span>.<span class="ident">get_type_or_void</span>(<span class="ident">left</span>, <span class="self">self</span>.<span class="ident">index</span>);
-                    <span class="kw">let</span> <span class="ident">right_type</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">annotation_map</span>.<span class="ident">get_type_or_void</span>(<span class="ident">right</span>, <span class="self">self</span>.<span class="ident">index</span>);
+                    <span class="kw">let</span> <span class="ident">left_type</span> <span class="op">=</span> <span class="self">self</span>
+                        .<span class="ident">annotation_map</span>
+                        .<span class="ident">get_type_hint</span>(<span class="ident">left</span>, <span class="self">self</span>.<span class="ident">index</span>)
+                        .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">annotation_map</span>.<span class="ident">get_type_or_void</span>(<span class="ident">left</span>, <span class="self">self</span>.<span class="ident">index</span>));
+                    <span class="kw">let</span> <span class="ident">right_type</span> <span class="op">=</span> <span class="self">self</span>
+                        .<span class="ident">annotation_map</span>
+                        .<span class="ident">get_type_hint</span>(<span class="ident">right</span>, <span class="self">self</span>.<span class="ident">index</span>)
+                        .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">annotation_map</span>.<span class="ident">get_type_or_void</span>(<span class="ident">right</span>, <span class="self">self</span>.<span class="ident">index</span>));
 
                     <span class="kw">if</span> <span class="ident">left_type</span>.<span class="ident">get_type_information</span>().<span class="ident">is_numerical</span>()
                         <span class="op">&amp;&amp;</span> <span class="ident">right_type</span>.<span class="ident">get_type_information</span>().<span class="ident">is_numerical</span>()
                     {
-                        <span class="kw">let</span> <span class="ident">dint</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">index</span>.<span class="ident">get_type_or_panic</span>(<span class="ident">DINT_TYPE</span>);
-                        <span class="kw">let</span> <span class="ident">bigger_type</span> <span class="op">=</span> <span class="ident">get_bigger_type</span>(
-                            <span class="ident">get_bigger_type</span>(<span class="ident">left_type</span>, <span class="ident">right_type</span>, <span class="self">self</span>.<span class="ident">index</span>),
-                            <span class="ident">dint</span>,
-                            <span class="self">self</span>.<span class="ident">index</span>,
-                        );
+                        <span class="kw">let</span> <span class="ident">bigger_type</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">left_type</span>.<span class="ident">get_type_information</span>().<span class="ident">is_bool</span>()
+                            <span class="op">&amp;&amp;</span> <span class="ident">right_type</span>.<span class="ident">get_type_information</span>().<span class="ident">is_bool</span>()
+                        {
+                            <span class="ident">left_type</span>
+                        } <span class="kw">else</span> {
+                            <span class="kw">let</span> <span class="ident">dint</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">index</span>.<span class="ident">get_type_or_panic</span>(<span class="ident">DINT_TYPE</span>);
+                            <span class="ident">get_bigger_type</span>(
+                                <span class="ident">get_bigger_type</span>(<span class="ident">left_type</span>, <span class="ident">right_type</span>, <span class="self">self</span>.<span class="ident">index</span>),
+                                <span class="ident">dint</span>,
+                                <span class="self">self</span>.<span class="ident">index</span>,
+                            )
+                        };
 
                         <span class="kw">let</span> <span class="ident">target_name</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">operator</span>.<span class="ident">is_bool_type</span>() {
                             <span class="ident">BOOL_TYPE</span>.<span class="ident">to_string</span>()

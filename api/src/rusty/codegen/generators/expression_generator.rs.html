@@ -2142,6 +2142,80 @@
 <span id="2142">2142</span>
 <span id="2143">2143</span>
 <span id="2144">2144</span>
+<span id="2145">2145</span>
+<span id="2146">2146</span>
+<span id="2147">2147</span>
+<span id="2148">2148</span>
+<span id="2149">2149</span>
+<span id="2150">2150</span>
+<span id="2151">2151</span>
+<span id="2152">2152</span>
+<span id="2153">2153</span>
+<span id="2154">2154</span>
+<span id="2155">2155</span>
+<span id="2156">2156</span>
+<span id="2157">2157</span>
+<span id="2158">2158</span>
+<span id="2159">2159</span>
+<span id="2160">2160</span>
+<span id="2161">2161</span>
+<span id="2162">2162</span>
+<span id="2163">2163</span>
+<span id="2164">2164</span>
+<span id="2165">2165</span>
+<span id="2166">2166</span>
+<span id="2167">2167</span>
+<span id="2168">2168</span>
+<span id="2169">2169</span>
+<span id="2170">2170</span>
+<span id="2171">2171</span>
+<span id="2172">2172</span>
+<span id="2173">2173</span>
+<span id="2174">2174</span>
+<span id="2175">2175</span>
+<span id="2176">2176</span>
+<span id="2177">2177</span>
+<span id="2178">2178</span>
+<span id="2179">2179</span>
+<span id="2180">2180</span>
+<span id="2181">2181</span>
+<span id="2182">2182</span>
+<span id="2183">2183</span>
+<span id="2184">2184</span>
+<span id="2185">2185</span>
+<span id="2186">2186</span>
+<span id="2187">2187</span>
+<span id="2188">2188</span>
+<span id="2189">2189</span>
+<span id="2190">2190</span>
+<span id="2191">2191</span>
+<span id="2192">2192</span>
+<span id="2193">2193</span>
+<span id="2194">2194</span>
+<span id="2195">2195</span>
+<span id="2196">2196</span>
+<span id="2197">2197</span>
+<span id="2198">2198</span>
+<span id="2199">2199</span>
+<span id="2200">2200</span>
+<span id="2201">2201</span>
+<span id="2202">2202</span>
+<span id="2203">2203</span>
+<span id="2204">2204</span>
+<span id="2205">2205</span>
+<span id="2206">2206</span>
+<span id="2207">2207</span>
+<span id="2208">2208</span>
+<span id="2209">2209</span>
+<span id="2210">2210</span>
+<span id="2211">2211</span>
+<span id="2212">2212</span>
+<span id="2213">2213</span>
+<span id="2214">2214</span>
+<span id="2215">2215</span>
+<span id="2216">2216</span>
+<span id="2217">2217</span>
+<span id="2218">2218</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">ast</span>::{<span class="self">self</span>, <span class="ident">DirectAccessType</span>, <span class="ident">SourceRange</span>},
@@ -2154,6 +2228,7 @@
     },
 };
 <span class="kw">use</span> <span class="ident">inkwell</span>::{
+    <span class="ident">builder::Builder</span>,
     <span class="ident">types::BasicTypeEnum</span>,
     <span class="ident">values</span>::{
         <span class="ident">ArrayValue</span>, <span class="ident">BasicMetadataValueEnum</span>, <span class="ident">BasicValue</span>, <span class="ident">BasicValueEnum</span>, <span class="ident">FloatValue</span>, <span class="ident">IntValue</span>,
@@ -2334,11 +2409,6 @@
                 <span class="ident">operator</span>,
                 ..
             } <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="comment">//If OR, or AND handle before generating the statements</span>
-                <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Operator::And</span> <span class="op">|</span> <span class="ident">Operator::Or</span> <span class="op">=</span> <span class="ident">operator</span> {
-                    <span class="kw">return</span> <span class="self">self</span>.<span class="ident">generate_short_circuit_boolean_expression</span>(<span class="ident">operator</span>, <span class="ident">left</span>, <span class="ident">right</span>);
-                }
-
                 <span class="kw">let</span> <span class="ident">l_type_hint</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_type_hint_for</span>(<span class="ident">left</span>)<span class="question-mark">?</span>;
                 <span class="kw">let</span> <span class="ident">ltype</span> <span class="op">=</span> <span class="self">self</span>
                     .<span class="ident">index</span>
@@ -2350,6 +2420,10 @@
                     .<span class="ident">index</span>
                     .<span class="ident">get_intrinsic_type_by_name</span>(<span class="ident">r_type_hint</span>.<span class="ident">get_name</span>())
                     .<span class="ident">get_type_information</span>();
+                <span class="comment">//If OR, or AND handle before generating the statements</span>
+                <span class="kw">if</span> <span class="ident">ltype</span>.<span class="ident">is_bool</span>() <span class="op">&amp;&amp;</span> <span class="ident">rtype</span>.<span class="ident">is_bool</span>() {
+                    <span class="kw">return</span> <span class="self">self</span>.<span class="ident">generate_bool_binary_expression</span>(<span class="ident">operator</span>, <span class="ident">left</span>, <span class="ident">right</span>);
+                }
 
                 <span class="kw">if</span> <span class="ident">ltype</span>.<span class="ident">is_int</span>() <span class="op">&amp;&amp;</span> <span class="ident">rtype</span>.<span class="ident">is_int</span>() {
                     <span class="prelude-val">Ok</span>(<span class="self">self</span>.<span class="ident">create_llvm_int_binary_expression</span>(
@@ -2497,14 +2571,24 @@
         <span class="ident">expression</span>: <span class="kw-2">&amp;</span><span class="ident">AstStatement</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">BasicValueEnum</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>, <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">unary_operator</span> {
-            <span class="ident">Operator::Not</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="self">self</span>
-                .<span class="ident">llvm</span>
-                .<span class="ident">builder</span>
-                .<span class="ident">build_not</span>(
-                    <span class="self">self</span>.<span class="ident">generate_expression</span>(<span class="ident">expression</span>)<span class="question-mark">?</span>.<span class="ident">into_int_value</span>(),
-                    <span class="string">&quot;tmpVar&quot;</span>,
-                )
-                .<span class="ident">as_basic_value_enum</span>()),
+            <span class="ident">Operator::Not</span> <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="kw">let</span> <span class="ident">operator</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">generate_expression</span>(<span class="ident">expression</span>)<span class="question-mark">?</span>.<span class="ident">into_int_value</span>();
+                <span class="kw">let</span> <span class="ident">operator</span> <span class="op">=</span> <span class="kw">if</span> <span class="self">self</span>
+                    .<span class="ident">get_type_hint_for</span>(<span class="ident">expression</span>)
+                    .<span class="ident">map</span>(<span class="op">|</span><span class="ident">it</span><span class="op">|</span> <span class="ident">it</span>.<span class="ident">get_type_information</span>().<span class="ident">is_bool</span>())
+                    .<span class="ident">unwrap_or_default</span>()
+                {
+                    <span class="ident">to_i1</span>(<span class="ident">operator</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">llvm</span>.<span class="ident">builder</span>)
+                } <span class="kw">else</span> {
+                    <span class="ident">operator</span>
+                };
+
+                <span class="prelude-val">Ok</span>(<span class="self">self</span>
+                    .<span class="ident">llvm</span>
+                    .<span class="ident">builder</span>
+                    .<span class="ident">build_not</span>(<span class="ident">operator</span>, <span class="string">&quot;tmpVar&quot;</span>)
+                    .<span class="ident">as_basic_value_enum</span>())
+            }
             <span class="ident">Operator::Minus</span> <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">let</span> <span class="ident">generated_exp</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">generate_expression</span>(<span class="ident">expression</span>)<span class="question-mark">?</span>;
                 <span class="kw">if</span> <span class="ident">generated_exp</span>.<span class="ident">is_float_value</span>() {
@@ -3447,6 +3531,11 @@
                 .<span class="ident">llvm</span>
                 .<span class="ident">builder</span>
                 .<span class="ident">build_xor</span>(<span class="ident">int_lvalue</span>, <span class="ident">int_rvalue</span>, <span class="string">&quot;tmpVar&quot;</span>),
+            <span class="ident">Operator::And</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>
+                .<span class="ident">llvm</span>
+                .<span class="ident">builder</span>
+                .<span class="ident">build_and</span>(<span class="ident">int_lvalue</span>, <span class="ident">int_rvalue</span>, <span class="string">&quot;tmpVar&quot;</span>),
+            <span class="ident">Operator::Or</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">llvm</span>.<span class="ident">builder</span>.<span class="ident">build_or</span>(<span class="ident">int_lvalue</span>, <span class="ident">int_rvalue</span>, <span class="string">&quot;tmpVar&quot;</span>),
             <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unimplemented!</span>(),
         };
         <span class="ident">value</span>.<span class="ident">into</span>()
@@ -3969,33 +4058,94 @@
 
     <span class="doccomment">/// generates a phi-expression (&amp;&amp; or || expression) with respect to short-circuit evaluation</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// - `operator` AND or OR</span>
+    <span class="doccomment">/// - `operator` an operator suitable for bool variables</span>
     <span class="doccomment">/// - `left` the left side of the expression</span>
     <span class="doccomment">/// - `right` the right side of the expression</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">generate_short_circuit_boolean_expression</span>(
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">generate_bool_binary_expression</span>(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        <span class="ident">operator</span>: <span class="kw-2">&amp;</span><span class="ident">Operator</span>,
+        <span class="ident">left</span>: <span class="kw-2">&amp;</span><span class="ident">AstStatement</span>,
+        <span class="ident">right</span>: <span class="kw-2">&amp;</span><span class="ident">AstStatement</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">BasicValueEnum</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>, <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
+        <span class="kw">match</span> <span class="ident">operator</span> {
+            <span class="ident">Operator::And</span> <span class="op">|</span> <span class="ident">Operator::Or</span> <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="self">self</span>.<span class="ident">generate_bool_short_circuit_expression</span>(<span class="ident">operator</span>, <span class="ident">left</span>, <span class="ident">right</span>)
+            }
+            <span class="ident">Operator::Equal</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="self">self</span>
+                .<span class="ident">llvm</span>
+                .<span class="ident">builder</span>
+                .<span class="ident">build_int_compare</span>(
+                    <span class="ident">IntPredicate::EQ</span>,
+                    <span class="ident">to_i1</span>(
+                        <span class="self">self</span>.<span class="ident">generate_expression</span>(<span class="ident">left</span>)<span class="question-mark">?</span>.<span class="ident">into_int_value</span>(),
+                        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">llvm</span>.<span class="ident">builder</span>,
+                    ),
+                    <span class="ident">to_i1</span>(
+                        <span class="self">self</span>.<span class="ident">generate_expression</span>(<span class="ident">right</span>)<span class="question-mark">?</span>.<span class="ident">into_int_value</span>(),
+                        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">llvm</span>.<span class="ident">builder</span>,
+                    ),
+                    <span class="string">&quot;&quot;</span>,
+                )
+                .<span class="ident">as_basic_value_enum</span>()),
+            <span class="ident">Operator::NotEqual</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="self">self</span>
+                .<span class="ident">llvm</span>
+                .<span class="ident">builder</span>
+                .<span class="ident">build_int_compare</span>(
+                    <span class="ident">IntPredicate::NE</span>,
+                    <span class="ident">to_i1</span>(
+                        <span class="self">self</span>.<span class="ident">generate_expression</span>(<span class="ident">left</span>)<span class="question-mark">?</span>.<span class="ident">into_int_value</span>(),
+                        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">llvm</span>.<span class="ident">builder</span>,
+                    ),
+                    <span class="ident">to_i1</span>(
+                        <span class="self">self</span>.<span class="ident">generate_expression</span>(<span class="ident">right</span>)<span class="question-mark">?</span>.<span class="ident">into_int_value</span>(),
+                        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">llvm</span>.<span class="ident">builder</span>,
+                    ),
+                    <span class="string">&quot;&quot;</span>,
+                )
+                .<span class="ident">as_basic_value_enum</span>()),
+            <span class="ident">Operator::Xor</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="self">self</span>
+                .<span class="ident">llvm</span>
+                .<span class="ident">builder</span>
+                .<span class="ident">build_xor</span>(
+                    <span class="ident">to_i1</span>(
+                        <span class="self">self</span>.<span class="ident">generate_expression</span>(<span class="ident">left</span>)<span class="question-mark">?</span>.<span class="ident">into_int_value</span>(),
+                        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">llvm</span>.<span class="ident">builder</span>,
+                    ),
+                    <span class="ident">to_i1</span>(
+                        <span class="self">self</span>.<span class="ident">generate_expression</span>(<span class="ident">right</span>)<span class="question-mark">?</span>.<span class="ident">into_int_value</span>(),
+                        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">llvm</span>.<span class="ident">builder</span>,
+                    ),
+                    <span class="string">&quot;&quot;</span>,
+                )
+                .<span class="ident">as_basic_value_enum</span>()),
+            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">Diagnostic::codegen_error</span>(
+                <span class="macro">format!</span>(<span class="string">&quot;illegal boolean expresspion for operator {:}&quot;</span>, <span class="ident">operator</span>).<span class="ident">as_str</span>(),
+                (<span class="ident">left</span>.<span class="ident">get_location</span>().<span class="ident">get_start</span>()..<span class="ident">right</span>.<span class="ident">get_location</span>().<span class="ident">get_end</span>()).<span class="ident">into</span>(),
+            )),
+        }
+    }
+
+    <span class="doccomment">/// generates a phi-expression (&amp;&amp; or || expression) with respect to short-circuit evaluation</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// - `operator` AND / OR</span>
+    <span class="doccomment">/// - `left` the left side of the expression as an i1 value</span>
+    <span class="doccomment">/// - `right` the right side of an expression as an i1 value</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">generate_bool_short_circuit_expression</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">operator</span>: <span class="kw-2">&amp;</span><span class="ident">Operator</span>,
         <span class="ident">left</span>: <span class="kw-2">&amp;</span><span class="ident">AstStatement</span>,
         <span class="ident">right</span>: <span class="kw-2">&amp;</span><span class="ident">AstStatement</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">BasicValueEnum</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>, <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">builder</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">llvm</span>.<span class="ident">builder</span>;
+        <span class="kw">let</span> <span class="ident">lhs</span> <span class="op">=</span> <span class="ident">to_i1</span>(<span class="self">self</span>.<span class="ident">generate_expression</span>(<span class="ident">left</span>)<span class="question-mark">?</span>.<span class="ident">into_int_value</span>(), <span class="ident">builder</span>);
         <span class="kw">let</span> <span class="ident">function</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_function_context</span>(<span class="ident">left</span>)<span class="question-mark">?</span>.<span class="ident">function</span>;
 
         <span class="kw">let</span> <span class="ident">right_branch</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">llvm</span>.<span class="ident">context</span>.<span class="ident">append_basic_block</span>(<span class="ident">function</span>, <span class="string">&quot;&quot;</span>);
         <span class="kw">let</span> <span class="ident">continue_branch</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">llvm</span>.<span class="ident">context</span>.<span class="ident">append_basic_block</span>(<span class="ident">function</span>, <span class="string">&quot;&quot;</span>);
 
-        <span class="kw">let</span> <span class="ident">left_type</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_type_hint_for</span>(<span class="ident">left</span>)<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">left_value</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">generate_expression</span>(<span class="ident">left</span>)<span class="question-mark">?</span>;
-
         <span class="kw">let</span> <span class="ident">final_left_block</span> <span class="op">=</span> <span class="ident">builder</span>.<span class="ident">get_insert_block</span>().<span class="ident">expect</span>(<span class="ident">INTERNAL_LLVM_ERROR</span>);
-        <span class="kw">let</span> <span class="ident">left_llvm_type</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">llvm_index</span>.<span class="ident">get_associated_type</span>(<span class="ident">left_type</span>.<span class="ident">get_name</span>())<span class="question-mark">?</span>;
         <span class="comment">//Compare left to 0</span>
-        <span class="kw">let</span> <span class="ident">lhs</span> <span class="op">=</span> <span class="ident">builder</span>.<span class="ident">build_int_compare</span>(
-            <span class="ident">IntPredicate::NE</span>,
-            <span class="ident">left_value</span>.<span class="ident">into_int_value</span>(),
-            <span class="ident">left_llvm_type</span>.<span class="ident">into_int_type</span>().<span class="ident">const_int</span>(<span class="number">0</span>, <span class="bool-val">false</span>),
-            <span class="string">&quot;&quot;</span>,
-        );
+
         <span class="kw">match</span> <span class="ident">operator</span> {
             <span class="ident">Operator::Or</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">builder</span>.<span class="ident">build_conditional_branch</span>(<span class="ident">lhs</span>, <span class="ident">continue_branch</span>, <span class="ident">right_branch</span>),
             <span class="ident">Operator::And</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">builder</span>.<span class="ident">build_conditional_branch</span>(<span class="ident">lhs</span>, <span class="ident">right_branch</span>, <span class="ident">continue_branch</span>),
@@ -4008,31 +4158,15 @@
         };
 
         <span class="ident">builder</span>.<span class="ident">position_at_end</span>(<span class="ident">right_branch</span>);
-        <span class="kw">let</span> (<span class="ident">right_type</span>, <span class="ident">right_value</span>) <span class="op">=</span> (
-            <span class="self">self</span>.<span class="ident">get_type_hint_for</span>(<span class="ident">right</span>)<span class="question-mark">?</span>,
-            <span class="self">self</span>.<span class="ident">generate_expression</span>(<span class="ident">right</span>)<span class="question-mark">?</span>,
-        );
+        <span class="kw">let</span> <span class="ident">rhs</span> <span class="op">=</span> <span class="ident">to_i1</span>(<span class="self">self</span>.<span class="ident">generate_expression</span>(<span class="ident">right</span>)<span class="question-mark">?</span>.<span class="ident">into_int_value</span>(), <span class="ident">builder</span>);
         <span class="kw">let</span> <span class="ident">final_right_block</span> <span class="op">=</span> <span class="ident">builder</span>.<span class="ident">get_insert_block</span>().<span class="ident">expect</span>(<span class="ident">INTERNAL_LLVM_ERROR</span>);
-        <span class="kw">let</span> <span class="ident">rhs</span> <span class="op">=</span> <span class="ident">right_value</span>;
         <span class="ident">builder</span>.<span class="ident">build_unconditional_branch</span>(<span class="ident">continue_branch</span>);
 
         <span class="ident">builder</span>.<span class="ident">position_at_end</span>(<span class="ident">continue_branch</span>);
         <span class="comment">//Generate phi</span>
-        <span class="kw">let</span> <span class="ident">target_type</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">left_type</span>.<span class="ident">get_type_information</span>().<span class="ident">get_size</span>()
-            <span class="op">&gt;</span> <span class="ident">right_type</span>.<span class="ident">get_type_information</span>().<span class="ident">get_size</span>()
-        {
-            <span class="ident">left_type</span>
-        } <span class="kw">else</span> {
-            <span class="ident">right_type</span>
-        };
-        <span class="kw">let</span> <span class="ident">llvm_target_type</span> <span class="op">=</span> <span class="self">self</span>
-            .<span class="ident">llvm_index</span>
-            .<span class="ident">get_associated_type</span>(<span class="ident">target_type</span>.<span class="ident">get_name</span>())<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">phi_value</span> <span class="op">=</span> <span class="ident">builder</span>.<span class="ident">build_phi</span>(<span class="ident">llvm_target_type</span>, <span class="string">&quot;&quot;</span>);
-        <span class="ident">phi_value</span>.<span class="ident">add_incoming</span>(<span class="kw-2">&amp;</span>[
-            (<span class="kw-2">&amp;</span><span class="ident">left_value</span>.<span class="ident">into_int_value</span>(), <span class="ident">final_left_block</span>),
-            (<span class="kw-2">&amp;</span><span class="ident">rhs</span>, <span class="ident">final_right_block</span>),
-        ]);
+        <span class="kw">let</span> <span class="ident">phi_value</span> <span class="op">=</span> <span class="ident">builder</span>.<span class="ident">build_phi</span>(<span class="ident">lhs</span>.<span class="ident">get_type</span>(), <span class="string">&quot;&quot;</span>);
+        <span class="comment">//assert</span>
+        <span class="ident">phi_value</span>.<span class="ident">add_incoming</span>(<span class="kw-2">&amp;</span>[(<span class="kw-2">&amp;</span><span class="ident">lhs</span>, <span class="ident">final_left_block</span>), (<span class="kw-2">&amp;</span><span class="ident">rhs</span>, <span class="ident">final_right_block</span>)]);
 
         <span class="prelude-val">Ok</span>(<span class="ident">phi_value</span>.<span class="ident">as_basic_value</span>())
     }
@@ -4285,6 +4419,20 @@
         <span class="string">&quot;Invalid Date {}-{}-{}-{}:{}:{}.{}&quot;</span>,
         <span class="ident">year</span>, <span class="ident">month</span>, <span class="ident">day</span>, <span class="ident">hour</span>, <span class="ident">min</span>, <span class="ident">sec</span>, <span class="ident">milli</span>
     ))
+}
+
+<span class="doccomment">/// turns the given intValue into an i1 by comparing it to 0 (of the same size)</span>
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_i1</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="ident">value</span>: <span class="ident">IntValue</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>, <span class="ident">builder</span>: <span class="kw-2">&amp;</span><span class="ident">Builder</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">IntValue</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
+    <span class="kw">if</span> <span class="ident">value</span>.<span class="ident">get_type</span>().<span class="ident">get_bit_width</span>() <span class="op">&gt;</span> <span class="number">1</span> {
+        <span class="ident">builder</span>.<span class="ident">build_int_compare</span>(
+            <span class="ident">IntPredicate::NE</span>,
+            <span class="ident">value</span>,
+            <span class="ident">value</span>.<span class="ident">get_type</span>().<span class="ident">const_int</span>(<span class="number">0</span>, <span class="bool-val">false</span>),
+            <span class="string">&quot;&quot;</span>,
+        )
+    } <span class="kw">else</span> {
+        <span class="ident">value</span>
+    }
 }
 </code></pre></div>
 </section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="rusty" data-search-index-js="../../../../search-index.js" data-search-js="../../../../search.js"></div>

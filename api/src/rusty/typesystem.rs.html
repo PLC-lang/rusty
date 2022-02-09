@@ -823,6 +823,16 @@
 <span id="823">823</span>
 <span id="824">824</span>
 <span id="825">825</span>
+<span id="826">826</span>
+<span id="827">827</span>
+<span id="828">828</span>
+<span id="829">829</span>
+<span id="830">830</span>
+<span id="831">831</span>
+<span id="832">832</span>
+<span id="833">833</span>
+<span id="834">834</span>
+<span id="835">835</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder</span>
 <span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">mem::size_of</span>, <span class="ident">ops::Range</span>};
 
@@ -1085,6 +1095,16 @@
         <span class="macro">matches!</span>(
             <span class="self">self</span>,
             <span class="ident">DataTypeInformation::Integer</span> { .. } <span class="op">|</span> <span class="ident">DataTypeInformation::Enum</span> { .. }
+        )
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_bool</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+        <span class="macro">matches!</span>(
+            <span class="self">self</span>,
+            <span class="ident">DataTypeInformation::Integer</span> {
+                <span class="ident">semantic_size</span>: <span class="prelude-val">Some</span>(<span class="number">1</span>),
+                ..
+            }
         )
     }
 
