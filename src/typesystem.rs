@@ -266,6 +266,16 @@ impl DataTypeInformation {
         )
     }
 
+    pub fn is_bool(&self) -> bool {
+        matches!(
+            self,
+            DataTypeInformation::Integer {
+                semantic_size: Some(1),
+                ..
+            }
+        )
+    }
+
     pub fn is_pointer(&self) -> bool {
         matches!(self, DataTypeInformation::Pointer { .. })
     }

@@ -175,7 +175,12 @@ impl<'a> Llvm<'a> {
     /// - `value` the value of the constant bool value
     pub fn create_const_bool(&self, value: bool) -> Result<BasicValueEnum<'a>, Diagnostic> {
         let itype = self.context.bool_type();
-        let value = itype.const_int(value as u64, false);
+
+        let value = if value {
+            itype.const_all_ones()
+        } else {
+            itype.const_zero()
+        };
         Ok(BasicValueEnum::IntValue(value))
     }
 

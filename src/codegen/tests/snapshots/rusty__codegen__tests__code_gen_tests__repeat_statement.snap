@@ -1,6 +1,6 @@
 ---
 source: src/codegen/tests/code_gen_tests.rs
-assertion_line: 1147
+assertion_line: 1148
 expression: result
 
 ---
@@ -18,7 +18,8 @@ entry:
 
 condition_check:                                  ; preds = %while_body
   %load_x = load i8, i8* %x, align 1
-  br i8 %load_x, label %while_body, label %continue
+  %1 = icmp ne i8 %load_x, 0
+  br i1 %1, label %while_body, label %continue
 
 while_body:                                       ; preds = %entry, %condition_check
   %load_x1 = load i8, i8* %x, align 1

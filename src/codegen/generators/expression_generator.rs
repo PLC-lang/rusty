@@ -10,6 +10,7 @@ use crate::{
     },
 };
 use inkwell::{
+    builder::Builder,
     types::BasicTypeEnum,
     values::{
         ArrayValue, BasicMetadataValueEnum, BasicValue, BasicValueEnum, FloatValue, IntValue,
@@ -190,11 +191,6 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                 operator,
                 ..
             } => {
-                //If OR, or AND handle before generating the statements
-                if let Operator::And | Operator::Or = operator {
-                    return self.generate_short_circuit_boolean_expression(operator, left, right);
-                }
-
                 let l_type_hint = self.get_type_hint_for(left)?;
                 let ltype = self
                     .index
@@ -206,6 +202,10 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                     .index
                     .get_intrinsic_type_by_name(r_type_hint.get_name())
                     .get_type_information();
+                //If OR, or AND handle before generating the statements
+                if ltype.is_bool() && rtype.is_bool() {
+                    return self.generate_bool_binary_expression(operator, left, right);
+                }
 
                 if ltype.is_int() && rtype.is_int() {
                     Ok(self.create_llvm_int_binary_expression(
@@ -353,14 +353,24 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
         expression: &AstStatement,
     ) -> Result<BasicValueEnum<'a>, Diagnostic> {
         let value = match unary_operator {
-            Operator::Not => Ok(self
-                .llvm
-                .builder
-                .build_not(
-                    self.generate_expression(expression)?.into_int_value(),
-                    "tmpVar",
-                )
-                .as_basic_value_enum()),
+            Operator::Not => {
+                let operator = self.generate_expression(expression)?.into_int_value();
+                let operator = if self
+                    .get_type_hint_for(expression)
+                    .map(|it| it.get_type_information().is_bool())
+                    .unwrap_or_default()
+                {
+                    to_i1(operator, &self.llvm.builder)
+                } else {
+                    operator
+                };
+
+                Ok(self
+                    .llvm
+                    .builder
+                    .build_not(operator, "tmpVar")
+                    .as_basic_value_enum())
+            }
             Operator::Minus => {
                 let generated_exp = self.generate_expression(expression)?;
                 if generated_exp.is_float_value() {
@@ -1303,6 +1313,11 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
                 .llvm
                 .builder
                 .build_xor(int_lvalue, int_rvalue, "tmpVar"),
+            Operator::And => self
+                .llvm
+                .builder
+                .build_and(int_lvalue, int_rvalue, "tmpVar"),
+            Operator::Or => self.llvm.builder.build_or(int_lvalue, int_rvalue, "tmpVar"),
             _ => unimplemented!(),
         };
         value.into()
@@ -1825,33 +1840,94 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
 
     /// generates a phi-expression (&& or || expression) with respect to short-circuit evaluation
     ///
-    /// - `operator` AND or OR
+    /// - `operator` an operator suitable for bool variables
     /// - `left` the left side of the expression
     /// - `right` the right side of the expression
-    pub fn generate_short_circuit_boolean_expression(
+    pub fn generate_bool_binary_expression(
+        &self,
+        operator: &Operator,
+        left: &AstStatement,
+        right: &AstStatement,
+    ) -> Result<BasicValueEnum<'a>, Diagnostic> {
+        match operator {
+            Operator::And | Operator::Or => {
+                self.generate_bool_short_circuit_expression(operator, left, right)
+            }
+            Operator::Equal => Ok(self
+                .llvm
+                .builder
+                .build_int_compare(
+                    IntPredicate::EQ,
+                    to_i1(
+                        self.generate_expression(left)?.into_int_value(),
+                        &self.llvm.builder,
+                    ),
+                    to_i1(
+                        self.generate_expression(right)?.into_int_value(),
+                        &self.llvm.builder,
+                    ),
+                    "",
+                )
+                .as_basic_value_enum()),
+            Operator::NotEqual => Ok(self
+                .llvm
+                .builder
+                .build_int_compare(
+                    IntPredicate::NE,
+                    to_i1(
+                        self.generate_expression(left)?.into_int_value(),
+                        &self.llvm.builder,
+                    ),
+                    to_i1(
+                        self.generate_expression(right)?.into_int_value(),
+                        &self.llvm.builder,
+                    ),
+                    "",
+                )
+                .as_basic_value_enum()),
+            Operator::Xor => Ok(self
+                .llvm
+                .builder
+                .build_xor(
+                    to_i1(
+                        self.generate_expression(left)?.into_int_value(),
+                        &self.llvm.builder,
+                    ),
+                    to_i1(
+                        self.generate_expression(right)?.into_int_value(),
+                        &self.llvm.builder,
+                    ),
+                    "",
+                )
+                .as_basic_value_enum()),
+            _ => Err(Diagnostic::codegen_error(
+                format!("illegal boolean expresspion for operator {:}", operator).as_str(),
+                (left.get_location().get_start()..right.get_location().get_end()).into(),
+            )),
+        }
+    }
+
+    /// generates a phi-expression (&& or || expression) with respect to short-circuit evaluation
+    ///
+    /// - `operator` AND / OR
+    /// - `left` the left side of the expression as an i1 value
+    /// - `right` the right side of an expression as an i1 value
+    pub fn generate_bool_short_circuit_expression(
         &self,
         operator: &Operator,
         left: &AstStatement,
         right: &AstStatement,
     ) -> Result<BasicValueEnum<'a>, Diagnostic> {
         let builder = &self.llvm.builder;
+        let lhs = to_i1(self.generate_expression(left)?.into_int_value(), builder);
         let function = self.get_function_context(left)?.function;
 
         let right_branch = self.llvm.context.append_basic_block(function, "");
         let continue_branch = self.llvm.context.append_basic_block(function, "");
 
-        let left_type = self.get_type_hint_for(left)?;
-        let left_value = self.generate_expression(left)?;
-
         let final_left_block = builder.get_insert_block().expect(INTERNAL_LLVM_ERROR);
-        let left_llvm_type = self.llvm_index.get_associated_type(left_type.get_name())?;
         //Compare left to 0
-        let lhs = builder.build_int_compare(
-            IntPredicate::NE,
-            left_value.into_int_value(),
-            left_llvm_type.into_int_type().const_int(0, false),
-            "",
-        );
+
         match operator {
             Operator::Or => builder.build_conditional_branch(lhs, continue_branch, right_branch),
             Operator::And => builder.build_conditional_branch(lhs, right_branch, continue_branch),
@@ -1864,31 +1940,15 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
         };
 
         builder.position_at_end(right_branch);
-        let (right_type, right_value) = (
-            self.get_type_hint_for(right)?,
-            self.generate_expression(right)?,
-        );
+        let rhs = to_i1(self.generate_expression(right)?.into_int_value(), builder);
         let final_right_block = builder.get_insert_block().expect(INTERNAL_LLVM_ERROR);
-        let rhs = right_value;
         builder.build_unconditional_branch(continue_branch);
 
         builder.position_at_end(continue_branch);
         //Generate phi
-        let target_type = if left_type.get_type_information().get_size()
-            > right_type.get_type_information().get_size()
-        {
-            left_type
-        } else {
-            right_type
-        };
-        let llvm_target_type = self
-            .llvm_index
-            .get_associated_type(target_type.get_name())?;
-        let phi_value = builder.build_phi(llvm_target_type, "");
-        phi_value.add_incoming(&[
-            (&left_value.into_int_value(), final_left_block),
-            (&rhs, final_right_block),
-        ]);
+        let phi_value = builder.build_phi(lhs.get_type(), "");
+        //assert
+        phi_value.add_incoming(&[(&lhs, final_left_block), (&rhs, final_right_block)]);
 
         Ok(phi_value.as_basic_value())
     }
@@ -2141,4 +2201,18 @@ fn calculate_date_time(
         "Invalid Date {}-{}-{}-{}:{}:{}.{}",
         year, month, day, hour, min, sec, milli
     ))
+}
+
+/// turns the given intValue into an i1 by comparing it to 0 (of the same size)
+pub fn to_i1<'a>(value: IntValue<'a>, builder: &Builder<'a>) -> IntValue<'a> {
+    if value.get_type().get_bit_width() > 1 {
+        builder.build_int_compare(
+            IntPredicate::NE,
+            value,
+            value.get_type().const_int(0, false),
+            "",
+        )
+    } else {
+        value
+    }
 }

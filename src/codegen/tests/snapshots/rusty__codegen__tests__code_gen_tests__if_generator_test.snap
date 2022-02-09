@@ -1,6 +1,6 @@
 ---
 source: src/codegen/tests/code_gen_tests.rs
-assertion_line: 761
+assertion_line: 762
 expression: result
 
 ---
@@ -16,7 +16,8 @@ entry:
   %x = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 0
   %b1 = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 1
   %load_b1 = load i8, i8* %b1, align 1
-  br i8 %load_b1, label %condition_body, label %continue
+  %1 = icmp ne i8 %load_b1, 0
+  br i1 %1, label %condition_body, label %continue
 
 condition_body:                                   ; preds = %entry
   %load_x = load i32, i32* %x, align 4

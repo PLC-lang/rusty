@@ -16,17 +16,16 @@ entry:
   %x = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 0
   %y = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 1
   %load_x = load i8, i8* %x, align 1
-  %1 = zext i8 %load_x to i32
-  %2 = icmp ne i32 %1, 0
-  br i1 %2, label %3, label %5
+  %1 = icmp ne i8 %load_x, 0
+  br i1 %1, label %2, label %4
 
-3:                                                ; preds = %entry
+2:                                                ; preds = %entry
   %load_y = load i8, i8* %y, align 1
-  %4 = zext i8 %load_y to i32
-  br label %5
+  %3 = icmp ne i8 %load_y, 0
+  br label %4
 
-5:                                                ; preds = %3, %entry
-  %6 = phi i32 [ %1, %entry ], [ %4, %3 ]
+4:                                                ; preds = %2, %entry
+  %5 = phi i1 [ %1, %entry ], [ %3, %2 ]
   ret void
 }
 
