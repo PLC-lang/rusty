@@ -865,18 +865,30 @@ impl<'i> TypeAnnotator<'i> {
             } => {
                 visit_all_statements!(self, ctx, left, right);
                 let statement_type = {
-                    let left_type = self.annotation_map.get_type_or_void(left, self.index);
-                    let right_type = self.annotation_map.get_type_or_void(right, self.index);
+                    let left_type = self
+                        .annotation_map
+                        .get_type_hint(left, self.index)
+                        .unwrap_or_else(|| self.annotation_map.get_type_or_void(left, self.index));
+                    let right_type = self
+                        .annotation_map
+                        .get_type_hint(right, self.index)
+                        .unwrap_or_else(|| self.annotation_map.get_type_or_void(right, self.index));
 
                     if left_type.get_type_information().is_numerical()
                         && right_type.get_type_information().is_numerical()
                     {
-                        let dint = self.index.get_type_or_panic(DINT_TYPE);
-                        let bigger_type = get_bigger_type(
-                            get_bigger_type(left_type, right_type, self.index),
-                            dint,
-                            self.index,
-                        );
+                        let bigger_type = if left_type.get_type_information().is_bool()
+                            && right_type.get_type_information().is_bool()
+                        {
+                            left_type
+                        } else {
+                            let dint = self.index.get_type_or_panic(DINT_TYPE);
+                            get_bigger_type(
+                                get_bigger_type(left_type, right_type, self.index),
+                                dint,
+                                self.index,
+                            )
+                        };
 
                         let target_name = if operator.is_bool_type() {
                             BOOL_TYPE.to_string()

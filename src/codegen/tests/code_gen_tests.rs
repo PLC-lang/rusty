@@ -656,8 +656,9 @@ fn program_with_xor_statement() {
 VAR
 x : BOOL;
 y : BOOL;
+z : BOOL; 
 END_VAR
-x XOR y;
+z := x XOR y;
 END_PROGRAM
 "#,
     );

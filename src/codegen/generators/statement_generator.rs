@@ -1,6 +1,8 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use super::{
-    expression_generator::ExpressionCodeGenerator, llvm::Llvm, pou_generator::PouGenerator,
+    expression_generator::{to_i1, ExpressionCodeGenerator},
+    llvm::Llvm,
+    pou_generator::PouGenerator,
 };
 use crate::{
     ast::{flatten_expression_list, AstStatement, ConditionalBlock, Operator, SourceRange},
@@ -417,10 +419,14 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
 
         //.                                                           /            and_2                \
         //.                  /             and 1               \
-        // (counter_end_le && counter_start_ge) || (counter_end_ge && counter_start_le)
+        //.                   (counter_end_le && counter_start_ge) || (counter_end_ge && counter_start_le)
         let or_eval = self.generate_compare_expression(counter, end, start, &exp_gen)?;
 
-        builder.build_conditional_branch(or_eval.into_int_value(), for_body, continue_block);
+        builder.build_conditional_branch(
+            to_i1(or_eval.into_int_value(), builder),
+            for_body,
+            continue_block,
+        );
 
         //Enter the for loop
         builder.position_at_end(for_body);
@@ -623,14 +629,22 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         };
 
         //jmp to continue if the value is smaller than start
-        builder.build_conditional_branch(lower_bound.into_int_value(), range_then, range_else);
+        builder.build_conditional_branch(
+            to_i1(lower_bound.into_int_value(), builder),
+            range_then,
+            range_else,
+        );
         builder.position_at_end(range_then);
         let upper_bound = {
             let end_val = exp_gen.generate_expression(end)?;
             let selector_val = exp_gen.generate_expression(selector)?;
             exp_gen.create_llvm_int_binary_expression(&Operator::LessOrEqual, selector_val, end_val)
         };
-        builder.build_conditional_branch(upper_bound.into_int_value(), match_block, range_else);
+        builder.build_conditional_branch(
+            to_i1(upper_bound.into_int_value(), builder),
+            match_block,
+            range_else,
+        );
         Ok(range_else)
     }
 
@@ -704,7 +718,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
             .create_expr_generator()
             .generate_expression(condition)?;
         builder.build_conditional_branch(
-            condition_value.into_int_value(),
+            to_i1(condition_value.into_int_value(), builder),
             while_body,
             continue_block,
         );
@@ -766,7 +780,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
 
             //Generate if statement condition
             builder.build_conditional_branch(
-                condition.into_int_value(),
+                to_i1(condition.into_int_value(), builder),
                 conditional_block,
                 else_block,
             );

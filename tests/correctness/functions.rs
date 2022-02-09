@@ -144,24 +144,24 @@ fn test_and_sideeffects() {
     END_VAR
 
     FUNCTION AND_BRANCH : BOOL 
-    VAR_INPUT 
-        a : BOOL;
-        b : INT;
-    END_VAR
+        VAR_INPUT 
+            a : BOOL;
+            b : INT;
+        END_VAR
 
-    AND_BRANCH := a;
-    res_and := res_and + b;
+        AND_BRANCH := a;
+        res_and := res_and + b;
 
     END_FUNCTION
 
     FUNCTION main : DINT
-    VAR
-        y : BOOL;
-    END_VAR
+        VAR
+            y : BOOL;
+        END_VAR
 
-    y := AND_BRANCH(FALSE,1) AND AND_BRANCH(TRUE,2);
-    y := AND_BRANCH(TRUE,10) AND AND_BRANCH(FALSE,20) AND AND_BRANCH(TRUE,50);
-    main := res_and;
+        y := AND_BRANCH(FALSE,1) AND AND_BRANCH(TRUE,2);
+        y := AND_BRANCH(TRUE,10) AND AND_BRANCH(FALSE,20) AND AND_BRANCH(TRUE,50);
+        main := res_and;
 
     END_FUNCTION
 

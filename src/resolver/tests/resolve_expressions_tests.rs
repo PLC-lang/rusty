@@ -2907,7 +2907,7 @@ fn adress_of_is_annotated_correctly() {
     let annotations = annotate(&unit, &mut index);
 
     let s = &unit.implementations[0].statements[0];
-    if let &Some(&StatementAnnotation::Value { resulting_type }) = &annotations.get(s).as_ref() {
+    if let Some(&StatementAnnotation::Value { resulting_type }) = annotations.get(s).as_ref() {
         assert_eq!(
             Some(&DataTypeInformation::Pointer {
                 auto_deref: false,
@@ -2958,5 +2958,64 @@ fn call_on_function_block_array() {
             resulting_type: "fb".into()
         }),
         annotation
+    );
+}
+
+#[test]
+fn and_statement_of_bools_results_in_bool() {
+    //GIVEN
+    let (unit, index) = index(
+        "
+        PROGRAM PRG
+		VAR
+            a,b : BOOL;
+		END_VAR
+        
+            a AND b;
+        END_PROGRAM
+        ",
+    );
+
+    //WHEN the AST is annotated
+    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit);
+    let a_and_b = &unit.implementations[0].statements[0];
+    // a AND b should be treated as i1
+    assert_type_and_hint!(&annotations, &index, a_and_b, BOOL_TYPE, None);
+}
+
+#[test]
+fn and_statement_of_dints_results_in_dint() {
+    //GIVEN
+    let (unit, index) = index(
+        "
+        PROGRAM PRG
+		VAR
+            a,b : DINT;
+            c,d : INT;
+		END_VAR
+        
+            a AND b;
+            c AND d;
+        END_PROGRAM
+        ",
+    );
+
+    //WHEN the AST is annotated
+    let (annotations, _) = TypeAnnotator::visit_unit(&index, &unit);
+    // a AND b should be treated as DINT
+    assert_type_and_hint!(
+        &annotations,
+        &index,
+        &unit.implementations[0].statements[0],
+        DINT_TYPE,
+        None
+    );
+    // c AND d should be treated as DINT
+    assert_type_and_hint!(
+        &annotations,
+        &index,
+        &unit.implementations[0].statements[0],
+        DINT_TYPE,
+        None
     );
 }
