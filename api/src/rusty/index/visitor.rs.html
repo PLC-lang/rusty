@@ -765,7 +765,7 @@
 
 <span class="kw">fn</span> <span class="ident">register_inout_pointer_type_for</span>(<span class="ident">index</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Index</span>, <span class="ident">inner_type_name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">String</span> {
     <span class="comment">//get unique name</span>
-    <span class="kw">let</span> <span class="ident">type_name</span> <span class="op">=</span> <span class="macro">format!</span>(<span class="string">&quot;pointer_to_{}&quot;</span>, <span class="ident">inner_type_name</span>);
+    <span class="kw">let</span> <span class="ident">type_name</span> <span class="op">=</span> <span class="macro">format!</span>(<span class="string">&quot;auto_pointer_to_{}&quot;</span>, <span class="ident">inner_type_name</span>);
 
     <span class="comment">//generate a pointertype for the variable</span>
     <span class="ident">index</span>.<span class="ident">register_type</span>(<span class="ident">typesystem::DataType</span> {
