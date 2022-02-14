@@ -3,7 +3,7 @@ use pretty_assertions::assert_eq;
 
 use crate::lexer::IdProvider;
 use crate::parser::tests::literal_int;
-use crate::test_utils::tests::{index, parse_and_preprocess};
+use crate::test_utils::tests::{annotate, index, parse_and_preprocess};
 use crate::typesystem::TypeSize;
 use crate::{ast::*, index::VariableType, typesystem::DataTypeInformation};
 
@@ -1761,4 +1761,105 @@ fn global_vars_for_structs() {
     // THEN there should be a global variable for the struct
     let global_var = index.find_global_variable("__main_x__init");
     assert_eq!(true, global_var.is_some());
+}
+
+#[test]
+fn pointer_and_in_out_pointer_should_not_conflict() {
+    // GIVEN an IN-OUT INT and a POINTER TO INT
+    // WHEN the program is indexed
+    let (_, index) = index(
+        "
+		PROGRAM main
+		VAR_INPUT
+			x : REF_TO INT;
+		END_VAR
+        VAR_IN_OUT
+            y : INT;
+        END_VAR
+		END_PROGRAM
+		",
+    );
+
+    // THEN x and y whould be different pointer types
+    let x = index.find_member("main", "x").expect("main.x not found");
+    let x_type = index
+        .get_type(x.get_type_name())
+        .unwrap()
+        .get_type_information();
+    assert_eq!(
+        x_type,
+        &DataTypeInformation::Pointer {
+            name: "__main_x".to_string(),
+            inner_type_name: "INT".to_string(),
+            auto_deref: false,
+        }
+    );
+
+    let y = index.find_member("main", "y").expect("main.y not found");
+    let y_type = index
+        .get_type(y.get_type_name())
+        .unwrap()
+        .get_type_information();
+    assert_eq!(
+        y_type,
+        &DataTypeInformation::Pointer {
+            name: "auto_pointer_to_INT".to_string(),
+            inner_type_name: "INT".to_string(),
+            auto_deref: true,
+        }
+    );
+}
+
+#[test]
+fn pointer_and_in_out_pointer_should_not_conflict_2() {
+    // GIVEN an IN-OUT INT and a POINTER TO INT
+    // AND a adress-of INT operation
+
+    // WHEN the program is indexed
+    let (result, mut index) = index(
+        "
+		PROGRAM main
+		VAR_INPUT
+			x : REF_TO INT;
+		END_VAR
+        VAR_IN_OUT
+            y : INT;
+        END_VAR
+
+        &y; //this will add another pointer_to_int type to the index (autoderef = false)
+		END_PROGRAM
+		",
+    );
+
+    annotate(&result, &mut index);
+
+    // THEN x should be a normal pointer
+    // AND y should be an auto-deref pointer
+    let x = index.find_member("main", "x").expect("main.x not found");
+    let x_type = index
+        .get_type(x.get_type_name())
+        .unwrap()
+        .get_type_information();
+    assert_eq!(
+        x_type,
+        &DataTypeInformation::Pointer {
+            name: "__main_x".to_string(),
+            inner_type_name: "INT".to_string(),
+            auto_deref: false,
+        }
+    );
+
+    let y = index.find_member("main", "y").expect("main.y not found");
+    let y_type = index
+        .get_type(y.get_type_name())
+        .unwrap()
+        .get_type_information();
+    assert_eq!(
+        y_type,
+        &DataTypeInformation::Pointer {
+            name: "auto_pointer_to_INT".to_string(),
+            inner_type_name: "INT".to_string(),
+            auto_deref: true,
+        }
+    );
 }

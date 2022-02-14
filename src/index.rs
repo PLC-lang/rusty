@@ -36,6 +36,7 @@ pub struct VariableIndexEntry {
     pub source_location: SourceRange,
 }
 
+#[derive(Debug)]
 pub struct MemberInfo<'b> {
     container_name: &'b str,
     variable_name: &'b str,

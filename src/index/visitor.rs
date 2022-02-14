@@ -185,7 +185,7 @@ fn visit_implementation(index: &mut Index, implementation: &Implementation) {
 
 fn register_inout_pointer_type_for(index: &mut Index, inner_type_name: &str) -> String {
     //get unique name
-    let type_name = format!("pointer_to_{}", inner_type_name);
+    let type_name = format!("auto_pointer_to_{}", inner_type_name);
 
     //generate a pointertype for the variable
     index.register_type(typesystem::DataType {
