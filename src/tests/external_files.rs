@@ -65,7 +65,6 @@ fn external_file_global_var() {
     insta::assert_snapshot!(res);
 }
 
-
 #[test]
 fn calling_external_file_function_without_including_file_results_in_error() {
     //Given a program calling a function from an external file
