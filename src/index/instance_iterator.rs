@@ -1,17 +1,17 @@
 use crate::{
-    qualifed_name::{QualifiedName, QualifiedNameElement},
+    expression_path::{ExpressionPath, ExpressionPathElement},
     typesystem::DataTypeInformation,
 };
 
 use super::{Index, VariableIndexEntry};
-pub type Instance<'idx> = (QualifiedName<'idx>, &'idx VariableIndexEntry);
-type InstanceEntry<'idx> = (QualifiedNameElement<'idx>, &'idx VariableIndexEntry);
+pub type Instance<'idx> = (ExpressionPath<'idx>, &'idx VariableIndexEntry);
+type InstanceEntry<'idx> = (ExpressionPathElement<'idx>, &'idx VariableIndexEntry);
 
 pub struct InstanceIterator<'idx> {
     index: &'idx Index,
     iterator: Box<dyn Iterator<Item = InstanceEntry<'idx>> + 'idx>,
     inner: Option<Box<InstanceIterator<'idx>>>,
-    current_prefix: QualifiedName<'idx>,
+    current_prefix: ExpressionPath<'idx>,
     filter: fn(&VariableIndexEntry, &'idx Index) -> bool,
 }
 
@@ -31,7 +31,7 @@ impl<'idx> InstanceIterator<'idx> {
     pub fn new(index: &'idx Index) -> InstanceIterator<'idx> {
         InstanceIterator {
             index,
-            current_prefix: QualifiedName::default(),
+            current_prefix: ExpressionPath::default(),
             iterator: (Box::new(index.get_globals().iter().map(|(_, it)| {
                 (
                     it.get_qualified_name()
@@ -53,7 +53,7 @@ impl<'idx> InstanceIterator<'idx> {
     ) -> InstanceIterator<'idx> {
         InstanceIterator {
             index,
-            current_prefix: QualifiedName::default(),
+            current_prefix: ExpressionPath::default(),
             iterator: (Box::new(index.get_globals().iter().map(|(_, it)| {
                 (
                     it.get_qualified_name()
@@ -72,7 +72,7 @@ impl<'idx> InstanceIterator<'idx> {
     fn inner(
         index: &'idx Index,
         container: &str,
-        current_prefix: &QualifiedName<'idx>,
+        current_prefix: &ExpressionPath<'idx>,
         filter: fn(&VariableIndexEntry, &'idx Index) -> bool,
     ) -> Option<InstanceIterator<'idx>> {
         //If the container is an array, build a new iterator for that datatype with the iterations of that array as variables

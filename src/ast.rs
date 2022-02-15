@@ -166,7 +166,7 @@ impl DirectAccessType {
             DirectAccessType::Byte => 8,
             DirectAccessType::Word => 16,
             DirectAccessType::DWord => 32,
-            DirectAccessType::Template => unimplemented!("Should not test for tempate width"),
+            DirectAccessType::Template => unimplemented!("Should not test for template width"),
         }
     }
 }

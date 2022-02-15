@@ -1,4 +1,4 @@
-use crate::{index::instance_resolver::Instance, test_utils::tests::index};
+use crate::{index::instance_iterator::Instance, test_utils::tests::index};
 
 #[test]
 fn global_vars_are_retrieved() {

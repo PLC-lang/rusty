@@ -1,43 +1,43 @@
 use crate::{index::Index, typesystem::Dimension};
 
 #[derive(Clone, Copy, Debug, PartialEq)]
-pub enum QualifiedNameElement<'idx> {
+pub enum ExpressionPathElement<'idx> {
     Name(&'idx str),
     ArrayAccess(&'idx [Dimension]),
 }
 
-impl ToString for QualifiedNameElement<'_> {
+impl ToString for ExpressionPathElement<'_> {
     fn to_string(&self) -> String {
         match self {
-            QualifiedNameElement::Name(name) => name.to_string(),
-            QualifiedNameElement::ArrayAccess(_) => todo!(),
+            ExpressionPathElement::Name(name) => name.to_string(),
+            ExpressionPathElement::ArrayAccess(_) => unimplemented!(),
         }
     }
 }
 
-impl<'idx> From<&'idx str> for QualifiedNameElement<'idx> {
+impl<'idx> From<&'idx str> for ExpressionPathElement<'idx> {
     fn from(name: &'idx str) -> Self {
-        QualifiedNameElement::Name(name)
+        ExpressionPathElement::Name(name)
     }
 }
 
-impl<'idx> From<&'idx [Dimension]> for QualifiedNameElement<'idx> {
+impl<'idx> From<&'idx [Dimension]> for ExpressionPathElement<'idx> {
     fn from(dims: &'idx [Dimension]) -> Self {
-        QualifiedNameElement::ArrayAccess(dims)
+        ExpressionPathElement::ArrayAccess(dims)
     }
 }
 
 #[derive(Debug, Default, Clone, PartialEq)]
-pub struct QualifiedName<'idx> {
-    names: Vec<QualifiedNameElement<'idx>>,
+pub struct ExpressionPath<'idx> {
+    names: Vec<ExpressionPathElement<'idx>>,
 }
 
-impl<'idx> QualifiedName<'idx> {
-    pub fn join(&mut self, name: &mut QualifiedName<'idx>) {
+impl<'idx> ExpressionPath<'idx> {
+    pub fn join(&mut self, name: &mut ExpressionPath<'idx>) {
         self.names.append(&mut name.names)
     }
 
-    pub fn append(&self, element: QualifiedNameElement<'idx>) -> QualifiedName<'idx> {
+    pub fn append(&self, element: ExpressionPathElement<'idx>) -> ExpressionPath<'idx> {
         let mut res = self.clone();
         res.names.push(element);
         res
@@ -49,8 +49,8 @@ impl<'idx> QualifiedName<'idx> {
         let mut levels: Vec<Vec<String>> = vec![];
         for seg in self.names.iter() {
             let level = match seg {
-                crate::qualifed_name::QualifiedNameElement::Name(s) => vec![s.to_string()],
-                crate::qualifed_name::QualifiedNameElement::ArrayAccess(dimensions) => {
+                crate::expression_path::ExpressionPathElement::Name(s) => vec![s.to_string()],
+                crate::expression_path::ExpressionPathElement::ArrayAccess(dimensions) => {
                     let mut array = dimensions
                         .iter()
                         .map(|it| it.get_range_inclusive(index).unwrap())
@@ -92,9 +92,9 @@ impl<'idx> QualifiedName<'idx> {
     }
 }
 
-impl<'a> From<Vec<QualifiedNameElement<'a>>> for QualifiedName<'a> {
-    fn from(v: Vec<QualifiedNameElement<'a>>) -> Self {
-        QualifiedName { names: v }
+impl<'a> From<Vec<ExpressionPathElement<'a>>> for ExpressionPath<'a> {
+    fn from(v: Vec<ExpressionPathElement<'a>>) -> Self {
+        ExpressionPath { names: v }
     }
 }
 
@@ -102,14 +102,14 @@ impl<'a> From<Vec<QualifiedNameElement<'a>>> for QualifiedName<'a> {
 mod tests {
     use crate::{
         index::Index,
-        qualifed_name::{QualifiedName, QualifiedNameElement},
+        expression_path::{ExpressionPath, ExpressionPathElement},
         typesystem::{Dimension, TypeSize},
     };
 
     #[test]
     fn expand_single() {
-        let name = QualifiedName {
-            names: vec![QualifiedNameElement::Name("Test")],
+        let name = ExpressionPath {
+            names: vec![ExpressionPathElement::Name("Test")],
         };
         let index = Index::default();
         assert_eq!(name.expand(&index), vec!["Test".to_string()])
@@ -117,10 +117,10 @@ mod tests {
 
     #[test]
     fn expand_qualifed() {
-        let name = QualifiedName {
+        let name = ExpressionPath {
             names: vec![
-                QualifiedNameElement::Name("a"),
-                QualifiedNameElement::Name("b"),
+                ExpressionPathElement::Name("a"),
+                ExpressionPathElement::Name("b"),
             ],
         };
         let index = Index::default();
@@ -134,10 +134,10 @@ mod tests {
             end_offset: TypeSize::LiteralInteger(1),
         }];
 
-        let name = QualifiedName {
+        let name = ExpressionPath {
             names: vec![
-                QualifiedNameElement::Name("a"),
-                QualifiedNameElement::ArrayAccess(&dims),
+                ExpressionPathElement::Name("a"),
+                ExpressionPathElement::ArrayAccess(&dims),
             ],
         };
         let index = Index::default();
@@ -154,10 +154,10 @@ mod tests {
             end_offset: TypeSize::LiteralInteger(1),
         }];
 
-        let name = QualifiedName {
+        let name = ExpressionPath {
             names: vec![
-                QualifiedNameElement::Name("a"),
-                QualifiedNameElement::ArrayAccess(&dims),
+                ExpressionPathElement::Name("a"),
+                ExpressionPathElement::ArrayAccess(&dims),
             ],
         };
         let index = Index::default();
@@ -181,10 +181,10 @@ mod tests {
             },
         ];
 
-        let name = QualifiedName {
+        let name = ExpressionPath {
             names: vec![
-                QualifiedNameElement::Name("a"),
-                QualifiedNameElement::ArrayAccess(&dims),
+                ExpressionPathElement::Name("a"),
+                ExpressionPathElement::ArrayAccess(&dims),
             ],
         };
         let index = Index::default();
@@ -218,12 +218,12 @@ mod tests {
             end_offset: TypeSize::LiteralInteger(1),
         }];
 
-        let name = QualifiedName {
+        let name = ExpressionPath {
             names: vec![
-                QualifiedNameElement::Name("a"),
-                QualifiedNameElement::ArrayAccess(&dims1),
-                QualifiedNameElement::ArrayAccess(&dims2),
-                QualifiedNameElement::ArrayAccess(&dims3),
+                ExpressionPathElement::Name("a"),
+                ExpressionPathElement::ArrayAccess(&dims1),
+                ExpressionPathElement::ArrayAccess(&dims2),
+                ExpressionPathElement::ArrayAccess(&dims3),
             ],
         };
         let index = Index::default();

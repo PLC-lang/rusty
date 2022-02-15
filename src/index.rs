@@ -12,11 +12,11 @@ use crate::{
 
 use self::{
     const_expressions::{ConstExpressions, ConstId},
-    instance_resolver::InstanceIterator,
+    instance_iterator::InstanceIterator,
 };
 
 pub mod const_expressions;
-mod instance_resolver;
+mod instance_iterator;
 #[cfg(test)]
 mod tests;
 pub mod visitor;
@@ -47,9 +47,13 @@ pub struct VariableIndexEntry {
 
 #[derive(Debug, PartialEq, Clone)]
 pub struct HardwareBinding {
+    /// Specifies if the binding is an In/Out or Memory binding
     pub direction: HardwareAccessType,
+    /// The datatype (size) of the binding
     pub access: DirectAccessType,
+    /// A list of entries that form this binding
     pub entries: Vec<ConstId>,
+    /// The location in the original source-file
     pub location: SourceRange,
 }
 
@@ -495,8 +499,8 @@ impl Index {
         //implementations
         self.implementations.extend(other.implementations);
 
-        //Constant expressions
-        self.constant_expressions.import(other.constant_expressions)
+        //Constant expressions are intentionally not imported
+        // self.constant_expressions.import(other.constant_expressions)
     }
 
     /// imports the corresponding const-expression (according to the given initializer-id) from the given ConstExpressions

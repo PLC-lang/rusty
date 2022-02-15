@@ -6,7 +6,7 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
 ---
 [
     (
-        QualifiedName {
+        ExpressionPath {
             names: [
                 Name(
                     "gStr",
@@ -29,7 +29,7 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
         },
     ),
     (
-        QualifiedName {
+        ExpressionPath {
             names: [
                 Name(
                     "gStr",
@@ -55,7 +55,7 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
         },
     ),
     (
-        QualifiedName {
+        ExpressionPath {
             names: [
                 Name(
                     "gStr",
@@ -81,7 +81,7 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
         },
     ),
     (
-        QualifiedName {
+        ExpressionPath {
             names: [
                 Name(
                     "MainProg",
@@ -104,7 +104,7 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
         },
     ),
     (
-        QualifiedName {
+        ExpressionPath {
             names: [
                 Name(
                     "MainProg",
@@ -130,7 +130,7 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
         },
     ),
     (
-        QualifiedName {
+        ExpressionPath {
             names: [
                 Name(
                     "MainProg",
@@ -159,7 +159,7 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
         },
     ),
     (
-        QualifiedName {
+        ExpressionPath {
             names: [
                 Name(
                     "MainProg",

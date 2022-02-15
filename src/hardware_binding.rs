@@ -7,7 +7,7 @@ use crate::{
     ast::{DirectAccessType, HardwareAccessType},
     diagnostics::{Diagnostic, ErrNo},
     index::Index,
-    qualifed_name::QualifiedName,
+    expression_path::ExpressionPath,
     ConfigFormat,
 };
 
@@ -33,7 +33,7 @@ where
     }
 }
 
-pub struct Configuration<'idx> {
+pub struct HardwareConfiguration<'idx> {
     index: &'idx Index,
     hardware_binding: Vec<HardwareBinding<'idx>>,
 }
@@ -63,7 +63,7 @@ where
     }
 }
 
-impl Serialize for Configuration<'_> {
+impl Serialize for HardwareConfiguration<'_> {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: serde::Serializer,
@@ -81,7 +81,7 @@ impl Serialize for Configuration<'_> {
 
 #[derive(Debug, PartialEq)]
 pub struct HardwareBinding<'idx> {
-    qualifed_name: QualifiedName<'idx>,
+    qualifed_name: ExpressionPath<'idx>,
     direction: HardwareAccessType,
     access_type: DirectAccessType,
     address: Vec<String>,
@@ -126,9 +126,9 @@ impl SerializeWithContext for HardwareBinding<'_> {
 }
 
 /// Retrieves hardware bindings from all defined instances in the program
-pub fn collect_hardware_configuration(index: &Index) -> Result<Configuration, Diagnostic> {
+pub fn collect_hardware_configuration(index: &Index) -> Result<HardwareConfiguration, Diagnostic> {
     let conf: Result<Vec<HardwareBinding>, String> = index
-        //Avoid arrays that are not represeting structural types
+        //Avoid arrays that are not representing structural types
         .find_instances()
         .filter(|(_, instance)| instance.has_hardware_binding())
         .map(|(name, instance)| {
@@ -154,7 +154,7 @@ pub fn collect_hardware_configuration(index: &Index) -> Result<Configuration, Di
         })
         .collect();
 
-    conf.map(|hardware_binding| Configuration {
+    conf.map(|hardware_binding| HardwareConfiguration {
         index,
         hardware_binding,
     })
@@ -165,7 +165,7 @@ pub fn collect_hardware_configuration(index: &Index) -> Result<Configuration, Di
 }
 
 pub fn generate_hardware_configuration(
-    config: &Configuration,
+    config: &HardwareConfiguration,
     format: ConfigFormat,
 ) -> Result<String, Diagnostic> {
     match format {
@@ -204,10 +204,8 @@ pub fn generate_hardware_configuration(
 #[cfg(test)]
 mod tests {
     use crate::{
-        configuration::generate_hardware_configuration, test_utils::tests::index, ConfigFormat,
+        hardware_binding::{generate_hardware_configuration, collect_hardware_configuration}, test_utils::tests::index, ConfigFormat,
     };
-
-    use super::collect_hardware_configuration;
 
     #[test]
     fn hardware_collected_gv() {

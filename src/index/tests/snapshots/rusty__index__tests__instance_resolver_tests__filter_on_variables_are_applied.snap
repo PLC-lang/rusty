@@ -6,7 +6,7 @@ expression: "index.filter_instances(|it, _|\n                           !it.is_c
 ---
 [
     (
-        QualifiedName {
+        ExpressionPath {
             names: [
                 Name(
                     "gFb",
@@ -29,7 +29,7 @@ expression: "index.filter_instances(|it, _|\n                           !it.is_c
         },
     ),
     (
-        QualifiedName {
+        ExpressionPath {
             names: [
                 Name(
                     "MainProg",
@@ -52,7 +52,7 @@ expression: "index.filter_instances(|it, _|\n                           !it.is_c
         },
     ),
     (
-        QualifiedName {
+        ExpressionPath {
             names: [
                 Name(
                     "MainProg",
@@ -78,7 +78,7 @@ expression: "index.filter_instances(|it, _|\n                           !it.is_c
         },
     ),
     (
-        QualifiedName {
+        ExpressionPath {
             names: [
                 Name(
                     "MainProg",
@@ -107,7 +107,7 @@ expression: "index.filter_instances(|it, _|\n                           !it.is_c
         },
     ),
     (
-        QualifiedName {
+        ExpressionPath {
             names: [
                 Name(
                     "MainProg",

@@ -47,13 +47,13 @@ use crate::resolver::{AnnotationMapImpl, TypeAnnotator};
 mod ast;
 pub mod cli;
 mod codegen;
-mod configuration;
+mod hardware_binding;
 pub mod diagnostics;
 pub mod index;
 mod lexer;
 mod linker;
 mod parser;
-pub mod qualifed_name;
+pub mod expression_path;
 mod resolver;
 mod test_utils;
 mod typesystem;
@@ -556,9 +556,9 @@ pub fn build_with_params(parameters: CompileParameters) -> Result<(), Diagnostic
     }
 
     if let Some(config) = config_options {
-        let hw_config = configuration::collect_hardware_configuration(&compile_result.index)?;
+        let hw_config = hardware_binding::collect_hardware_configuration(&compile_result.index)?;
         let generated_conf =
-            configuration::generate_hardware_configuration(&hw_config, config.format)?;
+            hardware_binding::generate_hardware_configuration(&hw_config, config.format)?;
 
         File::create(config.output)
             .and_then(|mut it| it.write_all(generated_conf.as_bytes()))
