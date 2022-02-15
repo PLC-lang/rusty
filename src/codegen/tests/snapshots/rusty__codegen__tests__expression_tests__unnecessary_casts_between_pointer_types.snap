@@ -1,0 +1,25 @@
+---
+source: src/codegen/tests/expression_tests.rs
+assertion_line: 346
+expression: result
+
+---
+; ModuleID = 'main'
+source_filename = "main"
+
+%baz_interface = type { i8*, i8, i8, i8 }
+
+@baz_instance = global %baz_interface zeroinitializer
+
+define void @baz(%baz_interface* %0) {
+entry:
+  %ptr = getelementptr inbounds %baz_interface, %baz_interface* %0, i32 0, i32 0
+  %b = getelementptr inbounds %baz_interface, %baz_interface* %0, i32 0, i32 1
+  %si = getelementptr inbounds %baz_interface, %baz_interface* %0, i32 0, i32 2
+  %mb = getelementptr inbounds %baz_interface, %baz_interface* %0, i32 0, i32 3
+  store i8* %b, i8** %ptr, align 8
+  store i8* %si, i8** %ptr, align 8
+  store i8* %mb, i8** %ptr, align 8
+  ret void
+}
+

@@ -1,6 +1,6 @@
 ---
 source: src/codegen/tests/code_gen_tests.rs
-assertion_line: 1718
+assertion_line: 1719
 expression: result
 
 ---
@@ -16,8 +16,8 @@ entry:
   %X = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 0
   %pX = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 1
   %rX = getelementptr inbounds %prg_interface, %prg_interface* %0, i32 0, i32 2
-  store i32* null, i8** %pX, align 8
-  store i32* null, i8** %rX, align 8
+  store i8* null, i8** %pX, align 8
+  store i8* null, i8** %rX, align 8
   store i8* %X, i8** %pX, align 8
   store i8* %X, i8** %rX, align 8
   %deref = load i8*, i8** %pX, align 8

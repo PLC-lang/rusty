@@ -698,6 +698,7 @@ fn pointer_expressions_resolve_types() {
 
     assert_eq!(format!("{:?}", expected_types), format!("{:?}", type_names));
 }
+
 #[test]
 fn array_expressions_resolve_types() {
     let (unit, index) = index(
@@ -2918,6 +2919,33 @@ fn adress_of_is_annotated_correctly() {
         );
     } else {
         unreachable!()
+    }
+}
+
+#[test]
+fn pointer_assignment_with_incompatible_types_hints_correctly() {
+    let (unit, mut index) = index(
+        "PROGRAM PRG
+                VAR
+                    x : INT;
+                    pt : POINTER TO BYTE;
+                END_VAR
+                pt := &x;
+            END_PROGRAM",
+    );
+
+    let annotations = annotate(&unit, &mut index);
+    let assignment = &unit.implementations[0].statements[0];
+
+    if let AstStatement::Assignment { left, right, .. } = assignment {
+        assert_type_and_hint!(&annotations, &index, left, "__PRG_pt", None);
+        assert_type_and_hint!(
+            &annotations,
+            &index,
+            right,
+            "POINTER_TO_INT",
+            Some("__PRG_pt")
+        );
     }
 }
 

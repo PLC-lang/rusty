@@ -111,6 +111,18 @@ fn create_llvm_extend_int_value<'a>(
     }
 }
 
+///
+/// generates a cast from the given `value` to the given `target_type` if necessary and returns the casted value. It returns
+/// the original `value` if no cast is necessary
+///
+/// - `llvm` the llvm utilities to use for code-generation
+/// - `index` the current Index used for type-lookups
+/// - `llvm_type_index` the type index to lookup llvm generated types
+/// - `target_type` the expected target type of the value
+/// - `value` the value to (maybe) cast
+/// - `value_type` the current type of the given value
+/// - `statement` the original statement as a context (e.g. for error reporting)
+///
 pub fn cast_if_needed<'ctx>(
     llvm: &Llvm<'ctx>,
     index: &Index,
@@ -303,8 +315,15 @@ pub fn cast_if_needed<'ctx>(
                 )
                 .into()),
             DataTypeInformation::Pointer { .. } | DataTypeInformation::Void { .. } => {
-                //this is ok, no cast required
-                Ok(value)
+                let target_ptr_type =
+                    llvm_type_index.get_associated_type(target_type.get_name())?;
+                if value.get_type() != target_ptr_type {
+                    // bit-cast necessary
+                    Ok(builder.build_bitcast(value, target_ptr_type, ""))
+                } else {
+                    //this is ok, no cast required
+                    Ok(value)
+                }
             }
             _ => Err(Diagnostic::casting_error(
                 value_type.get_name(),
