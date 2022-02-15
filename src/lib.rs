@@ -47,13 +47,13 @@ use crate::resolver::{AnnotationMapImpl, TypeAnnotator};
 mod ast;
 pub mod cli;
 mod codegen;
-mod hardware_binding;
 pub mod diagnostics;
+pub mod expression_path;
+mod hardware_binding;
 pub mod index;
 mod lexer;
 mod linker;
 mod parser;
-pub mod expression_path;
 mod resolver;
 mod test_utils;
 mod typesystem;
@@ -77,7 +77,6 @@ pub enum FormatOption {
 
 #[derive(PartialEq, Debug, Clone, Copy, ArgEnum)]
 pub enum ConfigFormat {
-    XML,
     JSON,
     TOML,
 }
@@ -87,7 +86,6 @@ impl FromStr for ConfigFormat {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
-            "xml" => Ok(ConfigFormat::XML),
             "json" => Ok(ConfigFormat::JSON),
             "toml" => Ok(ConfigFormat::TOML),
             _ => Err(format!("Invalid option {}", s)),
@@ -509,7 +507,7 @@ pub fn build_with_params(parameters: CompileParameters) -> Result<(), Diagnostic
     let out_format = parameters.output_format_or_default();
 
     let config_options = parameters
-        .config
+        .hardware_config
         .as_ref()
         .map(|config| ConfigurationOptions {
             format: parameters

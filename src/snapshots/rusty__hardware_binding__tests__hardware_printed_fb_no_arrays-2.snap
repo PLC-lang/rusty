@@ -1,516 +1,441 @@
 ---
 source: src/hardware_binding.rs
-assertion_line: 298
+assertion_line: 281
 expression: res
 
 ---
-{
-  "HardwareConfiguration": [
-    [
-      {
-        "name": "gFb.a",
-        "direction": "Input",
-        "type": "Template",
-        "address": []
-      }
-    ],
-    [
-      {
-        "name": "gFb.b",
-        "direction": "Output",
-        "type": "Word",
-        "address": [
-          "2",
-          "5"
-        ]
-      }
-    ],
-    [
-      {
-        "name": "gFb.c",
-        "direction": "Output",
-        "type": "Word",
-        "address": [
-          "2",
-          "5"
-        ]
-      }
-    ],
-    [
-      {
-        "name": "gFb.x",
-        "direction": "Output",
-        "type": "Template",
-        "address": []
-      }
-    ],
-    [
-      {
-        "name": "gFb.y",
-        "direction": "Output",
-        "type": "Word",
-        "address": [
-          "1"
-        ]
-      }
-    ],
-    [
-      {
-        "name": "gFb.z",
-        "direction": "Input",
-        "type": "Word",
-        "address": [
-          "1",
-          "2"
-        ]
-      }
-    ],
-    [
-      {
-        "name": "aFb[0].a",
-        "direction": "Input",
-        "type": "Template",
-        "address": []
-      },
-      {
-        "name": "aFb[1].a",
-        "direction": "Input",
-        "type": "Template",
-        "address": []
-      },
-      {
-        "name": "aFb[2].a",
-        "direction": "Input",
-        "type": "Template",
-        "address": []
-      }
-    ],
-    [
-      {
-        "name": "aFb[0].b",
-        "direction": "Output",
-        "type": "Word",
-        "address": [
-          "2",
-          "5"
-        ]
-      },
-      {
-        "name": "aFb[1].b",
-        "direction": "Output",
-        "type": "Word",
-        "address": [
-          "2",
-          "5"
-        ]
-      },
-      {
-        "name": "aFb[2].b",
-        "direction": "Output",
-        "type": "Word",
-        "address": [
-          "2",
-          "5"
-        ]
-      }
-    ],
-    [
-      {
-        "name": "aFb[0].c",
-        "direction": "Output",
-        "type": "Word",
-        "address": [
-          "2",
-          "5"
-        ]
-      },
-      {
-        "name": "aFb[1].c",
-        "direction": "Output",
-        "type": "Word",
-        "address": [
-          "2",
-          "5"
-        ]
-      },
-      {
-        "name": "aFb[2].c",
-        "direction": "Output",
-        "type": "Word",
-        "address": [
-          "2",
-          "5"
-        ]
-      }
-    ],
-    [
-      {
-        "name": "aFb[0].x",
-        "direction": "Output",
-        "type": "Template",
-        "address": []
-      },
-      {
-        "name": "aFb[1].x",
-        "direction": "Output",
-        "type": "Template",
-        "address": []
-      },
-      {
-        "name": "aFb[2].x",
-        "direction": "Output",
-        "type": "Template",
-        "address": []
-      }
-    ],
-    [
-      {
-        "name": "aFb[0].y",
-        "direction": "Output",
-        "type": "Word",
-        "address": [
-          "1"
-        ]
-      },
-      {
-        "name": "aFb[1].y",
-        "direction": "Output",
-        "type": "Word",
-        "address": [
-          "1"
-        ]
-      },
-      {
-        "name": "aFb[2].y",
-        "direction": "Output",
-        "type": "Word",
-        "address": [
-          "1"
-        ]
-      }
-    ],
-    [
-      {
-        "name": "aFb[0].z",
-        "direction": "Input",
-        "type": "Word",
-        "address": [
-          "1",
-          "2"
-        ]
-      },
-      {
-        "name": "aFb[1].z",
-        "direction": "Input",
-        "type": "Word",
-        "address": [
-          "1",
-          "2"
-        ]
-      },
-      {
-        "name": "aFb[2].z",
-        "direction": "Input",
-        "type": "Word",
-        "address": [
-          "1",
-          "2"
-        ]
-      }
-    ],
-    [
-      {
-        "name": "aFb2[0,1].a",
-        "direction": "Input",
-        "type": "Template",
-        "address": []
-      },
-      {
-        "name": "aFb2[1,1].a",
-        "direction": "Input",
-        "type": "Template",
-        "address": []
-      },
-      {
-        "name": "aFb2[2,1].a",
-        "direction": "Input",
-        "type": "Template",
-        "address": []
-      },
-      {
-        "name": "aFb2[0,2].a",
-        "direction": "Input",
-        "type": "Template",
-        "address": []
-      },
-      {
-        "name": "aFb2[1,2].a",
-        "direction": "Input",
-        "type": "Template",
-        "address": []
-      },
-      {
-        "name": "aFb2[2,2].a",
-        "direction": "Input",
-        "type": "Template",
-        "address": []
-      }
-    ],
-    [
-      {
-        "name": "aFb2[0,1].b",
-        "direction": "Output",
-        "type": "Word",
-        "address": [
-          "2",
-          "5"
-        ]
-      },
-      {
-        "name": "aFb2[1,1].b",
-        "direction": "Output",
-        "type": "Word",
-        "address": [
-          "2",
-          "5"
-        ]
-      },
-      {
-        "name": "aFb2[2,1].b",
-        "direction": "Output",
-        "type": "Word",
-        "address": [
-          "2",
-          "5"
-        ]
-      },
-      {
-        "name": "aFb2[0,2].b",
-        "direction": "Output",
-        "type": "Word",
-        "address": [
-          "2",
-          "5"
-        ]
-      },
-      {
-        "name": "aFb2[1,2].b",
-        "direction": "Output",
-        "type": "Word",
-        "address": [
-          "2",
-          "5"
-        ]
-      },
-      {
-        "name": "aFb2[2,2].b",
-        "direction": "Output",
-        "type": "Word",
-        "address": [
-          "2",
-          "5"
-        ]
-      }
-    ],
-    [
-      {
-        "name": "aFb2[0,1].c",
-        "direction": "Output",
-        "type": "Word",
-        "address": [
-          "2",
-          "5"
-        ]
-      },
-      {
-        "name": "aFb2[1,1].c",
-        "direction": "Output",
-        "type": "Word",
-        "address": [
-          "2",
-          "5"
-        ]
-      },
-      {
-        "name": "aFb2[2,1].c",
-        "direction": "Output",
-        "type": "Word",
-        "address": [
-          "2",
-          "5"
-        ]
-      },
-      {
-        "name": "aFb2[0,2].c",
-        "direction": "Output",
-        "type": "Word",
-        "address": [
-          "2",
-          "5"
-        ]
-      },
-      {
-        "name": "aFb2[1,2].c",
-        "direction": "Output",
-        "type": "Word",
-        "address": [
-          "2",
-          "5"
-        ]
-      },
-      {
-        "name": "aFb2[2,2].c",
-        "direction": "Output",
-        "type": "Word",
-        "address": [
-          "2",
-          "5"
-        ]
-      }
-    ],
-    [
-      {
-        "name": "aFb2[0,1].x",
-        "direction": "Output",
-        "type": "Template",
-        "address": []
-      },
-      {
-        "name": "aFb2[1,1].x",
-        "direction": "Output",
-        "type": "Template",
-        "address": []
-      },
-      {
-        "name": "aFb2[2,1].x",
-        "direction": "Output",
-        "type": "Template",
-        "address": []
-      },
-      {
-        "name": "aFb2[0,2].x",
-        "direction": "Output",
-        "type": "Template",
-        "address": []
-      },
-      {
-        "name": "aFb2[1,2].x",
-        "direction": "Output",
-        "type": "Template",
-        "address": []
-      },
-      {
-        "name": "aFb2[2,2].x",
-        "direction": "Output",
-        "type": "Template",
-        "address": []
-      }
-    ],
-    [
-      {
-        "name": "aFb2[0,1].y",
-        "direction": "Output",
-        "type": "Word",
-        "address": [
-          "1"
-        ]
-      },
-      {
-        "name": "aFb2[1,1].y",
-        "direction": "Output",
-        "type": "Word",
-        "address": [
-          "1"
-        ]
-      },
-      {
-        "name": "aFb2[2,1].y",
-        "direction": "Output",
-        "type": "Word",
-        "address": [
-          "1"
-        ]
-      },
-      {
-        "name": "aFb2[0,2].y",
-        "direction": "Output",
-        "type": "Word",
-        "address": [
-          "1"
-        ]
-      },
-      {
-        "name": "aFb2[1,2].y",
-        "direction": "Output",
-        "type": "Word",
-        "address": [
-          "1"
-        ]
-      },
-      {
-        "name": "aFb2[2,2].y",
-        "direction": "Output",
-        "type": "Word",
-        "address": [
-          "1"
-        ]
-      }
-    ],
-    [
-      {
-        "name": "aFb2[0,1].z",
-        "direction": "Input",
-        "type": "Word",
-        "address": [
-          "1",
-          "2"
-        ]
-      },
-      {
-        "name": "aFb2[1,1].z",
-        "direction": "Input",
-        "type": "Word",
-        "address": [
-          "1",
-          "2"
-        ]
-      },
-      {
-        "name": "aFb2[2,1].z",
-        "direction": "Input",
-        "type": "Word",
-        "address": [
-          "1",
-          "2"
-        ]
-      },
-      {
-        "name": "aFb2[0,2].z",
-        "direction": "Input",
-        "type": "Word",
-        "address": [
-          "1",
-          "2"
-        ]
-      },
-      {
-        "name": "aFb2[1,2].z",
-        "direction": "Input",
-        "type": "Word",
-        "address": [
-          "1",
-          "2"
-        ]
-      },
-      {
-        "name": "aFb2[2,2].z",
-        "direction": "Input",
-        "type": "Word",
-        "address": [
-          "1",
-          "2"
-        ]
-      }
-    ]
-  ]
-}
+[[HardwareConfiguration]]
+name = 'gFb.a'
+direction = 'Input'
+type = 'Template'
+address = []
+[[HardwareConfiguration]]
+name = 'gFb.b'
+direction = 'Output'
+type = 'Word'
+address = [
+    '2',
+    '5',
+]
+[[HardwareConfiguration]]
+name = 'gFb.c'
+direction = 'Output'
+type = 'Word'
+address = [
+    '2',
+    '5',
+]
+[[HardwareConfiguration]]
+name = 'gFb.x'
+direction = 'Output'
+type = 'Template'
+address = []
+[[HardwareConfiguration]]
+name = 'gFb.y'
+direction = 'Output'
+type = 'Word'
+address = ['1']
+[[HardwareConfiguration]]
+name = 'gFb.z'
+direction = 'Input'
+type = 'Word'
+address = [
+    '1',
+    '2',
+]
+[[HardwareConfiguration]]
+name = 'aFb[0].a'
+direction = 'Input'
+type = 'Template'
+address = []
+
+[[HardwareConfiguration]]
+name = 'aFb[1].a'
+direction = 'Input'
+type = 'Template'
+address = []
+
+[[HardwareConfiguration]]
+name = 'aFb[2].a'
+direction = 'Input'
+type = 'Template'
+address = []
+[[HardwareConfiguration]]
+name = 'aFb[0].b'
+direction = 'Output'
+type = 'Word'
+address = [
+    '2',
+    '5',
+]
+
+[[HardwareConfiguration]]
+name = 'aFb[1].b'
+direction = 'Output'
+type = 'Word'
+address = [
+    '2',
+    '5',
+]
+
+[[HardwareConfiguration]]
+name = 'aFb[2].b'
+direction = 'Output'
+type = 'Word'
+address = [
+    '2',
+    '5',
+]
+[[HardwareConfiguration]]
+name = 'aFb[0].c'
+direction = 'Output'
+type = 'Word'
+address = [
+    '2',
+    '5',
+]
+
+[[HardwareConfiguration]]
+name = 'aFb[1].c'
+direction = 'Output'
+type = 'Word'
+address = [
+    '2',
+    '5',
+]
+
+[[HardwareConfiguration]]
+name = 'aFb[2].c'
+direction = 'Output'
+type = 'Word'
+address = [
+    '2',
+    '5',
+]
+[[HardwareConfiguration]]
+name = 'aFb[0].x'
+direction = 'Output'
+type = 'Template'
+address = []
+
+[[HardwareConfiguration]]
+name = 'aFb[1].x'
+direction = 'Output'
+type = 'Template'
+address = []
+
+[[HardwareConfiguration]]
+name = 'aFb[2].x'
+direction = 'Output'
+type = 'Template'
+address = []
+[[HardwareConfiguration]]
+name = 'aFb[0].y'
+direction = 'Output'
+type = 'Word'
+address = ['1']
+
+[[HardwareConfiguration]]
+name = 'aFb[1].y'
+direction = 'Output'
+type = 'Word'
+address = ['1']
+
+[[HardwareConfiguration]]
+name = 'aFb[2].y'
+direction = 'Output'
+type = 'Word'
+address = ['1']
+[[HardwareConfiguration]]
+name = 'aFb[0].z'
+direction = 'Input'
+type = 'Word'
+address = [
+    '1',
+    '2',
+]
+
+[[HardwareConfiguration]]
+name = 'aFb[1].z'
+direction = 'Input'
+type = 'Word'
+address = [
+    '1',
+    '2',
+]
+
+[[HardwareConfiguration]]
+name = 'aFb[2].z'
+direction = 'Input'
+type = 'Word'
+address = [
+    '1',
+    '2',
+]
+[[HardwareConfiguration]]
+name = 'aFb2[0,1].a'
+direction = 'Input'
+type = 'Template'
+address = []
+
+[[HardwareConfiguration]]
+name = 'aFb2[1,1].a'
+direction = 'Input'
+type = 'Template'
+address = []
+
+[[HardwareConfiguration]]
+name = 'aFb2[2,1].a'
+direction = 'Input'
+type = 'Template'
+address = []
+
+[[HardwareConfiguration]]
+name = 'aFb2[0,2].a'
+direction = 'Input'
+type = 'Template'
+address = []
+
+[[HardwareConfiguration]]
+name = 'aFb2[1,2].a'
+direction = 'Input'
+type = 'Template'
+address = []
+
+[[HardwareConfiguration]]
+name = 'aFb2[2,2].a'
+direction = 'Input'
+type = 'Template'
+address = []
+[[HardwareConfiguration]]
+name = 'aFb2[0,1].b'
+direction = 'Output'
+type = 'Word'
+address = [
+    '2',
+    '5',
+]
+
+[[HardwareConfiguration]]
+name = 'aFb2[1,1].b'
+direction = 'Output'
+type = 'Word'
+address = [
+    '2',
+    '5',
+]
+
+[[HardwareConfiguration]]
+name = 'aFb2[2,1].b'
+direction = 'Output'
+type = 'Word'
+address = [
+    '2',
+    '5',
+]
+
+[[HardwareConfiguration]]
+name = 'aFb2[0,2].b'
+direction = 'Output'
+type = 'Word'
+address = [
+    '2',
+    '5',
+]
+
+[[HardwareConfiguration]]
+name = 'aFb2[1,2].b'
+direction = 'Output'
+type = 'Word'
+address = [
+    '2',
+    '5',
+]
+
+[[HardwareConfiguration]]
+name = 'aFb2[2,2].b'
+direction = 'Output'
+type = 'Word'
+address = [
+    '2',
+    '5',
+]
+[[HardwareConfiguration]]
+name = 'aFb2[0,1].c'
+direction = 'Output'
+type = 'Word'
+address = [
+    '2',
+    '5',
+]
+
+[[HardwareConfiguration]]
+name = 'aFb2[1,1].c'
+direction = 'Output'
+type = 'Word'
+address = [
+    '2',
+    '5',
+]
+
+[[HardwareConfiguration]]
+name = 'aFb2[2,1].c'
+direction = 'Output'
+type = 'Word'
+address = [
+    '2',
+    '5',
+]
+
+[[HardwareConfiguration]]
+name = 'aFb2[0,2].c'
+direction = 'Output'
+type = 'Word'
+address = [
+    '2',
+    '5',
+]
+
+[[HardwareConfiguration]]
+name = 'aFb2[1,2].c'
+direction = 'Output'
+type = 'Word'
+address = [
+    '2',
+    '5',
+]
+
+[[HardwareConfiguration]]
+name = 'aFb2[2,2].c'
+direction = 'Output'
+type = 'Word'
+address = [
+    '2',
+    '5',
+]
+[[HardwareConfiguration]]
+name = 'aFb2[0,1].x'
+direction = 'Output'
+type = 'Template'
+address = []
+
+[[HardwareConfiguration]]
+name = 'aFb2[1,1].x'
+direction = 'Output'
+type = 'Template'
+address = []
+
+[[HardwareConfiguration]]
+name = 'aFb2[2,1].x'
+direction = 'Output'
+type = 'Template'
+address = []
+
+[[HardwareConfiguration]]
+name = 'aFb2[0,2].x'
+direction = 'Output'
+type = 'Template'
+address = []
+
+[[HardwareConfiguration]]
+name = 'aFb2[1,2].x'
+direction = 'Output'
+type = 'Template'
+address = []
+
+[[HardwareConfiguration]]
+name = 'aFb2[2,2].x'
+direction = 'Output'
+type = 'Template'
+address = []
+[[HardwareConfiguration]]
+name = 'aFb2[0,1].y'
+direction = 'Output'
+type = 'Word'
+address = ['1']
+
+[[HardwareConfiguration]]
+name = 'aFb2[1,1].y'
+direction = 'Output'
+type = 'Word'
+address = ['1']
+
+[[HardwareConfiguration]]
+name = 'aFb2[2,1].y'
+direction = 'Output'
+type = 'Word'
+address = ['1']
+
+[[HardwareConfiguration]]
+name = 'aFb2[0,2].y'
+direction = 'Output'
+type = 'Word'
+address = ['1']
+
+[[HardwareConfiguration]]
+name = 'aFb2[1,2].y'
+direction = 'Output'
+type = 'Word'
+address = ['1']
+
+[[HardwareConfiguration]]
+name = 'aFb2[2,2].y'
+direction = 'Output'
+type = 'Word'
+address = ['1']
+[[HardwareConfiguration]]
+name = 'aFb2[0,1].z'
+direction = 'Input'
+type = 'Word'
+address = [
+    '1',
+    '2',
+]
+
+[[HardwareConfiguration]]
+name = 'aFb2[1,1].z'
+direction = 'Input'
+type = 'Word'
+address = [
+    '1',
+    '2',
+]
+
+[[HardwareConfiguration]]
+name = 'aFb2[2,1].z'
+direction = 'Input'
+type = 'Word'
+address = [
+    '1',
+    '2',
+]
+
+[[HardwareConfiguration]]
+name = 'aFb2[0,2].z'
+direction = 'Input'
+type = 'Word'
+address = [
+    '1',
+    '2',
+]
+
+[[HardwareConfiguration]]
+name = 'aFb2[1,2].z'
+direction = 'Input'
+type = 'Word'
+address = [
+    '1',
+    '2',
+]
+
+[[HardwareConfiguration]]
+name = 'aFb2[2,2].z'
+direction = 'Input'
+type = 'Word'
+address = [
+    '1',
+    '2',
+]
+,
+]
+

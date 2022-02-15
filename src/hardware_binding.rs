@@ -6,8 +6,8 @@ use serde::{
 use crate::{
     ast::{DirectAccessType, HardwareAccessType},
     diagnostics::{Diagnostic, ErrNo},
-    index::Index,
     expression_path::ExpressionPath,
+    index::Index,
     ConfigFormat,
 };
 
@@ -169,23 +169,6 @@ pub fn generate_hardware_configuration(
     format: ConfigFormat,
 ) -> Result<String, Diagnostic> {
     match format {
-        ConfigFormat::XML => {
-            let mut bytes = vec![];
-            let writer = quick_xml::Writer::new_with_indent(&mut bytes, b' ', 4);
-            let mut ser = quick_xml::se::Serializer::with_root(writer, None);
-            config
-                .serialize(&mut ser)
-                .map_err(|e| Diagnostic::GeneralError {
-                    message: e.to_string(),
-                    err_no: ErrNo::general__io_err,
-                })
-                .and_then(|_| {
-                    String::from_utf8(bytes).map_err(|e| Diagnostic::GeneralError {
-                        message: e.to_string(),
-                        err_no: ErrNo::general__io_err,
-                    })
-                })
-        }
         ConfigFormat::JSON => {
             serde_json::to_string_pretty(&config).map_err(|e| Diagnostic::GeneralError {
                 message: e.to_string(),
@@ -204,7 +187,9 @@ pub fn generate_hardware_configuration(
 #[cfg(test)]
 mod tests {
     use crate::{
-        hardware_binding::{generate_hardware_configuration, collect_hardware_configuration}, test_utils::tests::index, ConfigFormat,
+        hardware_binding::{collect_hardware_configuration, generate_hardware_configuration},
+        test_utils::tests::index,
+        ConfigFormat,
     };
 
     #[test]
@@ -292,8 +277,6 @@ mod tests {
         END_VAR",
         );
         let config = collect_hardware_configuration(&index).unwrap();
-        let res = generate_hardware_configuration(&config, ConfigFormat::XML).unwrap();
-        insta::assert_snapshot!(res);
         let res = generate_hardware_configuration(&config, ConfigFormat::JSON).unwrap();
         insta::assert_snapshot!(res);
         let res = generate_hardware_configuration(&config, ConfigFormat::TOML).unwrap();
@@ -324,8 +307,6 @@ mod tests {
         END_VAR",
         );
         let config = collect_hardware_configuration(&index).unwrap();
-        let res = generate_hardware_configuration(&config, ConfigFormat::XML).unwrap();
-        insta::assert_snapshot!(res);
         let res = generate_hardware_configuration(&config, ConfigFormat::JSON).unwrap();
         insta::assert_snapshot!(res);
         let res = generate_hardware_configuration(&config, ConfigFormat::TOML).unwrap();

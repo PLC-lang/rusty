@@ -101,8 +101,8 @@ impl<'a> From<Vec<ExpressionPathElement<'a>>> for ExpressionPath<'a> {
 #[cfg(test)]
 mod tests {
     use crate::{
-        index::Index,
         expression_path::{ExpressionPath, ExpressionPathElement},
+        index::Index,
         typesystem::{Dimension, TypeSize},
     };
 

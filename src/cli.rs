@@ -1,5 +1,5 @@
 // Copyright (c) 2021 Ghaith Hachem and Mathias Rieder
-use clap::{ArgGroup, IntoApp, Parser};
+use clap::{ArgGroup, Parser};
 use encoding_rs::Encoding;
 use std::{ffi::OsStr, path::Path};
 
@@ -114,30 +114,43 @@ pub struct CompileParameters {
     pub includes: Vec<String>,
 
     #[clap(
-        name = "config",
+        name = "hardware-conf",
         long,
-        help = "Generate (Hardware) configuration files to the given location. 
+        help = "Generate Hardware configuration files to the given location. 
     Format is detected by extenstion.
-    Supported formats : xml, json, toml"
-    )]
-    pub config: Option<String>,
+    Supported formats : json, toml",
+    parse(try_from_str = validate_config)
+    ) ]
+    pub hardware_config: Option<String>,
 }
 
 fn parse_encoding(encoding: &str) -> Result<&'static Encoding, String> {
     Encoding::for_label(encoding.as_bytes()).ok_or(format!("Unknown encoding {}", encoding))
 }
 
+fn validate_config(config_name: &str) -> Result<String, String> {
+    if get_config_format(config_name).is_some() {
+        Ok(config_name.to_string())
+    } else {
+        Err(format!(
+            r#"Cannot identify format type for {}, valid extensions : "json", "toml""#,
+            config_name
+        ))
+    }
+}
+
+pub fn get_config_format(name: &str) -> Option<ConfigFormat> {
+    let ext = name.split('.').last();
+    match ext {
+        Some("json") => Some(ConfigFormat::JSON),
+        Some("toml") => Some(ConfigFormat::TOML),
+        _ => None,
+    }
+}
+
 impl CompileParameters {
     pub fn parse(args: Vec<String>) -> Result<CompileParameters, ParameterError> {
-        let res = CompileParameters::try_parse_from(args)?;
-        let mut app = CompileParameters::into_app();
-        match res.config {
-            Some(conf) if res.config_format().is_none() => Err(app.error(
-                clap::ErrorKind::InvalidValue,
-                format!("Cannot identify format type for {}", conf),
-            )),
-            _ => Ok(res),
-        }
+        CompileParameters::try_parse_from(args)
     }
 
     // convert the scattered bools from structopt into an enum
@@ -191,13 +204,7 @@ impl CompileParameters {
     }
 
     pub fn config_format(&self) -> Option<ConfigFormat> {
-        let ext = self.config.as_deref().and_then(|it| it.split('.').last());
-        match ext {
-            Some("xml") => Some(ConfigFormat::XML),
-            Some("json") => Some(ConfigFormat::JSON),
-            Some("toml") => Some(ConfigFormat::TOML),
-            _ => None,
-        }
+        self.hardware_config.as_deref().and_then(get_config_format)
     }
 }
 
@@ -506,25 +513,25 @@ mod cli_tests {
     #[test]
     fn config_option_set() {
         let parameters =
-            CompileParameters::parse(vec_of_strings!("foo", "--config=conf.xml")).unwrap();
-        assert_eq!(parameters.config, Some("conf.xml".to_string()));
-        assert_eq!(parameters.config_format().unwrap(), ConfigFormat::XML);
-        let parameters =
-            CompileParameters::parse(vec_of_strings!("foo", "--config=conf.json")).unwrap();
-        assert_eq!(parameters.config, Some("conf.json".to_string()));
+            CompileParameters::parse(vec_of_strings!("foo", "--hardware-conf=conf.json")).unwrap();
+        assert_eq!(parameters.hardware_config, Some("conf.json".to_string()));
         assert_eq!(parameters.config_format().unwrap(), ConfigFormat::JSON);
         let parameters =
-            CompileParameters::parse(vec_of_strings!("foo", "--config=conf.toml")).unwrap();
-        assert_eq!(parameters.config, Some("conf.toml".to_string()));
+            CompileParameters::parse(vec_of_strings!("foo", "--hardware-conf=conf.toml")).unwrap();
+        assert_eq!(parameters.hardware_config, Some("conf.toml".to_string()));
         assert_eq!(parameters.config_format().unwrap(), ConfigFormat::TOML);
 
         expect_argument_error(
-            vec_of_strings!("foo", "--config=foo"),
-            ErrorKind::InvalidValue,
+            vec_of_strings!("foo", "--hardware-conf=foo"),
+            ErrorKind::ValueValidation,
         );
         expect_argument_error(
-            vec_of_strings!("foo", "--config=conf.foo"),
-            ErrorKind::InvalidValue,
+            vec_of_strings!("foo", "--hardware-conf=conf.foo"),
+            ErrorKind::ValueValidation,
+        );
+        expect_argument_error(
+            vec_of_strings!("foo", "--hardware-conf=conf.xml"),
+            ErrorKind::ValueValidation,
         );
     }
 }
