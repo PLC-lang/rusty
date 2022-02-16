@@ -1,5 +1,6 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use crate::{lexer::IdProvider, typesystem::DataTypeInformation};
+use serde::{Deserialize, Serialize};
 use std::{
     fmt::{Debug, Display, Formatter, Result},
     iter,
@@ -35,12 +36,22 @@ pub enum PolymorphismMode {
     Final,
 }
 
-#[derive(Copy, Clone, Debug, PartialEq)]
+#[derive(Copy, Clone, Debug, Serialize, Deserialize, PartialEq)]
+#[serde(tag = "direction")]
+pub enum HardwareAccessType {
+    Input,
+    Output,
+    Memory,
+}
+
+#[derive(Copy, Clone, Debug, Serialize, Deserialize, PartialEq)]
+#[serde(tag = "type")]
 pub enum DirectAccessType {
     Bit,
     Byte,
     Word,
     DWord,
+    Template,
 }
 
 #[derive(Debug, PartialEq, Clone, Copy)]
@@ -155,6 +166,7 @@ impl DirectAccessType {
             DirectAccessType::Byte => 8,
             DirectAccessType::Word => 16,
             DirectAccessType::DWord => 32,
+            DirectAccessType::Template => unimplemented!("Should not test for template width"),
         }
     }
 }
@@ -288,23 +300,22 @@ pub struct Variable {
     pub name: String,
     pub data_type: DataTypeDeclaration,
     pub initializer: Option<AstStatement>,
+    pub address: Option<AstStatement>,
     pub location: SourceRange,
 }
 
 impl Debug for Variable {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+        let mut var = f.debug_struct("Variable");
+        var.field("name", &self.name)
+            .field("data_type", &self.data_type);
         if self.initializer.is_some() {
-            f.debug_struct("Variable")
-                .field("name", &self.name)
-                .field("data_type", &self.data_type)
-                .field("initializer", &self.initializer)
-                .finish()
-        } else {
-            f.debug_struct("Variable")
-                .field("name", &self.name)
-                .field("data_type", &self.data_type)
-                .finish()
+            var.field("initializer", &self.initializer);
         }
+        if self.address.is_some() {
+            var.field("address", &self.address);
+        }
+        var.finish()
     }
 }
 
@@ -649,6 +660,13 @@ pub enum AstStatement {
         location: SourceRange,
         id: AstId,
     },
+    HardwareAccess {
+        direction: HardwareAccessType,
+        access: DirectAccessType,
+        address: Vec<AstStatement>,
+        location: SourceRange,
+        id: AstId,
+    },
     BinaryExpression {
         operator: Operator,
         left: Box<AstStatement>,
@@ -947,6 +965,19 @@ impl Debug for AstStatement {
                 .field("access", access)
                 .field("index", index)
                 .finish(),
+            AstStatement::HardwareAccess {
+                direction,
+                access,
+                address,
+                location,
+                ..
+            } => f
+                .debug_struct("HardwareAccess")
+                .field("direction", direction)
+                .field("access", access)
+                .field("address", address)
+                .field("location", location)
+                .finish(),
             AstStatement::MultipliedStatement {
                 multiplier,
                 element,
@@ -1051,6 +1082,7 @@ impl AstStatement {
             }
             AstStatement::PointerAccess { reference, .. } => reference.get_location(),
             AstStatement::DirectAccess { location, .. } => location.clone(),
+            AstStatement::HardwareAccess { location, .. } => location.clone(),
             AstStatement::MultipliedStatement { location, .. } => location.clone(),
             AstStatement::CaseCondition { condition, .. } => condition.get_location(),
             AstStatement::ReturnStatement { location, .. } => location.clone(),
@@ -1079,6 +1111,7 @@ impl AstStatement {
             AstStatement::ArrayAccess { id, .. } => *id,
             AstStatement::PointerAccess { id, .. } => *id,
             AstStatement::DirectAccess { id, .. } => *id,
+            AstStatement::HardwareAccess { id, .. } => *id,
             AstStatement::BinaryExpression { id, .. } => *id,
             AstStatement::UnaryExpression { id, .. } => *id,
             AstStatement::ExpressionList { id, .. } => *id,

@@ -7,12 +7,12 @@ expression: function
 ; ModuleID = 'main'
 source_filename = "main"
 
-%fb_interface = type { i16 }
 %main_interface = type { %fb_interface }
+%fb_interface = type { i16 }
 %func_interface = type { %fb_interface, %fb_interface }
 
-@fb__init = unnamed_addr constant %fb_interface { i16 9 }
 @main_instance = global %main_interface { %fb_interface { i16 9 } }
+@fb__init = unnamed_addr constant %fb_interface { i16 9 }
 
 define i32 @func(%func_interface* %0) {
 entry:

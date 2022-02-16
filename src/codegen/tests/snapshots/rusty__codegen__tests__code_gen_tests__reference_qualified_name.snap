@@ -1,19 +1,19 @@
 ---
 source: src/codegen/tests/code_gen_tests.rs
-assertion_line: 1900
+assertion_line: 1925
 expression: result
 
 ---
 ; ModuleID = 'main'
 source_filename = "main"
 
-%fb_interface = type { i32 }
 %foo_interface = type { i32, i32, %fb_interface }
+%fb_interface = type { i32 }
 %prg_interface = type { i32 }
 
-@fb__init = unnamed_addr constant %fb_interface zeroinitializer
 @foo_instance = global %foo_interface zeroinitializer
 @prg_instance = global %prg_interface zeroinitializer
+@fb__init = unnamed_addr constant %fb_interface zeroinitializer
 
 define void @fb(%fb_interface* %0) {
 entry:

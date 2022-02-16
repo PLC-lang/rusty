@@ -855,6 +855,9 @@ impl<'i> TypeAnnotator<'i> {
                             resulting_type: DWORD_TYPE.into(),
                         },
                     ),
+                    crate::ast::DirectAccessType::Template => {
+                        unreachable!("Templates cannot occur in direct access")
+                    }
                 }
             }
             AstStatement::BinaryExpression {
@@ -1630,7 +1633,7 @@ fn register_string_type(index: &mut Index, is_wide: bool, len: usize) -> String 
                 } else {
                     StringEncoding::Utf8
                 },
-                size: typesystem::TypeSize::LiteralInteger(len as u32 + 1),
+                size: typesystem::TypeSize::LiteralInteger(len as i64 + 1),
             },
         });
     }

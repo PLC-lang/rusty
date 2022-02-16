@@ -586,7 +586,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
 
         let expressions = parameters
             .as_ref()
-            .map(|exprs| ast::flatten_expression_list(exprs))
+            .map(ast::flatten_expression_list)
             .unwrap_or_else(std::vec::Vec::new);
 
         for (index, exp) in expressions.iter().enumerate() {
@@ -618,7 +618,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
     ) -> Result<(), Diagnostic> {
         let expressions = parameters
             .as_ref()
-            .map(|exprs| ast::flatten_expression_list(exprs))
+            .map(ast::flatten_expression_list)
             .unwrap_or_else(std::vec::Vec::new);
 
         for exp in expressions.iter() {

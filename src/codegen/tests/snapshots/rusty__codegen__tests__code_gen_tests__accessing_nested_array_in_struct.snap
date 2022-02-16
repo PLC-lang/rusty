@@ -1,17 +1,17 @@
 ---
 source: src/codegen/tests/code_gen_tests.rs
-assertion_line: 2429
+assertion_line: 2494
 expression: result
 
 ---
 ; ModuleID = 'main'
 source_filename = "main"
 
-%MyStruct = type { [5 x i16] }
 %Main_interface = type { %MyStruct }
+%MyStruct = type { [5 x i16] }
 
-@MyStruct__init = unnamed_addr constant %MyStruct zeroinitializer
 @Main_instance = global %Main_interface zeroinitializer
+@MyStruct__init = unnamed_addr constant %MyStruct zeroinitializer
 
 define void @Main(%Main_interface* %0) {
 entry:

@@ -2,14 +2,21 @@
 use indexmap::IndexMap;
 
 use crate::{
-    ast::{Implementation, LinkageType, PouType, SourceRange, TypeNature},
+    ast::{
+        AstStatement, DirectAccessType, HardwareAccessType, Implementation, LinkageType, PouType,
+        SourceRange, TypeNature,
+    },
     diagnostics::Diagnostic,
-    typesystem::*,
+    typesystem::{self, *},
 };
 
-use self::const_expressions::{ConstExpressions, ConstId};
+use self::{
+    const_expressions::{ConstExpressions, ConstId},
+    instance_iterator::InstanceIterator,
+};
 
 pub mod const_expressions;
+mod instance_iterator;
 #[cfg(test)]
 mod tests;
 pub mod visitor;
@@ -32,8 +39,53 @@ pub struct VariableIndexEntry {
     location_in_parent: u32,
     /// Wether the variable is externally or internally available
     linkage: LinkageType,
+    /// A binding to a hardware or external location
+    binding: Option<HardwareBinding>,
     /// the location in the original source-file
     pub source_location: SourceRange,
+}
+
+#[derive(Debug, PartialEq, Clone)]
+pub struct HardwareBinding {
+    /// Specifies if the binding is an In/Out or Memory binding
+    pub direction: HardwareAccessType,
+    /// The datatype (size) of the binding
+    pub access: DirectAccessType,
+    /// A list of entries that form this binding
+    pub entries: Vec<ConstId>,
+    /// The location in the original source-file
+    pub location: SourceRange,
+}
+
+impl HardwareBinding {
+    fn from_statement(index: &mut Index, it: &AstStatement, scope: Option<String>) -> Option<Self> {
+        if let AstStatement::HardwareAccess {
+            access,
+            address,
+            direction,
+            location,
+            ..
+        } = it
+        {
+            Some(HardwareBinding {
+                access: *access,
+                direction: *direction,
+                entries: address
+                    .iter()
+                    .map(|expr| {
+                        index.constant_expressions.add_constant_expression(
+                            expr.clone(),
+                            typesystem::DINT_SIZE.to_string(),
+                            scope.clone(),
+                        )
+                    })
+                    .collect(),
+                location: location.clone(),
+            })
+        } else {
+            None
+        }
+    }
 }
 
 #[derive(Debug)]
@@ -42,6 +94,7 @@ pub struct MemberInfo<'b> {
     variable_name: &'b str,
     variable_linkage: VariableType,
     variable_type_name: &'b str,
+    binding: Option<HardwareBinding>,
     is_constant: bool,
 }
 
@@ -63,6 +116,7 @@ impl VariableIndexEntry {
             data_type_name: data_type_name.to_string(),
             location_in_parent,
             linkage: LinkageType::Internal,
+            binding: None,
             source_location,
         }
     }
@@ -82,6 +136,7 @@ impl VariableIndexEntry {
             data_type_name: data_type_name.to_string(),
             location_in_parent: 0,
             linkage: LinkageType::Internal,
+            binding: None,
             source_location,
         }
     }
@@ -98,6 +153,11 @@ impl VariableIndexEntry {
 
     pub fn set_constant(mut self, is_constant: bool) -> Self {
         self.is_constant = is_constant;
+        self
+    }
+
+    pub fn set_hardware_binding(mut self, binding: Option<HardwareBinding>) -> Self {
+        self.binding = binding;
         self
     }
 
@@ -154,6 +214,14 @@ impl VariableIndexEntry {
 
     pub fn get_variable_type(&self) -> VariableType {
         self.variable_type
+    }
+
+    pub fn has_hardware_binding(&self) -> bool {
+        self.binding.is_some()
+    }
+
+    pub fn get_hardware_binding(&self) -> Option<&HardwareBinding> {
+        self.binding.as_ref()
     }
 
     pub(crate) fn is_parameter(&self) -> bool {
@@ -260,7 +328,7 @@ impl From<&PouType> for ImplementationType {
 /// the TypeIndex carries all types.
 /// it is extracted into its seaprate struct so it can be
 /// internally borrowed individually from the other maps
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct TypeIndex {
     /// all types (structs, enums, type, POUs, etc.)
     types: IndexMap<String, DataType>,
@@ -269,8 +337,8 @@ pub struct TypeIndex {
     void_type: DataType,
 }
 
-impl TypeIndex {
-    fn new() -> Self {
+impl Default for TypeIndex {
+    fn default() -> Self {
         TypeIndex {
             types: IndexMap::new(),
             pou_types: IndexMap::new(),
@@ -282,7 +350,9 @@ impl TypeIndex {
             },
         }
     }
+}
 
+impl TypeIndex {
     pub fn find_type(&self, type_name: &str) -> Option<&DataType> {
         self.types
             .get(&type_name.to_lowercase())
@@ -329,10 +399,13 @@ impl TypeIndex {
 /// The global index of the rusty-compiler
 ///
 /// The index contains information about all referencable elements.
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct Index {
     /// all global variables
     global_variables: IndexMap<String, VariableIndexEntry>,
+
+    /// all struct initializers
+    global_initializers: IndexMap<String, VariableIndexEntry>,
 
     /// all enum-members with their names
     enum_global_variables: IndexMap<String, VariableIndexEntry>,
@@ -353,18 +426,6 @@ pub struct Index {
 }
 
 impl Index {
-    pub fn new() -> Index {
-        Index {
-            global_variables: IndexMap::new(),
-            enum_global_variables: IndexMap::new(),
-            enum_qualified_variables: IndexMap::new(),
-            member_variables: IndexMap::new(),
-            type_index: TypeIndex::new(),
-            implementations: IndexMap::new(),
-            constant_expressions: ConstExpressions::new(),
-        }
-    }
-
     /// imports all entries from the given index into the current index
     ///
     /// imports all global_variables, member_variables, types and implementations
@@ -386,6 +447,13 @@ impl Index {
             self.enum_global_variables.insert(name, e.clone());
             self.enum_qualified_variables
                 .insert(e.qualified_name.to_lowercase(), e);
+        }
+
+        //initializers
+        for (name, mut e) in other.global_initializers.drain(..) {
+            e.initial_value =
+                self.maybe_import_const_expr(&mut other.constant_expressions, &e.initial_value);
+            self.global_initializers.insert(name, e);
         }
 
         //member variables
@@ -431,6 +499,9 @@ impl Index {
 
         //implementations
         self.implementations.extend(other.implementations);
+
+        //Constant expressions are intentionally not imported
+        // self.constant_expressions.import(other.constant_expressions)
     }
 
     /// imports the corresponding const-expression (according to the given initializer-id) from the given ConstExpressions
@@ -460,7 +531,7 @@ impl Index {
         type_size: &TypeSize,
     ) -> TypeSize {
         let ts = match type_size {
-            TypeSize::LiteralInteger(_) => Some(type_size.clone()),
+            TypeSize::LiteralInteger(_) => Some(*type_size),
             TypeSize::ConstExpression(id) => import_from
                 .remove(id)
                 .map(|(expr, target_type, scope)| {
@@ -496,6 +567,11 @@ impl Index {
         self.global_variables
             .get(&name.to_lowercase())
             .or_else(|| self.enum_global_variables.get(&name.to_lowercase()))
+    }
+
+    /// returns the `VariableIndexEntry` of the global initializer with the given name
+    pub fn find_global_initializer(&self, name: &str) -> Option<&VariableIndexEntry> {
+        self.global_initializers.get(&name.to_lowercase())
     }
 
     /// return the `VariableIndexEntry` with the qualified name: `container_name`.`variable_name`
@@ -693,6 +769,14 @@ impl Index {
         &self.global_variables
     }
 
+    pub fn get_global_initializers(&self) -> &IndexMap<String, VariableIndexEntry> {
+        &self.global_initializers
+    }
+
+    pub fn get_members(&self, name: &str) -> Option<&IndexMap<String, VariableIndexEntry>> {
+        self.member_variables.get(name.to_lowercase().as_str())
+    }
+
     pub fn get_global_qualified_enums(&self) -> &IndexMap<String, VariableIndexEntry> {
         &self.enum_qualified_variables
     }
@@ -735,7 +819,7 @@ impl Index {
     /// * `location` - the location (index) inside the container
     pub fn register_member_variable(
         &mut self,
-        member_info: &MemberInfo,
+        member_info: MemberInfo,
         initial_value: Option<ConstId>,
         source_location: SourceRange,
         location: u32,
@@ -756,7 +840,8 @@ impl Index {
             source_location,
         )
         .set_constant(member_info.is_constant)
-        .set_initial_value(initial_value);
+        .set_initial_value(initial_value)
+        .set_hardware_binding(member_info.binding);
 
         self.register_member_entry(container_name, entry);
     }
@@ -776,17 +861,14 @@ impl Index {
         source_location: SourceRange,
     ) {
         let qualified_name = format!("{}.{}", enum_type_name, element_name);
-        let entry = VariableIndexEntry {
-            name: element_name.into(),
-            qualified_name: qualified_name.clone(),
-            initial_value,
+        let entry = VariableIndexEntry::create_global(
+            element_name,
+            &qualified_name,
+            enum_type_name,
             source_location,
-            variable_type: VariableType::Global,
-            data_type_name: enum_type_name.into(),
-            is_constant: true,
-            linkage: LinkageType::Internal,
-            location_in_parent: 0,
-        };
+        )
+        .set_constant(true)
+        .set_initial_value(initial_value);
         self.enum_global_variables
             .insert(element_name.to_lowercase(), entry.clone());
 
@@ -796,6 +878,11 @@ impl Index {
 
     pub fn register_global_variable(&mut self, name: &str, variable: VariableIndexEntry) {
         self.global_variables.insert(name.to_lowercase(), variable);
+    }
+
+    pub fn register_global_initializer(&mut self, name: &str, variable: VariableIndexEntry) {
+        self.global_initializers
+            .insert(name.to_lowercase(), variable);
     }
 
     pub fn register_type(&mut self, datatype: DataType) {
@@ -860,11 +947,20 @@ impl Index {
             _ => initial_type,
         }
     }
-}
 
-impl Default for Index {
-    fn default() -> Self {
-        Self::new()
+    /// Creates an iterator over all instances in the index
+    pub fn find_instances(&self) -> InstanceIterator {
+        InstanceIterator::new(self)
+    }
+
+    /// Creates an iterator over all instances in the index
+    /// The passed filter will stop the iterator from navigating deeper into variables that should not be considered
+    /// To filter a variable from showing up at all, (not only its children), add a filter to the returned iterator
+    pub fn filter_instances(
+        &self,
+        inner_filter: fn(&VariableIndexEntry, &Index) -> bool,
+    ) -> InstanceIterator {
+        InstanceIterator::with_filter(self, inner_filter)
     }
 }
 

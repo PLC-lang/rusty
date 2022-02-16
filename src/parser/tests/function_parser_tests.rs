@@ -138,6 +138,7 @@ fn varargs_parameters_can_be_parsed() {
                         scope: Some("foo".into()),
                     },
                     initializer: None,
+                    address: None,
                     location: SourceRange::undefined(),
                 },
                 Variable {
@@ -155,6 +156,7 @@ fn varargs_parameters_can_be_parsed() {
                         scope: Some("foo".into()),
                     },
                     initializer: None,
+                    address: None,
                     location: SourceRange::undefined(),
                 },
             ],
@@ -332,7 +334,8 @@ fn function_inline_struct_return_unsupported() {
                                 location: SourceRange::undefined(),
                                 referenced_type: "INT".into()
                             },
-                            initializer: None
+                            initializer: None,
+                            address: None,
                         },
                         Variable {
                             name: "y".into(),
@@ -341,7 +344,8 @@ fn function_inline_struct_return_unsupported() {
                                 location: SourceRange::undefined(),
                                 referenced_type: "INT".into()
                             },
-                            initializer: None
+                            initializer: None,
+                            address: None,
                         }
                     ],
                 },

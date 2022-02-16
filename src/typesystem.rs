@@ -1,5 +1,8 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-use std::{mem::size_of, ops::Range};
+use std::{
+    mem::size_of,
+    ops::{Range, RangeInclusive},
+};
 
 use crate::{
     ast::{AstStatement, GenericBinding, Operator, PouType, TypeNature},
@@ -116,14 +119,14 @@ impl StringEncoding {
     }
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub enum TypeSize {
-    LiteralInteger(u32),
+    LiteralInteger(i64),
     ConstExpression(ConstId),
 }
 
 impl TypeSize {
-    pub fn from_literal(v: u32) -> TypeSize {
+    pub fn from_literal(v: i64) -> TypeSize {
         TypeSize::LiteralInteger(v)
     }
 
@@ -134,7 +137,7 @@ impl TypeSize {
     /// tries to compile-time evaluate the size-expression to an i64
     pub fn as_int_value(&self, index: &Index) -> Result<i64, String> {
         match self {
-            TypeSize::LiteralInteger(v) => Ok(*v as i64),
+            TypeSize::LiteralInteger(v) => Ok(*v),
             TypeSize::ConstExpression(id) => index
                 .get_const_expressions()
                 .get_constant_int_statement_value(id)
@@ -374,7 +377,7 @@ impl DataTypeInformation {
     }
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Dimension {
     pub start_offset: TypeSize,
     pub end_offset: TypeSize,
@@ -391,6 +394,12 @@ impl Dimension {
         let start = self.start_offset.as_int_value(index)? as i128;
         let end = self.end_offset.as_int_value(index)? as i128;
         Ok(start..end)
+    }
+
+    pub fn get_range_inclusive(&self, index: &Index) -> Result<RangeInclusive<i64>, String> {
+        let start = self.start_offset.as_int_value(index)?;
+        let end = self.end_offset.as_int_value(index)?;
+        Ok(start..=end)
     }
 }
 
@@ -644,7 +653,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
             name: STRING_TYPE.into(),
             initial_value: None,
             information: DataTypeInformation::String {
-                size: TypeSize::from_literal(DEFAULT_STRING_LEN + 1),
+                size: TypeSize::from_literal((DEFAULT_STRING_LEN + 1).into()),
                 encoding: StringEncoding::Utf8,
             },
             nature: TypeNature::String,
@@ -653,7 +662,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
             name: WSTRING_TYPE.into(),
             initial_value: None,
             information: DataTypeInformation::String {
-                size: TypeSize::from_literal(DEFAULT_STRING_LEN + 1),
+                size: TypeSize::from_literal((DEFAULT_STRING_LEN + 1).into()),
                 encoding: StringEncoding::Utf16,
             },
             nature: TypeNature::String,
@@ -730,7 +739,7 @@ fn get_rank(type_information: &DataTypeInformation, index: &Index) -> u32 {
         }
         DataTypeInformation::Float { size, .. } => size + 1000,
         DataTypeInformation::String { size, .. } => match size {
-            TypeSize::LiteralInteger(size) => *size,
+            TypeSize::LiteralInteger(size) => (*size).try_into().unwrap(),
             TypeSize::ConstExpression(_) => todo!("String rank with CONSTANTS"),
         },
         DataTypeInformation::Enum {

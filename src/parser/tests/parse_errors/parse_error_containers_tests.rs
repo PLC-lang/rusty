@@ -264,6 +264,7 @@ fn unclosed_var_container() {
                         location: SourceRange::undefined(),
                     },
                     initializer: None,
+                    address: None,
                     location: SourceRange::undefined(),
                 }],
                 linkage: LinkageType::Internal,
